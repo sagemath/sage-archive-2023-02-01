@@ -96,7 +96,7 @@ from sage.rings.integer import Integer
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import Matrix
 from sage.combinat.words.word import FiniteWord_class
-from sage.combinat.words.words import FiniteWords, FiniteAndInfiniteWords
+from sage.combinat.words.words import FiniteWords, FiniteOrInfiniteWords
 
 def get_cycles(f, domain=None):
     r"""
@@ -372,7 +372,7 @@ class WordMorphism(SageObject):
             if codomain is None:
                 codomain = self._build_codomain(data)
 
-            if isinstance(codomain, FiniteAndInfiniteWords):
+            if isinstance(codomain, FiniteOrInfiniteWords):
                 codomain = codomain.finite_words()
             elif not isinstance(codomain, FiniteWords):
                 raise TypeError("the codomain must be a set of finite words")
@@ -389,7 +389,7 @@ class WordMorphism(SageObject):
                     self._morph[key] = codomain(val)
 
             if domain is not None:
-                if isinstance(domain, FiniteAndInfiniteWords):
+                if isinstance(domain, FiniteOrInfiniteWords):
                     domain = domain.finite_words()
                 elif not isinstance(domain, FiniteWords):
                     raise TypeError("the codomain must be a set of finite words")

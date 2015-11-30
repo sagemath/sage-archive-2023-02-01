@@ -93,13 +93,13 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
     """
     if isinstance(alphabet, FiniteWords) or \
        isinstance(alphabet, InfiniteWords) or \
-       isinstance(alphabet, FiniteAndInfiniteWords) or \
+       isinstance(alphabet, FiniteOrInfiniteWords) or \
        isinstance(alphabet, Words_n):
         return alphabet
 
     if length is None:
         if finite and infinite:
-            return FiniteAndInfiniteWords(alphabet)
+            return FiniteOrInfiniteWords(alphabet)
         elif finite:
             return FiniteWords(alphabet)
         elif infinite:
@@ -137,7 +137,7 @@ class AbstractLanguage(Parent):
             sage: Words('abc').cmp_letters
             <built-in function cmp>
             sage: Words('bac').cmp_letters
-            <bound method FiniteAndInfiniteWords._cmp_letters ...>
+            <bound method FiniteOrInfiniteWords._cmp_letters ...>
         """
         if isinstance(alphabet, (int,Integer)):
             from sage.sets.integer_range import IntegerRange
@@ -1296,7 +1296,7 @@ class FiniteWords(AbstractLanguage):
         # set the codomain
         if codomain is None:
             codomain = self
-        elif isinstance(codomain, FiniteAndInfiniteWords):
+        elif isinstance(codomain, FiniteOrInfiniteWords):
             codomain = codomain.finite_words()
         elif not isinstance(codomain, FiniteWords):
             raise TypeError("codomain (=%s) must be an instance of FiniteWords"%codomain)
@@ -1686,7 +1686,7 @@ class InfiniteWords(AbstractLanguage):
             letter = some_letters[0]
             return self(lambda n : letter, length=Infinity)
 
-class FiniteAndInfiniteWords(AbstractLanguage):
+class FiniteOrInfiniteWords(AbstractLanguage):
     def __init__(self, alphabet):
         r"""
         INPUT:
@@ -2421,7 +2421,7 @@ class Words_n(Parent):
 ###############
 # old pickles #
 ###############
-class Words_all(FiniteAndInfiniteWords):
+class Words_all(FiniteOrInfiniteWords):
     r"""
     Deprecated class used for unpickle support only!
     """
@@ -2434,13 +2434,13 @@ class Words_all(FiniteAndInfiniteWords):
             sage: from sage.combinat.words.words import Words_all
             sage: Words_all()
             doctest:...: DeprecationWarning: Words_all is deprecated, use
-            FiniteAndInfiniteWords instead
+            FiniteOrInfiniteWords instead
             See http://trac.sagemath.org/19619 for details.
             Finite and infinite words over Set of Python objects of type 'object'
         """
         from sage.misc.superseded import deprecation
-        deprecation(19619, "Words_all is deprecated, use FiniteAndInfiniteWords instead")
-        FiniteAndInfiniteWords.__init__(self, None)
+        deprecation(19619, "Words_all is deprecated, use FiniteOrInfiniteWords instead")
+        FiniteOrInfiniteWords.__init__(self, None)
 
     def _element_constructor_(self):
         r"""
@@ -2452,8 +2452,8 @@ class Words_all(FiniteAndInfiniteWords):
         pass
 
 from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override("sage.combinat.words.words", "Words_over_OrderedAlphabet", FiniteAndInfiniteWords)
-register_unpickle_override("sage.combinat.words.words", "Words_over_Alphabet", FiniteAndInfiniteWords)
+register_unpickle_override("sage.combinat.words.words", "Words_over_OrderedAlphabet", FiniteOrInfiniteWords)
+register_unpickle_override("sage.combinat.words.words", "Words_over_Alphabet", FiniteOrInfiniteWords)
 register_unpickle_override("sage.combinat.words.words", "FiniteWords_length_k_over_OrderedAlphabet", Words_n)
 register_unpickle_override("sage.combinat.words.words", "FiniteWords_over_OrderedAlphabet", FiniteWords)
 register_unpickle_override("sage.combinat.words.words", "InfiniteWords_over_OrderedAlphabet", InfiniteWords)

@@ -1378,7 +1378,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         And we may use SAT-solvers if they are available::
 
-            sage: sol = S.solve(algorithm='sat'); sol  # optional - cryptominisat
+            sage: sol = S.solve(algorithm='sat') # optional - cryptominisat
             sage: print(reproducible_repr(sol))  # optional - cryptominisat
             [{x: 0, y: 1, z: 0}]
             sage: S.subs( sol[0] )

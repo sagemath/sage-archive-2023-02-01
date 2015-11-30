@@ -82,6 +82,20 @@ cdef class SymbolicSeries(Expression):
         Expression.__init__(self, SR, 0)
         self._parent = SR
 
+    def is_series(self):
+        """
+        TESTS::
+
+            sage: ex = sin(x).series(x,5)
+            sage: ex.is_series()
+            doctest:...: DeprecationWarning: ex.is_series() is deprecated. Use isinstance(ex, SymbolicSeries) instead
+            See http://trac.sagemath.org/17659 for details.
+            True
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(17659, "ex.is_series() is deprecated. Use isinstance(ex, SymbolicSeries) instead")
+        return True
+
     def is_terminating_series(self):
         """
         Return True if the series is without order term.

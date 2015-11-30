@@ -1996,6 +1996,19 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_numeric(self._gobj)
 
+    def is_series(self):
+        """
+        TESTS::
+
+            sage: x.is_series()
+            doctest:...: DeprecationWarning: ex.is_series() is deprecated. Use isinstance(ex, SymbolicSeries) instead
+            See http://trac.sagemath.org/17659 for details.
+            False
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(17659, "ex.is_series() is deprecated. Use isinstance(ex, SymbolicSeries) instead")
+        return False
+
     def is_terminating_series(self):
         """
         Return True if ``self`` is a series without order term.

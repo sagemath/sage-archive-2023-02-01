@@ -56,6 +56,26 @@ the fractions 1/5 and 1/239.
     1*x + (-1/3)*x^3 + 1/5*x^5 + (-1/7)*x^7 + 1/9*x^9 + Order(x^10)
     sage: (16*f.subs(x==1/5) - 4*f.subs(x==1/239)).n()
     3.14159268240440
+
+Note: The result of an operation or function of series is not automatically
+expanded to a series. This must be explicitly done by the user::
+
+    sage: ex1 = sin(x).series(x, 4); ex1
+    1*x + (-1/6)*x^3 + Order(x^4)
+    sage: ex2 = cos(x).series(x, 4); ex2
+    1 + (-1/2)*x^2 + Order(x^4)
+    sage: ex1 + ex2
+    (1 + (-1/2)*x^2 + Order(x^4)) + (1*x + (-1/6)*x^3 + Order(x^4))
+    sage: (ex1 + ex2).series(x,4)
+    1 + 1*x + (-1/2)*x^2 + (-1/6)*x^3 + Order(x^4)
+    sage: x*ex1
+    (1*x + (-1/6)*x^3 + Order(x^4))*x
+    sage: (x*ex1).series(x,5)
+    1*x^2 + (-1/6)*x^4 + Order(x^5)
+    sage: sin(ex1)
+    sin(1*x + (-1/6)*x^3 + Order(x^4))
+    sage: sin(ex1).series(x,9)
+    1*x + (-1/3)*x^3 + 11/120*x^5 + (-53/2520)*x^7 + Order(x^9)
 """
 ########################################################################
 #       Copyright (C) 2015 Ralf Stephan <ralf@ark.in-berlin.de>

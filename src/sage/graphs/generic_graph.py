@@ -20811,10 +20811,10 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        For connected graphs, find a subgroup of the automorphism group with
-        the same order as the graph that is transitive on vertices. For
-        disconnected graphs, check that the graph is vertex-transitive and
-        perform the check on one of its connected components.
+        For connected graphs, find a regular subgroup of the automorphism
+        group. For disconnected graphs, check that the graph is
+        vertex-transitive and perform the check on one of its connected
+        components.
 
         EXAMPLES:
 
@@ -20889,10 +20889,9 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     return C[0].is_cayley()
         else:
-            n = self.order()
             A = self.automorphism_group()
             if certificate:
-                G = A.transitive_subgroup(n)
+                G = A.regular_subgroup()
                 if G is not None:
                     v = next(self.vertex_iterator())
                     d = {f(v): f for f in G}
@@ -20902,7 +20901,7 @@ class GenericGraph(GenericGraph_pyx):
                     S = [d[u] for u in adj]
                     return (True, G, S)
             else:
-                return A.transitive_subgroup(n, return_group = False)
+                return A.regular_subgroup(return_group = False)
         if certificate:
             return (False, None, None)
         else:

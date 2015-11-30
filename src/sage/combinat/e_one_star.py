@@ -1410,7 +1410,7 @@ class E1Star(SageObject):
             raise ValueError("The substitution (%s) must be defined on positive integers."%sigma)
 
         self._sigma = WordMorphism(sigma)
-        self._d = self._sigma.domain().size_of_alphabet()
+        self._d = self._sigma.domain().alphabet().cardinality()
 
         # self._base_iter is a base for the iteration of the application of self on set
         # of faces. (Exploits the linearity of `E_1^*(\sigma)` to optimize computation.)

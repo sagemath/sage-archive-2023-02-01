@@ -9,23 +9,27 @@ in the following form
     \max \sum_{i,j=1}^n c_{ij}x_{ij}\\
     \text{Subject to:} &\sum_{i,j=1}^n a_{ijk}x_{ij} = b_k, \qquad k=1\ldots m\\
     &X \succeq 0
+
 where the `x_{ij}`, `i \leq i,j \leq n` are `n^2` variables satisfying the symmetry
 conditions `x_{ij} = x_{ji}` for all `i,j`, the `c_{ij}`, `a_{ijk}` and `b_k`
 are real coefficients, and `X` is positive semidefinite, i.e., all the eigenvalues of `X` are nonnegative.
 
+A wide variety of problems in optimization can be formulated in this standard
+form. Then, solvers are able to calculate a solution.
 
-A wide variety of problems in optimization
-can be formulated in this standard form. Then, solvers are
-able to calculate a solution.
+For instance, you want to minimize `x_0 - x_1` where:
 
-Imagine you want to minimize `x_0 - x_1` where:
+.. MATH::
+ \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right) x_0 +
+ \left( \begin{array}{cc} 3 & 4  \\ 4 & 5  \end{array} \right) x_1 \preceq
+ \left( \begin{array}{cc} 5 & 6  \\ 6 & 7  \end{array} \right),\quad
+ \left( \begin{array}{cc} 1 & 1  \\ 1 & 1  \end{array} \right) x_0 +
+ \left( \begin{array}{cc} 2 & 2  \\ 2 & 2  \end{array} \right) x_1 \preceq
+ \left( \begin{array}{cc} 3 & 3  \\ 3 & 3  \end{array} \right),
+ \quad x_0\geq 0, x_1\geq 0.
 
- - `\[ \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right)\] x_0 +  \[ \left( \begin{array}{cc} 3 & 4  \\ 4 & 5  \end{array} \right)\] \x_1 \preceq \[ \left( \begin{array}{cc} 5 & 6  \\ 6 & 7  \end{array} \right)\] `
- - `\[ \left( \begin{array}{cc} 1 & 1  \\ 1 & 1  \end{array} \right)\] x_0 +  \[ \left( \begin{array}{cc} 2 & 2  \\ 2 & 2  \end{array} \right)\] \x_1 \preceq \[ \left( \begin{array}{cc} 3 & 3  \\ 3 & 3  \end{array} \right)\] `
-
-
-and for all `x_i \in \mathbb{R}^+`.  A semidefinite program can give you an answer
-to the system above. Here is how it's done:
+A semidefinite program can give you an answer
+to the problem above. Here is how it's done:
 
   #. You have to create an instance of :class:`SemidefiniteProgram`. We
      add the parameter maximization=False since we want to minimize `x_0 - x_1`.
@@ -43,7 +47,7 @@ to the system above. Here is how it's done:
 
 The following example shows all these steps::
 
-    sage: p = SemidefiniteProgram(solver = "cvxopt", maximization = False)
+    sage: p = SemidefiniteProgram(maximization = False)
     sage: x = p.new_variable()
     sage: p.set_objective(x[0] - x[1])
     sage: a1 = matrix([[1, 2.], [2., 3.]])
@@ -54,8 +58,12 @@ The following example shows all these steps::
     sage: b3 = matrix([[3, 3.], [3., 3.]])
     sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
     sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+    sage: p.add_constraint(matrix([1.])*x[0]>=matrix([0.]))
+    sage: p.add_constraint(matrix([1.])*x[1]>=matrix([0.]))
     sage: print 'Objective Value:', round(p.solve(),3)
-    Objective Value: -3.0
+    Objective Value: -1.0
+    sage: map(lambda x: round(x,3), p.get_values(x))
+    [0.0, 1.0]
     sage: p.show()
     Minimization:
       x_0 - x_1
@@ -65,7 +73,7 @@ The following example shows all these steps::
     Variables:
        x_0,  x_1
 
-The CVXOPT backends computes with the Real Double Field, for example::
+The default CVXOPT backend computes with the Real Double Field, for example::
 
     sage: p = SemidefiniteProgram(solver='cvxopt')
     sage: p.base_ring()

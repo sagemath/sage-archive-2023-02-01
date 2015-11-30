@@ -6,6 +6,7 @@ Numerical Optimization
 
    sage/numerical/knapsack
    sage/numerical/mip
+   sage/numerical/sdp
    sage/numerical/linear_functions
    sage/numerical/linear_tensor
    sage/numerical/linear_tensor_element
@@ -24,6 +25,7 @@ LP Solver backends
    sage/numerical/backends/glpk_graph_backend
    sage/numerical/backends/ppl_backend
    sage/numerical/backends/cvxopt_backend
+   sage/numerical/backends/cvxopt_sdp_backend
 
 .. backends depending on optional packages
 ..   sage/numerical/backends/coin_backend

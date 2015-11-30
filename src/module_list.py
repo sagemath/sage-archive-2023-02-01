@@ -1224,8 +1224,7 @@ ext_modules = [
 
     Extension("sage.rings.complex_arb",
               ["sage/rings/complex_arb.pyx"],
-              libraries=['mpfi', 'mpfr'],
-              include_dirs=[SAGE_INC + '/flint']),
+              libraries=['mpfi', 'mpfr']),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
@@ -1296,8 +1295,7 @@ ext_modules = [
 
     Extension("sage.rings.real_arb",
               ["sage/rings/real_arb.pyx"],
-              libraries = ['mpfi', 'mpfr'],
-              include_dirs = [SAGE_INC + '/flint']),
+              libraries = ['mpfi', 'mpfr']),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),

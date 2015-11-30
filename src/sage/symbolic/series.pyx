@@ -82,18 +82,6 @@ cdef class SymbolicSeries(Expression):
         Expression.__init__(self, SR, 0)
         self._parent = SR
 
-    def is_series(self):
-        """
-        Return True.
-
-        EXAMPLES::
-
-            sage: ex = exp(x).series(x,10)
-            sage: ex.is_series()
-            True
-        """
-        return True
-
     def is_terminating_series(self):
         """
         Return True if the series is without order term.
@@ -109,8 +97,6 @@ cdef class SymbolicSeries(Expression):
 
             sage: (x^5+x^2+1).series(x,10)
             1 + 1*x^2 + 1*x^5
-            sage: (x^5+x^2+1).series(x,10).is_series()
-            True
             sage: (x^5+x^2+1).series(x,10).is_terminating_series()
             True
             sage: SR(5).is_terminating_series()

@@ -1996,57 +1996,12 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_numeric(self._gobj)
 
-    def is_series(self):
-        """
-        Return True if ``self`` is a :class:`~sage.symbolic.series.SymbolicSeries`.
-
-        OUTPUT:
-
-        Boolean. Whether ``self`` is a series symbolic
-        expression. Usually, this means that it was constructed by the
-        :meth:`series` method.
-
-        Returns ``False`` if only a subexpression of the symbolic
-        expression is a series.
-
-        EXAMPLES::
-
-            sage: SR(5).is_series()
-            False
-            sage: var('x')
-            x
-            sage: x.is_series()
-            False
-            sage: exp(x).is_series()
-            False
-            sage: exp(x).series(x,10).is_series()
-            True
-
-        Laurent series are series, too::
-
-            sage: laurent_series = (cos(x)/x).series(x, 5)
-            sage: laurent_series
-            1*x^(-1) + (-1/2)*x + 1/24*x^3 + Order(x^5)
-            sage: laurent_series.is_series()
-            True
-
-        Something only containing a series as a subexpression is not a
-        series::
-
-            sage: sum_expr = 1 + exp(x).series(x,5); sum_expr
-            (1 + 1*x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + Order(x^5)) + 1
-            sage: sum_expr.is_series()
-            False
-        """
-        return False
-
     def is_terminating_series(self):
         """
         Return True if ``self`` is a series without order term.
 
         A series is terminating if it can be represented exactly,
-        without requiring an order term. See also :meth:`is_series`
-        for general series.
+        without requiring an order term.
 
         OUTPUT:
 
@@ -2057,8 +2012,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (x^5+x^2+1).series(x,10)
             1 + 1*x^2 + 1*x^5
-            sage: (x^5+x^2+1).series(x,10).is_series()
-            True
             sage: (x^5+x^2+1).series(x,10).is_terminating_series()
             True
             sage: SR(5).is_terminating_series()

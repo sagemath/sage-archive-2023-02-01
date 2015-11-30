@@ -108,12 +108,12 @@ cdef class SymbolicSeries(Expression):
 
             sage: ex = sin(x).series(x,5)
             sage: ex.is_series()
-            doctest:...: DeprecationWarning: ex.is_series() is deprecated. Use isinstance(ex, SymbolicSeries) instead
+            doctest:...: DeprecationWarning: ex.is_series() is deprecated. Use isinstance(ex, sage.symbolic.series.SymbolicSeries) instead
             See http://trac.sagemath.org/17659 for details.
             True
         """
         from sage.misc.superseded import deprecation
-        deprecation(17659, "ex.is_series() is deprecated. Use isinstance(ex, SymbolicSeries) instead")
+        deprecation(17659, "ex.is_series() is deprecated. Use isinstance(ex, sage.symbolic.series.SymbolicSeries) instead")
         return True
 
     def is_terminating_series(self):

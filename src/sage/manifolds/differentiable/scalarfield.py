@@ -895,12 +895,11 @@ class DiffScalarField(ScalarField):
 
         Hodge dual of a scalar field in the Euclidean space `R^3`::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: M = Manifold(3, 'M', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
-            sage: f = M.scalar_field(function('F',x,y,z), name='f')
+            sage: f = M.scalar_field(function('F')(x,y,z), name='f')
             sage: sf = f.hodge_dual(g) ; sf
             3-form *f on the 3-dimensional differentiable manifold M
             sage: sf.display()

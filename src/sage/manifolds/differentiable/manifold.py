@@ -2911,8 +2911,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Metric on a 3-dimensional manifold::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: M = Manifold(3, 'M', start_index=1)
             sage: c_xyz.<x,y,z> = M.chart()
             sage: g = M.metric('g'); g
             Riemannian metric g on the 3-dimensional differentiable manifold M
@@ -2957,7 +2956,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Metric of the hyperbolic plane `H^2`::
 
-            sage: H2 = DiffManifold(2, 'H^2', start_index=1)
+            sage: H2 = Manifold(2, 'H^2', start_index=1)
             sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincare half-plane coord.
             sage: g = H2.riemannian_metric('g')
             sage: g[1,1], g[2,2] = 1/y^2, 1/y^2
@@ -2985,7 +2984,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: g = M.riemann_metric('g')
             doctest:...: DeprecationWarning: Use riemannian_metric() instead.
             See http://trac.sagemath.org/19209 for details.
@@ -3039,7 +3038,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Metric of Minkowski spacetime::
 
-            sage: M = DiffManifold(4, 'M')
+            sage: M = Manifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
             sage: g = M.lorentzian_metric('g'); g
             Lorentzian metric g on the 4-dimensional differentiable manifold M
@@ -3077,7 +3076,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(4, 'M')
+            sage: M = Manifold(4, 'M')
             sage: g = M.lorentz_metric('g')
             doctest:...: DeprecationWarning: Use lorentzian_metric() instead.
             See http://trac.sagemath.org/19209 for details.

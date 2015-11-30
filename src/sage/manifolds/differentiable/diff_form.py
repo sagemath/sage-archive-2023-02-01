@@ -547,8 +547,7 @@ class DiffForm(TensorField):
         Hodge dual of a 1-form on the 2-sphere equipped with the standard
         metric: we first construct `\mathbb{S}^2` and its metric `g`::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord. (North and South)
@@ -1259,8 +1258,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         Hodge dual of a 1-form in the Euclidean space `R^3`::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: M = Manifold(3, 'M', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.metric('g')  # the Euclidean metric
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1

@@ -80,8 +80,7 @@ class PseudoRiemannianMetric(TensorField):
 
     Standard metric on the sphere `S^2`::
 
-        sage: DiffManifold._clear_cache_() # for doctests only
-        sage: M = DiffManifold(2, 'S^2', start_index=1)
+        sage: M = Manifold(2, 'S^2', start_index=1)
         sage: # The two open domains covered by stereographic coordinates (North and South):
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
@@ -326,7 +325,7 @@ class PseudoRiemannianMetric(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -382,7 +381,7 @@ class PseudoRiemannianMetric(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
             sage: g._repr_()
             'Riemannian metric g on the 5-dimensional differentiable manifold M'
@@ -412,7 +411,7 @@ class PseudoRiemannianMetric(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g', signature=3)
             sage: g1 = g._new_instance(); g1
             Lorentzian metric unnamed metric on the 5-dimensional
@@ -425,9 +424,9 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
-        return self.__class__(self._vmodule, 'unnamed metric',
-                              signature=self._signature,
-                              latex_name=r'\mbox{unnamed metric}')
+        return type(self)(self._vmodule, 'unnamed metric',
+                          signature=self._signature,
+                          latex_name=r'\mbox{unnamed metric}')
 
     def _init_derived(self):
         r"""
@@ -435,7 +434,7 @@ class PseudoRiemannianMetric(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
             sage: g._init_derived()
 
@@ -461,7 +460,7 @@ class PseudoRiemannianMetric(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
             sage: g._del_derived()
 
@@ -486,7 +485,7 @@ class PseudoRiemannianMetric(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
             sage: g._del_inverse()
 
@@ -509,7 +508,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Signatures on a 2-dimensional manifold::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: g = M.metric('g') # if not specified, the signature is Riemannian
             sage: g.signature()
             2
@@ -529,7 +528,7 @@ class PseudoRiemannianMetric(TensorField):
         INPUT:
 
         - ``subdomain`` -- open subset `U` of the metric's domain (must be an
-          instance of :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          instance of :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
           `\Phi:\ U \rightarrow V`, where `V` is a subdomain of
           ``self._codomain``
@@ -544,7 +543,7 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g', signature=3)
             sage: U = M.open_subset('U')
             sage: g.restrict(U)
@@ -600,8 +599,7 @@ class PseudoRiemannianMetric(TensorField):
         Metric defined from a field of symmetric bilinear forms on a
         non-parallelizable 2-dimensional manifold::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -661,7 +659,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Inverse of the standard metric on the 2-sphere::
 
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)  # S^2 is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord.
@@ -723,7 +721,7 @@ class PseudoRiemannianMetric(TensorField):
         Levi-Civitation connection associated with the Euclidean metric on
         `\RR^3`::
 
-            sage: M = DiffManifold(3, 'R^3', start_index=1)
+            sage: M = Manifold(3, 'R^3', start_index=1)
             sage: # Let us use spherical coordinates on R^3:
             sage: U = M.open_subset('U') # the complement of the half-plane (y=0, x>=0)
             sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
@@ -792,7 +790,7 @@ class PseudoRiemannianMetric(TensorField):
         Christoffel symbols of the flat metric on `\RR^3` with respect to
         spherical coordinates::
 
-            sage: M = DiffManifold(3, 'R3', r'\RR^3', start_index=1)
+            sage: M = Manifold(3, 'R3', r'\RR^3', start_index=1)
             sage: U = M.open_subset('U') # the complement of the half-plane (y=0, x>=0)
             sage: X.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = U.metric('g')
@@ -880,7 +878,7 @@ class PseudoRiemannianMetric(TensorField):
         Christoffel symbols of the flat metric on `\RR^3` with respect to
         spherical coordinates::
 
-            sage: M = DiffManifold(3, 'R3', r'\RR^3', start_index=1)
+            sage: M = Manifold(3, 'R3', r'\RR^3', start_index=1)
             sage: U = M.open_subset('U') # the complement of the half-plane (y=0, x>=0)
             sage: X.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = U.metric('g')
@@ -984,8 +982,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Riemann tensor of the standard metric on the 2-sphere::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') # the complement of a meridian (domain of spherical coordinates)
             sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: a = var('a') # the sphere radius
@@ -1053,8 +1050,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Ricci tensor of the standard metric on the 2-sphere::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') # the complement of a meridian (domain of spherical coordinates)
             sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: a = var('a') # the sphere radius
@@ -1102,8 +1098,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Ricci scalar of the standard metric on the 2-sphere::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') # the complement of a meridian (domain of spherical coordinates)
             sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: a = var('a') # the sphere radius
@@ -1157,7 +1152,7 @@ class PseudoRiemannianMetric(TensorField):
         Checking that the Weyl tensor identically vanishes on a 3-dimensional
         manifold, for instance the hyperbolic space `H^3`::
 
-            sage: M = DiffManifold(3, 'H^3', start_index=1)
+            sage: M = Manifold(3, 'H^3', start_index=1)
             sage: U = M.open_subset('U') # the complement of the half-plane (y=0, x>=0)
             sage: X.<rh,th,ph> = U.chart(r'rh:(0,+oo):\rho th:(0,pi):\theta  ph:(0,2*pi):\phi')
             sage: g = U.metric('g')
@@ -1215,7 +1210,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Metric determinant on a 2-dimensional manifold::
 
-            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1, 2], g[2, 2] = 1+x, x*y , 1-y
@@ -1298,7 +1293,7 @@ class PseudoRiemannianMetric(TensorField):
         Standard metric in the Euclidean space `\RR^3` with spherical
         coordinates::
 
-            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: M = Manifold(3, 'M', start_index=1)
             sage: U = M.open_subset('U') # the complement of the half-plane (y=0, x>=0)
             sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = U.metric('g')
@@ -1310,7 +1305,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Metric determinant on a 2-dimensional manifold::
 
-            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1, 2], g[2, 2] = 1+x, x*y , 1-y
@@ -1407,7 +1402,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Volume form on `\RR^3` with spherical coordinates::
 
-            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: M = Manifold(3, 'M', start_index=1)
             sage: U = M.open_subset('U') # the complement of the half-plane (y=0, x>=0)
             sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = U.metric('g')
@@ -1526,8 +1521,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Hodge dual of a 1-form in the Euclidean space `R^3`::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: M = Manifold(3, 'M', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
@@ -1548,7 +1542,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Hodge dual of a 0-form (scalar field) in `R^3`::
 
-            sage: f = M.scalar_field(function('F',x,y,z), name='f')
+            sage: f = M.scalar_field(function('F')(x,y,z), name='f')
             sage: sf = g.hodge_star(f) ; sf
             3-form *f on the 3-dimensional differentiable manifold M
             sage: sf.display()
@@ -1563,7 +1557,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Hodge dual of a 0-form in Minkowksi spacetime::
 
-            sage: M = DiffManifold(4, 'M')
+            sage: M = Manifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
             sage: g = M.lorentzian_metric('g')
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
@@ -1719,7 +1713,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     Metric on a 2-dimensional manifold::
 
-        sage: M = DiffManifold(2, 'M', start_index=1)
+        sage: M = Manifold(2, 'M', start_index=1)
         sage: c_xy.<x,y> = M.chart()
         sage: g = M.metric('g') ; g
         Riemannian metric g on the 2-dimensional differentiable manifold M
@@ -1792,7 +1786,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: from sage.manifolds.differentiable.metric import \
@@ -1837,7 +1831,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: g = M.metric('g')
             sage: g._init_derived()
@@ -1858,7 +1852,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: g = M.metric('g')
             sage: g._del_derived(del_restrictions=False)
@@ -1875,7 +1869,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: g = M.metric('g')
             sage: g._del_inverse()
@@ -1894,7 +1888,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
           instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
           `\Phi:\ U \rightarrow V`, where `V` is a subdomain of
           ``self._codomain``
@@ -1911,7 +1905,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         Restriction of a Lorentzian metric on `\RR^2` to the upper half plane::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: g = M.lorentzian_metric('g')
             sage: g[0,0], g[1,1] = -1, 1
@@ -1966,7 +1960,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: s = M.sym_bilin_form_field(name='s')
             sage: s[0,0], s[0,1], s[1,1] = 1+x^2, x*y, 1+y^2
@@ -2005,7 +1999,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         Inverse metric on a 2-dimensional manifold::
 
-            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-x
@@ -2088,8 +2082,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         Ricci scalar of the standard metric on the 2-sphere::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') # the complement of a meridian (domain of spherical coordinates)
             sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: a = var('a') # the sphere radius

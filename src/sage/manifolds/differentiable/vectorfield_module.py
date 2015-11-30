@@ -950,7 +950,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.metric('g')
             Riemannian metric g on the 2-dimensional differentiable manifold M
@@ -1922,7 +1922,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.metric('g')

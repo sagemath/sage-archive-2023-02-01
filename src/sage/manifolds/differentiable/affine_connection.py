@@ -1119,7 +1119,7 @@ class AffineConnection(SageObject):
         Display of Christoffel symbols, skipping the redundancy associated
         with the symmetry of the last two indices::
 
-            sage: M = DiffManifold(3, 'R^3', start_index=1)
+            sage: M = Manifold(3, 'R^3', start_index=1)
             sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
@@ -1442,7 +1442,7 @@ class AffineConnection(SageObject):
         n_cov = tensor._tensor_type[1]
 
         if Parallelism().get('tensor') != 1:
-            # parllel computation
+            # parallel computation
             # !!!!! Seems to work only when a frame is chosen !!!!!!
 
             nproc = Parallelism().get('tensor')

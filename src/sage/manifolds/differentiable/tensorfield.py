@@ -3122,7 +3122,7 @@ class TensorField(ModuleElement):
 
         Raising the index of a 1-form results in a vector field::
 
-            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
@@ -3270,7 +3270,7 @@ class TensorField(ModuleElement):
 
         Lowering the index of a vector field results in a 1-form::
 
-            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y

@@ -30,9 +30,9 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.parallel.decorate import parallel
+from sage.parallel.parallelism import Parallelism
 from sage.manifolds.differentiable.affine_connection import AffineConnection
-from sage.parallel.all import parallel
-from sage.tensor.modules.parallel_utilities import TensorParallelCompute
 
 class LeviCivitaConnection(AffineConnection):
     r"""
@@ -124,9 +124,8 @@ class LeviCivitaConnection(AffineConnection):
     Levi-Civita connection associated with the Euclidean metric on `\RR^3`
     expressed in spherical coordinates::
 
-        sage: DiffManifold._clear_cache_() # for doctests only
         sage: forget() # for doctests only
-        sage: M = DiffManifold(3, 'R^3', start_index=1)
+        sage: M = Manifold(3, 'R^3', start_index=1)
         sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
         sage: g = M.metric('g')
         sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
@@ -209,8 +208,7 @@ class LeviCivitaConnection(AffineConnection):
 
         Levi-Civita connection of the hyperbolic plane::
 
-            sage: DiffManifold._clear_cache_()  # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<r,ph> = M.chart(r'r:(0,+oo) ph:(0,2*pi)')
             sage: g = M.metric('g')
             sage: g[0,0], g[1,1] = 1/(1+r^2), r^2
@@ -220,10 +218,10 @@ class LeviCivitaConnection(AffineConnection):
             sage: nab
             Levi-Civita connection nabla associated with the Riemannian metric
              g on the 2-dimensional differentiable manifold M
-            sage: TestSuite(nab).run()
+            sage: TestSuite(nab).run(skip='_test_pickling')
 
         """
-        AffineConnection.__init__(self, metric._domain, name, latex_name)
+        AffineConnection.__init__(self, metric.domain(), name, latex_name)
         self._metric = metric
         # Initialization of the derived quantities:
         LeviCivitaConnection._init_derived(self)
@@ -239,7 +237,7 @@ class LeviCivitaConnection(AffineConnection):
 
         TESTS::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
             sage: nab = g.connection()
             sage: nab._repr_()
@@ -260,7 +258,7 @@ class LeviCivitaConnection(AffineConnection):
 
         TEST::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
             sage: nab = g.connection()
             sage: nab._init_derived()
@@ -274,13 +272,33 @@ class LeviCivitaConnection(AffineConnection):
 
         TEST::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
             sage: nab = g.connection()
             sage: nab._del_derived()
 
         """
         AffineConnection._del_derived(self)
+
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(5, 'M')
+            sage: g = M.metric('g')
+            sage: nab = g.connection()
+            sage: nab.__reduce__()
+            (<class 'sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection'>,
+             (Riemannian metric g on the 5-dimensional differentiable manifold M,
+              'nabla_g',
+              '\\nabla_{g}',
+              True))
+
+        """
+        return (LeviCivitaConnection, (self._metric, self._name,
+                                       self._latex_name, True))
 
     def restrict(self, subdomain):
         r"""
@@ -292,7 +310,7 @@ class LeviCivitaConnection(AffineConnection):
 
         - ``subdomain`` -- open subset `U` of the connection's domain (must be
           an instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
 
         OUTPUT:
 
@@ -301,8 +319,7 @@ class LeviCivitaConnection(AffineConnection):
 
         EXAMPLE::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[0,0], g[1,1] = 1+y^2, 1+x^2
@@ -360,7 +377,7 @@ class LeviCivitaConnection(AffineConnection):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[0,0], g[1,1] = 1, 1
@@ -425,7 +442,7 @@ class LeviCivitaConnection(AffineConnection):
         Christoffel symbols of the Levi-Civita connection associated to
         the Euclidean metric on `\RR^3` expressed in spherical coordinates::
 
-            sage: M = DiffManifold(3, 'R^3', start_index=1)
+            sage: M = Manifold(3, 'R^3', start_index=1)
             sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
@@ -494,12 +511,9 @@ class LeviCivitaConnection(AffineConnection):
                     gg = self._metric.comp(frame)
                     ginv = self._metric.inverse().comp(frame)
 
-                    # marco_t0 = time.time()
-
-                    if TensorParallelCompute()._use_paral :
+                    if Parallelism().get('tensor') != 1:
                         # parallel computation
-
-                        nproc = TensorParallelCompute()._nproc
+                        nproc = Parallelism().get('tensor')
                         lol = lambda lst, sz: [lst[i:i+sz] for i in
                                                         range(0, len(lst), sz)]
 
@@ -550,7 +564,6 @@ class LeviCivitaConnection(AffineConnection):
 
                     # Assignation of results
                     self._coefficients[frame] = gam
-                    #print "time connection :",time.time()-marco_t0
 
                 else:
                     # Computation from the formula defining the connection coef.
@@ -573,7 +586,7 @@ class LeviCivitaConnection(AffineConnection):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[0,0], g[1,1] = 1+y^2, 1+x^2
@@ -632,7 +645,7 @@ class LeviCivitaConnection(AffineConnection):
         Riemann tensor of the Levi-Civita connection associated with the
         metric of the hyperbolic plane (Poincare disk model)::
 
-            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord. on the Poincare disk
             sage: X.add_restrictions(x^2+y^2<1)
             sage: g = M.metric('g')
@@ -702,7 +715,7 @@ class LeviCivitaConnection(AffineConnection):
 
         Ricci tensor of the standard connection on the 2-dimensional sphere::
 
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: c_spher.<th,ph> = M.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2] = 1, sin(th)^2
@@ -721,7 +734,7 @@ class LeviCivitaConnection(AffineConnection):
         to Schwarzschild metric is identically zero (as a solution of the
         Einstein equation)::
 
-            sage: M = DiffManifold(4, 'M')
+            sage: M = Manifold(4, 'M')
             sage: c_BL.<t,r,th,ph> = M.chart(r't r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # Schwarzschild-Droste coordinates
             sage: g = M.lorentzian_metric('g')
             sage: m = var('m')  # mass in Schwarzschild metric

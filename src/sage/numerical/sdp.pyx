@@ -70,8 +70,21 @@ The following example shows all these steps::
     Constraints:
       constraint_0: [1.0 2.0][2.0 3.0]x_0 + [3.0 4.0][4.0 5.0]x_1 <=  [5.0 6.0][6.0 7.0]
       constraint_1: [1.0 1.0][1.0 1.0]x_0 + [2.0 2.0][2.0 2.0]x_1 <=  [3.0 3.0][3.0 3.0]
+      constraint_2: [-1.0]x_0 <=  [0]
+      constraint_3: [-1.0]x_1 <=  [0]
     Variables:
        x_0,  x_1
+
+More interesting example, the :meth:`Lovasz theta <sage.graphs.Graph.lovasz_theta>` of the 7-gon::
+
+    sage: c=graphs.CycleGraph(7)
+    sage: c2=c.distance_graph(2).adjacency_matrix()
+    sage: c3=c.distance_graph(3).adjacency_matrix()
+    sage: p.<y>=SemidefiniteProgram()
+    sage: p.add_constraint((1/7)*matrix.identity(7)>=-y[0]*c2-y[1]*c3)
+    sage: p.set_objective(y[0]*(c2**2).trace()+y[1]*(c3**2).trace())
+    sage: x=p.solve(); x+1
+    3.31766...
 
 The default CVXOPT backend computes with the Real Double Field, for example::
 

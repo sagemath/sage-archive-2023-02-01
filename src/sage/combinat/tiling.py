@@ -747,7 +747,7 @@ class Polyomino(SageObject):
             L = ncube_isometry_group(self._dimension, orientation_preserving)
             return set((m * self).canonical() for m in L)
 
-    def translated_copies_iterator(self, box):
+    def translated_copies(self, box):
         r"""
         Returns an iterator over the translated images of self inside a
         box.
@@ -764,7 +764,7 @@ class Polyomino(SageObject):
 
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0,0),(1,0,0),(1,1,0),(1,1,1),(1,2,0)], color='deeppink')
-            sage: for t in p.translated_copies_iterator(box=(5,8,2)): t
+            sage: for t in p.translated_copies(box=(5,8,2)): t
             Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink
             Polyomino: [(0, 1, 0), (1, 1, 0), (1, 2, 0), (1, 2, 1), (1, 3, 0)], Color: deeppink
             Polyomino: [(0, 2, 0), (1, 2, 0), (1, 3, 0), (1, 3, 1), (1, 4, 0)], Color: deeppink
@@ -793,23 +793,23 @@ class Polyomino(SageObject):
         This method is independant of the translation of the polyomino::
 
             sage: q = Polyomino([(0,0,0), (1,0,0)])
-            sage: list(q.translated_copies_iterator((2,2,1)))
+            sage: list(q.translated_copies((2,2,1)))
             [Polyomino: [(0, 0, 0), (1, 0, 0)], Color: gray, Polyomino: [(0, 1, 0), (1, 1, 0)], Color: gray]
             sage: q = Polyomino([(34,7,-9), (35,7,-9)])
-            sage: list(q.translated_copies_iterator((2,2,1)))
+            sage: list(q.translated_copies((2,2,1)))
             [Polyomino: [(0, 0, 0), (1, 0, 0)], Color: gray, Polyomino: [(0, 1, 0), (1, 1, 0)], Color: gray]
 
         Inside smaller boxes::
 
-            sage: list(p.translated_copies_iterator(box=(2,2,3)))
+            sage: list(p.translated_copies(box=(2,2,3)))
             []
-            sage: list(p.translated_copies_iterator(box=(2,3,2)))
+            sage: list(p.translated_copies(box=(2,3,2)))
             [Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink]
-            sage: list(p.translated_copies_iterator(box=(3,2,2)))
+            sage: list(p.translated_copies(box=(3,2,2)))
             []
-            sage: list(p.translated_copies_iterator(box=(1,1,1)))
+            sage: list(p.translated_copies(box=(1,1,1)))
             []
-            sage: list(p.translated_copies_iterator(box=(1,1,-1)))
+            sage: list(p.translated_copies(box=(1,1,-1)))
             []
         """
         if not len(box) == self._dimension:
@@ -821,7 +821,7 @@ class Polyomino(SageObject):
         for v in xmrange(vector(box) - vector(size), tuple):
             yield cano + v
 
-    def isometric_copies_iterator(self, box, orientation_preserving=True, modpi=False):
+    def isometric_copies(self, box, orientation_preserving=True, modpi=False):
         r"""
         Return the translated and isometric images of self that lies in the box.
 
@@ -837,20 +837,20 @@ class Polyomino(SageObject):
 
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0,0),(1,0,0),(1,1,0),(1,1,1),(1,2,0)], color='deeppink')
-            sage: L = list(p.isometric_copies_iterator(box=(5,8,2)))
+            sage: L = list(p.isometric_copies(box=(5,8,2)))
             sage: len(L)
             360
 
         ::
 
             sage: p = Polyomino([(0,0,0),(1,0,0),(1,1,0),(1,2,0),(1,2,1)], color='orange')
-            sage: L = list(p.isometric_copies_iterator(box=(5,8,2)))
+            sage: L = list(p.isometric_copies(box=(5,8,2)))
             sage: len(L)
             180
-            sage: L = list(p.isometric_copies_iterator((5,8,2), False))
+            sage: L = list(p.isometric_copies((5,8,2), False))
             sage: len(L)
             360
-            sage: L = list(p.isometric_copies_iterator((5,8,2), modpi=True))
+            sage: L = list(p.isometric_copies((5,8,2), modpi=True))
             sage: len(L)
             45
         """
@@ -859,7 +859,7 @@ class Polyomino(SageObject):
                              "dimension of the polyomino")
         all_distinct_cano = self.canonical_isometric_copies(orientation_preserving, modpi)
         for cano in all_distinct_cano:
-            for t in cano.translated_copies_iterator(box=box):
+            for t in cano.translated_copies(box=box):
                 yield t
 
     def neighbor_edges(self):
@@ -1046,8 +1046,8 @@ class Polyomino(SageObject):
         return G
 
     canonical_orthogonals = deprecated_function_alias(19107, canonical_isometric_copies)
-    translated = deprecated_function_alias(19107, translated_copies_iterator)
-    translated_orthogonals = deprecated_function_alias(19107, isometric_copies_iterator)
+    translated = deprecated_function_alias(19107, translated_copies)
+    translated_orthogonals = deprecated_function_alias(19107, isometric_copies)
 
 #######################
 # General tiling solver
@@ -1360,7 +1360,7 @@ class TilingSolver(SageObject):
                 orientation_preserving = False
             else:
                 orientation_preserving = True
-            it = p.isometric_copies_iterator(self._box,
+            it = p.isometric_copies(self._box,
                           orientation_preserving=orientation_preserving,
                           modpi=modpi)
         else:
@@ -1368,7 +1368,7 @@ class TilingSolver(SageObject):
                 raise NotImplementedError("Reflection allowed, Rotation not "
                                           "allowed is not implemented")
             else:
-                it = p.translated_copies_iterator(self._box)
+                it = p.translated_copies(self._box)
         coord_to_int = self.coord_to_int_dict()
         rows = []
         for q in it:

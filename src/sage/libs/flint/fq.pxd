@@ -31,6 +31,7 @@ cdef extern from "flint/fq.h":
     void fq_mul_fmpz(fq_t rop, const fq_t op, const fmpz_t x, const fq_ctx_t ctx)
     void fq_mul_si(fq_t rop, const fq_t op, slong x, const fq_ctx_t ctx)
     void fq_mul_ui(fq_t rop, const fq_t op, ulong x, const fq_ctx_t ctx)
+    void fq_div(fq_t rop, const fq_t op1, const fq_t op2, const fq_ctx_t ctx)
     void fq_sqr(fq_t rop, const fq_t op, const fq_ctx_t ctx)
     void fq_inv(fq_t rop, const fq_t op1, const fq_ctx_t ctx)
     void fq_gcdinv(fq_t rop, fq_t inv, const fq_t op, const fq_ctx_t ctx)

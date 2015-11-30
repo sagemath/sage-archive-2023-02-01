@@ -988,7 +988,7 @@ class Braid(FinitelyPresentedGroupElement):
         n = self.strands()
         delta = Permutation([n-i for i in range(n)])
         P = self.parent()
-        return tuple( [P._permutation_braid(delta).__pow__(a)] +
+        return tuple( [P._permutation_braid(delta) ** a] +
                       [P._permutation_braid(i) for i in l] )
 
     def _left_normal_form_perm_(self):

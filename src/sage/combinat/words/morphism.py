@@ -450,7 +450,7 @@ class WordMorphism(SageObject):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __repr__(self):
         r"""

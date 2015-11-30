@@ -73,7 +73,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         ...
         ZeroDivisionError: The modulus cannot be zero
     """
-    if not N.__nonzero__():
+    if not N:
         raise ZeroDivisionError("The modulus cannot be zero")
     cdef Matrix_rational_dense R
     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
@@ -156,7 +156,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
         ...
         ZeroDivisionError: The modulus cannot be zero
     """
-    if not N.__nonzero__():
+    if not N:
         raise ZeroDivisionError("The modulus cannot be zero")
     cdef Matrix_rational_sparse R
     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,

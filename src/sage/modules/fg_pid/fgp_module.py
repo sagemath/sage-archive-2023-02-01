@@ -521,7 +521,7 @@ class FGP_Module_class(Module):
             sage: Q1 != Q2
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # __le__ is a synonym for `is_submodule`: see below
 
@@ -541,7 +541,7 @@ class FGP_Module_class(Module):
             sage: A < A
             False
         """
-        return self.__le__(other) and not self.__eq__(other)
+        return self <= other and not self == other
 
     def __gt__(self, other):
         """
@@ -559,7 +559,7 @@ class FGP_Module_class(Module):
             sage: A > A
             False
         """
-        return self.__ge__(other) and not self.__eq__(other)
+        return self >= other and not self == other
 
     def __ge__(self, other):
         """

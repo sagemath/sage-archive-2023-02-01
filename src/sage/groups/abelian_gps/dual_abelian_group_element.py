@@ -90,7 +90,7 @@ def add_strings(x, z=0):
     if len(x) == 0:
         return z
     if not isinstance(x, list):
-        m = x.__iter__()
+        m = iter(x)
         y = next(m)
         return reduce(operator.add, m, y)
     else:

@@ -429,7 +429,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             elif len(x[0]) > 0:
                 raise TypeError("keys do not match self's parent")
             return self
-        return self.__call__(*x, **kwds)
+        return self(*x, **kwds)
     substitute = subs
 
     def __call__(self, *args, **kwds):
@@ -2305,7 +2305,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (x^3 + x - 1) % (x^2 - 1)
             2*x - 1
         """
-        return self.__mod__(other)
+        return self % other
 
     def _is_atomic(self):
         """
@@ -6723,7 +6723,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         k = 0
         while self % p == 0:
             k = k + 1
-            self = self.__floordiv__(p)
+            self //= p
         return sage.rings.integer.Integer(k)
 
     def ord(self, p=None):

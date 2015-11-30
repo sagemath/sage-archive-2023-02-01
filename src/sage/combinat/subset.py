@@ -287,7 +287,7 @@ class Subsets_s(Parent):
             sage: Subsets([0,1,2]) != Subsets([0,1,2],2)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def _repr_(self):
         """
@@ -612,7 +612,7 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(4,2) != Subsets(5,2) and Subsets(4,2) != Subsets(4,3)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def cardinality(self):
         """
@@ -922,7 +922,7 @@ class SubMultiset_s(Parent):
             sage: Subsets([1,2,2,3], submultiset=True) != Subsets([1,2,3,3], submultiset=True)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __contains__(self, s):
         """

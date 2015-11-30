@@ -514,7 +514,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             m = matrix(QQ, 3, l)
         else:
             m = diagonal_matrix([-1 for i in range(self.n)])
-        return self.__call__(m)
+        return self(m)
 
     def classical(self):
         """

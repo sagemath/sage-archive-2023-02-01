@@ -631,7 +631,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G >= H
             False
         """
-        return right.__le__(left)
+        return right <= left
 
     def __lt__(left, right):
         """
@@ -1233,7 +1233,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         if not(self.is_finite()):
            raise NotImplementedError("Group must be finite")
-        return tuple(self.__iter__())
+        return tuple(iter(self))
 
     def __iter__(self):
         """

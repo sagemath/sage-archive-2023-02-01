@@ -1920,7 +1920,7 @@ class FSMState(sage.structure.sage_object.SageObject):
             True
         """
         color = not compare_color or left.color == right.color
-        return (left.__eq__(right) and
+        return (left == right and
                 left.is_initial == right.is_initial and
                 left.is_final == right.is_final and
                 left.final_word_out == right.final_word_out and

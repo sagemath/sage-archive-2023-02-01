@@ -646,7 +646,7 @@ class Partition(CombinatorialElement):
             sage: hash(P) == hash(P)
             True
         """
-        return tuple(self._list).__hash__()
+        return hash(tuple(self._list))
 
     def _repr_(self):
         r"""

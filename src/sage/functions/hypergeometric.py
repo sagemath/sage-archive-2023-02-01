@@ -156,6 +156,7 @@ from sage.misc.misc_c import prod
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.symbolic.expression import Expression
 from sage.calculus.functional import derivative
+from functools import reduce
 
 
 def rational_param_as_tuple(x):
@@ -205,7 +206,7 @@ class Hypergeometric(BuiltinFunction):
         Initialize class.
         
         EXAMPLES::
-        
+
             sage: maxima(hypergeometric)
             hypergeometric
         """
@@ -226,7 +227,7 @@ class Hypergeometric(BuiltinFunction):
         - ``z`` -- a number or symbolic expression
     
         EXAMPLES::
-    
+
             sage: hypergeometric([], [], 1)
             hypergeometric((), (), 1)
             sage: hypergeometric([], [1], 1)
@@ -264,7 +265,7 @@ class Hypergeometric(BuiltinFunction):
     def _eval_(self, a, b, z, **kwargs):
         """
         EXAMPLES::
-        
+
             sage: hypergeometric([], [], 0)
             1
         """

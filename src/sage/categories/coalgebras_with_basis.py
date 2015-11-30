@@ -13,6 +13,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.all import ModulesWithBasis, tensor, Hom
+from sage.categories.super_modules import SuperModulesCategory
 
 class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -125,7 +126,74 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             if self.counit_on_basis is not NotImplemented:
                 return self.module_morphism(self.counit_on_basis,codomain=self.base_ring())
+            elif hasattr(self, "counit_by_coercion"):
+                return self.counit_by_coercion
 
     class ElementMethods:
-        pass
+        def coproduct_iterated(self, n=1):
+            r"""
+            Apply ``n`` coproducts to ``self``.
 
+            .. TODO::
+
+                Remove dependency on ``modules_with_basis`` methods.
+
+            EXAMPLES::
+
+                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
+                sage: Psi[2,2].coproduct_iterated(0)
+                Psi[2, 2]
+                sage: Psi[2,2].coproduct_iterated(2)
+                Psi[] # Psi[] # Psi[2, 2] + 2*Psi[] # Psi[2] # Psi[2]
+                 + Psi[] # Psi[2, 2] # Psi[] + 2*Psi[2] # Psi[] # Psi[2]
+                 + 2*Psi[2] # Psi[2] # Psi[] + Psi[2, 2] # Psi[] # Psi[]
+
+            TESTS::
+
+                sage: p = SymmetricFunctions(QQ).p()
+                sage: p[5,2,2].coproduct_iterated()
+                p[] # p[5, 2, 2] + 2*p[2] # p[5, 2] + p[2, 2] # p[5]
+                 + p[5] # p[2, 2] + 2*p[5, 2] # p[2] + p[5, 2, 2] # p[]
+                sage: p([]).coproduct_iterated(3)
+                p[] # p[] # p[] # p[]
+
+            ::
+
+                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
+                sage: Psi[2,2].coproduct_iterated(0)
+                Psi[2, 2]
+                sage: Psi[2,2].coproduct_iterated(3)
+                Psi[] # Psi[] # Psi[] # Psi[2, 2] + 2*Psi[] # Psi[] # Psi[2] # Psi[2]
+                 + Psi[] # Psi[] # Psi[2, 2] # Psi[] + 2*Psi[] # Psi[2] # Psi[] # Psi[2]
+                 + 2*Psi[] # Psi[2] # Psi[2] # Psi[] + Psi[] # Psi[2, 2] # Psi[] # Psi[]
+                 + 2*Psi[2] # Psi[] # Psi[] # Psi[2] + 2*Psi[2] # Psi[] # Psi[2] # Psi[]
+                 + 2*Psi[2] # Psi[2] # Psi[] # Psi[] + Psi[2, 2] # Psi[] # Psi[] # Psi[]
+
+            ::
+
+                sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
+                sage: m[[1,3],[2]].coproduct_iterated(2)
+                m{} # m{} # m{{1, 3}, {2}} + m{} # m{{1}} # m{{1, 2}}
+                 + m{} # m{{1, 2}} # m{{1}} + m{} # m{{1, 3}, {2}} # m{}
+                 + m{{1}} # m{} # m{{1, 2}} + m{{1}} # m{{1, 2}} # m{}
+                 + m{{1, 2}} # m{} # m{{1}} + m{{1, 2}} # m{{1}} # m{}
+                 + m{{1, 3}, {2}} # m{} # m{}
+                sage: m[[]].coproduct_iterated(3), m[[1,3],[2]].coproduct_iterated(0)
+                (m{} # m{} # m{} # m{}, m{{1, 3}, {2}})
+            """
+            if n < 0:
+                raise ValueError("cannot take fewer than 0 coproduct iterations: %s < 0" % str(n))
+            if n == 0:
+                return self
+            if n == 1:
+                return self.coproduct()
+            from sage.functions.all import floor, ceil
+            from sage.rings.all import Integer
+
+            # Use coassociativity of `\Delta` to perform many coproducts simultaneously.
+            fn = floor(Integer(n-1)/2); cn = ceil(Integer(n-1)/2)
+            split = lambda a,b: tensor([a.coproduct_iterated(fn), b.coproduct_iterated(cn)])
+            return self.coproduct().apply_multilinear_morphism(split)
+
+    class Super(SuperModulesCategory):
+        pass

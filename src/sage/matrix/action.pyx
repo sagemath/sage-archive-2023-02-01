@@ -53,8 +53,10 @@ AUTHOR:
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -63,6 +65,7 @@ import operator
 
 from matrix_space import MatrixSpace, is_MatrixSpace
 from sage.modules.free_module import FreeModule, is_FreeModule
+from sage.structure.element cimport coercion_model
 
 
 cdef class MatrixMulAction(Action):
@@ -70,8 +73,7 @@ cdef class MatrixMulAction(Action):
         if not is_MatrixSpace(G):
             raise TypeError, "Not a matrix space: %s" % G
         if G.base_ring() is not S.base_ring():
-            from sage.structure.element import get_coercion_model
-            base = get_coercion_model().common_parent(G.base_ring(), S.base_ring())
+            base = coercion_model.common_parent(G.base_ring(), S.base_ring())
         else:
             base = G.base_ring()
         Action.__init__(self, G, S, is_left, operator.mul)

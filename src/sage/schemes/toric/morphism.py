@@ -472,7 +472,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
     Same as for
     :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial`.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
@@ -584,7 +584,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
                 cone of Rational polyhedral fan in 2-d lattice N.
 
     TESTS::
-    
+
         sage: V.embedding_morphism()._reverse_ray_map()
         {N(-1): 3, N(1): 2}
         sage: V.embedding_morphism()._defining_cone
@@ -813,7 +813,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         :class:`SchemeMorphism_fan_toric_variety_dominant` for
         additional functionality for fibrations.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety`.
 
@@ -1354,7 +1354,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
     morphism :meth:`must be dominant
     <sage.geometry.fan_morphism.FanMorphism.is_dominant>`.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety_dominant`.
 
@@ -1583,7 +1583,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         irreducible components do not have to be of the same dimension.
         
         .. seealso::
-        
+
             :meth:`~SchemeMorphism_fan_toric_variety_dominant.fiber_component`.
 
         EXAMPLES::

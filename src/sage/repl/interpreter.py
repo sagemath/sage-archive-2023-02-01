@@ -76,14 +76,14 @@ Check that Cython source code appears in tracebacks::
     sage: shell = get_test_shell()
     sage: shell.run_cell('1/0')
     ---------------------------------------------------------------------------
-    .../sage/rings/integer_ring.pyx in sage.rings.integer_ring.IntegerRing_class._div (build/cythonized/sage/rings/integer_ring.c:...)()
+    .../sage/rings/integer_ring.pyx in sage.rings.integer_ring.IntegerRing_class._div (.../cythonized/sage/rings/integer_ring.c:...)()
         ...         cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
         ...         if mpz_sgn(right.value) == 0:
-        ...             raise ZeroDivisionError('Rational division by zero')
+        ...             raise ZeroDivisionError('rational division by zero')
         ...         mpz_set(mpq_numref(x.value), left.value)
         ...         mpz_set(mpq_denref(x.value), right.value)
     <BLANKLINE>
-    ZeroDivisionError: Rational division by zero
+    ZeroDivisionError: rational division by zero
     sage: shell.quit()
 """
 
@@ -104,8 +104,8 @@ import re
 import sys
 from sage.repl.preparse import preparse
 
-from IPython import Config
-from IPython.utils.traitlets import Bool, Type
+from traitlets.config.loader import Config
+from traitlets import Bool, Type
 
 from sage.env import SAGE_LOCAL
 
@@ -312,7 +312,7 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
     def quit(self):
         """
         Quit the test shell.
-        
+
         To make the test shell as realistic as possible, we switch to
         the
         :class:`~sage.repl.rich_output.backend_ipython.BackendIPythonCommandline`
@@ -351,7 +351,7 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
             sage: shell.quit()
             sage: from sage.repl.rich_output import get_display_manager
             sage: get_display_manager()
-            The Sage display manager using the doctest backend        
+            The Sage display manager using the doctest backend
         """
         self._display_manager.switch_backend(self._ipython_backend, shell=self)
 
@@ -372,14 +372,14 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
             ---------------------------------------------------------------------------
             ZeroDivisionError                         Traceback (most recent call last)
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
             sage: rc is None
             True
             sage: shell.quit()
         """
         rc = super(SageTestShell, self).run_cell(*args, **kwds)
-    
-        
+
+
 ###################################################################
 # Default configuration
 ###################################################################
@@ -558,8 +558,8 @@ class InterfaceShellTransformer(PrefilterTransformer):
             '2 + sage0 '
             sage: maxima.eval('sage0')
             '3'
-            sage: ift.preparse_imports_from_sage('2 + maxima(a)')
-            '2 +  sage1 '
+            sage: ift.preparse_imports_from_sage('2 + maxima(a)') # maxima calls set_seed on startup which is why 'sage0' will becomes 'sage4' and not just 'sage1'
+            '2 +  sage4 '
             sage: ift.preparse_imports_from_sage('2 + gap(a)')
             '2 + gap(a)'
         """
@@ -654,7 +654,7 @@ def get_test_shell():
     Returns a IPython shell that can be used in testing the functions
     in this module.
 
-    OUTPUT: 
+    OUTPUT:
 
     An IPython shell
 
@@ -690,10 +690,6 @@ def get_test_shell():
             app.shell._restart()
         except AttributeError:
             pass
-    # overwrite the default (console + graphics) formatter with the plain text one
-    import sage.repl.display.formatter as formatter
-    app.shell.display_formatter.formatters['text/plain'] = (
-        formatter.SagePlainTextFormatter(config=app.shell.config))
     # No quit noise
     app.shell.verbose_quit = False
     return app.shell
@@ -735,9 +731,9 @@ class SageTerminalApp(TerminalIPythonApp):
     name = u'Sage'
     crash_handler_class = SageCrashHandler
 
-    test_shell = Bool(False, config=True, 
+    test_shell = Bool(False, config=True,
                       help='Whether the shell is a test shell')
-    shell_class = Type(InteractiveShell, config=True, 
+    shell_class = Type(InteractiveShell, config=True,
                        help='Type of the shell')
 
     def load_config_file(self, *args, **kwds):
@@ -755,7 +751,7 @@ class SageTerminalApp(TerminalIPythonApp):
             sage: from sage.misc.temporary_file import tmp_dir
             sage: from sage.repl.interpreter import SageTerminalApp
             sage: d = tmp_dir()
-            sage: from IPython.utils.path import get_ipython_dir
+            sage: from IPython.paths import get_ipython_dir
             sage: IPYTHONDIR = get_ipython_dir()
             sage: os.environ['IPYTHONDIR'] = d
             sage: SageTerminalApp().load_config_file()

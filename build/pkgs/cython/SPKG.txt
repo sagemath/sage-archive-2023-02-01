@@ -20,9 +20,6 @@ Website: http://www.cython.org/
 
 Apache License, Version 2.0
 
-== SPKG Maintainers ==
- * Robert Bradshaw
-
 == Upstream Contact ==
  * cython-devel@python.org
 

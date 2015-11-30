@@ -1,5 +1,4 @@
 include "decl.pxi"
-include "sage/ext/cdefs.pxi"
 
-cdef class ntl_GF2X:
+cdef class ntl_GF2X(object):
     cdef GF2X_c x

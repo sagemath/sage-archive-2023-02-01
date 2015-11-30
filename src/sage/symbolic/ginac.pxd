@@ -1,22 +1,36 @@
-###############################################################################
-#   SAGE: Open Source Mathematical Software
+# distutils: language = c++
+# distutils: libraries = pynac
+"""
+Declarations for pynac, a Python frontend for ginac
+
+Check that we can externally cimport this (:trac:`18825`)::
+
+    sage: cython(  # long time
+    ....: '''
+    ....: #clang c++
+    ....: #clib pynac
+    ....: cimport sage.symbolic.ginac
+    ....: ''')
+"""
+
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
 # NOTE: Because of the except+'s below, i.e., C++ exception handling,
 # we do *not* have to use sig_on() and sig_off(). We do use it a little
 # in the actual pyx code to catch control-c for long running functions.
 
-# distutils: language = c++
-# distutils: libraries = pynac gmp
-
 from cpython cimport PyObject
 
-cdef extern from "ginac_wrap.h":
+cdef extern from "sage/symbolic/ginac_wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
     void ginac_pyinit_I(object)
@@ -162,6 +176,7 @@ cdef extern from "ginac_wrap.h":
     unsigned domain_real "GiNaC::domain::real"
     unsigned domain_positive "GiNaC::domain::positive"
     unsigned domain_infinity "GiNaC::domain::infinity"
+    unsigned domain_integer "GiNaC::domain::integer"
 
     # info flags
     unsigned info_real          "GiNaC::info_flags::real"
@@ -340,7 +355,7 @@ cdef extern from "ginac_wrap.h":
     GEx g_zetaderiv "GiNaC::zetaderiv" (GEx n, GEx x)   except + # derivatives of Riemann's zeta function
     GEx g_tgamma "GiNaC::tgamma" (GEx x)                except + # gamma function
     GEx g_lgamma "GiNaC::lgamma" (GEx x)                except + # logarithm of gamma function
-    GEx g_beta "GiNaC::beta" (GEx x, GEx y)             except + # beta function (tgamma*tgamma(y)/tgamma(x+y))
+    GEx g_beta "GiNaC::beta" (GEx x, GEx y)             except + # beta function (tgamma(x)*tgamma(y)/tgamma(x+y))
     GEx g_psi "GiNaC::psi" (GEx x)                      except + # psi (digamma) function
     GEx g_psi2 "GiNaC::psi" (GEx n, GEx x)              except + # derivatives of psi function (polygamma functions)
     GEx g_factorial "GiNaC::factorial" (GEx n)          except + # factorial function n!
@@ -443,7 +458,7 @@ cdef extern from "ginac_wrap.h":
     unsigned zetaderiv_serial "GiNaC::zetaderiv_SERIAL::serial" # derivatives of Riemann's zeta function
     unsigned tgamma_serial "GiNaC::tgamma_SERIAL::serial" # gamma function
     unsigned lgamma_serial "GiNaC::lgamma_SERIAL::serial" # logarithm of gamma function
-    unsigned beta_serial "GiNaC::beta_SERIAL::serial" # beta function (tgamma*tgamma(y)/tgamma(x+y))
+    unsigned beta_serial "GiNaC::beta_SERIAL::serial" # beta function (tgamma(x)*tgamma(y)/tgamma(x+y))
     unsigned psi_serial "GiNaC::psi_SERIAL::serial" # psi (digamma) function
     #unsigned psi2_serial "GiNaC::psi_SERIAL::serial" # derivatives of psi function (polygamma functions)
     unsigned factorial_serial "GiNaC::factorial_SERIAL::serial" # factorial function n!

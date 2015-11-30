@@ -1391,7 +1391,7 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             mu_to_H = lambda mu: self._self_to_m(self(mu)).theta_qt(q=self.t, t=0)
         out = {}
         while not g.is_zero():
-            sprt = g.support()
+            sprt = sorted(g.support())
             Hmu = mu_to_H(sprt[-1])
             fl_sprt = fl(sprt[-1])
             out[fl_sprt] = self._base(g.coefficient(sprt[-1]) / Hmu.coefficient(sprt[-1]))
@@ -1625,7 +1625,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         g = f.omega_qt(q=subsval, t=0)
         out = {}
         while not g.is_zero():
-            sprt = g.support()
+            sprt = sorted(g.support())
             Htmu = self._self_to_m(self(fl(sprt[-1]))).omega_qt(q=subsval, t=0)
             out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1]) / Htmu.coefficient(sprt[-1]))
             g -= out[fl(sprt[-1])] * Htmu

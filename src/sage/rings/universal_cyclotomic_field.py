@@ -533,15 +533,24 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
             sage: UCF = UniversalCyclotomicField()
             sage: hash(UCF.zero())  # indirect doctest
-            1302034650              # 32-bit
-            3713081631936575706     # 64-bit
+            0
             sage: hash(UCF.gen(3,2))
             313156239               # 32-bit
             1524600308199219855     # 64-bit
+
+        TESTS:
+
+        See :trac:`19514`::
+
+            sage: hash(UCF.one())
+            1
         """
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
-        return hash((k,) + tuple(coeffs))
+        if k == 1:
+            return hash(coeffs[0])
+        else:
+            return hash((k,) + tuple(coeffs))
 
     def _algebraic_(self, R):
         r"""
@@ -815,9 +824,17 @@ class UniversalCyclotomicFieldElement(FieldElement):
         P = self.parent()
         return P.element_class(P, self._obj.ComplexConjugate())
 
-    def galois_conjugates(self):
+    def galois_conjugates(self, n=None):
         r"""
         Return the Galois conjugates of ``self``.
+
+        INPUT:
+
+        - ``n`` -- an optional integer. If provided, return the orbit of the
+          Galois group of the ``n``-th cyclotomic field over `\QQ`. Note that
+          ``n`` must be such that this element belongs to the ``n``-th
+          cyclotomic field (in other words, it must be a multiple of the
+          conductor).
 
         EXAMPLES::
 
@@ -834,11 +851,27 @@ class UniversalCyclotomicFieldElement(FieldElement):
              -E(9)^2 - E(9)^4 - E(9)^7,
              E(9)^4 + E(9)^5 + E(9)^7,
              -E(9)^5 + E(9)^7]
+
+            sage: zeta = E(5)
+            sage: zeta.galois_conjugates(5)
+            [E(5), E(5)^2, E(5)^3, E(5)^4]
+            sage: zeta.galois_conjugates(10)
+            [E(5), E(5)^3, E(5)^2, E(5)^4]
+            sage: zeta.galois_conjugates(15)
+            [E(5), E(5)^2, E(5)^4, E(5)^2, E(5)^3, E(5), E(5)^3, E(5)^4]
+
+            sage: zeta.galois_conjugates(17)
+            Traceback (most recent call last):
+            ...
+            ValueError: n = 17 must be a multiple of the conductor (5)
         """
         P = self.parent()
         obj = self._obj
         k = obj.Conductor().sage()
-        return [P.element_class(P, obj.GaloisCyc(i)) for i in range(k) if k.gcd(i) == 1]
+        n = k if n is None else ZZ(n)
+        if not k.divides(n):
+            raise ValueError("n = {} must be a multiple of the conductor ({})".format(n,k))
+        return [P.element_class(P, obj.GaloisCyc(i)) for i in range(n) if n.gcd(i) == 1]
 
     def norm_of_galois_extension(self):
         r"""

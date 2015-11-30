@@ -12,9 +12,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.lazy_import import lazy_import
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
+from sage.categories.pushout import MultivariateConstructionFunctor
 
-class CartesianProductFunctor(CovariantFunctorialConstruction):
+native_python_containers   = set([tuple, list, set, frozenset])
+
+class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConstructionFunctor):
     """
     A singleton class for the Cartesian product functor.
 
@@ -105,17 +109,69 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
     _functor_category = "CartesianProducts"
     symbol = " (+) "
 
-cartesian_product = CartesianProductFunctor()
-"""
-The cartesian product functorial construction.
+    def __init__(self):
+        r"""
+        Constructor. See :class:`CartesianProductFunctor` for details.
 
-See :class:`CartesianProductFunctor` for more information.
+        TESTS::
 
-EXAMPLES::
+            sage: from sage.categories.cartesian_product import CartesianProductFunctor
+            sage: CartesianProductFunctor()
+            The cartesian_product functorial construction
+        """
+        CovariantFunctorialConstruction.__init__(self)
+        from sage.categories.sets_cat import Sets
+        MultivariateConstructionFunctor.__init__(self, Sets(), Sets())
 
-    sage: cartesian_product
-    The cartesian_product functorial construction
-"""
+    def __call__(self, args, **kwds):
+        r"""
+        Functorial construction application.
+
+        This specializes the generic ``__call__`` from
+        :class:`CovariantFunctorialConstruction` to:
+
+        - handle the following plain Python containers as input:
+          :class:`frozenset`, :class:`list`, :class:`set` and
+          :class:`tuple`.
+
+        - handle the empty list of factors.
+
+        See the examples below.
+
+        EXAMPLES::
+
+            sage: cartesian_product([[0,1], ('a','b','c')])
+            The cartesian product of ({0, 1}, {'a', 'b', 'c'})
+            sage: _.category()
+            Category of Cartesian products of finite enumerated sets
+
+            sage: cartesian_product([set([0,1,2]), [0,1]])
+            The cartesian product of ({0, 1, 2}, {0, 1})
+            sage: _.category()
+            Category of Cartesian products of sets
+
+        Check that the empty product is handled correctly:
+
+            sage: C = cartesian_product([])
+            sage: C
+            The cartesian product of ()
+            sage: C.cardinality()
+            1
+            sage: C.an_element()
+            ()
+            sage: C.category()
+            Category of Cartesian products of sets
+        """
+        if any(type(arg) in native_python_containers for arg in args):
+            from sage.categories.sets_cat import Sets
+            S = Sets()
+            args = [S(a, enumerated_set=True) for a in args]
+        elif not args:
+            from sage.categories.sets_cat import Sets
+            from sage.sets.cartesian_product import CartesianProduct
+            return CartesianProduct((), Sets().CartesianProducts())
+
+        return super(CartesianProductFunctor, self).__call__(args, **kwds)
 
 class CartesianProductsCategory(CovariantConstructionCategory):
     """
@@ -171,3 +227,17 @@ class CartesianProductsCategory(CovariantConstructionCategory):
             Integer Ring
         """
         return self.base_category().base_ring()
+
+# Moved to avoid circular imports
+lazy_import('sage.categories.sets_cat', 'cartesian_product')
+"""
+The cartesian product functorial construction
+
+See :class:`CartesianProductFunctor` for more information
+
+EXAMPLES::
+
+    sage: cartesian_product
+    The cartesian_product functorial construction
+"""
+

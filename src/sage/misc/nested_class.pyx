@@ -85,7 +85,7 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
     giving them a mangled name and putting the mangled name in the
     module namespace.
 
-    INPUTS:
+    INPUT:
 
     - ``cls`` - The class to modify.
     - ``name_prefix`` - The prefix to prepend to the class name.

@@ -15,7 +15,7 @@ Utility classes for multi-modular algorithms
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
-
+from sage.libs.gmp.mpz cimport *
 from sage.rings.integer_ring import ZZ
 from sage.rings.arith import random_prime
 from types import GeneratorType
@@ -199,7 +199,7 @@ cdef class MultiModularBasis_base:
             try:
                 self.extend_with_primes(val, check=True)
             except ArithmeticError:
-                #See :trac:`10217`
+                # See trac #10217
                 raise ValueError("the values provided are not relatively prime")
         else:
             self._extend_moduli_to_height(val)

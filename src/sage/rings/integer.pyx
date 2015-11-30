@@ -140,6 +140,7 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.misc.long cimport pyobject_to_long
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 from sage.ext.memory cimport check_malloc, check_allocarray
 from cpython.list cimport *
@@ -148,9 +149,10 @@ from cpython.int cimport *
 from cpython.object cimport *
 from libc.stdint cimport uint64_t
 cimport sage.structure.element
-from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
+from sage.structure.element cimport (Element, EuclideanDomainElement,
+        parent_c, coercion_model)
 include "sage/ext/python_debug.pxi"
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
@@ -168,7 +170,7 @@ import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.structure.coerce cimport is_numpy_type
-from sage.structure.element import canonical_coercion, coerce_binop
+from sage.structure.element import coerce_binop
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython
@@ -887,30 +889,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if isinstance(left, Integer):
             if isinstance(right, Integer):
                 c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
-            elif PyInt_CheckExact(right):
+            elif isinstance(right, int):
                 c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
-            elif PyLong_CheckExact(right):
+            elif isinstance(right, long):
                 mpz_set_pylong(mpz_tmp, right)
                 c = mpz_cmp((<Integer>left).value, mpz_tmp)
-            elif PyFloat_CheckExact(right):
+            elif isinstance(right, float):
                 d = PyFloat_AsDouble(right)
                 if isnan(d): return op == 3
                 c = mpz_cmp_d((<Integer>left).value, d)
             else:
-                return (<sage.structure.element.Element>left)._richcmp(right, op)
-
-        else: # right is an Integer
-            if PyInt_CheckExact(left):
+                return coercion_model.richcmp(left, right, op)
+        else: # right is an Integer and left is not
+            if isinstance(left, int):
                 c = -mpz_cmp_si((<Integer>right).value, PyInt_AS_LONG(left))
-            elif PyLong_CheckExact(left):
+            if isinstance(left, long):
                 mpz_set_pylong(mpz_tmp, left)
                 c = mpz_cmp(mpz_tmp, (<Integer>right).value)
-            elif PyFloat_CheckExact(left):
+            if isinstance(left, float):
                 d = PyFloat_AsDouble(left)
                 if isnan(d): return op == 3
                 c = -mpz_cmp_d((<Integer>right).value, d)
             else:
-                return (<sage.structure.element.Element>left)._richcmp(right, op)
+                return coercion_model.richcmp(left, right, op)
+
         return rich_to_bool_sgn(op, c)
 
     cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
@@ -1568,11 +1570,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        # self and right are guaranteed to be Integers, self safe to mutate
-        mpz_add(self.value, self.value, (<Integer>right).value)
-        return self
-
     cdef RingElement _add_long(self, long n):
         """
         Fast path for adding a C long.
@@ -1633,10 +1630,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer x = <Integer>PY_NEW(Integer)
         mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        mpz_sub(self.value, self.value, (<Integer>right).value)
-        return self
 
     def __neg__(self):
         """
@@ -1720,17 +1713,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
-
-    cpdef RingElement _imul_(self, RingElement right):
-        if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
-            # We only use the signal handler (to enable ctrl-c out) when the
-            # product might take a while to compute
-            sig_on()
-            mpz_mul(self.value, self.value, (<Integer>right).value)
-            sig_off()
-        else:
-            mpz_mul(self.value, self.value, (<Integer>right).value)
-        return self
 
     cpdef RingElement _div_(self, RingElement right):
         r"""
@@ -1866,7 +1848,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^x
             sage: 2^1.5              # real number
             2.82842712474619
-            sage: 2^float(1.5)       # python float
+            sage: 2^float(1.5)       # python float  abs tol 3e-16
             2.8284271247461903
             sage: 2^I                # complex number
             2^I
@@ -3003,7 +2985,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
 
         else:
-            left, right = canonical_coercion(self, other)
+            left, right = coercion_model.canonical_coercion(self, other)
             return left.quo_rem(right)
 
         return q, r
@@ -3068,7 +3050,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS:
 
-        Check that trac:`9345` is fixed::
+        Check that :trac:`9345` is fixed::
 
             sage: 0.rational_reconstruction(0)
             Traceback (most recent call last):
@@ -3401,12 +3383,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
              Lenstra's elliptic curve method.
 
         - ``proof`` - bool (default: True) whether or not to prove
-           primality of each factor (only applicable for ``'pari'``
-           and ``'ecm'``).
+          primality of each factor (only applicable for ``'pari'``
+          and ``'ecm'``).
 
-        -  ``limit`` - int or None (default: None) if limit is
-           given it must fit in a signed int, and the factorization is done
-           using trial division and primes up to limit.
+        - ``limit`` - int or None (default: None) if limit is
+          given it must fit in a signed int, and the factorization is done
+          using trial division and primes up to limit.
 
         OUTPUT:
 
@@ -3473,6 +3455,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
+            sage: n = 42
             sage: n.factor(algorithm='foobar')
             Traceback (most recent call last):
             ...
@@ -3481,12 +3464,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         from sage.structure.factorization import Factorization
         from sage.structure.factorization_integer import IntegerFactorization
 
+        if algorithm not in ['pari', 'kash', 'magma', 'qsieve', 'ecm']:
+            raise ValueError("Algorithm is not known")
+
         cdef Integer n, p, unit
         cdef int i
         cdef n_factor_t f
 
         if mpz_sgn(self.value) == 0:
-            raise ArithmeticError, "Prime factorization of 0 not defined."
+            raise ArithmeticError("Prime factorization of 0 not defined.")
 
         if mpz_sgn(self.value) > 0:
             n    = self
@@ -3546,13 +3532,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             res = [(p, 1) for p in qsieve(n)[0]]
             F = IntegerFactorization(res, unit)
             return F
-        elif algorithm == 'ecm':
+        else:
             from sage.interfaces.ecm import ecm
             res = [(p, 1) for p in ecm.factor(n, proof=proof)]
             F = IntegerFactorization(res, unit)
             return F
-        else:
-            raise ValueError, "Algorithm is not known"
 
     def support(self):
         """
@@ -6131,7 +6115,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1
         """
         if not isinstance(n, Integer) and not isinstance(n, int):
-            left, right = canonical_coercion(self, n)
+            left, right = coercion_model.canonical_coercion(self, n)
             return left.gcd(right)
         cdef Integer m = as_Integer(n)
         cdef Integer g = PY_NEW(Integer)
@@ -6285,16 +6269,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 13.binomial(2r)
             78
 
-        Check that it can be interrupted::
+        Check that it can be interrupted (:trac:`17852`)::
 
             sage: alarm(0.5); (2^100).binomial(2^22, algorithm='mpir')
             Traceback (most recent call last):
             ...
             AlarmInterrupt
-            sage: alarm(0.5); (2^100).binomial(2^22, algorithm='pari')
-            Traceback (most recent call last):
-            ...
-            AlarmInterrupt
+
+        For PARI, we try 10 interrupts with increasing intervals to
+        check for reliable interrupting, see :trac:`18919`::
+
+            sage: from sage.ext.interrupt import AlarmInterrupt
+            sage: for i in [1..10]:  # long time (5s)
+            ....:     try:
+            ....:         alarm(i/11)
+            ....:         (2^100).binomial(2^22, algorithm='pari')
+            ....:     except AlarmInterrupt:
+            ....:         pass
         """
         cdef Integer x
         cdef Integer mm

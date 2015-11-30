@@ -23,7 +23,7 @@ from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 
-cdef class ntl_ZZ_pEContext_class:
+cdef class ntl_ZZ_pEContext_class(object):
     def __init__(self, ntl_ZZ_pX f):
         """
         EXAMPLES:
@@ -47,14 +47,11 @@ cdef class ntl_ZZ_pEContext_class:
     def __cinit__(self, ntl_ZZ_pX f):
         self.pc = f.c
         self.pc.restore_c()
-        ZZ_pEContext_construct_ZZ_pX(&self.x, &f.x)
+        self.x = ZZ_pEContext_c(f.x)
         ZZ_pEContextDict[(repr(f),repr(f.c.p))] = self
         self.f = f
         self.ptrs.zzpc = &(self.pc.x)
         self.ptrs.zzpec = &(self.x)
-
-    def __dealloc__(self):
-        ZZ_pEContext_destruct(&self.x)
 
     def __reduce__(self):
         """

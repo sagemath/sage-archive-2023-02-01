@@ -1,27 +1,32 @@
 """
 Partition backtrack functions for matrices
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_matrices
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from libc.string cimport memcmp
 include 'data_structures_pyx.pxi' # includes bitsets
 
 from sage.misc.misc import uniq

@@ -443,7 +443,7 @@ class WeightCharacter(Element):
             sage: pAdicWeightSpace(11)(3).one_over_Lvalue()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
             sage: pAdicWeightSpace(11)(0).one_over_Lvalue()
             0
             sage: type(_)
@@ -565,6 +565,20 @@ class AlgebraicWeight(WeightCharacter):
             Dirichlet character modulo 29 of conductor 29 mapping 2 |--> 28 + 28*29 + 28*29^2 + ... + O(29^20)
         """
         return self._chi
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: w = pAdicWeightSpace(23)(12, DirichletGroup(23, QQ).0)
+            sage: hash(w)
+            -2363716619315244394 # 64-bit
+            470225558            # 32-bit
+        """
+        if self._chi.is_trivial():
+            return hash(self._k)
+        else:
+            return hash( (self._k,self._chi.modulus(),self._chi) )
 
     def _repr_(self):
         r"""

@@ -31,7 +31,6 @@ from sage.rings.complex_number import ComplexNumber
 
 import fast_arith
 
-
 ##################################################################
 # Elementary Arithmetic
 ##################################################################
@@ -94,7 +93,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         x^3 + 1
         sage: p.factor()
         (x + 1) * (x^2 - x + 1)
-        sage: z^2 - z + 1
+        sage: z^2 - z + 1   # abs tol 2e-16
         0.000000000000000
 
     This example involves a `p`-adic number::
@@ -249,20 +248,21 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     INPUT:
 
-    -  ``n`` - an integer
-    -  ``algorithm``:
+    - ``n`` - an integer
+    - ``algorithm``:
 
-       -  ``'default'`` - (default) use 'pari' for n <= 30000, and 'bernmm' for
-          n > 30000 (this is just a heuristic, and not guaranteed to be optimal
-          on all hardware)
-       -  ``'pari'`` - use the PARI C library
-       -  ``'gap'`` - use GAP
-       -  ``'gp'`` - use PARI/GP interpreter
-       -  ``'magma'`` - use MAGMA (optional)
-       -  ``'bernmm'`` - use bernmm package (a multimodular algorithm)
+      - ``'default'`` -- use 'flint' for n <= 300000, and 'bernmm'
+        otherwise (this is just a heuristic, and not guaranteed to be
+        optimal on all hardware)
+      - ``'flint'`` -- use the FLINT library
+      - ``'pari'`` -- use the PARI C library
+      - ``'gap'`` -- use GAP
+      - ``'gp'`` -- use PARI/GP interpreter
+      - ``'magma'`` -- use MAGMA (optional)
+      - ``'bernmm'`` -- use bernmm package (a multimodular algorithm)
 
-    -  ``num_threads`` - positive integer, number of
-       threads to use (only used for bernmm algorithm)
+    - ``num_threads`` - positive integer, number of
+      threads to use (only used for bernmm algorithm)
 
     EXAMPLES::
 
@@ -273,6 +273,8 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     We demonstrate each of the alternative algorithms::
 
+        sage: bernoulli(12, algorithm='flint')
+        -691/2730
         sage: bernoulli(12, algorithm='gap')
         -691/2730
         sage: bernoulli(12, algorithm='gp')
@@ -288,7 +290,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     TESTS::
 
-        sage: algs = ['gap','gp','pari','bernmm']
+        sage: algs = ['gap','gp','pari','bernmm','flint']
         sage: test_list = [ZZ.random_element(2, 2255) for _ in range(500)]
         sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list]  # long time (up to 21s on sage.math, 2011)
         sage: union([len(union(x))==1 for x in vals])  # long time (depends on previous line)
@@ -306,9 +308,11 @@ def bernoulli(n, algorithm='default', num_threads=1):
     n = ZZ(n)
 
     if algorithm == 'default':
-        algorithm = 'pari' if n <= 30000 else 'bernmm'
+        algorithm = 'flint' if n <= 300000 else 'bernmm'
 
-    if algorithm == 'pari':
+    if algorithm == 'flint':
+        return flint_arith.bernoulli_number(n)
+    elif algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
         return Rational(x)
     elif algorithm == 'gap':
@@ -1938,6 +1942,7 @@ XGCD = xgcd
 ##         r = new_r; s = new_s
 ##     return (a, p*psign, q*qsign)
 
+
 def xkcd(n=""):
     r"""
     This function is similar to the xgcd function, but behaves
@@ -1958,20 +1963,23 @@ def xkcd(n=""):
         <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
     """
     import contextlib
-    import urllib2
     import json
     from sage.misc.html import html
+
+    # import compatible with py2 and py3
+    from six.moves.urllib.request import urlopen
+    from six.moves.urllib.error import HTTPError, URLError
 
     data = None
     url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
 
     try:
-        with contextlib.closing(urllib2.urlopen(url)) as f:
+        with contextlib.closing(urlopen(url)) as f:
             data = f.read()
-    except urllib2.HTTPError as error:
+    except HTTPError as error:
         if error.getcode() == 400: # this error occurs when asking for a non valid comic number
             raise RuntimeError("Could not obtain comic data from {}. Maybe you should enable time travel!".format(url))
-    except urllib2.URLError:
+    except URLError:
         pass
 
     if n == 1024:
@@ -1990,6 +1998,7 @@ def xkcd(n=""):
     # TODO: raise this error in such a way that it's not clear that
     # it is produced by sage, see http://xkcd.com/1024/
     html('<script> alert("Error: -41"); </script>')
+
 
 def inverse_mod(a, m):
     """
@@ -5252,10 +5261,10 @@ def squarefree_divisors(x):
 
     Depends on the output of the prime_divisors function.
 
-    INPUT::
+    INPUT:
 
-        x -- an element of any ring for which the prime_divisors
-             function works.
+    - x -- an element of any ring for which the prime_divisors
+      function works.
 
     EXAMPLES::
 
@@ -5271,7 +5280,7 @@ def squarefree_divisors(x):
     Check that the first divisor (i.e. `1`) is a Sage integer (see
     :trac:`17852`)::
 
-        sage: a = squarefree_divisors(14).next()
+        sage: a = next(squarefree_divisors(14))
         sage: a
         1
         sage: type(a)

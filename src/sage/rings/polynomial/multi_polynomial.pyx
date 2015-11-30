@@ -4,7 +4,7 @@ Base class for elements of multivariate polynomial rings
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
-
+from sage.structure.element cimport coercion_model
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import infinity
 
@@ -1207,8 +1207,6 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.matrix.constructor import matrix
 
         if self.parent() != right.parent():
-            from sage.structure.element import get_coercion_model
-            coercion_model = get_coercion_model()
             a, b = coercion_model.canonical_coercion(self,right)
             if variable:
                 variable = a.parent()(variable)

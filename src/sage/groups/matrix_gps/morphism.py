@@ -109,6 +109,19 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: G = MatrixGroup([MS([3,0,0,1])])
             sage: a = G.gens()[0]^2
             sage: phi = G.hom([a])
+
+        TESTS:
+
+        Check that :trac:`19406` is fixed::
+
+            sage: G = GL(2, GF(3))
+            sage: H = GL(3, GF(2))
+            sage: mat1 = H([[-1,0,0],[0,0,-1],[0,-1,0]])
+            sage: mat2 = H([[1,1,1],[0,0,-1],[-1,0,0]])
+            sage: phi = G.hom([mat1, mat2])
+            Traceback (most recent call last):
+            ...
+            TypeError: images do not define a group homomorphism
         """
         MatrixGroupMorphism.__init__(self, homset)   # sets the parent
         from sage.libs.gap.libgap import libgap
@@ -118,7 +131,7 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         imgs = [to_libgap(x) for x in imgsH]
         self._phi = phi = libgap.GroupHomomorphismByImages(G.gap(), H.gap(), gens, imgs)
         if not phi.IsGroupHomomorphism():
-            raise ValueError('The map '+str(gensG)+'-->'+str(imgsH)+' is not a homomorphism')
+            raise ValueError('the map {}-->{} is not a homomorphism'.format(G.gens(), imgsH))
 
     def gap(self):
         """

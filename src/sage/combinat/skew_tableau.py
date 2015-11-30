@@ -25,8 +25,7 @@ AUTHORS:
 #*****************************************************************************
 
 import copy
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
@@ -41,7 +40,8 @@ import itertools
 
 from sage.structure.list_clone import ClonableList
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import Tableau, TableauOptions
+from sage.combinat.tableau import (Tableau, TableauOptions,
+                                   StandardTableau, SemistandardTableau)
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
@@ -68,7 +68,7 @@ class SkewTableau(ClonableList):
         sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, st=None, expr=None):
@@ -289,7 +289,7 @@ class SkewTableau(ClonableList):
             [   1  3    1  2 ]
             [   2   ,   3    ]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
 
     def _latex_(self):
@@ -408,9 +408,9 @@ class SkewTableau(ClonableList):
     def to_word_by_row(self):
         """
         Return a word obtained from a row reading of ``self``.
-        Specifically, this is the word obtained by concatenating the
-        rows from the bottommost one (in English notation) to the
-        topmost one.
+
+        This is the word obtained by concatenating the rows from
+        the bottommost one (in English notation) to the topmost one.
 
         EXAMPLES::
 
@@ -435,19 +435,16 @@ class SkewTableau(ClonableList):
             sage: SkewTableau([]).to_word_by_row()
             word:
         """
-        word = []
-        for row in self:
-            word = list(row) + word
-
-        return Words("positive integers")([i for i in word if i is not None])
+        word = [x for row in reversed(self) for x in row if x is not None]
+        return Words("positive integers")(word)
 
     def to_word_by_column(self):
         """
         Return the word obtained from a column reading of the skew
         tableau.
-        Specifically, this is the word obtained by concatenating the
-        columns from the rightmost one (in English notation) to the
-        leftmost one.
+
+        This is the word obtained by concatenating the columns from
+        the rightmost one (in English notation) to the leftmost one.
 
         EXAMPLES::
 
@@ -779,11 +776,11 @@ class SkewTableau(ClonableList):
 
     def slide(self, corner=None):
         """
-        Apply a jeu-de-taquin slide to ``self`` on the specified corner and
-        returns the new tableau.  If no corner is given an arbitrary corner
-        is chosen.
+        Apply a jeu-de-taquin slide to ``self`` on the specified inner corner and
+        return the resulting tableau.  If no corner is given, an arbitrary inner
+        corner is chosen.
 
-        See [FW]_ p12-13.
+        See [Fulton97]_ p12-13.
 
         EXAMPLES::
 
@@ -855,38 +852,74 @@ class SkewTableau(ClonableList):
 
         return SkewTableau(new_st)
 
-    def rectify(self):
+    def rectify(self, algorithm=None):
         """
-        Return a :class:`Tableau` formed by applying the jeu de taquin
-        process to ``self``. See page 15 of [FW]_.
+        Return a :class:`StandardTableau`, :class:`SemistandardTableau`,
+        or just :class:`Tableau` formed by applying the jeu de taquin
+        process to ``self``.
 
-        REFERENCES:
+        See page 15 of [Fulton97]_.
 
-        .. [FW] William Fulton,
-           *Young Tableaux*,
-           Cambridge University Press 1997.
+        INPUT:
+
+        - ``algorithm`` -- optional: if set to ``'jdt'``, rectifies by jeu de
+          taquin; if set to ``'schensted'``, rectifies by Schensted insertion
+          of the reading word; otherwise, guesses which will be faster.
 
         EXAMPLES::
 
-            sage: s = SkewTableau([[None,1],[2,3]])
-            sage: s.rectify()
+            sage: S = SkewTableau([[None,1],[2,3]])
+            sage: S.rectify()
             [[1, 3], [2]]
-            sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify()
+            sage: T = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
+            sage: T.rectify()
             [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='jdt')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='schensted')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='spaghetti')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'jdt', 'schensted', or None
 
         TESTS::
 
-            sage: s
+            sage: S
             [[None, 1], [2, 3]]
+            sage: T
+            [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
+
+        REFERENCES:
+
+        .. [Fulton97] William Fulton, *Young Tableaux*,
+           Cambridge University Press 1997.
         """
-        rect = copy.deepcopy(self)
-        inner_corners = rect.inner_shape().corners()
+        mu_size = self.inner_shape().size()
 
-        while len(inner_corners) > 0:
-            rect = rect.slide()
-            inner_corners = rect.inner_shape().corners()
+        # Roughly, use jdt with a small inner shape, Schensted with a large one
+        if algorithm is None:
+            la = self.outer_shape()
+            la_size = la.size()
+            if mu_size ** 2 < len(la) * (la_size - mu_size):
+                algorithm = 'jdt'
+            else:
+                algorithm = 'schensted'
 
-        return rect.to_tableau()
+        if algorithm == 'jdt':
+            rect = self
+            for i in range(mu_size):
+                rect = rect.slide()
+        elif algorithm == 'schensted':
+            w = [x for row in reversed(self) for x in row if x is not None]
+            rect = Tableau([]).insert_word(w)
+        else:
+            raise ValueError("algorithm must be 'jdt', 'schensted', or None")
+        if self in StandardSkewTableaux():
+            return StandardTableau(rect[:])
+        if self in SemistandardSkewTableaux():
+            return SemistandardTableau(rect[:])
+        return Tableau(rect)
 
     def standardization(self, check=True):
         r"""
@@ -1026,13 +1059,6 @@ class SkewTableau(ClonableList):
             sage: all(t.bender_knuth_involution(k).bender_knuth_involution(l) == t.bender_knuth_involution(l).bender_knuth_involution(k) for k in range(1,5) for l in range(1,5) if abs(k - l) > 1)
             True
 
-        Coxeter relation of the Bender--Knuth involutions (they have the form
-        `(ab)^6 = 1`)::
-
-            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
-            sage: all(p(p(p(p(p(p(t,k),k),k),k),k),k) == t for k in range(1,5))
-            True
-
         TESTS::
 
             sage: t = SkewTableau([])
@@ -1041,6 +1067,19 @@ class SkewTableau(ClonableList):
             sage: t = SkewTableau([[None,None],[None]])
             sage: t.bender_knuth_involution(3)
             [[None, None], [None]]
+
+        The `(s_1 s_2)^6 = id` identity that holds for Bender--Knuth
+        involutions on straight shapes does not generally hold for
+        skew shapes::
+
+            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
+            sage: t = SkewTableau([[None,1,2],[2,3]])
+            sage: x = t
+            sage: for i in range(6): x = p(x, 1)
+            sage: x
+            [[None, 2, 2], [1, 3]]
+            sage: x == t
+            False
 
         AUTHORS:
 
@@ -1406,7 +1445,7 @@ def _label_skew(list_of_cells, sk):
             i += 1
     return skew
 
-class SkewTableaux(Parent, UniqueRepresentation):
+class SkewTableaux(UniqueRepresentation, Parent):
     r"""
     Class of all skew tableaux.
     """
@@ -1768,9 +1807,10 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
     def __iter__(self):
         """
-        An iterator for all the standard skew tableaux with shape of the
-        skew partition ``skp``. The standard skew tableaux are ordered
-        lexicographically by the word obtained from their row reading.
+        An iterator for all the standard skew tableaux whose shape is
+        the skew partition ``skp``. The standard skew tableaux are
+        ordered lexicographically by the word obtained from their row
+        reading.
 
         EXAMPLES::
 

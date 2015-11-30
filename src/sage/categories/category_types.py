@@ -435,8 +435,8 @@ class Category_over_base_ring(Category_over_base):
             True
 
         Check that :trac:`16618` is fixed: this `_subcategory_hook_`
-        method is only valid for :class:Category_over_base_ring`, not
-        :class:Category_over_base`::
+        method is only valid for :class:`Category_over_base_ring`, not
+        :class:`Category_over_base`::
 
             sage: from sage.categories.category_types import Category_over_base
             sage: D = Modules(Rings())

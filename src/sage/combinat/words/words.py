@@ -113,6 +113,14 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
     raise ValueError("do not know how to make a combinatorial class of words from your input")
 
 class AbstractLanguage(Parent):
+    r"""
+    Abstract base class
+
+    This is *not* to be used by any means. This class gather previous features
+    of set of words (prior to :trac:`19619`). In the future that class might
+    simply disappear or become a common base class for all languages. In the
+    latter case, its name would possibly change to ``Language``.
+    """
     def __init__(self, alphabet=None, category=None):
         r"""
         INPUT:

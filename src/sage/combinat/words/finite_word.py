@@ -191,6 +191,7 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from collections import defaultdict
 from itertools import islice, izip, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
@@ -3782,7 +3783,7 @@ class FiniteWord_class(Word_class):
         each letter in the ordered alphabet is given by weights, which
         defaults to [1, 2, 3, ...].
 
-        INPUTS:
+        INPUT:
 
         -  ``weights`` - a list or tuple, or a dictionary keyed by the
            letters occurring in self.
@@ -4245,39 +4246,79 @@ class FiniteWord_class(Word_class):
         r"""
         Returns the number of times self appears in other as a subword.
 
+        This corresponds to the notion of `binomial coefficient` of two
+        finite words whose properties are presented in the chapter of
+        Lothaire's book written by Sakarovitch and Simon [1].
+
+        INPUT:
+
+        - ``other`` -- finite word
+
         EXAMPLES::
 
-            sage: Word().nb_subword_occurrences_in(Word('123'))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: undefined value
-            sage: Word('123').nb_subword_occurrences_in(Word('1133432311132311112'))
+            sage: tm = words.ThueMorseWord()
+
+            sage: u = Word([0,1,0,1])
+            sage: u.nb_subword_occurrences_in(tm[:1000])
+            2604124996
+
+            sage: u = Word([0,1,0,1,1,0])
+            sage: u.nb_subword_occurrences_in(tm[:100])
+            20370432
+
+        .. NOTE::
+
+            This code, based on [2], actually compute the number of
+            occurrences of all prefixes of ``self`` as subwords in all
+            prefixes of ``other``.  In particular, its complexity is
+            bounded by ``len(self) * len(other)``.
+
+        TESTS::
+
+            sage: Word('').nb_subword_occurrences_in(Word(''))
+            1
+            sage: parent(_)
+            Integer Ring
+            sage: v,u = Word(), Word('123')
+            sage: v.nb_subword_occurrences_in(u)
+            1
+            sage: v,u = Word('123'), Word('1133432311132311112')
+            sage: v.nb_subword_occurrences_in(u)
             11
-            sage: Word('4321').nb_subword_occurrences_in(Word('1132231112233212342231112'))
+            sage: v,u = Word('4321'), Word('1132231112233212342231112')
+            sage: v.nb_subword_occurrences_in(u)
             0
-            sage: Word('3').nb_subword_occurrences_in(Word('122332112321213'))
+            sage: v,u = Word('3'), Word('122332112321213')
+            sage: v.nb_subword_occurrences_in(u)
             4
+            sage: v,u = Word([]), words.ThueMorseWord()[:1000]
+            sage: v.nb_subword_occurrences_in(u)
+            1
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
+        - [2] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
+          sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
+          (2001) 551-564.
         """
-        ls = self.length()
-        if ls == 0:
-            raise NotImplementedError("undefined value")
-        elif ls == 1:
-            return self.nb_factor_occurrences_in(other)
-        elif len(other) < ls:
-            return 0
-        symb = self[:1]
-        suffword = other
-        suffsm = self[1:]
-        n = 0
-        cpt = 0
-        i = symb.first_pos_in(suffword)
-        while i is not None:
-            suffword = suffword[i+1:]
-            m = suffsm.nb_subword_occurrences_in(suffword)
-            if m == 0: break
-            n += m
-            i = symb.first_pos_in(suffword)
-        return n
+        # record the position of letters in self
+        pos = defaultdict(list)
+        for i,a in enumerate(self):
+            pos[a].append(i)
+        for a in pos:
+            pos[a].reverse()
+
+        # compute the occurrences of all prefixes of self as subwords in other
+        occ = [ZZ.zero()] * (len(self)+1)
+        occ[0] = ZZ.one()
+        for a in other:
+            for i in pos[a]:
+                occ[i+1] += occ[i]
+
+        # return only the number of occurrences of self
+        return occ[-1]
 
     def _return_words_list(self, fact):
         r"""
@@ -4873,8 +4914,8 @@ class FiniteWord_class(Word_class):
 
     def _s(self, i):
         r"""
-        Implements Lascoux and Schutzenberger's `s_i` operator, swapping the
-        number of `i` and `i+1`s in a word.
+        Implement Lascoux and Schutzenberger `s_i` operator, swapping the
+        number of `i` and `i+1` in a word.
 
         EXAMPLES::
 
@@ -6765,6 +6806,76 @@ class FiniteWord_class(Word_class):
             l = self.letters()
         M = FreeMonoid(len(l), l)
         return M(self)
+
+    def is_christoffel(self):
+        r"""
+        Returns True if self is a Christoffel word, and False otherwise.
+
+        The *Christoffel word* of slope `p/q` is obtained from the Cayley 
+        graph of `\ZZ/(p+q)\ZZ` with generator q as follows. If `u 
+        \rightarrow v` is an edge in the Cayley graph, then, `v = u + p 
+        \mod{p+q}`. Let `a`,`b` be the alphabet of `w`. Label the edge 
+        `u \rightarrow v` by `a` if u < v and `b` otherwise. The Christoffel 
+        word is the word obtained by reading the edge labels along the cycle 
+        beginning from 0.
+
+        Equivalently, `w` is a Christoffel word iff `w` is a symmetric 
+        non-empty word and `w[1:n-1]` is a palindrome. 
+
+        See for instance [1]_ and [2]_.
+
+        INPUT:
+
+        ``self`` -- word
+
+        OUTPUT:
+
+        Boolean -- ``True`` if ``self`` is a Christoffel word, 
+        ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: Word('00100101').is_christoffel()
+            True
+            sage: Word('aab').is_christoffel()
+            True
+            sage: Word().is_christoffel()
+            False
+            sage: Word('123123123').is_christoffel()
+            False
+            sage: Word('00100').is_christoffel()
+            False
+            sage: Word('0').is_christoffel()
+            True
+
+        TESTS::
+
+            sage: words.LowerChristoffelWord(5,4).is_christoffel()
+            True
+            sage: words.UpperChristoffelWord(5,4).is_christoffel()
+            True
+            sage: Word('aaaaaaaaa').is_christoffel()
+            False
+
+        REFERENCES:
+
+        .. [1]  Jean Berstel. Sturmian and episturmian words (a survey of
+            some recent results). In S. Bozapalidis and G. Rahonis, editors,
+            CAI 2007,volume 4728 of Lecture Notes in Computer Science, 
+            pages 23-47. Springer-Verlag, 2007.
+        .. [2]  J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
+            words: Christoffel words and repetitions in words, CRM Monograph 
+            Series, 27. American Mathematical Society, Providence, RI, 2009. 
+            xii+147 pp. ISBN: 978-0-8218-4480-9
+
+        """
+        if len(self) == 0 or len(self.letters()) > 2 or (self.is_palindrome() and len(self) > 1):
+            return False
+        elif self.is_symmetric() and self[1:len(self) - 1].is_palindrome():
+            return True
+        else:
+            return False
+
 
 #######################################################################
 

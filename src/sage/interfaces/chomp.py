@@ -126,10 +126,10 @@ class CHomP:
 
         EXAMPLES::
 
-        sage: from sage.interfaces.chomp import CHomP
-        sage: T = cubical_complexes.Torus()
-        sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
-        {0: 0, 1: Z x Z, 2: Z}
+            sage: from sage.interfaces.chomp import CHomP
+            sage: T = cubical_complexes.Torus()
+            sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
+            {0: 0, 1: Z x Z, 2: Z}
         """
         from sage.misc.temporary_file import tmp_filename
         from sage.homology.all import CubicalComplex, cubical_complexes
@@ -256,10 +256,11 @@ class CHomP:
             if verbose:
                 print "Generators:"
                 print gens
-
         #
         #    process output
         #
+        if output.find('ERROR') != -1:
+            raise RuntimeError('error inside CHomP')
         # output contains substrings of one of the forms
         # "H_1 = Z", "H_1 = Z_2 + Z", "H_1 = Z_2 + Z^2",
         # "H_1 = Z + Z_2 + Z"
@@ -535,6 +536,7 @@ def homcubes(complex=None, subcomplex=None, **kwds):
     else:
         raise TypeError("Complex and/or subcomplex are not cubical complexes.")
 
+
 def homchain(complex=None, **kwds):
     r"""
     Compute the homology of a chain complex using the CHomP program
@@ -588,6 +590,7 @@ def homchain(complex=None, **kwds):
         return CHomP()('homchain', complex, **kwds)
     else:
         raise TypeError("Complex is not a chain complex.")
+
 
 def process_generators_cubical(gen_string, dim):
     r"""

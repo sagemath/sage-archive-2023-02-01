@@ -8,9 +8,6 @@ developed by Patr Ostergard.
 == License ==
 GNU General Public License v2
 
-== SPKG Maintainers ==
-Nathann Cohen (nathann.cohen@gmail.com)
-
 == Upstream Contact ==
 Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
 http://users.tkk.fi/pat/cliquer.html

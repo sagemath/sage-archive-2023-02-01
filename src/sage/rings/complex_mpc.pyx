@@ -941,7 +941,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         Returns either the real or imaginary component of ``self``
         depending on the choice of ``i``: real (``i``=0), imaginary (``i``=1).
 
-        INPUTS:
+        INPUT:
 
         - ``i`` -- 0 or 1
 
@@ -1167,13 +1167,6 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         cdef mpc_rnd_t rnd
         rnd = (<MPComplexField_class>self._parent).__rnd
         return complex(mpfr_get_d(self.value.re, rnd_re(rnd)), mpfr_get_d(self.value.im, rnd_im(rnd)))
-
-    # Boilerplate comparison code
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    def __cmp__(left, right):
-        return (<Element>left)._cmp(right)
 
     cpdef int _cmp_(self, Element other) except -2:
         r"""

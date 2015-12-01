@@ -378,6 +378,22 @@ class Magmas(Category_singleton):
                 """
                 return [Magmas().Commutative()]
 
+        class CartesianProducts(CartesianProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                Implement the fact that a cartesian product of commutative
+                additive magmas is still an commutative additive magmas.
+
+                EXAMPLES::
+
+                    sage: C = Magmas().Commutative().CartesianProducts()
+                    sage: C.extra_super_categories()
+                    [Category of commutative magmas]
+                    sage: C.axioms()
+                    frozenset({'Commutative'})
+                """
+                return [Magmas().Commutative()]
+
     class Unital(CategoryWithAxiom):
 
         def additional_structure(self):
@@ -452,9 +468,11 @@ class Magmas(Category_singleton):
                 for x in tester.some_elements():
                     tester.assert_(x * one == x)
                     tester.assert_(one * x == x)
-                # Check that one is immutable by asking its hash;
-                tester.assertEqual(type(one.__hash__()), int)
-                tester.assertEqual(one.__hash__(), one.__hash__())
+                # Check that one is immutable if it looks like we can test this
+                if hasattr(one,"is_immutable"):
+                    tester.assertEqual(one.is_immutable(),True)
+                if hasattr(one,"is_mutable"):
+                    tester.assertEqual(one.is_mutable(),False)
 
             def is_empty(self):
                 r"""
@@ -635,6 +653,24 @@ class Magmas(Category_singleton):
                 """
                 return [Magmas().Unital()]
 
+        class Realizations(RealizationsCategory):
+
+            class ParentMethods:
+
+                @cached_method
+                def one(self):
+                    r"""
+                    Return the unit element of ``self``.
+
+                        sage: from sage.combinat.root_system.extended_affine_weyl_group import ExtendedAffineWeylGroup
+                        sage: PvW0 = ExtendedAffineWeylGroup(['A',2,1]).PvW0()
+                        sage: PvW0 in Magmas().Unital().Realizations()
+                        True
+                        sage: PvW0.one()
+                        1
+                    """
+                    return(self(self.realization_of().a_realization().one()))
+
     class ParentMethods:
 
         def product(self, x, y):
@@ -733,7 +769,7 @@ class Magmas(Category_singleton):
               :meth:`~sage.matrix.operation_table.OperationTable.dict`
               method.
 
-            INPUTS:
+            INPUT:
 
             - ``names`` - the type of names used
 
@@ -1002,9 +1038,11 @@ class Magmas(Category_singleton):
                 sage: C = Magmas().CartesianProducts().example(); C
                 The cartesian product of (Rational Field, Integer Ring, Integer Ring)
                 sage: C.category()
-                Join of Category of rings ...
+                Category of Cartesian products of commutative rings
                 sage: sorted(C.category().axioms())
-                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+                 'AdditiveUnital', 'Associative', 'Commutative',
+                 'Distributive', 'Unital']
 
                 sage: TestSuite(C).run()
             """

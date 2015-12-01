@@ -82,7 +82,8 @@ cdef int mpz_set_pylong(mpz_ptr z, L) except -1:
 cdef Py_hash_t mpz_pythonhash(mpz_srcptr z):
     """
     Hash an ``mpz``, where the hash value is the same as the hash value
-    of the corresponding Python ``long``.
+    of the corresponding Python ``long``, except that we do not replace
+    -1 by -2 (the Cython wrapper for ``__hash__`` does that).
     """
     # Add all limbs, adding 1 for every carry
     cdef mp_limb_t h1 = 0
@@ -97,7 +98,5 @@ cdef Py_hash_t mpz_pythonhash(mpz_srcptr z):
 
     cdef Py_hash_t h = h1
     if mpz_sgn(z) < 0:
-        h = -h
-    if h == -1:
-        return -2
+        return -h
     return h

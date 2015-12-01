@@ -527,12 +527,12 @@ class InstanceTester(unittest.TestCase):
             sage: list(tester.some_elements())
             [0, 1, 2, 3, 4]
 
-            sage: C = CartesianProduct(Z, Z, Z, Z)
+            sage: C = cartesian_product([Z]*4)
             sage: len(C)
             390625
             sage: tester = InstanceTester(C, elements = C, max_runs=4)
             sage: list(tester.some_elements())
-            [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 2], [0, 0, 0, 3]]
+            [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 0, 2), (0, 0, 0, 3)]
         """
         if S is None:
             if self._elements is None:
@@ -573,7 +573,9 @@ class PythonObjectWithTests(object):
             sage: from sage.misc.sage_unittest import PythonObjectWithTests
             sage: PythonObjectWithTests(int(1))._test_pickling()
 
-        SEE ALSO: :func:`dumps` :func:`loads`
+        .. SEEALSO::
+
+            :func:`dumps`, :func:`loads`
         """
         tester = instance_tester(self, **options)
         from sage.misc.all import loads, dumps

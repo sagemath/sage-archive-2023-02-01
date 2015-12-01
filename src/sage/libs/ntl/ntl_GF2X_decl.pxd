@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 from sage.libs.ntl.ntl_GF2_decl cimport GF2_c
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
 from sage.libs.ntl.ntl_vec_GF2_decl cimport vec_GF2_c

@@ -57,12 +57,14 @@ TESTS::
     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
 
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -88,7 +90,6 @@ import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
 import sage.rings.integer_ring as integer_ring
 
-import sage.rings.commutative_ring_element as commutative_ring_element
 import sage.interfaces.all
 
 import sage.rings.integer
@@ -1839,10 +1840,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         else:
             return 1
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-
     cpdef bint is_one(IntegerMod_gmp self):
         """
         Returns ``True`` if this is `1`, otherwise
@@ -2112,8 +2109,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: hash(a)
             8943
         """
-#        return mpz_pythonhash(self.value)
-        return hash(self.lift())
+        return mpz_pythonhash(self.value)
 
     @coerce_binop
     def gcd(self, IntegerMod_gmp other):
@@ -2252,10 +2248,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             return -1
         else:
             return 1
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
 
     cpdef bint is_one(IntegerMod_int self):
         """
@@ -3080,10 +3072,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         if self.ivalue == (<IntegerMod_int64>right).ivalue: return 0
         elif self.ivalue < (<IntegerMod_int64>right).ivalue: return -1
         else: return 1
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
 
     cpdef bint is_one(IntegerMod_int64 self):
         """

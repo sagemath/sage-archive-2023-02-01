@@ -67,6 +67,8 @@ from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 
+from six import reraise as raise_
+
 BAD_SESSION = -2
 
 # The subprocess is a shared resource.  In a multi-threaded
@@ -453,7 +455,7 @@ If this all works, you can then make calls like:
         self._expect.timeout = None
 
         # Calling tcsetattr earlier exposes bugs in various pty
-        # implementations, see :trac:`16474`. Since we haven't
+        # implementations, see trac #16474. Since we haven't
         # **written** anything so far it is safe to wait with
         # switching echo off until now.
         if not self._terminal_echo:
@@ -822,9 +824,14 @@ If this all works, you can then make calls like:
             sage: singular._eval_using_file_cutoff = 4
             sage: singular._eval_line('for(int i=1;i<=3;i++){i=1;};', wait_for_prompt=False)
             ''
-            sage: singular.interrupt(timeout=3)  # sometimes very slow (up to 60s on sage.math, 2012)
-            False
+            sage: singular.interrupt()
+            True
             sage: singular._eval_using_file_cutoff = cutoff
+
+        The interface still works after this interrupt::
+
+            sage: singular('2+3')
+            5
 
         Last, we demonstrate that by default the execution of a command
         is tried twice if it fails the first time due to a crashed
@@ -878,7 +885,7 @@ If this all works, you can then make calls like:
                         except (TypeError, RuntimeError):
                             pass
                         return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
-                raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2]
+                raise_(RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2])
 
             if len(line)>0:
                 try:
@@ -1324,7 +1331,7 @@ class ExpectElement(InterfaceElement):
             # coercion to work properly.
             except (RuntimeError, ValueError) as x:
                 self._session_number = -1
-                raise TypeError, x, sys.exc_info()[2]
+                raise_(TypeError, x, sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise

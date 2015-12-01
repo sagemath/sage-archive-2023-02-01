@@ -10,11 +10,6 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
 
  * GPL v3
 
-== SPKG Maintainers ==
-
- * Dima Pasechnik
- * Andrey Novoseltsev
-
 == Upstream Contact ==
 
  * Winfried Bruns <wbruns@uos.de>

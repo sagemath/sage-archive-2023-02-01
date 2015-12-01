@@ -110,7 +110,6 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
                 return FiniteWords_length_k_over_OrderedAlphabet(alphabet, length)
     raise ValueError("do not know how to make a combinatorial class of words from your input")
 
-from sage.structure.unique_representation import UniqueRepresentation
 class Words_all(InfiniteAbstractCombinatorialClass):
     r"""
     TESTS::
@@ -1377,11 +1376,10 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         # create an iterable of compositions (all "compositions" if arg is
         # None, or [arg] otherwise)
         if arg is None:
-            # TODO in #17927: use IntegerVectors(length=n, min_part=min_length)
-            from sage.combinat.integer_list import IntegerListsNN
+            from sage.combinat.integer_lists.nn import IntegerListsNN
             compositions = IntegerListsNN(length=n, min_part=min_length)
         elif isinstance(arg, tuple):
-            from sage.combinat.integer_list import IntegerListsLex
+            from sage.combinat.integer_lists import IntegerListsLex
             a, b = arg
             compositions = IntegerListsLex(min_sum=a, max_sum=b-1,
                     length=n, min_part=min_length)

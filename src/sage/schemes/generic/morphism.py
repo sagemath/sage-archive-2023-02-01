@@ -249,9 +249,9 @@ class SchemeMorphism(Element):
                     try:
                         x = D(x)
                     except (TypeError, NotImplementedError):
-                        raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                        raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
                 elif self.domain()!=x.codomain():
-                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
         else:
             x = converter(x)
         if not args and not kwds:
@@ -382,9 +382,9 @@ class SchemeMorphism(Element):
               Defn: Structure map) codomain
         """
         if not isinstance(right, SchemeMorphism):
-            raise TypeError, "right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self)
+            raise TypeError("right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self))
         if right.codomain() != self.domain():
-            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(self, right)
+            raise TypeError("self (=%s) domain must equal right (=%s) codomain"%(self, right))
         if isinstance(self, SchemeMorphism_id):
             return right
         if isinstance(right, SchemeMorphism_id):
@@ -416,7 +416,7 @@ class SchemeMorphism(Element):
               Defn: Identity map
         """
         if not self.is_endomorphism():
-            raise TypeError, "self must be an endomorphism."
+            raise TypeError("self must be an endomorphism.")
         if n==0:
             return self.domain().identity_morphism()
         return generic_power(self, n)
@@ -1339,7 +1339,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
 
-            Check that :trac:'16834' is fixed::
+        Check that :trac:`16834` is fixed::
 
             sage: A.<x,y,z> = AffineSpace(RR,3)
             sage: h = Hom(A,A)

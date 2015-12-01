@@ -99,21 +99,25 @@ __append_to_doc(
      "ClebschGraph",
      "CoxeterGraph",
      "DesarguesGraph",
+     "DejterGraph",
      "DoubleStarSnark",
      "DurerGraph",
      "DyckGraph",
      "EllinghamHorton54Graph",
      "EllinghamHorton78Graph",
      "ErreraGraph",
+     "F26AGraph",
      "FlowerSnark",
      "FolkmanGraph",
      "FosterGraph",
      "FranklinGraph",
      "FruchtGraph",
      "GoldnerHararyGraph",
+     "GossetGraph",
      "GrayGraph",
      "GrotzschGraph",
      "HallJankoGraph",
+     "HarborthGraph",
      "HarriesGraph",
      "HarriesWongGraph",
      "HeawoodGraph",
@@ -125,10 +129,14 @@ __append_to_doc(
      "HortonGraph",
      "KittellGraph",
      "KrackhardtKiteGraph",
+     "Klein3RegularGraph",
+     "Klein7RegularGraph",
+     "LocalMcLaughlinGraph",
      "LjubljanaGraph",
      "LivingstoneGraph",
      "M22Graph",
      "MarkstroemGraph",
+     "MathonStronglyRegularGraph",
      "McGeeGraph",
      "McLaughlinGraph",
      "MeredithGraph",
@@ -148,16 +156,19 @@ __append_to_doc(
      "SzekeresSnarkGraph",
      "ThomsenGraph",
      "TietzeGraph",
+     "TruncatedIcosidodecahedralGraph",
+     "TruncatedTetrahedralGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
      "WagnerGraph",
      "WatkinsSnarkGraph",
      "WellsGraph",
-     "WienerArayaGraph"])
+     "WienerArayaGraph",
+     "SuzukiGraph"])
 
 __doc__ += """
-*Platonic solids* (ordered ascending by number of vertices)
+**Platonic solids** (ordered ascending by number of vertices)
 """
 
 __append_to_doc(
@@ -177,8 +188,7 @@ or a list of graphs or ...)
 """
 
 __append_to_doc(
-    ["AffineOrthogonalPolarGraph",
-     "BalancedTree",
+    ["BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
      "chang_graphs",
@@ -193,6 +203,7 @@ __append_to_doc(
      "fusenes",
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
+     "GoethalsSeidelGraph",
      "HanoiTowerGraph",
      "HararyGraph",
      "HyperStarGraph",
@@ -200,25 +211,51 @@ __append_to_doc(
      "KneserGraph",
      "LCFGraph",
      "line_graph_forbidden_subgraphs",
+     "MathonPseudocyclicMergingGraph",
+     "MathonPseudocyclicStronglyRegularGraph",
      "MycielskiGraph",
      "MycielskiStep",
      "NKStarGraph",
      "NStarGraph",
      "OddGraph",
-     "OrthogonalPolarGraph",
      "PaleyGraph",
+     "PasechnikGraph",
      "petersen_family",
      "planar_graphs",
      "quadrangulations",
      "RingedTree",
      "SierpinskiGasketGraph",
-     "SymplecticGraph",
+     "SquaredSkewHadamardMatrixGraph",
+     "SwitchedSquaredSkewHadamardMatrixGraph",
+     "strongly_regular_graph",
      "trees",
      "triangulations",
      "WheelGraph"])
 
+
 __doc__ += """
-*Chessboard Graphs*
+**Graphs from classical geometries over finite fields**
+
+A number of classes of graphs related to geometries over finite fields and
+quadrics and Hermitean varieties there.
+"""
+
+__append_to_doc(
+    ["AffineOrthogonalPolarGraph",
+     "AhrensSzekeresGeneralizedQuadrangleGraph",
+     "NonisotropicOrthogonalPolarGraph",
+     "NonisotropicUnitaryPolarGraph",
+     "OrthogonalPolarGraph",
+     "SymplecticDualPolarGraph",
+     "SymplecticPolarGraph",
+     "TaylorTwographDescendantSRG",
+     "TaylorTwographSRG",
+     "T2starGeneralizedQuadrangleGraph",
+     "UnitaryDualPolarGraph",
+     "UnitaryPolarGraph"])
+
+__doc__ += """
+**Chessboard Graphs**
 """
 
 __append_to_doc(
@@ -261,7 +298,8 @@ __append_to_doc(
      "RandomShell",
      "RandomToleranceGraph",
      "RandomTree",
-     "RandomTreePowerlaw"])
+     "RandomTreePowerlaw",
+     "RandomTriangulation"])
 
 __doc__ += """
 **Graphs with a given degree sequence**
@@ -321,6 +359,8 @@ AUTHORS:
 
 - Ed Scheinerman (2010-08-21): added Grotzsch graph and Mycielski graphs
 
+- Ed Scheinerman (2010-11-15): added RandomTriangulation
+
 - Minh Van Nguyen (2010-11-26): added more named graphs
 
 - Keshav Kini (2011-02-16): added Shrikhande and Dyck graphs
@@ -356,6 +396,7 @@ Functions and methods
 
 # import from Sage library
 import graph
+import sage.graphs.strongly_regular_db
 
 class GraphGenerators():
     r"""
@@ -1846,6 +1887,7 @@ class GraphGenerators():
     ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)
     CoxeterGraph             = staticmethod(sage.graphs.generators.smallgraphs.CoxeterGraph)
+    DejterGraph              = staticmethod(sage.graphs.generators.smallgraphs.DejterGraph)
     DesarguesGraph           = staticmethod(sage.graphs.generators.smallgraphs.DesarguesGraph)
     DoubleStarSnark          = staticmethod(sage.graphs.generators.smallgraphs.DoubleStarSnark)
     DurerGraph               = staticmethod(sage.graphs.generators.smallgraphs.DurerGraph)
@@ -1853,16 +1895,19 @@ class GraphGenerators():
     EllinghamHorton54Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton54Graph)
     EllinghamHorton78Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton78Graph)
     ErreraGraph              = staticmethod(sage.graphs.generators.smallgraphs.ErreraGraph)
+    F26AGraph                = staticmethod(sage.graphs.generators.smallgraphs.F26AGraph)
     FlowerSnark              = staticmethod(sage.graphs.generators.smallgraphs.FlowerSnark)
     FolkmanGraph             = staticmethod(sage.graphs.generators.smallgraphs.FolkmanGraph)
     FosterGraph              = staticmethod(sage.graphs.generators.smallgraphs.FosterGraph)
     FranklinGraph            = staticmethod(sage.graphs.generators.smallgraphs.FranklinGraph)
     FruchtGraph              = staticmethod(sage.graphs.generators.smallgraphs.FruchtGraph)
     GoldnerHararyGraph       = staticmethod(sage.graphs.generators.smallgraphs.GoldnerHararyGraph)
+    GossetGraph              = staticmethod(sage.graphs.generators.smallgraphs.GossetGraph)
     GrayGraph                = staticmethod(sage.graphs.generators.smallgraphs.GrayGraph)
     GrotzschGraph            = staticmethod(sage.graphs.generators.smallgraphs.GrotzschGraph)
     HallJankoGraph           = staticmethod(sage.graphs.generators.smallgraphs.HallJankoGraph)
     WellsGraph               = staticmethod(sage.graphs.generators.smallgraphs.WellsGraph)
+    HarborthGraph            = staticmethod(sage.graphs.generators.smallgraphs.HarborthGraph)
     HarriesGraph             = staticmethod(sage.graphs.generators.smallgraphs.HarriesGraph)
     HarriesWongGraph         = staticmethod(sage.graphs.generators.smallgraphs.HarriesWongGraph)
     HeawoodGraph             = staticmethod(sage.graphs.generators.smallgraphs.HeawoodGraph)
@@ -1874,10 +1919,14 @@ class GraphGenerators():
     HortonGraph              = staticmethod(sage.graphs.generators.smallgraphs.HortonGraph)
     KittellGraph             = staticmethod(sage.graphs.generators.smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.smallgraphs.KrackhardtKiteGraph)
+    Klein3RegularGraph       = staticmethod(sage.graphs.generators.smallgraphs.Klein3RegularGraph)
+    Klein7RegularGraph       = staticmethod(sage.graphs.generators.smallgraphs.Klein7RegularGraph)
+    LocalMcLaughlinGraph     = staticmethod(sage.graphs.generators.smallgraphs.LocalMcLaughlinGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
     LivingstoneGraph         = staticmethod(sage.graphs.generators.smallgraphs.LivingstoneGraph)
     M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)
     MarkstroemGraph          = staticmethod(sage.graphs.generators.smallgraphs.MarkstroemGraph)
+    MathonStronglyRegularGraph = staticmethod(sage.graphs.generators.smallgraphs.MathonStronglyRegularGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
     McLaughlinGraph          = staticmethod(sage.graphs.generators.smallgraphs.McLaughlinGraph)
     MeredithGraph            = staticmethod(sage.graphs.generators.smallgraphs.MeredithGraph)
@@ -1898,11 +1947,14 @@ class GraphGenerators():
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
     TietzeGraph              = staticmethod(sage.graphs.generators.smallgraphs.TietzeGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)
+    TruncatedIcosidodecahedralGraph = staticmethod(sage.graphs.generators.smallgraphs.TruncatedIcosidodecahedralGraph)
+    TruncatedTetrahedralGraph= staticmethod(sage.graphs.generators.smallgraphs.TruncatedTetrahedralGraph)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
     WatkinsSnarkGraph        = staticmethod(sage.graphs.generators.smallgraphs.WatkinsSnarkGraph)
     WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
+    SuzukiGraph              = staticmethod(sage.graphs.generators.smallgraphs.SuzukiGraph)
 
 ###########################################################################
 # Platonic Solids
@@ -1918,7 +1970,6 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
-    AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.families.AffineOrthogonalPolarGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
@@ -1931,6 +1982,7 @@ class GraphGenerators():
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
     FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)
     GeneralizedPetersenGraph = staticmethod(sage.graphs.generators.families.GeneralizedPetersenGraph)
+    GoethalsSeidelGraph    = staticmethod(sage.graphs.generators.families.GoethalsSeidelGraph)
     HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
     HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
@@ -1938,19 +1990,42 @@ class GraphGenerators():
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
+    MathonPseudocyclicMergingGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicMergingGraph)
+    MathonPseudocyclicStronglyRegularGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicStronglyRegularGraph)
     MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
     MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)
     NStarGraph             = staticmethod(sage.graphs.generators.families.NStarGraph)
     OddGraph               = staticmethod(sage.graphs.generators.families.OddGraph)
-    OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.families.OrthogonalPolarGraph)
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
+    PasechnikGraph         = staticmethod(sage.graphs.generators.families.PasechnikGraph)
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
     SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
-    SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
+    SquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SquaredSkewHadamardMatrixGraph)
+    SwitchedSquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SwitchedSquaredSkewHadamardMatrixGraph)
+    strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
+
+###########################################################################
+# Graphs from classical geometries over `F_q`
+###########################################################################
+    import sage.graphs.generators.classical_geometries
+    AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.AffineOrthogonalPolarGraph)
+    AhrensSzekeresGeneralizedQuadrangleGraph = staticmethod(sage.graphs.generators.classical_geometries.AhrensSzekeresGeneralizedQuadrangleGraph)
+    NonisotropicOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph)
+    NonisotropicUnitaryPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph)
+    OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.OrthogonalPolarGraph)
+    SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.SymplecticDualPolarGraph)
+    SymplecticGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticGraph)
+    SymplecticPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticPolarGraph)
+    TaylorTwographDescendantSRG = \
+             staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
+    TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
+    T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
+    UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
+    UnitaryPolarGraph      = staticmethod(sage.graphs.generators.classical_geometries.UnitaryPolarGraph)
 
 ###########################################################################
 # Chessboard Graphs
@@ -1991,6 +2066,7 @@ class GraphGenerators():
     RandomToleranceGraph     = staticmethod(sage.graphs.generators.random.RandomToleranceGraph)
     RandomTreePowerlaw       = staticmethod(sage.graphs.generators.random.RandomTreePowerlaw)
     RandomTree               = staticmethod(sage.graphs.generators.random.RandomTree)
+    RandomTriangulation      = staticmethod(sage.graphs.generators.random.RandomTriangulation)
 
 ###########################################################################
 # World Map

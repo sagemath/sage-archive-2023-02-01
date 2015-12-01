@@ -9,10 +9,6 @@ datetime module.
 
 Simplified BSD License
 
-== SPKG Maintainers ==
-
-John H. Palmieri
-
 == Upstream Contact ==
 
 Author: Gustavo Niemeyer <gustavo@niemeyer.net>

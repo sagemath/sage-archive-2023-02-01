@@ -77,7 +77,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import PlusInfinity
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
@@ -251,7 +251,7 @@ class Tableau(ClonableList):
         ValueError: A tableau must be a list of iterables.
 
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, t):
@@ -2845,7 +2845,7 @@ class Tableau(ClonableList):
         k = self.size()
         gens = [range(1, k+1)]
         for row in self:
-            for j in range(0, len(row)-1):
+            for j in range(len(row)-1):
                 gens.append( (row[j], row[j+1]) )
         return PermutationGroup( gens )
 
@@ -3836,8 +3836,6 @@ class SemistandardTableau(Tableau):
         ...
         ValueError: entries must be positive integers
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""
@@ -3971,8 +3969,6 @@ class StandardTableau(SemistandardTableau):
         ...
         ValueError: the entries in each row of a semistandard tableau must be weakly increasing
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""
@@ -4460,7 +4456,7 @@ class Tableaux(UniqueRepresentation, Parent):
         sage: [] in Tableaux(0)
         True
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in Tableaux()
         False
@@ -5002,7 +4998,7 @@ class SemistandardTableaux(Tableaux):
 
     def __getitem__(self, r):
         r"""
-        The default implementation of ``__getitem``__ for enumerated sets
+        The default implementation of ``__getitem__`` for enumerated sets
         does not allow slices so we override it.
 
         EXAMPLES::

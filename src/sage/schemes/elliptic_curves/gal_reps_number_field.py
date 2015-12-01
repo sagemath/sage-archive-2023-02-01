@@ -467,8 +467,7 @@ def _maybe_borels(E, L, patience=100):
     E = _over_numberfield(E)
     K = E.base_field()
 
-    L = list(set(L)) # Remove duplicates from L and makes a copy for output
-    L.sort()
+    L = sorted(set(L)) # Remove duplicates from L and makes a copy for output
 
     include_2 = False
     if 2 in L: # c.f. Section 5.3(a) of [Serre72].
@@ -803,7 +802,7 @@ def _semistable_reducible_primes(E):
 
         # Next, we turn K into relative number field over F.
 
-        K = K.relativize(F.embeddings(K)[0], 'b')
+        K = K.relativize(F.embeddings(K)[0], K.variable_name()+'0')
         E = E.change_ring(K.structure()[1])
 
         ## We try to find a nontrivial divisibility condition. ##

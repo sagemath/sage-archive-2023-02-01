@@ -552,19 +552,6 @@ cdef class GapElement(RingElement):
         if not self._compare_by_id:
             raise ValueError('requires a libGAP objects whose comparison is by "id"')
 
-
-    def __richcmp__(left, right, int op):
-        """
-        Boilerplate for Cython class comparison.
-
-        EXAMPLES::
-
-            sage: a = libgap(123)
-            sage: a == a
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     def __hash__(self):
         """
         Make hashable.
@@ -594,6 +581,8 @@ cdef class GapElement(RingElement):
         EXAMPLES::
 
             sage: a = libgap(123)
+            sage: a == a
+            True
             sage: b = libgap('string')
             sage: a._richcmp_(b, 0)
             1

@@ -864,6 +864,24 @@ class GpElement(ExpectElement):
     The two elliptic curves look the same, but internally the floating
     point numbers are slightly different.
     """
+    def _reduce(self):
+        """
+        Return the string representation of self, for pickling.
+
+        Because the internal representation of a gp element is richer
+        than the corresponding sage object, we use the string representation
+        for pickling.
+
+        EXAMPLES::
+
+            sage: E = gp('ellinit([1,2,3,4,5])')
+            sage: loads(dumps(E)) == E # indirect doctest
+            True
+            sage: gp(E.sage()) == E
+            False
+
+        """
+        return repr(self)
 
     def _sage_(self):
         """
@@ -890,6 +908,20 @@ class GpElement(ExpectElement):
             True
         """
         return pari(str(self)).python()
+
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: gp('"abc"').is_string()
+            True
+            sage: gp('[1,2,3]').is_string()
+            False
+
+        """
+        return repr(self.type())=='t_STR'
 
     def __long__(self):
         """

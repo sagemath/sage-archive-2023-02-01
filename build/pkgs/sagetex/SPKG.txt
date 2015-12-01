@@ -27,10 +27,6 @@ Project Public License Distributed from CTAN archives in directory
 macros/latex/base/lppl.txt"; see
 [[http://mirror.ctan.org/macros/latex/base/lppl.txt]].
 
-== SPKG Maintainers ==
-
-Dan Drake (ddrake at member ams org)
-
 == Upstream Contact ==
 
 Author: Dan Drake. Web: [[http://www.bitbucket.org/ddrake/sagetex]] and

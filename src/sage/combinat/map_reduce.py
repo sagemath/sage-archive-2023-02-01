@@ -20,11 +20,12 @@ would like to perform the following kind of operations :
 
 AUTHORS :
 
-- Jean Baptiste Priez -- prototype (2011, June)
-
 - Florent Hivert -- code, documentation (2012-2015)
 
+- Jean Baptiste Priez -- prototype (2011, June)
 - Nathann Cohen -- Some doc (2012)
+
+
 
 How is this different from usual MapReduce ?
 --------------------------------------------
@@ -633,7 +634,6 @@ class RESetMapReduce(object):
         logger.info("Starting work with %s processes", self._nprocess)
         logger.debug("Distributing tasks")
         for i, task in enumerate(self.roots()):
-            # os.write(0, "Adding task = %s"%task)
             self._workers[i % len(self._workers)]._todo.append(task)
         logger.debug("Starting processes")
         sys.stdout.flush()
@@ -686,12 +686,20 @@ class RESetMapReduce(object):
             sage: S.setup_workers(2) # indirect doctest
             sage: S._workers[0]._todo.append([])
             sage: for w in S._workers: w.start()
+            sage: _ = S.get_results()
             sage: S._shutdown()
+            sage: S.print_communication_statistics()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'RESetMPExample' object has no attribute '_stats'
+
             sage: S.finish()
 
-        Cleanups::
+            sage: S.print_communication_statistics()
+            #proc: ...
+            ...
 
-            sage: _ = S.run()
+            sage: _ = S.run() # Cleanup
         """
         self._abort = self._abort.value
         if not self._abort:
@@ -733,7 +741,6 @@ class RESetMapReduce(object):
             sage: S.finish()
         """
         logger.info("Aborting")
-        # os.write(0, " Abort !\n")
         self._abort.value = True
         while self._active_tasks.acquire(False):
             pass
@@ -759,7 +766,6 @@ class RESetMapReduce(object):
             sage: S.finish()
         """
         if self._done.acquire(False):
-            # os.write(0, " Shutdown !\n")
             logger.debug("***************** FINISHED ******************")
             logger.debug("Sending poison pills")
             for worker in self._workers:
@@ -832,9 +838,7 @@ class RESetMapReduce(object):
         r"""
         Returns a random workers
 
-        OUTPUT:
-
-        A worker for ``self`` chosed at random
+        OUTPUT: A worker for ``self`` chosed at random
 
         EXAMPLES::
 
@@ -856,24 +860,53 @@ class RESetMapReduce(object):
 
     def run(self,
             max_proc = None,
-            reduce_locally = True, print_stats=False, timeout=None):
+            reduce_locally = True, timeout=None):
         r"""
         Run the computations
+
+        INPUT:
+
+        - ``max_proc`` -- maximum number of process used.
+          default: number of processor on the machine
+        - ``reduce_locally`` -- See :class:`RESetMapReduceWorker` (default: ``True``)
+        - ``timeout`` -- a timeout on the computation (default: ``None``):
+
+        OUTPUT:
+
+        - the result of the map/reduce computation or an exception
+          :exc:`AbortError` if the computation was interrupted or timeout.
 
         EXAMPLES::
 
             sage: from sage.combinat.map_reduce import RESetMPExample
-            sage: EX = RESetMPExample(maxl = 4)
+            sage: EX = RESetMPExample(maxl = 8)
             sage: EX.run()
-            24*x^4 + 6*x^3 + 2*x^2 + x + 1
+            40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
 
-            sage: EX.run(print_stats=True)  # random
-            #proc:        0    1    2    3    4    5    6    7
-            reqs sent:    5    1    5    4    5    9    3    0
-            reqs rcvs:    2    4    5    5    1    3    5    1
-            - thefs:      0    0    0    0    0    0    0    0
-            + thefs:      0    0    0    0    0    0    0    0
-            24*x^4 + 6*x^3 + 2*x^2 + x + 1
+        Here is an example or how to deal with timeout::
+
+            sage: from sage.combinat.map_reduce import AbortError
+            sage: try:
+            ....:     res = EX.run(timeout=0.1)
+            ....: except AbortError:
+            ....:     print "Computation timeout"
+            ....: else:
+            ....:     print "Computation normally finished"
+            ....:     res
+            Computation timeout
+
+        The following should not timeout even on a very slow machine::
+
+            sage: from sage.combinat.map_reduce import AbortError
+            sage: try:
+            ....:     res = EX.run(timeout=60)
+            ....: except AbortError:
+            ....:     print "Computation Timeout"
+            ....: else:
+            ....:     print "Computation normally finished"
+            ....:     res
+            Computation normally finished
+            40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
         """
         self.setup_workers(max_proc, reduce_locally)
         self.start_workers()
@@ -884,8 +917,7 @@ class RESetMapReduce(object):
         self.result = self.get_results()
         self.finish()
         if timeout is not None:
-            timer.cancel()
-        if print_stats: print self.communication_statistics()
+            self._timer.cancel()
         logger.info("Returning")
         if self._abort:
             raise AbortError
@@ -908,7 +940,7 @@ class RESetMapReduce(object):
             res.append(tuple(self._workers[i]._stats))
         self._stats = res
 
-    def communication_statistics(self, blocksize = 16):
+    def print_communication_statistics(self, blocksize = 16):
         r"""
         Print the communication statistics in a nice way
 
@@ -919,7 +951,7 @@ class RESetMapReduce(object):
             sage: S.run()
             720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
 
-            sage: print(S.communication_statistics())    # random
+            sage: S.print_communication_statistics()    # random
             #proc:        0    1    2    3    4    5    6    7
             reqs sent:    5    2    3   11   21   19    1    0
             reqs rcvs:   10   10    9    5    1   11    9    2
@@ -938,7 +970,7 @@ class RESetMapReduce(object):
             pstat("reqs rcvs: ", start, end, 1)
             pstat("- thefs:   ", start, end, 2)
             pstat("+ thefs:   ", start, end, 3)
-        return res[0]
+        print res[0]
 
     def run_serial(self):
         r"""
@@ -1042,14 +1074,10 @@ class RESetMapReduceWorker(Process):
                 except IndexError:
                     target._write_task.send(None)
                     self._mapred._signal_task_done()
-                    # os.write(0, "-")
-                    # sys.stdout.flush()
                 else:
                     target._write_task.send(work)
                     logger.debug("Succesful Steal %s"%target.name)
                     thefts += 1
-                    # os.write(0, "+")
-                    # sys.stdout.flush()
         except AbortError:
             logger.debug("Thief aborted %s"%self.name)
             pass

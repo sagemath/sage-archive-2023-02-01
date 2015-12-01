@@ -46,25 +46,26 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     INPUT:
 
-    - ``evaluation_points`` -- A list of evaluation points in a finite field F
+    - ``evaluation_points`` -- A list of distinct elements of some finite field `F`.
 
-    - ``dimension`` -- The dimension of the code
+    - ``dimension`` -- The dimension of the resulting code.
 
-    - ``column_multipliers`` -- (default: ``None``) List of column multipliers in F for this code.
+    - ``column_multipliers`` -- (default: ``None``) List of non-zero elements of `F`.
       All column multipliers are set to 1 if default value is kept.
 
     EXAMPLES:
 
-    We construct a GRS code with a manually built support, without specifying column multipliers::
+    A Reed-Solomon code can be constructed by taking all non-zero elements of
+    the field as evaluation points, and specifying no column multipliers::
 
         sage: F = GF(7)
-        sage: support = [F(i) for i in range(1,7)]
-        sage: C = codes.GeneralizedReedSolomonCode(support,3)
+        sage: evalpts = [F(i) for i in range(1,7)]
+        sage: C = codes.GeneralizedReedSolomonCode(evalpts,3)
         sage: C
         [6, 3, 4] Generalized Reed-Solomon Code over Finite Field of size 7
 
-
-    We construct a GRS code without specifying column multipliers::
+    More generally, the following is a GRS code where the evaluation points are
+    a subset of the field and includes zero::
 
         sage: F = GF(59)
         sage: n, k = 40, 12
@@ -76,7 +77,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         sage: F = GF(59)
         sage: n, k = 40, 12
-        sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, F.list()[1:n+1])
+        sage: colmults = F.list()[1:n+1]
+        sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, colmults)
         sage: C
         [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
@@ -89,23 +91,30 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         If the evaluation points are not from a finite field, it raises an error::
 
-            sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(list()[:n], k)
+            sage: C = codes.GeneralizedReedSolomonCode([1,2,3], 1)
             Traceback (most recent call last):
             ...
             ValueError: Evaluation points must be in a finite field
+
+        If the evaluation points are not from the same finite field, it raises an error::
+
+            sage: F2, F3 = GF(2) , GF(3)
+            sage: C = codes.GeneralizedReedSolomonCode([F2.zero(),F2.one(),F3(2)], 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: All evaluation points must be in the same finite field
 
         If the column multipliers are not from a finite field, or not in the same
         finite field as the evaluation points, it raises an error::
 
             sage: F = GF(59)
+            sage: F2 = GF(61)
             sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, list()[1:n+1])
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, vector(range(1,n+1)) )
             Traceback (most recent call last):
             ...
-            ValueError: Column multipliers must be in a finite field
+            ValueError: Column multipliers and evaluation points must be in the same field
 
-            sage: F2 = GF(61)
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, F2.list()[1:n+1])
             Traceback (most recent call last):
             ...
@@ -138,20 +147,20 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             ...
             ValueError: All evaluation points must be different
         """
-        F = vector(evaluation_points).base_ring()
+        F = evaluation_points[0].base_ring()
         if F.is_finite() == False:
             raise ValueError("Evaluation points must be in a finite field")
-        super(GeneralizedReedSolomonCode, self).__init__(F, len(evaluation_points), "EvaluationVector", "Syndrome")
-        self._dimension = dimension
+        if not all(F == e.base_ring() for e in evaluation_points):
+            raise ValueError("All evaluation points must be in the same finite field")
+        super(GeneralizedReedSolomonCode, self).__init__(F, \
+                len(evaluation_points), "EvaluationVector", "Syndrome")
         self._evaluation_points = copy(evaluation_points)
+        self._dimension = dimension
 
         if column_multipliers is None:
             self._column_multipliers = [self.base_field().one()] * self._length
         else:
-            Fc = vector(column_multipliers).base_ring()
-            if Fc.is_finite() == False:
-                raise ValueError("Column multipliers must be in a finite field")
-            elif Fc != self.base_field():
+            if not all(F == e.base_ring() for e in column_multipliers):
                 raise ValueError("Column multipliers and evaluation points\
                         must be in the same field")
             self._column_multipliers = copy(column_multipliers)

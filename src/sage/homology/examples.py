@@ -1448,7 +1448,7 @@ def SumComplex(n, A):
     return UniqueSimplicialComplex(facets, name='Sum complex on vertices Z/{}Z associated to {}'.format(n, Set(A)))
 
 
-def RandomTwoSphere(self, n):
+def RandomTwoSphere(n):
     r"""
     Return a random triangulation of the 2-dimensional sphere with `n`
     vertices.

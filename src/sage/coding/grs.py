@@ -19,6 +19,11 @@ This file contains the following elements:
     - :class:`GRSErrorErasureDecoder`, a decoder able to correct both errors and erasures
     - :class:`GRSKeyEquationSyndromeDecoder`, a decoder using key equation decoding
       based on syndrome polynomial
+
+REFERENCES:
+
+    .. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, 2013
+    .. [Nielsen] Johan S. R. Nielsen, (https://bitbucket.org/jsrn/codinglib/)
 """
 
 #*****************************************************************************
@@ -825,7 +830,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     REFERENCES:
 
-    .. [HJ04-BW] Tom Høholdt and Jørn Justesen, A Course In Error-Correcting Codes,
+    .. [HJ04-BW] Tom Hoiholdt and Joirn Justesen, A Course In Error-Correcting Codes,
        EMS, 2004, pp 51-52
 
     INPUT:
@@ -1754,6 +1759,79 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             14
         """
         return (self.code().minimum_distance()-1)//2
+
+
+
+def _gs_satisfactory(tau, s, l, C = None, n_k = None):
+    """r
+    Returns whether input parameters satisfy the governing equation of
+    Guruswami-Sudan.
+
+    See _[N13] page 49, definition 3.3 and proposition 3.4 for details.
+
+    INPUT:
+
+    - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
+      to correct
+    - ``s`` -- an integer, multiplicity parameter of Guruswami-Sudan algorithm
+    - ``l`` -- an integer, list size parameter
+    - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
+    - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
+      length and the dimension of the :class:`GeneralizedReedSolomonCode`
+
+    ..NOTE::
+
+        One has to provide either ``C`` or ``(n, k)``. If none or both are
+        given, an exception will be raised.
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import _gs_satisfactory as gs_sat
+        sage: tau, s, l = 97, 1, 2
+        sage: n, k = 250, 70
+        sage: gs_sat(tau, s, l, n_k = (n, k))
+        True
+
+    One can also pass a GRS code::
+
+        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+        sage: gs_sat(tau, s, l, C = C)
+        True
+
+    Another example where ``s`` and ``l`` does not satisfy the equation::
+
+        sage: tau, s, l = 118, 47, 80
+        sage: gs_sat(tau, s, l, n_k = (n, k))
+        False
+
+    If one provides both ``C`` and ``n_k`` an exception is returned::
+
+        sage: tau, s, l = 97, 1, 2
+        sage: n, k = 250, 70
+        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+        sage: gs_sat(tau, s, l, C = C, n_k = (n, k))
+        Traceback (most recent call last):
+        ...
+        ValueError: Please provide only the code or its length and dimension
+
+    Same if one provides none of these::
+
+        sage: gs_sat(tau, s, l)
+        Traceback (most recent call last):
+        ...
+        ValueError: Please provide either the code or its length and dimension
+    """
+    if C is not None and n_k is not None:
+        raise ValueError("Please provide only the code or its length and dimension")
+    elif C is None and n_k is None:
+        raise ValueError("Please provide either the code or its length and dimension")
+    elif C is not None:
+        n, k = C.length(), C.dimension()
+    elif n_k is not None and not isinstance(n_k, tuple):
+        raise ValueError("n_k has to be a tuple")
+    elif n_k is not None:
+        n, k = n_k[0], n_k[1]
+    return l > 0 and s > 0 and n * s * (s+1) < (l+1) * (2*s*(n-tau) - (k-1) * l)
 
 
 ####################### registration ###############################

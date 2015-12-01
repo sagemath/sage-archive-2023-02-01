@@ -488,75 +488,88 @@ def is_rationally_isometric(self, other):
     return True
 
 def isometry(self, other):
-    """
-    Given two equivalent quadratic forms, computes an isometry from one to the other.
-    Note: Currently only works for positive definite quadratic forms. This is because isometry() relies on 
-    the method short_vector_list_up_to_length() which is only defined for positive definite forms.
+    r"""
+    Given two rationally equivalent quadratic forms, computes a 
+    transition matrix mapping from one to the other.
 
     INPUT:
-        self: a positive definite QuadraticForm
-        other: a positive definite QuadraticForm
-        NOTE: This algorithm may not terminate if self is not equivalent to other!
+
+    - ``self`` -- a quadratic form
+    - ``other`` -- a quadratic form
 
     OUTPUT:
-        a matrix T representing the isometry transformation, such that if QM is the gram matrix of Q and
-        FM is the gram matrix of F, then QM == T.transpose() * FM * T yields True.
+    
+    - A matrix ``T`` representing the isometry transformation, such that if 
+      ``QM`` is the gram matrix of ``self`` and ``FM`` is the gram matrix of 
+      ``other``, then ``QM == T.transpose() * FM * T`` yields ``True``.
 
     EXAMPLES::
-    sage: Q = DiagonalQuadraticForm(QQ, [1, 1, 2])
-    sage: F = DiagonalQuadraticForm(QQ, [2, 2, 2])
-    sage: T = Q.isometry(F)
-    sage: T
-    [ 1/2  1/2    0]
-    [-1/2  1/2    0]
-    [   0    0    1]
     
-    sage: Q.Gram_matrix() == T.transpose() * F.Gram_matrix() * T
-    True
+        sage: Q = DiagonalQuadraticForm(QQ, [1, 1, 2])
+        sage: F = DiagonalQuadraticForm(QQ, [2, 2, 2])
+        sage: T = Q.isometry(F); T
+        [-1/2 -1/2    0]
+        [   0    0   -1]
+        [-1/2  1/2    0]
+        sage: Q.Gram_matrix() == T.transpose() * F.Gram_matrix() * T
+        True
     
-    sage: T = F.isometry(Q)
-    sage: T
-    [ 1 -1  0]
-    [ 1  1  0]
-    [ 0  0  1]
-    
-    sage: F.Gram_matrix() == T.transpose() * Q.Gram_matrix() * T
-    True
-    
-    sage: A = DiagonalQuadraticForm(QQ, [1,5])
-    sage: B = QuadraticForm(QQ, 2, [1, 12, 81])
-    sage: T = A.isometry(B)
-    sage: T
-    [  1  -2]
-    [  0 1/3]
-    
-    sage: A.Gram_matrix() == T.transpose() * B.Gram_matrix() * T
-    True
-    
-    sage: C = DiagonalQuadraticForm(QQ, [1, 5, 9])
-    sage: D = DiagonalQuadraticForm(QQ, [6, 30, 1])
-    sage: T = D.isometry(C)
-    sage: T
-    [  1  -5   0]
-    [  1   1   0]
-    [  0   0 1/3]
-    
-    sage: D.Gram_matrix() == T.transpose() * C.Gram_matrix() * T
-    True
-    
-    sage: E = DiagonalQuadraticForm(QQ, [1, 1])
-    sage: F = QuadraticForm(QQ, 2, [17, 94, 130])
-    sage: T = E.isometry(F)
-    sage: T
-    [189/17 -43/17]
-    [    -4      1]
+        sage: T = F.isometry(Q); T
+        [-1/3 -4/3 -1/3]
+        [  -1    0    1]
+        [ 2/3 -1/3  2/3]
+        sage: F.Gram_matrix() == T.T * Q.Gram_matrix() * T
+        True
 
-    sage: E.Gram_matrix() == T.transpose() * F.Gram_matrix() * T
-    True
+    ::
+
+        sage: L = QuadraticForm(QQ, 3, [2, 2, 0, 2, 2, 5])
+        sage: M = QuadraticForm(QQ, 3, [2, 2, 0, 3, 2, 3])
+        sage: L.isometry(M)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Quadratic form in 3 variables over Rational Field with coefficients: 
+        [ 2 2 0 ]
+        [ * 2 2 ]
+        [ * * 5 ] is not rationally isometric to Quadratic form in 3 variables over Rational Field with coefficients: 
+        [ 2 2 0 ]
+        [ * 3 2 ]
+        [ * * 3 ]
+
+    ::
+    
+        sage: A = DiagonalQuadraticForm(QQ, [1, 5])
+        sage: B = QuadraticForm(QQ, 2, [1, 12, 81])
+        sage: T = A.isometry(B); T
+        [  1  -2]
+        [  0 1/3]
+        sage: A.Gram_matrix() == T.T * B.Gram_matrix() * T
+        True
+
+    ::
+    
+        sage: C = DiagonalQuadraticForm(QQ, [1, 5, 9])
+        sage: D = DiagonalQuadraticForm(QQ, [6, 30, 1])
+        sage: T = C.isometry(D); T
+        [ 7/18  5/18     0]
+        [-1/18  7/18     0]
+        [    0     0     3]
+        sage: C.Gram_matrix() == T.T * D.Gram_matrix() * T
+        True
+
+    ::
+    
+        sage: E = DiagonalQuadraticForm(QQ, [1, 1])
+        sage: F = QuadraticForm(QQ, 2, [17, 94, 130])
+        sage: T = F.isometry(E); T
+        [     -4 -189/17]
+        [     -1  -43/17]
+        sage: F.Gram_matrix() == T.T * E.Gram_matrix() * T
+        True
     """
     import copy
     from sage.matrix.constructor import Matrix
-    ##Define a method that determines whether or not a matrix is diagonal.
+    # Define a method that determines whether or not a matrix is diagonal.
     def is_diagonal(matrix):
         dim = matrix.dimensions()[0]
         for i in range(dim):
@@ -568,45 +581,40 @@ def isometry(self, other):
     Q = copy.deepcopy(self)
     F = copy.deepcopy(other)
 
-    if not Q.is_positive_definite() or not F.is_positive_definite():
-        raise TypeError("Both Quadratic Forms must be positive definite.")
-
     if not is_QuadraticForm(other):
         raise TypeError("First argument must be a Quadratic Form.")
 
+    if not Q.is_rationally_isometric(F):
+        raise ArithmeticError("{0} is not rationally isometric to {1}".format(Q, F))
+
     n = Q.dim()
 
-    ##If either form is not diagonal, diagonalize it.
+    # If either form is not diagonal, diagonalize it.
     q_diagonal_transform = f_diagonal_transform = Matrix.identity(n)
     if not is_diagonal(Q.Gram_matrix()):
         Q, q_diagonal_transform = Q.rational_diagonal_form(True)
     if not is_diagonal(F.Gram_matrix()):
         F, f_diagonal_transform = F.rational_diagonal_form(True)
         
-    #This is the method that does all the work to compute the isometry.
+    # Call the method that does all the work to compute the isometry.
     transform = diagonal_isometry(Q,F)
     
     return f_diagonal_transform * transform * q_diagonal_transform.inverse()
 
 
-##Helper method for isometry.
+# Helper method for isometry.
 def diagonal_isometry(V, W):
-##Computes an isometry between diagonal equivalent forms V and W.
+# Computes an isometry between diagonal equivalent forms V and W.
     import copy
     from sage.functions.other import sqrt
     from quadratic_form import DiagonalQuadraticForm
     from sage.matrix.constructor import matrix, column_matrix, Matrix
     from sage.modules.free_module_element import vector
+  
     #----HELPER METHODS-----#
 
-    def diagonal_qf_pull_off_n_terms(gram_matrix, n, ring):
-        ##Returns the diagonal quadratic form corresponding to the given gram matrix
-        ##with the first n terms removed.
-        diagonal = gram_matrix.diagonal();
-        return DiagonalQuadraticForm(ring, diagonal[n:])
-
     def compute_gram_matrix_from_basis(Q, basis):
-        ##Computes the gram matrix by treating the columns of basis as basis vectors.
+        # Computes the gram matrix by treating the columns of basis as basis vectors.
         n = Q.dim()
         rows = [];
         for i in range(n):
@@ -614,7 +622,7 @@ def diagonal_isometry(V, W):
         return Matrix(rows)
 
     def modify_basis(basis, v, i):
-        ##Modifies basis to include v (a linear combination of the basis vectors) at column i in the basis.
+        # Modifies basis to include v (a linear combination of the basis vectors) at column i in the basis.
         b = copy.deepcopy(basis)
         column = vector(QQ, b.dimensions()[0])
         for j in range(len(v)):
@@ -622,92 +630,93 @@ def diagonal_isometry(V, W):
         b.set_column(i, column)
         return b
 
-    def gram_schmidt(matrix, fixed_vector_index, gram_matrix):
-        ##Orthogonalizes the columns of matrix against a fixed column vector.
+    def gram_schmidt(matrix, fixed_vector_index, inner_product):
+        # Orthogonalizes the columns of matrix, past a fixed vector, with respect to inner_product.
         n = matrix.dimensions()[0]
         vectors = [0] * n
-        fixed_vec = matrix.column(fixed_vector_index)
-        vectors[fixed_vector_index] = fixed_vec
     
-        for i in range(fixed_vector_index):
+        for i in range(n):
             vectors[i] = matrix.column(i)
-        for i in range(fixed_vector_index + 1, n):
-            vectors[i] = matrix.column(i) - (gram_matrix[i, fixed_vector_index] / gram_matrix[fixed_vector_index, fixed_vector_index]) * fixed_vec
+        for i in range(fixed_vector_index, n):
+            for j in range(i+1, n):
+                vectors[j] = vectors[j] - (inner_product(vectors[j], vectors[i]) / inner_product(vectors[i], vectors[i])) * vectors[i]
 
         return column_matrix(vectors)
+
+    def zero_row(matrix, col, i):
+        ##Sets the ith column of matrix to col and returns true if matrix has an all zero row.
+        m = modify_basis(matrix, col, i)
+        rows, cols = m.dimensions()
+        z = [0] * cols
+        for i in range(rows):
+            if m.row(i).list() == z:
+                return True
+        return False
     
-    def vectors_of_common_length_dev(Q, F, qb, fb, iteration):
-        ##Returns a pair of vectors v1 and v2, such that Q(v1) = F(v2), 
-        ##and qb and fb are bases when their columns at index iteration are replaced with
-        ##v1 and v2 respectively. (i.e. qb and fb contain no all-zero rows)
-        def zero_row(matrix, col, i):
-            ##Sets the ith column of matrix to col and returns true if matrix has an all zero row.
-            m = modify_basis(matrix, col, i)
-            rows, cols = m.dimensions()
-            z = [0] * cols
-            for i in range(rows):
-                if m.row(i).list() == z:
-                    return True
-            return False
-
-        i = max(Q.Gram_matrix()[0][0], F.Gram_matrix()[0][0])
-        n = 100
-        #NOTE: If the given forms are not equivalent, this will be an infinite loop.
-        while True:
-            q_vecs, f_vecs = Q.short_vector_list_up_to_length(n, real_entry_flag=True), F.short_vector_list_up_to_length(n, real_entry_flag=True)
-            while i < n:
-                ##Find a value that is represented by both forms
-                if q_vecs[i] and f_vecs[i]:
-                    ##Find a pair of vectors such that if each becomes a column of qb and fb respectively,
-                    ##neither matrix will have an all-zero row.
-                    for j in range(len(q_vecs[i])):
-                        for k in range(len(f_vecs[i])):
-                            if not zero_row(qb, q_vecs[i][j], iteration) and not zero_row(fb, f_vecs[i][k], iteration):
-                                return (q_vecs[i][j], f_vecs[i][k])
-                i += 1
-            n += 100
-
     #--- END OF HELPER METHODS ---#
 
     Q, F = copy.deepcopy(V), copy.deepcopy(W)
+    QM, FM = Q.Gram_matrix(), F.Gram_matrix()
     n = Q.dim()
     
-    q_basis, f_basis = Matrix.identity(n), Matrix.identity(n)
+    q_basis, f_basis = Matrix.identity(QQ, n), Matrix.identity(QQ, n)
     for i in range(n-1):
-        ##Find vectors v and w such that Q(v) = F(w)
-        v, w = vectors_of_common_length_dev(Q, F, q_basis, f_basis, i)
-        #print("Find vectors {0} and {1} such that Q(v) = F(w)".format(v, w))        
+        # If first terms are not equal,
+        if Q.Gram_matrix()[0][0] != F.Gram_matrix()[0][0]:
+            # Find a vector w such that Q(v) = F(w) where v = [1, ..., 0]
+            # v, w = vectors_of_common_length_dev(Q, F, q_basis, f_basis, i)
+            v = vector([0] * (n - i))
+            index = 0;
+            while True:
+                v[index] = v[index] + 1
+                index = (index + 1) % (n - i)
+                c = Q(v)
+                try:
+                    w = F.solve(c)
+                    #print("Find vectors {0} and {1} such that Q(v) = F(w)".format(v, w))        
+                    if not zero_row(f_basis, w, i) and not zero_row(q_basis, v, i):
+                        break
+                except ArithmeticError:
+                    # No solution found, try another vector.
+                    pass
 
-        ##Modify the bases to include v and w.
-        q_basis = modify_basis(q_basis, v, i)
-        f_basis = modify_basis(f_basis, w, i)
-        #print("Modified bases:\nQb =\n{0}, \nFb =\n{1}".format(q_basis, f_basis))
+            # Modify the bases to include v and w.
+            q_basis = modify_basis(q_basis, v, i)
+            f_basis = modify_basis(f_basis, w, i)
+            #print("Modified bases:\nQb =\n{0}, \nFb =\n{1}".format(q_basis, f_basis))
         
-        ##Compute the gram matrices with respect to the modified bases.
-        QM = compute_gram_matrix_from_basis(V, q_basis)
-        FM = compute_gram_matrix_from_basis(W, f_basis)
-        #print("Gram matrices with respect to modified bases:\nQM =\n{0}, \nFM =\n{1}".format(QM,FM))
+            # Compute the gram matrices with respect to the modified bases.
+            QM = compute_gram_matrix_from_basis(V, q_basis)
+            FM = compute_gram_matrix_from_basis(W, f_basis)
+            #print("Gram matrices with respect to modified bases:\nQM =\n{0}, \nFM =\n{1}".format(QM,FM))
         
-        ##Ensure that the bases are orthogonal, so the gram matrices will be diagonal.
-        q_basis = gram_schmidt(q_basis, i, QM)
-        f_basis = gram_schmidt(f_basis, i, FM)
-        #print("Orthogonal bases:\nQb =\n{0}, \nFb =\n{1}".format(q_basis, f_basis))
+            # Ensure that the bases are orthogonal, so the gram matrices will be diagonal.
+            q_basis = gram_schmidt(q_basis, i, V.bilinear_map)
+            f_basis = gram_schmidt(f_basis, i, W.bilinear_map)
+            #print("Orthogonal bases:\nQb =\n{0}, \nFb =\n{1}".format(q_basis, f_basis))
 
-        ##Compute the gram matrices with respect to the orthogonal bases.
-        QM = compute_gram_matrix_from_basis(V, q_basis)
-        FM = compute_gram_matrix_from_basis(W, f_basis)
-        #print("Gram matrices with respect to orthogonal bases:\nQM =\n{0}, \nFM =\n{1}".format(QM,FM))        
+            # Compute the gram matrices with respect to the orthogonal bases.
+            QM = compute_gram_matrix_from_basis(V, q_basis)
+            FM = compute_gram_matrix_from_basis(W, f_basis)
+            #print("Gram matrices with respect to orthogonal bases:\nQM =\n{0}, \nFM =\n{1}".format(QM,FM))
 
-        ##Pull off the first term and continue
-        Q = diagonal_qf_pull_off_n_terms(QM, i+1, Q.base_ring())
-        F = diagonal_qf_pull_off_n_terms(FM, i+1, F.base_ring())
+        # Pull off the first term and continue
+        Q = DiagonalQuadraticForm(Q.base_ring(), QM.diagonal())
+        Q = Q.extract_variables(range(i+1, Q.dim()))
+        F = DiagonalQuadraticForm(F.base_ring(), FM.diagonal())
+        F = F.extract_variables(range(i+1, F.dim()))
         #print("Smaller qf's:\nQ =\n{0}, \nF = \n{1}".format(Q, F))
-        
-    ##Compute the final term as a special case:
+
+    # Compute the final term as a special case:
     QM, FM = Q.Gram_matrix(), F.Gram_matrix()
+    #print("Penultimate Gram matrices:\nQM = \n{0}, \nFM = \n{1}".format(QM, FM))
     if QM[0][0] != 0:
         q_basis.set_col_to_multiple_of_col(n-1, n-1, sqrt(FM[0][0] / QM[0][0]))
     elif FM[0][0] != 0:
         f_basis.set_col_to_multiple_of_col(n-1, n-1, sqrt(QM[0][0] / FM[0][0]))
 
+    QM, FM = compute_gram_matrix_from_basis(V, q_basis), compute_gram_matrix_from_basis(W, f_basis)
+    #print("Final Gram matrices:\nQM =\n{0}, \nFM = \n{1}".format(QM, FM))
+
     return f_basis * q_basis.inverse()
+

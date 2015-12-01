@@ -607,25 +607,31 @@ cdef class Matrix(matrix0.Matrix):
 
     def lift_centered(self):
         """
-
         Apply the lift_centered method to every entry of self.
 
         OUTPUT:
 
-            If self is a matrix over `Integers(n)`, this method returns the unique
-            matrix `m` such that `m` is congruent to self mod `n` and for every
-            i, j we have `-n/2 < m[i,j] \leq n/2`.
+        If self is a matrix over the Integers mod `n`, this method returns the
+        unique matrix `m` such that `m` is congruent to self mod `n` and for
+        every entry `m[i,j]` we have `-n/2 < m[i,j] \\leq n/2`. If the
+        coefficient ring does not have a cover_ring method, return self.
 
         EXAMPLES::
 
-            sage: M = Matrix(Integers(7), 2, 2, [5, 9, 13, 15]) ; M
-            [5 2]
-            [6 1]
-            sage: M.lift_centered()
-            [-2 2]
-            [-1 1]
-            sage: parent(M.lift_centered())
-            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+            sage: M = Matrix(Integers(8), 2, 4, range(8)) ; M
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: L = M.lift_centered(); L
+            [ 0  1  2  3]
+            [ 4 -3 -2 -1]
+            sage: parent(L)
+            Full MatrixSpace of 2 by 4 dense matrices over Integer Ring
+
+        The returned matrix is congruent to M modulo 8.::
+
+            sage: L.mod(8)
+            [0 1 2 3]
+            [4 5 6 7]
 
         The field QQ doesn't have a cover_ring method::
 
@@ -1416,7 +1422,7 @@ cdef class Matrix(matrix0.Matrix):
                 self = self.change_ring(R)
             if bottom_ring is not R:
                 other = other.change_ring(R)
-        
+       
         if type(self) is not type(other):
             # If one of the matrices is sparse, return a sparse matrix
             if self.is_sparse_c() and not other.is_sparse_c():
@@ -1432,7 +1438,7 @@ cdef class Matrix(matrix0.Matrix):
     cdef _stack_impl(self, bottom):
         """
         Implementation of :meth:`stack`.
-        
+       
         Assume that ``self`` and ``other`` are compatible in the sense
         that they have the same base ring and that both are either
         dense or sparse.

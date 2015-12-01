@@ -755,8 +755,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         OUTPUT:
 
-            The unique integer `i` such that `-n/2 < i \leq n/2` and `i = self \mod n`
-            (where `n` denotes the modulus).
+        The unique integer `i` such that `-n/2 < i \leq n/2` and `i = self \mod n`
+        (where `n` denotes the modulus).
 
         EXAMPLES::
 

@@ -1920,17 +1920,16 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def lift(self):
         """
-
         Lift ``self`` to the cover ring.
 
         OUTPUT:
 
-            Return a lift of self to the covering ring of the base ring `R`,
-            which is by definition the ring returned by calling
-            :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
-            on `R`, or just `R` itself if the
-            :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
-            method is not defined.
+        Return a lift of self to the covering ring of the base ring `R`,
+        which is by definition the ring returned by calling
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        on `R`, or just `R` itself if the
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        method is not defined.
 
         EXAMPLES::
 
@@ -1958,17 +1957,16 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def lift_centered(self):
         """
-
         Lift to a congruent, centered vector.
 
         INPUT:
 
-            - ``self`` A vector with coefficients in `Integers(n)`.
+        - ``self`` A vector with coefficients in `Integers(n)`.
 
         OUTPUT:
 
-            - The unique integer vector `v` such that foreach `i`,
-              `Mod(v[i],n) = Mod(self[i],n)` and `-n/2 < v[i] \leq n/2`.
+        - The unique integer vector `v` such that foreach `i`,
+          `Mod(v[i],n) = Mod(self[i],n)` and `-n/2 < v[i] \leq n/2`.
 
         EXAMPLES::
 

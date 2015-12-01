@@ -3156,41 +3156,40 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(gceil(x.g))
 
-    centerlift = deprecated_function_alias(15804,lift_centered)
-
-    def lift_centered(gen x, v=-1):
+    def centerlift(gen x, v=-1):
         """
-        lift_centered(x,v): Centered lift of x. This function returns exactly
-        the same thing as lift, except if x is an integer mod.
+        Centered lift of x. This function returns exactly the same thing as lift,
+        except if x is an integer mod.
 
         INPUT:
 
+        -  ``x`` -- gen
 
-        -  ``x`` - gen
+        -  ``v`` -- var (default: x)
 
-        -  ``v`` - var (default: x)
+        OUTPUT:
 
-
-        OUTPUT: gen
+        - `r` -- gen. If `x` is an integer mod `n`, return the unique element `r` congruent
+          to `x` mod `n` such that `-n/2 < r \\leq n/2`.
 
         EXAMPLES::
 
             sage: x = pari(-2).Mod(5)
-            sage: x.lift_centered()
+            sage: x.centerlift()
             -2
             sage: x.lift()
             3
             sage: f = pari('x-1').Mod('x^2 + 1')
-            sage: f.lift_centered()
+            sage: f.centerlift()
             x - 1
             sage: f.lift()
             x - 1
             sage: f = pari('x-y').Mod('x^2+1')
             sage: f
             Mod(x - y, x^2 + 1)
-            sage: f.lift_centered('x')
+            sage: f.centerlift('x')
             x - y
-            sage: f.lift_centered('y')
+            sage: f.centerlift('y')
             Mod(x - y, x^2 + 1)
         """
         pari_catch_sig_on()
@@ -3465,6 +3464,53 @@ cdef class gen(gen_auto):
         if v == -1:
             return P.new_gen(lift(x.g))
         return P.new_gen(lift0(x.g, P.get_var(v)))
+
+    def lift_centered(gen x, v=-1):
+        """
+        Synonym of :meth:`centerlift`.
+
+        INPUT:
+
+        -  ``x`` -- gen
+
+        -  ``v`` -- var (default: x)
+
+        OUTPUT:
+
+        - `r` -- gen. If `x` is an integer mod `n`, return the unique element `r` congruent
+          to `x` mod `n` such that `-n/2 < r \\leq n/2`.
+
+        .. SEEALSO::
+
+            :meth:`centerlift`
+
+        EXAMPLES::
+
+            sage: x = pari(-2).Mod(5)
+            sage: x.lift_centered()
+            -2
+            sage: x.lift()
+            3
+            sage: f = pari('x-1').Mod('x^2 + 1')
+            sage: f.lift_centered()
+            x - 1
+            sage: f.lift()
+            x - 1
+            sage: f = pari('x-y').Mod('x^2+1')
+            sage: f
+            Mod(x - y, x^2 + 1)
+            sage: f.lift_centered('x')
+            x - y
+            sage: f.lift_centered('y')
+            Mod(x - y, x^2 + 1)
+
+        TESTS::
+
+            sage: f = pari(randint(-100,100)).Mod(randint(2,50))
+            sage: f.lift_centered() == f.centerlift()
+            True
+        """
+        return x.centerlift(v)
 
     def numbpart(gen x):
         """

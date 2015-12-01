@@ -264,11 +264,11 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         for t in coefficients:
             m = t[1]
             if not is_Matrix(m):
-                raise Exception("The coefficients must be matrices")
+                raise ValueError("The coefficients must be matrices")
             if not m.is_square():
-                raise Exception("The matrix has to be a square")
+                raise ValueError("The matrix has to be a square")
             if self.matrices_dim.get(self.nrows()) != None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
-                raise Exception("The matrces have to be of the same dimension")
+                raise ValueError("The matrces have to be of the same dimension")
         self.coeffs_matrix.append(coefficients)
         self.matrices_dim[self.nrows()] = m.dimensions()[0] #
         self.row_name_var.append(name)

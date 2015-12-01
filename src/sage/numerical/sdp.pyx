@@ -159,25 +159,23 @@ AUTHORS:
 
 - Ingolfur Edvardsson (2014/08): added extension for exact computation
 """
-
 #*****************************************************************************
 #       Copyright (C) 2014 Ingolfur Edvardsson <ingolfured@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
-from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.matrix.all import Matrix
 from sage.matrix.matrix import is_Matrix
 
@@ -553,8 +551,7 @@ cdef class SemidefiniteProgram(SageObject):
 
     def show(self):
         r"""
-        Displays the ``SemidefiniteProgram`` in a human-readable
-        way.
+        Displays the ``SemidefiniteProgram`` in a human-readable way.
 
         EXAMPLES:
 
@@ -625,10 +622,10 @@ cdef class SemidefiniteProgram(SageObject):
                 if c == 0:
                     continue
                 print (("+ " if (not first) else "") +
-                        ( str(c.__repr__().replace('\n',"")  )  )+varid_name[j]),
+                        ( str(repr(c).replace('\n',"")  )  )+varid_name[j]),
                 first = False
             print ("<= "),
-            print (-last_value).__repr__().replace('\n',"")
+            print repr(-last_value).replace('\n',"")
 
         ##### Variables
         print "Variables:"
@@ -1015,51 +1012,39 @@ cdef class SemidefiniteProgram(SageObject):
 class SDPSolverException(RuntimeError):
     r"""
     Exception raised when the solver fails.
+
+    ``SDPSolverException`` is the exception raised when the solver fails.
+
+    EXAMPLE::
+
+        sage: from sage.numerical.sdp import SDPSolverException
+        sage: SDPSolverException("Error")
+        SDPSolverException('Error',)
+
+    TESTS:
+
+    No solution::
+
+        sage: p=SemidefiniteProgram(solver="cvxopt")
+        sage: x=p.new_variable()
+        sage: p.set_objective(x[0])
+        sage: a = matrix([[1,2],[2,4]])
+        sage: b = matrix([[1,9],[9,4]])
+        sage: p.add_constraint( a*x[0] == b   )
+        sage: p.solve()
+        ...
+        Traceback (most recent call last):
+        ...
+        SDPSolverException: ...
+
+    The value of the exception::
+
+        sage: from sage.numerical.sdp import SDPSolverException
+        sage: e = SDPSolverException("Error")
+        sage: print e
+        Error
     """
-
-    def __init__(self, value):
-        r"""
-        Constructor for ``SDPSolverException``.
-
-        ``SDPSolverException`` is the exception raised when the solver fails.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.sdp import SDPSolverException
-            sage: SDPSolverException("Error")
-            SDPSolverException()
-
-        TESTS:
-
-        No solution::
-
-            sage: p=SemidefiniteProgram(solver="cvxopt")
-            sage: x=p.new_variable()
-            sage: p.set_objective(x[0])
-            sage: a = matrix([[1,2],[2,4]])
-            sage: b = matrix([[1,9],[9,4]])
-            sage: p.add_constraint( a*x[0] == b   )
-            sage: p.solve()
-            ...
-            Traceback (most recent call last):
-            ...
-            SDPSolverException: ...'
-        """
-        self.value = value
-
-    def __str__(self):
-        r"""
-        Returns the value of the instance of ``SDPSolverException``.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.sdp import SDPSolverException
-            sage: e = SDPSolverException("Error")
-            sage: print e
-            'Error'
-        """
-        return repr(self.value)
-
+    pass
 
 cdef class SDPVariable(Element):
     r"""
@@ -1308,27 +1293,3 @@ cdef class SDPVariableParent(Parent):
 
 
 sdp_variable_parent = SDPVariableParent()
-
-
-def Sum(x):
-    """
-    Only for legacy support, use :meth:`SemidefiniteProgram.sum` instead.
-
-    EXAMPLES::
-
-        sage: from sage.numerical.sdp import Sum
-        sage: Sum([])
-        doctest:...: DeprecationWarning: use SemidefiniteProgram.sum() instead
-        See http://trac.sagemath.org/13646 for details.
-
-        sage: p = SemidefiniteProgram()
-        sage: x = p.new_variable()
-        sage: Sum([ x[0]+x[1], x[1]+x[2], x[2]+x[3] ])   # deprecation is only shown once
-        x_0 + 2*x_1 + 2*x_2 + x_3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13646, 'use SemidefiniteProgram.sum() instead')
-    if not x:
-        return None
-    parent = x[0].parent()
-    return parent.sum(x)

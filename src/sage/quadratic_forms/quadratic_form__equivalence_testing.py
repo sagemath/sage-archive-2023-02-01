@@ -709,7 +709,6 @@ def diagonal_isometry(V, W):
 
     # Compute the final term as a special case:
     QM, FM = Q.Gram_matrix(), F.Gram_matrix()
-    #print("Penultimate Gram matrices:\nQM = \n{0}, \nFM = \n{1}".format(QM, FM))
     if QM[0][0] != 0:
         q_basis.set_col_to_multiple_of_col(n-1, n-1, sqrt(FM[0][0] / QM[0][0]))
     elif FM[0][0] != 0:

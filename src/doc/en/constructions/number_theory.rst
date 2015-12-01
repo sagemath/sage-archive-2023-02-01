@@ -97,10 +97,11 @@ Divisors
 
 How do you compute the sum of the divisors of an integer in Sage?
 
-Sage uses ``divisors(n)`` for the number (usually denoted
-:math:`d(n)`) of divisors of :math:`n` and ``sigma(n,k)`` for the
-sum of the :math:`k^{th}` powers of the divisors of :math:`n` (so
-``divisors(n)`` and ``sigma(n,0)`` are the same). For example:
+Sage uses ``divisors(n)`` for the list of divisors of :math:`n` and 
+``sigma(n,k)`` for the sum of the :math:`k^{th}` powers of the divisors 
+of :math:`n`  The number of divisors of math:`n` 
+can be defined as: ``tau = lambda n: sloane.A000005(n)``. 
+Then ``tau(n)`` and ``sigma(n,0)`` are the same.  For example:
 
 ::
 

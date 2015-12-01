@@ -154,16 +154,16 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             raise ValueError("All evaluation points must be in the same finite field")
         super(GeneralizedReedSolomonCode, self).__init__(F, \
                 len(evaluation_points), "EvaluationVector", "Syndrome")
-        self._evaluation_points = copy(evaluation_points)
+        self._evaluation_points = tuple(evaluation_points)
         self._dimension = dimension
 
         if column_multipliers is None:
-            self._column_multipliers = [self.base_field().one()] * self._length
+            self._column_multipliers = tuple(self.base_field().one() for i in range(self._length) )
         else:
             if not all(F == e.base_ring() for e in column_multipliers):
                 raise ValueError("Column multipliers and evaluation points\
                         must be in the same field")
-            self._column_multipliers = copy(column_multipliers)
+            self._column_multipliers = tuple(column_multipliers)
         if len(self._column_multipliers) != self._length:
             raise ValueError("There must be exactly %s column multipliers"\
                     % self._length)
@@ -241,8 +241,9 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def minimum_distance(self):
         r"""
-        Returns the minimum distance of ``self``. Since a GRS code is always MDS,
-        this always returns ``C.length() - C.dimension() + 1``.
+        Returns the minimum distance of ``self``. Since a GRS code is always
+        Maximum-Distance-Separable (MDS), this returns ``C.length() -
+        C.dimension() + 1``.
 
         EXAMPLES::
 
@@ -264,7 +265,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: n, k = 10, 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.evaluation_points()
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
         """
         return self._evaluation_points
 
@@ -278,21 +279,20 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: n, k = 10, 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.column_multipliers()
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
         """
         return self._column_multipliers
 
     @cached_method
     def multipliers_product(self):
         r"""
-        Returns the list of products of the j-th column multiplier of ``self`` with
-        the j-th column multiplier of ``self``'s parity check matrix, for j between 0 and
-        the length of ``self``.
+        Returns the component-wise product of the column multipliers of ``self``
+        with the column multipliers of the dual GRS code.
 
-        AUTHORS:
-
-            This function is taken from codinglib [Nielsen]_
-
+        This is a simple Cramer's rule-like expression on the evaluation points
+        of ``self``. Recall that the column multipliers of the dual GRS code is
+        also the column multipliers of the parity check matrix of ``self``.
+        
         EXAMPLES::
 
             sage: F = GF(11)
@@ -309,10 +309,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     def parity_column_multipliers(self):
         r"""
         Returns the list of column multipliers of ``self``'s parity check matrix.
-
-        AUTHORS:
-
-            This function is taken from codinglib [Nielsen]_
 
         EXAMPLES::
 
@@ -346,21 +342,24 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         """
         F = self.base_ring()
         n = self.length()
-        d = self.minimum_distance()
+        k = self.dimension()
         alphas = self.evaluation_points()
-        return matrix(F, d-1, n, lambda i,j : alphas[j] ** i) *\
-                diagonal_matrix(F, self.parity_column_multipliers())
+        parity_mults = self.parity_column_multipliers()
+        return matrix(F, n - k, n, lambda i,j : parity_mults[j] * alphas[j]**i)
 
     def dual_code(self):
         r"""
-        Returns the dual code of ``self``.
+        Returns the dual code of ``self``, which is also a GRS code.
 
         EXAMPLES::
 
-            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: Cd = C.dual_code()
+            sage: F =  GF(59)
+            sage: colmults = [ F.random_element() for i in range(40) ]
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:40], 12, colmults)
+            sage: Cd = C.dual_code(); Cd
+            [40, 28, 13] Generalized Reed-Solomon Code over Finite Field of size 59
 
-        Dual code of the dual code is the original code::
+        The dual code of the dual code is the original code::
 
             sage: C == Cd.dual_code()
             True
@@ -373,35 +372,32 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         Returns the covering radius of ``self``.
 
         The covering radius of a linear code `C` is the smallest
-        number `r` s.t. any element of
-        the ambient space of `C` is at most at distance `r` to `C`.
+        number `r` s.t. any element of the ambient space of `C` is at most at
+        distance `r` to `C`.
 
-        As Reed-Solomon codes are MDS codes, their covering radius
-        is always `d-1`, where `d` is the minimum distance.
-
-        This is a custom method for GRS codes which is faster than
-        generic implementation.
+        As GRS codes are Maximum Distance Separable codes (MDS), their covering
+        radius is always `d-1`, where `d` is the minimum distance. This is
+        opposed to random linear codes where the covering radius is
+        computationally hard to determine.
 
         EXAMPLES::
 
-            sage: F = GF(11)
-            sage: n, k = 10, 5
+            sage: F = GF(2^8, 'a')
+            sage: n, k = 256, 100
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.covering_radius()
-            5
+            156
         """
         return self.length() - self.dimension()
 
     @cached_method
     def weight_distribution(self):
         r"""
-        Returns the weight distribution of ``self``.
+        Returns the list whose `i`'th entry is the number of words of weight `i`
+        in ``self``.
 
-        The weight distribution is returned as a list, where the
-        `i-th` entry corresponds to the number of words of weight `i` in the code.
-
-        This is a custom method for GRS codes which is faster than
-        generic implementation.
+        Computing the weight distribution for a GRS code is very fast. Note that
+        for random linear codes, it is computationally hard.
 
         EXAMPLES::
 
@@ -423,10 +419,10 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def weight_enumerator(self):
         r"""
-        Returns the weight enumerator of ``self``.
+        Returns the polynomial whose coefficient to `x^i` is the number of codewords of weight `i` in ``self``.
 
-        This is a custom method for GRS codes which is faster than
-        generic implementation.
+        Computing the weight enumerator for a GRS code is very fast. Note that
+        for random linear codes, it is computationally hard.
 
         EXAMPLES::
 
@@ -446,7 +442,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         for i in range(n + 1 - d):
             w_en += wd[i + d] * x ** (i + d)
         return w_en
-
 
 
 

@@ -247,7 +247,7 @@ Below we show how the these algorithms are called::
     [[(0.5, 0.5), (0.5, 0.5)]]
     sage: matching_pennies.obtain_nash(algorithm='lp-PPL')
     [[(1/2, 1/2), (1/2, 1/2)]]
-    sage: matching_pennies.obtain_nash(algorithm='lp-gambit')
+    sage: matching_pennies.obtain_nash(algorithm='lp-gambit') # optional - gambit
     [[(0.5, 0.5), (0.5, 0.5)]]
     sage: matching_pennies.obtain_nash(algorithm='enumeration')
     [[(1/2, 1/2), (1/2, 1/2)]]
@@ -1005,34 +1005,34 @@ class NormalFormGame(SageObject, MutableMapping):
             <BLANKLINE>
            
 
-            sage: threegame = NormalFormGame() # option - gambit
-            sage: threegame.add_player(2) # option - gambit
-            sage: threegame.add_player(2) # option - gambit
-            sage: threegame.add_player(2) # option - gambit
-            sage: threegame[0, 0, 0][0] = 3 # option - gambit
-            sage: threegame[0, 0, 0][1] = 1 # option - gambit
-            sage: threegame[0, 0, 0][2] = 4 # option - gambit
-            sage: threegame[0, 0, 1][0] = 1 # option - gambit
-            sage: threegame[0, 0, 1][1] = 5 # option - gambit
-            sage: threegame[0, 0, 1][2] = 9 # option - gambit
-            sage: threegame[0, 1, 0][0] = 2 # option - gambit
-            sage: threegame[0, 1, 0][1] = 6 # option - gambit
-            sage: threegame[0, 1, 0][2] = 5 # option - gambit
-            sage: threegame[0, 1, 1][0] = 3 # option - gambit
-            sage: threegame[0, 1, 1][1] = 5 # option - gambit
-            sage: threegame[0, 1, 1][2] = 8 # option - gambit
-            sage: threegame[1, 0, 0][0] = 9 # option - gambit
-            sage: threegame[1, 0, 0][1] = 7 # option - gambit
-            sage: threegame[1, 0, 0][2] = 9 # option - gambit
-            sage: threegame[1, 0, 1][0] = 3 # option - gambit
-            sage: threegame[1, 0, 1][1] = 2 # option - gambit
-            sage: threegame[1, 0, 1][2] = 3 # option - gambit
-            sage: threegame[1, 1, 0][0] = 8 # option - gambit
-            sage: threegame[1, 1, 0][1] = 4 # option - gambit
-            sage: threegame[1, 1, 0][2] = 6 # option - gambit
-            sage: threegame[1, 1, 1][0] = 2 # option - gambit
-            sage: threegame[1, 1, 1][1] = 6 # option - gambit
-            sage: threegame[1, 1, 1][2] = 4 # option - gambit
+            sage: threegame = NormalFormGame() # optional - gambit
+            sage: threegame.add_player(2) # optional - gambit
+            sage: threegame.add_player(2) # optional - gambit
+            sage: threegame.add_player(2) # optional - gambit
+            sage: threegame[0, 0, 0][0] = 3 # optional - gambit
+            sage: threegame[0, 0, 0][1] = 1 # optional - gambit
+            sage: threegame[0, 0, 0][2] = 4 # optional - gambit
+            sage: threegame[0, 0, 1][0] = 1 # optional - gambit
+            sage: threegame[0, 0, 1][1] = 5 # optional - gambit
+            sage: threegame[0, 0, 1][2] = 9 # optional - gambit
+            sage: threegame[0, 1, 0][0] = 2 # optional - gambit
+            sage: threegame[0, 1, 0][1] = 6 # optional - gambit
+            sage: threegame[0, 1, 0][2] = 5 # optional - gambit
+            sage: threegame[0, 1, 1][0] = 3 # optional - gambit
+            sage: threegame[0, 1, 1][1] = 5 # optional - gambit
+            sage: threegame[0, 1, 1][2] = 8 # optional - gambit
+            sage: threegame[1, 0, 0][0] = 9 # optional - gambit
+            sage: threegame[1, 0, 0][1] = 7 # optional - gambit
+            sage: threegame[1, 0, 0][2] = 9 # optional - gambit
+            sage: threegame[1, 0, 1][0] = 3 # optional - gambit
+            sage: threegame[1, 0, 1][1] = 2 # optional - gambit
+            sage: threegame[1, 0, 1][2] = 3 # optional - gambit
+            sage: threegame[1, 1, 0][0] = 8 # optional - gambit
+            sage: threegame[1, 1, 0][1] = 4 # optional - gambit
+            sage: threegame[1, 1, 0][2] = 6 # optional - gambit
+            sage: threegame[1, 1, 1][0] = 2 # optional - gambit
+            sage: threegame[1, 1, 1][1] = 6 # optional - gambit
+            sage: threegame[1, 1, 1][2] = 4 # optional - gambit
             sage: threegame._gambit_(as_integer = True) # optional - gambit
             NFG 1 R "" { "1" "2" "3" }
             <BLANKLINE>

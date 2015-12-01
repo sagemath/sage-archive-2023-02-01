@@ -214,10 +214,6 @@ cdef class SemidefiniteProgram(SageObject):
         defined as a minimization.
 
 
-    .. WARNING::
-
-        All SDP variables are non-negative by default (see :meth:`new_variable`).
-
     .. SEEALSO::
 
      - :func:`default_sdp_solver` -- Returns/Sets the default SDP solver.
@@ -517,10 +513,10 @@ cdef class SemidefiniteProgram(SageObject):
         return self.linear_functions_parent().gen(i)
 
     cpdef int number_of_constraints(self):
-      r"""
-      Returns the number of constraints assigned so far.
+        r"""
+        Returns the number of constraints assigned so far.
 
-      EXAMPLE::
+        EXAMPLE::
 
             sage: p = SemidefiniteProgram(solver = "cvxopt")
             sage: x = p.new_variable()
@@ -535,23 +531,23 @@ cdef class SemidefiniteProgram(SageObject):
             sage: p.add_constraint(b1*x[0] + a2*x[1] <= b3)
             sage: p.number_of_constraints()
             3
-      """
-      return self._backend.nrows()
+        """
+        return self._backend.nrows()
 
     cpdef int number_of_variables(self):
-      r"""
-      Returns the number of variables used so far.
+        r"""
+        Returns the number of variables used so far.
 
 
-      EXAMPLE::
+        EXAMPLE::
 
             sage: p = SemidefiniteProgram()
             sage: a = matrix([[1, 2.], [2., 3.]])
             sage: p.add_constraint(a*p[0] - a*p[2] <=  2*a*p[4]  )
             sage: p.number_of_variables()
             3
-      """
-      return self._backend.ncols()
+        """
+        return self._backend.ncols()
 
 
 
@@ -564,21 +560,20 @@ cdef class SemidefiniteProgram(SageObject):
 
         When constraints and variables have names ::
 
-              p = SemidefiniteProgram();
-              x = p.new_variable(name="Haha");
-              a1 = matrix([[1,2],[2,3]]);
-              a2 = matrix([[2,3],[3,4]]);
-              a3 = matrix([[3,4],[4,5]]);
-              p.set_objective(x[0] - x[1]),
-              p.add_constraint(a1*x[1]+a2*x[2]<= a3);
-              p.show()
+              sage: p = SemidefiniteProgram()
+              sage: x = p.new_variable(name="hihi")
+              sage: a1 = matrix([[1,2],[2,3]])
+              sage: a2 = matrix([[2,3],[3,4]])
+              sage: a3 = matrix([[3,4],[4,5]])
+              sage: p.set_objective(x[0] - x[1])
+              sage: p.add_constraint(a1*x[0]+a2*x[1]<= a3)
+              sage: p.show()
               Maximization:
                 hihi[0] - hihi[1]
               Constraints:
                 constraint_0: [1.0 2.0][2.0 3.0]hihi[0] + [2.0 3.0][3.0 4.0]hihi[1] <=  [3.0 4.0][4.0 5.0]
               Variables:
                  hihi[0],  hihi[1]
-
         """
         cdef int i, j
         cdef GenericSDPBackend b = self._backend
@@ -740,7 +735,7 @@ cdef class SemidefiniteProgram(SageObject):
             Variables:
               x, y
 
-        This linear program can be solved as follows::
+        This SDP can be solved as follows::
 
             sage: p = SemidefiniteProgram(maximization=True)
             sage: x = p.new_variable()
@@ -797,7 +792,7 @@ cdef class SemidefiniteProgram(SageObject):
             Variables:
               x, y
 
-        This linear program can be solved as follows::
+        This SDP can be solved as follows::
 
             sage: p = SemidefiniteProgram(maximization=True)
             sage: x = p.new_variable()
@@ -885,25 +880,9 @@ cdef class SemidefiniteProgram(SageObject):
 
         The optimal value taken by the objective function.
 
-        .. WARNING::
+        TESTS:
 
-            By default, all variables of a SDP are assumed to be
-            non-negative.
-
-        EXAMPLES:
-
-        Consider the following linear program::
-
-            Maximize:
-              x + 5 * y
-            Constraints:
-              x + 0.2 y       <= 4
-              1.5 * x + 3 * y <= 4
-            Variables:
-              x is Real (min = 0, max = None)
-              y is Real (min = 0, max = None)
-
-        This linear program can be solved as follows::
+        The SDP from the header of this module::
 
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization = False)
             sage: x = p.new_variable()
@@ -948,10 +927,25 @@ cdef class SemidefiniteProgram(SageObject):
 
         EXAMPLE::
 
-            sage: p = SemidefiniteProgram(solver = "cvxopt")
+            sage: p.<x> = SemidefiniteProgram(solver = "cvxopt", maximization = False)
             sage: p.solver_parameter("show_progress", True)
             sage: p.solver_parameter("show_progress")
             True
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 2.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 1.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: round(p.solve(),4)
+                 pcost       dcost       gap    pres   dres   k/t
+             0:  1...
+            ...
+            Optimal solution found.
+            -11.0
         """
         if value is None:
             return self._backend.solver_parameter(name)

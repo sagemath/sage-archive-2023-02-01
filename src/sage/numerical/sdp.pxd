@@ -1,6 +1,3 @@
-cdef extern from *:
-    ctypedef double* const_double_ptr "const double*"
-
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element

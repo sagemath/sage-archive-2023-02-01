@@ -1,26 +1,12 @@
 # distutils: depends = NTL/ZZ.h
 
-from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_c
-from sage.libs.ntl.ntl_ZZ_pContext_decl cimport ZZ_pContext_c
-from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_c
-from sage.libs.ntl.ntl_vec_ZZ_p_decl cimport vec_ZZ_p_c
-from sage.libs.ntl.ntl_vec_ZZ_pE_decl cimport vec_ZZ_pE_c
+from .types cimport (ZZ_c, ZZ_p_c, ZZ_pContext_c, ZZ_pE_c, vec_ZZ_p_c,
+        vec_ZZ_pE_c, ZZ_pEX_c, ZZ_pEX_Modulus_c)
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    #### ZZ_pEX_c
-    ctypedef struct ZZ_pEX_c "struct ZZ_pEX":
-        void *rep
-        void (* SetMaxLength)(long n)
-
-    ZZ_pEX_c* ZZ_pEX_new "New<ZZ_pEX>"()
-    ZZ_pEX_c* ZZ_pEX_construct "Construct<ZZ_pEX>"(void *mem)
-    void ZZ_pEX_destruct "Destruct<ZZ_pEX>"(ZZ_pEX_c *mem)
-    void ZZ_pEX_delete "Delete<ZZ_pEX>"(ZZ_pEX_c *mem)
     void ZZ_pEX_from_str "_from_str<ZZ_pEX>"(ZZ_pEX_c* dest, char* s)
     object ZZ_pEX_to_PyString "_to_PyString<ZZ_pEX>"(ZZ_pEX_c *x)
 
-    long ZZ_pEX_equal "operator=="(ZZ_pEX_c a, ZZ_pEX_c b)
     long ZZ_pEX_IsZero "IsZero"(ZZ_pEX_c a)
     long ZZ_pEX_IsOne "IsOne"(ZZ_pEX_c a)
 
@@ -85,12 +71,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void ZZ_pEX_InvMod "InvMod"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c f)
     long ZZ_pEX_InvModStatus "InvModStatus"(ZZ_pEX_c x, ZZ_pEX_c a, ZZ_pEX_c f)
 
-    ctypedef struct ZZ_pEX_Modulus_c "struct ZZ_pEXModulus":
-        ZZ_pEX_c val()
-    ZZ_pEX_Modulus_c* ZZ_pEX_Modulus_new "New<ZZ_pEXModulus>"()
-    ZZ_pEX_Modulus_c* ZZ_pEX_Modulus_construct "Construct<ZZ_pEXModulus>"(void *mem)
-    void ZZ_pEX_Modulus_destruct "Destruct<ZZ_pEXModulus>"(ZZ_pEX_Modulus_c *mem)
-    void ZZ_pEX_Modulus_delete "Delete<ZZ_pEXModulus>"(ZZ_pEX_Modulus_c *mem)
     void ZZ_pEX_Modulus_from_str "_from_str<ZZ_pEXModulus>"(ZZ_pEX_Modulus_c* dest, char* s)
     void ZZ_pEX_Modulus_build "build"(ZZ_pEX_Modulus_c F, ZZ_pEX_c f)
     long ZZ_pEX_Modulus_deg "deg"(ZZ_pEX_Modulus_c F)

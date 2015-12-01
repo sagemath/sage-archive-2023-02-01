@@ -22,7 +22,7 @@ from sage.rings.integer cimport Integer
 
 zz_pContextDict = {}
 
-cdef class ntl_zz_pContext_class:
+cdef class ntl_zz_pContext_class(object):
     def __init__(self, long v):
         """
         EXAMPLES:
@@ -48,12 +48,9 @@ cdef class ntl_zz_pContext_class:
     def __cinit__(self, long v):
         if v > NTL_SP_BOUND:
             raise ValueError, "Modulus (=%s) is too big"%v
-        zz_pContext_construct_long(&self.x, v)
+        self.x = zz_pContext_c(v)
         zz_pContextDict[repr(v)] = self
         self.p = v
-
-    def __dealloc__(self):
-        zz_pContext_destruct(&self.x)
 
     def __reduce__(self):
         """

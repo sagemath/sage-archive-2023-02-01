@@ -2527,7 +2527,7 @@ class LPAbstractDictionary(SageObject):
         OUTPUT:
 
         - ``True`` if all :meth:`~LPDictionary.constant_terms` are
-          non-negative,``False`` otherwise
+          non-negative, ``False`` otherwise
 
         EXAMPLES::
 

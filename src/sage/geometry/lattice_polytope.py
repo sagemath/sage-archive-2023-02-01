@@ -1140,7 +1140,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Read equations of facets/vertices of polar polytope from string or
         file.
 
-        TESTS: For a reflexive polytope construct the polar polytope::
+        TESTS:
+
+        For a reflexive polytope construct the polar polytope::
 
             sage: p = LatticePolytope([(1,0), (0,1), (-1,-1)])
             sage: p.vertices()

@@ -169,7 +169,7 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
 
             - ``A`` -- a set partition
 
-            OUPUT:
+            OUTPUT:
 
             - either the ``0`` or the ``1`` of the base ring of ``self``
 
@@ -461,7 +461,7 @@ class NCSymBases(Category_realization_of_parent):
 
             - ``i`` -- the indices of an element of the basis of ``self``
 
-            OUPUT:
+            OUTPUT:
 
             - an element of the tensor squared of ``self``
 

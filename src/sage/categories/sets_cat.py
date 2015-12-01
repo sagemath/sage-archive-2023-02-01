@@ -66,8 +66,8 @@ class EmptySetError(ValueError):
     EXAMPLES::
 
         sage: def first_element(st):
-        ...    if not st: raise EmptySetError, "no elements"
-        ...    else: return st[0]
+        ....:  if not st: raise EmptySetError("no elements")
+        ....:  else: return st[0]
         sage: first_element(Set((1,2,3)))
         1
         sage: first_element(Set([]))
@@ -901,8 +901,6 @@ class Sets(Category_singleton):
                 ....:   def __init__(self):
                 ....:       Parent.__init__(self, category=(FiniteEnumeratedSets(),Monoids()), facade=True)
                 sage: a = A()
-
-            TESTS::
 
                 sage: Posets().Facade()
                 Category of facade posets
@@ -2352,7 +2350,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 Return the projection of ``self`` onto the `i`-th
                 factor of the cartesian product.
 
-                INPUTS:
+                INPUT:
 
                 - ``i`` -- the index of a factor of the cartesian product
 

@@ -472,7 +472,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
     Same as for
     :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial`.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
@@ -813,7 +813,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         :class:`SchemeMorphism_fan_toric_variety_dominant` for
         additional functionality for fibrations.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety`.
 
@@ -1354,7 +1354,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
     morphism :meth:`must be dominant
     <sage.geometry.fan_morphism.FanMorphism.is_dominant>`.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety_dominant`.
 

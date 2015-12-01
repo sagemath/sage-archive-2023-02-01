@@ -30,7 +30,9 @@ from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.modules.free_module_element import vector
 from sage.misc.cachefunc import cached_method
 from copy import copy
-from linear_code import AbstractLinearCode
+from linear_code import (AbstractLinearCode,
+                         LinearCodeSyndromeDecoder,
+                         LinearCodeNearestNeighborDecoder)
 from encoder import Encoder
 from sage.misc.misc_c import prod
 from sage.functions.other import binomial
@@ -143,7 +145,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         F = vector(evaluation_points).base_ring()
         if F.is_finite() == False:
             raise ValueError("Evaluation points must be in a finite field")
-        super(GeneralizedReedSolomonCode, self).__init__(F, len(evaluation_points), "EvaluationVector")
+        super(GeneralizedReedSolomonCode, self).__init__(F, len(evaluation_points), "EvaluationVector", "Syndrome")
         self._dimension = dimension
         self._evaluation_points = copy(evaluation_points)
 
@@ -796,3 +798,5 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
 GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluationVectorEncoder
 GeneralizedReedSolomonCode._registered_encoders["EvaluationPolynomial"] = GRSEvaluationPolynomialEncoder
+GeneralizedReedSolomonCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+GeneralizedReedSolomonCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

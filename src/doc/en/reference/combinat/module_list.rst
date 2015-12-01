@@ -161,7 +161,6 @@ Comprehensive Module list
     sage/combinat/perfect_matching
     sage/combinat/permutation
     sage/combinat/permutation_cython
-    sage/combinat/permutation_nk
     sage/combinat/posets/__init__
     sage/combinat/posets/all
     sage/combinat/posets/cartesian_product

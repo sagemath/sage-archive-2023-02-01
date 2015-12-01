@@ -2562,7 +2562,7 @@ def latex_variable_name(x, is_fname=False):
 
     TESTS::
 
-        sage: latex_variable_name('_C')  # :trac:`16007`
+        sage: latex_variable_name('_C')  # trac #16007
         'C'
         sage: latex_variable_name('_K1')
         'K_{1}'

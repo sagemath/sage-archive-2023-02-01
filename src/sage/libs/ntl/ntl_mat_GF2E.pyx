@@ -35,7 +35,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
-cdef class ntl_mat_GF2E:
+cdef class ntl_mat_GF2E(object):
     r"""
     The \class{mat_GF2E} class implements arithmetic with matrices over $GF(2**x)$.
     """
@@ -122,11 +122,9 @@ cdef class ntl_mat_GF2E:
         if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
-            mat_GF2E_construct(&self.x)
         else:
             self.c = <ntl_GF2EContext_class>ntl_GF2EContext(modulus)
             self.c.restore_c()
-            mat_GF2E_construct(&self.x)
 
     cdef ntl_GF2E _new_element(self):
         cdef ntl_GF2E r
@@ -159,12 +157,6 @@ cdef class ntl_mat_GF2E:
             True
         """
         return self.c
-
-    def __dealloc__(self):
-        # With NTL 6.0.0, mat_GF2E is a proper C++ class.
-        # Therefore Cython automagically calls the class destructor.
-        #mat_GF2E_destruct(&self.x)
-        pass
 
     def __reduce__(self):
         """
@@ -302,32 +294,34 @@ cdef class ntl_mat_GF2E:
         sig_off()
         return r
 
-    def __richcmp__(ntl_mat_GF2E self, other, op):
+    def __richcmp__(ntl_mat_GF2E self, other, int op):
         """
+        Compare self to other.
+
         EXAMPLES::
 
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: n = ntl.mat_GF2E(ctx, 5,5,[3..27])
-            sage: m == n ## indirect doctest
+            sage: m == n
             False
             sage: m == m
             True
+            sage: m == []
+            False
         """
         self.c.restore_c()
 
-        if not isinstance(other, ntl_mat_GF2E):
-            other = ntl_mat_GF2E(other,self.c)
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("matrices over GF(2^e) are not ordered")
 
-        if op != 2 and op != 3:
-            raise TypeError, "Elements in GF2E are not ordered."
+        cdef ntl_mat_GF2E b
+        try:
+            b = <ntl_mat_GF2E?>other
+        except TypeError:
+            return NotImplemented
 
-        cdef int t
-        t = mat_GF2E_equal(self.x, (<ntl_mat_GF2E>other).x)
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        return (op == Py_EQ) == (self.x == b.x)
 
     def NumRows(self):
         """

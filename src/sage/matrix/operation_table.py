@@ -479,6 +479,7 @@ class OperationTable(SageObject):
             ()
 
         TESTS:
+
         We test the error conditions here, rather than as part of the
         doctests for the :class:`OperationTable` and :meth:`change_names`
         methods that rely on this one. ::

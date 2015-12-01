@@ -304,7 +304,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from combinat import CombinatorialClass, CombinatorialElement, cyclic_permutations_iterator
+from combinat import CombinatorialClass, CombinatorialElement
 import tableau
 import permutation
 import composition
@@ -648,7 +648,7 @@ class Partition(CombinatorialElement):
         """
         return tuple(self._list).__hash__()
 
-    def _repr_(self, compact=None):
+    def _repr_(self):
         r"""
         Return a string representation of ``self`` depending on
         :meth:`Partitions.global_options`.
@@ -712,10 +712,6 @@ class Partition(CombinatorialElement):
 
             sage: Partitions.global_options.reset()
         """
-        if compact is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16933, 'compact argument is deprecated.')
-
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _ascii_art_(self):
@@ -1383,7 +1379,7 @@ class Partition(CombinatorialElement):
             [[2, 2], [3, 1]]
             sage: Partition([3,2,1]).down_list()
             [[2, 2, 1], [3, 1, 1], [3, 2]]
-            sage: Partition([]).down_list()  #checks :trac:`11435`
+            sage: Partition([]).down_list()  # checks trac #11435
             []
         """
         return [p for p in self.down()]
@@ -7378,6 +7374,7 @@ def RestrictedPartitions(n, S, k=None):
 
     EXAMPLES::
 
+        sage: from sage.combinat.partition import RestrictedPartitions
         sage: RestrictedPartitions(5,[3,2,1])
         doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
         See http://trac.sagemath.org/13072 for details.
@@ -7406,6 +7403,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         TESTS::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: r = RestrictedPartitions(5,[3,2,1])
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7428,6 +7426,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: [4,1] in RestrictedPartitions(5,[3,2,1])
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7448,6 +7447,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(5,[3,2,1]).__repr__()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7469,6 +7469,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(8,[1,3,5,7]).list()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7495,6 +7496,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(8,[1,3,5,7]).cardinality()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7706,7 +7708,7 @@ _Partitions = Partitions()
 
 # Rather than caching an under-used function I have cached the default
 # number_of_partitions functions which is currently using FLINT.
-# AM :trac:`13072`
+# AM trac #13072
 cached_number_of_partitions = cached_function( flint_number_of_partitions )
 
 # October 2012: fixing outdated pickles which use classes being deprecated

@@ -212,6 +212,7 @@ __append_to_doc(
      "LCFGraph",
      "line_graph_forbidden_subgraphs",
      "MathonPseudocyclicMergingGraph",
+     "MathonPseudocyclicStronglyRegularGraph",
      "MycielskiGraph",
      "MycielskiStep",
      "NKStarGraph",
@@ -1562,6 +1563,9 @@ class GraphGenerators():
               :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
               get/set methods for embeddings.
 
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomTriangulation`
+              -- build a random triangulation.
+
         EXAMPLES:
 
         The unique planar embedding of the `K_4` is the only planar triangulations
@@ -1990,6 +1994,7 @@ class GraphGenerators():
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
     MathonPseudocyclicMergingGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicMergingGraph)
+    MathonPseudocyclicStronglyRegularGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicStronglyRegularGraph)
     MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
     MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)

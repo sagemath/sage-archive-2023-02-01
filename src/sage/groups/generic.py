@@ -843,7 +843,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
     ALGORITHM: Pollard Lambda, if bounds are (lb,ub) it has time complexity
         O(sqrt(ub-lb)) and space complexity O(log(ub-lb))
 
-    EXEMPLES::
+    EXAMPLES::
 
         sage: F.<a> = GF(2^63)
         sage: discrete_log_lambda(a^1234567, a, (1200000,1250000))

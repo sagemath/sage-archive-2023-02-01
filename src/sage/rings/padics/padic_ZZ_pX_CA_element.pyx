@@ -791,14 +791,12 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + O(w^13)
         """
         if absprec < 0:
-            raise ValueError, "absprec must be non-negative"
+            raise ValueError("absprec must be non-negative")
         if self.absprec == absprec:
             return False
-        if self.absprec > 0:
-            ZZ_pX_destruct(&self.value)
         if absprec > 0:
             self.prime_pow.restore_context_capdiv(absprec)
-            ZZ_pX_construct(&self.value)
+            self.value = ZZ_pX_c()
         self.absprec = absprec
         return True
 
@@ -838,22 +836,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         else:
             self._set_prec_abs(ordp + relprec)
 
-    def __dealloc__(self):
-        """
-        Deallocates ``self.value``.
-
-        EXAMPLES::
-
-            sage: R = ZpCA(5,5)
-            sage: S.<x> = ZZ[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = W(25/3, relprec = 6)
-            sage: del z #indirect doctest
-        """
-        if self.absprec != 0:
-            ZZ_pX_destruct(&self.value)
-
     cdef pAdicZZpXCAElement _new_c(self, long absprec):
         """
         Returns a new element with the same parent as ``self`` and
@@ -874,9 +856,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         ans.absprec = absprec
         if absprec > 0:
             self.prime_pow.restore_context_capdiv(absprec)
-            ZZ_pX_construct(&ans.value)
         elif absprec < 0:
-            raise ValueError, "absprec must be positive"
+            raise ValueError("absprec must be positive")
         return ans
 
     def __reduce__(self):
@@ -977,7 +958,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         ans.relprec = -self.absprec
         if self.absprec != 0:
             self.prime_pow.restore_context_capdiv(self.absprec)
-            ZZ_pX_construct(&ans.unit)
             ans.unit = self.value
         return ans
 

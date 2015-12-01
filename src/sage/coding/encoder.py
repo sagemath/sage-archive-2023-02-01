@@ -47,7 +47,7 @@ class Encoder(SageObject):
       need something more clever, override ``__eq__`` and ``__ne__`` in your subclass.
 
     - As :class:`Encoder` is not designed to be instantiated, it does not have any representation
-      methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
+      methods. You should implement ``_repr_`` and ``_latex_`` methods in the subclass.
 
     REFERENCES:
 

@@ -1460,6 +1460,9 @@ def setup_parser():
     standard.add_option("--no-plot", dest="no_plot",
                         action="store_true",
                         help="do not include graphics auto-generated using the '.. plot' markup")
+    standard.add_option("--no-tests", dest="skip_tests", default=False,
+                        action="store_true",
+                        help="do not include TESTS blocks in the reference manual")
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
                         help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
@@ -1620,6 +1623,8 @@ if __name__ == '__main__':
         ALLSPHINXOPTS += "-n "
     if options.no_plot:
         os.environ['SAGE_SKIP_PLOT_DIRECTIVE'] = 'yes'
+    if options.skip_tests:
+        os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
     ABORT_ON_ERROR = not options.keep_going
 

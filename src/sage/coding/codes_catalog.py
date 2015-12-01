@@ -32,6 +32,7 @@ from grs import GeneralizedReedSolomonCode
 
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
 
+import decoders_catalog as decoders
 import encoders_catalog as encoders
 import bounds_catalog as bounds
 from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index

@@ -208,7 +208,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
         """
         Initialization.
 
-        INPUTS:
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap
@@ -297,7 +297,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         """
         Initialization.
 
-        INPUTS:
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap
@@ -388,7 +388,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
         """
         Initialization
 
-        INPUTS:
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap
@@ -505,7 +505,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         """
         Initialization.
 
-        INPUTS::
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap

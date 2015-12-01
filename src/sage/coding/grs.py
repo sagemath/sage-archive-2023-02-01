@@ -53,10 +53,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     - ``column_multipliers`` -- (default: ``None``) List of column multipliers in F for this code.
       All column multipliers are set to 1 if default value is kept.
 
-    REFERENCES:
-
-    .. [Nielsen] Johan S. R. Nielsen, (https://bitbucket.org/jsrn/codinglib/)
-
     EXAMPLES:
 
     We construct a GRS code with a manually built support, without specifying column multipliers::

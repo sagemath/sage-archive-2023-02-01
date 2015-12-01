@@ -326,14 +326,16 @@ def get_rest_doc(function):
             %8 = -3
         <BLANKLINE>
         :strong:`Algorithms used.` If :math:`E/\mathbb{F}_q` has CM by a principal imaginary
-        quadratic order we use a fast explicit formula (involving essentially Kronecker
-        symbols and Cornacchia's algorithm), in :math:`O(\log q)^2`.
+        quadratic order we use a fast explicit formula (involving essentially
+        Kronecker symbols and Cornacchia's algorithm), in :math:`O(\log q)^2`.
         Otherwise, we use Shanks-Mestre's baby-step/giant-step method, which runs in
         time :math:`~{O}(q^{1/4})` using :math:`~{O}(q^{1/4})` storage, hence becomes
-        unreasonable when :math:`q` has about 30 digits. If the :literal:`seadata` package is
-        installed, the :literal:`SEA` algorithm becomes available, heuristically in
-        :math:`~{O}(\log q)^4`, and primes of the order of 200 digits become feasible.
-        In very small characteristic (2,3,5,7 or :math:`13`), we use Harley's algorithm.
+        unreasonable when :math:`q` has about 30 digits. Above this range, the :literal:`SEA`
+        algorithm becomes available, heuristically in :math:`~{O}(\log q)^4`, and
+        primes of the order of 200 digits become feasible. In small
+        characteristic we use Mestre's (p = 2), Kohel's (p = 3,5,7,13), Satoh-Harley
+        (all in :math:`~{O}(p^{2} n^2)`) or Kedlaya's (in :math:`~{O}(p n^3)`)
+        algorithms.
 
     ::
 

@@ -23,7 +23,6 @@ This file contains the following elements:
 REFERENCES:
 
     .. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, 2013
-    .. [Nielsen] Johan S. R. Nielsen, (https://bitbucket.org/jsrn/codinglib/)
 """
 
 #*****************************************************************************
@@ -51,7 +50,7 @@ from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.rings.arith import xgcd
 from sage.misc.misc_c import prod
-from sage.functions.other import binomial, floor
+from sage.functions.other import binomial, floor, sqrt
 from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.rings.integer_ring import ZZ
@@ -68,10 +67,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     - ``column_multipliers`` -- (default: ``None``) List of column multipliers in F for this code.
       All column multipliers are set to 1 if default value is kept.
-
-    REFERENCES:
-
-    .. [Nielsen] Johan S. R. Nielsen, (https://bitbucket.org/jsrn/codinglib/)
 
     EXAMPLES:
 
@@ -1760,14 +1755,14 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         """
         return (self.code().minimum_distance()-1)//2
 
-
+IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
 def _gs_satisfactory(tau, s, l, C = None, n_k = None):
     """r
     Returns whether input parameters satisfy the governing equation of
     Guruswami-Sudan.
 
-    See _[N13] page 49, definition 3.3 and proposition 3.4 for details.
+    See [N13]_ page 49, definition 3.3 and proposition 3.4 for details.
 
     INPUT:
 
@@ -1832,6 +1827,70 @@ def _gs_satisfactory(tau, s, l, C = None, n_k = None):
     elif n_k is not None:
         n, k = n_k[0], n_k[1]
     return l > 0 and s > 0 and n * s * (s+1) < (l+1) * (2*s*(n-tau) - (k-1) * l)
+
+def _s_l_from_tau(tau, C = None, n_k = None):
+    """r
+    Returns suitable ``s`` and ``l`` according to input parameters.
+
+    See [N13]_ pages 53-54, proposition 3.11 for details.
+
+    INPUT:
+
+    - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
+      to correct
+    - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
+    - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
+      length and the dimension of the :class:`GeneralizedReedSolomonCode`
+
+    OUTPUT:
+
+    - ``(s, l)`` -- a couple of integers, where:
+        - ``s`` is the multiplicity parameter of Guruswami-Sudan algorithm and
+        - ``l`` is the list size parameter
+
+    ..NOTE::
+
+        One has to provide either ``C`` or ``(n, k)``. If none or both are
+        given, an exception will be raised.
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import _s_l_from_tau as s_l
+        sage: tau = 97
+        sage: n, k = 250, 70
+        sage: s_l(tau, n_k = (n, k))
+        (2, 3)
+
+    Same one with a GRS code::
+
+        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+        sage: s_l(tau, C = C)
+        (2, 3)
+
+    Another one with a bigger ``tau``::
+
+        sage: s_l(118, C = C)
+        (47, 89)
+    """
+    if C is not None and n_k is not None:
+        raise ValueError("Please provide only the code or its length and dimension")
+    elif C is None and n_k is None:
+        raise ValueError("Please provide either the code or its length and dimension")
+    elif C is not None:
+        n, k = C.length(), C.dimension()
+    elif n_k is not None and not isinstance(n_k, tuple):
+        raise ValueError("n_k has to be a tuple")
+    elif n_k is not None:
+        n, k = n_k[0], n_k[1]
+
+    w = k - 1
+    atau = n - tau
+    smin = tau * w / (atau ** 2 - n * w)
+    s = floor(1 + smin)
+    D = (s - smin) * (atau ** 2 - n * w) * s + (w**2) /4
+    l = floor(atau / w * s + 0.5 - sqrt(D)/w)
+    assert _gs_satisfactory(tau,s,l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
+    return (s, l)
 
 
 ####################### registration ###############################

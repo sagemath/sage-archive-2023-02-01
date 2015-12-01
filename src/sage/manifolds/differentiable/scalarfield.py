@@ -62,9 +62,9 @@ class DiffScalarField(ScalarField):
 
     INPUT:
 
-    - ``domain`` -- the differentiable manifold `M` on which the scalar field
-      is defined (must be an instance of class
-      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
+    - ``parent`` -- the algebra of scalar fields containing the scalar field
+      (must be an instance of class
+      :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`)
     - ``coord_expression`` -- (default: ``None``) coordinate expression(s) of
       the scalar field; this can be either
 
@@ -609,7 +609,7 @@ class DiffScalarField(ScalarField):
         sage: TestSuite(zer).run()
 
     """
-    def __init__(self, domain, coord_expression=None, chart=None, name=None,
+    def __init__(self, parent, coord_expression=None, chart=None, name=None,
                  latex_name=None):
         r"""
         Construct a scalar field.
@@ -629,7 +629,7 @@ class DiffScalarField(ScalarField):
             sage: TestSuite(f).run()
 
         """
-        ScalarField.__init__(self, domain, coord_expression=coord_expression,
+        ScalarField.__init__(self, parent, coord_expression=coord_expression,
                              chart=chart, name=name, latex_name=latex_name)
         self._tensor_type = (0,0)
 

@@ -138,9 +138,9 @@ class CoordFunction(SageObject):
             True
 
         """
-        return self._chart.domain().scalar_field_algebra().element_class(
-                     self._chart._domain, coord_expression={self._chart: self},
-                     name=name, latex_name=latex_name)
+        alg = self._chart.domain().scalar_field_algebra()
+        return alg.element_class(alg, coord_expression={self._chart: self},
+                                 name=name, latex_name=latex_name)
 
     def __ne__(self, other):
         r"""

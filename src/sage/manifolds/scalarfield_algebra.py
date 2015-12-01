@@ -463,7 +463,7 @@ class ScalarFieldAlgebra(WithEqualityById, Parent):
                     for schart in self._domain.atlas():
                         if schart in chart._subcharts:
                             sexpress[schart] = funct.expr()
-                resu = self.element_class(self._domain,
+                resu = self.element_class(self,
                                           coord_expression=sexpress, name=name,
                                           latex_name=latex_name)
             else:
@@ -472,7 +472,7 @@ class ScalarFieldAlgebra(WithEqualityById, Parent):
                                 "field on the {}".format(self._domain))
         else:
             # generic constructor:
-            resu = self.element_class(self._domain,
+            resu = self.element_class(self,
                                       coord_expression=coord_expression,
                                       name=name, latex_name=latex_name,
                                       chart=chart)
@@ -494,8 +494,7 @@ class ScalarFieldAlgebra(WithEqualityById, Parent):
             (x, y) |--> 2
 
         """
-        return self.element_class(self._domain, coord_expression=2,
-                                  chart='all')
+        return self.element_class(self, coord_expression=2, chart='all')
 
 
     def _coerce_map_from_(self, other):
@@ -631,7 +630,7 @@ class ScalarFieldAlgebra(WithEqualityById, Parent):
         if self._zero is None:
             coord_express = dict([(chart, chart.zero_function()) for chart
                                                       in self._domain.atlas()])
-            self._zero = self.element_class(self._domain,
+            self._zero = self.element_class(self,
                                             coord_expression=coord_express,
                                             name='zero', latex_name='0')
             self._zero._is_zero = True
@@ -664,7 +663,7 @@ class ScalarFieldAlgebra(WithEqualityById, Parent):
         if self._one is None:
             coord_express = dict([(chart, chart.one_function()) for chart
                                                       in self._domain.atlas()])
-            self._one = self.element_class(self._domain,
+            self._one = self.element_class(self,
                                            coord_expression=coord_express,
                                            name='1', latex_name='1')
         return self._one

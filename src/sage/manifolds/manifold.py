@@ -1705,10 +1705,9 @@ class TopologicalManifold(TopologicalManifoldSubset):
                 if not chart._domain.is_subset(self):
                     raise ValueError("the {} is not defined ".format(chart) +
                                      "on some subset of the " + str(self))
-        return self.scalar_field_algebra().element_class(self,
-                                            coord_expression=coord_expression,
-                                            name=name, latex_name=latex_name,
-                                            chart=chart)
+        alg = self.scalar_field_algebra()
+        return alg.element_class(alg, coord_expression=coord_expression,
+                                 name=name, latex_name=latex_name, chart=chart)
 
     def constant_scalar_field(self, value, name=None, latex_name=None):
         r"""
@@ -1762,10 +1761,9 @@ class TopologicalManifold(TopologicalManifoldSubset):
         """
         if value == 0:
             return self.zero_scalar_field()
-        return self.scalar_field_algebra().element_class(self,
-                                              coord_expression=value,
-                                              name=name, latex_name=latex_name,
-                                              chart='all')
+        alg = self.scalar_field_algebra()
+        return alg.element_class(alg, coord_expression=value, name=name,
+                                 latex_name=latex_name, chart='all')
 
     def zero_scalar_field(self):
         r"""

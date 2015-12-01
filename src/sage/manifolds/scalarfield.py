@@ -57,9 +57,9 @@ class ScalarField(CommutativeAlgebraElement):
 
     INPUT:
 
-    - ``domain`` -- the topological manifold `M` on which the scalar field is
-      defined (must be an instance of class
-      :class:`~sage.manifolds.manifold.TopologicalManifold`)
+    - ``parent`` -- the algebra of scalar fields containing the scalar field
+      (must be an instance of class
+      :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`)
     - ``coord_expression`` -- (default: ``None``) coordinate expression(s) of
       the scalar field; this can be either
 
@@ -598,7 +598,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: TestSuite(zer).run()
 
     """
-    def __init__(self, domain, coord_expression=None, chart=None, name=None,
+    def __init__(self, parent, coord_expression=None, chart=None, name=None,
                  latex_name=None):
         r"""
         Construct a scalar field.
@@ -618,9 +618,10 @@ class ScalarField(CommutativeAlgebraElement):
             sage: TestSuite(f).run()
 
         """
-        CommutativeAlgebraElement.__init__(self, domain.scalar_field_algebra())
-        self._manifold = domain._manifold
+        CommutativeAlgebraElement.__init__(self, parent)
+        domain = parent._domain
         self._domain = domain
+        self._manifold = domain._manifold
         self._is_zero = False # a priori, may be changed below or via
                               # method __nonzero__()
         self._name = name
@@ -995,7 +996,7 @@ class ScalarField(CommutativeAlgebraElement):
             False
 
         """
-        result = type(self)(self._domain, name=self._name,
+        result = type(self)(self.parent(), name=self._name,
                             latex_name=self._latex_name)
         for chart, funct in self._express.iteritems():
             result._express[chart] = funct.copy()
@@ -1760,7 +1761,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        result = type(self)(self._domain)
+        result = type(self)(self.parent())
         for chart in self._express:
             result._express[chart] = + self._express[chart]
         if self._name is not None:
@@ -1791,7 +1792,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        result = type(self)(self._domain)
+        result = type(self)(self.parent())
         for chart in self._express:
             result._express[chart] = - self._express[chart]
         if self._name is not None:
@@ -1833,7 +1834,6 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        dom = self._domain
         # Special cases:
         if self._is_zero:
             return other.copy()
@@ -1843,12 +1843,12 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the addition")
-        result = type(self)(dom)
+        result = type(self)(self.parent())
         for chart in com_charts:
             # CoordFunction addition:
             result._express[chart] = self._express[chart] + other._express[chart]
         if result.is_zero():
-            return dom._zero_scalar_field
+            return self._domain.zero_scalar_field()
         if self._name is not None and other._name is not None:
             result._name = self._name + '+' + other._name
         if self._latex_name is not None and other._latex_name is not None:
@@ -1885,7 +1885,6 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        dom = self._domain
         # Special cases:
         if self._is_zero:
             return -other
@@ -1895,12 +1894,12 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the subtraction")
-        result = type(self)(dom)
+        result = type(self)(self.parent())
         for chart in com_charts:
             # CoordFunction subtraction:
             result._express[chart] = self._express[chart] - other._express[chart]
         if result.is_zero():
-            return dom._zero_scalar_field
+            return self._domain.zero_scalar_field()
         if self._name is not None and other._name is not None:
             result._name = self._name + '-' + other._name
         if self._latex_name is not None and other._latex_name is not None:
@@ -1942,15 +1941,14 @@ class ScalarField(CommutativeAlgebraElement):
         """
         from sage.tensor.modules.format_utilities import format_mul_txt, \
                                                          format_mul_latex
-        dom = self._domain
         # Special cases:
         if self._is_zero or other._is_zero:
-            return dom._zero_scalar_field
+            return self._domain.zero_scalar_field()
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the multiplication")
-        result = type(self)(dom)
+        result = type(self)(self.parent())
         for chart in com_charts:
             # CoordFunction multiplication:
             result._express[chart] = self._express[chart] * other._express[chart]
@@ -1993,17 +1991,16 @@ class ScalarField(CommutativeAlgebraElement):
         """
         from sage.tensor.modules.format_utilities import format_mul_txt, \
                                                          format_mul_latex
-        dom = self._domain
         # Special cases:
         if other._is_zero:
             raise ZeroDivisionError("division of a scalar field by zero")
         if self._is_zero:
-            return dom._zero_scalar_field
+            return self._domain.zero_scalar_field()
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the division")
-        result = type(self)(dom)
+        result = type(self)(self.parent())
         for chart in com_charts:
             # CoordFunction division:
             result._express[chart] = self._express[chart] / other._express[chart]
@@ -2055,7 +2052,7 @@ class ScalarField(CommutativeAlgebraElement):
         """
         if number == 0:
             return self.parent().zero()
-        result = type(self)(self._domain)
+        result = type(self)(self.parent())
         if isinstance(number, Expression):
             var = number.variables()  # possible symbolic variables in number
             if var:
@@ -2211,7 +2208,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("exp", r"\exp")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.exp()
         return resu
@@ -2244,7 +2241,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("ln", r"\ln")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.log()
         return resu
@@ -2303,7 +2300,7 @@ class ScalarField(CommutativeAlgebraElement):
         else:
             latex_name = r"{" + self._latex_name + r"}^{" + \
                          latex(exponent) + r"}"
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.__pow__(exponent)
         return resu
@@ -2340,7 +2337,7 @@ class ScalarField(CommutativeAlgebraElement):
         """
         name, latex_name = self._function_name("sqrt", r"\sqrt",
                                                parentheses=False)
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.sqrt()
         return resu
@@ -2375,7 +2372,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("cos", r"\cos")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.cos()
         return resu
@@ -2410,7 +2407,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("sin", r"\sin")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.sin()
         return resu
@@ -2447,7 +2444,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("tan", r"\tan")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.tan()
         return resu
@@ -2491,7 +2488,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("arccos", r"\arccos")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.arccos()
         return resu
@@ -2535,7 +2532,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("arcsin", r"\arcsin")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.arcsin()
         return resu
@@ -2579,7 +2576,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("arctan", r"\arctan")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.arctan()
         return resu
@@ -2612,7 +2609,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("cosh", r"\cosh")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.cosh()
         return resu
@@ -2645,7 +2642,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("sinh", r"\sinh")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.sinh()
         return resu
@@ -2680,7 +2677,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("tanh", r"\tanh")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.tanh()
         return resu
@@ -2723,7 +2720,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("arccosh", r"\,\mathrm{arcosh}")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.arccosh()
         return resu
@@ -2766,7 +2763,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("arcsinh", r"\,\mathrm{arsinh}")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.arcsinh()
         return resu
@@ -2811,7 +2808,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         name, latex_name = self._function_name("arctanh", r"\,\mathrm{artanh}")
-        resu = type(self)(self._domain, name=name, latex_name=latex_name)
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.arctanh()
         return resu

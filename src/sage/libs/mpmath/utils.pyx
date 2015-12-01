@@ -164,7 +164,7 @@ cdef mpfr_from_mpfval(mpfr_t res, tuple x):
     cdef long exp
     cdef long bc
     sign, man, exp, bc = x
-    if man.__nonzero__():
+    if man:
         mpfr_set_z(res, man.value, GMP_RNDZ)
         if sign:
             mpfr_neg(res, res, GMP_RNDZ)

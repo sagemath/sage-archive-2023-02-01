@@ -178,11 +178,12 @@ cdef class ntl_zz_p(object):
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(3,79).__repr__()
             '3'
         """
-        return Integer(zz_p_rep(self.x)).__repr__()
+        return repr(Integer(zz_p_rep(self.x)))
 
     def __add__(ntl_zz_p self, other):
         """

@@ -1940,7 +1940,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         if self._nrows < max_rows and self._ncols < max_cols:
             output = self.str(unicode=True)
         else:
-            output = self.__repr__()
+            output = repr(self)
         return UnicodeArt(output.splitlines())
 
     def _latex_(self):

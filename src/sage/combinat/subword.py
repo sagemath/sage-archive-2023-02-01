@@ -195,7 +195,7 @@ class Subwords_w(Parent):
             sage: Subwords([1,2,3]) != Subwords([1,3,2])
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __reduce__(self):
         r"""

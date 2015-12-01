@@ -411,7 +411,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             The element returned is an element of the fraction field.
         """
-        return self.parent().fraction_field()(self, relprec = self.precision_relative()).__invert__()
+        return ~self.parent().fraction_field()(self, relprec = self.precision_relative())
 
     def __mod__(self, right):
         """

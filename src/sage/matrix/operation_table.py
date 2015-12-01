@@ -642,7 +642,7 @@ class OperationTable(SageObject):
             sage: P != P, P != Q, P != R, P != S
             (False, False, True, True)
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def _repr_(self):
         r"""

@@ -832,9 +832,9 @@ class FindStatStatistic(SageObject):
 
         elif self._query == "data":
             if len(self._result) == 0:
-                return "a new statistic on " + self._collection.__repr__()
+                return "a new statistic on " + repr(self._collection)
             else:
-                return self._result.__repr__()
+                return repr(self._result)
 
         else:
             raise ValueError("FindStatStatistic._query should be either 'ID' or 'data', but is %s.  This should not happen.  Please send an email to the developers." %self._query)
@@ -916,7 +916,7 @@ class FindStatStatistic(SageObject):
             True
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     ######################################################################

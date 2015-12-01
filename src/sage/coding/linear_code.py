@@ -2622,7 +2622,7 @@ class AbstractLinearCode(module.Module):
             (1, 0, 1, 0, 1, 0, 1)
             True
         """
-        return list(self.__iter__())
+        return [x for x in self]
 
     def _magma_init_(self, magma):
         r"""

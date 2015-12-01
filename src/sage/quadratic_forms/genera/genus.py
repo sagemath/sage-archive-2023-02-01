@@ -1068,7 +1068,7 @@ class Genus_Symbol_p_adic_ring(object):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     ## Added these two methods to make this class iterable...
@@ -1646,7 +1646,7 @@ class GenusSymbol_global_ring(object):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     def signature_pair_of_matrix(self):

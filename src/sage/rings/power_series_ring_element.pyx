@@ -1089,7 +1089,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (1-t).inverse()
             1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + ...
         """
-        return self.__invert__()
+        return ~self
 
     def valuation_zero_part(self):
         r"""

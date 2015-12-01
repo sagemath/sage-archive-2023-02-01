@@ -459,7 +459,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
                 sage: elt != 2*b
                 True
             """
-            return not self.__eq__(other)
+            return not self == other
 
         def _add_(self, other):
             """
@@ -865,7 +865,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 sage: 4*a - b + 3*c != x
                 True
             """
-            return not self.__eq__(other)
+            return not self == other
 
         def _add_(self, other):
             """

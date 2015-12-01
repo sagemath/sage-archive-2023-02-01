@@ -242,7 +242,7 @@ cdef class WordDatatype_list(WordDatatype):
 
         """
         if isinstance(key, slice):
-            return self._parent.__call__(self._data.__getitem__(key))
+            return self._parent(self._data[key])
         else:
             return self._data[key]
 
@@ -272,7 +272,7 @@ cdef class WordDatatype_list(WordDatatype):
             <class 'sage.combinat.words.word.FiniteWord_list'>
         """
         if isinstance(other, WordDatatype_list):
-            return self._parent.__call__(self._data + other._data)
+            return self._parent(self._data + other._data)
         else:
             return super(WordDatatype_list, self).__mul__(other)
 
@@ -615,7 +615,7 @@ cdef class WordDatatype_str(WordDatatype):
             <class 'sage.combinat.words.word.FiniteWord_str'>
         """
         if isinstance(other, WordDatatype_str):
-            return self._parent.__call__(self._data + other._data)
+            return self._parent(self._data + other._data)
         else:
             return super(WordDatatype_str, self).__mul__(other)
 
@@ -1125,7 +1125,7 @@ cdef class WordDatatype_tuple(WordDatatype):
             <class 'sage.combinat.words.word.FiniteWord_tuple'>
         """
         if isinstance(other, WordDatatype_tuple):
-            return self._parent.__call__(self._data + other._data)
+            return self._parent(self._data + other._data)
         else:
             return super(WordDatatype_tuple, self).__mul__(other)
 

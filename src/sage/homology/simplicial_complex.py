@@ -435,7 +435,7 @@ class Simplex(SageObject):
             sage: 3 in Simplex(2)
             False
         """
-        return self.__set.__contains__(x)
+        return x in self.__set
 
     def __getitem__(self, n):
         """
@@ -448,7 +448,7 @@ class Simplex(SageObject):
             sage: Simplex(['a', 'b', 'c'])[1]
             'b'
         """
-        return self.__tuple.__getitem__(n)
+        return self.__tuple[n]
 
     def __iter__(self):
         """
@@ -459,7 +459,7 @@ class Simplex(SageObject):
             sage: [v**2 for v in Simplex(3)]
             [0, 1, 4, 9]
         """
-        return self.__tuple.__iter__()
+        return iter(self.__tuple)
 
     def __add__(self, other):
         """
@@ -473,7 +473,7 @@ class Simplex(SageObject):
             sage: Simplex((1,2,3)) + Simplex((5,6))
             (1, 2, 3, 5, 6)
         """
-        return Simplex(self.__tuple.__add__(other.__tuple))
+        return Simplex(self.__tuple + other.__tuple)
 
     def face(self, n):
         """
@@ -721,7 +721,7 @@ class Simplex(SageObject):
             sage: S._repr_()
             '(0, 1, 2, 3, 4, 5)'
         """
-        return self.__tuple.__repr__()
+        return repr(self.__tuple)
 
     def _latex_(self):
         r"""

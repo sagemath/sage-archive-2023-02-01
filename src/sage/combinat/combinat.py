@@ -957,7 +957,7 @@ class CombinatorialObject(SageObject):
             sage: c.__repr__()
             '[1, 2, 3]'
         """
-        return self._list.__repr__()
+        return repr(self._list)
 
     def __eq__(self, other):
         """
@@ -973,9 +973,9 @@ class CombinatorialObject(SageObject):
             False
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__eq__(other._list)
+            return self._list == other._list
         else:
-            return self._list.__eq__(other)
+            return self._list == other
 
     def __lt__(self, other):
         """
@@ -989,9 +989,9 @@ class CombinatorialObject(SageObject):
             True
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__lt__(other._list)
+            return self._list < other._list
         else:
-            return self._list.__lt__(other)
+            return self._list < other
 
     def __le__(self, other):
         """
@@ -1007,9 +1007,9 @@ class CombinatorialObject(SageObject):
             True
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__le__(other._list)
+            return self._list <= other._list
         else:
-            return self._list.__le__(other)
+            return self._list <= other
 
     def __gt__(self, other):
         """
@@ -1025,9 +1025,9 @@ class CombinatorialObject(SageObject):
             False
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__gt__(other._list)
+            return self._list > other._list
         else:
-            return self._list.__gt__(other)
+            return self._list > other
 
     def __ge__(self, other):
         """
@@ -1043,9 +1043,9 @@ class CombinatorialObject(SageObject):
             True
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__ge__(other._list)
+            return self._list >= other._list
         else:
-            return self._list.__ge__(other)
+            return self._list >= other
 
     def __ne__(self, other):
         """
@@ -1061,9 +1061,9 @@ class CombinatorialObject(SageObject):
             False
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__ne__(other._list)
+            return self._list != other._list
         else:
-            return self._list.__ne__(other)
+            return self._list != other
 
     def __add__(self, other):
         """
@@ -1094,7 +1094,7 @@ class CombinatorialObject(SageObject):
             1335416675971793195
         """
         if self._hash is None:
-            self._hash = str(self._list).__hash__()
+            self._hash = hash(str(self._list))
         return self._hash
 
     def __nonzero__(self):
@@ -1154,7 +1154,7 @@ class CombinatorialObject(SageObject):
             sage: c.__len__()
             3
         """
-        return self._list.__len__()
+        return len(self._list)
 
     def __getitem__(self, key):
         """
@@ -1168,7 +1168,7 @@ class CombinatorialObject(SageObject):
             sage: type(_)
             <type 'list'>
         """
-        return self._list.__getitem__(key)
+        return self._list[key]
 
     def __iter__(self):
         """
@@ -1178,7 +1178,7 @@ class CombinatorialObject(SageObject):
             sage: list(iter(c))
             [1, 2, 3]
         """
-        return self._list.__iter__()
+        return iter(self._list)
 
     def __contains__(self, item):
         """
@@ -1190,7 +1190,7 @@ class CombinatorialObject(SageObject):
             sage: 5 in c
             False
         """
-        return self._list.__contains__(item)
+        return item in self._list
 
 
     def index(self, key):
@@ -1393,7 +1393,7 @@ class CombinatorialClass(Parent):
             sage: str(Partitions(5))
             'Partitions of the integer 5'
         """
-        return self.__repr__()
+        return repr(self)
 
     def _repr_(self):
         """
@@ -2163,7 +2163,7 @@ class Permutations_CC(CombinatorialClass):
             sage: P.list()
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        return self._permutations.__iter__()
+        return iter(self._permutations)
 
 ##############################################################################
 class MapCombinatorialClass(CombinatorialClass):

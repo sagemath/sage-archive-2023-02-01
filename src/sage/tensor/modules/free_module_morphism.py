@@ -457,7 +457,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __cmp__(self, other):
         r"""
@@ -485,7 +485,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             -1
 
         """
-        if self.__eq__(other):
+        if self == other:
             return 0
         else:
             return -1

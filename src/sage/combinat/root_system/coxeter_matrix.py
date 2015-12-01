@@ -636,7 +636,7 @@ class CoxeterMatrix(CoxeterType):
             [   1 -3/2]
             [-3/2    1]
         """
-        return self._matrix.__repr__()
+        return repr(self._matrix)
 
     def _repr_option(self, key):
         """
@@ -681,7 +681,7 @@ class CoxeterMatrix(CoxeterType):
             sage: CM.__iter__().next()
             (1, 8)
         """
-        return self._matrix.__iter__()
+        return iter(self._matrix)
 
     def __getitem__(self, key):
         """
@@ -716,7 +716,7 @@ class CoxeterMatrix(CoxeterType):
             sage: CM.__hash__()
             4
         """        
-        return self._matrix.__hash__()
+        return hash(self._matrix)
 
     def __eq__(self, other):
         r"""

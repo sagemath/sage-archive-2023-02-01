@@ -713,7 +713,7 @@ class FiniteFamily(AbstractFamily):
             sage: f[3]
             'a'
         """
-        return self._dictionary.__getitem__(i)
+        return self._dictionary[i]
 
     # For the pickle and copy modules
     def __getstate__(self):
@@ -935,7 +935,7 @@ class LazyFamily(AbstractFamily):
             return False
         if not self.set == other.set:
             return False
-        return self.__repr__() == other.__repr__()
+        return repr(self) == repr(other)
 
     def _repr_(self):
         """

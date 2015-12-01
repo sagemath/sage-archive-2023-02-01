@@ -117,7 +117,7 @@ class Core(CombinatorialElement):
             False
         """
         if isinstance(other, Core):
-            return self._list.__eq__(other._list) and self.parent().k == other.parent().k
+            return self._list == other._list and self.parent().k == other.parent().k
         else:
             return False
 

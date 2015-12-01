@@ -431,8 +431,7 @@ class Word_class(SageObject):
             sage: u != w
             True
         """
-        #print '__ne__', self, other, type(self), type(other)
-        return not self.__eq__(other)
+        return not self == other
 
     def _longest_common_prefix_iterator(self, other):
         r"""

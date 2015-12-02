@@ -20,8 +20,9 @@ means of charts (see :class:`~sage.manifolds.chart.Chart`).
 :class:`TopologicalManifold` serves as a base class for more specific
 manifold classes.
 
-The user interface is provided by the generic function :func:`Manifold`,
-with the argument ``type`` set to ``'topological'``.
+The user interface is provided by the generic function
+:func:`~sage.manifolds.manifold.Manifold`, with
+the argument ``type`` set to ``'topological'``.
 
 .. RUBRIC:: Example 1: the 2-sphere as a topological manifold of dimension
   2 over `\RR`
@@ -1559,8 +1560,9 @@ class TopologicalManifold(TopologicalManifoldSubset):
         r"""
         Define a scalar field on the manifold.
 
-        See :class:`~sage.manifolds.scalarfield.ScalarField` for a complete
-        documentation.
+        See :class:`~sage.manifolds.scalarfield.ScalarField` (or
+        :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+        if the manifold is differentiable) for a complete documentation.
 
         INPUT:
 
@@ -1591,7 +1593,10 @@ class TopologicalManifold(TopologicalManifoldSubset):
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          representing the defined scalar field.
+          (or of the subclass
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if the manifold is differentiable) representing the defined scalar
+          field.
 
         EXAMPLES:
 
@@ -2089,7 +2094,8 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
 
     - a manifold of the specified type, as an instance of
       :class:`~sage.manifolds.manifold.TopologicalManifold` or one of its
-      subclasses.
+      subclasses, e.g.
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
 
     EXAMPLES:
 
@@ -2114,9 +2120,52 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
         sage: M = Manifold(3, 'M', type='topological', field=QQ); M
         3-dimensional topological manifold M over the Rational Field
 
-    See the documentation of class
-    :class:`~sage.manifolds.manifold.TopologicalManifold` for more
-    detailed examples.
+    A 3-dimensional real differentiable manifold of class `C^4`::
+
+        sage: M = Manifold(3, 'M', field='real', type='differentiable',
+        ....:              diff_degree=4); M
+        3-dimensional differentiable manifold M
+
+    Since the default value of the parameter ``field`` is ``'real'``, the above
+    is equivalent to::
+
+        sage: M = Manifold(3, 'M', type='differentiable', diff_degree=4); M
+        3-dimensional differentiable manifold M
+        sage: M.base_field_type()
+        'real'
+
+    A 3-dimensional real smooth manifold::
+
+        sage: M = Manifold(3, 'M', type='differentiable', diff_degree=+oo); M
+        3-dimensional differentiable manifold M
+
+    Instead of ``type='differentiable', diff_degree=+oo``, it suffices to
+    use ``type='smooth'`` to get the same result::
+
+        sage: M = Manifold(3, 'M', type='smooth'); M
+        3-dimensional differentiable manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    Actually, since ``'smooth'`` is the default value of the parameter ``type``,
+    the creation of a real smooth manifold can be shorten to::
+
+        sage: M = Manifold(3, 'M'); M
+        3-dimensional differentiable manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    For a complex smooth manifold, we have to set the parameter ``field``::
+
+        sage: M = Manifold(3, 'M', field='complex'); M
+        3-dimensional complex manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    See the documentation of classes
+    :class:`~sage.manifolds.manifold.TopologicalManifold` and
+    :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+    for more detailed examples.
 
     .. RUBRIC:: Uniqueness of manifold objects
 
@@ -2187,10 +2236,27 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
 
     """
     from time import time
+    from sage.rings.infinity import infinity
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
     type_ = type  # in case the built-in function type is to be restored...
     if type_ in ['topological', 'top']:
         return TopologicalManifold(dim, name, latex_name=latex_name,
                                    field=field, start_index=start_index,
                                    unique_tag=getrandbits(128)*time())
+    elif type_ == 'differentiable':
+        return DifferentiableManifold(dim, name, latex_name=latex_name,
+                                      field=field, start_index=start_index,
+                                      unique_tag=getrandbits(128)*time(),
+                                      **extra_kwds)
+    elif type_ == 'smooth':
+        if 'diff_degree' in extra_kwds:
+            diff_degree = extra_kwds['diff_degree']
+            if diff_degree != infinity:
+                raise ValueError("the degree of differentiability of a " +
+                                 "smooth manifold cannot differ from " +
+                                 "+infinity")
+        return DifferentiableManifold(dim, name, latex_name=latex_name,
+                                      field=field, start_index=start_index,
+                                      unique_tag=getrandbits(128)*time())
     raise NotImplementedError("manifolds of type {} are not ".format(type_) +
                               "implemented")

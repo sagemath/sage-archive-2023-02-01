@@ -1892,61 +1892,127 @@ def _s_l_from_tau(tau, C = None, n_k = None):
     assert _gs_satisfactory(tau,s,l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
     return (s, l)
 
-def ligt(x):
-    """Least integer greater than x"""
+def _ligt(x):
+    r"""
+    Returns the least integer greater than ``x``.
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import _ligt
+        sage: _ligt(41)
+        42
+
+    It works with any type of numbers (not only integers)::
+
+        sage: _ligt(41.041)
+        42
+    """
     return floor(x+1)
 
-def gilt(x):
-    """Greatest integer less than x"""
+def _gilt(x):
+    r"""
+    Returns the greatest integer smaller than ``x``.
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import _gilt
+        sage: _gilt(43)
+        42
+
+    It works with any type of numbers (not only integers)::
+
+        sage: _gilt(43.041)
+        43
+    """
     if x in ZZ:
         return Integer(x-1)
     else:
         return floor(x)
 
-def solve2deg_int(a,b,c):
-    """Utility function. Returns the greates integer range [i1, i2] such that
-    i1 > x1 and i2 < x2 where x1,x2 are the two zeroes of the equation in x:
-    ax^2+bx+c=0. If no solution, returns an empty, range w. negative coeff."""
-    a,b,c = Integer(a), Integer(b),Integer(c)
+def _solve2deg_int(a,b,c):
+    r"""
+    Returns the greatest integer range `[i1, i2]` such that
+    `i1 > x1` and `i2 < x2` where `x1`,`x2` are the two zeroes of the equation in `x`:
+    `ax^2+bx+c=0`.
+
+    If there is no real solution to the equation, it returns an empty, range with negative coefficients.
+
+    INPUT:
+
+    - ``a``, ``b`` and ``c`` -- coefficients of a second degree equation, ``a`` being the coefficient of
+      the higher degree term.
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import _solve2deg_int
+        sage: _solve2deg_int(1, -5, 1)
+        (1, 4)
+
+    If there is no real solution::
+
+        sage: _solve2deg_int(50, 5, 42)
+        (-2, -1)
+    """
     D = b**2 - 4*a*c
     if D < 0:
         return (-2,-1)
     sD = float(sqrt(D))
     minx, maxx = (-b-sD)/2.0/a , (-b+sD)/2.0/a
-    mini, maxi = (ligt(minx), gilt(maxx))
+    mini, maxi = (_ligt(minx), _gilt(maxx))
     if mini > maxi:
         return (-2,-1)
     else:
         return (mini,maxi)
 
-def find_minimal_satisfiable(f, startn=1, contiguous=True):
-    """Find the minimal integral n>0 such that f(n) == true. If the interval
-    for which f is true is contiguous and open towards infinity, a logarithmic
-    algorithm is used, otherwise linear. startn can be given as a hint to a
-    value that might be true."""
+def _find_minimal_satisfiable(f, startn=1, contiguous=True):
+    r"""
+    Returns the minimal integral ``n``, `n > 0` such that ``f(n) == True``.
+
+    If the interval for which `f` is true is contiguous and open
+    towards infinity, a logarithmic algorithm is used, otherwise linear.
+    `startn` can be given as a hint to a value that might be true.
+
+    INPUT:
+
+    - ``f`` -- a function
+
+    - ``startn`` -- (default: ``1``) the starting point of the algorithm.
+
+    - ``contiguous`` -- (default: ``True``) boolean describing the contiguousity of ``f``'s
+      interval
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import _find_minimal_satisfiable
+        sage: def f(x):
+        ....:    return None if x > 10 or x == 1 else x + 1
+
+        sage: _find_minimal_satisfiable(f)
+        2
+    """
     if not contiguous:
-        n=startn
+        n = startn
         if f(n):
-            while f(n) and n>0:
-                n=n-1
-            return n+1
+            while f(n) and n > 0:
+                n = n - 1
+            return n + 1
         else:
             while not f(n):
-                n=n+1
+                n = n + 1
             return n
     else:
         maxn = startn
         minn = 1
         # Keep doubling n to find one that works and then binary
         while not f(maxn):
-            minn = maxn+1
+            minn = maxn + 1
             maxn *= 2
         while minn < maxn:
-            tryn = minn + floor((maxn-minn)*0.5)
+            tryn = minn + floor((maxn - minn) * 0.5)
             if f(tryn):
-                maxn=tryn
+                maxn = tryn
             else:
-                minn=tryn+1
+                minn = tryn + 1
         return maxn
 
 def best_s_l_from_tau(tau, C = None, n_k = None):
@@ -1997,15 +2063,106 @@ def best_s_l_from_tau(tau, C = None, n_k = None):
         n, k = n_k[0], n_k[1]
     (firsts, firstl) = _s_l_from_tau(tau, n_k = (n, k))
     def try_l(l):
-        (mins,maxs) = solve2deg_int(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
+        (mins,maxs) = _solve2deg_int(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
         if maxs > 0 and maxs >= mins:
             return max(1, mins)
         else:
             return None
-    l = find_minimal_satisfiable(try_l, firstl)
+    l = _find_minimal_satisfiable(try_l, firstl)
     s = try_l(l)
     assert _gs_satisfactory(tau, s, l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
     return (s, l)
+
+def list_decoding_range(n, d, q=None):
+    r"""
+    Returns the minimal and maximal number of errors correctable by a
+    Johnson-distance list decoder beyond half the minimal distance.
+
+    INPUT:
+
+    - ``n`` -- an integer, the length of the code
+    - ``d`` -- an integer, the minimum distance of the code
+    - ``q`` -- (default: ``None``) ????????
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import list_decoding_range
+        sage: list_decoding_range(250, 181)
+        (91, 118)
+    """
+    if q is None:
+        return (_ligt((d-1)/2), _gilt(n - sqrt(n*(n-d))))
+    else:
+        f = (q-1.)/q
+        return (_ligt((d-1)/2), _gilt(f*(n-sqrt(n*(n-d/f)))))
+
+def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
+    r"""
+    Returns the maximal decoding radius of the Guruswami-Sudan decoder.
+
+    If ``s`` is set but ``l`` is not it will return the best decoding radius using this ``s``
+    alongside with the required ``l``, same for ``l``.
+
+    INPUT:
+
+    - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
+    - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
+      length and the dimension of the :class:`GeneralizedReedSolomonCode`
+    - ``s`` -- (default: ``None``) an integer, the multiplicity parameter of Guruswami-Sudan algorithm
+    - ``l`` -- (default: ``None``) an integer, the list size parameter
+
+    ..NOTE::
+
+        One has to provide either ``C`` or ``(n, k)``. If none or both are
+        given, an exception will be raised.
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import guruswami_sudan_decoding_radius
+        sage: n, k = 250, 70
+        sage: guruswami_sudan_decoding_radius(n_k = (n, k))
+        (118, (47, 89))
+    """
+    if C is not None and n_k is not None:
+        raise ValueError("Please provide only the code or its length and dimension")
+    elif C is None and n_k is None:
+        raise ValueError("Please provide either the code or its length and dimension")
+    elif C is not None:
+        n, k = C.length(), C.dimension()
+    elif n_k is not None and not isinstance(n_k, tuple):
+        raise ValueError("n_k has to be a tuple")
+    elif n_k is not None:
+        n, k = n_k[0], n_k[1]
+
+    def get_tau(s,l):
+        if s<=0 or l<=0:
+            return -1
+        return _gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
+    if l==None and s==None:
+        tau = list_decoding_range(n,n-k+1)[1]
+        return (tau, best_s_l_from_tau(tau, n_k = (n, k)))
+    if l!=None and s!=None:
+        return (get_tau(s,l), (s,l))
+    if s!= None:
+        # maximising tau under condition
+        # n*(s+1 choose 2) < (ell+1)*s*(n-tau) - (ell+1 choose 2)*(k-1)
+        # knowing n and s, we can just minimise
+        # ( n*(s+1 choose 2) + (ell+1 choose 2)*(k-1) )/(ell+1)
+        # Differentiating and setting to zero yields ell best choice:
+        lmax = sqrt(n*s*(s+1)/(k-1)) - 1
+        #the best integral value will be
+        (l,tau) = find_integral_max(lmax, lambda l: get_tau(s,l))
+        assert _gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
+        #Note that we have not proven that this ell is minimial in integral
+        #sense! It just seems that this most often happens
+        return (tau,(s,l))
+    if l!= None:
+        # Acquired similarly to when restricting s
+        smax = sqrt((k-1)/n*l*(l+1))
+        (s,tau) = find_integral_max(smax, lambda s: get_tau(s,l))
+        assert _gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
+        return (get_tau(s,l), (s,l))
+
 
 ####################### registration ###############################
 

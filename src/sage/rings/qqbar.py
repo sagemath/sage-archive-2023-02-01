@@ -3589,8 +3589,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar.zeta(12).nth_root(15)
             0.9993908270190957? + 0.03489949670250097?*I
 
-        You can get all ``n``-th roots of algebraic numbers (see
-        :trac:`17379`)::
+        You can get all ``n``-th roots of algebraic numbers::
 
             sage: AA(-8).nth_root(3, all=True)
             [1.000000000000000? + 1.732050807568878?*I,

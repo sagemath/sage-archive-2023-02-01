@@ -51,9 +51,12 @@ class SageSpawn(spawn):
         self.__name = kwds.pop("name", self.__class__.__name__)
         self.quit_string = kwds.pop("quit_string", None)
 
+        kwds.setdefault("ignore_sighup", True)
+
         with ContainChildren(silent=True):
             spawn.__init__(self, *args, **kwds)
 
+        self.delayafterread = None
 
     def __repr__(self):
         """

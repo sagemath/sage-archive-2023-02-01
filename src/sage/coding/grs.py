@@ -54,6 +54,8 @@ from sage.functions.other import binomial, floor, sqrt
 from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.rings.integer_ring import ZZ
+from gs_interpolation import *#gs_construct_Q_linalg as gs_construct_Q_linalg
+from gs_rootfinding import *
 
 class GeneralizedReedSolomonCode(AbstractLinearCode):
     r"""
@@ -2163,7 +2165,46 @@ def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
         assert _gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
         return (get_tau(s,l), (s,l))
 
+def poly2list(p, len):
+    """Convert the polynomial p into a list of coefficients of length len"""
+    return list(p) + [0]*max(0, len-p.degree()-1)
 
+class GRSGuruswamiSudanDecoder(Decoder):
+
+    from gs_interpolation import gs_construct_Q_linalg as gs_construct_Q_linalg
+    from gs_rootfinding import *
+
+    def __init__(self, C, tau = None, params = None, Qfinder = None, root_finder = None):
+        n, k = C.length(), C.dimension()
+        if tau:
+            self.tau = tau
+            self.s, self.ell = best_s_l_from_tau(tau, n_k = (n, k))
+        elif params:
+            self.s = params[0]
+            self.ell = params[1]
+            (self.tau,_) = guruswami_sudan_decoding_radius(n, k, s=self.s, l=self.ell)
+        else:
+            raise Exception("Specify either tau or params")
+        #TODO: Precompute stuff for the various Qfinders
+        self.Qfinder = Qfinder if Qfinder else gs_construct_Q_linalg
+        self.root_finder = root_finder if root_finder else rootfind_bivariate
+        super(GRSGuruswamiSudanDecoder, self).__init__(C, C.ambient_space(), C._default_encoder_name)
+
+    def decode_to_code(self, r):
+        C = self.code()
+        n,k,d,alphas,colmults = C.length(), C.dimension(), C.minimum_distance(),\
+                C.evaluation_points(), C.column_multipliers()
+        ## SETUP INTERPOLATION PROBLEM
+        wy = k-1
+        points = [ (alphas[i], r[i]/colmults[i]) for i in range(0,len(alphas)) ]
+        ## SOLVE INTERPOLATION
+        Q = self.Qfinder(points, self.tau, (self.s,self.ell), wy)
+        ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
+        #factors = self.root_finder(Q, maxd=None, algorithm = "roth_ruckenstein")
+        factors = rootfind_bivariate(Q, algorithm = "roth_ruckenstein")
+        if not factors:
+            return None
+        return [ poly2list(f, k) for f in factors ]
 ####################### registration ###############################
 
 GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluationVectorEncoder

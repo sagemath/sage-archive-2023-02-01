@@ -18,11 +18,9 @@ def _convert_Q_representation(Q):
             pass
         elif len(Ryx.gens())==2:
             F = Ryx.base_ring()
-            #(xs,ys) = Ryx.variable_names()
-            #Rx.<x> = F[xs]
-            #Ryx.<y> = Rx[ys]
-            Rx = F['xs']
-            Ryx = Rx['ys']
+            (xs,ys) = Ryx.variable_names()
+            Rx = F[xs]
+            Ryx = Rx[ys]
             x, y = Rx.gen(), Ryx.gen()
             #TODO: This conversion is wasteful since we will convert to F[x] list immediately after
             Q = Ryx(Q)

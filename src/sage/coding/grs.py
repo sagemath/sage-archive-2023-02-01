@@ -566,44 +566,7 @@ class GRSEvaluationVectorEncoder(Encoder):
         alphas = self.code().evaluation_points()
         col_mults = self.code().column_multipliers()
         return matrix(base_field, dimension, length, lambda i,j : col_mults[j]*alphas[j]**i)
-
-    def unencode_nocheck(self, c):
-        r"""
-        Returns the message corresponding to ``c``.
-        Does not check if ``c`` belongs to the code.
-
-        INPUT:
-
-        - ``c`` -- A vector with the same length as the code
-
-        OUTPUT:
-
-        - An element of the message space
-
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10 , 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
-            sage: c = vector(F, (10, 3, 9, 6, 5, 6, 9, 3, 10, 8))
-            sage: E.unencode_nocheck(c)
-            (10, 3, 1, 0, 0)
-        """
         C = self.code()
-        alphas = self.code().evaluation_points()
-        col_mults = self.code().column_multipliers()
-        length = self.code().length()
-        dimension = self.code().dimension()
-
-        c = [c[i]/col_mults[i] for i in range(length)]
-        points = [(alphas[i], c[i]) for i in range(dimension)]
-
-        Pc = self._R.lagrange_polynomial(points).list()
-        Pc = Pc + [self.code().base_field().zero()]*(dimension - len(Pc))
-
-        m = vector(self.code().base_field(), Pc)
-        return m
 
 
 

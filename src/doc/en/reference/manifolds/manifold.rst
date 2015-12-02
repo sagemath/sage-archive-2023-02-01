@@ -13,3 +13,5 @@ Topological manifolds
    chart
 
    scalarfield
+
+   continuous_map

@@ -714,6 +714,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             True
 
         If a polynomial of too high degree is given, an error is raised::
+
             sage: p = x^10
             sage: E.encode(p)
             Traceback (most recent call last):
@@ -721,6 +722,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             ValueError: The polynomial to encode must have degree at most 4
         
         If ``p`` is not an element of the proper polynomial ring, an error is raised::
+
             sage: Qy.<y> = QQ[]
             sage: p = y^2 + 1
             sage: E.encode(p)

@@ -1176,7 +1176,7 @@ class Tableau(ClonableList):
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
-    def to_sign_matrix(self,max_entry=None):
+    def to_sign_matrix(self, max_entry = None):
         r"""
         Return the sign matrix of ``self``.
 
@@ -1187,7 +1187,7 @@ class Tableau(ClonableList):
         INPUT: 
 
         - ``max_entry`` -- A non-negative integer, the  maximum allowable number in 
-        the tableau. Defaults to the largest entry in the tableau if not specified.
+          the tableau. Defaults to the largest entry in the tableau if not specified.
 
 
         EXAMPLES:: 

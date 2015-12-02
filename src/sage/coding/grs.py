@@ -54,8 +54,15 @@ from sage.functions.other import binomial, floor, sqrt
 from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.rings.integer_ring import ZZ
-from gs_interpolation import *#gs_construct_Q_linalg as gs_construct_Q_linalg
-from gs_rootfinding import *
+from sage.coding.guruswami_sudan.interpolation import *#gs_construct_Q_linalg as gs_construct_Q_linalg
+from sage.coding.guruswami_sudan.rootfinding import *
+from sage.coding.guruswami_sudan.utils import (poly2list,
+                                               list_decoding_range,
+                                               gs_satisfactory,
+                                               gilt,
+                                               s_l_from_tau,
+                                               solve2deg_int,
+                                               find_minimal_satisfiable)
 
 class GeneralizedReedSolomonCode(AbstractLinearCode):
     r"""
@@ -1759,264 +1766,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
 IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
-def _gs_satisfactory(tau, s, l, C = None, n_k = None):
-    r"""
-    Returns whether input parameters satisfy the governing equation of
-    Guruswami-Sudan.
-
-    See [N13]_ page 49, definition 3.3 and proposition 3.4 for details.
-
-    INPUT:
-
-    - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
-      to correct
-    - ``s`` -- an integer, multiplicity parameter of Guruswami-Sudan algorithm
-    - ``l`` -- an integer, list size parameter
-    - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
-    - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
-      length and the dimension of the :class:`GeneralizedReedSolomonCode`
-
-    ..NOTE::
-
-        One has to provide either ``C`` or ``(n, k)``. If none or both are
-        given, an exception will be raised.
-
-    EXAMPLES::
-
-        sage: from sage.coding.grs import _gs_satisfactory as gs_sat
-        sage: tau, s, l = 97, 1, 2
-        sage: n, k = 250, 70
-        sage: gs_sat(tau, s, l, n_k = (n, k))
-        True
-
-    One can also pass a GRS code::
-
-        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
-        sage: gs_sat(tau, s, l, C = C)
-        True
-
-    Another example where ``s`` and ``l`` does not satisfy the equation::
-
-        sage: tau, s, l = 118, 47, 80
-        sage: gs_sat(tau, s, l, n_k = (n, k))
-        False
-
-    If one provides both ``C`` and ``n_k`` an exception is returned::
-
-        sage: tau, s, l = 97, 1, 2
-        sage: n, k = 250, 70
-        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
-        sage: gs_sat(tau, s, l, C = C, n_k = (n, k))
-        Traceback (most recent call last):
-        ...
-        ValueError: Please provide only the code or its length and dimension
-
-    Same if one provides none of these::
-
-        sage: gs_sat(tau, s, l)
-        Traceback (most recent call last):
-        ...
-        ValueError: Please provide either the code or its length and dimension
-    """
-    if C is not None and n_k is not None:
-        raise ValueError("Please provide only the code or its length and dimension")
-    elif C is None and n_k is None:
-        raise ValueError("Please provide either the code or its length and dimension")
-    elif C is not None:
-        n, k = C.length(), C.dimension()
-    elif n_k is not None and not isinstance(n_k, tuple):
-        raise ValueError("n_k has to be a tuple")
-    elif n_k is not None:
-        n, k = n_k[0], n_k[1]
-    return l > 0 and s > 0 and n * s * (s+1) < (l+1) * (2*s*(n-tau) - (k-1) * l)
-
-def _s_l_from_tau(tau, C = None, n_k = None):
-    r"""
-    Returns suitable ``s`` and ``l`` according to input parameters.
-
-    See [N13]_ pages 53-54, proposition 3.11 for details.
-
-    INPUT:
-
-    - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
-      to correct
-    - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
-    - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
-      length and the dimension of the :class:`GeneralizedReedSolomonCode`
-
-    OUTPUT:
-
-    - ``(s, l)`` -- a couple of integers, where:
-        - ``s`` is the multiplicity parameter of Guruswami-Sudan algorithm and
-        - ``l`` is the list size parameter
-
-    ..NOTE::
-
-        One has to provide either ``C`` or ``(n, k)``. If none or both are
-        given, an exception will be raised.
-
-    EXAMPLES::
-
-        sage: from sage.coding.grs import _s_l_from_tau as s_l
-        sage: tau = 97
-        sage: n, k = 250, 70
-        sage: s_l(tau, n_k = (n, k))
-        (2, 3)
-
-    Same one with a GRS code::
-
-        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
-        sage: s_l(tau, C = C)
-        (2, 3)
-
-    Another one with a bigger ``tau``::
-
-        sage: s_l(118, C = C)
-        (47, 89)
-    """
-    if C is not None and n_k is not None:
-        raise ValueError("Please provide only the code or its length and dimension")
-    elif C is None and n_k is None:
-        raise ValueError("Please provide either the code or its length and dimension")
-    elif C is not None:
-        n, k = C.length(), C.dimension()
-    elif n_k is not None and not isinstance(n_k, tuple):
-        raise ValueError("n_k has to be a tuple")
-    elif n_k is not None:
-        n, k = n_k[0], n_k[1]
-
-    w = k - 1
-    atau = n - tau
-    smin = tau * w / (atau ** 2 - n * w)
-    s = floor(1 + smin)
-    D = (s - smin) * (atau ** 2 - n * w) * s + (w**2) /4
-    l = floor(atau / w * s + 0.5 - sqrt(D)/w)
-    assert _gs_satisfactory(tau,s,l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
-    return (s, l)
-
-def _ligt(x):
-    r"""
-    Returns the least integer greater than ``x``.
-
-    EXAMPLES::
-
-        sage: from sage.coding.grs import _ligt
-        sage: _ligt(41)
-        42
-
-    It works with any type of numbers (not only integers)::
-
-        sage: _ligt(41.041)
-        42
-    """
-    return floor(x+1)
-
-def _gilt(x):
-    r"""
-    Returns the greatest integer smaller than ``x``.
-
-    EXAMPLES::
-
-        sage: from sage.coding.grs import _gilt
-        sage: _gilt(43)
-        42
-
-    It works with any type of numbers (not only integers)::
-
-        sage: _gilt(43.041)
-        43
-    """
-    if x in ZZ:
-        return Integer(x-1)
-    else:
-        return floor(x)
-
-def _solve2deg_int(a,b,c):
-    r"""
-    Returns the greatest integer range `[i1, i2]` such that
-    `i1 > x1` and `i2 < x2` where `x1`,`x2` are the two zeroes of the equation in `x`:
-    `ax^2+bx+c=0`.
-
-    If there is no real solution to the equation, it returns an empty, range with negative coefficients.
-
-    INPUT:
-
-    - ``a``, ``b`` and ``c`` -- coefficients of a second degree equation, ``a`` being the coefficient of
-      the higher degree term.
-
-    EXAMPLES::
-
-        sage: from sage.coding.grs import _solve2deg_int
-        sage: _solve2deg_int(1, -5, 1)
-        (1, 4)
-
-    If there is no real solution::
-
-        sage: _solve2deg_int(50, 5, 42)
-        (-2, -1)
-    """
-    D = b**2 - 4*a*c
-    if D < 0:
-        return (-2,-1)
-    sD = float(sqrt(D))
-    minx, maxx = (-b-sD)/2.0/a , (-b+sD)/2.0/a
-    mini, maxi = (_ligt(minx), _gilt(maxx))
-    if mini > maxi:
-        return (-2,-1)
-    else:
-        return (mini,maxi)
-
-def _find_minimal_satisfiable(f, startn=1, contiguous=True):
-    r"""
-    Returns the minimal integral ``n``, `n > 0` such that ``f(n) == True``.
-
-    If the interval for which `f` is true is contiguous and open
-    towards infinity, a logarithmic algorithm is used, otherwise linear.
-    `startn` can be given as a hint to a value that might be true.
-
-    INPUT:
-
-    - ``f`` -- a function
-
-    - ``startn`` -- (default: ``1``) the starting point of the algorithm.
-
-    - ``contiguous`` -- (default: ``True``) boolean describing the contiguousity of ``f``'s
-      interval
-
-    EXAMPLES::
-
-        sage: from sage.coding.grs import _find_minimal_satisfiable
-        sage: def f(x):
-        ....:    return None if x > 10 or x == 1 else x + 1
-
-        sage: _find_minimal_satisfiable(f)
-        2
-    """
-    if not contiguous:
-        n = startn
-        if f(n):
-            while f(n) and n > 0:
-                n = n - 1
-            return n + 1
-        else:
-            while not f(n):
-                n = n + 1
-            return n
-    else:
-        maxn = startn
-        minn = 1
-        # Keep doubling n to find one that works and then binary
-        while not f(maxn):
-            minn = maxn + 1
-            maxn *= 2
-        while minn < maxn:
-            tryn = minn + floor((maxn - minn) * 0.5)
-            if f(tryn):
-                maxn = tryn
-            else:
-                minn = tryn + 1
-        return maxn
-
 def best_s_l_from_tau(tau, C = None, n_k = None):
     r"""
     Returns the best ``s`` and ``l`` possible according to input parameters.
@@ -2042,15 +1791,14 @@ def best_s_l_from_tau(tau, C = None, n_k = None):
 
     EXAMPLES::
 
-        sage: from sage.coding.grs import best_s_l_from_tau
         sage: tau, n, k = 97, 250, 70
-        sage: best_s_l_from_tau(tau, n_k = (n, k))
+        sage: codes.decoders.best_s_l_from_tau(tau, n_k = (n, k))
         (1, 2)
 
     Another one with a bigger tau::
 
         sage: tau, n, k = 118, 250, 70
-        sage: best_s_l_from_tau(tau, n_k = (n, k))
+        sage: codes.decoders.best_s_l_from_tau(tau, n_k = (n, k))
         (47, 89)
     """
     if C is not None and n_k is not None:
@@ -2063,40 +1811,17 @@ def best_s_l_from_tau(tau, C = None, n_k = None):
         raise ValueError("n_k has to be a tuple")
     elif n_k is not None:
         n, k = n_k[0], n_k[1]
-    (firsts, firstl) = _s_l_from_tau(tau, n_k = (n, k))
+    (firsts, firstl) = s_l_from_tau(tau, n_k = (n, k))
     def try_l(l):
-        (mins,maxs) = _solve2deg_int(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
+        (mins,maxs) = solve2deg_int(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
         if maxs > 0 and maxs >= mins:
             return max(1, mins)
         else:
             return None
-    l = _find_minimal_satisfiable(try_l, firstl)
+    l = find_minimal_satisfiable(try_l, firstl)
     s = try_l(l)
-    assert _gs_satisfactory(tau, s, l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
+    assert gs_satisfactory(tau, s, l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
     return (s, l)
-
-def list_decoding_range(n, d, q=None):
-    r"""
-    Returns the minimal and maximal number of errors correctable by a
-    Johnson-distance list decoder beyond half the minimal distance.
-
-    INPUT:
-
-    - ``n`` -- an integer, the length of the code
-    - ``d`` -- an integer, the minimum distance of the code
-    - ``q`` -- (default: ``None``) ????????
-
-    EXAMPLES::
-
-        sage: from sage.coding.grs import list_decoding_range
-        sage: list_decoding_range(250, 181)
-        (91, 118)
-    """
-    if q is None:
-        return (_ligt((d-1)/2), _gilt(n - sqrt(n*(n-d))))
-    else:
-        f = (q-1.)/q
-        return (_ligt((d-1)/2), _gilt(f*(n-sqrt(n*(n-d/f)))))
 
 def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
     r"""
@@ -2120,9 +1845,8 @@ def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
 
     EXAMPLES::
 
-        sage: from sage.coding.grs import guruswami_sudan_decoding_radius
         sage: n, k = 250, 70
-        sage: guruswami_sudan_decoding_radius(n_k = (n, k))
+        sage: codes.decoders.guruswami_sudan_decoding_radius(n_k = (n, k))
         (118, (47, 89))
     """
     if C is not None and n_k is not None:
@@ -2139,7 +1863,7 @@ def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
     def get_tau(s,l):
         if s<=0 or l<=0:
             return -1
-        return _gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
+        return gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
     if l==None and s==None:
         tau = list_decoding_range(n,n-k+1)[1]
         return (tau, best_s_l_from_tau(tau, n_k = (n, k)))
@@ -2154,7 +1878,7 @@ def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
         lmax = sqrt(n*s*(s+1)/(k-1)) - 1
         #the best integral value will be
         (l,tau) = find_integral_max(lmax, lambda l: get_tau(s,l))
-        assert _gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
+        assert gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
         #Note that we have not proven that this ell is minimial in integral
         #sense! It just seems that this most often happens
         return (tau,(s,l))
@@ -2162,17 +1886,14 @@ def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
         # Acquired similarly to when restricting s
         smax = sqrt((k-1)/n*l*(l+1))
         (s,tau) = find_integral_max(smax, lambda s: get_tau(s,l))
-        assert _gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
+        assert gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
         return (get_tau(s,l), (s,l))
 
-def poly2list(p, len):
-    """Convert the polynomial p into a list of coefficients of length len"""
-    return list(p) + [0]*max(0, len-p.degree()-1)
 
 class GRSGuruswamiSudanDecoder(Decoder):
-
-    from gs_interpolation import gs_construct_Q_linalg as gs_construct_Q_linalg
-    from gs_rootfinding import *
+    r"""
+    List decoder using the Guruswami-Sudan algorithm.
+    """
 
     def __init__(self, C, tau = None, params = None, Qfinder = None, root_finder = None):
         n, k = C.length(), C.dimension()
@@ -2190,7 +1911,59 @@ class GRSGuruswamiSudanDecoder(Decoder):
         self.root_finder = root_finder if root_finder else rootfind_bivariate
         super(GRSGuruswamiSudanDecoder, self).__init__(C, C.ambient_space(), C._default_encoder_name)
 
-    def decode_to_code(self, r):
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D
+            Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
+        """
+        return "Guruswami-Sudan decoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", tau = 97)
+            sage: latex(D)
+            \textnormal{Guruswami-Sudan decoder for } [250, 70, 181] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{251}
+        """
+        return "\\textnormal{Guruswami-Sudan decoder for } %s" % self.code()._latex_()
+
+    def multiplicity(self):
+        r"""
+        Returns the multiplicity parameter of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D.multiplicity()
+            2
+        """
+        return self.ell
+
+    def list_size(self):
+        r"""
+        Returns the list size parameter of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D.list_size()
+            1
+        """
+        return self.s
+
+    def decode_to_message(self, r):
         C = self.code()
         n,k,d,alphas,colmults = C.length(), C.dimension(), C.minimum_distance(),\
                 C.evaluation_points(), C.column_multipliers()
@@ -2204,7 +1977,25 @@ class GRSGuruswamiSudanDecoder(Decoder):
         factors = rootfind_bivariate(Q, algorithm = "roth_ruckenstein")
         if not factors:
             return None
-        return [ poly2list(f, k) for f in factors ]
+        return [ vector(C.base_ring(), poly2list(f, k)) for f in factors ]
+
+    def decode_to_code(self, r):
+        C = self.code()
+        return [ C.encode(i) for i in self.decode_to_message(r) ]
+
+    def decoding_radius(self):
+        r"""
+        Returns the maximal number of errors that ``self`` is able to correct.
+
+        EXAMPLES::
+
+        TODO
+        TODO
+        TODO
+
+        """
+        return guruswami_sudan_decoding_radius(C = self.code(), l = self.list_size(), s = self.multiplicity())
+
 ####################### registration ###############################
 
 GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluationVectorEncoder
@@ -2218,6 +2009,8 @@ GeneralizedReedSolomonCode._registered_decoders["ErrorErasure"] = GRSErrorErasur
 GRSErrorErasureDecoder._decoder_type = {"error-erasure", "unique", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["KeyEquationSyndrome"] = GRSKeyEquationSyndromeDecoder
 GRSKeyEquationSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
+GeneralizedReedSolomonCode._registered_decoders["GuruswamiSudan"] = GRSGuruswamiSudanDecoder
+GRSGuruswamiSudanDecoder._decoder_type = {"list-decoder", "always-succeed"}
 
 GeneralizedReedSolomonCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 GeneralizedReedSolomonCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

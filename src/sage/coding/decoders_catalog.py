@@ -14,6 +14,12 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :func:`grs.GRSErrorErasureDecoder <sage.coding.grs.GRSErrorErasureDecoder>`
 - :func:`grs.GRSGaoDecoder <sage.coding.grs.GRSGaoDecoder>`
 - :func:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationDecoder>`
+- :func:`grs.GRSGuruswamiSudanDecoder <sage.coding.grs.GRSGuruswamiSudanDecoder>`
+
+*And some useful methods that go with Guruswami-Sudan decoder*
+
+- :func: `grs.guruswami_sudan_decoding_radius <sage.coding.grs.guruswami_sudan_decoding_radius>`
+- :func: `grs.best_s_l_from_tau <sage.coding.grs.best_s_l_from_tau>`
 
 .. NOTE::
 
@@ -35,4 +41,7 @@ from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDec
 from grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,
-                 GRSErrorErasureDecoder)
+                 GRSErrorErasureDecoder,
+                 best_s_l_from_tau,
+                 guruswami_sudan_decoding_radius,
+                 GRSGuruswamiSudanDecoder)

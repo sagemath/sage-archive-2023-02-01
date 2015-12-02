@@ -568,15 +568,10 @@ class GRSEvaluationVectorEncoder(Encoder):
             [0 1 8 5 9 4 7 2 6 3]
             [0 1 5 4 3 9 9 3 4 5]
         """
-        base_field = self.code().base_field()
-        dimension = self.code().dimension()
-        length = self.code().length()
-        alphas = self.code().evaluation_points()
-        col_mults = self.code().column_multipliers()
-        return matrix(base_field, dimension, length, lambda i,j : col_mults[j]*alphas[j]**i)
         C = self.code()
-
-
+        alphas = C.evaluation_points()
+        col_mults = C.column_multipliers()
+        return matrix(C.base_field(), C.dimension(), C.length(), lambda i,j: col_mults[j] * alphas[j]**i)
 
 
 
@@ -743,11 +738,11 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: E.unencode_nocheck(c)
             x^2 + 3*x + 10
         """
-
-        alphas = self.code().evaluation_points()
-        col_mults = self.code().column_multipliers()
-        length = self.code().length()
-        dimension = self.code().dimension()
+        C = self.code()
+        alphas    = C.evaluation_points()
+        col_mults = C.column_multipliers()
+        length    = C.length()
+        dimension = C.dimension()
 
         c = [c[i]/col_mults[i] for i in range(length)]
         points = [(alphas[i], c[i]) for i in range(dimension)]

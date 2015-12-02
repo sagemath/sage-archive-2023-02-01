@@ -6806,34 +6806,23 @@ cdef class Matrix(matrix1.Matrix):
         return extended
 
     def weak_popov_form(self, ascend=True):
+        """
+        This function is deprecated. "ascend" will produce an output similar to before (A list [W,N] only missing d), but, as before, will not result in sorting.
+        """
         from sage.misc.superseded import deprecation
         deprecation(16888, 'You can just call row_reduced_form() instead')
         return self.row_reduced_form(ascend)
 
-    def row_reduced_form(self, ascend=True):
+    def row_reduced_form(self,transformation=False):
         """
         This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, for `k` a field.
 
-        INPUT:
-
-         - `ascend` - if True, rows of output matrix `W` are sorted so
-           degree (= the maximum of the degrees of the elements in
-           the row) increases monotonically, and otherwise degrees decrease.
-
         OUTPUT:
 
-        A 3-tuple `(W,N,d)` consisting of:
-
-        1. `W` - a matrix over `k(x)` giving a row reduced form of `self`
-        2. `N` - a matrix over `k[x]` representing row operations used to
-            transform `self` to `W`
-        3. `d` - degree of respective columns of W; the degree of a column is
-           the maximum of the degree of its elements
-
-        `N` is invertible over `k(x)`. These matrices satisfy the relation
-        `N*self = W`.
-
+        - `W` - a matrix over `k(x)` giving a row reduced form of self
+        - `transformation` - A boolean (default: False). If this boolean is set to True a second matrix is output (see OUTPUT).
+        
         EXAMPLES:
 
         The routine expects matrices over the rational function field, but
@@ -6846,10 +6835,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
             sage: M.row_reduced_form()
-            (
-            [          0]  [      t 2*t + 1]
-            [(2*t + 1)/t], [      1       2], [-Infinity, 0]
-            )
+            [(2*t + 1)/t]
+            [          0]
 
         If `self` is an `n x 1` matrix with at least one non-zero entry, `W` has
         a single non-zero entry and that entry is a scalar multiple of the
@@ -6860,11 +6847,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
             sage: output1 = M1.row_reduced_form()
             sage: output1
-            (
-            [0]  [        1         0 2*t^2 + 1]
-            [0]  [        0         1 2*t^2 + 1]
-            [t], [        0         0         1], [-Infinity, -Infinity, 1]
-            )
+            [0]
+            [0]
+            [t]
 
         We check that the output is the same for a matrix `M` if its entries are
         rational functions intead of polynomials. We also check that the type of
@@ -6876,13 +6861,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: output2 = M2.row_reduced_form()
             sage: output1 == output2
             True
-            sage: output1[0].base_ring() is K
+            sage: output1.base_ring() is K
             True
-            sage: output2[0].base_ring() is K
-            True
-            sage: output1[1].base_ring() is R
-            True
-            sage: output2[1].base_ring() is R
+            sage: output2.base_ring() is K
             True
 
         The following is the first half of example 5 in [H] *except* that we
@@ -6893,10 +6874,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
             sage: M.row_reduced_form()
-            (
-            [      t    -t^2]  [ 1 -t]
-            [t^2 - 2       t], [ 0  1], [2, 2]
-            )
+            [      t    -t^2]
+            [t^2 - 2       t]
 
         The next example demonstrates what happens when `self` is a zero matrix.
 
@@ -6906,10 +6885,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: K = FractionField(R)
             sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
             sage: M.row_reduced_form()
-            (
-            [0 0]  [1 0]
-            [0 0], [0 1], [-Infinity, -Infinity]
-            )
+            [0 0]
+            [0 0]
 
         In the following example, `self` has more rows than columns.
 
@@ -6918,10 +6895,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
             sage: M.row_reduced_form()
-            (
-            [t t t]  [1 0]
-            [0 0 t], [0 1], [1, 1]
-            )
+            [t t t]
+            [0 0 t]
 
         The next example shows that M must be a matrix with
         coefficients in a rational function field `k(t)`.
@@ -6934,6 +6909,18 @@ cdef class Matrix(matrix1.Matrix):
             ...
             TypeError: the coefficients of M must lie in a univariate
             polynomial ring
+
+        The last example shows the usage of the transformation parameter.
+        
+        ::
+            sage: Fq.<a> = GF(2^3)
+            sage: Fx.<x> = Fq[]
+            sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
+            sage: A.row_reduced_form(transformation=True)
+            (
+            [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
+            [                    x^3                   a*x^4], [      0                 1]
+            )
 
 
         NOTES:
@@ -6952,8 +6939,8 @@ cdef class Matrix(matrix1.Matrix):
 
 
         """
-        import sage.matrix.matrix_misc
-        return sage.matrix.matrix_misc.row_reduced_form(self)
+        from sage.matrix.matrix_misc import row_reduced_form
+        return sage.matrix.matrix_misc.row_reduced_form(self,transformation)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #

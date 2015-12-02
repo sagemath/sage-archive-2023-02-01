@@ -582,7 +582,8 @@ class GRSEvaluationVectorEncoder(Encoder):
 
 class GRSEvaluationPolynomialEncoder(Encoder):
     r"""
-    Encoder for Generalized Reed-Solomon codes which encodes polynomials into codewords.
+    Encoder for Generalized Reed-Solomon codes which uses evaluation of
+    polynomials to obtain codewords.
 
     INPUT:
 
@@ -596,6 +597,8 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
         sage: E
         Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        sage: E.message_space()
+        Univariate Polynomial Ring in x over Finite Field of size 59
 
     Actually, we can construct the encoder from ``C`` directly::
     
@@ -705,8 +708,10 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = C.encoder("EvaluationPolynomial")
             sage: p = x^2 + 3*x + 10
-            sage: E.encode(p)
+            sage: c = E.encode(p); c
             (10, 3, 9, 6, 5, 6, 9, 3, 10, 8)
+            sage: c in C
+            True
 
         If a polynomial of too high degree is given, an error is raised::
             sage: p = x^10
@@ -736,35 +741,52 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     def unencode_nocheck(self, c):
         r"""
-        Returns the message corresponding to ``c``.
-        Does not check if ``c`` belongs to the code.
+        Returns the message corresponding to the codeword ``c``.
+
+        Use this method with caution: it does not check if ``c``
+        belongs to the code, and if this is not the case, the output is
+        unspecified. Instead, use :meth:`unencode`.
 
         INPUT:
 
-        - ``c`` -- A vector with the same length as the code
+        - ``c`` -- A codeword of :meth:`code`.
 
         OUTPUT:
 
-        - An element of the message space
+        - An polynomial of degree less than ``self.code().dimension()``.
 
         EXAMPLES::
 
             sage: F = GF(11)
             sage: n, k = 10 , 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: c = vector(F, (10, 3, 9, 6, 5, 6, 9, 3, 10, 8))
-            sage: E.unencode_nocheck(c)
+            sage: c in C
+            True
+            sage: p = E.unencode_nocheck(c); p
             x^2 + 3*x + 10
+            sage: E.encode(p) == c
+            True
+
+        Note that no error is thrown if ``c`` is not a codeword, and that the
+        result is undefined::
+
+            sage: c = vector(F, (11, 3, 9, 6, 5, 6, 9, 3, 10, 8))
+            sage: c in C
+            False
+            sage: p = E.unencode_nocheck(c); p
+            6*x^4 + 6*x^3 + 2*x^2
+            sage: E.encode(p) == c
+            False
+        
         """
         C = self.code()
         alphas    = C.evaluation_points()
         col_mults = C.column_multipliers()
-        length    = C.length()
-        dimension = C.dimension()
 
-        c = [c[i]/col_mults[i] for i in range(length)]
-        points = [(alphas[i], c[i]) for i in range(dimension)]
+        c = [c[i]/col_mults[i] for i in range(C.length())]
+        points = [(alphas[i], c[i]) for i in range(C.dimension())]
 
         Pc = self._R.lagrange_polynomial(points)
         return Pc
@@ -778,7 +800,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: F = GF(11)
             sage: n, k = 10 , 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: E.message_space()
             Univariate Polynomial Ring in x over Finite Field of size 11
         """

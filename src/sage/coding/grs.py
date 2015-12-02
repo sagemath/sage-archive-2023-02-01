@@ -448,7 +448,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 class GRSEvaluationVectorEncoder(Encoder):
     r"""
-    An encoder which can encode vectors into codewords.
+    Encoder for Generalized Reed-Solomon codes which encodes vectors into codewords.
 
     INPUT:
 
@@ -461,7 +461,13 @@ class GRSEvaluationVectorEncoder(Encoder):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
         sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
         sage: E
-        Evaluation vector-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    Actually, we can construct the encoder from ``C`` directly::
+    
+        sage: E = C.encoder("EvaluationVector")
+        sage: E
+        Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
     def __init__(self, code):
@@ -473,7 +479,7 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: E
-            Evaluation vector-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSEvaluationVectorEncoder, self).__init__(code)
         self._R = code.base_field()['x']
@@ -491,6 +497,8 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: D2 = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: D1.__eq__(D2)
             True
+            sage: D1 is D2
+            False
         """
         return isinstance(other, GRSEvaluationVectorEncoder) \
                 and self.code() == other.code()
@@ -523,9 +531,9 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: E
-            Evaluation vector-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Evaluation vector-style encoder for the %s" % self.code()
+        return "Evaluation vector-style encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -538,9 +546,9 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: latex(E)
-            \textnormal{Evaluation vector-style encoder for the }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Evaluation vector-style encoder for }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
-        return "\\textnormal{Evaluation vector-style encoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Evaluation vector-style encoder for }%s" % self.code()._latex_()
 
     @cached_method
     def generator_matrix(self):
@@ -579,7 +587,7 @@ class GRSEvaluationVectorEncoder(Encoder):
 
 class GRSEvaluationPolynomialEncoder(Encoder):
     r"""
-    An encoder which can encode polynomials into codewords.
+    Encoder for Generalized Reed-Solomon codes which encodes polynomials into codewords.
 
     INPUT:
 
@@ -592,7 +600,13 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
         sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
         sage: E
-        Evaluation polynomial-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    Actually, we can construct the encoder from ``C`` directly::
+    
+        sage: E = C.encoder("EvaluationPolynomial")
+        sage: E
+        Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
     def __init__(self, code):
@@ -604,7 +618,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
             sage: E
-            Evaluation polynomial-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSEvaluationPolynomialEncoder, self).__init__(code)
         self._R = code.base_field()['x']
@@ -620,6 +634,8 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D1 = codes.encoders.GRSEvaluationPolynomialEncoder(C)
             sage: D2 = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: D1 is D2
+            False
             sage: D1.__eq__(D2)
             True
         """
@@ -652,11 +668,11 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: F = GF(59)
             sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: E
-            Evaluation polynomial-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Evaluation polynomial-style encoder for the %s" % self.code()
+        return "Evaluation polynomial-style encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -667,19 +683,20 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: F = GF(59)
             sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: latex(E)
-            \textnormal{Evaluation polynomial-style encoder for the }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Evaluation polynomial-style encoder for }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
-        return "\\textnormal{Evaluation polynomial-style encoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Evaluation polynomial-style encoder for }%s" % self.code()._latex_()
 
     def encode(self, p):
         r"""
-        Transforms ``p`` into an element of the associated code of ``self``.
+        Transforms the polynomial ``p`` into a codeword of :meth:`code`.
 
         INPUT:
 
-        - ``p`` -- A polynomial from ``self`` message space
+        - ``p`` -- A polynomial from the message space of ``self`` of degree
+          less than ``self.code().dimension()``.
 
         OUTPUT:
 

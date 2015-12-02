@@ -340,13 +340,9 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             [ 0  9  9  2 10  9  6  6  1  3]
             [ 0  9  7  6  7  1  3  9  8  5]
         """
-        F = self.base_ring()
-        n = self.length()
-        k = self.dimension()
-        alphas = self.evaluation_points()
-        parity_mults = self.parity_column_multipliers()
-        return matrix(F, n - k, n, lambda i,j : parity_mults[j] * alphas[j]**i)
+        return self.dual_code().generator_matrix()
 
+    @cached_method
     def dual_code(self):
         r"""
         Returns the dual code of ``self``, which is also a GRS code.

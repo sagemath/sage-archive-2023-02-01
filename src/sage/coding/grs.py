@@ -700,20 +700,39 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         EXAMPLES::
 
             sage: F = GF(11)
-            sage: K.<x>=F[]
+            sage: Fx.<x> = F[]
             sage: n, k = 10 , 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: p = x^2 + 3*x + 10
             sage: E.encode(p)
             (10, 3, 9, 6, 5, 6, 9, 3, 10, 8)
+
+        If a polynomial of too high degree is given, an error is raised::
+            sage: p = x^10
+            sage: E.encode(p)
+            Traceback (most recent call last):
+            ...
+            ValueError: The polynomial to encode must have degree at most 4
+        
+        If ``p`` is not an element of the proper polynomial ring, an error is raised::
+            sage: Qy.<y> = QQ[]
+            sage: p = y^2 + 1
+            sage: E.encode(p)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value to encode must be in Univariate Polynomial Ring in x over Finite Field of size 11
         """
-        alphas    = self.code().evaluation_points()
-        col_mults = self.code().column_multipliers()
-        field     = self.code().base_ring()
-        length    = self.code().length()
-        u = vector(field, [col_mults[i]*p(alphas[i]) for i in range(length)])
-        return u
+        M = self.message_space()
+        if p not in M:
+            raise ValueError("The value to encode must be in %s" % M)
+        C = self.code()
+        if p.degree() >= C.dimension():
+            raise ValueError("The polynomial to encode must have degree at most %s" % (C.dimension() - 1))
+        alphas    = C.evaluation_points()
+        col_mults = C.column_multipliers()
+        c = vector(C.base_ring(), [col_mults[i]*p(alphas[i]) for i in range(C.length())])
+        return c
 
     def unencode_nocheck(self, c):
         r"""

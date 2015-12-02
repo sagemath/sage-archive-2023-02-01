@@ -1758,7 +1758,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
 def _gs_satisfactory(tau, s, l, C = None, n_k = None):
-    """r
+    r"""
     Returns whether input parameters satisfy the governing equation of
     Guruswami-Sudan.
 
@@ -1829,7 +1829,7 @@ def _gs_satisfactory(tau, s, l, C = None, n_k = None):
     return l > 0 and s > 0 and n * s * (s+1) < (l+1) * (2*s*(n-tau) - (k-1) * l)
 
 def _s_l_from_tau(tau, C = None, n_k = None):
-    """r
+    r"""
     Returns suitable ``s`` and ``l`` according to input parameters.
 
     See [N13]_ pages 53-54, proposition 3.11 for details.
@@ -1892,6 +1892,120 @@ def _s_l_from_tau(tau, C = None, n_k = None):
     assert _gs_satisfactory(tau,s,l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
     return (s, l)
 
+def ligt(x):
+    """Least integer greater than x"""
+    return floor(x+1)
+
+def gilt(x):
+    """Greatest integer less than x"""
+    if x in ZZ:
+        return Integer(x-1)
+    else:
+        return floor(x)
+
+def solve2deg_int(a,b,c):
+    """Utility function. Returns the greates integer range [i1, i2] such that
+    i1 > x1 and i2 < x2 where x1,x2 are the two zeroes of the equation in x:
+    ax^2+bx+c=0. If no solution, returns an empty, range w. negative coeff."""
+    a,b,c = Integer(a), Integer(b),Integer(c)
+    D = b**2 - 4*a*c
+    if D < 0:
+        return (-2,-1)
+    sD = float(sqrt(D))
+    minx, maxx = (-b-sD)/2.0/a , (-b+sD)/2.0/a
+    mini, maxi = (ligt(minx), gilt(maxx))
+    if mini > maxi:
+        return (-2,-1)
+    else:
+        return (mini,maxi)
+
+def find_minimal_satisfiable(f, startn=1, contiguous=True):
+    """Find the minimal integral n>0 such that f(n) == true. If the interval
+    for which f is true is contiguous and open towards infinity, a logarithmic
+    algorithm is used, otherwise linear. startn can be given as a hint to a
+    value that might be true."""
+    if not contiguous:
+        n=startn
+        if f(n):
+            while f(n) and n>0:
+                n=n-1
+            return n+1
+        else:
+            while not f(n):
+                n=n+1
+            return n
+    else:
+        maxn = startn
+        minn = 1
+        # Keep doubling n to find one that works and then binary
+        while not f(maxn):
+            minn = maxn+1
+            maxn *= 2
+        while minn < maxn:
+            tryn = minn + floor((maxn-minn)*0.5)
+            if f(tryn):
+                maxn=tryn
+            else:
+                minn=tryn+1
+        return maxn
+
+def best_s_l_from_tau(tau, C = None, n_k = None):
+    r"""
+    Returns the best ``s`` and ``l`` possible according to input parameters.
+
+    INPUT:
+
+    - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
+      to correct
+    - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
+    - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
+      length and the dimension of the :class:`GeneralizedReedSolomonCode`
+
+    OUTPUT:
+
+    - ``(s, l)`` -- a couple of integers, where:
+        - ``s`` is the multiplicity parameter of Guruswami-Sudan algorithm and
+        - ``l`` is the list size parameter
+
+    ..NOTE::
+
+        One has to provide either ``C`` or ``(n, k)``. If none or both are
+        given, an exception will be raised.
+
+    EXAMPLES::
+
+        sage: from sage.coding.grs import best_s_l_from_tau
+        sage: tau, n, k = 97, 250, 70
+        sage: best_s_l_from_tau(tau, n_k = (n, k))
+        (1, 2)
+
+    Another one with a bigger tau::
+
+        sage: tau, n, k = 118, 250, 70
+        sage: best_s_l_from_tau(tau, n_k = (n, k))
+        (47, 89)
+    """
+    if C is not None and n_k is not None:
+        raise ValueError("Please provide only the code or its length and dimension")
+    elif C is None and n_k is None:
+        raise ValueError("Please provide either the code or its length and dimension")
+    elif C is not None:
+        n, k = C.length(), C.dimension()
+    elif n_k is not None and not isinstance(n_k, tuple):
+        raise ValueError("n_k has to be a tuple")
+    elif n_k is not None:
+        n, k = n_k[0], n_k[1]
+    (firsts, firstl) = _s_l_from_tau(tau, n_k = (n, k))
+    def try_l(l):
+        (mins,maxs) = solve2deg_int(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
+        if maxs > 0 and maxs >= mins:
+            return max(1, mins)
+        else:
+            return None
+    l = find_minimal_satisfiable(try_l, firstl)
+    s = try_l(l)
+    assert _gs_satisfactory(tau, s, l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
+    return (s, l)
 
 ####################### registration ###############################
 

@@ -775,9 +775,12 @@ class WordMorphism(SageObject):
             else:
                 raise TypeError("Don't know how to handle an input (=%s) that is not iterable or not in the domain alphabet."%w)
             parent = self.codomain()
+            iterator = (x for y in w for x in self._morph[y])
             if length == Infinity:
                 parent = parent.shift()
-            return parent((x for y in w for x in self._morph[y]), length=length, datatype=datatype)
+                return parent(iterator, datatype)
+            else:
+                return parent(iterator, length=length, datatype=datatype)
         elif order is Infinity:
             if isinstance(w, (tuple,str,list,FiniteWord_class)):
                 if len(w) == 0:

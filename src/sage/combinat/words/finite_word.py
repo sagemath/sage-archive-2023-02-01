@@ -372,6 +372,17 @@ class FiniteWord_class(Word_class):
             <class 'sage.combinat.words.word.FiniteWord_str'>
             sage: type(Word([1,2,3]) * Word(''))
             <class 'sage.combinat.words.word.FiniteWord_list'>
+
+        Concatenation of finite words with infinite words works as expected::
+
+            sage: from itertools import repeat
+            sage: W = Words('ab')
+            sage: w1 = W('aba')
+            sage: w2 = W(repeat('b'), length='infinite')
+            sage: w1*w2
+            word: ababbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...
+            sage: _.parent()
+            Infinite words over {'a', 'b'}
         """
         if self.is_empty():
             return other
@@ -379,7 +390,12 @@ class FiniteWord_class(Word_class):
             return self
         f = CallableFromListOfWords([self,other])
         length = self.length() + other.length()
-        return self._parent(f, length=length, datatype='callable', caching=True)
+        parent = self._parent
+        if length == Infinity:
+            parent = parent.shift()
+            return parent(f, datatype='callable', caching=True)
+        else:
+            return parent(f, length=length, datatype='callable', caching=True)
 
     __mul__ = concatenate
 

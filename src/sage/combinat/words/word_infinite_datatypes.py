@@ -287,7 +287,7 @@ class WordDatatype_callable(WordDatatype):
             sage: w = Word(lambda n : n%3+10, caching=False)
             sage: w.__reduce__()
             (Infinite words over Set of Python objects of type 'object',
-             ("csage.misc.fpickle...<lambda>...", +Infinity, 'pickled_function', False))
+             ("csage.misc.fpickle...<lambda>...", 'pickled_function', False))
 
         ::
 
@@ -300,13 +300,15 @@ class WordDatatype_callable(WordDatatype):
         try:
             s = pickle_function(self._func)
         except Exception:
-            from sage.combinat.words.word import FiniteWord_class
-            if isinstance(self, FiniteWord_class):
+            if self.is_finite():
                 return self._parent, (list(self),)
             else:
-                return self._parent, (self._func, self._len, 'callable', False)
+                return self._parent, (self._func, 'callable', False)
         else:
-            return self._parent, (s, self._len, 'pickled_function', False)
+            if self.is_finite():
+                return self._parent, (s, self._len, 'pickled_function', False)
+            else:
+                return self._parent, (s, 'pickled_function', False)
 
 class WordDatatype_callable_with_caching(WordDatatype_callable):
     r"""
@@ -524,7 +526,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w = Word(lambda n : n%3+10, caching=True)
             sage: w.__reduce__()
             (Infinite words over Set of Python objects of type 'object',
-             ("csage.misc.fpickle...<lambda>...", +Infinity, 'pickled_function', True))
+             ("csage.misc.fpickle...<lambda>...", 'pickled_function', True))
 
         ::
 
@@ -545,13 +547,15 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
         try:
             s = pickle_function(self._func)
         except Exception:
-            from sage.combinat.words.word import FiniteWord_class
-            if isinstance(self, FiniteWord_class):
+            if self.is_finite():
                 return self._parent, (list(self),)
             else:
-                return self._parent, (self._func, self._len, 'callable', True)
+                return self._parent, (self._func, 'callable', True)
         else:
-            return self._parent, (s, self._len, 'pickled_function', True)
+            if self.is_finite():
+                return self._parent, (s, self._len, 'pickled_function', True)
+            else:
+                return self._parent, (s, 'pickled_function', True)
 
     def flush(self):
         r"""
@@ -899,13 +903,12 @@ class WordDatatype_iter(WordDatatype):
 
             sage: w = Word(iter('ab'*10000), caching=False, length='unknown')
             sage: w.__reduce__()
-            (Finite and infinite words over Set of Python objects of type 'object', (<generator object __iter__ at ...>, None, 'iter', False))
+            (Finite and infinite words over Set of Python objects of type 'object', (<generator object __iter__ at ...>, 'iter', False))
         """
-        from sage.combinat.words.word import FiniteWord_class
-        if isinstance(self, FiniteWord_class):
+        if self.is_finite():
             return self._parent, (list(self),)
         else:
-            return self._parent, (iter(self), self._len, 'iter', False)
+            return self._parent, (iter(self), 'iter', False)
 
 class WordDatatype_iter_with_caching(WordDatatype_iter):
     def __init__(self, parent, iter, length=None):
@@ -1178,13 +1181,12 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             sage: w = Word(iter('ab'*10000), caching=True, length='unknown')
             sage: w.__reduce__()
             (Finite and infinite words over Set of Python objects of type 'object',
-             (<generator object __iter__ at ...>, None, 'iter', True))
+             (<generator object __iter__ at ...>, 'iter', True))
         """
-        from sage.combinat.words.word import Word, FiniteWord_class
-        if isinstance(self, FiniteWord_class):
+        if self.is_finite():
             return self._parent, (list(self),)
         else:
-            return self._parent, (iter(self), self._len, 'iter', True)
+            return self._parent, (iter(self), 'iter', True)
 
     def flush(self):
         r"""

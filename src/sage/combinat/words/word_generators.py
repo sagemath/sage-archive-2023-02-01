@@ -1905,7 +1905,6 @@ class WordGenerator(object):
 
         kwds = {}
         kwds['data'] = self._s_adic_iterator(seq,letters)
-        kwds['length'] = None
         kwds['datatype'] = 'iter'
         kwds['caching'] = True
         #kwds['check'] = False

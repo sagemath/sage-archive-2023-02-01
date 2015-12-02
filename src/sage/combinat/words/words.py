@@ -43,14 +43,11 @@ import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.mrange import xmrange
 
 from sage.structure.parent import Parent
-from sage.structure.parent import Set_PythonType
 
 from sage.categories.sets_cat import Sets
 
-from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.words.alphabet import build_alphabet
 
@@ -500,8 +497,7 @@ class FiniteWords(AbstractLanguage):
         """
         ####################
         # If `data` is already a word and if its parent is self, then
-        # return `data` (no matter what the parameter length, datatype and
-        # length are).
+        # return `data`.
         ###########################
         if data.parent() is self or data.parent() == self:
             return data
@@ -607,15 +603,8 @@ class FiniteWords(AbstractLanguage):
         -  ``data`` - (default: None) list, string, tuple, iterator, None
            (shorthand for []), or a callable defined on [0,1,...,length].
 
-        -  ``length`` - (default: None) This is dependent on the type of data.
-           It is ignored for words defined by lists, strings, tuples,
-           etc., because they have a naturally defined length.
-           For callables, this defines the domain of definition,
-           which is assumed to be [0, 1, 2, ..., length-1].
-           For iterators: Infinity if you know the iterator will not
-           terminate (default); "unknown" if you do not know whether the
-           iterator terminates; "finite" if you know that the iterator
-           terminates, but do know know the length.
+        -  ``length`` - integer (default: None). Only used if the data is an iterator or
+           a callable. It determines the length of the word.
 
         -  ``datatype`` - (default: None) None, "char", "list", "str",
            "tuple", "iter", "callable" or "pickled_function". If None, then
@@ -1454,8 +1443,7 @@ class InfiniteWords(AbstractLanguage):
         """
         ####################
         # If `data` is already a word and if its parent is self, then
-        # return `data` (no matter what the parameter length, datatype and
-        # length are).
+        # return `data` (no matter what the parameter length, datatype)
         ###########################
         if data.parent() is self or data.parent() == self:
             return data
@@ -1529,31 +1517,20 @@ class InfiniteWords(AbstractLanguage):
         wc = '_with_caching' if caching else ""
         return self._element_classes['iter'+wc](self, data, Infinity)
 
-    def __call__(self, data=None, length=None, datatype=None, caching=True, check=True):
+    def __call__(self, data=None, datatype=None, caching=True, check=True):
         r"""
         Construct a new word object with parent self.
 
         INPUT:
 
-        -  ``data`` - (default: None) list, string, tuple, iterator, None
-           (shorthand for []), or a callable defined on [0,1,...,length].
+        -  ``data`` - iterator or a callable
 
-        -  ``length`` - (default: None) This is dependent on the type of data.
-           It is ignored for words defined by lists, strings, tuples,
-           etc., because they have a naturally defined length.
-           For callables, this defines the domain of definition,
-           which is assumed to be [0, 1, 2, ..., length-1].
-           For iterators: Infinity if you know the iterator will not
-           terminate (default); "unknown" if you do not know whether the
-           iterator terminates; "finite" if you know that the iterator
-           terminates, but do know know the length.
+        -  ``datatype`` - (default: None) None, "iter", "callable" or
+           "pickled_function". If None, then the function tries to guess
+           this from the data.
 
-        -  ``datatype`` - (default: None) None, "char", "list", "str",
-           "tuple", "iter", "callable" or "pickled_function". If None, then
-           the function tries to guess this from the data.
-
-        -  ``caching`` - (default: True) True or False. Whether to keep a cache
-           of the letters computed by an iterator or callable.
+        -  ``caching`` - (default: True) True or False. Whether to keep a
+           cache of the letters computed by an iterator or callable.
 
         -  ``check`` - (default: True) True or False. Whether to check if
            the 40 first letters are in the parent alphabet. This is a
@@ -1684,7 +1661,7 @@ class InfiniteWords(AbstractLanguage):
             return self(words.ThueMorseWord(alphabet=letters))
         else:
             letter = some_letters[0]
-            return self(lambda n : letter, length=Infinity)
+            return self(lambda n : letter)
 
 class FiniteOrInfiniteWords(AbstractLanguage):
     def __init__(self, alphabet):
@@ -2222,6 +2199,11 @@ class Words_n(Parent):
 
     def __call__(self, data, *args, **kwds):
         r"""
+        INPUT:
+
+        - all arguments are sent directly to the underlying set of finite words.
+          See the documentation there for the actual input.
+
         TESTS::
 
             sage: Words(5,3)([1,2,3])
@@ -2233,7 +2215,7 @@ class Words_n(Parent):
         """
         if 'length' in kwds:
             if kwds['length'] != self._n:
-                raise ValueError
+                raise ValueError("wrong length")
         else:
             kwds['length'] = self._n
         w = self._words(data, *args, **kwds)

@@ -366,6 +366,12 @@ cdef class Farey:
             sage: g == g1 or g * G([-1,0,0,-1]) == g1
             True
 
+        Check that it works for GammaH as well::
+
+            sage: G = GammaH(147, [8])
+            sage: G.farey_symbol().word_problem(G([1,1,0,1]))
+            (1,)
+
         """
         if output not in ['standard', 'syllables', 'gens']:
             raise ValueError('Unrecognized output format')

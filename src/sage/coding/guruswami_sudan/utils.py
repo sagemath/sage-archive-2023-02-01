@@ -4,7 +4,7 @@ from sage.rings.integer import Integer
 
 IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
-def poly2list(p, len):
+def polynomial_to_list(p, len):
     r"""
     Returns ``p`` as a list of its coefficients of length ``len``.
 
@@ -12,14 +12,15 @@ def poly2list(p, len):
 
     - ``p`` -- a polynomial
 
-    - ``len`` -- an integer
+    - ``len`` -- an integer. If ``len`` is smaller than the degree of ``p``, the
+      returned list will be of size degree of ``p``, else it will be of size ``len``.
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.utils import poly2list
+        sage: from sage.coding.guruswami_sudan.utils import polynomial_to_list
         sage: F.<x> = GF(41)[]
         sage: p = 9*x^2 + 8*x + 37
-        sage: poly2list(p, 4)
+        sage: polynomial_to_list(p, 4)
         [37, 8, 9, 0]
     """
     return list(p) + [0]*max(0, len-p.degree()-1)
@@ -33,12 +34,11 @@ def list_decoding_range(n, d, q=None):
 
     - ``n`` -- an integer, the length of the code
     - ``d`` -- an integer, the minimum distance of the code
-    - ``q`` -- (default: ``None``) ????????
+    - ``q`` -- (default: ``None``) an integer, the field characteristic
 
     EXAMPLES::
 
-        sage: from sage.coding.grs import list_decoding_range
-        sage: list_decoding_range(250, 181)
+        sage: sage.coding.guruswami_sudan.utils.list_decoding_range(250, 181)
         (91, 118)
     """
     if q is None:
@@ -84,7 +84,7 @@ def gilt(x):
     else:
         return floor(x)
 
-def solve2deg_int(a,b,c):
+def solve_degree2_to_integer_range(a,b,c):
     r"""
     Returns the greatest integer range `[i1, i2]` such that
     `i1 > x1` and `i2 < x2` where `x1`,`x2` are the two zeroes of the equation in `x`:
@@ -99,13 +99,13 @@ def solve2deg_int(a,b,c):
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.utils import solve2deg_int
-        sage: solve2deg_int(1, -5, 1)
+        sage: from sage.coding.guruswami_sudan.utils import solve_degree2_to_integer_range
+        sage: solve_degree2_to_integer_range(1, -5, 1)
         (1, 4)
 
     If there is no real solution::
 
-        sage: solve2deg_int(50, 5, 42)
+        sage: solve_degree2_to_integer_range(50, 5, 42)
         (-2, -1)
     """
     D = b**2 - 4*a*c
@@ -123,8 +123,6 @@ def find_minimal_satisfiable(f, startn=1, contiguous=True):
     r"""
     Returns the minimal integral ``n``, `n > 0` such that ``f(n) == True``.
 
-    If the interval for which `f` is true is contiguous and open
-    towards infinity, a logarithmic algorithm is used, otherwise linear.
     `startn` can be given as a hint to a value that might be true.
 
     INPUT:
@@ -133,41 +131,24 @@ def find_minimal_satisfiable(f, startn=1, contiguous=True):
 
     - ``startn`` -- (default: ``1``) the starting point of the algorithm.
 
-    - ``contiguous`` -- (default: ``True``) boolean describing the contiguousity of ``f``'s
-      interval
-
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.utils import find_minimal_satisfiable
         sage: def f(x):
         ....:    return None if x > 10 or x == 1 else x + 1
 
-        sage: find_minimal_satisfiable(f)
+        sage: sage.coding.guruswami_sudan.utils.find_minimal_satisfiable(f)
         2
     """
-    if not contiguous:
-        n = startn
-        if f(n):
-            while f(n) and n > 0:
-                n = n - 1
-            return n + 1
+    maxn = startn
+    minn = 1
+    # Keep doubling n to find one that works and then switch to binary search
+    while not f(maxn):
+        minn = maxn + 1
+        maxn *= 2
+    while minn < maxn:
+        tryn = minn + floor((maxn - minn) * 0.5)
+        if f(tryn):
+            maxn = tryn
         else:
-            while not f(n):
-                n = n + 1
-            return n
-    else:
-        maxn = startn
-        minn = 1
-        # Keep doubling n to find one that works and then binary
-        while not f(maxn):
-            minn = maxn + 1
-            maxn *= 2
-        while minn < maxn:
-            tryn = minn + floor((maxn - minn) * 0.5)
-            if f(tryn):
-                maxn = tryn
-            else:
-                minn = tryn + 1
-        return maxn
-
-
+            minn = tryn + 1
+    return maxn

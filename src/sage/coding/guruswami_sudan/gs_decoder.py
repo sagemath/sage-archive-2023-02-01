@@ -25,10 +25,9 @@ from sage.coding.decoder import Decoder
 from sage.coding.guruswami_sudan.interpolation import gs_construct_Q_linalg
 from sage.coding.guruswami_sudan.rootfinding import (_convert_Q_representation,
                                                      rootfind_roth_ruckenstein)
-from sage.coding.guruswami_sudan.utils import (poly2list,
-                                               list_decoding_range,
+from sage.coding.guruswami_sudan.utils import (list_decoding_range,
                                                gilt,
-                                               solve2deg_int,
+                                               solve_degree2_to_integer_range,
                                                find_minimal_satisfiable)
 from sage.functions.other import binomial, floor, sqrt
 
@@ -82,7 +81,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
     IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
     @staticmethod
-    def best_parameters_from_tau(tau, C = None, n_k = None):
+    def best_parameters_given_tau(tau, C = None, n_k = None):
         r"""
         Returns the best ``s`` and ``l`` possible according to input parameters.
 
@@ -108,13 +107,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
         EXAMPLES::
 
             sage: tau, n, k = 97, 250, 70
-            sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_from_tau(tau, n_k = (n, k))
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
             (1, 2)
 
         Another one with a bigger tau::
 
             sage: tau, n, k = 118, 250, 70
-            sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_from_tau(tau, n_k = (n, k))
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
             (47, 89)
         """
         if C is not None and n_k is not None:
@@ -129,7 +128,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             n, k = n_k[0], n_k[1]
         (firsts, firstl) = GRSGuruswamiSudanDecoder._suitable_parameters_from_tau(tau, n_k = (n, k))
         def try_l(l):
-            (mins,maxs) = solve2deg_int(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
+            (mins,maxs) = solve_degree2_to_integer_range(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
             if maxs > 0 and maxs >= mins:
                 return max(1, mins)
             else:
@@ -183,7 +182,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             return gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
         if l==None and s==None:
             tau = list_decoding_range(n,n-k+1)[1]
-            return (tau, GRSGuruswamiSudanDecoder.best_parameters_from_tau(tau, n_k = (n, k)))
+            return (tau, GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k)))
         if l!=None and s!=None:
             return (get_tau(s,l), (s,l))
         if s!= None:
@@ -366,7 +365,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             self._tau, self._s, self._ell = tau, parameters[0], parameters[1]
         elif tau:
             self._tau = tau
-            self._s, self._ell = GRSGuruswamiSudanDecoder.best_parameters_from_tau(tau, n_k = (n, k))
+            self._s, self._ell = GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
         elif parameters:
             self._s = parameters[0]
             self._ell = parameters[1]
@@ -525,7 +524,6 @@ class GRSGuruswamiSudanDecoder(Decoder):
         polynomials = self.rootfinding_algorithm()(Q, maxd = None)
         if not polynomials:
             return None
-        #return [ vector(C.base_ring(), poly2list(f, k)) for f in factors ]
         return [f for f in polynomials]
 
     def decode_to_code(self, r):

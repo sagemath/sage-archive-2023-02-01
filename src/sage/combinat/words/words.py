@@ -511,12 +511,8 @@ class FiniteWords(AbstractLanguage):
         from sage.combinat.words.word_datatypes import (WordDatatype_str,
                           WordDatatype_list, WordDatatype_tuple)
         if isinstance(data, WordDatatype_callable):
-            from sage.combinat.words.finite_word import CallableFromListOfWords
-            if isinstance(data._func, CallableFromListOfWords):
-                # The following line is important because, in this case,
-                # data._func is also a tuple (indeed
-                # CallableFromListOfWords inherits from tuple)
-                datatype = "callable"
+            # this must be put first for the reason that CallableFromListOfWords
+            # inherits from tuple
             length = data.length()
             data = data._func
             return self._word_from_callable(data, length, caching=False)
@@ -1457,12 +1453,6 @@ class InfiniteWords(AbstractLanguage):
         from sage.combinat.words.word_infinite_datatypes import (WordDatatype_callable,
                                                                  WordDatatype_iter)
         if isinstance(data, WordDatatype_callable):
-            from sage.combinat.words.finite_word import CallableFromListOfWords
-            if isinstance(data._func, CallableFromListOfWords):
-                # The following line is important because, in this case,
-                # data._func is also a tuple (indeed
-                # CallableFromListOfWords inherits from tuple)
-                datatype = "callable"
             data = data._func
             return self._word_from_callable(data, caching=False)
         elif isinstance(data, WordDatatype_iter):

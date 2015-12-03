@@ -22,6 +22,9 @@ This file contains the following elements:
 
 REFERENCES:
 
+    .. [GS99] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
+       Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
+
     .. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, 2013
 """
 
@@ -54,8 +57,9 @@ from sage.functions.other import binomial, floor, sqrt
 from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.rings.integer_ring import ZZ
-from sage.coding.guruswami_sudan.interpolation import *#gs_construct_Q_linalg as gs_construct_Q_linalg
-from sage.coding.guruswami_sudan.rootfinding import *
+from sage.coding.guruswami_sudan.interpolation import gs_construct_Q_linalg
+from sage.coding.guruswami_sudan.rootfinding import (_convert_Q_representation,
+                                                     rootfind_roth_ruckenstein)
 from sage.coding.guruswami_sudan.utils import (poly2list,
                                                list_decoding_range,
                                                gs_satisfactory,
@@ -1784,7 +1788,7 @@ def best_s_l_from_tau(tau, C = None, n_k = None):
         - ``s`` is the multiplicity parameter of Guruswami-Sudan algorithm and
         - ``l`` is the list size parameter
 
-    ..NOTE::
+    .. NOTE::
 
         One has to provide either ``C`` or ``(n, k)``. If none or both are
         given, an exception will be raised.
@@ -1838,9 +1842,9 @@ def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
     - ``s`` -- (default: ``None``) an integer, the multiplicity parameter of Guruswami-Sudan algorithm
     - ``l`` -- (default: ``None``) an integer, the list size parameter
 
-    ..NOTE::
+    .. NOTE::
 
-        One has to provide either ``C`` or ``(n, k)``. If none or both are
+        One has to provide either ``C`` or ``n_k``. If none or both are
         given, an exception will be raised.
 
     EXAMPLES::
@@ -1892,24 +1896,79 @@ def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
 
 class GRSGuruswamiSudanDecoder(Decoder):
     r"""
-    List decoder using the Guruswami-Sudan algorithm.
-    """
+    A decoder based on Guruswami-Sudan decoding algorithm.
 
-    def __init__(self, C, tau = None, params = None, Qfinder = None, root_finder = None):
-        n, k = C.length(), C.dimension()
-        if tau:
+    One can read [GS99]_ to learn more about this algorithm.
+
+    INPUT:
+
+    - ``code`` -- A code associated to this decoder
+
+    - ``tau`` -- (default: ``None``) an integer, number of errors one expects Guruswami-Sudan algorithm
+      to correct
+
+    - ``s_l`` -- (default: ``None``) a couple of integers, where:
+        - ``s`` is the multiplicity parameter of Guruswami-Sudan algorithm and
+        - ``l`` is the list size parameter
+
+    - ``Qfinder`` -- (default: ``None``) the name of the interpolation algorithm that will be used.
+      One can use the following names:
+        - ``LinearAlgebra`` -- uses a linear system solver
+
+    - ``root_finder`` -- (default: ``None``) the name of the rootfinding algorithm that will be used.
+      One can use the following names:
+        - ``RothRuckenstein`` -- uses Roth-Ruckenstein algorithm
+
+    .. NOTE::
+
+        One has to provide either ``C`` or ``s_l``. If none is
+        given, an exception will be raised.
+
+    EXAMPLES::
+
+        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+        sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 97)
+        sage: D
+        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
+
+    One can specify ``s`` and ``l`` instead of ``tau``:
+
+        sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 97)
+        sage: D
+        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
+
+    """
+    def __init__(self, code, tau = None, s_l = None, Qfinder = None, root_finder = None):
+        r"""
+        TESTS:
+
+        If neither ``tau`` nor ``s_l`` is given, an exception is returned::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C)
+            Traceback (most recent call last):
+            ...
+            ValueError: Specify either tau or s_l
+
+        """
+        n, k = code.length(), code.dimension()
+        if tau and params:
+            assert gs_satisfactory(tau, s_l[0], s_l[1], C = code), IMPOSSIBLE_PARAMS
+            self.tau, self.s, self.ell = tau, s_l[0], s_l[1]
+        elif tau:
             self.tau = tau
             self.s, self.ell = best_s_l_from_tau(tau, n_k = (n, k))
         elif params:
-            self.s = params[0]
-            self.ell = params[1]
+            self.s = s_l[0]
+            self.ell = s_l[1]
             (self.tau,_) = guruswami_sudan_decoding_radius(n, k, s=self.s, l=self.ell)
         else:
-            raise Exception("Specify either tau or params")
-        #TODO: Precompute stuff for the various Qfinders
-        self.Qfinder = Qfinder if Qfinder else gs_construct_Q_linalg
-        self.root_finder = root_finder if root_finder else rootfind_bivariate
-        super(GRSGuruswamiSudanDecoder, self).__init__(C, C.ambient_space(), C._default_encoder_name)
+            raise ValueError("Specify either tau or s_l")
+        if Qfinder == None or Qfinder == "LinearAlgebra":
+            self.Qfinder = gs_construct_Q_linalg
+        if root_finder == None or Qfinder == "RothRuckenstein":
+            self.root_finder = rootfind_roth_ruckenstein
+        super(GRSGuruswamiSudanDecoder, self).__init__(code, code.ambient_space(), code._default_encoder_name)
 
     def _repr_(self):
         r"""
@@ -1974,7 +2033,9 @@ class GRSGuruswamiSudanDecoder(Decoder):
         Q = self.Qfinder(points, self.tau, (self.s,self.ell), wy)
         ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
         #factors = self.root_finder(Q, maxd=None, algorithm = "roth_ruckenstein")
-        factors = rootfind_bivariate(Q, algorithm = "roth_ruckenstein")
+        #factors = rootfind_bivariate(Q, algorithm = "roth_ruckenstein")
+        Q = _convert_Q_representation(Q)
+        factors = rootfind_roth_ruckenstein(Q, maxd = None)
         if not factors:
             return None
         return [ vector(C.base_ring(), poly2list(f, k)) for f in factors ]
@@ -1986,13 +2047,6 @@ class GRSGuruswamiSudanDecoder(Decoder):
     def decoding_radius(self):
         r"""
         Returns the maximal number of errors that ``self`` is able to correct.
-
-        EXAMPLES::
-
-        TODO
-        TODO
-        TODO
-
         """
         return guruswami_sudan_decoding_radius(C = self.code(), l = self.list_size(), s = self.multiplicity())
 

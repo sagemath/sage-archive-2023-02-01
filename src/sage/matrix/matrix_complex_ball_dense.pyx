@@ -243,32 +243,32 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         if entries is None:
             x = parent(0)
-            is_list = 0
+            is_list = False
         elif isinstance(entries, (int, long, Element)):
             try:
                 x = self._base_ring(entries)
             except TypeError:
                 raise TypeError("unable to convert entry to a complex ball")
-            is_list = 0
+            is_list = False
         else:
             entries = list(entries)
-            is_list = 1
+            is_list = True
         if is_list:
             # Create the matrix whose entries are in the given entry list.
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("entries has the wrong length")
             if coerce:
                 k = 0
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < self._ncols:
+                for i in range(self._nrows):
+                    for j in range(self._ncols):
                         x = self._base_ring(entries[k])
                         k += 1
                         acb_set(acb_mat_entry(self.value, i, j),
                                 x.value)
             else:
                 k = 0
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < self._ncols:
+                for i in range(self._nrows):
+                    for j in range(self._ncols):
                         acb_set(acb_mat_entry(self.value, i, j),
                                 (<ComplexBall> entries[k]).value)
                         k += 1
@@ -284,7 +284,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
             # Now we set all the diagonal entries to x and all other entries to 0.
             acb_mat_zero(self.value)
-            for i from 0 <= i < self._nrows:
+            for i in range(self._nrows):
                 acb_set(acb_mat_entry(self.value, i, i), x.value)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):

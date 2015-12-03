@@ -208,7 +208,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: F = GF(59)
             sage: n, k = 40, 12
             sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], )
+            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C1.__eq__(C2)
             True
         """
@@ -850,15 +850,16 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
 class GRSBerlekampWelchDecoder(Decoder):
     r"""
-    A decoder based on the Berlekamp-Welch decoding algorithm.
+    Decoder for Generalized Reed-Solomon codes which uses Berlekamp-Welch
+    decoding algorithm to correct errors in codewords.
 
     This algorithm recovers the error locator polynomial  by solving a linear system.
-    See [HJ04-BW] for details.
+    See [HJ04]_ pp. 51-52 for details.
 
     REFERENCES:
 
-    .. [HJ04-BW] Tom Høholdt and Jørn Justesen, A Course In Error-Correcting Codes,
-       EMS, 2004, pp 51-52
+    .. [HJ04] Tom Hoeholdt and Joern Justesen, A Course In Error-Correcting Codes,
+       EMS, 2004
 
     INPUT:
 
@@ -944,7 +945,7 @@ class GRSBerlekampWelchDecoder(Decoder):
             sage: D
             Berlekamp-Welch decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Berlekamp-Welch decoder the %s" % self.code()
+        return "Berlekamp-Welch decoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -1050,10 +1051,11 @@ class GRSBerlekampWelchDecoder(Decoder):
 
 class GRSGaoDecoder(Decoder):
     r"""
-    A decoder based on the Gao decoding algorithm.
+    Decoder for Generalized Reed-Solomon codes which uses Gao
+    decoding algorithm to correct errors in codewords.
 
     Gao decoding algorithm uses early terminated extended Euclidean algorithm
-    to find the error locator polynomial. See [G02] for details.
+    to find the error locator polynomial. See [G02]_ for details.
 
     REFERENCES:
 
@@ -1320,8 +1322,8 @@ class GRSGaoDecoder(Decoder):
 
 class GRSErrorErasureDecoder(Decoder):
     r"""
-    Construct a decoder for GRS codes. This decoder is able to correct both errors
-    and erasures within its decoding radius.
+    Decoder for Generalized Reed-Solomon codes which is able to correct both errors
+    and erasures in codewords.
 
     INPUT:
 
@@ -1523,14 +1525,16 @@ class GRSErrorErasureDecoder(Decoder):
 
 class GRSKeyEquationSyndromeDecoder(Decoder):
     r"""
-    Key equation decoding based on the syndrome polynomial.
+    Decoder for Generalized Reed-Solomon codes which uses a
+    Key equation decoding based on the syndrome polynomial to
+    correct errors in codewords.
 
-    This decoder uses early terminated extended euclidean algorithm
-    to solve the key equations, as described in [R].
+    This algorithm uses early terminated extended euclidean algorithm
+    to solve the key equations, as described in [R06]_, pp. 183-195.
 
     REFERENCES:
 
-        .. [R06] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
+        .. [R06] Ron Roth, Introduction to Coding Theory, Cambridge University Press, 2006
 
     INPUT:
 

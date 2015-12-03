@@ -23,8 +23,7 @@ from sage.coding.grs import GeneralizedReedSolomonCode
 from sage.modules.free_module_element import vector
 from sage.coding.decoder import Decoder
 from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg
-from sage.coding.guruswami_sudan.rootfinding import (_convert_Q_representation,
-                                                     rootfind_roth_ruckenstein)
+from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
 from sage.coding.guruswami_sudan.utils import (list_decoding_range,
                                                gilt,
                                                solve_degree2_to_integer_range,
@@ -48,12 +47,14 @@ class GRSGuruswamiSudanDecoder(Decoder):
         - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
         - the second integer is the list size parameter.
 
-    - ``interpolation_alg`` -- (default: ``None``) the name of the interpolation algorithm that will be used.
+    - ``interpolation_alg`` -- (default: ``None``) the name of the interpolation algorithm that will be used,
+      or a the method which performs the interpolation. See NOTES section for details on signature.
       One can use the following names:
 
         * ``LinearAlgebra`` -- uses a linear system solver.
 
-    - ``root_finder`` -- (default: ``None``) the name of the rootfinding algorithm that will be used.
+    - ``root_finder`` -- (default: ``None``) the name of the rootfinding algorithm that will be used,
+      or a the method which performs the rootfinding. See NOTES section for details on signature.
       One can use the following names:
 
         * ``RothRuckenstein`` -- uses Roth-Ruckenstein algorithm.
@@ -62,6 +63,16 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         One has to provide either ``C`` or ``parameters``. If none is
         given, an exception will be raised.
+
+        If one wants to provide a method as ``rootfinder``, its signature
+        has to be: ``my_rootfinder(Q, maxd=default_value, precision=default_value)``.
+        See :meth:`sage.coding.guruswami_sudan.rootfinding.rootfind_roth_ruckenstein`
+        for an example.
+
+        If one wants to provide a method as ``interpolation_alg``, its signature
+        has to be: ``my_inter(interpolation_points, tau, s_and_l, wy)``.
+        See :meth:`sage.coding.guruswami_sudan.interpolation.construct_Q_linalg`
+        for an example.
 
     EXAMPLES::
 
@@ -73,6 +84,14 @@ class GRSGuruswamiSudanDecoder(Decoder):
     One can specify ``s`` and ``l`` instead of ``tau``::
 
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2))
+        sage: D
+        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
+
+    One can pass a method as ``root_finder`` (works also for ``interpolation_alg``):
+
+        sage: from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
+        sage: rf = rootfind_roth_ruckenstein
+        sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2), root_finder = rf)
         sage: D
         Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
     """
@@ -372,10 +391,18 @@ class GRSGuruswamiSudanDecoder(Decoder):
             (self._tau,_) = GRSGuruswamiSudanDecoder.guruswami_sudan_decoding_radius(C = code, s=self._s, l=self._ell)
         else:
             raise ValueError("Specify either tau or parameters")
-        if interpolation_alg == None or interpolation_alg == "LinearAlgebra":
+        if hasattr(interpolation_alg, '__call__'):
+            self.interpolation_alg = interpolation_alg
+        elif interpolation_alg == None or interpolation_alg == "LinearAlgebra":
             self.interpolation_alg = construct_Q_linalg
-        if root_finder == None or interpolation_alg == "RothRuckenstein":
+        else:
+            raise ValueError("Please provide a method or one of the allowed strings for interpolation_alg")
+        if hasattr(root_finder, '__call__'):
+            self.root_finder = root_finder
+        elif root_finder == None or interpolation_alg == "RothRuckenstein":
             self.root_finder = rootfind_roth_ruckenstein
+        else:
+            raise ValueError("Please provide a method or one of the allowed strings for root_finder")
         super(GRSGuruswamiSudanDecoder, self).__init__(code, code.ambient_space(), "EvaluationPolynomial")
 
     def _repr_(self):
@@ -441,6 +468,11 @@ class GRSGuruswamiSudanDecoder(Decoder):
         r"""
         Returns the interpolation algorithm that will be used.
 
+        Remember that its signature has to be:
+        ``my_inter(interpolation_points, tau, s_and_l, wy)``.
+        See :meth:`sage.coding.guruswami_sudan.interpolation.construct_Q_linalg`
+        for an example.
+
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
@@ -453,6 +485,11 @@ class GRSGuruswamiSudanDecoder(Decoder):
     def rootfinding_algorithm(self):
         r"""
         Returns the rootfinding algorithm that will be used.
+
+        Remember that its signature has to be:
+        ``my_rootfinder(Q, maxd=default_value, precision=default_value)``.
+        See :meth:`sage.coding.guruswami_sudan.rootfinding.rootfind_roth_ruckenstein`
+        for an example.
 
         EXAMPLES::
 
@@ -509,6 +546,22 @@ class GRSGuruswamiSudanDecoder(Decoder):
             5
             sage: m in D.decode_to_message(r)
             True
+
+        TESTS:
+
+        If one has provided a method as a ``root_finder`` or a ``interpolation_alg`` which
+        does not fits the allowed signature, an exception will be raised::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(17).list()[:15], 6)
+            sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau=5, root_finder=next_prime)
+            sage: F.<x> = GF(17)[]
+            sage: m = 9*x^5 + 10*x^4 + 9*x^3 + 7*x^2 + 15*x + 2
+            sage: c = D.connected_encoder().encode(m)
+            sage: r = vector(GF(17), [3,1,4,2,14,1,0,4,13,12,1,16,1,13,15])
+            sage: m in D.decode_to_message(r)
+            Traceback (most recent call last):
+            ...
+            TypeError: next_prime() got an unexpected keyword argument 'maxd'
         """
         C = self.code()
         n,k,d,alphas,colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
@@ -518,10 +571,15 @@ class GRSGuruswamiSudanDecoder(Decoder):
         wy = k-1
         points = [ (alphas[i], r[i]/colmults[i]) for i in range(0,len(alphas)) ]
         ## SOLVE INTERPOLATION
-        Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
+        try:
+            Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
+        except TypeError, e:
+            raise e
         ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
-        Q = _convert_Q_representation(Q)
-        polynomials = self.rootfinding_algorithm()(Q, maxd = None)
+        try:
+            polynomials = self.rootfinding_algorithm()(Q, maxd = None)
+        except TypeError, e:
+            raise e
         if not polynomials:
             return None
         return [f for f in polynomials]

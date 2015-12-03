@@ -1453,9 +1453,11 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(SR(3.1))
             2093862195
             sage: hash(SR(19.23))
-            2836855582
+            -1458111714  # 32-bit
+            2836855582   # 64-bit
             sage: hash(19.23)
-            2836855582
+            -1458111714  # 32-bit
+            2836855582   # 64-bit
             sage: hash(SR(3/1))
             3
             sage: hash(SR(19/23)) == hash(19/23)  # known bug #19310

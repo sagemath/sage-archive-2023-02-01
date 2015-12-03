@@ -19,6 +19,7 @@ This file contains the following elements:
     - :class:`GRSErrorErasureDecoder`, a decoder able to correct both errors and erasures
     - :class:`GRSKeyEquationSyndromeDecoder`, a decoder using key equation decoding
       based on syndrome polynomial
+    - :class:`GRSGuruswamiSudanDecoder`, a decoder using Guruswami-Sudan decoding algorithm
 
 REFERENCES:
 
@@ -1913,11 +1914,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
     - ``Qfinder`` -- (default: ``None``) the name of the interpolation algorithm that will be used.
       One can use the following names:
-        - ``LinearAlgebra`` -- uses a linear system solver
+
+        * ``LinearAlgebra`` -- uses a linear system solver
 
     - ``root_finder`` -- (default: ``None``) the name of the rootfinding algorithm that will be used.
       One can use the following names:
-        - ``RothRuckenstein`` -- uses Roth-Ruckenstein algorithm
+
+        * ``RothRuckenstein`` -- uses Roth-Ruckenstein algorithm
 
     .. NOTE::
 
@@ -1931,13 +1934,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
         sage: D
         Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
 
-    One can specify ``s`` and ``l`` instead of ``tau``:
+    One can specify ``s`` and ``l`` instead of ``tau``::
 
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 97)
         sage: D
         Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
-
     """
+
     def __init__(self, code, tau = None, s_l = None, Qfinder = None, root_finder = None):
         r"""
         TESTS:
@@ -1952,16 +1955,16 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         """
         n, k = code.length(), code.dimension()
-        if tau and params:
+        if tau and s_l:
             assert gs_satisfactory(tau, s_l[0], s_l[1], C = code), IMPOSSIBLE_PARAMS
             self.tau, self.s, self.ell = tau, s_l[0], s_l[1]
         elif tau:
             self.tau = tau
             self.s, self.ell = best_s_l_from_tau(tau, n_k = (n, k))
-        elif params:
+        elif s_l:
             self.s = s_l[0]
             self.ell = s_l[1]
-            (self.tau,_) = guruswami_sudan_decoding_radius(n, k, s=self.s, l=self.ell)
+            (self.tau,_) = guruswami_sudan_decoding_radius(C = code, s=self.s, l=self.ell)
         else:
             raise ValueError("Specify either tau or s_l")
         if Qfinder == None or Qfinder == "LinearAlgebra":
@@ -1996,6 +1999,65 @@ class GRSGuruswamiSudanDecoder(Decoder):
         """
         return "\\textnormal{Guruswami-Sudan decoder for } %s" % self.code()._latex_()
 
+    def __eq__(self, other):
+        r"""
+        Tests equality between GRSGuruswamiSudanDecoder objects.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D1 = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D2 = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D1.__eq__(D2)
+            True
+        """
+        return isinstance(other, GRSGuruswamiSudanDecoder)\
+                and self.code() == other.code()\
+                and self.multiplicity() == other.multiplicity()\
+                and self.list_size() == other.list_size()\
+                and self.interpolation_algorithm() == other.interpolation_algorithm()\
+                and self.rootfinding_algorithm() == other.rootfinding_algorithm()
+
+    def __ne__(self, other):
+        r"""
+        Tests inequality between GRSGuruswamiSudanDecoder objects.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D1 = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D2 = C.decoder("GuruswamiSudan", tau = 98)
+            sage: D1.__ne__(D2)
+            True
+        """
+        return not self.__eq__(other)
+
+    def interpolation_algorithm(self):
+        r"""
+        Returns the interpolation algorithm that will be used.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D.interpolation_algorithm() #random
+            <function gs_construct_Q_linalg at 0x7f9d55753500>
+        """
+        return self.Qfinder
+
+    def rootfinding_algorithm(self):
+        r"""
+        Returns the rootfinding algorithm that will be used.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D.rootfinding_algorithm() #random
+            <function rootfind_roth_ruckenstein at 0x7fea00618848>
+        """
+        return self.root_finder
+
     def multiplicity(self):
         r"""
         Returns the multiplicity parameter of ``self``.
@@ -2005,9 +2067,9 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: D.multiplicity()
-            2
+            1
         """
-        return self.ell
+        return self.s
 
     def list_size(self):
         r"""
@@ -2018,37 +2080,89 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: D.list_size()
-            1
+            2
         """
-        return self.s
+        return self.ell
 
     def decode_to_message(self, r):
+        r"""
+        Decodes ``r`` to the message space of ``self``'s connected encoder.
+
+        INPUT:
+
+        - ``r`` -- a element of the input space of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(17).list()[:15], 6)
+            sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau=5)
+            sage: m = vector(GF(17), [2,15,7,9,10,9])
+            sage: c = vector(GF(17), [2,1,2,1,14,1,11,4,13,0,1,16,1,13,15])
+            sage: C.unencode(c) == m
+            True
+            sage: r = vector(GF(17), [3,1,4,2,14,1,0,4,13,12,1,16,1,13,15])
+            sage: m in D.decode_to_message(r)
+            True
+        """
         C = self.code()
-        n,k,d,alphas,colmults = C.length(), C.dimension(), C.minimum_distance(),\
-                C.evaluation_points(), C.column_multipliers()
+        n,k,d,alphas,colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
+                C.evaluation_points(), C.column_multipliers(), self.multiplicity(), self.list_size()
+        tau = self.decoding_radius()
         ## SETUP INTERPOLATION PROBLEM
         wy = k-1
         points = [ (alphas[i], r[i]/colmults[i]) for i in range(0,len(alphas)) ]
         ## SOLVE INTERPOLATION
-        Q = self.Qfinder(points, self.tau, (self.s,self.ell), wy)
+        Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
         ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
-        #factors = self.root_finder(Q, maxd=None, algorithm = "roth_ruckenstein")
-        #factors = rootfind_bivariate(Q, algorithm = "roth_ruckenstein")
         Q = _convert_Q_representation(Q)
-        factors = rootfind_roth_ruckenstein(Q, maxd = None)
+        factors = self.rootfinding_algorithm()(Q, maxd = None)
         if not factors:
             return None
         return [ vector(C.base_ring(), poly2list(f, k)) for f in factors ]
 
     def decode_to_code(self, r):
+        r"""
+        Corrects the errors in ``r`` and returns a codeword.
+
+        INPUT:
+
+        - ``r`` -- a element of the input space of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(17).list()[:15], 6)
+            sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau=5)
+            sage: c = vector(GF(17), [2,1,2,1,14,1,11,4,13,0,1,16,1,13,15])
+            sage: c in C
+            True
+            sage: r = vector(GF(17), [3,1,4,2,14,1,0,4,13,12,1,16,1,13,15])
+            sage: r in C
+            False
+            sage: c in D.decode_to_code(r)
+            True
+        """
         C = self.code()
         return [ C.encode(i) for i in self.decode_to_message(r) ]
 
     def decoding_radius(self):
         r"""
         Returns the maximal number of errors that ``self`` is able to correct.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D.decoding_radius()
+            97
+
+        Another one where tau is not a given input::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", s_l = (2,4))
+            sage: D.decoding_radius()
+            105
         """
-        return guruswami_sudan_decoding_radius(C = self.code(), l = self.list_size(), s = self.multiplicity())
+        return self.tau
 
 ####################### registration ###############################
 

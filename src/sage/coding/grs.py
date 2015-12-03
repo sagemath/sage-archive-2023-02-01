@@ -59,16 +59,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     INPUT:
 
     - ``evaluation_points`` -- A list of evaluation points in a finite field F
-from sage.coding.guruswami_sudan.interpolation import gs_construct_Q_linalg
-from sage.coding.guruswami_sudan.rootfinding import (_convert_Q_representation,
-                                                     rootfind_roth_ruckenstein)
-from sage.coding.guruswami_sudan.utils import (poly2list,
-                                               list_decoding_range,
-                                               gs_satisfactory,
-                                               gilt,
-                                               s_l_from_tau,
-                                               solve2deg_int,
-                                               find_minimal_satisfiable)
 
     - ``dimension`` -- The dimension of the code
 

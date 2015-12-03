@@ -22,7 +22,7 @@ REFERENCES:
 from sage.coding.grs import GeneralizedReedSolomonCode
 from sage.modules.free_module_element import vector
 from sage.coding.decoder import Decoder
-from sage.coding.guruswami_sudan.interpolation import gs_construct_Q_linalg
+from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg
 from sage.coding.guruswami_sudan.rootfinding import (_convert_Q_representation,
                                                      rootfind_roth_ruckenstein)
 from sage.coding.guruswami_sudan.utils import (list_decoding_range,
@@ -41,7 +41,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
     - ``code`` -- A code associated to this decoder.
 
-    - ``tau`` -- (default: ``None``) an integer, number of errors one expects Guruswami-Sudan algorithm
+    - ``tau`` -- (default: ``None``) an integer, number of errors one wants Guruswami-Sudan algorithm
       to correct.
 
     - ``parameters`` -- (default: ``None``) a pair of integers, where:
@@ -373,7 +373,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         else:
             raise ValueError("Specify either tau or parameters")
         if interpolation_alg == None or interpolation_alg == "LinearAlgebra":
-            self.interpolation_alg = gs_construct_Q_linalg
+            self.interpolation_alg = construct_Q_linalg
         if root_finder == None or interpolation_alg == "RothRuckenstein":
             self.root_finder = rootfind_roth_ruckenstein
         super(GRSGuruswamiSudanDecoder, self).__init__(code, code.ambient_space(), "EvaluationPolynomial")
@@ -446,7 +446,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: D.interpolation_algorithm() #random
-            <function gs_construct_Q_linalg at 0x7f9d55753500>
+            <function construct_Q_linalg at 0x7f9d55753500>
         """
         return self.interpolation_alg
 

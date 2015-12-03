@@ -208,7 +208,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: F = GF(59)
             sage: n, k = 40, 12
             sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], )
             sage: C1.__eq__(C2)
             True
         """
@@ -871,7 +871,13 @@ class GRSBerlekampWelchDecoder(Decoder):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
         sage: D = codes.decoders.GRSBerlekampWelchDecoder(C)
         sage: D
-        Berlekamp-Welch decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        Berlekamp-Welch decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    Actually, we can construct the decoder from ``C`` directly::
+
+        sage: D = C.decoder("BerlekampWelch")
+        sage: D
+        Berlekamp-Welch decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
     def __init__(self, code):
@@ -883,7 +889,7 @@ class GRSBerlekampWelchDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSBerlekampWelchDecoder(C)
             sage: D
-            Berlekamp-Welch decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Berlekamp-Welch decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSBerlekampWelchDecoder, self).__init__(code, code.ambient_space(),\
             "EvaluationPolynomial")
@@ -901,6 +907,8 @@ class GRSBerlekampWelchDecoder(Decoder):
             sage: D2 = codes.decoders.GRSBerlekampWelchDecoder(C)
             sage: D1.__eq__(D2)
             True
+            sage: D1 is D2
+            False
         """
         return isinstance(other, GRSBerlekampWelchDecoder) \
                 and self.code() == other.code()\
@@ -908,7 +916,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def __ne__(self, other):
         r"""
-        Tests difference between GRSBerlekampWelchDecoder objects.
+        Tests inequality between GRSBerlekampWelchDecoder objects.
 
         EXAMPLES::
 
@@ -934,9 +942,9 @@ class GRSBerlekampWelchDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSBerlekampWelchDecoder(C)
             sage: D
-            Berlekamp-Welch decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Berlekamp-Welch decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Berlekamp-Welch decoder for the %s" % self.code()
+        return "Berlekamp-Welch decoder the %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -949,9 +957,9 @@ class GRSBerlekampWelchDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSBerlekampWelchDecoder(C)
             sage: latex(D)
-            \textnormal{Berlekamp Welch decoder for the }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Berlekamp Welch decoder for }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
-        return "\\textnormal{Berlekamp Welch decoder for the }%s"\
+        return "\\textnormal{Berlekamp Welch decoder for }%s"\
                 % self.code()._latex_()
 
     def decode_to_message(self, r):
@@ -1062,7 +1070,13 @@ class GRSGaoDecoder(Decoder):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
         sage: D = codes.decoders.GRSGaoDecoder(C)
         sage: D
-        Gao decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    Actually, we can construct the decoder from ``C`` directly::
+
+        sage: D = C.decoder("Gao")
+        sage: D
+        Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
     def __init__(self, code):
@@ -1074,7 +1088,7 @@ class GRSGaoDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSGaoDecoder(C)
             sage: D
-            Gao decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSGaoDecoder, self).__init__(code, code.ambient_space(),\
                 "EvaluationPolynomial")
@@ -1092,6 +1106,8 @@ class GRSGaoDecoder(Decoder):
             sage: D2 = codes.decoders.GRSGaoDecoder(C)
             sage: D1.__eq__(D2)
             True
+            sage: D1 is D2
+            False
         """
         return isinstance(other, GRSGaoDecoder) \
                 and self.code() == other.code()\
@@ -1099,7 +1115,7 @@ class GRSGaoDecoder(Decoder):
 
     def __ne__(self, other):
        r"""
-       Tests difference of GRSGaoDecoder objects.
+       Tests inequality of GRSGaoDecoder objects.
 
        EXAMPLES::
 
@@ -1125,9 +1141,9 @@ class GRSGaoDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSGaoDecoder(C)
             sage: D
-            Gao decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Gao decoder for the %s" % self.code()
+        return "Gao decoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -1140,9 +1156,9 @@ class GRSGaoDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSGaoDecoder(C)
             sage: latex(D)
-            \textnormal{Gao decoder for the }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Gao decoder for }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
-        return "\\textnormal{Gao decoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Gao decoder for }%s" % self.code()._latex_()
 
     @cached_method
     def precompute(self, PolRing):
@@ -1318,7 +1334,13 @@ class GRSErrorErasureDecoder(Decoder):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
         sage: D = codes.decoders.GRSErrorErasureDecoder(C)
         sage: D
-        Error-Erasure decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        Error-Erasure decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    Actually, we can construct the decoder from ``C`` directly::
+
+        sage: D = C.decoder("ErrorErasure")
+        sage: D
+        Error-Erasure decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
     def __init__(self, code):
@@ -1330,7 +1352,7 @@ class GRSErrorErasureDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSErrorErasureDecoder(C)
             sage: D
-            Error-Erasure decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Error-Erasure decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         input_space = cartesian_product([code.ambient_space(),\
                 VectorSpace(GF(2), code.ambient_space().dimension())])
@@ -1349,13 +1371,15 @@ class GRSErrorErasureDecoder(Decoder):
             sage: D2 = codes.decoders.GRSErrorErasureDecoder(C)
             sage: D1.__eq__(D2)
             True
+            sage: D1 is D2
+            False
         """
         return isinstance(other, GRSErrorErasureDecoder) \
                 and self.code() == other.code()
 
     def __ne__(self, other):
         r"""
-        Tests difference of GRSErrorErasureDecoder objects.
+        Tests inequality of GRSErrorErasureDecoder objects.
 
         EXAMPLES::
 
@@ -1381,9 +1405,9 @@ class GRSErrorErasureDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSErrorErasureDecoder(C)
             sage: D
-            Error-Erasure decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Error-Erasure decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Error-Erasure decoder for the %s" % self.code()
+        return "Error-Erasure decoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -1396,9 +1420,9 @@ class GRSErrorErasureDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSErrorErasureDecoder(C)
             sage: latex(D)
-            \textnormal{Error-Erasure decoder for the }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Error-Erasure decoder for }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
-        return "\\textnormal{Error-Erasure decoder for the }%s"\
+        return "\\textnormal{Error-Erasure decoder for }%s"\
                 % self.code()._latex_()
 
     def decode_to_message(self, word_and_erasure_vector):
@@ -1519,7 +1543,13 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
         sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
         sage: D
-        Key equation decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        Key equation decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    Actually, we can construct the decoder from ``C`` directly::
+
+        sage: D = C.decoder("KeyEquationSyndrome")
+        sage: D
+        Key equation decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
     def __init__(self, code):
@@ -1531,7 +1561,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
             sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             sage: D
-            Key equation decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Key equation decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         if (code.base_field())(0) in code.evaluation_points():
             raise ValueError("Impossible to decode a GRS code which contains 0 amongst its evaluation points")
@@ -1551,6 +1581,8 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: D2 = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             sage: D1.__eq__(D2)
             True
+            sage: D1 is D2
+            False
         """
         return isinstance(other, GRSKeyEquationSyndromeDecoder) \
                 and self.code() == other.code()\
@@ -1558,7 +1590,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def __ne__(self, other):
        r"""
-       Tests difference of GRSKeyEquationSyndromeDecoder objects.
+       Tests inequality of GRSKeyEquationSyndromeDecoder objects.
 
        EXAMPLES::
 
@@ -1584,9 +1616,9 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
             sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             sage: D
-            Key equation decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Key equation decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Key equation decoder for the %s" % self.code()
+        return "Key equation decoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -1599,9 +1631,9 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
             sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             sage: latex(D)
-            \textnormal{Key equation decoder for the }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Key equation decoder for }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
-        return "\\textnormal{Key equation decoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Key equation decoder for }%s" % self.code()._latex_()
 
     def partial_xgcd(self, a, b, PolRing):
         r"""
@@ -1732,7 +1764,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Decodes ``r`` to an element in ``self.code()``.
+        Corrects the errors in ``r`` and returns a codeword.
 
         INPUT:
 

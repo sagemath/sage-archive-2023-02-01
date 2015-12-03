@@ -13,6 +13,7 @@ Coding Theory
    sage/coding/channel_constructions
    sage/coding/channels_catalog
    sage/coding/codes_catalog
+   sage/coding/grs
    sage/coding/linear_code
    sage/coding/code_constructions
    sage/coding/guava

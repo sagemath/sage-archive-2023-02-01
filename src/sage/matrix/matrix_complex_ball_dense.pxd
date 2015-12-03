@@ -9,5 +9,3 @@ cdef Matrix_generic_dense acb_mat_to_matrix(
 
 cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
     cdef acb_mat_t value
-    cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x)
-    cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j)

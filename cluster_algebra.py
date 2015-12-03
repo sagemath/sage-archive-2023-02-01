@@ -33,7 +33,7 @@ class ClusterAlgebraElement(ElementWrapper):
 
     # this function is quite disgusting but at least it works for any element of
     # the algebra, can we do better?
-    #For cluster variables yes we can do better: use CA4 Prop 7.16
+    # For cluster variables yes we can do better: use CA4 Prop 7.16
     def d_vector(self):
         n = self.parent().rk
         one = self.parent().ambient_field()(1)
@@ -105,6 +105,10 @@ class ClusterAlgebraSeed(SageObject):
     def __eq__(self, other):
         return frozenset(self.g_vectors()) == frozenset(other.g_vectors())
         # Why was I doing something so convoluted?
+        # It looks like the idea was to consider seeds up to simultaneous permutation of rows and columns,
+        # the relation P between the c-matrices determines if there could exist such a permutation,
+        # the remaining checks then ask about the remaining data
+        
         #P = self.c_matrix().inverse()*other.c_matrix()
         #return frozenset(P.columns()) == frozenset(identity_matrix(self.parent().rk).columns()) and self.g_matrix()*P == other.g_matrix() and P.inverse()*self.b_matrix()*P == other.b_matrix() and self.parent() == other.parent()
 

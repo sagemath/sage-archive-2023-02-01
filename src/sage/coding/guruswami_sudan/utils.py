@@ -5,7 +5,23 @@ from sage.rings.integer import Integer
 IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
 def poly2list(p, len):
-    """Convert the polynomial p into a list of coefficients of length len"""
+    r"""
+    Returns ``p`` as a list of its coefficients of length ``len``.
+
+    INPUT:
+
+    - ``p`` -- a polynomial
+
+    - ``len`` -- an integer
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.utils import poly2list
+        sage: F.<x> = GF(41)[]
+        sage: p = 9*x^2 + 8*x + 37
+        sage: poly2list(p, 4)
+        [37, 8, 9, 0]
+    """
     return list(p) + [0]*max(0, len-p.degree()-1)
 
 def list_decoding_range(n, d, q=None):
@@ -30,141 +46,6 @@ def list_decoding_range(n, d, q=None):
     else:
         f = (q-1.)/q
         return (ligt((d-1)/2), gilt(f*(n-sqrt(n*(n-d/f)))))
-
-def gs_satisfactory(tau, s, l, C = None, n_k = None):
-    r"""
-    Returns whether input parameters satisfy the governing equation of
-    Guruswami-Sudan.
-
-    See [N13]_ page 49, definition 3.3 and proposition 3.4 for details.
-
-    INPUT:
-
-    - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
-      to correct
-    - ``s`` -- an integer, multiplicity parameter of Guruswami-Sudan algorithm
-    - ``l`` -- an integer, list size parameter
-    - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
-    - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
-      length and the dimension of the :class:`GeneralizedReedSolomonCode`
-
-    ..NOTE::
-
-        One has to provide either ``C`` or ``(n, k)``. If none or both are
-        given, an exception will be raised.
-
-    EXAMPLES::
-
-        sage: from sage.coding.guruswami_sudan.utils import gs_satisfactory as gs_sat
-        sage: tau, s, l = 97, 1, 2
-        sage: n, k = 250, 70
-        sage: gs_sat(tau, s, l, n_k = (n, k))
-        True
-
-    One can also pass a GRS code::
-
-        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
-        sage: gs_sat(tau, s, l, C = C)
-        True
-
-    Another example where ``s`` and ``l`` does not satisfy the equation::
-
-        sage: tau, s, l = 118, 47, 80
-        sage: gs_sat(tau, s, l, n_k = (n, k))
-        False
-
-    If one provides both ``C`` and ``n_k`` an exception is returned::
-
-        sage: tau, s, l = 97, 1, 2
-        sage: n, k = 250, 70
-        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
-        sage: gs_sat(tau, s, l, C = C, n_k = (n, k))
-        Traceback (most recent call last):
-        ...
-        ValueError: Please provide only the code or its length and dimension
-
-    Same if one provides none of these::
-
-        sage: gs_sat(tau, s, l)
-        Traceback (most recent call last):
-        ...
-        ValueError: Please provide either the code or its length and dimension
-    """
-    if C is not None and n_k is not None:
-        raise ValueError("Please provide only the code or its length and dimension")
-    elif C is None and n_k is None:
-        raise ValueError("Please provide either the code or its length and dimension")
-    elif C is not None:
-        n, k = C.length(), C.dimension()
-    elif n_k is not None and not isinstance(n_k, tuple):
-        raise ValueError("n_k has to be a tuple")
-    elif n_k is not None:
-        n, k = n_k[0], n_k[1]
-    return l > 0 and s > 0 and n * s * (s+1) < (l+1) * (2*s*(n-tau) - (k-1) * l)
-
-def s_l_from_tau(tau, C = None, n_k = None):
-    r"""
-    Returns suitable ``s`` and ``l`` according to input parameters.
-
-    See [N13]_ pages 53-54, proposition 3.11 for details.
-
-    INPUT:
-
-    - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
-      to correct
-    - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
-    - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
-      length and the dimension of the :class:`GeneralizedReedSolomonCode`
-
-    OUTPUT:
-
-    - ``(s, l)`` -- a couple of integers, where:
-        - ``s`` is the multiplicity parameter of Guruswami-Sudan algorithm and
-        - ``l`` is the list size parameter
-
-    ..NOTE::
-
-        One has to provide either ``C`` or ``(n, k)``. If none or both are
-        given, an exception will be raised.
-
-    EXAMPLES::
-
-        sage: from sage.coding.guruswami_sudan.utils import s_l_from_tau as s_l
-        sage: tau = 97
-        sage: n, k = 250, 70
-        sage: s_l(tau, n_k = (n, k))
-        (2, 3)
-
-    Same one with a GRS code::
-
-        sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
-        sage: s_l(tau, C = C)
-        (2, 3)
-
-    Another one with a bigger ``tau``::
-
-        sage: s_l(118, C = C)
-        (47, 89)
-    """
-    if C is not None and n_k is not None:
-        raise ValueError("Please provide only the code or its length and dimension")
-    elif C is None and n_k is None:
-        raise ValueError("Please provide either the code or its length and dimension")
-    elif C is not None:
-        n, k = C.length(), C.dimension()
-    elif n_k is not None and not isinstance(n_k, tuple):
-        raise ValueError("n_k has to be a tuple")
-    elif n_k is not None:
-        n, k = n_k[0], n_k[1]
-
-    w = k - 1
-    atau = n - tau
-    smin = tau * w / (atau ** 2 - n * w)
-    s = floor(1 + smin)
-    D = (s - smin) * (atau ** 2 - n * w) * s + (w**2) /4
-    l = floor(atau / w * s + 0.5 - sqrt(D)/w)
-    assert gs_satisfactory(tau,s,l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
-    return (s, l)
 
 def ligt(x):
     r"""

@@ -164,6 +164,7 @@ class GenericDeclaration(SageObject):
 
         if not self in _assumptions:
             maxima.activate(self._context)
+            self._var.decl_assume(self._assumption)
             _assumptions.append(self)
 
     def forget(self):
@@ -183,6 +184,7 @@ class GenericDeclaration(SageObject):
             sage: cos(x*pi).simplify()
             cos(pi*x)
         """
+        self._var.decl_forget(self._assumption)
         from sage.calculus.calculus import maxima
         if self._context is not None:
             try:

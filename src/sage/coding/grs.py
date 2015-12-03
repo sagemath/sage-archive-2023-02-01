@@ -94,7 +94,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: C = codes.GeneralizedReedSolomonCode([1,2,3], 1)
             Traceback (most recent call last):
             ...
-            ValueError: Evaluation points must be in a finite field
+            ValueError: Evaluation points must be in a finite field (and Integer Ring is not one)
 
         If the evaluation points are not from the same finite field, it raises an error::
 
@@ -102,23 +102,23 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: C = codes.GeneralizedReedSolomonCode([F2.zero(),F2.one(),F3(2)], 1)
             Traceback (most recent call last):
             ...
-            ValueError: All evaluation points must be in the same finite field
+            ValueError: Failed converting all evaluation points to the same field (unable to find a common ring for all elements)
 
-        If the column multipliers are not from a finite field, or not in the same
+        If the column multipliers cannot be converted into the finite are not from a finite field, or cannot be not in the same
         finite field as the evaluation points, it raises an error::
 
             sage: F = GF(59)
             sage: F2 = GF(61)
             sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, vector(range(1,n+1)) )
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, [.3]*n )
             Traceback (most recent call last):
             ...
-            ValueError: Column multipliers and evaluation points must be in the same field
+            ValueError: Failed converting all evaluation points and column multipliers to the same field (unable to find a common ring for all elements)
 
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, F2.list()[1:n+1])
             Traceback (most recent call last):
             ...
-            ValueError: Column multipliers and evaluation points must be in the same field
+            ValueError: Failed converting all evaluation points and column multipliers to the same field (unable to find a common ring for all elements)
 
         The number of column multipliers is checked as well::
 
@@ -127,7 +127,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, F.list()[1:n])
             Traceback (most recent call last):
             ...
-            ValueError: There must be exactly 40 column multipliers
+            ValueError: There must be the same number of evaluation points as column multipliers
 
         It is not allowed to have 0 as a column multiplier::
 
@@ -138,35 +138,51 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             ...
             ValueError: All column multipliers must be non-zero
 
-        And all the evaluation points must be different::
+        And all the evaluation points must be different. Note that they should
+        be different after converting into the same field::
 
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode([F.one()]*n, k)
+            sage: F = GF(5)
+            sage: C = codes.GeneralizedReedSolomonCode([ F(0), 1, 2, 3, 5 ], 3)
             Traceback (most recent call last):
             ...
             ValueError: All evaluation points must be different
+
+        The dimension is not allowed to exceed the length::
+
+            sage: F = GF(59)
+            sage: n, k = 40, 100
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            Traceback (most recent call last):
+            ...
+            ValueError: The dimension must be a positive integer at most the length of the code.
         """
-        F = evaluation_points[0].base_ring()
-        if F.is_finite() == False:
-            raise ValueError("Evaluation points must be in a finite field")
-        if not all(F == e.base_ring() for e in evaluation_points):
-            raise ValueError("All evaluation points must be in the same finite field")
+        if column_multipliers:
+            if len(evaluation_points) != len(column_multipliers):
+                raise ValueError("There must be the same number of evaluation points as column multipliers");
+            try:
+                common_points = vector(list(evaluation_points) + list(column_multipliers))
+                F = common_points.base_ring()
+                self._evaluation_points = common_points[:len(evaluation_points)]
+                self._column_multipliers = common_points[len(evaluation_points):]
+            except (TypeError, ValueError) as e:
+                raise ValueError("Failed converting all evaluation points and column multipliers to the same field (%s)" % e.message)
+        else:
+            try:
+                self._evaluation_points = vector(evaluation_points)
+                F = self._evaluation_points.base_ring()
+                self._column_multipliers = vector(F, [F.one()] * len(self._evaluation_points))
+            except (TypeError, ValueError) as e:
+                raise ValueError("Failed converting all evaluation points to the same field (%s)" % e.message)
+
+        if F.is_finite() == False or F.is_field() == False:
+            raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
         super(GeneralizedReedSolomonCode, self).__init__(F, \
-                len(evaluation_points), "EvaluationVector", "Syndrome")
-        self._evaluation_points = tuple(evaluation_points)
+                len(self._evaluation_points), "EvaluationVector", "Syndrome")
+            
+        if dimension not in ZZ or dimension > self._length or dimension < 1:
+            raise ValueError("The dimension must be a positive integer at most the length of the code.")
         self._dimension = dimension
 
-        if column_multipliers is None:
-            self._column_multipliers = tuple(self.base_field().one() for i in range(self._length) )
-        else:
-            if not all(F == e.base_ring() for e in column_multipliers):
-                raise ValueError("Column multipliers and evaluation points\
-                        must be in the same field")
-            self._column_multipliers = tuple(column_multipliers)
-        if len(self._column_multipliers) != self._length:
-            raise ValueError("There must be exactly %s column multipliers"\
-                    % self._length)
         if 0 in self._column_multipliers:
             raise ValueError("All column multipliers must be non-zero")
         if len(self._evaluation_points) != len(set(self._evaluation_points)):
@@ -257,7 +273,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def evaluation_points(self):
         r"""
-        Returns the list of evaluation points of ``self``.
+        Returns the evaluation points of ``self`` as a vector.
 
         EXAMPLES::
 
@@ -271,7 +287,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def column_multipliers(self):
         r"""
-        Returns the list of column multipliers of ``self``.
+        Returns the column multipliers of ``self`` as a vector.
 
         EXAMPLES::
 

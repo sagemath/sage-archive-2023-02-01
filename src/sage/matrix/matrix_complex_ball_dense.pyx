@@ -197,9 +197,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             [                0 1.000000000000000 2.000000000000000 3.000000000000000]
 
         If the number of columns isn't given, it is determined from the
-        number of elements in the list.
-
-        ::
+        number of elements in the list. ::
 
             sage: matrix(CBF, 2, range(4))
             [                0 1.000000000000000]
@@ -209,9 +207,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             [3.000000000000000 4.000000000000000 5.000000000000000]
 
         Another way to make a matrix is to create the space of matrices and
-        convert lists into it.
-
-        ::
+        convert lists into it. ::
 
             sage: A = Mat(CBF, 2); A
             Full MatrixSpace of 2 by 2 dense matrices over
@@ -236,13 +232,24 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             sage: v.parent()
             Full MatrixSpace of 1 by 100000 dense matrices over
             Complex ball field with 53 bits precision
+
+        TESTS::
+
+            sage: MatrixSpace(CBF, 0, 0).one()
+            []
+            sage: Matrix(CBF, 0, 100)
+            0 x 100 dense matrix over Complex ball field with 53 bits precision
+            (use the '.str()' method to see the entries)
+            sage: Matrix(CBF, 100, 0)
+            100 x 0 dense matrix over Complex ball field with 53 bits precision
+            (use the '.str()' method to see the entries)
         """
         cdef Py_ssize_t i, j, k
         cdef bint is_list
         cdef ComplexBall x
 
         if entries is None:
-            x = parent(0)
+            x = self._base_ring.zero()
             is_list = False
         elif isinstance(entries, (int, long, Element)):
             try:
@@ -253,6 +260,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         else:
             entries = list(entries)
             is_list = True
+
         if is_list:
             # Create the matrix whose entries are in the given entry list.
             if len(entries) != self._nrows * self._ncols:
@@ -262,9 +270,9 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
                 for i in range(self._nrows):
                     for j in range(self._ncols):
                         x = self._base_ring(entries[k])
-                        k += 1
                         acb_set(acb_mat_entry(self.value, i, j),
                                 x.value)
+                        k += 1
             else:
                 k = 0
                 for i in range(self._nrows):

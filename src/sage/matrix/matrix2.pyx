@@ -6805,7 +6805,7 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, ascend=None, transformation=None):
+    def weak_popov_form(self, transformation=None, ascend=None, old_call=True):
         """
         Returns a matrix in weak Popov form which is row space-equivalent to
         the input matrix, if the input is over `k[x]` or `k(x)`.
@@ -6833,28 +6833,26 @@ cdef class Matrix(matrix1.Matrix):
           warning as long as `transformation` was not explicitly set to ``True``
           or ``False``.
 
-        - `ascend` - Deprecated. A boolean (default: `True`). Has the same
-          effect as `transformation`. Currently, setting either to `False` will
-          disable returning `U`.
+        - `ascend` - Deprecated and has no effect.
+
+        - `old_call` - For backwards compatibility until the old calling
+          convention will be deprecated (default: `True`). If `True`, then
+          return `(W,U,d)`, where `U` is as when `transformation = True`, and
+          `d` is a list of the degrees of the rows of `W`.
         """
         from sage.misc.superseded import deprecation
-        depr_message = """This function currently does *not* compute a weak
-        Popov form, but rather a row reduced form. This function will soon be
-        fixed (see Ticket #16742)."""
+        import textwrap
+        depr_message = textwrap.dedent("""\
+            This function currently does *not* compute a weak \
+            Popov form, but rather a row reduced form. This function will soon be \
+            fixed (see Ticket #16742).""")
         deprecation(16888, depr_message)
-        rr_transf = False
-        if ascend is None and transformation is None:
-            transformation_message = """The `transformation` argument will soon
-            change to default value to `False` from the current default value
-            `True`. Simultaneously, the `ascend` parameter will be removed (see
-            Ticket #16742)."""
-            deprecation(16888, transformation_message)
-            rr_transf = True
-        elif ascend == True or transformation == True:
-            rr_transf = True
-        return self.row_reduced_form(rr_transf)
 
-    def row_reduced_form(self, transformation=False):
+        return self.row_reduced_form(transformation=transformation,
+                ascend=ascend, old_call=old_call)
+
+
+    def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
         r"""
         This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, where `k` is a field.
@@ -6873,6 +6871,13 @@ cdef class Matrix(matrix1.Matrix):
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
 
+        - `ascend` - Deprecated and has no effect.
+
+        - `old_call` - For backwards compatibility until the old calling
+          convention will be deprecated (default: `True`). If `True`, then
+          return `(W,U,d)`, where `U` is as when `transformation = True`, and
+          `d` is a list of the degrees of the rows of `W`.
+
         OUTPUT:
 
         - `W` - a matrix over `k(x)` giving a row reduced form of ``self``.
@@ -6888,7 +6893,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = GF(3)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.row_reduced_form()
+            sage: M.row_reduced_form(transformation=False, old_call=False)
             [(2*t + 1)/t]
             [          0]
 
@@ -6899,7 +6904,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.row_reduced_form()
+            sage: output1 = M1.row_reduced_form(transformation=False, old_call=False)
             sage: output1
             [0]
             [0]
@@ -6912,7 +6917,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.row_reduced_form()
+            sage: output2 = M2.row_reduced_form(transformation=False, old_call=False)
             sage: output1 == output2
             True
             sage: output1.base_ring() is K
@@ -6927,7 +6932,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.row_reduced_form()
+            sage: M.row_reduced_form(transformation=False, old_call=False)
             [      t    -t^2]
             [t^2 - 2       t]
 
@@ -6938,7 +6943,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = GF(5)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.row_reduced_form()
+            sage: M.row_reduced_form(transformation=False, old_call=False)
             [0 0]
             [0 0]
 
@@ -6950,7 +6955,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
-            sage: M.row_reduced_form()
+            sage: M.row_reduced_form(transformation=False, old_call=False)
             [t t t]
             [0 0 t]
 
@@ -6960,14 +6965,14 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M = matrix([[1,0],[1,1]])
-            sage: M.row_reduced_form()
+            sage: M.row_reduced_form(transformation=False, old_call=False)
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
 
             sage: PZ.<y> = ZZ[]
             sage: M = matrix([[y,0],[1,y]])
-            sage: M.row_reduced_form()
+            sage: M.row_reduced_form(transformation=False, old_call=False)
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
@@ -6979,7 +6984,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: Fq.<a> = GF(2^3)
             sage: Fx.<x> = Fq[]
             sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
-            sage: W,U = A.row_reduced_form(transformation=True); W,U
+            sage: W,U = A.row_reduced_form(transformation=True,old_call=False);
+            sage: W,U
             (
             [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
             [                    x^3                   a*x^4], [      0                 1]
@@ -7005,7 +7011,49 @@ cdef class Matrix(matrix1.Matrix):
 
         """
         from sage.matrix.matrix_misc import row_reduced_form
-        return sage.matrix.matrix_misc.row_reduced_form(self,transformation)
+
+        from sage.misc.superseded import deprecation
+        import textwrap
+        if ascend is not None:
+            ascend_message = textwrap.dedent("""\
+                row_reduced_form: The `ascend` argument is deprecated and has no \
+                effect (see Ticket #16742).""")
+            deprecation(16888, ascend_message)
+        if old_call == True:
+            oldcall_message = textwrap.dedent("""\
+                row_reduced_form: The old calling convention is deprecated. In \
+                the future, only the matrix in row reduced form will be returned. \
+                Set `old_call = False` for that behaviour now, and to avoid this \
+                message (see Ticket #16742).""")
+            deprecation(16888, oldcall_message)
+
+        get_transformation = False
+        if transformation is None:
+            transformation_message = textwrap.dedent("""\
+                The `transformation` argument will soon change to have default \
+                value to `False` from the current default value `True`. For \
+                now, explicitly setting the argument to `True` or `False` will \
+                avoid this message.""")
+            deprecation(16888, transformation_message)
+            get_transformation = True
+        elif old_call == True or transformation == True:
+            get_transformation = True
+
+        W_maybe_U = sage.matrix.matrix_misc.row_reduced_form(self,transformation)
+        
+        if old_call == False:
+            return W_maybe_U
+        else:
+            W,U = W_maybe_U
+            d = []
+            from sage.rings.all import infinity
+            for r in W.rows():
+                d.append(max([e.numerator().degree() - e.denominator().degree() for e in r]))
+                if d[-1] < 0:
+                    d[-1] = -infinity
+            return (W,U,d)
+
+
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #

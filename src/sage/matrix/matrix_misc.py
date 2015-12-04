@@ -114,8 +114,8 @@ def row_reduced_form(M,transformation=False):
 
     r = [list(v) for v in num.rows()]
 
-    N = matrix(num.nrows(), num.nrows(), R(1)).rows()
-
+    if transformation:
+        N = matrix(num.nrows(), num.nrows(), R(1)).rows()
 
 
     rank = 0
@@ -175,21 +175,23 @@ def row_reduced_form(M,transformation=False):
 
                     for j in range(len(indices)):
                         if j != i:
-                            # do row operation and record it
+                            # do the row operation
                             v = []
                             for k in range(len(r[indices[i]])):
                                 v.append(r[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * r[indices[j]][k])
                             r[indices[i]] = v
 
-                            v = []
-                            for k in range(len(N[indices[i]])):
-                                v.append(N[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * N[indices[j]][k])
-                            N[indices[i]] = v
+                            if transformation:
+                                # If the user asked for it, record the row operation 
+                                v = []
+                                for k in range(len(N[indices[i]])):
+                                    v.append(N[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * N[indices[j]][k])
+                                N[indices[i]] = v
 
                     # remaining relations (if any) are no longer valid,
                     # so continue onto next step of algorithm
                     break
-    if transformation is True:
+    if transformation:
         return (matrix(r)/den, matrix(N))
     return matrix(r)/den
 

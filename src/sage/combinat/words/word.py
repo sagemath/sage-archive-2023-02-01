@@ -204,7 +204,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
     # Create the parent object
     from words import Words
-    parent = Words() if alphabet is None else Words(alphabet)
+    parent = Words(alphabet)
 
     return parent(data=data, length=length, datatype=datatype, caching=caching)
 

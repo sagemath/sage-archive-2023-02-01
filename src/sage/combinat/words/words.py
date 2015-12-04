@@ -2055,6 +2055,12 @@ class FiniteOrInfiniteWords(AbstractLanguage):
             ...
             ValueError: 103 not in alphabet!
 
+        Check that the type is rightly guessed for parking functions which are
+        callable::
+
+            sage: p = ParkingFunction([2,2,1])
+            sage: Word(p).parent()
+            Finite words over Set of Python objects of type 'object'
         """
         # try to guess `length` from the `datatype` or `data` if not given
         if length is None or length == 'unknown':
@@ -2065,11 +2071,11 @@ class FiniteOrInfiniteWords(AbstractLanguage):
             elif datatype in ('list', 'char', 'str', 'tuple'):
                 length = 'finite'
             elif datatype is None:
-                if callable(data):
-                    datatype = 'callable'
-                    length = 'infinite'
-                elif isinstance(data, (list,str,tuple,CombinatorialObject)):
-                    length = 'finite'
+                try:
+                    length = len(data)
+                except TypeError:
+                    if callable(data):
+                        length = 'infinite'
 
         # now build finite/infinite or unknown length words
         if length == 'finite' or length in ZZ:

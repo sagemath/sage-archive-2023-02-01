@@ -267,6 +267,8 @@ class ClusterAlgebraSeed(SageObject):
         # One more comment: apparently even without casting the result is a
         # polynomial! This is really weird but I am not going to complain. I
         # suppose we should not do the casting then
+
+        # DR: Now I get the same computation time for / and //, 49.7s while simultaneously rebuiling sage
         return (pos+neg)/alg.F_polynomial(old_g_vector)
 
     def mutation_sequence(self, sequence, inplace=True, mutating_F=True):
@@ -368,6 +370,7 @@ class ClusterAlgebra(Parent):
             except:
                 cluster_variables_prefix = 'x'
             variables = [cluster_variables_prefix+'%s'%i for i in xrange(n)]
+            # why not just put str(i) instead of '%s'%i?
 
         # Determine scalars
         try:
@@ -434,7 +437,7 @@ class ClusterAlgebra(Parent):
         # TODO: understand if we need this
         #self._populate_coercion_lists_()
 
-    # enable standard cohercions: everything that is in the base can be coherced
+    # enable standard coercions: everything that is in the base can be coerced
     def _coerce_map_from_(self, other):
         return self.base().has_coerce_map_from(other)
 
@@ -505,22 +508,24 @@ class ClusterAlgebra(Parent):
         try:
             return self._F_poly_dict[g_vector]
         except:
-            # TODO: improve this error message to include the case in which we
-            # already know the path
             # If the path is known, should this method perform that sequence of mutations to compute the desired F-polynomial?
             # Yes, perhaps with the a prompt first, something like:
             #comp = raw_input("This F-polynomial has not been computed yet.  It can be found using %s mutations.  Continue? (y or n):"%str(directions.__len__()))
             #if comp == 'y':
             #    ...compute the F-polynomial...
-            raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
+            if g_vector in self._path_dict:
+                raise ValueError("The F-polynomial with g-vector %s has not been computed yet.  You probably explored the exchange tree with compute_F=False.  You can compute this F-polynomial by mutating from the initial seed along the sequence %s."%(str(g_vector),str(self._path_dict[g_vector]))
+            else:
+                raise ValueError("The F-polynomial with g-vector %s has not been computed yet."%str(g_vector))
 
     @cached_method(key=lambda a,b: tuple(b) )
     def cluster_variable(self, g_vector):
         g_vector = tuple(g_vector)
         if not g_vector in self.g_vectors_so_far():
+            # Should we let the self.F_polynomial below handle raising the exception?
             raise ValueError("This Cluster Variable has not been computed yet.")
-        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk)])
         F_std = self.F_polynomial(g_vector).subs(self._yhat)
+        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk)])
         # LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
         F_trop = self.ambient_field()(self.F_polynomial(g_vector).subs(self._y)).denominator()
         return self.retract(g_mon*F_std*F_trop)
@@ -534,7 +539,7 @@ class ClusterAlgebra(Parent):
 
         WARNING: if this method is interrupted then ``self._sd_iter`` is left in
         an unusable state. To use again this method it is then necessary to
-        reset ``self._sd_iter`` via self.reset_exploring_iterato()
+        reset ``self._sd_iter`` via self.reset_exploring_iterator()
         """
         g_vector = tuple(g_vector)
         mutation_counter = 0
@@ -543,7 +548,7 @@ class ClusterAlgebra(Parent):
                 seed = next(self._sd_iter)
                 self._explored_depth = seed.depth
             except:
-                raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
+                raise ValueError("Could not find a cluster variable with g-vector %s up to mutation depth %s after performing %s mutations."%(str(g_vector),str(depth),str(mutation_counter)))
 
             # If there was a way to have the seeds iterator continue after the depth_counter reaches depth,
             # the following code would allow the user to continue searching the exchange graph
@@ -569,6 +574,9 @@ class ClusterAlgebra(Parent):
         return self.ambient_field()(1)*x.value
 
     def lift(self, x):
+        r"""
+        Return x as an element of self._ambient
+        """
         return x.value
 
     def retract(self, x):
@@ -682,14 +690,14 @@ def greedy_element(self, d_vector):
     output = 0
     for p in xrange(0,a2+1):
         for q in xrange(0,a1+1):
-            output += self.greedy_coeff(d_vector,p,q)*x1**(b*p)*x2**(c*q)
+            output += self.greedy_coefficient(d_vector,p,q)*x1**(b*p)*x2**(c*q)
     return self.retract(x1**(-a1)*x2**(-a2)*output)
 
 # Is this function something we want to make public or do we want to make this a
 # private method changing it to _greedy_coeff ?
 # Since we are giving long names to things we might want to change this into
 # greedy_coefficient
-def greedy_coeff(self,d_vector,p,q):
+def greedy_coefficient(self,d_vector,p,q):
     b = abs(self._B0[0,1])
     c = abs(self._B0[1,0])
     a1 = d_vector[0]
@@ -703,13 +711,13 @@ def greedy_coeff(self,d_vector,p,q):
         bin = 0
         if a2-c*q+k-1 >= k:
             bin = binomial(a2-c*q+k-1,k)
-        sum1 += (-1)**(k-1)*self.greedy_coeff(d_vector,p-k,q)*bin
+        sum1 += (-1)**(k-1)*self.greedy_coefficient(d_vector,p-k,q)*bin
     sum2 = 0
     for l in range(1,q+1):
         bin = 0
         if a1-b*p+l-1 >= l:
             bin = binomial(a1-b*p+l-1,l)
-        sum2 += (-1)**(l-1)*self.greedy_coeff(d_vector,p,q-l)*bin
+        sum2 += (-1)**(l-1)*self.greedy_coefficient(d_vector,p,q-l)*bin
     #print "sum1=",sum1,"sum2=",sum2
     return max(sum1,sum2)
 
@@ -717,7 +725,8 @@ def greedy_coeff(self,d_vector,p,q):
 # At the moment I know only how to compute theta basis in rank 2
 # maybe we should let ClusterAlgebra have this method for any rank and have a
 # NotImplementedError to encourage someone (read: Greg) to code this
-#I think Greg already has some code to do this
+# I think Greg already has some code to do this
+# I asked about the code and it seems Greg has very little confidence in the code he has so far...
 def theta_basis_element(self, g_vector):
     pass
 
@@ -773,7 +782,7 @@ class TropicalSemifield(Parent):
     def ngens(self):
         return self._ambient.ngens()
 
-    # enable standard cohercions: everything that is in the base can be coerced
+    # enable standard coercions: everything that is in the base can be coerced
     def _coerce_map_from_(self, other):
         return self.base().has_coerce_map_from(other)
 
@@ -798,6 +807,7 @@ class TropicalSemifield(Parent):
     def is_prime_field(self):
         return False
 
+    # I'm not sure the term makes sense for a semifield, its group algebra certainly has to be an integral domain
     def is_integral_domain(self, proof=True):
         return True
 

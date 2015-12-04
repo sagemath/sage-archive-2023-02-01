@@ -135,14 +135,14 @@ class GRSGuruswamiSudanDecoder(Decoder):
     ####################### static methods ###############################
 
     @staticmethod
-    def best_parameters_given_tau(tau, C = None, n_k = None):
+    def parameters_given_tau(tau, C = None, n_k = None):
         r"""
         Returns the smallest possible multiplicity and list size given the
         given parameters of the code and decoding radius.
 
         INPUT:
 
-        - ``tau`` -- an integer, number of errrors one wants the Guruswami-Sudan
+        - ``tau`` -- an integer, number of errors one wants the Guruswami-Sudan
           algorithm to correct
         - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
         - ``n_k`` -- (default: ``None``) a pair of integers, respectively the
@@ -162,19 +162,19 @@ class GRSGuruswamiSudanDecoder(Decoder):
         EXAMPLES::
 
             sage: tau, n, k = 97, 250, 70
-            sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k))
             (1, 2)
 
         Another example with a bigger decoding radius::
 
             sage: tau, n, k = 118, 250, 70
-            sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k))
             (47, 89)
 
         Choosing a decoding radius which is too large results in an errors::
 
             sage: tau = 200
-            sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k))
             Traceback (most recent call last):
             ...
             ValueError: The decoding radius must be less than the Johnson radius (which is 118.66)
@@ -225,7 +225,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         INPUT:
 
         - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
-        - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
+        - ``n_k`` -- (default: ``None``) a pair of integers, respectively the
           length and the dimension of the :class:`GeneralizedReedSolomonCode`
         - ``s`` -- (default: ``None``) an integer, the multiplicity parameter of Guruswami-Sudan algorithm
         - ``l`` -- (default: ``None``) an integer, the list size parameter
@@ -279,7 +279,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             return gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
         if l ==None and s==None:
             tau = gilt(johnson_radius(n, n - k + 1))
-            return (tau, GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k)))
+            return (tau, GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k)))
         if l!=None and s!=None:
             return (get_tau(s,l), (s,l))
 
@@ -316,50 +316,66 @@ class GRSGuruswamiSudanDecoder(Decoder):
             return (tau, (s,l))
 
     @staticmethod
-    def _suitable_parameters_from_tau(tau, C = None, n_k = None):
+    def _suitable_parameters_given_tau(tau, C = None, n_k = None):
         r"""
-        Returns ``s`` and ``l`` according to input parameters.
+        Return quite good multiplicity and list size parameters for the code
+        parameters and the decoding radius.
 
         These parameters are not guaranteed to be the best ones possible
-        for the provided ``tau``, but are a good approximation of the best ones.
+        for the provided ``tau``, but arise from easily-evaluated closed
+        expressions and are very good approximation of the best ones.
 
         See [N13]_ pages 53-54, proposition 3.11 for details.
 
         INPUT:
 
-        - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
-          to correct
+        - ``tau`` -- an integer, number of errors one wants the Guruswami-Sudan
+          algorithm to correct
         - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
-        - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
+        - ``n_k`` -- (default: ``None``) a pair of integers, respectively the
           length and the dimension of the :class:`GeneralizedReedSolomonCode`
 
         OUTPUT:
 
-        - ``(s, l)`` -- a couple of integers, where:
-            - ``s`` is the multiplicity parameter of Guruswami-Sudan algorithm and
-            - ``l`` is the list size parameter
+        - ``(s, l)`` -- a pair of integers, where:
+            - ``s`` is the multiplicity parameter, and
+            - ``l`` is the list size parameter.
 
         ..NOTE::
 
-            One has to provide either ``C`` or ``(n, k)``. If none or both are
-            given, an exception will be raised.
+            One has to provide either ``C`` or ``(n, k)``. If neither or both
+            are given, an exception will be raised.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: tau = 97
+
+        The following is an example where the parameters are optimal::
+        
+            sage: tau = 98
             sage: n, k = 250, 70
-            sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_from_tau(tau, n_k = (n, k))
+            sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_given_tau(tau, n_k = (n, k))
+            (2, 3)
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k))
             (2, 3)
 
-        Same one with a GRS code::
+        This is an example where they are not::
+        
+            sage: tau = 97
+            sage: n, k = 250, 70
+            sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_given_tau(tau, n_k = (n, k))
+            (2, 3)
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k))
+            (1, 2)
+
+        We can provide a GRS code instead of `n` and `k` directly::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
-            sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_from_tau(tau, C = C)
+            sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_given_tau(tau, C = C)
             (2, 3)
 
         Another one with a bigger ``tau``::
 
-            sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_from_tau(118, C = C)
+            sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_given_tau(118, C = C)
             (47, 89)
         """
         if C is not None and n_k is not None:
@@ -475,7 +491,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             self._tau, self._s, self._ell = tau, parameters[0], parameters[1]
         elif tau:
             self._tau = tau
-            self._s, self._ell = GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
+            self._s, self._ell = GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k))
         elif parameters:
             self._s = parameters[0]
             self._ell = parameters[1]

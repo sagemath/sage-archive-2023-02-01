@@ -10,7 +10,8 @@ AUTHORS:
     - Franco Saliola (2008-12-17): merged into sage
     - Sebastien Labbe (2008-12-17): merged into sage
     - Arnaud Bergeron (2008-12-17): merged into sage
-    - Sebastien Labbe (2009-07-21): Improved morphism iterator (#6571).
+    - Sebastien Labbe (2009-07-21): Improved morphism iterator (:trac:`6571`).
+    - Vincent Delecroix (2015): classes simplifications (:trac:`19619`)
 
 EXAMPLES::
 
@@ -1796,11 +1797,6 @@ class FiniteOrInfiniteWords(AbstractLanguage):
         TESTS::
 
             sage: W = Words([0,1,2])
-            sage: W._word_from_iter(iter([0,1,2,2,1]), length="finite")
-            word: 01221
-            sage: type(_)
-            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
-
             sage: u = Word(iter("abcabc"*100))
             sage: type(u)
             <class 'sage.combinat.words.word.Word_iter_with_caching'>
@@ -2075,6 +2071,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
                 elif isinstance(data, (list,str,tuple,CombinatorialObject)):
                     length = 'finite'
 
+        # now build finite/infinite or unknown length words
         if length == 'finite' or length in ZZ:
             return self.finite_words()(data, datatype=datatype, length=length, caching=caching, check=check)
 

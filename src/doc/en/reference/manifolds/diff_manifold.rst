@@ -8,6 +8,8 @@ Differentiable manifolds
 
    sage/manifolds/differentiable/chart
 
+   sage/manifolds/differentiable/real_line
+
    diff_scalarfield
 
    diff_map

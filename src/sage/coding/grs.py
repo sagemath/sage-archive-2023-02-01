@@ -52,25 +52,26 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     INPUT:
 
-    - ``evaluation_points`` -- A list of evaluation points in a finite field F
+    - ``evaluation_points`` -- A list of distinct elements of some finite field `F`.
 
-    - ``dimension`` -- The dimension of the code
+    - ``dimension`` -- The dimension of the resulting code.
 
-    - ``column_multipliers`` -- (default: ``None``) List of column multipliers in F for this code.
+    - ``column_multipliers`` -- (default: ``None``) List of non-zero elements of `F`.
       All column multipliers are set to 1 if default value is kept.
 
     EXAMPLES:
 
-    We construct a GRS code with a manually built support, without specifying column multipliers::
+    A Reed-Solomon code can be constructed by taking all non-zero elements of
+    the field as evaluation points, and specifying no column multipliers::
 
         sage: F = GF(7)
-        sage: support = [F(i) for i in range(1,7)]
-        sage: C = codes.GeneralizedReedSolomonCode(support,3)
+        sage: evalpts = [F(i) for i in range(1,7)]
+        sage: C = codes.GeneralizedReedSolomonCode(evalpts,3)
         sage: C
         [6, 3, 4] Generalized Reed-Solomon Code over Finite Field of size 7
 
-
-    We construct a GRS code without specifying column multipliers::
+    More generally, the following is a GRS code where the evaluation points are
+    a subset of the field and includes zero::
 
         sage: F = GF(59)
         sage: n, k = 40, 12
@@ -82,7 +83,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         sage: F = GF(59)
         sage: n, k = 40, 12
-        sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, F.list()[1:n+1])
+        sage: colmults = F.list()[1:n+1]
+        sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, colmults)
         sage: C
         [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
@@ -95,27 +97,34 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         If the evaluation points are not from a finite field, it raises an error::
 
-            sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(list()[:n], k)
+            sage: C = codes.GeneralizedReedSolomonCode([1,2,3], 1)
             Traceback (most recent call last):
             ...
-            ValueError: Evaluation points must be in a finite field
+            ValueError: Evaluation points must be in a finite field (and Integer Ring is not one)
 
-        If the column multipliers are not from a finite field, or not in the same
+        If the evaluation points are not from the same finite field, it raises an error::
+
+            sage: F2, F3 = GF(2) , GF(3)
+            sage: C = codes.GeneralizedReedSolomonCode([F2.zero(),F2.one(),F3(2)], 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Failed converting all evaluation points to the same field (unable to find a common ring for all elements)
+
+        If the column multipliers cannot be converted into the finite are not from a finite field, or cannot be not in the same
         finite field as the evaluation points, it raises an error::
 
             sage: F = GF(59)
+            sage: F2 = GF(61)
             sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, list()[1:n+1])
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, [.3]*n )
             Traceback (most recent call last):
             ...
-            ValueError: Column multipliers must be in a finite field
+            ValueError: Failed converting all evaluation points and column multipliers to the same field (unable to find a common ring for all elements)
 
-            sage: F2 = GF(61)
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, F2.list()[1:n+1])
             Traceback (most recent call last):
             ...
-            ValueError: Column multipliers and evaluation points must be in the same field
+            ValueError: Failed converting all evaluation points and column multipliers to the same field (unable to find a common ring for all elements)
 
         The number of column multipliers is checked as well::
 
@@ -124,7 +133,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, F.list()[1:n])
             Traceback (most recent call last):
             ...
-            ValueError: There must be exactly 40 column multipliers
+            ValueError: There must be the same number of evaluation points as column multipliers
 
         It is not allowed to have 0 as a column multiplier::
 
@@ -135,35 +144,51 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             ...
             ValueError: All column multipliers must be non-zero
 
-        And all the evaluation points must be different::
+        And all the evaluation points must be different. Note that they should
+        be different after converting into the same field::
 
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode([F.one()]*n, k)
+            sage: F = GF(5)
+            sage: C = codes.GeneralizedReedSolomonCode([ F(0), 1, 2, 3, 5 ], 3)
             Traceback (most recent call last):
             ...
             ValueError: All evaluation points must be different
-        """
-        F = vector(evaluation_points).base_ring()
-        if F.is_finite() == False:
-            raise ValueError("Evaluation points must be in a finite field")
-        super(GeneralizedReedSolomonCode, self).__init__(F, len(evaluation_points), "EvaluationVector", "Syndrome")
-        self._dimension = dimension
-        self._evaluation_points = copy(evaluation_points)
 
-        if column_multipliers is None:
-            self._column_multipliers = [self.base_field().one()] * self._length
+        The dimension is not allowed to exceed the length::
+
+            sage: F = GF(59)
+            sage: n, k = 40, 100
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            Traceback (most recent call last):
+            ...
+            ValueError: The dimension must be a positive integer at most the length of the code.
+        """
+        if column_multipliers:
+            if len(evaluation_points) != len(column_multipliers):
+                raise ValueError("There must be the same number of evaluation points as column multipliers");
+            try:
+                common_points = vector(list(evaluation_points) + list(column_multipliers))
+                F = common_points.base_ring()
+                self._evaluation_points = common_points[:len(evaluation_points)]
+                self._column_multipliers = common_points[len(evaluation_points):]
+            except (TypeError, ValueError) as e:
+                raise ValueError("Failed converting all evaluation points and column multipliers to the same field (%s)" % e.message)
         else:
-            Fc = vector(column_multipliers).base_ring()
-            if Fc.is_finite() == False:
-                raise ValueError("Column multipliers must be in a finite field")
-            elif Fc != self.base_field():
-                raise ValueError("Column multipliers and evaluation points\
-                        must be in the same field")
-            self._column_multipliers = copy(column_multipliers)
-        if len(self._column_multipliers) != self._length:
-            raise ValueError("There must be exactly %s column multipliers"\
-                    % self._length)
+            try:
+                self._evaluation_points = vector(evaluation_points)
+                F = self._evaluation_points.base_ring()
+                self._column_multipliers = vector(F, [F.one()] * len(self._evaluation_points))
+            except (TypeError, ValueError) as e:
+                raise ValueError("Failed converting all evaluation points to the same field (%s)" % e.message)
+
+        if F.is_finite() == False or F.is_field() == False:
+            raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
+        super(GeneralizedReedSolomonCode, self).__init__(F, \
+                len(self._evaluation_points), "EvaluationVector", "Syndrome")
+
+        if dimension not in ZZ or dimension > self._length or dimension < 1:
+            raise ValueError("The dimension must be a positive integer at most the length of the code.")
+        self._dimension = dimension
+
         if 0 in self._column_multipliers:
             raise ValueError("All column multipliers must be non-zero")
         if len(self._evaluation_points) != len(set(self._evaluation_points)):
@@ -238,8 +263,9 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def minimum_distance(self):
         r"""
-        Returns the minimum distance of ``self``. Since a GRS code is always MDS,
-        this always returns ``C.length() - C.dimension() + 1``.
+        Returns the minimum distance of ``self``. Since a GRS code is always
+        Maximum-Distance-Separable (MDS), this returns ``C.length() -
+        C.dimension() + 1``.
 
         EXAMPLES::
 
@@ -253,7 +279,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def evaluation_points(self):
         r"""
-        Returns the list of evaluation points of ``self``.
+        Returns the evaluation points of ``self`` as a vector.
 
         EXAMPLES::
 
@@ -261,13 +287,13 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: n, k = 10, 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.evaluation_points()
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
         """
         return self._evaluation_points
 
     def column_multipliers(self):
         r"""
-        Returns the list of column multipliers of ``self``.
+        Returns the column multipliers of ``self`` as a vector.
 
         EXAMPLES::
 
@@ -275,20 +301,19 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: n, k = 10, 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.column_multipliers()
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
         """
         return self._column_multipliers
 
     @cached_method
     def multipliers_product(self):
         r"""
-        Returns the list of products of the j-th column multiplier of ``self`` with
-        the j-th column multiplier of ``self``'s parity check matrix, for j between 0 and
-        the length of ``self``.
+        Returns the component-wise product of the column multipliers of ``self``
+        with the column multipliers of the dual GRS code.
 
-        AUTHORS:
-
-            This function is taken from codinglib [Nielsen]_
+        This is a simple Cramer's rule-like expression on the evaluation points
+        of ``self``. Recall that the column multipliers of the dual GRS code is
+        also the column multipliers of the parity check matrix of ``self``.
 
         EXAMPLES::
 
@@ -306,10 +331,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     def parity_column_multipliers(self):
         r"""
         Returns the list of column multipliers of ``self``'s parity check matrix.
-
-        AUTHORS:
-
-            This function is taken from codinglib [Nielsen]_
 
         EXAMPLES::
 
@@ -341,23 +362,22 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             [ 0  9  9  2 10  9  6  6  1  3]
             [ 0  9  7  6  7  1  3  9  8  5]
         """
-        F = self.base_ring()
-        n = self.length()
-        d = self.minimum_distance()
-        alphas = self.evaluation_points()
-        return matrix(F, d-1, n, lambda i,j : alphas[j] ** i) *\
-                diagonal_matrix(F, self.parity_column_multipliers())
+        return self.dual_code().generator_matrix()
 
+    @cached_method
     def dual_code(self):
         r"""
-        Returns the dual code of ``self``.
+        Returns the dual code of ``self``, which is also a GRS code.
 
         EXAMPLES::
 
-            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: Cd = C.dual_code()
+            sage: F =  GF(59)
+            sage: colmults = [ F.random_element() for i in range(40) ]
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:40], 12, colmults)
+            sage: Cd = C.dual_code(); Cd
+            [40, 28, 13] Generalized Reed-Solomon Code over Finite Field of size 59
 
-        Dual code of the dual code is the original code::
+        The dual code of the dual code is the original code::
 
             sage: C == Cd.dual_code()
             True
@@ -370,35 +390,32 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         Returns the covering radius of ``self``.
 
         The covering radius of a linear code `C` is the smallest
-        number `r` s.t. any element of
-        the ambient space of `C` is at most at distance `r` to `C`.
+        number `r` s.t. any element of the ambient space of `C` is at most at
+        distance `r` to `C`.
 
-        As Reed-Solomon codes are MDS codes, their covering radius
-        is always `d-1`, where `d` is the minimum distance.
-
-        This is a custom method for GRS codes which is faster than
-        generic implementation.
+        As GRS codes are Maximum Distance Separable codes (MDS), their covering
+        radius is always `d-1`, where `d` is the minimum distance. This is
+        opposed to random linear codes where the covering radius is
+        computationally hard to determine.
 
         EXAMPLES::
 
-            sage: F = GF(11)
-            sage: n, k = 10, 5
+            sage: F = GF(2^8, 'a')
+            sage: n, k = 256, 100
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.covering_radius()
-            5
+            156
         """
         return self.length() - self.dimension()
 
     @cached_method
     def weight_distribution(self):
         r"""
-        Returns the weight distribution of ``self``.
+        Returns the list whose `i`'th entry is the number of words of weight `i`
+        in ``self``.
 
-        The weight distribution is returned as a list, where the
-        `i-th` entry corresponds to the number of words of weight `i` in the code.
-
-        This is a custom method for GRS codes which is faster than
-        generic implementation.
+        Computing the weight distribution for a GRS code is very fast. Note that
+        for random linear codes, it is computationally hard.
 
         EXAMPLES::
 
@@ -420,10 +437,10 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def weight_enumerator(self):
         r"""
-        Returns the weight enumerator of ``self``.
+        Returns the polynomial whose coefficient to `x^i` is the number of codewords of weight `i` in ``self``.
 
-        This is a custom method for GRS codes which is faster than
-        generic implementation.
+        Computing the weight enumerator for a GRS code is very fast. Note that
+        for random linear codes, it is computationally hard.
 
         EXAMPLES::
 
@@ -451,11 +468,11 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 
-####################### encoders ###############################
+
 
 class GRSEvaluationVectorEncoder(Encoder):
     r"""
-    An encoder which can encode vectors into codewords.
+    Encoder for Generalized Reed-Solomon codes which encodes vectors into codewords.
 
     INPUT:
 
@@ -468,7 +485,13 @@ class GRSEvaluationVectorEncoder(Encoder):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
         sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
         sage: E
-        Evaluation vector-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    Actually, we can construct the encoder from ``C`` directly::
+
+        sage: E = C.encoder("EvaluationVector")
+        sage: E
+        Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
     def __init__(self, code):
@@ -480,7 +503,7 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: E
-            Evaluation vector-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSEvaluationVectorEncoder, self).__init__(code)
         self._R = code.base_field()['x']
@@ -498,6 +521,8 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: D2 = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: D1.__eq__(D2)
             True
+            sage: D1 is D2
+            False
         """
         return isinstance(other, GRSEvaluationVectorEncoder) \
                 and self.code() == other.code()
@@ -530,9 +555,9 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: E
-            Evaluation vector-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Evaluation vector-style encoder for the %s" % self.code()
+        return "Evaluation vector-style encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -545,9 +570,9 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: latex(E)
-            \textnormal{Evaluation vector-style encoder for the }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Evaluation vector-style encoder for }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
-        return "\\textnormal{Evaluation vector-style encoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Evaluation vector-style encoder for }%s" % self.code()._latex_()
 
     @cached_method
     def generator_matrix(self):
@@ -567,52 +592,10 @@ class GRSEvaluationVectorEncoder(Encoder):
             [0 1 8 5 9 4 7 2 6 3]
             [0 1 5 4 3 9 9 3 4 5]
         """
-        base_field = self.code().base_field()
-        dimension = self.code().dimension()
-        length = self.code().length()
-        alphas = self.code().evaluation_points()
-        col_mults = self.code().column_multipliers()
-        return matrix(base_field, dimension, length, lambda i,j : col_mults[j]*alphas[j]**i)
-
-    def unencode_nocheck(self, c):
-        r"""
-        Returns the message corresponding to ``c``.
-        Does not check if ``c`` belongs to the code.
-
-        INPUT:
-
-        - ``c`` -- A vector with the same length as the code
-
-        OUTPUT:
-
-        - An element of the message space
-
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10 , 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
-            sage: c = vector(F, (10, 3, 9, 6, 5, 6, 9, 3, 10, 8))
-            sage: E.unencode_nocheck(c)
-            (10, 3, 1, 0, 0)
-        """
         C = self.code()
-        alphas = self.code().evaluation_points()
-        col_mults = self.code().column_multipliers()
-        length = self.code().length()
-        dimension = self.code().dimension()
-
-        c = [c[i]/col_mults[i] for i in range(length)]
-        points = [(alphas[i], c[i]) for i in range(dimension)]
-
-        Pc = self._R.lagrange_polynomial(points).list()
-        Pc = Pc + [self.code().base_field().zero()]*(dimension - len(Pc))
-
-        m = vector(self.code().base_field(), Pc)
-        return m
-
-
+        alphas = C.evaluation_points()
+        col_mults = C.column_multipliers()
+        return matrix(C.base_field(), C.dimension(), C.length(), lambda i,j: col_mults[j] * alphas[j]**i)
 
 
 
@@ -623,7 +606,8 @@ class GRSEvaluationVectorEncoder(Encoder):
 
 class GRSEvaluationPolynomialEncoder(Encoder):
     r"""
-    An encoder which can encode polynomials into codewords.
+    Encoder for Generalized Reed-Solomon codes which uses evaluation of
+    polynomials to obtain codewords.
 
     INPUT:
 
@@ -636,7 +620,15 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
         sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
         sage: E
-        Evaluation polynomial-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        sage: E.message_space()
+        Univariate Polynomial Ring in x over Finite Field of size 59
+
+    Actually, we can construct the encoder from ``C`` directly::
+
+        sage: E = C.encoder("EvaluationPolynomial")
+        sage: E
+        Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
     def __init__(self, code):
@@ -648,7 +640,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
             sage: E
-            Evaluation polynomial-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSEvaluationPolynomialEncoder, self).__init__(code)
         self._R = code.base_field()['x']
@@ -664,6 +656,8 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D1 = codes.encoders.GRSEvaluationPolynomialEncoder(C)
             sage: D2 = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: D1 is D2
+            False
             sage: D1.__eq__(D2)
             True
         """
@@ -696,11 +690,11 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: F = GF(59)
             sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: E
-            Evaluation polynomial-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        return "Evaluation polynomial-style encoder for the %s" % self.code()
+        return "Evaluation polynomial-style encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -711,19 +705,20 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: F = GF(59)
             sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: latex(E)
-            \textnormal{Evaluation polynomial-style encoder for the }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Evaluation polynomial-style encoder for }[40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
-        return "\\textnormal{Evaluation polynomial-style encoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Evaluation polynomial-style encoder for }%s" % self.code()._latex_()
 
     def encode(self, p):
         r"""
-        Transforms ``p`` into an element of the associated code of ``self``.
+        Transforms the polynomial ``p`` into a codeword of :meth:`code`.
 
         INPUT:
 
-        - ``p`` -- A polynomial from ``self`` message space
+        - ``p`` -- A polynomial from the message space of ``self`` of degree
+          less than ``self.code().dimension()``.
 
         OUTPUT:
 
@@ -732,52 +727,92 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         EXAMPLES::
 
             sage: F = GF(11)
-            sage: K.<x>=F[]
+            sage: Fx.<x> = F[]
             sage: n, k = 10 , 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: p = x^2 + 3*x + 10
-            sage: E.encode(p)
+            sage: c = E.encode(p); c
             (10, 3, 9, 6, 5, 6, 9, 3, 10, 8)
+            sage: c in C
+            True
+
+        If a polynomial of too high degree is given, an error is raised::
+
+            sage: p = x^10
+            sage: E.encode(p)
+            Traceback (most recent call last):
+            ...
+            ValueError: The polynomial to encode must have degree at most 4
+
+        If ``p`` is not an element of the proper polynomial ring, an error is raised::
+
+            sage: Qy.<y> = QQ[]
+            sage: p = y^2 + 1
+            sage: E.encode(p)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value to encode must be in Univariate Polynomial Ring in x over Finite Field of size 11
         """
-        alphas    = self.code().evaluation_points()
-        col_mults = self.code().column_multipliers()
-        field     = self.code().base_ring()
-        length    = self.code().length()
-        u = vector(field, [col_mults[i]*p(alphas[i]) for i in range(length)])
-        return u
+        M = self.message_space()
+        if p not in M:
+            raise ValueError("The value to encode must be in %s" % M)
+        C = self.code()
+        if p.degree() >= C.dimension():
+            raise ValueError("The polynomial to encode must have degree at most %s" % (C.dimension() - 1))
+        alphas    = C.evaluation_points()
+        col_mults = C.column_multipliers()
+        c = vector(C.base_ring(), [col_mults[i]*p(alphas[i]) for i in range(C.length())])
+        return c
 
     def unencode_nocheck(self, c):
         r"""
-        Returns the message corresponding to ``c``.
-        Does not check if ``c`` belongs to the code.
+        Returns the message corresponding to the codeword ``c``.
+
+        Use this method with caution: it does not check if ``c``
+        belongs to the code, and if this is not the case, the output is
+        unspecified. Instead, use :meth:`unencode`.
 
         INPUT:
 
-        - ``c`` -- A vector with the same length as the code
+        - ``c`` -- A codeword of :meth:`code`.
 
         OUTPUT:
 
-        - An element of the message space
+        - An polynomial of degree less than ``self.code().dimension()``.
 
         EXAMPLES::
 
             sage: F = GF(11)
             sage: n, k = 10 , 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: c = vector(F, (10, 3, 9, 6, 5, 6, 9, 3, 10, 8))
-            sage: E.unencode_nocheck(c)
+            sage: c in C
+            True
+            sage: p = E.unencode_nocheck(c); p
             x^2 + 3*x + 10
+            sage: E.encode(p) == c
+            True
+
+        Note that no error is thrown if ``c`` is not a codeword, and that the
+        result is undefined::
+
+            sage: c = vector(F, (11, 3, 9, 6, 5, 6, 9, 3, 10, 8))
+            sage: c in C
+            False
+            sage: p = E.unencode_nocheck(c); p
+            6*x^4 + 6*x^3 + 2*x^2
+            sage: E.encode(p) == c
+            False
+
         """
+        C = self.code()
+        alphas    = C.evaluation_points()
+        col_mults = C.column_multipliers()
 
-        alphas = self.code().evaluation_points()
-        col_mults = self.code().column_multipliers()
-        length = self.code().length()
-        dimension = self.code().dimension()
-
-        c = [c[i]/col_mults[i] for i in range(length)]
-        points = [(alphas[i], c[i]) for i in range(dimension)]
+        c = [c[i]/col_mults[i] for i in range(C.length())]
+        points = [(alphas[i], c[i]) for i in range(C.dimension())]
 
         Pc = self._R.lagrange_polynomial(points)
         return Pc
@@ -791,7 +826,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: F = GF(11)
             sage: n, k = 10 , 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
+            sage: E = C.encoder("EvaluationPolynomial")
             sage: E.message_space()
             Univariate Polynomial Ring in x over Finite Field of size 11
         """

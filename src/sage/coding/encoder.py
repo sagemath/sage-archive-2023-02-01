@@ -142,12 +142,11 @@ class Encoder(SageObject):
 
         INPUT:
 
-        - ``c`` -- a vector of the same length as :meth:`code` over the
-          base field of :meth:`code`.
+        - ``c`` -- a codeword of :meth:`code`.
 
-        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in ``self``. You might set
+        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in :meth:`code`. You might set
           this to ``True`` to disable the check for saving computation. Note that if ``c`` is
-          not in ``self`` and ``nocheck = True``, then the output of :meth:`unencode` is
+          not in :meth:`self` and ``nocheck = True``, then the output of :meth:`unencode` is
           not defined (except that it will be in the message space of ``self``).
 
         OUTPUT:
@@ -231,12 +230,12 @@ class Encoder(SageObject):
 
         INPUT:
 
-        - ``c`` -- a vector of the same length as ``self`` over the
-          base field of ``self``
+
+        - ``c`` -- a codeword of :meth:`code`.
 
         OUTPUT:
 
-        - a vector
+        - an element of the message space of ``self``.
 
         EXAMPLES::
 

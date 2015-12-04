@@ -7,10 +7,16 @@ REFERENCES:
        Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
 
     .. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, 2013
+
+AUTHORS:
+
+- Johan S. R. Nielsen, original implementation (see [Nielsen]_ for details)
+- David Lucas, ported the original implementation in Sage
 """
 
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
+#                     2015 Johan S. R. Nielsen <jsrn@jsrn.dk>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -87,7 +93,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         sage: D
         Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
 
-    One can pass a method as ``root_finder`` (works also for ``interpolation_alg``):
+    One can pass a method as ``root_finder`` (works also for ``interpolation_alg``)::
 
         sage: from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
         sage: rf = rootfind_roth_ruckenstein

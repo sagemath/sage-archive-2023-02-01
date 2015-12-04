@@ -1,3 +1,24 @@
+r"""
+Guruswami-Sudan utility methods
+
+AUTHORS:
+
+- Johan S. R. Nielsen, original implementation (see [Nielsen]_ for details)
+- David Lucas, ported the original implementation in Sage
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
+#                     2015 Johan S. R. Nielsen <jsrn@jsrn.dk>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 from sage.functions.other import binomial, floor, sqrt
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
@@ -86,8 +107,8 @@ def gilt(x):
 
 def solve_degree2_to_integer_range(a,b,c):
     r"""
-    Returns the greatest integer range `[i1, i2]` such that
-    `i1 > x1` and `i2 < x2` where `x1`,`x2` are the two zeroes of the equation in `x`:
+    Returns the greatest integer range `[i_1, i_2]` such that
+    `i_1 > x_1` and `i_2 < x_2` where `x_1, x_2` are the two zeroes of the equation in `x`:
     `ax^2+bx+c=0`.
 
     If there is no real solution to the equation, it returns an empty, range with negative coefficients.

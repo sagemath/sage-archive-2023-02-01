@@ -1,3 +1,24 @@
+r"""
+Rootfinding algorithms for Guruswami-Sudan decoder
+
+AUTHORS:
+
+- Johan S. R. Nielsen, original implementation (see [Nielsen]_ for details)
+- David Lucas, ported the original implementation in Sage
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
+#                     2015 Johan S. R. Nielsen <jsrn@jsrn.dk>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 from sage.rings.infinity import infinity
 from sage.functions.other import binomial
 
@@ -257,16 +278,16 @@ def rootfind_roth_ruckenstein(Q, maxd=None, precision=None):
     Returns the list of roots of a bivariate polynomial ``Q``.
 
     Uses the Roth-Ruckenstein algorithm to find roots or roots
-    modulo-up-to-some-precision of a `Q \in F[x][y]` where `F` is a field.
+    modulo-up-to-some-precision of a `Q \in \mathbb{F}[x][y]` where `\mathbb{F}` is a field.
 
-    If ``precision = None`` then actual roots will be found, i.e. all `f \in \F[x]`
-    such that `Q(f) = 0`. This will be returned as a list of `\F[x]` elements.
+    If ``precision = None`` then actual roots will be found, i.e. all `f \in \mathbb{F}[x]`
+    such that `Q(f) = 0`. This will be returned as a list of `\mathbb{F}[x]` elements.
 
-    If ``precision = k`` for some integer ``k``, then all `f \in \F[x]` such that
+    If ``precision = k`` for some integer ``k``, then all `f \in \mathbb{F}[x]` such that
     `Q(f) \equiv 0 \mod x^k` will be returned. This set is infinite, and so it
-    will be returned as a list of pairs in `\F[x] \times \mathbb{Z}_+`, where
+    will be returned as a list of pairs in `\mathbb{F}[x] \times \mathbb{Z}_+`, where
     `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^k` for any `h \in
-    \F[[x]]`.
+    \mathbb{F}[x]`.
 
     If ``maxd`` is given, then find only `f` with `deg f \leq maxd`. In case
     `precision=k` setting `maxd` means to only find the roots up to precision

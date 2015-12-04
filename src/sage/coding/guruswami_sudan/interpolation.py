@@ -1,3 +1,24 @@
+"""
+Interpolation algorithms for Guruswami-Sudan decoder
+
+AUTHORS:
+
+- Johan S. R. Nielsen, original implementation (see [Nielsen]_ for details)
+- David Lucas, ported the original implementation in Sage
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
+#                     2015 Johan S. R. Nielsen <jsrn@jsrn.dk>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 from sage.functions.other import ceil, binomial
 from sage.matrix.constructor import matrix
 
@@ -200,7 +221,7 @@ def construct_Q_linalg(points, tau, parameters, wy):
     INPUT:
 
     - ``points`` -- a list of tuples ``(xi, yi)`` such that
-    ``Q(xi,yi) = 0 ``with multiplicity ``s``.
+      ``Q(xi,yi) = 0`` with multiplicity ``s``.
 
     - ``tau`` -- an integer, the number of errors one wants to decode.
 

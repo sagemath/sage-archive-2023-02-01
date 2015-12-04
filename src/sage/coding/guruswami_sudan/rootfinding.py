@@ -20,7 +20,7 @@ AUTHORS:
 
 
 from sage.rings.infinity import infinity
-from sage.functions.other import binomial
+from sage.functions.other import binomial, floor
 
 def _convert_Q_representation(Q):
     r"""
@@ -120,7 +120,7 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
          Finite Field of size 17,
          Univariate Polynomial Ring in x over Finite Field of size 17,
          x,
-         6)
+         3)
     """
     Qinp = Q
     Rx = Q[0].parent()
@@ -136,12 +136,17 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
         if precision:
             maxd = precision-1
         else:
-            # The maximal degree of a root is at most the degree of the first
-            # non-zero coeff
-            for p in Q:
-                if not p.is_zero():
-                    maxd = p.degree()
-                    break
+            #The maximal degree of a root is at least
+            #(di-dl)/(l-i) d being the degree of a monomial
+            maxd = 0
+            l = len(Q) -1
+            dl = Q[l].degree()
+            for i in range(l):
+                qi = Q[i]
+                if not qi.is_zero():
+                    tmp = floor((qi.degree() - dl) / (l - i))
+                    if tmp > maxd:
+                        maxd = tmp
     if precision:
         for t in range(len(Q)):
             if Q[t].degree >= precision:

@@ -800,7 +800,7 @@ def is_haemers(int v,int k,int l,int mu):
     Test whether some HaemersGraph graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     For more information, see
-    :func:`sage.graphs.graph_generators.GraphGenerators.HaemersGraph`.
+    :func:`~sage.graphs.graph_generators.GraphGenerators.HaemersGraph`.
 
     INPUT:
 

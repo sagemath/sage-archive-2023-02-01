@@ -1110,15 +1110,15 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
     Let `q` be a power of 2. In Sect. 8.A of [BvL84]_ one finds a construction
     of a strongly regular graph with parameters `(q^2(q+2),q^2+q-1,q-2,q)` from
     the graph of `T_2^*(q)^*`, constructed by
-    :func:`~sage.graphs.GraphGenerators.T2starGeneralizedQuadrangleGraph`, by
-    redefining adjacencies in the way specified by an arbitrary ``partition`` of
+    :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
+    by redefining adjacencies in the way specified by an arbitrary ``partition``
     of the ``hyperoval`` defining `T_2^*(q)^*` into size two parts.
 
     While [BvL84]_ gives the construction in geometric terms, it can be formulated,
     and is implemented, in graph-theoretic ones, of re-adjusting the edges.
-    Namely, `G=`T_2^*(q)^*` has a partition
+    Namely, `G=T_2^*(q)^*` has a partition
     into `q+2` independent sets `I_k` of size `q^2` each. Each vertex in `I_j` is
-    adajcent to `q` vertieces from `I_k`. Each `I_k` is paired to some `I_{k'}`,
+    adajcent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
     according to ``partition``. One adds edges `(s,t)` for `s,t \in I_k` whenever
     `s` and `t` are adjacent to some `u \in I_{k'}`, and removes all the edges
     between `I_k` and `I_{k'}`.
@@ -1132,14 +1132,16 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
       in the format `((i_1,i'_1),(i_2,i'_2),...)`.
 
     - ``hyperoval`` -- a hyperoval defining `T_2^*(q)^*`. If ``None`` (default),
-      the classical hyperoval obatined from a conic is used.
+      the classical hyperoval obtained from a conic is used. See the
+      documentation of
+      :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
+      for more information.
 
     - ``field`` -- an instance of a finite field of order `q`, must be provided
       if ``hyperoval`` is provided.
 
-    - ``check_hyperoval`` -- (default: ``True``) if ``True``,
-      check ``hyperoval`` for correctness.
-
+    - ``check_hyperoval`` -- (default: ``True``) if ``True``, check
+      ``hyperoval`` for correctness.
 
     EXAMPLES:
 
@@ -1179,6 +1181,7 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
     """
     from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.constructor import GF
+    from itertools import combinations
 
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p!=2:
@@ -1190,29 +1193,29 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
         F = GF(q,'a')
     else:
         F = field
+
     # for q=8, 95% of CPU time taken by this function is spent in the follwing call
-    G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval)
-    def nv(v):  # make sure the 1st non-0 coordinate is 1.
+    G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval, check_hyperoval=check_hyperoval)
+
+    def normalize(v):  # make sure the 1st non-0 coordinate is 1.
         d=next(x for x in v if x!=F.zero())
         return vector(map(lambda x: x/d, v))
 
     # build the partition into independent sets
-    P = map(lambda x: nv(x[0]-x[1]), G.vertices())
+    P = map(lambda x: normalize(x[0]-x[1]), G.vertices())
     O = list(set(map(tuple,P)))
-    I_ks = dict(map(lambda x: (x,[]), range(q+2))) # the partition into I_k's
+    I_ks = {x:[] for x in range(q+2)} # the partition into I_k's
     for i in xrange(len(P)):
         I_ks[O.index(tuple(P[i]))].append(i)
 
     # perform the adjustment of the edges, as described.
     G.relabel()
-    F =  filter(lambda x: x!=F.zero(), F)
-    for ip,jp in partition:
-        for i,j in ((ip,jp),(jp,ip)): # add edges in each I_i, I_j
-            for s,i_s in zip(I_ks[i], xrange(1,q**2)):
-                s_n = filter(lambda x: x in I_ks[j], G.neighbors(s))
-                for t in I_ks[i][i_s:]:
-                    if any(x in s_n for x in G.neighbors(t)):
-                        G.add_edge(s,t)
-        G.delete_edges(G.edge_boundary(I_ks[ip],I_ks[jp])) # edges on (I_i,I_j)
+    cliques = []
+    for i,j in partition:
+        Pij = set(I_ks[i]+I_ks[j])
+        for v in Pij:
+            cliques.append(Pij.intersection(G.neighbors(v)))
+        G.delete_edges(G.edge_boundary(I_ks[i],I_ks[j])) # edges on (I_i,I_j)
+    G.add_edges(e for c in cliques for e in combinations(c,2))
     G.name('Haemers('+str(q)+')')
     return G

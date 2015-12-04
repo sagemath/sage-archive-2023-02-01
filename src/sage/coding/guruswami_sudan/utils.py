@@ -173,3 +173,53 @@ def find_minimal_satisfiable(f, startn=1, contiguous=True):
         else:
             minn = tryn + 1
     return maxn
+
+def module_apply_weights(M, weights):
+    """Apply column weights inplace to the matrix `M`. If weights are all integers, then
+    `M` is multiplied on the $n$th column with `x^{weights[n]}`.
+    If weights are fractions, then `M` is appropriately column permuted and
+    multiplied with the `x^t` where `t = int(weights[n])`. Afterwards, the
+    permutation is returned if needed for reference. See e.g. [Dec]
+    """
+    if all( w.is_integer() for w in weights):
+        for j in range(M.ncols()):
+            M.set_col_to_multiple_of_col(j,j, x^weights[j])
+    else:
+        perm = module_fractional_weight_permutation(weights)
+        for j in range(M.ncols()):
+            M.set_col_to_multiple_of_col(j,j, x^floor(weights[j]))
+        M.permute_columns(perm)
+        return perm
+
+def module_remove_weights(M, weights):
+    """Remove the weights as introduced by ``module_apply_weights``."""
+    #M = M.change_ring(QQ)
+    if all( w.is_integer() for w in weights):
+        for i in range(M.nrows()):
+            for j in range(M.ncols()):
+                M[i,j] = M[i,j].shift(-weights[j])
+    else:
+        perm = module_fractional_weight_permutation(weights)
+        pinv = perm.inverse()
+        M.permute_columns(pinv)
+        module_remove_weights(M, [ floor(wj) for wj in weights ])
+
+def module_fractional_weight_permutation(weights):
+    """Return the permutation which can be used for embedding the semantics of
+    fractional weights into the module minimisation.
+    A permutation is returned of the integers from 1 to ``len(numerators)``.
+    See e.g. [Dec].
+    """
+    n = len(weights)
+    denominator = lcm(list(f.denominator() for f in weights))
+    numerators = [ f.numerator() * denominator/f.denominator() for f in weights ]
+    residues = [ num % denominator for num in numerators ]
+    res_map = dict()
+    for i in range(n):
+        if residues[i] in res_map:
+            res_map[residues[i]].append(i+1)
+        else:
+            res_map[residues[i]] = [i+1]
+    res_uniq = sorted(res_map.keys())
+    return Permutation(list(flatten_once([ res_map[res] for res in res_uniq ])))
+

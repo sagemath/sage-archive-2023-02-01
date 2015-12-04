@@ -22,6 +22,7 @@ AUTHORS:
 from sage.functions.other import ceil, binomial
 from sage.matrix.constructor import matrix
 
+####################### Linear algebra system solving ###############################
 def _flatten_once(lstlst):
     r"""
     Flattens``lstlst`` only once and returns a generator.
@@ -243,3 +244,38 @@ def construct_Q_linalg(points, tau, parameters, wy):
     """
     return _construct_Q_from_matrix(
                 *_interpol_matrix_problem(points, tau, parameters, wy))
+
+
+####################### Lee-O'Sullivan's method ###############################
+
+def gs_lee_osullivan_module(points, tau, (s,l), wy):
+    r"""
+    Returns the analytically straight-forward basis for the module containing
+    all interpolation polynomials, as according to Lee and O'Sullivan"""
+    F = points[0][0].parent()
+    PF.<x> = F[]
+    R = PF.lagrange_polynomial(points)
+    G = prod( x - points[i][0] for i in range(0, len(points)) )
+    PFy.<y> = PF[]
+    ybasis = [ (y-R)^i*G^(s-i) for i in range(0, s+1) ] \
+            + [ y^(i-s)*(y-R)^s for i in range(s+1, l+1) ]
+    def pad(lst):
+        return lst + [0]*(l+1-len(lst))
+    modbasis = [ pad(yb.coeffs()) for yb in ybasis ]
+    return Matrix(PF, modbasis)
+
+def gs_construct_Q_lee_osullivan(points, tau, (s,l), wy, minimiser=codinglib.module.module_weak_popov):
+    """Module minimise the Lee-O'Sullivan module in order to find a satisfactory Q."""
+    F = points[0][0].parent()
+    M = gs_lee_osullivan_module(points, tau, (s,l), wy)
+    weights = [ i*wy for i in range(0,l+1) ]
+    codinglib.module.module_apply_weights(M, weights)
+    minimiser(M)
+    # Construct Q as the element of the row with the lowest weighted degree
+    degs = [ (i,LT(M.row(i)).degree()) for i in range(0,l+1) ]
+    best = min(degs, key=lambda (i,d): d)[0]
+    codinglib.module.module_remove_weights(M, weights)
+    Qlist = M.row(best)
+    PFxy.<xx,yy> = F['x,y']
+    Q = sum( yy^i*PFxy(Qlist[i]) for i in range(0,l+1) )
+    return Q

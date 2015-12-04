@@ -57,6 +57,10 @@ class SageSpawn(spawn):
 
         kwds.setdefault("ignore_sighup", True)
 
+        # Use a *serious* read buffer of 4MiB, not the ridiculous 2000 bytes
+        # that pexpect uses by default.
+        kwds.setdefault("maxread", 4194304)
+
         with ContainChildren(silent=True):
             spawn.__init__(self, *args, **kwds)
 

@@ -561,7 +561,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: m in D.decode_to_message(r)
             Traceback (most recent call last):
             ...
-            TypeError: next_prime() got an unexpected keyword argument 'maxd'
+            ValueError: The provided rootfinding algorithm has a wrong signature. See decoder's doc for details
         """
         C = self.code()
         n,k,d,alphas,colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
@@ -573,13 +573,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
         ## SOLVE INTERPOLATION
         try:
             Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
-        except TypeError, e:
-            raise e
+        except TypeError:
+            raise ValueError("The provided interpolation algorithm has a wrong signature. See decoder's doc for details")
         ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
         try:
             polynomials = self.rootfinding_algorithm()(Q, maxd = None)
         except TypeError, e:
-            raise e
+            raise ValueError("The provided rootfinding algorithm has a wrong signature. See decoder's doc for details")
         if not polynomials:
             return None
         return [f for f in polynomials]

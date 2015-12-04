@@ -128,7 +128,7 @@ class Expect(Interface):
     """
     def __init__(self, name, prompt, command=None, server=None,
                  server_tmpdir=None,
-                 ulimit = None, maxread=100000,
+                 ulimit = None, maxread=None,
                  script_subdirectory=None, restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
@@ -160,7 +160,6 @@ class Expect(Interface):
         else:
             self._server = None
         self.__do_cleaner = do_cleaner
-        self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__command = command
         self._prompt = prompt
@@ -444,7 +443,6 @@ If this all works, you can then make calls like:
         if self._do_cleaner():
             cleaner.cleaner(self._expect.pid, cmd)
 
-        self._expect.maxread = self.__maxread
         self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)

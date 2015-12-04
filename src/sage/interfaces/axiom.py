@@ -212,7 +212,6 @@ class PanAxiom(Expect):
                         name = name,
                         prompt = '\([0-9]+\) -> ',
                         command = command,
-                        maxread = 10,
                         script_subdirectory = script_subdirectory,
                         server=server,
                         server_tmpdir=server_tmpdir,

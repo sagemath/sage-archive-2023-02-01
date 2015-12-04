@@ -363,7 +363,7 @@ class Singular(Expect):
 
     - David Joyner and William Stein
     """
-    def __init__(self, maxread=1000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None,
                  seed=None):
         """
@@ -380,7 +380,6 @@ class Singular(Expect):
                         # no tty, fine grained cputime()
                         # and do not display CTRL-C prompt
                         command = "Singular -t --ticks-per-sec 1000 --cntrlc=a",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,

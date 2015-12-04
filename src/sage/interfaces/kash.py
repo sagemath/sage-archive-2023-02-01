@@ -443,7 +443,7 @@ class Kash(Expect):
     """
     def __init__(self,
                  max_workspace_size=None,
-                 maxread=100000,
+                 maxread=None,
                  script_subdirectory=None,
                  restart_on_ctrlc = True,
                  logfile=None,
@@ -467,7 +467,6 @@ class Kash(Expect):
                         name = 'kash',
                         prompt = 'kash% ',
                         command = cmd,
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,

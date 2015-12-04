@@ -1075,7 +1075,7 @@ class Gap(Gap_generic):
     - William Stein and David Joyner
     """
     def __init__(self, max_workspace_size=None,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  use_workspace_cache=True,
                  server=None,
                  server_tmpdir=None,

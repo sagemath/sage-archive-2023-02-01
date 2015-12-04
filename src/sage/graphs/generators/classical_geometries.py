@@ -1103,7 +1103,7 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
         G.name('T2*(O,'+str(q)+'); GQ'+str((q-1,q+1)))
     return G
 
-def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=True):
+def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_hyperoval=True):
     r"""
     Return the Haemers graph obtained from `T_2^*(q)^*`
 
@@ -1111,15 +1111,16 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
     of a strongly regular graph with parameters `(q^2(q+2),q^2+q-1,q-2,q)` from
     the graph of `T_2^*(q)^*`, constructed by
     :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
-    by redefining adjacencies in the way specified by an arbitrary ``partition``
-    of the ``hyperoval`` defining `T_2^*(q)^*` into size two parts.
+    by redefining adjacencies in the way specified by an arbitrary ``hyperoval_matching``
+    of the the points (i.e. partitioning into size two parts) of ``hyperoval`` defining
+    `T_2^*(q)^*`.
 
     While [BvL84]_ gives the construction in geometric terms, it can be formulated,
     and is implemented, in graph-theoretic ones, of re-adjusting the edges.
     Namely, `G=T_2^*(q)^*` has a partition
     into `q+2` independent sets `I_k` of size `q^2` each. Each vertex in `I_j` is
     adajcent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
-    according to ``partition``. One adds edges `(s,t)` for `s,t \in I_k` whenever
+    according to ``hyperoval_matching``. One adds edges `(s,t)` for `s,t \in I_k` whenever
     `s` and `t` are adjacent to some `u \in I_{k'}`, and removes all the edges
     between `I_k` and `I_{k'}`.
 
@@ -1127,7 +1128,7 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
 
     - ``q`` -- a power of two
 
-    - ``partition`` -- if ``None`` (default), pair each `i`-th point of
+    - ``hyperoval_matching`` -- if ``None`` (default), pair each `i`-th point of
       ``hyperoval`` with `(i+1)`-th. Otherwise, specifies the pairing
       in the format `((i_1,i'_1),(i_2,i'_2),...)`.
 
@@ -1152,9 +1153,9 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
         sage: g.is_strongly_regular(parameters=True)
         (96, 19, 2, 4)
 
-    supplying your own partition::
+    supplying your own hyperoval_matching::
 
-        sage: g=graphs.HaemersGraph(4,partition=((0,5),(1,4),(2,3))); g
+        sage: g=graphs.HaemersGraph(4,hyperoval_matching=((0,5),(1,4),(2,3))); g
         Haemers(4): Graph on 96 vertices
         sage: g.is_strongly_regular(parameters=True)
         (96, 19, 2, 4)
@@ -1173,9 +1174,9 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
         ...
         RuntimeError: incorrect hyperoval
 
-        sage: g=graphs.HaemersGraph(8); g               # long time
+        sage: g=graphs.HaemersGraph(8); g               # not tested (long time)
         Haemers(8): Graph on 640 vertices
-        sage: g.is_strongly_regular(parameters=True)    # long time
+        sage: g.is_strongly_regular(parameters=True)    # not tested (long time)
         (640, 71, 6, 8)
 
     """
@@ -1187,8 +1188,8 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
     if k==0 or p!=2:
         raise ValueError('q must be a power of 2')
 
-    if partition is None:
-        partition = map(lambda k: (2*k+1,2*k), xrange(1+q/2))
+    if hyperoval_matching is None:
+        hyperoval_matching = map(lambda k: (2*k+1,2*k), xrange(1+q/2))
     if field is None:
         F = GF(q,'a')
     else:
@@ -1211,7 +1212,7 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
     # perform the adjustment of the edges, as described.
     G.relabel()
     cliques = []
-    for i,j in partition:
+    for i,j in hyperoval_matching:
         Pij = set(I_ks[i]+I_ks[j])
         for v in Pij:
             cliques.append(Pij.intersection(G.neighbors(v)))

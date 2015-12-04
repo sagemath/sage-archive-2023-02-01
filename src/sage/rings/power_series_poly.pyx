@@ -680,7 +680,7 @@ cdef class PowerSeries_poly(PowerSeries):
         ::
 
             sage: 1/(q + q^2)
-             q^-1 - 1 + q - q^2 + q^3 + O(q^4)
+            q^-1 - 1 + q - q^2 + q^3 + O(q^4)
             sage: g = 1/(q + q^2 + O(q^5))
             sage: g; g.parent()
             q^-1 - 1 + q - q^2 + O(q^3)
@@ -696,7 +696,7 @@ cdef class PowerSeries_poly(PowerSeries):
         ::
 
             sage: 1/(2 + q)
-             1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
+            1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
 
         ::
 
@@ -726,12 +726,8 @@ cdef class PowerSeries_poly(PowerSeries):
             ValueError: constant term is not a unit
             sage: ~R(-1)
             -1
-
-        AUTHORS:
-
-        - David Harvey (2006-09-09): changed to use Newton's method
         """
-        if self == 1:
+        if self.is_one():
             return self
         prec = self.prec()
         if prec is infinity:

@@ -60,8 +60,13 @@ The following example shows all these steps::
     sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
     sage: p.add_constraint(matrix([1.])*x[0]>=matrix([0.]))
     sage: p.add_constraint(matrix([1.])*x[1]>=matrix([0.]))
+    sage: p.solver_parameter("show_progress", True)
     sage: print 'Objective Value:', round(p.solve(),3)
-    Objective Value: -1.0
+    Objective Value:      pcost       dcost       gap    pres   dres   k/t
+    0: -1.241...
+    ...
+    Optimal solution found.
+    -1.0
     sage: map(lambda x: round(x,3), p.get_values(x))
     [0.0, 1.0]
     sage: p.show()

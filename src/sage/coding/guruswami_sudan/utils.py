@@ -135,37 +135,3 @@ def solve_degree2_to_integer_range(a,b,c):
         return (-2,-1)
     else:
         return (mini,maxi)
-
-def find_minimal_satisfiable(f, startn=1, contiguous=True):
-    r"""
-    Returns the minimal integral ``n``, `n > 0` such that ``f(n) == True``.
-
-    `startn` can be given as a hint to a value that might be true.
-
-    INPUT:
-
-    - ``f`` -- a function
-
-    - ``startn`` -- (default: ``1``) the starting point of the algorithm.
-
-    EXAMPLES::
-
-        sage: def f(x):
-        ....:    return None if x > 10 or x == 1 else x + 1
-
-        sage: sage.coding.guruswami_sudan.utils.find_minimal_satisfiable(f)
-        2
-    """
-    maxn = startn
-    minn = 1
-    # Keep doubling n to find one that works and then switch to binary search
-    while not f(maxn):
-        minn = maxn + 1
-        maxn *= 2
-    while minn < maxn:
-        tryn = minn + floor((maxn - minn) * 0.5)
-        if f(tryn):
-            maxn = tryn
-        else:
-            minn = tryn + 1
-    return maxn

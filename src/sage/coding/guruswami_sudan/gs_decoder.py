@@ -6,7 +6,8 @@ REFERENCES:
     .. [GS99] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
        Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
 
-    .. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, 2013
+    .. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, Ph.D.
+    Thesis, Technical University of Denmark, 2013
 
 AUTHORS:
 
@@ -38,60 +39,89 @@ from sage.functions.other import binomial, floor, sqrt
 
 class GRSGuruswamiSudanDecoder(Decoder):
     r"""
-    A decoder based on the Guruswami-Sudan list-decoding algorithm.
+    The Guruswami-Sudan list-decoding algorithm for decoding Generalized
+    Reed-Solomon codes.
 
-    One can read [GS99]_ to learn more about this algorithm.
+    The Guruswami-Sudan algorithm is a polynomial time algorithm to decode
+    beyond half the minimum distance of the code. It can decode up to the
+    Johnson radius which is `n - \sqrt(n(n-d))`, where `n, d` is the length,
+    respectively minimum distance of the RS code. See [GS99] for more details.
+
+    The algorithm has two free parameters, the list size and the multiplicity,
+    and these determine how many errors the method will correct: generally,
+    higher decoding radius requires larger values of these parameters. To decode
+    all the way to the Johnson radius, one generally needs values in the order
+    of `O(n^2)`, while decoding just one error less requires just `O(n)`.
+
+    This class has static methods for computing choices of parameters given the
+    decoding radius or vice versa.
+
+    The Guruswami-Sudan consists of two computationally intensive steps:
+    Interpolation and Root finding, either of which can be completed in multiple
+    ways. This implementation allows choosing the sub-algorithms among currently
+    implemented possibilities, or supplying your own.
 
     INPUT:
 
     - ``code`` -- A code associated to this decoder.
 
-    - ``tau`` -- (default: ``None``) an integer, number of errors one wants Guruswami-Sudan algorithm
-      to correct.
+    - ``tau`` -- (default: ``None``) an integer, the number of errors one wants the
+      Guruswami-Sudan algorithm to correct.
 
     - ``parameters`` -- (default: ``None``) a pair of integers, where:
-        - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
+        - the first integer is the multiplicity parameter, and
         - the second integer is the list size parameter.
 
-    - ``interpolation_alg`` -- (default: ``None``) the name of the interpolation algorithm that will be used,
-      or a the method which performs the interpolation. See NOTES section for details on signature.
-      One can use the following names:
+    - ``interpolation_alg`` -- (default: ``None``) the interpolation algorithm
+      that will be used. The following possibilities are currently available:
 
         * ``LinearAlgebra`` -- uses a linear system solver.
+        * ``None`` -- one of the above will be chosen based on the size of the
+          code and the parameters.
 
-    - ``root_finder`` -- (default: ``None``) the name of the rootfinding algorithm that will be used,
-      or a the method which performs the rootfinding. See NOTES section for details on signature.
-      One can use the following names:
+      You can also supply your own function to perform the interpolation. See
+      NOTES section for details on the signature of this function.
+
+    - ``root_finder`` -- (default: ``None``) the rootfinding algorithm that will
+      be used. The following possibilities are currently available:
 
         * ``RothRuckenstein`` -- uses Roth-Ruckenstein algorithm.
 
+        * ``None`` -- one of the above will be chosen based on the size of the
+          code and the parameters.
+
+      You can also supply your own function to perform the interpolation. See
+      NOTES section for details on the signature of this function.
+
     .. NOTE::
 
-        One has to provide either ``C`` or ``parameters``. If none is
-        given, an exception will be raised.
+        One has to provide either ``C`` or ``parameters``. If neither are given,
+        an exception will be raised.
 
-        If one wants to provide a method as ``rootfinder``, its signature
-        has to be: ``my_rootfinder(Q, maxd=default_value, precision=default_value)``.
-        See :meth:`sage.coding.guruswami_sudan.rootfinding.rootfind_roth_ruckenstein`
+        If one provides a function as ``root_finder``, its signature has to be:
+        ``my_rootfinder(Q, maxd=default_value, precision=default_value)``. `Q`
+        will be given as an element of `F[x][y]`. The function must return the
+        roots as a list of polynomials over a univariate polynomial ring. See
+        :meth:`sage.coding.guruswami_sudan.rootfinding.rootfind_roth_ruckenstein`
         for an example.
 
-        If one wants to provide a method as ``interpolation_alg``, its signature
-        has to be: ``my_inter(interpolation_points, tau, s_and_l, wy)``.
-        See :meth:`sage.coding.guruswami_sudan.interpolation.construct_Q_linalg`
-        for an example.
+        If one provides a function as ``interpolation_alg``, its signature has
+        to be: ``my_inter(interpolation_points, tau, s_and_l, wy)``. See
+        :meth:`sage.coding.guruswami_sudan.interpolation.construct_Q_linalg` for
+        an example.
 
     EXAMPLES::
 
         sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 97)
         sage: D
-        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
+        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
 
-    One can specify ``s`` and ``l`` instead of ``tau``::
+    One can specify multiplicity and list size instead of ``tau``::
 
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2))
         sage: D
-        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
+        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
 
     One can pass a method as ``root_finder`` (works also for ``interpolation_alg``)::
 
@@ -99,35 +129,35 @@ class GRSGuruswamiSudanDecoder(Decoder):
         sage: rf = rootfind_roth_ruckenstein
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2), root_finder = rf)
         sage: D
-        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
+        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
     """
 
     ####################### static methods ###############################
-    IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
     @staticmethod
     def best_parameters_given_tau(tau, C = None, n_k = None):
         r"""
-        Returns the best ``s`` and ``l`` possible according to input parameters.
+        Returns the smallest possible multiplicity and list size given the
+        given parameters of the code and decoding radius.
 
         INPUT:
 
-        - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
-          to correct
+        - ``tau`` -- an integer, number of errrors one wants the Guruswami-Sudan
+          algorithm to correct
         - ``C`` -- (default: ``None``) a :class:`GeneralizedReedSolomonCode`
-        - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
+        - ``n_k`` -- (default: ``None``) a pair of integers, respectively the
           length and the dimension of the :class:`GeneralizedReedSolomonCode`
 
         OUTPUT:
 
-        - ``(s, l)`` -- a couple of integers, where:
-            - ``s`` is the multiplicity parameter of Guruswami-Sudan algorithm and
-            - ``l`` is the list size parameter
+        - ``(s, l)`` -- a pair of integers, where:
+            - ``s`` is the multiplicity parameter, and
+            - ``l`` is the list size parameter.
 
         .. NOTE::
 
-            One has to provide either ``C`` or ``(n, k)``. If none or both are
-            given, an exception will be raised.
+            One should to provide either ``C`` or ``(n, k)``. If neither or both
+            are given, an exception will be raised.
 
         EXAMPLES::
 
@@ -439,9 +469,9 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: D
-            Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251
+            Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
         """
-        return "Guruswami-Sudan decoder for %s" % self.code()
+        return "Guruswami-Sudan decoder for %s decoding %s errors with parameters %s" % (self.code(), self.decoding_radius(), (self.multiplicity(), self.list_size()))
 
     def _latex_(self):
         r"""
@@ -452,9 +482,9 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: latex(D)
-            \textnormal{Guruswami-Sudan decoder for } [250, 70, 181] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{251}
+            \textnormal{Guruswami-Sudan decoder for } [250, 70, 181] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{251}\textnormal{ decoding }97\textnormal{ errors with parameters }(1, 2)
         """
-        return "\\textnormal{Guruswami-Sudan decoder for } %s" % self.code()._latex_()
+        return "\\textnormal{Guruswami-Sudan decoder for } %s\\textnormal{ decoding }%s\\textnormal{ errors with parameters }%s" % (self.code()._latex_(), self.decoding_radius(), (self.multiplicity(), self.list_size()))
 
     def __eq__(self, other):
         r"""

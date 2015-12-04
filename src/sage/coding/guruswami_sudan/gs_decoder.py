@@ -28,13 +28,13 @@ AUTHORS:
 
 from sage.coding.grs import GeneralizedReedSolomonCode
 from sage.modules.free_module_element import vector
+from sage.rings.integer_ring import ZZ
 from sage.coding.decoder import Decoder
 from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg
 from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
 from sage.coding.guruswami_sudan.utils import (johnson_radius,
                                                gilt,
-                                               solve_degree2_to_integer_range,
-                                               find_minimal_satisfiable)
+                                               solve_degree2_to_integer_range)
 from sage.functions.other import binomial, floor, sqrt
 
 class GRSGuruswamiSudanDecoder(Decoder):
@@ -192,7 +192,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         johnson = johnson_radius(n, n - k + 1)
         if tau >= johnson:
-            raise ValueError("The decoding radius must be less than the Johnson radius (which is %.2f"
+            raise ValueError("The decoding radius must be less than the Johnson radius (which is %.2f)"
                              % float(johnson))
 
         # We start with l=1 and check if a satisfiable s can be chosen. We keep
@@ -215,10 +215,12 @@ class GRSGuruswamiSudanDecoder(Decoder):
     @staticmethod
     def guruswami_sudan_decoding_radius(C = None, n_k = None, l = None, s = None):
         r"""
-        Returns the maximal decoding radius of the Guruswami-Sudan decoder.
+        Returns the maximal decoding radius of the Guruswami-Sudan decoder and
+        the parameter choices needed for this.
 
         If ``s`` is set but ``l`` is not it will return the best decoding radius using this ``s``
-        alongside with the required ``l``, same for ``l``.
+        alongside with the required ``l``. Vice versa for ``l``. If both are
+        set, it returns the decoding radius given this parameter choice.
 
         INPUT:
 
@@ -233,11 +235,31 @@ class GRSGuruswamiSudanDecoder(Decoder):
             One has to provide either ``C`` or ``n_k``. If none or both are
             given, an exception will be raised.
 
+        OUTPUT:
+
+        - ``(tau, (s, l))`` -- where 
+            - ``tau`` is the obtained decoding radius, and
+            - ``s, ell`` are the multiplicity parameter, respectively list size
+              parameter giving this radius.
+
         EXAMPLES::
 
             sage: n, k = 250, 70
             sage: codes.decoders.GRSGuruswamiSudanDecoder.guruswami_sudan_decoding_radius(n_k = (n, k))
             (118, (47, 89))
+
+        One parameter can be restricted at a time::
+
+            sage: n, k = 250, 70
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.guruswami_sudan_decoding_radius(n_k = (n, k), s=3)
+            (109, (3, 5))
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.guruswami_sudan_decoding_radius(n_k = (n, k), l=7)
+            (111, (4, 7))
+
+        The function can also just compute the decoding radius given the parameters::
+
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.guruswami_sudan_decoding_radius(n_k = (n, k), s=2, l=6)
+            (92, (2, 6))
         """
         if C is not None and n_k is not None:
             raise ValueError("Please provide only the code or its length and dimension")
@@ -248,36 +270,50 @@ class GRSGuruswamiSudanDecoder(Decoder):
         elif n_k is not None and not isinstance(n_k, tuple):
             raise ValueError("n_k has to be a tuple")
         elif n_k is not None:
-            n, k = n_k[0], n_k[1]
+            n, k = n_k
 
         def get_tau(s,l):
+            "Return the decoding radius given this s and l"
             if s<=0 or l<=0:
                 return -1
             return gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
-        if l==None and s==None:
+        if l ==None and s==None:
             tau = gilt(johnson_radius(n, n - k + 1))
             return (tau, GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k)))
         if l!=None and s!=None:
             return (get_tau(s,l), (s,l))
+
+        # Either s or l is set, but not both. First a shared local function
+        def find_integral_max(real_max, f):
+            """Given a real (local) maximum of a function `f`, return that of
+            the integers around `real_max` which gives the (local) integral
+            maximum, and the value of at that point."""
+            if real_max in ZZ:
+                int_max = Integer(real_max)
+                return (int_max, f(int_max))
+            else:
+                x_f = floor(real_max)
+                x_c = x_f + 1
+                f_f, f_c = f(x_f), f(x_c)
+                return (x_f, f_f) if f_f >= f_c else (x_c, f_c)
+
         if s!= None:
             # maximising tau under condition
             # n*(s+1 choose 2) < (ell+1)*s*(n-tau) - (ell+1 choose 2)*(k-1)
             # knowing n and s, we can just minimise
             # ( n*(s+1 choose 2) + (ell+1 choose 2)*(k-1) )/(ell+1)
             # Differentiating and setting to zero yields ell best choice:
-            lmax = sqrt(n*s*(s+1)/(k-1)) - 1
+            lmax = sqrt(n*s*(s+1.)/(k-1.)) - 1.
             #the best integral value will be
             (l,tau) = find_integral_max(lmax, lambda l: get_tau(s,l))
-            assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
             #Note that we have not proven that this ell is minimial in integral
             #sense! It just seems that this most often happens
             return (tau,(s,l))
         if l!= None:
             # Acquired similarly to when restricting s
-            smax = sqrt((k-1)/n*l*(l+1))
+            smax = sqrt((k-1.)/n*l*(l+1.))
             (s,tau) = find_integral_max(smax, lambda s: get_tau(s,l))
-            assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau,s,l, n_k = (n, k)), IMPOSSIBLE_PARAMS
-            return (get_tau(s,l), (s,l))
+            return (tau, (s,l))
 
     @staticmethod
     def _suitable_parameters_from_tau(tau, C = None, n_k = None):

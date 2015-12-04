@@ -30,7 +30,7 @@ from sage.modules.free_module_element import vector
 from sage.coding.decoder import Decoder
 from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg
 from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
-from sage.coding.guruswami_sudan.utils import (list_decoding_range,
+from sage.coding.guruswami_sudan.utils import (johnson_radius,
                                                gilt,
                                                solve_degree2_to_integer_range,
                                                find_minimal_satisfiable)
@@ -135,11 +135,19 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
             (1, 2)
 
-        Another one with a bigger tau::
+        Another example with a bigger decoding radius::
 
             sage: tau, n, k = 118, 250, 70
             sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
             (47, 89)
+
+        Choosing a decoding radius which is too large results in an errors::
+
+            sage: tau = 200
+            sage: codes.decoders.GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k))
+            Traceback (most recent call last):
+            ...
+            ValueError: The decoding radius must be less than the Johnson radius (which is 118.66)
         """
         if C is not None and n_k is not None:
             raise ValueError("Please provide only the code or its length and dimension")
@@ -150,17 +158,28 @@ class GRSGuruswamiSudanDecoder(Decoder):
         elif n_k is not None and not isinstance(n_k, tuple):
             raise ValueError("n_k has to be a tuple")
         elif n_k is not None:
-            n, k = n_k[0], n_k[1]
-        (firsts, firstl) = GRSGuruswamiSudanDecoder._suitable_parameters_from_tau(tau, n_k = (n, k))
+            n, k = n_k
+
+        johnson = johnson_radius(n, n - k + 1)
+        if tau >= johnson:
+            raise ValueError("The decoding radius must be less than the Johnson radius (which is %.2f"
+                             % float(johnson))
+
+        # We start with l=1 and check if a satisfiable s can be chosen. We keep
+        # increasing l by 1 until this is the case. The governing equation is
+        #   s*(s+1)/2 * n < (l+1)*s*(n-tau) - l*(l+1)/2*(k-1)
+        # See [GS99]
         def try_l(l):
             (mins,maxs) = solve_degree2_to_integer_range(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
             if maxs > 0 and maxs >= mins:
                 return max(1, mins)
             else:
                 return None
-        l = find_minimal_satisfiable(try_l, firstl)
-        s = try_l(l)
-        assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau, s, l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
+        s, l = None, 0
+        while s is None:
+            l += 1
+            s = try_l(l)
+
         return (s, l)
 
     @staticmethod
@@ -206,7 +225,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
                 return -1
             return gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
         if l==None and s==None:
-            tau = list_decoding_range(n,n-k+1)[1]
+            tau = gilt(johnson_radius(n, n - k + 1))
             return (tau, GRSGuruswamiSudanDecoder.best_parameters_given_tau(tau, n_k = (n, k)))
         if l!=None and s!=None:
             return (get_tau(s,l), (s,l))

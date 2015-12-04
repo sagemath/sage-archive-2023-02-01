@@ -223,3 +223,27 @@ def module_fractional_weight_permutation(weights):
     res_uniq = sorted(res_map.keys())
     return Permutation(list(flatten_once([ res_map[res] for res in res_uniq ])))
 
+def LP(v, weights=None):
+    """If v is a vector of polynomials, return the leading position of v using
+    <_w where w is the weights vector (0 is assumed as all weights if none
+    given). In case of tie, the highest position is given"""
+    if not weights:
+        weights=[0]*len(v)
+    best=-1
+    bestp=-1
+    for p in range(0,len(v)):
+        if not v[p].is_zero():
+            vpdeg = v[p].degree() + weights[p]
+            if vpdeg >= best:
+                best=vpdeg
+                bestp = p
+    if best==-1:
+        return -1
+    else:
+        return bestp
+
+def LT(v, weights=None):
+    """If v is a vector of polynomials, return the leading term of v using <_w
+    where w is the weights vector (0 is assumed as all weights if none
+    given)."""
+    return v[LP(v, weights=weights)]

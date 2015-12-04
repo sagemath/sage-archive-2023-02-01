@@ -6805,29 +6805,83 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, ascend=True):
+    def weak_popov_form(self, ascend=None, transformation=None):
         """
-        This function is deprecated. "ascend" will produce an output similar to before (A list [W,N] only missing d), but, as before, will not result in sorting.
+        Returns a matrix in weak Popov form which is row space-equivalent to
+        the input matrix, if the input is over `k[x]` or `k(x)`.
+
+        A matrix is in weak Popov form if the (row-wise) leading positions of
+        the non-zero rows are all different. The leading position of a row is
+        the right-most position whose entry has maximal degree of the entries in
+        that row.
+
+        .. WARNING::
+
+            This function currently does **not** compute the weak Popov form of a
+            matrix, but rather a row reduced form (which is a slightly weaker
+            requirement). See :meth:`row_reduced_form`.
+
+        INPUT:
+
+        - `transformation` - A boolean (default: `True`). If this is set to
+          ``True``, the transformation matrix `U` will be returned as well: this
+          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
+          where `W` is the output matrix.
+
+          Warning: the default of `transformation` will soon be set to ``False``,
+          see Ticket #16896. Until then, this function will print a deprecation
+          warning as long as `transformation` was not explicitly set to ``True``
+          or ``False``.
+
+        - `ascend` - Deprecated. A boolean (default: `True`). Has the same
+          effect as `transformation`. Currently, setting either to `False` will
+          disable returning `U`.
         """
         from sage.misc.superseded import deprecation
-        deprecation(16888, 'You can just call row_reduced_form() instead')
-        return self.row_reduced_form(ascend)
+        depr_message = """This function currently does *not* compute a weak
+        Popov form, but rather a row reduced form. This function will soon be
+        fixed (see Ticket #16742)."""
+        deprecation(16888, depr_message)
+        rr_transf = False
+        if ascend is None and transformation is None:
+            transformation_message = """The `transformation` argument will soon
+            change to default value to `False` from the current default value
+            `True`. Simultaneously, the `ascend` parameter will be removed (see
+            Ticket #16742)."""
+            deprecation(16888, transformation_message)
+            rr_transf = True
+        elif ascend == True or transformation == True:
+            rr_transf = True
+        return self.row_reduced_form(rr_transf)
 
-    def row_reduced_form(self,transformation=False):
-        """
+    def row_reduced_form(self, transformation=False):
+        r"""
         This function computes a row reduced form of a matrix over a rational
-        function field `k(x)`, for `k` a field.
+        function field `k(x)`, where `k` is a field.
+
+        A matrix `M` over `k(x)` is row reduced if the (row-wise) leading term
+        matrix of `dM` has the same rank as `M`, where `d \in k[x]` is a minimal
+        degree polynomial such that `dM` is in `k[x]`. The (row-wise) leading
+        term matrix of a polynomial matrix `M_0` is matrix over `k` whose
+        `(i,j)`'th entry is the `x^{d_i}` coefficient of `M_0[i,j]`, where `d_i`
+        is the greatest degree among polynomials in the `i`'th row of `M_0`.
+
+        INPUT:
+
+        - `transformation` - A boolean (default: ``False``). If this is set to
+          ``True``, the transformation matrix `U` will be returned as well: this
+          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
+          where `W` is the output matrix.
 
         OUTPUT:
 
-        - `W` - a matrix over `k(x)` giving a row reduced form of self
-        - `transformation` - A boolean (default: False). If this boolean is set to True a second matrix is output (see OUTPUT).
-        
+        - `W` - a matrix over `k(x)` giving a row reduced form of ``self``.
+
         EXAMPLES:
 
-        The routine expects matrices over the rational function field, but
-        other examples below show how one can provide matrices over the ring
-        of polynomials (whose quotient field is the rational function field).
+        The routine expects matrices over the rational function field. One can
+        also provide matrices over the ring of polynomials (whose quotient field
+        is the rational function field).
 
         ::
 
@@ -6838,9 +6892,9 @@ cdef class Matrix(matrix1.Matrix):
             [(2*t + 1)/t]
             [          0]
 
-        If `self` is an `n x 1` matrix with at least one non-zero entry, `W` has
-        a single non-zero entry and that entry is a scalar multiple of the
-        greatest-common-divisor of the entries of `self`.
+        If ``self`` is an `n \times 1` matrix with at least one non-zero entry,
+        `W` has a single non-zero entry and that entry is a scalar multiple of
+        the greatest-common-divisor of the entries of ``self``.
 
         ::
 
@@ -6852,7 +6906,7 @@ cdef class Matrix(matrix1.Matrix):
             [t]
 
         We check that the output is the same for a matrix `M` if its entries are
-        rational functions intead of polynomials. We also check that the type of
+        rational functions instead of polynomials. We also check that the type of
         the output follows the documentation. See #9063
 
         ::
@@ -6867,7 +6921,7 @@ cdef class Matrix(matrix1.Matrix):
             True
 
         The following is the first half of example 5 in [H] *except* that we
-        have transposed `self`; [H] uses column operations and we use row.
+        have transposed ``self``; [H] uses column operations and we use row.
 
         ::
 
@@ -6877,7 +6931,7 @@ cdef class Matrix(matrix1.Matrix):
             [      t    -t^2]
             [t^2 - 2       t]
 
-        The next example demonstrates what happens when `self` is a zero matrix.
+        The next example demonstrates what happens when ``self`` is a zero matrix.
 
         ::
 
@@ -6888,7 +6942,9 @@ cdef class Matrix(matrix1.Matrix):
             [0 0]
             [0 0]
 
-        In the following example, `self` has more rows than columns.
+        In the following example, ``self`` has more rows than columns. Note also
+        that the output is row reduced but not in weak Popov form (see
+        :meth:`weak_popov_form`).
 
         ::
 
@@ -6898,8 +6954,8 @@ cdef class Matrix(matrix1.Matrix):
             [t t t]
             [0 0 t]
 
-        The next example shows that M must be a matrix with
-        coefficients in a rational function field `k(t)`.
+        The next example shows that `M` must be a matrix with coefficients in
+        `k(t)` or in `k[t]` for some field `k`.
 
         ::
 
@@ -6907,25 +6963,35 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.row_reduced_form()
             Traceback (most recent call last):
             ...
-            TypeError: the coefficients of M must lie in a univariate
-            polynomial ring
+            TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
+
+            sage: PZ.<y> = ZZ[]
+            sage: M = matrix([[y,0],[1,y]])
+            sage: M.row_reduced_form()
+            Traceback (most recent call last):
+            ...
+            TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
 
         The last example shows the usage of the transformation parameter.
-        
+
         ::
+
             sage: Fq.<a> = GF(2^3)
             sage: Fx.<x> = Fq[]
             sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
-            sage: A.row_reduced_form(transformation=True)
+            sage: W,U = A.row_reduced_form(transformation=True); W,U
             (
             [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
             [                    x^3                   a*x^4], [      0                 1]
             )
-
+            sage: U*W == A
+            True
+            sage: U.is_invertible()
+            True
 
         NOTES:
 
-         - For consistency with LLL and other algorithms in sage, we have opted
+         - For consistency with LLL and other algorithms in Sage, we have opted
            for row operations; however, references such as [H] transpose and use
            column operations.
 
@@ -6936,7 +7002,6 @@ cdef class Matrix(matrix1.Matrix):
           425--445.
 
         .. [K] T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
-
 
         """
         from sage.matrix.matrix_misc import row_reduced_form
@@ -14673,4 +14738,4 @@ def _jordan_form_vector_in_difference(V, W):
     for v in V:
         if v not in W_space:
             return v
-    return None
+    return None 

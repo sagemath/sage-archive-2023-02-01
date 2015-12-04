@@ -29,7 +29,7 @@ def row_iterator(A):
 
 def weak_popov_form(M,ascend=True):
     from sage.misc.superseded import deprecation
-    deprecation(16888, 'You can just call row_reduced_form() instead')
+    deprecation(16888, 'You should call row_reduced_form() instead')
     return row_reduced_form(M)
 
 def row_reduced_form(M,transformation=False):
@@ -39,25 +39,21 @@ def row_reduced_form(M,transformation=False):
 
     INPUT:
 
-     - `M` - matrix
-     - `transformation` - A boolean (default: False). If this boolean is set to True a second matrix is output (see OUTPUT).
+     - `M` - a matrix over `k(x)` or `k[x]` for `k` a field.
+     - `transformation` - A boolean (default: `False`). If this boolean is set to `True` a second matrix is output (see OUTPUT).
      
     OUTPUT:
 
-    If transformation is not set, this function will output `W` the row reduced form of M.
+    If `transformation` is `False`, the output is `W`, a row reduced form of `M`.
     
-    If transformation is set to True, this function will output a 2-tuple `(W,N)` consisting of two matrices over `k(x)`:
+    If `transformation` is `True`, this function will output a pair `(W,N)` consisting of two matrices over `k(x)`:
 
-    1. `W` - matrix giving a row reduced form of M
-    2. `N` - matrix representing row operations used to transform
-       `M` to `W`
-
-    `N` is invertible over `k(x)`. These matrices satisfy the relation
-    `N*M = W`.
+    1. `W` - a row reduced form of `M`.
+    2. `N` - an invertible matrix over `k(x)` satisfying `NW = M`.
 
     EXAMPLES:
 
-    The routine expects matrices over the rational function field, but
+    The fuction expects matrices over the rational function field, but
     other examples below show how one can provide matrices over the ring
     of polynomials (whose quotient field is the rational function field).
 
@@ -98,8 +94,8 @@ def row_reduced_form(M,transformation=False):
     else:
         R = R0
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    if not is_PolynomialRing(R):
-        raise TypeError("the coefficients of M must lie in a univariate polynomial ring")
+    if not is_PolynomialRing(R) or not R.base_ring().is_field():
+        raise TypeError("the coefficients of M must lie in a univariate polynomial ring over a field")
 
     t = R.gen()
 

@@ -1,0 +1,26 @@
+Allow overriding the call to PtyProcess.spawn()
+
+--- a/pexpect/pty_spawn.py	2015-12-04 10:50:32.000000000 +0100
++++ b/pexpect/pty_spawn.py	2015-12-04 10:55:13.131695441 +0100
+@@ -290,8 +290,8 @@
+             self.args = [a if isinstance(a, bytes) else a.encode(self.encoding)
+                          for a in self.args]
+ 
+-        self.ptyproc = ptyprocess.PtyProcess.spawn(self.args, env=self.env,
+-                                                   cwd=self.cwd, **kwargs)
++        self.ptyproc = self.spawnpty(self.args, env=self.env,
++                                     cwd=self.cwd, **kwargs)
+ 
+         self.pid = self.ptyproc.pid
+         self.child_fd = self.ptyproc.fd
+@@ -300,6 +300,10 @@
+         self.terminated = False
+         self.closed = False
+ 
++    def spawnpty(self, args, **kwargs):
++        '''Spawn a pty and return an instance of PtyProcess.'''
++        return ptyprocess.PtyProcess.spawn(args, **kwargs)
++
+     def close(self, force=True):
+         '''This closes the connection with the child application. Note that
+         calling close() more than once is valid. This emulates standard Python

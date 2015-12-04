@@ -1,0 +1,54 @@
+commit a3d447ef1a1755f59078b172696abf7ca346de20
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Fri Dec 4 14:45:02 2015 +0100
+
+    Read a lot more bytes at once to minimize calls to new_data()
+
+diff --git a/pexpect/expect.py b/pexpect/expect.py
+index 1c7a163..1ff778a 100644
+--- a/pexpect/expect.py
++++ b/pexpect/expect.py
+@@ -74,7 +74,7 @@ class Expecter(object):
+         spawn.match = None
+         spawn.match_index = None
+     
+-    def expect_loop(self, timeout=-1):
++    def expect_loop(self, timeout):
+         """Blocking expect"""
+         spawn = self.spawn
+         from . import EOF, TIMEOUT
+@@ -93,8 +93,33 @@ class Expecter(object):
+                 # No match at this point
+                 if (timeout is not None) and (timeout < 0):
+                     return self.timeout()
++
+                 # Still have time left, so read more data
+-                incoming = spawn.read_nonblocking(spawn.maxread, timeout)
++
++                # To avoid that this loop is dominated by calls to
++                # new_data(), we read as much bytes as we can with
++                # timeout=0.
++                try:
++                    incoming = spawn.read_nonblocking(spawn.maxread, 0)
++                except TIMEOUT:
++                    # No data ready to read right now. Read once with
++                    # actual timeout.
++                    incoming = spawn.read_nonblocking(spawn.maxread, timeout)
++                else:
++                    # Continue reading with timeout=0, but still check
++                    # the time.
++                    while True:
++                        bytes_to_read = spawn.maxread - len(incoming)
++                        if bytes_to_read <= 0:
++                            break
++                        if timeout is not None:
++                            if time.time() >= end_time:
++                                break
++                        try:
++                            incoming += spawn.read_nonblocking(bytes_to_read, 0)
++                        except (TIMEOUT, EOF):
++                            break
++
+                 if self.spawn.delayafterread is not None:
+                     time.sleep(self.spawn.delayafterread)
+                 if timeout is not None:

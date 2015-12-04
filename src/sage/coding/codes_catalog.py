@@ -28,6 +28,8 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ReedSolomonCode, TernaryGolayCode,
                                 ToricCode, TrivialCode, WalshCode)
 
+from grs import GeneralizedReedSolomonCode
+
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
 
 import decoders_catalog as decoders

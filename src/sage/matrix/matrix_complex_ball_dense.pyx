@@ -1,5 +1,5 @@
 r"""
-Arbitrary Precision Complex Interval Matrices using Arb
+Arbitrary precision complex ball matrices using Arb
 
 AUTHORS:
 

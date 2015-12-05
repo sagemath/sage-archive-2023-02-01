@@ -1,5 +1,56 @@
 """
 Assumptions
+
+The ``GenericDeclaration`` class provides assumptions about a symbol or
+function in verbal form. Such assumptions can be made using the :meth:`assume`
+function in this module, which also can take any relation of symbolic
+expressions as argument. Use :meth:`forget()` to clear all assumptions.
+Creating a variable with a specific domain is equivalent with making an
+assumption about it.
+
+There is only rudimentary support for consistency and satisfiability checking
+in Sage. Assumptions are used both in Maxima and Pynac to support or refine
+some computations. In the following we show how to make and query assumptions.
+Please see the respective modules for more practical examples.
+
+EXAMPLES:
+
+The default domain of a symbolic variable is the complex plain::
+
+    sage: var('x')
+    x
+    sage: x.is_real()
+    False
+    sage: assume(x,'real')
+    sage: x.is_real()
+    True
+    sage: forget()
+    sage: x.is_real()
+    False
+
+Here is the list of acceptable features::
+
+    sage: maxima('features')
+    [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+
+Set positive domain using a relation::
+
+    sage: assume(x>0)
+    sage: x.is_positive()
+    True
+    sage: x.is_real()
+    True
+    sage: assumptions()
+    [x > 0]
+
+Assumptions are added and in some cases checked for consistency::
+
+    sage: assume(x>0)
+    sage: assume(x<0)
+    Traceback (most recent call last):
+    ...
+    ValueError: Assumption is inconsistent
+    sage: forget()
 """
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, RR, CC
@@ -11,8 +62,8 @@ class GenericDeclaration(SageObject):
     """
     This class represents generic assumptions, such as a variable being
     an integer or a function being increasing. It passes such
-    information to maxima's declare (wrapped in a context so it is able
-    to forget).
+    information to Maxima's declare (wrapped in a context so it is able
+    to forget) and to Pynac.
 
     INPUT:
 

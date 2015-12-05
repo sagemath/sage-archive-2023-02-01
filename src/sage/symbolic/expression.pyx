@@ -1907,6 +1907,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (x*x.conjugate()).is_real()
             False
+
+        Assumption of real has the same effect as setting the domain::
+
+            sage: forget()
+            sage: assume(x, 'real')
+            sage: x.is_real()
+            True
+            sage: forget()
         """
         return self._gobj.info(info_real)
 
@@ -1930,6 +1938,18 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: (t0*x).is_positive()
             False
+
+        ::
+
+            sage: forget()
+            sage: assume(x>0)
+            sage: x.is_positive()
+            True
+            sage: f = function('f')(x)
+            sage: assume(f>0)
+            sage: f.is_positive()
+            True
+            sage: forget()
         """
         return self._gobj.info(info_positive)
 
@@ -1970,6 +1990,14 @@ cdef class Expression(CommutativeRingElement):
             sage: _ = var('n', domain='integer')
             sage: n.is_integer()
             True
+
+        Assumption of integer has the same effect as setting the domain::
+
+            sage: forget()
+            sage: assume(x, 'integer')
+            sage: x.is_integer()
+            True
+            sage: forget()
         """
         return self._gobj.info(info_integer)
 

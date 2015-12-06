@@ -15,7 +15,7 @@ done
 # be removed in arb >= 2.8 when it is released
 export EXTRA_SHARED_FLAGS=$LDFLAGS
 
-./configure --prefix="$SAGE_LOCAL" --with-flint="$SAGE_LOCAL" \
+./configure --disable-static --prefix="$SAGE_LOCAL" --with-flint="$SAGE_LOCAL" \
     --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring arb."

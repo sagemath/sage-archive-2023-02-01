@@ -354,3 +354,21 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 <type 'tuple'>
             """
             return self.value
+
+        def __eq__(self, other):
+            """
+            Check equality.
+
+            EXAMPLES::
+
+                sage: A = cartesian_product([ZZ, ZZ])
+                sage: elt = A((1,1))
+                sage: (1, 1) == elt
+                True
+                sage: elt == (1, 1)
+                True
+            """
+            if isinstance(other, tuple):
+                return self.value == other
+            return super(self, CartesianProduct.Element).__eq__(self, other)
+

@@ -121,7 +121,10 @@ def simplify_sqrt_real(expr):
         x = SR(the_sqrts[i])
         argum = x.operands()[0] # the argument of sqrt
         den = argum.denominator()
-        if den != 1:  # the argument of sqrt is a fraction
+        if not (den == 1):  # the argument of sqrt is a fraction
+            # NB: after #19312 (integrated in Sage 6.10.beta7), the above
+            # cannot be written as
+            #    if den != 1!:
             num = argum.numerator()
             if num < 0 or den < 0:
                 x = sqrt(-num) / sqrt(-den)  # new equivalent expression for x

@@ -701,26 +701,3 @@ class TopologicalManifoldPoint(Element):
 
         """
         return hash(self._manifold)
-
-    def _test_pickling(self, **options):
-        r"""
-        Test pickling.
-
-        This test is weaker than
-        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
-        it does not require ``loads(dumps(self)) == self``.
-        It however checks that ``loads(dumps(self))`` proceeds without any
-        error and results in an object that is a manifold point.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: p = M((1,2), chart=X)
-            sage: p._test_pickling()
-
-        """
-        tester = self._tester(**options)
-        from sage.misc.all import loads, dumps
-        bckp = loads(dumps(self))
-        tester.assertEqual(type(bckp), type(self))

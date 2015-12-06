@@ -10,4 +10,6 @@ Topological manifolds
 
    sage/manifolds/subset
 
-   sage/manifolds/chart
+   chart
+
+   scalarfield

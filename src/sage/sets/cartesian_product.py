@@ -131,6 +131,26 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         return "The cartesian product of %s"%(self._sets,)
 
+    def __contains__(self, x):
+        """
+        Check if ``x`` is contained in ``self``.
+
+        EXAMPLES::
+
+            sage: C = cartesian_product([range(5), range(5)])
+            sage: (1, 1) in C
+            True
+            sage: (1, 6) in C
+            False
+        """
+        if isinstance(x, self.Element):
+            if x.parent() == self:
+                return True
+        elif not isinstance(x, tuple):
+            return False
+        return ( len(x) == len(self._sets)
+                 and all(elt in self._sets[i] for i,elt in enumerate(x)) )
+
     def cartesian_factors(self):
         """
         Return the cartesian factors of ``self``.

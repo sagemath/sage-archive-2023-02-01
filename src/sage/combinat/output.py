@@ -252,7 +252,7 @@ def tex_from_skew_array(array, with_lines=False, align='b'):
     principe, be anything but probably should be strings or integers of similar
     width. A row consisting completely of ``None``'s is allowed.
 
-    INPUTS:
+    INPUT:
 
     - ``array`` -- The array
 

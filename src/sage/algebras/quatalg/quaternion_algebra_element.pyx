@@ -486,7 +486,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: 1/theta == theta.conjugate()/theta.reduced_norm()
             True
         """
-        return self.reduced_norm().__invert__() * self.conjugate()
+        return ~self.reduced_norm() * self.conjugate()
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
@@ -531,7 +531,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: theta._div_(theta) == 1
             True
         """
-        return self * right.__invert__()
+        return self * ~right
 
     def reduced_characteristic_polynomial(self, var='x'):
         """

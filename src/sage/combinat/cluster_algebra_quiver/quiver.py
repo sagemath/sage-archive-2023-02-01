@@ -391,7 +391,7 @@ class ClusterQuiver(SageObject):
             sage: hash(Q)  # indirect doctest
             16
         """
-        return self._M.__hash__()
+        return hash(self._M)
 
     def _repr_(self):
         """

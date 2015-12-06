@@ -293,7 +293,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
             Integer vectors of length 3 enumerated up to the action of Permutation Group with generators [(1,2,3)]
         """
-        return "Integer vectors of length %s enumerated up to the action of %s"%(str(self.n), self._permgroup.__repr__())
+        return "Integer vectors of length %s enumerated up to the action of %r"%(self.n, self._permgroup)
 
     def ambient(self):
         r"""

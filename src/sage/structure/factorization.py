@@ -342,7 +342,7 @@ class Factorization(SageObject):
             ...
             IndexError: list index out of range
         """
-        return self.__x.__getitem__(i)
+        return self.__x[i]
 
     def __setitem__(self, i, v):
         """

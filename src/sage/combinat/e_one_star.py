@@ -360,7 +360,7 @@ class Face(SageObject):
         elif v1 > v2:
             return 1
         else:
-            return t1.__cmp__(t2)
+            return cmp(t1, t2)
 
     def __hash__(self):
         r"""
@@ -692,7 +692,7 @@ class Patch(SageObject):
         r"""
         Returns the number of faces contained in the patch.
 
-        OUPUT:
+        OUTPUT:
 
             integer
 

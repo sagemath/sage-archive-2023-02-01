@@ -324,21 +324,6 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
-# To build Python on multi-arch Debian-based systems, we need
-# dpkg-architecture. Since we need dpkg-architecture to determine
-# whether we're on a multi-arch system and require dpkg-architecture,
-# we simply require it always on Debian-based systems.
-AC_CHECK_PROG(found_dpkg, dpkg, yes, no)
-AC_CHECK_PROG(found_dpkg_arch, dpkg-architecture, yes, no)
-if test x$found_dpkg = xyes && test x$found_dpkg_arch = xno
-then
-    AC_MSG_NOTICE([You do not have 'dpkg-architecture', which is required to build])
-    AC_MSG_NOTICE([Python on multi-arch Debian-based systems. This includes all recent])
-    AC_MSG_NOTICE([Debian and Ubuntu systems. You can install this with:])
-    AC_MSG_NOTICE([  sudo apt-get install dpkg-dev])
-    AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on Debian])
-fi
-
 
 ###############################################################################
 # Check C/C++/Fortran compilers
@@ -433,6 +418,11 @@ AC_CHECK_HEADER([complex.h],[],[
 # Check compiler characteristics
 ###############################################################################
 
+AX_CXX_COMPILE_STDCXX_11([], optional)
+if test $HAVE_CXX11 != 1; then
+    SAGE_MUST_INSTALL_GCC([your C++ compiler does not support C++11])
+fi
+
 AC_LANG(C)
 if test -z "$CC"; then
     SAGE_MUST_INSTALL_GCC([a C compiler is missing])
@@ -489,37 +479,9 @@ else
     # Add the .0 because Debian/Ubuntu gives version numbers like
     # 4.6 instead of 4.6.4 (Trac #18885)
     case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-3]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.4.
-            # * gcc-4.2.4 compiles a slow IML:
-            # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/Ux3t0dW2FSI
-            # * gcc-4.3 might have trouble building ATLAS:
-            # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/KCeFqQ_w2FE
+        [[0-3]].*|4.[[0-7]].*)
+            # Install our own GCC if the system-provided one is older than gcc-4.8.
             SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
-        4.4.*|4.5.*)
-            # GCC 4.4.x and GCC 4.5.x fail to compile PARI/GP on ia64:
-            # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46044
-            if test x`uname -m` = xia64; then
-                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION on ia64])
-                AC_MSG_NOTICE([gcc <= 4.5 fails to compile PARI/GP on ia64])
-            fi;;
-        4.6.*)
-            # Also install GCC if we have version 4.6.* which is
-            # known to give trouble within Sage:
-            # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
-            # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
-            # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52061
-            # * https://groups.google.com/d/msg/sage-release/xgmJ3nAcUOY/jH8OZjftYRsJ
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION])
-            AC_MSG_NOTICE([g++-4.6.* has known bugs affecting Sage]);;
-        4.7.0)
-            # GCC 4.7.0 is very broken on ia64, see
-            # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
-            # This is fixed in GCC 4.7.1.
-            if test x`uname -m` = xia64; then
-                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION on ia64])
-                AC_MSG_NOTICE([g++-4.7.0 has a serious bug on ia64])
-            fi;;
     esac
 
     # The following tests check that the version of the compilers

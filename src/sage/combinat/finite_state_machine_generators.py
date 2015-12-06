@@ -1537,7 +1537,7 @@ class TransducerGenerators(object):
             and use the parameter ``word_function`` to announce this.
 
             Similarly, we use ``w(-1, 0)`` to write an output word of
-            length `2` in one interation. Finally, we write ``f(0) == w()``
+            length `2` in one iteration. Finally, we write ``f(0) == w()``
             to write an empty word upon completion.
 
             Moreover, there is a cycle with output ``[0]`` which---from

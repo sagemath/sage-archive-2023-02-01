@@ -11,6 +11,10 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# The git head of arb now honors LDFLAGS; The following workaround can
+# be removed in arb >= 2.8 when it is released
+export EXTRA_SHARED_FLAGS=$LDFLAGS
+
 ./configure --prefix="$SAGE_LOCAL" --with-flint="$SAGE_LOCAL" \
     --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
@@ -18,7 +22,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE
+$MAKE verbose
 if [ $? -ne 0 ]; then
     echo >&2 "Error building arb."
     exit 1

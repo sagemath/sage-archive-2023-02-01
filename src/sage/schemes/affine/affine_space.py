@@ -299,7 +299,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
@@ -326,7 +326,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
@@ -348,7 +348,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.

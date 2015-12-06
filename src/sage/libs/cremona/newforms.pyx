@@ -147,7 +147,7 @@ cdef class ECModularSymbol:
             sage: [M(1/i) for i in range(1,10)]
             [0, 0, 0, 0, 4, 0, 2, 0, -2]
 
-        TESTS (see :trac: `11211`)::
+        TESTS (see :trac:`11211`)::
 
             sage: from sage.libs.cremona.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')

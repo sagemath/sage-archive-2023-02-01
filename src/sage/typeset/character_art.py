@@ -279,7 +279,7 @@ class CharacterArt(SageObject):
             warnings.warn("the console size is smaller than the pretty" +
                 "representation of the object")
         top, bottom = self.split(f_split)
-        return (top * self.empty()).__repr__() + "\n" + bottom.__repr__()
+        return repr(top * self.empty()) + "\n" + repr(bottom)
 
     def split(self, pos):
         r"""

@@ -419,8 +419,8 @@ In the present case, `P=y^2-y+x`. We formally differentiate this
 equation with respect to `z`::
 
     sage: x, y, z = var('x, y, z')
-    sage: P = function('P', x, y)
-    sage: C = function('C', z)
+    sage: P = function('P')(x, y)
+    sage: C = function('C')(z)
     sage: equation =  P(x=z, y=C) == 0
     sage: diff(equation, z)
     D[0](C)(z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
@@ -937,7 +937,7 @@ Set comprehension and iterators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We will now show some of the possibilities offered by ``Python`` for
-constructing (and interating through) sets, with a notation that is
+constructing (and iterating through) sets, with a notation that is
 flexible and close to usual mathematical usage, and in particular the
 benefits this yields in combinatorics.
 
@@ -1106,7 +1106,7 @@ use the ``Sage`` function ``exists``::
     ....:         lambda p: not is_prime(mersenne(p)) )
     (True, 11)
 
-Alternatively, we could construct an interator on the counter-examples::
+Alternatively, we could construct an iterator on the counter-examples::
 
     sage: counter_examples = \
     ....:   (p for p in range(1000)
@@ -1283,7 +1283,7 @@ to creating an anonymous function::
     ....:                     Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
-Implementation of new interators
+Implementation of new iterators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is easy to construct new iterators, using the keyword ``yield``

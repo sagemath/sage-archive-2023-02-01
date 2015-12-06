@@ -705,7 +705,7 @@ class EllipticCurveLocalData(SageObject):
             sage: E.tamagawa_number(K.ideal(2))
             4
 
-        This is to show that the bug :trac: `11630` is fixed. (The computation of the class group would produce a warning)::
+        This is to show that the bug :trac:`11630` is fixed. (The computation of the class group would produce a warning)::
         
             sage: K.<t> = NumberField(x^7-2*x+177)
             sage: E = EllipticCurve([0,1,0,t,t])

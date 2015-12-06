@@ -129,9 +129,6 @@ Backtracking solvers and generic enumerated sets
 Low level enumerated sets
 -------------------------
 
-- :ref:`sage.combinat.permutation_nk`
-- :ref:`sage.combinat.split_nk`
-- :ref:`sage.combinat.choose_nk`
 - :ref:`sage.combinat.multichoose_nk`
 - :ref:`sage.combinat.gray_codes`
 

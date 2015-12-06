@@ -365,6 +365,11 @@ ext_modules = [
     Extension('sage.graphs.graph_decompositions.cutwidth',
               sources = ['sage/graphs/graph_decompositions/cutwidth.pyx']),
 
+    OptionalExtension('sage.graphs.graph_decompositions.tdlib',
+              sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
+              language="c++",
+              package = 'tdlib'),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
@@ -566,9 +571,7 @@ ext_modules = [
               depends = [SAGE_INC + "/ecm.h"]),
 
     Extension('sage.libs.lrcalc.lrcalc',
-              sources = ["sage/libs/lrcalc/lrcalc.pyx"],
-              include_dirs = [SAGE_INC + '/lrcalc/'],
-              libraries = ["lrcalc"]),
+              sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
     Extension('sage.libs.mwrank.mwrank',
               sources = ["sage/libs/mwrank/mwrank.pyx",
@@ -1092,9 +1095,7 @@ ext_modules = [
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.glpk_backend",
-              ["sage/numerical/backends/glpk_backend.pyx"],
-              language = 'c++',
-              libraries=["gmp", "glpk", "z"]),
+              ["sage/numerical/backends/glpk_backend.pyx"]),
 
     Extension("sage.numerical.backends.ppl_backend",
               ["sage/numerical/backends/ppl_backend.pyx"],
@@ -1105,9 +1106,7 @@ ext_modules = [
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.glpk_graph_backend",
-              ["sage/numerical/backends/glpk_graph_backend.pyx"],
-              language = 'c++',
-              libraries=["gmp", "glpk", "z"]),
+              ["sage/numerical/backends/glpk_graph_backend.pyx"]),
 
     OptionalExtension("sage.numerical.backends.gurobi_backend",
               ["sage/numerical/backends/gurobi_backend.pyx"],
@@ -1221,11 +1220,9 @@ ext_modules = [
               libraries=['ntl'],
               language = 'c++'),
 
-    OptionalExtension("sage.rings.complex_ball_acb",
-                      ["sage/rings/complex_ball_acb.pyx"],
-                      libraries=['arb', 'mpfi', 'mpfr'],
-                      include_dirs=[SAGE_INC + '/flint'],
-                      package='arb'),
+    Extension("sage.rings.complex_arb",
+              ["sage/rings/complex_arb.pyx"],
+              libraries=['mpfi', 'mpfr']),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
@@ -1294,11 +1291,9 @@ ext_modules = [
     Extension('sage.rings.real_interval_absolute',
               sources = ['sage/rings/real_interval_absolute.pyx']),
 
-    OptionalExtension("sage.rings.real_arb",
-                      ["sage/rings/real_arb.pyx"],
-                      libraries = ['arb', 'mpfi', 'mpfr'],
-                      include_dirs = [SAGE_INC + '/flint'],
-                      package = 'arb'),
+    Extension("sage.rings.real_arb",
+              ["sage/rings/real_arb.pyx"],
+              libraries = ['mpfi', 'mpfr']),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),

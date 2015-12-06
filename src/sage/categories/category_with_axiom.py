@@ -1560,9 +1560,6 @@ having read that far!
 Tests
 =====
 
-
-TESTS:
-
 .. NOTE::
 
     Quite a few categories with axioms are constructed early on during
@@ -1571,6 +1568,8 @@ TESTS:
     Sage. The following sequence of tests is designed to test the
     infrastructure from the ground up even in a partially broken
     Sage. Please don't remove the imports!
+
+TESTS:
 
 ::
 

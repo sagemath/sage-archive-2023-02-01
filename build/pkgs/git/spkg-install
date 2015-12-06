@@ -49,6 +49,9 @@ done
 export NO_FINK=1
 export NO_DARWIN_PORTS=1
 
+# Use softlinks instead of hardlinks (see Trac #19467)
+export NO_INSTALL_HARDLINKS=1
+
 # OSX Git with FSF GCC is broken, disable completely for now. See #17091
 if [ "$UNAME" = "Darwin" ]; then
     export NO_OPENSSL=1

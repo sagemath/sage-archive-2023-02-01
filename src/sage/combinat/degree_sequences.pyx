@@ -48,8 +48,9 @@ Definitions
 
 A sequence of integers `d_1,...,d_n` is said to be a *degree sequence* (or
 *graphic* sequence) if there exists a graph in which vertex `i` is of degree
-`d_i`. It is often required to be *non-increasing*, i.e. that `d_1 \geq ... \geq
-d_n`.
+`d_i`. It is often required to be *non-increasing*, i.e. that
+`d_1 \geq ... \geq d_n`. Finding a graph with given degree sequence is
+known as *graph realization problem*.
 
 An integer sequence need not necessarily be a degree sequence. Indeed, in a
 degree sequence of length `n` no integer can be larger than `n-1` -- the degree

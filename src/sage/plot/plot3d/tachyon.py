@@ -754,7 +754,7 @@ class Tachyon(WithEqualityById, SageObject):
             sage: t.sphere((0,-1,1), 1, 'mirror')
             sage: t.sphere((2,-1,1), 0.5, 'mirror')
             sage: t.sphere((2,1,1), 0.5, 'mirror')
-            sage: show(t)  # known bug (:trac:`7232`)
+            sage: show(t)  # known bug (trac #7232)
         """
         if texfunc and not isinstance(texfunc, Texfunc):
             texfunc = self.texfunc(int(texfunc), imagefile=imagefile)

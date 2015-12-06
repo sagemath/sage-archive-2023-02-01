@@ -4753,3 +4753,73 @@ def WienerArayaGraph():
     g.get_pos().pop(0)
     g.relabel()
     return g
+
+def _EllipticLinesProjectivePlaneScheme(k):
+    r"""
+    Pseudo-cyclic association scheme for action of `O(3,2^k)` on elliptic lines
+
+    The group `O(3,2^k)` acts naturally on the `q(q-1)/2` lines of `PG(2,2^k)`
+    skew to the conic preserved by it, see Sect. 12.7.B of [BCN89]_ and Sect. 6.D
+    in [BvL84]_. Compute the orbitals of this action and return them.
+
+    This is a helper for :func:`sage.graphs.generators.smallgraphs.MathonStronglyRegularGraph`.
+
+    INPUT:
+
+    - ``k`` (integer) -- the exponent of 2 to get the field size
+
+    TESTS::
+
+        sage: from sage.graphs.generators.smallgraphs import _EllipticLinesProjectivePlaneScheme
+        sage: _EllipticLinesProjectivePlaneScheme(2)
+        [
+        [1 0 0 0 0 0]  [0 1 1 1 1 0]  [0 0 0 0 0 1]
+        [0 1 0 0 0 0]  [1 0 1 1 0 1]  [0 0 0 0 1 0]
+        [0 0 1 0 0 0]  [1 1 0 0 1 1]  [0 0 0 1 0 0]
+        [0 0 0 1 0 0]  [1 1 0 0 1 1]  [0 0 1 0 0 0]
+        [0 0 0 0 1 0]  [1 0 1 1 0 1]  [0 1 0 0 0 0]
+        [0 0 0 0 0 1], [0 1 1 1 1 0], [1 0 0 0 0 0]
+        ]
+    """
+    from sage.libs.gap.libgap import libgap
+    from sage.matrix.constructor import matrix
+    from itertools import product
+    q = 2**k
+    g0 = libgap.GeneralOrthogonalGroup(3,q) # invariant form x0^2+x1*x2
+    g = libgap.Group(libgap.List(g0.GeneratorsOfGroup(),libgap.TransposedMat))
+    W = libgap.FullRowSpace(libgap.GF(q), 3)
+    l=sum(libgap.Elements(libgap.Basis(W)))
+    gp = libgap.Action(g,libgap.Orbit(g,l,libgap.OnLines),libgap.OnLines)
+    orbitals = gp.Orbits(list(product(gp.Orbit(1),gp.Orbit(1))),libgap.OnTuples)
+    mats = map(lambda o: map(lambda x: (int(x[0])-1,int(x[1])-1), o), orbitals)
+    return map(lambda x: matrix(q*(q-1)/2, lambda i,j: 1 if (i,j) in x else 0), mats)
+
+
+def MathonStronglyRegularGraph(t):
+    r"""
+    return one of Mathon's graphs on 784 vertices
+
+    INPUT:
+
+    - ``t`` (integer) -- the number of the graph, from 0 to 2.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
+        sage: G = MathonStronglyRegularGraph(0)        # long time
+        sage: G.is_strongly_regular(parameters=True)   # long time
+        (784, 243, 82, 72)
+
+    TESTS::
+
+        sage: G = graphs.MathonStronglyRegularGraph(1)        # long time
+        sage: G.is_strongly_regular(parameters=True)   # long time
+        (784, 270, 98, 90)
+        sage: G = graphs.MathonStronglyRegularGraph(2)        # long time
+        sage: G.is_strongly_regular(parameters=True)   # long time
+        (784, 297, 116, 110)
+
+    """
+    from sage.graphs.generators.families import MathonPseudocyclicMergingGraph
+    ES = _EllipticLinesProjectivePlaneScheme(3)
+    return MathonPseudocyclicMergingGraph(ES, t)

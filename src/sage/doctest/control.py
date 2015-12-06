@@ -1042,7 +1042,7 @@ def run_doctests(module, options=None):
     """
     Runs the doctests in a given file.
 
-    INPUTS:
+    INPUT:
 
     - ``module`` -- a Sage module, a string, or a list of such.
 

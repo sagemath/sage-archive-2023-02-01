@@ -1022,39 +1022,6 @@ class Tableau(ClonableList):
         """
         return self.to_word_by_row()
 
-    def attacking_pairs(self):
-        """
-        Deprecated in :trac:`15327`. Use ``T.shape().attacking_pairs()``
-        instead for a tableau ``T``.
-
-        Return a list of the attacking pairs of ``self``. A pair of
-        cells `(c, d)` of a Young tableau is said to be attacking if one
-        of the following conditions holds:
-
-        1. `c` and `d` lie in the same row with `c` strictly to the west
-           of `d`.
-
-        2. `c` is in the row immediately to the south of `d`, and `c`
-           lies strictly east of `d`.
-
-        This only depends on the shape of ``self``, not on the entries.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2,3],[2,5]])
-            sage: t.attacking_pairs()
-            doctest:...: DeprecationWarning: attacking_pairs() is deprecated. Instead, use shape().attacking_pairs()
-            See http://trac.sagemath.org/15327 for details.
-            [((0, 0), (0, 1)),
-             ((0, 0), (0, 2)),
-             ((0, 1), (0, 2)),
-             ((1, 0), (1, 1)),
-             ((1, 1), (0, 0))]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15327, 'attacking_pairs() is deprecated. Instead, use shape().attacking_pairs()')
-        return self.shape().attacking_pairs()
-
     def descents(self):
         """
         Return a list of the cells ``(i,j)`` such that

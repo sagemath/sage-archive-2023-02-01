@@ -975,7 +975,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(p=2) != SteenrodAlgebra(p=2, profile=[2,1])
             True
         """
-        return not self.__eq__(right)
+        return not self == right
 
     def profile(self, i, component=0):
         r"""
@@ -2176,7 +2176,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         """
         from sage.rings.all import GF
         p = self.prime()
-        if (GF(p).__contains__(x)):
+        if x in GF(p):
             return True
         if (isinstance(x, self.Element)
             and x.prime() == p):

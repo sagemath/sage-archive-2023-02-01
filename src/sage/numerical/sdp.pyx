@@ -997,7 +997,7 @@ cdef class SemidefiniteProgram(SageObject):
 
         EXAMPLE:
 
-        This example uses the simplex algorthm and prints information::
+        This example prints a matrix coefficient::
 
             sage: p = SemidefiniteProgram(solver="cvxopt")
             sage: x = p.new_variable()

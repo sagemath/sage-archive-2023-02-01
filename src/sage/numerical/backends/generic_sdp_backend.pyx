@@ -28,11 +28,29 @@ AUTHORS:
 cdef class GenericSDPBackend:
 
     cpdef base_ring(self):
+        """
+        The base ring
+
+        TESTS::
+
+            sage: from sage.numerical.backends.generic_sdp_backend import GenericSDPBackend
+            sage: GenericSDPBackend().base_ring()
+            Real Double Field
+        """
         from sage.rings.all import RDF
         return RDF
 
     cpdef zero(self):
-        return self.base_ring()(0)
+        """
+        Zero of the base ring
+
+        TESTS::
+
+            sage: from sage.numerical.backends.generic_sdp_backend import GenericSDPBackend
+            sage: GenericSDPBackend().zero()
+            0.0
+        """
+        return self.base_ring().zero()
 
     cpdef int add_variable(self, obj=0.0, name=None) except -1:
         """

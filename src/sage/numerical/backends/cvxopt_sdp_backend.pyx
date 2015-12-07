@@ -65,6 +65,24 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             self.set_sense(-1)
 
     def get_matrix(self):
+        """
+        Get a block of a matrix coefficient
+
+        EXAMPLE::
+
+            sage: p = SemidefiniteProgram(solver="cvxopt")
+            sage: x = p.new_variable()
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a1)
+            sage: b = p.get_backend()
+            sage: b.get_matrix()[0][0]
+            (
+                [-1.0 -2.0]
+            -1, [-2.0 -3.0]
+            )
+
+        """
         return self.coeffs_matrix
 
     cpdef int add_variable(self, obj=0.0,  name=None) except -1:

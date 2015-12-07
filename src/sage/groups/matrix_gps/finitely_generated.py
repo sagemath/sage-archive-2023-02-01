@@ -579,6 +579,13 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         MatrixGroup G over GF(7). The section "Irreducible Maximal Finite
         Integral Matrix Groups" in the GAP reference manual has more
         details.
+
+        TESTS::
+            sage: A= matrix(QQ, 2, [0, 1, 1, 0])
+            sage: B= matrix(QQ, 2, [1, 0, 0, 1])
+            sage: a, b= MatrixGroup([A, B]).as_permutation_group().gens()
+            sage: a.order(), b.order()
+            (2, 1)
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of

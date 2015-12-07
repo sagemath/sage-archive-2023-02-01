@@ -3,6 +3,11 @@
 from sage.libs.gmp.types cimport mpz_t
 from .types cimport ZZ_c, vec_ZZ_c, ZZX_c
 
+cdef extern from "ccobject.h":
+    void ZZX_swap "swap"(ZZX_c x, ZZX_c y)
+    void ZZX_from_str "_from_str<ZZX>"(ZZX_c* dest, char* s)
+    object ZZX_to_PyString "_to_PyString<ZZX>"(ZZX_c *x)
+
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct pair_ZZX_long_c "pair_ZZX_long":
         ZZX_c a
@@ -11,10 +16,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct vec_pair_ZZX_long_c "vec_pair_ZZX_long":
         pair_ZZX_long_c RawGet(long i)
         long length()
-
-    void ZZX_swap "swap"(ZZX_c x, ZZX_c y)
-    void ZZX_from_str "_from_str<ZZX>"(ZZX_c* dest, char* s)
-    object ZZX_to_PyString "_to_PyString<ZZX>"(ZZX_c *x)
 
     void ZZX_PseudoRem "PseudoRem"(ZZX_c x, ZZX_c a, ZZX_c b)
     ZZ_c ZZX_LeadCoeff "LeadCoeff"(ZZX_c x)

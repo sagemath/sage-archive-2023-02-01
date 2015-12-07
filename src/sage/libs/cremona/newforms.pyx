@@ -15,6 +15,7 @@ Modular symbols using eclib newforms
 include "sage/ext/interrupt.pxi"
 
 from sage.libs.gmp.mpq cimport mpq_numref
+from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.rational cimport Rational
 from sage.modular.all import Cusp

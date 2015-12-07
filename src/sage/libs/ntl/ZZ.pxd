@@ -2,12 +2,11 @@
 
 from .types cimport ZZ_c
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    void del_charstar(char*)
-
+cdef extern from "ccobject.h":
     void ZZ_from_str "_from_str<ZZ>"(ZZ_c* dest, char* s)
     object ZZ_to_PyString "_to_PyString<ZZ>"(ZZ_c *x)
 
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void ZZ_conv_from_int "conv"(ZZ_c x, int i)
     void ZZ_conv_to_int "conv"(int i, ZZ_c x)
     void ZZ_conv_from_long "conv"(ZZ_c x, long l)

@@ -2,9 +2,9 @@
 Assumptions
 
 The ``GenericDeclaration`` class provides assumptions about a symbol or
-function in verbal form. Such assumptions can be made using the :meth:`assume`
+function in verbal form. Such assumptions can be made using the :func:`assume`
 function in this module, which also can take any relation of symbolic
-expressions as argument. Use :meth:`forget()` to clear all assumptions.
+expressions as argument. Use :func:`forget` to clear all assumptions.
 Creating a variable with a specific domain is equivalent with making an
 assumption about it.
 
@@ -15,7 +15,7 @@ Please see the respective modules for more practical examples.
 
 EXAMPLES:
 
-The default domain of a symbolic variable is the complex plain::
+The default domain of a symbolic variable is the complex plane::
 
     sage: var('x')
     x

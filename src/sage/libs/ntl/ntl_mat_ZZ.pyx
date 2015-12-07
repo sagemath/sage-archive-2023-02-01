@@ -38,11 +38,11 @@ cdef inline ntl_ZZ make_ZZ_sig_off(ZZ_c* x):
 
 cdef inline ntl_mat_ZZ make_mat_ZZ(mat_ZZ_c* x):
     cdef ntl_mat_ZZ y
-    y = ntl_mat_ZZ(_INIT)
+    y = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
     y.x = x[0]
     del x
-    y.__nrows = mat_ZZ_nrows(&y.x);
-    y.__ncols = mat_ZZ_ncols(&y.x);
+    y.__nrows = y.x.NumRows()
+    y.__ncols = y.x.NumCols()
     return y
 
 # You must do sig_on() before calling this function
@@ -81,15 +81,13 @@ cdef class ntl_mat_ZZ(object):
             [7 8 9]
             ]
         """
-        if nrows == _INIT:
-            return
         cdef unsigned long i, j
         cdef ntl_ZZ tmp
         if nrows == 0 and ncols == 0:
             return
         nrows = int(nrows)
         ncols = int(ncols)
-        mat_ZZ_SetDims(&self.x, nrows, ncols)
+        self.x.SetDims(nrows, ncols)
         self.__nrows = nrows
         self.__ncols = ncols
         if v is not None:
@@ -500,12 +498,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_BKZ_FP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_FP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_BKZ_FP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_FP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -569,12 +567,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_BKZ_QP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_QP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_BKZ_QP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_QP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -638,12 +636,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_BKZ_QP1(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_QP1(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_BKZ_QP1_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_QP1_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -707,12 +705,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_BKZ_XD(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_XD(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_BKZ_XD_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_XD_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -776,12 +774,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_BKZ_RR(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_RR(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_BKZ_RR_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_BKZ_RR_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -845,12 +843,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_G_BKZ_FP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_FP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_G_BKZ_FP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_FP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -914,12 +912,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_G_BKZ_QP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_QP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_G_BKZ_QP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_QP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -983,12 +981,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_G_BKZ_QP1(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_QP1(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_G_BKZ_QP1_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_QP1_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -1052,12 +1050,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_G_BKZ_XD(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_XD(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_G_BKZ_XD_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_XD_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:
@@ -1121,12 +1119,12 @@ cdef class ntl_mat_ZZ(object):
         """
         if U is None:
             sig_on()
-            rank = mat_ZZ_G_BKZ_RR(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_RR(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         elif isinstance(U, ntl_mat_ZZ):
             sig_on()
-            rank = mat_ZZ_G_BKZ_RR_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            rank = mat_ZZ_G_BKZ_RR_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose))
             sig_off()
             return rank
         else:

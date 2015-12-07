@@ -92,7 +92,8 @@ cdef class ntl_zz_pContext_class(object):
             sage: n*n ## indirect doctest
             4
         """
-        zz_pContext_restore(&self.x)
+        self.x.restore()
+
 
 def ntl_zz_pContext( v ):
     """

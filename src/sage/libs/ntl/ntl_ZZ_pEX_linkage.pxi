@@ -17,7 +17,6 @@ AUTHOR:
 include "sage/ext/interrupt.pxi"
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
-from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_from_str
 from sage.libs.ntl.ntl_ZZ_pE cimport ntl_ZZ_pE

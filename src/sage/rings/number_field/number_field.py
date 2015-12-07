@@ -828,6 +828,8 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
         embeddings = [None] * len(polynomials)
     if latex_names is None:
         latex_names = [None] * len(polynomials)
+    elif isinstance(latex_names, str):
+        latex_names = ['%s_{%s}' % (latex_names, i) for i in range(len(polynomials))]
     if structures is None:
         structures = [None] * len(polynomials)
 

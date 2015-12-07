@@ -1461,12 +1461,6 @@ class Newform(ModularForm_abstract):
         If ``self`` is not an eigenform for `W_d`, a ``ValueError`` is
         raised.
 
-        .. NOTE::
-
-            Even though this method always returns `\pm 1`,
-            specifiying ``embedding`` may be necessary to compute
-            certain intermediate Gauss sums and square roots.
-
         .. SEEALSO:
 
             :meth:`atkin_lehner_action` (especially for the

@@ -9,15 +9,22 @@ AUTHORS:
 - Dinakar Muthiah (2015-05): initial version
 """
 
+#*****************************************************************************
+#       Copyright (C) 2015 Dinakar Muthiah <your email>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 #from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-#from sage.structure.parent import Parent
-#from sage.structure.element import Element
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.root_system.root_system import RootSystem
-from sage.combinat.crystals.braid_move_calculator import (BraidMoveCalculator,
-                                                          enhance_braid_move_chain)
+from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
 
 class PBWDatum(object):
     def __init__(self, parent, long_word, lusztig_datum):
@@ -27,10 +34,10 @@ class PBWDatum(object):
 
     def __repr__(self):
         return_str = "PBW Datum element of type {cartan_type} with ".format(
-            cartan_type=self.parent.cartan_type)
+                     cartan_type=self.parent.cartan_type)
         return_str += "long word {long_word} and Lusztig datum {lusztig_datum}".format(
-            long_word=self.long_word,
-            lusztig_datum=self.lusztig_datum) 
+                      long_word=self.long_word,
+                      lusztig_datum=self.lusztig_datum) 
         return return_str
 
     def __eq__(self, other_PBWDatum):
@@ -49,7 +56,7 @@ class PBWDatum(object):
 
     def is_equivalent_to(self, other_pbw_datum):
         r"""
-        Return whether ``self`` is equivalent to ``other_PBWDatum``.
+        Return whether ``self`` is equivalent to ``other_pbw_datum``.
         modulo the tropical Plucker relations.
 
         EXAMPLES::
@@ -119,6 +126,9 @@ class PBWDatum(object):
 
 
 class PBWData(object): # UniqueRepresentation?
+    """
+    Helper class for the set of PBW data.
+    """
     def __init__(self, cartan_type):
         self.cartan_type = CartanType(cartan_type)
         self.root_system = RootSystem(self.cartan_type)
@@ -129,11 +139,24 @@ class PBWData(object): # UniqueRepresentation?
         self._braid_move_calc = BraidMoveCalculator(self.weyl_group)
 
     def convert_to_new_long_word(self, pbw_datum, new_long_word):
-        assert pbw_datum.parent == self
+        """
+        Convert the PBW datum ``pbw_datum`` from its long word to
+        ``new_long_word``.
+
+        EXAMPLES::
+
+            sage: P = PBWData("A2")
+            sage: datum = P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2))
+            sage: datum
+            sage: datum.long_word
+            (2, 1, 2)
+            sage: datum.lusztig_datum
+            (0, 1, 0)
+        """
+        assert pbw_datum.parent is self
         chain = self._braid_move_calc.chain_of_reduced_words(pbw_datum.long_word,
                                                              new_long_word)
-        enhanced_braid_chain = enhance_braid_move_chain(chain,
-                                                        self.cartan_type)
+        enhanced_braid_chain = enhance_braid_move_chain(chain, self.cartan_type)
         new_lusztig_datum = compute_new_lusztig_datum(enhanced_braid_chain,
                                                       pbw_datum.lusztig_datum)
         return PBWDatum(self, new_long_word, new_lusztig_datum)
@@ -170,51 +193,50 @@ class PBWData(object): # UniqueRepresentation?
         """
         Return a reduced expression of the long word which begins with ``i``.
         """
-        s = self.weyl_group.simple_reflections()
+        si = self.weyl_group.simple_reflection(i)
         w0 = self.weyl_group.long_element()
-        return tuple([i] + (s[i] * w0).reduced_word())
-
-# Replaced by a doctest
-def convert_to_new_long_word_test():
-    P = PBWData(["A2"])
-    P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2))
-    assert P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2)).long_word == (2,1,2)
-    assert P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2)).lusztig_datum == (0,1,0)
-
+        return tuple([i] + (si * w0).reduced_word())
 
 #enhanced_braid_chain is an ugly data structure.
 def compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datum):
     """
-    Return the lusztig datum obtained by applying Tropical Plucker relations along
-    ``enhanced_braid_chain`` starting with ``initial_lusztig_datum``
+    Return the lusztig datum obtained by applying Tropical Plucker
+    relations along ``enhanced_braid_chain`` starting with
+    ``initial_lusztig_datum``.
 
     EXAMPLES::
 
-        sage: W = CoxeterGroup(CartanType(["A2"]))
+        sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+        sage: from sage.combinat.crystals.pbw_datum import enhance_braid_move_chain
+        sage: from sage.combinat.crystals.pbw_datum import compute_new_lusztig_datum
+        sage: W = CoxeterGroup("A2")
         sage: B = BraidMoveCalculator(W)
         sage: chain = B.chain_of_reduced_words((1,2,1),(2,1,2))
         sage: enhanced_braid_chain = enhance_braid_move_chain(chain,CartanType(["A",2]))
         sage: compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1))    
         (0, 1, 0)
+
+    TESTS::
+
+        sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+        sage: from sage.combinat.crystals.pbw_datum import enhance_braid_move_chain
+        sage: from sage.combinat.crystals.pbw_datum import compute_new_lusztig_datum
+        sage: ct = CartanType(['A', 2])
+        sage: W = CoxeterGroup(ct)
+        sage: B = BraidMoveCalculator(W)
+        sage: chain = B.chain_of_reduced_words((1,2,1), (2,1,2))
+        sage: enhanced_braid_chain = enhance_braid_move_chain(chain, ct)
+        sage: compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1)) == (0,1,0)
+        True
     """
     # Does not currently check that len(initial_lusztig_datum) is appropriate
     new_lusztig_datum = list(initial_lusztig_datum) #shallow copy
-    for _, interval_of_change, type_data in enhanced_braid_chain[1:]:
-        old_interval_datum = new_lusztig_datum.__getslice__(*interval_of_change)
+    for interval_of_change, type_data in enhanced_braid_chain[1:]:
+        a,b = interval_of_change
+        old_interval_datum = new_lusztig_datum[a:b]
         new_interval_datum = tropical_plucker_relation(type_data, old_interval_datum)
-        new_lusztig_datum.__setslice__(interval_of_change[0], interval_of_change[1],
-                                       new_interval_datum)
+        new_lusztig_datum[a:b] = new_interval_datum
     return tuple(new_lusztig_datum)
-
-# Replaced by a doctest
-def compute_new_lusztig_datum_test():
-    W = CoxeterGroup(CartanType(["A2"]))
-    B = BraidMoveCalculator(W)
-    chain = B.chain_of_reduced_words((1,2,1),(2,1,2))
-    enhanced_braid_chain = enhance_braid_move_chain(chain,CartanType(["A",2]))
-    #print compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1))
-    assert compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1)) == (0,1,0)
-
 
 # The tropical plucker relations
 def tropical_plucker_relation(a, lusztig_datum):
@@ -238,6 +260,13 @@ def tropical_plucker_relation(a, lusztig_datum):
         p = min(n[0], n[2])
         return (n[1]+n[2]-p, p, n[0]+n[1]-p)
     elif a == (-1, -2): # B2
+        p1 = min(n[0]+n[1], n[0]+n[3], n[2]+n[3])
+        p2 = min(2*n[0]+n[1], 2*n[0]+n[3], 2*n[2]+n[3])
+        return (n[1]+2*n[2]+n[3]-p2,
+                p2-p1,
+                2*p1-p2,
+                n[0]+n[1]+n[2]-p1)
+    elif a == (-2, -1): # C2
         # I believe this is condition (iii) in Proposition 5.2 of Joel's thesis.
         # (I'm pretty sure this is correct).
         p1 = min(n[0]+n[1], n[0]+n[3], n[2]+n[3])
@@ -246,13 +275,100 @@ def tropical_plucker_relation(a, lusztig_datum):
                 2*p1-p2,
                 p2-p1,
                 n[0]+2*n[1]+n[2]-p2)
-    elif a == (-2, -1): # C2
-        p1 = min(n[0]+n[1], n[0]+n[3], n[2]+n[3])
-        p2 = min(2*n[0]+n[1], 2*n[0]+n[3], 2*n[2]+n[3])
-        return (n[1]+2*n[2]+n[3]-p2,
-                p2-p1,
-                2*p1-p2,
-                n[0]+n[1]+n[2]-p1)
     elif a == (-3, -1): # G2
         raise NotImplementedError("type G2 not implemented")
+
+# Maybe we need to be more specific, and pass not the Cartan type, but the root lattice?
+# TODO: Move to PBW_data?
+def enhance_braid_move_chain(braid_move_chain, cartan_type):
+    r"""
+    Return a list of tuples that records the data of the long words in
+    ``braid_move_chain`` plus the data of the intervals where the braid moves
+    occur and the data of the off-diagonal entries of the `2 \times 2` Cartan
+    submatrices of each braid move.
+
+    INPUT:
+
+    - ``braid_move_chain`` -- a chain of reduced words in the Weyl group
+      of ``cartan_type``
+    - ``cartan_type`` -- a finite Cartan type
+
+    OUTPUT:
+
+    A list of 3-tuples
+    ``(reduced_word, interval_of_change, cartan_sub_matrix)`` where
+
+    - ``interval_of_change`` is the (half-open) interval of indices where
+      the braid move occurs; this is `None` for the first tuple
+    - ``cartan_sub_matrix`` is the off-diagonal entries of the `2 \times 2`
+      submatrix of the cartan matrix corresponding to the braid move;
+      this is `None` for the first tuple
+
+    For a matrix::
+
+        [2 a]
+        [b 2]
+
+    the ``cartan_sub_matrix`` is the pair ``(a, b)``.
+
+    TESTS::
+
+        sage: from sage.combinat.crystals.braid_move_calculator import enhance_braid_move_chain
+        sage: braid_chain = [(1, 2, 1, 3, 2, 1),
+        ....:                (1, 2, 3, 1, 2, 1),
+        ....:                (1, 2, 3, 2, 1, 2),
+        ....:                (1, 3, 2, 3, 1, 2),
+        ....:                (3, 1, 2, 3, 1, 2),
+        ....:                (3, 1, 2, 1, 3, 2),
+        ....:                (3, 2, 1, 2, 3, 2),
+        ....:                (3, 2, 1, 3, 2, 3)]
+        sage: enhanced_chain = enhance_braid_move_chain(braid_chain, CartanType(["A",5])) 
+        sage: enhanced_chain[0]
+        (None, None)
+        sage: enhanced_chain[7]
+        ((3, 6), (-1, -1))
+    """
+    cartan_matrix = cartan_type.cartan_matrix()
+    output_list = []
+    output_list.append( (None, None) )
+    previous_word = braid_move_chain[0]
+    # TODO - Optimize this by avoiding calls to diff_interval
+    # This likely could be done when performing chain_of_reduced_words
+    # Things in here get called the most (about 50x more than enhance_braid_move_chain)
+    for current_word in braid_move_chain[1:]:
+        interval_of_change = diff_interval(previous_word, current_word)
+        i = previous_word[interval_of_change[0]] - 1  # -1 for indexing
+        j = current_word[interval_of_change[0]] - 1  # -1 for indexing
+        cartan_sub_matrix = (cartan_matrix[i,j], cartan_matrix[j,i])
+        output_list.append( (interval_of_change, cartan_sub_matrix) )
+        previous_word = current_word
+    return output_list
+
+# TODO: Cythonize this if this is still necessary
+def diff_interval(list1, list2):
+    """
+    Return the smallest contiguous half-open interval [a,b) 
+    that contains the indices where ``list1`` and ``list2`` differ. 
+    Return ``None`` if the lists don't differ.
+
+    INPUT:
+
+    - ``list1``, ``list2`` -- two lists of the same length
+
+    .. NOTE::
+
+        The input is not checked for speed.
+
+    TESTS::
+
+        sage: diff_interval([1,2,3,4], [1,2,3,4])
+        sage: diff_interval([1,2,3,4], [1,3,2,4])
+        (1, 3)
+        sage: diff_interval([1,2,4,4,5], [1,3,45,6,3])
+        (1, 5)
+    """
+    L = [i for i,elt in enumerate(list1) if elt != list2[i]]
+    if not L:
+        return None
+    return (L[0], L[-1]+1)
 

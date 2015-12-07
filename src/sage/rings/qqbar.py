@@ -3615,7 +3615,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         if not all:
             return self ** ~ZZ(n)
         else:
-            root = QQbar(self)**(~ZZ(n))
+            root = QQbar(self) ** ~ZZ(n)
             zlist = [root]
             zeta = QQbar.zeta(n)
             for k in range(1, n):

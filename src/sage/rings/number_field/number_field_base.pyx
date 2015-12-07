@@ -275,6 +275,12 @@ cdef class NumberField(Field):
         Initialize the approximation of embeddings.
 
         This should be called only once.
+
+        TESTS::
+
+            sage: K.<a> = NumberField(x^3 - x^2 - x - 1, embedding=1)
+            sage: K._get_embedding_approx(0)   # indirect doctest
+            1.839286755214161?
         """
 
         if self._gen_approx is not None or self._embedding is None:

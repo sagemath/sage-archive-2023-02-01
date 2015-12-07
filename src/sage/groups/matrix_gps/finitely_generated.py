@@ -581,7 +581,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         details.
 
         TESTS::
-        
+
             sage: A= matrix(QQ, 2, [0, 1, 1, 0])
             sage: B= matrix(QQ, 2, [1, 0, 0, 1])
             sage: a, b= MatrixGroup([A, B]).as_permutation_group().gens()

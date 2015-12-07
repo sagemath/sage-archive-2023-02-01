@@ -1,4 +1,9 @@
-$(INST)/$(PYTHON)
+$(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+
+# simplegeneric does not strictly require setuptools, but it does try
+# to use setuptools if it is available. However, there is a problem
+# when setuptools is partially installed in a parallel build, see
+# Trac #19648. Adding the dependency avoids this problem.
 
 ----------
 All lines of this file are ignored except the first.

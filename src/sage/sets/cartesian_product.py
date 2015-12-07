@@ -367,8 +367,10 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 True
                 sage: elt == (1, 1)
                 True
+                sage: A((1, 2)) == elt
+                False
             """
             if isinstance(other, tuple):
                 return self.value == other
-            return super(self, CartesianProduct.Element).__eq__(self, other)
+            return super(CartesianProduct.Element, self).__eq__(other)
 

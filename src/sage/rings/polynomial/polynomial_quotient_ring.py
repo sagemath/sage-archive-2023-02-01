@@ -39,6 +39,7 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 
 from sage.categories.commutative_algebras import CommutativeAlgebras
 
+from sage.structure.category_object import normalize_names
 from sage.structure.parent_gens import ParentWithGens
 
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
@@ -167,7 +168,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     if names is None:
         names = tuple([x + 'bar' for x in ring.variable_names()])
     else:
-        names = sage.structure.parent_gens.normalize_names(ring.ngens(), names)
+        names = normalize_names(ring.ngens(), names)
     R = ring.base_ring()
     if isinstance(R, sage.rings.integral_domain.IntegralDomain):
         try:

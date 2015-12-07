@@ -134,7 +134,7 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import normalize_names
+from sage.structure.category_object import normalize_names
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
@@ -190,7 +190,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         sage: R = PowerSeriesRing(QQ, 10)
         Traceback (most recent call last):
         ...
-        ValueError: first letter of variable name must be a letter: 10
+        ValueError: variable name '10' does not start with a letter
 
     ::
 
@@ -367,10 +367,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         default_prec = name
     if not names is None:
         name = names
-    try:
-        name = normalize_names(1, name)
-    except TypeError:
-        raise TypeError("illegal variable name")
+    name = normalize_names(1, name)
 
     if name is None:
         raise TypeError("You must specify the name of the indeterminate of the Power series ring.")

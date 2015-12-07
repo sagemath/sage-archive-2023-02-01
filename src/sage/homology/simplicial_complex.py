@@ -164,7 +164,7 @@ from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 from sage.misc.latex import latex
 from sage.misc.misc import union
 from sage.matrix.constructor import matrix

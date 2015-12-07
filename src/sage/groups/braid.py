@@ -1903,8 +1903,8 @@ def BraidGroup(n=None, names='s'):
         else:
             names = list(names)
             n = len(names)
-    from sage.structure.parent import normalize_names
-    names = tuple(normalize_names(n, names))
+    from sage.structure.category_object import normalize_names
+    names = normalize_names(n, names)
     return BraidGroup_class(names)
 
 

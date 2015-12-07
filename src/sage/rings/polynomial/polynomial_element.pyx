@@ -84,6 +84,7 @@ from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
 from sage.rings.integral_domain import is_IntegralDomain
+from sage.structure.category_object cimport normalize_names
 from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.derivative import multi_derivative
@@ -3976,7 +3977,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Finite Field in b of size 401^52
 
         """
-        name = sage.structure.parent_gens.normalize_names(1, names)[0]
+        name = normalize_names(1, names)[0]
 
         from sage.rings.number_field.number_field_base import is_NumberField
         from sage.rings.finite_rings.finite_field_base import is_FiniteField

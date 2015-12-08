@@ -699,13 +699,13 @@ class ModularForm_abstract(ModuleElement):
 
         - ``max_imaginary_part`` - real number. Default: 0.
 
-        - ``max_asymp_coeffs`` - integer. Default: 40. 
+        - ``max_asymp_coeffs`` - integer. Default: 40.
 
         - ``conjugate`` -- deprecated synonym for ``embedding``.
 
         For more information on the significance of the last three arguments,
         see :mod:`~sage.lfunctions.dokchitser`.
-        
+
         .. note::
 
             If an explicit embedding is given, but this embedding is specified
@@ -729,7 +729,7 @@ class ModularForm_abstract(ModuleElement):
             0.0296568512531983
 
         As a consistency check, we verify that the functional equation holds::
-            
+
             sage: abs(L.check_functional_equation()) < 1.0e-20
             True
 
@@ -774,12 +774,12 @@ class ModularForm_abstract(ModuleElement):
             sage: L(1)
             0.0374412812685155
 
-        We check that #5262 is fixed::
+        We check that :trac:`5262` is fixed::
 
-            sage: E=EllipticCurve('37b2')
-            sage: h=Newforms(37)[1]
+            sage: E = EllipticCurve('37b2')
+            sage: h = Newforms(37)[1]
             sage: Lh = h.lseries()
-            sage: LE=E.lseries()
+            sage: LE = E.lseries()
             sage: Lh(1), LE(1)
             (0.725681061936153, 0.725681061936153)
             sage: CuspForms(1, 30).0.lseries().eps
@@ -889,7 +889,7 @@ class ModularForm_abstract(ModuleElement):
             sage: L = CuspForms(1, 16).0.symsquare_lseries(psi)
             sage: L(22)
             0.998407750967420 - 0.00295712911510708*I
-        
+
         An example with coefficients not in `\QQ`::
 
             sage: F = Newforms(1, 24, names='a')[0]
@@ -906,7 +906,7 @@ class ModularForm_abstract(ModuleElement):
             True
             sage: CuspForms(1, 12).0.symsquare_lseries(prec=1000)(22) # long time (20s)
             0.999645711124771397835729622033153189549796658647254961493709341358991830134499267117001769570658192128781135161587571716303826382489492569725002840546129937149159065273765309218543427544527498868033604310899372849565046516553245752253255585377793879866297612679545029546953895098375829822346290125161
-        
+
         AUTHORS:
 
         - Martin Raum (2011) -- original code posted to sage-nt
@@ -916,7 +916,7 @@ class ModularForm_abstract(ModuleElement):
         from sage.lfunctions.all import Dokchitser
         weight = self.weight()
         C = rings.ComplexField(prec)
-        if self.level() != 1: 
+        if self.level() != 1:
             raise NotImplementedError("Symmetric square L-functions only implemented for level 1")
 
         # compute the requested embedding
@@ -928,7 +928,7 @@ class ModularForm_abstract(ModuleElement):
         else:
             emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
 
-        if chi == None:
+        if chi is None:
             eps = 1
             N = 1
         else:
@@ -990,7 +990,7 @@ class ModularForm_abstract(ModuleElement):
         .. math::
 
             \langle f, f \rangle = \frac{(k-1)! L(\mathrm{Sym}^2 f, k)}{2^{2k-1} \pi^{k+1}}
-    
+
         INPUT:
 
         - ``embedding``: embedding of the coefficient field into `\RR` or
@@ -999,13 +999,13 @@ class ModularForm_abstract(ModuleElement):
         - ``prec`` (integer, default 53): precision in bits
 
         EXAMPLE::
-        
+
             sage: CuspForms(1, 16).0.petersson_norm()
             verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
             2.16906134759063e-6
 
         The Petersson norm depends on a choice of embedding::
-    
+
             sage: set_verbose(-2, "dokchitser.py") # disable precision-loss warnings
             sage: F = Newforms(1, 24, names='a')[0]
             sage: F.petersson_norm(embedding=0)

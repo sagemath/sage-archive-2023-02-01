@@ -4788,6 +4788,12 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: L.<beta> = NumberField(y^3 + y + alpha)
             sage: latex((beta + zeta)^3) # indirect doctest
             3 \zeta_{12} \beta^{2} + \left(3 \zeta_{12}^{2} - 1\right) \beta - \alpha + \zeta_{12}^{3}
+            sage: L.<b> = NumberField(y^3 + y + alpha, latex_name=r'\beta')
+            sage: latex((b + zeta)^3) # indirect doctest
+            3 \zeta_{12} \beta^{2} + \left(3 \zeta_{12}^{2} - 1\right) \beta - \alpha + \zeta_{12}^{3}
+            sage: M.<c> = L.extension(x^2 - 5, latex_name=r'\gamma')
+            sage: latex(zeta + c) # indirect doctest
+            \gamma + \zeta_{12}
         """
         K = self.number_field()
         R = K.base_field()[K.variable_name()]

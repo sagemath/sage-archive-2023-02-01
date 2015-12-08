@@ -779,6 +779,21 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
         Number Field in a1 with defining polynomial x^2 + 2 over its base field
         sage: K.base_field().base_field()
         Number Field in a2 with defining polynomial x^2 + 1
+        
+    LaTeX versions of generator names can be specified either as::
+         
+        sage: K = NumberField([x^3 - 2, x^3 - 3, x^3 - 5], names=['a', 'b', 'c'], latex_names=[r'\alpha', r'\beta', r'\gamma'])
+        sage: K.inject_variables(verbose=False)
+        sage: latex(a + b + c)
+        \alpha + \beta + \gamma
+            
+    or as::
+
+        sage: K = NumberField([x^3 - 2, x^3 - 3, x^3 - 5], names='a', latex_names=r'\alpha')
+        sage: K.inject_variables()
+        Defining a0, a1, a2
+        sage: latex(a0 + a1 + a2)
+        \alpha_{0} + \alpha_{1} + \alpha_{2}
 
     A bigger tower of quadratic fields::
 

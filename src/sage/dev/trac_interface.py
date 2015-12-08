@@ -23,7 +23,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re, time, datetime
+import os
+import re
+import time
+import datetime
+
+# import compatible with py2 and py3
+from six.moves.urllib.parse import urljoin
+from six.moves.urllib.request import pathname2url
+
+
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
 ALLOWED_FIELDS = {
         "author":           "Authors",
@@ -205,7 +214,6 @@ class TracInterface(object):
         # up SageDev's local_tickets(), it is not doing any good invalidation
         # and should never be relied on for something other than informational
         # messages
-        import os
         from saving_dict import SavingDict
         from sage.env import DOT_SAGE
         ticket_cache_file = self._config.get('ticket_cache', os.path.join(DOT_SAGE,'ticket_cache'))
@@ -481,8 +489,7 @@ class TracInterface(object):
         if self.__anonymous_server_proxy is None:
             from sage.env import TRAC_SERVER_URI
             server = self._config.get('server', TRAC_SERVER_URI)
-            import urlparse
-            url = urlparse.urljoin(server, 'xmlrpc')
+            url = urljoin(server, 'xmlrpc')
             from digest_transport import DigestTransport
             transport = DigestTransport()
             from xmlrpclib import ServerProxy
@@ -532,8 +539,7 @@ class TracInterface(object):
             realm = self._config.get('realm', REALM)
             from sage.env import TRAC_SERVER_URI
             server = self._config.get('server', TRAC_SERVER_URI)
-            import os, urllib, urllib2, urlparse
-            url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('login', 'xmlrpc')))
+            url = urljoin(server, pathname2url(os.path.join('login', 'xmlrpc')))
             while True:
                 from xmlrpclib import ServerProxy
                 from digest_transport import DigestTransport
@@ -1044,9 +1050,8 @@ class TracInterface(object):
             raise OperationCancelledError("ticket creation aborted")
 
         ticket = self.create_ticket(*ret)
-        import urlparse
         from sage.env import TRAC_SERVER_URI
-        ticket_url = urlparse.urljoin(self._config.get('server', TRAC_SERVER_URI), str(ticket))
+        ticket_url = urljoin(self._config.get('server', TRAC_SERVER_URI), str(ticket))
         self._UI.debug("Created ticket #%s (%s)."%(ticket, ticket_url))
         return ticket
 

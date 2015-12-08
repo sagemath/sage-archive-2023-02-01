@@ -163,6 +163,7 @@ cdef class simple_connected_genus_backtracker:
         Initialize the genus_backtracker object.
 
         TESTS::
+
             sage: import sage.graphs.genus
             sage: G = Graph(implementation='c_graph', sparse=False)  #indirect doctest
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
@@ -285,7 +286,7 @@ cdef class simple_connected_genus_backtracker:
         will return the first minimal embedding that we found.
         Otherwise, this returns the first embedding considered.
 
-        DOCTESTS::
+        EXAMPLES::
 
             sage: import sage.graphs.genus
             sage: G = Graph(graphs.CompleteGraph(5), implementation='c_graph', sparse=False)

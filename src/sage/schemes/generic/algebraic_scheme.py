@@ -1889,7 +1889,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         - same as for
           :class:`~sage.schemes.projective.projective_morphism.SchemeMorphism_polynomial_projective_space`.
 
-        OUPUT:
+        OUTPUT:
 
         - :class:`~sage.schemes.projective.projective_morphism.SchemeMorphism_polynomial_projective_space`.
 
@@ -2498,7 +2498,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         - same as for
           :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
-        OUPUT:
+        OUTPUT:
 
         - :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
@@ -2539,7 +2539,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         - same as for
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         :class:`~sage.schemes.toric.homset.SchemeHomset_points_subscheme_toric_field`.
 

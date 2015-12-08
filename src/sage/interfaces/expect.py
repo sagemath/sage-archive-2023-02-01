@@ -453,7 +453,7 @@ If this all works, you can then make calls like:
         self._expect.timeout = None
 
         # Calling tcsetattr earlier exposes bugs in various pty
-        # implementations, see :trac:`16474`. Since we haven't
+        # implementations, see trac #16474. Since we haven't
         # **written** anything so far it is safe to wait with
         # switching echo off until now.
         if not self._terminal_echo:
@@ -1155,7 +1155,9 @@ If this all works, you can then make calls like:
 
             sage: r._synchronize()
 
-        TESTS: This illustrates a synchronization bug being fixed (thanks
+        TESTS:
+
+        This illustrates a synchronization bug being fixed (thanks
         to Simon King and David Joyner for tracking this down)::
 
             sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)

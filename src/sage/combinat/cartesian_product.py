@@ -251,7 +251,7 @@ class CartesianProduct_iters(CombinatorialClass):
             sage: len(C)
             0
         """
-        return self._mrange.__len__()
+        return len(self._mrange)
 
     def list(self):
         """
@@ -300,7 +300,7 @@ class CartesianProduct_iters(CombinatorialClass):
              ['g', 'a'],
              ['g', 't']]
         """
-        return self._mrange.__iter__()
+        return iter(self._mrange)
 
     def is_finite(self):
         """

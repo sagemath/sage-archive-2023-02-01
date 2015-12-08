@@ -1324,7 +1324,7 @@ class MiniCremonaDatabase(SQLDatabase):
             self.__largest_conductor__ =  largest_conductor
 
         # Since July 2014 the data files have been arranged in
-        # subdirectories (see :trac:`16903`).
+        # subdirectories (see trac #16903).
         allcurves_dir = os.path.join(ftpdata,'allcurves')
         allbsd_dir = os.path.join(ftpdata,'allbsd')
         allgens_dir = os.path.join(ftpdata,'allgens')

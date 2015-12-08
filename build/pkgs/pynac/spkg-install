@@ -16,7 +16,7 @@ fi
 if [ "$SAGE64" = "yes" ]; then
     echo "Building a 64-bit version of pynac"
     CXXFLAGS="-m64 -O2 -g"; export CXXFLAGS
-    LDFLAGS="-m64"; export LDFLAGS
+    LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
     CC="$CC -m64" ; export CC
     CXX="$CXX -m64" ; export CXX
 fi

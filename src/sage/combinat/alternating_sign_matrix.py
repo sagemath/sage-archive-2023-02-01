@@ -51,6 +51,8 @@ from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFu
 from sage.combinat.permutation import Permutation
 from sage.combinat.six_vertex_model import SquareIceModel
 
+from sage.misc.decorators import rename_keyword
+
 class AlternatingSignMatrix(Element):
     r"""
     An alternating sign matrix.
@@ -159,7 +161,7 @@ class AlternatingSignMatrix(Element):
             sage: M != A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __le__(self, other):
         """
@@ -813,21 +815,22 @@ class AlternatingSignMatrix(Element):
         return(output)
 
     @combinatorial_map(name='to Dyck word')
-    def to_dyck_word(self, method):
+    @rename_keyword(deprecation=19572, method='algorithm')
+    def to_dyck_word(self, algorithm):
         r"""
-        Return a Dyck word determined by the specified method.
+        Return a Dyck word determined by the specified algorithm.
  
-        The method 'last_diagonal' uses the last diagonal of the monotone 
-        triangle corresponding to ``self``. The method 'link_pattern' returns 
+        The algorithm 'last_diagonal' uses the last diagonal of the monotone 
+        triangle corresponding to ``self``. The algorithm 'link_pattern' returns 
         the Dyck word in bijection with the link pattern of the fully packed 
         loop.
 
-        Note that these two methods in general yield different Dyck words for a
+        Note that these two algorithms in general yield different Dyck words for a
         given alternating sign matrix.
 
         INPUT:
 
-        - ``method``  - 
+        - ``algorithm``  - 
 
           - ``'last_diagonal'`` 
           - ``'link_pattern'`` 
@@ -835,39 +838,39 @@ class AlternatingSignMatrix(Element):
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
-            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word(method = 'last_diagonal')
+            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word(algorithm = 'last_diagonal')
             [1, 1, 0, 0, 1, 0]
-            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(method = 'last_diagonal'); d
+            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(algorithm = 'last_diagonal'); d
             [1, 1, 0, 1, 0, 0]
             sage: parent(d)
             Complete Dyck words
             sage: A = AlternatingSignMatrices(3)
             sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
-            sage: asm.to_dyck_word(method = 'link_pattern')
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
             [1, 0, 1, 0, 1, 0]
             sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
-            sage: asm.to_dyck_word(method = 'link_pattern')
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
             [1, 0, 1, 1, 0, 0]
             sage: A = AlternatingSignMatrices(4)
             sage: asm = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
-            sage: asm.to_dyck_word(method = 'link_pattern')
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
             [1, 1, 1, 0, 1, 0, 0, 0]
             sage: asm.to_dyck_word()
             Traceback (most recent call last):
             ...
             TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
-            sage: asm.to_dyck_word(method = 'notamethod')
+            sage: asm.to_dyck_word(algorithm = 'notamethod')
             Traceback (most recent call last):
             ...
-            ValueError: unknown method 'notamethod'
+            ValueError: unknown algorithm 'notamethod'
         """
-        if method == 'last_diagonal':
+        if algorithm == 'last_diagonal':
             MT = self.to_monotone_triangle()
             nplus = self._matrix.nrows() + 1
             parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
             return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
         
-        elif method == 'link_pattern':
+        elif algorithm == 'link_pattern':
             from sage.combinat.perfect_matching import PerfectMatching        
             from sage.combinat.dyck_word import DyckWords        
             p = PerfectMatching(self.link_pattern()).to_non_crossing_set_partition()
@@ -876,7 +879,7 @@ class AlternatingSignMatrix(Element):
             d = DyckWords(n)
             return d.from_noncrossing_partition(p)
 
-        raise ValueError("unknown method '%s'" % method)
+        raise ValueError("unknown algorithm '%s'" % algorithm)
 
     def number_negative_ones(self):
         """

@@ -2406,7 +2406,7 @@ class MagmaElement(ExpectElement):
 
     def set_magma_attribute(self, attrname, value):
         """
-        INPUTS: attrname - string value - something coercible to a
+        INPUT: attrname - string value - something coercible to a
         MagmaElement
 
         EXAMPLES::

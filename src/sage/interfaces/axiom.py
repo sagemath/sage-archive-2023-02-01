@@ -144,7 +144,9 @@ following sum but with a much bigger range, and hit control-C.
          +-+
       29\|2  + 41
 
-TESTS: We check to make sure the subst method works with keyword
+TESTS:
+
+We check to make sure the subst method works with keyword
 arguments.
 
 ::

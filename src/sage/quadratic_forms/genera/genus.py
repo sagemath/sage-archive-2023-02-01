@@ -539,22 +539,20 @@ def signature_pair_of_matrix(A):
 
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,1])
-        sage: signature_pair_of_matrix(A)     ## Raises an error -- degenerate matrix
+        sage: signature_pair_of_matrix(A)
         Traceback (most recent call last):
         ...
-        TypeError: A is assumed to be non-degenerate, but it's det = 0.
-
+        ArithmeticError: given matrix is not invertible
     """
     from sage.quadratic_forms.quadratic_form import QuadraticForm
     s_vec = QuadraticForm(A.base_extend(A.base_ring().fraction_field())).signature_vector()
 
-    ## Check that the matrix is non-degenerate (i.e. no zero eigenvalues)
-    if s_vec[2] != 0:
-        raise TypeError("A is assumed to be non-degenerate, but it's det = 0.")
+    # Check that the matrix is non-degenerate (i.e. no zero eigenvalues)
+    if s_vec[2]:
+        raise ArithmeticError("given matrix is not invertible")
 
-    ## Return the pair (p,n)
+    # Return the pair (p,n)
     return s_vec[:2]
-
 
 
 def p_adic_symbol(A, p, val):
@@ -1068,7 +1066,7 @@ class Genus_Symbol_p_adic_ring(object):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     ## Added these two methods to make this class iterable...
@@ -1646,7 +1644,7 @@ class GenusSymbol_global_ring(object):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     def signature_pair_of_matrix(self):

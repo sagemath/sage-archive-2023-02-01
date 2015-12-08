@@ -456,7 +456,7 @@ cdef class Farey:
         if hasattr(self.group, "_repr_"):
             return "FareySymbol(%s)" % self.group._repr_()
         elif hasattr(self.group, "__repr__"):
-            return "FareySymbol(%s)" % self.group.__repr__()
+            return "FareySymbol(%r)" % self.group
         else:
             return "FareySymbol(?)"
 

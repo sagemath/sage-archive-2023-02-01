@@ -1676,7 +1676,7 @@ cdef class RealIntervalFieldElement(RingElement):
         with the given base and error_digits. See the documentation for
         the str method for the definition of the question style.
 
-        INPUTS:
+        INPUT:
 
           - ``base`` - base for output
 
@@ -4133,66 +4133,6 @@ cdef class RealIntervalFieldElement(RingElement):
         sig_off()
         return x
 
-# MPFI does not have cbrt.
-#     def cube_root(self):
-#         """
-#         Return the cubic root (defined over the real numbers) of self.
-
-#         EXAMPLES:
-#             sage: r = 125.0; r.cube_root()
-#             5.00000000000000
-#             sage: r = -119.0
-#             sage: r.cube_root()^3 - r       # illustrates precision loss
-#             -0.0000000000000142108547152020
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         sig_on()
-#         mpfr_cbrt(x.value, self.value, (<RealIntervalField>self._parent).rnd)
-#         sig_off()
-#         return x
-
-# MPFI does not have pow.
-#     def __pow(self, RealIntervalFieldElement exponent):
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         sig_on()
-#         mpfr_pow(x.value, self.value, exponent.value, (<RealIntervalField>self._parent).rnd)
-#         sig_off()
-#         if mpfr_nan_p(x.value):
-#             return self._complex_number_()**exponent._complex_number_()
-#         return x
-
-#     def __pow__(self, exponent, modulus):
-#         """
-#         Compute self raised to the power of exponent, rounded in
-#         the direction specified by the parent of self.
-
-#         If the result is not a real number, self and the exponent are
-#         both coerced to complex numbers (with sufficient precision),
-#         then the exponentiation is computed in the complex numbers.
-#         Thus this function can return either a real or complex number.
-
-#         EXAMPLES:
-#             sage: R = RealIntervalField(30)
-#             sage: a = R('1.23456')
-#             sage: a^20
-#             67.646297
-#             sage: a^a
-#             1.2971114
-#             sage: b = R(-1)
-#             sage: b^(1/2)
-#             1.0000000*I                   # 32-bit
-#             -0.00000000000000000010842021 + 0.99999999*I   # 64-bit
-#         """
-#         cdef RealIntervalFieldElement x
-#         if not isinstance(self, RealIntervalFieldElement):
-#             return self.__pow__(float(exponent))
-#         if not isinstance(exponent, RealIntervalFieldElement):
-#             x = self
-#             exponent = x._parent(exponent)
-#         return self.__pow(exponent)
-
     def __pow__(self, exponent, modulus):
         """
         Raise ``self`` to ``exponent``.
@@ -4996,22 +4936,15 @@ cdef class RealIntervalFieldElement(RingElement):
 
         A :class:`RealIntervalFieldElement`.
 
-        This uses the optional `arb library <http://fredrikj.net/arb/>`_.
-        You may have to install it via ``sage -i arb``.
-
         EXAMPLES::
 
-            sage: psi_1 = RIF(1).psi() # optional - arb
-            sage: psi_1 # optional - arb
+            sage: psi_1 = RIF(1).psi()
+            sage: psi_1
             -0.577215664901533?
-            sage: psi_1.overlaps(-RIF.euler_constant()) # optional - arb
+            sage: psi_1.overlaps(-RIF.euler_constant())
             True
         """
-        try:
-            from sage.rings.real_arb import RealBallField
-        except ImportError:
-            raise TypeError("The optional arb package is not installed. "
-                            "Consider installing it via 'sage -i arb'")
+        from sage.rings.real_arb import RealBallField
         return RealBallField(self.precision())(self).psi()._real_mpfi_(self._parent)
 
 # MPFI does not have: agm, erf, gamma, zeta

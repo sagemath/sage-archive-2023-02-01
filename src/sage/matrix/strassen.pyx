@@ -662,7 +662,7 @@ class int_range:
             ...
             StopIteration
         """
-        return self._intervals.__iter__()
+        return iter(self._intervals)
 
     def __len__(self):
         r"""

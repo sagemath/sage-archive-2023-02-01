@@ -1355,7 +1355,7 @@ class OEISSequence(SageObject):
             sage: s != oeis._imaginary_sequence()
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def references(self):
         r"""

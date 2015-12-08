@@ -432,8 +432,7 @@ class CartesianProductPoset(CartesianProduct):
                 sage: C((1/3, 2)) >= C((2, 2))
                 False
             """
-            return other.__le__(self)
-
+            return other <= self
 
         def __lt__(self, other):
             r"""
@@ -467,8 +466,7 @@ class CartesianProductPoset(CartesianProduct):
                 sage: C((1/3, 2)) < C((2, 2))
                 True
             """
-            return not self == other and self.__le__(other)
-
+            return not self == other and self <= other
 
         def __gt__(self, other):
             r"""
@@ -502,4 +500,4 @@ class CartesianProductPoset(CartesianProduct):
                 sage: C((1/3, 2)) > C((2, 2))
                 False
             """
-            return not self == other and other.__le__(self)
+            return not self == other and other <= self

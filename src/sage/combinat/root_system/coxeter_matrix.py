@@ -636,7 +636,7 @@ class CoxeterMatrix(CoxeterType):
             [   1 -3/2]
             [-3/2    1]
         """
-        return self._matrix.__repr__()
+        return repr(self._matrix)
 
     def _repr_option(self, key):
         """
@@ -681,7 +681,7 @@ class CoxeterMatrix(CoxeterType):
             sage: CM.__iter__().next()
             (1, 8)
         """
-        return self._matrix.__iter__()
+        return iter(self._matrix)
 
     def __getitem__(self, key):
         """
@@ -716,22 +716,43 @@ class CoxeterMatrix(CoxeterType):
             sage: CM.__hash__()
             4
         """        
-        return self._matrix.__hash__()
+        return hash(self._matrix)
 
     def __eq__(self, other):
         r"""
-        Return if ``self`` and ``other`` are equal, ``False`` otherwise.
+        Return if ``self`` and ``other`` are equal.
 
         EXAMPLES::
 
             sage: CM = CoxeterMatrix([[1,-2],[-2,1]],['a','b'])
-            sage: CM.__hash__()
-            1
-            sage: CM = CoxeterMatrix([[1,-3],[-3,1]],['1','2'])
-            sage: CM.__hash__()
-            4
+            sage: CM2 = CoxeterMatrix([[1,-2],[-2,1]],['1','2'])
+            sage: CM == CM2
+            True
+            sage: CM == matrix(CM)
+            False
+            sage: CM3 = CoxeterMatrix([[1,-3],[-3,1]],['1','2'])
+            sage: CM == CM3
+            False
         """
-        return self._matrix.__eq__(other._matrix)
+        return isinstance(other, CoxeterMatrix) and self._matrix == other._matrix
+
+    def __ne__(self, other):
+        """
+        Return if ``self`` and ``other`` are not equal.
+
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix([[1,-2],[-2,1]],['a','b'])
+            sage: CM2 = CoxeterMatrix([[1,-2],[-2,1]],['1','2'])
+            sage: CM != CM2
+            False
+            sage: matrix(CM) != CM
+            True
+            sage: CM3 = CoxeterMatrix([[1,-3],[-3,1]],['1','2'])
+            sage: CM != CM3
+            True
+        """
+        return not (self == other)
 
     def _matrix_(self, R=None):
         """

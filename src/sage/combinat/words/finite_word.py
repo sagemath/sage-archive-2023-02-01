@@ -191,6 +191,7 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from collections import defaultdict
 from itertools import islice, izip, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
@@ -3782,7 +3783,7 @@ class FiniteWord_class(Word_class):
         each letter in the ordered alphabet is given by weights, which
         defaults to [1, 2, 3, ...].
 
-        INPUTS:
+        INPUT:
 
         -  ``weights`` - a list or tuple, or a dictionary keyed by the
            letters occurring in self.
@@ -4245,39 +4246,79 @@ class FiniteWord_class(Word_class):
         r"""
         Returns the number of times self appears in other as a subword.
 
+        This corresponds to the notion of `binomial coefficient` of two
+        finite words whose properties are presented in the chapter of
+        Lothaire's book written by Sakarovitch and Simon [1].
+
+        INPUT:
+
+        - ``other`` -- finite word
+
         EXAMPLES::
 
-            sage: Word().nb_subword_occurrences_in(Word('123'))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: undefined value
-            sage: Word('123').nb_subword_occurrences_in(Word('1133432311132311112'))
+            sage: tm = words.ThueMorseWord()
+
+            sage: u = Word([0,1,0,1])
+            sage: u.nb_subword_occurrences_in(tm[:1000])
+            2604124996
+
+            sage: u = Word([0,1,0,1,1,0])
+            sage: u.nb_subword_occurrences_in(tm[:100])
+            20370432
+
+        .. NOTE::
+
+            This code, based on [2], actually compute the number of
+            occurrences of all prefixes of ``self`` as subwords in all
+            prefixes of ``other``.  In particular, its complexity is
+            bounded by ``len(self) * len(other)``.
+
+        TESTS::
+
+            sage: Word('').nb_subword_occurrences_in(Word(''))
+            1
+            sage: parent(_)
+            Integer Ring
+            sage: v,u = Word(), Word('123')
+            sage: v.nb_subword_occurrences_in(u)
+            1
+            sage: v,u = Word('123'), Word('1133432311132311112')
+            sage: v.nb_subword_occurrences_in(u)
             11
-            sage: Word('4321').nb_subword_occurrences_in(Word('1132231112233212342231112'))
+            sage: v,u = Word('4321'), Word('1132231112233212342231112')
+            sage: v.nb_subword_occurrences_in(u)
             0
-            sage: Word('3').nb_subword_occurrences_in(Word('122332112321213'))
+            sage: v,u = Word('3'), Word('122332112321213')
+            sage: v.nb_subword_occurrences_in(u)
             4
+            sage: v,u = Word([]), words.ThueMorseWord()[:1000]
+            sage: v.nb_subword_occurrences_in(u)
+            1
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
+        - [2] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
+          sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
+          (2001) 551-564.
         """
-        ls = self.length()
-        if ls == 0:
-            raise NotImplementedError("undefined value")
-        elif ls == 1:
-            return self.nb_factor_occurrences_in(other)
-        elif len(other) < ls:
-            return 0
-        symb = self[:1]
-        suffword = other
-        suffsm = self[1:]
-        n = 0
-        cpt = 0
-        i = symb.first_pos_in(suffword)
-        while i is not None:
-            suffword = suffword[i+1:]
-            m = suffsm.nb_subword_occurrences_in(suffword)
-            if m == 0: break
-            n += m
-            i = symb.first_pos_in(suffword)
-        return n
+        # record the position of letters in self
+        pos = defaultdict(list)
+        for i,a in enumerate(self):
+            pos[a].append(i)
+        for a in pos:
+            pos[a].reverse()
+
+        # compute the occurrences of all prefixes of self as subwords in other
+        occ = [ZZ.zero()] * (len(self)+1)
+        occ[0] = ZZ.one()
+        for a in other:
+            for i in pos[a]:
+                occ[i+1] += occ[i]
+
+        # return only the number of occurrences of self
+        return occ[-1]
 
     def _return_words_list(self, fact):
         r"""

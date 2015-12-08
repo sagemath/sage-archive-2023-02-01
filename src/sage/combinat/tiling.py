@@ -572,7 +572,7 @@ class Polyomino(SageObject):
 
         - ``v`` - tuple
 
-        OUPUT:
+        OUTPUT:
 
             polyomino
 
@@ -597,7 +597,7 @@ class Polyomino(SageObject):
 
         - ``v`` - tuple
 
-        OUPUT:
+        OUTPUT:
 
             polyomino
 
@@ -623,7 +623,7 @@ class Polyomino(SageObject):
 
         - ``m`` - square matrix, matching the dimension of self.
 
-        OUPUT:
+        OUTPUT:
 
             Polyomino
 
@@ -1275,7 +1275,7 @@ class TilingSolver(SageObject):
         r"""
         Return the number of rows necessary by each piece.
 
-        OUPUT:
+        OUTPUT:
 
             list
 
@@ -1321,7 +1321,7 @@ class TilingSolver(SageObject):
         r"""
         Return an iterator over the row indices of the solutions.
 
-        OUPUT:
+        OUTPUT:
 
             iterator
 
@@ -1349,7 +1349,7 @@ class TilingSolver(SageObject):
         The purpose is to illustrate the backtracking and construct an
         animation of the evolution of solutions.
 
-        OUPUT:
+        OUTPUT:
 
             iterator
 
@@ -1415,7 +1415,7 @@ class TilingSolver(SageObject):
         The purpose is to illustrate the backtracking and construct an
         animation of the evolution of solutions.
 
-        OUPUT:
+        OUTPUT:
 
             iterator
 
@@ -1581,7 +1581,7 @@ class TilingSolver(SageObject):
         r"""
         Return the number of distinct solutions.
 
-        OUPUT:
+        OUTPUT:
 
             integer
 

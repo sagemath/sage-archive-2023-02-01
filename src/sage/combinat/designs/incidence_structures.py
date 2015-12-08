@@ -40,39 +40,12 @@ Methods
 #***************************************************************************
 
 
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.sets.set import Set
-
-def IncidenceStructureFromMatrix(M, name=None):
-    """
-    Deprecated function that builds an incidence structure from a matrix.
-
-    You should now use ``IncidenceStructure(incidence_matrix=M)``.
-
-    INPUT:
-
-    - ``M`` -- a binary matrix. Creates a set of "points" from the rows and a
-      set of "blocks" from the columns.
-
-    EXAMPLES::
-
-        sage: BD1 = IncidenceStructure(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-        sage: M = BD1.incidence_matrix()
-        sage: BD2 = IncidenceStructureFromMatrix(M)
-        doctest:...: DeprecationWarning: IncidenceStructureFromMatrix is deprecated.
-        Please use IncidenceStructure(incidence_matrix=M) instead.
-        See http://trac.sagemath.org/16553 for details.
-        sage: BD1 == BD2
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16553, 'IncidenceStructureFromMatrix is deprecated. Please use IncidenceStructure(incidence_matrix=M) instead.')
-    return IncidenceStructure(incidence_matrix=M, name=name)
 
 class IncidenceStructure(object):
     r"""
@@ -168,7 +141,7 @@ class IncidenceStructure(object):
         True
     """
     def __init__(self, points=None, blocks=None, incidence_matrix=None,
-            name=None, check=True, test=None, copy=True):
+            name=None, check=True, copy=True):
         r"""
         TESTS::
 
@@ -177,13 +150,10 @@ class IncidenceStructure(object):
             ...
             ValueError: Block [4] is not contained in the point set
 
-            sage: IncidenceStructure(3, [[0,1],[0,2]], test=True)
-            doctest:...: DeprecationWarning: the keyword test is deprecated,
-            use check instead
-            See http://trac.sagemath.org/16553 for details.
+            sage: IncidenceStructure(3, [[0,1],[0,2]], check=True)
             Incidence structure with 3 points and 2 blocks
 
-            sage: IncidenceStructure(2, [[0,1,2,3,4,5]], test=False)
+            sage: IncidenceStructure(2, [[0,1,2,3,4,5]], check=False)
             Incidence structure with 2 points and 1 blocks
 
         We avoid to convert to integers when the points are not (but compare
@@ -205,11 +175,6 @@ class IncidenceStructure(object):
             sage: IncidenceStructure([])
             Incidence structure with 0 points and 0 blocks
         """
-        if test is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16553, "the keyword test is deprecated, use check instead")
-            check = test
-
         from sage.matrix.constructor import matrix
         from sage.structure.element import Matrix
 
@@ -311,7 +276,7 @@ class IncidenceStructure(object):
 
     def __eq__(self, other):
         """
-        Tests is the two incidence structures are equal
+        Test whether the two incidence structures are equal.
 
         TESTS::
 
@@ -366,7 +331,7 @@ class IncidenceStructure(object):
             sage: BD1 != BD2
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __contains__(self, block):
         r"""
@@ -1264,6 +1229,10 @@ class IncidenceStructure(object):
             sage: bibd.relabel({i:str(i) for i in bibd.ground_set()})
             sage: bibd.complement().ground_set()
             ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+
+            sage: I = IncidenceStructure('abc', ['ab','ac','bc'])
+            sage: I.is_t_design(return_parameters=True)
+            (True, (2, 3, 2, 1))
         """
         if uniform:
             k = self.is_uniform()
@@ -1987,113 +1956,6 @@ class IncidenceStructure(object):
         else:
             return True
 
-    ###############
-    # Deprecation #
-    ###############
-
-    def parameters(self):
-        r"""
-        Deprecated function. You should use :meth:`is_t_design` instead.
-
-        EXAMPLES::
-
-            sage: I = IncidenceStructure('abc', ['ab','ac','bc'])
-            sage: I.parameters()
-            doctest:...: DeprecationWarning: .parameters() is deprecated. Use
-            `is_t_design` instead
-            See http://trac.sagemath.org/16553 for details.
-            (2, 3, 2, 1)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16553, ".parameters() is deprecated. Use `is_t_design` instead")
-        return self.is_t_design(return_parameters=True)[1]
-
-    dual_design = deprecated_function_alias(16553, dual)
-    dual_incidence_structure = deprecated_function_alias(16553, dual)
-    is_block_design = deprecated_function_alias(16553, is_t_design)
-    points = deprecated_function_alias(16553, ground_set)
-
-    def block_design_checker(self, t, v, k, lmbda, type=None):
-        """
-        This method is deprecated and will soon be removed (see :trac:`16553`).
-        You could use :meth:`is_t_design` instead.
-
-        This is *not* a wrapper for GAP Design's IsBlockDesign. The GAP
-        Design function IsBlockDesign
-        http://www.gap-system.org/Manuals/pkg/design/htm/CHAP004.htm
-        apparently simply checks the record structure and no mathematical
-        properties. Instead, the function below checks some necessary (but
-        not sufficient) "easy" identities arising from the identity.
-
-        INPUT:
-
-        - ``t`` - the t as in "t-design"
-
-        - ``v`` - the number of points
-
-        - ``k`` - the number of blocks incident to a point
-
-        - ``lmbda`` - each t-tuple of points should be incident with
-          lmbda blocks
-
-        - ``type`` - can be 'simple' or 'binary' or 'connected'
-          Depending on the option, this wraps IsBinaryBlockDesign,
-          IsSimpleBlockDesign, or IsConnectedBlockDesign.
-
-          - Binary: no block has a repeated element.
-
-          - Simple: no block is repeated.
-
-          - Connected: its incidence graph is a connected graph.
-
-        WARNING: This is very fast but can return false positives.
-
-        EXAMPLES::
-
-            sage: BD = IncidenceStructure(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.is_t_design(return_parameters=True)
-            (True, (2, 7, 3, 1))
-            sage: BD.block_design_checker(2, 7, 3, 1)
-            doctest:...: DeprecationWarning: .block_design_checker(v,t,k,lmbda) is deprecated; please use
-            .is_t_design(v,t,k,lmbda) instead
-            See http://trac.sagemath.org/16553 for details.
-            True
-
-            sage: BD.block_design_checker(2, 7, 3, 1,"binary")
-            doctest:...: DeprecationWarning: .block_design_checker(type='binary') is
-            deprecated; use .is_binary() instead
-            See http://trac.sagemath.org/16553 for details.
-            True
-
-            sage: BD.block_design_checker(2, 7, 3, 1,"connected")
-            doctest:...: DeprecationWarning: block_design_checker(type='connected') is
-            deprecated, please use .is_connected() instead
-            See http://trac.sagemath.org/16553 for details.
-            True
-
-            sage: BD.block_design_checker(2, 7, 3, 1,"simple")
-            doctest:...: DeprecationWarning: .block_design_checker(type='simple')
-            is deprecated; all designs here are simple!
-            See http://trac.sagemath.org/16553 for details.
-            True
-        """
-        from sage.misc.superseded import deprecation
-
-        ans = self.is_t_design(t,v,k,lmbda)
-
-        if type is None:
-            deprecation(16553, ".block_design_checker(v,t,k,lmbda) is deprecated; please use .is_t_design(v,t,k,lmbda) instead")
-            return ans
-
-        if type == "binary":
-            deprecation(16553, ".block_design_checker(type='binary') is deprecated; use .is_binary() instead")
-            return True
-        if type == "simple":
-            deprecation(16553, ".block_design_checker(type='simple') is deprecated; all designs here are simple!")
-            return True
-        if type == "connected":
-            deprecation(16553, "block_design_checker(type='connected') is deprecated, please use .is_connected() instead")
-            return self.incidence_graph().is_connected()
 
     def coloring(self, k=None, solver=None, verbose=0):
         r"""

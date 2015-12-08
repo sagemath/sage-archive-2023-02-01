@@ -295,23 +295,6 @@ cdef class NumberFieldElement(FieldElement):
             (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
             ZZX_SetCoeff( self.__numerator, i, coeff )
 
-    def __cinit__(self):
-        r"""
-        Initialise C variables.
-
-        EXAMPLE::
-
-            sage: K.<b> = NumberField(x^3 - 2)
-            sage: b = K.gen(); b # indirect doctest
-            b
-        """
-        ZZX_construct(&self.__numerator)
-        ZZ_construct(&self.__denominator)
-
-    def __dealloc__(self):
-        ZZX_destruct(&self.__numerator)
-        ZZ_destruct(&self.__denominator)
-
     def _lift_cyclotomic_element(self, new_parent, bint check=True, int rel=0):
         """
         Creates an element of the passed field from this field. This is
@@ -720,7 +703,7 @@ cdef class NumberFieldElement(FieldElement):
             False
         """
         cdef NumberFieldElement _right = right
-        return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
+        return (left.__numerator != _right.__numerator) or (left.__denominator != _right.__denominator)
 
     def _random_element(self, num_bound=None, den_bound=None, distribution=None):
         """

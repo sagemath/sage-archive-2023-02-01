@@ -454,7 +454,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             > *previous* ValueError: 2^log(x) is not in any of the factors of
             Growth Group QQ^x * x^QQ
 
-        TESTS::
+        ::
 
             sage: n = GrowthGroup('n^ZZ * log(n)^ZZ')('n')
             sage: G = GrowthGroup('QQ^n * n^ZZ * log(n)^ZZ')

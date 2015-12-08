@@ -117,7 +117,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
 
     def __iter__(self):
         """
-        Return an interator over the coefficients of this power series.
+        Return an iterator over the coefficients of this power series.
         """
         return iter(self.__f)
 

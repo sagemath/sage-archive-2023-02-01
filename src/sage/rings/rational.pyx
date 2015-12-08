@@ -155,17 +155,17 @@ set_zero_one_elements()
 
 cpdef Integer integer_rational_power(Integer a, Rational b):
     """
-    Compute `a^b` as an integer, if it is integral, or return None.
+    Compute `a^b` as an integer, if it is integral, or return ``None``.
     The positive real root is taken for even denominators.
 
-    INPUT::
+    INPUT:
 
-        a -- an Integer
-        b -- a positive Rational
+    - a -- an ``Integer``
+    - b -- a positive ``Rational``
 
-    OUTPUT::
+    OUTPUT:
 
-        `a^b` as an ``Integer`` or ``None``
+    `a^b` as an ``Integer`` or ``None``
 
     EXAMPLES::
 
@@ -230,7 +230,7 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
     Compute rationals or integers `c` and `d` such that `a^b = c*d^b`
     with `d` small. This is used for simplifying radicals.
 
-    INPUT::
+    INPUT:
 
         - ``a`` -- a rational or integer
         - ``b`` -- a rational
@@ -2016,20 +2016,24 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (-4/17).__hash__()
-            -19
-            sage: (-5/1).__hash__()
-            -5
+            sage: QQ(42).__hash__()
+            42
+            sage: QQ(1/42).__hash__()
+            1488680910            # 32-bit
+            -7658195599476688946  # 64-bit
+            sage: n = ZZ.random_element(10^100)
+            sage: hash(n) == hash(QQ(n)) or n
+            True
+            sage: hash(-n) == hash(-QQ(n)) or n
+            True
+            sage: hash(-4/17)
+            -47583156            # 32-bit
+            8709371129873690700  # 64-bit
         """
-        cdef long n, d
-        n = mpz_pythonhash(mpq_numref(self.value))
-        d = mpz_pythonhash(mpq_denref(self.value))
-        if d == 1:
-            return n
-        n = n ^ d
-        if n == -1:
-            return -2
-        return n
+        cdef Py_hash_t n = mpz_pythonhash(mpq_numref(self.value))
+        cdef Py_hash_t d = mpz_pythonhash(mpq_denref(self.value))
+        # The constant below is (1 + sqrt(5)) << 61
+        return n + (d - 1) * <Py_hash_t>(7461864723258187525)
 
     def __getitem__(self, int n):
         """
@@ -2273,8 +2277,8 @@ cdef class Rational(sage.structure.element.FieldElement):
                     # dangerous coercion -- don't use -- try symbolic result
                     from sage.calculus.calculus import SR
                     return SR(self)**SR(n)
-                return self.__pow__(n_coerced)
-            return self_coerced.__pow__(n)
+                return self ** n_coerced
+            return self_coerced ** n
 
         cdef Rational _self = <Rational>self
         cdef long nn
@@ -2355,7 +2359,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         if n < 0:  # this doesn't make sense unless n is an integer.
             x = _self**(-n)
-            return x.__invert__()
+            return ~x
 
         cdef mpz_t num, den
 

@@ -1931,7 +1931,7 @@ class Polyhedron_base(Element):
         sub-ring of the reals to define a polyhedron, in particular
         comparison must be defined. Popular choices are
 
-        * ``ZZ`` (the ring of integers, lattice polytope), 
+        * ``ZZ`` (the ring of integers, lattice polytope),
 
         * ``QQ`` (exact arithmetic using gmp),
 
@@ -2673,7 +2673,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: t = polytopes.simplex(3,project=False);  t.vertices()
-            (A vertex at (0, 0, 0, 1), A vertex at (0, 0, 1, 0), 
+            (A vertex at (0, 0, 0, 1), A vertex at (0, 0, 1, 0),
              A vertex at (0, 1, 0, 0), A vertex at (1, 0, 0, 0))
             sage: neg_ = -t
             sage: neg_.vertices()
@@ -2799,7 +2799,7 @@ class Polyhedron_base(Element):
 
     __and__ = intersection
 
-    def truncation(self, cut_frac=Integer(1)/3):
+    def truncation(self, cut_frac=None):
         r"""
         Return a new polyhedron formed from two points on each edge
         between two vertices.
@@ -2840,17 +2840,37 @@ class Polyhedron_base(Element):
 
     edge_truncation = deprecated_function_alias(18128, truncation)
 
-    def face_truncation(self, face, linear_coefficients=None, cut_frac=Integer(1)/3):
+    def face_truncation(self, face, linear_coefficients=None, cut_frac=None):
         r"""
         Return a new polyhedron formed by truncating a face by an hyperplane.
+
+        By default, the normal vector of the hyperplane used to truncate the
+        polyhedron is obtained by taking the barycenter vector of the cone
+        corresponding to the truncated face in the normal fan of the
+        polyhedron. It is possible to change the direction using the option
+        ``linear_coefficients``.
+
+        To determine how deep the truncation is done, the method uses the
+        parameter ``cut_frac``. By default it is equal to `\frac{1}{3}. Once
+        the normal vector of the cutting hyperplane is chosen, the vertices of
+        polyhedron are evaluated according to the corresponding linear
+        function. The parameter `\frac{1}{3}` means that the cutting
+        hyperplane is placed `\frac{1}{3}` of the way from the vertices of the
+        truncated face to the next evaluated vertex.
 
         INPUT:
 
         - ``face`` -- a PolyhedronFace.
-        - ``linear_coefficients`` -- tuple of integer. Specify the coefficient
-          of the normal vector of the cutting hyperplane.
-        - ``cut_frac`` -- integer. how deeply to cut into the face.
-            Default is `\frac{1}{3}`.
+        - ``linear_coefficients`` -- tuple of integer. Specifies the coefficient
+          of the normal vector of the cutting hyperplane used to truncate the
+          face.
+          The default direction is determined using the normal fan of the
+          polyhedron.
+        - ``cut_frac`` -- number between 0 and 1. Determines where the
+           hyperplane cuts the polyhedron. A value close to 0 cuts very close
+           to the face, whereas a value close to 1 cuts very close to the next
+           vertex (according to the normal vector of the cutting hyperplane).
+           Default is `\frac{1}{3}`.
 
         OUTPUT:
 
@@ -2886,14 +2906,16 @@ class Polyhedron_base(Element):
              True
 
         """
- 
+        if cut_frac is None:
+            cut_frac = ZZ.one() / 3
+
         face_vertices = face.vertices()
 
         normal_vectors = []
 
         for facet in self.Hrepresentation():
-            if False not in map(lambda x: facet.contains(x) and
-                    not facet.interior_contains(x), face_vertices):
+            if all(facet.contains(x) and not facet.interior_contains(x) for x
+                    in face_vertices):
                 # The facet contains the face
                 normal_vectors.append(facet.A())
 
@@ -2909,15 +2931,15 @@ class Polyhedron_base(Element):
             self.vertices()])
 
         if B == max(linear_evaluation):
-            C = max(linear_evaluation.difference(set([B])))
+            C = max(linear_evaluation.difference(B))
         else:
-            C = min(linear_evaluation.difference(set([B])))
+            C = min(linear_evaluation.difference(B))
 
         ineq_vector = tuple((1 - cut_frac) * B + cut_frac * C) + tuple(normal_vector)
 
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
-        
+
         return Polyhedron(ieqs=new_ieqs, eqns=new_eqns, base_ring=
                 self.parent()._coerce_base_ring(cut_frac))
 
@@ -3301,7 +3323,7 @@ class Polyhedron_base(Element):
             sage: [get_idx(_) for _ in face.ambient_Vrepresentation()]
             [0, 1, 2, 3, 4, 5, 6, 7]
 
-            sage: [ ([get_idx(_) for _ in face.ambient_Vrepresentation()], 
+            sage: [ ([get_idx(_) for _ in face.ambient_Vrepresentation()],
             ...      [get_idx(_) for _ in face.ambient_Hrepresentation()])
             ...     for face in p.faces(3) ]
             [([0, 1, 2, 3, 4, 5, 6, 7], [4]),

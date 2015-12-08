@@ -23,6 +23,7 @@ from sage.matrix.constructor import Matrix
 from sage.matrix.matrix import is_Matrix
 from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
+from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.misc.cachefunc import cached_method
@@ -139,20 +140,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         if assume_associative:
             cat = cat.Associative()
 
-        # TODO: Change once normalize_names is a static method or a function
-        #names = CategoryObject.normalize_names(n, names)
-        # TODO: ...and remove this
-        if isinstance(names, str):
-            if ',' in names:
-                names = names.split(',')
-            elif n != 1:
-                names = [names + str(i) for i in range(n)]
-            else:
-                names = [names]
-        names = tuple(names)
-        if len(names) != n:
-            # This is the same type of error that normalize_names throws - TCS
-            raise IndexError("the number of names must equal the number of generators")
+        names = normalize_names(n, names)
 
         return super(FiniteDimensionalAlgebra, cls).__classcall__(cls, k, table,
                              names, category=cat)

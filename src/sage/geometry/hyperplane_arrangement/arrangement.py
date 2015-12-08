@@ -2167,13 +2167,13 @@ class HyperplaneArrangementElement(Element):
             sage: W = WeylGroup(['A',2], prefix='s')
             sage: A = W.long_element().inversion_arrangement()
             sage: A.derivation_module_basis()
-            [    a1    -a2]
-            [-a1*a2 -a1*a2]
+            [   -a1    -a2]
+            [-a1*a2  a1*a2]
         """
         C = self.derivation_module_free_chain()
         if C is not None:
             from sage.misc.misc_c import prod
-            return prod(C)
+            return prod(reversed(C))
         return None
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):

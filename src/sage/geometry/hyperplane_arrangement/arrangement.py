@@ -2162,18 +2162,24 @@ class HyperplaneArrangementElement(Element):
 
             :meth:`is_free`
 
+        OUTPUT:
+
+        A basis for the derivation module (over `S`, the
+        :meth:`symmetric space
+        <sage.geometry.hyperplane_arrangement.hyperplane.AmbientVectorSpace.symmetric_space>`)
+        as vectors of a free module over `S`.
+
         EXAMPLES::
 
             sage: W = WeylGroup(['A',2], prefix='s')
             sage: A = W.long_element().inversion_arrangement()
             sage: A.derivation_module_basis()
-            [   -a1    -a2]
-            [-a1*a2  a1*a2]
+            [(-a1, -a2), (-a1*a2, a1*a2)]
         """
         C = self.derivation_module_free_chain()
         if C is not None:
             from sage.misc.misc_c import prod
-            return prod(reversed(C))
+            return prod(reversed(C)).rows()
         return None
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):

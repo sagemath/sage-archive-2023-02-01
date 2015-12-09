@@ -443,7 +443,6 @@ If this all works, you can then make calls like:
         if self._do_cleaner():
             cleaner.cleaner(self._expect.pid, cmd)
 
-        self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)
         except (pexpect.TIMEOUT, pexpect.EOF):

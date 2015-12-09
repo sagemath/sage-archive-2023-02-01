@@ -64,6 +64,7 @@ class SageSpawn(spawn):
         with ContainChildren(silent=True):
             spawn.__init__(self, *args, **kwds)
 
+        self.delaybeforesend = None
         self.delayafterread = None
 
     def spawnpty(self, args, **kwds):

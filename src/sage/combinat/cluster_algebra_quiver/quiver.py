@@ -26,6 +26,7 @@ from sage.structure.sage_object import SageObject
 from copy import copy
 from sage.misc.all import cached_method
 from sage.rings.all import ZZ, CC, infinity
+from sage.rings.integer import Integer
 from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
@@ -192,7 +193,10 @@ class ClusterQuiver(SageObject):
             self.__init__( mutation_type.standard_quiver() )
             if user_labels:
                 self.relabel(user_labels)
-                self._nlist = user_labels
+                if isinstance(user_labels, dict):
+                    self._nlist = [user_labels[i] for i in xrange(len(user_labels))]
+                else:
+                    self._nlist = user_labels
 
         # constructs a quiver from string representing a mutation type or a common quiver type (see Examples)
         # NOTE: for now, any string representing a *reducible type* is coerced into the standard quiver, but there is now more flexibility in how to input a connected (irreducible) quiver.
@@ -246,7 +250,10 @@ class ClusterQuiver(SageObject):
 
             if user_labels:
                 self.relabel(user_labels)
-                self._nlist = user_labels
+                if isinstance(user_labels, dict):
+                    self._nlist = [user_labels[i] for i in xrange(self._n)]
+                else:
+                    self._nlist = user_labels
                 
         # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
@@ -282,11 +289,14 @@ class ClusterQuiver(SageObject):
             self._vertex_dictionary = {}
             self._mutation_type = None
             
-            # In this case, frozen specifies the vertex labels for both the frozen and the free vertices.
-            if isinstance(frozen,list):
-                self._nlist = frozen[0]
-                self._mlist = frozen[1]
-                self._digraph.relabel(frozen[0] + frozen[1])
+            if user_labels:
+                if isinstance(user_labels, dict):
+                    self._nlist = [user_labels[i] for i in xrange(n)]
+                    self._mlist = [user_labels[i] for i in xrange(n,n+m)]
+                elif isinstance(user_labels, list):
+                    self._nlist = user_labels[0:n]
+                    self._mlist = user_labels[n:n+m]
+                self._digraph.relabel(self._nlist + self._mlist)
             else:
                 self._mlist = range(n,n+m)
                 self._nlist = range(n)

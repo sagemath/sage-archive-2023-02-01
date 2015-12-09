@@ -288,7 +288,12 @@ class ClusterSeed(SageObject):
             if not user_labels and set(self._nlist + self._mlist) != set(range(self._n+self._m)):
                 user_labels = self._nlist + self._mlist
             if user_labels:
-                if set(user_labels) != set(self._nlist + self._mlist) and set(user_labels) != set(range(self._n + self._m)):
+                if isinstance(user_labels, dict):
+                    labelset = set(user_labels.values())
+                else:
+                    labelset = set(user_labels)
+                if labelset != set(self._nlist + self._mlist) and labelset != set(range(self._n + self._m)):
+                    
                     print('Warning: user_labels conflict with both the given vertex labels and the default labels.')
             
                 # Sanitizes our user_labels to use Integers instead of ints
@@ -1806,7 +1811,7 @@ class ClusterSeed(SageObject):
         """
         from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         if self._quiver is None:
-            self._quiver = ClusterQuiver( self._M ,[self._nlist,self._mlist])
+            self._quiver = ClusterQuiver( self._M , user_labels = self._nlist + self._mlist )
         return self._quiver
 
     def is_acyclic(self):
@@ -2350,10 +2355,13 @@ class ClusterSeed(SageObject):
             IE = []
 
         n, m = seed.n(), seed.m()
-        V = self._nlist + IE
+        V = IE + range(n)
         
         if seed._use_fpolys and isinstance(sequence, str):
-            sequence = seed.cluster_index(sequence)
+            if sequence in V:
+                sequence = V.index(sequence)
+            else:    
+                sequence = seed.cluster_index(sequence)
             if sequence is None:
                 raise ValueError("Variable provided is not in our cluster")
           
@@ -2370,7 +2378,7 @@ class ClusterSeed(SageObject):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
 
         # remove ineligible vertices
-        if any( v not in V for v in seqq ):
+        if any( v not in V for v in seqq ) :
             v = filter( lambda v: v not in V, seqq )[0]
             raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
 

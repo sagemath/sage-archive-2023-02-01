@@ -130,7 +130,6 @@ AUTHORS:
 #          class AlgebraicScheme_subscheme_affine_toric
 #    class AlgebraicScheme_quasi
 
-from copy import copy
 from sage.categories.number_fields import NumberFields
 
 from sage.rings.all import ZZ
@@ -2295,7 +2294,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             Orb.append(Q)
         return(Orb)
 
-    def nth_iterate(self, f, n , **kwds):
+    def nth_iterate(self, f, n):
         r"""
         The nth forward image of this scheme by the map ``f``.
 
@@ -2354,15 +2353,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             ...
             TypeError: Attempt to coerce non-integral RealNumber to Integer
         """
-        if not f.is_endomorphism():
-            raise TypeError("map must be an endomorphism for iteration")
         n = ZZ(n)
         if n < 0:
             raise TypeError("must be a forward orbit")
-        Q = self
-        for i in range(n):
-            Q = f(Q)
-        return Q
+        return self.orbit(f,[n,n+1])[0]
 
     def _forward_image(self, f):
         """
@@ -2574,9 +2568,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         if self.ambient_space() != codom:
             raise TypeError("subscheme must be in ambient space of codomain")
         R = codom.coordinate_ring()
-        dict = {}
-        for i in range(codom.dimension_relative()+1):
-            dict.update({R.gen(i): f[i]})
+        dict = {R.gen(i): f[i] for i in range(codom.dimension_relative()+1)}
         return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))
 
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):

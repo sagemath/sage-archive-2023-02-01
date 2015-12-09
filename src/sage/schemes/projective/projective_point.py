@@ -683,14 +683,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P2.<u,v,w> = ProjectiveSpace(ZZ,2)
             sage: H = Hom(P,P2)
             sage: f = H([x^2+3*y^2,2*y^2,z^2])
-            sage: P2(2,7,1).nth_iterate(f,2)
-            Traceback (most recent call last):
-            ...
-            TypeError: point is not defined over domain of function
             sage: P(2,7,1).nth_iterate(f,2)
             Traceback (most recent call last):
             ...
-            TypeError: map must be an endomorphism
+            TypeError: map must be an endomorphism for iteration
 
         ::
 
@@ -716,23 +712,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         .. TODO:: Is there a more efficient way to do this?
         """
-        if self.codomain() != f.domain():
-            raise TypeError("point is not defined over domain of function")
-        if not f.is_endomorphism():
-            raise TypeError("map must be an endomorphism")
         n = ZZ(n)
         if n < 0:
             raise TypeError("must be a forward orbit")
-        Q = self
-        normalize = kwds.pop("normalize", False)
-        check = kwds.pop("check",True)
-        if normalize:
-            Q.normalize_coordinates()
-        for i in range(n):
-            Q = f(Q, check)
-            if normalize:
-                Q.normalize_coordinates()
-        return(Q)
+        return self.orbit(f,[n,n+1],**kwds)[0]
 
     def orbit(self, f, N, **kwds):
         r"""
@@ -849,7 +832,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         if N[0] > N[1]:
             return([])
 
-        Q = copy(self)
+        Q = self
         check = kwds.pop("check",True)
         normalize = kwds.pop("normalize",False)
 

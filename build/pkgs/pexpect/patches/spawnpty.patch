@@ -1,4 +1,5 @@
 Allow overriding the call to PtyProcess.spawn()
+See https://github.com/pexpect/pexpect/pull/303/
 
 --- a/pexpect/pty_spawn.py	2015-12-04 10:50:32.000000000 +0100
 +++ b/pexpect/pty_spawn.py	2015-12-04 10:55:13.131695441 +0100

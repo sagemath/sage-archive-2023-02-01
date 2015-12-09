@@ -159,6 +159,9 @@ also implements the :class:`SDPSolverException` exception, as well as the
 AUTHORS:
 
 - Ingolfur Edvardsson (2014/08): added extension for exact computation
+
+- Dima Pasechnik      (2014, 2015)    : supervision, minor fixes
+
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Ingolfur Edvardsson <ingolfured@gmail.com>

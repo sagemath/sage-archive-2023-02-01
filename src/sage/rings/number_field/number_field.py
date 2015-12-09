@@ -6386,8 +6386,12 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal (2, a)
         """
         n = len(reslist)
+        try:
+            reslist = [self(x) for x in reslist]
+        except ValueError:
+            raise ValueError("solve_CRT requires a list of arguments in the field")
         if n==0:
-            return K.zero()
+            return self.zero()
         if n==1:
             return reslist[0]
         if n==2:
@@ -6401,7 +6405,7 @@ class NumberField_generic(number_field_base.NumberField):
                                [Ilist[0],prod(Ilist[1:])], check=check)
         if check and not all([x-xi in Ii for xi,Ii in zip(reslist, Ilist)]):
             raise RuntimeError("Error in number field solve_CRT()")
-        return x
+        return self(x)
 
 class NumberField_absolute(NumberField_generic):
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,

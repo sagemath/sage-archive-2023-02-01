@@ -614,18 +614,15 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
     P2res = [a1] if a1 else P2.residues()
     for a1 in P2res:
         Px = -a1**6+3*a1**2*c4+2*c6
-        if Px.valuation(P)>=4*e:                                     # (i)
+        if Px.valuation(P) >= 4*e :                                  # (i)
             flag, a3 = sqrt_mod_4(Px/16,P)                           # (ii)
             if flag:
                 a1sq = a1*a1
-                flag = (4*a1sq*Px-(a1sq**2-c4)**2).valuation(P)>=8*e # (iii)
-            else:
-                return False,0,0
-            if flag:
-                if test_a1a3_local(c4,c6,P,a1,a3):
-                    return True, a1,a3
-                else:
-                    raise RuntimeError("check_Kraus_local_2 fails")
+                if (4*a1sq*Px-(a1sq**2-c4)**2).valuation(P) >= 8*e : # (iii)
+                    if test_a1a3_local(c4,c6,P,a1,a3):
+                        return True, a1,a3
+                    else:
+                        raise RuntimeError("check_Kraus_local_2 fails")
     # end of loop, but no a1 found
     return False,0,0
 
@@ -729,9 +726,10 @@ def check_Kraus_global(c4,c6, assume_nonsingular=False, debug=False):
         Using b2=a + 1 gives a model integral at 3:
         (0, 1/4*a + 1/4, 0, 10091/8*a - 128595/16, 4097171/64*a - 19392359/64)
         Local Kraus conditions for (c4,c6)=(-60544*a + 385796,-55799680*a + 262126328) pass at all primes dividing 2
-        Using (a1,a3)=(a,0) gives a model integral at 2:
-        (a, 0, 0, 3784/3*a - 24106/3, 1772120/27*a - 2790758/9)
-        Using (r,s,t)=[1/3*a - 133/6, 3/2*a, -89/2*a + 5] should give a global integral model...
+        Using (a1,a3)=(3*a,0) gives a model integral at 2:
+        (3*a, 0, 0, 3784/3*a - 23606/3, 1999160/27*a - 9807634/27)
+        (a1, b2, a3) = (3*a, a + 1, 0)
+        Using (r, s, t)=(1/3*a - 133/6, 3/2*a, -89/2*a + 5) should give a global integral model...
         ...and it does!
         Elliptic Curve defined by y^2 + 3*a*x*y + (-89*a+10)*y = x^3 + (a-89)*x^2 + (1202*a-5225)*x + (34881*a-151813) over Number Field in a with defining polynomial x^2 - 10
 
@@ -740,6 +738,20 @@ def check_Kraus_global(c4,c6, assume_nonsingular=False, debug=False):
         sage: c4, c6 = E.c_invariants()
         sage: check_Kraus_global(c4,c6)
         Elliptic Curve defined by y^2 = x^3 + (4536*a+14148)*x + (-163728*a-474336) over Number Field in a with defining polynomial x^2 - 15
+
+    TESTS (see :trac:`17295`)::
+
+        sage: K.<a> =NumberField(x^3 - 7*x - 5)
+        sage: E = EllipticCurve([a, 0, 1, 2*a^2 + 5*a + 3, -a^2 - 3*a - 2])
+        sage: assert E.conductor().norm() ==8
+        sage: G = K.galois_group(names='b')
+        sage: def conj_curve(E,sigma): return EllipticCurve([sigma(a) for a in E.ainvs()])
+        sage: EL = conj_curve(E,G[0])
+        sage: L = EL.base_field()
+        sage: assert L.class_number()== 2
+        sage: EL.isogeny_class() # long time (~10s)
+        Isogeny class of Elliptic Curve defined by y^2 + (-1/90*b^4+7/18*b^2-1/2*b-98/45)*x*y + y = x^3 + (1/45*b^5-1/18*b^4-7/9*b^3+41/18*b^2+167/90*b-29/9)*x + (-1/90*b^5+1/30*b^4+7/18*b^3-4/3*b^2-61/90*b+11/5) over Number Field in b with defining polynomial x^6 - 42*x^4 + 441*x^2 - 697
+
     """
     if not assume_nonsingular:
         if not c4c6_nonsingular(c4,c6):
@@ -790,6 +802,9 @@ def check_Kraus_global(c4,c6, assume_nonsingular=False, debug=False):
     P2list = [P**(two.valuation(P)) for P in Plist2]
     a1list = [d[1] for d in dat]
     a1 = K.solve_CRT(a1list,P2list, check=True)
+    # See comment below: this is needed for when we combine with the primes above 3.
+    if not a1 in three: # three.divides(a1) causes a segfault
+        a1 = 3*a1
 
     # Using this a1, recompute the local a3's:
     dat = [check_Kraus_local_2(c4,c6,P,a1,True) for P in Plist2]
@@ -817,19 +832,18 @@ def check_Kraus_global(c4,c6, assume_nonsingular=False, debug=False):
     # r2=(b2-a1^2)/3, r3=(b2-a1^2)/4, s3=a1/2, t3=(a1*r2+a3)/2,
     # provided that a1 =0 (mod 3), to make t3 3-integral.  Since a1
     # was only determined mod 2 this can be fixed first, simply by
-    # multiplying a1 by 3.
+    # multiplying a1 by 3 if necessary.  We did this above.
 
-    #a1 = K.solve_CRT([0,a1],[K.ideal(three),K.ideal(two)], check=True)
+    if debug:
+        print("(a1, b2, a3) = (%s, %s, %s)" % (a1,b2,a3))
     assert a1.is_integral()
     assert a3.is_integral()
     assert b2.is_integral()
-    if not three.divides(a1):
-        a1 = 3*a1
     s = a1/2
     r = b2/3 - s**2
     t = s*(b2-a1**2)/3 + a3/2
     if debug:
-        print("Using (r,s,t)=%s should give a global integral model..." % [r,s,t])
+        print("Using (r, s, t)=(%s, %s, %s) should give a global integral model..." % (r,s,t))
 
     # Final computation of the curve E:
     E = test_rst_global(c4,c6,r,s,t,debug)
@@ -887,7 +901,7 @@ def semi_global_minimal_model(E, debug=False):
         sage: from sage.schemes.elliptic_curves.kraus import semi_global_minimal_model
         sage: Emin, P = semi_global_minimal_model(E)
         sage: Emin
-        Elliptic Curve defined by y^2 + 3*x*y + (2*a-9)*y = x^3 + (a-10)*x^2 + (-152*a-418)*x + (1909*a+5930) over Number Field in a with defining polynomial x^2 - 10
+        Elliptic Curve defined by y^2 + 3*x*y + (2*a-11)*y = x^3 + (a-10)*x^2 + (-152*a-415)*x + (1911*a+5920) over Number Field in a with defining polynomial x^2 - 10
         sage: E.minimal_discriminant_ideal()*P**12 == K.ideal(Emin.discriminant())
         True
     """

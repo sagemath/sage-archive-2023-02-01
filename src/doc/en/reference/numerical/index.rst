@@ -14,8 +14,8 @@ Numerical Optimization
    sage/numerical/optimize
    sage/numerical/interactive_simplex_method
 
-LP Solver backends
-------------------
+Linear Optimization (LP) Solver backends
+----------------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -25,7 +25,6 @@ LP Solver backends
    sage/numerical/backends/glpk_graph_backend
    sage/numerical/backends/ppl_backend
    sage/numerical/backends/cvxopt_backend
-   sage/numerical/backends/cvxopt_sdp_backend
 
 .. backends depending on optional packages
 ..   sage/numerical/backends/coin_backend
@@ -37,5 +36,14 @@ how to use them in Sage, please refer to the `Thematic Tutorial on Linear
 Programming
 <http://www.sagemath.org/doc/thematic_tutorials/linear_programming.html>`_.
 
+Semidefinite Optimization (SDP) Solver backends
+-----------------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/numerical/backends/cvxopt_sdp_backend
+
+For more details on CVXOPT, see `CVXOPT documentation <http://cvxopt.org/documentation/index.html>`_.
 
 .. include:: ../footer.txt

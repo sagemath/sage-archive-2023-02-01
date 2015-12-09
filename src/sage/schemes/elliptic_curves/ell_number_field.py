@@ -91,23 +91,12 @@ REFERENCE:
 #*****************************************************************************
 
 from ell_field import EllipticCurve_field
-import ell_point
-import sage.matrix.all as matrix
-from sage.rings.ring import Ring
-from sage.rings.arith import gcd, prime_divisors
-from sage.misc.all import prod
-import ell_torsion
 from ell_generic import is_EllipticCurve
-
-from gp_simon import simon_two_descent
+from ell_point import EllipticCurvePoint_number_field
 from constructor import EllipticCurve
-from sage.rings.all import PolynomialRing, ZZ, QQ, RealField
-import sage.misc.misc
-from sage.misc.misc import verbose, forall
-from sage.rings.integer import Integer
-from sage.rings.arith import valuation
+from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer, valuation, gcd, prime_divisors
+from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
 
-import gal_reps_number_field
 
 from six import reraise as raise_
 
@@ -140,7 +129,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         self._known_points = []
         EllipticCurve_field.__init__(self, K, ainvs)
 
-    _point = ell_point.EllipticCurvePoint_number_field
+    _point = EllipticCurvePoint_number_field
 
     def base_extend(self, R):
         """
@@ -337,6 +326,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         except KeyError:
             pass
 
+        from gp_simon import simon_two_descent
         t = simon_two_descent(self, verbose=verbose,
                               lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime,
@@ -604,7 +594,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             RR = RealField()
         else:
             RR = RealField(precision)
-        M = matrix.MatrixSpace(RR, r)
+
+        from sage.matrix.all import MatrixSpace
+        M = MatrixSpace(RR, r)
         mat = M()
         for j in range(r):
             mat[j,j] = points[j].height(precision=precision)
@@ -834,7 +826,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         K = self.base_field()
         ai = self.a_invariants()
         Ps = [[ ff[0] for ff in a.denominator_ideal().factor() ] for a in ai if not a.is_integral() ]
-        Ps = sage.misc.misc.union(sage.misc.flatten.flatten(Ps))
+        Ps = union(flatten(Ps))
         for P in Ps:
             pi = K.uniformizer(P,'positive')
             e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
@@ -2086,6 +2078,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                             k += 1
         return bound
 
+    @cached_method
     def torsion_subgroup(self):
         r"""
         Returns the torsion subgroup of this elliptic curve.
@@ -2130,12 +2123,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK.torsion_subgroup ()
             Torsion Subgroup isomorphic to Trivial group associated to the Elliptic Curve defined by y^2  = x^3 + i*x + (i+3) over Number Field in i with defining polynomial x^2 + 1
         """
-        try:
-            return self.__torsion_subgroup
-        except AttributeError:
-            self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self)
-            return self.__torsion_subgroup
+        from ell_torsion import EllipticCurveTorsionSubgroup
+        return EllipticCurveTorsionSubgroup(self)
 
+    @cached_method
     def torsion_order(self):
         r"""
         Returns the order of the torsion subgroup of this elliptic curve.
@@ -2175,11 +2166,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK.torsion_order()
             1
          """
-        try:
-            return self.__torsion_order
-        except AttributeError:
-            self.__torsion_order = self.torsion_subgroup().order()
-            return self.__torsion_order
+        return self.torsion_subgroup().order()
 
     def torsion_points(self):
         r"""
@@ -2253,7 +2240,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK.torsion_points ()
              [(-2 : -3*i : 1), (-2 : 3*i : 1), (0 : -i : 1), (0 : i : 1), (0 : 1 : 0), (1 : 0 : 1)]
          """
-        T = self.torsion_subgroup() # make sure it is cached
+        T = self.torsion_subgroup() # cached
         return sorted(T.points())           # these are also cached in T
 
     def rank_bounds(self, **kwds):
@@ -3372,8 +3359,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: rho.non_surjective()
             [5]
         """
-        return gal_reps_number_field.GaloisRepresentation(self)
+        from gal_reps_number_field import GaloisRepresentation
+        return GaloisRepresentation(self)
 
+    @cached_method
     def cm_discriminant(self):
         """
         Returns the CM discriminant of the `j`-invariant of this curve.
@@ -3410,25 +3399,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).cm_discriminant()
             -108
         """
-        try:
-            D = self._CMD
-        except AttributeError:
-            pass
-        else:
-            if D:
-                return D
-            else:
-                raise ValueError("%s does not have CM"%self)
-
         from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
         flag, df =  is_cm_j_invariant(self.j_invariant())
         if flag:
             d, f = df
-            self._CMD = d*f**2
-            return self._CMD
-        self._CMD = 0 # special cached value to indicate no CM
-        raise ValueError("%s does not have CM"%self)
+            return d*f**2
+        else: # no CM
+            return ZZ(0)
 
+    @cached_method
     def has_cm(self):
         """
         Returns whether or not this curve has a CM `j`-invariant.
@@ -3466,12 +3445,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).has_cm()
             True
         """
-        try:
-            D = self.cm_discriminant()
-        except ValueError:
-            return False
-        return True
+        return not self.cm_discriminant().is_zero()
 
+    @cached_method
     def has_rational_cm(self, field=None):
         """
         Returns whether or not this curve has CM defined over its
@@ -3550,9 +3526,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.has_rational_cm(K.extension(x^2+108,'b'))
             True
         """
-        try:
-            D = self.cm_discriminant()
-        except ValueError:
+        D = self.cm_discriminant()
+        if D.is_zero():
             return False
         if field is None:
             return self.base_field()(D).is_square()

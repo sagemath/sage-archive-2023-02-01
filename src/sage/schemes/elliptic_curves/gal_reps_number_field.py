@@ -316,7 +316,7 @@ class GaloisRepresentation(SageObject):
         bad_primesK = (K.ideal(E.c4()) + K.ideal(E.discriminant())).prime_factors()
         bad_primes += [char(P) for P in bad_primesK]
 
-       # ramified primes
+        # ramified primes
         bad_primes += K.absolute_discriminant().prime_factors()
 
         # remove repeats:
@@ -767,7 +767,7 @@ def _semistable_reducible_primes(E):
         if P.ramification_index() != 1:
             continue
 
-        if E .has_bad_reduction(P):
+        if E.has_bad_reduction(P):
             continue
 
         tr = E.reduction(P).trace_of_frobenius()

@@ -1071,6 +1071,19 @@ class SubwordComplexFacet(Simplex, Element):
 
             :meth:`upper_root_configuration`
 
+        OUTPUT:
+
+        an element of the Coxeter group
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2])
+            sage: w = W.from_reduced_word([1,2,1])
+            sage: SC = SubwordComplex([1,2,1,2,1],w)
+            sage: F = SC([1,2]); F
+            (1, 2)
+            sage: F.product_of_upper_roots()
+            ?
         """
         W = self.parent().group()
         return W.prod(W.root_to_reflection(beta)
@@ -1445,7 +1458,22 @@ class SubwordComplexFacet(Simplex, Element):
 
 def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
     r"""
-    Return the (positive or negative) *greedy facet* of ``self``.
+    Return the (positive or negative) *greedy facet* of the subword
+    complex for (Q, w).
+
+    INPUT:
+
+    - Q -- a word
+    - w -- an element in the Coxeter group
+    - side -- optional, either 'negative' (default) or 'positive'
+    - n -- an integer (optional, defaults to the length of Q)
+    - pos -- an integer (optional, default 0)
+    - l -- an integer (optional, defaults to the length of w)
+    - elems -- a list (optional)
+
+    OUTPUT:
+
+    - a set
     """
     if side == "negative":
         pass
@@ -1486,17 +1514,39 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
 
 
 def _extended_root_configuration_indices(W, Q, F):
-        V_roots = []
-        pi = W.one()
-        for i in range(len(Q)):
-            wi = Q[i]
-            V_roots.append((~pi)(W.index_set()[wi] + 1) - 1)
-            if i not in F:
-                pi = pi.apply_simple_reflection(wi)
-        return V_roots
+    """
+    Return the extended root configuration indices of the facet F.
+
+    INPUT:
+
+    - W -- a Coxeter group
+    - Q -- a word representing an element of W
+    - F -- a facet of the subword complex
+
+    OUTPUT:
+
+    a list of root indices ?
+    """
+    V_roots = []
+    pi = W.one()
+    for wi in Q:
+        V_roots.append((~pi)(W.index_set()[wi] + 1) - 1)
+        if i not in F:
+            pi = pi.apply_simple_reflection(wi)
+    return V_roots
 
 
 def _greedy_flip_algorithm(Q, w):
+    """
+    INPUT:
+
+    - Q -- a word in a Coxeter group W
+    - w -- an element of W
+
+    OUTPUT:
+
+    ?
+    """
     W = w.parent()
     F = _greedy_facet(Q, w, side="positive")
     R = _extended_root_configuration_indices(W, Q, F)

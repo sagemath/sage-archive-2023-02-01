@@ -2879,10 +2879,10 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: Cube = polytopes.hypercube(3)
-            sage: vertex_trunc = Cube.face_truncation(Cube.faces(0)[0])
-            sage: vertex_trunc.f_vector()
+            sage: vertex_trunc1 = Cube.face_truncation(Cube.faces(0)[0])
+            sage: vertex_trunc1.f_vector()
             (1, 10, 15, 7, 1)
-            sage: vertex_trunc.faces(2)
+            sage: vertex_trunc1.faces(2)
             (<0,1,2,3>,
              <2,3,4,5>,
              <1,2,5,6>,
@@ -2890,6 +2890,17 @@ class Polyhedron_base(Element):
              <4,5,6,7,9>,
              <7,8,9>,
              <0,3,4,8,9>)
+            sage: vertex_trunc1.vertices()
+            (A vertex at (1, -1, -1),
+             A vertex at (1, 1, -1),
+             A vertex at (1, 1, 1),
+             A vertex at (1, -1, 1),
+             A vertex at (-1, -1, 1),
+             A vertex at (-1, 1, 1),
+             A vertex at (-1, 1, -1),
+             A vertex at (-1, -1/3, -1),
+             A vertex at (-1/3, -1, -1),
+             A vertex at (-1, -1, -1/3))
             sage: edge_trunc = Cube.face_truncation(Cube.faces(1)[0])
             sage: edge_trunc.f_vector()
             (1, 10, 15, 7, 1)
@@ -2931,11 +2942,12 @@ class Polyhedron_base(Element):
             self.vertices()])
 
         if B == max(linear_evaluation):
-            C = max(linear_evaluation.difference(B))
+            C = max(linear_evaluation.difference(set([B])))
         else:
-            C = min(linear_evaluation.difference(B))
+            C = min(linear_evaluation.difference(set([B])))
 
-        ineq_vector = tuple((1 - cut_frac) * B + cut_frac * C) + tuple(normal_vector)
+        cut_height = (1 - cut_frac) * B + cut_frac * C
+        ineq_vector = tuple([cut_height]) + tuple(normal_vector)
 
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()

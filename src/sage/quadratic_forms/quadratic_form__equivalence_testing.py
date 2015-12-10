@@ -602,58 +602,47 @@ def isometry(self, other):
     return f_diagonal_transform * transform * q_diagonal_transform.inverse()
 
 
-# Helper method for isometry.
 def diagonal_isometry(V, W):
-# Computes an isometry between diagonal equivalent forms V and W.
+    r"""
+    Given two diagonal, rationally equivalent quadratic forms, computes a 
+    transition matrix mapping from one to the other.
+
+    Note: This function is an auxilliary method of ``isometry``, which is the
+    method that should be used as it performs error-checking that isn't present
+    in this function.
+
+    INPUT:
+
+    - ``V`` -- a diagonal quadratic form
+    - ``W`` -- a diagonal quadratic form
+
+    OUTPUT:
+    
+    - A matrix ``T`` representing the isometry transformation, such that if 
+      ``VM`` is the gram matrix of ``V`` and ``WM`` is the gram matrix of 
+      ``W``, then ``VM == T.transpose() * WM * T`` yields ``True``.
+
+    EXAMPLES::
+    
+        sage: Q = DiagonalQuadraticForm(QQ, [1, 1, 2])
+        sage: F = DiagonalQuadraticForm(QQ, [2, 2, 2])
+        sage: T = Q.isometry(F); T
+        [-1/2 -1/2    0]
+        [   0    0   -1]
+        [-1/2  1/2    0]
+        sage: Q.Gram_matrix() == T.transpose() * F.Gram_matrix() * T
+        True
+    
+        sage: T = F.isometry(Q); T
+        [-1/3 -4/3 -1/3]
+        [  -1    0    1]
+        [ 2/3 -1/3  2/3]
+        sage: F.Gram_matrix() == T.T * Q.Gram_matrix() * T
+        True
+    """
     import copy
     from sage.functions.other import sqrt
     from quadratic_form import DiagonalQuadraticForm
-    from sage.matrix.constructor import matrix, column_matrix, Matrix
-    from sage.modules.free_module_element import vector
-  
-    #----HELPER METHODS-----#
-
-    def compute_gram_matrix_from_basis(Q, basis):
-        # Computes the gram matrix by treating the columns of basis as basis vectors.
-        n = Q.dim()
-        rows = [];
-        for i in range(n):
-            rows.append([Q.bilinear_map(basis.column(i), basis.column(j)) for j in range(n)])
-        return Matrix(rows)
-
-    def modify_basis(basis, v, i):
-        # Modifies basis to include v (a linear combination of the basis vectors) at column i in the basis.
-        b = copy.deepcopy(basis)
-        column = vector(QQ, b.dimensions()[0])
-        for j in range(len(v)):
-            column += b.column(i + j) * v[j]
-        b.set_column(i, column)
-        return b
-
-    def gram_schmidt(matrix, fixed_vector_index, inner_product):
-        # Orthogonalizes the columns of matrix, past a fixed vector, with respect to inner_product.
-        n = matrix.dimensions()[0]
-        vectors = [0] * n
-    
-        for i in range(n):
-            vectors[i] = matrix.column(i)
-        for i in range(fixed_vector_index, n):
-            for j in range(i+1, n):
-                vectors[j] = vectors[j] - (inner_product(vectors[j], vectors[i]) / inner_product(vectors[i], vectors[i])) * vectors[i]
-
-        return column_matrix(vectors)
-
-    def zero_row(matrix, col, i):
-        ##Sets the ith column of matrix to col and returns true if matrix has an all zero row.
-        m = modify_basis(matrix, col, i)
-        rows, cols = m.dimensions()
-        z = [0] * cols
-        for i in range(rows):
-            if m.row(i).list() == z:
-                return True
-        return False
-    
-    #--- END OF HELPER METHODS ---#
 
     Q, F = copy.deepcopy(V), copy.deepcopy(W)
     QM, FM = Q.Gram_matrix(), F.Gram_matrix()
@@ -719,3 +708,176 @@ def diagonal_isometry(V, W):
 
     return f_basis * q_basis.inverse()
 
+
+def compute_gram_matrix_from_basis(Q, basis):
+    r"""
+    Computes the gram matrix of a quadratic form with respect to the given basis.
+
+    INPUT:
+
+    - ``Q`` -- a quadratic form of rank n
+    - ``basis`` -- an nxn matrix whose columns are treated as basis vectors
+
+    OUTPUT:
+
+    - A matrix representing the gram matrix of ``Q`` with respect to ``basis``
+    
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import *
+        
+        sage: Q = QuadraticForm(QQ, 3, [1, 2, 2, 1, 2, 0])
+        sage: std_basis = matrix.identity(3)
+        sage: QM = compute_gram_matrix_from_basis(Q, std_basis)
+        sage: Q.Gram_matrix() == QM
+        True
+
+    ::
+
+        sage: Q = DiagonalQuadraticForm(QQ, [1, 2, 2])
+        sage: basis = matrix([[1, 1, 0], [2, 1, 0], [0, 0, 1]])
+        sage: QM = compute_gram_matrix_from_basis(Q, basis); QM
+        [9 5 0]
+        [5 3 0]
+        [0 0 2]
+    """
+    from sage.matrix.constructor import matrix, Matrix
+    n = Q.dim()
+    rows = [];
+    for i in range(n):
+        rows.append([Q.bilinear_map(basis.column(i), basis.column(j)) for j in range(n)])
+    return Matrix(rows)
+
+
+def modify_basis(basis, v, i):
+    r""" 
+    Modifies one of the vectors in a basis to be a linear combination of the vectors in the basis.
+
+    Note: This function is not intended for general use. It expects the length of ``v`` to be 
+    the dimension of ``basis`` - ``i``. It was designed as a helper for the ``diagonally_isometry`` method.
+
+    INPUT:
+
+    - ``basis`` -- a square matrix whose columns represent vectors in a basis
+    - ``v`` -- a vector that represents a linear combination of the vectors in ``basis``
+    - ``i`` -- the index of the column in ``basis`` to be modified.
+
+    OUTPUT:
+
+    - A matrix representing the basis with one of its vectors changed to a linear combination of the basis vectors.
+    
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import *
+        sage: std_basis = matrix.identity(3)                                        
+        sage: b1 = modify_basis(std_basis, vector([1, 1, 1]), 0); b1
+        [1 0 0]
+        [1 1 0]
+        [1 0 1]
+        sage: b2 = modify_basis(b1, vector([3, 2]), 1); b2
+        [1 0 0]
+        [1 3 0]
+        [1 2 1]
+        sage: b3 = modify_basis(b2, vector([2, 2]), 1); b3
+        [1 0 0]
+        [1 6 0]
+        [1 6 1]
+    """
+    import copy
+    from sage.modules.free_module_element import vector
+
+    b = copy.deepcopy(basis)
+    column = vector(QQ, b.dimensions()[0])
+    for j in range(len(v)):
+        column += b.column(i + j) * v[j]
+    b.set_column(i, column)
+    return b
+
+def gram_schmidt(m, fixed_vector_index, inner_product):
+    r"""
+    Orthogonalizes a set of vectors, starting at a fixed vector, with respect to a given 
+    inner product.
+
+    INPUT:
+
+    - ``m`` -- a square matrix whose columns represent vectors
+    - ``fixed_vector_index`` -- any vectors preceding the vector (i.e. to its left) 
+        at this index are not changed.
+    - ``inner_product`` - a function that takes two vector arguments and returns a scalar,
+        representing an inner product.
+
+    OUTPUT:
+
+    - A matrix consisting of orthogonal columns with respect to the given inner product
+    
+    EXAMPLES:: 
+
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import *
+        sage: Q = QuadraticForm(QQ, 3, [1, 4, 6, 1, 2, 4]); Q
+        Quadratic form in 3 variables over Rational Field with coefficients: 
+        [ 1 4 6 ]
+        [ * 1 2 ]
+        [ * * 4 ]
+        sage: QM = Q.Gram_matrix(); QM
+        [1 2 3]
+        [2 1 1]
+        [3 1 4]
+        sage: om = gram_schmidt(QM, 0, Q.bilinear_map); om
+        [     1 106/79 -50/51]
+        [     2 -25/79 -70/51]
+        [     3 -77/79  70/51]
+        sage: v0 = om.column(0); v1 = om.column(1); v2 = om.column(2)
+        sage: Q.bilinear_map(v0, v1) == 0
+        True
+        sage: Q.bilinear_map(v0, v2) == 0
+        True
+        sage: Q.bilinear_map(v1, v2) == 0
+        True
+    """
+    from sage.matrix.constructor import column_matrix
+      
+    n = m.dimensions()[0]
+    vectors = [0] * n
+    
+    for i in range(n):
+        vectors[i] = m.column(i)
+    for i in range(fixed_vector_index, n):
+        for j in range(i+1, n):
+            vectors[j] = vectors[j] - (inner_product(vectors[j], vectors[i]) / inner_product(vectors[i], vectors[i])) * vectors[i]
+
+    return column_matrix(vectors)
+
+
+def zero_row(matrix, col, i):
+    r"""
+    Calls modify_basis(matrix, col, i) and returns true iff the resulting matrix
+    contains an all-zero row.
+
+    INPUT:
+
+    - ``matrix`` -- a matrix
+    - ``col`` -- a vector
+    - ``i`` -- the index of a column in ``matrix``
+
+    OUTPUT:
+
+    - True if the result of modify_basis(matrix, col, i) contains of an all-zero row,
+    and False otherwise.
+    
+    EXAMPLES:: 
+
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import *
+        sage: m = matrix([[1, 2], [2, 1]])
+        sage: zero_row(m, vector([1, 2]), 0)
+        False
+        sage: m = matrix([[1, 0], [1, 2]])
+        sage: zero_row(m, vector([0, 1]), 0)
+        True
+    """
+    m = modify_basis(matrix, col, i)
+    rows, cols = m.dimensions()
+    z = [0] * cols
+    for i in range(rows):
+        if m.row(i).list() == z:
+            return True
+    return False

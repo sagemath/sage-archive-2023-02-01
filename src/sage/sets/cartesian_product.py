@@ -24,7 +24,7 @@ from sage.categories.sets_cat import Sets
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.element_wrapper import ElementWrapperCheckWrappedClass
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import Infinity
@@ -287,7 +287,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
-    class Element(ElementWrapper):
+    class Element(ElementWrapperCheckWrappedClass):
 
         wrapped_class = tuple
 
@@ -354,23 +354,4 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 <type 'tuple'>
             """
             return self.value
-
-        def __eq__(self, other):
-            """
-            Check equality.
-
-            EXAMPLES::
-
-                sage: A = cartesian_product([ZZ, ZZ])
-                sage: elt = A((1,1))
-                sage: (1, 1) == elt
-                True
-                sage: elt == (1, 1)
-                True
-                sage: A((1, 2)) == elt
-                False
-            """
-            if isinstance(other, tuple):
-                return self.value == other
-            return super(CartesianProduct.Element, self).__eq__(other)
 

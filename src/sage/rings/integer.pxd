@@ -26,6 +26,7 @@ cdef class Integer(EuclideanDomainElement):
     cdef bint _is_power_of(Integer self, Integer n)
 
     cdef bint _pseudoprime_is_prime(self, proof) except -1
+    cpdef list _pari_divisors_small(self)
 
     cdef _reduce_set(self, s) # do not use, since integers are immutable.
 

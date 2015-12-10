@@ -829,20 +829,28 @@ class ModularForm_abstract(ModuleElement):
             sage: L(1)
             0.588879583428483
         """
+        from sage.lfunctions.all import Dokchitser
 
+        # compute the requested embedding
+        C = rings.ComplexField(prec)
         if conjugate is not None:
             from sage.misc.superseded import deprecation
             deprecation(19668, "The argument 'conjugate' for 'lseries' is deprecated -- use the synonym 'embedding'")
             embedding=conjugate
-        from sage.lfunctions.all import Dokchitser
+        K = self.base_ring()
+        if isinstance(embedding, RingHomomorphism):
+            # Target of embedding might have precision less than desired, so
+            # need to refine
+            emb = NumberFieldEmbedding(K, C, embedding(K.gen()))
+        else:
+            emb = self.base_ring().embeddings(C)[embedding]
+
         # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
         N = self.level()
-        C = rings.ComplexField(prec)
-        emb = self.base_ring().embeddings(C)[conjugate]
         e = C.gen()**l * C(N)**(1 - rings.QQ(l)/2) * self.atkin_lehner_eigenvalue(N, embedding=emb)
 
-        if self.q_expansion()[0] == 0:
+        if self.is_cuspidal():
             poles = []  # cuspidal
         else:
             poles = [l] # non-cuspidal
@@ -863,15 +871,6 @@ class ModularForm_abstract(ModuleElement):
         if b != 1:
             invb = 1/b
             coeffs = (invb*c for c in coeffs)
-
-        # compute the requested embedding
-        K = self.base_ring()
-        if isinstance(embedding, RingHomomorphism):
-            # Target of embedding might have precision less than desired, so
-            # need to refine
-            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
-        else:
-            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
 
         s = 'coeff = %s;' % [emb(_) for _ in coeffs]
         L.init_coeffs('coeff[k+1]',pari_precode = s,
@@ -1270,6 +1269,17 @@ class Newform(ModularForm_abstract):
         """
         S = self.parent()
         return S(self.q_expansion(S.sturm_bound()))
+
+    def is_cuspidal(self):
+        r"""
+        Return True. For compatibility with elements of modular forms spaces.
+
+        EXAMPLE::
+
+            sage: Newforms(11, 2)[0].is_cuspidal()
+            True
+        """
+        return True
 
     def modular_symbols(self, sign=0):
         """

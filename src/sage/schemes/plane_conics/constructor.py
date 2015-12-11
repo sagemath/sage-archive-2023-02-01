@@ -241,7 +241,7 @@ def Conic(base_field, F=None, names=None, unique=True):
             return ProjectiveConic_rational_field(P2, F)
         if is_NumberField(base_field):
             return ProjectiveConic_number_field(P2, F)
-        if is_FractionField(base_field) and is_PolynomialRing(base_field.ring()):
+        if is_FractionField(base_field) and (is_PolynomialRing(base_field.ring()) or is_MPolynomialRing(base_field.ring())):
             return ProjectiveConic_rational_function_field(P2, F)
             
         return ProjectiveConic_field(P2, F)

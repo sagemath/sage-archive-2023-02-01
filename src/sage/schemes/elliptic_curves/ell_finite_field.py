@@ -16,15 +16,10 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
@@ -42,6 +37,7 @@ import sage.groups.generic as generic
 from . import ell_point
 from sage.arith.all import gcd, lcm, binomial
 from sage.structure.sequence import Sequence
+from sage.misc.cachefunc import cached_method
 
 import sage.plot.all as plot
 
@@ -1222,40 +1218,68 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     return self._order
                 if verbose: print("number of possibilities is now ",kmax-kmin+1)
 
+    @cached_method
     def gens(self):
-        """
-        Returns a tuple of length up to 2 of points which generate the
-        abelian group of points on this elliptic curve. See
-        abelian_group() for limitations.
+        r"""
+        Return points which generate the abelian group of points on
+        this elliptic curve.
 
-        The algorithm uses random points on the curve, and hence the
-        generators are likely to differ from one run to another; but they
-        are cached so will be consistent in any one run of Sage.
+        OUTPUT: a tuple of points on the curve.
 
-        AUTHORS:
+        - if the group is trivial: an empty tuple.
 
-        - John Cremona
+        - if the group is cyclic: a tuple with a generator.
+
+        - if the group is not cyclic: a tuple with 2 points, where the
+          order of the first point equals the exponent of the group.
+
+        .. WARNING::
+
+            In the case of 2 generators `P` and `Q`, it is not
+            guaranteed that the group is the cartesian product of the 2
+            cyclic groups `\langle P \rangle` and `\langle Q \rangle`.
+            In other words, the order of `Q` isn't as small as possible.
+            If you really need to know the group structure, use
+            :meth:`abelian_group`.
 
         EXAMPLES::
 
-            sage: E=EllipticCurve(GF(11),[2,5])
-            sage: E.gens()                           # random output
+            sage: E = EllipticCurve(GF(11),[2,5])
+            sage: E.gens()
             ((0 : 7 : 1),)
-            sage: EllipticCurve(GF(41),[2,5]).gens() # random output
-            ((21 : 1 : 1), (8 : 0 : 1))
-            sage: F.<a>=GF(3^6,'a')
-            sage: E=EllipticCurve([a,a+1])
-            sage: pts=E.gens()
+            sage: E = EllipticCurve(GF(41),[2,5])
+            sage: E.gens()
+            ((4 : 35 : 1), (25 : 31 : 1))
+            sage: E.gens()[0].order()
+            22
+            sage: F.<a> = GF(3^6)
+            sage: E = EllipticCurve([a,a+1])
+            sage: pts = E.gens()
             sage: len(pts)
             1
-            sage: pts[0].order()==E.cardinality()
+            sage: pts[0].order() == E.cardinality()
             True
+            sage: E = EllipticCurve(GF(2),[0,0,1,1,1])
+            sage: E.gens()
+            ()
+
+        Unlike :meth:`abelian_group`, this works even over large finite
+        fields::
+
+            sage: k.<a> = GF(5^60)
+            sage: E = EllipticCurve([a,a])
+            sage: len(E.gens())
+            2
+            sage: E.cardinality()      # known bug #16931
+            867361737988403547205571230383620219837340
+            sage: E.gens()[0].order()  # known bug #16931
+            433680868994201773602785615191810109918670
+            sage: E.gens()[1].order()  # known bug #16931
+            48186763221577974844753957243534456657630
         """
-        try:
-            G =  self.abelian_group()
-            return [x.element() for x in G.gens()]
-        except AttributeError:
-            pass
+        G = self._pari_().ellgroup(flag=1)
+        k = self.base_ring()
+        return tuple(self.point(list(pt)) for pt in G[2])
 
     def __iter__(self):
         """
@@ -1313,6 +1337,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
            elements must be feasible. Also, baby-step-giant-step
            methods are used which have space and time requirements
            which are `O(\sqrt{q})`.
+
+        .. SEEALSO::
+
+            If you do not need the complete abelian group structure but
+            only generators of the group, use :meth:`gens` which is
+            much faster.
 
         Also, the algorithm uses random points on the curve and hence the
         generators are likely to differ from one run to another; but the

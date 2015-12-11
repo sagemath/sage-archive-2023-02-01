@@ -69,6 +69,30 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             ...
             TypeError: polys (=[x^2*u, y^2*w, z^2*u, w^2, z*u]) must be
             multi-homogeneous of the same degrees (by component)
+
+        ::
+
+            sage: R.<s,t> = PolynomialRing(QQ)
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],QQ)
+            sage: P.<u,v,w,s,t,r> = ProductProjectiveSpaces([3,1],QQ)
+            sage: H = Hom(Z,P)
+            sage: f = H([a^2,b^2,a^2,a*b,a*x,b*z]); f
+            Scheme morphism:
+              From: Product of projective spaces P^1 x P^2 over Rational Field
+              To:   Product of projective spaces P^3 x P^1 over Rational Field
+              Defn: Defined by sending (a : b , x : y : z) to
+                    (a^2 : b^2 : a^2 : a*b , a*x : b*z).
+
+        ::
+
+            sage: Z.<a,b,c,x,y,z> = ProductProjectiveSpaces([1,3],QQ)
+            sage: P.<u,v,w,s,t,r> = ProductProjectiveSpaces([2,2],QQ)
+            sage: H = Hom(Z,P)
+            sage: f = H([a^2,b^2,c^2,x^2,y^2,z^2])
+            Traceback (most recent call last):
+            ...
+            TypeError: polys (=[a^2, b^2, c^2, x^2, y^2, z^2]) must be
+            multi-homogeneous of the same degrees (by component)
         """
         if check:
             #check multi-homogeneous
@@ -77,14 +101,14 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
                 polys[0].exponents()
             except AttributeError:
                 polys = [f.lift() for f in polys]
-
             target = parent.codomain().ambient_space()
+            dom = parent.domain().ambient_space()
             from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
             if is_ProductProjectiveSpaces(target):
                 splitpolys = target._factors(polys)
                 for m in range(len(splitpolys)):
-                    d = target._degree(splitpolys[m][0])
-                    if not all(d == target._degree(f) for f in splitpolys[m]):
+                    d = dom._degree(splitpolys[m][0])
+                    if not all(d == dom._degree(f) for f in splitpolys[m]):
                         raise  TypeError("polys (=%s) must be multi-homogeneous of the same degrees (by component)"%polys)
             else:
                 #we are mapping into some other kind of space
@@ -159,8 +183,17 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: F = H([x^2*u,y^2*w,z^2*u,w^2,u^2])
             sage: F(T([2,1,3,0,1]))
             (4/9 : 0 : 1 , 0 : 1)
+
+        ::
+
+            sage: PP.<x,y,z,u,v,w> = ProductProjectiveSpaces(QQ,[1,1,1])
+            sage: HP = End(PP)
+            sage: f = HP([v*x^2,w*y^2,z^2,u^2,v^2,w^2])
+            sage: Q = PP([0,1,1,1,1,1])
+            sage: f(Q)
+            (0 : 1 , 1 : 1 , 1 : 1)
         """
         A = self.codomain()
-        Q = P[0]._coords + P[1]._coords
+        Q = list(P)
         newP = [f(Q) for f in self.defining_polynomials()]
         return(A.point(newP, check))

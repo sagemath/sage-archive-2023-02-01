@@ -517,7 +517,7 @@ class Posets(object):
     @staticmethod
     def StandardExample(n, facade=None):
         r"""
-        Return the partially ordered set on ``2n`` elements with 
+        Return the partially ordered set on ``2n`` elements with
         dimension ``n``.
 
         INPUT:

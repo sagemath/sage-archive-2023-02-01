@@ -82,7 +82,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         
         The algorithm used is the algorithm Conic in [HC2006].
         
-        EXAMPLES::
+        EXAMPLES:
         
         We can find points for function fields over `\QQ` and finite
         fields::

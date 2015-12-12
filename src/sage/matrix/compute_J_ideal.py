@@ -26,6 +26,7 @@ def compute_M(p, t, A):
 
     EXAMPLES::
 
+        sage: from calculate_nu import compute_M # not tested
         sage: X = polygen(ZZ)
         sage: A = matrix([[X-1, X-2, X], [X-1, X-3, X+2]])
         sage: A.set_immutable()

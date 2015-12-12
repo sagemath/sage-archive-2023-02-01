@@ -677,6 +677,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             resu += [rt]
         return resu
 
+    @cached_method
     def reflections(self):
         """
         Return the set of reflections.
@@ -694,6 +695,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         """
         return self.positive_roots(as_reflections=True)
 
+    @cached_method    
     def roots(self):
         """
         Return the roots.
@@ -805,7 +807,13 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             """
             return self.matrix()
 
+        @cached_method
         def action_on_root_indices(self, i):
+            """
+            Return the action on the set of roots.
+
+            The roots are ordered as in the output of the method `roots`.
+            """
             roots = self.parent().roots()
             rt = self * roots[i]
             return roots.index(rt)

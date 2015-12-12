@@ -890,7 +890,7 @@ cdef class CachedFunction(object):
 
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
-            sage: g.get_cache()
+            sage: g.cache
             {((5, 'default'), ()): 7}
             sage: a = g(10^5)   # indirect doctest
             sage: a == number_of_partitions(10^5)
@@ -947,13 +947,22 @@ cdef class CachedFunction(object):
         """
         Returns the cache dictionary.
 
+        This method is deprecated, you can just access the ``cache``
+        attribute instead.
+
         EXAMPLES::
 
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
+            doctest:...: DeprecationWarning: The .get_cache() method is deprecated, use the .cache attribute instead.
+            See http://trac.sagemath.org/19694 for details.
+            {((5, 'default'), ()): 7}
+            sage: g.cache
             {((5, 'default'), ()): 7}
         """
+        from sage.misc.superseded import deprecation
+        deprecation(19694, "The .get_cache() method is deprecated, use the .cache attribute instead.")
         return self.cache
 
     def is_in_cache(self, *args, **kwds):
@@ -1014,10 +1023,10 @@ cdef class CachedFunction(object):
 
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
-            sage: g.get_cache()
+            sage: g.cache
             {((5, 'default'), ()): 7}
             sage: g.set_cache(17, 5)
-            sage: g.get_cache()
+            sage: g.cache
             {((5, 'default'), ()): 17}
             sage: g(5)
             17
@@ -1101,10 +1110,10 @@ cdef class CachedFunction(object):
 
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
-            sage: g.get_cache()
+            sage: g.cache
             {((5, 'default'), ()): 7}
             sage: g.clear_cache()
-            sage: g.get_cache()
+            sage: g.cache
             {}
         """
         cdef object cache = self.cache
@@ -1672,11 +1681,11 @@ cdef class CachedMethodCaller(CachedFunction):
             ....:     def f(self,*args):
             ....:         return self._x^2
             sage: a = Foo(2)
-            sage: a.f.get_cache()
+            sage: a.f.cache
             {}
             sage: a.f()
             4
-            sage: a.f.get_cache()
+            sage: a.f.cache
             {((), ()): 4}
         """
         # initialize CachedFunction. Since the cached method is actually bound
@@ -1905,7 +1914,7 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: z = a.f(37)
             sage: k = a.f.get_key(37); k
             ((37, 0), ())
-            sage: a.f.get_cache()[k] is z
+            sage: a.f.cache[k] is z
             True
 
         Note that the method does not test whether there are
@@ -2116,11 +2125,11 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             ....:     def f(self):
             ....:         return self._x^2
             sage: a = Foo(2)
-            sage: print a.f.get_cache()
+            sage: print a.f.cache
             None
             sage: a.f()
             4
-            sage: a.f.get_cache()
+            sage: a.f.cache
             4
 
         """
@@ -2607,7 +2616,7 @@ cdef class CachedMethod(object):
         it to an attribute of ``a``.  So, the following is an indirect
         doctest::
 
-            sage: a.f.get_cache()    # indirect doctest
+            sage: a.f.cache    # indirect doctest
             {((2,), ()): 4}
             sage: a._cache__f
             {((2,), ()): 4}
@@ -3023,7 +3032,7 @@ cdef class CachedInParentMethod(CachedMethod):
             sage: a = Foo(2)
             sage: a.f()
             8
-            sage: a.f.get_cache()   #indirect doctest
+            sage: a.f.cache   #indirect doctest
             {(My 2, ((), ())): 8}
 
         Since the key for the cache depends on equality of
@@ -3045,14 +3054,14 @@ cdef class CachedInParentMethod(CachedMethod):
             sage: c = Foo(3)
             sage: c.f()
             27
-            sage: c.f.get_cache() is a.f.get_cache() #indirect doctest
+            sage: c.f.cache is a.f.cache #indirect doctest
             True
 
         Note that the cache is also available as an
         attribute of the cached method, which speeds
         up internal computations::
 
-            sage: a.f.cache is b.f.get_cache() is c.f._cachedmethod._get_instance_cache(c)
+            sage: a.f.cache is b.f.cache is c.f._cachedmethod._get_instance_cache(c)
             True
 
         """

@@ -107,6 +107,10 @@ class Compute_nu(SageObject):
         chi_B = B.charpoly(X)
         self._A = matrix.block([[b, chi_B*matrix.identity(d)]])
         self._A.set_immutable()
+        self._ZX = X.parent()
+        # we also need the multivariate polynomial ring in one variable
+        # because Groebner bases are only implemented there.
+        self._ZXm = PolynomialRing(X.base_ring(), X.variable_name(), 1)
 
     def ideal(self, p, t):
         """
@@ -129,11 +133,15 @@ class Compute_nu(SageObject):
             sage: for t in range(3):
             ....:     print C.ideal(3, t)
             Principal ideal (1) of Univariate Polynomial Ring in x over Integer Ring
-            Ideal (3, 2*x^2 + 2*x + 2) of Univariate Polynomial Ring in x over Integer Ring
-            Ideal (9, 6*x^2 + 6*x + 6, 8*x^2 + 5*x + 2, 6*x^2 + 6*x + 6) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (x^2 + x + 1, 3) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (x^2 + 4*x + 7, 9) of Univariate Polynomial Ring in x over Integer Ring
         """
         M = compute_M(p, t, self._A)
-        generators = list(M.row(0))
+        generators = [self._ZX(f) for f in [p**t] + list(M.row(0))]
         assert all((g(self._B) % p**t).is_zero()
                    for g in generators)
-        return self._A.base_ring().ideal(*([p**t] + generators))
+        # switch to multivariate polynomial ring in one variable
+        # for Groebner basis computation
+        I = self._ZXm.ideal(generators)
+        GB = I.groebner_basis()
+        return self._ZX.ideal(*GB)

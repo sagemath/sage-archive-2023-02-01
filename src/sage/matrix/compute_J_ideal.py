@@ -99,6 +99,7 @@ class Compute_nu(SageObject):
         if not B.is_square():
             raise TypeError("square matrix required.")
 
+        self._B = B
         X = polygen(B.base_ring())
         adjunct = (X-B).adjoint()
         d = B.nrows()**2
@@ -132,4 +133,7 @@ class Compute_nu(SageObject):
             Ideal (9, 6*x^2 + 6*x + 6, 8*x^2 + 5*x + 2, 6*x^2 + 6*x + 6) of Univariate Polynomial Ring in x over Integer Ring
         """
         M = compute_M(p, t, self._A)
-        return self._A.base_ring().ideal(*([p**t] + list(M.row(0))))
+        generators = list(M.row(0))
+        assert all((g(self._B) % p**t).is_zero()
+                   for g in generators)
+        return self._A.base_ring().ideal(*([p**t] + generators))

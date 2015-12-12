@@ -63,7 +63,7 @@ class SubwordComplex(SimplicialComplex, Parent):
         sage: W = CoxeterGroup(['A',2], index_set=[1,2])
         sage: w = W.from_reduced_word([1,2,1])
         sage: SC = SubwordComplex([1,2,1,2,1], w); SC
-        Subword complex of type ['A', 2] for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
+        Subword complex of unknown type for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
         sage: SC.facets()
         [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
 
@@ -92,7 +92,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',3], index_set=[1,2,3])
             sage: w = W.from_reduced_word([1,2,3,1,2,1])
             sage: SC = SubwordComplex([1,2,3,1,2,3,1,2,1], w); SC
-            Subword complex of type ['A', 3] for Q = [1, 2, 3, 1, 2, 3, 1, 2, 1] and pi = [1, 2, 3, 1, 2, 1]
+            Subword complex of unknown type for Q = [1, 2, 3, 1, 2, 3, 1, 2, 1] and pi = [1, 2, 3, 1, 2, 1]
             sage: len(SC)
             14
         """
@@ -138,7 +138,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',2],index_set=[1,2])
             sage: w = W.from_reduced_word([1,2,1])
             sage: SubwordComplex([1,2,1,2,1], w)
-            Subword complex of type ['A', 2] for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
+            Subword complex of unknown type for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
         """
         if self._cartan_type is None:
             return 'Subword complex of unknown type for Q = %s and pi = %s' % (self._Q, self._pi.reduced_word())
@@ -214,7 +214,7 @@ class SubwordComplex(SimplicialComplex, Parent):
         Q = self.word()
         if not all(i in range(len(Q)) for i in F):
             return False
-        return W.from_reduced_word(Q[i] for i in range(len(Q)) if i not in F) == self.pi()
+        return W.from_reduced_word(Qi for i, Qi in enumerate(Q) if i not in F) == self.pi()
 
     def list(self):
         r"""
@@ -238,11 +238,13 @@ class SubwordComplex(SimplicialComplex, Parent):
 
         EXAMPLES::
 
-            sage: W = CoxeterGroup(['A',2], index_set=[1,2])
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
             sage: SC.group()
-            Irreducible finite Coxeter group of rank 2 and type A2
+            Finite Coxeter group over Rational Field with Coxeter matrix:
+            [1 3]
+            [3 1]
         """
         return self._W
 
@@ -255,12 +257,12 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
-            sage: SC.cartan_type()
+            sage: SC.cartan_type()   # not tested
             ['A', 2]
         """
         from sage.combinat.root_system.cartan_type import CartanType
         if self._cartan_type is None:
-            raise ValueError("No Cartan type defined for %s" % (self._W))
+            raise ValueError("No Cartan type defined for {}".format(self._W))
         elif len(self._cartan_type) == 1:
             return CartanType([self._cartan_type[0]['series'],
                                self._cartan_type[0]['rank']])
@@ -445,7 +447,9 @@ class SubwordComplex(SimplicialComplex, Parent):
     @cached_method
     def is_double_root_free(self):
         r"""
-        Return ``True`` if ``self`` is double-root-free, that is if the root configurations
+        Return ``True`` if ``self`` is double-root-free.
+
+        This means that the root configurations
         of all facets do not contain a root twice.
 
         EXAMPLES::
@@ -487,7 +491,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
             sage: kappa_pres = SC.kappa_preimages()
-            sage: for F in SC: print F, [ w.reduced_word() for w in kappa_pres[F] ]
+            sage: for F in SC: print F, [w.reduced_word() for w in kappa_pres[F]]
             (0, 1) [[]]
             (0, 4) [[2, 1], [2]]
             (1, 2) [[1]]
@@ -508,6 +512,13 @@ class SubwordComplex(SimplicialComplex, Parent):
 
             :func:`root_fan <sage.combinat.subword_complex.SubwordComplexFacet.root_fan>`
 
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
+            sage: w = W.from_reduced_word([1,2,1])
+            sage: SC = SubwordComplex([1,2,1,2,1], w)
+            sage: SC.compatibility_fan()
+            Rational polyhedral fan in 2-d lattice N
         """
         if F is None:
             F = self.greedy_facet()
@@ -525,6 +536,13 @@ class SubwordComplex(SimplicialComplex, Parent):
 
             :func:`weight_cone <sage.combinat.subword_complex.SubwordComplexFacet.weight_cone>`
 
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
+            sage: w = W.from_reduced_word([1,2,1])
+            sage: SC = SubwordComplex([1,2,1,2,1], w)
+            sage: SC.brick_fan()
+            ?
         """
         from sage.geometry.fan import Fan
         return Fan([F.weight_cone() for F in self])
@@ -539,13 +557,29 @@ class SubwordComplex(SimplicialComplex, Parent):
 
             :func:`brick_vector <sage.combinat.subword_complex.SubwordComplexFacet.brick_vector>`
 
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
+            sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
+            sage: SC.brick_vectors()
+            [(2, 1), (2, 1), (-1, 1), (-1, -2), (-1, -2)]
         """
         return [F.brick_vector(coefficients=coefficients) for F in self]
 
     def minkowski_summand(self, i):
         r"""
-        Return the ``i``th Minkowski summand of ``self``.
+        Return the ``i`` th Minkowski summand of ``self``.
 
+        INPUT:
+
+        i -- an integer defining a position in Q ?
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
+            sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
+            sage: SC.minkowski_summand(1)
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
         """
         return Polyhedron([F.extended_weight_configuration()[i] for F in self])
 
@@ -582,7 +616,8 @@ class SubwordComplex(SimplicialComplex, Parent):
 
     def word_orbit_partition(self):
         r"""
-        Return the partition of the positions of `Q` into orbits of letter rotation.
+        Return the partition of the positions of `Q` into orbits of
+        letter rotation.
 
         EXAMPLES::
 
@@ -598,15 +633,21 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: SC.word_orbit_partition()
             [[0, 2, 3, 5, 6, 8], [1, 4, 7]]
         """
+        from sage.graphs.graph import Graph
         Q = self.word()
-        positions = range(len(Q))
         W = self.group()
-        N = W.long_element().length()
-        w = W.w0
+        w0 = W.w0
         I = W.index_set()
-        I_decomp = set([frozenset([i, I[w(W.index_set()[i] + 1) - 1 - N]])
-                        for i in I])
-        return [[i for i in positions if Q[i] in I_part]
+        G = Graph([I, []], multiedges=False, format='vertices_and_edges')
+        conversion = {W.simple_reflection(i): i for i in I}
+        for i in I:
+            si = W.simple_reflection(i)
+            si_bar = w0 * si * w0
+            if si_bar != si:
+                G.add_edge((i, conversion[si_bar]))
+        # one just needs the diagram automorphism induced by w0
+        I_decomp = G.connected_components()
+        return [[j for j, x in enumerate(Q) if x in I_part]
                 for I_part in I_decomp]
 
     def barycenter(self):
@@ -619,7 +660,7 @@ class SubwordComplex(SimplicialComplex, Parent):
 
         EXAMPLES::
 
-            sage: W = CoxeterGroup(['A',2], index_set=[1,2])
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: SC.barycenter()
             (2/3, 4/3)
@@ -632,12 +673,35 @@ class SubwordComplex(SimplicialComplex, Parent):
     # cambrian constructions
 
     def cover_relations(self, label=False):
-        N = self.group().long_element().length()
+        """
+        Return the set of cover relations in the associated poset.
+
+        INPUT:
+
+        - label -- boolean (default ``False``) whether or not to label
+          the cover relations by the position of flip
+
+        OUTPUT:
+
+        a list of pairs of facets
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
+            sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
+            sage: SC.cover_relations()
+            [((0, 1), (1, 2)),
+             ((0, 1), (0, 4)),
+             ((1, 2), (2, 3)),
+             ((0, 4), (3, 4)),
+             ((2, 3), (3, 4))]
+        """
+        N = len(self.group().long_element(as_word=True))
         F = self.greedy_facet(side="positive")
         Fs = set([F])
         seen = set([F])
         covers = []
-        while Fs != set():
+        while Fs:
             F = Fs.pop()
             seen.add(F)
             conf = F._extended_root_configuration_indices()
@@ -665,7 +729,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: SC.increasing_flip_graph()
-            Digraph with ? vertices
+            Digraph on 5 vertices
         """
         from sage.graphs.digraph import DiGraph
         return DiGraph(self.cover_relations(label=label))
@@ -686,8 +750,9 @@ class SubwordComplex(SimplicialComplex, Parent):
  
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
-            sage: SC.interval(?, ?)
-            ?
+            sage: F = SC([1,2])
+            sage: SC.interval(F, F)
+            {(1, 2)}
         """
         G = self.increasing_flip_graph()
         paths = G.all_paths(I, J)
@@ -706,7 +771,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: SC.increasing_flip_poset()
-            Digraph with ? vertices
+            Finite poset containing 5 elements
         """
         from sage.combinat.posets.posets import Poset
         cov = self.cover_relations()
@@ -747,9 +812,16 @@ class SubwordComplexFacet(Simplex, Element):
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: F = SC([1,2]); F
             (1, 2)
+
+        TESTS::
+
+            sage: SC([1, 3])
+            Traceback (most recent call last):
+            ...
+            ValueError: The given iterable (1, 3) is not a facet of the Subword complex of unknown type for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
         """
         if facet_test and positions not in parent:
-            raise ValueError("The given iterable %s is not a facet of the subword complex %s" % (positions, parent))
+            raise ValueError("The given iterable %s is not a facet of the %s" % (positions, parent))
         Element.__init__(self, parent)
         Simplex.__init__(self, sorted(positions))
         self._extended_root_conf_indices = None
@@ -800,7 +872,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F = SC([1,2]); F
             (1, 2)
             sage: F._extended_root_configuration_indices()
-            [0, 2, 3, 2, 1]
+            [0, 1, 3, 1, 2]
         """
         if self._extended_root_conf_indices is None:
             self._extended_root_conf_indices = _extended_root_configuration_indices(self.parent().group(), self.parent().word(), self)
@@ -828,7 +900,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F = SC([1,2]); F
             (1, 2)
             sage: F._root_configuration_indices()
-            [2, 3]
+            [1, 3]
         """
         indices = self._extended_root_configuration_indices()
         return [indices[i] for i in self]
@@ -837,10 +909,12 @@ class SubwordComplexFacet(Simplex, Element):
         r"""
         Return the extended root configuration of ``self``.
 
-        Let `Q = q_1 \dots q_m \in S^*` and `w \in W`. The extended root configuration
-        of a facet `I` of `\mathcal{SC}(Q,w)` is the sequence `\mathsf{r}(I, 1), \dots, \mathsf{r}(I, m)`
-        of roots defined by `\mathsf{r}(I, k) = \Pi Q_{[k-1] \smallsetminus I} (\alpha_{q_k})`, where
-        `\Pi Q_{[k-1] \smallsetminus I}` is the product of the simple reflections
+        Let `Q = q_1 \dots q_m \in S^*` and `w \in W`. The extended
+        root configuration of a facet `I` of `\mathcal{SC}(Q,w)` is
+        the sequence `\mathsf{r}(I, 1), \dots, \mathsf{r}(I, m)` of
+        roots defined by `\mathsf{r}(I, k) = \Pi Q_{[k-1]
+        \smallsetminus I} (\alpha_{q_k})`, where `\Pi Q_{[k-1]
+        \smallsetminus I}` is the product of the simple reflections
         `q_i` for `i \in [k-1] \smallsetminus I` in this order.
 
         The extended root configuration is used to perform flips efficiently.
@@ -903,17 +977,24 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F = SC([1,2]); F
             (1, 2)
             sage: F.kappa_preimage()
-            [(1,4)(2,3)(5,6)]
+            [
+            [-1  1]
+            [ 0  1]
+            ]
 
             sage: F = SC([0,4]); F
             (0, 4)
             sage: F.kappa_preimage()
-            [(1,3)(2,5)(4,6), (1,2,6)(3,4,5)]
+            [
+            [ 0 -1]  [ 1  0]
+            [ 1 -1], [ 1 -1]
+            ]
         """
         W = self.parent().group()
-        N = W.long_element().length()
+        N = len(W.long_element(as_word=True))
         root_conf = self._root_configuration_indices()
-        return [w for w in W if all(w(i + 1) <= N for i in root_conf)]
+        return [w for w in W if all(w.action_on_root_indices(i) < N
+                                    for i in root_conf)]
 
     def is_vertex(self):
         r"""
@@ -1096,7 +1177,7 @@ class SubwordComplexFacet(Simplex, Element):
             ?
         """
         rays = self.compatibility_vectors()
-        rhocheck = sum(rays[i] for i in range(len(rays)) if i not in self)
+        rhocheck = sum(r for i, r in enumerate(rays) if i not in self)
         inequalities = []
         for x in range(len(rays)):
             for orbit in orbits:
@@ -1127,34 +1208,6 @@ class SubwordComplexFacet(Simplex, Element):
         Phi = W.roots()
         N = len(Phi) / 2
         return [Phi[i - N] for i in conf if i >= N]
-
-    def product_of_upper_roots(self):
-        r"""
-        Return the product of the upper roots of ``self``.
-
-        FIX: Connect to non-crossing partitions.
-
-        .. SEEALSO::
-
-            :meth:`upper_root_configuration`
-
-        OUTPUT:
-
-        an element of the Coxeter group
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['A',2], index_set=[1,2])
-            sage: w = W.from_reduced_word([1,2,1])
-            sage: SC = SubwordComplex([1,2,1,2,1],w)
-            sage: F = SC([1,2]); F
-            (1, 2)
-            sage: F.product_of_upper_roots()
-            ?
-        """
-        W = self.parent().group()
-        return W.prod(W.root_to_reflection(beta)
-                      for beta in self.upper_root_configuration())
 
     # weights
 
@@ -1190,8 +1243,7 @@ class SubwordComplexFacet(Simplex, Element):
             W = self.parent().group()
             Lambda = W.fundamental_weights()
             if coefficients is not None:
-                Lambda = [coefficients[i] * Lambda[i]
-                          for i in range(len(Lambda))]
+                Lambda = [coefficients[i] * li for i, li in enumerate(Lambda)]
             Q = self.parent().word()
 
             Phi = W.roots()
@@ -1199,12 +1251,12 @@ class SubwordComplexFacet(Simplex, Element):
             V_weights = []
 
             pi = W.one()
-            for i in range(len(Q)):
-                wi = Q[i]
-                fund_weight = Lambda[W.index_set()[wi]]
+            for i, wi in enumerate(Q):
+                fund_weight = Lambda[wi]
                 # here below using action on indices of roots
-                V_weights.append(sum(fund_weight[j] * Phi[(~pi)(j + 1) - 1]
-                                     for j in range(len(fund_weight))))
+                # but this assumes wrongly that simple roots are at start ?
+                V_weights.append(sum(fvj * Phi[(~pi).action_on_root_indices(j)]
+                                     for j, fvj in enumerate(fund_weight)))
                 if i not in self:
                     pi = pi.apply_simple_reflection(wi)
             if coefficients is None:
@@ -1242,7 +1294,8 @@ class SubwordComplexFacet(Simplex, Element):
     @cached_method
     def weight_cone(self):
         r"""
-        Return the polyhedral cone generated by the weight configuration of ``self``.
+        Return the polyhedral cone generated by the weight
+        configuration of ``self``.
 
         .. SEEALSO::
 
@@ -1270,6 +1323,10 @@ class SubwordComplexFacet(Simplex, Element):
 
         This is the sum of the weight vectors in the extended weight
         configuration.
+
+        INPUT:
+
+        coefficients -- ?
 
         .. SEEALSO::
 
@@ -1320,7 +1377,7 @@ class SubwordComplexFacet(Simplex, Element):
         """
         F = set(list(self))
         R = list(self._extended_root_configuration_indices())
-        j = _flip_c(self.parent().group(), F, R, i)
+        j = _flip_c(self.parent().group(), F, R, i)  # F and R are changed here
         new_facet = SubwordComplexFacet(self.parent(), F)
         new_facet._extended_root_conf_indices = tuple(R)
         if return_position:
@@ -1549,10 +1606,10 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
 
         sage: from sage.combinat.subword_complex import _greedy_facet
         sage: W = CoxeterGroup(['A',2], index_set=[1,2])
-        sage: Q = [1,2,1]
-        sage: w = W.from_reduced_word(Q)
+        sage: Q = [1,2,1,2,1]
+        sage: w = W.from_reduced_word([1, 2, 1])
         sage: _greedy_facet(Q, w)
-        ?
+        {3, 4}
     """
     if side == "negative":
         pass
@@ -1604,26 +1661,27 @@ def _extended_root_configuration_indices(W, Q, F):
 
     OUTPUT:
 
-    a list of root indices ?
+    a list of root indices
 
     EXAMPLES::
 
         sage: from sage.combinat.subword_complex import _extended_root_configuration_indices
         sage: W = CoxeterGroup(['A',2], index_set=[1,2])
-        sage: Q = [1,2,1]
-        sage: w = W.from_reduced_word(Q)
-        sage: SC = SubwordComplex([1,2,1,2,1],w)
+        sage: w = W.from_reduced_word([1,2,1])
+        sage: Q = [1,2,1,2,1]
+        sage: SC = SubwordComplex(Q, w)
         sage: F = SC([1,2])
         sage: _extended_root_configuration_indices(W, Q, F)
-        ?
+        [0, 1, 3, 1, 2]
     """
     V_roots = []
     pi = W.one()
-    for wi in Q:
+    for i, wi in enumerate(Q):
         # here below using action on indices of roots
-        V_roots.append((~pi)(W.index_set()[wi] + 1) - 1)
+        # V_roots.append((~pi)(W.index_set()[wi] + 1) - 1)
+        V_roots.append(pi.action_on_root_indices(W.simple_root_index(wi)))
         if i not in F:
-            pi = pi.apply_simple_reflection(wi)
+            pi = pi.apply_simple_reflection_right(wi)
     return V_roots
 
 
@@ -1636,16 +1694,21 @@ def _greedy_flip_algorithm(Q, w):
 
     OUTPUT:
 
-    ?
+    a pair: the list of facets and the list of extended root conf. indices
 
     EXAMPLES::
 
         sage: from sage.combinat.subword_complex import _greedy_flip_algorithm
         sage: W = CoxeterGroup(['A',2], index_set=[1,2])
-        sage: Q = [1,2,1]
-        sage: w = W.from_reduced_word(Q)
+        sage: Q = [1,2,1,2,1]
+        sage: w = W.from_reduced_word([1,2,1])
         sage: _greedy_flip_algorithm(Q, w)
-        ?
+        ([{0, 1}, [1, 2], [2, 3], [3, 4], [0, 4]],
+         [[0, 2, 0, 1, 2],
+          [0, 1, 3, 1, 2],
+          [0, 1, 2, 4, 2],
+          [0, 1, 2, 3, 5],
+          [0, 2, 1, 0, 5]])
     """
     W = w.parent()
     F = _greedy_facet(Q, w, side="positive")

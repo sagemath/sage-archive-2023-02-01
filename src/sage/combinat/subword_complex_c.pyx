@@ -1,9 +1,37 @@
 
-cpdef _flip_c(W, set positions, list extended_root_conf_indices, int i, side="both"):
+cpdef _flip_c(W, set positions, list extended_root_conf_indices,
+              int i, side="both"):
+    """
+    Flip a facet.
+
+    INPUT:
+
+    - W -- a Coxeter group
+    - positions -- the positions of the elements of the facet
+    - extended_root_conf_indices -- also attached to the facet ?
+    - i -- the position where to flip
+    - side -- optional, can be 'positive', 'negative' or 'both' (default)
+
+    OUTPUT:
+
+    the new position j that has replaced i
+
+    EXAMPLES::
+
+        sage: from sage.combinat.subword_complex_c import _flip_c
+        sage: W = CoxeterGroup(['A',2])
+        sage: w = W.from_reduced_word([1,2,1])
+        sage: SC = SubwordComplex([1,2,1,2,1], w)
+        sage: F = SC([0, 1])
+        sage: _flip_c(W, set([0,1]), F._extended_root_configuration_indices(), 1)
+        1
+        sage: _flip_c(W, set([0,1]), F._extended_root_configuration_indices(), 0)
+        2
+    """
     cdef int r, nr_ref, r_minus, j, k
     r = extended_root_conf_indices[i]
-    nr_ref = W.nr_reflections()
-    r_minus = (r + nr_ref) % (2*nr_ref) # get the negative root -r
+    nr_ref = len(W.long_element(as_word=True))
+    r_minus = (r + nr_ref) % (2 * nr_ref)  # get the negative root -r
     j = i
     for k in xrange(len(extended_root_conf_indices)):
         if extended_root_conf_indices[k] == r_minus and k not in positions and side != "positive":
@@ -15,9 +43,9 @@ cpdef _flip_c(W, set positions, list extended_root_conf_indices, int i, side="bo
     positions.remove(i)
     positions.add(j)
     if j != i:
-        t = W.reflections()[ min(r,r_minus) ]
-        for k in range(min(i,j)+1,max(i,j)+1):
-            extended_root_conf_indices[k] = t( extended_root_conf_indices[k]+1 ) - 1
+        t = W.reflections()[min(r, r_minus)]
+        for k in range(min(i, j) + 1, max(i, j) + 1):
+            extended_root_conf_indices[k] = t.action_on_root_indices(extended_root_conf_indices[k])
     return j
 
 cpdef _construct_facets_c(list Q, w, int n=-1, int pos=0, int l=-1):
@@ -36,6 +64,9 @@ cpdef _construct_facets_c(list Q, w, int n=-1, int pos=0, int l=-1):
         [[0]]
         sage: _construct_facets_c([2,1,2,1], w)
         [[0, 3]]
+        sage: w = W.from_reduced_word([1,2,1])
+        sage: _construct_facets_c([1,2,1,2,1], w)
+        [[0, 1], [0, 4], [1, 2], [2, 3], [3, 4]]
     """
     cdef int s
     cdef list X, Y

@@ -1,4 +1,9 @@
+"""
+Calculate nu
+"""
+
 from sage.matrix.constructor import matrix
+from sage.misc.cachefunc import cached_function
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 @cached_function
@@ -17,7 +22,7 @@ def compute_M(p, t, A):
 
     OUTPUT:
 
-    A matrix `F`. The columns of `(p^tI F)` are generators of `M_t(A)`.
+    A matrix `F`. The columns of `\begin{pmatrix}p^tI& F\end{pmatrix}` are generators of `M_t(A)`.
 
     EXAMPLES::
 

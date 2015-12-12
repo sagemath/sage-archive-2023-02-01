@@ -33,6 +33,8 @@ from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.cachefunc import cached_method
+
 
 class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
@@ -619,6 +621,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             raise ValueError("%s is not in the index set %s" % (i, self.index_set()))
         return self.gen(self.index_set().index(i))
 
+    @cached_method
     def positive_roots(self, as_reflections=False):
         """
         Return the positive roots.

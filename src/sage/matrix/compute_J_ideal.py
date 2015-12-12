@@ -69,7 +69,5 @@ def compute_M(p, t, A):
 
     F1 = matrix.block([[p**(t-1) * matrix.identity(d), G]])*T
     F = F1.matrix_from_columns(range(r, F1.ncols()))
-    assert all((entry % (p**t))== 0
-               for row in A*F
-               for entry in row), "A*F=%s" % str(A*F)
+    assert (A*F % (p**t)).is_zero(), "A*F=%s" % str(A*F)
     return matrix.block([[F, p*G]])

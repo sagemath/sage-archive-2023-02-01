@@ -5,6 +5,7 @@ Calculate nu
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.structure.sage_object import SageObject
 
 @cached_function
 def compute_M(p, t, A):
@@ -74,7 +75,7 @@ def compute_M(p, t, A):
 
 
 class Compute_nu(SageObject):
-    """
+    r"""
     Compute nu for a given matrix.
 
     INPUT:
@@ -113,8 +114,8 @@ class Compute_nu(SageObject):
         self._ZXm = PolynomialRing(X.base_ring(), X.variable_name(), 1)
 
     def ideal(self, p, t):
-        """
-        Return the ideal `N_t(B)=\{ f\in \Z[X] \mid \exists M\in\Z^{n\times n}\colon f \adj(X-B) \equiv
+        r"""
+        Return the ideal `N_t(B)=\{ f\in \mathbb{Z}[X] \mid \exists M\in\mathbb{Z}^{n\times n}\colon f \operatorname{adj}(X-B) \equiv
         \chi_B M \pmod{p^t}\}`.
 
         INPUT:
@@ -123,7 +124,7 @@ class Compute_nu(SageObject):
 
         OUTPUT:
 
-        An ideal in `\Z[X]`.
+        An ideal in `\mathbb{Z}[X]`.
 
         EXAMPLES::
 

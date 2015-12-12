@@ -26,6 +26,13 @@ def compute_M(p, t, A):
         sage: A.set_immutable()
         sage: for t in range(3):
         ....:     print compute_M(3, t, A)
+        []
+        [      2|]
+        [  x + 2|]
+        [2*x + 1|]
+        [              6         6*x + 2|              6]
+        [        3*x + 6 6*x^2 + 4*x + 8|        3*x + 6]
+        [        6*x + 3 3*x^2 + 2*x + 4|        6*x + 3]
     """
 
     if t == 0:

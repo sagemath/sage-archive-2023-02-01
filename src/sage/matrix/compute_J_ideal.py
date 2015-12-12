@@ -71,3 +71,65 @@ def compute_M(p, t, A):
     F = F1.matrix_from_columns(range(r, F1.ncols()))
     assert (A*F % (p**t)).is_zero(), "A*F=%s" % str(A*F)
     return matrix.block([[F, p*G]])
+
+
+class Compute_nu(SageObject):
+    """
+    Compute nu for a given matrix.
+
+    INPUT:
+
+    - ``B`` -- an immutable matrix over `\mathbb{Z}`.
+
+    OUTPUT:
+
+    An object which can be called with integer arguments yielding the
+    actual nu values.
+
+    EXAMPLES::
+
+        sage: from calculate_nu import compute_nu # not tested
+        sage: B = matrix([[1, 2], [3, 4]])
+        sage: C = Compute_nu(B)
+        sage: for t in range(3): # not implemented
+        ....:     print C(t)
+    """
+    def __init__(self, B):
+        super(Compute_nu, self).__init__()
+        if not B.is_square():
+            raise TypeError("square matrix required.")
+
+        X = polygen(B.base_ring())
+        adjunct = (X-B).adjoint()
+        d = B.nrows()**2
+        b = matrix(d, 1, adjunct.list())
+        chi_B = B.charpoly(X)
+        self._A = matrix.block([[b, chi_B*matrix.identity(d)]])
+        self._A.set_immutable()
+
+    def ideal(self, p, t):
+        """
+        Return the ideal `N_t(B)=\{ f\in \Z[X] \mid \exists M\in\Z^{n\times n}\colon f \adj(X-B) \equiv
+        \chi_B M \pmod{p^t}\}`.
+
+        INPUT:
+
+        - ``t`` -- a nonnegative integer.
+
+        OUTPUT:
+
+        An ideal in `\Z[X]`.
+
+        EXAMPLES::
+
+            sage: from calculate_nu import compute_nu # not tested
+            sage: B = matrix([[1, 2], [3, 4]])
+            sage: C = Compute_nu(B)
+            sage: for t in range(3):
+            ....:     print C.ideal(3, t)
+            Principal ideal (1) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (3, 2*x^2 + 2*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (9, 6*x^2 + 6*x + 6, 8*x^2 + 5*x + 2, 6*x^2 + 6*x + 6) of Univariate Polynomial Ring in x over Integer Ring
+        """
+        M = compute_M(p, t, self._A)
+        return self._A.base_ring().ideal(*([p**t] + list(M.row(0))))

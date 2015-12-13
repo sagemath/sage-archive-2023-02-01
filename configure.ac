@@ -875,12 +875,14 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
         # Just run the spkg-install script
         echo >&7 "$PKG_NAME:$DEPS"
         echo >&7 "	cd '$SAGE_ROOT' && \\"
+        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    sage-logger '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Just run the spkg-uninstall script if it exists
         echo >&7 "$PKG_NAME-clean:"
         echo >&7 "	-cd '$SAGE_ROOT' && \\"
+        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
         echo >&7
     else

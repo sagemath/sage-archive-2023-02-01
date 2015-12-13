@@ -549,7 +549,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
             sage: SC.brick_fan()
-            ?
+            Rational polyhedral fan in 2-d lattice N
         """
         from sage.geometry.fan import Fan
         return Fan([F.weight_cone() for F in self])
@@ -560,6 +560,11 @@ class SubwordComplex(SimplicialComplex, Parent):
         r"""
         Return the list of all brick vectors of facets of ``self``.
 
+        INPUT:
+
+        - coefficients -- (optional) a list of coefficients used to
+          scale the fundamental weights
+
         .. SEEALSO::
 
             :func:`brick_vector <sage.combinat.subword_complex.SubwordComplexFacet.brick_vector>`
@@ -569,7 +574,9 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: SC.brick_vectors()
-            [(2, 1), (2, 1), (-1, 1), (-1, -2), (-1, -2)]
+            [(10/3, 14/3), (10/3, 2/3), (4/3, 14/3), (-2/3, 8/3), (-2/3, 2/3)]
+            sage: SC.brick_vectors(coefficients=(1,2))
+            [(14/3, 22/3), (14/3, 4/3), (8/3, 22/3), (-4/3, 10/3), (-4/3, 4/3)]
         """
         return [F.brick_vector(coefficients=coefficients) for F in self]
 
@@ -579,14 +586,14 @@ class SubwordComplex(SimplicialComplex, Parent):
 
         INPUT:
 
-        `i` -- an integer defining a position in Q
+        `i` -- an integer defining a position in the word `Q`
 
         EXAMPLES::
 
             sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: SC.minkowski_summand(1)
-            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
+            A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex
         """
         return Polyhedron([F.extended_weight_configuration()[i] for F in self])
 
@@ -596,13 +603,18 @@ class SubwordComplex(SimplicialComplex, Parent):
 
         This polytope is the convex hull of the brick vectors of ``self``.
 
+        INPUT:
+
+        - coefficients -- (optional) a list of coefficients used to
+          scale the fundamental weights
+
         .. SEEALSO::
 
             :meth:`brick_vectors`
 
         EXAMPLES::
 
-            sage: W = CoxeterGroup(['A',2], index_set=[1,2])
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
 
             sage: X = SC.brick_polytope(); X
@@ -615,7 +627,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             False
         """
         BV = self.brick_vectors(coefficients=coefficients)
-        if not self.group().is_crystallographic():
+        if False:  # not self.group().is_crystallographic():
             from sage.rings.all import CC, QQ
             print "Caution: the polytope is build with rational vertices."
             BV = [[QQ(CC(v).real()) for v in V] for V in BV]
@@ -671,7 +683,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: SC.barycenter()
-            (2/3, 4/3)
+            (4/3, 8/3)
         """
         facets = self.facets()
         if not self.is_root_independent():
@@ -1001,15 +1013,15 @@ class SubwordComplexFacet(Simplex, Element):
             (0, 4)
             sage: F.kappa_preimage()
             [
-            [ 0 -1]  [ 1  0]
-            [ 1 -1], [ 1 -1]
+            [-1  1]  [ 1  0]
+            [-1  0], [ 1 -1]
             ]
         """
         W = self.parent().group()
         N = len(W.long_element(as_word=True))
         root_conf = self._root_configuration_indices()
-        return [w for w in W if all(w.action_on_root_indices(i) < N
-                                    for i in root_conf)]
+        return [~w for w in W if all(w.action_on_root_indices(i) < N
+                                     for i in root_conf)]
 
     def is_vertex(self):
         r"""
@@ -1251,19 +1263,22 @@ class SubwordComplexFacet(Simplex, Element):
 
         EXAMPLES::
 
-            sage: W = CoxeterGroup(['A',2], index_set=[1,2])
+            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1],w)
             sage: F = SC([1,2])
             sage: F.extended_weight_configuration()
-            [(2/3, 1/3), (1/3, 2/3), (-1/3, 1/3), (1/3, 2/3), (-1/3, 1/3)]
+            [(4/3, 2/3), (2/3, 4/3), (-2/3, 2/3), (2/3, 4/3), (-2/3, 2/3)]
+            sage: F.extended_weight_configuration(coefficients=(1,2))
+            [(4/3, 2/3), (4/3, 8/3), (-2/3, 2/3), (4/3, 8/3), (-2/3, 2/3)]
         """
         if coefficients is not None or self._extended_weight_conf is None:
             W = self.parent().group()
             Lambda = W.fundamental_weights()
             if coefficients is not None:
-                # probably broken as Lambda is now a dict
-                Lambda = [coefficients[i] * li for i, li in enumerate(Lambda)]
+                coeff = {W.index_set()[i]: coefficients[i]
+                         for i in range(len(coefficients))}
+                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda}
             Q = self.parent().word()
 
             Phi = W.roots()
@@ -1274,12 +1289,12 @@ class SubwordComplexFacet(Simplex, Element):
             for i, wi in enumerate(Q):
                 fund_weight = Lambda[wi]
                 # here below using action on indices of roots
-                # but this assumes wrongly that simple roots are at start ?
-                V_weights.append(sum(fvj * Phi[pi.action_on_root_indices(j)]
-                                     for j, fvj in enumerate(fund_weight)))
+#                V_weights.append(sum(fvj * Phi[pi.action_on_root_indices(j)]
+ #                                    for j, fvj in enumerate(fund_weight)))
+                V_weights.append(pi * fund_weight)
                 if i not in self:
-                    pi = pi.apply_simple_reflection_left(wi)
-            if coefficients is None:
+                    pi = pi.apply_simple_reflection_right(wi)
+            if self._extended_weight_conf is None:
                 self._extended_weight_conf = V_weights
             return V_weights
         else:
@@ -1306,7 +1321,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F = SC([1,2]); F
             (1, 2)
             sage: F.weight_configuration()
-            [(1/3, 2/3), (-1/3, 1/3)]
+            [(2/3, 4/3), (-2/3, 2/3)]
         """
         extended_configuration = self.extended_weight_configuration()
         return [extended_configuration[i] for i in self]
@@ -1346,7 +1361,8 @@ class SubwordComplexFacet(Simplex, Element):
 
         INPUT:
 
-        coefficients -- ?
+        - coefficients -- (optional) a list of coefficients used to
+          scale the fundamental weights
 
         .. SEEALSO::
 
@@ -1360,9 +1376,11 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F = SC([1,2]); F
             (1, 2)
             sage: F.extended_weight_configuration()
-            [(2/3, 1/3), (1/3, 2/3), (-1/3, 1/3), (1/3, 2/3), (-1/3, 1/3)]
+            [(4/3, 2/3), (2/3, 4/3), (-2/3, 2/3), (2/3, 4/3), (-2/3, 2/3)]
             sage: F.brick_vector()
-            (2/3, 7/3)
+            (4/3, 14/3)
+            sage: F.brick_vector(coefficients=[1,2])
+            (8/3, 22/3)
         """
         return sum(self.extended_weight_configuration(coefficients=coefficients))
 
@@ -1467,7 +1485,7 @@ class SubwordComplexFacet(Simplex, Element):
         n = W.rank()
         N = len(W.long_element(as_word=True))
 
-        #if any(x is 'A' for x in self.parent().group().series()):
+        # if any(x is 'A' for x in self.parent().group().series()):
         if N == (n + 1) * n / 2:
             type = 'A'
         # elif any(x is 'B' for x in self.parent().group().series()):

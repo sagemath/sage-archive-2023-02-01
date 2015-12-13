@@ -524,7 +524,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [   0 -1/2    1    0]
             [   0 -1/2    0    1]
         """
-        return self._matrix.bilinear_form()
+        return self._matrix.bilinear_form(self.base_ring())
 
     def is_finite(self):
         """

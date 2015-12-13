@@ -712,7 +712,18 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
             sage: W.roots()
-            [(1, 0, 0), (1, 1, 0), (0, 1, 0), (1, 1, 1), (0, 1, 1), (0, 0, 1)]
+            [(1, 0, 0),
+            (1, 1, 0),
+            (0, 1, 0),
+            (1, 1, 1),
+            (0, 1, 1),
+            (0, 0, 1),
+            (-1, 0, 0),
+            (-1, -1, 0),
+            (0, -1, 0),
+            (-1, -1, -1),
+            (0, -1, -1),
+            (0, 0, -1)]
             sage: W = CoxeterGroup(['I',5], implementation='reflection')
             sage: len(W.roots())
             10
@@ -743,16 +754,15 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         """
         Return the fundamental weights for ``self``.
 
-        For the moment, this is just a basis in a free vector space.
+        This is the dual basis to the basis of simple roots.
 
         EXAMPLES::
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
             sage: W.fundamental_weights()
-            {1: (1, 0, 0), 2: (0, 1, 0), 3: (0, 0, 1)}    
+            {1: (3/2, 1, 1/2), 2: (1, 2, 1), 3: (1/2, 1, 3/2)}    
         """
-        from sage.modules.free_module import VectorSpace
-        simple_weights = VectorSpace(self.base_ring(), self.ngens()).gens()
+        simple_weights = self.bilinear_form().inverse()
         return {i: simple_weights[k]
                 for k, i in enumerate(self.index_set())}
 
@@ -813,6 +823,13 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             Return the action on the set of roots.
 
             The roots are ordered as in the output of the method `roots`.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], implementation="reflection")
+                sage: w = W.w0
+                sage: w.action_on_root_indices(0)
+                11
             """
             roots = self.parent().roots()
             rt = self * roots[i]

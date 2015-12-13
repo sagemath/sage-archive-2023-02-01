@@ -24,9 +24,9 @@ cpdef _flip_c(W, set positions, list extended_root_conf_indices,
         sage: SC = SubwordComplex([1,2,1,2,1], w)
         sage: F = SC([0, 1])
         sage: _flip_c(W, set([0,1]), F._extended_root_configuration_indices(), 1)
-        1
+        4
         sage: _flip_c(W, set([0,1]), F._extended_root_configuration_indices(), 0)
-        2
+        3
     """
     cdef int r, nr_ref, r_minus, j, k
     r = extended_root_conf_indices[i]

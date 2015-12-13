@@ -80,12 +80,11 @@ class SubwordComplex(SimplicialComplex, Parent):
 
         - ``Q`` -- word on the simple generators of the Coxeter group.
         - ``w`` -- element of the Coxeter group.
-        - ``invertion_set_indices`` -- (default: None)
-        - ``algorithm`` -- (default: inductive) choice of the
+        - ``invertion_set_indices`` -- (default: ``None``)
+        - ``algorithm`` -- (default: ``"inductive"``) choice of the
           algorithm to generate the subword complex. Options are
-          ``inductive`` or ``greedy``. The second option is
-          recommended when `|Q|` is closed to `\ell(w) +
-          \mathrm{rank}(W)`.
+          ``"inductive"`` or ``"greedy"``. The second option is
+          recommended when `|Q|` is closed to `\ell(w) + \mathrm{rank}(W)`.
 
         EXAMPLES::
 
@@ -99,7 +98,7 @@ class SubwordComplex(SimplicialComplex, Parent):
         W = w.parent()
         I = W.index_set()
         if not all(i in I for i in Q):
-            raise ValueError("All elements in Q = %s must be contained in the index set %s" % (Q, W.index_set()))
+            raise ValueError("All elements in Q = %s must be contained in the index set %s" % (Q, I))
         self._Q = Q
         self._pi = w
         if algorithm == "inductive":
@@ -107,7 +106,8 @@ class SubwordComplex(SimplicialComplex, Parent):
         elif algorithm == "greedy":
             Fs, Rs = _greedy_flip_algorithm(Q, w)
         else:
-            raise ValueError("The optional argument algorithm can be either inductive or greedy")
+            raise ValueError("The optional argument algorithm can be "
+                             "either inductive or greedy")
         if Fs == []:
             raise ValueError("The word %s does not contain a reduced expression for %s" % (Q, w.reduced_word()))
         SimplicialComplex.__init__(self, maximal_faces=Fs,
@@ -169,10 +169,12 @@ class SubwordComplex(SimplicialComplex, Parent):
         INPUT:
 
         - ``F`` -- an iterable of positions.
-        - ``facet_test`` -- boolean (default: True) tells whether or not the facet ``F``
-          should be tested before creation.
+        - ``facet_test`` -- boolean (default: ``True``) tells whether or
+          not the facet ``F`` should be tested before creation.
 
-        OUTPUT: the facet of ``self`` at positions given by ``F``.
+        OUTPUT:
+
+        the facet of ``self`` at positions given by ``F``.
 
         EXAMPLES::
 
@@ -180,10 +182,9 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: F = SC([1,2]); F
             (1, 2)
-
         """
         F = tuple(F)
-        if self._facets_dict is not None and self._facets_dict != dict() and F in self._facets_dict:
+        if self._facets_dict is not None and self._facets_dict != {} and F in self._facets_dict:
             return self._facets_dict[F]
         else:
             return SubwordComplexFacet(self, F, facet_test=facet_test)
@@ -251,6 +252,10 @@ class SubwordComplex(SimplicialComplex, Parent):
     def cartan_type(self):
         r"""
         Return the Cartan type of ``self``.
+
+        .. WARNING::
+
+            not currently available
 
         EXAMPLES::
 
@@ -426,7 +431,9 @@ class SubwordComplex(SimplicialComplex, Parent):
     @cached_method
     def is_root_independent(self):
         r"""
-        Return ``True`` if ``self`` is root-independent, that is if the root configuration
+        Return ``True`` if ``self`` is root-independent.
+
+        This means that the root configuration
         of any (or equivalently all) facets is linearly independent.
 
         EXAMPLES::
@@ -490,8 +497,8 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
-            sage: kappa_pres = SC.kappa_preimages()
-            sage: for F in SC: print F, [w.reduced_word() for w in kappa_pres[F]]
+            sage: kappa = SC.kappa_preimages()
+            sage: for F in SC: print F, [w.reduced_word() for w in kappa[F]]
             (0, 1) [[]]
             (0, 4) [[2, 1], [2]]
             (1, 2) [[1]]
@@ -568,11 +575,11 @@ class SubwordComplex(SimplicialComplex, Parent):
 
     def minkowski_summand(self, i):
         r"""
-        Return the ``i`` th Minkowski summand of ``self``.
+        Return the `i` th Minkowski summand of ``self``.
 
         INPUT:
 
-        i -- an integer defining a position in Q ?
+        `i` -- an integer defining a position in Q
 
         EXAMPLES::
 
@@ -640,12 +647,13 @@ class SubwordComplex(SimplicialComplex, Parent):
         I = W.index_set()
         G = Graph([I, []], multiedges=False, format='vertices_and_edges')
         conversion = {W.simple_reflection(i): i for i in I}
+
+        # one just needs the diagram automorphism induced by w0
         for i in I:
             si = W.simple_reflection(i)
             si_bar = w0 * si * w0
             if si_bar != si:
                 G.add_edge((i, conversion[si_bar]))
-        # one just needs the diagram automorphism induced by w0
         I_decomp = G.connected_components()
         return [[j for j, x in enumerate(Q) if x in I_part]
                 for I_part in I_decomp]
@@ -744,7 +752,7 @@ class SubwordComplex(SimplicialComplex, Parent):
 
         OUTPUT
 
-        a list of facets ?
+        a set of facets
 
         EXAMPLES::
  
@@ -785,8 +793,8 @@ class SubwordComplexFacet(Simplex, Element):
     r"""
     A facet of a subword complex.
 
-    Facets of the subword complex `\mathcal{SC}(Q,w)` are complements of sets of positions
-    in `Q` defining a reduced expression for `w`.
+    Facets of the subword complex `\mathcal{SC}(Q,w)` are complements
+    of sets of positions in `Q` defining a reduced expression for `w`.
 
     EXAMPLES::
 
@@ -880,13 +888,17 @@ class SubwordComplexFacet(Simplex, Element):
 
     def _root_configuration_indices(self):
         r"""
-        Return the indices of the roots in ``self.group().roots()`` of the root configuration of ``self``.
+        Return the indices of the roots in ``self.group().roots()`` of
+        the root configuration of ``self``.
 
-        Let `Q = q_1 \dots q_m \in S^*` and `w \in W`. The root configuration
-        of a facet `I = [i_1, \dots, i_n]` of `\mathcal{SC}(Q,w)` is the sequence `\mathsf{r}(I, i_1), \dots, \mathsf{r}(I, i_n)`
-        of roots defined by `\mathsf{r}(I, k) = \Pi Q_{[k-1] \smallsetminus I} (\alpha_{q_k})`, where
-        `\Pi Q_{[k-1] \smallsetminus I}` is the product of the simple reflections
-        `q_i` for `i \in [k-1] \smallsetminus I` in this order.
+        Let `Q = q_1 \dots q_m \in S^*` and `w \in W`. The root
+        configuration of a facet `I = [i_1, \dots, i_n]` of
+        `\mathcal{SC}(Q,w)` is the sequence `\mathsf{r}(I, i_1),
+        \dots, \mathsf{r}(I, i_n)` of roots defined by `\mathsf{r}(I,
+        k) = \Pi Q_{[k-1] \smallsetminus I} (\alpha_{q_k})`, where
+        `\Pi Q_{[k-1] \smallsetminus I}` is the product of the simple
+        reflections `q_i` for `i \in [k-1] \smallsetminus I` in this
+        order.
 
         .. SEEALSO::
 
@@ -940,11 +952,14 @@ class SubwordComplexFacet(Simplex, Element):
         r"""
         Return the root configuration of ``self``.
 
-        Let `Q = q_1 \dots q_m \in S^*` and `w \in W`. The root configuration
-        of a facet `I = [i_1, \dots, i_n]` of `\mathcal{SC}(Q,w)` is the sequence `\mathsf{r}(I, i_1), \dots, \mathsf{r}(I, i_n)`
-        of roots defined by `\mathsf{r}(I, k) = \Pi Q_{[k-1] \smallsetminus I} (\alpha_{q_k})`, where
-        `\Pi Q_{[k-1] \smallsetminus I}` is the product of the simple reflections
-        `q_i` for `i \in [k-1] \smallsetminus I` in this order.
+        Let `Q = q_1 \dots q_m \in S^*` and `w \in W`. The root
+        configuration of a facet `I = [i_1, \dots, i_n]` of
+        `\mathcal{SC}(Q,w)` is the sequence `\mathsf{r}(I, i_1),
+        \dots, \mathsf{r}(I, i_n)` of roots defined by `\mathsf{r}(I,
+        k) = \Pi Q_{[k-1] \smallsetminus I} (\alpha_{q_k})`, where
+        `\Pi Q_{[k-1] \smallsetminus I}` is the product of the simple
+        reflections `q_i` for `i \in [k-1] \smallsetminus I` in this
+        order.
 
         EXAMPLES::
 
@@ -1225,6 +1240,11 @@ class SubwordComplexFacet(Simplex, Element):
 
         The extended weight configuration is used to compute the brick vector.
 
+        INPUT:
+
+        - coefficients -- (optional) a list of coefficients used to
+          scale the fundamental weights
+
         .. SEEALSO::
 
             :meth:`brick_vector`
@@ -1234,8 +1254,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1],w)
-            sage: F = SC([1,2]); F
-            (1, 2)
+            sage: F = SC([1,2])
             sage: F.extended_weight_configuration()
             [(2/3, 1/3), (1/3, 2/3), (-1/3, 1/3), (1/3, 2/3), (-1/3, 1/3)]
         """
@@ -1243,6 +1262,7 @@ class SubwordComplexFacet(Simplex, Element):
             W = self.parent().group()
             Lambda = W.fundamental_weights()
             if coefficients is not None:
+                # probably broken as Lambda is now a dict
                 Lambda = [coefficients[i] * li for i, li in enumerate(Lambda)]
             Q = self.parent().word()
 
@@ -1255,10 +1275,10 @@ class SubwordComplexFacet(Simplex, Element):
                 fund_weight = Lambda[wi]
                 # here below using action on indices of roots
                 # but this assumes wrongly that simple roots are at start ?
-                V_weights.append(sum(fvj * Phi[(~pi).action_on_root_indices(j)]
+                V_weights.append(sum(fvj * Phi[pi.action_on_root_indices(j)]
                                      for j, fvj in enumerate(fund_weight)))
                 if i not in self:
-                    pi = pi.apply_simple_reflection(wi)
+                    pi = pi.apply_simple_reflection_left(wi)
             if coefficients is None:
                 self._extended_weight_conf = V_weights
             return V_weights
@@ -1398,13 +1418,20 @@ class SubwordComplexFacet(Simplex, Element):
 
         INPUT:
 
-        - ``list_colors`` -- list (default: ``[]``) to personnalize the colors of the pseudolines.
-        - ``labels`` -- list (default: ``[]``) to personnalize the labels of the pseudolines.
-        - ``thickness`` -- integer (default: ``3``) for the tnickness of the pseudolines.
-        - ``fontsize`` -- integer (default: ``14``) for the size of the font used for labels.
-        - ``shift`` -- couple of coordinates (default: ``(0,0)``) to change the origin.
-        - ``compact`` -- boolean (default: ``False``) to require a more compact representation.
-        - ``roots`` -- boolean (default: ``True``) to print the extended root configuration.
+        - ``list_colors`` -- list (default: ``[]``) to change the colors
+          of the pseudolines.
+        - ``labels`` -- list (default: ``[]``) to change the labels
+          of the pseudolines.
+        - ``thickness`` -- integer (default: ``3``) for the thickness
+          of the pseudolines.
+        - ``fontsize`` -- integer (default: ``14``) for the size
+          of the font used for labels.
+        - ``shift`` -- couple of coordinates (default: ``(0,0)``)
+          to change the origin.
+        - ``compact`` -- boolean (default: ``False``) to require
+          a more compact representation.
+        - ``roots`` -- boolean (default: ``True``) to print
+          the extended root configuration.
 
         EXAMPLES::
 
@@ -1421,17 +1448,34 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F = SC[15]; F.plot()
             Graphics object consisting of 53 graphics primitives
 
+        TESTS::
+
+            sage: W = CoxeterGroup(['D',4])
+            sage: c = W.from_reduced_word([1,2,3,4])
+            sage: Q = c.reduced_word() + W.w0.coxeter_sorting_word(c)
+            sage: SC = SubwordComplex(Q, W.w0)
+            sage: F = SC[1]; F.plot()
+            Traceback (most recent call last):
+            ...
+            ValueError: Plotting is currently only implemented in types A or B
+
         REFERENCES: [PilStu]_
         """
         # check that the type is A or B
-        # TODO
+        # TODO in a better way
+        W = self.parent().group()
+        n = W.rank()
+        N = len(W.long_element(as_word=True))
 
-        # if any(x is 'A' for x in self.parent().group().series()):
-        #     type = 'A'
+        #if any(x is 'A' for x in self.parent().group().series()):
+        if N == (n + 1) * n / 2:
+            type = 'A'
         # elif any(x is 'B' for x in self.parent().group().series()):
-        #     type = 'B'
-        # else:
-        #     raise ValueError("Plotting is currently only implemented in types A or B")
+        elif N == n ** 2:
+            type = 'B'
+        else:
+            raise ValueError("Plotting is currently only implemented "
+                             "in types A or B")
 
         # import plot facilities
         from sage.plot.line import line
@@ -1441,7 +1485,6 @@ class SubwordComplexFacet(Simplex, Element):
 
         # get properties
         x = 1
-        W = self.parent().group()
         Q = self.parent().word()
         if type == 'A':
             last = W.rank()
@@ -1449,7 +1492,7 @@ class SubwordComplexFacet(Simplex, Element):
             last = W.rank() - 1
         permutation = Permutation(range(1, last + 2))
         x_max = .5
-
+        
         # list the pseudolines to be drawn
         pseudolines = [[(shift[0], shift[1] + i), .5] for i in range(last + 1)]
         pseudolines_type_B = [[] for i in range(last + 1)]
@@ -1463,7 +1506,7 @@ class SubwordComplexFacet(Simplex, Element):
         if roots:
             extended_root_conf = self.extended_root_configuration()
         for position in range(len(Q)):
-            y = W.index_set()[Q[position]]
+            y = Q[position]
             if type == 'B' and y == 0:
                 pseudoline = permutation(1) - 1
                 x = pseudolines[pseudoline].pop()
@@ -1590,7 +1633,7 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
 
     INPUT:
 
-    - ̀Q̀ -- a word
+    - `Q` -- a word
     - `w` -- an element in the Coxeter group
     - side -- optional, either 'negative' (default) or 'positive'
     - n -- an integer (optional, defaults to the length of Q)

@@ -127,7 +127,6 @@ Comprehensive Module list
     sage/combinat/kazhdan_lusztig
     sage/combinat/knutson_tao_puzzles
     sage/combinat/lyndon_word
-    sage/combinat/map_reduce
     sage/combinat/matrices/__init__
     sage/combinat/matrices/all
     sage/combinat/matrices/dancing_links

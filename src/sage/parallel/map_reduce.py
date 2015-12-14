@@ -80,7 +80,7 @@ examples :
   :class:`RESetMapReduce`. This is needed if you want to have fine
   control over the parallel execution (see :ref:`advanced-use` below)::
 
-      sage: from sage.combinat.map_reduce import RESetMapReduce
+      sage: from sage.parallel.map_reduce import RESetMapReduce
       sage: S = RESetMapReduce(
       ....:   roots = [[]],
       ....:   children = lambda l: [l+[0], l+[1]] if len(l) <= 15 else [],
@@ -205,7 +205,7 @@ three following parameters:
 Here is an example or how to deal with timeout::
 
 
-    sage: from sage.combinat.map_reduce import RESetMPExample, AbortError
+    sage: from sage.parallel.map_reduce import RESetMPExample, AbortError
     sage: EX = RESetMPExample(maxl = 8)
     sage: try:
     ....:     res = EX.run(timeout=0.1)
@@ -244,7 +244,7 @@ Profiling
 It is possible the profile a map/reduce computation. First we create a
 :class:`RESetMapReduce` object::
 
-    sage: from sage.combinat.map_reduce import RESetMapReduce
+    sage: from sage.parallel.map_reduce import RESetMapReduce
     sage: S = RESetMapReduce(
     ....:     roots = [[]],
     ....:     children = lambda l: [l+[0], l+[1]] if len(l) <= 15 else [],
@@ -291,7 +291,7 @@ Logging
 -------
 
 The computation progress is logged through a :class:`logging.Logger` in
-:obj:`sage.combinat.map_reduce.logger` together with :class:`logging.StreamHandler`
+:obj:`sage.parallel.map_reduce.logger` together with :class:`logging.StreamHandler`
 and a :class:`logging.Formatter`. They are currently configured to print
 warning message on the console.
 
@@ -317,11 +317,11 @@ The scheduling algorithm we use here is any adaptation of :wikipedia:`Work_steal
     distributes the scheduling work over idle processors, and as long as all
     processors have work to do, no scheduling overhead occurs.
 
-We first describe the different actors and communications tools used by the system:
-
-The work is done under the coordination of a **master** object (an
-instance of :class:`RESetMapReduce`) by a bunch of **worker**
-objects (instances of :class:`RESetMapReduceWorker`).
+For communication we use Python's basic :mod:`multiprocessing` module. We
+first describe the different actors and communications tools used by the
+system. The work is done under the coordination of a **master** object (an
+instance of :class:`RESetMapReduce`) by a bunch of **worker** objects
+(instances of :class:`RESetMapReduceWorker`).
 
 Each running map reduce instance work on a :class:`RecursivelyEnumeratedSet of
 forest type<SearchForest>` called here `C` and is coordinated by a
@@ -341,31 +341,31 @@ are also responsible of the load balancing thanks to work-stealing.
 Here is a description of the attribute of the *master* relevant to the
 map-reduce protocol:
 
-- ``master._results`` -- a :class:`multiprocessing.queues.SimpleQueue` where
+- ``master._results`` -- a :class:`~multiprocessing.queues.SimpleQueue` where
   the master gathers the results sent by the workers.
-
-- ``master._active_tasks`` -- a :class:`Semaphore` recording the number of active task.
-  The work is done when it gets to 0.
-- ``master._done`` -- a :class:`Lock` which ensures that shutdown is done only once.
-- ``master._abort`` -- a :class:`Value` storing a shared ``ctypes.c_bool`` which
-  is ``True`` if the computation was aborted before all the worker runs out
-  of work.
+- ``master._active_tasks`` -- a :class:`~multiprocessing.Semaphore` recording
+  the number of active task.  The work is done when it gets to 0.
+- ``master._done`` -- a :class:`~multiprocessing.Lock` which ensures that
+  shutdown is done only once.
+- ``master._abort`` -- a :func:`~multiprocessing.Value` storing a shared
+  :class:`ctypes.c_bool` which is ``True`` if the computation was aborted before
+  all the worker runs out of work.
 - ``master._workers`` -- a list of :class:`RESetMapReduceWorker` objects. Each worker is
   identified by its position in this list.
 
 Each worker is a process (:class:`RESetMapReduceWorker` inherits from
-:class:`Process`) which contains:
+:class:`~multiprocessing.Process`) which contains:
 
 - ``worker._iproc`` -- the identifier of the worker that is its position in the
   master's list of workers
 - ``worker._todo`` -- a :class:`collections.deque` storing of nodes of the
   worker. It is used as a stack by the worker. Thiefs steal from the bottom of
   this queue.
-- ``worker._request`` -- a :class:`SimpleQueue` storing steal request
-  submitted to ``worker``.
-- ``worker._read_task``, ``worker._write_task`` -- a :class:`Pipe` used to
-  transfert node during steal.
-- ``worker._thief`` -- a :class:`Thread` which is in charge of stealing from
+- ``worker._request`` -- a :class:`~multiprocessing.queues.SimpleQueue` storing
+  steal request submitted to ``worker``.
+- ``worker._read_task``, ``worker._write_task`` -- a
+  :class:`~multiprocessing.queues.Pipe` used to transfert node during steal.
+- ``worker._thief`` -- a :class:`~threading.Thread` which is in charge of stealing from
   ``worker._todo``.
 
 Here is a schematic of the architecture:
@@ -482,7 +482,7 @@ import collections, copy, sys, random, ctypes, time, os
 import logging
 logger = logging.getLogger(__name__)
 logger.__doc__ = """
-A logger for :mod:`sage.combinat.map_reduce`
+A logger for :mod:`sage.parallel.map_reduce`
 
 .. SEEALSO::
 
@@ -512,7 +512,7 @@ def proc_number(max_proc = None):
 
     EXAMPLE::
 
-        sage: from sage.combinat.map_reduce import proc_number
+        sage: from sage.parallel.map_reduce import proc_number
         sage: proc_number() # random
         8
         sage: proc_number(max_proc=1)
@@ -534,7 +534,7 @@ class AbortError(Exception):
 
     TESTS::
 
-        sage: from sage.combinat.map_reduce import AbortError
+        sage: from sage.parallel.map_reduce import AbortError
         sage: raise AbortError
         Traceback (most recent call last):
         ...
@@ -572,7 +572,7 @@ class RESetMapReduce(object):
 
     .. seealso::
 
-       :mod:`the Map/Reduce module <sage.combinat.map_reduce>` for
+       :mod:`the Map/Reduce module <sage.parallel.map_reduce>` for
        details and examples.
     """
     def __init__(self, roots = None,
@@ -585,10 +585,10 @@ class RESetMapReduce(object):
         r"""
         TESTS::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: R = RESetMapReduce( [[]], lambda : [[]])
             sage: R
-            <sage.combinat.map_reduce.RESetMapReduce object at 0x...>
+            <sage.parallel.map_reduce.RESetMapReduce object at 0x...>
 
         To silence the coverage checker::
 
@@ -618,7 +618,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: EX = RESetMPExample()
             sage: f = EX._forest; f
             An enumerated set with a forest structure
@@ -642,7 +642,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: S = RESetMapReduce(42)
             sage: S.roots()
             42
@@ -661,7 +661,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: S = RESetMapReduce()
             sage: S.map_function(7)
             1
@@ -683,7 +683,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: S = RESetMapReduce()
             sage: S.reduce_function(4, 3)
             7
@@ -705,7 +705,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: S = RESetMapReduce()
             sage: S.post_process(4)
             4
@@ -726,7 +726,7 @@ class RESetMapReduce(object):
 
         TESTS::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: S = RESetMapReduce()
             sage: S.reduce_init()
             0
@@ -751,7 +751,7 @@ class RESetMapReduce(object):
 
         TESTS::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: S = RESetMapReduce()
             sage: S.setup_workers(2)
             sage: S._results
@@ -777,7 +777,7 @@ class RESetMapReduce(object):
 
         TESTS::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: S = RESetMapReduce(roots=[])
             sage: S.setup_workers(2)
             sage: S.start_workers()
@@ -814,7 +814,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMapReduce
+            sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: S = RESetMapReduce()
             sage: S.setup_workers(2)
             sage: for v in [1, 2, None, 3, None]: S._results.put(v)
@@ -845,7 +845,7 @@ class RESetMapReduce(object):
 
         TESTS::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: S = RESetMPExample(maxl=5)
             sage: S.setup_workers(2) # indirect doctest
             sage: S._workers[0]._todo.append([])
@@ -892,7 +892,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetParallelIterator
+            sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 17 else [])
             sage: it = iter(S)
@@ -920,7 +920,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetParallelIterator
+            sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
@@ -949,7 +949,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetParallelIterator
+            sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
@@ -974,7 +974,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetParallelIterator
+            sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
@@ -1008,7 +1008,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
+            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: from threading import Thread
             sage: EX = RESetMPExample(maxl=6)
             sage: EX.setup_workers(2)
@@ -1048,14 +1048,14 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: EX = RESetMPExample(maxl = 8)
             sage: EX.run()
             40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
 
         Here is an example or how to deal with timeout::
 
-            sage: from sage.combinat.map_reduce import AbortError
+            sage: from sage.parallel.map_reduce import AbortError
             sage: try:
             ....:     res = EX.run(timeout=0.1)
             ....: except AbortError:
@@ -1067,7 +1067,7 @@ class RESetMapReduce(object):
 
         The following should not timeout even on a very slow machine::
 
-            sage: from sage.combinat.map_reduce import AbortError
+            sage: from sage.parallel.map_reduce import AbortError
             sage: try:
             ....:     res = EX.run(timeout=60)
             ....: except AbortError:
@@ -1101,7 +1101,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: S = RESetMPExample(maxl=6)
             sage: S.run() # indirect doctest
             720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
@@ -1117,7 +1117,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: S = RESetMPExample(maxl=6)
             sage: S.run()
             720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
@@ -1149,7 +1149,7 @@ class RESetMapReduce(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: EX = RESetMPExample(maxl = 4)
             sage: EX.run_serial()
             24*x^4 + 6*x^3 + 2*x^2 + x + 1
@@ -1188,7 +1188,7 @@ class RESetMapReduceWorker(Process):
         r"""
         TESTS::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
+            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: EX = RESetMPExample()
             sage: RESetMapReduceWorker(EX, 200, True)
             <RESetMapReduceWorker(RESetMapReduceWorker-..., initial)>
@@ -1210,7 +1210,7 @@ class RESetMapReduceWorker(Process):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
+            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: from threading import Thread
             sage: EX = RESetMPExample(maxl=6)
             sage: EX.setup_workers(2)
@@ -1264,7 +1264,7 @@ class RESetMapReduceWorker(Process):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
+            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: from threading import Thread
             sage: EX = RESetMPExample(maxl=6)
             sage: EX.setup_workers(2)
@@ -1302,7 +1302,7 @@ class RESetMapReduceWorker(Process):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
+            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: EX = RESetMPExample(maxl=6)
             sage: EX.setup_workers(1)
 
@@ -1339,7 +1339,7 @@ class RESetMapReduceWorker(Process):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
+            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: EX = RESetMPExample(maxl=6)
             sage: EX.setup_workers(1)
 
@@ -1400,7 +1400,7 @@ class RESetMapReduceWorker(Process):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
+            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: EX = RESetMPExample(maxl=4)
             sage: EX.setup_workers(1)
             sage: w = EX._workers[0]
@@ -1428,7 +1428,7 @@ class RESetMapReduceWorker(Process):
 
         EXAMPLES::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
+            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: EX = RESetMPExample(maxl=4)
             sage: w = RESetMapReduceWorker(EX, 0, True)
             sage: def sync(): pass
@@ -1482,7 +1482,7 @@ class RESetMPExample(RESetMapReduce):
 
     EXAMPLE::
 
-        sage: from sage.combinat.map_reduce import RESetMPExample
+        sage: from sage.parallel.map_reduce import RESetMPExample
         sage: EX = RESetMPExample()
         sage: EX.run()
         362880*x^9 + 40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
@@ -1494,9 +1494,9 @@ class RESetMPExample(RESetMapReduce):
         r"""
         TESTS::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample()
-            <sage.combinat.map_reduce.RESetMPExample object at 0x...>
+            <sage.parallel.map_reduce.RESetMPExample object at 0x...>
         """
         RESetMapReduce.__init__(self)
         from sage.calculus.var import var
@@ -1509,7 +1509,7 @@ class RESetMPExample(RESetMapReduce):
 
         EXAMPLE::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().roots()
             [[]]
         """
@@ -1529,7 +1529,7 @@ class RESetMPExample(RESetMapReduce):
 
         EXAMPLE::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().children([1,0])
             [[2, 1, 0], [1, 2, 0], [1, 0, 2]]
         """
@@ -1548,7 +1548,7 @@ class RESetMPExample(RESetMapReduce):
 
         EXAMPLE::
 
-            sage: from sage.combinat.map_reduce import RESetMPExample
+            sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().map_function([1,0])
             x^2
         """
@@ -1565,7 +1565,7 @@ class RESetParallelIterator(RESetMapReduce):
 
     EXAMPLE::
 
-        sage: from sage.combinat.map_reduce import RESetParallelIterator
+        sage: from sage.parallel.map_reduce import RESetParallelIterator
         sage: S = RESetParallelIterator( [[]],
         ....:   lambda l: [l+[0], l+[1]] if len(l) < 15 else [])
         sage: sum(1 for _ in S)
@@ -1581,7 +1581,7 @@ class RESetParallelIterator(RESetMapReduce):
 
         EXAMPLE::
 
-            sage: from sage.combinat.map_reduce import RESetParallelIterator
+            sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 15 else [])
             sage: S.map_function([1, 0])
@@ -1595,7 +1595,7 @@ class RESetParallelIterator(RESetMapReduce):
         r"""
         EXAMPLE::
 
-            sage: from sage.combinat.map_reduce import RESetParallelIterator
+            sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 15 else [])
             sage: it = iter(S)

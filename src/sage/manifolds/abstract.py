@@ -11,7 +11,7 @@ AUTHORS:
 
 #*****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -27,7 +27,7 @@ from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.manifolds.point import ManifoldPoint
 
-class AbstractObject(object):
+class AbstractNamedObject(object):
     """
     An abstract object.
 
@@ -84,11 +84,11 @@ class AbstractObject(object):
         """
         return self._latex_name
 
-class AbstractSet(AbstractObject, UniqueRepresentation, Parent):
+class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
     """
     An abstract set.
 
-    An abstract set is an :class:`AbstractObject` along with its known
+    An abstract set is an :class:`AbstractNamedObject` along with its known
     subsets, supersets, intersections, unions, and open covers.
     """
     def __init__(self, name, latex_name, base=None, category=None):
@@ -102,7 +102,7 @@ class AbstractSet(AbstractObject, UniqueRepresentation, Parent):
             sage: A = M.subset('A'); A
             Subset A of the 2-dimensional topological manifold M
         """
-        AbstractObject.__init__(self, name, latex_name)
+        AbstractNamedObject.__init__(self, name, latex_name)
 
         category = Sets().or_subcategory(category)
         Parent.__init__(self, base=base, category=category)
@@ -160,7 +160,7 @@ class AbstractSet(AbstractObject, UniqueRepresentation, Parent):
             Point on the 2-dimensional topological manifold M
             sage: X(p)
             (-2, 3)
-            sage: p.containing_set()
+            sage: p.parent()
             Subset A of the 2-dimensional topological manifold M
             sage: p in A
             True

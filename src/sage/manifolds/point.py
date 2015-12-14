@@ -33,7 +33,7 @@ Defining a point in `\RR^3` by its spherical coordinates::
     sage: p in U
     True
     sage: p.parent()
-    3-dimensional topological manifold R^3
+    Open subset U of the 3-dimensional topological manifold R^3
     sage: c_spher(p)
     (1, 1/2*pi, pi)
     sage: p.coord(c_spher) # equivalent to above
@@ -70,7 +70,7 @@ Points can be compared::
 
 from sage.structure.element import Element
 
-# TODO: Inherit from AbstractObject
+# TODO: Inherit from AbstractNamedObject
 class ManifoldPoint(Element):
     r"""
     Point of a topological manifold.
@@ -119,19 +119,12 @@ class ManifoldPoint(Element):
         2-dimensional topological manifold M
         sage: U = M.open_subset('U', coord_def={c_xy: x>0})
         sage: q = U.point((2,1), name='q')
+        sage: q.parent()
+        Open subset U of the 2-dimensional topological manifold M
         sage: q in U
         True
         sage: q in M
         True
-
-    Note that the parent of a point is always the manifold, not the subset
-    in which it has been defined (the latter being returned by the method
-    :meth:`containing_set`)::
-
-        sage: q.parent()
-        2-dimensional topological manifold M
-        sage: q.containing_set()
-        Open subset U of the 2-dimensional topological manifold M
 
     By default, the LaTeX symbol of the point is deduced from its name::
 
@@ -244,47 +237,6 @@ class ManifoldPoint(Element):
             return r'\mbox{' + str(self) + r'}'
         return self._latex_name
 
-    # TODO: Convert these doctests to doctests elsewhere
-    def containing_set(self):
-        r"""
-        Return a manifold subset that contains the point.
-
-        A priori, this method returns the manifold subset (possibly the
-        manifold itself) in which the point has been defined.
-
-        OUTPUT:
-
-        - an instance of
-          :class:`~sage.manifolds.subset.ManifoldSubset`
-
-        EXAMPLES:
-
-        Points on a 2-dimensional manifold::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: p = M.point((1,3), name='p'); p
-            Point p on the 2-dimensional topological manifold M
-            sage: p.containing_set()
-            2-dimensional topological manifold M
-            sage: U = M.open_subset('U', coord_def={X: x>0})
-            sage: q = U.point((2,1), name='q'); q
-            Point q on the 2-dimensional topological manifold M
-            sage: q.containing_set()
-            Open subset U of the 2-dimensional topological manifold M
-
-        Note that in the present case, the containing set is tighter than the
-        parent, which is always the manifold::
-
-            sage: q.parent()
-            2-dimensional topological manifold M
-            sage: q.containing_set().is_subset(q.parent())
-            True
-            sage: q.containing_set() != q.parent()
-            True
-
-        """
-        return self._subset
 
     def coord(self, chart=None, old_chart=None):
         r"""

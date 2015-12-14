@@ -6,8 +6,12 @@ Topological manifolds
 
    sage/manifolds/manifold
 
-   sage/manifolds/point
+   sage/manifolds/abstract
 
    sage/manifolds/subset
+
+   sage/manifolds/structure
+
+   sage/manifolds/point
 
    sage/manifolds/chart

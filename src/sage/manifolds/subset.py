@@ -126,27 +126,16 @@ class ManifoldSubset(AbstractSet):
          Subset B of the 2-dimensional topological manifold M,
          2-dimensional topological manifold M]
 
-    The manifold is itself a subset::
-
-        sage: isinstance(M, ManifoldSubset)
-        True
-
-    Instances of :class:`ManifoldSubset` are Sage's facade sets
-    (see :meth:`~sage.categories.sets_cat.Sets.SubcategoryMethods.Facade`):
-    their elements are manifold points
-    (class :class:`~sage.manifolds.point.ManifoldPoint`),
-    which have the manifold (and not the subset) as parent::
+    Instances of :class:`ManifoldSubset` are parents::
 
         sage: isinstance(A, Parent)
         True
         sage: A.category()
-        Category of facade sets
-        sage: A.facade_for()
-        (2-dimensional topological manifold M,)
+        Category of subobjects of sets
         sage: p = A.an_element(); p
         Point on the 2-dimensional topological manifold M
         sage: p.parent()
-        2-dimensional topological manifold M
+        Subset A of the 2-dimensional topological manifold M
         sage: p in A
         True
         sage: p in M

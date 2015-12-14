@@ -344,7 +344,7 @@ class Manifold(AbstractSet):
       (without ``unique_tag``, the
       :class:`~sage.structure.unique_representation.UniqueRepresentation`
       behavior inherited from
-      :class:`~sage.manifolds.subset.TopologicalManifoldSubset`
+      :class:`~sage.manifolds.abstract.AbstractSet`
       would return the previously constructed object corresponding to these
       arguments).
 
@@ -875,7 +875,8 @@ class Manifold(AbstractSet):
 
         - ``self``
 
-        EXAMPLES::
+        EXAMPLES:
+
         """
         if other.manifold() is not self:
             raise ValueError("{} is not a subset of this manifold".format(other))
@@ -896,7 +897,8 @@ class Manifold(AbstractSet):
         - instance of :class:`ManifoldSubset` representing the
           subset that is the intersection of the current subset with ``other``
 
-        EXAMPLES::
+        EXAMPLES:
+
         """
         if other.manifold() is not self:
             raise ValueError("{} is not a subset of this manifold".format(other))
@@ -1502,7 +1504,8 @@ class Manifold(AbstractSet):
         - ``latex_name`` -- ignored
         - ``is_open`` -- ignored
 
-        EXAMPLES::
+        EXAMPLES:
+
         """
         return self
 

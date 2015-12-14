@@ -192,9 +192,9 @@ def row_reduced_form(M,transformation=False):
                     # so continue onto next step of algorithm
                     break
     if den == R.one():
-        A = matrix(r)
+        A = matrix(R, r)
     else:
-        A = matrix(r)/den
+        A = matrix(R, r)/den
     if transformation:
         return (A, matrix(N))
     else:

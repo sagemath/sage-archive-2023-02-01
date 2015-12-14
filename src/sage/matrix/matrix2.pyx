@@ -6842,7 +6842,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         from sage.misc.superseded import deprecation
         depr_message = \
-"""This function currently does *not* compute a weak Popov form, but rather a\
+"""This function currently does *not* compute a weak Popov form, but rather a \
 row reduced form. This function will soon be fixed (see Ticket #16742)."""
         deprecation(16888, depr_message)
 
@@ -7013,13 +7013,13 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         from sage.misc.superseded import deprecation
         if ascend is not None:
             ascend_message = \
-"""row_reduced_form: The `ascend` argument is deprecated and has no effect (see\
+"""row_reduced_form: The `ascend` argument is deprecated and has no effect (see \
 Ticket #16742)."""
             deprecation(16888, ascend_message)
         if old_call == True:
             oldcall_message = \
-"""row_reduced_form: The old calling convention is deprecated. In the future,\
-only the matrix in row reduced form will be returned. Set `old_call = False` for\
+"""row_reduced_form: The old calling convention is deprecated. In the future, \
+only the matrix in row reduced form will be returned. Set `old_call = False` for \
 that behaviour now, and to avoid this message (see Ticket #16742)."""
             deprecation(16888, oldcall_message)
 
@@ -7027,7 +7027,7 @@ that behaviour now, and to avoid this message (see Ticket #16742)."""
         if transformation is None:
             transformation_message = \
 """row_reduced_form: The `transformation` argument will soon change to have\
-default value to `False` from the current default value `True`. For now,\
+default value to `False` from the current default value `True`. For now, \
 explicitly setting the argument to `True` or `False` will avoid this message."""
             deprecation(16888, transformation_message)
             get_transformation = True
@@ -7040,10 +7040,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             return W_maybe_U
         else:
             W,U = W_maybe_U
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if is_PolynomialRing(W.base_ring()):
+                row_deg = lambda r: max([e.degree() for e in r])
+            else:
+                row_deg = lambda r: max([e.numerator().degree() - e.denominator().degree() for e in r])
             d = []
             from sage.rings.all import infinity
             for r in W.rows():
-                d.append(max([e.numerator().degree() - e.denominator().degree() for e in r]))
+                d.append(row_deg(r))
                 if d[-1] < 0:
                     d[-1] = -infinity
             return (W,U,d)

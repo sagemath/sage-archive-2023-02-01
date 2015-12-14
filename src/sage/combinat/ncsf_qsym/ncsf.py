@@ -32,6 +32,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.functions.other import factorial
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.rings import Rings
+from sage.categories.fields import Fields
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.combinat.composition import Compositions
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -401,9 +402,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         r"""
         TESTS::
 
+            sage: NCSF1 = NonCommutativeSymmetricFunctions(FiniteField(23))
+            sage: NCSF2 = NonCommutativeSymmetricFunctions(Integers(23))
             sage: TestSuite(NonCommutativeSymmetricFunctions(QQ)).run()
         """
-        assert(R in Rings())
+        # change the line below to assert(R in Rings()) once MRO issues from #15536, #15475 are resolved
+        assert(R in Fields() or R in Rings()) # side effect of this statement assures MRO exists for R
         self._base = R # Won't be needed once CategoryObject won't override base_ring
         Parent.__init__(self, category = GradedHopfAlgebras(R).WithRealizations())
 
@@ -951,8 +955,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     ....:     for i in reversed(xs):
                     ....:         res = res.bernstein_creation_operator(i)
                     ....:     return res
+                    sage: import itertools
                     sage: all( immaculate_by_bernstein(p) == I.immaculate_function(p)
-                    ....:      for p in CartesianProduct(range(-1, 3), range(-1, 3), range(-1, 3)) )
+                    ....:      for p in itertools.product(range(-1, 3), repeat=3))
                     True
 
                 Some examples::
@@ -4474,7 +4479,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                    distinct=True )
             # Note: sum(I) works both if I is a list and if I is a composition
             # (although the latter case doesn't work in IPython, cf.
-            # :trac:`15163`).
+            # trac #15163).
 
         def _from_psi_on_basis(self, I):
             r"""

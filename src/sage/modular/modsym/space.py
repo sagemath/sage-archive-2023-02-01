@@ -182,7 +182,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         TESTS:
 
-        Verify that Trac #12772 is fixed::
+        Verify that :trac:`12772` is fixed::
 
             sage: M = ModularSymbols(1,12,sign=1).cuspidal_subspace().new_subspace()
             sage: A = M.decomposition()[0]
@@ -2318,15 +2318,16 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         INPUT:
 
-            - `t` -- integer
-            - `P` -- list of cusps
+        - `t` -- integer
 
-        EXAMPLES::
+        - `P` -- list of cusps
+
+        EXAMPLES:
 
         We compute the matrix of the element of the Galois group
         associated to 5 and 31 for level 32.  In the first case the
         Galois action is trivial, and in the second it is
-        nontrivial.::
+        nontrivial. ::
 
             sage: M = ModularSymbols(32)
             sage: P = [c for c in Gamma0(32).cusps() if not c.is_infinity()]

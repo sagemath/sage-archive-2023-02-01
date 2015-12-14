@@ -1054,12 +1054,13 @@ def mobius_transform(A, z):
         TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
 
     The matrix can be symbolic or can be a matrix over the real
-    or complex numbers, but must be invertible::
+    or complex numbers, but must be provably invertible::
 
-        sage: (a,b,c,d) = var('a,b,c,d');
+        sage: a,b,c,d = var('a,b,c,d');
         sage: mobius_transform(matrix(2,[a,b,c,d]),I)
         (I*a + b)/(I*c + d)
-
+        sage: mobius_transform(matrix(2,[1,b,c,b*c+1]),I)
+        (b + I)/(b*c + I*c + 1)
         sage: mobius_transform(matrix(2,[0,0,0,0]),I)
         Traceback (most recent call last):
         ...

@@ -159,7 +159,6 @@ cdef extern from "flint/fmpq_poly.h":
     void fmpq_poly_rescale(fmpq_poly_t, const fmpq_poly_t, const fmpq_t)
 
     # Revert
-    void fmpq_poly_reverse(fmpq_poly_t, fmpq_poly_t, unsigned long)
     void fmpq_poly_revert_series(fmpq_poly_t, fmpq_poly_t, unsigned long)
 
     # Gaussian content

@@ -1,14 +1,10 @@
-from sage.libs.arb.arf cimport arf_t
-from sage.libs.arb.mag cimport mag_t
+# distutils: libraries = arb
+
+from sage.libs.arb.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpq_t
 from sage.libs.mpfr cimport mpfr_t
 
 cdef extern from "arb.h":
-
-    ctypedef struct arb_struct:
-        pass
-    ctypedef arb_struct arb_t[1]
-    ctypedef arb_struct * arb_ptr
 
     arf_t arb_midref(arb_t x)
     mag_t arb_radref(arb_t x)

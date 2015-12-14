@@ -1137,20 +1137,6 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
 
-    def __richcmp__(left, right, int op):
-        """
-        Used internally by the cmp method.
-
-        TESTS::
-
-            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
-            sage: cmp(f,g)             # indirect doctest
-            1
-            sage: cmp(g,f)
-            -1
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
@@ -1174,6 +1160,14 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
 
             sage: loads(dumps(f2)) == f2
             True
+
+        ::
+
+            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
+            sage: cmp(f,g)             # indirect doctest
+            1
+            sage: cmp(g,f)
+            -1
 
         EXAMPLES:
 
@@ -1441,22 +1435,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         _slots['__underlying'] = self.__underlying
         return RingHomomorphism._extra_slots(self, _slots)
 
-    def __richcmp__(left, right, int op):
-        """
-        Used internally by the cmp method.
-
-        TESTS::
-
-            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
-            sage: S.<z> = R[]
-            sage: fS = S.hom(f,S); gS = S.hom(g,S)
-            sage: cmp(fS,gS)   # indirect doctest
-            1
-            sage: cmp(gS,fS)   # indirect doctest
-            -1
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
@@ -1479,6 +1457,14 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
 
             sage: f1P == loads(dumps(f1P))
             True
+
+            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
+            sage: S.<z> = R[]
+            sage: fS = S.hom(f,S); gS = S.hom(g,S)
+            sage: cmp(fS,gS)   # indirect doctest
+            1
+            sage: cmp(gS,fS)   # indirect doctest
+            -1
 
         EXAMPLES:
 
@@ -2108,9 +2094,6 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         domain = self.domain()
         codomain = self.codomain()
         return hash((domain, codomain, ('Frob', self._power)))
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
 
     cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0

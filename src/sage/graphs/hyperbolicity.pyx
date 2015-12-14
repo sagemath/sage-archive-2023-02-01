@@ -208,7 +208,7 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
     etc.).
 
     If ``relabel`` is ``True``, the vertices of the new graph are relabeled
-    with integers in the range '0\cdots |vertices|-1'. The relabeling map is
+    with integers in the range '0\cdots \mid vertices \mid -1'. The relabeling map is
     returned if ``return_map`` is also ``True``.
 
     TESTS:
@@ -294,7 +294,7 @@ cdef tuple hyperbolicity_basic_algorithm(int N,
     of a graph which tests all 4-tuples of vertices not satisfying a cutting
     rule proposed in [Soto11]_.
 
-    INPUTS:
+    INPUT:
 
     - ``N`` -- number of vertices of the graph.
 
@@ -619,7 +619,7 @@ cdef tuple hyperbolicity_BCCM(int N,
 
     This method assumes that the graph under consideration is connected.
 
-    INPUTS:
+    INPUT:
 
     - ``N`` -- number of vertices of the graph
 
@@ -875,7 +875,7 @@ cdef tuple hyperbolicity_CCL(int N,
 
     This method assumes that the graph under consideration is connected.
 
-    INPUTS:
+    INPUT:
 
     - ``N`` -- number of vertices of the graph
 

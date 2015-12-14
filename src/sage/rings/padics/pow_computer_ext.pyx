@@ -63,6 +63,16 @@ from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX, ntl_ZZ_pX_Modulus
 from sage.rings.integer cimport Integer
 
+cdef extern from "ccobject.h":
+     ZZ_c* Allocate_ZZ_array "Allocate_array<ZZ>"(size_t n)
+     void Delete_ZZ_array "Delete_array<ZZ>"(ZZ_c* v)
+     ZZ_pX_c* Allocate_ZZ_pX_array "Allocate_array<ZZ_pX>"(size_t n)
+     void Delete_ZZ_pX_array "Delete_array<ZZ_pX>"(ZZ_pX_c* v)
+     ZZ_pX_Multiplier_c* Allocate_ZZ_pX_Multiplier_array "Allocate_array<ZZ_pXMultiplier>"(size_t n)
+     void Delete_ZZ_pX_Multiplier_array "Delete_array<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c* v)
+     ZZ_pX_Modulus_c* Allocate_ZZ_pX_Modulus_array "Allocate_array<ZZ_pXModulus>"(size_t n)
+     void Delete_ZZ_pX_Modulus_array "Delete_array<ZZ_pXModulus>"(ZZ_pX_Modulus_c* v)
+
 cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) except -1:
     """
     Precomputes quantities for shifting right in Eisenstein extensions.
@@ -145,8 +155,8 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_length = high_length
 
         sig_on()
-        (<PowComputer_ZZ_pX_FM_Eis>prime_pow).low_shifter = <ZZ_pX_Multiplier_c *>sage_malloc(sizeof(ZZ_pX_Multiplier_c) * low_length)
-        (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_shifter = <ZZ_pX_Multiplier_c *>sage_malloc(sizeof(ZZ_pX_Multiplier_c) * high_length)
+        (<PowComputer_ZZ_pX_FM_Eis>prime_pow).low_shifter = Allocate_ZZ_pX_Multiplier_array(low_length)
+        (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_shifter = Allocate_ZZ_pX_Multiplier_array(high_length)
         sig_off()
         low_shifter_m = (<PowComputer_ZZ_pX_FM_Eis>prime_pow).low_shifter
         high_shifter_m = (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_shifter
@@ -156,8 +166,8 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_length = high_length
 
         sig_on()
-        (<PowComputer_ZZ_pX_small_Eis>prime_pow).low_shifter = <ZZ_pX_c *>sage_malloc(sizeof(ZZ_pX_c) * low_length)
-        (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_shifter = <ZZ_pX_c *>sage_malloc(sizeof(ZZ_pX_c) * high_length)
+        (<PowComputer_ZZ_pX_small_Eis>prime_pow).low_shifter = Allocate_ZZ_pX_array(low_length)
+        (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_shifter = Allocate_ZZ_pX_array(high_length)
         sig_off()
         low_shifter_p = (<PowComputer_ZZ_pX_small_Eis>prime_pow).low_shifter
         high_shifter_p = (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_shifter
@@ -167,8 +177,8 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_length = high_length
 
         sig_on()
-        (<PowComputer_ZZ_pX_big_Eis>prime_pow).low_shifter = <ZZ_pX_c *>sage_malloc(sizeof(ZZ_pX_c) * low_length)
-        (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_shifter = <ZZ_pX_c *>sage_malloc(sizeof(ZZ_pX_c) * high_length)
+        (<PowComputer_ZZ_pX_big_Eis>prime_pow).low_shifter = Allocate_ZZ_pX_array(low_length)
+        (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_shifter = Allocate_ZZ_pX_array(high_length)
         sig_off()
         low_shifter_p = (<PowComputer_ZZ_pX_big_Eis>prime_pow).low_shifter
         high_shifter_p = (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_shifter
@@ -220,10 +230,8 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         ##printer.x = into_multiplier
         ##print printer
         if multiplier:
-            ZZ_pX_Multiplier_construct(&(low_shifter_m[i]))
             ZZ_pX_Multiplier_build(low_shifter_m[i], into_multiplier, prime_pow.get_top_modulus()[0])
         else:
-            ZZ_pX_construct(&(low_shifter_p[i]))
             low_shifter_p[i] = into_multiplier
 
     # Now we handle high_shifter.
@@ -253,20 +261,17 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
     ##ZZ_pX_MulMod_pre(printer.x, into_multiplier, shift_seed.x, prime_pow.get_top_modulus()[0])
     ##print "product = %s"%printer
     if multiplier:
-        ZZ_pX_Multiplier_construct(high_shifter_m)
         ZZ_pX_Multiplier_build(high_shifter_m[0], into_multiplier, prime_pow.get_top_modulus()[0])
     else:
-        ZZ_pX_construct(high_shifter_p)
         high_shifter_p[0] = into_multiplier
     # Now we cache powers of p/x^e.  This is a unit, so we don't have to worry about precision issues (yay!)
     for i from 1 <= i < high_length:
         ZZ_pX_SqrMod_pre(into_multiplier, into_multiplier, prime_pow.get_top_modulus()[0])
         if multiplier:
-            ZZ_pX_Multiplier_construct(&(high_shifter_m[i]))
             ZZ_pX_Multiplier_build(high_shifter_m[i], into_multiplier, prime_pow.get_top_modulus()[0])
         else:
-            ZZ_pX_construct(&(high_shifter_p[i]))
             high_shifter_p[i] = into_multiplier
+
 
 def ZZ_pX_eis_shift_test(_shifter, _a, _n, _finalprec):
     """
@@ -494,32 +499,25 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5, 0, 1], 5^10), 'small', 'e',ntl.ZZ_pX([1],5^10)) #indirect doctest
         """
         self._initialized = 0
-        sig_on()
-        self.small_powers = <ZZ_c *>sage_malloc(sizeof(ZZ_c) * (cache_limit + 1))
-        sig_off()
+        self.small_powers = Allocate_ZZ_array(cache_limit + 1)
         if self.small_powers == NULL:
-            raise MemoryError, "out of memory allocating power storing"
-        ZZ_construct(&self.top_power)
+            raise MemoryError("out of memory allocating power storing")
 
         cdef Py_ssize_t i
         cdef Integer x
 
-        ZZ_construct(self.small_powers)
         ZZ_conv_from_int(self.small_powers[0], 1)
 
         if cache_limit > 0:
-            ZZ_construct(&(self.small_powers[1]))
             mpz_to_ZZ(&(self.small_powers[1]), prime.value)
 
         sig_on()
         for i from 2 <= i <= cache_limit:
-            ZZ_construct(&(self.small_powers[i]))
             ZZ_mul(self.small_powers[i], self.small_powers[i-1], self.small_powers[1])
         mpz_to_ZZ(&self.top_power, prime.value)
         ZZ_power(self.top_power, self.top_power, prec_cap)
         sig_off()
         mpz_init(self.temp_m)
-        ZZ_construct(&self.temp_z)
 
         self._poly = poly
         self._shift_seed = shift_seed
@@ -577,13 +575,8 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC = PowComputer_ext_maker(5, 5, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
             sage: del PC # indirect doctest
         """
-        cdef Py_ssize_t i
-        for i from 0 <= i <= self.cache_limit:
-            ZZ_destruct(&(self.small_powers[i]))
-        sage_free(self.small_powers)
-        ZZ_destruct(&self.top_power)
+        Delete_ZZ_array(self.small_powers)
         mpz_clear(self.temp_m)
-        ZZ_destruct(&self.temp_z)
 
     cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
         """
@@ -625,8 +618,7 @@ cdef class PowComputer_ext(PowComputer_class):
         Provides fast access to a ZZ_c* pointing to self.prime^n.
 
         The location pointed to depends on the underlying
-        representation.  In no circumstances should you ZZ_destruct
-        the result.  The value pointed to may be an internal temporary
+        representation. The value pointed to may be an internal temporary
         variable for the class.  In particular, you should not try to
         refer to the results of two pow_ZZ_tmp calls at the same time,
         because the second call may overwrite the memory pointed to by
@@ -1131,7 +1123,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
 
         OUTPUT:
 
-        - 1 -- x should be set to zero (or usually, ZZ_pX_destruct'd)
+        - 1 -- x should be set to zero
         - 0 -- normal
 
         EXAMPLES::
@@ -1226,7 +1218,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             # while x != xnew:
             #     x = xnew
             #     xnew = x + u*(x^p - x)
-            while not ZZ_pX_equal(x[0], xnew_q):
+            while x[0] != xnew_q:
                 x[0] = xnew_q
                 ZZ_pX_PowerMod_pre(xnew_q, x[0], q, self.get_modulus(absprec)[0])
                 ZZ_pX_sub(xnew_q, xnew_q, x[0])
@@ -1263,7 +1255,6 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
         self.c.restore_c()
         # For now, we don't do anything complicated with poly
         if isinstance(poly, ntl_ZZ_pX) and (<ntl_ZZ_pX>poly).c is self.c:
-            ZZ_pX_Modulus_construct(&self.mod)
             ZZ_pX_Modulus_build(self.mod, (<ntl_ZZ_pX>poly).x)
             if prec_cap == ram_prec_cap:
                 self.e = 1
@@ -1274,30 +1265,6 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
             self.ram_prec_cap = ram_prec_cap
         else:
             raise NotImplementedError, "NOT IMPLEMENTED IN PowComputer_ZZ_pX_FM"
-
-
-    def __dealloc__(self):
-        """
-        Cleans up the memory for self.mod
-
-        EXAMPLES::
-
-            sage: A = PowComputer_ext_maker(5, 3, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
-            sage: del A # indirect doctest
-        """
-        if self._initialized:
-            self.cleanup_ZZ_pX_FM()
-
-    cdef void cleanup_ZZ_pX_FM(self):
-        """
-        Cleans up the memory for self.mod
-
-        EXAMPLES::
-
-            sage: A = PowComputer_ext_maker(5, 3, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10)) #indirect doctest
-            sage: del A # indirect doctest
-        """
-        ZZ_pX_Modulus_destruct(&self.mod)
 
     cdef ntl_ZZ_pContext_class get_top_context(self):
         """
@@ -1479,13 +1446,8 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
             sage: A = PowComputer_ext_maker(5, 3, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
             sage: del A # indirect doctest
         """
-        cdef int i # yes, an int is good enough
-        for i from 0 <= i < self.low_length:
-            ZZ_pX_Multiplier_destruct(&(self.low_shifter[i]))
-        sage_free(self.low_shifter)
-        for i from 0 <= i < self.high_length:
-            ZZ_pX_Multiplier_destruct(&(self.high_shifter[i]))
-        sage_free(self.high_shifter)
+        Delete_ZZ_pX_Multiplier_array(self.low_shifter)
+        Delete_ZZ_pX_Multiplier_array(self.high_shifter)
 
     cdef int eis_shift(self, ZZ_pX_c* x, ZZ_pX_c* a, long n, long finalprec) except -1:
         """
@@ -1637,7 +1599,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         self.c = []
         # We cache from 0 to cache_limit inclusive, and provide one extra slot to return moduli above the cache_limit
         sig_on()
-        self.mod = <ZZ_pX_Modulus_c *>sage_malloc(sizeof(ZZ_pX_Modulus_c) * (cache_limit + 2))
+        self.mod = Allocate_ZZ_pX_Modulus_array(cache_limit + 2)
         sig_off()
         if self.mod == NULL:
             self.cleanup_ext()
@@ -1659,10 +1621,8 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
 
             for i from 1 <= i <= cache_limit:
                 (<ntl_ZZ_pContext_class>self.c[i]).restore_c()
-                ZZ_pX_Modulus_construct(&(self.mod[i]))
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.c[i]).x)
                 ZZ_pX_Modulus_build(self.mod[i], tmp)
-            ZZ_pX_Modulus_construct(&(self.mod[cache_limit+1]))
             if prec_cap == ram_prec_cap:
                 self.e = 1
                 self.f = ZZ_pX_deg((<ntl_ZZ_pX>poly).x)
@@ -1694,10 +1654,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
             sage: A = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'small','e',ntl.ZZ_pX([1],5^10))
             sage: del A # indirect doctest
         """
-        cdef Py_ssize_t i
-        for i from 1 <= i <= self.cache_limit + 1:
-            ZZ_pX_Modulus_destruct(&(self.mod[i]))
-        sage_free(self.mod)
+        Delete_ZZ_pX_Modulus_array(self.mod)
 
     cdef ntl_ZZ_pContext_class get_context(self, long n):
         """
@@ -1927,13 +1884,8 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
             sage: A = PowComputer_ext_maker(5, 3, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
             sage: del A # indirect doctest
         """
-        cdef int i # yes, an int is good enough
-        for i from 0 <= i < self.low_length:
-            ZZ_pX_destruct(&(self.low_shifter[i]))
-        sage_free(self.low_shifter)
-        for i from 0 <= i < self.high_length:
-            ZZ_pX_destruct(&(self.high_shifter[i]))
-        sage_free(self.high_shifter)
+        Delete_ZZ_pX_array(self.low_shifter)
+        Delete_ZZ_pX_array(self.high_shifter)
 
     cdef int eis_shift(self, ZZ_pX_c* x, ZZ_pX_c* a, long n, long finalprec) except -1:
         """
@@ -1994,7 +1946,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         #    self.cleanup_ext()
         #    raise MemoryError, "out of memory allocating contexts"
         sig_on()
-        self.modulus_list = <ZZ_pX_Modulus_c *>sage_malloc(sizeof(ZZ_pX_Modulus_c) * (cache_limit + 1))
+        self.modulus_list = Allocate_ZZ_pX_Modulus_array(cache_limit + 1)
         sig_off()
         if self.modulus_list == NULL:
             self.cleanup_ext()
@@ -2016,11 +1968,9 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
 
             for i from 1 <= i <= cache_limit:
                 (<ntl_ZZ_pContext_class>self.context_list[i]).restore_c()
-                ZZ_pX_Modulus_construct(&(self.modulus_list[i]))
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.context_list[i]).x)
                 ZZ_pX_Modulus_build(self.modulus_list[i], tmp)
             (<ntl_ZZ_pContext_class>self.top_context).restore_c()
-            ZZ_pX_Modulus_construct(&(self.top_mod))
             ZZ_pX_conv_modulus(tmp, pol, self.top_context.x)
             ZZ_pX_Modulus_build(self.top_mod, tmp)
             self.context_dict = {}
@@ -2056,13 +2006,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
             sage: A = PowComputer_ext_maker(5, 6, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'big','e',ntl.ZZ_pX([1],5^10))
             sage: del A # indirect doctest
         """
-        #pass
-        ## These cause a segfault.  I don't know why.
-        cdef Py_ssize_t i
-        for i from 1 <= i <= self.cache_limit:
-            ZZ_pX_Modulus_destruct(&(self.modulus_list[i]))
-        sage_free(self.modulus_list)
-        ZZ_pX_Modulus_destruct(&self.top_mod)
+        Delete_ZZ_pX_Modulus_array(self.modulus_list)
 
     def reset_dictionaries(self):
         """
@@ -2356,13 +2300,8 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
             sage: A = PowComputer_ext_maker(5, 3, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
             sage: del A # indirect doctest
         """
-        cdef int i # yes, an int is good enough
-        for i from 0 <= i < self.low_length:
-            ZZ_pX_destruct(&(self.low_shifter[i]))
-        sage_free(self.low_shifter)
-        for i from 0 <= i < self.high_length:
-            ZZ_pX_destruct(&(self.high_shifter[i]))
-        sage_free(self.high_shifter)
+        Delete_ZZ_pX_array(self.low_shifter)
+        Delete_ZZ_pX_array(self.high_shifter)
 
     cdef int eis_shift(self, ZZ_pX_c* x, ZZ_pX_c* a, long n, long finalprec) except -1:
         """

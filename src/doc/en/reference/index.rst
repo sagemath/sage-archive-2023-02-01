@@ -78,6 +78,7 @@ Calculus
 * :doc:`Symbolic Calculus <calculus/index>`
 * :doc:`Mathematical Constants <constants/index>`
 * :doc:`Elementary and Special Functions <functions/index>`
+* :doc:`Asymptotic Expansions <asymptotic/index>` (experimental)
 
 Geometry and Topology
 ---------------------

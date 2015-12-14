@@ -209,15 +209,16 @@ have to run::
     [user@localhost sage]$ ./sage -br
 
 to rebuild the Sage library and then start Sage. This should be quite
-fast. If you made changes to third-party packages then you have to
-run::
+fast. If you made changes to
+:ref:`third-party packages <chapter-packaging>`, then you have to run ::
 
     [user@localhost sage]$ make
 
 as if you were `installing Sage from scratch
 <http://www.sagemath.org/doc/installation/source.html>`_.
-However, simply running ``make`` will only recompile packages
-that were changed, so it shoud be much faster than compiling Sage
+However, this time only packages which were changed (or which depend
+on a changed package) will be recompiled,
+so it shoud be much faster than compiling Sage
 the first time. Rarely there are conflicts with other packages,
 or with the already-installed older version of the package that you
 changed, in that case you do have to recompile everything using::

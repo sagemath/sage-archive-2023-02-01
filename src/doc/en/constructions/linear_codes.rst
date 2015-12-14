@@ -106,13 +106,13 @@ implemented.
     sage: MS = MatrixSpace(GF(2),1,7)
     sage: F = GF(2); a = F.gen()
     sage: v1 = [a,a,F(0),a,a,F(0),a]
-    sage: C.decode(v1)
+    sage: C.decode_to_code(v1, "Syndrome")
      (1, 1, 0, 1, 0, 0, 1)
     sage: v2 = matrix([[a,a,F(0),a,a,F(0),a]])
-    sage: C.decode(v2)
+    sage: C.decode_to_code(v2, "Syndrome")
      (1, 1, 0, 1, 0, 0, 1)
     sage: v3 = vector([a,a,F(0),a,a,F(0),a])
-    sage: c = C.decode(v3); c
+    sage: c = C.decode_to_code(v3, "Syndrome"); c
      (1, 1, 0, 1, 0, 0, 1)
 
 To plot the (histogram of) the weight distribution of a code, one

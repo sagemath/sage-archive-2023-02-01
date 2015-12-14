@@ -1463,7 +1463,7 @@ cdef class wrapped_libmp_function:
             return rc
         x = global_context.convert(x)
         if hasattr(x, "_mpf_") or hasattr(x, "_mpc_"):
-            return self.__call__(x, **kwargs)
+            return self(x, **kwargs)
         #if hasattr(x, "_mpi_"):
         #    if self.mpi_f:
         #        return global_context.make_mpi(self.mpi_f(x._mpi_, prec))
@@ -1672,7 +1672,7 @@ cdef class mpf_base(mpnumber):
             "mpf('3.25')"
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         n = repr_dps(global_opts.prec)
         return "mpf('%s')" % to_str(self._mpf_, n)
 
@@ -2257,7 +2257,7 @@ cdef class constant(mpf_base):
 
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         return "<%s: %s~>" % (self.name, global_context.nstr(self))
 
     def __nonzero__(self):
@@ -2429,7 +2429,7 @@ cdef class mpc(mpnumber):
             "mpc(real='2.0', imag='3.0')"
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         re, im = self._mpc_
         n = repr_dps(global_opts.prec)
         return "mpc(real='%s', imag='%s')" % (to_str(re, n), to_str(im, n))

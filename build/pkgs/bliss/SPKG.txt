@@ -7,7 +7,7 @@ forms of graphs.
 
 == License ==
 
-GPL
+LGPL
 
 == Upstream Contact ==
 

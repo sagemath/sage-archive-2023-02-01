@@ -119,6 +119,7 @@ par ailleurs les catégories en tant que telles :
     sage: ZZ.category()
     Join of Category of euclidean domains
         and Category of infinite enumerated sets
+        and Category of metric spaces
     sage: ZZ.category().is_subcategory(Rings())
     True
     sage: ZZ in Rings()

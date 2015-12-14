@@ -155,10 +155,10 @@ examples :
       sage: sp = S.map_reduce(lambda z: x**(len(z.inversions()))); sp
       x^10 + 4*x^9 + 9*x^8 + 15*x^7 + 20*x^6 + 22*x^5 + 20*x^4 + 15*x^3 + 9*x^2 + 4*x + 1
 
-  We get here a pollynomial called the `x`-factorial of `5` that is
+  We get here a polynomial called the `x`-factorial of `5` that is
   `\prod_{i=1}^{i=5} \frac{1-x^i}{1-x}`::
 
-      sage: (prod((1-x^i)/(1-x) for i in range(1,6))).normalize().expand()
+      sage: (prod((1-x^i)/(1-x) for i in range(1,6))).simplify_rational()
       x^10 + 4*x^9 + 9*x^8 + 15*x^7 + 20*x^6 + 22*x^5 + 20*x^4 + 15*x^3 + 9*x^2 + 4*x + 1
 
 

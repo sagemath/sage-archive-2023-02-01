@@ -191,9 +191,14 @@ def row_reduced_form(M,transformation=False):
                     # remaining relations (if any) are no longer valid,
                     # so continue onto next step of algorithm
                     break
+    if den == R.one():
+        A = matrix(r)
+    else:
+        A = matrix(r)/den
     if transformation:
-        return (matrix(r)/den, matrix(N))
-    return matrix(r)/den
+        return (A, matrix(N))
+    else:
+        return A
 
 def prm_mul(p1, p2, mask_free, prec):
     """

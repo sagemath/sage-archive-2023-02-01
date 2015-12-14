@@ -6841,11 +6841,9 @@ cdef class Matrix(matrix1.Matrix):
           `d` is a list of the degrees of the rows of `W`.
         """
         from sage.misc.superseded import deprecation
-        import textwrap
-        depr_message = textwrap.dedent("""\
-            This function currently does *not* compute a weak \
-            Popov form, but rather a row reduced form. This function will soon be \
-            fixed (see Ticket #16742).""")
+        depr_message = \
+"""This function currently does *not* compute a weak Popov form, but rather a\
+row reduced form. This function will soon be fixed (see Ticket #16742)."""
         deprecation(16888, depr_message)
 
         return self.row_reduced_form(transformation=transformation,
@@ -7013,34 +7011,31 @@ cdef class Matrix(matrix1.Matrix):
         from sage.matrix.matrix_misc import row_reduced_form
 
         from sage.misc.superseded import deprecation
-        import textwrap
         if ascend is not None:
-            ascend_message = textwrap.dedent("""\
-                row_reduced_form: The `ascend` argument is deprecated and has no \
-                effect (see Ticket #16742).""")
+            ascend_message = \
+"""row_reduced_form: The `ascend` argument is deprecated and has no effect (see\
+Ticket #16742)."""
             deprecation(16888, ascend_message)
         if old_call == True:
-            oldcall_message = textwrap.dedent("""\
-                row_reduced_form: The old calling convention is deprecated. In \
-                the future, only the matrix in row reduced form will be returned. \
-                Set `old_call = False` for that behaviour now, and to avoid this \
-                message (see Ticket #16742).""")
+            oldcall_message = \
+"""row_reduced_form: The old calling convention is deprecated. In the future,\
+only the matrix in row reduced form will be returned. Set `old_call = False` for\
+that behaviour now, and to avoid this message (see Ticket #16742)."""
             deprecation(16888, oldcall_message)
 
         get_transformation = False
         if transformation is None:
-            transformation_message = textwrap.dedent("""\
-                The `transformation` argument will soon change to have default \
-                value to `False` from the current default value `True`. For \
-                now, explicitly setting the argument to `True` or `False` will \
-                avoid this message.""")
+            transformation_message = \
+"""row_reduced_form: The `transformation` argument will soon change to have\
+default value to `False` from the current default value `True`. For now,\
+explicitly setting the argument to `True` or `False` will avoid this message."""
             deprecation(16888, transformation_message)
             get_transformation = True
         elif old_call == True or transformation == True:
             get_transformation = True
 
-        W_maybe_U = sage.matrix.matrix_misc.row_reduced_form(self,transformation)
-        
+        W_maybe_U = sage.matrix.matrix_misc.row_reduced_form(self,get_transformation)
+
         if old_call == False:
             return W_maybe_U
         else:

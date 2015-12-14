@@ -657,8 +657,8 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         N = len(word)
 
         if not as_reflections:
-            from sage.modules.free_module import VectorSpace
-            simple_roots = VectorSpace(self.base_ring(), self.ngens()).gens()
+            from sage.modules.free_module import FreeModule
+            simple_roots = FreeModule(self.base_ring(), self.ngens()).gens()
 
         refls = self.simple_reflections()
         resu = []

@@ -375,6 +375,9 @@ class CoxeterType(SageObject):
 
         from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
         UCF = UniversalCyclotomicField()
+
+        if R is None:
+            R = UCF
         # if UCF.has_coerce_map_from(base_ring):
         #     R = UCF
         # else:

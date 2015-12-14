@@ -6878,7 +6878,8 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
         OUTPUT:
 
-        - `W` - a matrix over `k(x)` giving a row reduced form of ``self``.
+        - `W` - a matrix over the same ring as `self` (i.e. either `k(x)` or
+          `k[x]` for a field `k`) giving a row reduced form of ``self``.
 
         EXAMPLES:
 
@@ -6918,7 +6919,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: output2 = M2.row_reduced_form(transformation=False, old_call=False)
             sage: output1 == output2
             True
-            sage: output1.base_ring() is K
+            sage: output1.base_ring() is R
             True
             sage: output2.base_ring() is K
             True

@@ -2458,12 +2458,15 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
     cdef int r,s,f,g
     cdef uint_fast32_t tmp[2]
 
-    if (v<0 or k<=0 or l<0 or mu<0 or
-        k>=v-1 or l>=k or mu>=k or
+    if (v<0 or k<=0 or l<0 or mu<=0 or
+        k>=v-1 or l>=k or mu>k or
         v-2*k+mu-2 < 0 or # lambda of complement graph >=0
-        v-2*k+l    < 0 or # μ of complement graph >=0
+        v-2*k+l    < 0 or # μ of complement graph >= 0
         mu*(v-k-1) != k*(k-l-1)):
         return False
+
+    if mu == k: # complete bipartite graph
+        return (l == 0 and v == 2*k)
 
     # Conference graphs. Only possible if 'v' is a sum of two squares (3.A of
     # [BvL84]
@@ -2623,6 +2626,13 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         ....:         except RuntimeError as e:                        # not tested
         ....:             if 'Brouwer' not in str(e):                  # not tested
         ....:                 raise                                    # not tested
+
+    `\mu=0` behaves correctly (:trac:`19712`)::
+
+        sage: graphs.strongly_regular_graph(10,2,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: There exists no (10, 2, 1, 0)-strongly regular graph
     """
     load_brouwer_database()
     if mu == -1:

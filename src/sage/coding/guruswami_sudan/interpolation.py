@@ -214,7 +214,6 @@ def _construct_Q_from_matrix(M, monomials):
     PF = M.base_ring()['x', 'y'] #make that ring a ring in <x>
     x, y = PF.gens()
     Q = sum([x**monomials[i][0] * y**monomials[i][1] * sol[i] for i in range(0, len(monomials))])
-    print Q
     return Q
 
 def construct_Q_linalg(points, tau, parameters, wy):
@@ -247,72 +246,6 @@ def construct_Q_linalg(points, tau, parameters, wy):
     return _construct_Q_from_matrix(
                 *_interpol_matrix_problem(points, tau, parameters, wy))
 
-####################### DEBUG ###############################
-
-from sage.coding.guruswami_sudan.utils import apply_weights, remove_weights, LT, LP
-from copy import copy
-
-def module_row_reduction(M, i, j, pos):
-    """Perform a row reduction with row j on row i, reducing position
-    pos. If M[i,pos] has lower degree than M[j,pos], nothing is changed.
-    Returns the multiple of row j used."""
-    pow = M[i,pos].degree() - M[j,pos].degree()
-    if pow < 0:
-        return None
-    coeff = -M[i, pos].leading_coefficient() / M[j, pos].leading_coefficient()
-    x = M.base_ring().gen()
-    multiple = x**pow*coeff
-    M.add_multiple_of_row(i, j, multiple)
-    return x**pow*coeff
-
-def module_mulders_storjohann(M, weights=None, debug=0):
-    """Reduce $M$ to weak Popov form using the Mulders--Storjohann
-    algorithm (Mulders, T., and A. Storjohann. "On Lattice Reduction
-    for Polynomial Matrices." Journal of Symbolic Computation 35, no.
-    4 (2003): 377-401.).
-
-    Handles column weights with only a slight possible penalty. The weights can
-    be fractions, but cannot be floating points.
-
-    If debug is True, then print some info."""
-    if weights and len(weights) != M.ncols():
-        raise ValueError("The number of weights must equal the number of columns")
-    # initialise conflicts list and LP map
-    LP_to_row = dict( (i,[]) for i in range(M.ncols()))
-    conflicts = []
-    for i in range(M.nrows()):
-        lp = LP(M.row(i), weights=weights)
-        ls = LP_to_row[lp]
-        ls.append(i)
-        if len(ls) > 1:
-            conflicts.append(lp)
-    iters = 0
-    # while there is a conflict, do a row reduction
-    while conflicts:
-        lp = conflicts.pop()
-        ls = LP_to_row[lp]
-        i, j = ls.pop(), ls.pop()
-        if M[i,lp].degree() < M[j, lp].degree():
-            j,i = i,j
-
-        module_row_reduction(M, i, j, lp)
-        ls.append(j)
-        lp_new = LP(M.row(i), weights=weights)
-        if lp_new > -1:
-            ls_new = LP_to_row[lp_new]
-            ls_new.append(i)
-            if len(ls_new) > 1:
-                conflicts.append(lp_new)
-        iters += 1
-    return iters
-
-def module_weak_popov(M, weights=None, debug=0):
-    """Compute a (possibly column-weighted) weak Popov form of $M$.
-    The weights can be any non-negative fractions."""
-    return module_mulders_storjohann(M, weights=weights, debug=debug)
-
-####################### END OF DEBUG ###############################
-
 ####################### Lee-O'Sullivan's method ###############################
 
 def lee_osullivan_module(points, tau, (s,l), wy):
@@ -323,13 +256,15 @@ def lee_osullivan_module(points, tau, (s,l), wy):
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.interpolation import lee_osullivan_module
-        sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
+        sage: F = GF(11)
+        sage: points = [(F(0), F(2)), (F(1), F(5)), (F(2), F(0)), (F(3), F(4)), (F(4), F(9))\
+                , (F(5), F(1)), (F(6), F(9)), (F(7), F(10))]
         sage: tau = 1
         sage: params = (1, 1)
         sage: wy = 1
-        sage: PF = lee_osullivan_module(points, tau, params, wy)
-        sage: print PF
-
+        sage: lee_osullivan_module(points, tau, params, wy)
+        [x^8 + 5*x^7 + 3*x^6 + 9*x^5 + 4*x^4 + 2*x^3 + 9*x                                                 0]
+        [ 10*x^7 + 4*x^6 + 9*x^4 + 7*x^3 + 2*x^2 + 9*x + 9                                                 1]
     """
     F = points[0][0].parent()
     PF = F['x']
@@ -364,24 +299,31 @@ def construct_Q_lee_osullivan(points, tau, parameters, wy):
 
     - ``wy`` -- an integer.
 
+    EXAMPLES::
 
+        sage: from sage.coding.guruswami_sudan.interpolation import construct_Q_lee_osullivan
+        sage: F = GF(11)
+        sage: points = [(F(0), F(2)), (F(1), F(5)), (F(2), F(0)), (F(3), F(4)), (F(4), F(9))\
+                , (F(5), F(1)), (F(6), F(9)), (F(7), F(10))]
+        sage: tau = 1
+        sage: params = (1, 1)
+        sage: wy = 1
+        sage: construct_Q_lee_osullivan(points, tau, params, wy)
+        x^3*y + 2*x^3 - x^2*y + 5*x^2 + 5*x*y - 5*x + 2*y - 4
     """
-    # WARNING: CHANGE ALL OCCURENCES OF M TO Mnew AFTER row_reduced_form LINE!!!!!11
     from utils import apply_weights, remove_weights, LT
     s, l = parameters[0], parameters[1]
     F = points[0][0].parent()
     M = lee_osullivan_module(points, tau, (s,l), wy)
     weights = [i * wy for i in range(0,l+1)]
     apply_weights(M, weights)
-    #Mnew = M.row_reduced_form(transformation=False, old_call=False)
-    module_weak_popov(M, weights = None)
+    Mnew = M.row_reduced_form(transformation=False, old_call=False)
     # Construct Q as the element of the row with the lowest weighted degree
-    degs = [(i, LT(M.row(i)).degree()) for i in range(0,l+1)]
+    degs = [(i, LT(Mnew.row(i)).degree()) for i in range(0,l+1)]
     best = min(degs, key=lambda (i,d): d)[0]
-    remove_weights(M, weights)
-    Qlist = M.row(best)
+    remove_weights(Mnew, weights)
+    Qlist = Mnew.row(best)
     PFxy = F['x,y']
     xx, yy = PFxy.gens()
     Q = sum(yy**i * PFxy(Qlist[i]) for i in range(0,l+1))
-    print Q
     return Q

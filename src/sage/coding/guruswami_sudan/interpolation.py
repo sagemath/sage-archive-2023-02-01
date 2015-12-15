@@ -48,7 +48,7 @@ def _flatten_once(lstlst):
 def _monomial_list(maxdeg, l, wy):
     r"""
     Returns a list of the `(x,y)` powers of all monomials in `F[x,y]` whose
-    (1,wy)-weighted degree is less than ``maxdeg`` and whose ``y-degree <= l``.
+    `(1, wy)`-weighted degree is less than ``maxdeg`` and whose ``y-degree <= l``.
 
     INPUT:
 
@@ -81,7 +81,7 @@ def _monomial_list(maxdeg, l, wy):
             monomials.append((x, y))
     return monomials
 
-def _interpol_matrix_by_mons(points, s, monomials):
+def _interpolation_matrix_given_monomials(points, s, monomials):
     r"""
     Returns a generator of the interpolation matrix whose nullspace gives the coefficients
     for all interpolation polynomials, given the list of monomials allowed.
@@ -99,11 +99,11 @@ def _interpol_matrix_by_mons(points, s, monomials):
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.interpolation import _interpol_matrix_by_mons
+        sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_given_monomials
         sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
         sage: s = 1
         sage: monomials = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (0, 1), (1, 1)]
-        sage: _interpol_matrix_by_mons(points, s, monomials) #random
+        sage: _interpolation_matrix_given_monomials(points, s, monomials) #random
         <generator object _flatten_once at 0x7fb5ff8cce10>
     """
     n = len(points)
@@ -111,7 +111,7 @@ def _interpol_matrix_by_mons(points, s, monomials):
         r"""
         Make equation for the affine point x0, y0. Return a list of
         equations, each equation being a list of coefficients corresponding to
-        the monomials in mons.
+        the monomials in ``monomials``.
         """
         eqs = []
         for i in range(0, s):
@@ -121,16 +121,16 @@ def _interpol_matrix_by_mons(points, s, monomials):
                     ihat = monomial[0]
                     jhat = monomial[1]
                     if ihat >= i and jhat >= j:
-                        icoeff = binomial(ihat, i)*x0**(ihat-i) \
+                        icoeff = binomial(ihat, i) * x0**(ihat-i) \
                                     if ihat > i else 1
-                        jcoeff = binomial(jhat, j)*(y0**(jhat-j)) \
+                        jcoeff = binomial(jhat, j) * y0**(jhat-j) \
                                     if jhat > j else 1
-                        eq[monomial] = jcoeff*icoeff
+                        eq[monomial] = jcoeff * icoeff
                 eqs.append([eq.get(monomial, 0) for monomial in monomials])
         return eqs
-    return _flatten_once([ eqs_affine(*point) for point in points ])
+    return _flatten_once([eqs_affine(*point) for point in points])
 
-def _interpol_matrix_problem(points, tau, parameters, wy):
+def _interpolation_matrix_problem(points, tau, parameters, wy):
     r"""
     Returns the linear system of equations which ``Q`` should be a solution to.
 
@@ -153,12 +153,12 @@ def _interpol_matrix_problem(points, tau, parameters, wy):
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.interpolation import _interpol_matrix_problem
+        sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_problem
         sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
         sage: tau = 1
         sage: params = (1, 1)
         sage: wy = 1
-        sage: _interpol_matrix_problem(points, tau, params, wy)
+        sage: _interpolation_matrix_problem(points, tau, params, wy)
         (
         [     1      0      0      0      0      0      0      2      0      0      0      0      0]
         [     1      1      1      1      1      1      1      5      5      5      5      5      5]
@@ -171,8 +171,8 @@ def _interpol_matrix_problem(points, tau, parameters, wy):
         )
     """
     s, l = parameters[0], parameters[1]
-    monomials = _monomial_list((len(points)-tau)*s, l, wy)
-    M = matrix(list(_interpol_matrix_by_mons(points, s, monomials)))
+    monomials = _monomial_list((len(points)-tau) * s, l, wy)
+    M = matrix(list(_interpolation_matrix_given_monomials(points, s, monomials)))
     return (M, monomials)
 
 def _construct_Q_from_matrix(M, monomials):
@@ -189,12 +189,12 @@ def _construct_Q_from_matrix(M, monomials):
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.interpolation import _construct_Q_from_matrix
-        sage: from sage.coding.guruswami_sudan.interpolation import _interpol_matrix_problem
+        sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_problem
         sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
         sage: tau = 1
         sage: params = (1, 1)
         sage: wy = 1
-        sage: res = _interpol_matrix_problem(points, tau, params, wy)
+        sage: res = _interpolation_matrix_problem(points, tau, params, wy)
         sage: M, monomials = res[0], res[1]
         sage: _construct_Q_from_matrix(M, monomials)
         4202026*x^6 - 5614235*x^5*y - 29351399*x^5 + 64635986*x^4*y + 41894587*x^4 - 273534229*x^3*y + 3*x^3 + 508264978*x^2*y + x^2 - 297101040*x*y + 2*x - 840*y + 1680
@@ -203,7 +203,6 @@ def _construct_Q_from_matrix(M, monomials):
         raise Exception("More rows than columns! This matrix is not satisfactory.")
     Sp = M.right_kernel()
     sol = Sp.an_element()
-    #TODO: Option to pick out minimal element?
     while sol.is_zero():
         # Picking out e.g. element 1 directly seems to run into an infinite
         # loop for large matrices.
@@ -242,4 +241,4 @@ def construct_Q_linalg(points, tau, parameters, wy):
         4202026*x^6 - 5614235*x^5*y - 29351399*x^5 + 64635986*x^4*y + 41894587*x^4 - 273534229*x^3*y + 3*x^3 + 508264978*x^2*y + x^2 - 297101040*x*y + 2*x - 840*y + 1680
     """
     return _construct_Q_from_matrix(
-                *_interpol_matrix_problem(points, tau, parameters, wy))
+                *_interpolation_matrix_problem(points, tau, parameters, wy))

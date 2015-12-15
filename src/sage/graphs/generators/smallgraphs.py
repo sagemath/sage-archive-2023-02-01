@@ -4454,7 +4454,7 @@ def TruncatedIcosidodecahedralGraph():
         (120, 180)
     """
     from sage.geometry.polyhedron.library import polytopes
-    G = polytopes.icosidodecahedron(exact=False).edge_truncation().graph()
+    G = polytopes.icosidodecahedron(exact=False).truncation().graph()
     G.name("Truncated Icosidodecahedron")
     return G
 
@@ -4471,7 +4471,7 @@ def TruncatedTetrahedralGraph():
         Truncated Tetrahedron: Graph on 12 vertices
         sage: g.order(), g.size()
         (12, 18)
-        sage: g.is_isomorphic(polytopes.simplex(3).edge_truncation().graph())
+        sage: g.is_isomorphic(polytopes.simplex(3).truncation().graph())
         True
     """
     g = Graph(':K`ESwC_EOyDl\\MCi', loops=False, multiedges=False)

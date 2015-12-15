@@ -28,7 +28,7 @@ AUTHORS:
 from sage.coding.grs import GeneralizedReedSolomonCode
 from sage.modules.free_module_element import vector
 from sage.coding.decoder import Decoder
-from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg
+from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg, construct_Q_lee_osullivan
 from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
 from sage.coding.guruswami_sudan.utils import (list_decoding_range,
                                                gilt,
@@ -57,13 +57,14 @@ class GRSGuruswamiSudanDecoder(Decoder):
       or a the method which performs the interpolation. See NOTES section for details on signature.
       One can use the following names:
 
-        * ``LinearAlgebra`` -- uses a linear system solver.
+        * ``"LinearAlgebra"`` -- uses a linear system solver.
+        * ``"LeeOSullivan"`` -- uses Lee O'Sullivan method based on row reduction of a matrix
 
     - ``root_finder`` -- (default: ``None``) the name of the rootfinding algorithm that will be used,
       or a the method which performs the rootfinding. See NOTES section for details on signature.
       One can use the following names:
 
-        * ``RothRuckenstein`` -- uses Roth-Ruckenstein algorithm.
+        * ``"RothRuckenstein"`` -- uses Roth-Ruckenstein algorithm.
 
     .. NOTE::
 
@@ -399,7 +400,9 @@ class GRSGuruswamiSudanDecoder(Decoder):
             raise ValueError("Specify either tau or parameters")
         if hasattr(interpolation_alg, '__call__'):
             self.interpolation_alg = interpolation_alg
-        elif interpolation_alg == None or interpolation_alg == "LinearAlgebra":
+        elif interpolation_alg == None or interpolation_alg == "LeeOSullivan":
+            self.interpolation_alg = construct_Q_lee_osullivan
+        elif interpolation_alg == "LinearAlgebra":
             self.interpolation_alg = construct_Q_linalg
         else:
             raise ValueError("Please provide a method or one of the allowed strings for interpolation_alg")

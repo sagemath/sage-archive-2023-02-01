@@ -22,6 +22,8 @@ AUTHORS:
 from sage.functions.other import binomial, floor, sqrt
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
+from sage.rings.arith import lcm
+from sage.combinat.permutation import Permutation
 
 IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
@@ -175,46 +177,103 @@ def find_minimal_satisfiable(f, startn=1, contiguous=True):
     return maxn
 
 def apply_weights(M, weights):
-    """Apply column weights inplace to the matrix `M`. If weights are all integers, then
-    `M` is multiplied on the $n$th column with `x^{weights[n]}`.
+    r"""
+    Applies column weights inplace to the matrix `M`.
+
+    If weights are all integers, then `M` is multiplied on the `n`th
+    column with `x^{weights[n]}`.
     If weights are fractions, then `M` is appropriately column permuted and
     multiplied with the `x^t` where `t = int(weights[n])`. Afterwards, the
-    permutation is returned if needed for reference. See e.g. [Dec]
+    permutation is returned if needed for reference.
+
+    INPUT:
+
+    - ``M`` -- a matrix
+
+    - ``weights`` -- a list
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.utils import apply_weights
+        sage: F.<x> = GF(7)[]
+        sage: M = matrix(F, [[2*x^2 + x, 5*x^2 + 2*x + 1, 4*x^2 + x],\
+                             [x^2 + 3*x + 3, 5*x^2 + 5*x + 1, 6*x^2 + 5*x + 4],\
+                             [5*x^2 + 2*x + 4, 4*x^2 + 2*x, 5*x^2 + x + 2]])
+        sage: weights = [1, 2, 3]
+        sage: apply_weights(M, weights)
+        sage: M
+        [          2*x^3 + x^2   5*x^4 + 2*x^3 + x^2           4*x^5 + x^4]
+        [    x^3 + 3*x^2 + 3*x   5*x^4 + 5*x^3 + x^2 6*x^5 + 5*x^4 + 4*x^3]
+        [  5*x^3 + 2*x^2 + 4*x         4*x^4 + 2*x^3   5*x^5 + x^4 + 2*x^3]
     """
     x = M.base_ring().gen()
-    if all( w.is_integer() for w in weights):
+    if all(w.is_integer() for w in weights):
         for j in range(M.ncols()):
             M.set_col_to_multiple_of_col(j,j, x**weights[j])
     else:
-        perm = module_fractional_weight_permutation(weights)
+        perm = fractional_weight_permutation(weights)
         for j in range(M.ncols()):
             M.set_col_to_multiple_of_col(j,j, x**floor(weights[j]))
         M.permute_columns(perm)
         return perm
 
 def remove_weights(M, weights):
-    """Remove the weights as introduced by ``module_apply_weights``."""
-    #M = M.change_ring(QQ)
-    if all( w.is_integer() for w in weights):
+    r"""
+    Removes the weights as introduced by :func:`apply_weights`
+
+    INPUT:
+
+    - ``M`` -- a matrix
+
+    - ``weights`` -- a list
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.utils import remove_weights
+        sage: F.<x> = GF(7)[]
+        sage: M = matrix(F, [[2*x^3 + x^2, 5*x^4 + 2*x^3 + x^2, 4*x^5 + x^4],\
+                            [x^3 + 3*x^2 + 3*x, 5*x^4 + 5*x^3 + x^2, 6*x^5 + 5*x^4 + 4*x^3],\
+                            [5*x^3 + 2*x^2 + 4*x, 4*x^4 + 2*x^3, 5*x^5 + x^4 + 2*x^3]])
+
+        sage: weights = [1, 2, 3]
+        sage: remove_weights(M, weights)
+        sage: M
+        [      2*x^2 + x 5*x^2 + 2*x + 1       4*x^2 + x]
+        [  x^2 + 3*x + 3 5*x^2 + 5*x + 1 6*x^2 + 5*x + 4]
+        [5*x^2 + 2*x + 4     4*x^2 + 2*x   5*x^2 + x + 2]
+    """
+    if all(w.is_integer() for w in weights):
         for i in range(M.nrows()):
             for j in range(M.ncols()):
                 M[i,j] = M[i,j].shift(-weights[j])
     else:
-        perm = module_fractional_weight_permutation(weights)
+        perm = fractional_weight_permutation(weights)
         pinv = perm.inverse()
         M.permute_columns(pinv)
-        remove_weights(M, [ floor(wj) for wj in weights ])
+        remove_weights(M, [floor(wj) for wj in weights])
 
-def module_fractional_weight_permutation(weights):
-    """Return the permutation which can be used for embedding the semantics of
+def fractional_weight_permutation(weights):
+    r"""
+    Returns the permutation which can be used for embedding the semantics of
     fractional weights into the module minimisation.
     A permutation is returned of the integers from 1 to ``len(numerators)``.
-    See e.g. [Dec].
+
+    INPUT:
+
+    - ``weights`` -- a list of fractions
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.utils import fractional_weight_permutation
+        sage: weights = [1/4, 1/2, 3/4]
+        sage: fractional_weight_permutation(weights)
+        [1, 2, 3]
     """
+    from sage.coding.guruswami_sudan.interpolation import _flatten_once
     n = len(weights)
     denominator = lcm(list(f.denominator() for f in weights))
-    numerators = [ f.numerator() * denominator/f.denominator() for f in weights ]
-    residues = [ num % denominator for num in numerators ]
+    numerators = [f.numerator() * denominator/f.denominator() for f in weights]
+    residues = [num % denominator for num in numerators]
     res_map = dict()
     for i in range(n):
         if residues[i] in res_map:
@@ -222,12 +281,29 @@ def module_fractional_weight_permutation(weights):
         else:
             res_map[residues[i]] = [i+1]
     res_uniq = sorted(res_map.keys())
-    return Permutation(list(flatten_once([ res_map[res] for res in res_uniq ])))
+    return Permutation(list(_flatten_once([ res_map[res] for res in res_uniq])))
 
-def LP(v, weights=None):
-    """If v is a vector of polynomials, return the leading position of v using
-    <_w where w is the weights vector (0 is assumed as all weights if none
-    given). In case of tie, the highest position is given"""
+def _leading_position(v, weights=None):
+    r"""
+    Returns the leading position of v using ``weights``.
+
+    In case of several positions having the same, highest degree, the highest position is given.
+
+    INPUT:
+
+    - ``v`` -- a vector of polynomials
+
+    - ``weights`` -- (default: ``None``) a vector of integers or fractions, the weights of ``v``.
+      If ``None``, all weights are considered as ``0``.
+
+    EXAMPLES::
+
+    sage: from sage.coding.guruswami_sudan.utils import _leading_position
+    sage: F.<x> = GF(7)[]
+    sage: v = vector(F, [3*x^2 + 3*x + 4, 4*x + 3, 4*x^2 + 4*x + 5, x^2 + 2*x + 5, 3*x^2 + 5*x])
+    sage: _leading_position(v)
+    4
+    """
     if not weights:
         weights=[0]*len(v)
     best=-1
@@ -243,8 +319,26 @@ def LP(v, weights=None):
     else:
         return bestp
 
-def LT(v, weights=None):
-    """If v is a vector of polynomials, return the leading term of v using <_w
-    where w is the weights vector (0 is assumed as all weights if none
-    given)."""
-    return v[LP(v, weights=weights)]
+def leading_term(v, weights=None):
+    r"""
+    Returns the leading term of v using ``weights``.
+
+    In case of several positions having the same, highest degree, the term with
+    the highest position is given.
+
+    INPUT:
+
+    - ``v`` -- a vector of polynomials
+
+    - ``weights`` -- (default: ``None``) a vector of integers or fractions, the weights of ``v``.
+      If ``None``, all weights are considered as ``0``.
+
+    EXAMPLES::
+
+    sage: from sage.coding.guruswami_sudan.utils import leading_term
+    sage: F.<x> = GF(7)[]
+    sage: v = vector(F, [3*x^2 + 3*x + 4, 4*x + 3, 4*x^2 + 4*x + 5, x^2 + 2*x + 5, 3*x^2 + 5*x])
+    sage: leading_term(v)
+    3*x^2 + 5*x
+    """
+    return v[_leading_position(v, weights=weights)]

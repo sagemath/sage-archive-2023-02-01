@@ -311,7 +311,7 @@ def construct_Q_lee_osullivan(points, tau, parameters, wy):
         sage: construct_Q_lee_osullivan(points, tau, params, wy)
         x^3*y + 2*x^3 - x^2*y + 5*x^2 + 5*x*y - 5*x + 2*y - 4
     """
-    from utils import apply_weights, remove_weights, LT
+    from utils import apply_weights, remove_weights, leading_term
     s, l = parameters[0], parameters[1]
     F = points[0][0].parent()
     M = lee_osullivan_module(points, tau, (s,l), wy)
@@ -319,7 +319,7 @@ def construct_Q_lee_osullivan(points, tau, parameters, wy):
     apply_weights(M, weights)
     Mnew = M.row_reduced_form(transformation=False, old_call=False)
     # Construct Q as the element of the row with the lowest weighted degree
-    degs = [(i, LT(Mnew.row(i)).degree()) for i in range(0,l+1)]
+    degs = [(i, leading_term(Mnew.row(i)).degree()) for i in range(0,l+1)]
     best = min(degs, key=lambda (i,d): d)[0]
     remove_weights(Mnew, weights)
     Qlist = Mnew.row(best)

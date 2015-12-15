@@ -1,5 +1,5 @@
 r"""
-Manifolds
+Topological Manifolds
 
 Given a topological field `K` (in most applications, `K = \RR` or
 `K = \CC`) and a non-negative integer `n`, a *topological manifold of
@@ -10,14 +10,14 @@ dimension* `n` *over K* is a topological space `M` such that
 - every point in `M` has a neighborhood homeomorphic to `K^n`
 
 Topological manifolds are implemented via the class
-:class:`Manifold`. Open subsets of topological manifolds
-are also implemented via :class:`Manifold`, since they are
-topological manifolds by themselves.
+:class:`TopologicalManifold`. Open subsets of topological manifolds
+are implemented via the subclass
+:class:`~sage.manifolds.subset.OpenTopologicalSubmanifold`.
 
 In the current setting, topological manifolds are mostly described by
 means of charts (see :class:`~sage.manifolds.chart.Chart`).
 
-:class:`Manifold` serves as a base class for more specific
+:class:`TopologicalManifold` serves as a base class for more specific
 manifold classes.
 
 The user interface is provided by the generic function :func:`Manifold`,
@@ -259,7 +259,8 @@ The following subsets and charts have been defined::
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
-- Travis Scrimshaw (2015): inheritance from AbstractSet
+- Travis Scrimshaw (2015): inheritance from
+  :class:`~sage.manifolds.abstract.AbstractSet`
 
 REFERENCES:
 
@@ -297,9 +298,9 @@ from sage.manifolds.structure import TopologicalStructure, RealTopologicalStruct
 #####################################################################
 ## Classes
 
-class Manifold(AbstractSet):
+class TopologicalManifold(AbstractSet):
     r"""
-    Manifold over a topological field `K`.
+    Topological manifold over a topological field `K`.
 
     Given a topological field `K` (in most applications, `K = \RR` or
     `K = \CC`) and a non-negative integer `n`, a *topological manifold of
@@ -358,7 +359,7 @@ class Manifold(AbstractSet):
         sage: latex(M)
         \mathcal{M}
         sage: type(M)
-        <class 'sage.manifolds.manifold.Manifold_with_category'>
+        <class 'sage.manifolds.manifold.TopologicalManifold_with_category'>
         sage: M.base_field()
         Real Field with 53 bits of precision
         sage: dim(M)
@@ -430,11 +431,12 @@ class Manifold(AbstractSet):
 
     Since an open subset of a topological manifold `M` is itself a
     topological manifold, open subsets of `M` are instances of the class
-    :class:`Manifold`::
+    :class:`TopologicalManifold` (actually of the subclass
+    :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold`)::
 
         sage: U = M.open_subset('U'); U
         Open subset U of the 4-dimensional topological manifold M
-        sage: isinstance(U, sage.manifolds.manifold.Manifold)
+        sage: isinstance(U, sage.manifolds.manifold.TopologicalManifold)
         True
         sage: U.base_field() == M.base_field()
         True
@@ -464,6 +466,7 @@ class Manifold(AbstractSet):
             3
             sage: X.<x,y,z> = M.chart()
             sage: TestSuite(M).run()
+
         """
         # Initialization of the attributes _dim, _field and _start_index:
         self._dim = n
@@ -507,7 +510,7 @@ class Manifold(AbstractSet):
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
 
-        self._open_covers.add(frozenset([self]))  # set of open covers of self
+        self._open_covers.append([self])  # list of open covers of self
 
     def _repr_(self):
         r"""
@@ -690,7 +693,8 @@ class Manifold(AbstractSet):
         """
         Return ``self`` since ``self`` is the ambient manifold.
 
-        This is for compatibility with :class:`TopologicalSubmanifold`.
+        This is for compatibility with
+        :class:`~sage.manifolds.subset.ManifoldSubset`.
 
         EXAMPLES::
 
@@ -707,7 +711,8 @@ class Manifold(AbstractSet):
         An open subset is a set that is (i) included in the manifold and (ii)
         open with respect to the manifold's topology. It is a topological
         manifold by itself. Hence the returned object is an instance of
-        :class:`Manifold`.
+        :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold`, which
+        inherits from :class:`TopologicalManifold`.
 
         INPUT:
 
@@ -721,7 +726,8 @@ class Manifold(AbstractSet):
 
         OUTPUT:
 
-        - the open subset, as an instance of :class:`Manifold`.
+        - the open subset, as an instance of
+          :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold`.
 
         EXAMPLES:
 
@@ -735,7 +741,7 @@ class Manifold(AbstractSet):
         topological manifold, on the same topological field and of the same
         dimension as ``M``::
 
-            sage: isinstance(A, sage.manifolds.manifold.Manifold)
+            sage: isinstance(A, sage.manifolds.manifold.TopologicalManifold)
             True
             sage: A.base_field() == M.base_field()
             True
@@ -782,10 +788,10 @@ class Manifold(AbstractSet):
             False
 
         """
-        from sage.manifolds.subset import TopologicalSubmanifold
-        resu = TopologicalSubmanifold(ambient=self.manifold(),
-                                      name=name, latex_name=latex_name,
-                                      category=self.category())
+        from sage.manifolds.subset import OpenTopologicalSubmanifold
+        resu = OpenTopologicalSubmanifold(ambient=self.manifold(),
+                                          name=name, latex_name=latex_name,
+                                          category=self.category())
 
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
@@ -863,19 +869,32 @@ class Manifold(AbstractSet):
 
     def union(self, other, name=None, latex_name=None):
         r"""
-        Return the union of ``self`` with ``other``.
+        Return the union of the manifold with a subset, i.e. the manifold
+        itself.
 
         INPUT:
 
-        - ``other`` -- another subset of the same manifold
+        - ``other`` -- a subset of the manifold
         - ``name`` -- ignored
         - ``latex_name`` --  ignored
 
         OUTPUT:
 
-        - ``self``
+        - the manifold
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: M.union(A)
+            2-dimensional topological manifold M
+            sage: M.union(A) is M
+            True
+            sage: B = A.subset('B')
+            sage: M.union(B) is M
+            True
+            sage: M.union(M) is M
+            True
 
         """
         if other.manifold() is not self:
@@ -884,20 +903,31 @@ class Manifold(AbstractSet):
 
     def intersection(self, other, name=None, latex_name=None):
         r"""
-        Return the intersection of the current subset with another subset.
+        Return the intersection of the manifold with a subset, i.e. the subset.
 
         INPUT:
 
-        - ``other`` -- another subset of the same manifold
+        - ``other`` -- a subset of the manifold
         - ``name`` -- ignored
         - ``latex_name`` -- ignored
 
         OUTPUT:
 
-        - instance of :class:`ManifoldSubset` representing the
-          subset that is the intersection of the current subset with ``other``
+        - the subset ``other``
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: M.intersection(A)
+            Subset A of the 2-dimensional topological manifold M
+            sage: M.intersection(A) is A
+            True
+            sage: B = A.subset('B')
+            sage: M.intersection(B) is B
+            True
+            sage: M.intersection(M) is M
+            True
 
         """
         if other.manifold() is not self:
@@ -1493,6 +1523,21 @@ class Manifold(AbstractSet):
         """
         return self._structure.chart(self, coordinates=coordinates, names=names)
 
+    def is_open(self):
+        """
+        Return if ``self`` is an open set.
+
+        In the present case (manifold), always return ``True``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: M.is_open()
+            True
+
+        """
+        return True
+
     def superset(self, name=None, latex_name=None, is_open=False):
         r"""
         Return ``self`` since the only superset of the manifold is
@@ -1504,7 +1549,11 @@ class Manifold(AbstractSet):
         - ``latex_name`` -- ignored
         - ``is_open`` -- ignored
 
-        EXAMPLES:
+        TEST::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: M.superset() is M
+            True
 
         """
         return self
@@ -1512,9 +1561,8 @@ class Manifold(AbstractSet):
 #####################################################################
 ## Constructor function
 
-def manifold_constructor(dim, name, latex_name=None,
-                         field='real', structure='smooth',
-                         start_index=0, **extra_kwds):
+def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
+             start_index=0, **extra_kwds):
     r"""
     Construct a manifold of a given type over a topological field `K`.
 
@@ -1553,7 +1601,7 @@ def manifold_constructor(dim, name, latex_name=None,
     OUTPUT:
 
     - a manifold of the specified type, as an instance of
-      :class:`~sage.manifolds.manifold.Manifold` or one of its
+      :class:`~sage.manifolds.manifold.TopologicalManifold` or one of its
       subclasses.
 
     EXAMPLES:
@@ -1580,7 +1628,7 @@ def manifold_constructor(dim, name, latex_name=None,
         3-dimensional topological manifold M over the Rational Field
 
     See the documentation of class
-    :class:`~sage.manifolds.manifold.Manifold` for more
+    :class:`~sage.manifolds.manifold.TopologicalManifold` for more
     detailed examples.
 
     .. RUBRIC:: Uniqueness of manifold objects
@@ -1666,5 +1714,5 @@ def manifold_constructor(dim, name, latex_name=None,
         raise NotImplementedError("manifolds of type {} are not ".format(structure) +
                                   "implemented")
 
-    return Manifold(dim, name, latex_name, field, structure, start_index,
-                    unique_tag=getrandbits(128)*time())
+    return TopologicalManifold(dim, name, latex_name, field, structure, start_index,
+                               unique_tag=getrandbits(128)*time())

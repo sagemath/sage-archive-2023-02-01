@@ -55,7 +55,7 @@ class Chart(UniqueRepresentation, SageObject):
     INPUT:
 
     - ``domain`` -- open subset `U` on which the chart is defined (must be
-      an instance of :class:`~sage.manifolds.manifold.Manifold`)
+      an instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
     - ``coordinates`` -- (default: ``''`` (empty string)) single string
       defining the coordinate symbols, with ``' '`` (whitespace) as a
       separator; each item has at most two fields, separated by ``:``:
@@ -202,7 +202,7 @@ class Chart(UniqueRepresentation, SageObject):
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.manifolds.manifold.Manifold.set_default_chart`,
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
@@ -247,8 +247,8 @@ class Chart(UniqueRepresentation, SageObject):
             sage: TestSuite(X).run()
 
         """
-        from sage.manifolds.manifold import Manifold
-        if not isinstance(domain, Manifold):
+        from sage.manifolds.manifold import TopologicalManifold
+        if not isinstance(domain, TopologicalManifold):
             raise TypeError("the first argument must be an open subset of " +
                             "a topological manifold")
         if coordinates == '':
@@ -560,7 +560,7 @@ class Chart(UniqueRepresentation, SageObject):
         INPUT:
 
         - ``subset`` -- open subset `V` of the chart domain `U` (must be an
-          instance of :class:`~sage.manifolds.manifold.Manifold`)
+          instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
         - ``restrictions`` -- (default: ``None``) list of coordinate
           restrictions defining the subset `V`.
           A restriction can be any symbolic equality or
@@ -979,7 +979,7 @@ class RealChart(Chart):
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.manifolds.manifold.Manifold.set_default_chart`,
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
@@ -1402,7 +1402,7 @@ class RealChart(Chart):
         INPUT:
 
         - ``subset`` -- open subset `V` of the chart domain `U` (must be an
-          instance of :class:`~sage.manifolds.manifold.Manifold`)
+          instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
         - ``restrictions`` -- (default: ``None``) list of coordinate
           restrictions defining the subset `V`.
           A restriction can be any symbolic equality or

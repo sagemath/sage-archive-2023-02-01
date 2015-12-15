@@ -5,8 +5,9 @@ These are base classes for the manifolds.
 
 AUTHORS:
 
-- Eric Gourgoulhon (2015): initial version
-- Travis Scrimshaw (2015-11-25): Initial version
+- Travis Scrimshaw (2015-11-25): initial version
+- Eric Gourgoulhon (2015): some methods from previous TopologicalManifold class
+
 """
 
 #*****************************************************************************
@@ -31,11 +32,19 @@ class AbstractNamedObject(object):
     """
     An abstract object.
 
-    An abstract object is a variable name and latex name.
+    An abstract object is a variable name and LaTeX name.
     """
     def __init__(self, name, latex_name=None):
         """
         Initialize ``self``.
+
+        TEST::
+
+            sage: from sage.manifolds.abstract import AbstractNamedObject
+            sage: a = AbstractNamedObject('a')
+            sage: type(a)
+            <class 'sage.manifolds.abstract.AbstractNamedObject'>
+
         """
         if not isinstance(name, str):
             raise TypeError("{} is not a string".format(name))
@@ -51,6 +60,14 @@ class AbstractNamedObject(object):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        TEST::
+
+            sage: from sage.manifolds.abstract import AbstractNamedObject
+            sage: a = AbstractNamedObject('a')
+            sage: a._repr_()
+            'a'
+
         """
         return self._name
 
@@ -79,7 +96,7 @@ class AbstractNamedObject(object):
             ....:              structure='topological')
             sage: M._latex_()
             '\\mathcal{M}'
-            sage: latex(M)
+            sage: latex(M)  # indirect doctest
             \mathcal{M}
         """
         return self._latex_name
@@ -115,7 +132,7 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
                                  # (key: subset name)
         self._unions = {} # dict. of unions with other subsets (key: subset
                           # name)
-        self._open_covers = set() # set of open covers of self
+        self._open_covers = [] # list of open covers of self
 
     #### Methods required for any Parent in the category of sets:
 
@@ -276,7 +293,7 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
               Open subset V of the 2-dimensional topological manifold M]]
 
         """
-        return sorted(sorted(oc, key=lambda x: x._name) for oc in self._open_covers)
+        return self._open_covers
 
     def subsets(self):
         r"""
@@ -319,7 +336,6 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
         """
         return frozenset(self._subsets)
 
-    # Do we need this?
     def list_of_subsets(self):
         r"""
         Return the list of subsets that have been defined on the current
@@ -373,9 +389,9 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - the subset, as an instance of :class:`ManifoldSubset`, or
+        - the subset, as an instance of :class:`~sage.manifolds.subset.ManifoldSubset`, or
           of the derived class
-          :class:`~sage.manifolds.manifold.Manifold` if ``is_open``
+          :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold` if ``is_open``
           is ``True``.
 
         EXAMPLES:
@@ -403,8 +419,7 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
         if is_open:
             return self.open_subset(name, latex_name=latex_name)
         from sage.manifolds.subset import ManifoldSubset
-        res = ManifoldSubset(self.manifold(), name,
-                                        latex_name=latex_name)
+        res = ManifoldSubset(self.manifold(), name, latex_name=latex_name)
         res._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(res)
@@ -417,7 +432,7 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
 
         The subset must have been previously created by the method
         :meth:`subset` (or
-        :meth:`~sage.manifolds.manifold.Manifold.open_subset`)
+        :meth:`~sage.manifolds.manifold.TopologicalManifold.open_subset`)
 
         INPUT:
 
@@ -425,9 +440,9 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - instance of :class:`ManifoldSubset` (or
+        - instance of :class:`~sage.manifolds.subset.ManifoldSubset` (or
           of the derived class
-          :class:`~sage.manifolds.manifold.Manifold` for an open
+          :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold` for an open
           subset) representing the subset whose name is ``name``.
 
         EXAMPLES::
@@ -557,17 +572,11 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
         dom2._unions[dom1._name] = self
         for oc1 in dom1._open_covers:
             for oc2 in dom2._open_covers:
-                oc = set(oc1) # Make a (shallow) copy
+                oc = oc1[:]
                 for s in oc2:
                     if s not in oc:
-                        oc.add(s)
-            self._open_covers.add(frozenset(oc))
-
-    def is_open(self):
-        """
-        Return if ``self`` is an open set.
-        """
-        return True
+                        oc.append(s)
+            self._open_covers.append(oc)
 
     def point(self, coords=None, chart=None, name=None, latex_name=None):
         r"""
@@ -617,4 +626,3 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
                                   name=name, latex_name=latex_name)
 
     Element = ManifoldPoint
-

@@ -30,10 +30,19 @@ class TopologicalStructure(Singleton):
     """
     chart = Chart
     name = "topological"
+
     def subcategory(self, cat):
         """
         Return the subcategory of ``cat`` corresponding to the structure
         of ``self``.
+
+        EXAMPLE::
+
+            sage: from sage.manifolds.structure import TopologicalStructure
+            sage: from sage.categories.manifolds import Manifolds
+            sage: TopologicalStructure().subcategory(Manifolds(RR))
+            Category of manifolds over Real Field with 53 bits of precision
+
         """
         return cat
 
@@ -43,10 +52,18 @@ class RealTopologicalStructure(Singleton):
     """
     chart = RealChart
     name = "topological"
+
     def subcategory(self, cat):
         """
         Return the subcategory of ``cat`` corresponding to the structure
         of ``self``.
+
+        EXAMPLE::
+
+            sage: from sage.manifolds.structure import RealTopologicalStructure
+            sage: from sage.categories.manifolds import Manifolds
+            sage: RealTopologicalStructure().subcategory(Manifolds(RR))
+            Category of manifolds over Real Field with 53 bits of precision
+
         """
         return cat
-

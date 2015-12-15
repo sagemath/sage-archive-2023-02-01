@@ -3,13 +3,15 @@ Subsets of topological manifolds
 
 The class :class:`ManifoldSubset` implements generic subsets of a
 topological manifold. Open subsets are implemented by the class
-:class:`~sage.manifolds.manifold.Manifold` (since an open subset of
-a manifold is a manifold by itself), which inherits from
-:class:`ManifoldSubset`.
+:class:`~sage.manifolds.subset.OpenTopologicalSubmanifold`, which inherits from
+both :class:`ManifoldSubset` and
+:class:`~sage.manifolds.manifold.TopologicalManifold`.
 
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
+- Travis Scrimshaw (2015): inheritance from
+  :class:`~sage.manifolds.abstract.AbstractSet`
 
 REFERENCES:
 
@@ -63,6 +65,7 @@ Lists of subsets after the above operations::
 #*****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -72,25 +75,21 @@ Lists of subsets after the above operations::
 
 from sage.categories.sets_cat import Sets
 from sage.manifolds.abstract import AbstractSet
-from sage.manifolds.manifold import Manifold
+from sage.manifolds.manifold import TopologicalManifold
 
 class ManifoldSubset(AbstractSet):
     r"""
     Subset of a topological manifold.
 
-    The class :class:`ManifoldSubset` inherits from the generic Sage
-    class :class:`~sage.structure.parent.Parent` and is declared to belong to
-    the category of facade sets
-    (see :meth:`~sage.categories.sets_cat.Sets.SubcategoryMethods.Facade`).
+    The class :class:`ManifoldSubset` inherits (via
+    :class:`~sage.manifolds.abstract.AbstractSet`) from the generic
+    class :class:`~sage.structure.parent.Parent`.
     The corresponding element class is
-    :class:`~sage.manifolds.point.ManifoldPoint`. A subset acts
-    as a facade for the true parent of its points, which is the whole manifold
-    (see example below).
+    :class:`~sage.manifolds.point.ManifoldPoint`.
 
     Note that open subsets are not implemented directly by this class, but
-    by the derived class :class:`~sage.manifolds.manifold.Manifold`
-    (an open subset of a topological manifold being itself a topological
-    manifold).
+    by the derived class
+    :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold`.
 
     INPUT:
 
@@ -98,8 +97,6 @@ class ManifoldSubset(AbstractSet):
     - ``name`` -- string; name (symbol) given to the subset
     - ``latex_name`` --  (default: ``None``) string: LaTeX symbol to denote the
       subset; if none is provided, it is set to ``name``
-    - ``category`` -- (default: ``None``) to specify the categeory; if ``None``,
-      the category of sets (:class:`~sage.categories.sets_cat.Sets`) is used
 
     EXAMPLES:
 
@@ -116,8 +113,8 @@ class ManifoldSubset(AbstractSet):
         True
 
     Instead of importing :class:`ManifoldSubset` in the global
-    namespace, it is recommended to use the method :meth:`subset` to create a
-    new subset::
+    namespace, it is recommended to use the method
+    :meth:`~sage.manifolds.abstract.AbstractSet.subset` to create a new subset::
 
         sage: B = M.subset('B', latex_name=r'\mathcal{B}'); B
         Subset B of the 2-dimensional topological manifold M
@@ -142,21 +139,33 @@ class ManifoldSubset(AbstractSet):
         True
     """
 
-    def __init__(self, manifold, name, latex_name=None, category=None):
+    def __init__(self, manifold, name, latex_name=None):
         r"""
         Construct a manifold subset.
 
         TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
             sage: A = M.subset('A'); A
             Subset A of the 2-dimensional topological manifold M
+            sage: type(A)
+            <class 'sage.manifolds.subset.ManifoldSubset_with_category'>
+            sage: A.category()
+            Category of subobjects of sets
+            sage: TestSuite(A).run(skip=['_test_elements', \
+                                         '_test_not_implemented_methods'])
+
+        .. TODO::
+
+            implement method ``lift`` so that ``_test_not_implemented_methods``
+            is passed.
+            NB: ``_test_elements`` cannot be passed without a proper
+            coordinate definition of the subset.
+
         """
         category = Sets().Subobjects()
         AbstractSet.__init__(self, name=name, latex_name=latex_name,
-                                  category=category)
-
+                             category=category)
         self._manifold = manifold
         for dom in manifold._subsets:
             if name == dom._name:
@@ -191,10 +200,15 @@ class ManifoldSubset(AbstractSet):
             sage: A = M.subset('A')
             sage: A.manifold()
             2-dimensional topological manifold M
+            sage: A.manifold() is M
+            True
             sage: B = A.subset('B')
-            sage: B.manifold()
-            2-dimensional topological manifold M
-            sage: M.manifold() is M
+            sage: B.manifold() is M
+            True
+
+        An alias is ``ambient``::
+
+            sage: A.ambient() is A.manifold()
             True
 
         """
@@ -205,6 +219,19 @@ class ManifoldSubset(AbstractSet):
     def is_open(self):
         """
         Return if ``self`` is an open set.
+
+        This method always returns ``False``, since open subsets must be
+        constructed as instances of the subclass
+        :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold`
+        (which redefines ``is_open``)
+
+        EXAMPLE::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: A.is_open()
+            False
+
         """
         return False
 
@@ -227,7 +254,7 @@ class ManifoldSubset(AbstractSet):
 
         - the superset, as an instance of :class:`ManifoldSubset` or
           of the derived class
-          :class:`~sage.manifolds.manifold.Manifold` if ``is_open``
+          :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold` if ``is_open``
           is ``True``.
 
         EXAMPLES:
@@ -235,26 +262,21 @@ class ManifoldSubset(AbstractSet):
         Creating some superset of a given subset::
 
             sage: M = Manifold(2, 'M', structure='topological')
-            sage: a = M.subset('A')
-            sage: b = a.superset('B'); b
+            sage: A = M.subset('A')
+            sage: B = A.superset('B'); B
             Subset B of the 2-dimensional topological manifold M
-            sage: b.list_of_subsets()
+            sage: B.list_of_subsets()
             [Subset A of the 2-dimensional topological manifold M,
              Subset B of the 2-dimensional topological manifold M]
-            sage: a._supersets # random (set output)
+            sage: A._supersets # random (set output)
             {Subset B of the 2-dimensional topological manifold M,
              Subset A of the 2-dimensional topological manifold M,
              2-dimensional topological manifold M}
 
-        The superset of the whole manifold is itself::
-
-            sage: M.superset('SM') is M
-            True
-
         Two supersets of a given subset are a priori different::
 
-            sage: c = a.superset('C')
-            sage: c == b
+            sage: C = A.superset('C')
+            sage: C == B
             False
 
         """
@@ -469,17 +491,97 @@ class ManifoldSubset(AbstractSet):
             res._open_covers.append(oc)
         return res
 
-class TopologicalSubmanifold(ManifoldSubset, Manifold):
+#*****************************************************************************
+
+class OpenTopologicalSubmanifold(ManifoldSubset, TopologicalManifold):
     """
-    A submanifold of a manifold, which is any open subset of a manifold.
+    An open submanifold of a topological manifold, which is any open subset
+    of the manifold.
+
+    EXAMPLE:
+
+    The unit ball of the Euclidean 2-plane::
+
+        sage: M = Manifold(2, 'M', structure='topological')
+        sage: X.<x,y> = M.chart()
+        sage: B = M.open_subset('B', coord_def={X: x^2+y^2<1})
+        sage: B
+        Open subset B of the 2-dimensional topological manifold M
+        sage: type(B)
+        <class 'sage.manifolds.subset.OpenTopologicalSubmanifold_with_category'>
+        sage: B.category()
+        Join of Category of subobjects of sets and Category of manifolds over
+         Real Field with 53 bits of precision
+
+    An open subset of a topological manifold being a topological manifold
+    by itself, ``B`` inherits of all the methods of class
+    :class:`~sage.manifolds.manifold.TopologicalManifold`::
+
+        sage: isinstance(B, sage.manifolds.manifold.TopologicalManifold)
+        True
+        sage: dim(B)
+        2
+        sage: B.base_field()
+        Real Field with 53 bits of precision
+
+    Given the definition of ``B``, it is automatically endowed with a chart,
+    which is the restriction of ``X`` to ``B``::
+
+        sage: B.atlas()
+        [Chart (B, (x, y))]
+        sage: B.default_chart()
+        Chart (B, (x, y))
+        sage: B.default_chart() is X.restrict(B)
+        True
+
+    An point in ``B``::
+
+        sage: p = B.an_element(); p
+        Point on the 2-dimensional topological manifold M
+        sage: X(p)  # the coordinates (x,y) of p
+        (0, 0)
+        sage: p in B
+        True
+
+    Checking whether various points, defined by their coordinates w.r.t.
+    chart ``X``,  are in ``B``::
+
+        sage: M((0,1/2)) in B
+        True
+        sage: M((0,1)) in B
+        False
+        sage: M((1/2,1)) in B
+        False
+        sage: M((-1/2,1/3)) in B
+        True
+
     """
     def __init__(self, ambient, name, latex_name=None, category=None):
         """
         Initialize ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: A = M.open_subset('A', coord_def={X: x^2+y^2<1}); A
+            Open subset A of the 2-dimensional topological manifold M
+            sage: type(A)
+            <class 'sage.manifolds.subset.OpenTopologicalSubmanifold_with_category'>
+            sage: A.category()
+            Join of Category of subobjects of sets and Category of manifolds
+             over Real Field with 53 bits of precision
+            sage: TestSuite(A).run(skip='_test_not_implemented_methods')
+
+        .. TODO::
+
+            implement method ``lift`` so that ``_test_not_implemented_methods``
+            is passed.
+
         """
         # TODO: This test probably needs a better place, like open_subset
-        if not isinstance(ambient, Manifold):
-            raise TypeError("the argument 'manifold' must be " +
+        if not isinstance(ambient, TopologicalManifold):
+            raise TypeError("the argument 'ambient' must be " +
                             "a topological manifold")
 
         # This is copied from ManifoldSubset to avoid twice
@@ -493,13 +595,21 @@ class TopologicalSubmanifold(ManifoldSubset, Manifold):
         ambient._subsets.add(self)
 
         category = ambient.category().Subobjects()
-        Manifold.__init__(self, ambient.dim(), name, latex_name,
-                          ambient._field, ambient._structure,
-                          ambient._sindex, category)
+        TopologicalManifold.__init__(self, ambient.dim(), name, latex_name,
+                                     ambient._field, ambient._structure,
+                                     ambient._sindex, category)
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: A = M.open_subset('A')
+            sage: A._repr_()
+            'Open subset A of the 3-dimensional topological manifold M'
+
         """
         return "Open subset {} of the {}".format(self._name, self._manifold)
 
@@ -523,10 +633,36 @@ class TopologicalSubmanifold(ManifoldSubset, Manifold):
 
         - the superset, as an instance of :class:`ManifoldSubset` or
           of the derived class
-          :class:`~sage.manifolds.manifold.Manifold` if ``is_open``
+          :class:`~sage.manifolds.subset.OpenTopologicalSubmanifold` if ``is_open``
           is ``True``.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: A = M.open_subset('A')
+            sage: B = A.superset('B'); B
+            Subset B of the 3-dimensional topological manifold M
+            sage: B.list_of_subsets()
+            [Open subset A of the 3-dimensional topological manifold M,
+             Subset B of the 3-dimensional topological manifold M]
+            sage: A._supersets  # random (set output)
+            {Subset B of the 3-dimensional topological manifold M,
+             Open subset A of the 3-dimensional topological manifold M,
+             3-dimensional topological manifold M}
+
+        Creating an open superset::
+
+            sage: C = A.superset('C', is_open=True); C
+            Open subset C of the 3-dimensional topological manifold M
+            sage: C.list_of_subsets()
+            [Open subset A of the 3-dimensional topological manifold M,
+             Open subset C of the 3-dimensional topological manifold M]
+            sage: A._supersets  # random (set output)
+            {Subset B of the 3-dimensional topological manifold M,
+             Open subset A of the 3-dimensional topological manifold M,
+             Open subset C of the 3-dimensional topological manifold M,
+             3-dimensional topological manifold M}
+
         """
         res = ManifoldSubset.superset(self, name, latex_name, is_open)
         if is_open:
@@ -539,5 +675,15 @@ class TopologicalSubmanifold(ManifoldSubset, Manifold):
     def is_open(self):
         """
         Return if ``self`` is an open set.
+
+        In the present case (open submanifold), always return ``True``.
+
+        EXAMPLE::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: A = M.open_subset('A')
+            sage: A.is_open()
+            True
+
         """
         return True

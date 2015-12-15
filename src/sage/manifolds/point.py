@@ -70,13 +70,13 @@ Points can be compared::
 
 from sage.structure.element import Element
 
-# TODO: Inherit from AbstractNamedObject
 class ManifoldPoint(Element):
     r"""
     Point of a topological manifold.
 
     This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.manifold.Manifold`.
+    :class:`~sage.manifolds.manifold.TopologicalManifold`
+    or :class:`~sage.manifolds.subset.ManifoldSubset`
 
     INPUT:
 
@@ -105,7 +105,7 @@ class ManifoldPoint(Element):
         sage: p.coord()  # coordinates of P in the subset's default chart
         (a, b)
 
-    Since points are Sage *elements*, the (facade) *parent* of which being the
+    Since points are Sage *elements*, the *parent* of which being the
     subset on which they are defined, it is equivalent to write::
 
         sage: p = M((a, b), name='P'); p
@@ -165,10 +165,10 @@ class ManifoldPoint(Element):
             if len(coords) != parent.manifold().dimension():
                 raise ValueError("the number of coordinates must be equal " +
                                  "to the manifold's dimension")
-            from sage.manifolds.manifold import Manifold
+            from sage.manifolds.manifold import TopologicalManifold
             if chart is None:
                 chart = parent._def_chart
-            elif isinstance(parent, Manifold):
+            elif isinstance(parent, TopologicalManifold):
                 if chart not in parent._atlas:
                     raise ValueError("the {} has not been".format(chart) +
                                      "defined on the {}".format(parent))

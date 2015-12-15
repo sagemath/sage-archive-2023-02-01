@@ -2901,6 +2901,40 @@ class Polyhedron_base(Element):
              A vertex at (-1, -1/3, -1),
              A vertex at (-1/3, -1, -1),
              A vertex at (-1, -1, -1/3))
+            sage: vertex_trunc2 = Cube.face_truncation(Cube.faces(0)[0],cut_frac=1/2)
+            sage: vertex_trunc2.f_vector()
+            (1, 10, 15, 7, 1)
+            sage: vertex_trunc2.faces(2)
+            (<0,1,2,3>,
+             <2,3,4,5>,
+             <1,2,5,6>,
+             <0,1,6,7,8>,
+             <4,5,6,7,9>,
+             <7,8,9>,
+             <0,3,4,8,9>)
+            sage: vertex_trunc2.vertices()
+            (A vertex at (1, -1, -1),
+             A vertex at (1, 1, -1),
+             A vertex at (1, 1, 1),
+             A vertex at (1, -1, 1),
+             A vertex at (-1, -1, 1),
+             A vertex at (-1, 1, 1),
+             A vertex at (-1, 1, -1),
+             A vertex at (-1, 0, -1),
+             A vertex at (0, -1, -1),
+             A vertex at (-1, -1, 0))
+            sage: vertex_trunc3 = Cube.face_truncation(Cube.faces(0)[0],cut_frac=0.3)
+            sage: vertex_trunc3.vertices()
+            (A vertex at (-1.0, -1.0, 1.0),
+             A vertex at (-1.0, 1.0, -1.0),
+             A vertex at (-1.0, 1.0, 1.0),
+             A vertex at (1.0, 1.0, -1.0),
+             A vertex at (1.0, 1.0, 1.0),
+             A vertex at (1.0, -1.0, 1.0),
+             A vertex at (1.0, -1.0, -1.0),
+             A vertex at (-0.4, -1.0, -1.0),
+             A vertex at (-1.0, -0.4, -1.0),
+             A vertex at (-1.0, -1.0, -0.4))
             sage: edge_trunc = Cube.face_truncation(Cube.faces(1)[0])
             sage: edge_trunc.f_vector()
             (1, 10, 15, 7, 1)
@@ -2913,9 +2947,17 @@ class Polyhedron_base(Element):
              <6,7,8,9>,
              <0,3,8,9>)
              sage: face_trunc = Cube.face_truncation(Cube.faces(2)[0])
+             sage: face_trunc.vertices()
+             (A vertex at (1, -1, -1),
+              A vertex at (1, 1, -1),
+              A vertex at (1, 1, 1),
+              A vertex at (1, -1, 1),
+              A vertex at (-1/3, -1, 1),
+              A vertex at (-1/3, 1, 1),
+              A vertex at (-1/3, 1, -1),
+              A vertex at (-1/3, -1, -1))
              sage: face_trunc.face_lattice().is_isomorphic(Cube.face_lattice())
              True
-
         """
         if cut_frac is None:
             cut_frac = ZZ.one() / 3

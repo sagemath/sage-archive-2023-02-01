@@ -1,5 +1,5 @@
 r"""
-Distributed/Paralell computations using RecursivelyEnumeratedSet and Map-Reduce
+Parallel computations using RecursivelyEnumeratedSet and Map-Reduce
 
 There exists an efficient way to distribute computations when you have a set
 `S` of objects defined by :func:`RecursivelyEnumeratedSet` (see
@@ -194,7 +194,7 @@ Advanced use
 ------------
 
 Fine control of the execution of a map/reduce computations is obtained by
-passing parameters tu the :meth:`RESetMapReduce.run` method. On can use the
+passing parameters to the :meth:`RESetMapReduce.run` method. On can use the
 three following parameters:
 
 - ``max_proc`` -- maximum number of process used.

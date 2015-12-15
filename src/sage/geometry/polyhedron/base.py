@@ -466,7 +466,7 @@ class Polyhedron_base(Element):
                     for self_V in self.Vrepresentation())
 
     def plot(self,
-             point=None, line=None, polygon=None, # None means unspecified by the user
+             point=None, line=None, polygon=None, #  None means unspecified by the user
              wireframe='blue', fill='green',
              projection_direction=None,
              **kwds):
@@ -848,7 +848,7 @@ class Polyhedron_base(Element):
              1 -1 0
              1 0 -1
             end
-            
+
             sage: triangle = Polyhedron(vertices = [[1,0],[0,1],[1,1]],base_ring=AA)
             sage: triangle.base_ring()
             Algebraic Real Field
@@ -1469,7 +1469,7 @@ class Polyhedron_base(Element):
             base_ring = self.base_ring()
         m = matrix(base_ring, self.ambient_dim(), self.n_vertices())
         for i, v in enumerate(self.vertices()):
-            for j in range(0,self.ambient_dim()):
+            for j in range(0, self.ambient_dim()):
                 m[j, i] = v[j]
         return m
 
@@ -1601,9 +1601,9 @@ class Polyhedron_base(Element):
         obj = self.Vrepresentation()
         for i in range(len(obj)):
             if not obj[i].is_vertex(): continue
-            for j in range(i+1,len(obj)):
+            for j in range(i+1, len(obj)):
                 if not obj[j].is_vertex(): continue
-                if self.vertex_adjacency_matrix()[i,j] == 0: continue
+                if self.vertex_adjacency_matrix()[i, j] == 0: continue
                 yield (obj[i], obj[j])
 
     def Vrepresentation_space(self):
@@ -3318,8 +3318,8 @@ class Polyhedron_base(Element):
         equations = [ e.index() for e in self.equation_generator() ]
         lines     = [ l.index() for l in self.line_generator() ]
 
-        def face_constructor(atoms,coatoms):
-            if len(atoms)==0:
+        def face_constructor(atoms, coatoms):
+            if len(atoms) == 0:
                 Vindices = ()
             else:
                 Vindices = tuple(sorted([   atom_to_Vindex[i] for i in   atoms ]+lines))
@@ -3472,12 +3472,12 @@ class Polyhedron_base(Element):
                 continue
 
             if len(X.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
-                pairs.append((i,j))
+                pairs.append((i, j))
 
         from sage.graphs.graph import Graph
         g = Graph()
         g.add_vertices(vertices)
-        g.add_edges((vertices[i],vertices[j]) for i,j in pairs)
+        g.add_edges((vertices[i], vertices[j]) for i, j in pairs)
         return g
 
     graph = vertex_graph
@@ -3951,7 +3951,7 @@ class Polyhedron_base(Element):
         """
         try:
             p = vector(point)
-        except TypeError: # point not iterable or no common ring for elements
+        except TypeError:  # point not iterable or no common ring for elements
             if len(point) > 0:
                 return False
             else:
@@ -4274,7 +4274,7 @@ class Polyhedron_base(Element):
             raise ValueError('Empty polytope is not allowed')
         if not self.is_compact():
             raise ValueError('Only polytopes (compact polyhedra) are allowed.')
-        for i in range(0,self.ambient_dim()):
+        for i in range(0, self.ambient_dim()):
             coords = [ v[i] for v in self.vertex_generator() ]
             max_coord = max(coords)
             min_coord = min(coords)
@@ -4286,7 +4286,7 @@ class Polyhedron_base(Element):
                 box_min.append(min_coord)
         return (tuple(box_min), tuple(box_max))
 
-    def integral_points_count(self,verbose=False):
+    def integral_points_count(self, verbose=False):
         r"""
         Return the number of integral points in the polyhedron.
 

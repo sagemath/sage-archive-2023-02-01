@@ -579,8 +579,9 @@ class GRSGuruswamiSudanDecoder(Decoder):
         ## SOLVE INTERPOLATION
         try:
             Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
-        except TypeError:
-            raise ValueError("The provided interpolation algorithm has a wrong signature. See decoder's doc for details")
+        except TypeError, e:
+            print e
+            #raise ValueError("The provided interpolation algorithm has a wrong signature. See decoder's doc for details")
         ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
         try:
             polynomials = self.rootfinding_algorithm()(Q, maxd = None)

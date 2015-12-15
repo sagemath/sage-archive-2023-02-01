@@ -109,7 +109,6 @@ def row_reduced_form(M,transformation=False):
         num = matrix([[numerator(_) for _ in v] for v in (M*den).rows()])
     else:
         # No need to clear denominators
-        den = R.one()
         num = M
 
     r = [list(v) for v in num.rows()]
@@ -191,9 +190,14 @@ def row_reduced_form(M,transformation=False):
                     # remaining relations (if any) are no longer valid,
                     # so continue onto next step of algorithm
                     break
+    if is_PolynomialRing(R0):
+        A = matrix(R, r)
+    else:
+        A = matrix(R, r)/den
     if transformation:
-        return (matrix(r)/den, matrix(N))
-    return matrix(r)/den
+        return (A, matrix(N))
+    else:
+        return A
 
 def prm_mul(p1, p2, mask_free, prec):
     """

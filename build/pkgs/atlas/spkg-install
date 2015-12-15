@@ -60,7 +60,7 @@ def assert_success(rc, good=None, bad=None):
     traceback.print_stack(file=sys.stdout)
     print('-'*60)
     if bad is not None:
-        print('Error: ', bad)
+        print('Error:', bad)
     sys.exit(rc)
 
 
@@ -457,7 +457,10 @@ def build(arch=None, isa_ext=None):
     Return ``0`` if successfull.
     """
     rc = configure(arch, isa_ext)
-    assert_success(rc, bad='Configure failed.', good='Finished configuring ATLAS.')
+    if rc:
+        print("Configure failed.")
+        return rc
+    print("Finished configuring ATLAS.")
     return make_atlas()
 
 def build_tuning():

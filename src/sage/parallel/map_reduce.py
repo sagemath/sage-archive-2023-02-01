@@ -599,7 +599,7 @@ class RESetMapReduce(object):
         """
         if forest is not None:
             if not all(x is None for x in (roots, children, post_process)):
-                raise ValueError, "forest arg is incompatible with roots, children and post_process"
+                raise ValueError("forest arg is incompatible with roots, children and post_process")
             self._forest = forest
             self._roots = forest._roots
             self.children = forest.children
@@ -796,7 +796,7 @@ class RESetMapReduce(object):
             sage: S.finish()
         """
         if self._nprocess == 0:
-            raise ValueError, "No process connected"
+            raise ValueError("No process connected")
         logger.info("Starting work with %s processes", self._nprocess)
         logger.debug("Distributing tasks")
         for i, task in enumerate(self.roots()):

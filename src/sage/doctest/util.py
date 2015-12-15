@@ -451,7 +451,7 @@ class NestedName:
             sage: str(qname) # indirect doctest
             'sage.categories.algebras.Algebras.at_the_end_of_the_universe'
         """
-        return self.__repr__()
+        return repr(self)
 
     def __repr__(self):
         """

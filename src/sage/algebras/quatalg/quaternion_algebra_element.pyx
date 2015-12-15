@@ -9,17 +9,12 @@ quaternion algebras and quaternion algebras over number fields.
 
 #*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
-#       Copyright (C) 2009 Jonathon Bober <jwbober@gmail.com>
+#       Copyright (C) 2009 Jonathan Bober <jwbober@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -36,7 +31,7 @@ from sage.matrix.all import matrix
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.libs.ntl.ntl_ZZ_decl cimport mpz_to_ZZ, ZZ_to_mpz
+from sage.libs.ntl.convert cimport mpz_to_ZZ, ZZ_to_mpz
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.ntl_interface cimport *
@@ -491,7 +486,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: 1/theta == theta.conjugate()/theta.reduced_norm()
             True
         """
-        return self.reduced_norm().__invert__() * self.conjugate()
+        return ~self.reduced_norm() * self.conjugate()
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
@@ -536,7 +531,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: theta._div_(theta) == 1
             True
         """
-        return self * right.__invert__()
+        return self * ~right
 
     def reduced_characteristic_polynomial(self, var='x'):
         """

@@ -18,6 +18,8 @@ from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
+from sage.categories.rings import Rings
+from sage.categories.fields import Fields
 
 from sage.functions.other import factorial
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -282,8 +284,12 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: NCSym1 = SymmetricFunctionsNonCommutingVariables(FiniteField(23))
+            sage: NCSym2 = SymmetricFunctionsNonCommutingVariables(Integers(23))
             sage: TestSuite(SymmetricFunctionsNonCommutingVariables(QQ)).run()
         """
+        # change the line below to assert(R in Rings()) once MRO issues from #15536, #15475 are resolved
+        assert(R in Fields() or R in Rings()) # side effect of this statement assures MRO exists for R
         self._base = R # Won't be needed once CategoryObject won't override base_ring
         category = GradedHopfAlgebras(R)  # TODO: .Commutative()
         Parent.__init__(self, category = category.WithRealizations())
@@ -584,7 +590,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             P = SetPartitions()
             n = A.size()
             B = [Set([y+n for y in b]) for b in B] # Shift B by n
-            unions = lambda m: map(lambda x: reduce(lambda a,b: a.union(b), x), m)
+            unions = lambda m: [reduce(lambda a,b: a.union(b), x) for x in m]
             one = self.base_ring().one()
             return self._from_dict({P(unions(m)): one for m in matchings(A, B)},
                                    remove_zeros=False)

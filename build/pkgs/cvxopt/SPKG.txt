@@ -11,13 +11,6 @@ applications straightforward by building on Python's extensive
 standard library and on the strengths of Python as a high-level
 programming language.
 
-== MAINTAINERS ==
-
- * William Stein
- * Josh Kantor
- * Harald Schilly
- * Dima Pasechnik
-
 == Upstream Contact ==
 
  * J. Dahl <dahl.joachim@gmail.com>

@@ -73,7 +73,7 @@ class Jack(UniqueRepresentation):
         self._name_suffix = ""
         if str(t) !='t':
             self._name_suffix += " with t=%s"%t
-        self._name = "Jack polynomials"+self._name_suffix+" over "+Sym.base_ring().__repr__()
+        self._name = "Jack polynomials"+self._name_suffix+" over "+repr(Sym.base_ring())
 
     def __repr__(self):
         r"""
@@ -188,7 +188,7 @@ class Jack(UniqueRepresentation):
             sage: Z([2])^2
             64/45*Z[2, 2] + 16/21*Z[3, 1] + Z[4]
 
-        :::
+        ::
 
             sage: Sym = SymmetricFunctions(QQ['a','b'].fraction_field())
             sage: (a,b) = Sym.base_ring().gens()

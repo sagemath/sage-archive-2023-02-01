@@ -1,3 +1,4 @@
+# distutils: language = c++
 r"""
 Farey Symbol for arithmetic subgroups of `{\rm PSL}_2(\ZZ)`
 
@@ -8,26 +9,21 @@ AUTHORS:
 based on the *KFarey* package by Chris Kurth. Implemented as C++ module
 for speed.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 
-include "farey.pxd"
-
+from .farey cimport *
 import sage.rings.arith
 from sage.rings.all import CC, RR
 from sage.rings.integer cimport Integer
@@ -47,6 +43,7 @@ from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
+from itertools import groupby
 
 cdef class Farey:
     r"""
@@ -237,7 +234,7 @@ cdef class Farey:
             [ -3   1]
             [-40  13]
         """
-        gens_dict = {g:i+1 for i,g in enumerate(self.generators())}
+        gens_dict = self._get_dict_of_generators()
         ans = []
         for pm in self.pairing_matrices():
             a, b, c, d = pm.matrix().list()
@@ -260,16 +257,51 @@ cdef class Farey:
             raise RuntimeError("This should have not happened")
         return ans
 
-    def word_problem(self, M, output = 'standard'):
+    @cached_method
+    def _get_dict_of_generators(self):
+        r"""
+        Obtain a dict indexed by the generators.
+
+        OUTPUT:
+
+        A dict of key-value pairs (g,i+1) and (-g,i+1) (the latter one -I belongs to self),
+        where the i-th generator is g.
+
+        EXAMPLES::
+
+            sage: G = Gamma1(30)
+            sage: F = G.farey_symbol()
+            sage: dict_gens = F._get_dict_of_generators()
+            sage: g = F.generators()[5]
+            sage: dict_gens[g] # Note that the answer is 1-based.
+            6
+
+        The dict also contains -g if -I belongs to the arithmetic group::
+
+            sage: G = Gamma0(20)
+            sage: F = G.farey_symbol()
+            sage: dict_gens = F._get_dict_of_generators()
+            sage: E = G([-1,0,0,-1])
+            sage: h = F.generators()[7] * E
+            sage: dict_gens[h]
+            8
+        """
+        ans = {g:i+1 for i,g in enumerate(self.generators())}
+        E = SL2Z([-1,0,0,-1])
+        if E in self.group:
+            ans.update({(g * E):i+1 for i,g in enumerate(self.generators())})
+        return ans
+
+    def word_problem(self, M, output = 'standard', check = True):
         r"""
         Solve the word problem (up to sign) using this Farey symbol.
-        See also :meth:`.syllables` and :meth:`.tietze`.
 
         INPUT:
 
         - ``M`` -- An element `M` of `{\rm SL}_2(\ZZ)`.
         - ``output`` -- (default: ``'standard'``) Should be one of ``'standard'``,
           ``'syllables'``, ``'gens'``.
+        - ``check`` -- (default: ``True``) Whether to check for correct input and output.
 
         OUTPUT:
 
@@ -321,26 +353,64 @@ cdef class Farey:
             ))
             sage: F.word_problem(g, output = 'syllables')
             ((3, 1), (10, 2), (8, -1), (5, 1))
+
+        TESTS:
+
+        Check that problem with forgotten generator is fixed::
+
+            sage: from sage.misc.misc_c import prod
+            sage: G = Gamma0(10)
+            sage: F = G.farey_symbol()
+            sage: g = G([-701,-137,4600,899])
+            sage: g1 = prod(F.generators()[i]**a for i,a in F.word_problem(g, output = 'syllables'))
+            sage: g == g1 or g * G([-1,0,0,-1]) == g1
+            True
+
+        Check that it works for GammaH as well (:trac:`19660`)::
+
+            sage: G = GammaH(147, [8])
+            sage: G.farey_symbol().word_problem(G([1,1,0,1]))
+            (1,)
+
         """
         if output not in ['standard', 'syllables', 'gens']:
             raise ValueError('Unrecognized output format')
+        if check:
+            assert M in self.group,"Matrix ( %s ) is not in group ( %s )"%(M,self.group)
         cdef Integer a = M.d()
         cdef Integer b = -M.b()
         cdef Integer c = -M.c()
         cdef Integer d = M.a()
+        cdef cpp_SL2Z *cpp_beta = new cpp_SL2Z(1,0,0,1)
+        E = SL2Z([-1,0,0,-1])
         sig_on()
-        result = self.this_ptr.word_problem(a.value, b.value, c.value, d.value)
+        result = self.this_ptr.word_problem(a.value, b.value, c.value, d.value, cpp_beta)
         sig_off()
-        result.reverse()
+        beta = convert_to_SL2Z(cpp_beta[0])
         V = self.pairing_matrices_to_tietze_index()
-        tietze = tuple(V[o-1] if o > 0 else -V[-o-1] for o in result)
+        tietze = [V[o-1] if o > 0 else -V[-o-1] for o in result]
+        if not beta.is_one() and beta != E: # We need to correct for beta
+            gens_dict = self._get_dict_of_generators()
+            newval = gens_dict.get(beta)
+            if newval is not None:
+                newval = -newval
+            else:
+                newval = gens_dict.get(beta**-1)
+                assert newval is not None
+            tietze.append(newval)
+        tietze.reverse()
+        gens = self.generators()
+        if check:
+            tmp = SL2Z([1,0,0,1])
+            for i in range(len(tietze)):
+                t = tietze[i]
+                tmp = tmp * gens[t-1] if t > 0 else tmp * gens[-t-1]**-1
+            assert tmp.matrix() == M.matrix(),'%s %s %s'%(tietze, tmp.matrix(),M.matrix())
         if output == 'standard':
-            return tietze
-        from itertools import groupby
+            return tuple(tietze)
         if output == 'syllables':
             return tuple((a-1,len(list(g))) if a > 0 else (-a-1,-len(list(g))) for a,g in groupby(tietze))
         else: # output == 'gens'
-            gens = self.generators()
             return tuple((gens[a-1],len(list(g))) if a > 0 else (gens[-a-1],-len(list(g))) for a,g in groupby(tietze))
 
     def __contains__(self, M):
@@ -410,7 +480,7 @@ cdef class Farey:
         if hasattr(self.group, "_repr_"):
             return "FareySymbol(%s)" % self.group._repr_()
         elif hasattr(self.group, "__repr__"):
-            return "FareySymbol(%s)" % self.group.__repr__()
+            return "FareySymbol(%r)" % self.group
         else:
             return "FareySymbol(?)"
 

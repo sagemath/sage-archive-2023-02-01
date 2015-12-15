@@ -25,17 +25,11 @@ from dedekind_domain import DedekindDomain
 from principal_ideal_domain import PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain
 
-from commutative_algebra_element import CommutativeAlgebraElement
-
 # Ring element base classes
-from ring_element import RingElement
-from commutative_ring_element import CommutativeRingElement
-from integral_domain_element import IntegralDomainElement
-from dedekind_domain_element import DedekindDomainElement
-from principal_ideal_domain_element import PrincipalIdealDomainElement
-from euclidean_domain_element import EuclideanDomainElement
-from field_element import FieldElement
-
+from sage.structure.element import (CommutativeAlgebraElement,
+        RingElement, CommutativeRingElement, IntegralDomainElement,
+        DedekindDomainElement, PrincipalIdealDomainElement,
+        EuclideanDomainElement, FieldElement)
 
 # Ideals
 from ideal import Ideal
@@ -89,6 +83,8 @@ from real_double import RealDoubleField, RDF, RealDoubleElement
 
 from real_lazy import RealLazyField, RLF, ComplexLazyField, CLF
 
+from sage.rings.real_arb import RealBallField, RBF
+
 # Polynomial Rings and Polynomial Quotient Rings
 from polynomial.all import *
 
@@ -117,6 +113,8 @@ from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
 from complex_mpc import MPComplexField
 
+from sage.rings.complex_arb import ComplexBallField, CBF
+
 # Power series rings
 from power_series_ring import PowerSeriesRing
 from power_series_ring_element import PowerSeries
@@ -134,6 +132,9 @@ from big_oh import O
 # Fraction field
 from fraction_field import FractionField
 Frac = FractionField
+
+# c-finite sequences
+from cfinite_sequence import CFiniteSequence, CFiniteSequences
 
 # Arithmetic
 from arith import algdep, bernoulli, is_prime, is_prime_power, \
@@ -182,3 +183,6 @@ from sage.rings.continued_fraction import (farey, convergents,
    Hirzebruch_Jung_continued_fraction_list)
 # and deprecated continued fractions
 from sage.rings.contfrac import (CFF, ContinuedFractionField)
+
+# asymptotic ring
+from asymptotic.all import *

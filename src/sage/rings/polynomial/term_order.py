@@ -713,7 +713,7 @@ class TermOrder(SageObject):
                     name = block_names[0]
                     match = re.match('m\(([-+0-9,]+)\)$',name)
                     if match: # matrix term order
-                        m = map(int,match.groups()[0].split(',')) # replace match.groups()[0]  with match.group(1) later
+                        m = [int(_) for _ in match.groups()[0].split(',')] # replace match.groups()[0]  with match.group(1) later
                         self.__copy(TermOrder(m))
                     else: # simple order
                         if name not in print_name_mapping.keys() and name not in singular_name_mapping.values():
@@ -780,6 +780,7 @@ class TermOrder(SageObject):
 
             from sage.matrix.constructor import matrix
             self._matrix = matrix(n,name)  # defined only for matrix term order
+            self._matrix.set_immutable()
             self._weights = name[:n] # the first row of the matrix gives weights
         else:
             raise TypeError("%s is not a valid term order"%(name,))
@@ -790,6 +791,16 @@ class TermOrder(SageObject):
             self._singular_moreblocks += 1
 
         self.__doc__ = description_mapping.get(self._name, "No description available")
+
+    def __hash__(self):
+        r"""
+        A hash function
+
+        EXAMPLE::
+
+            sage: _=hash(TermOrder('lex'))
+        """
+        return hash((self._name, self._blocks, self._weights, self._matrix))
 
     def __copy(self, other):
         """
@@ -1868,7 +1879,7 @@ class TermOrder(SageObject):
             sage: T1 != T2
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __add__(self, other):
         """

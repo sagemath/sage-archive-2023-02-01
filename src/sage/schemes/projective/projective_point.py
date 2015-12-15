@@ -975,13 +975,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         kwds:
 
-        - ``badprimes`` - a list of primes of bad reduction
+        - ``badprimes`` - a list of primes of bad reduction (optional)
 
         - ``N`` - positive integer. number of terms of the series to use in the local green functions
+          (optional - default:10)
 
-        - ``prec`` - positive integer, float point or p-adic precision
+        - ``prec`` - positive integer, float point or p-adic precision, default:100
 
-        - ``error_bound`` - a positive real number
+        - ``error_bound`` - a positive real number (optional)
 
         OUTPUT: a real number
 
@@ -1427,7 +1428,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
         See :class:`SchemeMorphism_point_projective_ring` for details.
 
         This function still normalized points so that the rightmost non-zero coordinate is 1. The is to maintain current functionality with current
-        implementations of curves in projectives space (plane, connic, elliptic, etc). The class:`SchemeMorphism_point_projective_ring` is for general use.
+        implementations of curves in projectives space (plane, conic, elliptic, etc). The :class:`SchemeMorphism_point_projective_ring` is for general use.
 
         EXAMPLES::
 

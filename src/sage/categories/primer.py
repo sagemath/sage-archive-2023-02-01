@@ -348,9 +348,12 @@ categories and their super categories::
     sage: ZZ.category()
     Join of Category of euclidean domains
         and Category of infinite enumerated sets
+        and Category of metric spaces
 
     sage: ZZ.categories()
-    [Join of Category of euclidean domains and Category of infinite enumerated sets,
+    [Join of Category of euclidean domains
+         and Category of infinite enumerated sets
+         and Category of metric spaces,
      Category of euclidean domains, Category of principal ideal domains,
      Category of unique factorization domains, Category of gcd domains,
      Category of integral domains, Category of domains,
@@ -360,7 +363,8 @@ categories and their super categories::
      Category of commutative magmas, Category of unital magmas, Category of magmas,
      Category of commutative additive groups, ..., Category of additive magmas,
      Category of infinite enumerated sets, Category of enumerated sets,
-     Category of infinite sets, Category of sets,
+     Category of infinite sets, Category of metric spaces,
+     Category of topological spaces, Category of sets,
      Category of sets with partial maps,
      Category of objects]
 
@@ -794,6 +798,7 @@ element of the parent?)::
     sage: TestSuite(S).run(verbose = True)
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_elements() . . .
       Running the test suite of self.an_element()

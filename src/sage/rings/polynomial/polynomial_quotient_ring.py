@@ -23,6 +23,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
+import six
 import sage.rings.number_field.all
 import polynomial_element
 import sage.rings.rational_field
@@ -38,6 +39,7 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 
 from sage.categories.commutative_algebras import CommutativeAlgebras
 
+from sage.structure.category_object import normalize_names
 from sage.structure.parent_gens import ParentWithGens
 
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
@@ -166,7 +168,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     if names is None:
         names = tuple([x + 'bar' for x in ring.variable_names()])
     else:
-        names = sage.structure.parent_gens.normalize_names(ring.ngens(), names)
+        names = normalize_names(ring.ngens(), names)
     R = ring.base_ring()
     if isinstance(R, sage.rings.integral_domain.IntegralDomain):
         try:
@@ -425,7 +427,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         P = parent(x)
         if P is self:
             return x
-        if not isinstance(x,basestring):
+        if not isinstance(x, six.string_types):
             try:
                 return self.element_class(self, self.__ring(x) , check=True)
             except TypeError:

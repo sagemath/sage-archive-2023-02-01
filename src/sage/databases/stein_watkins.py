@@ -187,7 +187,7 @@ class SteinWatkinsAllData:
         name = str(num)
         name = '0'*(3-len(name)) + name
         self._file = os.path.join(SAGE_SHARE, 'stein_watkins', 'a.%s.bz2'%name)
-        self._iter = self.__iter__()
+        self._iter = iter(self)
 
     def __repr__(self):
         """
@@ -290,7 +290,7 @@ class SteinWatkinsAllData:
             sage: next(E)                             # optional - database_stein_watkins
             [Stein-Watkins isogeny class of conductor 100007]
         """
-        iter = self.__iter__()
+        iter = iter(self)
         C = []
         N = 0
         while True:
@@ -319,7 +319,7 @@ class SteinWatkinsPrimeData(SteinWatkinsAllData):
         name = str(num)
         name = '0'*(2-len(name)) + name
         self._file = os.path.join(SAGE_SHARE,'stein_watkins', 'p.%s.bz2'%name)
-        self._iter = self.__iter__()
+        self._iter = iter(self)
 
     def __repr__(self):
         """

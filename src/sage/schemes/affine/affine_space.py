@@ -25,7 +25,7 @@ _Fields = Fields()
 from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import latex
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 
 from sage.schemes.generic.scheme import AffineScheme
 from sage.schemes.generic.ambient_space import AmbientSpace
@@ -299,7 +299,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
@@ -326,7 +326,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
@@ -348,7 +348,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
@@ -759,6 +759,7 @@ class AffineSpace_field(AffineSpace_generic):
         - an iterator of points in self
 
         EXAMPLES::
+
             sage: A.<x,y> = AffineSpace(QQ,2)
             sage: list(A.points_of_bounded_height(3))
             [(0, 0), (1, 0), (-1, 0), (1/2, 0), (-1/2, 0), (2, 0), (-2, 0), (0, 1),
@@ -794,11 +795,11 @@ class AffineSpace_field(AffineSpace_generic):
             iters = [ R.range_by_height(bound) for _ in range(n) ]
         else:
             iters = [ R.elements_of_bounded_height(bound) for _ in range(n) ]
-        for x in iters: x.next() # put at zero
+        for x in iters: next(x) # put at zero
         i = 0
         while i < n:
             try:
-                P[i] = iters[i].next()
+                P[i] = next(iters[i])
                 yield self(P)
                 i = 0
             except StopIteration:
@@ -806,7 +807,7 @@ class AffineSpace_field(AffineSpace_generic):
                     iters[i] = R.range_by_height(bound) # reset
                 else:
                     iters[i] = R.elements_of_bounded_height(bound)
-                iters[i].next() # put at zero
+                next(iters[i]) # put at zero
                 P[i] = zero
                 i += 1
 

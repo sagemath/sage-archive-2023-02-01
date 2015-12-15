@@ -162,17 +162,32 @@ Sage (:trac:`9636`)::
 
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+from .paridecl cimport *
+from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/interrupt.pxi'
+cdef extern from *:
+    int sig_on_count "_signals.sig_on_count"
 
 import sys
 
 cimport libc.stdlib
+from libc.stdio cimport *
 cimport cython
 
 from sage.ext.memory cimport sage_malloc, sage_free
 from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
+from sage.libs.gmp.all cimport *
 from sage.libs.flint.fmpz cimport fmpz_get_mpz
 from sage.libs.flint.fmpz_mat cimport *
 
@@ -516,7 +531,22 @@ cdef class PariInstance(PariInstance_auto):
     def __hash__(self):
         return 907629390   # hash('pari')
 
-    cdef has_coerce_map_from_c_impl(self, x):
+    cpdef _coerce_map_from_(self, x):
+        """
+        Return ``True`` if ``x`` admits a coercion map into the
+        PARI interface.
+
+        This currently always returns ``True``.
+
+        EXAMPLES::
+
+            sage: pari._coerce_map_from_(ZZ)
+            True
+            sage: pari.coerce_map_from(ZZ)
+            Call morphism:
+              From: Integer Ring
+              To:   Interface to the PARI C library
+        """
         return True
 
     def __richcmp__(left, right, int op):
@@ -612,7 +642,7 @@ cdef class PariInstance(PariInstance_auto):
 
         """
         global avma
-        if _signals.sig_on_count <= 1:
+        if sig_on_count <= 1:
             avma = pari_mainstack.top
         pari_catch_sig_off()
 
@@ -970,6 +1000,24 @@ cdef class PariInstance(PariInstance_auto):
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO
 
+    cpdef gen zero(self):
+        """
+        EXAMPLES::
+
+            sage: pari.zero()
+            0
+        """
+        return self.PARI_ZERO
+
+    cpdef gen one(self):
+        """
+        EXAMPLES::
+
+            sage: pari.one()
+            1
+        """
+        return self.PARI_ONE
+
     def new_with_bits_prec(self, s, long precision):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI
@@ -988,10 +1036,61 @@ cdef class PariInstance(PariInstance_auto):
 
     cdef long get_var(self, v):
         """
-        Convert a Python string into a PARI variable number.
+        Convert ``v`` into a PARI variable number.
+
+        If ``v`` is a PARI object, return the variable number of
+        ``variable(v)``. If ``v`` is ``None`` or ``-1``, return -1.
+        Otherwise, treat ``v`` as a string and return the number of
+        the variable named ``v``.
+
+        OUTPUT: a PARI variable number (varn) or -1 if there is no
+        variable number.
+
+        .. WARNING::
+
+            You can easily create variables with garbage names using
+            this function. This can actually be used as a feature, if
+            you want variable names which cannot be confused with
+            ordinary user variables.
+
+        EXAMPLES:
+
+        We test this function using ``Pol()`` which calls this function::
+
+            sage: pari("[1,0]").Pol()
+            x
+            sage: pari("[2,0]").Pol('x')
+            2*x
+            sage: pari("[Pi,0]").Pol('!@#$%^&')
+            3.14159265358979*!@#$%^&
+
+        We can use ``varhigher()`` and ``varlower()`` to create
+        temporary variables without a name. The ``"xx"`` below is just a
+        string to display the variable, it doesn't create a variable
+        ``"xx"``::
+
+            sage: xx = pari.varhigher("xx")
+            sage: pari("[x,0]").Pol(xx)
+            x*xx
+
+        Indeed, this is not the same as::
+
+            sage: pari("[x,0]").Pol("xx")
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect priority in gtopoly: variable x <= xx
         """
         if v is None:
             return -1
+        cdef long varno
+        if isinstance(v, gen):
+            pari_catch_sig_on()
+            varno = gvar((<gen>v).g)
+            pari_catch_sig_off()
+            if varno < 0:
+                return -1
+            else:
+                return varno
         if v == -1:
             return -1
         cdef bytes s = bytes(v)

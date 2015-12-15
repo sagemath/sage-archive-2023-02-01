@@ -239,9 +239,9 @@ class SpecialJordanAlgebra(JordanAlgebra):
         if A in C.Unital():
             cat = cat.Unital()
             self._no_generic_basering_coercion = True
-            # Remove the preceding line once :trac:`16492` is fixed
+            # Remove the preceding line once trac #16492 is fixed
             # Removing this line will also break some of the input formats,
-            #   see :trac:`16054`
+            # see trac #16054
         if A in C.WithBasis():
             cat = cat.WithBasis()
         if A in C.FiniteDimensional():
@@ -459,7 +459,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
                 sage: elt != 2*b
                 True
             """
-            return not self.__eq__(other)
+            return not self == other
 
         def _add_(self, other):
             """
@@ -555,6 +555,30 @@ class SpecialJordanAlgebra(JordanAlgebra):
                 2*x + 2*y
             """
             return self.__class__(self.parent(), other * self._x)
+
+        def monomial_coefficients(self, copy=True):
+            """
+            Return a dictionary whose keys are indices of basis elements in
+            the support of ``self`` and whose values are the corresponding
+            coefficients.
+
+            INPUT:
+
+            - ``copy`` -- (default: ``True``) if ``self`` is internally
+              represented by a dictionary ``d``, then make a copy of ``d``;
+              if ``False``, then this can cause undesired behavior by
+              mutating ``d``
+
+            EXAMPLES::
+
+                sage: F.<x,y,z> = FreeAlgebra(QQ)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
+                sage: elt = a + 2*b - c
+                sage: elt.monomial_coefficients()
+                {x: 1, y: 2, z: -1}
+            """
+            return self._x.monomial_coefficients(copy)
 
 class JordanAlgebraSymmetricBilinear(JordanAlgebra):
     r"""
@@ -841,7 +865,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 sage: 4*a - b + 3*c != x
                 True
             """
-            return not self.__eq__(other)
+            return not self == other
 
         def _add_(self, other):
             """
@@ -934,6 +958,29 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 2 + (2, -2)
             """
             return self.__class__(self.parent(), other * self._s, other * self._v)
+
+        def monomial_coefficients(self, copy=True):
+            """
+            Return a dictionary whose keys are indices of basis elements in
+            the support of ``self`` and whose values are the corresponding
+            coefficients.
+
+            INPUT:
+
+            - ``copy`` -- ignored
+
+            EXAMPLES::
+
+                sage: m = matrix([[0,1],[1,1]])
+                sage: J.<a,b,c> = JordanAlgebra(m)
+                sage: elt = a + 2*b - c
+                sage: elt.monomial_coefficients()
+                {0: 1, 1: 2, 2: -1}
+            """
+            d = {0: self._s}
+            for i,c in enumerate(self._v):
+                d[i+1] = c
+            return d
 
         def trace(self):
             r"""

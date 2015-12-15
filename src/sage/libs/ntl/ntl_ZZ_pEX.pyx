@@ -42,7 +42,7 @@ from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 #
 ##############################################################################
 
-cdef class ntl_ZZ_pEX:
+cdef class ntl_ZZ_pEX(object):
     r"""
     The class \class{ZZ_pEX} implements polynomials over finite ring extensions of $\Z / p\Z$.
 
@@ -106,7 +106,6 @@ cdef class ntl_ZZ_pEX:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None and v is None: # we also check for v is None so that a user can specify the modulus by v.
-            ZZ_pEX_construct(&self.x)
             return
         if isinstance(modulus, ntl_ZZ_pEContext_class):
             self.c = <ntl_ZZ_pEContext_class>modulus
@@ -126,10 +125,6 @@ cdef class ntl_ZZ_pEX:
         else:
             raise ValueError, "modulus must not be None"
         self.c.restore_c()
-        ZZ_pEX_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZ_pEX_destruct(&self.x)
 
     cdef ntl_ZZ_pEX _new(self):
         cdef ntl_ZZ_pEX r
@@ -467,26 +462,37 @@ cdef class ntl_ZZ_pEX:
         import sage.groups.generic as generic
         return generic.power(self, n, ntl_ZZ_pEX([[1]],self.c))
 
-    def __cmp__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
+    def __richcmp__(ntl_ZZ_pEX self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = ntl.ZZ_pEX([a, b, b, 0])
-        sage: f == g
-        True
-        sage: g = ntl.ZZ_pEX([a, b, a])
-        sage: f == g
-        False
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = ntl.ZZ_pEX([a, b, b, 0])
+            sage: f == g
+            True
+            sage: g = ntl.ZZ_pEX([a, b, a])
+            sage: f == g
+            False
+            sage: f == []
+            False
         """
         self.c.restore_c()
-        if ZZ_pEX_equal(self.x, other.x):
-            return 0
-        return -1
+
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("polynomials are not ordered")
+
+        cdef ntl_ZZ_pEX b
+        try:
+            b = <ntl_ZZ_pEX?>other
+        except TypeError:
+            b = ntl_ZZ_pEX(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def is_zero(self):
         """

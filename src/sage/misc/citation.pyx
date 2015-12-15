@@ -69,7 +69,7 @@ def get_systems(cmd):
 
         sage: a = var('a')
         sage: get_systems('((a+1)^2).expand()')
-        ['ginac', 'GMP']
+        ['ginac']
     """
     import cProfile, pstats, re
 

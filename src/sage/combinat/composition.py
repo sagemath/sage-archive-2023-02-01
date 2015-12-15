@@ -33,13 +33,16 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
 from combinat import CombinatorialElement
-from cartesian_product import CartesianProduct
-from integer_list import IntegerListsLex
+from sage.categories.cartesian_product import cartesian_product
+
+from integer_lists import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
 class Composition(CombinatorialElement):
@@ -160,7 +163,7 @@ class Composition(CombinatorialElement):
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
         """
-        from sage.misc.ascii_art import ascii_art
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
 
     def __setstate__(self, state):
@@ -747,10 +750,16 @@ class Composition(CombinatorialElement):
             sage: C = Composition([3,2]).finer()
             sage: C.cardinality()
             8
-            sage: list(C)
+            sage: C.list()
             [[1, 1, 1, 1, 1], [1, 1, 1, 2], [1, 2, 1, 1], [1, 2, 2], [2, 1, 1, 1], [2, 1, 2], [3, 1, 1], [3, 2]]
+
+            sage: Composition([]).finer()
+            {[]}
         """
-        return CartesianProduct(*[Compositions(i) for i in self]).map(Composition.sum)
+        if not self:
+            return FiniteEnumeratedSet([self])
+        else:
+            return cartesian_product([Compositions(i) for i in self]).map(Composition.sum)
 
     def is_finer(self, co2):
         """
@@ -936,7 +945,7 @@ class Composition(CombinatorialElement):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Compositions()(map(len,self.refinement_splitting(J)))
+        return Compositions()([len(_) for _ in self.refinement_splitting(J)])
 
     def major_index(self):
         """
@@ -1307,7 +1316,7 @@ class Composition(CombinatorialElement):
 
 ##############################################################
 
-class Compositions(Parent, UniqueRepresentation):
+class Compositions(UniqueRepresentation, Parent):
     r"""
     Set of integer compositions.
 

@@ -175,10 +175,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_in_string
+from sage.misc.superseded import deprecation
 import re
 import os
 import pexpect
@@ -413,9 +413,8 @@ class Gap_generic(Expect):
             # the following input prompt is now the current input prompt
             E.expect('@i', timeout=timeout)
             success = True
-        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
+        except (pexpect.TIMEOUT, pexpect.EOF):
             # GAP died or hangs indefinitely
-            # print 'GAP interrupt:', msg
             success = False
 
         if not success and quit_on_fail:
@@ -498,14 +497,14 @@ class Gap_generic(Expect):
             sage: gap.load_package("chevie")
             Traceback (most recent call last):
             ...
-            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages SPKG.
+            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages and/or database_gap SPKGs.
         """
         if verbose:
             print "Loading GAP package %s"%pkg
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
-                               "You may want to install the gap_packages SPKG.")
+                               "You may want to install the gap_packages and/or database_gap SPKGs.")
 
     def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""
@@ -878,6 +877,26 @@ class Gap_generic(Expect):
             <class 'sage.interfaces.interface.AsciiArtString'>
             sage: s.startswith('CT')
             True
+
+        TESTS:
+
+        If the function call is too long, two ``gap.eval`` calls are made
+        since returned values from commands in a file cannot be handled
+        properly::
+
+            sage: g = Gap()
+            sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name'))
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
+
+        When the command itself is so long that it warrants use of a temporary
+        file to be communicated to GAP, this does not cause problems since
+        the file will contain a single command::
+
+            sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
+
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -889,12 +908,18 @@ class Gap_generic(Expect):
         #is in the 'last' variable in GAP.  If the function returns a
         #value, then that value will be in 'last', otherwise it will
         #be the marker.
-        marker = '"__SAGE_LAST__"'
-        self.eval('__SAGE_LAST__ := %s;;'%marker)
-        res = self.eval("%s(%s)"%(function, ",".join([s.name() for s in args]+
-                  ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
-        if self.eval('last') != marker:
-            return self.new('last')
+        marker = '__SAGE_LAST__:="__SAGE_LAST__";;'
+        cmd = "%s(%s);;"%(function, ",".join([s.name() for s in args]+
+                ['%s=%s'%(key,value.name()) for key, value in kwds.items()]))
+        if len(marker) + len(cmd) <= self._eval_using_file_cutoff:
+            # We combine the two commands so we only run eval() once and the
+            #   only output would be from the second command
+            res = self.eval(marker+cmd)
+        else:
+            self.eval(marker)
+            res = self.eval(cmd)
+        if self.eval('IsIdenticalObj(last,__SAGE_LAST__)') != 'true':
+            return self.new('last2;')
         else:
             if res.strip():
                 from sage.interfaces.expect import AsciiArtString
@@ -1012,6 +1037,20 @@ class GapElement_generic(ExpectElement):
         else:
             return int(self.Length())
 
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: gap('"abc"').is_string()
+            True
+            sage: gap('[1,2,3]').is_string()
+            False
+
+        """
+        return bool(self.IsString())
+
     def _matrix_(self, R):
         r"""
         Return matrix over the (Sage) ring R determined by self, where self
@@ -1042,7 +1081,6 @@ class GapElement_generic(ExpectElement):
             [  a a^2]
             [a^3   a]
         """
-        P = self.parent()
         v = self.DimensionsMat()
         n = int(v[1])
         m = int(v[2])
@@ -1067,7 +1105,8 @@ class Gap(Gap_generic):
                  use_workspace_cache=True,
                  server=None,
                  server_tmpdir=None,
-                 logfile=None):
+                 logfile=None,
+                 seed=None):
         """
         EXAMPLES::
 
@@ -1096,6 +1135,27 @@ class Gap(Gap_generic):
                         logfile=logfile,
                         eval_using_file_cutoff=100)
         self.__seq = 0
+        self._seed = seed
+
+    def set_seed(self,seed=None):
+        """
+        Sets the seed for gap interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: g = Gap()
+            sage: g.set_seed(0)
+            0
+            sage: [g.Random(1,10) for i in range(5)]
+            [2, 3, 3, 4, 2]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("Reset(GlobalMersenneTwister,%d)" % seed)
+        self.eval("Reset(GlobalRandomSource,%d)" % seed)
+        self._seed = seed
+        return seed
 
     def __reduce__(self):
         """
@@ -1180,6 +1240,9 @@ class Gap(Gap_generic):
                 '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
         # read everything up to the first "ready" prompt
         self._expect.expect("@i")
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def _function_class(self):
         """
@@ -1297,8 +1360,8 @@ class Gap(Gap_generic):
             sage: gap.get('x')
             '2'
         """
-        cmd = ('%s:=%s;;'%(var,value)).replace('\n','')
-        out = self._eval_line(cmd, allow_use_file=True)
+        cmd = ('%s:=%s;;' % (var, value)).replace('\n','')
+        self._eval_line(cmd, allow_use_file=True)
 
     def get(self, var, use_file=False):
         """
@@ -1350,9 +1413,7 @@ class Gap(Gap_generic):
             line0 = 'Print( %s );'%line.rstrip().rstrip(';')
             try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
                 return Expect._eval_line_using_file(self, line0)
-            except RuntimeError as msg:
-                #if not ("Function call: <func> must return a value" in msg):
-                #    raise RuntimeError, msg
+            except RuntimeError:
                 return ''
         return Expect._eval_line_using_file(self, line)
 
@@ -1535,20 +1596,6 @@ class GapElement(GapElement_generic):
         else:
             return self.parent().new('%s%s'%(self._name, ''.join(['[%s]'%x for x in n])))
 
-    def __reduce__(self):
-        """
-        Note that GAP elements cannot be pickled.
-
-        EXAMPLES::
-
-            sage: gap(2).__reduce__()
-            (<function reduce_load at 0x...>, ())
-            sage: f, args = _
-            sage: f(*args)
-            <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-        """
-        return reduce_load, ()  # default is an invalid object
-
     def str(self, use_file=False):
         """
         EXAMPLES::
@@ -1560,7 +1607,7 @@ class GapElement(GapElement_generic):
             P = self._check_valid()
             return P.get(self.name(), use_file=True)
         else:
-            return self.__repr__()
+            return repr(self)
 
     def _latex_(self):
         r"""
@@ -1778,19 +1825,31 @@ def reduce_load_GAP():
     """
     return gap
 
+# This is only for backwards compatibility, in order to be able
+# to unpickle the invalid objects that are in the pickle jar.
 def reduce_load():
     """
-    Returns an invalid GAP element. Note that this is the object
-    returned when a GAP element is unpickled.
+    This is for backwards compatibility only.
+
+    To be precise, it only serves at unpickling the invalid
+    gap elements that are stored in the pickle jar.
 
     EXAMPLES::
 
         sage: from sage.interfaces.gap import reduce_load
         sage: reduce_load()
-        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-        sage: loads(dumps(gap(2)))
-        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
+        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
+        See http://trac.sagemath.org/18848 for details.
+        <repr(<sage.interfaces.gap.GapElement at ...>) failed:
+        ValueError: The session in which this object was defined is no longer running.>
+
+    By :trac:`18848`, pickling actually often works::
+
+        sage: loads(dumps(gap([1,2,3])))
+        [ 1, 2, 3 ]
+
     """
+    deprecation(18848, "This function is only used to unpickle invalid objects")
     return GapElement(None, None)
 
 def gap_console():

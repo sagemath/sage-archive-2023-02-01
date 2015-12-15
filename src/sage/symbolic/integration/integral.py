@@ -192,7 +192,7 @@ class DefiniteIntegral(BuiltinFunction):
 
         TESTS:
 
-        Check if #3863 is fixed::
+        Check if :trac:`3863` is fixed::
 
             sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
             0.154572952320790
@@ -268,7 +268,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
 
     It is also possible to pass last three parameters in ``v`` as a triple.
 
-    OUPUT:
+    OUTPUT:
 
     - a tuple of ``f``, ``v``, ``a``, and ``b``.
 

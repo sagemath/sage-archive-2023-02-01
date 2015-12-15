@@ -130,6 +130,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2), root_finder = rf)
         sage: D
         Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
+
+
+    Actually, we can construct the decoder from ``C`` directly::
+
+        sage: D = C.decoder("GuruswamiSudan", tau = 97)
+        sage: D
+        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
     """
 
     ####################### static methods ###############################
@@ -237,7 +244,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         OUTPUT:
 
-        - ``(tau, (s, l))`` -- where 
+        - ``(tau, (s, l))`` -- where
             - ``tau`` is the obtained decoding radius, and
             - ``s, ell`` are the multiplicity parameter, respectively list size
               parameter giving this radius.
@@ -350,7 +357,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
 
         The following is an example where the parameters are optimal::
-        
+
             sage: tau = 98
             sage: n, k = 250, 70
             sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_given_tau(tau, n_k = (n, k))
@@ -359,7 +366,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             (2, 3)
 
         This is an example where they are not::
-        
+
             sage: tau = 97
             sage: n, k = 250, 70
             sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_given_tau(tau, n_k = (n, k))
@@ -484,6 +491,22 @@ class GRSGuruswamiSudanDecoder(Decoder):
             ...
             ValueError: Specify either tau or parameters
 
+        If one provides something else than one of the allowed strings or a method as ``interpolation_alg``,
+        an exception is returned::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 97, interpolation_alg = 42)
+            Traceback (most recent call last):
+            ...
+            ValueError: Please provide a method or one of the allowed strings for interpolation_alg
+
+        Same thing for ``root_finder``::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 97, root_finder = "FortyTwo")
+            Traceback (most recent call last):
+            ...
+            ValueError: Please provide a method or one of the allowed strings for root_finder
         """
         n, k = code.length(), code.dimension()
         if tau and parameters:
@@ -671,12 +694,12 @@ class GRSGuruswamiSudanDecoder(Decoder):
             ValueError: The provided rootfinding algorithm has a wrong signature. See decoder's doc for details
         """
         C = self.code()
-        n,k,d,alphas,colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
+        n, k, d, alphas, colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
                 C.evaluation_points(), C.column_multipliers(), self.multiplicity(), self.list_size()
         tau = self.decoding_radius()
         ## SETUP INTERPOLATION PROBLEM
         wy = k-1
-        points = [ (alphas[i], r[i]/colmults[i]) for i in range(0,len(alphas)) ]
+        points = [(alphas[i], r[i]/colmults[i]) for i in range(0,len(alphas))]
         ## SOLVE INTERPOLATION
         try:
             Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
@@ -685,7 +708,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
         try:
             polynomials = self.rootfinding_algorithm()(Q, maxd = None)
-        except TypeError, e:
+        except TypeError:
             raise ValueError("The provided rootfinding algorithm has a wrong signature. See decoder's doc for details")
         if not polynomials:
             return None
@@ -712,7 +735,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: c in D.decode_to_code(r)
             True
         """
-        return [ self.connected_encoder().encode(i) for i in self.decode_to_message(r) ]
+        return [self.connected_encoder().encode(i) for i in self.decode_to_message(r)]
 
     def decoding_radius(self):
         r"""

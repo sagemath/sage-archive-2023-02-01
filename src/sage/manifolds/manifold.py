@@ -336,8 +336,8 @@ from sage.manifolds.abstract import AbstractSet
 from sage.manifolds.structure import TopologicalStructure, \
                                      RealTopologicalStructure
 
-#####################################################################
-## Classes
+#############################################################################
+## Class
 
 class TopologicalManifold(AbstractSet):
     r"""
@@ -370,7 +370,9 @@ class TopologicalManifold(AbstractSet):
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of manifolds
 
-    - ``structure`` -- manifold structure
+    - ``structure`` -- manifold structure (see
+      :class:`~sage.manifolds.structure.TopologicalStructure` or
+      :class:`~sage.manifolds.structure.RealTopologicalStructure`)
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the manifold; if none is provided, it is set to ``name``
     - ``full_name`` -- (default: ``None``) string; short description of the
@@ -568,14 +570,13 @@ class TopologicalManifold(AbstractSet):
         # List of charts that individually cover self, i.e. whose
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
+        self._open_covers.append([self])  # list of open covers of self
         # Algebra of scalar fields defined on self:
         self._scalar_field_algebra = self._structure.scalar_field_algebra(self)
         # The zero scalar field:
         self._zero_scalar_field = self._scalar_field_algebra.zero()
         # The unit scalar field:
         self._one_scalar_field = self._scalar_field_algebra.one()
-
-        self._open_covers.append([self])  # list of open covers of self
 
     def _an_element_(self):
         r"""
@@ -1821,6 +1822,7 @@ class TopologicalManifold(AbstractSet):
         return self._one_scalar_field
 
 ##############################################################################
+## Constructor function
 
 def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
              start_index=0, **extra_kwds):

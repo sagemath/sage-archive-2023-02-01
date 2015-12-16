@@ -95,7 +95,7 @@ class ManifoldSubset(AbstractSet):
 
     - ``manifold`` -- topological manifold on which the subset is defined
     - ``name`` -- string; name (symbol) given to the subset
-    - ``latex_name`` --  (default: ``None``) string: LaTeX symbol to denote the
+    - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to denote the
       subset; if none is provided, it is set to ``name``
 
     EXAMPLES:
@@ -163,32 +163,17 @@ class ManifoldSubset(AbstractSet):
             coordinate definition of the subset.
 
         """
-        category = Sets().Subobjects()
-        AbstractSet.__init__(self, name=name, latex_name=latex_name,
-                             category=category)
-        self._manifold = manifold
         for dom in manifold._subsets:
             if name == dom._name:
                 raise ValueError("the name '" + name +
                                  "' is already used for another " +
                                  "subset of the {}".format(manifold))
+        full_name = "Subset {} of the {}".format(name, manifold)
+        category = Sets().Subobjects()
+        AbstractSet.__init__(self, name=name, latex_name=latex_name,
+                             full_name=full_name, category=category)
+        self._manifold = manifold
         manifold._subsets.add(self)
-
-    def _repr_(self):
-        r"""
-        String representation of the object.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: A = M.subset('A')
-            sage: A._repr_()
-            'Subset A of the 2-dimensional topological manifold M'
-            sage: repr(A)  # indirect doctest
-            'Subset A of the 2-dimensional topological manifold M'
-
-        """
-        return "Subset {} of the {}".format(self._name, self._manifold)
 
     def manifold(self):
         r"""
@@ -583,7 +568,7 @@ class OpenTopologicalSubmanifold(ManifoldSubset, TopologicalManifold):
         if not isinstance(ambient, TopologicalManifold):
             raise TypeError("the argument 'ambient' must be " +
                             "a topological manifold")
-
+        full_name = "Open subset {} of the {}".format(name, ambient)
         # This is copied from ManifoldSubset to avoid twice
         #   initializing AbstractSet
         self._manifold = ambient
@@ -595,24 +580,13 @@ class OpenTopologicalSubmanifold(ManifoldSubset, TopologicalManifold):
         ambient._subsets.add(self)
 
         category = ambient.category().Subobjects()
-        TopologicalManifold.__init__(self, ambient.dim(), name, latex_name,
-                                     ambient._field, ambient._structure,
-                                     ambient._sindex, category)
 
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TEST::
-
-            sage: M = Manifold(3, 'M', structure='topological')
-            sage: A = M.open_subset('A')
-            sage: A._repr_()
-            'Open subset A of the 3-dimensional topological manifold M'
-
-        """
-        return "Open subset {} of the {}".format(self._name, self._manifold)
-
+        TopologicalManifold.__init__(self, ambient.dim(), name, ambient._field,
+                                     ambient._structure, latex_name=latex_name,
+                                     full_name=full_name,
+                                     start_index=ambient._sindex,
+                                     category=category,
+                                     unique_tag=ambient)
 
     def superset(self, name, latex_name=None, is_open=False):
         r"""

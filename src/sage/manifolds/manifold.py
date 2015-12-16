@@ -293,10 +293,11 @@ from sage.rings.complex_field import ComplexField_class
 from sage.misc.prandom import getrandbits
 from sage.rings.integer import Integer
 from sage.manifolds.abstract import AbstractSet
-from sage.manifolds.structure import TopologicalStructure, RealTopologicalStructure
+from sage.manifolds.structure import TopologicalStructure, \
+                                     RealTopologicalStructure
 
-#####################################################################
-## Classes
+#############################################################################
+## Class
 
 class TopologicalManifold(AbstractSet):
     r"""
@@ -317,9 +318,7 @@ class TopologicalManifold(AbstractSet):
 
     - ``n`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
-      denote the manifold; if none is provided, it is set to ``name``
-    - ``field`` -- (default: ``'real'``) field `K` on which the manifold is
+    - ``field`` -- field `K` on which the manifold is
       defined; allowed values are
 
       - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
@@ -331,15 +330,18 @@ class TopologicalManifold(AbstractSet):
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of manifolds
 
+    - ``structure`` -- manifold structure
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
+      denote the manifold; if none is provided, it is set to ``name``
+    - ``full_name`` -- (default: ``None``) string; short description of the
+      manifold; if none is provided, it is formed from the field, dimension
+      and structure
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g., coordinates
       in a chart
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
       ``Manifolds(field)`` is assumed (see the category
       :class:`~sage.categories.manifolds.Manifolds`)
-    - ``ambient_manifold`` -- (default: ``None``) if not ``None``, the created
-      object is considered as an open subset of the topological manifold
-      ``ambient_manifold``
     - ``unique_tag`` -- (default: ``None``) tag used to force the construction
       of a new object when all the other arguments have been used previously
       (without ``unique_tag``, the
@@ -449,8 +451,9 @@ class TopologicalManifold(AbstractSet):
         sage: TestSuite(M).run()
 
     """
-    def __init__(self, n, name, latex_name, field, structure,
-                 start_index, category=None, unique_tag=None):
+    def __init__(self, n, name, field, structure, latex_name=None,
+                 full_name=None, start_index=0, category=None,
+                 unique_tag=None):
         r"""
         Construct a topological manifold.
 
@@ -468,7 +471,7 @@ class TopologicalManifold(AbstractSet):
             sage: TestSuite(M).run()
 
         """
-        # Initialization of the attributes _dim, _field and _start_index:
+        # Initialization of the attributes _dim, _field, _field_type:
         self._dim = n
         if field == 'real':
             self._field = RR
@@ -486,12 +489,28 @@ class TopologicalManifold(AbstractSet):
                 self._field_type = 'complex'
             else:
                 self._field_type = 'neither_real_nor_complex'
-
+        # Structure and category:
         self._structure = structure
         category = Manifolds(self._field).or_subcategory(category)
         category = self._structure.subcategory(category)
-
-        AbstractSet.__init__(self, name, latex_name, self._field, category)
+        # Full name:
+        if full_name is None:
+            if self._field_type == 'real':
+                full_name = "{}-dimensional {} manifold {}".format(n,
+                                                          self._structure.name,
+                                                          name)
+            elif self._field_type == 'complex':
+                full_name = "Complex {}-dimensional {} manifold {}".format(n,
+                                                          self._structure.name,
+                                                          name)
+            else:
+                full_name = "{}-dimensional {} manifold {} over the {}".format(n,
+                                                          self._structure.name,
+                                                          name, self._field)
+        # Initialization as a manifold set:
+        AbstractSet.__init__(self, name, latex_name=latex_name,
+                             full_name=full_name, base=self._field,
+                             category=category)
 
         if not isinstance(start_index, (int, Integer)):
             raise TypeError("the starting index must be an integer")
@@ -509,47 +528,7 @@ class TopologicalManifold(AbstractSet):
         # List of charts that individually cover self, i.e. whose
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
-
         self._open_covers.append([self])  # list of open covers of self
-
-    def _repr_(self):
-        r"""
-        Return a string representation of the manifold.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', structure='topological')
-            sage: M._repr_()
-            '3-dimensional topological manifold M'
-            sage: repr(M)  # indirect doctest
-            '3-dimensional topological manifold M'
-            sage: M  # indirect doctest
-            3-dimensional topological manifold M
-            sage: M = Manifold(3, 'M', structure='topological', field='complex')
-            sage: M._repr_()
-            'Complex 3-dimensional topological manifold M'
-            sage: M = Manifold(3, 'M', structure='topological', field=QQ)
-            sage: M._repr_()
-            '3-dimensional topological manifold M over the Rational Field'
-
-        If the manifold is actually an open subset of a larger manifold, the
-        string representation is different::
-
-            sage: U = M.open_subset('U')
-            sage: U._repr_()
-            'Open subset U of the 3-dimensional topological manifold M over the Rational Field'
-
-        """
-        if self._field_type == 'real':
-            return "{}-dimensional {} manifold {}".format(self._dim,
-                                                          self._structure.name,
-                                                          self._name)
-        elif self._field_type == 'complex':
-            return "Complex {}-dimensional {} manifold {}".format(self._dim,
-                                                                  self._structure.name,
-                                                                  self._name)
-        return "{}-dimensional {} manifold {} over the {}".format(self._dim,
-                                        self._structure.name, self._name, self._field)
 
     def _an_element_(self):
         r"""
@@ -1558,7 +1537,7 @@ class TopologicalManifold(AbstractSet):
         """
         return self
 
-#####################################################################
+##############################################################################
 ## Constructor function
 
 def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
@@ -1713,6 +1692,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     else:
         raise NotImplementedError("manifolds of type {} are not ".format(structure) +
                                   "implemented")
-
-    return TopologicalManifold(dim, name, latex_name, field, structure, start_index,
+    return TopologicalManifold(dim, name, field, structure,
+                               latex_name=latex_name, start_index=start_index,
                                unique_tag=getrandbits(128)*time())

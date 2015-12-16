@@ -14,4 +14,6 @@ Topological manifolds
 
    sage/manifolds/point
 
-   sage/manifolds/chart
+   chart
+
+   scalarfield

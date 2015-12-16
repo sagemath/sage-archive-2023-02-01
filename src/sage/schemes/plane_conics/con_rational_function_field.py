@@ -30,9 +30,9 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
     r"""
     Create a projective plane conic curve over a rational function field
     `F(t)`, where `F` is any field.
-    See ``Conic`` for full documentation.
+    See :func:`Conic` for full documentation.
 
-    The algorithms used in this class come mostly from [HC2006].
+    The algorithms used in this class come mostly from [HC2006]_.
 
     EXAMPLES::
 
@@ -50,7 +50,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
 
     REFERENCES:
 
-    .. [HC2006] van Hoeij, Mark and Cremona, John. Solving Conics over
+    .. [HC2006] Mark van Hoeij and John Cremona, Solving Conics over
         function fields. J. Théor. Nombres Bordeaux, 2006.
     """
     def __init__(self, A, f):
@@ -69,7 +69,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         read_cache = True):
         r"""
         Returns True if and only if the conic ``self``
-        has a point over its base field `B`, which is a field of rational
+        has a point over its base field `F(t)`, which is a field of rational
         functions.
 
         If ``point`` is True, then returns a second output, which is
@@ -78,11 +78,30 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         Points are cached whenever they are found. Cached information
         is used if and only if ``read_cache`` is True.
         
+        The default algorithm does not (yet) work for all base fields `F`.
+        In particular, sage is required to have:
+        
+        * an algorithm for finding the square root of elements in finite
+          extensions of `F`;
+        
+        * a factorization algorithm for `F[t]`, as well as a square-free
+          decomposition and gcd function;
+        
+        * an algorithm for solving conics over `F`.
+        
         ALGORITHM:
         
-        The algorithm used is the algorithm Conic in [HC2006].
+        The parameter ``algorithm`` specifies the algorithm
+        to be used:
+
+        * ``'default'`` -- use a native Sage implementation, based on the
+           algorithm Conic in [HC2006]_.
+
+        * ``'magma'`` (requires Magma to be installed) --
+          delegates the task to the Magma computer algebra
+          system.
         
-        EXAMPLES::
+        EXAMPLES:
         
         We can find points for function fields over `\QQ` and finite
         fields::
@@ -99,7 +118,8 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             (True, (5*t : 8 : 1))
         
         Due to limitations in Sage of algorithms we depend on, it is not
-        yet possible to find points on conics over multivariate function fields::
+        yet possible to find points on conics over multivariate function fields
+        (see the requirements above)::
         
             sage: F.<t1> = FractionField(QQ['t1'])
             sage: K.<t2> = FractionField(F['t2'])
@@ -108,8 +128,32 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: c = -3*t2^4-4*t1*t2^3+8*t1^2*t2^2+16*t1^3-t2-48*t1^4
             sage: C = Conic([a,b,c])
             sage: C.has_rational_point()
-            NotImplementedError                       Traceback (most recent call last)
             ...
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not implemented for elements of
+            Univariate Quotient Polynomial Ring in tbar over Fraction Field
+            of Univariate Polynomial Ring in t1 over Rational Field with
+            modulus tbar^2 + t1*tbar - 1/2*t1^2
+        
+        In some cases, the algorithm requires us to be
+        able to solve conics over `F`. In particular, the following does not
+        work, and will still not work after square-free decomposition has
+        been implemented for this field::
+
+            sage: P.<u> = QQ[]
+            sage: E = P.fraction_field()
+            sage: Q.<Y> = E[]
+            sage: F.<v> = E.extension(Y^2 - u^3 - 1)
+            sage: R.<t> = F[]
+            sage: K = R.fraction_field()
+            sage: C = Conic(K, [u, v, 1])
+            sage: C.has_rational_point()
+            ...
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: square-free decomposition not implemented
+            for this polynomial
             
         """
         from constructor import Conic
@@ -174,29 +218,19 @@ for field of characteristic 2.")
                         mod = t.parent().hom([-x+t])
                     else:
                         mod = N
-                    # First try the generally faster is_square(), and fall
-                    # back to roots() of a polynomial if that doesn't work
-                    try:
-                        if i == 0:
-                            x = -mod(coeff[2])/mod(coeff[1])
-                        elif i == 1:
-                            x = -mod(coeff[0])/mod(coeff[2])
-                        else:
-                            x = -mod(coeff[1])/mod(coeff[0])
-                        if x.is_square():
-                            root = N(x.sqrt())
+                    if i == 0:
+                        x = -mod(coeff[2])/mod(coeff[1])
+                    elif i == 1:
+                        x = -mod(coeff[0])/mod(coeff[2])
+                    else:
+                        x = -mod(coeff[1])/mod(coeff[0])
+                    if x.is_square():
+                        root = N(x.sqrt())
+                    else:
+                        if point:
+                            return False, False
                         else:
                             return False
-                    except (AttributeError, NotImplementedError):
-                        if i == 0:
-                            f = mod(coeff[1]) * u**2 + mod(coeff[2])
-                        elif i == 1:
-                            f = mod(coeff[2]) * u**2 + mod(coeff[0])
-                        else:
-                            f = mod(coeff[0]) * u**2 + mod(coeff[1])
-                        if f.is_irreducible():
-                            return False
-                        root = f.roots()[0][0]
                     roots[i].append(root)
             
             if case == 0:
@@ -215,7 +249,10 @@ for field of characteristic 2.")
                     else:
                         return True
                 else:
-                    return False
+                    if point:
+                        return False, False
+                    else:
+                        return False
             
             if point:
                 pt = _find_point(coeff, roots, supp)
@@ -224,7 +261,9 @@ for field of characteristic 2.")
                 return (True, pt)
             else:
                 return True
-        
+        else:
+            return ProjectiveConic_field.has_rational_point(self, point,
+                algorithm, read_cache)
         
     
     def _reduce_conic(self):
@@ -242,7 +281,7 @@ for field of characteristic 2.")
         
         ALGORITMH:
         
-        The algorithm used is the algorithm ReduceConic in [HC2006].
+        The algorithm used is the algorithm ReduceConic in [HC2006]_.
         
         EXAMPLES::
         
@@ -301,17 +340,17 @@ for field of characteristic 2.")
     
 def _find_point(coefficients, roots, supports, solution = 0):
     r"""
-    Given a solubility certificate like in [HC2006], find a point on
+    Given a solubility certificate like in [HC2006]_, find a point on
     the conic given by ``coefficients``.
     
     INPUT:
     
     - ``coefficients`` -- list of three defining coefficients of a
     conic in reduced form.
-    - ``roots`` -- roots of a solubility certificate like in [HC2006]
+    - ``roots`` -- roots of a solubility certificate like in [HC2006]_
     - ``supports`` -- 3-tuple where supports[i] is a list of all monic
     irreducible `p \in F[t]` that divide the `i`'th coefficient.
-    - ``solution`` -- (default: 0) a solution of (5) in [HC2006], if
+    - ``solution`` -- (default: 0) a solution of (5) in [HC2006]_, if
     one is required, 0 otherwise.
     
     OUTPUT:
@@ -320,7 +359,14 @@ def _find_point(coefficients, roots, supports, solution = 0):
     
     ALGORITMH:
     
-    The algorithm used is the algorithm FindPoint in [HC2006].
+    The algorithm used is the algorithm FindPoint in [HC2006]_.
+    
+    EXAMPLES::
+        
+        sage: K.<t> = FractionField(QQ['t'])
+        sage: C = Conic(K, [t^2-2, 2*t^3, -2*t^3-13*t^2-2*t+18])
+        sage: C.has_rational_point(point=True)
+        (True, (3 : (1/3*t + 1/3)/(1/3*t) : 1))
     """
     from sage.matrix.constructor import matrix
     Ft = coefficients[0].parent()
@@ -356,7 +402,7 @@ def _find_point(coefficients, roots, supports, solution = 0):
     X = sum([XX[n]*t**n for n in range(A+1)])
     Y = sum([YY[n]*t**n for n in range(B+1)])
     Z = sum([ZZ[n]*t**n for n in range(C+1)])
-    E = [] # list that will contain linear polynomials (set E in [HC2006)
+    E = [] # list that will contain linear polynomials (set E in [HC2006])
     
     if case == 0:
         # We need an extra variable and linear equation

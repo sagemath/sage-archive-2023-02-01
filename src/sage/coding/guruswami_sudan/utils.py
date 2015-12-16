@@ -105,7 +105,7 @@ def solve_degree2_to_integer_range(a,b,c):
     `i_1 > x_1` and `i_2 < x_2` where `x_1, x_2` are the two zeroes of the equation in `x`:
     `ax^2+bx+c=0`.
 
-    If there is no real solution to the equation, it returns an empty, range with negative coefficients.
+    If there is no real solution to the equation, it returns an empty range with negative coefficients.
 
     INPUT:
 
@@ -132,4 +132,4 @@ def solve_degree2_to_integer_range(a,b,c):
     if mini > maxi:
         return (-2,-1)
     else:
-        return (mini,maxi)
+        return (mini, maxi)

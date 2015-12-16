@@ -2358,7 +2358,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             raise TypeError("must be a forward orbit")
         return self.orbit(f,[n,n+1])[0]
 
-    def _forward_image(self, f):
+    def _forward_image(self, f, check = True):
         """
         Compute the forward image of this subscheme by the morphism ``f``.
 
@@ -2372,6 +2372,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         INPUT:
 
         - ``f`` -- a map whose domain contains ``self``
+
+        - ``check`` -- Boolean, if `False` no input checking is done
 
         OUTPUT:
 
@@ -2473,12 +2475,13 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             ...
             TypeError: subscheme must be in ambient space of domain of map
         """
-        if not f.is_morphism():
-            raise TypeError("map must be a morphism")
         dom = f.domain()
         codom = f.codomain()
-        if self.ambient_space() != dom:
-            raise TypeError("subscheme must be in ambient space of domain of map")
+        if check:
+            if not f.is_morphism():
+                raise TypeError("map must be a morphism")
+            if self.ambient_space() != dom:
+                raise TypeError("subscheme must be in ambient space of domain of map")
         CR_dom = dom.coordinate_ring()
         CR_codom = codom.coordinate_ring()
         n = CR_dom.ngens()
@@ -2501,7 +2504,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 newL.append(psi(G[i]))
         return(codom.subscheme(newL))
 
-    def preimage(self, f):
+    def preimage(self, f, check = True):
         r"""
         The subscheme that maps to this scheme by the map ``f``.
 
@@ -2510,6 +2513,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         INPUT:
 
         - ``f`` - a map whose codomain contains ``self``
+
+        - ``check`` -- Boolean, if `False` no input checking is done
 
         OUTPUT:
 
@@ -2561,12 +2566,13 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             ...
             TypeError: subscheme must be in ambient space of codomain
         """
-        if not f.is_morphism():
-            raise TypeError("map must be a morphism")
         dom = f.domain()
         codom = f.codomain()
-        if self.ambient_space() != codom:
-            raise TypeError("subscheme must be in ambient space of codomain")
+        if check:
+            if not f.is_morphism():
+                raise TypeError("map must be a morphism")
+            if self.ambient_space() != codom:
+                raise TypeError("subscheme must be in ambient space of codomain")
         R = codom.coordinate_ring()
         dict = {R.gen(i): f[i] for i in range(codom.dimension_relative()+1)}
         return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))

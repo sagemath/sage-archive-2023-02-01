@@ -23,8 +23,6 @@ from sage.functions.other import binomial, floor, sqrt
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 
-IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
-
 def polynomial_to_list(p, len):
     r"""
     Returns ``p`` as a list of its coefficients of length ``len``.

@@ -36,6 +36,7 @@ from sage.coding.guruswami_sudan.utils import (johnson_radius,
                                                gilt,
                                                solve_degree2_to_integer_range)
 from sage.functions.other import binomial, floor, sqrt
+IMPOSSIBLE_PARAMETERS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
 class GRSGuruswamiSudanDecoder(Decoder):
     r"""
@@ -402,7 +403,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         s = floor(1 + smin)
         D = (s - smin) * (atau ** 2 - n * w) * s + (w**2) /4
         l = floor(atau / w * s + 0.5 - sqrt(D)/w)
-        assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau,s,l, n_k = (n, k)) , IMPOSSIBLE_PARAMS
+        assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau,s,l, n_k = (n, k)) , IMPOSSIBLE_PARAMETERS
         return (s, l)
 
     @staticmethod
@@ -507,10 +508,17 @@ class GRSGuruswamiSudanDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: Please provide a method or one of the allowed strings for root_finder
+
+        If one provides a full set of parameters (tau, s and l) which are not satisfactory, an
+        error message is returned::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 142, parameters=(1, 2))
+            AssertionError: Impossible parameters for the Guruswami-Sudan algorithm
         """
         n, k = code.length(), code.dimension()
         if tau and parameters:
-            assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau, parameters[0], parameters[1], C = code), IMPOSSIBLE_PARAMS
+            assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau, parameters[0], parameters[1], C = code), IMPOSSIBLE_PARAMETERS
             self._tau, self._s, self._ell = tau, parameters[0], parameters[1]
         elif tau:
             self._tau = tau

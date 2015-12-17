@@ -611,6 +611,9 @@ class VectorField(TensorField):
         from sage.plot.graphics import Graphics
         from sage.manifolds.chart import RealChart
         from sage.manifolds.utilities import set_axes_labels
+        from sage.parallel.decorate import parallel
+        from sage.parallel.parallelism import Parallelism
+
         #
         # 1/ Treatment of input parameters
         #    -----------------------------
@@ -712,31 +715,81 @@ class VectorField(TensorField):
         ind_max[0] = nb_values[coords[0]]
         xmin = [ranges[cd][0] for cd in coords]
         step_tab = [steps[cd] for cd in coords]
-        while ind != ind_max:
-            for i in range(ncp):
-                xx[index_p[i]] = xmin[i] + ind[i]*step_tab[i]
-            if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
+
+        nproc = Parallelism().get('tensor')
+        if nproc != 1 and nca==2 :
+            # parallel plot construct : Only for 2D plot (at  moment) !
+
+            # creation of the list of parameters
+            listParalInput = []
+
+            while ind != ind_max:
+                xx = [ xmin[i] + ind[i]*step_tab[i] for i in  range(ncp) ]
+
+                if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
                                               parameters=parameters):
+
+                    listParalInput.append((vector,dom,xx,chart_domain,chart,ambient_coords,mapping,scale,color,parameters,extra_options))
+
+                # Next index:
+                ret = 1
+                for pos in range(ncp-1,-1,-1):
+                    imax = nb_values[coords[pos]] - 1
+                    if ind[pos] != imax:
+                        ind[pos] += ret
+                        ret = 0
+                    elif ret == 1:
+                        if pos == 0:
+                            ind[pos] = imax + 1 # end point reached
+                        else:
+                            ind[pos] = 0
+                            ret = 1
+
+
+            # definition of the parallel function
+            @parallel(p_iter='multiprocessing',ncpus=nproc)
+            def add_point_plot(vector,dom,xx,chart_domain,chart,ambient_coords,mapping,scale,color,parameters,extra_options):
                 point = dom(xx, chart=chart_domain)
-                resu += vector.at(point).plot(chart=chart,
+                return vector.at(point).plot(chart=chart,
                                               ambient_coords=ambient_coords,
                                               mapping=mapping, scale=scale,
                                               color=color, print_label=False,
                                               parameters=parameters,
                                               **extra_options)
-            # Next index:
-            ret = 1
-            for pos in range(ncp-1,-1,-1):
-                imax = nb_values[coords[pos]] - 1
-                if ind[pos] != imax:
-                    ind[pos] += ret
-                    ret = 0
-                elif ret == 1:
-                    if pos == 0:
-                        ind[pos] = imax + 1 # end point reached
-                    else:
-                        ind[pos] = 0
-                        ret = 1
+
+            # parallel execution and recontruction of the plot
+            for ii, val in add_point_plot(listParalInput):
+                resu += val
+
+        else:
+            while ind != ind_max:
+                xx = [ xmin[i] + ind[i]*step_tab[i] for i in  range(ncp) ]
+
+                if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
+                                                  parameters=parameters):
+                    point = dom(xx, chart=chart_domain)
+
+                    resu += vector.at(point).plot(chart=chart,
+                                                  ambient_coords=ambient_coords,
+                                                  mapping=mapping, scale=scale,
+                                                  color=color, print_label=False,
+                                                  parameters=parameters,
+                                                  **extra_options)
+
+                # Next index:
+                ret = 1
+                for pos in range(ncp-1,-1,-1):
+                    imax = nb_values[coords[pos]] - 1
+                    if ind[pos] != imax:
+                        ind[pos] += ret
+                        ret = 0
+                    elif ret == 1:
+                        if pos == 0:
+                            ind[pos] = imax + 1 # end point reached
+                        else:
+                            ind[pos] = 0
+                            ret = 1
+
         if label_axes:
             if nca==2:  # 2D graphic
                 # We update the dictionary _extra_kwds (options to be passed

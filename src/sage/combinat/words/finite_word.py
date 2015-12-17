@@ -65,7 +65,7 @@ Finite words in a specific combinatorial class::
 
     sage: W = Words("ab")
     sage: W
-    Words over {'a', 'b'}
+    Finite and infinite words over {'a', 'b'}
     sage: W("abbabaab")
     word: abbabaab
     sage: W(["a","b","b","a","b","a","a","b"])
@@ -125,13 +125,13 @@ As matrix and many other sage objects, words have a parent::
 
     sage: u = Word('xyxxyxyyy')
     sage: u.parent()
-    Words
+    Finite words over Set of Python objects of type 'object'
 
 ::
 
     sage: v = Word('xyxxyxyyy', alphabet='xy')
     sage: v.parent()
-    Words over {'x', 'y'}
+    Finite words over {'x', 'y'}
 
 ========================
 Factors and Rauzy Graphs
@@ -372,6 +372,17 @@ class FiniteWord_class(Word_class):
             <class 'sage.combinat.words.word.FiniteWord_str'>
             sage: type(Word([1,2,3]) * Word(''))
             <class 'sage.combinat.words.word.FiniteWord_list'>
+
+        Concatenation of finite words with infinite words works as expected::
+
+            sage: from itertools import repeat
+            sage: W = Words('ab')
+            sage: w1 = W('aba')
+            sage: w2 = W(repeat('b'), length='infinite')
+            sage: w1*w2
+            word: ababbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...
+            sage: _.parent()
+            Infinite words over {'a', 'b'}
         """
         if self.is_empty():
             return other
@@ -379,7 +390,12 @@ class FiniteWord_class(Word_class):
             return self
         f = CallableFromListOfWords([self,other])
         length = self.length() + other.length()
-        return self._parent(f, length=length, datatype='callable', caching=True)
+        parent = self._parent
+        if length == Infinity:
+            parent = parent.shift()
+            return parent(f, datatype='callable', caching=True)
+        else:
+            return parent(f, length=length, datatype='callable', caching=True)
 
     __mul__ = concatenate
 
@@ -461,7 +477,7 @@ class FiniteWord_class(Word_class):
         # infinite power of a non-empty word
         fcn = lambda n: self[n % self.length()]
         if exp is Infinity:
-            return self._parent(fcn, length=Infinity)
+            return self._parent.shift()(fcn)
 
         #If exp*|self| is not an integer
         length = exp* self.length()
@@ -522,19 +538,19 @@ class FiniteWord_class(Word_class):
             sage: v = w.schuetzenberger_involution(); v
             word: 7849631
             sage: v.parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
 
             sage: w = Word([1,2,3],alphabet=[1,2,3,4,5])
             sage: v = w.schuetzenberger_involution();v
             word: 345
             sage: v.parent()
-            Words over {1, 2, 3, 4, 5}
+            Finite words over {1, 2, 3, 4, 5}
 
             sage: w = Word([1,2,3])
             sage: v = w.schuetzenberger_involution(n=5);v
             word: 345
             sage: v.parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
 
             sage: w = Word([11,32,69,2,53,1,2,3,18,41])
             sage: w.schuetzenberger_involution()
@@ -554,7 +570,7 @@ class FiniteWord_class(Word_class):
         w = list(r)
         parent = self.parent()
         if n is None:
-            alphsize = parent.size_of_alphabet()
+            alphsize = parent.alphabet().cardinality()
             if not alphsize == +Infinity:
                 n = max(parent.alphabet())
             elif r.length()>0:
@@ -709,6 +725,7 @@ class FiniteWord_class(Word_class):
             sage: w = Word(iter("cacao"), length="finite")
             sage: w.to_integer_word()
             word: 10102
+
             sage: w = Words([3,2,1])([2,3,3,1])
             sage: w.to_integer_word()
             word: 1002
@@ -1325,7 +1342,7 @@ class FiniteWord_class(Word_class):
            Verlag. V. Berthe, S. Ferenczi, C. Mauduit and A. Siegel, Eds.
            (2002).
         """
-        d = self.parent().size_of_alphabet()
+        d = self.parent().alphabet().cardinality()
         if d is Infinity:
             raise TypeError("The word must be defined over a finite alphabet")
         if n == 0:
@@ -4067,7 +4084,7 @@ class FiniteWord_class(Word_class):
 
         Check that :trac:`12804` is fixed::
 
-            sage: w = Word(iter("ababab"))
+            sage: w = Word(iter("ababab"), length="finite")
             sage: w.find("ab")
             0
             sage: w.find("ab", start=1)
@@ -4148,7 +4165,7 @@ class FiniteWord_class(Word_class):
 
         Check that :trac:`12804` is fixed::
 
-            sage: w = Word(iter("abab"))
+            sage: w = Word(iter("abab"), length="finite")
             sage: w.rfind("ab")
             2
             sage: w.rfind("ab", end=3)
@@ -4715,7 +4732,7 @@ class FiniteWord_class(Word_class):
             sage: w2 = m(w); w2
             word: 01234567876543210
             sage: w2.parent()
-            Words over {0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}
+            Finite words over {0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}
             sage: w2.is_palindrome()
             True
 
@@ -4812,7 +4829,7 @@ class FiniteWord_class(Word_class):
 
         from sage.sets.disjoint_set import DisjointSet_class
         if p is None:
-            if self.parent().size_of_alphabet() is Infinity:
+            if self.parent().alphabet().cardinality() is Infinity:
                 raise ValueError("The alphabet of the parent must be finite")
             from sage.sets.disjoint_set import DisjointSet
             p = DisjointSet(self.parent().alphabet())
@@ -4930,7 +4947,7 @@ class FiniteWord_class(Word_class):
             word:
             sage: w = Words(3)([2,1,2])
             sage: w._s(1).parent()
-            Words over {1, 2, 3}
+            Finite words over {1, 2, 3}
         """
         unpaired_i  = [] # positions of unpaired is
         unpaired_ip = [] # positions of unpaired i+1s
@@ -5570,7 +5587,7 @@ class FiniteWord_class(Word_class):
         if self.is_empty():
             return self
         W = self.parent()
-        if (W.size_of_alphabet() == 2):
+        if W.alphabet().cardinality()== 2:
             alphabet = W.alphabet()
         else:
             alphabet = self.letters()
@@ -5764,7 +5781,7 @@ class FiniteWord_class(Word_class):
 
         -   Thierry Monteil
         """
-        if (self.parent().size_of_alphabet() != 2):
+        if (self.parent().alphabet().cardinality() != 2):
             raise TypeError('your word must be defined on a binary alphabet')
         [a,b] = self.parent().alphabet()
         mini = 0
@@ -5909,7 +5926,7 @@ class FiniteWord_class(Word_class):
             evaluation_dict() instead
         """
         if alphabet is None:
-            if self.parent().size_of_alphabet() is Infinity:
+            if self.parent().alphabet().cardinality() is Infinity:
                 raise TypeError("The alphabet of the parent is infinite; define "
                         "the word with a parent on a finite alphabet or use "
                         "evaluation_dict() instead")
@@ -6366,7 +6383,7 @@ class FiniteWord_class(Word_class):
         W = self.parent()
         while m.length() > 1:
             m = m.delta_derivate_right()
-            if not all(W.has_letter(a) for a in m.letters()):
+            if not all(a in W.alphabet() for a in m.letters()):
                 return False
         return True
 
@@ -6646,14 +6663,14 @@ class FiniteWord_class(Word_class):
         base = width / float(self.length()) if not self.is_empty() else None
 
         #A colored rectangle for each letter
-        dim = self.parent().size_of_alphabet()
+        dim = self.parent().alphabet().cardinality()
         if dim is Infinity:
             ordered_alphabet = sorted(self.letters(), \
                     cmp=self.parent().cmp_letters)
             dim = float(len(ordered_alphabet))
         else:
             ordered_alphabet = self.parent().alphabet()
-            dim = float(self.parent().size_of_alphabet())
+            dim = float(self.parent().alphabet().cardinality())
         letter_to_integer_dict = dict((a,i) for (i,a) in
                 enumerate(ordered_alphabet))
         xp = x

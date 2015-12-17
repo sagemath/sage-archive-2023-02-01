@@ -117,7 +117,7 @@ cdef class ntl_ZZ_pEContext_class(object):
         more details (or the wrappers in sage.libs.ntl)
         """
         self.pc.restore_c()
-        ZZ_pEContext_restore(&self.x)
+        self.x.restore()
 
     #def ZZ_pX(self,v = None):
     #    from ntl_ZZ_pX import ntl_ZZ_pX

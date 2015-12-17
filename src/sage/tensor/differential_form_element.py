@@ -158,7 +158,7 @@ class DifferentialFormFormatter:
         """
 
         str = "/\\".join( \
-            [('d%s' % self._space.coordinate(c).__repr__()) for c in comp])
+            [('d%r' % self._space.coordinate(c)) for c in comp])
 
         if fun == 1 and len(comp) > 0:
             # We have a non-trivial form whose component function is 1,
@@ -394,7 +394,7 @@ class DifferentialForm(AlgebraElement):
         self._components = {}
 
         if degree == 0 and fun is not None:
-            self.__setitem__([], fun)
+            self[[]] = fun
 
     def __getitem__(self, subscript):
         r"""
@@ -595,10 +595,7 @@ class DifferentialForm(AlgebraElement):
             sage: f != g
             True
         """
-
-
-        return not self.__eq__(other)
-
+        return not self == other
 
     def _neg_(self):
         r"""

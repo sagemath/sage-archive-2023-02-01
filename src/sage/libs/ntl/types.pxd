@@ -10,6 +10,7 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
         bint operator>=(ZZ_c)
 
     cdef cppclass zz_p_c "zz_p":
+        zz_p_c operator=(long)
         bint operator==(zz_p_c)
         bint operator!=(zz_p_c)
         void *rep
@@ -42,11 +43,11 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
         pass
 
     cdef cppclass vec_GF2_c "vec_GF2":
-        void (*SetLength)(long n)
-        void (*SetMaxLength)(long n)
-        long (*length)()
-        long (*MaxLength)()
-        long (*allocated)()
+        void SetLength(long n)
+        void SetMaxLength(long n)
+        long length()
+        long MaxLength()
+        long allocated()
 
         GF2_c (*get)(long i)
         void  (*put_GF2 "put")(long i, GF2_c a)
@@ -64,23 +65,23 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
         bint operator==(zz_pX_c)
         bint operator!=(zz_pX_c)
         void *rep
-        void (* SetMaxLength)(long n)
+        void SetMaxLength(long n)
 
     cdef cppclass zz_pX_Modulus_c "zz_pXModulus":
-        zz_pX_c (* val) ( )
+        zz_pX_c val()
 
     cdef cppclass ZZ_pX_c "ZZ_pX":
         ZZ_pX_c()
         bint operator==(ZZ_pX_c)
         bint operator!=(ZZ_pX_c)
         void *rep
-        void (* SetMaxLength)(long n)
+        void SetMaxLength(long n)
 
     cdef cppclass ZZ_pX_Modulus_c "ZZ_pXModulus":
-        ZZ_pX_c (* val) ( )
+        ZZ_pX_c val()
 
     cdef cppclass ZZ_pX_Multiplier_c "ZZ_pXMultiplier":
-        ZZ_pX_c (* val) ( )
+        ZZ_pX_c val()
 
     cdef cppclass ZZ_pEX_c "ZZ_pEX":
         bint operator==(ZZ_pEX_c)
@@ -103,39 +104,42 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
         bint operator!=(GF2EX_c)
 
     cdef cppclass mat_ZZ_c "mat_ZZ":
-        pass
+        long NumRows()
+        long NumCols()
+        void SetDims(long, long)
 
     cdef cppclass mat_GF2_c "mat_GF2":
         bint operator==(mat_GF2_c)
         bint operator!=(mat_GF2_c)
-        void (*SetDims)(long nrows, long ncols)
-        long (*NumRows)()
-        long (*NumCols)()
+        void SetDims(long nrows, long ncols)
+        long NumRows()
+        long NumCols()
         GF2_c (*get "operator()") (long i, long j)
 
     cdef cppclass mat_GF2E_c "mat_GF2E":
         bint operator==(mat_GF2E_c)
         bint operator!=(mat_GF2E_c)
-        void (*SetDims)(long nrows, long ncols)
-        long (*NumRows)()
-        long (*NumCols)()
+        void SetDims(long nrows, long ncols)
+        long NumRows()
+        long NumCols()
         GF2E_c (*get "operator()") (long i, long j)
 
     cdef cppclass zz_pContext_c "zz_pContext":
         zz_pContext_c()
         zz_pContext_c(long)
+        void restore()
 
     cdef cppclass ZZ_pContext_c "ZZ_pContext":
         ZZ_pContext_c()
         ZZ_pContext_c(ZZ_c)
-        void (*restore)()
+        void restore()
 
     cdef cppclass ZZ_pEContext_c "ZZ_pEContext":
         ZZ_pEContext_c()
         ZZ_pEContext_c(ZZ_pX_c)
-        void (*restore)()
+        void restore()
 
     cdef cppclass GF2EContext_c "GF2EContext":
         GF2EContext_c()
         GF2EContext_c(GF2X_c)
-        void (*restore)()
+        void restore()

@@ -864,7 +864,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: P._repr_()
             'Graphics object consisting of 1 graphics primitive'
         """
-        return self.__str__()
+        return str(self)
 
     def _rich_repr_(self, display_manager, **kwds):
         """
@@ -3317,7 +3317,7 @@ class GraphicsArray(WithEqualityById, SageObject):
             sage: graphics_array(L,2,3)
             Graphics Array of size 2 x 3
         """
-        return self.__str__()
+        return str(self)
 
     def _rich_repr_(self, display_manager, **kwds):
         """

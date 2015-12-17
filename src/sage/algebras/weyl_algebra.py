@@ -285,7 +285,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: W.one() != 1
             False
         """
-        return not self.__eq__(rhs)
+        return not self == rhs
 
     def __neg__(self):
         """

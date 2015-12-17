@@ -157,7 +157,7 @@ Sage example in ./recequadiff.tex, line 488::
 
   sage: assume(x>0)
   sage: desolve(DE, u)
-  x == _C*e^(arcsinh(x^2*u(x)/sqrt(x^4)))
+  x == _C*e^arcsinh(u(x))
 
 Sage example in ./recequadiff.tex, line 505::
 

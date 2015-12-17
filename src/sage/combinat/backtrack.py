@@ -513,7 +513,7 @@ class SearchForest(Parent):
             sage: list(f.depth_first_search_iterator())
             [[], [0], [0, 0], [0, 0, 0], [0, 0, 1], [0, 1], [0, 1, 0], [0, 1, 1], [1], [1, 0], [1, 0, 0], [1, 0, 1], [1, 1], [1, 1, 0], [1, 1, 1]]
         """
-        return self.__iter__()
+        return iter(self)
 
     def breadth_first_search_iterator(self):
         r"""

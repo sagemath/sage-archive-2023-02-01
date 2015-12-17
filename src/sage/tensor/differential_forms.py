@@ -159,10 +159,7 @@ class DifferentialForms(Algebra):
             sage: F != G
             True
         """
-
-        return not self.__eq__(other)
-
-
+        return not self == other
 
     def ngens(self):
         """

@@ -8500,7 +8500,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: matrix().inverse()
             []
        """
-        return self.__invert__()
+        return ~self
 
     def adjoint(self):
         """

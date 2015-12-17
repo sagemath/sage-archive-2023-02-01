@@ -60,6 +60,7 @@ cimport sage_object
 from sage.categories.category import Category
 from sage.structure.debug_options import debug
 
+
 def guess_category(obj):
     # this should be obsolete if things declare their categories
     try:
@@ -397,7 +398,7 @@ cdef class CategoryObject(sage_object.SageObject):
                         ngens = 1
                 else:
                     ngens = self.ngens()
-            names = self.normalize_names(ngens, names)
+            names = normalize_names(ngens, names)
         if self._names is not None and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
         if isinstance(names, str):
@@ -408,50 +409,18 @@ cdef class CategoryObject(sage_object.SageObject):
             raise TypeError, "names must be a tuple of strings"
         self._names = names
 
-    def normalize_names(self, int ngens, names=None):
-        if names is None:
-            return None
-        if ngens == 0:
-            return ()
-        if isinstance(names, str) and names.find(',') != -1:
-            names = names.split(',')
-        if isinstance(names, str) and ngens > 1 and len(names) == ngens:
-            names = tuple(names)
-        if isinstance(names, str):
-            name = names
-            import sage.misc.defaults
-            names = sage.misc.defaults.variable_names(ngens, name)
-            names = self._certify_names(names)
-        else:
-            names = self._certify_names(names)
-            if not isinstance(names, (list, tuple)):
-                raise TypeError, "names must be a list or tuple of strings"
-            for x in names:
-                if not isinstance(x,str):
-                    raise TypeError, "names must consist of strings"
-            if len(names) != ngens:
-                raise IndexError, "the number of names must equal the number of generators"
-        return names
+    def normalize_names(self, ngens, names):
+        """
+        TESTS::
 
-    def _certify_names(self, names):
-        v = []
-        try:
-            names = tuple(names)
-        except TypeError:
-            names = [str(names)]
-        for N in names:
-            if not isinstance(N, str):
-                N = str(N)
-            N = N.strip().strip("'")
-            if len(N) == 0:
-                raise ValueError, "variable name must be nonempty"
-            if not N.isalnum() and not N.replace("_","").isalnum():
-                # We must be alphanumeric, but we make an exception for non-leading '_' characters.
-                raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
-            if not N[0].isalpha():
-                raise ValueError, "first letter of variable name must be a letter: %s" % N
-            v.append(N)
-        return tuple(v)
+            sage: ZZ.normalize_names(1, "x")
+            doctest:...: DeprecationWarning: The method normalize_names() has been changed to a function
+            See http://trac.sagemath.org/19675 for details.
+            ('x',)
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(19675, "The method normalize_names() has been changed to a function")
+        return normalize_names(ngens, names)
 
     def variable_names(self):
         """
@@ -801,6 +770,179 @@ cdef class CategoryObject(sage_object.SageObject):
         return self._hash_value
 
 
+cpdef normalize_names(Py_ssize_t ngens, names):
+    r"""
+    Return a tuple of strings of variable names of length ngens given
+    the input names.
+
+    INPUT:
+
+    - ``ngens`` -- integer: number of generators. The value ``ngens=-1``
+      means that the number of generators is unknown a priori.
+
+    - ``names`` -- any of the following:
+
+      - a tuple or list of strings, such as ``('x', 'y')``
+
+      - a comma-separated string, such as ``x,y``
+
+      - a string prefix, such as 'alpha'
+
+      - a string of single character names, such as 'xyz'
+
+    OUTPUT: a tuple of ``ngens`` strings to be used as variable names.
+
+    EXAMPLES::
+
+        sage: from sage.structure.category_object import normalize_names as nn
+        sage: nn(0, "")
+        ()
+        sage: nn(0, [])
+        ()
+        sage: nn(0, None)
+        ()
+        sage: nn(1, 'a')
+        ('a',)
+        sage: nn(2, 'z_z')
+        ('z_z0', 'z_z1')
+        sage: nn(3, 'x, y, z')
+        ('x', 'y', 'z')
+        sage: nn(2, 'ab')
+        ('a', 'b')
+        sage: nn(2, 'x0')
+        ('x00', 'x01')
+        sage: nn(3, (' a ', ' bb ', ' ccc '))
+        ('a', 'bb', 'ccc')
+        sage: nn(4, ['a1', 'a2', 'b1', 'b11'])
+        ('a1', 'a2', 'b1', 'b11')
+
+    Arguments are converted to strings::
+
+        sage: nn(1, u'a')
+        ('a',)
+        sage: var('alpha')
+        alpha
+        sage: nn(2, alpha)
+        ('alpha0', 'alpha1')
+        sage: nn(1, [alpha])
+        ('alpha',)
+
+    With an unknown number of generators::
+
+        sage: nn(-1, 'a')
+        ('a',)
+        sage: nn(-1, 'x, y, z')
+        ('x', 'y', 'z')
+
+    Test errors::
+
+        sage: nn(3, ["x", "y"])
+        Traceback (most recent call last):
+        ...
+        IndexError: the number of names must equal the number of generators
+        sage: nn(None, "a")
+        Traceback (most recent call last):
+        ...
+        TypeError: 'NoneType' object cannot be interpreted as an index
+        sage: nn(1, "")
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name must be nonempty
+        sage: nn(1, "foo@")
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name 'foo@' is not alphanumeric
+        sage: nn(2, "_foo")
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name '_foo0' does not start with a letter
+        sage: nn(1, 3/2)
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name '3/2' is not alphanumeric
+    """
+    if isinstance(names, (tuple, list)):
+        # Convert names to strings and strip whitespace
+        names = [str(x).strip() for x in names]
+    else:
+        # Interpret names as string and convert to tuple of strings
+        names = str(names)
+
+        if ',' in names:
+            names = [x.strip() for x in names.split(',')]
+        elif ngens > 1 and len(names) == ngens:
+            # Split a name like "xyz" into ("x", "y", "z")
+            try:
+                certify_names(names)
+                names = tuple(names)
+            except ValueError:
+                pass
+        if isinstance(names, basestring):
+            if ngens < 0:
+                names = [names]
+            else:
+                import sage.misc.defaults
+                names = sage.misc.defaults.variable_names(ngens, names)
+
+    certify_names(names)
+    if ngens >= 0 and len(names) != ngens:
+       raise IndexError("the number of names must equal the number of generators")
+    return tuple(names)
+
+
+cpdef bint certify_names(names) except -1:
+    """
+    Check that ``names`` are valid variable names.
+
+    INPUT:
+
+    - ``names`` -- an iterable with strings representing variable names
+
+    OUTPUT: ``True`` (for efficiency of the Cython call)
+
+    EXAMPLES::
+
+        sage: from sage.structure.category_object import certify_names as cn
+        sage: cn(["a", "b", "c"])
+        1
+        sage: cn("abc")
+        1
+        sage: cn([])
+        1
+        sage: cn([""])
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name must be nonempty
+        sage: cn(["_foo"])
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name '_foo' does not start with a letter
+        sage: cn(["x'"])
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name "x'" is not alphanumeric
+        sage: cn(["a", "b", "b"])
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name 'b' appears more than once
+    """
+    cdef set s = set()
+    for N in names:
+        if not isinstance(N, str):
+            raise TypeError("variable name {!r} must be a string, not {}".format(N, type(N)))
+        if not N:
+            raise ValueError("variable name must be nonempty")
+        if not N.replace("_", "").isalnum():
+            # We must be alphanumeric, but we make an exception for non-leading '_' characters.
+            raise ValueError("variable name {!r} is not alphanumeric".format(N))
+        if not N[0].isalpha():
+            raise ValueError("variable name {!r} does not start with a letter".format(N))
+        if N in s:
+            raise ValueError("variable name {!r} appears more than once".format(N))
+        s.add(N)
+    return True
+
+
 class localvars:
     r"""
     Context manager for safely temporarily changing the variables
@@ -842,7 +984,7 @@ class localvars:
     def __init__(self, obj, names, latex_names=None, normalize=True):
         self._obj = obj
         if normalize:
-            self._names = obj.normalize_names(obj.ngens(), names)
+            self._names = normalize_names(obj.ngens(), names)
         else:
             self._names = names
 

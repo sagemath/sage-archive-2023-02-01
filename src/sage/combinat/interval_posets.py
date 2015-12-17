@@ -1173,8 +1173,7 @@ class TamariIntervalPoset(Element):
             sage: [i for i in ip]
             [1, 2, 3, 4]
         """
-        return xrange(1,self.size()+1).__iter__()
-
+        return iter(xrange(1,self.size()+1))
 
     def contains_interval(self, other):
         r"""

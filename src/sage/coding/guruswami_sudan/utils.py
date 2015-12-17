@@ -335,10 +335,10 @@ def leading_term(v, weights=None):
 
     EXAMPLES::
 
-    sage: from sage.coding.guruswami_sudan.utils import leading_term
-    sage: F.<x> = GF(7)[]
-    sage: v = vector(F, [3*x^2 + 3*x + 4, 4*x + 3, 4*x^2 + 4*x + 5, x^2 + 2*x + 5, 3*x^2 + 5*x])
-    sage: leading_term(v)
-    3*x^2 + 5*x
+        sage: from sage.coding.guruswami_sudan.utils import leading_term
+        sage: F.<x> = GF(7)[]
+        sage: v = vector(F, [3*x^2 + 3*x + 4, 4*x + 3, 4*x^2 + 4*x + 5, x^2 + 2*x + 5, 3*x^2 + 5*x])
+        sage: leading_term(v)
+        3*x^2 + 5*x
     """
     return v[_leading_position(v, weights=weights)]

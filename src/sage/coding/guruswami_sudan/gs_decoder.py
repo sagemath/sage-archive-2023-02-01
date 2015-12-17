@@ -7,7 +7,7 @@ REFERENCES:
        Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
 
     .. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, Ph.D.
-    Thesis, Technical University of Denmark, 2013
+       Thesis, Technical University of Denmark, 2013
 
 AUTHORS:
 

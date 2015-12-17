@@ -3557,21 +3557,28 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             else:
                 return []
 
-        root = self.__pow__(~ZZ(2))
+        root = self ** ~ZZ(2)
 
         if all:
             return [root, -root]
         else:
            return root
 
-    def nth_root(self, n):
+    def nth_root(self, n, all=False):
         r"""
         Return the ``n``-th root of this number.
 
-        Note that for odd `n` and negative real numbers, ``AlgebraicReal``
-        and ``AlgebraicNumber`` values give different answers: ``AlgebraicReal``
-        values prefer real results, and ``AlgebraicNumber`` values
-        return the principal root.
+        INPUT:
+
+        -  ``all`` - bool (default: ``False``). If ``True``, return a list of
+           all `n`-th roots as complex algebraic numbers.
+
+        .. WARNING::
+
+            Note that for odd `n`, all=`False` and negative real numbers,
+            ``AlgebraicReal`` and ``AlgebraicNumber`` values give different
+            answers: ``AlgebraicReal`` values prefer real results, and
+            ``AlgebraicNumber`` values return the principal root.
 
         EXAMPLES::
 
@@ -3581,8 +3588,40 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             1.000000000000000? + 1.732050807568878?*I
             sage: QQbar.zeta(12).nth_root(15)
             0.9993908270190957? + 0.03489949670250097?*I
+
+        You can get all ``n``-th roots of algebraic numbers::
+
+            sage: AA(-8).nth_root(3, all=True)
+            [1.000000000000000? + 1.732050807568878?*I,
+            -2,
+            1.000000000000000? - 1.732050807568878?*I]
+
+            sage: QQbar(1+I).nth_root(4, all=True)
+            [1.069553932363986? + 0.2127475047267431?*I,
+             -0.2127475047267431? + 1.069553932363986?*I,
+             -1.069553932363986? - 0.2127475047267431?*I,
+             0.2127475047267431? - 1.069553932363986?*I]
+
+        TESTS::
+
+            sage: AA(-8).nth_root(3, all=True)[1]
+            -2
+            sage: _.parent()
+            Algebraic Field
+
+            sage: AA(-2).nth_root(5, all=True) == QQbar(-2).nth_root(5, all=True)   # long time
+            True
         """
-        return self.__pow__(~ZZ(n))
+        if not all:
+            return self ** ~ZZ(n)
+        else:
+            root = QQbar(self) ** ~ZZ(n)
+            zlist = [root]
+            zeta = QQbar.zeta(n)
+            for k in range(1, n):
+                root *= zeta
+                zlist.append(root)
+            return zlist
 
     def as_number_field_element(self, minimal=False):
         r"""
@@ -4141,10 +4180,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
                 return False
         if self is other: return True
         if other._descr.is_rational() and other._descr.rational_value() == 0:
-            return not self.__nonzero__()
+            return not self
         if self._descr.is_rational() and self._descr.rational_value() == 0:
-            return not other.__nonzero__()
-        return not self._sub_(other).__nonzero__()
+            return not other
+        return not self._sub_(other)
 
     def __ne__(self, other):
         r"""
@@ -4161,7 +4200,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar(2) != GF(7)(2)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __nonzero__(self):
         """
@@ -4831,7 +4870,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             return AlgebraicNumber(0)
         if d % 2 == 0:
             if self.sign() < 0:
-                return QQbar(self).__pow__(e)
+                return QQbar(self) ** e
         pow_n = self**n
         poly = AAPoly.gen()**d - pow_n
         range = pow_n.interval_fast(RIF)

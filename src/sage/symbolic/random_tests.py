@@ -331,15 +331,15 @@ def assert_strict_weak_order(a,b,c, cmp_func):
         sage: a, b, c = [ randint(-10,10) for i in range(0,3) ]
         sage: assert_strict_weak_order(a,b,c, lambda x,y: x<y)
 
-        sage: x = [SR(unsigned_infinity), SR(oo), -SR(oo)]
+        sage: x = [-SR(oo), SR(0), SR(oo)]
         sage: cmp = matrix(3,3)
         sage: for i in range(3):
         ....:     for j in range(3):
         ....:         cmp[i,j] = x[i].__cmp__(x[j])
         sage: cmp
         [ 0 -1 -1]
-        [ 1  0 -1]
-        [ 1  1  0]
+        [ 1  0  1]
+        [ 1 -1  0]
     """
     from sage.matrix.constructor import matrix
     from sage.combinat.permutation import Permutations

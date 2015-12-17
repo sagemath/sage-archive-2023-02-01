@@ -204,6 +204,7 @@ AUTHORS:
 import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.infinity import infinity
 from sage.rings.arith import divisors, gcd
@@ -540,8 +541,8 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         assert isinstance(generator_orders, tuple)
         assert all(isinstance(order,Integer) for order in generator_orders)
         self._gens_orders = generator_orders
-        n = ZZ(len(generator_orders))
-        names = self.normalize_names(n, names)
+        n = len(generator_orders)
+        names = normalize_names(n, names)
         self._assign_names(names)
         cat = Groups().Commutative()
         if all(order > 0 for order in generator_orders):
@@ -631,7 +632,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G >= H
             False
         """
-        return right.__le__(left)
+        return right <= left
 
     def __lt__(left, right):
         """
@@ -1233,7 +1234,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         if not(self.is_finite()):
            raise NotImplementedError("Group must be finite")
-        return tuple(self.__iter__())
+        return tuple(iter(self))
 
     def __iter__(self):
         """

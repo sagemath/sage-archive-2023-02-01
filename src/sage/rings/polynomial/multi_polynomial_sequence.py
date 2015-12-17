@@ -164,6 +164,7 @@ from sage.structure.sequence import Sequence, Sequence_generic
 
 from sage.rings.infinity import Infinity
 from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.quotient_ring_element import QuotientRingElement
@@ -193,6 +194,7 @@ def is_PolynomialSequence(F):
         sage: from sage.rings.polynomial.multi_polynomial_sequence import is_PolynomialSequence
         sage: is_PolynomialSequence(F)
         True
+
     """
     return isinstance(F,PolynomialSequence_generic)
 
@@ -260,6 +262,18 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
         sage: PolynomialSequence([[1,x,y], [0]]).ring()
         Multivariate Polynomial Ring in x, y, z over Finite Field of size 2
+
+    TESTS:
+
+    A PolynomialSequence can exist with elements in a infinite field of
+    characteristic 2 that is not (see :trac:`19452`)::
+
+        sage: from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        sage: F = GF(2)
+        sage: L.<t> = PowerSeriesRing(F,'t')
+        sage: R.<x,y> = PolynomialRing(L,'x,y')
+        sage: PolynomialSequence([0], R)
+        [0]
     """
 
     from sage.matrix.matrix import is_Matrix
@@ -325,19 +339,10 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     K = ring.base_ring()
 
-    try:
-        c = K.characteristic()
-    except NotImplementedError:
-        # We assume that our ring has characteristic zero if it does not implement a
-        # characteristic(). For example, generic quotient rings do not have a characteristic()
-        # method implemented. It is okay to set c = 0 here because we're only using the
-        # characteristic to pick a more specialized implementation for c = 2.
-        c = 0
-
     # make sure we use the polynomial ring as ring not the monoid
     ring = (ring(1) + ring(1)).parent()
 
-    if c != 2:
+    if not isinstance(K, FiniteField) or K.characteristic() != 2:
         return PolynomialSequence_generic(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
     elif K.degree() == 1:
         return PolynomialSequence_gf2(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
@@ -1378,7 +1383,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         And we may use SAT-solvers if they are available::
 
-            sage: sol = S.solve(algorithm='sat'); sol  # optional - cryptominisat
+            sage: sol = S.solve(algorithm='sat') # optional - cryptominisat
             sage: print(reproducible_repr(sol))  # optional - cryptominisat
             [{x: 0, y: 1, z: 0}]
             sage: S.subs( sol[0] )

@@ -11,8 +11,6 @@ from sage.libs.ntl.ntl_lzz_pX_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
 from sage.libs.ntl.ntl_ZZ_p_decl cimport *
 from sage.libs.ntl.ntl_ZZX_decl cimport *
-from sage.libs.ntl.ntl_lzz_pContext_decl cimport *
-from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pE_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *
 
@@ -27,11 +25,8 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     void mat_ZZ_sub "sub"( mat_ZZ_c x, mat_ZZ_c a, mat_ZZ_c b)
     void mat_ZZ_power "NTL::power"( mat_ZZ_c x, mat_ZZ_c a, long e)
     void mat_ZZ_CharPoly "CharPoly"(ZZX_c r, mat_ZZ_c m)
-    void mat_ZZ_SetDims(mat_ZZ_c* mZZ, long nrows, long ncols)
 
     mat_ZZ_c* mat_ZZ_pow(mat_ZZ_c* x, long e)
-    long mat_ZZ_nrows(mat_ZZ_c* x)
-    long mat_ZZ_ncols(mat_ZZ_c* x)
     void mat_ZZ_setitem(mat_ZZ_c* x, int i, int j, ZZ_c* z)
     ZZ_c* mat_ZZ_getitem(mat_ZZ_c* x, int i, int j)
     ZZ_c* mat_ZZ_determinant(mat_ZZ_c* x, long deterministic)

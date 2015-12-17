@@ -8601,7 +8601,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: matrix().inverse()
             []
        """
-        return self.__invert__()
+        return ~self
 
     def adjoint(self):
         """

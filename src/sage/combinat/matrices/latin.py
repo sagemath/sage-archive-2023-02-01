@@ -217,7 +217,7 @@ class LatinSquare:
             [0 1]
             [2 3]
         """
-        return self.square.__str__()
+        return str(self.square)
 
     def __repr__(self):
         """
@@ -230,8 +230,7 @@ class LatinSquare:
             [0 1]
             [2 3]
         """
-        return self.square.__str__()
-        return self.square.__repr__()
+        return repr(self.square)
 
     def __getitem__(self, rc):
         """
@@ -296,8 +295,7 @@ class LatinSquare:
             sage: L.__hash__()
             12
         """
-
-        return self.square.__hash__()
+        return hash(self.square)
 
     def __eq__(self, Q):
         """

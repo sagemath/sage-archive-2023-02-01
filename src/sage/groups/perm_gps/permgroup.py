@@ -721,7 +721,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.list()
             [(), ('a','b')]
         """
-        return list(self.__iter__())
+        return [x for x in self]
 
     def __contains__(self, item):
         """

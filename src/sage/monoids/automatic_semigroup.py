@@ -874,9 +874,19 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
                 10 [2, 2]
                 12 [1, 1, 1]
                 6  [1, 1, 1, 1]
+
+            TESTS:
+
+            We check that :trac:`19631` is fixed::
+
+                sage: R = IntegerModRing(101)
+                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
+                sage: e = M.from_reduced_word([1, 1, 1, 2, 2, 2])
+                sage: e.reduced_word()
+                [1, 1, 1, 2, 2, 2]
             """
             if self._reduced_word is None:
-                self.construct(up_to=self)
+                self.parent().construct(up_to=self)
             return self._reduced_word
 
         def lift(self):

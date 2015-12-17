@@ -92,6 +92,15 @@ This came up in some subtle bug once::
     sage: gp(2) + gap(3)
     5
 
+::
+
+    sage: sage.structure.parent.normalize_names(5, 'x')
+    doctest:...: DeprecationWarning:
+    Importing normalize_names from here is deprecated. If you need to use it, please import it directly from sage.structure.category_object
+    See http://trac.sagemath.org/19675 for details.
+    ('x0', 'x1', 'x2', 'x3', 'x4')
+    sage: sage.structure.parent.normalize_names(2, ['x','y'])
+    ('x', 'y')
 """
 
 from types import MethodType
@@ -107,6 +116,10 @@ from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.sage_itertools import unique_merge
 from sage.misc.lazy_format import LazyFormat
+
+from sage.misc.lazy_import import LazyImport
+normalize_names = LazyImport("sage.structure.category_object", "normalize_names", deprecation=19675)
+
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -2652,7 +2665,7 @@ cdef class Parent(category_object.CategoryObject):
             return self._convert_from_hash.get(S)
         except KeyError:
             mor = self.discover_convert_map_from(S)
-            # Before trac #14711, the morphism has been 
+            # Before trac #14711, the morphism has been
             # put both into _convert_from_list and into
             # _convert_from_hash. But there is no reason
             # to have a double book-keeping, specifically
@@ -3310,16 +3323,3 @@ cdef bint _unregister_pair(x, y, tag) except -1:
         _coerce_test_dict.pop(EltPair(x,y,tag), None)
     except (ValueError, CoercionException):
         pass
-
-empty_set = Set_generic()
-
-def normalize_names(ngens, names):
-    """
-    TESTS::
-
-        sage: sage.structure.parent.normalize_names(5, 'x')
-        ('x0', 'x1', 'x2', 'x3', 'x4')
-        sage: sage.structure.parent.normalize_names(2, ['x','y'])
-        ('x', 'y')
-    """
-    return empty_set.normalize_names(ngens, names)

@@ -2623,7 +2623,7 @@ class AbstractLinearCode(module.Module):
             (1, 0, 1, 0, 1, 0, 1)
             True
         """
-        return list(self.__iter__())
+        return [x for x in self]
 
     def _magma_init_(self, magma):
         r"""
@@ -3510,7 +3510,7 @@ class AbstractLinearCode(module.Module):
 
         INPUT:
 
-        - ``c`` -- a codeword of ``self``
+        - ``c`` -- a codeword of ``self``.
 
         - ``encoder_name`` -- (default: ``None``) name of the decoder which will be used
           to decode ``word``. The default decoder of ``self`` will be used if

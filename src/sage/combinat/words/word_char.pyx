@@ -506,7 +506,7 @@ cdef class WordDatatype_char(WordDatatype):
         if exp == float('inf'):
             from sage.rings.infinity import Infinity
             fcn = lambda n: self[n % self.length()]
-            return self._parent(fcn, length=Infinity)
+            return self._parent.shift()(fcn, datatype='callable')
 
         if exp < 0:
             raise ValueError("can not take negative power of a word")

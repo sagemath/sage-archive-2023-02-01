@@ -331,7 +331,7 @@ class IncidenceStructure(object):
             sage: BD1 != BD2
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __contains__(self, block):
         r"""

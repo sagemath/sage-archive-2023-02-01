@@ -394,7 +394,7 @@ class QuotientRingElement(RingElement):
                 return L * R.inverse_mod(I)
             except NotImplementedError:
                 if R.is_unit():
-                    return L * R.__invert__()
+                    return L * ~R
                 else:
                     raise
 

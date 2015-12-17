@@ -46,7 +46,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A.base_ring()
         Rational Field
         sage: A.basis().keys()
-        Finite Words over {'a', 'b', 'c'}
+        Finite words over {'a', 'b', 'c'}
 
         sage: (a,b,c) = A.algebra_generators()
         sage: a^3, b^2

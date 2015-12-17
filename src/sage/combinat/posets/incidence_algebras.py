@@ -764,7 +764,7 @@ class ReducedIncidenceAlgebra(CombinatorialFreeModule):
                  + 3/2*R[(0, 7)] - 33/4*R[(0, 15)]
             """
             P = self.parent()
-            return P._retract(P.lift(self).__invert__())
+            return P._retract(~P.lift(self))
 
         def lift(self):
             """

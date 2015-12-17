@@ -803,7 +803,6 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         self._hyp_refine_vals_scratch = <long *> sage_malloc(
                             self._hyp_part.degree * sizeof(long))
         if self._hyp_refine_vals_scratch is NULL:
-            self.__dealloc__()
             raise MemoryError('allocating PartitionRefinementLinearCode')
 
         self._hyp_refine_vals = _BestValStore(self._hyp_part.degree)

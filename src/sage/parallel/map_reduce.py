@@ -62,13 +62,14 @@ examples :
 
   Here's the Sage code for binary words of length `\leq 16` ::
 
-      sage: S = RecursivelyEnumeratedSet(
-      ....:   [[]], lambda l: [l+[0], l+[1]] if len(l) <= 15 else [],
+      sage: seeds = [[]]
+      sage: succ = lambda l: [l+[0], l+[1]] if len(l) <= 15 else []
+      sage: S = RecursivelyEnumeratedSet(seeds, succ,
       ....:   structure='forest', enumeration='depth')
-      sage: S.map_reduce(
-      ....:   map_function = lambda x: 1,
-      ....:   reduce_function = lambda x,y: x+y,
-      ....:   reduce_init = 0 )
+      sage: map_function = lambda x: 1
+      sage: reduce_function = lambda x,y: x+y
+      sage: reduce_init = 0
+      sage: S.map_reduce(map_function, reduce_function, reduce_init)
       131071
 
   Note that the function mapped and reduced here are equivalent to the default

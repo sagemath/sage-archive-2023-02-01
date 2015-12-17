@@ -2023,7 +2023,7 @@ cdef class RingElement(ModuleElement):
             ...
             ArithmeticError: absolute valued not defined on integers modulo n.
         """
-        return self.__abs__()
+        return abs(self)
 
     def is_prime(self):
         """

@@ -251,6 +251,7 @@ __append_to_doc(
      "TaylorTwographDescendantSRG",
      "TaylorTwographSRG",
      "T2starGeneralizedQuadrangleGraph",
+     "HaemersGraph",
      "UnitaryDualPolarGraph",
      "UnitaryPolarGraph"])
 
@@ -1563,6 +1564,9 @@ class GraphGenerators():
               :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
               get/set methods for embeddings.
 
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomTriangulation`
+              -- build a random triangulation.
+
         EXAMPLES:
 
         The unique planar embedding of the `K_4` is the only planar triangulations
@@ -2024,6 +2028,7 @@ class GraphGenerators():
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
     T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
+    HaemersGraph      = staticmethod(sage.graphs.generators.classical_geometries.HaemersGraph)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
     UnitaryPolarGraph      = staticmethod(sage.graphs.generators.classical_geometries.UnitaryPolarGraph)
 

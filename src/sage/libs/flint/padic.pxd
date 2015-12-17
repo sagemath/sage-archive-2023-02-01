@@ -1,50 +1,19 @@
 # This file was (manually) generated from FLINT's padic.h.
 #*****************************************************************************
-#         Copyright (C) 2011 Sebastian Pancratz
+#       Copyright (C) 2011 Sebastian Pancratz
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.libs.flint.fmpq_poly cimport fmpq_t
-from sage.libs.flint.fmpz cimport *
+
+from sage.libs.flint.types cimport *
 
 cdef extern from "flint/padic.h":
-    ctypedef struct padic_struct:
-        fmpz u
-        long v
-
-    ctypedef void* padic_t
-
-    cdef enum padic_print_mode:
-        PADIC_TERSE
-        PADIC_SERIES
-        PADIC_VAL_UNIT
-
-    ctypedef struct padic_ctx_struct:
-        fmpz_t p
-        long N
-        double pinv
-        fmpz* pow
-        long min
-        long max
-
-    ctypedef void * padic_ctx_t
-
-    ctypedef struct padic_inv_struct:
-        long n
-        fmpz *pow
-        fmpz *u
-
-    ctypedef void * padic_inv_t
-
     fmpz_t padic_unit(padic_t)
     long padic_val(padic_t)
-
-    void padic_ctx_init(padic_ctx_t ctx, fmpz_t p, long min, long max, padic_print_mode mode)
-    void padic_ctx_clear(padic_ctx_t ctx)
-    int _padic_ctx_pow_ui(fmpz_t rop, unsigned long e, padic_ctx_t ctx)
 
     # Context ******************************************************************
     void padic_ctx_init(padic_ctx_t ctx, fmpz_t p, long N, padic_print_mode mode)

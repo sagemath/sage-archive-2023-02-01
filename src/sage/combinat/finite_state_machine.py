@@ -386,7 +386,7 @@ which gives additionally the state in which we arrived.
 We can also let an automaton act on a :doc:`word <words/words>`::
 
     sage: W = Words([-1, 0, 1]); W
-    Words over {-1, 0, 1}
+    Finite and infinite words over {-1, 0, 1}
     sage: w = W([1, 0, 1, 0, -1]); w
     word: 1,0,1,0,-1
     sage: NAF(w)
@@ -532,7 +532,7 @@ Sage's :doc:`words <words/words>`.
 ::
 
     sage: W = Words([0, 1]); W
-    Words over {0, 1}
+    Finite and infinite words over {0, 1}
 
 Let us take the inverter from the previous section and feed some
 finite word into it::
@@ -1920,7 +1920,7 @@ class FSMState(sage.structure.sage_object.SageObject):
             True
         """
         color = not compare_color or left.color == right.color
-        return (left.__eq__(right) and
+        return (left == right and
                 left.is_initial == right.is_initial and
                 left.is_final == right.is_final and
                 left.final_word_out == right.final_word_out and
@@ -3650,7 +3650,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         We can also let them act on :doc:`words <words/words>`::
 
             sage: W = Words([0, 1]); W
-            Words over {0, 1}
+            Finite and infinite words over {0, 1}
             sage: binary_inverter(W([0, 1, 1, 0, 1, 1]))
             word: 100100
 
@@ -12985,7 +12985,7 @@ class Transducer(FiniteStateMachine):
         This can also be used with words as input::
 
             sage: W = Words([0, 1]); W
-            Words over {0, 1}
+            Finite and infinite words over {0, 1}
             sage: w = W([0, 1, 0, 0, 1, 1]); w
             word: 010011
             sage: binary_inverter(w)

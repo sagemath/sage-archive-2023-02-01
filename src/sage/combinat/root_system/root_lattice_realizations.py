@@ -3174,7 +3174,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                     return self.cartan_type().root_system().weight_space(self.base_ring())
                 else:
                     return self.cartan_type().dual().root_system().coweight_space(self.base_ring())
-            raise TypeError, "Not implemented for %s"%self
+            raise TypeError("Not implemented for %s" % self)
 
         @abstract_method(optional=True)
         def to_ambient_space_morphism(self):

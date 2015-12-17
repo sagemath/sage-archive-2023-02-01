@@ -577,10 +577,8 @@ Python:
    applied to the ambient ``MatrixSpace`` of the generator matrix until a
    full rank matrix is found.
 
--  ``ReedSolomonCode`` - Also called a "generalized Reed-Solomon code" (the
-   "narrow" RS codes codes are also cyclic codes; they are part of GUAVA
-   but have not been ported over to natice Python/Sage yet). Given a
-   finite field :math:`\mathbb{F}` of order :math:`q`, let :math:`n` and
+-  ``GeneralizedReedSolomonCode`` - Given a finite field :math:`\mathbb{F}`
+   of order :math:`q`, let :math:`n` and
    :math:`k` be chosen such that :math:`1 \leq k \leq n \leq q`. Pick
    :math:`n` distinct elements of :math:`\mathbb{F}`, denoted
    :math:`\{ x_1, x_2, ... , x_n \}`. Then, the codewords are obtained
@@ -597,31 +595,28 @@ Python:
 
    INPUT:
 
-   -  ``n`` : the length
+    - ``evaluation_points`` -- A list of evaluation points in a finite field F
 
-   -  ``k`` : the dimension
+    - ``dimension`` -- The dimension of the code
 
-   -  ``F`` : the base ring
-
-   -  ``pts`` : (optional) list of :math:`n` points in :math:`\mathbb{F}` (if
-      omitted then Sage  picks :math:`n` of them in the order given to
-      the elements of :math:`\mathbb{F}`)
+    - ``column_multipliers`` -- (default: ``None``) List of column multipliers in F for this code.
+      All column multipliers are set to 1 if default value is kept.
 
    EXAMPLES:
 
    ::
 
 
-         sage: C = codes.ReedSolomonCode(6,4,GF(7)); C
-         Linear code of length 6, dimension 4 over Finite Field of size 7
+         sage: C = codes.GeneralizedReedSolomonCode(GF(7).list()[:6], 4); C
+         [6, 4, 3] Generalized Reed-Solomon Code over Finite Field of size 7
          sage: C.minimum_distance()
          3
          sage: F.<a> = GF(3^2,"a")
          sage: pts = [0,1,a,a^2,2*a,2*a+1]
          sage: len(Set(pts)) == 6 # to make sure there are no duplicates
          True
-         sage: C = codes.ReedSolomonCode(6,4,F,pts); C
-         Linear code of length 6, dimension 4 over Finite Field in a of size 3^2
+         sage: C = codes.GeneralizedReedSolomonCode(pts, 4); C
+         [6, 4, 3] Generalized Reed-Solomon Code over Finite Field in a of size 3^2
          sage: C.minimum_distance()
          3
 

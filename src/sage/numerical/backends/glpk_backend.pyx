@@ -1,3 +1,4 @@
+# distutils: language = c++
 """
 GLPK Backend
 
@@ -9,14 +10,22 @@ AUTHORS:
 - Christian Kuper (2012-10): Additions for sensitivity analysis
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 
 from sage.numerical.mip import MIPSolverException
+from sage.libs.glpk.constants cimport *
+from sage.libs.glpk.lp cimport *
+from libc.float cimport DBL_MAX
+from libc.limits cimport INT_MAX
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
@@ -33,9 +42,9 @@ cdef class GLPKBackend(GenericBackend):
         """
         self.lp = glp_create_prob()
         self.simplex_or_intopt = glp_intopt_only
-        self.smcp = <c_glp_smcp* > sage_malloc(sizeof(c_glp_smcp))
+        self.smcp = <glp_smcp* > sage_malloc(sizeof(glp_smcp))
         glp_init_smcp(self.smcp)
-        self.iocp = <c_glp_iocp* > sage_malloc(sizeof(c_glp_iocp))
+        self.iocp = <glp_iocp* > sage_malloc(sizeof(glp_iocp))
         glp_init_iocp(self.iocp)
 
         self.iocp.cb_func = glp_callback                      # callback function
@@ -1132,6 +1141,39 @@ cdef class GLPKBackend(GenericBackend):
         else:
           return glp_get_col_prim(self.lp, variable+1)
 
+    cpdef get_row_prim(self, int i):
+        r"""
+        Returns the value of the auxiliary variable associated with i-th row.
+
+        .. NOTE::
+
+           Behaviour is undefined unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_objective_value()
+            280.0
+            sage: lp.get_row_prim(0)
+            24.0
+            sage: lp.get_row_prim(1)
+            20.0
+            sage: lp.get_row_prim(2)
+            8.0
+        """
+        return glp_get_row_prim(self.lp, i+1)
+
     cpdef int ncols(self):
         """
         Return the number of columns/variables.
@@ -2211,6 +2253,112 @@ cdef class GLPKBackend(GenericBackend):
 
         return glp_get_col_stat(self.lp, j+1)
 
+    cpdef set_row_stat(self, int i, int stat):
+        r"""
+        Set the status of a constraint.
+
+        INPUT:
+
+        - ``i`` -- The index of the constraint
+
+        - ``stat`` -- The status to set to
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_row_stat(0)
+            1
+            sage: lp.set_row_stat(0, 3)
+            sage: lp.get_row_stat(0)
+            3
+        """
+        if i < 0 or i >= glp_get_num_rows(self.lp):
+            raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+
+        glp_set_row_stat(self.lp, i+1, stat)
+
+    cpdef set_col_stat(self, int j, int stat):
+        r"""
+        Set the status of a variable.
+
+        INPUT:
+
+        - ``j`` -- The index of the constraint
+
+        - ``stat`` -- The status to set to
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_col_stat(0)
+            1
+            sage: lp.set_col_stat(0, 2)
+            sage: lp.get_col_stat(0)
+            2
+        """
+        if j < 0 or j >= glp_get_num_cols(self.lp):
+            raise ValueError("The variable's index j must satisfy 0 <= j < number_of_variables")
+
+        glp_set_col_stat(self.lp, j+1, stat)
+ 
+    cpdef int warm_up(self):
+        r"""
+        Warm up the basis using current statuses assigned to rows and cols.
+
+        OUTPUT:
+
+        - Returns the warming up status
+
+            * 0             The operation has been successfully performed.
+            * GLP_EBADB     The basis matrix is invalid. 
+            * GLP_ESING     The basis matrix is singular within the working precision.
+            * GLP_ECOND     The basis matrix is ill-conditioned.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_objective_value()
+            280.0
+            sage: lp.set_row_stat(0,3)
+            sage: lp.set_col_stat(1,1)
+            sage: lp.warm_up()
+            0
+        """
+        return glp_warm_up(self.lp)
+
     cpdef eval_tab_row(self, int k):
         r"""
         Computes a row of the current simplex tableau.
@@ -2415,7 +2563,7 @@ cdef class GLPKBackend(GenericBackend):
         sage_free(self.iocp)
         sage_free(self.smcp)
 
-cdef void glp_callback(c_glp_tree* tree, void* info):
+cdef void glp_callback(glp_tree* tree, void* info):
     r"""
     A callback routine called by glp_intopt
 
@@ -2425,7 +2573,7 @@ cdef void glp_callback(c_glp_tree* tree, void* info):
 
     INPUT:
 
-    - ``tree`` -- a pointer toward ``c_glp_tree``, which is GLPK's search tree
+    - ``tree`` -- a pointer toward ``glp_tree``, which is GLPK's search tree
 
     - ``info`` -- a ``void *`` to let the function know *where* it should store
       the data we need. The value of ``info`` is equal to the one stored in

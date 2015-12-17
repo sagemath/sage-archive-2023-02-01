@@ -376,6 +376,87 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return mpfr_equal_p(&self.__re.left, &self.__re.right) and \
                mpfr_equal_p(&self.__im.left, &self.__im.right)
 
+    def endpoints(self):
+        """
+        Return the 4 corners of the rectangle in the complex plane
+        defined by this interval.
+
+        OUTPUT: a 4-tuple of complex numbers
+        (lower left, upper right, upper left, lower right)
+
+        .. SEEALSO::
+
+            :meth:`edges` which returns the 4 edges of the rectangle.
+
+        EXAMPLES::
+
+            sage: CIF(RIF(1,2), RIF(3,4)).endpoints()
+            (1.00000000000000 + 3.00000000000000*I,
+             2.00000000000000 + 4.00000000000000*I,
+             1.00000000000000 + 4.00000000000000*I,
+             2.00000000000000 + 3.00000000000000*I)
+            sage: ComplexIntervalField(20)(-2).log().endpoints()
+            (0.69315 + 3.1416*I,
+             0.69315 + 3.1416*I,
+             0.69315 + 3.1416*I,
+             0.69315 + 3.1416*I)
+        """
+        left, right = self.real().endpoints()
+        lower, upper = self.imag().endpoints()
+        CC = self._parent._middle_field()
+        return (CC(left, lower), CC(right, upper),
+                CC(left, upper), CC(right, lower))
+
+    def edges(self):
+        """
+        Return the 4 edges of the rectangle in the complex plane
+        defined by this interval as intervals.
+
+        OUTPUT: a 4-tuple of complex intervals
+        (left edge, right edge, lower edge, upper edge)
+
+        .. SEEALSO::
+
+            :meth:`endpoints` which returns the 4 corners of the
+            rectangle.
+
+        EXAMPLES::
+
+            sage: CIF(RIF(1,2), RIF(3,4)).edges()
+            (1 + 4.?*I, 2 + 4.?*I, 2.? + 3*I, 2.? + 4*I)
+            sage: ComplexIntervalField(20)(-2).log().edges()
+            (0.69314671? + 3.14160?*I,
+             0.69314766? + 3.14160?*I,
+             0.693147? + 3.1415902?*I,
+             0.693147? + 3.1415940?*I)
+        """
+        cdef ComplexIntervalFieldElement left = self._new()
+        cdef ComplexIntervalFieldElement right = self._new()
+        cdef ComplexIntervalFieldElement lower = self._new()
+        cdef ComplexIntervalFieldElement upper = self._new()
+        cdef mpfr_t x
+        mpfr_init2(x, self.prec())
+
+        # Set real parts
+        mpfi_get_left(x, self.__re)
+        mpfi_set_fr(left.__re, x)
+        mpfi_get_right(x, self.__re)
+        mpfi_set_fr(right.__re, x)
+        mpfi_set(lower.__re, self.__re)
+        mpfi_set(upper.__re, self.__re)
+
+        # Set imaginary parts
+        mpfi_get_left(x, self.__im)
+        mpfi_set_fr(lower.__im, x)
+        mpfi_get_right(x, self.__im)
+        mpfi_set_fr(upper.__im, x)
+        mpfi_set(left.__im, self.__im)
+        mpfi_set(right.__im, self.__im)
+
+        mpfr_clear(x)
+
+        return (left, right, lower, upper)
+
     def diameter(self):
         """
         Returns a somewhat-arbitrarily defined "diameter" for this interval.

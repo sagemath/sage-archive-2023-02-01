@@ -3275,6 +3275,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
 
+    @cached_method
     def strict_quotient(self):
         r"""
         Return the quotient of ``self`` by the linear subspace.
@@ -3303,27 +3304,198 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: ssc.rays()
             Empty collection
             in 1-d lattice N
+
+        The quotient of the trivial cone is trivial::
+
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.strict_quotient()
+            0-d cone in 0-d lattice N
+            sage: K = Cone([(0,0,0,0)])
+            sage: K.strict_quotient()
+            0-d cone in 4-d lattice N
+
+        TESTS:
+
+        The strict quotient of any cone should be strictly convex::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.strict_quotient().is_strictly_convex()
+            True
+
+        If the original cone is solid, then its strict quotient is proper::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, solid=True)
+            sage: K.strict_quotient().is_proper()
+            True
+
+        The strict quotient of a strictly convex cone is itself::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, strictly_convex=True)
+            sage: K.strict_quotient() is K
+            True
+
+        The complement of our linear subspace has the same dimension as
+        our dual, so the strict quotient cannot have a larger dimension
+        than our dual::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.strict_quotient().dim() <= K.dual().dim()
+            True
+
+        The strict quotient is idempotent::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K1 = K.strict_quotient()
+            sage: K2 = K1.strict_quotient()
+            sage: K1 is K2
+            True
         """
-        if "_strict_quotient" not in self.__dict__:
-            if self.is_strictly_convex():
-                self._strict_quotient = self
-            else:
-                L = self.lattice()
-                Q = L.base_extend(QQ) / self.linear_subspace()
-                # Maybe we can improve this one if we create something special
-                # for sublattices. But it seems to be the most natural choice
-                # for names. If many subcones land in the same lattice -
-                # that's just how it goes.
-                if is_ToricLattice(L):
-                    S = ToricLattice(Q.dimension(), L._name, L._dual_name,
-                                     L._latex_name, L._latex_dual_name)
-                else:
-                    S = ZZ**Q.dimension()
-                rays = [Q(ray) for ray in self.rays() if not Q(ray).is_zero()]
-                quotient = Cone(rays, S, check=False)
-                quotient._is_strictly_convex = True
-                self._strict_quotient = quotient
-        return self._strict_quotient
+        if self.is_strictly_convex():
+            return self
+        L = self.lattice()
+        Q = L.base_extend(QQ) / self.linear_subspace()
+        # Maybe we can improve this one if we create something special
+        # for sublattices. But it seems to be the most natural choice
+        # for names. If many subcones land in the same lattice -
+        # that's just how it goes.
+        if is_ToricLattice(L):
+            S = ToricLattice(Q.dimension(), L._name, L._dual_name,
+                             L._latex_name, L._latex_dual_name)
+        else:
+            S = ZZ**Q.dimension()
+        rays = [Q(ray) for ray in self.rays() if not Q(ray).is_zero()]
+        quotient = Cone(rays, S, check=False)
+        quotient._is_strictly_convex = True
+        return quotient
+
+    @cached_method
+    def solid_restriction(self):
+        r"""
+        Return a solid representation of this cone in terms of a basis
+        of its :meth:`sublattice`.
+
+        We define the **solid restriction** of a cone to be a
+        representation of that cone in a basis of its own
+        sublattice. Since a cone's sublattice is just large enough to
+        hold the cone (by definition), the resulting solid restriction
+        :meth:`is_solid`. For convenience, the solid restriction lives
+        in a new lattice (of the appropriate dimension) and not actually
+        in the sublattice object returned by :meth:`sublattice`.
+
+        OUTPUT:
+
+        A solid cone in a new lattice having the same dimension as this
+        cone's :meth:`sublattice`.
+
+        EXAMPLES:
+
+        The nonnegative quadrant in the plane is left after we take its
+        solid restriction in space::
+
+            sage: K = Cone([(1,0,0), (0,1,0)])
+            sage: K.solid_restriction().rays()
+            N(1, 0),
+            N(0, 1)
+            in 2-d lattice N
+
+        The solid restriction of a single ray has the same
+        representation regardless of the ambient space::
+
+            sage: K = Cone([(1,0)])
+            sage: K.solid_restriction().rays()
+            N(1)
+            in 1-d lattice N
+            sage: K = Cone([(1,1,1)])
+            sage: K.solid_restriction().rays()
+            N(1)
+            in 1-d lattice N
+
+        The solid restriction of the trivial cone lives in a trivial space::
+
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.solid_restriction()
+            0-d cone in 0-d lattice N
+            sage: K = Cone([(0,0,0,0)])
+            sage: K.solid_restriction()
+            0-d cone in 0-d lattice N
+
+        The solid restriction of a solid cone is itself::
+
+            sage: K = Cone([(1,1),(1,2)])
+            sage: K.solid_restriction() is K
+            True
+
+        TESTS:
+
+        The solid restriction of any cone is solid::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.solid_restriction().is_solid()
+            True
+
+        If a cone :meth:`is_strictly_convex`, then its solid restriction
+        :meth:`is_proper`::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, strictly_convex=True)
+            sage: K.solid_restriction().is_proper()
+            True
+
+        The solid restriction of a cone has the same dimension as the
+        original::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.solid_restriction().dim() == K.dim()
+            True
+
+        The solid restriction of a cone has the same number of rays as
+        the original::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.solid_restriction().nrays() == K.nrays()
+            True
+
+        The solid restriction of a cone has the same lineality as the
+        original::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.solid_restriction().lineality() == K.lineality()
+            True
+
+        The solid restriction of a cone has the same number of facets as
+        the original::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: len(K.solid_restriction().facets()) == len(K.facets())
+            True
+        """
+        if self.is_solid():
+            return self
+        # Construct a NEW lattice ``S`` (of the appropriate dimension)
+        # to use. This works around the fact that it's difficult to
+        # work with sublattice objects. There are naming issues here
+        # similar to those in the strict_quotient() method.
+        L = self.lattice()
+        subL = self.sublattice()
+        S = ToricLattice(subL.dimension(), L._name,
+                         L._dual_name, L._latex_name, L._latex_dual_name)
+
+        # We don't need to check if these rays are zero: they will all
+        # have at least one non-zero coordinate; otherwise they would
+        # lie outside of the span of our cone. And they don't, because
+        # they generate the cone.
+        rays = [ S(subL.coordinates(ray)) for ray in self ]
+        return Cone(rays, lattice=S, check=False)
 
     def _split_ambient_lattice(self):
         r"""
@@ -4596,6 +4768,238 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         # And finally convert the long vectors back to matrices.
         M = MatrixSpace(F, n, n)
         return [ M(v.list()) for v in LL_vectors.basis() ]
+
+    def lyapunov_rank(self):
+        r"""
+        Compute the Lyapunov rank of this cone.
+
+        The Lyapunov rank of a cone is the dimension of the space of its
+        Lyapunov-like transformations --- that is, the length of a
+        :meth:`lyapunov_like_basis`. Equivalently, the Lyapunov rank is
+        the dimension of the Lie algebra of the automorphism group of
+        the cone.
+
+        OUTPUT:
+
+        A nonnegative integer representing the Lyapunov rank of this cone.
+
+        If the ambient space is trivial, then the Lyapunov rank will be
+        zero. On the other hand, if the dimension of the ambient vector
+        space is `n > 0`, then the resulting Lyapunov rank will be
+        between `1` and `n^2` inclusive. If this cone :meth:`is_proper`,
+        then that upper bound reduces from `n^2` to `n`. A Lyapunov rank
+        of `n-1` is not possible (by Lemma 5 [Orlitzky]_) in either case.
+
+        ALGORITHM:
+
+        Algorithm 3 [Orlitzky]_ is used. Every closed convex cone is
+        isomorphic to a cartesian product of a proper cone, a subspace,
+        and a trivial cone. The Lyapunov ranks of the subspace and
+        trivial cone are easy to compute. Essentially, we "peel off"
+        those easy parts of the cone and compute their Lyapunov ranks
+        separately. We then compute the rank of the proper cone by
+        counting a :meth:`lyapunov_like_basis` for it. Summing the
+        individual ranks gives the Lyapunov rank of the original cone.
+
+        REFERENCES:
+
+        .. [Gowda-Tao] M.S. Gowda and J. Tao. On the bilinearity rank of
+           a proper cone and Lyapunov-like transformations. Mathematical
+           Programming, 147 (2014) 155-170.
+
+        M. Orlitzky. The Lyapunov rank of an improper cone.
+        http://www.optimization-online.org/DB_HTML/2015/10/5135.html
+
+        G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh, Bilinear
+        optimality constraints for the cone of positive polynomials,
+        Mathematical Programming, Series B, 129 (2011) 5-31.
+
+        EXAMPLES:
+
+        The Lyapunov rank of the nonnegative orthant is the same as the
+        dimension of the ambient space [Rudolf]_::
+
+            sage: positives = Cone([(1,)])
+            sage: positives.lyapunov_rank()
+            1
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.lyapunov_rank()
+            2
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: octant.lyapunov_rank()
+            3
+
+        A vector space of dimension `n` has Lyapunov rank `n^{2}`
+        [Orlitzky]_::
+
+            sage: Q5 = VectorSpace(QQ, 5)
+            sage: gs = Q5.basis() + [ -r for r in Q5.basis() ]
+            sage: K = Cone(gs)
+            sage: K.lyapunov_rank()
+            25
+
+        A pyramid in three dimensions has Lyapunov rank one [Rudolf]_::
+
+            sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
+            sage: l31.lyapunov_rank()
+            1
+            sage: l3infty = Cone([(0,1,1), (1,0,1), (0,-1,1), (-1,0,1)])
+            sage: l3infty.lyapunov_rank()
+            1
+
+        A ray in `n` dimensions has Lyapunov rank `n^{2} - n + 1`
+        [Orlitzky]_::
+
+            sage: K = Cone([(1,0,0,0,0)])
+            sage: K.lyapunov_rank()
+            21
+            sage: K.lattice_dim()**2 - K.lattice_dim() + 1
+            21
+
+        A subspace of dimension `m` in an `n`-dimensional ambient space
+        has Lyapunov rank `n^{2} - m(n - m)` [Orlitzky]_::
+
+            sage: e1 = vector(QQ, [1,0,0,0,0])
+            sage: e2 = vector(QQ, [0,1,0,0,0])
+            sage: z = (0,0,0,0,0)
+            sage: K = Cone([e1, -e1, e2, -e2, z, z, z])
+            sage: K.lyapunov_rank()
+            19
+            sage: K.lattice_dim()**2 - K.dim()*K.codim()
+            19
+
+        Lyapunov rank is additive on a product of proper cones [Rudolf]_::
+
+            sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: K = l31.cartesian_product(octant)
+            sage: K.lyapunov_rank()
+            4
+            sage: l31.lyapunov_rank() + octant.lyapunov_rank()
+            4
+
+        Two linearly-isomorphic cones have the same Lyapunov rank
+        [Rudolf]_. A cone linearly-isomorphic to the nonnegative octant
+        will have Lyapunov rank ``3``::
+
+            sage: K = Cone([(1,2,3), (-1,1,0), (1,0,6)])
+            sage: K.lyapunov_rank()
+            3
+
+        Lyapunov rank is invariant under :meth:`dual` [Rudolf]_::
+
+            sage: K = Cone([(2,2,4), (-1,9,0), (2,0,6)])
+            sage: K.lyapunov_rank() == K.dual().lyapunov_rank()
+            True
+
+        TESTS:
+
+        Lyapunov rank should be additive on a product of proper cones
+        [Rudolf]_::
+
+            sage: set_random_seed()
+            sage: K1 = random_cone(max_ambient_dim=6,
+            ....:                  strictly_convex=True,
+            ....:                  solid=True)
+            sage: K2 = random_cone(max_ambient_dim=6,
+            ....:                  strictly_convex=True,
+            ....:                  solid=True)
+            sage: K = K1.cartesian_product(K2)
+            sage: K.lyapunov_rank() == K1.lyapunov_rank() + K2.lyapunov_rank()
+            True
+
+        Lyapunov rank should be invariant under a linear isomorphism
+        [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K1 = random_cone(max_ambient_dim=8)
+            sage: n = K1.lattice_dim()
+            sage: A = random_matrix(QQ, n, algorithm='unimodular')
+            sage: K2 = Cone( [ A*r for r in K1.rays() ], lattice=K1.lattice())
+            sage: K1.lyapunov_rank() == K2.lyapunov_rank()
+            True
+
+        Lyapunov rank should be invariant under :meth:`dual` [Rudolf]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.lyapunov_rank() == K.dual().lyapunov_rank()
+            True
+
+        The Lyapunov rank of a proper polyhedral cone in a non-trivial
+        `n`-dimensional space can be any number between `1` and `n`
+        inclusive, excluding `n-1` [Gowda-Tao]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8,
+            ....:                 min_rays=1,
+            ....:                 strictly_convex=True,
+            ....:                 solid=True)
+            sage: b = K.lyapunov_rank()
+            sage: n = K.lattice_dim()
+            sage: 1 <= b <= n
+            True
+            sage: b == n-1
+            False
+
+        No polyhedral closed convex cone in `n` dimensions has Lyapunov
+        rank `n-1` [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.lyapunov_rank() == K.lattice_dim() - 1
+            False
+
+        The calculation of the Lyapunov rank of an improper cone can
+        be reduced to that of a proper cone [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K_SP = K.solid_restriction().strict_quotient()
+            sage: l = K.lineality()
+            sage: c = K.codim()
+            sage: actual = K.lyapunov_rank()
+            sage: expected = K_SP.lyapunov_rank() + K.dim()*(l + c) + c**2
+            sage: actual == expected
+            True
+
+        The Lyapunov rank of a cone is the length of a
+        :meth:`lyapunov_like_basis` for it::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.lyapunov_rank() == len(K.lyapunov_like_basis())
+            True
+
+        A "perfect" cone has Lyapunov rank `n` or more in `n`
+        dimensions. We can make any cone perfect by adding a slack
+        variable [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: L = ToricLattice(K.lattice_dim() + 1)
+            sage: K = Cone([ r.list() + [0] for r in K.rays() ], lattice=L)
+            sage: K.lyapunov_rank() >= K.lattice_dim()
+            True
+        """
+        # The solid_restriction() and strict_quotient() methods
+        # already check if the cone is solid or strictly convex, so we
+        # can't save any additional time here by seeing if those
+        # methods would be no-ops.
+        #
+        # The call to solid_restriction() restricts K to its own span,
+        # resulting in the cone K_S from the paper. The call to
+        # strict_quotient() then restricts K_S to the span of its dual.
+        K_SP = self.solid_restriction().strict_quotient()
+
+        # K_SP is proper, so we have to compute its Lyapunov rank the
+        # hard way -- by counting a Lyapunov-like basis for it.
+        m = self.dim()
+        n = self.lattice_dim()
+        l = self.lineality()
+
+        # cf. Theorem 2
+        return len(K_SP.lyapunov_like_basis()) + l*m + (n - m)*n
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

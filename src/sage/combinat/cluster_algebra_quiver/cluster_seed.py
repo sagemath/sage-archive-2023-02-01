@@ -55,6 +55,8 @@ from sage.matrix.constructor import matrix
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
 from sage.rings.integer import Integer
 
+from sage.misc.decorators import rename_keyword
+
 class ClusterSeed(SageObject):
     r"""
     The *cluster seed* associated to an *exchange matrix*.
@@ -874,13 +876,13 @@ class ClusterSeed(SageObject):
         """
         # mat_hash = self._M.__hash__()
         if self._use_fpolys:
-            return tuple(self.cluster()).__hash__()
+            return hash(tuple(self.cluster()))
         elif self._use_g_vec:
-            return self.g_matrix().__hash__()
+            return hash(self.g_matrix())
         elif self._use_c_vec:
-            return self.c_matrix().__hash__()
+            return hash(self.c_matrix())
         elif self._use_d_vec:
-            return self.d_matrix().__hash__()
+            return hash(self.d_matrix())
 
     def _repr_(self):
         r"""
@@ -3884,7 +3886,8 @@ class ClusterSeed(SageObject):
             self._mutation_type = self._quiver.mutation_type()
         return self._mutation_type
 
-    def greedy(self, a1, a2, method='by_recursion'):
+    @rename_keyword(deprecation=19572, method='algorithm')
+    def greedy(self, a1, a2, algorithm='by_recursion'):
         r"""
         Returns the greedy element `x[a_1,a_2]` assuming that self is rank two.
 
@@ -3918,14 +3921,14 @@ class ClusterSeed(SageObject):
         if self.b_matrix().dimensions() == (2, 2):
             b = abs(self.b_matrix()[0, 1])
             c = abs(self.b_matrix()[1, 0])
-            if method == 'by_recursion':
+            if algorithm == 'by_recursion':
                 ans = self.x(0)**(-a1)*self.x(1)**(-a2)
                 for p in range(max(a2, 0)+1):
                     for q in range(max(a1, 0)+1):
                         if p != 0 or q != 0:
                             ans += self._R(coeff_recurs(p, q, a1, a2, b, c))*self.x(0)**(b*p-a1)*self.x(1)**(c*q-a2)
                 return(ans)
-            elif method == 'by_combinatorics':
+            elif algorithm == 'by_combinatorics':
                 if b == 0:
                     S = ClusterSeed([['A', 1], ['A', 1]])
                 else:
@@ -3949,7 +3952,7 @@ class ClusterSeed(SageObject):
                             ans = ans + S.x(0)**(b*len(oddT)) * S.x(1)**(c*len(evenT))
                 ans = ans*S.x(0)**(-a1)*S.x(1)**(-a2)
                 return ans
-            elif method == 'just_numbers':
+            elif algorithm == 'just_numbers':
                 ans = 1
                 for p in range(max(a2, 0)+1):
                     for q in range(max(a1, 0)+1):

@@ -98,7 +98,8 @@ List of Poset methods
     :meth:`~FinitePoset.disjoint_union` | Return the disjoint union of the poset with other poset.
     :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with other poset.
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
-    :meth:`~FinitePoset.product` | Return the cartesian product of the poset with other poset.
+    :meth:`~FinitePoset.product` | Return the Cartesian product of the poset with other poset.
+    :meth:`~FinitePoset.with_bounds` | Return the poset with bottom and top element adjoined.
     :meth:`~FinitePoset.dual` | Return the dual poset of this poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
@@ -155,6 +156,7 @@ List of Poset methods
     :meth:`~FinitePoset.flag_f_polynomial` | Return the flag f-polynomial of a bounded and ranked poset.
     :meth:`~FinitePoset.flag_h_polynomial` | Return the flag h-polynomial of a bounded and ranked poset.
     :meth:`~FinitePoset.h_polynomial` | Return the h-polynomial of a bounded poset.
+    :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
     :meth:`~FinitePoset.order_polynomial` | Return the order polynomial of the poset.
     :meth:`~FinitePoset.zeta_polynomial` | Return the zeta polynomial of the poset.
 
@@ -175,36 +177,38 @@ List of Poset methods
     :widths: 30, 70
     :delim: |
 
+    :meth:`~FinitePoset.hasse_diagram` | Return the Hasse diagram of the poset as a directed graph.
+    :meth:`~FinitePoset.cover_relations_graph` | Return the (undirected) graph of cover relations.
     :meth:`~FinitePoset.comparability_graph` | Return the comparability graph of the poset.
-    :meth:`~FinitePoset.cover_relations_graph` | Return the graph of cover relations.
+    :meth:`~FinitePoset.incomparability_graph` | Return the incomparability graph of the poset.
+    :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
+    :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
+    :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset.
+    :meth:`~FinitePoset.mobius_function` | Return the value of Möbius function of given elements in the poset.
+    :meth:`~FinitePoset.mobius_function_matrix` | Return a matrix whose ``(i,j)`` entry is the value of the Möbius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+    :meth:`~FinitePoset.is_linear_extension` | Return whether ``l`` is a linear extension of ``self``.
+    :meth:`~FinitePoset.linear_extension` | Return a linear extension of this poset.
+    :meth:`~FinitePoset.linear_extensions` | Return the enumerated set of all the linear extensions of this poset.
+    :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset.
+    :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset.
     :meth:`~FinitePoset.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
+    :meth:`~FinitePoset.list` | List the elements of the poset.
     :meth:`~FinitePoset.cuts` | Return the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Return a partition of the points into the minimal number of chains.
-    :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset ``self``.
     :meth:`~FinitePoset.frank_network` | Return Frank's network (a DiGraph along with a cost function on its edges) associated to ``self``.
     :meth:`~FinitePoset.greene_shape` | Computes the Greene-Kleitman partition aka Greene shape of the poset ``self``.
-    :meth:`~FinitePoset.hasse_diagram` | Return the Hasse diagram of ``self`` as a Sage :class:`DiGraph`.
-    :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset, and ``False`` otherwise.
     :meth:`~FinitePoset.incidence_algebra` | Return the indicence algebra of ``self``.
-    :meth:`~FinitePoset.incomparability_graph` | Return the incomparability graph of the poset.
     :meth:`~FinitePoset.is_EL_labelling` | Return whether ``f`` is an EL labelling of the poset.
     :meth:`~FinitePoset.is_linear_extension` | Return whether ``l`` is a linear extension of ``self``.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
-    :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
     :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise.
     :meth:`~FinitePoset.level_sets` | Return a list l such that l[i+1] is the set of minimal elements of the poset obtained by removing the elements in l[0], l[1], ..., l[i].
-    :meth:`~FinitePoset.linear_extension` | Return a linear extension of this poset.
-    :meth:`~FinitePoset.linear_extensions` | Return the enumerated set of all the linear extensions of this poset.
-    :meth:`~FinitePoset.list` | List the elements of the poset. This just returns the result of :meth:`linear_extension`.
-    :meth:`~FinitePoset.mobius_function_matrix` | Return a matrix whose ``(i,j)`` entry is the value of the Mobius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
-    :meth:`~FinitePoset.mobius_function` | Return the value of the Mobius function of the poset on the elements x and y.
     :meth:`~FinitePoset.order_complex` | Return the order complex associated to this poset.
     :meth:`~FinitePoset.p_partition_enumerator` | Return a `P`-partition enumerator of the poset.
-    :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset ``self``.
     :meth:`~FinitePoset.random_order_ideal` | Return a random order ideal of ``self`` with uniform probability.
+    :meth:`~FinitePoset.rank` | Return the rank of an element, or the rank of the poset.
     :meth:`~FinitePoset.rank_function` | Return a rank function of the poset, if it exists.
-    :meth:`~FinitePoset.rank` | Return the rank of an element, or the rank of the poset if element is None.
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset.
     :meth:`~FinitePoset.with_linear_extension` | Return a copy of ``self`` with a different default linear extension.
 
@@ -1643,7 +1647,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
             ['a', 'b', 'c', 'd', 'e']
 
-        Plot of the empy poset::
+        Plot of the empty poset::
 
             sage: P = Poset({})
             sage: P.plot()
@@ -2673,7 +2677,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().dimension(certificate=True)
             []
 
-        References:
+        REFERENCES:
 
         .. [FT00] Stefan Felsner, William T. Trotter,
            Dimension, Graph and Hypergraph Coloring,
@@ -3619,9 +3623,15 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [self.subposet(self._vertex_to_element(x) for x in cc)
                 for cc in comps]
 
-    def product(self,other):
+    def product(self, other):
         """
-        Return the cartesian product of ``self`` and ``other``.
+        Return the Cartesian product of the poset with ``other``.
+
+        The Cartesian (or 'direct') product of `P` and
+        `Q` is defined by `(p, q) \le (p', q')` iff `p \le p'`
+        in `P` and `q \le q'` in `Q`.
+
+        Product of (semi)lattices are returned as a (semi)lattice.
 
         EXAMPLES::
 
@@ -3629,7 +3639,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Posets.ChainPoset(4)
             sage: PQ = P.product(Q) ; PQ
             Finite lattice containing 12 elements
-            sage: len(PQ.hasse_diagram().edges())
+            sage: len(PQ.cover_relations())
             17
             sage: Q.product(P).is_isomorphic(PQ)
             True
@@ -3638,21 +3648,32 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = P.product(P)
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
+
+        TESTS::
+
+            sage: Poset({0:[1]}).product(Poset())  # Product with empty poset
+            Finite poset containing 0 elements
+
+        We check that :trac:`19113` is fixed::
+
+            sage: L = LatticePoset({1:[]})
+            sage: type(L) == type(L.product(L))
+            True
         """
         from sage.combinat.posets.lattices import LatticePoset, \
              JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
              FiniteMeetSemilattice, FiniteJoinSemilattice
         if ( isinstance(self, FiniteLatticePoset) and
              isinstance(other, FiniteLatticePoset) ):
-            constructor = FiniteLatticePoset
+            constructor = LatticePoset
         elif ( isinstance(self, FiniteMeetSemilattice) and
                isinstance(other, FiniteMeetSemilattice) ):
-            constructor = FiniteMeetSemilattice
+            constructor = MeetSemilattice
         elif ( isinstance(self, FiniteJoinSemilattice) and
                isinstance(other, FiniteJoinSemilattice) ):
-            constructor = FiniteJoinSemilattice
+            constructor = JoinSemilattice
         else:
-            constructor = FinitePoset
+            constructor = Poset
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
     def disjoint_union(self, other, labels='pairs'):
@@ -3913,6 +3934,80 @@ class FinitePoset(UniqueRepresentation, Parent):
                                 elements=elements,
                                 category=self.category(),
                                 facade=self._is_facade)
+
+    def with_bounds(self, labels=('bottom', 'top')):
+        r"""
+        Return the poset with bottom and top elements adjoined.
+
+        This functions always adds two new elements to the poset, i.e.
+        it does not check if the poset already has a bottom or a
+        top element.
+
+        For lattices and semilattices this function returns a lattice.
+
+        INPUT:
+
+        - ``labels`` -- A pair of elements to use as a bottom and top
+          element of the poset. Default is strings ``'bottom'`` and
+          ``'top'``.
+
+        EXAMPLES::
+
+            sage: V = Poset({0: [1, 2]})
+            sage: trafficsign = V.with_bounds(); trafficsign
+            Finite poset containing 5 elements
+            sage: trafficsign.list()
+            ['bottom', 0, 1, 2, 'top']
+            sage: trafficsign = V.with_bounds(labels=(-1, -2))
+            sage: trafficsign.cover_relations()
+            [[-1, 0], [0, 1], [0, 2], [1, -2], [2, -2]]
+
+            sage: P = Posets.PentagonPoset()  # A lattice
+            sage: P.with_bounds()
+            Finite lattice containing 7 elements
+
+        TESTS::
+
+            sage: P = Poset().with_bounds()
+            sage: P.cover_relations()
+            [['bottom', 'top']]
+
+            sage: LatticePoset({}).with_bounds()
+            Finite lattice containing 2 elements
+
+            sage: Posets.PentagonPoset().with_bounds(labels=(4, 5))
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset already has element 4
+        """
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if ( isinstance(self, FiniteLatticePoset) or
+             isinstance(self, FiniteMeetSemilattice) or
+             isinstance(self, FiniteJoinSemilattice) ):
+            constructor = FiniteLatticePoset
+        else:
+            constructor = FinitePoset
+
+        if len(labels) != 2:
+            raise ValueError("labels must be a pair")
+        new_min = labels[0]
+        new_max = labels[1]
+        
+        if self.cardinality() == 0:
+            return constructor(DiGraph({new_min: [new_max]}))
+
+        if new_min in self:
+            raise ValueError("the poset already has element %s" % new_min)
+        if new_max in self:
+            raise ValueError("the poset already has element %s" % new_max)
+
+        D = self.hasse_diagram()
+        D.add_edges([(new_min, e) for e in D.sources()])
+        D.add_edges([(e, new_max) for e in D.sinks()])
+
+        return constructor(D)
 
     def relabel(self, relabeling):
         r"""
@@ -5468,8 +5563,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def frank_network(self):
         r"""
-        Computes Frank's network of the poset ``self``. This is defined in
-        Section 8 of [BF1999]_.
+        Computes Frank's network of the poset ``self``.
+
+        This is defined in Section 8 of [BF1999]_.
 
         OUTPUT:
 
@@ -5491,7 +5587,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             - for each `p` in `P`, an edge from `(1, p)` to `(2, 0)`;
 
-            - for each `p` and `q` in `P` such that `x \geq y`, an edge from
+            - for each `p` and `q` in `P` such that `p \geq q`, an edge from
               `(0, p)` to `(1, q)`.
 
             We make this digraph into a network in the sense of flow theory as

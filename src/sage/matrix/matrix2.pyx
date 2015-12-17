@@ -8500,7 +8500,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: matrix().inverse()
             []
        """
-        return self.__invert__()
+        return ~self
 
     def adjoint(self):
         """
@@ -9813,8 +9813,6 @@ cdef class Matrix(matrix1.Matrix):
             [---+-]  [x21   0   0]
             [0 0|0], [  0   1   0]
             )
-
-        TESTS:
 
         The base ring for the matrix needs to have a fraction field
         and it needs to be implemented.  ::

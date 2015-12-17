@@ -1235,11 +1235,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         """
         if self.relprec == relprec:
             return False
-        if self.relprec != 0:
-            ZZ_pX_destruct(&self.unit)
         if relprec != 0:
             self.prime_pow.restore_context_capdiv(relprec)
-            ZZ_pX_construct(&self.unit)
+            self.unit = ZZ_pX_c()
         self.relprec = relprec
         return True
 
@@ -1277,8 +1275,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(70, 8) # indirect doctest
             4*w^5 + 3*w^7 + O(w^8)
         """
-        if self.relprec != 0:
-            ZZ_pX_destruct(&self.unit)
         self.relprec = absprec - self.ordp
         cdef long arelprec
         if relprec < 0:
@@ -1292,7 +1288,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 self.relprec = arelprec
             if self.relprec != 0:
                 self.prime_pow.restore_context_capdiv(self.relprec)
-                ZZ_pX_construct(&self.unit)
+                self.unit = ZZ_pX_c()
                 if relprec < 0:
                     self.relprec = -self.relprec
         return self.relprec == 0
@@ -1322,7 +1318,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             if ZZ_pX_IsZero(self.unit):
                 self.ordp -= self.relprec # note that self.relprec < 0
                 self.relprec = 0
-                ZZ_pX_destruct(&self.unit)
             else:
                 ZZ_pX_min_val_coeff(minval, mini, self.unit, self.prime_pow.pow_ZZ_tmp(1)[0])
                 if self.prime_pow.e == 1:
@@ -1332,7 +1327,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 if shift >= -self.relprec:
                     self.ordp -= self.relprec # note that self.relprec < 0
                     self.relprec = 0
-                    ZZ_pX_destruct(&self.unit)
                 elif shift > 0:
                     self.relprec = -self.relprec - shift
                     self.ordp += shift
@@ -1477,23 +1471,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     shift = shift >> 1
                     i += 1
 
-    def __dealloc__(self):
-        """
-        Deallocates ``self.unit`` if needed.
-
-        EXAMPLES::
-
-            sage: R = Qp(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = W(3/25, relprec = 6); z
-            3*w^-10 + 3*w^-8 + 2*w^-6 + O(w^-4)
-            sage: del z #indirect doctest
-        """
-        if self.relprec != 0:
-            ZZ_pX_destruct(&self.unit)
-
     cdef pAdicZZpXCRElement _new_c(self, long relprec):
         """
         Returns a new element with the same parent as ``self`` and
@@ -1518,13 +1495,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if relprec > 0:
             self.prime_pow.restore_context_capdiv(relprec)
             ans.relprec = relprec
-            ZZ_pX_construct(&ans.unit)
         elif relprec == 0:
             ans._set_exact_zero()
         else:
             self.prime_pow.restore_context_capdiv(-relprec)
             ans.relprec = relprec
-            ZZ_pX_construct(&ans.unit)
         return ans
 
     def __reduce__(self):

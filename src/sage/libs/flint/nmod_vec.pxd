@@ -1,24 +1,17 @@
 # This file was (manually) generated from FLINT's nmod_vec.h.
 #*****************************************************************************
-#         Copyright (C) 2010 William Hart
+#       Copyright (C) 2010 William Hart
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.libs.flint.flint cimport *
-from sage.libs.flint.fmpz cimport *
+
+from sage.libs.flint.types cimport *
 
 cdef extern from "flint/nmod_vec.h":
-    ctypedef unsigned long mp_bitcnt_t
-    ctypedef mp_limb_t* mp_srcptr
-
-    ctypedef struct nmod_t:
-       mp_limb_t n
-       mp_limb_t ninv
-       mp_bitcnt_t norm
-
     mp_limb_t _nmod_add(mp_limb_t a, mp_limb_t b, nmod_t mod)
     mp_limb_t _nmod_sub(mp_limb_t a, mp_limb_t b, nmod_t mod)
     mp_limb_t nmod_add(mp_limb_t a, mp_limb_t b, nmod_t mod)

@@ -1214,22 +1214,6 @@ class SkewPartition(CombinatorialElement):
             m.append(row)
         return H(m)
 
-def from_row_and_column_length(rowL, colL):
-    """
-    This has been deprecated in :trac:`14101`. Use
-    :meth:`SkewPartitions().from_row_and_column_length()` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.skew_partition.from_row_and_column_length([3,1,2,2],[2,3,1,1,1])
-        doctest:...: DeprecationWarning: from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.
-        See http://trac.sagemath.org/14101 for details.
-        [5, 2, 2, 2] / [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.')
-    return SkewPartitions().from_row_and_column_length(rowL, colL)
-
 def row_lengths_aux(skp):
     """
     EXAMPLES::

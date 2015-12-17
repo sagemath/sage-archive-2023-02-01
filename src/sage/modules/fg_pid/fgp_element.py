@@ -140,7 +140,7 @@ class FGP_Element(ModuleElement):
             True
         """
         P = self.parent()
-        return P.element_class(P, self._x.__neg__())
+        return P.element_class(P, -self._x)
 
 
     def _add_(self, other):
@@ -301,7 +301,7 @@ class FGP_Element(ModuleElement):
             sage: Q(V.1)._repr_()
             '(0, 1)'
         """
-        return self.vector().__repr__()
+        return repr(self.vector())
 
 
     def __getitem__(self, *args):

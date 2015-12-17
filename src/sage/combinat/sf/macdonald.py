@@ -132,7 +132,7 @@ class Macdonald(UniqueRepresentation):
             if str(q) =='q':
                 self._name_suffix += " with "
             self._name_suffix += "t=%s"%t
-        self._name = "Macdonald polynomials"+self._name_suffix+" over "+Sym.base_ring().__repr__()
+        self._name = "Macdonald polynomials"+self._name_suffix+" over "+repr(Sym.base_ring())
 
     def base_ring( self ):
         r"""

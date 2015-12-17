@@ -1,15 +1,9 @@
-from sage.libs.arb.arf cimport arf_t
-from sage.libs.arb.arb cimport arb_t, arb_struct
-from sage.libs.arb.mag cimport mag_t
+# distutils: libraries = arb
+
+from sage.libs.arb.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpq_t
 
 cdef extern from "acb.h":
-    ctypedef struct acb_struct:
-        arb_struct real
-        arb_struct imag
-    ctypedef acb_struct[1] acb_t
-    ctypedef acb_struct *acb_ptr
-    ctypedef const acb_struct *acb_srcptr
 
     arb_t acb_realref(acb_t x)
     arb_t acb_imagref(acb_t x)

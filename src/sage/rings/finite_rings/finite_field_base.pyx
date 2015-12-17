@@ -77,7 +77,7 @@ cdef class FiniteFieldIterator:
 
     def __iter__(self):
         """
-        Return ``self`` since this is an interator class.
+        Return ``self`` since this is an iterator class.
 
         EXAMPLES::
 
@@ -603,7 +603,7 @@ cdef class FiniteField(Field):
             m = z.multiplicative_order()
             if m % n != 0:
                 raise ValueError, "No %sth root of unity in self"%n
-            return z**(m.__floordiv__(n))
+            return z**(m // n)
 
     def multiplicative_generator(self):
         """

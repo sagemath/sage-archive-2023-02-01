@@ -7,16 +7,18 @@ AUTHORS:
 
 Sage supports a wide range of specific free string monoids.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# from sage.rings.integer import Integer
-# from sage.structure.parent_gens import ParentWithGens, normalize_names
+
 from free_monoid import FreeMonoid_class
 from string_monoid_element import StringMonoidElement
 from string_ops import strip_encoding

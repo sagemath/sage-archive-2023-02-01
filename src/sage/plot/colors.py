@@ -1130,7 +1130,7 @@ class ColorsDict(dict):
             AttributeError: 'ColorsDict' has no attribute or colormap punk
         """
         try:
-            return self.__getitem__(name)
+            return self[name]
         except KeyError:
             raise AttributeError("'%s' has no attribute or colormap %s"%(type(self).__name__,name))
 
@@ -1588,7 +1588,7 @@ class Colormaps(collections.MutableMapping):
             True
         """
         try:
-            return self.__getitem__(name)
+            return self[name]
         except KeyError:
             raise AttributeError("'%s' has no attribute or colormap %s"%(type(self).__name__,name))
 

@@ -1311,7 +1311,7 @@ class SingularElement(ExpectElement):
                 s = self.parent().get_using_file(self._name)
         except AttributeError:
             s = self.parent().get(self._name)
-        if s.__contains__(self._name):
+        if self._name in s:
             if hasattr(self, '__custom_name'):
                 s =  s.replace(self._name, self.__dict__['__custom_name'])
             elif self.type() == 'matrix':

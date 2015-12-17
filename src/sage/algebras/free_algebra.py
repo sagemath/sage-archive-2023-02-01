@@ -146,6 +146,8 @@ from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_l
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.combinat.words.word import Word
+from sage.structure.category_object import normalize_names
+
 
 class FreeAlgebraFactory(UniqueFactory):
     """
@@ -299,7 +301,7 @@ class FreeAlgebraFactory(UniqueFactory):
             arg1 = name
         if arg2 is None:
             arg2 = len(arg1)
-        names = sage.structure.parent_gens.normalize_names(arg2, arg1)
+        names = normalize_names(arg2, arg1)
         return base_ring, names
 
     def create_object(self, version, key):

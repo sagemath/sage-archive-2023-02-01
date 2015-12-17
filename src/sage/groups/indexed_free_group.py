@@ -417,7 +417,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
                 sage: x * ~x
                 1
             """
-            return self.__pow__(-1)
+            return self ** -1
 
         def __floordiv__(self, a):
             """

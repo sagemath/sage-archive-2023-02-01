@@ -1,5 +1,6 @@
 # distutils: language = c++
-# distutils: libraries = pynac
+# distutils: libraries = pynac gmp
+# distutils: extra_compile_args = -std=c++11
 """
 Declarations for pynac, a Python frontend for ginac
 
@@ -9,6 +10,7 @@ Check that we can externally cimport this (:trac:`18825`)::
     ....: '''
     ....: #clang c++
     ....: #clib pynac
+    ....: #cargs --std=c++11
     ....: cimport sage.symbolic.ginac
     ....: ''')
 """
@@ -29,6 +31,7 @@ Check that we can externally cimport this (:trac:`18825`)::
 # in the actual pyx code to catch control-c for long running functions.
 
 from cpython cimport PyObject
+from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
 cdef extern from "sage/symbolic/ginac_wrap.h":
     void ginac_pyinit_Integer(object)
@@ -160,7 +163,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
 
     bint is_negative(GEx x)                  except +
     bint is_a_relational "is_a<relational>" (GEx e)
-    bint relational_to_bool(GEx e)
+    unsigned decide_relational(GEx e)
     operators relational_operator(GEx e)
     operators switch_operator(operators op)
     GEx relational(GEx lhs, GEx rhs, operators o)
@@ -178,6 +181,12 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     unsigned domain_infinity "GiNaC::domain::infinity"
     unsigned domain_integer "GiNaC::domain::integer"
 
+    # relational outcomes
+    unsigned relational_true "GiNaC::relational::result::True"
+    unsigned relational_false "GiNaC::relational::result::False"
+    unsigned relational_undecidable "GiNaC::relational::result::undecidable"
+    unsigned relational_notimplemented "GiNaC::relational::result::notimplemented"
+
     # info flags
     unsigned info_real          "GiNaC::info_flags::real"
     unsigned info_rational      "GiNaC::info_flags::rational"
@@ -191,6 +200,12 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     unsigned info_even          "GiNaC::info_flags::even"
     unsigned info_odd           "GiNaC::info_flags::odd"
     unsigned info_rational_function "GiNaC::info_flags::rational_function"
+
+    # assumptions
+    void pynac_assume_rel "GiNaC::assume" (GEx rel)
+    void pynac_assume_gdecl "GiNaC::assume" (GEx x, char*)
+    void pynac_forget_rel "GiNaC::forget" (GEx rel)
+    void pynac_forget_gdecl "GiNaC::forget" (GEx x, char*)
 
     # Constants
     GEx g_Pi "Pi"
@@ -421,6 +436,9 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     unsigned find_function "GiNaC::function::find_function" (char* name,
             unsigned nargs) except +ValueError
 
+    bint has_symbol "GiNaC::has_symbol" (GEx ex)
+    bint has_symbol_or_function "GiNaC::has_symbol_or_function" (GEx ex)
+
     GFunctionOptVector g_registered_functions \
             "GiNaC::function::registered_functions" ()
 
@@ -487,9 +505,16 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
         bint (*py_is_even)(object a)  except +
         bint (*py_is_cinteger)(object a)  except +
         bint (*py_is_prime)(object n)  except +
+        bint (*py_is_exact)(object x)  except +
 
         object (*py_integer_from_long)(long int x) except +
         object (*py_integer_from_python_obj)(object x) except +
+        object (*py_integer_from_mpz)(mpz_t) except +
+        object (*py_rational_from_mpq)(mpq_t) except +
+        bint py_is_Integer(object x) except +
+        bint py_is_Rational(object x) except +
+        mpz_ptr py_mpz_from_integer(object x) except +
+        mpq_ptr py_mpq_from_rational(object x) except +
 
         object (*py_float)(object a, PyObject* parent) except +
         object (*py_RDF_from_double)(double x)

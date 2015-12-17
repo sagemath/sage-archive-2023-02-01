@@ -2085,5 +2085,5 @@ class HelpExpression(str):
             is
             R!
         """
-        return self.__str__()
+        return str(self)
 

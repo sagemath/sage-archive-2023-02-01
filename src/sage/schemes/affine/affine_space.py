@@ -25,7 +25,7 @@ _Fields = Fields()
 from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import latex
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 
 from sage.schemes.generic.scheme import AffineScheme
 from sage.schemes.generic.ambient_space import AmbientSpace

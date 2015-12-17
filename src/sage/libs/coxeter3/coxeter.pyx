@@ -260,7 +260,8 @@ cdef class CoxGroup(SageObject):
             ...
             NotImplementedError: Coxeter group of type ['A',0] using Coxeter 3 not yet implemented
         """
-        from sage.combinat.root_system.all import CartanType, coxeter_matrix
+        from sage.combinat.root_system.cartan_type import CartanType
+        from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
         self.cartan_type = CartanType(cartan_type)
         ordering = self._ordering_from_cartan_type(self.cartan_type)
 
@@ -285,7 +286,8 @@ cdef class CoxGroup(SageObject):
         self.in_ordering = {self.out_ordering[a]: a for a in self.out_ordering}
 
         # Check that the Coxeter matrices match up.
-        if self.coxeter_matrix() != coxeter_matrix(self.cartan_type):
+        cox_mat = CoxeterMatrix(self.coxeter_matrix(), self.cartan_type.index_set())
+        if cox_mat != CoxeterMatrix(self.cartan_type):
             print("Warning, differing Coxeter matrices")
 
     @classmethod

@@ -28,7 +28,7 @@ if [ "$SAGE64" = "yes" ]; then
    CFLAGS="-m64 $CFLAGS "; export CFLAGS
    CXXFLAGS="-m64 $CXXFLAGS "; export CXXFLAGS
    CPPFLAGS="-m64 $CPPFLAGS "; export CPPFLAGS
-   LDFLAGS="-m64"; export LDFLAGS
+   LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
 fi
 
 

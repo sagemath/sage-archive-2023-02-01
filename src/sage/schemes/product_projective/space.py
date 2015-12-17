@@ -133,7 +133,7 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
             raise ValueError("Need list or tuple of dimensions")
         if not is_CommutativeRing(R):
             raise ValueError("Must be a commutative ring")
-        from sage.structure.parent_gens import normalize_names
+        from sage.structure.category_object import normalize_names
         n_vars=sum(d+1 for d in n)
         if isinstance(names, six.string_types):
             names = normalize_names(n_vars, names)

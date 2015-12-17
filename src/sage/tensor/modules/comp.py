@@ -847,7 +847,7 @@ class Components(SageObject):
                 return self[ind]
             else:
                 args = tuple(ind + [format_type])
-                return self.__getitem__(args)
+                return self[args]
         else:
             si = self._sindex
             nsi = si + self._dim
@@ -1203,7 +1203,7 @@ class Components(SageObject):
             True
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __pos__(self):
         r"""
@@ -1371,7 +1371,7 @@ class Components(SageObject):
             True
 
         """
-        return self.__add__(other)
+        return self + other
 
 
     def __sub__(self, other):
@@ -1416,8 +1416,8 @@ class Components(SageObject):
         """
         if other == 0:
             return +self
-        return self.__add__(-other)  #!# correct, deals properly with
-                                     # symmetries, but is probably not optimal
+        return self + (-other)  #!# correct, deals properly with
+                                # symmetries, but is probably not optimal
 
     def __rsub__(self, other):
         r"""
@@ -1444,7 +1444,7 @@ class Components(SageObject):
             True
 
         """
-        return (-self).__add__(other)
+        return (-self) + other
 
 
     def __mul__(self, other):

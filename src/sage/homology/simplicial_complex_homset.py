@@ -185,7 +185,7 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
         """
         X_vertices = self._domain.vertices().set()
         try:
-            i = next(self._codomain.vertices().set().__iter__())
+            i = next(iter(self._codomain.vertices().set()))
         except StopIteration:
             if not X_vertices:
                 return {}

@@ -1403,7 +1403,7 @@ cdef class gen(gen_auto):
         m = glength(self.g)
         V = []
         for n from 0 <= n < m:
-            V.append(self.__getitem__(n))
+            V.append(self[n])
         return V
 
     def python(self, locals=None):

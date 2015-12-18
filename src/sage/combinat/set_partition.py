@@ -518,17 +518,18 @@ class SetPartition(ClonableArray):
     @combinatorial_map(name='to permutation')
     def to_permutation(self):
         """
-        Convert ``self`` to a permutation by considering the blocks of the
-        partition as cycles.
+        Convert a set partition of {1,...,n} to a permutation by considering
+        the blocks of the partition as cycles.
 
-        When the ground set is totally ordered, the cycles use this order, too,
-        and therefore maximise the number of excedences.
+        The cycles are such that the number of excedences is maximised,
+        that is, each cycle is of the form (a1,a2, ...,ak) with a1<a2<...<ak.
 
         EXAMPLES::
 
             sage: s = SetPartition([[1,3],[2,4]])
             sage: s.to_permutation()
             [3, 4, 1, 2]
+
         """
         return Permutation(tuple( map(tuple, self.standard_form()) ))
 

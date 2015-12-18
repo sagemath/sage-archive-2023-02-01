@@ -81,4 +81,4 @@ $RECYCLE.BIN/
 # Jupyter #
 ###########
 .ipynb_checkpoints
-Untitled.ipynb
+Untitled*.ipynb

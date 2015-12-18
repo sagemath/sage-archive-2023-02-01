@@ -159,6 +159,7 @@ class ManifoldPoint(Element):
 
         """
         Element.__init__(self, parent)
+        self._manifold = parent.manifold()  # a useful shortcut
         self._coordinates = {} # dictionary of the point coordinates in various
                                # charts, with the charts as keys
         if coords is not None:
@@ -209,7 +210,7 @@ class ManifoldPoint(Element):
         description = "Point"
         if self._name is not None:
             description += " " + self._name
-        description += " on the {}".format(self.parent().manifold())
+        description += " on the {}".format(self._manifold)
         return description
 
     def _latex_(self):

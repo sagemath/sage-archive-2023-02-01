@@ -26,7 +26,7 @@ from sage.manifolds.chart import Chart, RealChart
 #    need to have different copies of this object.
 class TopologicalStructure(Singleton):
     """
-    The structure of a topological manifold over a general field.
+    The structure of a topological manifold over a general topological field.
     """
     chart = Chart
     name = "topological"

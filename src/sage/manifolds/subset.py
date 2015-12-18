@@ -483,6 +483,13 @@ class OpenTopologicalSubmanifold(ManifoldSubset, TopologicalManifold):
     An open submanifold of a topological manifold, which is any open subset
     of the manifold.
 
+    INPUT:
+
+    - ``ambient`` -- topological manifold on which the subset is defined
+    - ``name`` -- string; name (symbol) given to the subset
+    - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to denote the
+      subset; if none is provided, it is set to ``name``
+
     EXAMPLE:
 
     The unit ball of the Euclidean 2-plane::
@@ -541,7 +548,7 @@ class OpenTopologicalSubmanifold(ManifoldSubset, TopologicalManifold):
         True
 
     """
-    def __init__(self, ambient, name, latex_name=None, category=None):
+    def __init__(self, ambient, name, latex_name=None):
         """
         Initialize ``self``.
 
@@ -585,8 +592,7 @@ class OpenTopologicalSubmanifold(ManifoldSubset, TopologicalManifold):
                                      ambient._structure, latex_name=latex_name,
                                      full_name=full_name,
                                      start_index=ambient._sindex,
-                                     category=category,
-                                     unique_tag=ambient)
+                                     category=category)
 
     def superset(self, name, latex_name=None, is_open=False):
         r"""

@@ -29,7 +29,7 @@ from sage.rings.integer import Integer
 from sage.manifolds.point import ManifoldPoint
 
 class AbstractNamedObject(object):
-    """
+    r"""
     An abstract named object.
 
     This abstract class handles the outputs (text and LaTeX) of named objects

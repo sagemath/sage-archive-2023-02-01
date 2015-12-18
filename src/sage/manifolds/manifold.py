@@ -20,7 +20,8 @@ means of charts (see :class:`~sage.manifolds.chart.Chart`).
 :class:`TopologicalManifold` serves as a base class for more specific
 manifold classes.
 
-The user interface is provided by the generic function :func:`Manifold`,
+The user interface is provided by the generic function
+:func:`~sage.manifolds.manifold.Manifold`, with
 with the argument ``structure`` set to ``'topological'``.
 
 .. RUBRIC:: Example 1: the 2-sphere as a topological manifold of dimension
@@ -330,7 +331,9 @@ class TopologicalManifold(AbstractSet):
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of manifolds
 
-    - ``structure`` -- manifold structure
+    - ``structure`` -- manifold structure (see
+      :class:`~sage.manifolds.structure.TopologicalStructure` or
+      :class:`~sage.manifolds.structure.RealTopologicalStructure`)
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the manifold; if none is provided, it is set to ``name``
     - ``full_name`` -- (default: ``None``) string; short description of the
@@ -768,10 +771,8 @@ class TopologicalManifold(AbstractSet):
 
         """
         from sage.manifolds.subset import OpenTopologicalSubmanifold
-        resu = OpenTopologicalSubmanifold(ambient=self.manifold(),
-                                          name=name, latex_name=latex_name,
-                                          category=self.category())
-
+        resu = OpenTopologicalSubmanifold(self.manifold(), name,
+                                          latex_name=latex_name)
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)
@@ -1685,7 +1686,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         raise ValueError("the manifold dimension must be strictly positive")
 
     if structure in ['topological', 'top']:
-        if field == 'real':
+        if field == 'real' or isinstance(field, RealField_class):
             structure = RealTopologicalStructure()
         else:
             structure = TopologicalStructure()

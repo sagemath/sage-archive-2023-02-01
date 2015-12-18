@@ -387,7 +387,7 @@ if [ -d "$SAGE_LOCAL/lib/python" ]; then
     export PYTHONNOUSERSITE
 fi
 
-LDFLAGS="-Wl,-rpath=$SAGE_LOCAL/lib $LDFLAGS"
+LDFLAGS="-Wl,-rpath -Wl,$SAGE_LOCAL/lib $LDFLAGS"
 export LDFLAGS
 
 # Use a matplotlib config directory specific to Sage and specific to

@@ -22,6 +22,9 @@ At the end of each part, we will summarize every important step of the implement
 a quick access to the implementation of one of the objects cited above, one can jump directly to the end
 of related part, which presents a summary of what to do.
 
+.. contents:: Table of contents
+   :depth: 2
+
 I. The repetition code
 ======================
 

@@ -11,7 +11,9 @@ Website: https://github.com/dstehle/fplll
  * LGPL V2.1+
 
 == Upstream Contact ==
- * Damien Stehlé (damien.stehle@gmail.com)
+
+ * Martin Albrecht <martinralbrecht@googlemail.com>
+ * Damien Stehlé <damien.stehle@gmail.com>
 
 == Dependencies ==
  * gmp

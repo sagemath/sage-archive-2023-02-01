@@ -140,9 +140,9 @@ Let's continue our example. We ask the same question as before: what do we need 
 For most of the cases (this one included), we only need the associated code. In that case, writing the
 constructor is really straightforward (we store the code in the same ``.py`` file as the code class)::
 
-    sage: class RepetitionCodeEncoder(Encoder):
+    sage: class BinaryRepetitionCodeGeneratorMatrixEncoder(Encoder):
     ....:   def __init__(self, code):
-    ....:       super(RepetitionEncoder, self).__init__(code)
+    ....:       super(BinaryRepetitionCodeGeneratorMatrixEncoder, self).__init__(code)
 
 Same thing as before, as an encoder always needs to know its associated code, the work can be done by
 the topclass. Remember to inherit from :class:`sage.coding.encoder.Encoder`!
@@ -157,10 +157,10 @@ We also want to override representation methods ``_repr_`` and ``_latex_``::
 And we want to have an equality check too::
 
     sage: def __eq__(self, other):
-    ....:   return isinstance(other, RepetitionEncoder) \
+    ....:   return isinstance(other, BinaryRepetitionCodeGeneratorMatrixEncoder) \
     ....:           and self.code() == other.code()
 
-As before, default getter method is provided by the topclass, namely :meth:`sage.coding.encoder.code`.
+As before, default getter method is provided by the topclass, namely :meth:`sage.coding.encoder.Encoder.code`.
 
 All we have to do know is to implement the methods related to the encoding.
 This implementation changes quite a lot whether we have a generator matrix or not.
@@ -177,8 +177,8 @@ Continuing our example, it will be::
     ....:   return Matrix(GF(2), 1, n, [GF(2).one()] * n)
 
 As the topclass provides default implementation for encode and the inverse operation, that we call
-*unencode* (see: :meth:`sage.coding.encoder.encode` and :meth:`sage.coding.encoder.unencode`), alongside
-with a default implementation of :meth:`sage.coding.encoder.message_space`, our work here is done.
+*unencode* (see: :meth:`sage.coding.encoder.Encoder.encode` and :meth:`sage.coding.encoder.Encoder.unencode`), alongside
+with a default implementation of :meth:`sage.coding.encoder.Encoder.message_space`, our work here is done.
 
 .. NOTE::
 
@@ -193,7 +193,7 @@ We do not have any generator matrix
 
 In that case, we need to override several methods, namely ``encode``, ``unencode_nocheck`` and probably
 ``message_space`` (in the case where the message space is not a vector space). Note that the default
-implementation of :meth:`sage.coding.encoder.unencode` relies on ``unencode_nocheck`` so reimplementing the former
+implementation of :meth:`sage.coding.encoder.Encoder.unencode` relies on ``unencode_nocheck`` so reimplementing the former
 is not necessary.
 
 In our example, it is easy to create an encoder which does not need a generator matrix to
@@ -213,7 +213,7 @@ Our work here is done.
 We need to do one extra thing: set this encoder in the dictionary of known encoders for the
 associated code class. To do that, just add the following line at the end of your file::
 
-   BinaryRepetitionCode._registered_encoders["RepetitionEncoder"] = RepetitionEncoder
+   BinaryRepetitionCode._registered_encoders["RepetitionGeneratorMatrixEncoder"] = BinaryRepetitionCodeGeneratorMatrixEncoder
 
 Summary of the implementation for encoders
 ------------------------------------------
@@ -242,10 +242,10 @@ Eventually, we also need to know the input space of the decoder.
 As usual, initializing these parameters can be delegated to the topclass, and our constructor
 looks like that::
 
-    sage: class RepetitionCodeMajorityVoteDecoder(Decoder):
+    sage: class BinaryRepetitionCodeMajorityVoteDecoder(Decoder):
     ....:   def __init__(self, code):
-    ....:       super(MajorityVoteDecoder, self).__init__(code, code.ambient_space(),\
-                    "RepetitionEncoder")
+    ....:       super(BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),\
+                    "RepetitionGeneratorMatrixEncoder")
 
 Remember to inherit from :class:`sage.coding.decoder.Decoder`!
 
@@ -262,17 +262,17 @@ We also want to override representation methods ``_repr_`` and ``_latex_``::
 And we want to have an equality check too::
 
     sage: def __eq__(self, other):
-    ....:   return isinstance(other, MajorityVoteDecoder) \
+    ....:   return isinstance(other, BinaryRepetitionCodeMajorityVoteDecoder) \
     ....:           and self.code() == other.code()
 
-As before, default getter methods are provided by the topclass, namely :meth:`sage.coding.decoder.code`,
-:meth:`sage.coding.decoder.input_space`, :meth:`sage.coding.decoder.decoder_type`
-and :meth:`sage.coding.decoder.connected_encoder`.
+As before, default getter methods are provided by the topclass, namely :meth:`sage.coding.decoder.Decoder.code`,
+:meth:`sage.coding.decoder.Decoder.input_space`, :meth:`sage.coding.decoder.Decoder.decoder_type`
+and :meth:`sage.coding.decoder.Decoder.connected_encoder`.
 
 All we have to do know is to implement the methods related to the decoding.
 
-There are two methods, namely :meth:`sage.coding.decoder.decode_to_code`
-and :meth:`sage.coding.decoder.decode_to_message`.
+There are two methods, namely :meth:`sage.coding.decoder.Decoder.decode_to_code`
+and :meth:`sage.coding.decoder.Decoder.decode_to_message`.
 
 By the magic of default implementation, these two are linked, as ``decode_to_message`` calls
 first ``decode_to_code`` and then ``unencode``, while ``decode_to_code`` calls successively
@@ -299,7 +299,7 @@ to override ``decode_to_code``::
     so if none is overriden and one is called, an exception will be raised.
 
 Only one method is missing: one to provide to the user the number of errors our decoder can decode.
-This is the method :meth:`sage.coding.decoder.decoding_radius`, which we override::
+This is the method :meth:`sage.coding.decoder.Decoder.decoding_radius`, which we override::
 
     sage: def decoding_radius(self):
     ....:   return self.code().length() // 2
@@ -310,7 +310,7 @@ As for some cases, the decoding might not be precisely known, its implementation
 We need to do one extra thing: set this encoder in the dictionary of known decoders for the
 associated code class. To do that, just add the following line at the end of your file::
 
-   BinaryRepetitionCode._registered_decoders["MajorityVoteDecoder"] = MajorityVoteDecoder
+   BinaryRepetitionCode._registered_decoders["MajorityVoteDecoder"] = BinaryRepetitionCodeMajorityVoteDecoder
 
 Also put this line to set ``decoder_type``::
 
@@ -434,9 +434,9 @@ Here it means the following:
 - add the following in ``codes_catalog.py``::
     from repetion_code import BinaryRepetitionCode
 - add the following in ``encoders_catalog.py``::
-    from repetion_code import RepetitionCodeEncoder
+    from repetion_code import BinaryRepetitionCodeGeneratorMatrixEncoder
 - add the following in ``decoders_catalog.py``::
-    from repetion_code import RepetitionCodeMajorityVoteDecoder
+    from repetion_code import BinaryRepetitionCodeMajorityVoteDecoder
 - add the following in ``channels_catalog.py``::
     from channel_constructions import BinaryStaticErrorRateChannel
 
@@ -469,10 +469,10 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
 
 
-    class RepetitionCodeGeneratorMatrixEncoder(Encoder):
+    class BinaryRepetitionCodeGeneratorMatrixEncoder(Encoder):
 
         def __init__(self, code):
-            super(RepetitionEncoder, self).__init__(code)
+            super(BinaryRepetitionCodeGeneratorMatrixEncoder, self).__init__(code)
 
         def _repr_(self):
             return "Binary repetition encoder for the %s" % self.code()
@@ -481,7 +481,7 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             return "\textnormal{Binary repetition encoder for the } %s" % self.code()
 
         def __eq__(self, other):
-            return isinstance(other, RepetitionEncoder) \
+            return isinstance(other, BinaryRepetitionCodeGeneratorMatrixEncoder) \
                and self.code() == other.code()
 
         def generator_matrix(self):
@@ -490,10 +490,10 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
 
 
-    class RepetitionCodeStraightforwardEncoder(Encoder):
+    class BinaryRepetitionCodeStraightforwardEncoder(Encoder):
 
         def __init__(self, code):
-            super(RepetitionEncoder, self).__init__(code)
+            super(BinaryRepetitionCodeStraightforwardEncoder, self).__init__(code)
 
         def _repr_(self):
             return "Binary repetition encoder for the %s" % self.code()
@@ -502,7 +502,7 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             return "\textnormal{Binary repetition encoder for the } %s" % self.code()
 
         def __eq__(self, other):
-            return isinstance(other, RepetitionEncoder) \
+            return isinstance(other, BinaryRepetitionCodeStraightforwardEncoder) \
                and self.code() == other.code()
 
         def encode(self, message):
@@ -516,10 +516,10 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
 
 
-    class RepetitionCodeMajorityVoteDecoder(Decoder):
+    class BinaryRepetitionCodeMajorityVoteDecoder(Decoder):
 
         def __init__(self, code):
-            super(MajorityVoteDecoder, self).__init__(code, code.ambient_space(),\
+            super(BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),\
                "RepetitionEncoder")
 
         def _repr_(self):
@@ -530,7 +530,7 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
 
         def __eq__(self, other):
-            return isinstance(other, MajorityVoteDecoder) \
+            return isinstance(other, BinaryRepetitionCodeMajorityVoteDecoder) \
                and self.code() == other.code()
 
         def decode_to_code(self, word):
@@ -547,9 +547,10 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
 
 
-    BinaryRepetitionCode._registered_encoders["RepetitionEncoder"] = RepetitionEncoder
-    BinaryRepetitionCode._registered_decoders["MajorityVoteDecoder"] = MajorityVoteDecoder
-    BinaryRepetitionCode._decoder_type = {"hard-decision", "unique"}
+    BinaryRepetitionCode._registered_encoders["RepetitionGeneratorMatrixEncoder"] = BinaryRepetitionCodeGeneratorMatrixEncoder
+    BinaryRepetitionCode._registered_encoders["RepetitionStraightforwardEncoder"] = BinaryRepetitionCodeStraightforwardEncoder
+    BinaryRepetitionCode._registered_decoders["MajorityVoteDecoder"] = BinaryRepetitionCodeMajorityVoteDecoder
+    BinaryRepetitionCodeMajorityVoteDecoder._decoder_type = {"hard-decision", "unique"}
 
 **channel_constructions.py** (continued)::
 
@@ -587,4 +588,4 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
     :class:`repetion_code.BinaryRepetitionCode <sage.coding.repetion_code.BinaryRepetitionCode>`
     #the line above creates a link to the class in the html documentation of coding theory library
-    from repetion_code import BinaryRepetitionCode
+    from repetition_code import BinaryRepetitionCode

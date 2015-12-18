@@ -442,4 +442,146 @@ VII. Complete code of this tutorial
 
 If you need some base code to start from, feel free to copy-paste and derive from the one that follows.
 
+**repetition_code.py** (with two encoders)::
 
+    class BinaryRepetitionCode(AbstractLinearCode):
+
+        _registered_encoders = {}
+        _registered_decoders = {}
+
+        def __init__(length):
+            super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionEncoder", "MajorityVoteDecoder")
+            self._dimension = 1
+
+        def _repr_(self):
+            return "Binary repetition code of length %s" % self.length()
+
+        def _latex_(self):
+            return "\textnormal{Binary repetition code of length } %s" % self.length()
+
+        def __eq__(self, other):
+            return isinstance(other, BinaryRepetitionCode) \
+               and self.length() == other.length() \
+               and self.dimension() == other.dimension()
+
+
+
+    class RepetitionCodeGeneratorMatrixEncoder(Encoder):
+
+        def __init__(self, code):
+            super(RepetitionEncoder, self).__init__(code)
+
+        def _repr_(self):
+            return "Binary repetition encoder for the %s" % self.code()
+
+        def _latex_(self):
+            return "\textnormal{Binary repetition encoder for the } %s" % self.code()
+
+        def __eq__(self, other):
+            return isinstance(other, RepetitionEncoder) \
+               and self.code() == other.code()
+
+        def generator_matrix(self):
+            n = self.code().length()
+            return Matrix(GF(2), 1, n, [GF(2).one()] * n)
+
+
+
+    class RepetitionCodeStraightforwardEncoder(Encoder):
+
+        def __init__(self, code):
+            super(RepetitionEncoder, self).__init__(code)
+
+        def _repr_(self):
+            return "Binary repetition encoder for the %s" % self.code()
+
+        def _latex_(self):
+            return "\textnormal{Binary repetition encoder for the } %s" % self.code()
+
+        def __eq__(self, other):
+            return isinstance(other, RepetitionEncoder) \
+               and self.code() == other.code()
+
+        def encode(self, message):
+            return vector(GF(2), [word] * self.code().length())
+
+        def unencode_nocheck(self, word):
+            return word[0]
+
+        def message_space(self):
+            return GF(2)
+
+
+
+    class RepetitionCodeMajorityVoteDecoder(Decoder):
+
+        def __init__(self, code):
+            super(MajorityVoteDecoder, self).__init__(code, code.ambient_space(),\
+               "RepetitionEncoder")
+
+        def _repr_(self):
+            return "Majority vote-based decoder for the %s" % self.code()
+
+        def _latex_(self):
+            return "\textnormal{Majority vote based-decoder for the } %s" % self.code()
+
+
+        def __eq__(self, other):
+            return isinstance(other, MajorityVoteDecoder) \
+               and self.code() == other.code()
+
+        def decode_to_code(self, word):
+            list_word = word.list()
+            count_one = list_word.count(GF(2).one())
+            n = self.code().length()
+            len = len(list_word)
+            if count_one > len / 2:
+                return vector(GF(2), [1] * n)
+            elif count_one < len / 2:
+               return vector(GF(2), [0] * n)
+            else:
+               raise DecodingFailure("Impossible to find a majority")
+
+
+
+    BinaryRepetitionCode._registered_encoders["RepetitionEncoder"] = RepetitionEncoder
+    BinaryRepetitionCode._registered_decoders["MajorityVoteDecoder"] = MajorityVoteDecoder
+    BinaryRepetitionCode._decoder_type = {"hard-decision", "unique"}
+
+**channel_constructions.py** (continued)::
+
+    class BinaryStaticErrorRateChannel(Channel):
+
+        def __init__(space, number_errors):
+            if space.base_ring() is not GF(2):
+                raise ValueError("Provided space must be a vector space over GF(2)")
+            if number_errors > space.dimension():
+                raise ValueErrors("number_errors cannot be bigger than input space's dimension")
+            super(BinaryStaticErrorRateChannel, self).__init__(space, space)
+            self._number_errors = number_errors
+
+        def _repr_(self):
+          return "Binary static error rate channel creating %s errors, of input and output space %s"\
+                  % (format_interval(no_err), self.input_space())
+
+        def _latex_(self):
+          return "\\textnormal{Static error rate channel creating %s errors, of input and output space %s}"\
+                  % (format_interval(no_err), self.input_space())
+
+        def number_errors(self):
+          return self._number_errors
+
+        def transmit_unsafe(self, message):
+            w = copy(message)
+            number_err = self.number_errors()
+            V = self.input_space()
+            for i in sample(xrange(V.dimension(), number_err):
+                w[i] += 1
+            return w
+
+**codes_catalog.py** (continued, do the same in **encoders_catalog.py**, **decoders_catalog.py** and
+**channels_catalog.py**)::
+
+    :class:`repetion_code.BinaryRepetitionCode <sage.coding.repetion_code.BinaryRepetitionCode>`
+    #the line above creates a link to the class in the html documentation of coding theory library
+    from repetion_code import BinaryRepetitionCode

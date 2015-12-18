@@ -85,8 +85,9 @@ Sage en tu computador. Aquí hacemos simplemente dos comentarios:
    necesitarás hacerle conocer SageTeX a tu distribución de TeX.
    Para hacer esto, consulta la sección
    "Haciendo que TeX conozca a SageTeX" en la guía de intalación de Sage
-   `Sage installation guide <http://www.sagemath.org/doc/>`_ (`Este enlace
-   <../installation/index.html>`_ debería llevarte a tu copia
+   `Sage installation guide <http://doc.sagemath.org/html/en/installation/index.html>`_
+   (`Este enlace
+   <../../en/installation/index.html>`_ debería llevarte a tu copia
    local de la guía de instalación). Es bastante sencillo: sólo
    necesitas establecer una variable de entorno o copiar un solo archivo
    en un directorio en el que TeX va a buscar.
@@ -140,7 +141,7 @@ Metas a largo plazo de Sage
    re-distribuir la versión de Sage que usaste.
 
 -  **Fácil de compilar:** Sage tiene que ser fácil de compilar desde el
-   código fuente para los usuarios de Linux, OS X y Windows. Ésto provee
+   código fuente para los usuarios de Linux, OS X y Windows. Esto provee
    a los usuarios de una mayor flexibilidad para que modifiquen el sistema.
 
 -  **Cooperación con otros programas:** Sage debe proveer interfaces robustos a la mayoría de

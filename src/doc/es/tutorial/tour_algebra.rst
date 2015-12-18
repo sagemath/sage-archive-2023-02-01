@@ -146,7 +146,7 @@ Para resolver la ecuación :math:`x'+x-1=0`:
 ::
 
     sage: t = var('t')    # defina una variable t
-    sage: x = function('x',t)   # defina x como una función de esa variable
+    sage: x = function('x')(t)   # defina x como una función de esa variable
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
     (_C + e^t)*e^(-t)
@@ -288,7 +288,7 @@ Recuerda de la definición de derivada que
 .. math::  y'(x) \approx \frac{y(x+h)-y(x)}{h},
 
 
-donde :math:`h>0` está dado y es pequeño. Ésto, junto con la ED, dan
+donde :math:`h>0` está dado y es pequeño. Esto, junto con la ED, dan
 :math:`f(x,y(x))\approx \frac{y(x+h)-y(x)}{h}`. Ahora resuelve para :math:`y(x+h)`:
 
 .. math::   y(x+h) \approx y(x) + h*f(x,y(x)).

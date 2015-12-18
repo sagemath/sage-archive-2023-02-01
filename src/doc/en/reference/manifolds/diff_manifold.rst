@@ -13,3 +13,9 @@ Differentiable manifolds
    diff_scalarfield
 
    diff_map
+
+   vectorfield
+
+   tensorfield
+
+   diff_form

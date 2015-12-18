@@ -14,6 +14,15 @@ EXAMPLES::
     False
     sage: 1 in S
     True
+
+TESTS::
+
+    sage: Pol.<y> = CBF[]
+    sage: Quo.<y> = Pol.quotient(y^3)
+    sage: CBF.zero()*y
+    0
+    sage: ((x - 1)/(x + 1))(1 + y)
+    -0.2500000000000000*y^2 + 0.5000000000000000*y
 """
 
 ################################################################################
@@ -637,7 +646,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         -- Simon King (2010-05)
         """
         from sage.categories.pushout import QuotientFunctor
-        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names(),self.is_field()), self.base()
+        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names()), self.base()
 
     @cached_method
     def base_ring(self):

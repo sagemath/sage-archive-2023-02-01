@@ -514,6 +514,8 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 142, parameters=(1, 2))
+            Traceback (most recent call last):
+            ...
             AssertionError: Impossible parameters for the Guruswami-Sudan algorithm
         """
         n, k = code.length(), code.dimension()

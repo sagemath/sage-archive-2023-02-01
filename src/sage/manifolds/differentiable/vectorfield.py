@@ -708,7 +708,8 @@ class VectorField(TensorField):
                 raise ValueError("bad number of fixed coordinates")
             for fc, val in fixed_coords.iteritems():
                 xx[chart_domain[:].index(fc)] = val
-        index_p = [chart_domain[:].index(cd) for cd in coords]
+
+
         resu = Graphics()
         ind = [0] * ncp
         ind_max = [0] * ncp
@@ -721,15 +722,17 @@ class VectorField(TensorField):
             # parallel plot construct : Only for 2D plot (at  moment) !
 
             # creation of the list of parameters
-            listParalInput = []
+            list_xx = []
 
             while ind != ind_max:
-                xx = [ xmin[i] + ind[i]*step_tab[i] for i in  range(ncp) ]
+                for i in  range(ncp):
+                    xx[i] = xmin[i] + ind[i]*step_tab[i]
 
                 if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
                                               parameters=parameters):
 
-                    listParalInput.append((vector,dom,xx,chart_domain,chart,ambient_coords,mapping,scale,color,parameters,extra_options))
+                    # needed a xx*1 to copy the list by value
+                    list_xx.append(xx*1)
 
                 # Next index:
                 ret = 1
@@ -745,17 +748,36 @@ class VectorField(TensorField):
                             ind[pos] = 0
                             ret = 1
 
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+            ind_step = max(1,int(len(list_xx)/nproc/2))
+            local_list = lol(list_xx,ind_step)
+
+            # definition of the list of input parameters
+            listParalInput = [(vector,dom,ind_part,
+                               chart_domain,chart,
+                               ambient_coords,mapping,
+                               scale,color,parameters,
+                               extra_options) for ind_part in local_list]
+
 
             # definition of the parallel function
             @parallel(p_iter='multiprocessing',ncpus=nproc)
-            def add_point_plot(vector,dom,xx,chart_domain,chart,ambient_coords,mapping,scale,color,parameters,extra_options):
-                point = dom(xx, chart=chart_domain)
-                return vector.at(point).plot(chart=chart,
-                                              ambient_coords=ambient_coords,
-                                              mapping=mapping, scale=scale,
-                                              color=color, print_label=False,
-                                              parameters=parameters,
-                                              **extra_options)
+            def add_point_plot(vector,dom,xx_list,chart_domain,chart,ambient_coords,mapping,scale,color,parameters,extra_options):
+                count = 0
+                for xx in xx_list:
+                    point = dom(xx, chart=chart_domain)
+                    part = vector.at(point).plot(chart=chart,
+                                                 ambient_coords=ambient_coords,
+                                                 mapping=mapping,scale=scale,
+                                                 color=color, print_label=False,
+                                                 parameters=parameters,
+                                                 **extra_options)
+                    if count == 0 :
+                        local_resu = part
+                    else:
+                        local_resu += part
+                    count += 1
+                return local_resu
 
             # parallel execution and recontruction of the plot
             for ii, val in add_point_plot(listParalInput):
@@ -763,12 +785,12 @@ class VectorField(TensorField):
 
         else:
             while ind != ind_max:
-                xx = [ xmin[i] + ind[i]*step_tab[i] for i in  range(ncp) ]
+                for i in  range(ncp):
+                    xx[i] = xmin[i] + ind[i]*step_tab[i]
 
                 if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
                                                   parameters=parameters):
                     point = dom(xx, chart=chart_domain)
-
                     resu += vector.at(point).plot(chart=chart,
                                                   ambient_coords=ambient_coords,
                                                   mapping=mapping, scale=scale,

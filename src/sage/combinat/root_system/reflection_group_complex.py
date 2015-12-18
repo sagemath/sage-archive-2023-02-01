@@ -49,6 +49,8 @@ from sage.rings.arith import gcd, lcm
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
+from sage.misc.sage_eval import sage_eval
+
 class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
@@ -1033,7 +1035,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.roots()
             [(1, 0, 0, 0, 0), (0, 1, 0, 0, 0), (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 0, 0, -1, 1), (1, 1, 0, 0, 0), (0, 1, 1, 0, 0), (1, 1, 1, 0, 0), (-1, 0, 0, 0, 0), (0, -1, 0, 0, 0), (0, 0, -1, 0, 0), (-1, -1, 0, 0, 0), (0, -1, -1, 0, 0), (-1, -1, -1, 0, 0), (0, 0, 0, E(3), 0), (0, 0, 0, -E(3), 1), (0, 0, 0, 0, 1), (0, 0, 0, 1, -1), (0, 0, 0, 0, E(3)), (0, 0, 0, 1, -E(3)), (0, 0, 0, E(3)^2, 0), (0, 0, 0, -E(3)^2, 1), (0, 0, 0, E(3), -1), (0, 0, 0, E(3), -E(3)), (0, 0, 0, 0, E(3)^2), (0, 0, 0, 1, -E(3)^2), (0, 0, 0, -1, E(3)), (0, 0, 0, -E(3), E(3)), (0, 0, 0, E(3)^2, -1), (0, 0, 0, E(3)^2, -E(3)), (0, 0, 0, E(3), -E(3)^2), (0, 0, 0, -E(3)^2, E(3)), (0, 0, 0, -1, E(3)^2), (0, 0, 0, -E(3), E(3)^2), (0, 0, 0, E(3)^2, -E(3)^2), (0, 0, 0, -E(3)^2, E(3)^2)]
         """
-        roots = [ vector(eval(str(root).replace("^","**"))) for root in self._gap_group.roots ]
+        roots = [ vector(sage_eval(str(root).replace("^","**"))) for root in self._gap_group.roots ]
         for v in roots:
             v.set_immutable()
         return roots
@@ -1083,7 +1085,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             for j in range(len(x)):
                 I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
             I[i] = I[i].replace("+*","+").replace("-*","-").replace("ER(5)","*(E(5)-E(5)**2-E(5)**3+E(5)**4)").lstrip("*")
-        I = [ eval(p) for p in I ]
+        I = [ sage_eval(p) for p in I ]
         return I
 
         I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]
@@ -1093,7 +1095,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             I[i] = I[i].replace('^','**')
             for j in range(len(x)):
                 I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
-        I = [ eval(p) for p in I ]
+        I = [ sage_eval(p) for p in I ]
         return I
 
     def cartan_matrix(self):

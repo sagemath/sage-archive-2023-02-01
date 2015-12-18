@@ -503,10 +503,29 @@ class VectorField(TensorField):
             g = v.plot(max_range=4, nb_values=5, scale=0.5)
             sphinx_plot(g)
 
+        Plot using parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: v.plot(scale=0.5,  nb_values=10, linestyle='--', width=1, arrowsize=6)
+            Graphics object consisting of 100 graphics primitives
+
+        .. PLOT::
+
+            M = Manifold(2, 'M')
+            X = M.chart('x y'); x, y = X[:]
+            v = M.vector_field(name='v'); v[:] = -y, x
+            g = v.plot(scale=0.5,  nb_values=10, linestyle='--', width=1, arrowsize=6)
+            sphinx_plot(g)
+
+        ::
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
         Plots along a line of fixed coordinate::
 
             sage: v.plot(fixed_coords={x: -2})
-            Graphics object consisting of 9 graphics primitives
+            Graphics object consisting of 8 graphics primitives
 
         .. PLOT::
 
@@ -559,7 +578,7 @@ class VectorField(TensorField):
         or, for a 2D plot::
 
             sage: v.plot(ambient_coords=(x, y), fixed_coords={t: 1, z: 0})
-            Graphics object consisting of 80 graphics primitives
+            Graphics object consisting of 64 graphics primitives
 
         .. PLOT::
 

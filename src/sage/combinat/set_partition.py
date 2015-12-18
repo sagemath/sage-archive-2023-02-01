@@ -518,8 +518,11 @@ class SetPartition(ClonableArray):
     @combinatorial_map(name='to permutation')
     def to_permutation(self):
         """
-        Convert ``self`` to a permutation by considering the partitions as
-        cycles.
+        Convert ``self`` to a permutation by considering the blocks of the
+        partition as cycles.
+
+        When the ground set is totally ordered, the cycles use this order, too,
+        and therefore maximise the number of excedences.
 
         EXAMPLES::
 
@@ -532,6 +535,9 @@ class SetPartition(ClonableArray):
     def standard_form(self):
         r"""
         Return ``self`` as a list of lists.
+
+        When the ground set is totally ordered, the elements of each
+        block are listed in increasing order.
 
         This is not related to standard set partitions (which simply
         means set partitions of `[n] = \{ 1, 2, \ldots , n \}` for some

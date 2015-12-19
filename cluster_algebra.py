@@ -24,7 +24,7 @@ class ClusterAlgebraElement(ElementWrapper):
         return self.parent().retract(self.lift() + other.lift())
 
     # I am not sure we want to have this function: its output is most of the times not in the algebra but it is convenient to have
-    def __div__(self, other):
+    def _div_(self, other):
         return self.parent().retract(self.lift()/other.lift())
 
     # HACK: LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
@@ -34,6 +34,10 @@ class ClusterAlgebraElement(ElementWrapper):
     # this function is quite disgusting but at least it works for any element of
     # the algebra, can we do better?
     # For cluster variables yes we can do better: use CA4 Prop 7.16
+    # It looks to me that Prop 7.16 in CA IV only works if you know the
+    # F-polynomial; in particular one ask d_vector() of a cluster variable (or
+    # maybe of a cluster monomial if we know the cluster decomposition). The
+    # current implementation is uglier but more general.
     def d_vector(self):
         n = self.parent().rk
         one = self.parent().ambient_field()(1)
@@ -151,8 +155,14 @@ class ClusterAlgebraSeed(SageObject):
     def F_polynomial(self, j):
         return self.parent().F_polynomial(self.g_vector(j))
 
+    def F_polynomials(self):
+        return (self.parent().F_polynomial(g) for g in self.g_vectors())
+
     def cluster_variable(self, j):
         return self.parent().cluster_variable(self.g_vector(j))
+
+    def cluster_variables(self):
+        return (self.parent().cluster_variable(g) for g in self.g_vectors())
 
     def mutate(self, k, inplace=True, mutating_F=True):
         if inplace:
@@ -209,7 +219,11 @@ class ClusterAlgebraSeed(SageObject):
         # wrap up
         if not inplace:
             return seed
-
+    
+    # I am perplexed by this (yet unfinished) function. I was expecting
+    # mutate_initial do be a function of ClusterAlgebra: if we change the
+    # initial seed all the g-vectors, F_polynomials and paths need to mutate
+    # accordingly. Am I right?
     def mutate_initial(self, k, inplace=True, mutating_F=True):
         if inplace:
             seed = self

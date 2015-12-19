@@ -421,11 +421,8 @@ static int64_t _mpq_pythonhash(mpq_t the_rat)
     mpq_canonicalize(rat);
     int64_t n = _mpz_pythonhash(mpq_numref(rat));
     int64_t d = _mpz_pythonhash(mpq_denref(rat));
-    if (d != 1L) {
-        n = n^d;
-        if (n == -1L)
-            n = -2L;
-        }
+    if (d != 1L)
+        n = n + (d-1) * 7461864723258187525;
     mpq_clear(rat);
     return n;
 }

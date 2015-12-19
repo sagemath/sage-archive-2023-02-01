@@ -938,9 +938,15 @@ cdef class Converter(SageObject):
             sage: P.<x,y,z> = QQ[]
             sage: C= Curve((x-y)*(y-z)*(z-x)); 
             sage: import sage.libs.singular.function_factory
-            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus
+            sage: locAtZero = sage.libs.singular.function_factory.ff.normal__lib.locAtZero
             sage: I=C.defining_ideal()
-            sage: sing_genus(I)
+            sage: locAtZero(I)
+            0
+
+        Singular's genus function is prone to crashing, see :trac:`12851` and :trac:`19750` ::
+
+            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus  # not tested
+            sage: sing_genus(I)  # not tested
             -2
         """
         #FIXME

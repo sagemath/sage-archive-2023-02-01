@@ -945,8 +945,8 @@ cdef class Converter(SageObject):
 
         Singular's genus function is prone to crashing, see :trac:`12851` and :trac:`19750` ::
 
-            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus  # not tested
-            sage: sing_genus(I)  # not tested
+            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus  # known bug
+            sage: sing_genus(I)  # known bug
             -2
         """
         #FIXME

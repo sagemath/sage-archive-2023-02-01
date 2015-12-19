@@ -122,6 +122,7 @@ fi
     --prefix="$SAGE_LOCAL" \
     --with-local-prefix="$SAGE_LOCAL" \
     --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" --with-mpc="$SAGE_LOCAL" \
+    --with-stage1-ldflags="-Wl,-rpath,$SAGE_LOCAL" \
     --with-system-zlib \
     --disable-multilib \
     --disable-nls \

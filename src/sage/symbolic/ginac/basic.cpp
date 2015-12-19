@@ -776,9 +776,9 @@ tinfo_t basic::return_type_tinfo() const
  *  members.  For this reason it is well suited for container classes but
  *  atomic classes should override this implementation because otherwise they
  *  would all end up with the same hashvalue. */
-unsigned basic::calchash() const
+int64_t basic::calchash() const
 {
-	unsigned v = golden_ratio_hash((p_int)tinfo());
+	int64_t v = golden_ratio_hash((p_int)tinfo());
 	for (size_t i=0; i<nops(); i++) {
 		v = rotate_left(v);
 		v ^= this->op(i).gethash();
@@ -827,8 +827,8 @@ int basic::compare(const basic & other) const
 #ifdef GINAC_COMPARE_STATISTICS
 	compare_statistics.total_basic_compares++;
 #endif
-	const unsigned hash_this = gethash();
-	const unsigned hash_other = other.gethash();
+	const int64_t hash_this = gethash();
+	const int64_t hash_other = other.gethash();
 	if (hash_this<hash_other) return -1;
 	if (hash_this>hash_other) return 1;
 #ifdef GINAC_COMPARE_STATISTICS

@@ -300,7 +300,7 @@ bool symbol::is_equal_same_type(const basic & other) const
 	return serial==o->serial;
 }
 
-unsigned symbol::calchash() const
+int64_t symbol::calchash() const
 {
   // Original code
     hashvalue = golden_ratio_hash((p_int)tinfo() ^ serial);

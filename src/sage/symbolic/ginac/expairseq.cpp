@@ -642,9 +642,9 @@ unsigned expairseq::return_type() const
 	return return_types::noncommutative_composite;
 }
 
-unsigned expairseq::calchash() const
+int64_t expairseq::calchash() const
 {
-	unsigned v = golden_ratio_hash((p_int)this->tinfo());
+	int64_t v = golden_ratio_hash((p_int)this->tinfo());
         for (const auto & elem : seq) {
 		v ^= elem.rest.gethash();
 #if !EXPAIRSEQ_USE_HASHTAB

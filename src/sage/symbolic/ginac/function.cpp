@@ -913,9 +913,9 @@ ex function::evalf(int level, PyObject* kwds) const
 	throw(std::logic_error("function::evalf(): invalid nparams"));
 }
 
-unsigned function::calchash() const
+int64_t function::calchash() const
 {
-	unsigned v = golden_ratio_hash(golden_ratio_hash((p_int)tinfo()) ^ serial);
+	int64_t v = golden_ratio_hash(golden_ratio_hash((p_int)tinfo()) ^ serial);
 	for (size_t i=0; i<nops(); i++) {
 		v = rotate_left(v);
 		v ^= this->op(i).gethash();

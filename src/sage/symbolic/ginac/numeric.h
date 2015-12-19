@@ -150,7 +150,7 @@ protected:
 		return 0;
 	}
 	bool is_equal_same_type(const basic &other) const;
-	unsigned calchash() const;
+	int64_t calchash() const;
 
 	// new virtual functions which can be overridden by derived classes
 	// (none)
@@ -271,7 +271,7 @@ protected:
 protected:
     Type t;
     Value v;
-    long hash;
+    int64_t hash;
     bool is_hashable = true;
 };
 

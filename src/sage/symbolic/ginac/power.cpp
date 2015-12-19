@@ -98,9 +98,9 @@ DEFAULT_UNARCHIVE(power)
 
 // public
 
-unsigned power::calchash() const
+int64_t power::calchash() const
 {
-  hashvalue = basis.gethash()+exponent.gethash();
+  hashvalue = basis.gethash() + exponent.gethash();
   setflag(status_flags::hash_calculated);
   return hashvalue;
 }

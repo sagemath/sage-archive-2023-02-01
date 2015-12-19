@@ -95,7 +95,7 @@ public:
 protected:
 	bool is_equal_same_type(const basic & other) const;
 	unsigned return_type() const;
-	unsigned calchash() const;
+	int64_t calchash() const;
 	ex expand(unsigned options=0) const;
 	
 	// new virtual functions which can be overridden by derived classes

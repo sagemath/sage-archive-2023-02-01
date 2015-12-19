@@ -229,7 +229,7 @@ bool constant::is_equal_same_type(const basic & other) const
 	return serial == o.serial;
 }
 
-unsigned constant::calchash() const
+int64_t constant::calchash() const
 {
 	hashvalue = golden_ratio_hash((p_int)tinfo() ^ serial);
 

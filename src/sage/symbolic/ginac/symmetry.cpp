@@ -183,9 +183,9 @@ int symmetry::compare_same_type(const basic & other) const
 	return 0;
 }
 
-unsigned symmetry::calchash() const
+int64_t symmetry::calchash() const
 {
-	unsigned v = golden_ratio_hash((p_int)tinfo());
+	int64_t v = golden_ratio_hash((p_int)tinfo());
 
 	if (type == none) {
 		v = rotate_left(v);

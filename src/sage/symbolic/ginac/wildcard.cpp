@@ -107,7 +107,7 @@ void wildcard::do_print_latex(const print_latex & c, unsigned level) const
     c.s << "\\$" << label;
 }
 
-unsigned wildcard::calchash() const
+int64_t wildcard::calchash() const
 {
 	// this is where the schoolbook method
 	// (golden_ratio_hash(tinfo()) ^ label)

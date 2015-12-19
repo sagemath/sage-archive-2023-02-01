@@ -71,7 +71,7 @@ protected:
 	bool match_same_type(const basic & other) const;
 	unsigned return_type() const;
 	tinfo_t return_type_tinfo() const;
-	unsigned calchash() const;
+	int64_t calchash() const;
 
 	// new virtual functions which can be overridden by derived classes
 protected:

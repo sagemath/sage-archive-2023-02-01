@@ -44,7 +44,7 @@ public:
 	bool match(const ex & pattern, lst & repl_lst) const;
 
 protected:
-	unsigned calchash() const;
+	int64_t calchash() const;
 
 	// non-virtual functions in this class
 public:

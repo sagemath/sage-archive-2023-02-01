@@ -243,7 +243,7 @@ public:
 	unsigned return_type() const { return bp->return_type(); }
 	tinfo_t return_type_tinfo() const { return bp->return_type_tinfo(); }
 
-	unsigned gethash() const { return bp->gethash(); }
+	int64_t gethash() const { return bp->gethash(); }
 
 private:
 	static ptr<basic> construct_from_basic(const basic & other);

@@ -82,7 +82,7 @@ protected:
 	unsigned return_type() const;
 	tinfo_t return_type_tinfo() const;
 	ex expand(unsigned options = 0) const;
-	unsigned calchash() const;
+	int64_t calchash() const;
 
 	// new virtual functions which can be overridden by derived classes
 	// none

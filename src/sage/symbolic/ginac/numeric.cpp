@@ -395,7 +395,7 @@ int numeric::compare_same_type(const numeric& right) const {
 /* By convention hashes of PyObjects must be identical
    with their Python hashes, this applies to our MPZ
    and MPQ objects too. */
-static long _mpz_pythonhash(mpz_t the_int)
+static int64_t _mpz_pythonhash(mpz_t the_int)
 {
     mp_limb_t h1=0, h0;
     size_t n = mpz_size(the_int);
@@ -405,7 +405,7 @@ static long _mpz_pythonhash(mpz_t the_int)
         if (h1 < h0)
             ++h1;
         }
-    long h = h1;
+    int64_t h = h1;
     if (mpz_sgn(the_int) < 0)
         h = -h;
     if (h == -1)
@@ -413,14 +413,14 @@ static long _mpz_pythonhash(mpz_t the_int)
     return h;
 }
 
-static long _mpq_pythonhash(mpq_t the_rat)
+static int64_t _mpq_pythonhash(mpq_t the_rat)
 {
     mpq_t rat;
     mpq_init(rat);
     mpq_set(rat, the_rat);
     mpq_canonicalize(rat);
-    long n = _mpz_pythonhash(mpq_numref(rat));
-    long d = _mpz_pythonhash(mpq_denref(rat));
+    int64_t n = _mpz_pythonhash(mpq_numref(rat));
+    int64_t d = _mpz_pythonhash(mpq_denref(rat));
     if (d != 1L) {
         n = n^d;
         if (n == -1L)
@@ -517,7 +517,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
         }
 
         t = PYOBJECT;
-        hash = PyObject_Hash(o);
+        hash = (int64_t)PyObject_Hash(o);
         if (hash == -1 && PyErr_Occurred()) {
             // error is thrown on first hash request
             PyErr_Clear();
@@ -661,7 +661,7 @@ inherited(n, sym_lst) {
                         if (PyErr_Occurred()) {
                                 throw (std::runtime_error("archive error: caught exception in py_loads"));
                         }
-                        hash = PyObject_Hash(v._pyobject);
+                        hash = (int64_t)PyObject_Hash(v._pyobject);
                         if (hash == -1 && PyErr_Occurred()) {
                             PyErr_Clear();
                             is_hashable = false;
@@ -922,15 +922,15 @@ bool numeric::is_equal_same_type(const basic &other) const {
         return this->is_equal(o);
 }
 
-unsigned numeric::calchash() const {
+int64_t numeric::calchash() const {
         switch (t) {
                 case DOUBLE:
-                        return (unsigned int) v._double;
+                        return (int64_t) v._double;
                 case MPZ:
                 case MPQ:
                 case PYOBJECT:
                         if (is_hashable)
-                            return (unsigned int) hash;
+                            return hash;
                         throw (std::runtime_error("Python object not hashable"));
                 default:
                         stub("invalid type: ::hash() type not handled");

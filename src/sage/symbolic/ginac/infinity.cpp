@@ -255,7 +255,7 @@ bool infinity::compare_other_type(const ex & other,
                 return is_plus_infinity();
 }
 
-unsigned infinity::calchash() const
+int64_t infinity::calchash() const
 {
 	hashvalue = golden_ratio_hash((p_int)tinfo() ^ direction.gethash());
 	setflag(status_flags::hash_calculated);

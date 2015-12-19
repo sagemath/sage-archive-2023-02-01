@@ -306,11 +306,11 @@ tinfo_t relational::return_type_tinfo() const
 	return lh.return_type_tinfo();
 }
 
-unsigned relational::calchash() const
+int64_t relational::calchash() const
 {
-	unsigned v = golden_ratio_hash((p_int)tinfo());
-	unsigned lhash = lh.gethash();
-	unsigned rhash = rh.gethash();
+	int64_t v = golden_ratio_hash((p_int)tinfo());
+	int64_t lhash = lh.gethash();
+	int64_t rhash = rh.gethash();
 
 	v = rotate_left(v);
 	switch(o) {

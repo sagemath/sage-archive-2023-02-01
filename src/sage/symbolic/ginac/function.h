@@ -342,7 +342,7 @@ public:
 	ex expand(unsigned options=0) const;
 	ex eval(int level=0) const;
 	ex evalf(int level=0, PyObject* parent=nullptr) const;
-	unsigned calchash() const;
+	int64_t calchash() const;
 	ex series(const relational & r, int order, unsigned options = 0) const;
         ex subs(const exmap & m, unsigned options = 0) const;
 	ex thiscontainer(const exvector & v) const;

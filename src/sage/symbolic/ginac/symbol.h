@@ -76,7 +76,7 @@ public:
 protected:
 	ex derivative(const symbol & s) const;
 	bool is_equal_same_type(const basic & other) const;
-	unsigned calchash() const;
+	int64_t calchash() const;
 	
 	// non-virtual functions in this class
 public:

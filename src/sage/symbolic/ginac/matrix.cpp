@@ -748,14 +748,14 @@ ex matrix::determinant(unsigned algo) const
 	bool normal_flag = false;
 	unsigned sparse_count = 0;  // counts non-zero elements
         for (const auto elem : m) {
-		if (elem.info(info_flags::numeric))
+		if (not elem.info(info_flags::numeric))
 			numeric_flag = false;
 		exmap srl;  // symbol replacement list
 		ex rtest = elem.to_rational(srl);
-		if (!rtest.is_zero())
+		if (not rtest.is_zero())
 			++sparse_count;
-		if (!rtest.info(info_flags::crational_polynomial) &&
-			 rtest.info(info_flags::rational_function))
+		if ((not rtest.info(info_flags::crational_polynomial)) and
+		        (not rtest.info(info_flags::rational_function)))
 			normal_flag = true;
 	}
 	

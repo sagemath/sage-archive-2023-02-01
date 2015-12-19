@@ -367,6 +367,8 @@ epvector* conjugateepvector(const epvector& epv)
                 for (const auto & elem2 : epv)
                         if (&elem2 != &elem)
                                 newepv->push_back(elem2);
+                        else
+                                break;
 		newepv->push_back(x);
 	}
 	return newepv;

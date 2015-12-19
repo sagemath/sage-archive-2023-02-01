@@ -21,7 +21,7 @@ REFERENCES:
 .. [PilStu] Pilaud and Stump. *Brick polytopes of spherical subword complexes and generalized associahedra*. Adv. Math. 276:1-61, 2015.
 """
 #*****************************************************************************
-#       Copyright (C) 2012      Christian Stump <christian.stump@gmail.com>
+#       Copyright (C) 2015      Christian Stump <christian.stump@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
@@ -38,7 +38,6 @@ from sage.matrix.all import Matrix
 from copy import copy
 from sage.combinat.subword_complex_c import _flip_c, _construct_facets_c
 from sage.geometry.polyhedron.constructor import Polyhedron
-
 
 class SubwordComplex(SimplicialComplex, Parent):
     r"""
@@ -507,30 +506,6 @@ class SubwordComplex(SimplicialComplex, Parent):
         """
         return {F: F.kappa_preimage() for F in self}
 
-    def compatibility_fan(self, F=None):
-        r"""
-        Return the root fan of ``self`` with respect to the initial facet ``F``.
-
-        INPUT:
-
-        - ``F`` -- (default: ``greedy_facet(self)``) an iterable of positions.
-
-        .. SEEALSO::
-
-            :func:`root_fan <sage.combinat.subword_complex.SubwordComplexFacet.root_fan>`
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
-            sage: w = W.from_reduced_word([1,2,1])
-            sage: SC = SubwordComplex([1,2,1,2,1], w)
-            sage: SC.compatibility_fan()
-            Rational polyhedral fan in 2-d lattice N
-        """
-        if F is None:
-            F = self.greedy_facet()
-        return self(F).compatibility_fan()
-
     def brick_fan(self):
         r"""
         Return the brick fan of ``self``.
@@ -632,43 +607,6 @@ class SubwordComplex(SimplicialComplex, Parent):
             print "Caution: the polytope is build with rational vertices."
             BV = [[QQ(CC(v).real()) for v in V] for V in BV]
         return Polyhedron(BV)
-
-    def word_orbit_partition(self):
-        r"""
-        Return the partition of the positions of `Q` into orbits of
-        letter rotation.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['A',2],index_set=[1,2])
-            sage: w = W.from_reduced_word([1,2,1])
-            sage: SC = SubwordComplex([1,2,1,2,1],w)
-            sage: SC.word_orbit_partition()
-            [[0, 1, 2, 3, 4]]
-
-            sage: W = CoxeterGroup(['A',3],index_set=[1,2,3])
-            sage: w = W.from_reduced_word([1,2,3,1,2,1])
-            sage: SC = SubwordComplex([1,2,3,1,2,3,1,2,1],w)
-            sage: SC.word_orbit_partition()
-            [[0, 2, 3, 5, 6, 8], [1, 4, 7]]
-        """
-        from sage.graphs.graph import Graph
-        Q = self.word()
-        W = self.group()
-        w0 = W.w0
-        I = W.index_set()
-        G = Graph([I, []], multiedges=False, format='vertices_and_edges')
-        conversion = {W.simple_reflection(i): i for i in I}
-
-        # one just needs the diagram automorphism induced by w0
-        for i in I:
-            si = W.simple_reflection(i)
-            si_bar = w0 * si * w0
-            if si_bar != si:
-                G.add_edge((i, conversion[si_bar]))
-        I_decomp = G.connected_components()
-        return [[j for j, x in enumerate(Q) if x in I_part]
-                for I_part in I_decomp]
 
     def barycenter(self):
         """
@@ -799,7 +737,6 @@ class SubwordComplex(SimplicialComplex, Parent):
             Fs = [F for F in self if F.is_vertex()]
             cov = [(a, b) for a, b in cov if a in Fs and b in Fs]
         return Poset(((), cov), facade=True)
-
 
 class SubwordComplexFacet(Simplex, Element):
     r"""
@@ -1078,141 +1015,6 @@ class SubwordComplexFacet(Simplex, Element):
             1-d cone in 1-d lattice N
         """
         return Cone(self.root_configuration())
-
-    def compatibility_vectors(self):
-        r"""
-        Return the rays of the compatibility fan of the subword
-        complex ``self.parent()`` with respect to the initial facet
-        ``self``.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['A',3], index_set=[1,2,3])
-            sage: w = W.from_reduced_word([1,2,3,1,2,1])
-            sage: SC = SubwordComplex([1,2,3,1,2,3,1,2,1],w)
-            sage: F = SC([0,1,2]); F.compatibility_vectors()
-            [(-1, 0, 0),
-             (0, -1, 0),
-             (0, 0, -1),
-             (1, 0, 0),
-             (1, 1, 0),
-             (1, 1, 1),
-             (0, 1, 0),
-             (0, 1, 1),
-             (0, 0, 1)]
-            sage: F = SC([0,2,6]); F.compatibility_vectors()
-            [(-1, 0, 0),
-             (0, 0, 1),
-             (0, -1, 0),
-             (1, 0, 1),
-             (1, 0, 0),
-             (1, 1, 0),
-             (0, 0, -1),
-             (0, 1, 0),
-             (0, 1, 1)]
-        """
-        if not self.parent().is_root_independent():
-            raise ValueError("compatibility fan only defined for "
-                             "root-independent subword complexes")
-        ext_root_conf = self.extended_root_configuration()
-        root_conf = self.root_configuration()
-        M = Matrix(root_conf)
-        M_inverse = M.inverse()
-        rays = []
-        for j in range(len(ext_root_conf)):
-            root = ext_root_conf[j]
-            if j in self:
-                rays.append(-root * M_inverse)
-            else:
-                new_root = root * M_inverse
-                rays.append(vector([(1 if i < j else -1) * new_root[self.tuple().index(i)] for i in self]))
-        return rays
-
-    def compatibility_fan(self):
-        r"""
-        Return the compatibility fan of the subword complex
-        ``self.parent()`` with respect to the initial facet ``self``.
-
-        The compatibility fan of `\mathcal{SC}(Q,w)` with respect to
-        an initial facet `I` is the fan whose rays are the
-        compatibility vectors of the positions in `Q` with respect to
-        `I` and whose maximal cones are the cones generated by the
-        compatibility vectors corresponding to the facets of
-        `\mathcal{SC}(Q,w)`.
-
-        .. SEEALSO::
-
-            :meth:`compatibility_vectors`
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['A',3], index_set=[1,2,3])
-            sage: w = W.from_reduced_word([1,2,3,1,2,1])
-            sage: SC = SubwordComplex([1,2,3,1,2,3,1,2,1],w)
-            sage: F = SC([0,1,2])
-            sage: CF = F.compatibility_fan(); CF
-            Rational polyhedral fan in 3-d lattice N
-            sage: CF.rays()
-            N(-1,  0,  0),
-            N( 0, -1,  0),
-            N( 0,  0, -1),
-            N( 1,  0,  0),
-            N( 1,  1,  0),
-            N( 1,  1,  1),
-            N( 0,  1,  0),
-            N( 0,  1,  1),
-            N( 0,  0,  1)
-            in 3-d lattice N
-
-            sage: F = SC([0,2,6])
-            sage: CF = F.compatibility_fan(); CF
-            Rational polyhedral fan in 3-d lattice N
-            sage: CF.rays()
-            N(-1,  0,  0),
-            N( 0,  0,  1),
-            N( 0, -1,  0),
-            N( 1,  0,  1),
-            N( 1,  0,  0),
-            N( 1,  1,  0),
-            N( 0,  0, -1),
-            N( 0,  1,  0),
-            N( 0,  1,  1)
-            in 3-d lattice N
-        """
-        from sage.geometry.fan import Fan
-        return Fan(self.parent().facets(), self.compatibility_vectors())
-
-    def root_polytope(self, orbits):
-        """
-        Return the root polytope of what ?
-
-        INPUT:
-
-        - orbits -- ?
-
-        OUTPUT:
-
-        a polyhedron
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['A',3], index_set=[1,2,3])
-            sage: w = W.from_reduced_word([1,2,3,1,2,1])
-            sage: SC = SubwordComplex([1,2,3,1,2,3,1,2,1],w)
-            sage: F = SC([0,1,2])
-            sage: CP = F.root_polytope(); CP
-            ?
-        """
-        rays = self.compatibility_vectors()
-        rhocheck = sum(r for i, r in enumerate(rays) if i not in self)
-        inequalities = []
-        for x in range(len(rays)):
-            for orbit in orbits:
-                if x in orbit:
-                    i = min([j for j in self if j in orbit])
-                    c = rhocheck[self.tuple().index(i)]
-                    inequalities.append([c] + list(rays[x]))
-        return Polyhedron(ieqs=inequalities)
 
     def upper_root_configuration(self):
         r"""
@@ -1501,6 +1303,8 @@ class SubwordComplexFacet(Simplex, Element):
         from sage.plot.colors import colors
         from sage.combinat.permutation import Permutation
 
+        index_set = W.index_set()
+
         # get properties
         x = 1
         Q = self.parent().word()
@@ -1524,7 +1328,7 @@ class SubwordComplexFacet(Simplex, Element):
         if roots:
             extended_root_conf = self.extended_root_configuration()
         for position in range(len(Q)):
-            y = Q[position]
+            y = index_set.index(Q[position])
             if type == 'B' and y == 0:
                 pseudoline = permutation(1) - 1
                 x = pseudolines[pseudoline].pop()
@@ -1639,10 +1443,9 @@ class SubwordComplexFacet(Simplex, Element):
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1],w)
             sage: F = SC([1,2]); F.show()
-            ?
+            <BLANKLINE>
         """
         return self.plot().show(axes=False, *kwds, **args)
-
 
 def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
     r"""
@@ -1709,7 +1512,6 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
 
     return set(X)
 
-
 def _extended_root_configuration_indices(W, Q, F):
     """
     Return the extended root configuration indices of the facet `F`.
@@ -1744,7 +1546,6 @@ def _extended_root_configuration_indices(W, Q, F):
         if i not in F:
             pi = pi.apply_simple_reflection_right(wi)
     return V_roots
-
 
 def _greedy_flip_algorithm(Q, w):
     """

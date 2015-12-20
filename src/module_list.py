@@ -192,6 +192,9 @@ ext_modules = [
 
     Extension('*', ['sage/combinat/**/*.pyx']),
 
+    Extension('sage.combinat.subword_complex_c',
+              sources=['sage/combinat/subword_complex_c.pyx']),
+
     ################################
     ##
     ## sage.crypto

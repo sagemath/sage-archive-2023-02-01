@@ -200,9 +200,9 @@ public:
 	typedef void (*F)(const T &, const C &, unsigned);
 
 	print_ptrfun_handler(F f_) : f(f_) {}
-	print_ptrfun_handler *duplicate() const { return new print_ptrfun_handler(*this); }
+	print_ptrfun_handler *duplicate() const override { return new print_ptrfun_handler(*this); }
 
-	void operator()(const basic & obj, const print_context & c, unsigned level) const
+	void operator()(const basic & obj, const print_context & c, unsigned level) const override
 	{
 		// Call the supplied function
 		f(dynamic_cast<const T &>(obj), dynamic_cast<const C &>(c), level);
@@ -219,9 +219,9 @@ public:
 	typedef void (T::*F)(const C & c, unsigned level) const;
 
 	print_memfun_handler(F f_) : f(f_) {}
-	print_memfun_handler *duplicate() const { return new print_memfun_handler(*this); }
+	print_memfun_handler *duplicate() const override { return new print_memfun_handler(*this); }
 
-	void operator()(const basic & obj, const print_context & c, unsigned level) const
+	void operator()(const basic & obj, const print_context & c, unsigned level) const override
 	{
 		// Call the supplied member function
 		return (dynamic_cast<const T &>(obj).*f)(dynamic_cast<const C &>(c), level);

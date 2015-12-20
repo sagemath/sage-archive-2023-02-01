@@ -34,11 +34,11 @@ class fail : public basic
 	
 	// functions overriding virtual functions from base classes
 protected:
-	unsigned return_type() const { return return_types::noncommutative_composite; };
+	unsigned return_type() const override { return return_types::noncommutative_composite; };
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 };
 
 } // namespace GiNaC

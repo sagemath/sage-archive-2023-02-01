@@ -88,8 +88,8 @@ protected:
 
 
 class print_order_mul : public print_order {
-	int compare_power_symbol(const power &lh, const symbol &rh) const;
-	int compare_same_type_power(const power &lh, const power &rh) const;
+	int compare_power_symbol(const power &lh, const symbol &rh) const override;
+	int compare_same_type_power(const power &lh, const power &rh) const override;
 };
 
 

@@ -41,7 +41,7 @@ protected:
 
 	// functions overriding virtual functions from base classes
 protected:
-	unsigned return_type() const { return return_types::noncommutative_composite; }
+	unsigned return_type() const override { return return_types::noncommutative_composite; }
 
 	// non-virtual functions in this class
 public:
@@ -60,14 +60,14 @@ class tensdelta : public tensor
 
 	// functions overriding virtual functions from base classes
 public:
-	bool info(unsigned inf) const;
-	ex eval_indexed(const basic & i) const;
-	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const;
+	bool info(unsigned inf) const override;
+	ex eval_indexed(const basic & i) const override;
+	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const override;
 
 	// non-virtual functions in this class
 protected:
-	unsigned return_type() const { return return_types::commutative; }
-	void do_print(const print_context & c, unsigned level) const;
+	unsigned return_type() const override { return return_types::commutative; }
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 };
 
@@ -81,14 +81,14 @@ class tensmetric : public tensor
 
 	// functions overriding virtual functions from base classes
 public:
-	bool info(unsigned inf) const;
-	ex eval_indexed(const basic & i) const;
-	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const;
+	bool info(unsigned inf) const override;
+	ex eval_indexed(const basic & i) const override;
+	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const override;
 
 	// non-virtual functions in this class
 protected:
-	unsigned return_type() const { return return_types::commutative; }
-	void do_print(const print_context & c, unsigned level) const;
+	unsigned return_type() const override { return return_types::commutative; }
+	void do_print(const print_context & c, unsigned level) const override;
 };
 
 
@@ -106,13 +106,13 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	bool info(unsigned inf) const;
-	ex eval_indexed(const basic & i) const;
+	bool info(unsigned inf) const override;
+	ex eval_indexed(const basic & i) const override;
 
 	// non-virtual functions in this class
 protected:
-	unsigned return_type() const { return return_types::commutative; }
-	void do_print(const print_context & c, unsigned level) const;
+	unsigned return_type() const override { return return_types::commutative; }
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 
 	// member variables
@@ -131,13 +131,13 @@ class spinmetric : public tensmetric
 
 	// functions overriding virtual functions from base classes
 public:
-	bool info(unsigned inf) const;
-	ex eval_indexed(const basic & i) const;
-	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const;
+	bool info(unsigned inf) const override;
+	ex eval_indexed(const basic & i) const override;
+	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const override;
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 };
 
@@ -155,14 +155,14 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	bool info(unsigned inf) const;
-	ex eval_indexed(const basic & i) const;
-	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const;
+	bool info(unsigned inf) const override;
+	ex eval_indexed(const basic & i) const override;
+	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const override;
 
 	// non-virtual functions in this class
 protected:
-	unsigned return_type() const { return return_types::commutative; }
-	void do_print(const print_context & c, unsigned level) const;
+	unsigned return_type() const override { return return_types::commutative; }
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 
 	// member variables

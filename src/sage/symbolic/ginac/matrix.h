@@ -111,23 +111,23 @@ public:
 	
 	// functions overriding virtual functions from base classes
 public:
-	size_t nops() const;
-	ex op(size_t i) const;
-	ex & let_op(size_t i);
-	ex eval(int level=0) const;
-	ex evalm() const {return *this;}
-	ex subs(const exmap & m, unsigned options = 0) const;
-	ex eval_indexed(const basic & i) const;
-	ex add_indexed(const ex & self, const ex & other) const;
-	ex scalar_mul_indexed(const ex & self, const numeric & other) const;
-	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const;
-	ex conjugate() const;
-	ex real_part() const;
-	ex imag_part() const;
+	size_t nops() const override;
+	ex op(size_t i) const override;
+	ex & let_op(size_t i) override;
+	ex eval(int level=0) const override;
+	ex evalm() const override {return *this;}
+	ex subs(const exmap & m, unsigned options = 0) const override;
+	ex eval_indexed(const basic & i) const override;
+	ex add_indexed(const ex & self, const ex & other) const override;
+	ex scalar_mul_indexed(const ex & self, const numeric & other) const override;
+	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const override;
+	ex conjugate() const override;
+	ex real_part() const override;
+	ex imag_part() const override;
 
 protected:
-	bool match_same_type(const basic & other) const;
-	unsigned return_type() const { return return_types::noncommutative; };
+	bool match_same_type(const basic & other) const override;
+	unsigned return_type() const override { return return_types::noncommutative; };
 	
 	// non-virtual functions in this class
 public:
@@ -161,9 +161,9 @@ protected:
 	int pivot(unsigned ro, unsigned co, bool symbolic = true);
 
 	void print_elements(const print_context & c, const char *row_start, const char *row_end, const char *row_sep, const char *col_sep) const;
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 	
 // member variables
 protected:

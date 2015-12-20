@@ -433,7 +433,7 @@ struct evalf_map_function : public map_function {
 	int level;
 	PyObject* parent;
 	evalf_map_function(int l, PyObject* p) : level(l), parent(p) {}
-	ex operator()(const ex & e) { return evalf(e, level, parent); }
+	ex operator()(const ex & e) override { return evalf(e, level, parent); }
 };
 
 /** Evaluate object numerically. */
@@ -455,7 +455,7 @@ ex basic::evalf(int level, PyObject* parent) const
 
 /** Function object to be applied by basic::evalm(). */
 struct evalm_map_function : public map_function {
-	ex operator()(const ex & e) { return evalm(e); }
+	ex operator()(const ex & e) override { return evalm(e); }
 } map_evalm;
 
 /** Evaluate sums, products and integer powers of matrices. */
@@ -469,7 +469,7 @@ ex basic::evalm() const
 
 /** Function object to be applied by basic::eval_integ(). */
 struct eval_integ_map_function : public map_function {
-	ex operator()(const ex & e) { return eval_integ(e); }
+	ex operator()(const ex & e) override { return eval_integ(e); }
 } map_eval_integ;
 
 /** Evaluate integrals, if result is known. */
@@ -706,7 +706,7 @@ ex basic::eval_ncmul(const exvector & v) const
 struct derivative_map_function : public map_function {
 	const symbol &s;
 	derivative_map_function(const symbol &sym) : s(sym) {}
-	ex operator()(const ex & e) { return diff(e, s); }
+	ex operator()(const ex & e) override { return diff(e, s); }
 };
 
 /** Default implementation of ex::diff(). It maps the operation on the
@@ -797,7 +797,7 @@ int64_t basic::calchash() const
 struct expand_map_function : public map_function {
 	unsigned options;
 	expand_map_function(unsigned o) : options(o) {}
-	ex operator()(const ex & e) { return e.expand(options); }
+	ex operator()(const ex & e) override { return e.expand(options); }
 };
 
 /** Expand expression, i.e. multiply it out and return the result as a new

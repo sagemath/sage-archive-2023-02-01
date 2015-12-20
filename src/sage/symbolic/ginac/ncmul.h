@@ -53,32 +53,32 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	unsigned precedence() const {return 50;}
-	bool info(unsigned inf) const;
-	int degree(const ex & s) const;
-	int ldegree(const ex & s) const;
-	ex expand(unsigned options=0) const;
-	ex coeff(const ex & s, int n=1) const;
-	ex eval(int level=0) const;
-	ex evalm() const;
-	exvector get_free_indices() const;
-	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::unique_ptr<exvector> vp) const;
-	ex conjugate() const;
-	ex real_part() const;
-	ex imag_part() const;
+	unsigned precedence() const override {return 50;}
+	bool info(unsigned inf) const override;
+	int degree(const ex & s) const override;
+	int ldegree(const ex & s) const override;
+	ex expand(unsigned options=0) const override;
+	ex coeff(const ex & s, int n=1) const override;
+	ex eval(int level=0) const override;
+	ex evalm() const override;
+	exvector get_free_indices() const override;
+	ex thiscontainer(const exvector & v) const override;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const override;
+	ex conjugate() const override;
+	ex real_part() const override;
+	ex imag_part() const override;
 
 protected:
-	ex derivative(const symbol & s) const;
-	unsigned return_type() const;
-	tinfo_t return_type_tinfo() const;
+	ex derivative(const symbol & s) const override;
+	unsigned return_type() const override;
+	tinfo_t return_type_tinfo() const override;
 	
 	// new virtual functions which can be overridden by derived classes
 	// none
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_csrc(const print_context & c, unsigned level) const;
 	size_t count_factors(const ex & e) const;
 	void append_factors(exvector & v, const ex & e) const;

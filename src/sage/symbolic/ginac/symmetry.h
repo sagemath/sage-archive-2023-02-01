@@ -86,9 +86,9 @@ public:
 	bool has_cyclic() const;
 
 protected:
-	void do_print(const print_context & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
-	int64_t calchash() const;
+	void do_print(const print_context & c, unsigned level) const override;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
+	int64_t calchash() const override;
 
 	// member variables
 private:

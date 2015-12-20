@@ -78,25 +78,25 @@ public:
 	
 	// functions overriding virtual functions from base classes
 public:
-	unsigned precedence() const {return 10;}
-	bool info(unsigned inf) const;
-	size_t nops() const;
-	ex op(size_t i) const;
+	unsigned precedence() const override {return 10;}
+	bool info(unsigned inf) const override;
+	size_t nops() const override;
+	ex op(size_t i) const override;
 	virtual ex stable_op(size_t i) const;
-	ex map(map_function & f) const;
-	ex eval(int level=0) const;
-	ex to_rational(exmap & repl) const;
-	ex to_polynomial(exmap & repl) const;
-	bool match(const ex & pattern, lst & repl_lst) const;
-	ex subs(const exmap & m, unsigned options = 0) const;
-	ex conjugate() const;
+	ex map(map_function & f) const override;
+	ex eval(int level=0) const override;
+	ex to_rational(exmap & repl) const override;
+	ex to_polynomial(exmap & repl) const override;
+	bool match(const ex & pattern, lst & repl_lst) const override;
+	ex subs(const exmap & m, unsigned options = 0) const override;
+	ex conjugate() const override;
 	numeric calc_total_degree() const;
 	virtual const epvector & get_sorted_seq() const;
 protected:
-	bool is_equal_same_type(const basic & other) const;
-	unsigned return_type() const;
-	int64_t calchash() const;
-	ex expand(unsigned options=0) const;
+	bool is_equal_same_type(const basic & other) const override;
+	unsigned return_type() const override;
+	int64_t calchash() const override;
+	ex expand(unsigned options=0) const override;
 	
 	// new virtual functions which can be overridden by derived classes
 protected:
@@ -121,8 +121,8 @@ protected:
 	
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 	void construct_from_2_ex_via_exvector(const ex & lh, const ex & rh);
 	void construct_from_2_ex(const ex & lh, const ex & rh);
 	void construct_from_2_expairseq(const expairseq & s1,

@@ -55,14 +55,14 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	unsigned precedence() const { return 65; }
+	unsigned precedence() const override { return 65; }
 protected:
-	ex eval_ncmul(const exvector & v) const;
-	bool match_same_type(const basic & other) const;
-	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::unique_ptr<exvector> vp) const;
-	unsigned return_type() const { return return_types::noncommutative; }
-	tinfo_t return_type_tinfo() const { return clifford::return_type_tinfo_static+representation_label; }
+	ex eval_ncmul(const exvector & v) const override;
+	bool match_same_type(const basic & other) const override;
+	ex thiscontainer(const exvector & v) const override;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const override;
+	unsigned return_type() const override { return return_types::noncommutative; }
+	tinfo_t return_type_tinfo() const override { return clifford::return_type_tinfo_static+representation_label; }
 
 	// non-virtual functions in this class
 public:
@@ -72,10 +72,10 @@ public:
 	bool same_metric(const ex & other) const;
 	int get_commutator_sign() const { return commutator_sign; } //**< See the member variable commutator_sign */
 
-	inline size_t nops() const {return inherited::nops() + 1; }
-	ex op(size_t i) const;
-	ex & let_op(size_t i);
-	ex subs(const exmap & m, unsigned options = 0) const;
+	inline size_t nops() const override {return inherited::nops() + 1; }
+	ex op(size_t i) const override;
+	ex & let_op(size_t i) override;
+	ex subs(const exmap & m, unsigned options = 0) const override;
 
 protected:
 	void do_print_dflt(const print_dflt & c, unsigned level) const;
@@ -95,7 +95,7 @@ class diracone : public tensor
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 };
 
@@ -111,11 +111,11 @@ protected:
                                                                                                     
 	// functions overriding virtual functions from base classes
 public:
-	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const;
+	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const override;
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 };
 
@@ -127,11 +127,11 @@ class diracgamma : public cliffordunit
 
 	// functions overriding virtual functions from base classes
 public:
-	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const;
+	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const override;
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 };
 
@@ -143,11 +143,11 @@ class diracgamma5 : public tensor
 	GINAC_DECLARE_REGISTERED_CLASS(diracgamma5, tensor)
 
 	// functions overriding virtual functions from base classes
-	ex conjugate() const;
+	ex conjugate() const override;
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 };
 
@@ -159,11 +159,11 @@ class diracgammaL : public tensor
 	GINAC_DECLARE_REGISTERED_CLASS(diracgammaL, tensor)
 
 	// functions overriding virtual functions from base classes
-	ex conjugate() const;
+	ex conjugate() const override;
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 };
 
@@ -175,11 +175,11 @@ class diracgammaR : public tensor
 	GINAC_DECLARE_REGISTERED_CLASS(diracgammaR, tensor)
 
 	// functions overriding virtual functions from base classes
-	ex conjugate() const;
+	ex conjugate() const override;
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 };
 

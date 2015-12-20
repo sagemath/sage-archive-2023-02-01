@@ -58,27 +58,27 @@ public:
 	
 	// functions overriding virtual functions from base classes
 public:
-	unsigned precedence() const {return 20;}
-	bool info(unsigned inf) const;
-	size_t nops() const;
-	ex op(size_t i) const;
-	ex map(map_function & f) const;
-	ex subs(const exmap & m, unsigned options = 0) const;
-	ex eval(int level=0) const;
+	unsigned precedence() const override {return 20;}
+	bool info(unsigned inf) const override;
+	size_t nops() const override;
+	ex op(size_t i) const override;
+	ex map(map_function & f) const override;
+	ex subs(const exmap & m, unsigned options = 0) const override;
+	ex eval(int level=0) const override;
 
 protected:
-	ex eval_ncmul(const exvector & v) const;
-	bool match_same_type(const basic & other) const;
-	unsigned return_type() const;
-	tinfo_t return_type_tinfo() const;
-	int64_t calchash() const;
+	ex eval_ncmul(const exvector & v) const override;
+	bool match_same_type(const basic & other) const override;
+	unsigned return_type() const override;
+	tinfo_t return_type_tinfo() const override;
+	int64_t calchash() const override;
 
 	// new virtual functions which can be overridden by derived classes
 protected:
 	void print_rel(const print_context & c, unsigned level, bool latex) const;
 	void do_print_dflt(const print_context & c, unsigned level) const;
 	void do_print_latex(const print_context & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
 public:
 	virtual ex lhs() const;

@@ -337,27 +337,27 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	void print(const print_context & c, unsigned level = 0) const;
-	unsigned precedence() const {return 70;}
-	ex expand(unsigned options=0) const;
-	ex eval(int level=0) const;
-	ex evalf(int level=0, PyObject* parent=nullptr) const;
-	int64_t calchash() const;
-	ex series(const relational & r, int order, unsigned options = 0) const;
-        ex subs(const exmap & m, unsigned options = 0) const;
-	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::unique_ptr<exvector> vp) const;
-	ex conjugate() const;
-	ex real_part() const;
-	ex imag_part() const;
-	bool info(unsigned inf) const;
+	void print(const print_context & c, unsigned level = 0) const override;
+	unsigned precedence() const override {return 70;}
+	ex expand(unsigned options=0) const override;
+	ex eval(int level=0) const override;
+	ex evalf(int level=0, PyObject* parent=nullptr) const override;
+	int64_t calchash() const override;
+	ex series(const relational & r, int order, unsigned options = 0) const override;
+        ex subs(const exmap & m, unsigned options = 0) const override;
+	ex thiscontainer(const exvector & v) const override;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const override;
+	ex conjugate() const override;
+	ex real_part() const override;
+	ex imag_part() const override;
+	bool info(unsigned inf) const override;
 	//int compare(const basic &other) const;
 protected:
-	ex derivative(const symbol & s) const;
-	bool is_equal_same_type(const basic & other) const;
-	bool match_same_type(const basic & other) const;
-	unsigned return_type() const;
-	tinfo_t return_type_tinfo() const;
+	ex derivative(const symbol & s) const override;
+	bool is_equal_same_type(const basic & other) const override;
+	bool match_same_type(const basic & other) const override;
+	unsigned return_type() const override;
+	tinfo_t return_type_tinfo() const override;
 	
 	// new virtual functions which can be overridden by derived classes
 	// none

@@ -42,26 +42,26 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	unsigned precedence() const {return 38;} // for clarity just below add::precedence
-	size_t nops() const;
-	ex op(size_t i) const;
-	int degree(const ex &s) const;
-	int ldegree(const ex &s) const;
-	ex coeff(const ex &s, int n = 1) const;
-	ex collect(const ex &s, bool distributed = false) const;
-	ex eval(int level=0) const;
-	ex evalf(int level=0, PyObject* parent=nullptr) const;
-	ex series(const relational & r, int order, unsigned options = 0) const;
-	ex subs(const exmap & m, unsigned options = 0) const;
-	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const;
-	ex expand(unsigned options = 0) const;
-	ex conjugate() const;
-	ex real_part() const;
-	ex imag_part() const;
-	ex eval_integ() const;
-	ex evalm() const;
+	unsigned precedence() const override {return 38;} // for clarity just below add::precedence
+	size_t nops() const override;
+	ex op(size_t i) const override;
+	int degree(const ex &s) const override;
+	int ldegree(const ex &s) const override;
+	ex coeff(const ex &s, int n = 1) const override;
+	ex collect(const ex &s, bool distributed = false) const override;
+	ex eval(int level=0) const override;
+	ex evalf(int level=0, PyObject* parent=nullptr) const override;
+	ex series(const relational & r, int order, unsigned options = 0) const override;
+	ex subs(const exmap & m, unsigned options = 0) const override;
+	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const override;
+	ex expand(unsigned options = 0) const override;
+	ex conjugate() const override;
+	ex real_part() const override;
+	ex imag_part() const override;
+	ex eval_integ() const override;
+	ex evalm() const override;
 protected:
-	ex derivative(const symbol & s) const;
+	ex derivative(const symbol & s) const override;
 
 	// non-virtual functions in this class
 public:
@@ -99,11 +99,11 @@ public:
 
 protected:
 	void print_series(const print_context & c, const char *openbrace, const char *closebrace, const char *mul_sym, const char *pow_sym, unsigned level) const;
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 	void do_print_python(const print_python & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
 protected:
 	/** Vector of {coefficient, power} pairs */

@@ -53,36 +53,36 @@ public:
 	
 	// functions overriding virtual functions from base classes
 public:
-	unsigned precedence() const {return 60;}
-	bool info(unsigned inf) const;
-	size_t nops() const;
-	ex op(size_t i) const;
-	ex map(map_function & f) const;
-	bool is_polynomial(const ex & var) const;
-	int degree(const ex & s) const;
-	int ldegree(const ex & s) const;
-	ex coeff(const ex & s, int n = 1) const;
-	ex eval(int level=0) const;
-	ex evalf(int level=0, PyObject* parent=nullptr) const;
-	ex evalm() const;
-	ex series(const relational & s, int order, unsigned options = 0) const;
-	ex subs(const exmap & m, unsigned options = 0) const;
-	bool has(const ex & other, unsigned options = 0) const;
-	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const;
-	ex to_rational(exmap & repl) const;
-	ex to_polynomial(exmap & repl) const;
-	ex conjugate() const;
-	ex real_part() const;
-	ex imag_part() const;
+	unsigned precedence() const override {return 60;}
+	bool info(unsigned inf) const override;
+	size_t nops() const override;
+	ex op(size_t i) const override;
+	ex map(map_function & f) const override;
+	bool is_polynomial(const ex & var) const override;
+	int degree(const ex & s) const override;
+	int ldegree(const ex & s) const override;
+	ex coeff(const ex & s, int n = 1) const override;
+	ex eval(int level=0) const override;
+	ex evalf(int level=0, PyObject* parent=nullptr) const override;
+	ex evalm() const override;
+	ex series(const relational & s, int order, unsigned options = 0) const override;
+	ex subs(const exmap & m, unsigned options = 0) const override;
+	bool has(const ex & other, unsigned options = 0) const override;
+	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const override;
+	ex to_rational(exmap & repl) const override;
+	ex to_polynomial(exmap & repl) const override;
+	ex conjugate() const override;
+	ex real_part() const override;
+	ex imag_part() const override;
 	//int compare(const basic& other) const;
 	//int compare_symbol(const symbol& other) const;
 protected:
-	ex derivative(const symbol & s) const;
-	ex eval_ncmul(const exvector & v) const;
-	unsigned return_type() const;
-	tinfo_t return_type_tinfo() const;
-	ex expand(unsigned options = 0) const;
-	int64_t calchash() const;
+	ex derivative(const symbol & s) const override;
+	ex eval_ncmul(const exvector & v) const override;
+	unsigned return_type() const override;
+	tinfo_t return_type_tinfo() const override;
+	ex expand(unsigned options = 0) const override;
+	int64_t calchash() const override;
 
 	// new virtual functions which can be overridden by derived classes
 	// none
@@ -94,7 +94,7 @@ protected:
 	void do_print_latex(const print_latex & c, unsigned level) const;
 	void do_print_csrc(const print_csrc & c, unsigned level) const;
 	void do_print_python(const print_python & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
 	ex expand_add(const add & a, int n, unsigned options) const;
 	ex expand_add_2(const add & a, unsigned options) const;

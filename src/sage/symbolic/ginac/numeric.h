@@ -116,41 +116,41 @@ public:
 public:
 
 	int compare_same_type(const numeric& right) const;
-	unsigned precedence() const
+	unsigned precedence() const override
 	{
 		return 30;
 	}
-	bool info(unsigned inf) const;
-	bool is_polynomial(const ex & var) const;
-	int degree(const ex & s) const;
-	int ldegree(const ex & s) const;
-	ex coeff(const ex & s, int n = 1) const;
-	bool has(const ex &other, unsigned options = 0) const;
-	ex eval(int level = 0) const;
-	ex evalf(int level = 0, PyObject* parent = nullptr) const;
+	bool info(unsigned inf) const override;
+	bool is_polynomial(const ex & var) const override;
+	int degree(const ex & s) const override;
+	int ldegree(const ex & s) const override;
+	ex coeff(const ex & s, int n = 1) const override;
+	bool has(const ex &other, unsigned options = 0) const override;
+	ex eval(int level = 0) const override;
+	ex evalf(int level = 0, PyObject* parent = nullptr) const override;
 
-	ex subs(const exmap & m, unsigned options = 0) const
+	ex subs(const exmap & m, unsigned options = 0) const override
 	{
 		return subs_one_level(m, options);
 	} // overwrites basic::subs() for performance reasons
-	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const;
-	ex to_rational(exmap & repl) const;
-	ex to_polynomial(exmap & repl) const;
-	numeric integer_content() const;
-	numeric max_coefficient() const;
-	ex conjugate() const;
-	ex real_part() const;
-	ex imag_part() const;
+	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const override;
+	ex to_rational(exmap & repl) const override;
+	ex to_polynomial(exmap & repl) const override;
+	numeric integer_content() const override;
+	numeric max_coefficient() const override;
+	ex conjugate() const override;
+	ex real_part() const override;
+	ex imag_part() const override;
 protected:
 
 	/** Implementation of ex::diff for a numeric always returns 0.
 	 *  @see ex::diff */
-	ex derivative(const symbol &s) const
+	ex derivative(const symbol &s) const override
 	{
 		return 0;
 	}
-	bool is_equal_same_type(const basic &other) const;
-	int64_t calchash() const;
+	bool is_equal_same_type(const basic &other) const override;
+	int64_t calchash() const override;
 
 	// new virtual functions which can be overridden by derived classes
 	// (none)
@@ -245,7 +245,7 @@ public:
 	const numeric abs() const;
 	const numeric mod(const numeric &b) const;
 	const numeric _smod(const numeric &b) const;
-	ex smod(const numeric &b) const;
+	ex smod(const numeric &b) const override;
 	const numeric irem(const numeric &b) const;
 	const numeric iquo(const numeric &b) const;
 	const numeric iquo(const numeric &b, numeric &r) const;
@@ -258,11 +258,11 @@ protected:
 	void print_numeric(const print_context & c, const char *par_open,
 		const char *par_close, const char *imag_sym,
 		const char *mul_sym, unsigned level, bool latex) const;
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 	void do_print_csrc(const print_csrc & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
 //	numeric operator()(const int& x);
 

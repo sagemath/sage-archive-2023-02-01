@@ -59,24 +59,24 @@ public:
 public:
 	//int compare_same_type(const basic & other) const;
 	//int compare(const basic &other) const;
-	bool info(unsigned inf) const;
-	ex eval(int level = 0) const;
+	bool info(unsigned inf) const override;
+	ex eval(int level = 0) const override;
 	ex evalf(int level = 0) const { return *this; } // overwrites basic::evalf() for performance reasons
-	ex series(const relational & s, int order, unsigned options = 0) const;
-	ex subs(const exmap & m, unsigned options = 0) const { return subs_one_level(m, options); } // overwrites basic::subs() for performance reasons
-	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const;
-	ex to_rational(exmap & repl) const;
-	ex to_polynomial(exmap & repl) const;
-	unsigned return_type() const { return ret_type; }
-	tinfo_t return_type_tinfo() const { return ret_type_tinfo; }
-	ex conjugate() const;
-	ex real_part() const;
-	ex imag_part() const;
-	bool is_polynomial(const ex & var) const;
+	ex series(const relational & s, int order, unsigned options = 0) const override;
+	ex subs(const exmap & m, unsigned options = 0) const override { return subs_one_level(m, options); } // overwrites basic::subs() for performance reasons
+	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const override;
+	ex to_rational(exmap & repl) const override;
+	ex to_polynomial(exmap & repl) const override;
+	unsigned return_type() const override { return ret_type; }
+	tinfo_t return_type_tinfo() const override { return ret_type_tinfo; }
+	ex conjugate() const override;
+	ex real_part() const override;
+	ex imag_part() const override;
+	bool is_polynomial(const ex & var) const override;
 protected:
-	ex derivative(const symbol & s) const;
-	bool is_equal_same_type(const basic & other) const;
-	int64_t calchash() const;
+	ex derivative(const symbol & s) const override;
+	bool is_equal_same_type(const basic & other) const override;
+	int64_t calchash() const override;
 	
 	// non-virtual functions in this class
 public:
@@ -90,10 +90,10 @@ public:
 	std::string get_texname() const { return TeX_name; }
 	void set_texname(const std::string & t) { TeX_name = t; }
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 private:
 	std::string & autoname_prefix();
 	std::string default_TeX_name() const;

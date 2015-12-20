@@ -62,25 +62,25 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	void print(const print_context & c, unsigned level = 0) const;
-	ex eval(int level = 0) const;
-	ex evalf(int level = 0, PyObject* parent=nullptr) const;
-	ex series(const relational & r, int order, unsigned options = 0) const;
-	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::unique_ptr<exvector> vp) const;
+	void print(const print_context & c, unsigned level = 0) const override;
+	ex eval(int level = 0) const override;
+	ex evalf(int level = 0, PyObject* parent=nullptr) const override;
+	ex series(const relational & r, int order, unsigned options = 0) const override;
+	ex thiscontainer(const exvector & v) const override;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const override;
 	paramset get_parameter_set() const { return parameter_set; };
-	int64_t calchash() const;
+	int64_t calchash() const override;
 
 protected:
-	ex derivative(const symbol & s) const;
-	bool is_equal_same_type(const basic & other) const;
-	bool match_same_type(const basic & other) const;
+	ex derivative(const symbol & s) const override;
+	bool is_equal_same_type(const basic & other) const override;
+	bool match_same_type(const basic & other) const override;
 
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_csrc(const print_csrc & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 
 	// member variables
 protected:

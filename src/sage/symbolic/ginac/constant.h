@@ -49,25 +49,25 @@ public:
 	
 	// functions overriding virtual functions from base classes
 public:
-	bool info(unsigned inf) const;
-	ex evalf(int level = 0, PyObject* parent=nullptr) const;
-	bool is_polynomial(const ex & var) const;
-	ex conjugate() const;
-	ex real_part() const;
-	ex imag_part() const;
+	bool info(unsigned inf) const override;
+	ex evalf(int level = 0, PyObject* parent=nullptr) const override;
+	bool is_polynomial(const ex & var) const override;
+	ex conjugate() const override;
+	ex real_part() const override;
+	ex imag_part() const override;
 	unsigned get_serial() const {return serial;}
 
 protected:
-	ex derivative(const symbol & s) const;
-	bool is_equal_same_type(const basic & other) const;
-	int64_t calchash() const;
+	ex derivative(const symbol & s) const override;
+	bool is_equal_same_type(const basic & other) const override;
+	int64_t calchash() const override;
 	
 	// non-virtual functions in this class
 protected:
-	void do_print(const print_context & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
 // member variables
 private:

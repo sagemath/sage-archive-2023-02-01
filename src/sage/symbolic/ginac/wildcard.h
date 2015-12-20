@@ -41,20 +41,20 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	bool match(const ex & pattern, lst & repl_lst) const;
+	bool match(const ex & pattern, lst & repl_lst) const override;
 
 protected:
-	int64_t calchash() const;
+	int64_t calchash() const override;
 
 	// non-virtual functions in this class
 public:
 	unsigned get_label() const {return label;}
 
 protected:
-	void do_print(const print_context & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
 	// member variables
 private:

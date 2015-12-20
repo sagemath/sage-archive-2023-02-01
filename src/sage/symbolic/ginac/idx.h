@@ -48,17 +48,17 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	bool info(unsigned inf) const;
-	size_t nops() const;
-	ex op(size_t i) const;
-	ex map(map_function & f) const;
-	ex evalf(int level = 0, PyObject* parent = nullptr) const;
-	ex subs(const exmap & m, unsigned options = 0) const;
+	bool info(unsigned inf) const override;
+	size_t nops() const override;
+	ex op(size_t i) const override;
+	ex map(map_function & f) const override;
+	ex evalf(int level = 0, PyObject* parent = nullptr) const override;
+	ex subs(const exmap & m, unsigned options = 0) const override;
 
 protected:
-	ex derivative(const symbol & s) const;
-	bool match_same_type(const basic & other) const;
-	int64_t calchash() const;
+	ex derivative(const symbol & s) const override;
+	bool match_same_type(const basic & other) const override;
+	int64_t calchash() const override;
 
 	// new virtual functions in this class
 public:
@@ -95,10 +95,10 @@ public:
 
 protected:
 	void print_index(const print_context & c, unsigned level) const;
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_csrc(const print_csrc & c, unsigned level) const;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 
 protected:
 	ex value; /**< Expression that constitutes the index (numeric or symbolic name) */
@@ -124,10 +124,10 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	bool is_dummy_pair_same_type(const basic & other) const;
+	bool is_dummy_pair_same_type(const basic & other) const override;
 
 protected:
-	bool match_same_type(const basic & other) const;
+	bool match_same_type(const basic & other) const override;
 
 	// non-virtual functions in this class
 public:
@@ -141,8 +141,8 @@ public:
 	ex toggle_variance() const;
 
 protected:
-	void do_print(const print_context & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 
 	// member variables
 protected:
@@ -172,12 +172,12 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	bool is_dummy_pair_same_type(const basic & other) const;
+	bool is_dummy_pair_same_type(const basic & other) const override;
 	// complex conjugation
-	ex conjugate() const { return toggle_dot(); }
+	ex conjugate() const override { return toggle_dot(); }
 
 protected:
-	bool match_same_type(const basic & other) const;
+	bool match_same_type(const basic & other) const override;
 
 	// non-virtual functions in this class
 public:
@@ -196,9 +196,9 @@ public:
 	ex toggle_variance_dot() const;
 
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 
 	// member variables
 protected:

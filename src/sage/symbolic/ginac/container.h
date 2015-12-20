@@ -362,7 +362,7 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	bool info(unsigned inf) const { return inherited::info(inf); }
+	bool info(unsigned inf) const override { return inherited::info(inf); }
 	unsigned precedence() const { return 10; }
 	size_t nops() const { return this->seq.size(); }
 	ex op(size_t i) const;

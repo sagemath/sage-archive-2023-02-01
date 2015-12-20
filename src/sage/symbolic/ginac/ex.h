@@ -810,7 +810,7 @@ protected:
 	ex (*ptr)(const ex &);
 public:
 	explicit pointer_to_map_function(ex x(const ex &)) : ptr(x) {}
-	ex operator()(const ex & e) { return ptr(e); }
+	ex operator()(const ex & e) override { return ptr(e); }
 };
 
 template<class T1>
@@ -820,7 +820,7 @@ protected:
 	T1 arg1;
 public:
 	explicit pointer_to_map_function_1arg(ex x(const ex &, T1), T1 a1) : ptr(x), arg1(a1) {}
-	ex operator()(const ex & e) { return ptr(e, arg1); }
+	ex operator()(const ex & e) override { return ptr(e, arg1); }
 };
 
 template<class T1, class T2>
@@ -831,7 +831,7 @@ protected:
 	T2 arg2;
 public:
 	explicit pointer_to_map_function_2args(ex x(const ex &, T1, T2), T1 a1, T2 a2) : ptr(x), arg1(a1), arg2(a2) {}
-	ex operator()(const ex & e) { return ptr(e, arg1, arg2); }
+	ex operator()(const ex & e) override { return ptr(e, arg1, arg2); }
 };
 
 template<class T1, class T2, class T3>
@@ -843,7 +843,7 @@ protected:
 	T3 arg3;
 public:
 	explicit pointer_to_map_function_3args(ex x(const ex &, T1, T2, T3), T1 a1, T2 a2, T3 a3) : ptr(x), arg1(a1), arg2(a2), arg3(a3) {}
-	ex operator()(const ex & e) { return ptr(e, arg1, arg2, arg3); }
+	ex operator()(const ex & e) override { return ptr(e, arg1, arg2, arg3); }
 };
 
 template<class C>
@@ -853,7 +853,7 @@ protected:
 	C &c;
 public:
 	explicit pointer_to_member_to_map_function(ex (C::*member)(const ex &), C &obj) : ptr(member), c(obj) {}
-	ex operator()(const ex & e) { return (c.*ptr)(e); }
+	ex operator()(const ex & e) override { return (c.*ptr)(e); }
 };
 
 template<class C, class T1>
@@ -864,7 +864,7 @@ protected:
 	T1 arg1;
 public:
 	explicit pointer_to_member_to_map_function_1arg(ex (C::*member)(const ex &, T1), C &obj, T1 a1) : ptr(member), c(obj), arg1(a1) {}
-	ex operator()(const ex & e) { return (c.*ptr)(e, arg1); }
+	ex operator()(const ex & e) override { return (c.*ptr)(e, arg1); }
 };
 
 template<class C, class T1, class T2>
@@ -876,7 +876,7 @@ protected:
 	T2 arg2;
 public:
 	explicit pointer_to_member_to_map_function_2args(ex (C::*member)(const ex&, T1, T2), C &obj, T1 a1, T2 a2) : ptr(member), c(obj), arg1(a1), arg2(a2) {}
-	ex operator()(const ex & e) { return (c.*ptr)(e, arg1, arg2); }
+	ex operator()(const ex & e) override { return (c.*ptr)(e, arg1, arg2); }
 };
 
 template<class C, class T1, class T2, class T3>
@@ -889,7 +889,7 @@ protected:
 	T3 arg3;
 public:
 	explicit pointer_to_member_to_map_function_3args(ex (C::*member)(const ex &, T1, T2, T3), C &obj, T1 a1, T2 a2, T3 a3) : ptr(member), c(obj), arg1(a1), arg2(a2), arg3(a3) {}
-	ex operator()(const ex & e) { return (c.*ptr)(e, arg1, arg2, arg3); }
+	ex operator()(const ex & e) override { return (c.*ptr)(e, arg1, arg2, arg3); }
 };
 
 inline ex ex::map(ex f(const ex &)) const

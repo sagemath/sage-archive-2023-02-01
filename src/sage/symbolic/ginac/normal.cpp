@@ -1987,7 +1987,7 @@ static ex replace_with_symbol(const ex & e, exmap & repl)
 struct normal_map_function : public map_function {
 	int level;
 	normal_map_function(int l) : level(l) {}
-	ex operator()(const ex & e) { return normal(e, level); }
+	ex operator()(const ex & e) override { return normal(e, level); }
 };
 
 /** Default implementation of ex::normal(). It normalizes the children and

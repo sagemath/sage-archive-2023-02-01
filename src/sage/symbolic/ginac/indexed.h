@@ -145,20 +145,20 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
-	unsigned precedence() const {return 55;}
-	bool info(unsigned inf) const;
-	ex eval(int level = 0) const;
-	ex real_part() const;
-	ex imag_part() const;
-	exvector get_free_indices() const;
+	unsigned precedence() const override {return 55;}
+	bool info(unsigned inf) const override;
+	ex eval(int level = 0) const override;
+	ex real_part() const override;
+	ex imag_part() const override;
+	exvector get_free_indices() const override;
 
 protected:
-	ex derivative(const symbol & s) const;
-	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::unique_ptr<exvector> vp) const;
-	unsigned return_type() const;
-	tinfo_t return_type_tinfo() const { return op(0).return_type_tinfo(); }
-	ex expand(unsigned options = 0) const;
+	ex derivative(const symbol & s) const override;
+	ex thiscontainer(const exvector & v) const override;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const override;
+	unsigned return_type() const override;
+	tinfo_t return_type_tinfo() const override { return op(0).return_type_tinfo(); }
+	ex expand(unsigned options = 0) const override;
 
 	// new virtual functions which can be overridden by derived classes
 	// none
@@ -190,9 +190,9 @@ public:
 protected:
 	void printindices(const print_context & c, unsigned level) const;
 	void print_indexed(const print_context & c, const char *openbrace, const char *closebrace, unsigned level) const;
-	void do_print(const print_context & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 	void validate() const;
 
 	// member variables

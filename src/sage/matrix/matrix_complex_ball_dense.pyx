@@ -9,6 +9,14 @@ This is a rudimentary binding to the `Arb library
 <http://fredrikj.net/arb/>`_; it may be useful to refer to its
 documentation for more details.
 
+TESTS::
+
+    sage: mat = matrix(CBF, 2, 2, range(4))
+    sage: x = polygen(QQ)
+    sage: pol = x^3 + 2
+    sage: pol(mat)
+    [8.000000000000000 11.00000000000000]
+    [22.00000000000000 41.00000000000000]
 """
 #*****************************************************************************
 # Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>

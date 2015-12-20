@@ -304,8 +304,8 @@ cdef class Matrix_dense(matrix.Matrix):
         implementation in :class:`~sage.matrix.Matrix_generic_dense`) or by
         more specialized versions, but having it here makes it possible to
         implement specialized dense matrix types with their own data structure
-        without necessarily implementing ``_mul_classical``, as described in
-        :mod:`sage.matrix.docs`.
+        without necessarily implementing ``_multiply_classical``, as described
+        in :mod:`sage.matrix.docs`.
 
         TESTS::
 
@@ -322,6 +322,7 @@ cdef class Matrix_dense(matrix.Matrix):
             True
         """
         cdef RingElement dotp
+        cdef Py_ssize_t i, j
         if left._ncols != right._nrows:
             raise IndexError("Number of columns of left must equal number of rows of right.")
         cdef RingElement zero = left.base_ring().zero()

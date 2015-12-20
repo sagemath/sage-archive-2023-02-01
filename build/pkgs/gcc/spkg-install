@@ -122,7 +122,6 @@ fi
     --prefix="$SAGE_LOCAL" \
     --with-local-prefix="$SAGE_LOCAL" \
     --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" --with-mpc="$SAGE_LOCAL" \
-    --with-stage1-ldflags="-Wl,-rpath,$SAGE_LOCAL" \
     --with-system-zlib \
     --disable-multilib \
     --disable-nls \
@@ -130,7 +129,7 @@ fi
     --disable-libitm \
     $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
 
-$MAKE
+$MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 
 $MAKE install
 

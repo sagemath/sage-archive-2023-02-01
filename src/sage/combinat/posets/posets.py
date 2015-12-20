@@ -5564,12 +5564,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_eulerian(self):
         """
-        Return ``True`` if the poset is eulerian, and ``False`` otherwise.
+        Return ``True`` if the poset is Eulerian, and ``False`` otherwise.
 
         The poset is expected to be graded and bounded.
 
-        A poset is eulerian if every non-trivial interval has the same
+        A poset is Eulerian if every non-trivial interval has the same
         number of elements of even rank as of odd rank.
+
+        See :wikipedia:`Eulerian_poset`
 
         EXAMPLES::
 
@@ -5582,8 +5584,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_eulerian()
             False
 
-        Canonical example of Eulerian posets is the face lattice of
-        a convex polytope::
+        Canonical examples of Eulerian posets are the face lattices of
+        convex polytopes::
 
             sage: P = polytopes.cube().face_lattice()
             sage: P.is_eulerian()
@@ -5602,8 +5604,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset({1: []}).is_eulerian()
             True
         """
-        from sage.misc.functional import is_odd
-
         if not self.is_bounded():
             raise TypeError("the poset is not bounded")
         if not self.is_graded():
@@ -5612,7 +5612,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = self.cardinality()
         if n == 1:
             return True
-        if is_odd(n):
+        if n % 2:
             return False
 
         H = self._hasse_diagram
@@ -5620,7 +5620,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         for i in range(n):
             for j in range(i):
                 if H.is_lequal(j, i):
-                    if is_odd(H._rank[i]-H._rank[j]):
+                    if (H._rank[i] - H._rank[j]) % 2:
                         if M[j, i] != -1:
                             return False
                     else:

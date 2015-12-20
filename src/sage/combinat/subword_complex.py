@@ -29,15 +29,14 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.modules.free_module_element import vector
 from sage.homology.simplicial_complex import SimplicialComplex, Simplex
 from sage.geometry.cone import Cone
 from sage.structure.element import Element
 from sage.structure.parent import Parent
-from sage.matrix.all import Matrix
 from copy import copy
 from sage.combinat.subword_complex_c import _flip_c, _construct_facets_c
 from sage.geometry.polyhedron.constructor import Polyhedron
+
 
 class SubwordComplex(SimplicialComplex, Parent):
     r"""
@@ -50,6 +49,11 @@ class SubwordComplex(SimplicialComplex, Parent):
     A subword complex is a shellable sphere if and only if the
     Demazure product of `Q` equals `w`, otherwise it is a shellable
     ball.
+
+    .. WARNING::
+
+        This implementation only works for groups build using ̀`CoxeterGroup`̀,
+        and do not work with groups build using ``WeylGroup``.
 
     EXAMPLES:
 
@@ -683,7 +687,7 @@ class SubwordComplex(SimplicialComplex, Parent):
         a directed graph
 
         EXAMPLES::
- 
+
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: SC.increasing_flip_graph()
@@ -705,7 +709,7 @@ class SubwordComplex(SimplicialComplex, Parent):
         a set of facets
 
         EXAMPLES::
- 
+
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: F = SC([1,2])
@@ -725,7 +729,7 @@ class SubwordComplex(SimplicialComplex, Parent):
         a poset
 
         EXAMPLES::
- 
+
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: SC.increasing_flip_poset()
@@ -737,6 +741,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             Fs = [F for F in self if F.is_vertex()]
             cov = [(a, b) for a, b in cov if a in Fs and b in Fs]
         return Poset(((), cov), facade=True)
+
 
 class SubwordComplexFacet(Simplex, Element):
     r"""
@@ -1082,17 +1087,11 @@ class SubwordComplexFacet(Simplex, Element):
                          for i in range(len(coefficients))}
                 Lambda = {li: coeff[li] * Lambda[li] for li in Lambda}
             Q = self.parent().word()
-
-            Phi = W.roots()
-
             V_weights = []
 
             pi = W.one()
             for i, wi in enumerate(Q):
                 fund_weight = Lambda[wi]
-                # here below using action on indices of roots
-#                V_weights.append(sum(fvj * Phi[pi.action_on_root_indices(j)]
- #                                    for j, fvj in enumerate(fund_weight)))
                 V_weights.append(pi * fund_weight)
                 if i not in self:
                     pi = pi.apply_simple_reflection_right(wi)
@@ -1314,7 +1313,7 @@ class SubwordComplexFacet(Simplex, Element):
             last = W.rank() - 1
         permutation = Permutation(range(1, last + 2))
         x_max = .5
-        
+
         # list the pseudolines to be drawn
         pseudolines = [[(shift[0], shift[1] + i), .5] for i in range(last + 1)]
         pseudolines_type_B = [[] for i in range(last + 1)]
@@ -1447,6 +1446,7 @@ class SubwordComplexFacet(Simplex, Element):
         """
         return self.plot().show(axes=False, *kwds, **args)
 
+
 def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
     r"""
     Return the (positive or negative) *greedy facet* of the subword
@@ -1512,6 +1512,7 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
 
     return set(X)
 
+
 def _extended_root_configuration_indices(W, Q, F):
     """
     Return the extended root configuration indices of the facet `F`.
@@ -1546,6 +1547,7 @@ def _extended_root_configuration_indices(W, Q, F):
         if i not in F:
             pi = pi.apply_simple_reflection_right(wi)
     return V_roots
+
 
 def _greedy_flip_algorithm(Q, w):
     """

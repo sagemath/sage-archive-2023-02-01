@@ -95,7 +95,7 @@ from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import (latex,
                            prod)
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 from sage.rings.arith import (gcd,
                               binomial)
 from sage.combinat.integer_vector import IntegerVectors

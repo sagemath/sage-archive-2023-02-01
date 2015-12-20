@@ -214,7 +214,7 @@ class NumberFieldIdeal(Ideal_generic):
         except AttributeError:
             # At some point in the future (e.g., for relative extensions),
             # we'll likely have to consider other hashes.
-            self._hash = self.pari_hnf().__hash__()
+            self._hash = hash(self.pari_hnf())
         return self._hash
 
     def _latex_(self):

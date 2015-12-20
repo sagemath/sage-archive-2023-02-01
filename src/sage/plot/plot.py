@@ -1279,6 +1279,13 @@ def plot(funcs, *args, **kwds):
         Graphics object consisting of 3 graphics primitives
 
         sage: set_verbose(0)
+
+    Legends can contain variables with long names, :trac:`13543`::
+
+        sage: hello = var('hello')
+        sage: label = '$' + latex(hello) + '$'
+        sage: plot(x, x, 0, 1, legend_label=label)
+        Graphics object consisting of 1 graphics primitive
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 

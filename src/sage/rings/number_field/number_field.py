@@ -117,6 +117,7 @@ from class_group import SClassGroup
 from sage.structure.element import is_Element
 from sage.structure.sequence import Sequence
 
+from sage.structure.category_object import normalize_names
 import sage.structure.parent_gens
 
 from sage.structure.proof.proof import get_flag
@@ -557,7 +558,7 @@ class NumberFieldFactory(UniqueFactory):
         """
         if name is None:
             raise TypeError("You must specify the name of the generator.")
-        name = sage.structure.parent_gens.normalize_names(1, name)
+        name = normalize_names(1, name)
 
         if not is_Polynomial(polynomial):
             try:
@@ -726,9 +727,9 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
         Number Field in a with defining polynomial x^2 + 1 over its base field
     """
     try:
-        names = sage.structure.parent_gens.normalize_names(len(polynomials), names)
+        names = normalize_names(len(polynomials), names)
     except IndexError:
-        names = sage.structure.parent_gens.normalize_names(1, names)
+        names = normalize_names(1, names)
         if len(polynomials) > 1:
             names = ['%s%s'%(names[0], i) for i in range(len(polynomials))]
 
@@ -1056,7 +1057,7 @@ class CyclotomicFieldFactory(UniqueFactory):
                 embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
             if names is None:
                 names = "zeta%s"%n
-            names = sage.structure.parent_gens.normalize_names(1, names)
+            names = normalize_names(1, names)
 
         return n, names, embedding
 
@@ -3670,9 +3671,9 @@ class NumberField_generic(number_field_base.NumberField):
         G = sage.interfaces.gap.gap
         q = self.polynomial()
         if q.variable_name()!='E':
-            return 'CallFuncList(function() local %s,E; %s:=Indeterminate(%s,"%s"); E:=AlgebraicExtension(%s,%s,"%s"); return E; end,[])'%(q.variable_name(),q.variable_name(),G(self.base_ring()).name(),q.variable_name(),G(self.base_ring()).name(),self.polynomial().__repr__(),str(self.gen()))
+            return 'CallFuncList(function() local %s,E; %s:=Indeterminate(%s,"%s"); E:=AlgebraicExtension(%s,%s,"%s"); return E; end,[])'%(q.variable_name(),q.variable_name(),G(self.base_ring()).name(),q.variable_name(),G(self.base_ring()).name(),repr(self.polynomial()),str(self.gen()))
         else:
-            return 'CallFuncList(function() local %s,F; %s:=Indeterminate(%s,"%s"); F:=AlgebraicExtension(%s,%s,"%s"); return F; end,[])'%(q.variable_name(),q.variable_name(),G(self.base_ring()).name(),q.variable_name(),G(self.base_ring()).name(),self.polynomial().__repr__(),str(self.gen()))
+            return 'CallFuncList(function() local %s,F; %s:=Indeterminate(%s,"%s"); F:=AlgebraicExtension(%s,%s,"%s"); return F; end,[])'%(q.variable_name(),q.variable_name(),G(self.base_ring()).name(),q.variable_name(),G(self.base_ring()).name(),repr(self.polynomial()),str(self.gen()))
 
     def characteristic(self):
         """
@@ -4389,7 +4390,7 @@ class NumberField_generic(number_field_base.NumberField):
         sv = self.variable_name(); ov = other.variable_name()
         if names is None:
             names = sv + (ov if ov != sv else "")
-        name = sage.structure.parent_gens.normalize_names(1, names)[0]
+        name = normalize_names(1, names)[0]
 
         # should we try to preserve embeddings?
         subfields_have_embeddings = preserve_embedding
@@ -7187,7 +7188,7 @@ class NumberField_absolute(NumberField_generic):
         """
         if name is None:
             name = self.variable_names()
-        name = sage.structure.parent_gens.normalize_names(1, name)[0]
+        name = normalize_names(1, name)[0]
         try:
             return self.__subfields[name, degree, both_maps, optimize]
         except AttributeError:
@@ -8192,12 +8193,12 @@ class NumberField_absolute(NumberField_generic):
                 f = polygen(QQ)
             else:
                 f = L.defining_polynomial() # = alpha.minpoly()
-            names = sage.structure.parent_gens.normalize_names(1, names)
+            names = normalize_names(1, names)
         else:
             # alpha must be an element coercible to self
             alpha = self(alpha)
             f = alpha.minpoly()
-            names = sage.structure.parent_gens.normalize_names(2, names)
+            names = normalize_names(2, names)
             L = NumberField(f, names[1])
 
         # now we do some linear algebra to find the minpoly of self.gen() over L

@@ -1081,7 +1081,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
 
         """
-        return self.__mul__(other)
+        return self * other
 
     def matrix(self, basis1=None, basis2=None):
         r"""

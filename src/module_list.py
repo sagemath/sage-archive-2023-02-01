@@ -66,7 +66,8 @@ givaro_extra_compile_args =['-D__STDC_LIMIT_MACROS']
 ### Library order
 #########################################################
 
-# This list defines the *order* of linking libraries. Cython allows
+# This list defines the *order* of linking libraries. A library should
+# be put *before* any library it links to. Cython allows
 # defining libraries using "# distutils: libraries = LIB". However, if
 # there are multiple libraries, the order is undefined so we need to
 # manually reorder the libraries according to this list. The order is
@@ -78,7 +79,7 @@ library_order_list = [
     "singular", "ec", "ecm",
     "linboxsage", "ntl", "iml", "linbox", "givaro",
     "gsl", "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
-    "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
+    "arb", "fplll", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
     "polybori",
     "polybori_groebner",
     "m4rie", "m4ri",
@@ -86,7 +87,7 @@ library_order_list = [
     "gd", "png12",
     "m", "readline", "Lfunction",
     BLAS, BLAS2,
-    "cryptominisat", "fplll", "z"]
+    "cryptominisat", "z"]
 
 # Make a dict with library:order pairs, where the order are negative
 # integers sorted according to library_order_list. When sorting,
@@ -571,9 +572,7 @@ ext_modules = [
               depends = [SAGE_INC + "/ecm.h"]),
 
     Extension('sage.libs.lrcalc.lrcalc',
-              sources = ["sage/libs/lrcalc/lrcalc.pyx"],
-              include_dirs = [SAGE_INC + '/lrcalc/'],
-              libraries = ["lrcalc"]),
+              sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
     Extension('sage.libs.mwrank.mwrank',
               sources = ["sage/libs/mwrank/mwrank.pyx",
@@ -1229,8 +1228,7 @@ ext_modules = [
 
     Extension("sage.rings.complex_arb",
               ["sage/rings/complex_arb.pyx"],
-              libraries=['mpfi', 'mpfr'],
-              include_dirs=[SAGE_INC + '/flint']),
+              libraries=['mpfi', 'mpfr', 'gmp']),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
@@ -1301,8 +1299,7 @@ ext_modules = [
 
     Extension("sage.rings.real_arb",
               ["sage/rings/real_arb.pyx"],
-              libraries = ['mpfi', 'mpfr'],
-              include_dirs = [SAGE_INC + '/flint']),
+              libraries = ['mpfi', 'mpfr']),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),

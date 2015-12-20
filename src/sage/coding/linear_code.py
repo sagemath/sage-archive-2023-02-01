@@ -2212,10 +2212,11 @@ class AbstractLinearCode(module.Module):
 
         EXAMPLES::
 
-            sage: RS = codes.ReedSolomonCode(7, 3, GF(8, 'a'))
-            sage: RS[24]
-            (0, a^2 + a, a^2 + a + 1, a^2 + 1, 1, a, a^2)
-            sage: RS[24] == RS.list()[24]
+            sage: G = Matrix(GF(3), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: C[24]
+            (2, 2, 0, 1, 2, 2, 0)
+            sage: C[24] == C.list()[24]
             True
 
         TESTS::
@@ -2622,7 +2623,7 @@ class AbstractLinearCode(module.Module):
             (1, 0, 1, 0, 1, 0, 1)
             True
         """
-        return list(self.__iter__())
+        return [x for x in self]
 
     def _magma_init_(self, magma):
         r"""
@@ -3509,7 +3510,7 @@ class AbstractLinearCode(module.Module):
 
         INPUT:
 
-        - ``c`` -- a codeword of ``self``
+        - ``c`` -- a codeword of ``self``.
 
         - ``encoder_name`` -- (default: ``None``) name of the decoder which will be used
           to decode ``word``. The default decoder of ``self`` will be used if
@@ -4020,14 +4021,6 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             [1 1 0 1 0 0 1]
         """
         return self.code().generator_matrix()
-
-
-
-
-
-
-
-
 
 
 ####################### decoders ###############################

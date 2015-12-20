@@ -1134,17 +1134,23 @@ cdef class RealBall(RingElement):
             True
             sage: hash(RBF(1/3)) == hash(RBF(1/3, rad=.1))
             False
-            sage: vals = [0, 1, 3/4, 5/8, 7/8, infinity, 'nan']
+            sage: vals = [0, 1, 3/4, 5/8, 7/8, infinity, 'nan', 2^1000 - 1]
             sage: len({hash(RBF(v)) for v in vals}) == len(vals)
             True
         """
         cdef arf_t mid = arb_midref(self.value)
         cdef fmpz_t mant, expo
+        fmpz_init(mant)
+        fmpz_init(expo)
         arf_get_fmpz_2exp(mant, expo, mid)
-        return (fmpz_fdiv_ui(mant, 1073741789)
+        cdef long h = (
+                fmpz_fdiv_ui(mant, 1073741789)
                 ^ fmpz_fdiv_ui(expo, 2**30)
                 ^ (arf_abs_bound_lt_2exp_si(mid) << 10)
                 ^ arb_rel_error_bits(self.value) << 20)
+        fmpz_clear(expo)
+        fmpz_clear(mant)
+        return h
 
     def _repr_(self):
         """
@@ -3004,7 +3010,7 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(1/2).log_gamma()
-            [0.572364942924700 +/- 4.87e-16]
+            [0.572364942924700 +/- 2.67e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()

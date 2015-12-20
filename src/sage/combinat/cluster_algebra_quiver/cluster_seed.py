@@ -876,13 +876,13 @@ class ClusterSeed(SageObject):
         """
         # mat_hash = self._M.__hash__()
         if self._use_fpolys:
-            return tuple(self.cluster()).__hash__()
+            return hash(tuple(self.cluster()))
         elif self._use_g_vec:
-            return self.g_matrix().__hash__()
+            return hash(self.g_matrix())
         elif self._use_c_vec:
-            return self.c_matrix().__hash__()
+            return hash(self.c_matrix())
         elif self._use_d_vec:
-            return self.d_matrix().__hash__()
+            return hash(self.d_matrix())
 
     def _repr_(self):
         r"""

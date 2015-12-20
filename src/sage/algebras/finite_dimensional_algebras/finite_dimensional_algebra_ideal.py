@@ -113,7 +113,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I != I + J
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __contains__(self, elt):
         """
@@ -164,7 +164,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I < I + J
             False
         """
-        return self.__ne__(other) and self.__le__(other)
+        return self != other and self <= other
 
     def __ge__(self, other):
         """
@@ -180,7 +180,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I >= I + J
             True
         """
-        return other.__le__(self)
+        return other <= self
 
     def __gt__(self, other):
         """
@@ -196,7 +196,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I > I + J
             False
         """
-        return other.__lt__(self)
+        return other < self
 
     def basis_matrix(self):
         """

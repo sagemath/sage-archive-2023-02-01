@@ -13,6 +13,7 @@ Coding Theory
    sage/coding/channel_constructions
    sage/coding/channels_catalog
    sage/coding/codes_catalog
+   sage/coding/grs
    sage/coding/linear_code
    sage/coding/code_constructions
    sage/coding/guava
@@ -24,5 +25,7 @@ Coding Theory
    sage/coding/delsarte_bounds
    sage/coding/source_coding/huffman
    sage/coding/binary_code
+   sage/coding/decoder
+   sage/coding/two_weight_db
 
 .. include:: ../footer.txt

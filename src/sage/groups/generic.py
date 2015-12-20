@@ -1399,7 +1399,7 @@ def structure_description(G, latex=False):
         return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
     try:
-        description = G._gap_().StructureDescription().__str__()
+        description = str(G._gap_().StructureDescription())
     except RuntimeError:
         if not is_package_installed('database_gap'):
             raise RuntimeError("You must install the optional database_gap package first.")

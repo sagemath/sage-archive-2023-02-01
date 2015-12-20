@@ -820,14 +820,7 @@ cdef class GinacFunction(BuiltinFunction):
         Python ``int``s which are returned by Ginac to Sage Integers.
 
         This is needed to fix :trac:`10133`, where Ginac evaluates
-        ``sin(0)`` to the Python int ``0``::
-
-            sage: from sage.symbolic.function import BuiltinFunction
-            sage: out = BuiltinFunction.__call__(sin, 0)
-            sage: out, parent(out)
-            (0, <type 'int'>)
-
-        With this wrapper we have::
+        ``sin(0)`` to the Python int ``0``. With this wrapper we have::
 
             sage: out = sin(0)
             sage: out, parent(out)

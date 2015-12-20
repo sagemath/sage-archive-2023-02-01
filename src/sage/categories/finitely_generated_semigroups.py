@@ -139,7 +139,7 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
                 ['y', 'x', 'xy', 'yx']
             """
             from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(self.succ_generators(side = "right"), self.semigroup_generators()).__iter__()
+            return iter(TransitiveIdeal(self.succ_generators(side="right"), self.semigroup_generators()))
 
         def ideal(self, gens, side="twosided"):
             r"""

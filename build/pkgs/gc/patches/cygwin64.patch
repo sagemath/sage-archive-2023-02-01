@@ -85,20 +85,20 @@
  # endif /* X86_64 */
  
  # ifdef HEXAGON
---- a/os_dep.c	2012-08-09 16:25:13.000000000 -0400
-+++ b/os_dep.c	2013-04-22 12:43:32.202498600 -0400
-@@ -770,7 +770,14 @@
-     /* gcc version of boehm-gc).                                        */
+--- a/os_dep.c	2014-06-01 19:00:48.000000000 +0200
++++ b/os_dep.c	2015-12-15 15:22:08.236909098 +0100
+@@ -765,9 +765,13 @@
      GC_API int GC_CALL GC_get_stack_base(struct GC_stack_base *sb)
      {
-+# ifdef __x86_64__
+       void * _tlsbase;
+-
++#ifdef __x86_64__
 +      PNT_TIB pTib = NtCurrentTeb();
-+      void * _tlsbase = pTib->StackBase;
-+      /*void * _tlsbase = NtCurrentTeb()->pTib.StackBase;*/
-+      /*extern void * _tlsbase __asm__ ("%gs:8");*/
-+# else
-       extern void * _tlsbase __asm__ ("%fs:4");
-+# endif
++      _tlsbase = pTib->StackBase;
++#else
+       __asm__ ("movl %%fs:4, %0"
+                : "=r" (_tlsbase));
++#endif
        sb -> mem_base = _tlsbase;
        return GC_SUCCESS;
      }

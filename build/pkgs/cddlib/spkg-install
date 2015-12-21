@@ -43,6 +43,9 @@ for patch in ../patches/*.patch; do
       die "Error patching cddlib"
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19718)
+cp "$SAGE_ROOT"/config/config.* .
+
 ./configure \
   --prefix="$SAGE_LOCAL" \
   --libdir="$SAGE_LOCAL/lib" ||

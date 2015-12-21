@@ -208,6 +208,10 @@ public:
 	long to_long() const;
 	double to_double() const;
 	PyObject* to_pyobject() const;
+        bool is_pyobject() const
+        {
+                return t == PYOBJECT;
+        }
 	const numeric real() const;
 	const numeric imag() const;
 	const numeric numer() const;
@@ -451,6 +455,12 @@ ex ConstantEvalf(unsigned serial, PyObject* parent = nullptr);
 ex UnsignedInfinityEvalf(unsigned serial, PyObject* parent = nullptr);
 ex InfinityEvalf(unsigned serial, PyObject* parent = nullptr);
 ex NegInfinityEvalf(unsigned serial, PyObject* parent = nullptr);
+
+inline bool is_a_python_object(const ex & x)
+{
+        return (is_exactly_a<numeric>(x)
+                and ex_to<numeric>(x).is_pyobject());
+}
 
 } // namespace GiNaC
 

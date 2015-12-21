@@ -82,28 +82,48 @@ static ex exp_eval(const ex & x)
 		throw (std::runtime_error("exp_eval(): exp^(unsigned_infinity) encountered"));
 	}
 
-	// exp(n*Pi*I/2) -> {+1|+I|-1|-I}
-	ex TwoExOverPiI;
-	// Arithmetic with I can result in Python exceptions
-	// We just ignore the error in this case and skip this step
-	try {
-		TwoExOverPiI=(_ex2*x)/(Pi*I);
-	} catch (...) {
-	}
-	if (PyErr_Occurred()) {
-		PyErr_Clear();
-	} else if (is_exactly_a<numeric>(TwoExOverPiI)
-                and TwoExOverPiI.info(info_flags::integer)) {
-		const numeric z = mod(ex_to<numeric>(TwoExOverPiI),*_num4_p);
-		if (z.is_equal(*_num0_p))
-			return _ex1;
-		if (z.is_equal(*_num1_p))
-			return ex(I);
-		if (z.is_equal(*_num2_p))
-			return _ex_1;
-		if (z.is_equal(*_num3_p))
-			return ex(-I);
-	}
+        bool has_pi = false, has_py = false;
+        std::function<bool (const ex&)> has_pi_and_py =
+        [&](const ex & the_ex) -> bool
+        {
+                if (is_exactly_a<constant>(the_ex)
+                        and ex_to<constant>(the_ex) == Pi)
+                        has_pi = true;
+                if (is_a_python_object(the_ex))
+                        has_py = true;
+                if (has_pi and has_py)
+                        return true;
+                for (size_t i=0; i<the_ex.nops(); ++i)
+                        if (has_pi_and_py(the_ex.op(i)))
+                                return true;
+                return false;
+        };
+
+        if (has_pi_and_py(x)) { // true if x contains Pi and Python objects
+                                // like I. The following
+                // exp(n*Pi*I/2) -> {+1|+I|-1|-I}
+                ex TwoExOverPiI;
+                // Arithmetic with I can result in Python exceptions
+                // We just ignore the error in this case and skip this step
+                try {
+                        TwoExOverPiI=(_ex2*x)/(Pi*I);
+                } catch (...) {
+                }
+                if (PyErr_Occurred()) {
+                        PyErr_Clear();
+                } else if (is_exactly_a<numeric>(TwoExOverPiI)
+                        and TwoExOverPiI.info(info_flags::integer)) {
+                        const numeric z = mod(ex_to<numeric>(TwoExOverPiI),*_num4_p);
+                        if (z.is_equal(*_num0_p))
+                                return _ex1;
+                        if (z.is_equal(*_num1_p))
+                                return ex(I);
+                        if (z.is_equal(*_num2_p))
+                                return _ex_1;
+                        if (z.is_equal(*_num3_p))
+                                return ex(-I);
+                }
+        }
 
 	// exp(log(x)) -> x
 	if (is_ex_the_function(x, log))

@@ -496,8 +496,7 @@ class TamariIntervalPoset(Element):
                 G.set_edge_label(a, b, 0)
             else:
                 G.set_edge_label(a, b, 1)
-        return G.plot(color_by_label={0: c0, 1: c1}, graph_border=True,
-                      **kwds)
+        return G.plot(color_by_label={0: c0, 1: c1}, **kwds)
 
     def _latex_(self):
         r"""

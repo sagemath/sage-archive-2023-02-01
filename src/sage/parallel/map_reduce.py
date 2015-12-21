@@ -195,7 +195,7 @@ Advanced use
 ------------
 
 Fine control of the execution of a map/reduce computations is obtained by
-passing parameters to the :meth:`RESetMapReduce.run` method. On can use the
+passing parameters to the :meth:`RESetMapReduce.run` method. One can use the
 three following parameters:
 
 - ``max_proc`` -- maximum number of process used.
@@ -958,11 +958,25 @@ class RESetMapReduce(object):
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
             sage: S._active_tasks
-            <Semaphore(value=2)>
+            <Semaphore(value=...)>
 
             sage: S._signal_task_start()
             sage: S._active_tasks
-            <Semaphore(value=3)>
+            <Semaphore(value=...)>
+
+        We can't get the semaphore values on some Unixes. see in particular
+        the note after class multiprocessing.BoundedSemaphore, where it says:
+
+            on Unix platforms like Mac OS X where sem_getvalue() is not implemented.
+
+        We therefore tests the value by releasing it::
+
+            sage: S._signal_task_done()
+            sage: S._signal_task_done()
+            sage: S._signal_task_done()
+            Traceback (most recent call last):
+            ...
+            AbortError
         """
         if self._active_tasks._semlock._is_zero():
             raise AbortError
@@ -983,11 +997,11 @@ class RESetMapReduce(object):
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
             sage: S._active_tasks
-            <Semaphore(value=2)>
+            <Semaphore(value=...)>
 
             sage: S._signal_task_done()
             sage: S._active_tasks
-            <Semaphore(value=1)>
+            <Semaphore(value=...)>
 
             sage: S._signal_task_done()
             Traceback (most recent call last):
@@ -1133,7 +1147,9 @@ class RESetMapReduce(object):
             - thefs:      1    0    0    0    0    0    0    0
             + thefs:      0    0    1    0    0    0    0    0
         """
-        res = [""]
+        res = [""] # classical trick to have a local variable shared with the
+        # local function (see e.g:
+        # http://stackoverflow.com/questions/2609518/python-nested-function-scopes).
         def pstat(name, start, end, ist):
             res[0] += "\n" + name
             res[0] += " ".join(

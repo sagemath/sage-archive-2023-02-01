@@ -615,7 +615,7 @@ class KleberTree(UniqueRepresentation, Parent):
         """
         Parent.__init__(self, category=FiniteEnumeratedSets())
 
-        if classical_ct.type() == 'E' and classical_ct.rank() >= 7:
+        if classical_ct.rank() >= 7:
             self._child_itr = self._children_iter
         else:
             self._child_itr = self._children_iter_vector

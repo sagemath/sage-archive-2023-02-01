@@ -12,13 +12,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# On some systems pexpect doesn't upgrade correctly without
-# first removing the old version.
-rm -f "$SAGE_LOCAL"/lib/python*/site-packages/pexpect.*
-
 python setup.py install
 
 if [ $? -ne 0 ]; then
-    echo "Error installing pexpect"
+    echo "Error installing ptyprocess"
     exit 1
 fi

@@ -71,7 +71,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_graded` | Return ``True`` if all maximal chains of the poset has same length.
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
-    :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is eulerian.
+    :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation.
@@ -5571,7 +5571,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         A poset is Eulerian if every non-trivial interval has the same
         number of elements of even rank as of odd rank.
 
-        See :wikipedia:`Eulerian_poset`
+        See :wikipedia:`Eulerian_poset`.
 
         EXAMPLES::
 
@@ -5612,7 +5612,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = self.cardinality()
         if n == 1:
             return True
-        if n % 2:
+        if n % 2 == 1:
             return False
 
         H = self._hasse_diagram
@@ -5620,7 +5620,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         for i in range(n):
             for j in range(i):
                 if H.is_lequal(j, i):
-                    if (H._rank[i] - H._rank[j]) % 2:
+                    if (H._rank[i] - H._rank[j]) % 2 == 1:
                         if M[j, i] != -1:
                             return False
                     else:

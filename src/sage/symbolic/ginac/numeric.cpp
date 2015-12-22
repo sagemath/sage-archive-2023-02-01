@@ -418,7 +418,6 @@ static int64_t _mpq_pythonhash(mpq_t the_rat)
     mpq_t rat;
     mpq_init(rat);
     mpq_set(rat, the_rat);
-    mpq_canonicalize(rat);
     int64_t n = _mpz_pythonhash(mpq_numref(rat));
     int64_t d = _mpz_pythonhash(mpq_denref(rat));
     if (d != 1L)
@@ -971,7 +970,6 @@ const numeric numeric::add(const numeric &other) const {
                         mpq_t bigrat;
                         mpq_init(bigrat);
                         mpq_add(bigrat, v._bigrat, other.v._bigrat);
-                        mpq_canonicalize(bigrat);
                         return bigrat;
                 case PYOBJECT:
                         return PyNumber_Add(v._pyobject, other.v._pyobject);
@@ -1001,7 +999,6 @@ const numeric numeric::sub(const numeric &other) const {
                         mpq_t bigrat;
                         mpq_init(bigrat);
                         mpq_sub(bigrat, v._bigrat, other.v._bigrat);
-                        mpq_canonicalize(bigrat);
                         return bigrat;
                 case PYOBJECT:
                         return PyNumber_Subtract(v._pyobject, other.v._pyobject);
@@ -1031,7 +1028,6 @@ const numeric numeric::mul(const numeric &other) const {
                         mpq_t bigrat;
                         mpq_init(bigrat);
                         mpq_mul(bigrat, v._bigrat, other.v._bigrat);
-                        mpq_canonicalize(bigrat);
                         return bigrat;
                 case PYOBJECT:
                         return PyNumber_Multiply(v._pyobject, other.v._pyobject);
@@ -1071,14 +1067,12 @@ const numeric numeric::div(const numeric &other) const {
                                 mpq_set_z(obigrat, other.v._bigint);
                                 mpq_div(bigrat, bigrat, obigrat);
                                 mpq_clear(obigrat);
-                                mpq_canonicalize(bigrat);
                                 return bigrat;
                         }
                 case MPQ:
                                 mpq_t bigrat;
                                 mpq_init(bigrat);
                                 mpq_div(bigrat, v._bigrat, other.v._bigrat);
-                                mpq_canonicalize(bigrat);
                                 return bigrat;
 
                 case PYOBJECT:
@@ -1868,6 +1862,7 @@ PyObject* numeric::to_pyobject() const {
                         mpq_t bigrat;
                         mpq_init(bigrat);
                         mpq_set(bigrat, v._bigrat);
+                        mpq_canonicalize(bigrat);
                         o = py_funcs.py_rational_from_mpq(bigrat);
                         mpq_clear(bigrat);
                         return o;

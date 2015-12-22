@@ -179,7 +179,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: 1/f
             Traceback (most recent call last):
             ...
-            ArithmeticError: division not defined
+            ValueError: constant term 2 is not a unit
 
         ALGORITHM: A Laurent series is a unit if and only if its "unit
         part" is a unit.

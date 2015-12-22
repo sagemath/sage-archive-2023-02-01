@@ -1033,6 +1033,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: p*q5
             -2*x^6 + 5*x^5 + 1
 
+            sage: (x-1).inverse_series_trunc(5)
+            -x^4 - x^3 - x^2 - x - 1
+
             sage: q100 = p.inverse_series_trunc(100)
             sage: (q100 * p).truncate(100)
             1
@@ -1059,7 +1062,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if fmpz_poly_degree(self.__poly) == -1:
             raise ValueError("constant term is zero")
         cdef fmpz_t c = fmpz_poly_get_coeff_ptr(self.__poly, 0)
-        if fmpz_cmp_ui(c, 1) and fmpz_cmp_ui(c, -1):
+        if fmpz_cmp_si(c, 1) and fmpz_cmp_si(c, -1):
             raise ValueError("constant term {} is not a unit".format(self[0]))
 
         cdef Polynomial_integer_dense_flint res = self._new()

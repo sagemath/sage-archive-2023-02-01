@@ -1340,6 +1340,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: the precision must be positive, got 0
+
+        AUTHORS:
+
+        - David Harvey (2006-09-09): Newton's method implementation for power
+          series
+
+        - Vincent Delecroix (2014-2015): move the implementation directly in
+          polynomial
         """
         if prec <= 0:
             raise ValueError("the precision must be positive, got {}".format(prec))

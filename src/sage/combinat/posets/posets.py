@@ -71,6 +71,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_graded` | Return ``True`` if all maximal chains of the poset has same length.
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
+    :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation.
@@ -3994,7 +3995,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             raise ValueError("labels must be a pair")
         new_min = labels[0]
         new_max = labels[1]
-        
+
         if self.cardinality() == 0:
             return constructor(DiGraph({new_min: [new_max]}))
 
@@ -5559,6 +5560,72 @@ class FinitePoset(UniqueRepresentation, Parent):
                     d[c] = d.get(c,0) + 1
             if not all( y < 3 for y in d.itervalues() ):
                 return False
+        return True
+
+    def is_eulerian(self):
+        """
+        Return ``True`` if the poset is Eulerian, and ``False`` otherwise.
+
+        The poset is expected to be graded and bounded.
+
+        A poset is Eulerian if every non-trivial interval has the same
+        number of elements of even rank as of odd rank.
+
+        See :wikipedia:`Eulerian_poset`.
+
+        EXAMPLES::
+
+            sage: P = Poset({0:[1, 2, 3], 1:[4, 5], 2:[4, 6], 3:[5, 6],
+            ....: 4:[7, 8], 5:[7, 8], 6:[7, 8], 7:[9], 8:[9]})
+            sage: P.is_eulerian()
+            True
+            sage: P = Poset({0:[1, 2, 3], 1:[4, 5, 6], 2:[4, 6], 3:[5,6],
+            ....: 4:[7], 5:[7], 6:[7]})
+            sage: P.is_eulerian()
+            False
+
+        Canonical examples of Eulerian posets are the face lattices of
+        convex polytopes::
+
+            sage: P = polytopes.cube().face_lattice()
+            sage: P.is_eulerian()
+            True
+
+        TESTS::
+
+            sage: Poset().is_eulerian()
+            Traceback (most recent call last):
+            ...
+            TypeError: the poset is not bounded
+            sage: Posets.PentagonPoset().is_eulerian()
+            Traceback (most recent call last):
+            ...
+            TypeError: the poset is not graded
+            sage: Poset({1: []}).is_eulerian()
+            True
+        """
+        if not self.is_bounded():
+            raise TypeError("the poset is not bounded")
+        if not self.is_graded():
+            raise TypeError("the poset is not graded")
+
+        n = self.cardinality()
+        if n == 1:
+            return True
+        if n % 2 == 1:
+            return False
+
+        H = self._hasse_diagram
+        M = H.mobius_function_matrix()
+        for i in range(n):
+            for j in range(i):
+                if H.is_lequal(j, i):
+                    if (H._rank[i] - H._rank[j]) % 2 == 1:
+                        if M[j, i] != -1:
+                            return False
+                    else:
+                        if M[j, i] != +1:
+                            return False
         return True
 
     def frank_network(self):

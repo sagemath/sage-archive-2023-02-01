@@ -320,11 +320,15 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: all(Matrix_dense._multiply_classical(a, b) == a*b
             ....:     for a in mats for b in mats if a.ncols() == b.nrows())
             True
+            sage: Matrix_dense._multiply_classical(matrix(2, 1), matrix(2, 0))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: number of columns of left must equal number of rows of right
         """
         cdef RingElement dotp
         cdef Py_ssize_t i, j
         if left._ncols != right._nrows:
-            raise IndexError("Number of columns of left must equal number of rows of right.")
+            raise ArithmeticError("number of columns of left must equal number of rows of right")
         cdef RingElement zero = left.base_ring().zero()
         cdef matrix.Matrix res = left.new_matrix(nrows=left._nrows, ncols=right._ncols)
         for i in range(left._nrows):

@@ -123,10 +123,10 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             if e != 1: shift += 1
         # We don't want to multiply by e again.
         return k
-    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
+    elif isinstance(x, pAdicGenericElement):
         k = (<pAdicGenericElement>x).valuation_c()
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
-            return k
+            k //= x.parent().ramification_index()
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         if typ(pari_tmp) == t_PADIC:
@@ -193,13 +193,13 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
             if e != 1: shift += 1
         # We don't want to multiply by e again.
         return k
-    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
+    elif isinstance(x, pAdicGenericElement):
         if (<pAdicGenericElement>x)._is_exact_zero():
             return maxordp
         prec = <Integer>x.precision_absolute()
         k = mpz_get_si(prec.value)
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
-            return k
+            k //= x.parent().ramification_index()
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         # since get_ordp has been called typ(x.g) == t_PADIC

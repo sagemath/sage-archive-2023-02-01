@@ -5407,34 +5407,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return str(self)
 
-    property __array_interface__:
-        def __get__(self):
-            """
-            Used for NumPy conversion.
+    @property
+    def __array_interface__(self):
+        """
+        Used for NumPy conversion.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import numpy
-                sage: numpy.array([1, 2, 3])
-                array([1, 2, 3])
-                sage: numpy.array([1, 2, 3]).dtype
-                dtype('int32')                         # 32-bit
-                dtype('int64')                         # 64-bit
+            sage: import numpy
+            sage: numpy.array([1, 2, 3])
+            array([1, 2, 3])
+            sage: numpy.array([1, 2, 3]).dtype
+            dtype('int32')                         # 32-bit
+            dtype('int64')                         # 64-bit
 
-                sage: numpy.array(2**40).dtype
-                dtype('int64')
-                sage: numpy.array(2**400).dtype
-                dtype('O')
+            sage: numpy.array(2**40).dtype
+            dtype('int64')
+            sage: numpy.array(2**400).dtype
+            dtype('O')
 
-                sage: numpy.array([1,2,3,0.1]).dtype
-                dtype('float64')
-            """
-            if mpz_fits_slong_p(self.value):
-                return numpy_long_interface
-            elif sizeof(long) == 4 and mpz_sizeinbase(self.value, 2) <= 63:
-                return numpy_int64_interface
-            else:
-                return numpy_object_interface
+            sage: numpy.array([1,2,3,0.1]).dtype
+            dtype('float64')
+        """
+        if mpz_fits_slong_p(self.value):
+            return numpy_long_interface
+        elif sizeof(long) == 4 and mpz_sizeinbase(self.value, 2) <= 63:
+            return numpy_int64_interface
+        else:
+            return numpy_object_interface
 
     def _magma_init_(self, magma):
         """

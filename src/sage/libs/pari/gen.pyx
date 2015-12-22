@@ -3191,10 +3191,17 @@ cdef class gen(gen_auto):
             x - y
             sage: f.centerlift('y')
             Mod(x - y, x^2 + 1)
+
+        For compatibility with other classes in Sage, there is an alias
+        ``lift_centered``::
+
+            sage: pari("Mod(3,5)").lift_centered()
+            -2
         """
         pari_catch_sig_on()
         return P.new_gen(centerlift0(x.g, P.get_var(v)))
 
+    lift_centered = centerlift
 
     def component(gen x, long n):
         """
@@ -3464,53 +3471,6 @@ cdef class gen(gen_auto):
         if v == -1:
             return P.new_gen(lift(x.g))
         return P.new_gen(lift0(x.g, P.get_var(v)))
-
-    def lift_centered(gen x, v=-1):
-        """
-        Synonym of :meth:`centerlift`.
-
-        INPUT:
-
-        -  ``x`` -- gen
-
-        -  ``v`` -- var (default: x)
-
-        OUTPUT:
-
-        - `r` -- gen. If `x` is an integer mod `n`, return the unique element `r` congruent
-          to `x` mod `n` such that `-n/2 < r \\leq n/2`.
-
-        .. SEEALSO::
-
-            :meth:`centerlift`
-
-        EXAMPLES::
-
-            sage: x = pari(-2).Mod(5)
-            sage: x.lift_centered()
-            -2
-            sage: x.lift()
-            3
-            sage: f = pari('x-1').Mod('x^2 + 1')
-            sage: f.lift_centered()
-            x - 1
-            sage: f.lift()
-            x - 1
-            sage: f = pari('x-y').Mod('x^2+1')
-            sage: f
-            Mod(x - y, x^2 + 1)
-            sage: f.lift_centered('x')
-            x - y
-            sage: f.lift_centered('y')
-            Mod(x - y, x^2 + 1)
-
-        TESTS::
-
-            sage: f = pari(randint(-100,100)).Mod(randint(2,50))
-            sage: f.lift_centered() == f.centerlift()
-            True
-        """
-        return x.centerlift(v)
 
     def numbpart(gen x):
         """

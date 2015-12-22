@@ -1040,11 +1040,11 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
 
         iters = [self.support()] * n
         filtration = dict()
-        from sage.combinat.cartesian_product import CartesianProduct
-        for degrees in CartesianProduct(*iters):
+        from sage.categories.cartesian_product import cartesian_product
+        for degrees in cartesian_product(iters):
             deg = sum(degrees)
             filt_deg = filtration.get(deg, set())
-            for i in CartesianProduct(*[indices.get(d) for d in degrees]):
+            for i in cartesian_product([indices.get(d) for d in degrees]):
                 pow_i = T.index_map(*i)
                 if pow_i is not None:
                     filt_deg.add(pow_i)

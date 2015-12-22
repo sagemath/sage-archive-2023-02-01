@@ -695,7 +695,7 @@ class KlyachkoBundle_class(SageObject):
             Vector space of dimension 2 over Rational Field
             sage: V.cohomology(weight=(0,0), dim=True)
             (2, 0, 0)
-            sage: for i,j in CartesianProduct(range(-2,3), range(-2,3)):
+            sage: for i,j in cartesian_product((range(-2,3), range(-2,3))):
             ....:       HH = V.cohomology(weight=(i,j), dim=True)
             ....:       if HH.is_zero(): continue
             ....:       print 'H^*i(P^2, TP^2)_M('+str(i)+','+str(j)+') =', HH

@@ -479,13 +479,17 @@ class TamariIntervalPoset(Element):
         """
         Return a picture.
 
+        The picture represents the Hasse diagram, where the covers are
+        colored in blue if they are increasing and in red if they are
+        decreasing.
+
         This uses the same coordinates as the latex view.
 
         EXAMPLES::
 
             sage: ti = TamariIntervalPosets(4)[2]
             sage: ti.plot()
-            Graphics object consisting of 7 graphics primitives
+            Graphics object consisting of 6 graphics primitives
         """
         c0 = 'blue'   # self.latex_options()["color_increasing"]
         c1 = 'red'    # self.latex_options()["color_decreasing"]
@@ -501,6 +505,9 @@ class TamariIntervalPoset(Element):
     def _latex_(self):
         r"""
         A latex representation of ``self`` using the tikzpicture package.
+
+        This picture shows the union of the Hasse diagrams of the
+        initial and final forests.
 
         If `x` precedes `y`, then `y` will always be placed on top of `x`
         and/or to the right of `x`.

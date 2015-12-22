@@ -21,6 +21,7 @@ dollars = re.compile(r"@\[dollar\]\s*(.*?)\s*@\[dollar\]", re.DOTALL)
 doubledollars = re.compile(r"@\[doubledollar\]\s*(.*?)\s*@\[doubledollar\]", re.DOTALL)
 
 math_loop = re.compile(r"(@\[start[A-Z]*MATH\][^@]*)@\[[a-z]*\]")
+math_backslash = re.compile(r"(@\[start[A-Z]*MATH\][^@]*)=BACKSLASH=")
 
 prototype = re.compile("^[^\n]*\n\n")
 library_syntax = re.compile("The library syntax is.*", re.DOTALL)
@@ -96,6 +97,9 @@ def raw_to_rest(doc):
     # Work around a specific problem with doc of "component"
     doc = doc.replace("[@[dollar]@[dollar]]", "[]")
 
+    # Work around a specific problem with doc of "algdivl"
+    doc = doc.replace(r"\y@", r"\backslash y@")
+
     # Special characters
     doc = doc.replace("@[lt]", "<")
     doc = doc.replace("@[gt]", ">")
@@ -134,25 +138,20 @@ def raw_to_rest(doc):
     # Remove all further markup from within verbatim blocks
     doc = sub_loop(verb_loop, "\\1", doc)
 
-    # Replace (except in verbatim blocks)
-    # \ -> \\
-    # | -> \|
-    # % -> \%
-    # # -> \#
-    doc = sub_loop(escape_backslash, "\\1@BACKSLASH", doc)
-    doc = sub_loop(escape_mid, "\\1@MID", doc)
-    doc = sub_loop(escape_percent, "\\1@PERCENT", doc)
-    doc = sub_loop(escape_hash, "\\1@HASH", doc)
-    doc = doc.replace("@BACKSLASH", "\\\\")
-    doc = doc.replace("@MID", "\\|")
-    doc = doc.replace("@PERCENT", "\\%")
-    doc = doc.replace("@HASH", "\\#")
-
-    doc = doc.replace("@[dollar]@[dollar]", "@[doubledollar]")
-
     # Pair dollars -> beginmath/endmath
+    doc = doc.replace("@[dollar]@[dollar]", "@[doubledollar]")
     doc = dollars.sub(r"@[startMATH]\1@[endMATH]", doc)
     doc = doubledollars.sub(r"@[startDISPLAYMATH]\1@[endDISPLAYMATH]", doc)
+
+    # Replace special characters (except in verbatim blocks)
+    # \ -> =BACKSLASH=
+    # | -> =MID=
+    # % -> =PERCENT=
+    # # -> =HASH=
+    doc = sub_loop(escape_backslash, "\\1=BACKSLASH=", doc)
+    doc = sub_loop(escape_mid, "\\1=MID=", doc)
+    doc = sub_loop(escape_percent, "\\1=PERCENT=", doc)
+    doc = sub_loop(escape_hash, "\\1=HASH=", doc)
 
     # Math markup
     doc = doc.replace("@[obr]", "{")
@@ -174,6 +173,15 @@ def raw_to_rest(doc):
 
     # Remove extra markup inside math blocks
     doc = sub_loop(math_loop, "\\1", doc)
+
+    # Replace special characters by escape sequences
+    # Note that =BACKSLASH= becomes an unescaped backslash in math mode
+    # but an escaped backslash otherwise.
+    doc = sub_loop(math_backslash, r"\1\\", doc)
+    doc = doc.replace("=BACKSLASH=", r"\\")
+    doc = doc.replace("=MID=", r"\|")
+    doc = doc.replace("=PERCENT=", r"\%")
+    doc = doc.replace("=HASH=", r"\#")
 
     # Handle DISPLAYMATH
     doc = doc.replace("@[endDISPLAYMATH]", "\n\n")

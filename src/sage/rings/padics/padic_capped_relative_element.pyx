@@ -103,14 +103,14 @@ cdef class pAdicCappedRelativeElement(CRElement):
         sage: R(Integers(49)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 49
 
     ::
 
         sage: R(Integers(48)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 48
 
     Some other conversions::
 

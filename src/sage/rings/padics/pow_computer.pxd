@@ -1,5 +1,4 @@
-include "sage/ext/cdefs.pxi"
-
+from sage.libs.gmp.types cimport mpz_t, mpz_srcptr
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer
 
@@ -20,8 +19,8 @@ cdef class PowComputer_class(SageObject):
     cdef mpz_t temp_m
 
     cdef Integer pow_Integer(self, long n)
-    cdef mpz_t* pow_mpz_t_top(self)
-    cdef mpz_t* pow_mpz_t_tmp(self, long n)
+    cdef mpz_srcptr pow_mpz_t_top(self)
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n)
 
 cdef class PowComputer_base(PowComputer_class):
     cdef mpz_t* small_powers

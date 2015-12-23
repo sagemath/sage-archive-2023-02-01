@@ -1,9 +1,98 @@
+"""
+Assumptions
+
+The ``GenericDeclaration`` class provides assumptions about a symbol or
+function in verbal form. Such assumptions can be made using the :func:`assume`
+function in this module, which also can take any relation of symbolic
+expressions as argument. Use :func:`forget` to clear all assumptions.
+Creating a variable with a specific domain is equivalent with making an
+assumption about it.
+
+There is only rudimentary support for consistency and satisfiability checking
+in Sage. Assumptions are used both in Maxima and Pynac to support or refine
+some computations. In the following we show how to make and query assumptions.
+Please see the respective modules for more practical examples.
+
+EXAMPLES:
+
+The default domain of a symbolic variable is the complex plane::
+
+    sage: var('x')
+    x
+    sage: x.is_real()
+    False
+    sage: assume(x,'real')
+    sage: x.is_real()
+    True
+    sage: forget()
+    sage: x.is_real()
+    False
+
+Here is the list of acceptable features::
+
+    sage: maxima('features')
+    [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+
+Set positive domain using a relation::
+
+    sage: assume(x>0)
+    sage: x.is_positive()
+    True
+    sage: x.is_real()
+    True
+    sage: assumptions()
+    [x > 0]
+
+Assumptions are added and in some cases checked for consistency::
+
+    sage: assume(x>0)
+    sage: assume(x<0)
+    Traceback (most recent call last):
+    ...
+    ValueError: Assumption is inconsistent
+    sage: forget()
+"""
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.symbolic.ring import is_SymbolicVariable
 _assumptions = []
 
+
 class GenericDeclaration(SageObject):
+    """
+    This class represents generic assumptions, such as a variable being
+    an integer or a function being increasing. It passes such
+    information to Maxima's declare (wrapped in a context so it is able
+    to forget) and to Pynac.
+
+    INPUT:
+
+    -  ``var`` -- the variable about which assumptions are
+       being made
+
+    -  ``assumption`` -- a string containing a Maxima feature, either user
+       defined or in the list given by ``maxima('features')``
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.assumptions import GenericDeclaration
+        sage: decl = GenericDeclaration(x, 'integer')
+        sage: decl.assume()
+        sage: sin(x*pi)
+        sin(pi*x)
+        sage: sin(x*pi).simplify()
+        0
+        sage: decl.forget()
+        sage: sin(x*pi)
+        sin(pi*x)
+        sage: sin(x*pi).simplify()
+        sin(pi*x)
+
+    Here is the list of acceptable features::
+
+        sage: maxima('features')
+        [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+    """
 
     def __init__(self, var, assumption):
         """
@@ -14,13 +103,11 @@ class GenericDeclaration(SageObject):
 
         INPUT:
 
-
-        -  ``var`` - the variable about which assumptions are
+        -  ``var`` -- the variable about which assumptions are
            being made
 
-        -  ``assumption`` - a Maxima feature, either user
-           defined or in the list given by maxima('features')
-
+        -  ``assumption`` -- a Maxima feature, either user
+           defined or in the list given by ``maxima('features')``
 
         EXAMPLES::
 
@@ -35,9 +122,7 @@ class GenericDeclaration(SageObject):
             sage: sin(x*pi)
             sin(pi*x)
 
-        Here is the list of acceptable features.
-
-        ::
+        Here is the list of acceptable features::
 
             sage: maxima('features')
             [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
@@ -71,8 +156,8 @@ class GenericDeclaration(SageObject):
             False
         """
         if isinstance(self, GenericDeclaration) and isinstance(other, GenericDeclaration):
-            return cmp( (self._var, self._assumption),
-                        (other._var, other._assumption) )
+            return cmp((self._var, self._assumption),
+                       (other._var, other._assumption))
         else:
             return cmp(type(self), type(other))
 
@@ -95,6 +180,8 @@ class GenericDeclaration(SageObject):
 
     def assume(self):
         """
+        Make this assumption.
+
         TEST::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
@@ -119,9 +206,6 @@ class GenericDeclaration(SageObject):
             self._context = maxima.newcontext('context' + maxima._next_var_name())
             try:
                 maxima.eval("declare(%s, %s)" % (self._var._maxima_init_(), self._assumption))
-#            except TypeError, mess:
-#                if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
-#                    raise ValueError, "Assumption is inconsistent"
             except RuntimeError as mess:
                 if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
                     raise ValueError("Assumption is inconsistent")
@@ -131,10 +215,13 @@ class GenericDeclaration(SageObject):
 
         if not self in _assumptions:
             maxima.activate(self._context)
+            self._var.decl_assume(self._assumption)
             _assumptions.append(self)
 
     def forget(self):
         """
+        Forget this assumption.
+
         TEST::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
@@ -148,6 +235,7 @@ class GenericDeclaration(SageObject):
             sage: cos(x*pi).simplify()
             cos(pi*x)
         """
+        self._var.decl_forget(self._assumption)
         from sage.calculus.calculus import maxima
         if self._context is not None:
             try:
@@ -164,13 +252,13 @@ class GenericDeclaration(SageObject):
 
     def contradicts(self, soln):
         """
-        Returns ``True`` if this assumption is violated by the given
+        Return ``True`` if this assumption is violated by the given
         variable assignment(s).
 
         INPUT:
 
-        - ``soln`` - Either a dictionary with variables as keys or a symbolic
-            relation with a variable on the left hand side.
+        - ``soln`` -- Either a dictionary with variables as keys or a symbolic
+          relation with a variable on the left hand side.
 
         EXAMPLES::
 
@@ -243,18 +331,19 @@ class GenericDeclaration(SageObject):
         elif self._assumption == 'complex':
             return value not in CC
 
+
 def preprocess_assumptions(args):
     """
-    Turns a list of the form (var1, var2, ..., 'property') into a
-    sequence of declarations (var1 is property), (var2 is property),
-    ...
+    Turn a list of the form ``(var1, var2, ..., 'property')`` into a
+    sequence of declarations ``(var1 is property), (var2 is property),
+    ...``
 
     EXAMPLES::
 
         sage: from sage.symbolic.assumptions import preprocess_assumptions
         sage: preprocess_assumptions([x, 'integer', x > 4])
         [x is integer, x > 4]
-        sage: var('x,y')
+        sage: var('x, y')
         (x, y)
         sage: preprocess_assumptions([x, y, 'integer', x > 4, y, 'even'])
         [x is integer, y is integer, x > 4, y is even]
@@ -272,20 +361,21 @@ def preprocess_assumptions(args):
             last = None
     return args
 
+
 def assume(*args):
     """
     Make the given assumptions.
 
     INPUT:
 
-    -  ``*args`` - assumptions
+    -  ``*args`` -- assumptions
 
     EXAMPLES:
 
     Assumptions are typically used to ensure certain relations are
     evaluated as true that are not true in general.
 
-    Here, we verify that for `x>0`, `\sqrt(x^2)=x`::
+    Here, we verify that for `x>0`, `\sqrt{x^2}=x`::
 
         sage: assume(x > 0)
         sage: bool(sqrt(x^2) == x)
@@ -296,7 +386,6 @@ def assume(*args):
         sage: forget()
         sage: bool(sqrt(x^2) == x)
         False
-
 
     Another major use case is in taking certain integrals and limits
     where the answers may depend on some sign condition::
@@ -389,7 +478,7 @@ def assume(*args):
     TESTS:
 
     Test that you can do two non-relational
-    declarations at once (fixing Trac ticket 7084)::
+    declarations at once (fixing :trac:`7084`)::
 
         sage: var('m,n')
         (m, n)
@@ -413,6 +502,7 @@ def assume(*args):
             except KeyError:
                 raise TypeError("assume not defined for objects of type '%s'"%type(x))
 
+
 def forget(*args):
     """
     Forget the given assumption, or call with no arguments to forget
@@ -422,12 +512,12 @@ def forget(*args):
 
     INPUT:
 
-
-    -  ``*args`` - assumptions (default: forget all
+    -  ``*args`` -- assumptions (default: forget all
        assumptions)
 
+    EXAMPLES:
 
-    EXAMPLES: We define and forget multiple assumptions::
+    We define and forget multiple assumptions::
 
         sage: var('x,y,z')
         (x, y, z)
@@ -463,22 +553,23 @@ def forget(*args):
             except KeyError:
                 raise TypeError("forget not defined for objects of type '%s'"%type(x))
 
+
 def assumptions(*args):
     """
     List all current symbolic assumptions.
 
     INPUT:
 
-        - ``args`` - list of variables which can be empty.
+    - ``args`` -- list of variables which can be empty.
 
     OUTPUT:
 
-        - list of assumptions on variables. If args is empty it returns all
-          assumptions
+    - list of assumptions on variables. If args is empty it returns all
+      assumptions
 
-    EXAMPLES:
+    EXAMPLES::
 
-        sage: var('x,y,z,w')
+        sage: var('x, y, z, w')
         (x, y, z, w)
         sage: forget()
         sage: assume(x^2+y^2 > 0)
@@ -524,6 +615,7 @@ def assumptions(*args):
                             if str(v) in str(statement) ]
     return result
 
+
 def _forget_all():
     """
     Forget all symbolic assumptions.
@@ -548,7 +640,7 @@ def _forget_all():
 
     TESTS:
 
-    Check that Trac ticket 7315 is fixed::
+    Check that :trac:`7315` is fixed::
 
         sage: var('m,n')
         (m, n)
@@ -563,7 +655,6 @@ def _forget_all():
         sage: sin(m*pi).simplify()
         sin(pi*m)
     """
-    from sage.calculus.calculus import maxima
     global _assumptions
     if len(_assumptions) == 0:
         return

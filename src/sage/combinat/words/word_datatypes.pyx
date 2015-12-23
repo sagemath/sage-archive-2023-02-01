@@ -12,9 +12,9 @@ Datatypes for finite words
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.sage_object cimport SageObject
+from itertools import islice
 
-cdef class WordDatatype(SageObject):
+cdef class WordDatatype(object):
     r"""
     The generic WordDatatype class.
 
@@ -33,10 +33,6 @@ cdef class WordDatatype(SageObject):
         True
 
     """
-    cdef public _parent
-    cdef public _hash
-    pass
-
     def __reduce__(self):
         r"""
         Default pickle support
@@ -45,9 +41,32 @@ cdef class WordDatatype(SageObject):
 
             sage: w = Word([0,1,1,0,0,1])
             sage: w.__reduce__()
-            (<class 'sage.combinat.words.word.FiniteWord_list'>, (Words, [0, 1, 1, 0, 0, 1]))
+            (Finite words over Set of Python objects of type 'object', ([0, 1, 1, 0, 0, 1],))
         """
-        return self.__class__, (self._parent, self._data)
+        return self._parent, (list(self),)
+
+    def __hash__(self):
+        r"""
+        Returns the hash for this word.
+
+        TESTS::
+
+             sage: h = hash(Word('abc'))    # indirect test
+             sage: Word('abc').__hash__() == Word('abc').__hash__()
+             True
+
+             sage: tm = words.ThueMorseWord()
+             sage: hash(tm)
+             -973965563
+        """
+        cdef int res
+        if self._hash is None:
+            res = 5381
+            for s in islice(self,1024):
+                res = ((res << 5) + res) + hash(s)
+            self._hash = res
+        return self._hash
+
 
 cdef class WordDatatype_list(WordDatatype):
     r"""
@@ -205,7 +224,7 @@ cdef class WordDatatype_list(WordDatatype):
 
     def __getitem__(self, key):
         r"""
-        Implements :method:``__getitem__`` for words stored as lists.
+        Implements :meth:`__getitem__` for words stored as lists.
 
         INPUT:
 
@@ -223,7 +242,7 @@ cdef class WordDatatype_list(WordDatatype):
 
         """
         if isinstance(key, slice):
-            return self._parent.__call__(self._data.__getitem__(key))
+            return self._parent(self._data[key])
         else:
             return self._data[key]
 
@@ -253,7 +272,7 @@ cdef class WordDatatype_list(WordDatatype):
             <class 'sage.combinat.words.word.FiniteWord_list'>
         """
         if isinstance(other, WordDatatype_list):
-            return self._parent.__call__(self._data + other._data)
+            return self._parent(self._data + other._data)
         else:
             return super(WordDatatype_list, self).__mul__(other)
 
@@ -416,7 +435,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         .. note::
 
-           This just wraps Python's builtin :method:`__contains__` for :class:`str`.
+           This just wraps Python's builtin :meth:`__contains__` for :class:`str`.
 
         INPUT:
 
@@ -550,7 +569,7 @@ cdef class WordDatatype_str(WordDatatype):
 
     def __getitem__(self, key):
         r"""
-        Implements the :method:`__getitem__`.
+        Implements the :meth:`__getitem__`.
 
         TESTS::
 
@@ -596,7 +615,7 @@ cdef class WordDatatype_str(WordDatatype):
             <class 'sage.combinat.words.word.FiniteWord_str'>
         """
         if isinstance(other, WordDatatype_str):
-            return self._parent.__call__(self._data + other._data)
+            return self._parent(self._data + other._data)
         else:
             return super(WordDatatype_str, self).__mul__(other)
 
@@ -690,7 +709,7 @@ cdef class WordDatatype_str(WordDatatype):
         elif isinstance(sep, WordDatatype_str):
             sep = sep._data
         else:
-            raise ValueError, "the separator must be a string."
+            raise ValueError("the separator must be a string.")
 
         if maxsplit is None:
             return map(self._parent, self._data.split(sep))
@@ -741,8 +760,7 @@ cdef class WordDatatype_str(WordDatatype):
             return map(self._parent, self._data.partition(sep))
         elif isinstance(sep, WordDatatype_str):
             return map(self._parent, self._data.partition(sep._data))
-        else:
-            raise ValueError, "the separator must be a string."
+        raise ValueError("the separator must be a string.")
 
     def is_suffix(self, other):
         r"""
@@ -1107,7 +1125,7 @@ cdef class WordDatatype_tuple(WordDatatype):
             <class 'sage.combinat.words.word.FiniteWord_tuple'>
         """
         if isinstance(other, WordDatatype_tuple):
-            return self._parent.__call__(self._data + other._data)
+            return self._parent(self._data + other._data)
         else:
             return super(WordDatatype_tuple, self).__mul__(other)
 

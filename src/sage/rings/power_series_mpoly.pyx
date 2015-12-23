@@ -1,6 +1,5 @@
 # NOT ready to be used -- possibly should be deleted.
 
-include "sage/ext/stdsage.pxi"
 
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -25,7 +24,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
             True
         """
         S = parent._mpoly_ring()
-        if PY_TYPE_CHECK(f, Element) and (<Element>f)._parent is S:
+        if isinstance(f, Element) and (<Element>f)._parent is S:
             #if check and not (prec is infinity):
             #    self.__f = f.truncate(S.gens()[-1], prec)
             #    self._truncated = 1
@@ -118,7 +117,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
 
     def __iter__(self):
         """
-        Return an interator over the coefficients of this power series.
+        Return an iterator over the coefficients of this power series.
         """
         return iter(self.__f)
 

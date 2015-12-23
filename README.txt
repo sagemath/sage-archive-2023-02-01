@@ -64,7 +64,7 @@ QUICK INSTRUCTIONS TO BUILD FROM SOURCE
 
 The following steps briefly outline the process of building Sage from
 source. More detailed instructions, including how to build faster on
-multicore machines are contained later in this README and in the
+multicore machines, are contained later in this README and in the
 Installation Guide:
 
     http://www.sagemath.org/doc/installation
@@ -72,7 +72,6 @@ Installation Guide:
 1. Make sure you have the dependencies and 5 GB of free disk space.
 
    All Linux versions: gcc, make, m4, perl, ranlib, and tar.
-   Debian or Ubuntu systems: the dpkg-dev package.
    Fedora or RedHat systems: the perl-ExtUtils-MakeMaker package.
    (install these using your package manager)
 

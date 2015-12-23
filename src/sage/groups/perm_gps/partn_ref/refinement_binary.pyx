@@ -1,17 +1,18 @@
 """
 Partition backtrack functions for binary codes
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_binary
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 
@@ -302,7 +303,8 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
         """
         cdef int i, n = self.degree
-        cdef int *output, *ordering
+        cdef int *output
+        cdef int *ordering
         cdef PartitionStack *part
         part = PS_new(n, 1)
         ordering = <int *> sage_malloc(self.degree * sizeof(int))
@@ -562,7 +564,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 
         """
         cdef int i, n = self.degree
-        cdef int *output, *ordering
+        cdef int *output
+        cdef int *ordering
         cdef PartitionStack *part
         part = PS_new(n, 1)
         ordering = <int *> sage_malloc(n * sizeof(int))
@@ -811,7 +814,10 @@ cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2,
     cdef bitset_s *B_2_0 = &BCS1.scratch_bitsets[2*BCS1.nwords]    # nwords of len degree
     cdef bitset_s *B_2_1 = &BCS1.scratch_bitsets[3*BCS1.nwords]    # nwords of len degree
     cdef bitset_s *dividers = &BCS1.scratch_bitsets[4*BCS1.nwords] # 1 of len nwords
-    cdef bitset_s *B_1_this, *B_1_other, *B_2_this, *B_2_other
+    cdef bitset_s *B_1_this
+    cdef bitset_s *B_1_other
+    cdef bitset_s *B_2_this
+    cdef bitset_s *B_2_other
     for i from 0 <= i < BCS1.nwords:
         bitset_copy(&B_1_0[i], &BCS1.words[i])
         bitset_copy(&B_2_0[i], &BCS2.words[i])

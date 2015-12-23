@@ -732,7 +732,7 @@ class EllipticCurveFormalGroup(SageObject):
         k = self.curve().base_ring()
         fl = self.log(prec)
         R = rings.PolynomialRing(k,'c'); c = R.gen()
-        F = fl.reversion()
+        F = fl.reverse()
 
         S = rings.LaurentSeriesRing(R,'z')
         c = S(c)

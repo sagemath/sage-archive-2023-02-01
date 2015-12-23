@@ -38,6 +38,22 @@ class GcdDomains(Category_singleton):
         """
         return [IntegralDomains()]
 
+    def additional_structure(self):
+        """
+        Return ``None``.
+
+        Indeed, the category of gcd domains defines no additional
+        structure: a ring morphism between two gcd domains is a gcd
+        domain morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: GcdDomains().additional_structure()
+        """
+        return None
+
     class ParentMethods:
         pass
 

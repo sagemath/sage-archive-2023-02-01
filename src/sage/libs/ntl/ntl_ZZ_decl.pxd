@@ -1,32 +1,17 @@
-include "sage/ext/cdefs.pxi"
+# distutils: depends = NTL/ZZ.h
 
-cdef extern from "ntl_wrap.h":
-    #### ZZ_c
-    ctypedef struct ZZ_c "struct ZZ":
-        pass
+from .types cimport ZZ_c
 
-    ctypedef struct vec_ZZ_c "vec_ZZ":
-        ZZ_c RawGet(long i)
-        ZZ_c *elts()
-        long length()
-
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void del_charstar(char*)
 
-    # Some boiler-plate
-    ZZ_c* ZZ_new "New<ZZ>"()
-    ZZ_c* ZZ_construct "Construct<ZZ>"(void *mem)
-    void ZZ_destruct "Destruct<ZZ>"(ZZ_c *mem)
-    void ZZ_delete "Delete<ZZ>"(ZZ_c *mem)
     void ZZ_from_str "_from_str<ZZ>"(ZZ_c* dest, char* s)
     object ZZ_to_PyString "_to_PyString<ZZ>"(ZZ_c *x)
-    int ZZ_equal "_equal<ZZ>"(ZZ_c x, ZZ_c y)
 
     void ZZ_conv_from_int "conv"(ZZ_c x, int i)
     void ZZ_conv_to_int "conv"(int i, ZZ_c x)
     void ZZ_conv_from_long "conv"(ZZ_c x, long l)
     void ZZ_conv_to_long "conv"(long l, ZZ_c x)
-    void ZZ_to_mpz(mpz_t* output, ZZ_c* x)
-    void mpz_to_ZZ(ZZ_c *output, mpz_t* x)
     cdef int ZZ_to_int(ZZ_c* x)
     cdef ZZ_c* int_to_ZZ(int value)
     cdef void ZZ_set_from_int(ZZ_c* x, int value)
@@ -39,7 +24,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_add_long "add"(ZZ_c x, ZZ_c a, long b)
     void ZZ_sub "sub"( ZZ_c x, ZZ_c a, ZZ_c b)
     void ZZ_sub_long "sub"(ZZ_c x, long a, ZZ_c b)
-    void ZZ_negate "negate"(ZZ_c x, ZZ_c a)
+    void ZZ_negate "NTL::negate"(ZZ_c x, ZZ_c a)
     void ZZ_abs "abs"(ZZ_c x, ZZ_c a)
 
     void ZZ_mul "mul"( ZZ_c x, ZZ_c a, ZZ_c b)
@@ -100,7 +85,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_NextPrime "NextPrime"(ZZ_c n, ZZ_c m, long NumTrials)
     long ZZ_MillerWitness "MillerWitness"(ZZ_c n, ZZ_c w)
 
-    void ZZ_power "power"(ZZ_c t, ZZ_c x, long e)
+    void ZZ_power "NTL::power"(ZZ_c t, ZZ_c x, long e)
     void ZZ_power2 "power2"(ZZ_c x, long e)
 
     void ZZ_SqrRoot "SqrRoot"(ZZ_c x, ZZ_c a)
@@ -108,10 +93,4 @@ cdef extern from "ntl_wrap.h":
     long ZZ_Jacobi "Jacobi"(ZZ_c a, ZZ_c n)
     void ZZ_SqrRootMod "SqrRootMod"(ZZ_c x, ZZ_c a, ZZ_c n)
 
-    long ZZ_remove(ZZ_c x, ZZ_c a, ZZ_c p) # a la mpz_remove.  Written in ntl_wrap.cpp.
-
-    # Random-number generation
-    #void setSeed(ZZ_c* x)
-    #ZZ_c* ZZ_randomBnd(ZZ_c* x)
-    #ZZ_c* ZZ_randomBits(long n)
-
+    long ZZ_remove(ZZ_c x, ZZ_c a, ZZ_c p) # a la mpz_remove.  Written in ntlwrap.cpp.

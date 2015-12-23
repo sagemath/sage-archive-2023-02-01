@@ -13,19 +13,14 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
+
 from cpython.object cimport *
 from sage.misc.constant_function import ConstantFunction
 
@@ -36,14 +31,6 @@ import homset
 include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
-def make_morphism(_class, parent, _dict, _slots):
-    # from element.pyx
-    cdef Morphism mor = _class.__new__(_class)
-    mor._set_parent(parent)
-    mor._update_slots(_slots)
-    if HAS_DICTIONARY(mor):
-        mor.__dict__ = _dict
-    return mor
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
@@ -52,7 +39,7 @@ cdef class Morphism(Map):
 
     def _repr_(self):
         """
-        Return the string representation of self.
+        Return the string representation of ``self``.
 
         .. NOTE::
 
@@ -107,6 +94,16 @@ cdef class Morphism(Map):
         return s
 
     def _default_repr_(self):
+        """
+        Return a string representation of this morphism.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t+1])
+            sage: f._default_repr_()
+            'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1'
+        """
         D = self.domain()
         if D is None:
             return "Defunct morphism"
@@ -157,20 +154,56 @@ cdef class Morphism(Map):
             return ", ".join(d.split("\n"))
 
     def category(self):
-        return self.parent().category() # Shouldn't it be Category of elements of ...?
+        """
+        Return the category of the parent of this morphism.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t**2])
+            sage: f.category()
+            Category of endsets of unital magmas and right modules over
+             (euclidean domains and infinite enumerated sets and metric spaces)
+             and left modules over (euclidean domains
+             and infinite enumerated sets and metric spaces)
+
+            sage: K = CyclotomicField(12)
+            sage: L = CyclotomicField(132)
+            sage: phi = L._internal_coerce_map_from(K)
+            sage: phi.category()
+            Category of homsets of unital magmas and additive unital additive magmas
+        """
+        # Should it be Category of elements of ...?
+        return self.parent().category()
 
     def is_endomorphism(self):
+        """
+        Return ``True`` if this morphism is an endomorphism.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t])
+            sage: f.is_endomorphism()
+            True
+
+            sage: K = CyclotomicField(12)
+            sage: L = CyclotomicField(132)
+            sage: phi = L._internal_coerce_map_from(K)
+            sage: phi.is_endomorphism()
+            False
+        """
         return self.parent().is_endomorphism_set()
 
     def is_identity(self):
         """
-        Return true if this morphism is the identity morphism.
+        Return ``True`` if this morphism is the identity morphism.
 
         .. NOTE::
 
             Implemented only when the domain has a method gens()
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<t> = ZZ[]
             sage: f = R.hom([t])
@@ -180,7 +213,7 @@ cdef class Morphism(Map):
             sage: g.is_identity()
             False
 
-        A morphism between two different spaces can't be the identity::
+        A morphism between two different spaces cannot be the identity::
 
             sage: R2.<t2> = QQ[]
             sage: h = R.hom([t2])
@@ -202,9 +235,6 @@ cdef class Morphism(Map):
             return True
         except (AttributeError, NotImplementedError):
             return NotImplementedError
-
-    def __invert__(self):  # notation in python is (~f) for the inverse of f.
-        raise NotImplementedError
 
     def pushforward(self, I):
         raise NotImplementedError
@@ -253,7 +283,7 @@ cdef class Morphism(Map):
         self._codomain.register_coercion(self)
 
     def register_as_conversion(self):
-        """
+        r"""
         Register this morphism as a conversion to Sage's coercion model
 
         (see :mod:`sage.structure.coerce`).
@@ -306,10 +336,7 @@ cdef class Morphism(Map):
             definition = repr(self)
         return hash((domain, codomain, definition))
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())
@@ -322,7 +349,7 @@ cdef class Morphism(Map):
                 c = cmp(left(x), right(x))
                 if c: return c
         except (AttributeError, NotImplementedError):
-            raise NotImplementedError
+            raise NotImplementedError("comparison not implemented for %r"%type(left))
 
 
 cdef class FormalCoercionMorphism(Morphism):
@@ -369,11 +396,11 @@ cdef class IdentityMorphism(Morphism):
 
     def __mul__(left, right):
         if not isinstance(right, Map):
-            raise TypeError, "right (=%s) must be a map to multiply it by %s"%(right, left)
+            raise TypeError("right (=%s) must be a map to multiply it by %s"%(right, left))
         if not isinstance(left, Map):
-            raise TypeError, "left (=%s) must be a map to multiply it by %s"%(left, right)
+            raise TypeError("left (=%s) must be a map to multiply it by %s"%(left, right))
         if right.codomain() != left.domain():
-            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(left, right)
+            raise TypeError("self (=%s) domain must equal right (=%s) codomain"%(left, right))
         if isinstance(left, IdentityMorphism):
             return right
         else:
@@ -397,7 +424,7 @@ cdef class SetMorphism(Morphism):
         EXAMPLES::
 
             sage: from sage.categories.morphism import SetMorphism
-            sage: f = SetMorphism(Hom(QQ, ZZ, Sets()), numerator) # could use Monoids() once the categories will be in
+            sage: f = SetMorphism(Hom(QQ, ZZ, Sets()), numerator)
             sage: f.parent()
             Set of Morphisms from Rational Field to Integer Ring in Category of sets
             sage: f.domain()
@@ -439,8 +466,8 @@ cdef class SetMorphism(Morphism):
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
             sage: def foo(x,*args,**kwds):
-            ...    print 'foo called with',args,kwds
-            ...    return x
+            ....:  print 'foo called with',args,kwds
+            ....:  return x
             sage: f = SetMorphism(Hom(R,R,Rings()), foo)
             sage: f(2,'hello world',test=1)     # indirect doctest
             foo called with ('hello world',) {'test': 1}
@@ -450,7 +477,7 @@ cdef class SetMorphism(Morphism):
         try:
             return self._function(x, *args, **kwds)
         except Exception:
-            raise TypeError, "Underlying map %s does not accept additional arguments"%type(self._function)
+            raise TypeError("Underlying map %s does not accept additional arguments"%type(self._function))
 
     cdef dict _extra_slots(self, dict _slots):
         """
@@ -464,7 +491,11 @@ cdef class SetMorphism(Morphism):
 
             sage: f = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()), operator.__abs__)
             sage: f._extra_slots_test({"bla":1})
-            {'_codomain': Integer Ring, '_domain': Integer Ring, '_function': <built-in function __abs__>, 'bla': 1, '_repr_type_str': None}
+            {'_codomain': Integer Ring,
+             '_domain': Integer Ring,
+             '_function': <built-in function __abs__>,
+             '_repr_type_str': None,
+             'bla': 1}
         """
         _slots['_function'] = self._function
         return Map._extra_slots(self, _slots)
@@ -472,9 +503,10 @@ cdef class SetMorphism(Morphism):
     cdef _update_slots(self, dict _slots):
         """
         INPUT:
+
         - ``_slots`` -- a dictionary
 
-        Updates the slots of self from the data in the dictionary
+        Updates the slots of ``self`` from the data in the dictionary
 
         EXAMPLES::
 
@@ -482,9 +514,9 @@ cdef class SetMorphism(Morphism):
             sage: f(3)
             3
             sage: f._update_slots_test({'_function' : operator.__neg__,
-            ...                         '_domain' : QQ,
-            ...                         '_codomain' : QQ,
-            ...                         '_repr_type_str' : 'bla'})
+            ....:                       '_domain' : QQ,
+            ....:                       '_codomain' : QQ,
+            ....:                       '_repr_type_str' : 'bla'})
             sage: f(3)
             -3
             sage: f._repr_type()
@@ -517,7 +549,7 @@ cdef class SetMorphism(Morphism):
             False
 
         """
-        return PY_TYPE_CHECK(other, SetMorphism) and self.parent() == other.parent() and self._function == (<SetMorphism>other)._function
+        return isinstance(other, SetMorphism) and self.parent() == other.parent() and self._function == (<SetMorphism>other)._function
 
     def __richcmp__(self, right, int op):
         """

@@ -13,8 +13,8 @@ EXAMPLES:
 We construct an elliptic curve over an elaborate base ring::
 
     sage: p = 97; a=1; b=3
-    sage: R, u = PolynomialRing(GF(p), 'u').objgen()
-    sage: S, v = PolynomialRing(R, 'v').objgen()
+    sage: R.<u> = GF(p)[]
+    sage: S.<v> = R[]
     sage: T = S.fraction_field()
     sage: E = EllipticCurve(T, [a, b]); E
     Elliptic Curve defined by y^2  = x^3 + x + 3 over Fraction Field of Univariate Polynomial Ring in v over Univariate Polynomial Ring in u over Finite Field of size 97
@@ -61,7 +61,7 @@ from sage.plot.plot import generate_plot_points
 import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.number_field.number_field_base import is_NumberField
-import sage.misc.misc as misc
+from sage.misc.all import prod as mul
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.fast_methods import WithEqualityById
 
@@ -79,7 +79,6 @@ import weierstrass_morphism as wm
 factor = arith.factor
 sqrt = math.sqrt
 exp = math.exp
-mul = misc.mul
 next_prime = arith.next_prime
 
 oo = rings.infinity       # infinity
@@ -527,7 +526,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             sage: E = EllipticCurve([0,0,0,-49,0])
             sage: T = E.torsion_subgroup()
             sage: [E(t) for t in T]
-            [(0 : 1 : 0), (7 : 0 : 1), (0 : 0 : 1), (-7 : 0 : 1)]
+            [(0 : 1 : 0), (-7 : 0 : 1), (0 : 0 : 1), (7 : 0 : 1)]
 
         ::
 
@@ -810,6 +809,22 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             sage: E._point_homset(Spec(GF(5^10,'a'),GF(5)), E)
             Abelian group of points on Elliptic Curve defined
             by y^2 = x^3 + x + 1 over Finite Field in a of size 5^10
+
+        Point sets of elliptic curves are unique (see :trac:`17008`)::
+
+            sage: E = EllipticCurve([2, 3])
+            sage: E.point_homset() is E.point_homset(QQ)
+            True
+
+            sage: @fork
+            ....: def compute_E():
+            ....:     E = EllipticCurve([2, 3])
+            ....:     p = E(3, 6, 1)
+            ....:     return p
+            ....:
+            sage: p = compute_E()
+            sage: 2*p
+            (-23/144 : 2827/1728 : 1)
         """
         return SchemeHomset_points_abelian_variety_field(*args, **kwds)
 
@@ -2456,6 +2471,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         """
         Draw a graph of this elliptic curve.
 
+        The plot method is only implemented when there is a natural coercion
+        from the base ring of ``self`` to ``RR``. In this case, ``self`` is
+        plotted as if it was defined over ``RR``.
+
         INPUT:
 
         -  ``xmin, xmax`` - (optional) points will be computed at
@@ -2492,16 +2511,21 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
             sage: E = EllipticCurve([0,-1])
             sage: plot(E, rgbcolor=hue(0.7))
+            Graphics object consisting of 1 graphics primitive
             sage: E = EllipticCurve('37a')
             sage: plot(E)
+            Graphics object consisting of 2 graphics primitives
             sage: plot(E, xmin=25,xmax=26)
+            Graphics object consisting of 2 graphics primitives
 
         With #12766 we added the components keyword::
 
             sage: E.real_components()
             2
             sage: E.plot(components='bounded')
+            Graphics object consisting of 1 graphics primitive
             sage: E.plot(components='unbounded')
+            Graphics object consisting of 1 graphics primitive
 
         If there is only one component then specifying
         components='bounded' raises a ValueError::
@@ -2511,6 +2535,14 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             Traceback (most recent call last):
             ...
             ValueError: no bounded component for this curve
+
+        An elliptic curve defined over the Complex Field can not be plotted::
+
+            sage: E = EllipticCurve(CC, [0,0,1,-1,0])
+            sage: E.plot()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Plotting of curves over Complex Field with 53 bits of precision not implemented yet
         """
         RR = rings.RealField()
         K = self.base_ring()
@@ -2746,10 +2778,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
         Epi = iter(Ep) # used to iterate through Ep
         # Find P1,P2 which generate the p-torsion:
-        P1 = Epi.next()
-        while P1.is_zero(): P1 = Epi.next()
-        P2 = Epi.next()
-        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
+        P1 = next(Epi)
+        while P1.is_zero(): P1 = next(Epi)
+        P2 = next(Epi)
+        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = next(Epi)
 
         k = 1
         log_order = 2
@@ -2866,26 +2898,24 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         Over a finite field::
 
             sage: EllipticCurve(GF(41),[2,5]).pari_curve()
-            [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 0, 0, 0, 0, 0, 0]
+            [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), Vecsmall([3]), [41, [9, 31, [6, 0, 0, 0]]], [0, 0, 0, 0]]
 
         Over a `p`-adic field::
 
             sage: Qp = pAdicField(5, prec=3)
             sage: E = EllipticCurve(Qp,[3, 4])
             sage: E.pari_curve()
-            [O(5^3), O(5^3), O(5^3), 3 + O(5^3), 4 + O(5^3), O(5^3), 1 + 5 + O(5^3), 1 + 3*5 + O(5^3), 1 + 3*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 4 + 3*5 + 5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3*5^-1 + O(5), [4 + 4*5 + 4*5^2 + O(5^3)], 1 + 2*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3 + 3*5 + 3*5^2 + O(5^3), 0]
+            [0, 0, 0, 3, 4, 0, 6, 16, -9, -144, -3456, -8640, 1728/5, Vecsmall([2]), [O(5^3)], [0, 0]]
             sage: E.j_invariant()
             3*5^-1 + O(5)
 
-        The `j`-invariant must have negative `p`-adic valuation::
+        PARI no longer requires that the `j`-invariant has negative `p`-adic valuation::
 
             sage: E = EllipticCurve(Qp,[1, 1])
             sage: E.j_invariant() # the j-invariant is a p-adic integer
             2 + 4*5^2 + O(5^3)
             sage: E.pari_curve()
-            Traceback (most recent call last):
-            ...
-            PariError: valuation of j must be negative in p-adic ellinit
+            [0, 0, 0, 1, 1, 0, 2, 4, -1, -48, -864, -496, 6912/31, Vecsmall([2]), [O(5^3)], [0, 0]]
         """
         try:
             return self._pari_curve
@@ -2908,13 +2938,11 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
             sage: E = EllipticCurve('11a1')
             sage: pari(E)
-            [0, -1, 1, -10, -20, -4, -20, -79, -21, 496, 20008, -161051, -122023936/161051, [4.34630815820539, -1.67315407910270 + 1.32084892226908*I, -1.67315407910270 - 1.32084892226908*I]~, ...]
-            sage: E.pari_curve(prec=64)
-            [0, -1, 1, -10, -20, -4, -20, -79, -21, 496, 20008, -161051, -122023936/161051, [4.34630815820539, -1.67315407910270 + 1.32084892226908*I, -1.67315407910270 - 1.32084892226908*I]~, ...]
+            [0, -1, 1, -10, -20, -4, -20, -79, -21, 496, 20008, -161051, -122023936/161051, Vecsmall([1]), [Vecsmall([64, -1])], [0, 0, 0, 0, 0, 0, 0, 0]]
 
         Over a finite field::
 
             sage: EllipticCurve(GF(2), [0,0,1,1,1])._pari_()
-            [Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(1, 2), Mod(1, 2), Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(1, 2), Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(0, 2), 0, 0, 0, 0, 0, 0]
+            [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, Vecsmall([4]), [1, [[Vecsmall([0, 1]), Vecsmall([0, 1]), Vecsmall([0, 1])], Vecsmall([0, 1]), [Vecsmall([0, 1]), Vecsmall([0]), Vecsmall([0]), Vecsmall([0])]]], [0, 0, 0, 0]]
         """
         return self.pari_curve()

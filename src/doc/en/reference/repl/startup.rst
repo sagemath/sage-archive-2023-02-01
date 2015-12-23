@@ -22,7 +22,7 @@ the Sage shell ``sage --sh``.
 .. note::
 
   This script is run with the Sage directories in its :envvar:`PATH`,
-  so executing ``hg`` for example will run the Mercurial inside Sage.
+  so executing ``git`` for example will run the Git inside Sage.
 
 The default location of this file can be changed using the
 environment variable :envvar:`SAGE_RC_FILE`.

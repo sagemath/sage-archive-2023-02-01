@@ -1,4 +1,10 @@
-include "sage/ext/cdefs.pxi"
+from sage.libs.gmp.types cimport gmp_randstate_t
+
+# The c_random() method on randstate objects gives a value
+# 0 <= n <= SAGE_RAND_MAX
+cdef extern from *:
+    int SAGE_RAND_MAX "(0x7fffffff)"  # 2^31 - 1
+
 
 cdef class randstate:
     cdef gmp_randstate_t gmp_state

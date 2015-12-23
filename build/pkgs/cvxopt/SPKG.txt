@@ -11,13 +11,6 @@ applications straightforward by building on Python's extensive
 standard library and on the strengths of Python as a high-level
 programming language.
 
-== MAINTAINERS ==
-
- * William Stein
- * Josh Kantor
- * Harald Schilly
- * Dima Pasechnik
-
 == Upstream Contact ==
 
  * J. Dahl <dahl.joachim@gmail.com>
@@ -53,6 +46,9 @@ GNU Lesser General Public License, v2.1.  See src/LICENSE for more details.
    construct.
 
 == Changelog ==
+
+=== cvxopt-1.1.7 (Dima Pasechnik, 24 Aug 2014) ===
+ * #16874: upgrade to version 1.1.7.
 
 === cvxopt-1.1.6.p0 (Volker Braun, Jeroen Demeyer, 15 May 2013) ===
  * #12832: upgrade to version 1.1.6.

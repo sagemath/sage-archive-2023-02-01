@@ -1,5 +1,5 @@
 r"""
-Special Functions
+Miscellaneous Special Functions
 
 AUTHORS:
 
@@ -29,25 +29,6 @@ Toy. It is placed under the terms of the General Public License
 Next, we summarize some of the properties of the functions
 implemented here.
 
-
--  Airy function The function `Ai(x)` and the related
-   function `Bi(x)`, which is also called an Airy function,
-   are solutions to the differential equation
-
-
-   .. math::
-
-         y'' - xy = 0,
-
-   known as the Airy equation. They belong to the class of 'Bessel functions of
-   fractional order'. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define
-   `Ai(x)`. The initial conditions
-   `Bi(0) = 3^{1/2}Ai(0)`, `Bi'(0) = -3^{1/2}Ai'(0)`
-   define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
 
 -  Spherical harmonics: Laplace's equation in spherical coordinates
    is:
@@ -162,8 +143,6 @@ REFERENCES:
 - Abramowitz and Stegun: Handbook of Mathematical Functions,
   http://www.math.sfu.ca/~cbm/aands/
 
-- http://en.wikipedia.org/wiki/Airy_function
-
 - http://en.wikipedia.org/wiki/Spherical_harmonics
 
 - http://en.wikipedia.org/wiki/Helmholtz_equation
@@ -184,7 +163,8 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 .. warning::
 
    SciPy's versions are poorly documented and seem less
-   accurate than the Maxima and PARI versions.
+   accurate than the Maxima and PARI versions; typically they are limited
+   by hardware floats precision.
 """
 
 #*****************************************************************************
@@ -203,14 +183,17 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.plot.plot import plot
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
-from sage.misc.sage_eval import sage_eval
-from sage.rings.all import ZZ, RR, RDF
-from sage.functions.other import real, imag, log_gamma
+from sage.misc.latex import latex
+from sage.rings.all import ZZ, RR, RDF, CDF
+from sage.structure.parent import Parent
+from sage.functions.other import log_gamma
 from sage.symbolic.function import BuiltinFunction
 from sage.calculus.calculus import maxima
+from sage.libs.mpmath import utils as mpmath_utils
+from sage.functions.all import sqrt, cot, exp
+from sage.symbolic.all import I
 
 _done = False
 def _init():
@@ -226,11 +209,12 @@ def _init():
         sage: sage.functions.special._done
         False
 
-    Then after using one of these functions, it changes::
+    Then after using one of the MaximaFunctions, it changes::
 
-        sage: from sage.functions.special import airy_ai
-        sage: airy_ai(1.0)
-        0.135292416313
+        sage: from sage.functions.special import elliptic_ec
+        sage: elliptic_ec(0.1)
+        1.53075763689776
+
         sage: sage.functions.special._done
         True
     """
@@ -243,14 +227,15 @@ def _init():
 
 def meval(x):
     """
-    Returns ``x`` evaluated in Maxima, then returned to Sage.
+    Return ``x`` evaluated in Maxima, then returned to Sage.
+
     This is used to evaluate several of these special functions.
 
     TEST::
 
-        sage: from sage.functions.special import airy_ai
-        sage: airy_bi(1.0)
-        1.20742359495
+        sage: from sage.functions.special import spherical_bessel_J
+        sage: spherical_bessel_J(2.,3.)      # rel tol 1e-10
+        0.2986374970757335
     """
     return maxima(x).sage()
 
@@ -297,14 +282,13 @@ class MaximaFunction(BuiltinFunction):
         TESTS:
 
         Check if complex numbers in the arguments are converted to maxima
-        correctly :trac:`7557`::
+        correctly (see :trac:`7557`)::
 
             sage: t = f(1.2+2*I*elliptic_kc(1-.5),.5)
-            sage: t._maxima_init_(maxima)
-            '0.88771548861927...*%i'
+            sage: maxima(t) # abs tol 1e-13
+            0.88771548861928029 - 1.7301614091485560e-15*%i
             sage: t.n() # abs tol 1e-13
-            0.887715488619280 - 1.79195288804672e-15*I
-
+            0.887715488619280 - 1.73016140914856e-15*I
         """
         args_maxima = []
         for a in args:
@@ -325,28 +309,50 @@ class MaximaFunction(BuiltinFunction):
 
             sage: from sage.functions.special import MaximaFunction
             sage: f = MaximaFunction("jacobi_sn")
-            sage: f(1/2,1/2)
+            sage: f(1/2, 1/2)
             jacobi_sn(1/2, 1/2)
-            sage: f(1/2,1/2).n()
+            sage: f(1/2, 1/2).n()
             0.470750473655657
+            sage: f(1/2, 1/2).n(20)
+            0.47075
+            sage: f(1, I).n()
+            0.848379519751901 - 0.0742924572771414*I
 
         TESTS::
 
-            sage: f(1/2,1/2).n(150)
+            sage: f(1/2, 1/2).n(150)
             Traceback (most recent call last):
             ...
-            NotImplementedError: jacobi_sn not implemented for precision > 53
+            NotImplementedError: Maxima function jacobi_sn not implemented for Real Field with 150 bits of precision
+            sage: f._evalf_(1/2, 1/2, parent=int)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Maxima function jacobi_sn not implemented for <type 'int'>
+            sage: f._evalf_(1/2, 1/2, parent=complex)
+            (0.4707504736556572+0j)
+            sage: f._evalf_(1/2, 1/2, parent=RDF)
+            0.4707504736556572
+            sage: f._evalf_(1, I, parent=CDF)  # abs tol 1e-16
+            0.8483795707591759 - 0.07429247342160791*I
+            sage: f._evalf_(1, I, parent=RR)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert x (='0.848379570759176-0.0742924734216079*I') to real number.
         """
         parent = kwds['parent']
-        if hasattr(parent, 'prec') and parent.prec() > 53:
-            raise NotImplementedError("%s not implemented for precision > 53"%self.name())
+        # The result from maxima is a machine double, which corresponds
+        # to RDF (or CDF). Therefore, before converting, we check that
+        # we can actually coerce RDF into our parent.
+        if parent is not float and parent is not complex:
+            if not isinstance(parent, Parent) or not parent.has_coerce_map_from(RDF):
+                raise NotImplementedError("Maxima function %s not implemented for %r"%(self.name(), parent))
         _init()
         return parent(maxima("%s, numer"%self._maxima_init_evaled_(*args)))
 
     def _eval_(self, *args):
         """
-        Returns a string which represents this function evaluated at
-        *args* in Maxima.
+        Try to evaluate this function at ``*args``, return ``None`` if
+        Maxima did not compute a numerical evaluation.
 
         EXAMPLES::
 
@@ -362,13 +368,23 @@ class MaximaFunction(BuiltinFunction):
 
             sage: elliptic_e(arccoth(1), x^2*e)
             elliptic_e(arccoth(1), x^2*e)
+
+        Since Maxima works only with double precision, numerical
+        results are in ``RDF``, no matter what the input precision is::
+
+            sage: R = RealField(300)
+            sage: r = elliptic_eu(R(1/2), R(1/8)); r
+            0.4950737320232015
+            sage: parent(r)
+            Real Double Field
         """
         _init()
         try:
             s = maxima(self._maxima_init_evaled_(*args))
         except TypeError:
             return None
-        if self.name() in repr(s):
+
+        if self.name() in repr(s):  # Avoid infinite recursion
             return None
         else:
             return s.sage()
@@ -410,79 +426,6 @@ def maxima_function(name):
     return NewMaximaFunction()
 
 
-def airy_ai(x):
-   r"""
-   The function `Ai(x)` and the related function `Bi(x)`,
-   which is also called an *Airy function*, are
-   solutions to the differential equation
-
-   .. math::
-
-      y'' - xy = 0,
-
-   known as the *Airy equation*. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define `Ai(x)`.
-   The initial conditions `Bi(0) = 3^{1/2}Ai(0)`,
-   `Bi'(0) = -3^{1/2}Ai'(0)` define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
-   They belong to the class of "Bessel functions of fractional order".
-
-   EXAMPLES::
-
-       sage: airy_ai(1.0)        # last few digits are random
-       0.135292416312881400
-       sage: airy_bi(1.0)        # last few digits are random
-       1.20742359495287099
-
-   REFERENCE:
-
-   - Abramowitz and Stegun: Handbook of Mathematical Functions,
-     http://www.math.sfu.ca/~cbm/aands/
-
-   - http://en.wikipedia.org/wiki/Airy_function
-   """
-   _init()
-   return RDF(meval("airy_ai(%s)"%RDF(x)))
-
-def airy_bi(x):
-   r"""
-   The function `Ai(x)` and the related function `Bi(x)`,
-   which is also called an *Airy function*, are
-   solutions to the differential equation
-
-   .. math::
-
-      y'' - xy = 0,
-
-   known as the *Airy equation*. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define `Ai(x)`.
-   The initial conditions `Bi(0) = 3^{1/2}Ai(0)`,
-   `Bi'(0) = -3^{1/2}Ai'(0)` define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
-   They belong to the class of "Bessel functions of fractional order".
-
-   EXAMPLES::
-
-       sage: airy_ai(1)        # last few digits are random
-       0.135292416312881400
-       sage: airy_bi(1)        # last few digits are random
-       1.20742359495287099
-
-   REFERENCE:
-
-   - Abramowitz and Stegun: Handbook of Mathematical Functions,
-     http://www.math.sfu.ca/~cbm/aands/
-
-   - http://en.wikipedia.org/wiki/Airy_function
-   """
-   _init()
-   return RDF(meval("airy_bi(%s)"%RDF(x)))
-
-
 def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
     r"""
     Default is a wrap of PARI's hyperu(alpha,beta,x) function.
@@ -516,21 +459,17 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         sage: hypergeometric_U(1,1,1,"pari",70)
         0.59634736232319407434...
     """
-    if algorithm=="scipy":
+    if algorithm == "scipy":
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
-        ans = str(scipy.special.hyperu(float(alpha),float(beta),float(x)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
-    elif algorithm=='pari':
+        return RDF(scipy.special.hyperu(float(alpha), float(beta), float(x)))
+    elif algorithm == 'pari':
         from sage.libs.pari.all import pari
         R = RealField(prec)
         return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
     else:
-        raise ValueError("unknown algorithm '%s'"%algorithm)
+        raise ValueError("unknown algorithm '%s'" % algorithm)
 
 def spherical_bessel_J(n, var, algorithm="maxima"):
     r"""
@@ -548,9 +487,9 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
         sage: spherical_bessel_J(1, 3, algorithm='scipy')
         0.345677499762355...
     """
-    if algorithm=="scipy":
+    if algorithm == "scipy":
         from scipy.special.specfun import sphj
-        return sphj(int(n), float(var))[1][-1]
+        return CDF(sphj(int(n), float(var))[1][-1])
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
@@ -570,13 +509,9 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
         sage: spherical_bessel_Y(2,x)
         -((3/x^2 - 1)*cos(x) + 3*sin(x)/x)/x
     """
-    if algorithm=="scipy":
+    if algorithm == "scipy":
         import scipy.special
-        ans = str(scipy.special.sph_yn(int(n),float(var)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        return CDF(scipy.special.sph_yn(int(n),float(var)))
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
@@ -611,22 +546,121 @@ def spherical_hankel2(n,x):
     """
     return maxima_function("spherical_hankel2")(ZZ(n), x)
 
-def spherical_harmonic(m,n,x,y):
+
+class SphericalHarmonic(BuiltinFunction):
     r"""
-    Returns the spherical Harmonic function of the second kind for
-    integers `n > -1`, `|m|\leq n`. Reference:
-    Merzbacher 9.64.
+    Returns the spherical harmonic function `Y_n^m(\theta, \varphi)`.
+
+    For integers `n > -1`, `|m| \leq n`, simplification is done automatically.
+    Numeric evaluation is supported for complex `n` and `m`.
 
     EXAMPLES::
 
-        sage: x,y = var('x,y')
-        sage: spherical_harmonic(3,2,x,y)
+        sage: x, y = var('x, y')
+        sage: spherical_harmonic(3, 2, x, y)
         15/4*sqrt(7/30)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
-        sage: spherical_harmonic(3,2,1,2)
+        sage: spherical_harmonic(3, 2, 1, 2)
         15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+        sage: spherical_harmonic(3 + I, 2., 1, 2)
+        -0.351154337307488 - 0.415562233975369*I
+        sage: latex(spherical_harmonic(3, 2, x, y, hold=True))
+        Y_{3}^{2}\left(x, y\right)
+        sage: spherical_harmonic(1, 2, x, y)
+        0
     """
-    _init()
-    return meval("spherical_harmonic(%s,%s,%s,%s)"%(ZZ(m),ZZ(n),x,y))
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: n, m, theta, phi = var('n m theta phi')
+            sage: spherical_harmonic(n, m, theta, phi)._sympy_()
+            Ynm(n, m, theta, phi)
+        """
+        BuiltinFunction.__init__(self, 'spherical_harmonic', nargs=4,
+                                 conversions=dict(
+                                    maple='SphericalY',
+                                    mathematica= 'SphericalHarmonicY',
+                                    maxima='spherical_harmonic',
+                                    sympy='Ynm'))
+
+    def _eval_(self, n, m, theta, phi, **kwargs):
+        r"""
+        TESTS::
+
+            sage: x, y = var('x y')
+            sage: spherical_harmonic(1, 2, x, y)
+            0
+            sage: spherical_harmonic(1, -2, x, y)
+            0
+            sage: spherical_harmonic(1/2, 2, x, y)
+            spherical_harmonic(1/2, 2, x, y)
+            sage: spherical_harmonic(3, 2, x, y)
+            15/4*sqrt(7/30)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
+            sage: spherical_harmonic(3, 2, 1, 2)
+            15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+            sage: spherical_harmonic(3 + I, 2., 1, 2)
+            -0.351154337307488 - 0.415562233975369*I
+        """
+        if n in ZZ and m in ZZ and n > -1:
+            if abs(m) > n:
+                return ZZ(0)
+            return meval("spherical_harmonic({},{},{},{})".format(
+                ZZ(n), ZZ(m), maxima(theta), maxima(phi)))
+
+    def _evalf_(self, n, m, theta, phi, parent, **kwds):
+        r"""
+        TESTS::
+
+            sage: spherical_harmonic(3 + I, 2, 1, 2).n(100)
+            -0.35115433730748836508201061672 - 0.41556223397536866209990358597*I
+            sage: spherical_harmonic(I, I, I, I).n()
+            7.66678546069894 - 0.265754432549751*I
+        """
+        from mpmath import spherharm
+        return mpmath_utils.call(spherharm, n, m, theta, phi, parent=parent)
+
+    def _derivative_(self, n, m, theta, phi, diff_param):
+        r"""
+        TESTS::
+
+            sage: n, m, theta, phi = var('n m theta phi')
+            sage: spherical_harmonic(n, m, theta, phi).diff(theta)
+            m*cot(theta)*spherical_harmonic(n, m, theta, phi)
+             + sqrt(-(m + n + 1)*(m - n))*e^(-I*phi)*spherical_harmonic(n, m + 1, theta, phi)
+            sage: spherical_harmonic(n, m, theta, phi).diff(phi)
+            I*m*spherical_harmonic(n, m, theta, phi)
+        """
+        if diff_param == 2:
+            return (m * cot(theta) * spherical_harmonic(n, m, theta, phi) +
+                    sqrt((n - m) * (n + m + 1)) * exp(-I * phi) *
+                    spherical_harmonic(n, m + 1, theta, phi))
+        if diff_param == 3:
+            return I * m * spherical_harmonic(n, m, theta, phi)
+
+        raise ValueError('only derivative with respect to theta or phi'
+                         ' supported')
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(spherical_harmonic)
+            Y_n^m
+        """
+        return r"Y_n^m"
+
+    def _print_latex_(self, n, m, theta, phi):
+        r"""
+        TESTS::
+
+            sage: y = var('y')
+            sage: latex(spherical_harmonic(3, 2, x, y, hold=True))
+            Y_{3}^{2}\left(x, y\right)
+        """
+        return r"Y_{{{}}}^{{{}}}\left({}, {}\right)".format(
+                 latex(n), latex(m), latex(theta), latex(phi))
+
+spherical_harmonic = SphericalHarmonic()
 
 ####### elliptic functions and integrals
 
@@ -741,8 +775,14 @@ class EllipticEC(MaximaFunction):
 
             sage: elliptic_ec(0.1)
             1.53075763689776
+
+        TESTS::
+
+            sage: elliptic_ec(x)._sympy_()
+            elliptic_e(x)
         """
-        MaximaFunction.__init__(self, "elliptic_ec", nargs=1)
+        MaximaFunction.__init__(self, "elliptic_ec", nargs=1,
+                                conversions=dict(sympy='elliptic_e'))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -758,9 +798,10 @@ class EllipticEC(MaximaFunction):
 
 elliptic_ec = EllipticEC()
 
+
 class EllipticEU(MaximaFunction):
     r"""
-    This returns the value of the "incomplete elliptic integral of the
+    Return the value of the "incomplete elliptic integral of the
     second kind,"
 
     .. math::
@@ -814,8 +855,14 @@ class EllipticF(MaximaFunction):
 
             sage: elliptic_f (0.2, 0.1)
             0.200132506747543
+
+        TESTS::
+
+            sage: elliptic_f(x, 2)._sympy_()
+            elliptic_f(x, 2)
         """
-        MaximaFunction.__init__(self, "elliptic_f")
+        MaximaFunction.__init__(self, "elliptic_f",
+                                conversions=dict(sympy='elliptic_f'))
 
 elliptic_f = EllipticF()
 
@@ -843,8 +890,14 @@ class EllipticKC(MaximaFunction):
             1.85407467730137
             sage: elliptic_f(RR(pi/2), 0.5)
             1.85407467730137
+
+        TESTS::
+
+            sage: elliptic_kc(x)._sympy_()
+            elliptic_k(x)
         """
-        MaximaFunction.__init__(self, "elliptic_kc", nargs=1)
+        MaximaFunction.__init__(self, "elliptic_kc", nargs=1,
+                                conversions=dict(sympy='elliptic_k'))
 
 elliptic_kc = EllipticKC()
 
@@ -897,30 +950,16 @@ class EllipticPi(MaximaFunction):
 
             sage: elliptic_pi(0.1, 0.2, 0.3)
             0.200665068220979
+
+        TESTS::
+
+            sage: elliptic_pi(x, pi/4, 1)._sympy_()
+            elliptic_pi(x, pi/4, 1)
         """
-        MaximaFunction.__init__(self, "elliptic_pi", nargs=3)
+        MaximaFunction.__init__(self, "elliptic_pi", nargs=3,
+                                conversions=dict(sympy='elliptic_pi'))
 
 elliptic_pi = EllipticPi()
-
-
-def lngamma(t):
-    r"""
-    This method is deprecated, please use
-    :meth:`~sage.functions.other.log_gamma` instead.
-
-    See the :meth:`~sage.functions.other.log_gamma` function for '
-    documentation and examples.
-
-    EXAMPLES::
-
-        sage: lngamma(RR(6))
-        doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-        See http://trac.sagemath.org/6992 for details.
-        4.78749174278205
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-    return log_gamma(t)
 
 def error_fcn(t):
     r"""
@@ -946,7 +985,6 @@ def error_fcn(t):
     try:
         return t.erfc()
     except AttributeError:
-        from sage.rings.real_mpfr import RR
         try:
             return RR(t).erfc()
         except Exception:

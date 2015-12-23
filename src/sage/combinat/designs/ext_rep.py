@@ -1,4 +1,4 @@
-"""
+r"""
 External Representations of Block Designs
 
 The "ext_rep" module is an API to the abstract tree represented by
@@ -14,10 +14,16 @@ REFERENCES:
 .. [D2009] P. Dobcsanyi et al. DesignTheory.org
    http://designtheory.org/database/
 
-TODO: The XML data from the designtheory.org database contains a wealth
-of information about things like automorphism groups, transitivity,
-cycle type representatives, etc, but none of this data is made
-available through the current implementation.
+.. TODO::
+
+    The XML data from the designtheory.org database contains a wealth of
+    information about things like automorphism groups, transitivity, cycle type
+    representatives, etc, but none of this data is made available through the
+    current implementation.
+
+Functions
+---------
+
 """
 
 ###########################################################################
@@ -39,9 +45,11 @@ import re
 import os.path
 import gzip
 import bz2
-from sage.misc.misc import tmp_filename
-import urllib2
+from sage.misc.all import tmp_filename
 import sys
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlopen
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
 DTRS_PROTOCOL   = '2.0'
@@ -553,7 +561,7 @@ def open_extrep_url(url):
         sage: s = ext_rep.designs_from_XML_url("http://designtheory.org/database/v-b-k/v3-b6-k2.icgsa.txt.bz2") # optional - internet
     """
 
-    f = urllib2.urlopen(url)
+    f = urlopen(url)
 
     root, ext = os.path.splitext(url)
     if ext == '.gz':
@@ -684,7 +692,7 @@ class XTree(object):
 
     def __getattr__(self, attr):
         """
-        Returns the data for the first attribute with name attr.
+        Return the data for the first attribute with name attr.
 
         EXAMPLES::
 
@@ -742,7 +750,7 @@ class XTree(object):
         try:
             child = self.xt_children[i]
         except IndexError:
-            raise IndexError('{} has no index {}'.format(self.__repr__(), i))
+            raise IndexError('{!r} has no index {}'.format(self, i))
         if isinstance(child, TupleType):
             name, attributes, children = child
             if len(attributes) > 0:
@@ -761,7 +769,7 @@ class XTree(object):
 
     def __len__(self):
         """
-        Returns the length of the current node.
+        Return the length of the current node.
 
         EXAMPLES::
 
@@ -997,7 +1005,7 @@ class XTreeProcessor(object):
 
 def designs_from_XML(fname):
     """
-    Returns a list of designs contained in an XML file fname. The list
+    Return a list of designs contained in an XML file fname. The list
     contains tuples of the form (v, bs) where v is the number of points of
     the design and bs is the list of blocks.
 
@@ -1032,7 +1040,7 @@ def designs_from_XML(fname):
 
 def designs_from_XML_url(url):
     """
-    Returns a list of designs contained in an XML file named by a URL.
+    Return a list of designs contained in an XML file named by a URL.
     The list contains tuples of the form (v, bs) where v is the number
     of points of the design and bs is the list of blocks.
 

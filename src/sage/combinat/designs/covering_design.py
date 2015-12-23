@@ -222,14 +222,17 @@ class CoveringDesign(SageObject):
             Lower bound: 7
             Method: Projective Plane
         """
-        repr =  '(%d,%d,%d)-covering design of size %d\n'%(self.__v,self.__k,self.__t,self.__size)
-        repr +=  'Lower bound: %d\n'%(self.__low_bd)
+        repr = '(%d,%d,%d)-covering design of size %d\n' % (self.__v,
+                                                            self.__k,
+                                                            self.__t,
+                                                            self.__size)
+        repr += 'Lower bound: %d\n' % (self.__low_bd)
         if self.__creator != '':
-            repr += 'Created by: %s\n'%(self.__creator)
+            repr += 'Created by: %s\n' % (self.__creator)
         if self.__method != '':
-            repr += 'Method: %s\n'%(self.__method)
+            repr += 'Method: %s\n' % (self.__method)
         if self.__timestamp != '':
-            repr += 'Submitted on: %s\n'%(self.__timestamp)
+            repr += 'Submitted on: %s\n' % (self.__timestamp)
 
         return repr
 
@@ -483,7 +486,9 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     This function raises a ValueError if the ``(v,k,t)`` parameters are not
     found in the database.
     """
-    import urllib
+    # import compatible with py2 and py3
+    from six.moves.urllib.request import urlopen
+
     from sage.misc.sage_eval import sage_eval
 
     v = int(v)
@@ -494,8 +499,8 @@ def best_known_covering_design_www(v, k, t, verbose=False):
 
     url = "http://www.ccrwest.org/cover/get_cover.php"+param
     if verbose:
-        print "Looking up the bounds at %s"%url
-    f = urllib.urlopen(url)
+        print "Looking up the bounds at %s" % url
+    f = urlopen(url)
     s = f.read()
     f.close()
 

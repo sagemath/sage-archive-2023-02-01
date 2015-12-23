@@ -317,7 +317,7 @@ if false; then
 else
     echo "Not removing old GMP/MPIR shared libraries, as other libraries"
     echo "and executables might still refer to them:"
-    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*.so.*
+    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
     echo "(Libraries with the same version number will get updated though.)"
 fi
 
@@ -330,18 +330,5 @@ echo "Now installing GMP..."
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing GMP."
-    if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
-        exit 1
-    fi
+    exit 1
 fi
-
-echo
-echo "Remember to rebuild the Sage library ('./sage -b') such that it"
-echo "will use the new GMP."
-echo "You may also have to (or want to) rebuild other Sage packages"
-echo "that use GMP.  Provided that this GMP spkg is in 'spkg/standard/',"
-echo "you can rebuild all packages depending on GMP by typing:"
-echo "    cd $SAGE_ROOT"
-echo "    env SAGE_UPGRADING=yes make"
-echo "but note that this will usually take quite a lot of time."
-echo

@@ -9,13 +9,6 @@ mathematical software.
 
 GPLv3+
 
-== SPKG Maintainers ==
-
- * Keshav Kini
- * Jason Grout
- * William Stein
- * Tim Dumol
-
 == Upstream Contact ==
 
  * Keshav Kini
@@ -47,7 +40,6 @@ Sage:
 
  * Python
  * setuptools
- * SQLAlchemy
  * pexpect
  * jinja2
  * sphinx

@@ -281,7 +281,7 @@ class SymmetricIdeal( Ideal_generic ):
         oGen = list(other.gens())
         SymL = oGen
         for i in range(sN):
-            oGen = [X.__pow__(P) for X in oGen]
+            oGen = [X ** P for X in oGen]
             SymL = SymL + oGen
         # Now, SymL contains all necessary permutations of the second factor
         OUT = []

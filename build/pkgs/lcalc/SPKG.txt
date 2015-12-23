@@ -8,10 +8,6 @@ Michael Rubinstein's L-function calculator.
 
  * LGPL V2+
 
-== SPKG Maintainers ==
-
- * Rishikesh
-
 == Upstream contact ==
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
@@ -82,13 +78,8 @@ http://code.google.com/p/l-calc/
      to not redefine the double() cast, thats just fragile and will sooner or
      later again fail inside some system headers.
 
- * pari-2.4.4.patch:
-   Replace obsolete lgeti() by (long)cgeti().
-
- * init_stack.patch:
-   Replace obsolete allocatemoremem() by a direct call to the private
-   function pari_init_stack(). The public function allocatemem() prints
-   useless warnings and is by definition treated as an error.
+ * pari-2.7.patch:
+   Various changes to port to newer versions of PARI.
 
  * time.h.patch:
    (Patches src/include/Lcommandline_numbertheory.h)

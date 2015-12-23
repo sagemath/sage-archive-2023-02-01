@@ -44,7 +44,7 @@ classes.
 from sage.rings.arith import (factor, is_prime,
                               valuation, kronecker_symbol, gcd, euler_phi, lcm)
 
-from sage.misc.misc import mul
+from sage.misc.all import prod as mul
 from sage.rings.all import Mod, Integer, IntegerModRing, ZZ
 from sage.rings.rational_field import frac
 import dirichlet
@@ -300,7 +300,7 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         sage: dimension_new_cusp_forms(Gamma1(30),3)
         12
 
-    Check that Trac #12640 is fixed::
+    Check that :trac:`12640` is fixed::
 
         sage: dimension_new_cusp_forms(DirichletGroup(1)(1), 12)
         1
@@ -314,7 +314,7 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         if N <= 2:
             return Gamma0(N).dimension_new_cusp_forms(k,p=p)
         else:
-            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See Trac #12640.
+            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See trac #12640.
             return Gamma1(N).dimension_new_cusp_forms(k,eps=X,p=p)
     elif isinstance(X, (int,long,Integer)):
         return Gamma0(X).dimension_new_cusp_forms(k,p=p)
@@ -413,7 +413,7 @@ def dimension_cusp_forms(X, k=2):
         sage: dimension_cusp_forms(e^2,2)
         1
 
-    Check that Trac #12640 is fixed::
+    Check that :trac:`12640` is fixed::
 
         sage: dimension_cusp_forms(DirichletGroup(1)(1), 12)
         1

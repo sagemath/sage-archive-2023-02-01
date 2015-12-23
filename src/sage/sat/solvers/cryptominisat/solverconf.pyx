@@ -42,7 +42,6 @@ AUTHORS:
 
 from libc.stdint cimport uint32_t, uint64_t
 
-include "sage/ext/stdsage.pxi"
 
 cdef class SolverConf(object):
     """
@@ -81,10 +80,10 @@ cdef class SolverConf(object):
         """
         TESTS::
 
-        sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
-        sage: for i in range(100):                                  # optional - cryptominisat
-        ...      s = SolverConf()
-        ...      del s
+            sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
+            sage: for i in range(100):                                  # optional - cryptominisat
+            ...      s = SolverConf()
+            ...      del s
 
         """
         del self._conf
@@ -312,7 +311,7 @@ cdef class SolverConf(object):
             sage: s.verbosity                                           # optional - cryptominisat
             0
         """
-        cdef SolverConf other = PY_NEW(SolverConf)
+        cdef SolverConf other = SolverConf.__new__(SolverConf)
         other._conf = new SolverConfC()
         other._nopts = setup_map(other._map, other._conf[0], 100)
         for name in self.trait_names():

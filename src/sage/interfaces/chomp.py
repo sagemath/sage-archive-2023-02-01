@@ -126,16 +126,15 @@ class CHomP:
 
         EXAMPLES::
 
-        sage: from sage.interfaces.chomp import CHomP
-        sage: T = cubical_complexes.Torus()
-        sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
-        {0: 0, 1: Z x Z, 2: Z}
+            sage: from sage.interfaces.chomp import CHomP
+            sage: T = cubical_complexes.Torus()
+            sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
+            {0: 0, 1: Z x Z, 2: Z}
         """
-        from sage.misc.misc import tmp_filename
+        from sage.misc.temporary_file import tmp_filename
         from sage.homology.all import CubicalComplex, cubical_complexes
         from sage.homology.all import SimplicialComplex, Simplex
-        from sage.homology.cubical_complex import Cube
-        from sage.homology.chain_complex import HomologyGroup, ChainComplex
+        from sage.homology.chain_complex import HomologyGroup
         from subprocess import Popen, PIPE
         from sage.rings.all import QQ, ZZ
         from sage.modules.all import VectorSpace, vector
@@ -257,10 +256,11 @@ class CHomP:
             if verbose:
                 print "Generators:"
                 print gens
-
         #
         #    process output
         #
+        if output.find('ERROR') != -1:
+            raise RuntimeError('error inside CHomP')
         # output contains substrings of one of the forms
         # "H_1 = Z", "H_1 = Z_2 + Z", "H_1 = Z_2 + Z^2",
         # "H_1 = Z + Z_2 + Z"
@@ -361,7 +361,7 @@ class CHomP:
                 if g:
                     if not mod_p:
                         # sort generators to match up with corresponding invariant
-                        g = [_[1] for _ in sorted(zip(invts, g), cmp=lambda x,y: cmp(x[0], y[0]))]
+                        g = [_[1] for _ in sorted(zip(invts, g), key=lambda x: x[0])]
                     d[dim] = (hom, g)
                 else:
                     d[dim] = hom
@@ -536,6 +536,7 @@ def homcubes(complex=None, subcomplex=None, **kwds):
     else:
         raise TypeError("Complex and/or subcomplex are not cubical complexes.")
 
+
 def homchain(complex=None, **kwds):
     r"""
     Compute the homology of a chain complex using the CHomP program
@@ -589,6 +590,7 @@ def homchain(complex=None, **kwds):
         return CHomP()('homchain', complex, **kwds)
     else:
         raise TypeError("Complex is not a chain complex.")
+
 
 def process_generators_cubical(gen_string, dim):
     r"""
@@ -668,7 +670,7 @@ def process_generators_cubical(gen_string, dim):
                     left, right = x
                     left = [int(a) for a in left.strip('()').split(',')]
                     right = [int(a) for a in right.strip('()').split(',')]
-                    if sum([x-y for (x,y) in zip(right, left)]) == dim:
+                    if sum([xx - yy for (xx, yy) in zip(right, left)]) == dim:
                         newlines.append(l)
                 else:  # line like "generator 2"
                     newlines.append(l)
@@ -757,7 +759,6 @@ def process_generators_simplicial(gen_string, dim, complex):
         g = g.group(1)
     if g:
         lines = g.splitlines()
-        newlines = []
         for l in lines:
             simplex = re.search(r'([+-]?)\s?([0-9]+)?\s?[*]?\s?(\([0-9,]*\))', l)
             if simplex:

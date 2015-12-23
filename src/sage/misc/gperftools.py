@@ -49,9 +49,9 @@ class Profiler(SageObject):
     def __init__(self, filename=None):
         """
         Interface to the gperftools profiler
-        
+
         INPUT:
-    
+
         - ``filename`` -- string or ``None`` (default). The file name
           to log to. By default, a new temporary file is created.
 
@@ -60,7 +60,7 @@ class Profiler(SageObject):
             sage: from sage.misc.gperftools import Profiler
             sage: Profiler()
             Profiler logging to ...
-        """        
+        """
         if filename is None:
             from sage.misc.temporary_file import tmp_filename
             self._filename = tmp_filename(ext='.perf')
@@ -103,7 +103,7 @@ class Profiler(SageObject):
     def _libc(self):
         """
         Return libc
-        
+
         OUTPUT:
 
         A ctypes shared library handle.
@@ -128,7 +128,7 @@ class Profiler(SageObject):
     def _libprofiler(self):
         """
         Return libprofiler
-        
+
         OUTPUT:
 
         A ctypes shared library handle.
@@ -153,7 +153,7 @@ class Profiler(SageObject):
     def start(self):
         """
         Start profiling
-        
+
         EXAMPLES::
 
             sage: from sage.misc.gperftools import Profiler, run_100ms
@@ -174,7 +174,7 @@ class Profiler(SageObject):
     def stop(self):
         """
         Stop the CPU profiler
-        
+
         EXAMPLES::
 
             sage: from sage.misc.gperftools import Profiler, run_100ms
@@ -204,11 +204,12 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
+            sage: import six
             sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: try:
             ....:     pp = prof._pprof()
-            ....:     assert isinstance(pp, basestring)
+            ....:     assert isinstance(pp, six.string_types)
             ....: except OSError:
             ....:     pass    # not installed
         """
@@ -226,7 +227,7 @@ class Profiler(SageObject):
                 continue
             return name
         raise OSError('unable to run pprof, please install gperftools')
-        
+
     def _executable(self):
         """
         Return the name of the Sage Python interpreter.
@@ -268,7 +269,7 @@ class Profiler(SageObject):
         from subprocess import check_call
         check_call([self._pprof()] + list(args), **kwds)
 
-    def top(self, cumulative=False):
+    def top(self, cumulative=True):
         """
         Print text report
 
@@ -293,8 +294,8 @@ class Profiler(SageObject):
             args += ['--cum']
         args += ['--text', self._executable(), self.filename()]
         self._call_pprof(*args)
-            
-    def save(self, filename, cumulative=False, verbose=True):
+
+    def save(self, filename, cumulative=True, verbose=True):
         """
         Save report to disk.
 
@@ -303,9 +304,9 @@ class Profiler(SageObject):
         - ``filename`` -- string. The filename to save at. Must end
           with one of ``.dot``, ``.ps``, ``.pdf``, ``.svg``, ``.gif``,
           or ``.txt`` to specify the output file format.
-        
+
         - ``cumulative`` -- boolean (optional, default:
-          ``False``). Whether to return cumulative timings.
+          ``True``). Whether to return cumulative timings.
 
         - ``verbose`` -- boolean (optional, default:
           ``True``). Whether to print informational messages.
@@ -362,11 +363,13 @@ def crun(s, evaluator):
         Using local file ...
     """
     prof = Profiler()
-    from sage.misc.preparser import preparse
+    from sage.repl.preparse import preparse
     py_s = preparse(s)
     prof.start()
-    evaluator(py_s)
-    prof.stop()
+    try:
+        evaluator(py_s)
+    finally:
+        prof.stop()
     prof.top()
 
 
@@ -388,4 +391,4 @@ def run_100ms():
     from sage.symbolic.ring import SR
     while time.time() < t1:
         sum(1/(1+SR(n) ** 2) for n in range(100))
-    
+

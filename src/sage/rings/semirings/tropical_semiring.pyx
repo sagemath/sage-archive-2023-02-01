@@ -20,7 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/stdsage.pxi"
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
@@ -46,7 +45,7 @@ cdef class TropicalSemiringElement(RingElement):
         Return a new tropical semiring element with parent ``self`.
         """
         cdef TropicalSemiringElement x
-        x = PY_NEW(TropicalSemiringElement)
+        x = TropicalSemiringElement.__new__(TropicalSemiringElement)
         x._parent = self._parent
         x._val = self._val
         return x
@@ -135,10 +134,11 @@ cdef class TropicalSemiringElement(RingElement):
         return hash(self._val)
 
     # Comparisons
-
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
-        Rich comparisons.
+        Return ``-1`` if ``left`` is less than ``right``, ``0`` if
+        ``left`` and ``right`` are equal, and ``1`` if ``left`` is
+        greater than ``right``.
 
         EXAMPLES::
 
@@ -170,30 +170,6 @@ cdef class TropicalSemiringElement(RingElement):
             sage: T(2) >= T(4)
             False
             sage: T.infinity() >= T.infinity()
-            True
-        """
-        return (<RingElement>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        """
-        Return ``-1`` if ``left`` is less than ``right``, ``0`` if
-        ``left`` and ``right`` are equal, and ``1`` if ``left`` is
-        greater than ``right``.
-
-        EXAMPLES::
-
-            sage: T = TropicalSemiring(QQ)
-            sage: T(2) == T(2)
-            True
-            sage: T(2) != T(4)
-            True
-            sage: T(2) < T(4)
-            True
-            sage: T(2) > T(4)
-            False
-            sage: T.infinity() == T.infinity()
-            True
-            sage: T(4) <= T.infinity()
             True
 
         Using the `\max` definition::
@@ -621,37 +597,35 @@ class TropicalSemiring(Parent, UniqueRepresentation):
     Element = TropicalSemiringElement
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the (tropical) additive identity element `+\infty`.
 
         EXAMPLES::
 
             sage: T = TropicalSemiring(QQ)
-            sage: T.zero_element()
+            sage: T.zero()
             +infinity
         """
         return self.element_class(self, None)
 
-    zero = zero_element
-    infinity = zero_element
-    additive_identity = zero_element
+    infinity = zero
+    additive_identity = zero
 
     @cached_method
-    def one_element(self):
+    def one(self):
         """
         Return the (tropical) multiplicative identity element `0`.
 
         EXAMPLES::
 
             sage: T = TropicalSemiring(QQ)
-            sage: T.one_element()
+            sage: T.one()
             0
         """
-        return self.element_class(self, self.base().zero_element())
+        return self.element_class(self, self.base().zero())
 
-    one = one_element
-    multiplicative_identity = one_element
+    multiplicative_identity = one
 
     def gens(self):
         """
@@ -663,7 +637,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
             sage: T.gens()
             (1, +infinity)
         """
-        return (self.element_class(self, self.base().one_element()), self.infinity())
+        return (self.element_class(self, self.base().one()), self.infinity())
 
 cdef class TropicalToTropical(Map):
     """

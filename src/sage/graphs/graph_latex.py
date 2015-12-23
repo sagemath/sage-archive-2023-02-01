@@ -44,23 +44,13 @@ To use LaTeX in Sage you of course need a working TeX installation and it will w
 - TeX: http://ctan.org/
 - dvipng: http://sourceforge.net/projects/dvipng/
 - convert: http://www.imagemagick.org (the ImageMagick suite)
-- tkz-graph: http://altermundus.com/pages/graph.html
+- tkz-graph: http://altermundus.com/pages/tkz/
 
 Customizing the output is accomplished in several ways.  Suppose ``g`` is a graph, then ``g.set_latex_options()`` can be used to efficiently set or modify various options.  Setting individual options, or querying options, can be accomplished by first using a command like ``opts = g.latex_options()`` to obtain a :class:`sage.graphs.graph_latex.GraphLatex` object which has several methods to set and retrieve options.
 
-Here is a minimal session demonstrating how to use these features. The following setup should work in the notebook or at the command-line, though the call to :meth:`~sage.misc.latex.Latex.mathjax_avoid_list` is only needed in the notebook. ::
+Here is a minimal session demonstrating how to use these features. The following setup should work in the notebook or at the command-line. ::
 
-
-    sage: from sage.graphs.graph_latex import setup_latex_preamble
-    sage: setup_latex_preamble()
-    sage: print latex.extra_preamble()  # random - depends on TeX installation
-    \usepackage{tikz}
-    \usepackage{tkz-graph}
-    \usepackage{tkz-berge}
-    \usetikzlibrary{arrows,shapes}
-    sage: latex.engine('pdflatex')
-    sage: latex.mathjax_avoid_list('tikzpicture')
-    sage: H=graphs.HeawoodGraph()
+    sage: H = graphs.HeawoodGraph()
     sage: H.set_latex_options(
     ...   graphic_size=(5,5),
     ...   vertex_size=0.2,
@@ -70,7 +60,7 @@ Here is a minimal session demonstrating how to use these features. The following
     ...   vertex_label_color='red'
     ...   )
 
-At this point, ``view(H)`` should call ``pdflatex`` to process the string created by ``latex(H)`` and then display the resulting graphic.  These lines (excluding the last two) only need to be run once in a Sage session, and the line requesting display of the extra preamble is included here just as part of the demonstration.
+At this point, ``view(H)`` should call ``pdflatex`` to process the string created by ``latex(H)`` and then display the resulting graphic.
 
 To use this image in a LaTeX document, you could of course just copy and save the resulting graphic.  However, the ``latex()`` command will produce the underlying LaTeX code, which can be incorporated into a standalone LaTeX document.  ::
 
@@ -219,7 +209,7 @@ This example illustrates using the optional dot2tex module::
     sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - dot2tex
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
-    sage: latex(g) # optional - dot2tex
+    sage: latex(g)  # optional - dot2tex graphviz
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
@@ -230,7 +220,7 @@ here we color in red all edges touching the vertex ``0``::
 
     sage: g = graphs.PetersenGraph()
     sage: g.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): {"color": "red"} if u==0 else {})
-    sage: latex(g) # optional - dot2tex
+    sage: latex(g)  # optional - dot2tex graphviz
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
@@ -405,10 +395,10 @@ def check_tkz_graph():
 Visit '...'.
 """)
     latex.check_file("tkz-graph.sty", """This package is required to render graphs in LaTeX.
-Visit 'http://altermundus.com/pages/graph.html'.
+Visit 'http://altermundus.com/pages/tkz/'.
 """)
     latex.check_file("tkz-berge.sty", """This package is required to render graphs in LaTeX.
-Visit 'http://altermundus.com/pages/graph.html'.
+Visit 'http://altermundus.com/pages/tkz/'.
 """)
 
 def have_tkz_graph():
@@ -533,6 +523,7 @@ class GraphLatex(SageObject):
             'loop_placement': (3.0, 'NO'),
             'loop_placements': {},
             'color_by_label' : False,
+            'rankdir': 'down'
             }
 
     def __init__(self, graph, **options):
@@ -605,7 +596,7 @@ class GraphLatex(SageObject):
         :meth:`sage.graphs.generic_graph.GenericGraph.set_latex_options` method
         is the easiest way to set options, and allows several to be set at once.
 
-        INPUTS:
+        INPUT:
 
         - ``option_name`` - a string for a latex option contained in the list
           ``sage.graphs.graph_latex.GraphLatex.__graphlatex_options``. A
@@ -863,7 +854,7 @@ class GraphLatex(SageObject):
         - ``color_by_label`` - a boolean (default: False). Colors the
           edges according to their labels
 
-        OUTPUTS:
+        OUTPUT:
 
         There are none.  Success happens silently.
 
@@ -1207,7 +1198,7 @@ class GraphLatex(SageObject):
         r"""
         Set several LaTeX options for a graph all at once.
 
-        INPUTS:
+        INPUT:
 
          - kwds - any number of option/value pairs to se many graph latex
            options at once (a variable number, in any order). Existing

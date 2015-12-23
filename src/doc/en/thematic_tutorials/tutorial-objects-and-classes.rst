@@ -246,7 +246,7 @@ As an element of a vector space, ``el`` has a particular behavior::
 
     sage: 2*el
     2*B[[1, 2, 3]] + 6*B[[1, 3, 2]] + B[[3, 2, 1]]
-    sage: el.support()
+    sage: sorted(el.support())
     [[1, 2, 3], [1, 3, 2], [3, 2, 1]]
     sage: el.coefficient([1, 2, 3])
     1
@@ -285,7 +285,8 @@ Some particular actions modify the data structure of ``el``::
        sage: el.__class__
         <class 'sage.combinat.free_module.CombinatorialFreeModule_with_category.element_class'>
        sage: el.__dict__
-       {'_monomial_coefficients': {[1, 2, 3]: 1, [1, 3, 2]: 3}, '__custom_name': 'foo'}
+       {'__custom_name': 'foo',
+        '_monomial_coefficients': {[1, 2, 3]: 1, [1, 3, 2]: 3}}
 
     Lots of Sage objects are not Python objects but compiled Cython
     objects. Python sees them as builtin objects and you don't have access to
@@ -296,24 +297,17 @@ Some particular actions modify the data structure of ``el``::
         sage: type(e)
         <type 'sage.rings.integer.Integer'>
         sage: e.__dict__
-        dict_proxy({'__module__': 'sage.categories.euclidean_domains',
-        '__doc__': None, '_reduction': (<built-in function getattr>, (Category
-        of euclidean domains, 'element_class')), 'gcd':
-        <sage.structure.element.NamedBinopMethod object at 0x...>,
-        '_sage_src_lines_': <staticmethod object at 0x...>})
+        <dictproxy {'__doc__': ...
+         '_sage_src_lines_': <staticmethod object at 0x...>}>
         sage: e.__dict__.keys()
-        ['__module__', '__doc__', '_reduction', 'gcd', '_sage_src_lines_']
+        ['__module__', '_reduction', '__doc__', '_sage_src_lines_']
 
         sage: id4 = SymmetricGroup(4).one()
         sage: type(id4)
         <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
         sage: id4.__dict__
-        dict_proxy({'__module__': 'sage.categories.category',
-        '_reduction': (<built-in function getattr>,
-                      (Join of Category of finite permutation groups
-                           and Category of finite weyl groups, 'element_class')),
-        '__doc__': "...",
-        '_sage_src_lines_': <staticmethod object at 0x...>})
+        <dictproxy {'__doc__': ...
+        '_sage_src_lines_': <staticmethod object at 0x...>}>
 
 .. note::
 
@@ -362,20 +356,20 @@ An example: glass of beverage in a restaurant
 Let's write a small class about glasses in a restaurant::
 
     sage: class Glass(object):
-    ...       def __init__(self, size):
-    ...           assert size > 0
-    ...           self._size = float(size)  # an attribute
-    ...           self._content = float(0.0)  # another attribute
-    ...       def __repr__(self):
-    ...           if self._content == 0.0:
-    ...               return "An empty glass of size %s"%(self._size)
-    ...           else:
-    ...               return "A glass of size %s cl containing %s cl of water"%(
-    ...                       self._size, self._content)
-    ...       def fill(self):
-    ...           self._content = self._size
-    ...       def empty(self):
-    ...           self._content = float(0.0)
+    ....:     def __init__(self, size):
+    ....:         assert size > 0
+    ....:         self._size = float(size)  # an attribute
+    ....:         self._content = float(0.0)  # another attribute
+    ....:     def __repr__(self):
+    ....:         if self._content == 0.0:
+    ....:             return "An empty glass of size %s"%(self._size)
+    ....:         else:
+    ....:             return "A glass of size %s cl containing %s cl of water"%(
+    ....:                     self._size, self._content)
+    ....:     def fill(self):
+    ....:         self._content = self._size
+    ....:     def empty(self):
+    ....:         self._content = float(0.0)
 
 Let's create a small glass::
 
@@ -462,26 +456,26 @@ We first write a small class ''AbstractDish'' which implements the
 "clean-dirty-wash" behavior::
 
     sage: class AbstractDish(object):
-    ...       def __init__(self):
-    ...           self._clean = True
-    ...       def is_clean(self):
-    ...           return self._clean
-    ...       def state(self):
-    ...           return "clean" if self.is_clean() else "dirty"
-    ...       def __repr__(self):
-    ...           return "An unspecified %s dish"%self.state()
-    ...       def _make_dirty(self):
-    ...           self._clean = False
-    ...       def wash(self):
-    ...           self._clean = True
+    ....:     def __init__(self):
+    ....:         self._clean = True
+    ....:     def is_clean(self):
+    ....:         return self._clean
+    ....:     def state(self):
+    ....:         return "clean" if self.is_clean() else "dirty"
+    ....:     def __repr__(self):
+    ....:         return "An unspecified %s dish"%self.state()
+    ....:     def _make_dirty(self):
+    ....:         self._clean = False
+    ....:     def wash(self):
+    ....:         self._clean = True
 
 Now one can reuse this behavior within a class ``Spoon``::
 
     sage: class Spoon(AbstractDish):  # Spoon inherits from AbstractDish
-    ...       def __repr__(self):
-    ...           return "A %s spoon"%self.state()
-    ...       def eat_with(self):
-    ...           self._make_dirty()
+    ....:     def __repr__(self):
+    ....:         return "A %s spoon"%self.state()
+    ....:     def eat_with(self):
+    ....:         self._make_dirty()
 
 Let's test it::
 
@@ -537,13 +531,13 @@ Summary
    superclass::
 
         sage: class Spoon(AbstractDish):
-        ...       def __init__(self):
-        ...           print "Building a spoon"
-        ...           super(Spoon, self).__init__()
-        ...       def __repr__(self):
-        ...           return "A %s spoon"%self.state()
-        ...       def eat_with(self):
-        ...           self._make_dirty()
+        ....:     def __init__(self):
+        ....:         print "Building a spoon"
+        ....:         super(Spoon, self).__init__()
+        ....:     def __repr__(self):
+        ....:         return "A %s spoon"%self.state()
+        ....:     def eat_with(self):
+        ....:         self._make_dirty()
         sage: s = Spoon()
         Building a spoon
         sage: s
@@ -592,43 +586,43 @@ Solutions to the exercises
 1. Here is a solution to the first exercise::
 
     sage: class Glass(object):
-    ...       def __init__(self, size):
-    ...           assert size > 0
-    ...           self._size = float(size)
-    ...           self.wash()
-    ...       def __repr__(self):
-    ...           if self._content == 0.0:
-    ...               return "An empty glass of size %s"%(self._size)
-    ...           else:
-    ...               return "A glass of size %s cl containing %s cl of %s"%(
-    ...                       self._size, self._content, self._beverage)
-    ...       def content(self):
-    ...           return self._content
-    ...       def beverage(self):
-    ...           return self._beverage
-    ...       def fill(self, beverage = "water"):
-    ...           if not self.is_clean():
-    ...               raise ValueError("Don't want to fill a dirty glass")
-    ...           self._clean = False
-    ...           self._content = self._size
-    ...           self._beverage = beverage
-    ...       def empty(self):
-    ...           self._content = float(0.0)
-    ...       def is_empty(self):
-    ...           return self._content == 0.0
-    ...       def drink(self, amount):
-    ...           if amount <= 0.0:
-    ...               raise ValueError("amount must be positive")
-    ...           elif amount > self._content:
-    ...               raise ValueError("not enough beverage in the glass")
-    ...           else:
-    ...               self._content -= float(amount)
-    ...       def is_clean(self):
-    ...           return self._clean
-    ...       def wash(self):
-    ...           self._content = float(0.0)
-    ...           self._beverage = None
-    ...           self._clean = True
+    ....:     def __init__(self, size):
+    ....:         assert size > 0
+    ....:         self._size = float(size)
+    ....:         self.wash()
+    ....:     def __repr__(self):
+    ....:         if self._content == 0.0:
+    ....:             return "An empty glass of size %s"%(self._size)
+    ....:         else:
+    ....:             return "A glass of size %s cl containing %s cl of %s"%(
+    ....:                     self._size, self._content, self._beverage)
+    ....:     def content(self):
+    ....:         return self._content
+    ....:     def beverage(self):
+    ....:         return self._beverage
+    ....:     def fill(self, beverage = "water"):
+    ....:         if not self.is_clean():
+    ....:             raise ValueError("Don't want to fill a dirty glass")
+    ....:         self._clean = False
+    ....:         self._content = self._size
+    ....:         self._beverage = beverage
+    ....:     def empty(self):
+    ....:         self._content = float(0.0)
+    ....:     def is_empty(self):
+    ....:         return self._content == 0.0
+    ....:     def drink(self, amount):
+    ....:         if amount <= 0.0:
+    ....:             raise ValueError("amount must be positive")
+    ....:         elif amount > self._content:
+    ....:             raise ValueError("not enough beverage in the glass")
+    ....:         else:
+    ....:             self._content -= float(amount)
+    ....:     def is_clean(self):
+    ....:         return self._clean
+    ....:     def wash(self):
+    ....:         self._content = float(0.0)
+    ....:         self._beverage = None
+    ....:         self._clean = True
 
 #. Let's check that everything is working as expected::
 
@@ -674,62 +668,62 @@ Solutions to the exercises
 #. Here is the solution to the second exercice::
 
     sage: class AbstractDish(object):
-    ...       def __init__(self):
-    ...           self._clean = True
-    ...       def is_clean(self):
-    ...           return self._clean
-    ...       def state(self):
-    ...           return "clean" if self.is_clean() else "dirty"
-    ...       def __repr__(self):
-    ...           return "An unspecified %s dish"%self.state()
-    ...       def _make_dirty(self):
-    ...           self._clean = False
-    ...       def wash(self):
-    ...           self._clean = True
+    ....:     def __init__(self):
+    ....:         self._clean = True
+    ....:     def is_clean(self):
+    ....:         return self._clean
+    ....:     def state(self):
+    ....:         return "clean" if self.is_clean() else "dirty"
+    ....:     def __repr__(self):
+    ....:         return "An unspecified %s dish"%self.state()
+    ....:     def _make_dirty(self):
+    ....:         self._clean = False
+    ....:     def wash(self):
+    ....:         self._clean = True
 
 
     sage: class ContainerDish(AbstractDish):
-    ...       def __init__(self, size):
-    ...           assert size > 0
-    ...           self._size = float(size)
-    ...           self._content = float(0)
-    ...           super(ContainerDish, self).__init__()
-    ...       def content(self):
-    ...           return self._content
-    ...       def empty(self):
-    ...           self._content = float(0.0)
-    ...       def is_empty(self):
-    ...           return self._content == 0.0
-    ...       def wash(self):
-    ...           self._content = float(0.0)
-    ...           super(ContainerDish, self).wash()
+    ....:     def __init__(self, size):
+    ....:         assert size > 0
+    ....:         self._size = float(size)
+    ....:         self._content = float(0)
+    ....:         super(ContainerDish, self).__init__()
+    ....:     def content(self):
+    ....:         return self._content
+    ....:     def empty(self):
+    ....:         self._content = float(0.0)
+    ....:     def is_empty(self):
+    ....:         return self._content == 0.0
+    ....:     def wash(self):
+    ....:         self._content = float(0.0)
+    ....:         super(ContainerDish, self).wash()
 
 
     sage: class Glass(ContainerDish):
-    ...       def __repr__(self):
-    ...           if self._content == 0.0:
-    ...               return "An empty glass of size %s"%(self._size)
-    ...           else:
-    ...               return "A glass of size %s cl containing %s cl of %s"%(
-    ...                       self._size, self._content, self._beverage)
-    ...       def beverage(self):
-    ...           return self._beverage
-    ...       def fill(self, beverage = "water"):
-    ...           if not self.is_clean():
-    ...               raise ValueError("Don't want to fill a dirty glass")
-    ...           self._make_dirty()
-    ...           self._content = self._size
-    ...           self._beverage = beverage
-    ...       def drink(self, amount):
-    ...           if amount <= 0.0:
-    ...               raise ValueError("amount must be positive")
-    ...           elif amount > self._content:
-    ...               raise ValueError("not enough beverage in the glass")
-    ...           else:
-    ...               self._content -= float(amount)
-    ...       def wash(self):
-    ...           self._beverage = None
-    ...           super(Glass, self).wash()
+    ....:     def __repr__(self):
+    ....:         if self._content == 0.0:
+    ....:             return "An empty glass of size %s"%(self._size)
+    ....:         else:
+    ....:             return "A glass of size %s cl containing %s cl of %s"%(
+    ....:                     self._size, self._content, self._beverage)
+    ....:     def beverage(self):
+    ....:         return self._beverage
+    ....:     def fill(self, beverage = "water"):
+    ....:         if not self.is_clean():
+    ....:             raise ValueError("Don't want to fill a dirty glass")
+    ....:         self._make_dirty()
+    ....:         self._content = self._size
+    ....:         self._beverage = beverage
+    ....:     def drink(self, amount):
+    ....:         if amount <= 0.0:
+    ....:             raise ValueError("amount must be positive")
+    ....:         elif amount > self._content:
+    ....:             raise ValueError("not enough beverage in the glass")
+    ....:         else:
+    ....:             self._content -= float(amount)
+    ....:     def wash(self):
+    ....:         self._beverage = None
+    ....:         super(Glass, self).wash()
 
 #. Let's check that everything is working as expected::
 

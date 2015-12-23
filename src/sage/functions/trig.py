@@ -39,6 +39,43 @@ class Function_sin(GinacFunction):
             sage: sin(complex(1,1))     # rel tol 1e-15
             (1.2984575814159773+0.6349639147847361j)
 
+            sage: sin(pi/5)
+            1/4*sqrt(-2*sqrt(5) + 10)
+            sage: sin(pi/8)
+            1/2*sqrt(-sqrt(2) + 2)
+            sage: sin(pi/24)
+            1/4*sqrt(-2*sqrt(6) - 2*sqrt(2) + 8)
+            sage: sin(pi/30)
+            -1/8*sqrt(5) + 1/4*sqrt(-3/2*sqrt(5) + 15/2) - 1/8
+            sage: cos(pi/8)
+            1/2*sqrt(sqrt(2) + 2)
+            sage: cos(pi/10)
+            1/2*sqrt(1/2*sqrt(5) + 5/2)
+            sage: cos(pi/12)
+            1/12*sqrt(6)*(sqrt(3) + 3)
+            sage: cos(pi/15)
+            1/8*sqrt(5) + 1/4*sqrt(3/2*sqrt(5) + 15/2) - 1/8
+            sage: cos(pi/24)
+            1/4*sqrt(2*sqrt(6) + 2*sqrt(2) + 8)
+            sage: tan(pi/5)
+            sqrt(-2*sqrt(5) + 5)
+            sage: tan(pi/8)
+            sqrt(2) - 1
+            sage: tan(pi/10)
+            sqrt(-2/5*sqrt(5) + 1)
+            sage: tan(pi/16)
+            -sqrt(2) + sqrt(2*sqrt(2) + 4) - 1
+            sage: tan(pi/20)
+            sqrt(5) - 1/2*sqrt(8*sqrt(5) + 20) + 1
+            sage: tan(pi/24)
+            sqrt(6) - sqrt(3) + sqrt(2) - 2
+
+            sage: all(sin(rat*pi).n(200)-sin(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/30,7/30,11/30,13/30,1/8,3/8,1/24,5/24,7/24,11/24])
+            True
+            sage: all(cos(rat*pi).n(200)-cos(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/10,3/10,1/12,5/12,1/15,2/15,4/15,7/15,1/8,3/8,1/24,5/24,11/24])
+            True
+            sage: all(tan(rat*pi).n(200)-tan(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/10,3/10,1/20,3/20,7/20,9/20,1/8,3/8,1/16,3/16,5/16,7/16,1/24,5/24,7/24,11/24])
+            True
         """
         GinacFunction.__init__(self, "sin", latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))
@@ -546,8 +583,8 @@ class Function_arctan(GinacFunction):
 
             sage: arctan(1/2)
             arctan(1/2)
-            sage: RDF(arctan(1/2))
-            0.463647609001
+            sage: RDF(arctan(1/2))  # rel tol 1e-15
+            0.46364760900080615
             sage: arctan(1 + I)
             arctan(I + 1)
             sage: arctan(1/2).n(100)
@@ -604,7 +641,7 @@ class Function_arccot(BuiltinFunction):
             sage: arccot(1/2)
             arccot(1/2)
             sage: RDF(arccot(1/2))
-            1.10714871779
+            1.1071487177940904
             sage: arccot(1 + I)
             arccot(I + 1)
 
@@ -685,8 +722,8 @@ class Function_arccsc(BuiltinFunction):
 
             sage: arccsc(2)
             arccsc(2)
-            sage: RDF(arccsc(2))
-            0.523598775598
+            sage: RDF(arccsc(2))  # rel tol 1e-15
+            0.5235987755982988
             sage: arccsc(1 + I)
             arccsc(I + 1)
 
@@ -763,8 +800,10 @@ class Function_arcsec(BuiltinFunction):
 
             sage: arcsec(2)
             arcsec(2)
-            sage: RDF(arcsec(2))
-            1.0471975512
+            sage: arcsec(2.0)
+            1.04719755119660
+            sage: RDF(arcsec(2))  # abs tol 1e-15
+            1.0471975511965976
             sage: arcsec(1 + I)
             arcsec(I + 1)
 
@@ -789,6 +828,8 @@ class Function_arcsec(BuiltinFunction):
 
             sage: arcsec(2).n(100)
             1.0471975511965977461542144611
+            sage: arcsec(1/2).n(100)
+            NaN
 
         TESTS:
 
@@ -945,7 +986,7 @@ class Function_arctan2(GinacFunction):
             ValueError: arctan2(0,0) undefined
 
         Check if :trac:`10062` is fixed, this was caused by
-        ``(I*I)._is_positive()`` returning ``True``::
+        ``(I*I).is_positive()`` returning ``True``::
 
             sage: arctan2(0, I*I)
             pi

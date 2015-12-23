@@ -1,4 +1,8 @@
-include 'sage/ext/stdsage.pxi'
+"""
+Real intervals with a fixed absolute precision
+"""
+
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.libs.gmp.mpz cimport *
 
@@ -312,7 +316,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cdef _new_c(self, Integer _mantissa, Integer _diameter):
         cdef RealIntervalAbsoluteElement x
-        x = <RealIntervalAbsoluteElement>PY_NEW(RealIntervalAbsoluteElement)
+        x = <RealIntervalAbsoluteElement>RealIntervalAbsoluteElement.__new__(RealIntervalAbsoluteElement)
         x._parent = self._parent
         x._mantissa = _mantissa
         x._diameter = _diameter
@@ -461,7 +465,8 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             sage: hash(R(1/4)) == hash(1/4)
             True
             sage: hash(R(pi))
-            4385
+            891658780           # 32-bit
+            532995478001132060  # 64-bit
         """
         return hash(self.midpoint())
 

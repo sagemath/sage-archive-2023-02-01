@@ -195,7 +195,7 @@ class Subwords_w(Parent):
             sage: Subwords([1,2,3]) != Subwords([1,3,2])
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __reduce__(self):
         r"""
@@ -394,7 +394,7 @@ class Subwords_wk(Subwords_w):
             sage: Subwords([1,2,3], 2).cardinality()
             3
         """
-        return arith.binomial(len(self._w),self._k)
+        return arith.binomial(Integer(len(self._w)), self._k)
 
     def first(self):
         r"""

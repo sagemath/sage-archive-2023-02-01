@@ -9,7 +9,6 @@ See the documentation of mpz_linkage.pxi for the functions needed.
 
 The gluing file does the following:
 
-- includes "sage/ext/cdefs.pxi"
 - ctypedef's celement to be the appropriate type (e.g. mpz_t)
 - includes the linkage file
 - includes this template
@@ -95,7 +94,8 @@ cdef class CAElement(pAdicTemplateElement):
             sage: R = ZpCA(5); R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef CAElement ans = PY_NEW(self.__class__)
+        cdef type t = type(self)
+        cdef CAElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.value, ans.prime_pow)
@@ -159,22 +159,6 @@ cdef class CAElement(pAdicTemplateElement):
             True
         """
         return unpickle_cae_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow), self.absprec)
-
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: R = ZpCA(5)
-            sage: a = R(17)
-            sage: b = R(21)
-            sage: a == b
-            False
-            sage: a < b
-            True
-        """
-        return (<Element>self)._richcmp(right, op)
 
     cpdef ModuleElement _neg_(self):
         """
@@ -252,7 +236,7 @@ cdef class CAElement(pAdicTemplateElement):
             sage: ~R(-1) == R(-1) #indirect doctest
             True
         """
-        return self.parent().fraction_field()(self).__invert__()
+        return ~self.parent().fraction_field()(self)
 
     cpdef RingElement _mul_(self, RingElement _right):
         """
@@ -367,8 +351,8 @@ cdef class CAElement(pAdicTemplateElement):
         cdef Integer right
         cdef CAElement base, pright, ans
         cdef bint exact_exp
-        if PY_TYPE_CHECK(_right, Integer) or isinstance(_right, (int, long)) \
-                                          or PY_TYPE_CHECK(_right, Rational):
+        if isinstance(_right, Integer) or isinstance(_right, (int, long)) \
+                                          or isinstance(_right, Rational):
             if _right < 0:
                 base = ~self
                 return base.__pow__(-_right, dummy)
@@ -391,7 +375,7 @@ cdef class CAElement(pAdicTemplateElement):
             # So we return a zero of precision right * self.ordp.
             if isinstance(_right, (int, long)):
                 _right = Integer(_right)
-            if PY_TYPE_CHECK(_right, Integer):
+            if isinstance(_right, Integer):
                 right = <Integer>_right
                 if self.absprec == 0:
                     ans.absprec = 0
@@ -523,10 +507,10 @@ cdef class CAElement(pAdicTemplateElement):
             2 + 3 + 3^2 + O(3^3)
         """
         cdef long aprec, newprec
-        if PY_TYPE_CHECK(absprec, int):
+        if isinstance(absprec, int):
             aprec = absprec
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             aprec = mpz_get_si((<Integer>absprec).value)
         if aprec >= self.absprec:
@@ -604,7 +588,7 @@ cdef class CAElement(pAdicTemplateElement):
             if iszero and absprec > self.absprec:
                 raise PrecisionError("Not enough precision to determine if element is zero")
             return val >= absprec
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if iszero:
             if mpz_cmp_si((<Integer>absprec).value, val) > 0:
@@ -667,7 +651,7 @@ cdef class CAElement(pAdicTemplateElement):
         if absprec is None:
             aprec = min(self.absprec, right.absprec)
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             if mpz_fits_slong_p((<Integer>absprec).value) == 0:
                 if mpz_sgn((<Integer>absprec).value) < 0:
@@ -679,7 +663,7 @@ cdef class CAElement(pAdicTemplateElement):
                 raise PrecisionError("Elements not known to enough precision")
         return ccmp(self.value, right.value, aprec, aprec < self.absprec, aprec < right.absprec, self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         This function is used in comparing `p`-adic elements.
 
@@ -1186,7 +1170,7 @@ cdef class pAdicConvert_CA_ZZ(RingMap):
             sage: f = ZpCA(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicConvert_CA_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -1361,7 +1345,7 @@ def unpickle_cae_v2(cls, parent, value, absprec):
         sage: a.parent() is R
         True
     """
-    cdef CAElement ans = PY_NEW(cls)
+    cdef CAElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)

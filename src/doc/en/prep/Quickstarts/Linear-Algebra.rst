@@ -188,7 +188,7 @@ for our purposes.
 ::
 
     sage: print type( ring_vec )
-    <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+    <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
     sage: print type( field_vec )
     <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
 

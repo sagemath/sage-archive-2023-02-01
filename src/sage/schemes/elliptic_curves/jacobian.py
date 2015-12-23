@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 """
-Construct Elliptic Curves as Jacobians
+Construct elliptic curves as Jacobians
 
 An elliptic curve is a genus one curve with a designated point. The
 Jacobian of a genus-one curve can be defined as the set of line

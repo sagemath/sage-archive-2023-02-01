@@ -198,10 +198,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg1 == bg2
             True
         """
-        if self.__repr__() == other.__repr__():
-            return True
-        else:
-            return False
+        return repr(self) == repr(other)
 
     def __repr__(self):
         """
@@ -364,7 +361,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         for i in xrange(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
-            M.append(map(xor, p, c[i]))
+            M.append(list(map(xor, p, c[i])))
             x0 = x1
         return M
 
@@ -545,7 +542,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             p = least_significant_bits(x1, h)
             # xor p with a sub-block of length h. There are t sub-blocks of
             # length h each.
-            C.append(map(xor, p, map(to_int, M[i*h : (i+1)*h])))
+            C.append(list(map(xor, p, [to_int(_) for _ in M[i*h : (i+1)*h]])))
             x0 = x1
         x1 = power_mod(x0, 2, n)
         return (C, x1)
@@ -580,7 +577,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg = BlumGoldwasser()
             sage: P = primes_first_n(10); P
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: map(is_blum_prime, P)
+            sage: [is_blum_prime(_) for _ in P]
             [False, True, False, True, True, False, False, True, True, False]
             sage: bg.private_key(19, 23)
             (19, 23, -6, 5)
@@ -655,7 +652,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg = BlumGoldwasser()
             sage: P = primes_first_n(10); P
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: map(is_blum_prime, P)
+            sage: [is_blum_prime(_) for _ in P]
             [False, True, False, True, True, False, False, True, True, False]
             sage: bg.public_key(3, 7)
             21

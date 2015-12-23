@@ -1,12 +1,12 @@
 """
-The ``C3`` algorithm, under control of a total order.
+The C3 algorithm, under control of a total order
 
 Abstract
 ========
 
 Python handles multiple inheritance by computing, for each class,
-a linear extension of all its super classes (the Method Resolution
-Order, MRO). The MRO is calculated recursively from local
+a linear extension of the poset of all its super classes (the Method
+Resolution Order, MRO). The MRO is calculated recursively from local
 information (the *ordered* list of the direct super classes), with
 the so-called ``C3`` algorithm. This algorithm can fail if the local
 information is not consistent; worst, there exist hierarchies of
@@ -78,7 +78,7 @@ consistently (here for ``A2`` w.r.t. ``A1``)::
     order (MRO) for bases ...
 
 There actually exist hierarchies of classes for which ``C3`` fails
-whatever the order of the bases is chosen; the smallest such example,
+whatever order of the bases is chosen; the smallest such example,
 admittedly artificial, has ten classes (see below). Still, this
 highlights that this problem has to be tackled in a systematic way.
 
@@ -197,7 +197,7 @@ key.
 We consider the smallest poset describing a class hierarchy admitting
 no MRO whatsoever::
 
-    sage: P = Poset({10: [9,8,7], 9:[6,1], 8:[5,2], 7:[4,3], 6: [3,2], 5:[3,1], 4: [2,1] }, facade=True)
+    sage: P = Poset({10: [9,8,7], 9:[6,1], 8:[5,2], 7:[4,3], 6: [3,2], 5:[3,1], 4: [2,1] }, linear_extension=True, facade=True)
 
 And build a `HierarchyElement` from it::
 
@@ -220,7 +220,8 @@ We also get a failure when we relabel `P` according to another linear
 extension. For easy relabelling, we first need to set an appropriate
 default linear extension for `P`::
 
-    sage: P = P.with_linear_extension(reversed(IntegerRange(1,11)))
+    sage: linear_extension = list(reversed(IntegerRange(1,11)))
+    sage: P = P.with_linear_extension(linear_extension)
     sage: list(P)
     [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
@@ -276,11 +277,12 @@ algorithms succeed; along the way, we collect some statistics::
     sage: stats = []
     sage: for l in L:
     ....:     x = HierarchyElement(10, l.to_poset())
-    ....:     try:
+    ....:     try: # Check that x.mro_standard always fails with a ValueError
     ....:         x.mro_standard
-    ....:         assert False
-    ....:     except:
+    ....:     except ValueError:
     ....:         pass
+    ....:     else:
+    ....:         assert False
     ....:     assert x.mro            == list(P)
     ....:     assert x.mro_controlled == list(P)
     ....:     assert x.all_bases_len() == 15
@@ -314,9 +316,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    66
+    67
     sage: x.all_bases_controlled_len()
-    69
+    70
 
     sage: C = GradedHopfAlgebrasWithBasis(QQ)
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
@@ -324,9 +326,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    82
+    92
     sage: x.all_bases_controlled_len()
-    89
+    100
 
 The following can be used to search through the Sage named categories
 for any that requires the addition of some bases::
@@ -336,11 +338,12 @@ for any that requires the addition of some bases::
     ....:         if len(C._super_categories_for_classes) != len(C.super_categories())],
     ....:        key=str)
     [Category of affine weyl groups,
+     Category of coxeter groups,
      Category of fields,
      Category of finite dimensional algebras with basis over Rational Field,
      Category of finite dimensional hopf algebras with basis over Rational Field,
-     Category of graded hopf algebras with basis over Rational Field,
-     Category of hopf algebras with basis over Rational Field]
+     Category of finite permutation groups,
+     Category of graded hopf algebras with basis over Rational Field]
 
 AUTHOR:
 
@@ -372,23 +375,6 @@ cdef tuple atoms = ("FacadeSets",
 
 cdef dict flags = { atom: 1 << i for i,atom in enumerate(atoms) }
 
-cpdef inline tuple category_sort_key(object category):
-    """
-    Return ``category._cmp_key``.
-
-    This helper function is used for sorting lists of categories.
-
-    It is semantically equivalent to
-    :func:`operator.attrgetter` ``("_cmp_key")``, but currently faster.
-
-    EXAMPLES::
-
-        sage: from sage.misc.c3_controlled import category_sort_key
-        sage: category_sort_key(Rings()) is Rings()._cmp_key
-        True
-    """
-    return category._cmp_key
-
 cdef class CmpKey:
     r"""
     This class implements the lazy attribute ``Category._cmp_key``.
@@ -407,8 +393,8 @@ cdef class CmpKey:
       :class:`Objects() <Objects>` is the largest category.
 
     - If `A != B` and taking the join of `A` and `B` makes sense
-      (e.g. taking the join of Algebras(GF(5)) and Algebras(QQ)
-      does not make sense), then `A<B` or `B<A`.
+      (e.g. taking the join of ``Algebras(GF(5))`` and
+      ``Algebras(QQ)`` does not make sense), then `A<B` or `B<A`.
 
     The rationale for the inversion above between `A<B` and
     ``A._cmp_key > B._cmp_key`` is that we want the order to
@@ -676,8 +662,7 @@ cpdef identity(x):
     """
     return x
 
-# Can't yet be a cpdef because of the any(...) closures
-def C3_sorted_merge(list lists, key=identity):
+cpdef tuple C3_sorted_merge(list lists, key=identity):
     r"""
     Return the sorted input lists merged using the ``C3`` algorithm, with a twist.
 
@@ -822,12 +807,19 @@ def C3_sorted_merge(list lists, key=identity):
     #   ``tailsets``, for cheap membership testing.
 
     cdef int i, j, max_i
+    cdef bint cont
     cdef list tail, l
     cdef set tailset
 
     cdef list tails    = [l[::-1]                 for l in lists if l]
     cdef list heads    = [tail.pop()                for tail in tails]
-    cdef list tailsets = [set(key(O) for O in tail) for tail in tails]
+    cdef set tmp_set
+    cdef list tailsets = [] # remove closure [set(key(O) for O in tail) for tail in tails]
+    for tail in tails:
+        tmp_set = set()
+        for O in tail:
+            tmp_set.add(key(O))
+        tailsets.append(tmp_set)
     # for i in range(len(tails)):
     #     assert len(tails[i]) == len(tailsets[i]), \
     #         "All objects should be distinct and have distinct sorting key!"+'\n'.join(" - %s: %s"%(key(O), O) for O in sorted(tails[i], key=key))
@@ -874,8 +866,19 @@ def C3_sorted_merge(list lists, key=identity):
             O = heads[i]
             # Does O appear in none of the tails?
             O_key = key(O)
-            if any(O_key in tailsets[j] for j in range(nbheads) if j != i):
-                continue
+            # replace the closure
+            # if any(O_key in tailsets[j] for j in range(nbheads) if j != i): continue
+            cont = False
+            for j from 0<=j<i:
+                if O_key in tailsets[j]:
+                    cont = True
+                    break
+            if cont: continue
+            for j from i<j<nbheads:
+                if O_key in tailsets[j]:
+                    cont = True
+                    break
+            if cont: continue
 
             # The plain C3 algorithm would have chosen O as next item!
             if max_bad is None or O_key > key(max_bad):
@@ -1057,7 +1060,7 @@ class HierarchyElement(object):
         from sage.combinat.posets.poset_examples import Posets
         from sage.graphs.digraph import DiGraph
         if succ in Posets():
-            assert succ in Sets().Facades()
+            assert succ in Sets().Facade()
             succ = succ.upper_covers
         if isinstance(succ, DiGraph):
             succ = succ.copy()
@@ -1325,9 +1328,9 @@ class HierarchyElement(object):
             sage: from sage.misc.c3_controlled import HierarchyElement
             sage: P = Poset((divisors(30), lambda x,y: y.divides(x)), facade=True)
             sage: HierarchyElement(1, P).all_bases()
-            set([1])
-            sage: HierarchyElement(10, P).all_bases()
-            set([...])
+            {1}
+            sage: HierarchyElement(10, P).all_bases()  # random output
+            {10, 5, 2, 1}
             sage: sorted([x.value for x in HierarchyElement(10, P).all_bases()])
             [1, 2, 5, 10]
         """

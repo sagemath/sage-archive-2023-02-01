@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = ppl m
 r"""
 Cython wrapper for the Parma Polyhedra Library (PPL)
 
@@ -148,13 +150,12 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
-from sage.libs.gmp.mpz cimport mpz_t, mpz_set
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmpxx cimport mpz_class
 from sage.rings.integer cimport Integer
-from sage.rings.rational import Rational
+from sage.rings.rational cimport Rational
 
 include 'sage/ext/interrupt.pxi'
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
 
 from libcpp cimport bool as cppbool
 
@@ -165,14 +166,6 @@ from libcpp cimport bool as cppbool
 # These can only be triggered by methods in the Polyhedron class
 # they need to be wrapped in sig_on() / sig_off()
 ####################################################
-cdef extern from "gmpxx.h":
-    cdef cppclass mpz_class:
-        mpz_class()
-        mpz_class(int i)
-        mpz_class(mpz_t z)
-        mpz_class(mpz_class)
-        mpz_t* get_mpz_t()
-
 
 ####################################################
 # PPL can use floating-point arithmetic to compute integers
@@ -860,6 +853,51 @@ cdef class MIP_Problem(_mutable_or_immutable):
         sig_on()
         self.thisptr.add_space_dimensions_and_embed(m)
         sig_off()
+
+    def _add_rational_constraint(self, e, denom, lower, upper):
+        """
+        Helper function for adding constraints: add the constraint
+        ``lower <= e/denom <= upper``.
+        
+        INPUT:
+
+        - ``e`` -- a linear expression (type ``Linear_Expression``)
+
+        - ``denom`` -- a positive integer
+
+        - ``lower``, ``upper`` -- a rational number or ``None``, where
+          ``None`` means that there is no constraint
+
+        TESTS:
+
+        Create a linear system with only equalities as constraints::
+
+            sage: p = MixedIntegerLinearProgram(solver="PPL")
+            sage: x = p.new_variable(nonnegative=False)
+            sage: n = 40
+            sage: v = random_vector(QQ, n)
+            sage: M = random_matrix(QQ, 2*n, n)
+            sage: for j in range(2*n):  # indirect doctest
+            ....:     lhs = p.sum(M[j,i]*x[i] for i in range(n))
+            ....:     rhs = M.row(j).inner_product(v)
+            ....:     p.add_constraint(lhs == rhs)
+            sage: p.solve()  # long time
+            0
+
+        """
+        cdef Rational rhs
+
+        if lower == upper:
+            if lower is not None:
+                rhs = Rational(lower * denom)
+                self.add_constraint(e * rhs.denominator() == rhs.numerator())
+        else:
+            if lower is not None:
+                rhs = Rational(lower * denom)
+                self.add_constraint(e * rhs.denominator() >= rhs.numerator())
+            if upper is not None:
+                rhs = Rational(upper * denom)
+                self.add_constraint(e * rhs.denominator() <= rhs.numerator())
 
     def add_constraint(self, Constraint c):
         """
@@ -1894,7 +1932,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( 3*x+5*y<=10 )
             sage: p = C_Polyhedron(cs)
             sage: p.maximize( x+y )
-            {'sup_d': 3, 'sup_n': 10, 'bounded': True, 'maximum': True, 'generator': point(10/3, 0/3)}
+            {'bounded': True,
+             'generator': point(10/3, 0/3),
+             'maximum': True,
+             'sup_d': 3,
+             'sup_n': 10}
 
         Unbounded case::
 
@@ -1904,7 +1946,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: p.maximize( +x )
             {'bounded': False}
             sage: p.maximize( -x )
-            {'sup_d': 1, 'sup_n': 0, 'bounded': True, 'maximum': False, 'generator': closure_point(0/1)}
+            {'bounded': True,
+             'generator': closure_point(0/1),
+             'maximum': False,
+             'sup_d': 1,
+             'sup_n': 0}
         """
         cdef PPL_Coefficient sup_n
         cdef PPL_Coefficient sup_d
@@ -1965,7 +2011,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( 3*x+5*y<=10 )
             sage: p = C_Polyhedron(cs)
             sage: p.minimize( x+y )
-            {'minimum': True, 'bounded': True, 'inf_d': 1, 'generator': point(0/1, 0/1), 'inf_n': 0}
+            {'bounded': True,
+             'generator': point(0/1, 0/1),
+             'inf_d': 1,
+             'inf_n': 0,
+             'minimum': True}
 
         Unbounded case::
 
@@ -1973,7 +2023,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( x>0 )
             sage: p = NNC_Polyhedron(cs)
             sage: p.minimize( +x )
-            {'minimum': False, 'bounded': True, 'inf_d': 1, 'generator': closure_point(0/1), 'inf_n': 0}
+            {'bounded': True,
+             'generator': closure_point(0/1),
+             'inf_d': 1,
+             'inf_n': 0,
+             'minimum': False}
             sage: p.minimize( -x )
             {'bounded': False}
         """
@@ -2863,7 +2917,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: sage_cmd += 'p.minimized_generators()\n'
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             space_dim 2
             -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
@@ -2950,6 +3004,38 @@ cdef class Polyhedron(_mutable_or_immutable):
         sig_off()
         return result
 
+
+    def __hash__(self):
+        r"""
+        Hash value for polyhedra.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Constraint_System, Variable, C_Polyhedron
+            sage: x = Variable(0)
+            sage: p = C_Polyhedron( 5*x >= 3 )
+            sage: p.set_immutable()
+            sage: hash(p)
+            1
+
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0 )
+            sage: cs.insert( y >= 0 )
+            sage: p = C_Polyhedron(cs)
+            sage: p.set_immutable()
+            sage: hash(p)
+            2
+
+            sage: hash(C_Polyhedron(x >= 0))
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable polyhedra are unhashable
+        """
+        if self.is_mutable():
+            raise TypeError("mutable polyhedra are unhashable")
+        # TODO: the hash code from PPL looks like being the dimension!
+        return self.thisptr[0].hash_code()
 
     def __richcmp__(Polyhedron lhs, Polyhedron rhs, op):
         r"""
@@ -3740,7 +3826,7 @@ cdef class Linear_Expression(object):
             b = args[1]
             ex = Linear_Expression(0)
             for i in range(0,len(a)):
-                ex = ex + Variable(i).__mul__(Integer(a[i]))
+                ex += Variable(i) * Integer(a[i])
             arg = ex + b
         elif len(args)==1:
             arg = args[0]
@@ -3919,7 +4005,7 @@ cdef class Linear_Expression(object):
             sage: sage_cmd += 'e = 3*x+2*y+1\n'
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 3 1 3 2
         """
@@ -4813,7 +4899,7 @@ cdef class Generator(object):
             sage: sage_cmd += 'p = point(3*x+2*y)\n'
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 3 1 3 2 P (C)
         """
@@ -5114,7 +5200,7 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: sage_cmd += 'gs = Generator_System( point(3*x+2*y+1) )\n'
             sage: sage_cmd += 'gs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             topology NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
@@ -5167,7 +5253,7 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: x = Variable(0)
             sage: gs = Generator_System(point(3*x))
             sage: iter = gs.__iter__()
-            sage: iter.next()
+            sage: next(iter)
             point(3/1)
         """
         return Generator_System_iterator(self)
@@ -5205,13 +5291,13 @@ cdef class Generator_System(_mutable_or_immutable):
         """
         if k < 0:
             raise IndexError('index must be nonnegative')
-        iterator = self.__iter__()
+        iterator = iter(self)
         try:
             for i in range(k):
-                iterator.next()
+                next(iterator)
         except StopIteration:
             raise IndexError('index is past-the-end')
-        return iterator.next()
+        return next(iterator)
 
 
     def __repr__(self):
@@ -5233,7 +5319,7 @@ cdef class Generator_System(_mutable_or_immutable):
             'Generator_System {point(3/1, 2/1), ray(1, 0)}'
         """
         s = 'Generator_System {'
-        s += ', '.join([ g.__repr__() for g in self ])
+        s += ', '.join([ repr(g) for g in self ])
         s += '}'
         return s
 
@@ -5281,7 +5367,7 @@ cdef class Generator_System_iterator(object):
         sage: gs.insert( ray(6*x-3*y) )
         sage: gs.insert( point(2*x-7*y, 5) )
         sage: gs.insert( closure_point(9*x-1*y, 2) )
-        sage: Generator_System_iterator(gs).next()
+        sage: next(Generator_System_iterator(gs))
         line(5, -2)
         sage: list(gs)
         [line(5, -2), ray(2, -1), point(2/5, -7/5), closure_point(9/2, -1/2)]
@@ -5325,7 +5411,7 @@ cdef class Generator_System_iterator(object):
             sage: x = Variable(0)
             sage: y = Variable(1)
             sage: gs = Generator_System( point(5*x-2*y) )
-            sage: Generator_System_iterator(gs).next()
+            sage: next(Generator_System_iterator(gs))
             point(5/1, -2/1)
         """
         if is_end_gs_iterator((<Generator_System>self.gs).thisptr[0], self.gsi_ptr):
@@ -5466,7 +5552,7 @@ cdef class Constraint(object):
                   for x in [Variable(i)
                             for i in range(0,self.space_dimension())] ])
         e += self.inhomogeneous_term()
-        s = e.__repr__()
+        s = repr(e)
         t = self.type()
         if t=='equality':
             s += '==0'
@@ -5802,7 +5888,7 @@ cdef class Constraint(object):
             sage: sage_cmd += 'e = (3*x+2*y+1 > 0)\n'
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 4 1 3 2 -1 > (NNC)
         """
@@ -6148,7 +6234,7 @@ cdef class Constraint_System(object):
             sage: sage_cmd += 'cs = Constraint_System( 3*x > 2*y+1 )\n'
             sage: sage_cmd += 'cs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             topology NOT_NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
@@ -6200,7 +6286,7 @@ cdef class Constraint_System(object):
             sage: x = Variable(0)
             sage: cs = Constraint_System( x>0 )
             sage: iter = cs.__iter__()
-            sage: iter.next()
+            sage: next(iter)
             x0>0
             sage: list(cs)   # uses __iter__() internally
             [x0>0]
@@ -6239,13 +6325,13 @@ cdef class Constraint_System(object):
         """
         if k < 0:
             raise IndexError('index must be nonnegative')
-        iterator = self.__iter__()
+        iterator = iter(self)
         try:
             for i in range(k):
-                iterator.next()
+                next(iterator)
         except StopIteration:
             raise IndexError('index is past-the-end')
-        return iterator.next()
+        return next(iterator)
 
 
     def __repr__(self):
@@ -6266,7 +6352,7 @@ cdef class Constraint_System(object):
             'Constraint_System {-3*x0-2*x1+2>0, -x0-1>0}'
         """
         s = 'Constraint_System {'
-        s += ', '.join([ c.__repr__() for c in self ])
+        s += ', '.join([ repr(c) for c in self ])
         s += '}'
         return s
 
@@ -6312,7 +6398,7 @@ cdef class Constraint_System_iterator(object):
         sage: cs = Constraint_System( 5*x < 2*y )
         sage: cs.insert( 6*x-3*y==0 )
         sage: cs.insert( x >= 2*x-7*y )
-        sage: Constraint_System_iterator(cs).next()
+        sage: next(Constraint_System_iterator(cs))
         -5*x0+2*x1>0
         sage: list(cs)
         [-5*x0+2*x1>0, 2*x0-x1==0, -x0+7*x1>=0]
@@ -6357,7 +6443,7 @@ cdef class Constraint_System_iterator(object):
             sage: from sage.libs.ppl import Constraint_System, Variable, Constraint_System_iterator
             sage: x = Variable(0)
             sage: cs = Constraint_System( 5*x > 0 )
-            sage: Constraint_System_iterator(cs).next()
+            sage: next(Constraint_System_iterator(cs))
             x0>0
         """
         if is_end_cs_iterator((<Constraint_System>self.cs).thisptr[0], self.csi_ptr):
@@ -6499,7 +6585,7 @@ cdef class Poly_Gen_Relation(object):
             sage: sage_cmd  = 'from sage.libs.ppl import Poly_Gen_Relation\n'
             sage: sage_cmd += 'Poly_Gen_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             NOTHING
         """
@@ -6749,7 +6835,7 @@ cdef class Poly_Con_Relation(object):
             sage: sage_cmd  = 'from sage.libs.ppl import Poly_Con_Relation\n'
             sage: sage_cmd += 'Poly_Con_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             NOTHING
         """

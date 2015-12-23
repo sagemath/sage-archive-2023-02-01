@@ -63,7 +63,7 @@ from sage.combinat.binary_tree import BinaryTrees
 from sage.combinat.binary_tree import LabelledBinaryTrees
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.permutation import Permutation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
@@ -230,7 +230,7 @@ class TamariIntervalPoset(Element):
         sage: TamariIntervalPoset(2,[(2,1),(1,2)])
         Traceback (most recent call last):
         ...
-        ValueError: Hasse diagram contains cycles.
+        ValueError: The graph is not directed acyclic
 
         sage: TamariIntervalPoset(3,[(1,3)])
         Traceback (most recent call last):
@@ -248,7 +248,7 @@ class TamariIntervalPoset(Element):
         sage: TIP(Poset({}))
         The tamari interval of size 0 induced by relations []
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
@@ -549,6 +549,17 @@ class TamariIntervalPoset(Element):
             False
         """
         return self._poset
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(TamariIntervalPosets(4)[0])
+            3527539
+        """
+        return hash(self._cover_relations)
 
     @cached_method
     def increasing_cover_relations(self):
@@ -1162,8 +1173,7 @@ class TamariIntervalPoset(Element):
             sage: [i for i in ip]
             [1, 2, 3, 4]
         """
-        return xrange(1,self.size()+1).__iter__()
-
+        return iter(xrange(1,self.size()+1))
 
     def contains_interval(self, other):
         r"""
@@ -1926,7 +1936,7 @@ class TamariIntervalPoset(Element):
     def tamari_inversions(self):
         r"""
         Return the Tamari inversions of ``self``. A Tamari inversion is 
-        a pair of vertices `(a,b)' with `a < b` such that:
+        a pair of vertices `(a,b)` with `a < b` such that:
 
         - the decreasing parent of `b` is strictly smaller than `a` (or
           does not exist), and
@@ -2040,6 +2050,29 @@ class TamariIntervalPoset(Element):
             3
         """
         return len(self.tamari_inversions())
+
+    def is_new(self):
+        """
+        Return ``True`` if ``self`` is a new Tamari interval.
+
+        Here 'new' means that the interval is not contained in any
+        facet of the associahedron.
+
+        They have been considered in section 9 of [ChapTamari08]_.
+
+        EXAMPLES::
+
+            sage: TIP4 = TamariIntervalPosets(4)
+            sage: len([u for u in TIP4 if u.is_new()])
+            12
+
+            sage: TIP3 = TamariIntervalPosets(3)
+            sage: len([u for u in TIP3 if u.is_new()])
+            3
+        """
+        c_up = self.upper_binary_tree().single_edge_cut_shapes()
+        c_down = self.lower_binary_tree().single_edge_cut_shapes()
+        return not any(x in c_up for x in c_down)
 
 
 # Abstract class to serve as a Factory ; no instances are created.
@@ -2339,7 +2372,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     def from_binary_trees(tree1, tree2):
         r"""
         Return the interval-poset corresponding to the interval
-        [``tree1``,``tree2``] of the Tamari lattice. Raise an exception if
+        [``tree1``, ``tree2``] of the Tamari lattice. Raise an exception if
         ``tree1`` is not `\leq` ``tree2`` in the Tamari lattice.
 
         INPUT:
@@ -2378,14 +2411,14 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         final_forest = TamariIntervalPosets.final_forest(tree1)
         try:
             return initial_forest.intersection(final_forest)
-        except:
+        except Exception:
             raise ValueError("The two binary trees are not comparable on the Tamari lattice.")
 
     @staticmethod
     def from_dyck_words(dw1, dw2):
         r"""
         Return the interval-poset corresponding to the interval
-        [``dw1``,``dw2``] of the Tamari lattice. Raise an exception if the
+        [``dw1``, ``dw2``] of the Tamari lattice. Raise an exception if the
         two Dyck words ``dw1`` and ``dw2`` do not satisfy
         ``dw1`` `\leq` ``dw2`` in the Tamari lattice.
 
@@ -2425,7 +2458,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         tree2 = dw2.to_binary_tree_tamari()
         try:
             return TamariIntervalPosets.from_binary_trees(tree1, tree2)
-        except:
+        except Exception:
             raise ValueError("The two Dyck words are not comparable on the Tamari lattice.")
 
     def __call__(self, *args, **keywords):
@@ -2502,13 +2535,13 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
             +Infinity
 
             sage: it = iter(S)
-            sage: [it.next() for i in xrange(5)]
+            sage: [next(it) for i in xrange(5)]
             [The tamari interval of size 0 induced by relations [],
              The tamari interval of size 1 induced by relations [],
              The tamari interval of size 2 induced by relations [],
              The tamari interval of size 2 induced by relations [(2, 1)],
              The tamari interval of size 2 induced by relations [(1, 2)]]
-            sage: it.next().parent()
+            sage: next(it).parent()
             Interval-posets
             sage: S(0,[])
             The tamari interval of size 0 induced by relations []

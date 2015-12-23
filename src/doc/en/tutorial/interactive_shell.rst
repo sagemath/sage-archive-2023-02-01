@@ -262,6 +262,18 @@ i.e., the amount of time that elapsed on your wall clock, is also
 0.66 seconds. If your computer is heavily loaded with other
 programs, the wall time may be much larger than the CPU time.
 
+It's also possible to use the ``timeit`` function to try to get
+timing over a large number of iterations of a command.  This gives
+slightly different information, and requires the input of a string
+with the command you want to time.
+
+.. skip
+
+::
+
+    sage: timeit("int(1938)^int(99484)")
+    5 loops, best of 3: 44.8 ms per loop
+
 Next we time exponentiation using the native Sage Integer type,
 which is implemented (in Cython) using the GMP library:
 

@@ -52,7 +52,7 @@ from sage.misc.decorators import sage_wraps
 
 
 @contextmanager
-def removed_multiedge(G, edge, multiplicity):
+def removed_multiedge(G, unlabeled_edge):
     r"""
     A context manager which removes an edge with multiplicity from the
     graph `G` and restores it upon exiting.
@@ -64,19 +64,20 @@ def removed_multiedge(G, edge, multiplicity):
         sage: G.add_edges([(0,1,'a'),(0,1,'b')])
         sage: G.edges()
         [(0, 1, 'a'), (0, 1, 'b')]
-        sage: with removed_multiedge(G,(0,1),2) as Y:
+        sage: with removed_multiedge(G,(0,1)) as Y:
         ....:     G.edges()
         []
         sage: G.edges()
-        [(0, 1, None), (0, 1, None)]
+        [(0, 1, 'a'), (0, 1, 'b')]
     """
-    for i in range(multiplicity):
-        G.delete_edge(edge)
+    u, v = unlabeled_edge
+    edges = G.edge_boundary([u], [v], labels=True)
+    G.delete_multiedge(u, v)
     try:
         yield
     finally:
-        for i in range(multiplicity):
-            G.add_edge(edge)
+        G.add_edges(edges)
+
 
 
 @contextmanager
@@ -107,7 +108,7 @@ def removed_edge(G, edge):
 
 
 @contextmanager
-def contracted_edge(G, edge):
+def contracted_edge(G, unlabeled_edge):
     r"""
     Delete the first vertex in the edge, and make all the edges that
     went from it go to the second vertex.
@@ -126,7 +127,7 @@ def contracted_edge(G, edge):
         sage: G.edges()
         [(0, 1, 'a'), (0, 3, 'c'), (1, 2, 'b')]
     """
-    v1, v2 = edge[:2]
+    v1, v2 = unlabeled_edge
 
     v1_edges = G.edges_incident(v1)
     G.delete_vertex(v1)
@@ -285,7 +286,7 @@ class Ear(object):
         return sorted(self.end_points + self.interior)
 
     @lazy_attribute
-    def edges(self):
+    def unlabeled_edges(self):
         """
         Returns the edges in this ear.
 
@@ -295,7 +296,7 @@ class Ear(object):
             sage: G.add_edges([(0,4),(0,5),(3,6),(3,7)])
             sage: from sage.graphs.tutte_polynomial import Ear
             sage: E = Ear(G,[0,3],[1,2],False)
-            sage: E.edges
+            sage: E.unlabeled_edges
             [(0, 1), (1, 2), (2, 3)]
         """
         return self.graph.edges_incident(vertices=self.interior, labels=False)
@@ -313,7 +314,7 @@ class Ear(object):
             sage: E = Ear.find_ear(G)
             sage: E.s
             3
-            sage: E.edges
+            sage: E.unlabeled_edges
             [(0, 1), (1, 2), (2, 3)]
             sage: E.vertices
             [0, 1, 2, 3]
@@ -323,8 +324,8 @@ class Ear(object):
                                if degree == 2]
         subgraph = g.subgraph(degree_two_vertices)
         for component in subgraph.connected_components():
-            edges = g.edges_incident(vertices=component, labels=False)
-            all_vertices = list(sorted(set(sum(edges, tuple()))))
+            edges = g.edges_incident(vertices=component, labels=True)
+            all_vertices = list(sorted(set(sum([e[:2] for e in edges], ()))))
             if len(all_vertices) < 3:
                 continue
             end_points = [v for v in all_vertices if v not in component]
@@ -360,7 +361,7 @@ class Ear(object):
             7
         """
         deleted_edges = []
-        for edge in G.edges_incident(vertices=self.interior, labels=False):
+        for edge in G.edges_incident(vertices=self.interior, labels=True):
             G.delete_edge(edge)
             deleted_edges.append(edge)
         for v in self.interior:
@@ -394,7 +395,7 @@ class VertexOrder(EdgeSelection):
             {1: 4, 2: 3, 3: 2, 4: 0, 6: 1, 7: 5}
         """
         self.order = list(order)
-        self.inverse_order = dict(map(reversed, enumerate(order)))
+        self.inverse_order = dict([reversed(_) for _ in enumerate(order)])
 
     def __call__(self, graph):
         """
@@ -404,10 +405,10 @@ class VertexOrder(EdgeSelection):
             sage: A = VertexOrder([4,0,3,2,1,5])
             sage: G = graphs.PathGraph(6)
             sage: A(G)
-            (3, 4)
+            (3, 4, None)
         """
         for v in self.order:
-            edges = graph.edges_incident([v], labels=False)
+            edges = graph.edges_incident([v])
             if edges:
                 edges.sort(key=lambda x: self.inverse_order[x[0] if x[0] != v else x[1]])
                 return edges[0]
@@ -422,12 +423,12 @@ class MinimizeSingleDegree(EdgeSelection):
             sage: from sage.graphs.tutte_polynomial import MinimizeSingleDegree
             sage: G = graphs.PathGraph(6)
             sage: MinimizeSingleDegree()(G)
-            (0, 1)
+            (0, 1, None)
         """
         degrees = list(graph.degree_iterator(labels=True))
         degrees.sort(key=lambda x: x[1])  # Sort by degree
         for v, degree in degrees:
-            for e in graph.edges_incident([v], labels=False):
+            for e in graph.edges_incident([v], labels=True):
                 return e
         raise RuntimeError("no edges left to select")
 
@@ -440,10 +441,10 @@ class MinimizeDegree(EdgeSelection):
             sage: from sage.graphs.tutte_polynomial import MinimizeDegree
             sage: G = graphs.PathGraph(6)
             sage: MinimizeDegree()(G)
-            (0, 1)
+            (0, 1, None)
         """
         degrees = dict(graph.degree_iterator(labels=True))
-        edges = graph.edges(labels=False)
+        edges = graph.edges(labels=True)
         edges.sort(key=lambda x: degrees[x[0]]+degrees[x[1]])  # Sort by degree
         for e in edges:
             return e
@@ -458,10 +459,10 @@ class MaximizeDegree(EdgeSelection):
             sage: from sage.graphs.tutte_polynomial import MaximizeDegree
             sage: G = graphs.PathGraph(6)
             sage: MaximizeDegree()(G)
-            (3, 4)
+            (3, 4, None)
         """
         degrees = dict(graph.degree_iterator(labels=True))
-        edges = graph.edges(labels=False)
+        edges = graph.edges(labels=True)
         edges.sort(key=lambda x: degrees[x[0]]+degrees[x[1]])  # Sort by degree
         for e in reversed(edges):
             return e
@@ -477,13 +478,6 @@ def _cache_key(G):
     Return the key used to cache the result for the graph G
 
     This is used by the decorator :func:`_cached`.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.tutte_polynomial import _cache_key
-        sage: G = graphs.PetersenGraph()
-        sage: _cache_key(G)
-        ((0, 7), (0, 8), (0, 9), (1, 4), (1, 6), (1, 9), (2, 3), (2, 6), (2, 8), (3, 5), (3, 9), (4, 5), (4, 8), (5, 7), (6, 7))
     """
     return tuple(sorted(G.canonical_label().edges(labels=False)))
 
@@ -576,12 +570,21 @@ def tutte_polynomial(G, edge_selector=None, cache=None):
         sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial(cache=cache)
         sage: len(cache) > 0
         True
+
+    Verify that #18366 is fixed::
+
+        sage: g = Graph(multiedges=True)
+        sage: g.add_edges([(0,1,1),(1,5,2),(5,3,3),(5,2,4),(2,4,5),(0,2,6),(0,3,7),(0,4,8),(0,5,9)]);
+        sage: g.tutte_polynomial()(1,1)
+        52
+        sage: g.spanning_trees_count()
+        52
     """
     R = ZZ['x, y']
     if G.num_edges() == 0:
         return R.one()
-    
-    G = G.relabel(inplace=False) # making sure the vertices are integers
+
+    G = G.relabel(inplace=False, immutable=False) # making sure the vertices are integers
     G.allow_loops(True)
     G.allow_multiple_edges(True)
 
@@ -648,10 +651,11 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
 
     components = G.connected_components_number()
     edge = edge_selector(G)
+    unlabeled_edge = edge[:2]
 
     with removed_edge(G, edge):
         if G.connected_components_number() > components:
-            with contracted_edge(G, edge):
+            with contracted_edge(G, unlabeled_edge):
                 return x*recursive_tp()
 
     ##################################
@@ -686,25 +690,24 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
         else:
             with ear.removed_from(G):
                 #result = sum(x^i for i in range(ear.s)) #single ear case
-                result = sum((prod(x + yy(1, em[e]-1) for e in ear.edges[i+1:])
-                              * prod(yy(0, em[e]-1) for e in ear.edges[:i]))
-                             for i in range(len(ear.edges)))
+                result = sum((prod(x + yy(1, em[e]-1) for e in ear.unlabeled_edges[i+1:])
+                              * prod(yy(0, em[e]-1) for e in ear.unlabeled_edges[:i]))
+                             for i in range(len(ear.unlabeled_edges)))
                 result *= recursive_tp()
 
                 with contracted_edge(G, [ear.end_points[0],
                                          ear.end_points[-1]]):
                     result += prod(yy(0, em[e]-1)
-                                   for e in ear.edges)*recursive_tp()
+                                   for e in ear.unlabeled_edges)*recursive_tp()
 
             return result
 
     #Theorem 2
     if len(em) == 1:  # the graph is just a multiedge
-        return x + sum(y**i for i in range(1, em[edge]))
+        return x + sum(y**i for i in range(1, em[unlabeled_edge]))
     else:
-        with removed_multiedge(G, edge, em[edge]):
+        with removed_multiedge(G, unlabeled_edge):
             result = recursive_tp()
-            with contracted_edge(G, edge):
-                result += sum(y**i for i in range(em[edge]))*recursive_tp()
+            with contracted_edge(G, unlabeled_edge):
+                result += sum(y**i for i in range(em[unlabeled_edge]))*recursive_tp()
         return result
-

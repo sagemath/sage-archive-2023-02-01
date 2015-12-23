@@ -15,25 +15,15 @@ Classes and methods
 
 """
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/binary_matrix.pxi"
 from sage.misc.cachefunc import cached_method
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
-cdef inline int bitset_are_disjoint(unsigned long * b1, unsigned long * b2, int width):
-    r"""
-    Tests whether two bitsets of length width*sizeof(unsigned int) have an empty
-    intersection.
-    """
-    cdef int i
-    for i in range(width):
-        if b1[i]&b2[i]:
-            return False
-    return True
 
 cdef inline int ismaximal(binary_matrix_t g, int n, bitset_t s):
     cdef int i
     for i in range(n):
-        if (not bitset_in(s,i)) and bitset_are_disjoint(g.rows[i],s.bits,g.width):
+        if (not bitset_in(s,i)) and bitset_are_disjoint(g.rows[i], s):
             return False
 
     return True
@@ -153,7 +143,7 @@ cdef class IndependentSets:
             sage: from sage.graphs.independent_sets import IndependentSets
             sage: from sage.graphs.matchpoly import matching_polynomial
             sage: def check_matching(G):
-            ...       number_of_matchings = sum(map(abs,matching_polynomial(G).coeffs()))
+            ...       number_of_matchings = sum(map(abs,matching_polynomial(G).coefficients(sparse=False)))
             ...       if number_of_matchings != IndependentSets(G.line_graph()).cardinality():
             ...           print "Ooooch !"
             sage: for i in range(30):
@@ -210,13 +200,13 @@ cdef class IndependentSets:
             sage: I = IndependentSets(graphs.PetersenGraph())
             sage: iter1 = iter(I)
             sage: iter2 = iter(I)
-            sage: iter1.next()      # indirect doctest
+            sage: next(iter1)      # indirect doctest
             [0]
-            sage: iter2.next()      # indirect doctest
+            sage: next(iter2)      # indirect doctest
             [0]
-            sage: iter2.next()
+            sage: next(iter2)
             [0, 2]
-            sage: iter1.next()
+            sage: next(iter1)
             [0, 2]
         """
         if self.n == 0:
@@ -245,7 +235,7 @@ cdef class IndependentSets:
             if bitset_in(current_set,i):
 
                 # We have found an independent set !
-                if bitset_are_disjoint(self.g.rows[i],current_set.bits,self.g.width):
+                if bitset_are_disjoint(self.g.rows[i], current_set):
 
                     # Saving that set
                     bitset_copy(tmp, current_set)
@@ -348,7 +338,7 @@ cdef class IndependentSets:
 
         - ``S`` -- a set of vertices to be tested.
 
-        TESTS::
+        TESTS:
 
         All independent sets of PetersenGraph are... independent sets::
 
@@ -391,7 +381,7 @@ cdef class IndependentSets:
             bitset_add(s, i)
 
             # Checking that the set s is independent
-            if not bitset_are_disjoint(self.g.rows[i],s.bits,self.g.width):
+            if not bitset_are_disjoint(self.g.rows[i], s):
                 return False
 
         if self.maximal and not ismaximal(self.g, self.n,s):

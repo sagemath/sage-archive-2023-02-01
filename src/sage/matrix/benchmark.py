@@ -19,7 +19,7 @@ The basic command syntax is as follows::
 from constructor import random_matrix, Matrix
 from sage.rings.all import ZZ, QQ, GF
 from sage.misc.misc import alarm, cancel_alarm, cputime
-from sage.ext.c_lib import AlarmInterrupt
+from sage.ext.interrupt import AlarmInterrupt
 
 from sage.interfaces.all import magma
 

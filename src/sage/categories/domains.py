@@ -48,7 +48,46 @@ class Domains(CategoryWithAxiom):
     Commutative = LazyImport('sage.categories.integral_domains', 'IntegralDomains', at_startup=True)
 
     class ParentMethods:
-        pass
+        def _test_zero_divisors(self, **options):
+            """
+            Check to see that there are no zero divisors.
+
+            .. NOTE::
+
+                In rings whose elements can not be represented exactly, there
+                may be zero divisors in practice, even though these rings do
+                not have them in theory. For such inexact rings, these tests
+                are not performed:
+
+                sage: R = ZpFM(5); R
+                5-adic Ring of fixed modulus 5^20
+                sage: R.is_exact()
+                False
+                sage: a = R(5^19)
+                sage: a.is_zero()
+                False
+                sage: (a*a).is_zero()
+                True
+                sage: R._test_zero_divisors()
+
+            EXAMPLES::
+
+                sage: ZZ._test_zero_divisors()
+                sage: ZpFM(5)._test_zero_divisors()
+
+            """
+            if not self.is_exact():
+                return # Can't check on inexact rings
+
+            tester = self._tester(**options)
+
+            # Filter out zero
+            S = [s for s in tester.some_elements() if not s.is_zero()]
+
+            from sage.misc.misc import some_tuples
+            for a,b in some_tuples(S, 2, tester._max_runs):
+                p = a * b
+                tester.assertFalse(p.is_zero())
 
     class ElementMethods:
         pass

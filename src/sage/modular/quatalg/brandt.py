@@ -226,6 +226,7 @@ from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from
 
 from sage.rings.arith import gcd, factor, kronecker_symbol
 from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeModuleElement)
+from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
 from sage.rings.rational_field import is_RationalField
 from sage.misc.mrange import cartesian_product_iterator
@@ -534,6 +535,17 @@ class BrandtModule_class(AmbientHeckeModule):
             5
         """
         return self.__M
+
+    def character(self):
+        r"""
+        The character of this space. Always trivial.
+
+        EXAMPLE::
+
+            sage: BrandtModule(11,5).character()
+            Dirichlet character modulo 55 of conductor 1 mapping 12 |--> 1, 46 |--> 1
+        """
+        return TrivialCharacter(self.__N*self.__M)
 
     def _repr_(self):
         """
@@ -898,6 +910,7 @@ class BrandtModule_class(AmbientHeckeModule):
             - ``sparse`` -- bool (default: False); whether matrix should be sparse
 
         EXAMPLES::
+
             sage: B = BrandtModule(37)
             sage: t = B._compute_hecke_matrix_directly(2); t
             [1 1 1]
@@ -1213,6 +1226,7 @@ class BrandtModule_class(AmbientHeckeModule):
         Return Brandt series coefficient vectors out to precision *at least* prec.
 
         EXAMPLES::
+
             sage: B = BrandtModule(37, use_cache=False)
             sage: B._brandt_series_vectors(5)
             [[(1/2, 1, 1, 2, 1), (1/2, 0, 1, 1, 3), (1/2, 0, 1, 1, 3)],
@@ -1476,7 +1490,7 @@ class BrandtModuleElement(HeckeModuleElement):
             sage: parent(x)
             Brandt module of dimension 3 of level 37 of weight 2 over Rational Field
         """
-        if isinstance(x, BrandtModuleElement):
+        if isinstance(x, HeckeModuleElement):
             x = x.element()
         HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
 

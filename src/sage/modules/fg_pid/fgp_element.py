@@ -115,6 +115,10 @@ class FGP_Element(ModuleElement):
             sage: A = (ZZ^1)/span([[100]], ZZ); A
             Finitely generated module V/W over Integer Ring with invariants (100)
             sage: x = A([5]); x
+            doctest:...: DeprecationWarning: The default behaviour changed!
+             If you *really* want a linear combination of smith generators,
+             use .linear_combination_of_smith_form_gens.
+            See http://trac.sagemath.org/16261 for details.
             (5)
             sage: v = x.lift(); v
             (5)
@@ -136,7 +140,7 @@ class FGP_Element(ModuleElement):
             True
         """
         P = self.parent()
-        return P.element_class(P, self._x.__neg__())
+        return P.element_class(P, -self._x)
 
 
     def _add_(self, other):
@@ -297,7 +301,7 @@ class FGP_Element(ModuleElement):
             sage: Q(V.1)._repr_()
             '(0, 1)'
         """
-        return self.vector().__repr__()
+        return repr(self.vector())
 
 
     def __getitem__(self, *args):
@@ -339,7 +343,27 @@ class FGP_Element(ModuleElement):
         try: return self.__vector
         except AttributeError:
             self.__vector = self.parent().coordinate_vector(self, reduce=True)
+            self.__vector.set_immutable()
             return self.__vector
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = V/W
+            sage: x = Q.0 + 3*Q.1
+            sage: hash(x)
+            3713081631933328131 # 64-bit
+            1298787075          # 32-bit
+
+            sage: A = AdditiveAbelianGroup([3])
+            sage: hash(A.an_element())
+            3430019387558 # 64-bit
+            -1659481946   # 32-bit
+        """
+        return hash(self.vector())
 
     def _vector_(self, base_ring=None):
         """
@@ -363,10 +387,21 @@ class FGP_Element(ModuleElement):
             (1, 3)
             sage: vector(CDF, x)
             (1.0, 3.0)
+
+        TESTS::
+
+            sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = V/W
+            sage: x = Q.0 + 3*Q.1
+            sage: vector(x).is_mutable()
+            True
+            sage: vector(CDF,x).is_mutable()
+            True
         """
         v = self.vector()
         if base_ring is None or v.base_ring() is base_ring:
-            return v
+            return v.__copy__()
         else:
             return v.change_ring(base_ring)
 

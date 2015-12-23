@@ -131,6 +131,9 @@ Methods
 #                         http://www.gnu.org/licenses/                        *
 #******************************************************************************
 
+from copy import copy
+
+
 def is_cartesian_product(g, certificate = False, relabeling = False):
     r"""
     Tests whether the graph is a cartesian product.
@@ -209,6 +212,13 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
         sage: g = graphs.WagnerGraph()
         sage: g.is_cartesian_product()
         False
+
+    Empty and one-element graph (:trac:`19546`)::
+
+        sage: Graph().is_cartesian_product()
+        False
+        sage: Graph({0:[]}).is_cartesian_product()
+        False
     """
     g._scream_if_not_simple()
     if relabeling:
@@ -218,7 +228,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     H = g
 
     # Of course the number of vertices of g can not be prime !
-    if Integer(g.order()).is_prime():
+    if g.order() <= 1 or Integer(g.order()).is_prime():
         return (False, None) if relabeling else False
     if not g.is_connected():
         raise ValueError("The graph must be connected !")
@@ -227,7 +237,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
 
     # As we need the vertices of g to be linearly ordered, we copy the graph and
     # relabel it
-    g = g.copy()
+    g = copy(g)
     trev = g.relabel(return_map = True)
     t = dict([(x,y) for y,x in trev.iteritems()])
 

@@ -195,7 +195,8 @@ class Algebras(AlgebrasCategory):
             """
             P = self.basis().keys()  # the root lattice realization
             n = weight.scalar(P.simple_coroot(i))
-            assert n in ZZ
+            if n not in ZZ:
+                raise ValueError("the weight does not have an integral scalar product with the coroot")
             alphai = P.simple_root(i)
             if n >= 0:
                 return  self.sum_of_monomials(weight-j*alphai for j in range(0,n+1))
@@ -276,7 +277,7 @@ class Algebras(AlgebrasCategory):
                 The Demazure operators are only defined if all the
                 elements in the support have integral scalar products
                 with the coroots (basically, they are in the weight
-                lattice). Otherwise an assertion is raised::
+                lattice). Otherwise an error is raised::
 
                     sage: L = RootSystem(CartanType(["G",2]).dual()).ambient_space()
                     sage: KL = L.algebra(QQ)
@@ -284,7 +285,7 @@ class Algebras(AlgebrasCategory):
                     sage: pi[1](KL.monomial(L([0,0,1])))
                     Traceback (most recent call last):
                     ...
-                    AssertionError
+                    ValueError: the weight does not have an integral scalar product with the coroot
             """
             return HeckeAlgebraRepresentation(self, self.isobaric_divided_difference_on_basis, self.cartan_type(), 0, 1, side="left")
 

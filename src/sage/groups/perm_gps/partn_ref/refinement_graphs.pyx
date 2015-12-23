@@ -1,13 +1,14 @@
 """
 Graph-theoretic partition backtrack functions
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
 """
 
@@ -50,7 +51,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
 
     """
     cdef PartitionStack *part
-    cdef int *output, *ordering
+    cdef int *output
+    cdef int *ordering
     cdef CGraph G
     cdef GraphStruct GS1 = GraphStruct()
     cdef GraphStruct GS2 = GraphStruct()
@@ -201,7 +203,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         list -- if base
         integer -- if order
 
-    DOCTEST:
+    EXAMPLES::
+
         sage: st = sage.groups.perm_gps.partn_ref.refinement_graphs.search_tree
         sage: from sage.graphs.base.dense_graph import DenseGraph
         sage: from sage.graphs.base.sparse_graph import SparseGraph
@@ -1468,7 +1471,8 @@ cdef iterator *allocate_dg_vert_gen(int degree, int depth):
     Allocates the iterator for generating graphs.
     """
     cdef iterator *dg_vert_gen = <iterator *> sage_malloc(sizeof(iterator))
-    cdef canonical_generator_data *cgd = allocate_cgd(depth, degree), *cgd2
+    cdef canonical_generator_data *cgd = allocate_cgd(depth, degree)
+    cdef canonical_generator_data *cgd2
     if dg_vert_gen is NULL or cgd is NULL:
         sage_free(dg_vert_gen)
         deallocate_cgd(cgd)

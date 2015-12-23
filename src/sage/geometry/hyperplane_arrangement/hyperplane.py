@@ -452,7 +452,7 @@ class Hyperplane(LinearExpression):
             sage: h = x + y + z - 1
             sage: h.intersection(x - y)
             A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line
-            sage: h.intersection(polytopes.n_cube(3))
+            sage: h.intersection(polytopes.cube())
             A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices
         """
         from sage.geometry.polyhedron.base import is_Polyhedron
@@ -602,6 +602,7 @@ class Hyperplane(LinearExpression):
 
             sage: L.<x, y> = HyperplaneArrangements(QQ)
             sage: (x+y-2).plot()
+            Graphics object consisting of 2 graphics primitives
         """
         from sage.geometry.hyperplane_arrangement.plot import plot_hyperplane
         return plot_hyperplane(self, **kwds)

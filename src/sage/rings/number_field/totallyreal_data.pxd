@@ -1,14 +1,9 @@
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
-
 cdef double eval_seq_as_poly(int *f, int n, double x)
 cdef double newton(int *f, int *df, int n, double x0, double eps)
 cdef void newton_in_intervals(int *f, int *df, int n, double *beta, double eps, double *rts)
 cpdef lagrange_degree_3(int n, int an1, int an2, int an3)
 
 cimport sage.rings.integer
-
-#cdef int_has_small_square_divisor_c(sage.rings.integer.Integer d)
 
 cdef int eval_seq_as_poly_int(int *f, int n, int x)
 
@@ -20,7 +15,8 @@ cdef class tr_data:
     cdef double B
     cdef double b_lower, b_upper, gamma
 
-    cdef int *a, *amax
+    cdef int *a
+    cdef int *amax
     cdef double *beta
     cdef int *gnk
 

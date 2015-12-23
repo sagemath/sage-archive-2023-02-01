@@ -170,7 +170,7 @@ def set_edit_template(template_string):
       sage: from sage.misc.edit_module import set_edit_template
       sage: set_edit_template("echo EDIT ${file}:${line}")
       sage: edit(sage)      # not tested
-      EDIT /usr/local/sage/default/devel/sage/sage/__init__.py:1
+      EDIT /usr/local/sage/src/sage/__init__.py:1
    """
    global edit_template
 
@@ -288,8 +288,8 @@ def edit_devel(self, filename, linenum):
 
     This hook calls the default implementation, but changes the filename for
     files that appear to be from the sage library: if the filename begins with
-    SAGE_ROOT/local/lib/python.../site-packages/ it replaces this by
-    SAGE_ROOT/devel/sage
+    'SAGE_ROOT/local/lib/python.../site-packages', it replaces this by
+    'SAGE_ROOT/src'.
 
     EXAMPLES::
 

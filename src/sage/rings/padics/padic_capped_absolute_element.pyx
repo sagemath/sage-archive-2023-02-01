@@ -128,7 +128,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
         return P.new_gen_from_padic(val, self.absprec - val,
                                     self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t_tmp(self.absprec - val)[0],
+                                    self.prime_pow.pow_mpz_t_tmp(self.absprec - val),
                                     holder.value)
 
     def _integer_(self, Z=None):
@@ -146,32 +146,50 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
     def residue(self, absprec=1):
         r"""
-        Reduces this element modulo ``p^absprec``.
+        Reduces ``self`` modulo `p^\mathrm{absprec}`.
 
         INPUT:
 
-        - ``absprec`` - an integer
+        - ``absprec`` - a non-negative integer (default: 1)
 
         OUTPUT:
 
-        element of `\mathbb{Z}/p^{\mbox{absprec}} \mathbb{Z}` -- ``self``
-        reduced modulo ``p^absprec``.
+        This element reduced modulo `p^\mathrm{absprec}` as an element of
+        `\ZZ/p^\mathrm{absprec}\ZZ`
 
-        EXAMPLES::
+         EXAMPLES::
 
-            sage: R = Zp(7,4,'capped-abs'); a = R(8); a.residue(1)
-            1
+            sage: R = Zp(7,4,'capped-abs')
+            sage: a = R(8)
+            sage: a.residue(1)
+             1
+            sage: a.residue(2)
+            8
+
+        TESTS::
+
+            sage: a.residue(0)
+            0
+            sage: a.residue(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot reduce modulo a negative power of p.
+            sage: a.residue(5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision known in order to compute residue.
+
         """
         cdef Integer selfvalue, modulus
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_si((<Integer>absprec).value, self.absprec) > 0:
-            raise PrecisionError, "Not enough precision known in order to compute residue."
+            raise PrecisionError("not enough precision known in order to compute residue.")
         elif mpz_sgn((<Integer>absprec).value) < 0:
-            raise ValueError, "cannot reduce modulo a negative power of p"
+            raise ValueError("cannot reduce modulo a negative power of p.")
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)
         mpz_set(selfvalue.value, self.value)
         return Mod(selfvalue, modulus)
@@ -182,7 +200,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
         OUTPUT:
         the multiplicative order of self.  This is the minimum multiplicative
-        order of all elements of `\mathbb{Z}_p` lifting ``self`` to infinite
+        order of all elements of `\ZZ_p` lifting ``self`` to infinite
         precision.
 
         EXAMPLES::
@@ -210,14 +228,14 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             mpz_set_ui(ans.value, 1)
             return ans
         mpz_init(ppow_minus_one)
-        mpz_sub_ui(ppow_minus_one, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0], 1)
+        mpz_sub_ui(ppow_minus_one, self.prime_pow.pow_mpz_t_tmp(self.absprec), 1)
         if mpz_cmp(self.value, ppow_minus_one) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 2)
             mpz_clear(ppow_minus_one)
             return ans
         # check if self is an approximation to a teichmuller lift:
-        mpz_powm(ppow_minus_one, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
+        mpz_powm(ppow_minus_one, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_tmp(self.absprec))
         if mpz_cmp(ppow_minus_one, self.value) == 0:
             mpz_clear(ppow_minus_one)
             return self.residue(1).multiplicative_order()

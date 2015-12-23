@@ -1,4 +1,6 @@
-from sage.misc.all import tmp_filename, preparse
+"Dependency usage tracking for citations"
+
+from sage.misc.all import tmp_filename
 from sage.env import SAGE_ROOT
 
 systems = {}
@@ -67,13 +69,14 @@ def get_systems(cmd):
 
         sage: a = var('a')
         sage: get_systems('((a+1)^2).expand()')
-        ['ginac', 'GMP']
+        ['ginac']
     """
     import cProfile, pstats, re
 
     if not isinstance(cmd, basestring):
         raise TypeError("command must be a string")
 
+    from sage.repl.preparse import preparse
     cmd = preparse(cmd)
 
     #Run the command and get the stats

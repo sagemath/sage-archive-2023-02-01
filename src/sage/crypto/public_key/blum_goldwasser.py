@@ -198,10 +198,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg1 == bg2
             True
         """
-        if self.__repr__() == other.__repr__():
-            return True
-        else:
-            return False
+        return repr(self) == repr(other)
 
     def __repr__(self):
         """

@@ -957,7 +957,7 @@ class CombinatorialObject(SageObject):
             sage: c.__repr__()
             '[1, 2, 3]'
         """
-        return self._list.__repr__()
+        return repr(self._list)
 
     def __eq__(self, other):
         """
@@ -973,9 +973,9 @@ class CombinatorialObject(SageObject):
             False
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__eq__(other._list)
+            return self._list == other._list
         else:
-            return self._list.__eq__(other)
+            return self._list == other
 
     def __lt__(self, other):
         """
@@ -989,9 +989,9 @@ class CombinatorialObject(SageObject):
             True
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__lt__(other._list)
+            return self._list < other._list
         else:
-            return self._list.__lt__(other)
+            return self._list < other
 
     def __le__(self, other):
         """
@@ -1007,9 +1007,9 @@ class CombinatorialObject(SageObject):
             True
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__le__(other._list)
+            return self._list <= other._list
         else:
-            return self._list.__le__(other)
+            return self._list <= other
 
     def __gt__(self, other):
         """
@@ -1025,9 +1025,9 @@ class CombinatorialObject(SageObject):
             False
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__gt__(other._list)
+            return self._list > other._list
         else:
-            return self._list.__gt__(other)
+            return self._list > other
 
     def __ge__(self, other):
         """
@@ -1043,9 +1043,9 @@ class CombinatorialObject(SageObject):
             True
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__ge__(other._list)
+            return self._list >= other._list
         else:
-            return self._list.__ge__(other)
+            return self._list >= other
 
     def __ne__(self, other):
         """
@@ -1061,9 +1061,9 @@ class CombinatorialObject(SageObject):
             False
         """
         if isinstance(other, CombinatorialObject):
-            return self._list.__ne__(other._list)
+            return self._list != other._list
         else:
-            return self._list.__ne__(other)
+            return self._list != other
 
     def __add__(self, other):
         """
@@ -1094,7 +1094,7 @@ class CombinatorialObject(SageObject):
             1335416675971793195
         """
         if self._hash is None:
-            self._hash = str(self._list).__hash__()
+            self._hash = hash(str(self._list))
         return self._hash
 
     def __nonzero__(self):
@@ -1154,7 +1154,7 @@ class CombinatorialObject(SageObject):
             sage: c.__len__()
             3
         """
-        return self._list.__len__()
+        return len(self._list)
 
     def __getitem__(self, key):
         """
@@ -1168,7 +1168,7 @@ class CombinatorialObject(SageObject):
             sage: type(_)
             <type 'list'>
         """
-        return self._list.__getitem__(key)
+        return self._list[key]
 
     def __iter__(self):
         """
@@ -1178,7 +1178,7 @@ class CombinatorialObject(SageObject):
             sage: list(iter(c))
             [1, 2, 3]
         """
-        return self._list.__iter__()
+        return iter(self._list)
 
     def __contains__(self, item):
         """
@@ -1190,7 +1190,7 @@ class CombinatorialObject(SageObject):
             sage: 5 in c
             False
         """
-        return self._list.__contains__(item)
+        return item in self._list
 
 
     def index(self, key):
@@ -1393,7 +1393,7 @@ class CombinatorialClass(Parent):
             sage: str(Partitions(5))
             'Partitions of the integer 5'
         """
-        return self.__repr__()
+        return repr(self)
 
     def _repr_(self):
         """
@@ -1727,20 +1727,6 @@ class CombinatorialClass(Parent):
 
     #Set the default implementation of random
     random_element = __random_element_from_unrank
-
-    def random(self):
-        """
-        Deprecated. Use self.random_element() instead.
-
-        EXAMPLES::
-
-            sage: C = CombinatorialClass()
-            sage: C.random()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Deprecated: use random_element() instead
-        """
-        raise NotImplementedError("Deprecated: use random_element() instead")
 
     def __rank_from_iterator(self, obj):
         """
@@ -2177,7 +2163,7 @@ class Permutations_CC(CombinatorialClass):
             sage: P.list()
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        return self._permutations.__iter__()
+        return iter(self._permutations)
 
 ##############################################################################
 class MapCombinatorialClass(CombinatorialClass):
@@ -2641,132 +2627,6 @@ def unshuffle_iterator(a, one=1):
         yield ((tuple([a[i] for i in sorted_I]),
                 tuple([a[i] for i in sorted_nonI])),
                (one if sign else - one))
-
-def permutations(mset):
-    """
-    This is deprecated in :trac:`14772`. Use :class:`Permutations` instead.
-    To get the same output as `permutations(mset)`, use
-    ``Permutations(mset).list()``.
-
-    A permutation is represented by a list that contains exactly the
-    same elements as mset, but possibly in different order. If mset is
-    a proper set there are `|mset| !` such permutations.
-    Otherwise if the first elements appears `k_1` times, the
-    second element appears `k_2` times and so on, the number
-    of permutations is `|mset|! / (k_1! k_2! \ldots)`, which
-    is sometimes called a multinomial coefficient.
-
-    ``permutations`` returns the list of all permutations of a multiset.
-
-    EXAMPLES::
-
-        sage: mset = [1,1,2,2,2]
-        sage: permutations(mset)
-        doctest:...: DeprecationWarning: Use the Permutations object instead.
-        See http://trac.sagemath.org/14772 for details.
-        [[1, 1, 2, 2, 2],
-         [1, 2, 1, 2, 2],
-         [1, 2, 2, 1, 2],
-         [1, 2, 2, 2, 1],
-         [2, 1, 1, 2, 2],
-         [2, 1, 2, 1, 2],
-         [2, 1, 2, 2, 1],
-         [2, 2, 1, 1, 2],
-         [2, 2, 1, 2, 1],
-         [2, 2, 2, 1, 1]]
-        sage: MS = MatrixSpace(GF(2),2,2)
-        sage: A = MS([1,0,1,1])
-        sage: rows = A.rows()
-        sage: rows[0].set_immutable()
-        sage: rows[1].set_immutable()
-        sage: permutations(rows)
-        [[(1, 0), (1, 1)], [(1, 1), (1, 0)]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14772, 'Use the Permutations object instead.')
-    from sage.combinat.permutation import Permutations
-    ans = Permutations(mset)
-    return ans.list()
-
-def cyclic_permutations(mset):
-    """
-    This function is deprecated in :trac:`14772`. Use instead
-    :class:`CyclicPermutations`.
-
-    Return a list of all cyclic permutations of ``mset``. Treats ``mset``
-    as a list, not a set, i.e. entries with the same value are distinct.
-
-    Note that :class:`CyclicPermutations`, unlike this function, treats
-    repeated elements as identical.
-
-    AUTHORS:
-
-    - Emily Kirkman
-
-    EXAMPLES::
-
-        sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
-        sage: cyclic_permutations(range(4))
-        doctest:...: DeprecationWarning: Use the CyclicPermutations object instead.
-        See http://trac.sagemath.org/14772 for details.
-        doctest:...: DeprecationWarning: Use the CyclicPermutations object instead.
-        See http://trac.sagemath.org/14772 for details.
-        [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
-        sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
-        ....:     print cycle
-        ['a', 'b', 'c']
-        ['a', 'c', 'b']
-
-    Since :trac:`14138` some repetitions are handled as expected::
-
-        sage: cyclic_permutations([1,1,1])
-        [[1, 1, 1]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14772, 'Use the CyclicPermutations object instead.')
-    return list(cyclic_permutations_iterator(mset))
-
-def cyclic_permutations_iterator(mset):
-    """
-    This function is deprecated in :trac:`14772`. Use instead
-    :class:`CyclicPermutations`.
-
-    Iterates over all cyclic permutations of ``mset`` in cycle notation.
-    Treats ``mset`` as a list, not a set, i.e. entries with the same value
-    are distinct.
-
-    Note that :class:`CyclicPermutations`, unlike this function, treats
-    repeated elements as identical.
-
-    AUTHORS:
-
-    - Emily Kirkman
-
-    EXAMPLES::
-
-        sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
-        sage: cyclic_permutations(range(4))
-        doctest:...: DeprecationWarning: Use the CyclicPermutations object instead.
-        See http://trac.sagemath.org/14772 for details.
-        [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
-        sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
-        ....:     print cycle
-        ['a', 'b', 'c']
-        ['a', 'c', 'b']
-
-    Since :trac:`14138` some repetitions are handled as expected::
-
-        sage: cyclic_permutations([1,1,1])
-        [[1, 1, 1]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14772, 'Use the CyclicPermutations object instead.')
-    if len(mset) > 2:
-        from sage.combinat.permutation import Permutations
-        for perm in Permutations(mset[1:]):
-            yield [mset[0]] + list(perm)
-    else:
-        yield mset
 
 def bell_polynomial(n, k):
     r"""

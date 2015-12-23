@@ -1352,7 +1352,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
               From: Finitely presented group < x | x >
               To:   Finitely presented group <  |  >
 
-        ALGORITM:
+        ALGORITHM:
 
         Uses GAP.
         """

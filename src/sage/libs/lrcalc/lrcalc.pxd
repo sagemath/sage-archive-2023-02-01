@@ -1,3 +1,5 @@
+# distutils: libraries = lrcalc
+
 cdef extern from "lrcalc/hashtab.h":
     ctypedef struct hashtab:
         pass

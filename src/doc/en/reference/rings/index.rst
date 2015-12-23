@@ -62,9 +62,4 @@ Utilities
    sage/rings/infinity
    sage/rings/misc
 
-.. toctree::
-   :hidden:
-
-   asymptotic_expansions_index
-
 .. include:: ../footer.txt

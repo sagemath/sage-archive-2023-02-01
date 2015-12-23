@@ -1157,7 +1157,9 @@ If this all works, you can then make calls like:
 
             sage: r._synchronize()
 
-        TESTS: This illustrates a synchronization bug being fixed (thanks
+        TESTS:
+
+        This illustrates a synchronization bug being fixed (thanks
         to Simon King and David Joyner for tracking this down)::
 
             sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)

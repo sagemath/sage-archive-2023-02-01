@@ -965,8 +965,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: copy(H) is H
             False
 
-        TESTS:
-
         Bad input::
 
             sage: G.copy(data_structure="sparse", sparse=False)
@@ -982,7 +980,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: There is no dense immutable backend at the moment.
 
-        Which backend ?::
+        Which backend? ::
 
             sage: G.copy(data_structure="sparse")._backend
             <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
@@ -7675,7 +7673,7 @@ class GenericGraph(GenericGraph_pyx):
             constraint that the flow going through an edge has to be an
             integer.
 
-        - ``use_edge_labels`` -- boolean (default: ``False``)
+        - ``use_edge_labels`` -- boolean (default: ``True``)
 
           - When set to ``True``, computes a maximum flow
             where each edge has a capacity defined by its label. (If
@@ -11234,7 +11232,9 @@ class GenericGraph(GenericGraph_pyx):
 
 
 
-        TESTS: The appropriate properties are preserved.
+        TESTS:
+
+        The appropriate properties are preserved.
 
         ::
 
@@ -11365,7 +11365,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: S.edges()
             [('00', '01', None), ('10', '11', None)]
 
-        TESTS: Properties of the graph are preserved.
+        TESTS:
+
+        Properties of the graph are preserved.
 
         ::
 
@@ -11517,7 +11519,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: S.edges()
             [('00', '01', None), ('10', '11', None)]
 
-        TESTS: Properties of the graph are preserved.
+        TESTS:
+
+        Properties of the graph are preserved.
 
         ::
 
@@ -12018,6 +12022,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: for g in graphs(5):
             ....:     _ = g.is_chordal()
 
+        :trac:`11735`::
+
+           sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
+           sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
+           False
+           sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
+           True
+
         REFERENCES:
 
         .. [Rose75] Rose, D.J. and Tarjan, R.E.,
@@ -12029,16 +12041,6 @@ class GenericGraph(GenericGraph_pyx):
           Incidence matrices and interval graphs
           Pacific J. Math 1965
           Vol. 15, number 3, pages 835--855
-
-        TESTS:
-
-        See :trac:`11735`::
-
-           sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
-           sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
-           False
-           sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
-           True
         """
         self._scream_if_not_simple()
 
@@ -13249,7 +13251,7 @@ class GenericGraph(GenericGraph_pyx):
                 if with_labels:
                     return dict(zip(self.vertices(), eccentricity(self)))
                 else:
-                    return eccentricity(self, method='standard' if self.is_directed() else 'bounds')
+                    return eccentricity(self, algorithm='standard' if self.is_directed() else 'bounds')
             if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
                                                          weight_function,
@@ -13479,7 +13481,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("Algorithm '" + algorithm + "' does not work" +
                                  " on weighted graphs.")
             from distances_all_pairs import diameter
-            return diameter(self, method=algorithm)
+            return diameter(self, algorithm=algorithm)
 
         return max(self.eccentricity(by_weight=by_weight,
                                      weight_function=weight_function,

@@ -1179,6 +1179,116 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         from sage.combinat.posets.moebius_algebra import QuantumMoebiusAlgebra
         return QuantumMoebiusAlgebra(self, q)
 
+    def is_dismantlable(self, certificate=False):
+        r"""
+        Return ``True`` if the lattice is dismantlable, and ``False``
+        otherwise.
+
+        An `n`-element lattice `L_n` is dismantlable if there is a sublattice
+        chain `L_{n-1} \supset L_{n-2}, \supset \cdots, \supset L_0` so that
+        every `L_i` is a sublattice of `L_{i+1}` with one element less, and
+        `L_0` is the empty lattice. In other words, a dismantlable lattice
+        can be reduced to empty lattice removing doubly irreducible
+        element one by one.
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- Whether to return a certificate.
+
+          * If ``certificate = False`` (default), returns ``True`` or
+            ``False`` accordingly.
+
+          * If ``certificate = True``, returns:
+
+            * ``(True, elms)`` when the lattice is dismantlable, where
+              ``elms`` is elements listed in a possible removing order.
+
+            * ``(False, crown)`` when the lattice is not dismantlable,
+              where ``crown`` is a subposet of `2k` elements
+              `a_1, \ldots, a_k, b_1, \ldots, b_k` with covering
+              relations `a_i \lessdot b_i` and `a_i \lessdot b_{i+1}`
+              for `i \in [1, \ldots, k-1]`, and `a_k \lessdot b_1`.
+
+        EXAMPLES::
+
+            sage: DL12 = LatticePoset((divisors(12), attrcall("divides")))
+            sage: DL12.is_dismantlable()
+            True
+            sage: DL12.is_dismantlable(certificate=True)
+            (True, [4, 2, 1, 3, 6, 12])
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.is_dismantlable()
+            False
+            sage: B3.is_dismantlable(certificate=True)
+            (False, Finite poset containing 6 elements)
+
+        Every planar lattice is dismantlable. Converse is not true::
+
+            sage: L = LatticePoset( ([], [[0, 1], [0, 2], [0, 3], [0, 4],
+            ....:                         [1, 7], [2, 6], [3, 5], [4, 5],
+            ....:                         [4, 6], [4, 7], [5, 8], [6, 8],
+            ....:                         [7, 8]]) )
+            sage: L.is_dismantlable()
+            True
+            sage: L.is_planar()
+            False
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).is_dismantlable()
+            True
+            sage: Posets.ChainPoset(1).is_dismantlable()
+            True
+
+            sage: L = LatticePoset(DiGraph('L@_?W?E?@CCO?A?@??_?O?Jw????C?'))
+            sage: L.is_dismantlable()
+            False
+            sage: c = L.is_dismantlable(certificate=True)[1]
+            sage: (3 in c, 12 in c, 9 in c)
+            (True, False, True)
+        """
+        from sage.graphs.digraph import DiGraph
+        from copy import copy
+
+        H = copy(self._hasse_diagram)
+        cert = []
+        # Smallest lattice that is not dismantlable is the
+        # Boolean lattice with 2^3=8 elements. Hence the limit 7.
+        limit = 0 if certificate else 7
+
+        while H.order() > limit:
+            for e in H:
+                i = H.in_degree(e)
+                o = H.out_degree(e)
+                if i < 2 and o < 2:
+                    if certificate:
+                        cert.append(e)
+                    if i == 1 and o == 1:  # Remove inside the lattice
+                        lower = H.neighbors_in(e)[0]
+                        upper = H.neighbors_out(e)[0]
+                        H.delete_vertex(e)
+                        if not upper in H.depth_first_search(lower):
+                            H.add_edge(lower, upper)
+                    else:  # Remove the top or bottom element
+                        H.delete_vertex(e)
+                    break
+            else:
+                if not certificate:
+                    return False
+                k = 3
+                while True:
+                    crown = DiGraph({i: [k + i, k + (i + 1) % k]
+                                     for i in range(k)})
+                    sg = H.transitive_closure().subgraph_search(crown, True)
+                    if sg:
+                        elms = [self[e] for e in sg]
+                        return (False, self.subposet(elms))
+                    k += 1
+        if not certificate:
+            return True
+        return (True, [self[e] for e in cert])
+
 ############################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice

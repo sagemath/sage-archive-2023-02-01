@@ -342,7 +342,7 @@ class LLT_class(UniqueRepresentation):
 
         - ``self`` -- a family of LLT symmetric functions bases
 
-        OUPUT:
+        OUTPUT:
 
         - returns the h-cospin basis of the LLT symmetric functions
 
@@ -373,7 +373,7 @@ class LLT_class(UniqueRepresentation):
 
         - ``self`` -- a family of LLT symmetric functions bases
 
-        OUPUT:
+        OUTPUT:
 
         - returns the h-spin basis of the LLT symmetric functions
 

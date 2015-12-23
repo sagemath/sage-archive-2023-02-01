@@ -621,7 +621,7 @@ def IdentityFunctor(C):
 
     The identity functor in ``C``.
 
-    EXAPLES::
+    EXAMPLES::
 
         sage: rings = Rings()
         sage: F = IdentityFunctor(rings)

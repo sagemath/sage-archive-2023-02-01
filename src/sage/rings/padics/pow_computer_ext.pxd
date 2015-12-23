@@ -36,11 +36,8 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
     cdef int teichmuller_set_c (self, ZZ_pX_c* x, ZZ_pX_c* a, long absprec) except -1
 
 cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
-    #cdef ZZ_pX_c poly
     cdef ntl_ZZ_pContext_class c
     cdef ZZ_pX_Modulus_c mod
-
-    cdef void cleanup_ZZ_pX_FM(self)
 
 cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
     cdef int low_length

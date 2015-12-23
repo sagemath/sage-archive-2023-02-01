@@ -16,7 +16,7 @@ EXAMPLES::
 
     sage: S = simplicial_complexes.Sphere(1)
     sage: S
-    Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+    Minimal triangulation of the 1-sphere
     sage: C = S.chain_complex()
     sage: C.differential()
     {0: [], 1: [ 1  1  0]
@@ -91,7 +91,7 @@ class ChainComplexMorphism(Morphism):
 
             sage: S = simplicial_complexes.Sphere(1)
             sage: S
-            Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+            Minimal triangulation of the 1-sphere
             sage: C = S.chain_complex()
             sage: C.differential()
             {0: [], 1: [ 1  1  0]

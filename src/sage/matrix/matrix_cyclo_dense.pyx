@@ -385,7 +385,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             return xq
 
         x = self._base_ring(0)
-        ZZ_construct(&coeff)
         mpz_init_set_ui(denom, 1)
 
         # Get the least common multiple of the denominators in
@@ -406,7 +405,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         mpz_to_ZZ(&x.__denominator, denom)
         mpz_clear(denom)
         mpz_clear(tmp)
-        ZZ_destruct(&coeff)
 
         return x
 
@@ -801,7 +799,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [           z   -1/2*z - 1]
         """
         cdef Matrix_cyclo_dense A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(), None, None, None)
-        A._matrix = self._matrix.__neg__()
+        A._matrix = -self._matrix
         return A
 
 

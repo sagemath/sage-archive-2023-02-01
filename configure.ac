@@ -324,21 +324,6 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
-# To build Python on multi-arch Debian-based systems, we need
-# dpkg-architecture. Since we need dpkg-architecture to determine
-# whether we're on a multi-arch system and require dpkg-architecture,
-# we simply require it always on Debian-based systems.
-AC_CHECK_PROG(found_dpkg, dpkg, yes, no)
-AC_CHECK_PROG(found_dpkg_arch, dpkg-architecture, yes, no)
-if test x$found_dpkg = xyes && test x$found_dpkg_arch = xno
-then
-    AC_MSG_NOTICE([You do not have 'dpkg-architecture', which is required to build])
-    AC_MSG_NOTICE([Python on multi-arch Debian-based systems. This includes all recent])
-    AC_MSG_NOTICE([Debian and Ubuntu systems. You can install this with:])
-    AC_MSG_NOTICE([  sudo apt-get install dpkg-dev])
-    AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on Debian])
-fi
-
 
 ###############################################################################
 # Check C/C++/Fortran compilers

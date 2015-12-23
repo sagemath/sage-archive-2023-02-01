@@ -301,7 +301,7 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
 
     - same as for :class:`SchemeHomset_points`.
 
-    OUPUT:
+    OUTPUT:
 
     A scheme morphism of type
     :class:`SchemeHomset_points_toric_base`.
@@ -440,7 +440,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
 
     - same as for :class:`~sage.schemes.generic.homset.SchemeHomset_points`.
 
-    OUPUT:
+    OUTPUT:
 
     A scheme morphism of type
     :class:`SchemeHomset_points_toric_field`.

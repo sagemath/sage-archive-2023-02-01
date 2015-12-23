@@ -124,11 +124,11 @@ class DeltaComplex(GenericCellComplex):
       To construct a torus, use::
 
         sage: torus_dict = {Simplex([0,1,2]): True,
-        ...          Simplex([3,4,5]): (Simplex([0,1]), Simplex([0,2]), Simplex([1,2])),
-        ...          Simplex([0,1]): (Simplex(0), Simplex(0)),
-        ...          Simplex([0,2]): (Simplex(0), Simplex(0)),
-        ...          Simplex([1,2]): (Simplex(0), Simplex(0)),
-        ...          Simplex(0): ()}
+        ....:        Simplex([3,4,5]): (Simplex([0,1]), Simplex([0,2]), Simplex([1,2])),
+        ....:        Simplex([0,1]): (Simplex(0), Simplex(0)),
+        ....:        Simplex([0,2]): (Simplex(0), Simplex(0)),
+        ....:        Simplex([1,2]): (Simplex(0), Simplex(0)),
+        ....:        Simplex(0): ()}
         sage: T = DeltaComplex(torus_dict); T
         Delta complex with 1 vertex and 7 simplices
         sage: T.cohomology(base_ring=QQ)
@@ -158,7 +158,7 @@ class DeltaComplex(GenericCellComplex):
       index in the list of (n-1)-faces.  For example, consider this::
 
         sage: P = DeltaComplex( [ [(), ()],  [(1,0), (1,0), (0,0)],
-        ...                       [(1,0,2), (0, 1, 2)] ])
+        ....:                     [(1,0,2), (0, 1, 2)] ])
 
       The 0th entry in the list is ``[(), ()]``: there are two
       0-simplices, and their boundaries are empty.
@@ -204,7 +204,7 @@ class DeltaComplex(GenericCellComplex):
       :meth:`cells` method. ::
 
         sage: P = DeltaComplex( [ [(), ()],  [(1,0), (1,0), (0,0)],
-        ...                       [(1,0,2), (0, 1, 2)] ])
+        ....:                     [(1,0,2), (0, 1, 2)] ])
         sage: cells_dict = P.cells()
         sage: cells_dict
         {-1: ((),),
@@ -487,7 +487,7 @@ class DeltaComplex(GenericCellComplex):
         """
         return hash(frozenset(self._cells_dict.items()))
 
-    def __cmp__(self,right):
+    def __eq__(self, right):
         r"""
         Two `\Delta`-complexes are equal, according to this, if they have
         the same ``_cells_dict``.
@@ -502,10 +502,23 @@ class DeltaComplex(GenericCellComplex):
             sage: newS2 == S2
             True
         """
-        if self._cells_dict == right._cells_dict:
-            return 0
-        else:
-            return -1
+        return self._cells_dict == right._cells_dict
+
+    def __ne__(self, other):
+        r"""
+        Return ``True`` if ``self`` and ``other`` are not equal.
+
+        EXAMPLES::
+
+            sage: S4 = delta_complexes.Sphere(4)
+            sage: S2 = delta_complexes.Sphere(2)
+            sage: S4 != S2
+            True
+            sage: newS2 = DeltaComplex({Simplex(2):True, Simplex([8,12,17]): Simplex(2)})
+            sage: newS2 != S2
+            False
+        """
+        return not self.__eq__(other)
 
     def cells(self, subcomplex=None):
         r"""

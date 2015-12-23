@@ -99,22 +99,23 @@ easily::
 
 """
 
-###########################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
+
 
 import quotient_ring_element
 import sage.misc.latex as latex
 import commutative_ring, ring
 import ideal
 import sage.rings.polynomial.multi_polynomial_ideal
+from sage.structure.category_object import normalize_names
 import sage.structure.parent_gens
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.misc.cachefunc import cached_method
@@ -278,7 +279,7 @@ def QuotientRing(R, I, names=None):
         except ValueError: # no names are assigned
             pass
     else:
-        names = sage.structure.parent_gens.normalize_names(R.ngens(), names)
+        names = normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
         I = R.ideal(I)
     if I.is_zero():

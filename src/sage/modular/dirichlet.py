@@ -1183,7 +1183,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             if arith.gcd(c,m)==1:
                 e = rings.Mod(c,m)
                 z = zeta ** int(a*e + b*(e**(-1)))
-                g += self.__call__(c)*z
+                g += self(c)*z
         return g
 
     def kloosterman_sum_numerical(self, prec=53, a=1,b=0):
@@ -1230,7 +1230,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             if arith.gcd(c,m)==1:
                 e = rings.Mod(c,m)
                 z = zeta ** int(a*e + b*(e**(-1)))
-                g += phi(self.__call__(c))*z
+                g += phi(self(c))*z
         return g
 
     @cached_method

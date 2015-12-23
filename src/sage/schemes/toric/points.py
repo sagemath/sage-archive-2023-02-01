@@ -35,10 +35,9 @@ EXAMPLES::
 #*****************************************************************************
 
 
-
+import itertools
 from copy import copy
 
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.all import powerset, prod
 from sage.misc.cachefunc import cached_method
 from sage.rings.arith import gcd
@@ -220,7 +219,7 @@ class NaiveFinitePointEnumerator(object):
         units = self.units()
         result = []
         ker = self.rays().matrix().integer_kernel().matrix()
-        for phases in CartesianProduct(*([units] * ker.nrows())):
+        for phases in itertools.product(units, repeat=ker.nrows()):
             phases = tuple(prod(mu**exponent for mu, exponent in zip(phases, column))
                            for column in ker.columns())
             result.append(phases)
@@ -288,9 +287,10 @@ class NaiveFinitePointEnumerator(object):
         if len(tors) == 0:  # optimization for smooth fans
             return free
         result = set(free)
-        for f, t in CartesianProduct(free, tors):
-            phases = tuple(x*y for x, y in zip(f, t))
-            result.add(phases)
+        for f in free:
+            for t in tors:
+                phases = tuple(x*y for x, y in zip(f, t))
+                result.add(phases)
         return tuple(sorted(result))
 
     def orbit(self, point):
@@ -390,7 +390,7 @@ class NaiveFinitePointEnumerator(object):
             patch = copy(big_torus)
             for i in cone.ambient_ray_indices():
                 patch[i] = [zero]
-            for p in CartesianProduct(*patch):
+            for p in itertools.product(*patch):
                 yield tuple(p)
 
     def __iter__(self):
@@ -869,7 +869,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         OUTPUT:
 
         All solutions (as tuple of log inhomogeneous coordinates) in
-        the Cartesian product of the ranges.
+        the cartesian product of the ranges.
 
         EXAMPLES::
 
@@ -881,10 +881,10 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: ffe.solutions_serial([s^2-1, s^6-s^2], [range(6)])
             <generator object solutions_serial at 0x...>
             sage: list(_)
-            [[0], [3]]
+            [(0,), (3,)]
         """
-        from sage.combinat.cartesian_product import CartesianProduct
-        for log_t in CartesianProduct(*log_range):
+        from itertools import product
+        for log_t in product(*log_range):
             t = self.ambient.exp(log_t)
             if all(poly(t) == 0 for poly in inhomogeneous_equations):
                 yield log_t
@@ -909,14 +909,14 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: ffe.solutions([s^2-1, s^6-s^2], [range(6)])
             <generator object solutions at 0x...>
             sage: sorted(_)
-            [[0], [3]]
+            [(0,), (3,)]
         """
         # Do simple cases in one process (this includes most doctests)
         if len(log_range) <= 2:
             for log_t in self.solutions_serial(inhomogeneous_equations, log_range):
                 yield log_t
             raise StopIteration
-        # Parallelize the outermost loop of the Cartesian product
+        # Parallelize the outermost loop of the cartesian product
         work = [([[r]] + log_range[1:],) for r in log_range[0]]
         from sage.parallel.decorate import Parallel
         parallel = Parallel()

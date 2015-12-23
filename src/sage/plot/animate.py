@@ -216,8 +216,6 @@ class Animation(WithEqualityById, SageObject):
         sage: a._frames
         <generator object ...
 
-    TESTS::
-
         sage: from sage.plot.animate import Animation
         sage: hash(Animation()) # random
         140658972348064

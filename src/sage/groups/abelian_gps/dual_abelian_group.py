@@ -64,6 +64,7 @@ AUTHORS:
 ###########################################################################
 
 from sage.rings.infinity import infinity
+from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.abelian_gps.dual_abelian_group_element import (
     DualAbelianGroupElement, is_DualAbelianGroupElement )
@@ -123,7 +124,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
        """
         self._base_ring = base_ring
         self._group = G
-        names = self.normalize_names(G.ngens(), names)
+        names = normalize_names(G.ngens(), names)
         self._assign_names(names)
         AbelianGroupBase.__init__(self) # TODO: category=CommutativeGroups()
 

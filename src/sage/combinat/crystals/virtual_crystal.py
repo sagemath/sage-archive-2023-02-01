@@ -168,6 +168,16 @@ class VirtualCrystal(Subcrystal):
             sage: V2 = psi2.image()
             sage: V1 is V2
             True
+
+        TESTS:
+
+        Check that :trac:`19481` is fixed::
+
+            sage: from sage.combinat.crystals.virtual_crystal import VirtualCrystal
+            sage: A = crystals.Tableaux(['A',3], shape=[2,1,1])
+            sage: V = VirtualCrystal(A, {1:(1,3), 2:(2,)}, {1:1, 2:2}, cartan_type=['C',2])
+            sage: V.category()
+            Category of finite crystals
         """
         if cartan_type is None:
             cartan_type = ambient.cartan_type()
@@ -181,6 +191,8 @@ class VirtualCrystal(Subcrystal):
         scaling_factors = Family(scaling_factors)
 
         category = Crystals().or_subcategory(category)
+        if ambient in FiniteCrystals() or isinstance(contained, frozenset):
+            category = category.Finite()
 
         return super(Subcrystal, cls).__classcall__(cls, ambient, virtualization, scaling_factors,
                                                     contained, tuple(generators), cartan_type,

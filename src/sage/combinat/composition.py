@@ -33,10 +33,12 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
 from combinat import CombinatorialElement
-from cartesian_product import CartesianProduct
-from integer_list import IntegerListsLex
+from sage.categories.cartesian_product import cartesian_product
+
+from integer_lists import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -748,10 +750,16 @@ class Composition(CombinatorialElement):
             sage: C = Composition([3,2]).finer()
             sage: C.cardinality()
             8
-            sage: list(C)
+            sage: C.list()
             [[1, 1, 1, 1, 1], [1, 1, 1, 2], [1, 2, 1, 1], [1, 2, 2], [2, 1, 1, 1], [2, 1, 2], [3, 1, 1], [3, 2]]
+
+            sage: Composition([]).finer()
+            {[]}
         """
-        return CartesianProduct(*[Compositions(i) for i in self]).map(Composition.sum)
+        if not self:
+            return FiniteEnumeratedSet([self])
+        else:
+            return cartesian_product([Compositions(i) for i in self]).map(Composition.sum)
 
     def is_finer(self, co2):
         """

@@ -17,6 +17,7 @@ Affinization Crystals
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
@@ -187,11 +188,23 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
             from sage.misc.latex import latex
             return latex(self._b) + "({})".format(self._m)
 
-        def __eq__(self, other):
-            """
-            Check equality.
+        def __hash__(self):
+            r"""
+            TESTS::
 
-            EXAMPLES::
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: hash(mg)
+                -6948036233304877976 # 64-bit
+                -1420700568          # 32-bit
+            """
+            return hash(self._b) ^ hash(self._m)
+
+        def __cmp__(self, other):
+            """
+            Comparison.
+
+            TESTS::
 
                 sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
                 sage: mg = A.module_generators[0]
@@ -203,17 +216,6 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
                 sage: A = crystals.AffinizationOf(KT)
                 sage: A(KT.module_generators[3], 1).f(0) == A.module_generators[0]
                 True
-            """
-            if not isinstance(other, AffinizationOfCrystal.Element):
-                return False
-            return self.parent() == other.parent() \
-                    and self._b == other._b and self._m == other._m
-
-        def __ne__(self, other):
-            """
-            Check inequality.
-
-            EXAMPLES::
 
                 sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
                 sage: mg = A.module_generators[0]
@@ -221,14 +223,7 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
                 True
                 sage: mg != mg.f(2).e(2)
                 False
-            """
-            return not self.__eq__(other)
 
-        def __lt__(self, other):
-            """
-            Check less than.
-
-            EXAMPLES::
 
                 sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
                 sage: S = A.subcrystal(max_depth=2)
@@ -241,8 +236,12 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
                  [[1, 2], [2, 3]](1),
                  [[1, 2], [3, 3]](1),
                  [[2, 2], [3, 3]](2)]
+
             """
-            return self._m < other._m or (self._m == other._m and self._b < other._b)
+            if parent(self) is parent(other):
+                return cmp(self._m, other._m) or cmp(self._b, other._b)
+            else:
+                return cmp(parent(self), parent(other))
 
         def e(self, i):
             """

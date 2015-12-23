@@ -9,18 +9,20 @@ TESTS::
     sage: TestSuite(A).run()
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 include "sage/ext/python.pxi"
 
 import sage.modules.free_module
+from sage.structure.element cimport coercion_model
 
 
 cdef class Matrix(matrix0.Matrix):
@@ -1363,8 +1365,6 @@ cdef class Matrix(matrix0.Matrix):
         top_ring = self._base_ring
         bottom_ring = other._base_ring
         if top_ring is not bottom_ring:
-            from sage.structure.element import get_coercion_model
-            coercion_model = get_coercion_model()
             R = coercion_model.common_parent(top_ring, bottom_ring)
             if top_ring is not R:
                 self = self.change_ring(R)

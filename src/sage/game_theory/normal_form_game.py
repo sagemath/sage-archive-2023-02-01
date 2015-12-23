@@ -606,7 +606,6 @@ AUTHOR:
 from collections import MutableMapping
 from itertools import product
 from parser import Parser
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
 from sage.misc.misc import powerset
 from sage.rings.all import QQ
@@ -898,7 +897,7 @@ class NormalFormGame(SageObject, MutableMapping):
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
             return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
-        return latex(self.__str__())
+        return latex(str(self))
 
     def _two_matrix_game(self, matrices):
         r"""
@@ -1549,7 +1548,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                powerset(range(player.num_strategies))]
                               for player in self.players]
 
-        potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
+        potential_support_pairs = [pair for pair in product(*potential_supports) if len(pair[0]) == len(pair[1])]
 
         equilibria = []
         for pair in potential_support_pairs:
@@ -2027,7 +2026,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                                         potential_supports]
 
         potential_support_pairs = [pair for pair in
-                                   CartesianProduct(*potential_supports) if
+                                   product(*potential_supports) if
                                    len(pair[0]) != len(pair[1])]
 
         # Sort so that solve small linear systems first

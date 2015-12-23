@@ -65,8 +65,8 @@ AUTHOR:
 
 from sage.misc.bindable_class import BindableClass
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
-from sage.categories.all import CommutativeRings
 from sage.categories.rings import Rings
+from sage.categories.fields import Fields
 from sage.categories.realizations import Category_realization_of_parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -529,9 +529,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: QuasiSymmetricFunctions(QQ)
             Quasisymmetric functions over the Rational Field
+            sage: QSym1 = QuasiSymmetricFunctions(FiniteField(23))
+            sage: QSym2 = QuasiSymmetricFunctions(Integers(23))
             sage: TestSuite(QuasiSymmetricFunctions(QQ)).run()
         """
-        assert R in Rings()
+        # change the line below to assert(R in Rings()) once MRO issues from #15536, #15475 are resolved
+        assert(R in Fields() or R in Rings()) # side effect of this statement assures MRO exists for R
         self._base = R # Won't be needed once CategoryObject won't override base_ring
         category = GradedHopfAlgebras(R)  # TODO: .Commutative()
         self._category = category

@@ -46,7 +46,8 @@ from sage.rings.ideal import Ideal_fractional
 from sage.rings.rational_field import is_RationalField, QQ
 from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import is_NumberField
-from sage.structure.parent_gens import ParentWithGens, normalize_names
+from sage.structure.category_object import normalize_names
+from sage.structure.parent_gens import ParentWithGens
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence
@@ -1735,7 +1736,17 @@ class QuaternionOrder(Algebra):
             return Q
 
 class QuaternionFractionalIdeal(Ideal_fractional):
-    pass
+    def __hash__(self):
+        r"""
+        Stupid constant hash function!
+
+        TESTS::
+
+            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
+            sage: hash(R.right_ideal(R.basis()))
+            0
+        """
+        return 0
 
 class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
     """

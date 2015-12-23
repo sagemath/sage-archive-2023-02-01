@@ -105,7 +105,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
-                prefix = ct.__repr__()
+                prefix = repr(ct)
         return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style)
 
     def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice"):
@@ -125,7 +125,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
-                prefix = ct.__repr__()
+                prefix = repr(ct)
         self._prefix = prefix
         self._style = style
         if style == "coroots":
@@ -1116,13 +1116,26 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 sage: spin = B4(0,0,0,1)
                 sage: [spin^k for k in [0,1,3]]
                 [B4(0,0,0,0), B4(0,0,0,1), 5*B4(0,0,0,1) + 4*B4(1,0,0,1) + 3*B4(0,1,0,1) + 2*B4(0,0,1,1) + B4(0,0,0,3)]
+                sage: spin^-1
+                Traceback (most recent call last):
+                ...
+                ValueError: cannot invert self (= B4(0,0,0,1))
+                sage: x = 2 * B4.one(); x
+                2*B4(0,0,0,0)
+                sage: x^-3
+                1/8*B4(0,0,0,0)
             """
-            if n == 0:
+            n = ZZ(n)
+            if not n:
                 return self.parent().one()
-            elif n == 1:
-                return self
-            else:
-                return self*self.__pow__(n-1)
+            if n < 0:
+                self = ~self
+                n = -n
+
+            res = self
+            for i in range(n-1):
+                res = self * res
+            return res
 
         def is_irreducible(self):
             """

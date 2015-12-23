@@ -547,8 +547,8 @@ class Polyhedron_ZZ(Polyhedron_base):
             edge_vectors.append([ v_prim*i for i in range(d+1) ])
         origin = self.ambient_space().zero()
         parent = self.parent()
-        from sage.combinat.cartesian_product import CartesianProduct
-        for edges in CartesianProduct(*edge_vectors):
+        from itertools import product
+        for edges in product(*edge_vectors):
             v = []
             point = origin
             for e in edges:

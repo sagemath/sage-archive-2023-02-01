@@ -49,13 +49,13 @@ done
 export NO_FINK=1
 export NO_DARWIN_PORTS=1
 
-# Darwin 8 (Tiger) does not support common crypto
-if { uname -sr | grep 'Darwin 8' ;} &>/dev/null; then
-    export NO_APPLE_COMMON_CRYPTO=1
-fi
+# Use softlinks instead of hardlinks (see Trac #19467)
+export NO_INSTALL_HARDLINKS=1
 
 # OSX Git with FSF GCC is broken, disable completely for now. See #17091
-export NO_APPLE_COMMON_CRYPTO=1
+if [ "$UNAME" = "Darwin" ]; then
+    export NO_OPENSSL=1
+fi
 
 # First make GIT-VERSION-FILE (we patched Makefile such that configure
 # no longer depends on this, so it's safer to explicitly build this).

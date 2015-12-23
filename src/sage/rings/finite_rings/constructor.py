@@ -154,7 +154,7 @@ AUTHORS:
 import random
 
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 
 from sage.rings.integer import Integer
 
@@ -437,11 +437,11 @@ class FiniteFieldFactory(UniqueFactory):
                 name = ('x',)  # Ignore name
                 # Every polynomial of degree 1 is irreducible
                 check_irreducible = False
-            # This check should be replaced by order.is_prime_power()
-            # if Trac #16878 is fixed.
-            elif sage.rings.arith.is_prime_power(order):
-                if not names is None: name = names
-                name = normalize_names(1,name)
+            elif order.is_prime_power():
+                if names is not None:
+                    name = names
+                if name is not None:
+                    name = normalize_names(1, name)
 
                 p, n = order.factor()[0]
 

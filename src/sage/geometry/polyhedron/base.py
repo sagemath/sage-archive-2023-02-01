@@ -12,6 +12,7 @@ Base class for polyhedra
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
+import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 
@@ -25,8 +26,6 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
 
 from sage.graphs.graph import Graph
-
-from sage.combinat.cartesian_product import CartesianProduct
 
 from constructor import Polyhedron
 
@@ -119,6 +118,32 @@ class Polyhedron_base(Element):
             self._init_from_Hrepresentation(ieqs, eqns, **kwds)
         else:
             self._init_empty_polyhedron()
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: p = Polyhedron(vertices=[(0,1,a),(3,a,5)],
+            ....:                rays=[(a,2,3), (0,0,1)],
+            ....:                base_ring=K)
+            sage: q = Polyhedron(vertices=[(3,a,5),(0,1,a)],
+            ....:                rays=[(0,0,1), (a,2,3)],
+            ....:                base_ring=K)
+            sage: hash(p) == hash(q)
+            True
+        """
+        # TODO: find something better *but* fast
+        return hash((self.dim(),
+                     self.ambient_dim(),
+                     self.n_Hrepresentation(),
+                     self.n_Vrepresentation(),
+                     self.n_equations(),
+                     self.n_facets(),
+                     self.n_inequalities(),
+                     self.n_lines(),
+                     self.n_rays(),
+                     self.n_vertices()))
 
     def _sage_input_(self, sib, coerced):
         """
@@ -433,8 +458,8 @@ class Polyhedron_base(Element):
             True
         """
         return all( other_H.contains(self_V)
-                    for other_H, self_V in
-                    CartesianProduct(other.Hrepresentation(), self.Vrepresentation()) )
+                    for other_H in other.Hrepresentation() \
+                    for self_V in self.Vrepresentation())
 
     def plot(self,
              point=None, line=None, polygon=None, # None means unspecified by the user
@@ -819,6 +844,14 @@ class Polyhedron_base(Element):
              1 -1 0
              1 0 -1
             end
+            
+            sage: triangle = Polyhedron(vertices = [[1,0],[0,1],[1,1]],base_ring=AA)
+            sage: triangle.base_ring()
+            Algebraic Real Field
+            sage: triangle.cdd_Hrepresentation()
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring must be ZZ, QQ, or RDF
         """
         from cdd_file_format import cdd_Hrepresentation
         try:
@@ -1891,8 +1924,17 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        Either ``QQ`` (exact arithmetic using gmp, default) or ``RDF``
-        (double precision floating-point arithmetic)
+        The ring over which the polyhedron is defined. Must be a
+        sub-ring of the reals to define a polyhedron, in particular
+        comparison must be defined. Popular choices are
+
+        * ``ZZ`` (the ring of integers, lattice polytope), 
+
+        * ``QQ`` (exact arithmetic using gmp),
+
+        * ``RDF`` (double precision floating-point arithmetic), or
+
+        * ``AA`` (real algebraic field).
 
         EXAMPLES::
 
@@ -1909,7 +1951,7 @@ class Polyhedron_base(Element):
         """
         Return the average of the vertices.
 
-        See also :meth:`interior_point`.
+        See also :meth:`representative_point`.
 
         OUTPUT:
 
@@ -2381,7 +2423,7 @@ class Polyhedron_base(Element):
         return P.element_class(P, None, [new_ieqs, new_eqns])
 
     def __sub__(self, other):
-        """
+        r"""
         Implement minus binary operation
 
         Polyhedra are not a ring with respect to dilatation and
@@ -2560,8 +2602,6 @@ class Polyhedron_base(Element):
             The empty polyhedron in ZZ^2
             sage: p.dilation(3)
             The empty polyhedron in ZZ^2
-
-        TESTS::
 
             sage: p = Polyhedron(vertices=[(1,1)], rays=[(1,0)], lines=[(0,1)])
             sage: (-p).rays()
@@ -2758,7 +2798,7 @@ class Polyhedron_base(Element):
 
     __and__ = intersection
 
-    def edge_truncation(self, cut_frac = Integer(1)/3):
+    def edge_truncation(self, cut_frac=None):
         r"""
         Return a new polyhedron formed from two points on each edge
         between two vertices.
@@ -2781,6 +2821,9 @@ class Polyhedron_base(Element):
             sage: trunc_cube.n_inequalities()
             14
         """
+        if cut_frac is None:
+            cut_frac = ZZ.one() / 3
+
         new_vertices = []
         for e in self.bounded_edges():
             new_vertices.append((1-cut_frac)*e[0]() + cut_frac *e[1]())
@@ -2793,6 +2836,132 @@ class Polyhedron_base(Element):
         return Polyhedron(vertices=new_vertices, rays=new_rays,
                           lines=new_lines,
                           base_ring=self.parent()._coerce_base_ring(cut_frac))
+
+    def barycentric_subdivision(self, subdivision_frac=None):
+        r"""
+        Return the barycentric subdivision of a compact polyhedron.
+
+        DEFINITION:
+
+        The barycentric subdivision of a compact polyhedron is a standard way
+        to triangulate its faces in such a way that maximal faces correspond to
+        flags of faces of the starting polyhedron (i.e. a maximal chain in the
+        face lattice of the polyhedron). As a simplicial complex, this is known
+        as the order complex of the face lattice of the polyhedron.
+
+        REFERENCE:
+
+        See :wikipedia:`Barycentric_subdivision`
+        Section 6.6, Handbook of Convex Geometry, Volume A, edited by P.M. Gruber and J.M.
+        Wills. 1993, North-Holland Publishing Co..
+
+        INPUT:
+
+        - ``subdivision_frac`` -- number. Gives the proportion how far the new
+          vertices are pulled out of the polytope. Default is `\frac{1}{3}` and
+          the value should be smaller than `\frac{1}{2}`. The subdivision is
+          computed on the polar polyhedron.
+
+        OUTPUT:
+
+        A Polyhedron object, subdivided as described above.
+
+        EXAMPLES::
+
+            sage: P = polytopes.hypercube(3)
+            sage: P.barycentric_subdivision()
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+            of 26 vertices
+            sage: P = Polyhedron(vertices=[[0,0,0],[0,1,0],[1,0,0],[0,0,1]])
+            sage: P.barycentric_subdivision()
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+            of 14 vertices
+            sage: P = Polyhedron(vertices=[[0,1,0],[0,0,1],[1,0,0]])
+            sage: P.barycentric_subdivision()
+            A 2-dimensional polyhedron in QQ^3 defined as the convex hull
+            of 6 vertices
+            sage: P = polytopes.regular_polygon(4, base_ring=QQ)
+            sage: P.barycentric_subdivision()
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 8
+            vertices
+
+        TESTS::
+
+            sage: P.barycentric_subdivision(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: The subdivision fraction should be between 0 and 1/2.
+            sage: P = Polyhedron(ieqs=[[1,0,1],[0,1,0],[1,0,0],[0,0,1]])
+            sage: P.barycentric_subdivision()
+            Traceback (most recent call last):
+            ...
+            ValueError: The polytope has to be compact.
+            sage: P = Polyhedron(vertices=[[0,0,0],[0,1,0],[1,0,0],[0,0,1]], backend='field')
+            sage: P.barycentric_subdivision()
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
+        """
+        if subdivision_frac is None:
+            subdivision_frac = ZZ.one() / 3
+
+        if not self.is_compact():
+            raise ValueError("The polytope has to be compact.")
+        if not (0 < subdivision_frac < ZZ.one() / 2):
+            raise ValueError("The subdivision fraction should be "
+                             "between 0 and 1/2.")
+
+        b_ring = self.parent()._coerce_base_ring(subdivision_frac)
+        barycenter = self.center()
+
+        ambient_dim = self.ambient_dim()
+        polytope_dim = self.dimension()
+
+        if ambient_dim != polytope_dim:
+            start_polar = Polyhedron((self - barycenter).polar().vertices())
+            polar = Polyhedron((self - barycenter).polar().vertices())
+        else:
+            start_polar = (self - barycenter).polar()
+            polar = (self - barycenter).polar()
+
+        for i in range(self.dimension() - 1):
+
+            new_ineq = []
+            subdivided_faces = list(start_polar.faces(i))
+            Hrep = polar.Hrepresentation()
+
+            for face in subdivided_faces:
+
+                face_vertices = face.vertices()
+                normal_vectors = []
+
+                for facet in Hrep:
+                    if all(facet.contains(v) and not facet.interior_contains(v)
+                           for v in face_vertices):
+                        # The facet contains the face
+                        normal_vectors.append(facet.A())
+
+                normal_vector = sum(normal_vectors)
+                B = - normal_vector * (face_vertices[0].vector())
+                linear_evaluation = set([-normal_vector * (v.vector())
+                                         for v in polar.vertices()])
+
+                if B == max(linear_evaluation):
+                    C = max(linear_evaluation.difference(set([B])))
+                else:
+                    C = min(linear_evaluation.difference(set([B])))
+
+                ineq_vector = [(1 - subdivision_frac) * B + subdivision_frac * C] + list(normal_vector)
+                new_ineq += [ineq_vector]
+
+            new_ieqs = polar.inequalities_list() + new_ineq
+            new_eqns = polar.equations_list()
+
+            polar = Polyhedron(ieqs=new_ieqs, eqns=new_eqns,
+                               base_ring=b_ring)
+
+        if ambient_dim != polytope_dim:
+            return (Polyhedron(polar.polar().vertices())) + barycenter
+        else:
+            return (polar.polar()) + barycenter
 
     def _make_polyhedron_face(self, Vindices, Hindices):
         """
@@ -3867,7 +4036,7 @@ class Polyhedron_base(Element):
             vertices = []
             for v in self.vertex_generator():
                 vbox = [ set([floor(x),ceil(x)]) for x in v ]
-                vertices.extend( CartesianProduct(*vbox) )
+                vertices.extend( itertools.product(*vbox) )
 
         # construct the (enveloping) lattice polytope
         from sage.geometry.lattice_polytope import LatticePolytope

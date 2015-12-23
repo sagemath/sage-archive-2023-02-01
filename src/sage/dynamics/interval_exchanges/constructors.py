@@ -322,8 +322,6 @@ def Permutation(*args,**kargs):
         sage: iet.Permutation(p) == p
         True
 
-    TESTS::
-
         sage: iet.Permutation('a b c','c b a',reduced='badly')
         Traceback (most recent call last):
         ...

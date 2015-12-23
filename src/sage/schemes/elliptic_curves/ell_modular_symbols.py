@@ -343,7 +343,7 @@ class ModularSymbol(SageObject):
         where `\Omega^{-}_E` is the least positive imaginary part of a
         non-real period of `E`.
 
-        EXMAPLES::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a1')
             sage: m = E.modular_symbol(sign=+1)

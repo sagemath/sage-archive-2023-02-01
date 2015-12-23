@@ -15,7 +15,7 @@ def AdditiveAbelianGroup(invs, remember_generators = True):
     r"""
     Construct a finitely-generated additive abelian group.
 
-    INPUTS:
+    INPUT:
 
     - ``invs`` (list of integers): the invariants.
       These should all be greater than or equal to zero.
@@ -401,7 +401,7 @@ class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
             Additive abelian group isomorphic to Z/3
         """
         AdditiveAbelianGroup_class.__init__(self, cover, rels)
-        self._orig_gens = [self(x) for x in gens]
+        self._orig_gens = tuple(self(x) for x in gens)
 
     def gens(self):
         r"""
@@ -416,7 +416,7 @@ class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
             sage: G.smith_form_gens()
             ((1, 2),)
         """
-        return tuple(self._orig_gens)
+        return self._orig_gens
 
     def identity(self):
         r"""

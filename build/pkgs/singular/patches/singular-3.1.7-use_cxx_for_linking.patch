@@ -4,6 +4,8 @@ Singular fails to build on Ubuntu 15.04 32-bit due to a missing symbol related t
 
 Patch taken from https://raw.githubusercontent.com/cschwan/sage-on-gentoo/master/sci-mathematics/singular/files/singular-3.1.7-use_cxx_for_linking.patch
 
+Added LIBSINGULAR_LDFLAGS in Trac #19698
+
 
 diff -Naur Singular-3-1-7.orig/Singular/Makefile.in Singular-3-1-7/Singular/Makefile.in
 --- Singular-3-1-7.orig/Singular/Makefile.in	2014-11-20 02:06:05.000000000 +1300
@@ -49,7 +51,7 @@ diff -Naur Singular-3-1-7.orig/Singular/configure Singular-3-1-7/Singular/config
  	  	LD_DYN_FLAGS2="-ldl"
  	  	SFLAGS="-fpic -DPIC"
 -	  	SLDFLAGS="-dynamic -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
-+	  	SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
++	  	SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup ${LIBSINGULAR_LDFLAGS}"
                  if test "${LD+set}" != set; then
  		  LD=libtool
                  fi
@@ -58,7 +60,7 @@ diff -Naur Singular-3-1-7.orig/Singular/configure Singular-3-1-7/Singular/config
  	  	LD_DYN_FLAGS2="-ldl"
  	  	SFLAGS="-fpic -DPIC"
 -	  	SLDFLAGS="-dynamic -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
-+	  	SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
++	  	SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup ${LIBSINGULAR_LDFLAGS}"
                  if test "${LD+set}" != set; then
  		  LD=libtool
                  fi
@@ -67,7 +69,7 @@ diff -Naur Singular-3-1-7.orig/Singular/configure Singular-3-1-7/Singular/config
                  LD_DYN_FLAGS2="-ldl"
                  SFLAGS="-fpic -DPIC"
 -                SLDFLAGS="-dynamic -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
-+                SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
++                SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup ${LIBSINGULAR_LDFLAGS}"
                   if test "${LD+set}" != set; then
                    LD=libtool
                   fi

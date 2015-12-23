@@ -169,7 +169,7 @@ class baseWI:
             sage: baseWI(2,3,4,5)
             (2, 3, 4, 5)
         """
-        return self.tuple().__repr__()
+        return repr(self.tuple())
 
     def is_identity(self):
         r"""

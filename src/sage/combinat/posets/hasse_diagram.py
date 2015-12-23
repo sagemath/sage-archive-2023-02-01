@@ -376,6 +376,8 @@ class HasseDiagram(DiGraph):
             sage: p.is_chain()
             False
         """
+        if self.cardinality() == 0:
+            return True
         return (self.num_edges()+1 == self.num_verts() and # Hasse Diagram is a tree
                 all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
                 all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1

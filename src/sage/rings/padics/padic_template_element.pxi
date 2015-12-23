@@ -441,6 +441,75 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         return self.prime_pow
 
+    def residue(self, absprec=1):
+        r"""
+        Reduce this element modulo `p^\mathrm{absprec}`.
+
+        INPUT:
+
+        - ``absprec`` -- ``0`` or ``1``.
+
+        OUTPUT:
+
+        This element reduced modulo `p^\mathrm{absprec}` as an element of the
+        residue field or the null ring.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFM(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+
+        TESTS::
+
+            sage: a.residue(0)
+            0
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: reduction modulo p^n with n>1.
+            sage: a.residue(10)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: insufficient precision to reduce modulo p^10.
+
+            sage: R.<a> = ZqCA(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+
+            sage: R.<a> = Qq(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+            sage: (a/3).residue()
+            Traceback (most recent call last):
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue.
+            
+        """
+        if absprec < 0:
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
+        if self.valuation() < 0:
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
+        if absprec > self.precision_absolute():
+            raise PrecisionError("insufficient precision to reduce modulo p^%s."%absprec)
+        if absprec == 0:
+            from sage.rings.all import IntegerModRing
+            return IntegerModRing(1).zero()
+        elif absprec == 1:
+            parent = self.parent().residue_field()
+            if self.valuation() > 0:
+                return parent.zero()
+            digits = self.padded_list(1)
+            return parent(digits[0])
+        else:
+            raise NotImplementedError("reduction modulo p^n with n>1.")
+
 cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowComputer_ prime_pow):
     """
     This function is used by exponentiation in both CR_template.pxi

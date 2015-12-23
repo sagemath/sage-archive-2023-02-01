@@ -527,8 +527,7 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     Returns a list of digits in the series expansion.
 
     This function is used in printing, and expresses ``a`` as a series
-    in the standard uniformizer ``p``.  Note that for extension
-    elements, "digits" could be lists themselves.
+    in the standard uniformizer ``p``.
 
     INPUT:
 
@@ -540,7 +539,10 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
 
     OUTPUT:
 
-    - A list of p-adic digits `[a_0, a_1, \ldots]` so that `a = a_0 + a_1*p + \cdots` modulo `p^{prec}`.
+    A list of `p`-adic digits `[a_0, a_1, \ldots]` so that `a = a_0 + a_1*p +
+    \cdots` modulo `p^{prec}`. The digits are represented as lists themselves.
+    The returned list might omit trailing zeros and therefore contain less than
+    ``prec`` elements.
     """
 
     ret = []

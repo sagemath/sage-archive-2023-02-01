@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from types cimport fmpz_t, fmpz_poly_t
 
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c

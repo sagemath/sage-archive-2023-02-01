@@ -1,5 +1,5 @@
 from sage.libs.gmp.types cimport mpz_t, mpz_ptr
-include "sage/libs/ntl/decl.pxi"
+from sage.libs.ntl.types cimport ZZ_c
 
 from sage.structure.element cimport EuclideanDomainElement, RingElement
 from sage.categories.morphism cimport Morphism

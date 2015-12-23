@@ -3,10 +3,11 @@
 from .types cimport (ZZ_c, ZZX_c, ZZ_p_c, vec_ZZ_p_c, ZZ_pContext_c,
         ZZ_pX_c, ZZ_pX_Modulus_c, ZZ_pX_Multiplier_c)
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ccobject.h":
     void ZZ_pX_from_str "_from_str<ZZ_pX>"(ZZ_pX_c* dest, char* s)
     object ZZ_pX_to_PyString "_to_PyString<ZZ_pX>"(ZZ_pX_c *x)
 
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     long ZZ_pX_IsZero "IsZero"(ZZ_pX_c a)
     long ZZ_pX_IsOne "IsOne"(ZZ_pX_c a)
 

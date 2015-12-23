@@ -2,6 +2,9 @@
 
 from .types cimport ZZ_c, zz_p_c, zz_pX_c, zz_pX_Modulus_c
 
+cdef extern from "ccobject.h":
+    void zz_pX_Modulus_from_str "_from_str<zz_pXModulus>"(zz_pX_Modulus_c* dest, char* s)
+
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     char* zz_pX_repr(zz_pX_c* x)
     void zz_pX_SetCoeff_long "SetCoeff"(zz_pX_c x, long i, long a)
@@ -39,7 +42,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void zz_pX_eval "eval" (zz_p_c fa, zz_pX_c f, zz_p_c a)
     void zz_pX_MakeMonic "MakeMonic"(zz_pX_c x)
 
-    void zz_pX_Modulus_from_str "_from_str<zz_pXModulus>"(zz_pX_Modulus_c* dest, char* s)
     void zz_pX_Modulus_build "build"(zz_pX_Modulus_c F, zz_pX_c f) # MUST be called before using the modulus
     long zz_pX_Modulus_deg "deg"(zz_pX_Modulus_c F)
 
@@ -55,5 +57,3 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void zz_pX_DivRem_pre "DivRem"(zz_pX_c q, zz_pX_c r, zz_pX_c a, zz_pX_Modulus_c F)
     void zz_pX_div_pre "div"(zz_pX_c q, zz_pX_c a, zz_pX_Modulus_c F)
     void zz_pX_InvMod_pre "InvMod"(zz_pX_c x, zz_pX_c a, zz_pX_Modulus_c F)
-
-    long NTL_SP_BOUND

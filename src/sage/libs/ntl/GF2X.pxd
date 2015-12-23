@@ -1,12 +1,12 @@
-# distutils: depends = NTL/ZZ.h
+from .types cimport GF2X_c, GF2_c, GF2XModulus_c, vec_GF2_c, ZZ_c
 
-from .types cimport ZZ_c, GF2_c, GF2X_c, GF2XModulus_c, vec_GF2_c
+cdef extern from "ccobject.h":
+    void GF2X_from_str "_from_str<GF2X>"(GF2X_c* dest, char* s)
+    object GF2X_to_PyString "_to_PyString<GF2X>"(GF2X_c *x)
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     long *GF2XHexOutput_c "(&GF2X::HexOutput)" # work-around for Cython bug
 
-    void GF2X_from_str "_from_str<GF2X>"(GF2X_c* dest, char* s)
-    object GF2X_to_PyString "_to_PyString<GF2X>"(GF2X_c *x)
     int GF2X_IsOne "IsOne"(GF2X_c x)
     int GF2X_IsZero "IsZero"(GF2X_c x)
     int GF2X_IsX "IsX"(GF2X_c x)

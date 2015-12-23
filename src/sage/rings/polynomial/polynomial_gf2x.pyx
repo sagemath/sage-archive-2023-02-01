@@ -14,6 +14,7 @@ cdef inline cparent get_cparent(parent):
     return 0
 
 # first we include the definitions
+include "sage/libs/ntl/decl.pxi"
 include "sage/libs/ntl/ntl_GF2X_linkage.pxi"
 
 # and then the interface

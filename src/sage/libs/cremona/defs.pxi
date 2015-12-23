@@ -1,3 +1,5 @@
+from sage.libs.ntl.types cimport ZZ_c
+
 cdef extern from "eclib/interface.h":
     ctypedef struct bigint:  #eclib uses NTL in Sage -- we call Cremona's "bigint" ZZ_c.
         pass

@@ -1,13 +1,13 @@
-# distutils: depends = NTL/ZZ.h
+from .types cimport vec_GF2_c, GF2_c
 
-from .types cimport GF2_c, vec_GF2_c
-
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ccobject.h":
     void vec_GF2_from_str "_from_str<vec_GF2>"(vec_GF2_c* dest, char* s)
     object vec_GF2_to_PyString "_to_PyString<vec_GF2>"(vec_GF2_c *x)
+    void vec_GF2_swap "swap"(vec_GF2_c x, vec_GF2_c y)
+
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     int vec_GF2_IsZero "IsZero"(vec_GF2_c x)
 
-    void vec_GF2_swap "swap"(vec_GF2_c x, vec_GF2_c y)
     void vec_GF2_append_GF2 "append"(vec_GF2_c v, GF2_c a)
     void vec_GF2_append_vec "append"(vec_GF2_c v,  vec_GF2_c a)
     void vec_GF2_VectorCopy "VectorCopy"(vec_GF2_c x, vec_GF2_c a, long n)

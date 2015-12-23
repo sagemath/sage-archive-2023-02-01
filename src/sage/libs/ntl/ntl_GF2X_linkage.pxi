@@ -14,8 +14,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.ntl.ntl_GF2_decl cimport *
-from sage.libs.ntl.ntl_GF2X_decl cimport *
+from sage.libs.ntl.GF2 cimport *
+from sage.libs.ntl.GF2X cimport *
 include "sage/ext/interrupt.pxi"
 
 

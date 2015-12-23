@@ -3558,7 +3558,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             ....:     Psi = NCSF.Psi()
             ....:     a = R.sum([(-1) ** i * R[[1]*i + [n-i]]
             ....:                for i in range(n)])
-            ....:     return Psi(a) == Psi[n]
+            ....:     return a == R(Psi[n])
             sage: test_psi(2)
             True
             sage: test_psi(3)
@@ -4211,6 +4211,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 The current implementation on the Phi basis gives the
                 same results as the default implementation::
 
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
                     sage: S = NSym.S()
                     sage: def test_phi(N, n):
                     ....:     for I in Compositions(N):

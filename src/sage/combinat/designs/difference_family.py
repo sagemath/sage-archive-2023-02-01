@@ -46,6 +46,7 @@ from sage.categories.sets_cat import EmptySetError
 import sage.rings.arith as arith
 from sage.misc.unknown import Unknown
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
 def group_law(G):
     r"""
@@ -974,6 +975,128 @@ def twin_prime_powers_difference_set(p, check=True):
 
     return G, [d]
 
+def mcfarland_1973_parameters(M):
+    r"""
+    Iterator over the parameters ``(v,k,l,q,s)`` of the McFarland construction.
+
+    See :func:`mcfarland_1973_construction`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import mcfarland_1973_parameters
+        sage: for v,k,l,q,s in mcfarland_1973_parameters(100):
+        ....:     print v,k,l,q,s
+        ....:     assert designs.difference_family(v,k,l,existence=True) is True
+        ....:     G,D = designs.difference_family(v,k,l)
+        16 6 2 2 1
+        64 28 12 2 2
+        45 12 3 3 1
+        96 20 4 4 1
+    """
+    q = ZZ(2)
+    run = True
+    while run:
+        run = False
+        s = 1
+        while True:
+            v = q**(s+1) * (q**(s+1) + q - 2) // (q-1)
+            k = q**s * (q**(s+1)-1) // (q-1)
+            l = q**s * (q**s - 1) // (q-1)
+            if v >= M:
+                break
+            else:
+                run = True
+                yield v,k,l,q,s
+            s += 1
+        q = q.next_prime_power()
+
+_MCFARLAND_LIMIT = 10000
+_MCFARLAND_PARAMETERS = {(v,k,l): (q,s) for v,k,l,q,s in mcfarland_1973_parameters(_MCFARLAND_LIMIT)}
+
+def are_mcfarland_1973_parameters(v, k, lmbda, return_parameters=False):
+    r"""
+    Test whether ``(v,k,l)`` is a triple that can be obtained from the
+    construction of McFarland 1973.
+
+    See :func:`mcfarland_1973_construction`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import are_mcfarland_1973_parameters
+        sage: are_mcfarland_1973_parameters(64, 28, 12)
+        True
+        sage: are_mcfarland_1973_parameters(64, 28, 12, return_parameters=True)
+        (True, (2, 2))
+        sage: are_mcfarland_1973_parameters(60, 13, 5)
+        False
+        sage: are_mcfarland_1973_parameters(98125, 19500, 3875)
+        True
+        sage: are_mcfarland_1973_parameters(98125, 19500, 3875, True)
+        (True, (5, 3))
+    """
+    global _MCFARLAND_LIMIT, _MCFARLAND_PARAMETERS
+    if v <= _MCFARLAND_LIMIT:
+        t = _MCFARLAND_PARAMETERS.get((v,k,lmbda), False)
+        if t is False:
+            return (False,None) if return_parameters else False
+        else:
+            return (True, t) if return_parameters else True
+    else:
+        for vv,kk,ll,q,s in mcfarland_1973_parameters(v+1):
+            if v == vv and k == kk and lmbda == ll:
+                return (True, (q,s)) if return_parameters else True
+        return (False,None) if return_parameters else False
+
+def mcfarland_1973_construction(q, s):
+    r"""
+    Return a difference set.
+
+    The parameters are
+
+    .. MATH::
+
+        v = \frac{q^{s+1}(q^{s+1}+q-2)}{q-1}
+        k = \frac{q^s (q^{s+1}-1}{q-1}
+        \lambda = \frac{q^s(q^s-1)}{q-1}
+
+    REFERENCES:
+
+    .. [McF1973] Robert L. McFarland
+       "A family of difference sets in non-cyclic groups"
+       Journal of Combinatorial Theory (A) vol 15 (1973).
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import (
+        ....:    mcfarland_1973_construction, is_difference_family)
+
+        sage: G,D = mcfarland_1973_construction(3, 1)
+        sage: assert is_difference_family(G, D, 45, 12, 3)
+
+        sage: G,D = mcfarland_1973_construction(2, 2)
+        sage: assert is_difference_family(G, D, 64, 28, 12)
+    """
+    from sage.rings.finite_rings.constructor import GF
+    from sage.modules.free_module import VectorSpace
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    from sage.categories.cartesian_product import cartesian_product
+
+    r = (q**(s+1)-1) // (q-1)
+    F = GF(q,'a')
+    V = VectorSpace(F, s+1)
+    K = Zmod(r+1)
+
+    G = cartesian_product([F]*(s+1) + [K])
+
+    K_iter = iter(K)
+    D = []
+    for H in V.subspaces(s):
+        k = next(K_iter)
+        for v in H:
+            D.append(G((tuple(v) + (k,))))
+
+    return G,[D]
+
 def difference_family(v, k, l=1, existence=False, explain_construction=False, check=True):
     r"""
     Return a (``k``, ``l``)-difference family on an Abelian group of cardinality ``v``.
@@ -1033,14 +1156,16 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
         sage: G,D = designs.difference_family(15,7,3)
         sage: G
-        The cartesian product of (Finite Field of size 3, Finite Field of size 5)
+        Ring of integers modulo 15
         sage: D
-        [[(1, 1), (1, 4), (2, 2), (2, 3), (0, 0), (1, 0), (2, 0)]]
+        [[0, 1, 2, 4, 5, 8, 10]]
         sage: print designs.difference_family(15,7,3,explain_construction=True)
-        Twin prime powers difference family
+        Singer difference set
 
         sage: print designs.difference_family(91,10,1,explain_construction=True)
         Singer difference set
+        sage: print designs.difference_family(64,28,12, explain_construction=True)
+        McFarland 1973 construction
 
     For `k=6,7` we look at the set of small prime powers for which a
     construction is available::
@@ -1263,56 +1388,68 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         G = Zmod(v)
         return G, [range(1,v)]
 
-    factorization = arith.factor(v)
-    D = None
-
-    if len(factorization) == 1:  # i.e. is v a prime power
-        from sage.rings.finite_rings.constructor import GF
-        G = K = GF(v,'z')
-
-        if radical_difference_family(K, k, l, existence=True):
-            if existence:
-                return True
-            elif explain_construction:
-                return "Radical difference family on a finite field"
-            else:
-                D = radical_difference_family(K,k,l)
-
-        elif l == 1 and k == 6 and df_q_6_1(K,existence=True):
-            if existence:
-                return True
-            elif explain_construction:
-                return "Wilson 1972 difference family made from the union of two cyclotomic cosets"
-            else:
-                D = df_q_6_1(K)
-
-    # Twin prime powers construction
-    # i.e. v = p(p+2) where p and p+2 are prime powers
-    #      k = (v-1)/2
-    #      lambda = (k-1)/2 (ie 2l+1 = k)
-    elif (k == (v-1)//2 and
-          l == (k-1)//2 and
-          len(factorization) == 2 and
-          abs(pow(*factorization[0]) - pow(*factorization[1])) == 2):
+    # construction that does not depend on factorization
+    if are_mcfarland_1973_parameters(v,k,l):
         if existence:
             return True
         elif explain_construction:
-            return "Twin prime powers difference family"
+            return "McFarland 1973 construction"
         else:
-            p = pow(*factorization[0])
-            q = pow(*factorization[1])
-            if p > q:
-                p,q = q,p
-            G,D = twin_prime_powers_difference_set(p,check=False)
+            _, (q,s) = are_mcfarland_1973_parameters(v,k,l,True)
+            G,D = mcfarland_1973_construction(q,s)
 
-    if D is None and are_hyperplanes_in_projective_geometry_parameters(v,k,l):
-        _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)
+    elif are_hyperplanes_in_projective_geometry_parameters(v,k,l):
         if existence:
             return True
         elif explain_construction:
             return "Singer difference set"
         else:
+            _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)
             G,D = singer_difference_set(q,d)
+
+    else:
+        factorization = arith.factor(v)
+        D = None
+
+        if len(factorization) == 1:  # i.e. is v a prime power
+            from sage.rings.finite_rings.constructor import GF
+            G = K = GF(v,'z')
+
+            if radical_difference_family(K, k, l, existence=True):
+                if existence:
+                    return True
+                elif explain_construction:
+                    return "Radical difference family on a finite field"
+                else:
+                    D = radical_difference_family(K,k,l)
+
+            elif l == 1 and k == 6 and df_q_6_1(K,existence=True):
+                if existence:
+                    return True
+                elif explain_construction:
+                    return "Wilson 1972 difference family made from the union of two cyclotomic cosets"
+                else:
+                    D = df_q_6_1(K)
+
+        # Twin prime powers construction
+        # i.e. v = p(p+2) where p and p+2 are prime powers
+        #      k = (v-1)/2
+        #      lambda = (k-1)/2 (ie 2l+1 = k)
+        elif (k == (v-1)//2 and
+              l == (k-1)//2 and
+              len(factorization) == 2 and
+              abs(pow(*factorization[0]) - pow(*factorization[1])) == 2):
+            if existence:
+                return True
+            elif explain_construction:
+                return "Twin prime powers difference family"
+            else:
+                p = pow(*factorization[0])
+                q = pow(*factorization[1])
+                if p > q:
+                    p,q = q,p
+                G,D = twin_prime_powers_difference_set(p,check=False)
+
 
     if D is None:
         if existence:

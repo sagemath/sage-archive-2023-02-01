@@ -2283,7 +2283,6 @@ def strongly_regular_from_two_intersection_set(M):
     g.relabel()
     return g
 
-
 def SRG_729_336_153_156():
     r"""
     Return a `(729, 336, 153, 156)`-strongly regular graph.
@@ -2887,6 +2886,12 @@ def _build_small_srg_database():
         Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 616, 523, 506) # not tested (too long)
         Graph on 729 vertices
+        sage: graphs.strongly_regular_graph(1024, 363, 122, 132)# not tested (too long)
+        Graph on 1024 vertices
+        sage: graphs.strongly_regular_graph(1024, 396, 148, 156)# not tested (too long)
+        Graph on 1024 vertices
+        sage: graphs.strongly_regular_graph(1024, 429, 176, 182)# not tested (too long)
+        Graph on 1024 vertices
         sage: graphs.strongly_regular_graph(1024, 825, 668, 650)# not tested (too long)
         Graph on 1024 vertices
     """
@@ -2988,12 +2993,12 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (196  90   40   42  ) that exists. Comment ... RSHCD<sup></sup>; 2-graph
+        Sage cannot build a (196  60   14   20  ) that exists. Comment from Brouwer's database: pg(6,9,2)?
         ...
         In Andries Brouwer's database:
-        - 448 impossible entries
-        - 2950 undecided entries
-        - 1140 realizable entries (Sage misses ... of them)
+        - 452 impossible entries
+        - 2936 undecided entries
+        - 1150 realizable entries (Sage misses ... of them)
 
     """
     global _brouwer_database

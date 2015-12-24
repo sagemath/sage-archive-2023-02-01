@@ -184,6 +184,12 @@ class ClusterQuiver(SageObject):
         from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
         from sage.matrix.matrix import Matrix
         
+        if isinstance(user_labels,list):
+            user_labels = [tuple(x) if isinstance(x,list) else x for x in user_labels]
+        elif isinstance(user_labels,dict):
+            values = [tuple(user_labels[x]) if isinstance(user_labels[x],list) else user_labels[x] for x in user_labels]
+            user_labels = dict(zip(user_labels.keys(),values))
+        
         # constructs a quiver from a mutation type
         if type( data ) in [QuiverMutationType_Irreducible,QuiverMutationType_Reducible]:
             if frozen is not None:
@@ -194,7 +200,7 @@ class ClusterQuiver(SageObject):
             if user_labels:
                 self.relabel(user_labels)
                 if isinstance(user_labels, dict):
-                    self._nlist = [user_labels[i] for i in xrange(len(user_labels))]
+                    self._nlist = user_labels.keys()
                 else:
                     self._nlist = user_labels
 
@@ -249,11 +255,13 @@ class ClusterQuiver(SageObject):
                 self.__init__( mutation_type.standard_quiver() )
 
             if user_labels:
-                self.relabel(user_labels)
+                
                 if isinstance(user_labels, dict):
-                    self._nlist = [user_labels[i] for i in xrange(self._n)]
+                    self._nlist = user_labels.keys()
                 else:
                     self._nlist = user_labels
+                    
+                self.relabel(self._nlist)
                 
         # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
@@ -291,8 +299,8 @@ class ClusterQuiver(SageObject):
             
             if user_labels:
                 if isinstance(user_labels, dict):
-                    self._nlist = [user_labels[i] for i in xrange(n)]
-                    self._mlist = [user_labels[i] for i in xrange(n,n+m)]
+                    self._nlist = user_labels.keys()[0:n]
+                    self._mlist = user_labels.keys()[n:n+m]
                 elif isinstance(user_labels, list):
                     self._nlist = user_labels[0:n]
                     self._mlist = user_labels[n:n+m]

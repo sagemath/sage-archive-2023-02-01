@@ -208,6 +208,13 @@ class ClusterSeed(SageObject):
 
         self._track_mut = None
         self._mut_path = None
+        
+        # ensures user_labels are immutable
+        if isinstance(user_labels,list):
+            user_labels = [tuple(x) if isinstance(x,list) else x for x in user_labels]
+        elif isinstance(user_labels,dict):
+            values = [tuple(user_labels[x]) if isinstance(user_labels[x],list) else user_labels[x] for x in user_labels]
+            user_labels = dict(zip(user_labels.keys(),values))
 
         # constructs a cluster seed from a cluster seed
         if isinstance(data, ClusterSeed):
@@ -289,15 +296,14 @@ class ClusterSeed(SageObject):
                 user_labels = self._nlist + self._mlist
             if user_labels:
                 if isinstance(user_labels, dict):
-                    labelset = set(user_labels.values())
+                    labelset = set(user_labels.keys())
                 else:
                     labelset = set(user_labels)
+                    # Sanitizes our user_labels to use Integers instead of ints
+                    user_labels = map(lambda x : ZZ(x) if type(x) == int else x,user_labels)
                 if labelset != set(self._nlist + self._mlist) and labelset != set(range(self._n + self._m)):
                     
                     print('Warning: user_labels conflict with both the given vertex labels and the default labels.')
-            
-                # Sanitizes our user_labels to use Integers instead of ints
-                user_labels = map(lambda x : ZZ(x) if type(x) == int else x,user_labels)
             
             # We are now updating labels from user's most recent choice.
             self._is_principal = is_principal
@@ -754,12 +760,13 @@ class ClusterSeed(SageObject):
 
 
         """
+        self._init_vars = {}
         if isinstance(user_labels,list):
-            self._init_vars = {}
+            
             for i in xrange(len(user_labels)):
                 if isinstance(user_labels[i], Integer):
                     self._init_vars[i] = user_labels_prefix+user_labels[i].str()
-                elif isinstance(user_labels[i], list):
+                elif type(user_labels[i]) in [list,tuple]:
                     self._user_labels_prefix = user_labels_prefix
                     strng = self._user_labels_prefix
                     for j in user_labels[i]:
@@ -771,9 +778,21 @@ class ClusterSeed(SageObject):
                 else:
                     self._init_vars[i] = user_labels[i]
         elif isinstance(user_labels,dict):
-            self._init_vars = user_labels
+            for key in user_labels:
+                if type(user_labels[key]) in [list,tuple]:
+                    self._user_labels_prefix = user_labels_prefix
+                    strng = self._user_labels_prefix
+                    for j in user_labels[key]:
+                        if isinstance(j, Integer):
+                            strng = strng+"_"+j.str()
+                        else:
+                            strng = strng+"_"+j
+                    self._init_vars[key] = strng
+                else:
+                    self._init_vars[key] = user_labels[key]
         else:
             raise ValueError("The input 'user_labels' must be a dictionary or a list.")
+        
         if len(self._init_vars.keys()) != self._n+self._m:
             raise ValueError("The number of user-defined labels is not the number of exchangeable and frozen variables.")
 

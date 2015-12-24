@@ -701,7 +701,7 @@ class SearchForest(Parent):
 
         - ``map_function`` -- a function from the element of ``self`` to some
           set with a reduce operation (e.g.: a monoid). The default value is
-          the function costant to ``1``.
+          the constant function ``1``.
 
         - ``reduce_function`` -- the reduce function (e.g.: the addition of a
           monoid). The default value is ``+``.

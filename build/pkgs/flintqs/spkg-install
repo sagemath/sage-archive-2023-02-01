@@ -9,7 +9,6 @@ fi
 cd src
 
 export CXXFLAGS="-fomit-frame-pointer -O3 -Wno-sign-compare -Wno-write-strings -I$SAGE_LOCAL/include $CXXFLAGS"
-export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 
 ./configure \
     --libdir="$SAGE_LOCAL/lib" \

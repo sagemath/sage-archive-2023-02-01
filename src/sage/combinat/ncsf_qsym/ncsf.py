@@ -4213,6 +4213,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                     sage: NSym = NonCommutativeSymmetricFunctions(QQ)
                     sage: S = NSym.S()
+                    sage: Phi = NSym.Phi()
                     sage: def test_phi(N, n):
                     ....:     for I in Compositions(N):
                     ....:         if S(Phi[I].verschiebung(n)) != S(Phi[I]).verschiebung(n):

@@ -3158,18 +3158,19 @@ cdef class gen(gen_auto):
 
     def centerlift(gen x, v=-1):
         """
-        centerlift(x,v): Centered lift of x. This function returns exactly
-        the same thing as lift, except if x is an integer mod.
+        Centered lift of x. This function returns exactly the same thing as lift,
+        except if x is an integer mod.
 
         INPUT:
 
+        -  ``x`` -- gen
 
-        -  ``x`` - gen
+        -  ``v`` -- var (default: x)
 
-        -  ``v`` - var (default: x)
+        OUTPUT:
 
-
-        OUTPUT: gen
+        - `r` -- gen. If `x` is an integer mod `n`, return the unique element `r` congruent
+          to `x` mod `n` such that `-n/2 < r \\leq n/2`.
 
         EXAMPLES::
 
@@ -3190,10 +3191,17 @@ cdef class gen(gen_auto):
             x - y
             sage: f.centerlift('y')
             Mod(x - y, x^2 + 1)
+
+        For compatibility with other classes in Sage, there is an alias
+        ``lift_centered``::
+
+            sage: pari("Mod(3,5)").lift_centered()
+            -2
         """
         pari_catch_sig_on()
         return P.new_gen(centerlift0(x.g, P.get_var(v)))
 
+    lift_centered = centerlift
 
     def component(gen x, long n):
         """

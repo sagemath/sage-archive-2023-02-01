@@ -2283,40 +2283,6 @@ def strongly_regular_from_two_intersection_set(M):
     g.relabel()
     return g
 
-def SRG_729_336_153_156():
-    r"""
-    Return a `(729, 336, 153, 156)`-strongly regular graph.
-
-    This graph is built from a 2-intersection code shared by L. Disset in his
-    thesis [Disset00]_ and available at
-    http://www.mat.uc.cl/~ldissett/newgraphs/.
-
-    EXAMPLE::
-
-        sage: from sage.graphs.strongly_regular_db import SRG_729_336_153_156
-        sage: G = SRG_729_336_153_156()               # long time
-        sage: G.is_strongly_regular(parameters=True)  # long time
-        (729, 336, 153, 156)
-
-    REFERENCES:
-
-    .. [Disset00] L. Dissett,
-       Combinatorial and computational aspects of finite geometries,
-       2000,
-       https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
-    """
-    L = [
-        "101212212122202012010102120101112012121001201012120220122112001121201201201201010020012201001201201201202120121122012021201221021110200212121011211002012220000122201201",
-        "011100122001200111220011220020011222001200022000220012220122011220011101122012012001222010122200012011120112220112000120120012002012201122001220012122000201212001211211",
-        "000011111000011111112000001112000000111122222000001111112222000001111122222000111222222001111122222000001111112222000001112222000111122222000001111222000011122000011122",
-        "000000000111111111111000000000111111111111111222222222222222000000000000000111111111111222222222222000000000000000111111111111222222222222000000000000111111111222222222",
-        "000000000000000000000111111111111111111111111111111111111111000000000000000000000000000000000000000111111111111111111111111111111111111111222222222222222222222222222222",
-        "000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
-    ]
-
-    L = Matrix(GF(3),map(list,L)).transpose()
-    return strongly_regular_from_two_intersection_set(L)
-
 def SRG_120_63_30_36():
     r"""
     Return a `(120,63,30,36)`-strongly regular graph
@@ -2874,6 +2840,8 @@ def _build_small_srg_database():
         Graph on 625 vertices
         sage: graphs.strongly_regular_graph(625, 468, 353, 342) # not tested (too long)
         Graph on 625 vertices
+        sage: graphs.strongly_regular_graph(729, 336, 153,156)  # not tested (too long)
+        Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 420, 243, 240) # not tested (too long)
         Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 448, 277, 272) # not tested (too long)
@@ -2941,7 +2909,6 @@ def _build_small_srg_database():
         (416, 100,  36, 20): [SRG_416_100_36_20],
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (630,  85,  20, 10): [SRG_630_85_20_10],
-        (729, 336, 153,156): [SRG_729_336_153_156],
         (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
         (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
         (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],

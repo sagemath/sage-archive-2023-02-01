@@ -158,8 +158,8 @@ case "$UNAME" in
                 # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
                 echo "Building a 64-bit version of MPIR."
                 case "`uname -m`" in
-                    ppc64) ABI=mode64;;
-                    *)     ABI=64
+                    ppc*) ABI=mode64;;
+                    *)    ABI=64;;
                 esac
             elif $CC $CFLAGS $CFLAG32 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
                 # We're on a 32-bit OS which cannot run 64-bit executables.
@@ -184,6 +184,12 @@ case "$UNAME" in
         echo >&2 "Warning: Your platform ($UNAME) isn't yet explicitly supported" \
             "by this MPIR spkg, i.e., by Sage's part of it."
 esac
+
+# MPIR 2.7.2 does not know about ppc64le and confuses it with plain
+# ppc64. We need to disable specific powerpc64 assembly.
+if [ "`uname -m`" = ppc64le ]; then
+    export MPN_PATH=generic
+fi
 
 # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs.
 # See #12765, #12751, and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496

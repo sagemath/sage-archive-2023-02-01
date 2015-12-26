@@ -817,11 +817,11 @@ ex pseries::mul_series(const pseries &other) const
 	
 	// Series multiplication
 	epvector new_seq;
-	int a_max = degree(var);
-	int b_max = other.degree(var);
-	int a_min = ldegree(var);
-	int b_min = other.ldegree(var);
-	int cdeg_min = a_min + b_min;
+	const int a_max = degree(var);
+	const int b_max = other.degree(var);
+	const int a_min = ldegree(var);
+	const int b_min = other.ldegree(var);
+	const int cdeg_min = a_min + b_min;
 	int cdeg_max = a_max + b_max;
 	
 	int higher_order_a = std::numeric_limits<int>::max();
@@ -830,18 +830,30 @@ ex pseries::mul_series(const pseries &other) const
 		higher_order_a = a_max + b_min;
 	if (is_order_function(other.coeff(var, b_max)))
 		higher_order_b = b_max + a_min;
-	int higher_order_c = std::min(higher_order_a, higher_order_b);
+	const int higher_order_c = std::min(higher_order_a, higher_order_b);
 	if (cdeg_max >= higher_order_c)
 		cdeg_max = higher_order_c - 1;
-	
+
+        std::map<int, ex> map_int_ex1, map_int_ex2;
+        for (const auto& elem : seq)
+                map_int_ex1[ex_to<numeric>(elem.coeff).to_int()] = elem.rest;
+
+        if (other.var.is_equal(var))
+                for (const auto& elem : other.seq)
+                        map_int_ex2[ex_to<numeric>(elem.coeff).to_int()] = elem.rest;
+
 	for (int cdeg=cdeg_min; cdeg<=cdeg_max; ++cdeg) {
 		ex co = _ex0;
 		// c(i)=a(0)b(i)+...+a(i)b(0)
 		for (int i=a_min; cdeg-i>=b_min; ++i) {
-			ex a_coeff = coeff(var, i);
-			ex b_coeff = other.coeff(var, cdeg-i);
-			if (!is_order_function(a_coeff) && !is_order_function(b_coeff))
-				co += a_coeff * b_coeff;
+                        const auto& it1 = map_int_ex1.find(i);
+                        if (it1 == map_int_ex1.end())
+                                continue;
+                        const auto& it2 = map_int_ex2.find(cdeg-i);
+                        if (it2 == map_int_ex2.end())
+                                continue;
+			if (!is_order_function(it1->second) && !is_order_function(it2->second))
+				co += it1->second * it2->second;
 		}
 		if (!co.is_zero())
 			new_seq.push_back(expair(co, numeric(cdeg)));

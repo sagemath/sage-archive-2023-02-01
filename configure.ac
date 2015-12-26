@@ -925,6 +925,16 @@ AC_CONFIG_COMMANDS(mkdirs,
                 AC_MSG_NOTICE([creating directory $d])
                 mkdir -p "$d" || AC_MSG_ERROR(could not create $d)
         done
+
+        if test -d "$SAGE_LOCAL/lib64"; then
+            if test ! -L "$SAGE_LOCAL/lib64"; then
+                AC_MSG_NOTICE([[$SAGE_LOCAL/lib64 is not a symlink, see Trac #19782]])
+                AC_MSG_ERROR([[Cannot perform incremental update, run "make distclean && make"]])
+            fi
+        else
+            AC_MSG_NOTICE([[creating symbolic link lib64 -> lib]])
+            ln -s lib "$SAGE_LOCAL/lib64"
+        fi
     ])
 
 AC_OUTPUT()

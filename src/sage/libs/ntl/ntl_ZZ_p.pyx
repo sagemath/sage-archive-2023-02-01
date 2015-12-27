@@ -40,9 +40,10 @@ def ntl_ZZ_p_random_element(v):
     """
     Return a random number modulo p.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
-        8
+        9
     """
     current_randstate().set_seed_ntl(False)
 

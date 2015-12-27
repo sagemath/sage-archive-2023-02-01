@@ -743,7 +743,7 @@ class Qepcad_expect(Expect):
     The low-level wrapper for QEPCAD.
     """
     def __init__(self, memcells=None,
-                 maxread=100000,
+                 maxread=None,
                  logfile=None,
                  server=None):
         r"""
@@ -767,7 +767,6 @@ class Qepcad_expect(Expect):
                         # it doesn't give prompts
                         prompt="\nEnter an .*:\r",
                         command=_qepcad_cmd(memcells),
-                        maxread=maxread,
                         server=server,
                         restart_on_ctrlc=False,
                         verbose_start=False,

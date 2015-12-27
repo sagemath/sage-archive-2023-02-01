@@ -29,39 +29,31 @@ def row_iterator(A):
 
 def weak_popov_form(M,ascend=True):
     from sage.misc.superseded import deprecation
-    deprecation(16888, 'You can just call row_reduced_form() instead')
-    return row_reduced_form(M,ascend)
+    deprecation(16888, 'You should call row_reduced_form() instead')
+    return row_reduced_form(M)
 
-def row_reduced_form(M,ascend=True):
+def row_reduced_form(M,transformation=False):
     """
-    This function computes a weak Popov form of a matrix over a rational
+    This function computes a row reduced form of a matrix over a rational
     function field `k(x)`, for `k` a field.
 
     INPUT:
 
-     - `M` - matrix
-
-     - `ascend` - if True, rows of output matrix `W` are sorted so
-       degree (= the maximum of the degrees of the elements in
-       the row) increases monotonically, and otherwise degrees decrease.
-
+     - `M` - a matrix over `k(x)` or `k[x]` for `k` a field.
+     - `transformation` - A boolean (default: `False`). If this boolean is set to `True` a second matrix is output (see OUTPUT).
+     
     OUTPUT:
 
-    A 3-tuple `(W,N,d)` consisting of two matrices over `k(x)` and a list
-    of integers:
+    If `transformation` is `False`, the output is `W`, a row reduced form of `M`.
+    
+    If `transformation` is `True`, this function will output a pair `(W,N)` consisting of two matrices over `k(x)`:
 
-    1. `W` - matrix giving a weak the Popov form of M
-    2. `N` - matrix representing row operations used to transform
-       `M` to `W`
-    3. `d` - degree of respective columns of W; the degree of a column is
-       the maximum of the degree of its elements
-
-    `N` is invertible over `k(x)`. These matrices satisfy the relation
-    `N*M = W`.
+    1. `W` - a row reduced form of `M`.
+    2. `N` - an invertible matrix over `k(x)` satisfying `NW = M`.
 
     EXAMPLES:
 
-    The routine expects matrices over the rational function field, but
+    The fuction expects matrices over the rational function field, but
     other examples below show how one can provide matrices over the ring
     of polynomials (whose quotient field is the rational function field).
 
@@ -71,11 +63,22 @@ def row_reduced_form(M,ascend=True):
         sage: K = FractionField(R)
         sage: import sage.matrix.matrix_misc
         sage: sage.matrix.matrix_misc.row_reduced_form(matrix([[(t-1)^2/t],[(t-1)]]))
-        (
-        [          0]  [      t 2*t + 1]
-        [(2*t + 1)/t], [      1       2], [-Infinity, 0]
-        )
+        [(2*t + 1)/t]
+        [          0]
 
+    The last example shows the usage of the transformation parameter.
+        
+    ::
+        sage: Fq.<a> = GF(2^3)
+        sage: Fx.<x> = Fq[]
+        sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
+        sage: from sage.matrix.matrix_misc import row_reduced_form
+        sage: row_reduced_form(A,transformation=True)
+        (
+        [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
+        [                    x^3                   a*x^4], [      0                 1]
+        )
+            
     NOTES:
 
     See docstring for row_reduced_form method of matrices for
@@ -91,8 +94,8 @@ def row_reduced_form(M,ascend=True):
     else:
         R = R0
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    if not is_PolynomialRing(R):
-        raise TypeError("the coefficients of M must lie in a univariate polynomial ring")
+    if not is_PolynomialRing(R) or not R.base_ring().is_field():
+        raise TypeError("the coefficients of M must lie in a univariate polynomial ring over a field")
 
     t = R.gen()
 
@@ -106,19 +109,18 @@ def row_reduced_form(M,ascend=True):
         num = matrix([[numerator(_) for _ in v] for v in (M*den).rows()])
     else:
         # No need to clear denominators
-        den = R.one()
         num = M
 
     r = [list(v) for v in num.rows()]
 
-    N = matrix(num.nrows(), num.nrows(), R(1)).rows()
+    if transformation:
+        N = matrix(num.nrows(), num.nrows(), R(1)).rows()
 
-    from sage.rings.infinity import Infinity
-    if M.is_zero():
-        return (M, matrix(N), [-Infinity for i in range(num.nrows())])
 
     rank = 0
     num_zero = 0
+    if M.is_zero():
+        num_zero = len(r)
     while rank != len(r) - num_zero:
         # construct matrix of leading coefficients
         v = []
@@ -172,40 +174,30 @@ def row_reduced_form(M,ascend=True):
 
                     for j in range(len(indices)):
                         if j != i:
-                            # do row operation and record it
+                            # do the row operation
                             v = []
                             for k in range(len(r[indices[i]])):
                                 v.append(r[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * r[indices[j]][k])
                             r[indices[i]] = v
 
-                            v = []
-                            for k in range(len(N[indices[i]])):
-                                v.append(N[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * N[indices[j]][k])
-                            N[indices[i]] = v
+                            if transformation:
+                                # If the user asked for it, record the row operation 
+                                v = []
+                                for k in range(len(N[indices[i]])):
+                                    v.append(N[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * N[indices[j]][k])
+                                N[indices[i]] = v
 
                     # remaining relations (if any) are no longer valid,
                     # so continue onto next step of algorithm
                     break
-
-    # sort the rows in order of degree
-    d = []
-    from sage.rings.all import infinity
-    for i in range(len(r)):
-        d.append(max([e.degree() for e in r[i]]))
-        if d[i] < 0:
-            d[i] = -infinity
-        else:
-            d[i] -= den.degree()
-
-    for i in range(len(r)):
-        for j in range(i+1,len(r)):
-            if (ascend and d[i] > d[j]) or (not ascend and d[i] < d[j]):
-                (r[i], r[j]) = (r[j], r[i])
-                (d[i], d[j]) = (d[j], d[i])
-                (N[i], N[j]) = (N[j], N[i])
-
-    # return reduced matrix and operations matrix
-    return (matrix(r)/den, matrix(N), d)
+    if is_PolynomialRing(R0):
+        A = matrix(R, r)
+    else:
+        A = matrix(R, r)/den
+    if transformation:
+        return (A, matrix(N))
+    else:
+        return A
 
 def prm_mul(p1, p2, mask_free, prec):
     """

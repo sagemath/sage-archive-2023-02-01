@@ -9908,49 +9908,60 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def zeta(self, n=None, all=False):
         """
-        Returns an element of multiplicative order `n` in this this
-        cyclotomic field, if there is one. Raises a ValueError if there is
-        not.
+        Return an element of multiplicative order `n` in this this
+        cyclotomic field. If there is no such element, raise a
+        ``ValueError``.
 
         INPUT:
 
+        - ``n`` -- integer (default: None, returns element of
+          maximal order)
 
-        -  ``n`` - integer (default: None, returns element of
-           maximal order)
-
-        -  ``all`` - bool (default: False) - whether to return
-           a list of all n-th roots.
-
+        - ``all`` -- bool (default: False) - whether to return
+          a list of all primitive `n`-th roots of unity.
 
         OUTPUT: root of unity or list
 
         EXAMPLES::
 
-            sage: k = CyclotomicField(7)
+            sage: k = CyclotomicField(4)
             sage: k.zeta()
-            zeta7
+            zeta4
+            sage: k.zeta(2)
+            -1
             sage: k.zeta().multiplicative_order()
-            7
-            sage: k = CyclotomicField(49)
+            4
+
+        ::
+
+            sage: k = CyclotomicField(21)
             sage: k.zeta().multiplicative_order()
-            49
+            42
+            sage: k.zeta(21).multiplicative_order()
+            21
             sage: k.zeta(7).multiplicative_order()
             7
-            sage: k.zeta()
-            zeta49
-            sage: k.zeta(7)
-            zeta49^7
+            sage: k.zeta(6).multiplicative_order()
+            6
+            sage: k.zeta(84)
+            Traceback (most recent call last):
+            ..
+            ValueError: 84 does not divide order of generator (42)
 
         ::
 
             sage: K.<a> = CyclotomicField(7)
+            sage: K.zeta(all=True)
+            [-a^4, -a^5, a^5 + a^4 + a^3 + a^2 + a + 1, -a, -a^2, -a^3]
             sage: K.zeta(14, all=True)
             [-a^4, -a^5, a^5 + a^4 + a^3 + a^2 + a + 1, -a, -a^2, -a^3]
+            sage: K.zeta(2, all=True)
+            [-1]
             sage: K.<a> = CyclotomicField(10)
             sage: K.zeta(20, all=True)
             Traceback (most recent call last):
             ...
-            ValueError: n (=20) does not divide order of generator
+            ValueError: 20 does not divide order of generator (10)
 
         ::
 
@@ -9958,39 +9969,38 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ValueError: n (=4) does not divide order of generator
+            ValueError: 4 does not divide order of generator (10)
             sage: v = K.zeta(5, all=True); v
             [a, a^2, a^3, -a^3 - a^2 - a - 1]
             sage: [b^5 for b in v]
             [1, 1, 1, 1]
         """
         if n is None:
-            return self.gen()
+            n = self.zeta_order()
         else:
             n = integer.Integer(n)
-            z = self.gen()
-            m = z.multiplicative_order()
-            if n % 2 == 0 and m % 2 == 1:
-                # In the n-th cyclotomic field, n odd, there are
-                # actually 2*n-th roots of unity, so we include them.
-                z = -z**((m+1)//2) # -z
-                m = 2*m
-            if m % n != 0:
-                raise ValueError("n (=%s) does not divide order of generator"%n)
-                # use generic method (factor cyclotomic polynomial)
-                #  -- this is potentially really slow, so don't do it.
-                #return field.Field.zeta(self, n, all=all)
-            a = z**(m//n)
-            if all:
-                v = [a]
-                b = a*a
-                for i in range(2,n):
-                    if sage.rings.arith.gcd(i, n) == 1:
-                        v.append(b)
-                    b = b * a
-                return v
-            else:
-                return a
+
+        z = self.gen()
+        m = self._n()
+        if n % 2 == 0 and m % 2 == 1:
+            # In the n-th cyclotomic field, n odd, there are
+            # actually 2*n-th roots of unity, so we include them.
+            z = -z**((m+1)//2) # -z
+            m = 2*m
+        if m % n != 0:
+            raise ValueError("%s does not divide order of generator (%s)" %
+                    (n, self.zeta_order()))
+        a = z**(m//n)
+        if not all:
+            return a
+
+        v = [a]
+        b = a*a
+        for i in range(2,n):
+            if sage.rings.arith.gcd(i, n) == 1:
+                v.append(b)
+            b = b * a
+        return v
 
     def number_of_roots_of_unity(self):
         """

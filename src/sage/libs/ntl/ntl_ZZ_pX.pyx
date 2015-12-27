@@ -910,7 +910,7 @@ cdef class ntl_ZZ_pX(object):
         These computations use pseudo-random numbers, so we set the
         seed for reproducible testing. ::
 
-            sage: set_random_seed(0)
+            sage: set_random_seed(12)
             sage: ntl.ZZ_pX([-1,0,0,0,0,1],5).factor()
             [([4 1], 5)]
             sage: ls = ntl.ZZ_pX([-1,0,0,0,1],5).factor()

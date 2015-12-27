@@ -15,23 +15,16 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #       Copyright (C) 2014 Martin Albrecht <martinralbrecht@googlemail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 include "sage/ext/interrupt.pxi"
 
@@ -497,7 +490,7 @@ cdef class FP_LLL:
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=60, q=2^90, seed=42)
             sage: F = FP_LLL(A)
             sage: F.BKZ(10, max_loops=10, verbose=True)
-            ====== Wrapper: calling fast<mpz_t,double> method ======
+            Entering BKZ:
             ...
             loops limit exceeded in BKZ
             sage: F._sage_()[0].norm().n()
@@ -515,11 +508,8 @@ cdef class FP_LLL:
 
         cdef BKZParam o
 
-        o.b = self._lattice
         o.delta = delta
         o.blockSize = block_size
-        o.floatType = check_float_type(float_type)
-        o.precision = precision
         o.flags = BKZ_DEFAULT
 
         if verbose:
@@ -538,7 +528,7 @@ cdef class FP_LLL:
             o.maxTime = max_time
 
         sig_on()
-        cdef int r = bkzReduction(o)
+        cdef int r = bkzReduction(self._lattice, NULL, o, check_float_type(float_type), precision)
         sig_off()
         if r:
             if r in (RED_BKZ_LOOPS_LIMIT, RED_BKZ_TIME_LIMIT):

@@ -64,6 +64,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.misc.misc_c import prod
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
+from sage.libs.ntl.convert cimport ZZ_to_mpz
 
 cimport integer
 cimport rational

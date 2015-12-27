@@ -58,7 +58,7 @@ from sage.structure.element import RingElement, parent
 
 class Lisp(Expect):
     def __init__(self,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  logfile=None,
                  server=None,
                  server_tmpdir=None):
@@ -81,7 +81,6 @@ class Lisp(Expect):
                         # This is the command that starts up your program
                         command = "ecl",
 
-                        maxread = maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
                         script_subdirectory = script_subdirectory,

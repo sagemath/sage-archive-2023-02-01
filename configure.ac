@@ -722,8 +722,9 @@ filtered_packages_list() {
            [ "$PKG_TYPE" != "standard" ] && \
            [ "$PKG_TYPE" != "optional" ] && \
            [ "$PKG_TYPE" != "experimental" ] && \
+           [ "$PKG_TYPE" != "script" ] && \
            [ "$PKG_TYPE" != "pip" ]; then
-            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental' or 'pip'"
+            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'"
             return 1
         fi
 
@@ -852,6 +853,8 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
         DEPS=" $(head -n 1 $DEP_FILE)"
     elif [ "$TYPE" = optional ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
+    elif [ "$TYPE" = script ]; then
+        DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
     elif [ "$TYPE" = pip ]; then
         DEPS=' | $(INST)/$(PIP)'
     else
@@ -867,6 +870,20 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
         # Add a target to remove the "installed" file for "sage -f"
         echo >&7 "$PKG_NAME-clean:"
         echo >&7 "	-sage --pip uninstall -y $PKG_NAME"
+        echo >&7
+    elif [ "$TYPE" = script ]; then
+        # Just run the spkg-install script
+        echo >&7 "$PKG_NAME:$DEPS"
+        echo >&7 "	cd '$SAGE_ROOT' && \\"
+        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
+        echo >&7 "	    sage-logger '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7
+
+        # Just run the spkg-uninstall script if it exists
+        echo >&7 "$PKG_NAME-clean:"
+        echo >&7 "	-cd '$SAGE_ROOT' && \\"
+        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
+        echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
         echo >&7
     else
         # Normal Sage packages

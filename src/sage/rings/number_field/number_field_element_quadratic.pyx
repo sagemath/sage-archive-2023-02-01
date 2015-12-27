@@ -30,13 +30,18 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
+from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
-from sage.structure.element cimport Element
+from sage.structure.parent_base cimport ParentWithBase
+from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.sage_object cimport rich_to_bool_sgn
 
+from sage.rings.rational cimport Rational
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF

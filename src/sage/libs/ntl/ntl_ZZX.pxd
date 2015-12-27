@@ -1,4 +1,4 @@
-include "decl.pxi"
+from .types cimport ZZX_c
 
 cdef class ntl_ZZX(object):
     cdef ZZX_c x

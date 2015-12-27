@@ -292,8 +292,9 @@ def configure(arch=None, isa_ext=None):
     ## typically adds 3-4 hours of install time
     cmd += ' -Si latune 0'
 
-    # -Fa alg -fPIC: set flags so we can build dynamic libraries
-    cmd += ' -Fa alg -fPIC'
+    # Set flags for all compilers so we can build dynamic libraries
+    ALLFLAGS = "-fPIC " + os.environ["LDFLAGS"]
+    cmd += ' -Fa alg "{}"'.format(ALLFLAGS)
 
     # set number of threads limit: 0 = off, -1 = unlimited
     if thread_limit is not None:

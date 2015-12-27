@@ -100,29 +100,15 @@ static ex exp_eval(const ex & x)
         };
 
         if (has_pi_and_py(x)) { // true if x contains Pi and Python objects
-                                // like I. The following
-                // exp(n*Pi*I/2) -> {+1|+I|-1|-I}
-                ex TwoExOverPiI;
-                // Arithmetic with I can result in Python exceptions
-                // We just ignore the error in this case and skip this step
-                try {
-                        TwoExOverPiI=(_ex2*x)/(Pi*I);
-                } catch (...) {
-                }
-                if (PyErr_Occurred()) {
-                        PyErr_Clear();
-                } else if (is_exactly_a<numeric>(TwoExOverPiI)
-                        and TwoExOverPiI.info(info_flags::integer)) {
-                        const numeric z = mod(ex_to<numeric>(TwoExOverPiI),*_num4_p);
-                        if (z.is_equal(*_num0_p))
-                                return _ex1;
-                        if (z.is_equal(*_num1_p))
-                                return ex(I);
-                        if (z.is_equal(*_num2_p))
-                                return _ex_1;
-                        if (z.is_equal(*_num3_p))
-                                return ex(-I);
-                }
+                                // like I. To make this check should be faster
+                                // than the following
+                ex res1 = sin(x/I);
+                ex res2 = cos(x/I);
+                if (((not is_exactly_a<function>(res1))
+                or (not is_ex_the_function(res1, sin)))
+                and ((not is_exactly_a<function>(res2))
+                or (not is_ex_the_function(res2, cos))))
+                        return I*res1 + res2;
         }
 
 	// exp(log(x)) -> x

@@ -4,7 +4,7 @@ Projective plane conics over a rational function field
 
 AUTHORS:
 
-- Lennart Ackermans (2015-08-06)
+- Lennart Ackermans (2015-12)
 
 """
 #*****************************************************************************
@@ -23,8 +23,13 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import PolynomialRing, NumberField
-
+from sage.matrix.constructor import diagonal_matrix, identity_matrix, matrix, \
+     block_matrix
 from sage.schemes.plane_conics.con_field import ProjectiveConic_field
+from sage.rings.arith import lcm, gcd
+from sage.modules.free_module_element import vector
+from sage.rings.fraction_field import is_FractionField
+from sage.modules.free_module_element import vector
 
 class ProjectiveConic_rational_function_field(ProjectiveConic_field):
     r"""
@@ -51,7 +56,8 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
     REFERENCES:
 
     .. [HC2006] Mark van Hoeij and John Cremona, Solving Conics over
-        function fields. J. Théor. Nombres Bordeaux, 2006.
+       function fields. J. Théor. Nombres Bordeaux, 2006.
+    .. [ACKERMANS2016] Lennart Ackermans, title and link to be inserted
     """
     def __init__(self, A, f):
         r"""
@@ -64,6 +70,45 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             x^2 + y^2 + z^2
         """
         ProjectiveConic_field.__init__(self, A, f)
+    
+    def _return_point(self, point, returnpoint, transformation = None):
+        r"""
+        Return a point on `self` calculated `by has_rational_point()`.
+        
+        OUTPUT:
+        
+        If point is False, returns False if returnpoint is False and
+        (False, None) otherwise. If point is not False, returns True if
+        returnpoint is False and returns `(True, Point)`, where Point is a
+        Point on self, otherwise.
+        
+        INPUT:
+        
+        - `point`:  a point on the conic `transformation.domain()`
+        - `returnpoint`: whether to return the point
+        - `transformation`: a morphism from parent(point) to self
+
+        EXAMPLES::
+            
+            sage: R.<t> = FiniteField(23)[]
+            sage: C = Conic([2, t^2+1, t^2+5])
+            sage: C._return_point([5*t, 8, 1], True)
+            (True, (5*t : 8 : 1))
+        """
+        if point == False:
+            if returnpoint:
+                return False, None
+            else:
+                return False
+        else:
+            if returnpoint:
+                if transformation == None:
+                    transformation = self.hom(identity_matrix(3))
+                point = transformation(point)
+                self.cache_point(point)
+                return True, point
+            else:
+                return True
     
     def has_rational_point(self, point = False, algorithm = 'default',
         read_cache = True):
@@ -84,8 +129,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         * an algorithm for finding the square root of elements in finite
           extensions of `F`;
         
-        * a factorization algorithm for `F[t]`, as well as a square-free
-          decomposition and gcd function;
+        * a factorization and gcd algorithm for `F[t]`;
         
         * an algorithm for solving conics over `F`.
         
@@ -95,7 +139,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         to be used:
 
         * ``'default'`` -- use a native Sage implementation, based on the
-           algorithm Conic in [HC2006]_.
+          algorithm Conic in [HC2006]_.
 
         * ``'magma'`` (requires Magma to be installed) --
           delegates the task to the Magma computer algebra
@@ -103,19 +147,42 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         
         EXAMPLES:
         
-        We can find points for function fields over `\QQ` and finite
-        fields::
+        We can find points for function fields over (extensions of) `\QQ`
+        and finite fields::
         
             sage: K.<t> = FractionField(PolynomialRing(QQ, 't'))
             sage: C = Conic(K, [t^2-2, 2*t^3, -2*t^3-13*t^2-2*t+18])
             sage: C.has_rational_point(point=True)
-            (True, (3 : (1/3*t + 1/3)/(1/3*t) : 1))
+            (True, (3 : (t + 1)/t : 1))
             sage: R.<t> = FiniteField(23)[]
             sage: C = Conic([2, t^2+1, t^2+5])
             sage: C.has_rational_point()
             True
             sage: C.has_rational_point(point=True)
             (True, (5*t : 8 : 1))
+            sage: F.<i> = QuadraticField(-1)
+            sage: R.<t> = F[]
+            sage: C = Conic([1,i*t,-t^2+4])
+            sage: C.has_rational_point(point = True)
+            verbose 0 (3321: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            ...
+            (True, (-t - 2*i : -2*i : 1))
+
+        It works on non-diagonal conics as well::
+
+            sage: K.<t> = QQ[]
+            sage: C = Conic([4, -4, 8, 1, -4, t + 4])
+            sage: C.has_rational_point(point=True)
+            (True, (1/2 : 1 : 0))
+
+        If no point exists output still depends on the argument ``point``::
+
+            sage: K.<t> = QQ[]
+            sage: C = Conic(K, [t^2, (t-1), -2*(t-1)])
+            sage: C.has_rational_point()
+            False
+            sage: C.has_rational_point(point=True)
+            (False, None)
         
         Due to limitations in Sage of algorithms we depend on, it is not
         yet possible to find points on conics over multivariate function fields
@@ -138,8 +205,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         
         In some cases, the algorithm requires us to be
         able to solve conics over `F`. In particular, the following does not
-        work, and will still not work after square-free decomposition has
-        been implemented for this field::
+        work::
 
             sage: P.<u> = QQ[]
             sage: E = P.fraction_field()
@@ -152,118 +218,140 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             ...
             Traceback (most recent call last):
             ...
-            NotImplementedError: square-free decomposition not implemented
-            for this polynomial
+            NotImplementedError: has_rational_point not implemented for conics
+            over base field Univariate Quotient Polynomial Ring in v over
+            Fraction Field of Univariate Polynomial Ring in u over Rational
+            Field with modulus v^2 - u^3 - 1
             
+        TESTS:
+
+        case = 0 test::
+            
+            sage: K.<t> = FractionField(PolynomialRing(QQ, 't'))
+            sage: a = (2*t^2 - 3/2*t + 1)/(37/3*t^2 + t - 1/4)
+            sage: b = (1/2*t^2 + 1/3)/(-73*t^2 - 2*t + 11/4)
+            sage: c = (6934/3*t^6 + 8798/3*t^5 - 947/18*t^4 + 3949/9*t^3 + 20983/18*t^2 + 28/3*t - 131/3)/(-2701/3*t^4 - 293/3*t^3 + 301/6*t^2 + 13/4*t - 11/16)
+             sage: C = Conic([a,b,c])
+             sage: C.has_rational_point(point=True)
+             (True, (4*t + 4 : 2*t + 2 : 1))
+
+        This example returned an incorrect point before::
+
+           sage: K.<t> = FractionField(PolynomialRing(QQ, 't'))
+           sage: a = (-1/3*t^6 - 14*t^5 - 1/4*t^4 + 7/2*t^2 - 1/2*t - 1)/(24/5*t^6 - t^5 - 1/4*t^4 + t^3 - 3*t^2 + 8/5*t + 5)
+           sage: b = (-3*t^3 + 8*t + 1/2)/(-1/3*t^3 + 3/2*t^2 + 1/12*t + 1/2)
+           sage: c = (1232009/225*t^25 - 1015925057/8100*t^24 + 1035477411553/1458000*t^23 + 7901338091/30375*t^22 - 1421379260447/729000*t^21 + 266121260843/972000*t^20 + 80808723191/486000*t^19 - 516656082523/972000*t^18 + 21521589529/40500*t^17 + 4654758997/21600*t^16 - 20064038625227/9720000*t^15 - 173054270347/324000*t^14 + 536200870559/540000*t^13 - 12710739349/50625*t^12 - 197968226971/135000*t^11 - 134122025657/810000*t^10 + 22685316301/120000*t^9 - 2230847689/21600*t^8 - 70624099679/270000*t^7 - 4298763061/270000*t^6 - 41239/216000*t^5 - 13523/36000*t^4 + 493/36000*t^3 + 83/2400*t^2 + 1/300*t + 1/200)/(-27378/125*t^17 + 504387/500*t^16 - 97911/2000*t^15 + 1023531/4000*t^14 + 1874841/8000*t^13 + 865381/12000*t^12 + 15287/375*t^11 + 6039821/6000*t^10 + 599437/1500*t^9 + 18659/250*t^8 + 1218059/6000*t^7 + 2025127/3000*t^6 + 1222759/6000*t^5 + 38573/200*t^4 + 8323/125*t^3 + 15453/125*t^2 + 17031/500*t + 441/10)
+           sage: C = Conic([a,b,c])
+           sage: C.has_rational_point(point = True) # long time (4 seconds)
+           (True,
+            ((-656766864/2808401*t^17 + 7629961444/2808401*t^16 - 1363042615/8425203*t^15 - 17532289348/2808401*t^14 + 80370059033/25275609*t^13 + 62186354267/126378045*t^12 - 23518543477/8425203*t^11 + 1002057383551/252756090*t^10 - 483841158703/505512180*t^9 - 627776378677/84252030*t^8 - 197829033097/252756090*t^7 + 386127705377/168504060*t^6 - 5215102697/5616802*t^5 - 467719939843/168504060*t^4 - 2315477546/14042005*t^3 + 27472621/8425203*t^2 + 1968144/2808401*t + 1)/(68731416/2808401*t^13 + 2736603738/2808401*t^12 - 27160449273/5616802*t^11 - 1729441596/2808401*t^10 - 11457685821/5616802*t^9 + 13738260095/11233604*t^8 - 10164360733/5616802*t^7 - 424499058/2808401*t^6 - 3902993449/5616802*t^5 + 1816361849/5616802*t^4 - 50063550/2808401*t^3 + 28408652/2808401*t^2 - 91042314/2808401*t - 117438342/2808401) : (128259480/2808401*t^17 + 9285060358/8425203*t^16 - 149195572469/5616802*t^15 + 1532672896471/16850406*t^14 + 46038188783/5616802*t^13 + 1373933278223/33700812*t^12 - 881883150035/33700812*t^11 + 95661583174/2808401*t^10 + 29359089785/16850406*t^9 + 117023077750/8425203*t^8 - 17302584514/2808401*t^7 + 2589004292/8425203*t^6 - 1272847971/5616802*t^5 + 1699958080/2808401*t^4 + 2240928879/2808401*t^3 - 380835/2808401*t^2 - 78120/2808401*t - 117180/2808401)/(68731416/2808401*t^13 + 2736603738/2808401*t^12 - 27160449273/5616802*t^11 - 1729441596/2808401*t^10 - 11457685821/5616802*t^9 + 13738260095/11233604*t^8 - 10164360733/5616802*t^7 - 424499058/2808401*t^6 - 3902993449/5616802*t^5 + 1816361849/5616802*t^4 - 50063550/2808401*t^3 + 28408652/2808401*t^2 - 91042314/2808401*t - 117438342/2808401) : 1))
         """
         from constructor import Conic
         
         if read_cache:
             if self._rational_point is not None:
-                if point:
-                    return True, self._rational_point
-                else:
-                    return True
-        else:
-            self._rational_point = None
+                self._return_point(self._rational_point, point)
         
-        if algorithm == 'default':
-            if self.base_ring().characteristic() == 2:
-                raise NotImplementedError("has_rational_point not implemented \
-for field of characteristic 2.")
-            new_conic = self.diagonalization()[0]
-            coeff = new_conic.coefficients()
-            if coeff[0] == 0:
-                self.point([1,0,0])
-            elif coeff[3] == 0:
-                self.point([0,1,0])
-            elif coeff[5] == 0:
-                self.point([0,0,1])
-            if self._rational_point is not None:
-                if point:
-                    return True, self._rational_point
-                else:
-                    return True
-            
-            # We save the coefficients of the reduced form in coeff
-            # A zero of the reduced conic can be multiplied by multipliers
-            # to get a zero of the old conic
-            (coeff, multipliers) = new_conic._reduce_conic()
-            if coeff[0].degree() % 2 == coeff[1].degree() % 2 and \
-                    coeff[1].degree() % 2 == coeff[2].degree() % 2:
-                case = 0
-            else:
-                case = 1
-            
-            t, = self.base_ring().base().gens() # t in F[t]
-            supp = []
-            roots = [[], [], []]
-            # loop through the coefficients and find a root of f_i (as in
-            # [HC2006]) modulo each element in the coefficients support
-            for i in (0,1,2):
-                supp.append(list(coeff[i].factor()))
-                for p in supp[i]:
-                    if p[1] != 1:
-                        raise ValueError("Expected factor of degree 1.")
-                    if p[0].leading_coefficient() != 1:
-                        x = p[0]/list(p[0])[-1]
-                    else:
-                        x = p[0]
-                    N = p[0].base_ring().extension(x, 'tbar')
-                    R = PolynomialRing(N, 'u')
-                    u, = R.gens()
-                    # If p[0] has degree 1, sage might forget the "defining
-                    # polynomial" of N, so we define our own modulo operation
-                    if p[0].degree() == 1:
-                        mod = t.parent().hom([-x+t])
-                    else:
-                        mod = N
-                    if i == 0:
-                        x = -mod(coeff[2])/mod(coeff[1])
-                    elif i == 1:
-                        x = -mod(coeff[0])/mod(coeff[2])
-                    else:
-                        x = -mod(coeff[1])/mod(coeff[0])
-                    if x.is_square():
-                        root = N(x.sqrt())
-                    else:
-                        if point:
-                            return False, False
-                        else:
-                            return False
-                    roots[i].append(root)
-            
-            if case == 0:
-            # Find a solution of (5) in [HC2006]
-                leading_conic = Conic(self.base_ring().base_ring(),
-                            [coeff[0].leading_coefficient(),
-                            coeff[1].leading_coefficient(),
-                            coeff[2].leading_coefficient()])
-                has_point = leading_conic.has_rational_point(True)
-                if has_point[0]:
-                    if point:
-                        pt = _find_point(coeff, roots, supp, has_point[1])
-                        pt = self.point([pt[0] * multipliers[0],
-                        pt[1] * multipliers[1], pt[2] * multipliers[2]])
-                        return (True, pt)
-                    else:
-                        return True
-                else:
-                    if point:
-                        return False, False
-                    else:
-                        return False
-            
-            if point:
-                pt = _find_point(coeff, roots, supp)
-                pt = self.point([pt[0] * multipliers[0],
-                pt[1] * multipliers[1], pt[2] * multipliers[2]])
-                return (True, pt)
-            else:
-                return True
-        else:
+        if algorithm != 'default':
             return ProjectiveConic_field.has_rational_point(self, point,
                 algorithm, read_cache)
+        
+        # Default algorithm
+        if self.base_ring().characteristic() == 2:
+            raise NotImplementedError("has_rational_point not implemented \
+for function field of characteristic 2.")
+        new_conic, transformation, inverse = self.diagonalization()
+        coeff = new_conic.coefficients()
+        if coeff[0] == 0:
+            return self._return_point(new_conic.point([1,0,0]),
+                point, transformation)
+        elif coeff[3] == 0:
+            return self._return_point(new_conic.point([0,1,0]),
+                point, transformation)
+        elif coeff[5] == 0:
+            return self._return_point(new_conic.point([0,0,1]),
+                point, transformation)
+        
+        # We save the coefficients of the reduced form in coeff
+        # A zero of the reduced conic can be multiplied by multipliers
+        # to get a zero of the old conic
+        (coeff, multipliers) = new_conic._reduce_conic()
+        new_conic = Conic(coeff)
+        transformation = transformation \
+            * new_conic.hom(diagonal_matrix(multipliers))
+        if coeff[0].degree() % 2 == coeff[1].degree() % 2 and \
+                coeff[1].degree() % 2 == coeff[2].degree() % 2:
+            case = 0
+        else:
+            case = 1
+        
+        t, = self.base_ring().base().gens() # t in F[t]
+        supp = []
+        roots = [[], [], []]
+        remove = None
+        # loop through the coefficients and find a root of f_i (as in
+        # [HC2006]) modulo each element in the coefficients' support
+        for i in (0,1,2):
+            supp.append(list(coeff[i].factor()))
+            for p in supp[i]:
+                if p[1] != 1:
+                    raise ValueError("Expected factor of exponent 1.")
+                # Convert to monic factor
+                x = p[0]/list(p[0])[-1]
+                N = p[0].base_ring().extension(x, 'tbar')
+                R = PolynomialRing(N, 'u')
+                u, = R.gens()
+                # If p[0] has degree 1, sage might forget the "defining
+                # polynomial" of N, so we define our own modulo operation
+                if p[0].degree() == 1:
+                    mod = t.parent().hom([-x[0]])
+                else:
+                    mod = N
+                if i == 0:
+                    x = -mod(coeff[2])/mod(coeff[1])
+                elif i == 1:
+                    x = -mod(coeff[0])/mod(coeff[2])
+                else:
+                    x = -mod(coeff[1])/mod(coeff[0])
+                if x.is_square():
+                    root = N(x.sqrt())
+                else:
+                    return self._return_point(False, point)
+                # if case == 0 and p[0] has degree 1, we can switch to case
+                # 1 and remove this factor out of the support. In [HC2006]
+                # this is done later, in FindPoint.
+                if case == 0 and p[0].degree() == 1:
+                    case = 1
+                    # remove later so the loop continues properly
+                    remove = (i,p)
+                else:
+                    roots[i].append(root)
+        if remove:
+            supp[remove[0]].remove(remove[1])
+        
+        if case == 0:
+        # Find a solution of (5) in [HC2006]
+            leading_conic = Conic(self.base_ring().base_ring(),
+                        [coeff[0].leading_coefficient(),
+                        coeff[1].leading_coefficient(),
+                        coeff[2].leading_coefficient()])
+            has_point = leading_conic.has_rational_point(True)
+            if has_point[0]:
+                if point:
+                    pt = new_conic.find_point(supp, roots, case,
+                        has_point[1])
+                else:
+                    pt = True
+                return self._return_point(pt, point, transformation)
+            else:
+                return self._return_point(False, point)
+        # case == 1:
+        if point:
+            pt = new_conic.find_point(supp, roots, case)
+        else:
+            pt = True
+        return self._return_point(pt, point, transformation)
+            
         
     
     def _reduce_conic(self):
@@ -272,12 +360,14 @@ for field of characteristic 2.")
         `K=F(t)` and coefficients `a,b,c` such that `a,b,c \in F[t]`,
         `\gcd(a,b)=\gcd(b,c)=\gcd(c,a)=1` and `abc` is square-free.
         
+        Assumes `self` is in diagonal form.
+        
         OUTPUT:
         
         A tuple (coefficients, multipliers), the coefficients of the conic
         in reduced form and multipliers `\lambda, \mu, \nu \in F(t)^*` such
         that `(x,y,z) \in F(t)` is a solution of the reduced conic if and only
-        if `(\lambda x, \mu y, \nu z)` is a solution of the original conic.
+        if `(\lambda x, \mu y, \nu z)` is a solution of `self`.
         
         ALGORITMH:
         
@@ -290,9 +380,6 @@ for field of characteristic 2.")
             sage: C._reduce_conic()
             ([t^2 - 2, 2*t, -2*t^3 - 13*t^2 - 2*t + 18], [t, 1, t])
         """
-        from sage.rings.arith import lcm, gcd
-        from sage.modules.free_module_element import vector
-        from sage.rings.fraction_field import is_FractionField
         
         # start with removing fractions
         coeff = [self.coefficients()[0], self.coefficients()[3],
@@ -300,8 +387,8 @@ for field of characteristic 2.")
         coeff = lcm(lcm(coeff[0].denominator(), coeff[1].denominator()),
                 coeff[2].denominator()) * vector(coeff)
         # go to base ring of fraction field
-        coeff = [x.numerator() for x in coeff]
-        
+        coeff = [self.base().base()(x) for x in coeff]
+        coeff = vector(coeff) / gcd(coeff)
         # remove common divisors
         labda = mu = nu = 1
         g1 = g2 = g3 = 0
@@ -316,11 +403,14 @@ for field of characteristic 2.")
         
         # remove squares
         for i, x in enumerate(coeff):
-            if (is_FractionField(x.parent())):
+            if is_FractionField(x.parent()):
                 # go to base ring of fraction field
-                x = x.numerator()
+                x = self.base().base()(x)
             
-            decom = x.squarefree_decomposition()
+            try:
+                decom = x.squarefree_decomposition()
+            except (NotImplementedError, AttributeError):
+                decom = x.factor()
             x = decom.unit(); x2 = 1
             for factor in decom:
                 if factor[1] > 1:
@@ -338,122 +428,169 @@ for field of characteristic 2.")
         
         return (coeff, multipliers)
     
-def _find_point(coefficients, roots, supports, solution = 0):
-    r"""
-    Given a solubility certificate like in [HC2006]_, find a point on
-    the conic given by ``coefficients``.
-    
-    INPUT:
-    
-    - ``coefficients`` -- list of three defining coefficients of a
-    conic in reduced form.
-    - ``roots`` -- roots of a solubility certificate like in [HC2006]_
-    - ``supports`` -- 3-tuple where supports[i] is a list of all monic
-    irreducible `p \in F[t]` that divide the `i`'th coefficient.
-    - ``solution`` -- (default: 0) a solution of (5) in [HC2006]_, if
-    one is required, 0 otherwise.
-    
-    OUTPUT:
-    
-    A point `(x,y,z) \in F(t)` of the conic given by ``coefficients``.
-    
-    ALGORITMH:
-    
-    The algorithm used is the algorithm FindPoint in [HC2006]_.
-    
-    EXAMPLES::
+    def find_point(self, supports, roots, case, solution = 0,
+        multiple = False):
+        r"""
+        Given a solubility certificate like in [HC2006]_, find a point on
+        ``self``. Assumes ``self`` is in reduced form (see [HC2006] for a
+        definition).
         
-        sage: K.<t> = FractionField(QQ['t'])
-        sage: C = Conic(K, [t^2-2, 2*t^3, -2*t^3-13*t^2-2*t+18])
-        sage: C.has_rational_point(point=True)
-        (True, (3 : (1/3*t + 1/3)/(1/3*t) : 1))
-    """
-    from sage.matrix.constructor import matrix
-    Ft = coefficients[0].parent()
-    deg = [coefficients[0].degree(), coefficients[1].degree(),
-            coefficients[2].degree()]
-    if deg[0] % 2 == deg[1] % 2 and deg[1] % 2 == deg[2] % 2:
-        case = 0
-        for (n, support) in enumerate(supports):
-            for (i, factor) in enumerate(support):
-                if factor[0].degree() == 1:
-                    case = 1
-                    support.pop(i)
-                    roots[n].pop(i)
-                    break
-                if case == 1:
-                    break
-    else:
-        case = 1
-    # definitions as in [HC2006]
-    A = max(0, ((deg[1] + deg[2]) / 2).round('up') - case)
-    B = max(0, ((deg[2] + deg[0]) / 2).round('up') - case)
-    C = max(0, ((deg[0] + deg[1]) / 2).round('up') - case)
-    # generate the names of all variables we require
-    var_names = list(Ft.variable_names()) + ['X%d' % i for i in range(A+1)] + \
-                ['Y%d' % i for i in range(B+1)] + \
-                ['Z%d' % i for i in range(C+1)] + ['W']
-    R = PolynomialRing(coefficients[0].parent().base_ring(), var_names)
-    var_names = R.gens()
-    XX = var_names[1:A+2]
-    YY = var_names[A+2:A+B+3]
-    ZZ = var_names[A+B+3:A+B+C+4]
-    t = var_names[0]
-    X = sum([XX[n]*t**n for n in range(A+1)])
-    Y = sum([YY[n]*t**n for n in range(B+1)])
-    Z = sum([ZZ[n]*t**n for n in range(C+1)])
-    E = [] # list that will contain linear polynomials (set E in [HC2006])
-    
-    if case == 0:
-        # We need an extra variable and linear equation
-        W = var_names[A+B+C+4]
-        (x,y,z) = solution
-        E += [XX[A] - x*W, YY[B] - y*W, ZZ[C] - z*W]
-    # For all roots as calculated by has_rational_point(), do the
-    # calculations from step (6) of FindPoint in [HC2006]
-    for (i, p) in enumerate(supports[0]):
-        # lift to F[t] and map to R, with R as defined above
-        if roots[0][i].parent().is_finite():
-            root = roots[0][i].polynomial()
+        INPUT:
+        
+        - ``self`` -- conic in reduced form.
+        - ``supports`` -- 3-tuple where ``supports[i]`` is a list of all monic
+          irreducible `p \in F[t]` that divide the `i`'th coefficient.
+          ``supports[i][j]`` must have type
+          :class:`sage.structure.factorization`.
+        - ``roots`` -- 3-tuple containing lists of roots of all elements of
+          ``supports[i]``, in the same order.
+        - ``case`` -- 1 or 0, as in [HC2006]_.
+        - ``solution`` -- (default: 0) a solution of (5) in [HC2006]_, if
+          one is required, 0 otherwise.
+        - ``multiple`` -- (default: False) whether to return a single point or
+          all points that have been found.
+        
+        OUTPUT:
+        
+        A point `(x,y,z) \in F(t)` of ``self``. Output is undefined when the
+        input solubility certificate is incorrect.
+
+        ALGORITMH:
+        
+        The algorithm used is the algorithm FindPoint in [HC2006]_, with a
+        slight modification from [ACKERMANS2016]_.
+        
+        EXAMPLES::
+            
+            sage: K.<t> = FractionField(QQ['t'])
+            sage: C = Conic(K, [t^2-2, 2*t^3, -2*t^3-13*t^2-2*t+18])
+            sage: C.has_rational_point(point=True) # indirect test
+            (True, (3 : (t + 1)/t : 1))
+
+        Different solubility certificates give different points::
+
+            sage: K.<t> = PolynomialRing(QQ, 't')
+            sage: C = Conic(K, [t^2-2, 2*t, -2*t^3-13*t^2-2*t+18])
+            sage: supp = [[(t^2 - 2, 1)], [(t, 1)], [(t^3 + 13/2*t^2 + t - 9, 1)]]
+            sage: tbar1 = QQ.extension(supp[0][0][0], 'tbar').gens()[0]
+            sage: tbar2 = QQ.extension(supp[1][0][0], 'tbar').gens()[0]
+            sage: tbar3 = QQ.extension(supp[2][0][0], 'tbar').gens()[0]
+            sage: roots = [[tbar1 + 1], [1/3*tbar2^0], [2/3*tbar3^2 + 11/3*tbar3 - 3]]
+            sage: C.find_point(supp, roots, 1)
+            (3 : t + 1 : 1)
+            sage: roots = [[-tbar1 - 1], [-1/3*tbar2^0], [-2/3*tbar3^2 - 11/3*tbar3 + 3]]
+            sage: C.find_point(supp, roots, 1)
+            (3 : -t - 1 : 1)
+        """
+        Ft = self.base().base()
+        F = Ft.base()
+        t, = Ft.gens()
+        coefficients = [Ft(self.coefficients()[0]), Ft(self.coefficients()[3]),
+            Ft(self.coefficients()[5])]
+        deg = [coefficients[0].degree(), coefficients[1].degree(),
+                coefficients[2].degree()]
+        # definitions as in [HC2006] and [ACKERMANS2016]
+        A = max(0, ((deg[1] + deg[2]) / 2).ceil() - case)
+        B = max(0, ((deg[2] + deg[0]) / 2).ceil() - case)
+        C = max(0, ((deg[0] + deg[1]) / 2).ceil() - case)
+        
+        # For all roots as calculated by has_rational_point(), we create
+        # a system of linear equations. As in [ACKERMANS2016], we do this
+        # by calculating the matrices for all phi_p, with basis consisting
+        # of monomials of x, y and z in the space V of possible solutions:
+        # t^0, ..., t^(A+1), t^0, ..., t^(B+1) and t^0, ..., t^(C+1).
+        phi = []
+        for (i, p) in enumerate(supports[0]):
+            # lift to F[t] and map to R, with R as defined above
+            if roots[0][i].parent().is_finite():
+                root = roots[0][i].polynomial()
+            else:
+                root = roots[0][i].lift()
+            alpha = root.parent().hom([t])(root)
+            d = p[0].degree()
+            # Calculate y - alpha*z mod p for all basis vectors
+            phi_p = [[] for i in range(A+B+C+4)]
+            phi_p[0:A+1] = [vector(F, d)] * (A+1)
+            phi_p[A+1] = vector(F, d, {0: F(1)})
+            lastpoly = F(1)
+            for n in range(B):
+                lastpoly = (lastpoly * t) % p[0]
+                phi_p[A+2+n] = vector(F, d, lastpoly.dict())
+            lastpoly = -alpha % p[0]
+            phi_p[A+B+2] = vector(F, d, lastpoly.dict())
+            for n in range(C):
+                lastpoly = (lastpoly * t) % p[0]
+                phi_p[A+B+3+n] = vector(F, d, lastpoly.dict())
+            phi_p[A+B+C+3] = vector(F, d)
+            phi.append(matrix(phi_p).transpose())
+        for (i, p) in enumerate(supports[1]):
+            if roots[1][i].parent().is_finite():
+                root = roots[1][i].polynomial()
+            else:
+                root = roots[1][i].lift()
+            alpha = root.parent().hom([t])(root)
+            d = p[0].degree()
+            # Calculate z - alpha*x mod p for all basis vectors
+            phi_p = [[] for i in range(A+B+C+4)]
+            phi_p[A+1:A+B+2] = [vector(F, d)] * (B+1)
+            phi_p[A+B+2] = vector(F, d, {0: F(1)})
+            lastpoly = F(1)
+            for n in range(C):
+                lastpoly = (lastpoly * t) % p[0]
+                phi_p[A+B+3+n] = vector(F, d, lastpoly.dict())
+            lastpoly = -alpha % p[0]
+            phi_p[0] = vector(F, d, lastpoly.dict())
+            for n in range(A):
+                lastpoly = (lastpoly * t) % p[0]
+                phi_p[1+n] = vector(F, d, lastpoly.dict())
+            phi_p[A+B+C+3] = vector(F, d)
+            phi.append(matrix(phi_p).transpose())
+        for (i, p) in enumerate(supports[2]):
+            if roots[2][i].parent().is_finite():
+                root = roots[2][i].polynomial()
+            else:
+                root = roots[2][i].lift()
+            alpha = root.parent().hom([t])(root)
+            d = p[0].degree()
+            # Calculate x - alpha*y mod p for all basis vectors
+            phi_p = [[] for i in range(A+B+C+4)]
+            phi_p[A+B+2:A+B+C+3] = [vector(F, d)] * (C+1)
+            phi_p[0] = vector(F, d, {0: F(1)})
+            lastpoly = F(1)
+            for n in range(A):
+                lastpoly = (lastpoly * t) % p[0]
+                phi_p[1+n] = vector(F, d, lastpoly.dict())
+            lastpoly = -alpha % p[0]
+            phi_p[A+1] = vector(F, d, lastpoly.dict())
+            for n in range(B):
+                lastpoly = (lastpoly * t) % p[0]
+                phi_p[A+2+n] = vector(F, d, lastpoly.dict())
+            phi_p[A+B+C+3] = vector(F, d)
+            phi.append(matrix(phi_p).transpose())
+        if case == 0:
+            # We need three more equations
+            lx = Ft(solution[0]).leading_coefficient()
+            ly = Ft(solution[1]).leading_coefficient()
+            lz = Ft(solution[2]).leading_coefficient()
+            phi.append(matrix([vector(F, A+B+C+4, {A:1, A+B+C+3:-lx}),
+                vector(F, A+B+C+4, {A+B+1:1, A+B+C+3:-ly}),
+                vector(F, A+B+C+4, {A+B+C+2: 1, A+B+C+3:-lz})]))
+        # Create the final matrix which we will solve
+        M = block_matrix(phi, ncols = 1, subdivide = False)
+        solution_space = M.right_kernel()
+        solutions = []
+        for v in solution_space.basis():
+            if v[:A+B+C+3] != 0: # we don't want to return a trivial solution
+                X = Ft(list(v[:A+1]))
+                Y = Ft(list(v[A+1:A+B+2]))
+                Z = Ft(list(v[A+B+2:A+B+C+3]))
+                solutions.append(self.point([X,Y,Z]))
+
+        if solutions:
+            if not multiple:
+                return solutions[0]
+            else:
+                return solutions
         else:
-            root = roots[0][i].lift()
-        alpha = root.parent().hom([t])(root)
-        r = (Y - alpha*Z).quo_rem(p[0])[1]
-        for i in range(r.degree(t) + 1):
-            E.append(r.coefficient({t:i}))
-    for (i, p) in enumerate(supports[1]):
-        if roots[1][i].parent().is_finite():
-            root = roots[1][i].polynomial()
-        else:
-            root = roots[1][i].lift()
-        alpha = root.parent().hom([t])(root)
-        r = (Z - alpha*X).quo_rem(p[0])[1]
-        for i in range(r.degree(t) + 1):
-            E.append(r.coefficient({t:i}))
-    for (i, p) in enumerate(supports[2]):
-        if roots[2][i].parent().is_finite():
-            root = roots[2][i].polynomial()
-        else:
-            root = roots[2][i].lift()
-        alpha = root.parent().hom([t])(root)
-        r = (X - alpha*Y).quo_rem(p[0])[1]
-        for i in range(r.degree(t) + 1):
-            E.append(r.coefficient({t:i}))
-    # Create a matrix to compute a solution of the system obtained by
-    # equating all elements of E to 0
-    E2 = []
-    for f in E:
-        column = []
-        for i in range(1,A+B+C+5):
-            column.append(f.coefficient(var_names[i]))
-        E2.append(column)
-    M = matrix(Ft.base(), E2)
-    solution_space = M.right_kernel()
-    for v in solution_space.basis():
-        if v[:A+B+C+3] != 0:
-            X = X.subs({XX[i]:v[i] for i in range(A+1)})
-            Y = Y.subs({YY[i]:v[A+1+i] for i in range(B+1)})
-            Z = Z.subs({ZZ[i]:v[A+B+2+i] for i in range(C+1)})
-            return [X,Y,Z]
-    
-    raise RuntimeError("No solution has been found though a solution exists.")
+            raise RuntimeError("No solution has been found: possibly incorrect\
+\solubility certificate.")

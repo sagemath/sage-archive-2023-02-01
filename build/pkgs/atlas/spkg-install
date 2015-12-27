@@ -60,7 +60,7 @@ def assert_success(rc, good=None, bad=None):
     traceback.print_stack(file=sys.stdout)
     print('-'*60)
     if bad is not None:
-        print('Error: ', bad)
+        print('Error:', bad)
     sys.exit(rc)
 
 
@@ -247,13 +247,18 @@ def configure(arch=None, isa_ext=None):
     - ``arch`` -- ``None`` or one of ``ATLAS_MACHTYPE``
 
     - ``isa_ext`` -- ``None`` or a sublist of ``ATLAS_ISAEXT``
+
+    OUTPUT: 0 if ``configure`` was successful, 1 if it failed.
     """
-    if arch is None:
-        arch, isa_ext, thread_limit = configure_options_from_environment()
-    if arch=='fast':
-        arch, isa_ext, thread_limit = configure_fast()
-    if arch=='generic' or arch=='base':
-        arch, isa_ext, thread_limit = configure_base()
+    try:
+        if arch is None:
+            arch, isa_ext, thread_limit = configure_options_from_environment()
+        if arch == 'fast':
+            arch, isa_ext, thread_limit = configure_fast()
+        if arch == 'generic' or arch == 'base':
+            arch, isa_ext, thread_limit = configure_base()
+    except NotImplementedError:
+        return 1
 
     print('Running configure with arch = '+str(arch)+ \
         ', isa extensions '+str(isa_ext), ' thread limit '+str(thread_limit))
@@ -453,7 +458,10 @@ def build(arch=None, isa_ext=None):
     Return ``0`` if successfull.
     """
     rc = configure(arch, isa_ext)
-    assert_success(rc, bad='Configure failed.', good='Finished configuring ATLAS.')
+    if rc:
+        print("Configure failed.")
+        return rc
+    print("Finished configuring ATLAS.")
     return make_atlas()
 
 def build_tuning():

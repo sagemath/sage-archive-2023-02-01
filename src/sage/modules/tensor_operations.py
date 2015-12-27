@@ -23,6 +23,13 @@ Here is the tensor product of two vectors::
     (1, 0)
     sage: W.vectors()[1]
     (1, -1)
+
+In a convenient choice of basis, the tensor product is
+$(a,b)\otimes(c,d)=(ac,ad,bc,bd)$. In this example, it is one of the
+vectors of the vector collection ``VW`` ::
+
+    sage: VW.index_map(0, 1)
+    1
     sage: VW.vectors()[VW.index_map(0, 1)]
     (1, -1, 0, 0)
 
@@ -131,7 +138,9 @@ def antisymmetrized_coordinate_sums(dim, n):
 
 class VectorCollection(FreeModule_ambient_field):
     """
-    A collection of rays in a vector space.
+    An ordered collection of generators of a vector space.
+
+    This is like a list of vectors, but with extra argument checking.
 
     .. warning::
 
@@ -291,8 +300,33 @@ class TensorOperation(VectorCollection):
         super(TensorOperation, self).__init__(vectors, base_ring, dim)
 
     def _init_product_vectors(self, i):
-        """
-        Helper to build up ``self._vectors`` incrementally during the constructor.
+        r"""
+        Helper to build up ``self._vectors`` incrementally during the
+        constructor.
+
+        INPUT:
+
+        - `i` -- list/tuple of integers. Multi-index of length equal
+          to the number of constituent vector collections. The $j$-th
+          entry $i[j]$ indexes a ray in the $j$-th vector
+          collection. Hence, $i$ specifies one element in each vector
+          collection.
+
+        OUTPUT:
+
+        This method mutates the :class:`TensorOperation` instance. In
+        particular, the tensor product of the vectors of the vector
+        collection is computed, and added to the elements of the
+        tensor operation if it has not been encountered before. 
+
+        The index of this tensor product vector is returned as an
+        integer.
+
+        .. NOTE::
+
+            In a convenient choice of coordinates the tensor product
+            of, say, two vectors $(a,b)$ and $(c,d)$, is $(ac, ad, bc,
+            bd)$.
 
         EXAMPLES::
 
@@ -308,13 +342,15 @@ class TensorOperation(VectorCollection):
             sage: R_tensor_S.vectors()   # indirect doctest
             ((1, 0), (-1, 0), (1, 2), (-1, -2))
         """
-        rays = [self._V[j].vectors()[k] for j, k in enumerate(i)]
+        # Pick out the i[j]-th vector
+        rays = [list(self._V[j].vectors()[k]) for j, k in enumerate(i)]
         v = []
+        # Note: convert to list, as cartesian_product of vectors is unrelated
         from sage.categories.cartesian_product import cartesian_product
-        for r in cartesian_product(rays):
-            v.append(prod(r))   # broken here ! the dot product instead !
-            # but what was prod supposed to do ?
+        for r in cartesian_product(map(list, rays)):
+            v.append(prod(r))   # build up the tensor product
         v = tuple(v)
+        # Use index of pre-existing tensor product vector if there is one
         try:
             result = self._vectors.index(v)
         except ValueError:
@@ -326,6 +362,15 @@ class TensorOperation(VectorCollection):
         """
         Helper to build up ``self._vectors`` incrementally during the constructor.
 
+        INPUT:
+
+        - `i` -- list/tuple of integers. Specifies one element
+          (vector) in each vector collection as in
+          :meth:`_init_product_vector`.
+
+        - ``linear_combination`` -- formal linear combination of
+          vector indices in the vectors specified by $i$.
+        
         EXAMPLES::
 
             sage: from sage.modules.tensor_operations import \
@@ -343,7 +388,6 @@ class TensorOperation(VectorCollection):
         for coordinate_linear_combination in linear_combinations:
             v_entry = self._base_ring.zero()
             for coeff, index in coordinate_linear_combination:
-                # maybe broken here also ?
                 v_entry += coeff * prod(rays[j][k] for j, k in enumerate(index))
             v.append(v_entry)
         v = tuple(v)
@@ -367,7 +411,7 @@ class TensorOperation(VectorCollection):
             sage: R = VectorCollection([(1,0), (1,2), (-1,-2)], QQ, 2)
             sage: S = VectorCollection([(1,), (-1,)], QQ, 1)
             sage: R_tensor_S = TensorOperation([R,S], operation='product')
-            sage: sorted(R_tensor_S._index_map.iteritems())
+            sage: sorted(R_tensor_S._index_map.iteritems())   # indirect doctest
             [((0, 0), 0), ((0, 1), 1), ((1, 0), 2), ((1, 1), 3), ((2, 0), 3), ((2, 1), 2)]
         """
         V_list_indices = [range(V.n_vectors()) for V in self._V]
@@ -385,7 +429,7 @@ class TensorOperation(VectorCollection):
             sage: from sage.modules.tensor_operations import \
             ....:      VectorCollection, TensorOperation
             sage: R = VectorCollection([(1,0), (1,2), (-1,-2)], QQ, 2)
-            sage: Sym2_R = TensorOperation([R,R], operation='symmetric')
+            sage: Sym2_R = TensorOperation([R,R], operation='symmetric')  # indirect doctest
             sage: sorted(Sym2_R._index_map.iteritems())
             [((0, 0), 0), ((0, 1), 1), ((0, 2), 2), ((1, 1), 3), ((1, 2), 4), ((2, 2), 3)]
         """
@@ -408,7 +452,7 @@ class TensorOperation(VectorCollection):
             sage: from sage.modules.tensor_operations import \
             ....:      VectorCollection, TensorOperation
             sage: R = VectorCollection([(1,0), (1,2), (-1,-2)], QQ, 2)
-            sage: Alt2_R = TensorOperation([R, R], operation='antisymmetric')
+            sage: Alt2_R = TensorOperation([R, R], operation='antisymmetric')  # indirect doctest
             sage: sorted(Alt2_R._index_map.iteritems())
             [((0, 1), 0), ((0, 2), 1)]
         """
@@ -446,12 +490,28 @@ class TensorOperation(VectorCollection):
             ....:      VectorCollection, TensorOperation
             sage: R = VectorCollection([(1,0), (1,2), (-1,-2)], QQ, 2)
             sage: Sym3_R = TensorOperation([R]*3, 'symmetric')
+
+        The symmetric product of the first vector ``(1,0)``, the
+        second vector ``(1,2)``, and the third vector ``(-1,-2)``
+        equals the vector with index number 4 (that is, the fifth) in
+        the symmetric product vector collection::
+
             sage: Sym3_R.index_map(0, 1, 2)
             4
+
+        In suitable coordinates, this is the vector::
+        
+            sage: Sym3_R.vectors()[4]
+            (-4, 0, -1, -4)
+
+        The product is symmetric::
+
             sage: Sym3_R.index_map(2, 0, 1)
             4
             sage: Sym3_R.index_map(2, 1, 0)
             4
+
+        As another example, here is the rank-2 determinant::
 
             sage: from sage.modules.tensor_operations import \
             ....:      VectorCollection, TensorOperation

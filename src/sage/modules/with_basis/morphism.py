@@ -690,12 +690,21 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
             sage: def ut(i): return (x[1] + x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
             sage: perm = [0, 2, 1, 3]
+            sage: our_cmp = lambda a, b: cmp(perm[a], perm[b])
             sage: phi = X.module_morphism(ut, triangular="upper", codomain=X,
-            ....:                         cmp=lambda a, b: cmp(perm[a], perm[b]))
+            ....:                         cmp=our_cmp)
+            sage: def ut2(i): return (x[1] + 7*x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
+            sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X,
+            ....:                          cmp=our_cmp)
             sage: def lt(i): return (x[1] + x[2] + x[3] if i == 2 else x[i])
             sage: psi = X.module_morphism(lt, triangular="lower", codomain=X,
-            ....:                         cmp=lambda a, b: cmp(perm[a], perm[b]))
+            ....:                         cmp=our_cmp)
             sage: phi == phi
+            True
+            sage: phi == phi2
+            False
+            sage: from sage.modules.with_basis.morphism import TriangularModuleMorphism
+            sage: TriangularModuleMorphism.__eq__(phi, phi2) # I don't like this :/
             True
             sage: phi == psi
             False

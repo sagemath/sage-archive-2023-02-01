@@ -2,6 +2,13 @@
 r"""
 Finite dimensional algebras with basis
 
+.. TODO::
+
+    Quotients of polynomial rings.
+
+    Quotients in general.
+
+    Matrix rings.
 
 REFERENCES:
 
@@ -123,7 +130,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A.radical_basis()
                 (B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)])
 
-            We now implement the algebra `A = K[x] / x^p-1`, where `K`
+            We now implement the algebra `A = K[x] / (x^p-1)`, where `K`
             is a finite field of characteristic `p`, and check its
             radical; alas, we currently need to wrap `A` to make it a
             proper :class:`ModulesWithBasis`::
@@ -943,14 +950,68 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True
 
-            .. TODO::
+            Here are some more counterexamples:
 
-                Add examples of elements that are orthogonal and sum
-                to the identity yet are not idempotent, and reciprocally.
+            1. Some orthogonal elements summing to `1` but not being
+            idempotent::
+
+                sage: class PQAlgebra(CombinatorialFreeModule):
+                ....:     def __init__(self, F, p):
+                ....:         # Construct the quotient algebra F[x] / p,
+                ....:         # where p is a univariate polynomial.
+                ....:         R = parent(p); x = R.gen()
+                ....:         I = R.ideal(p)
+                ....:         self._xbar = R.quotient(I).gen()
+                ....:         basis_keys = [self._xbar**i for i in range(p.degree())]
+                ....:         CombinatorialFreeModule.__init__(self, F, basis_keys,
+                ....:                 category=Algebras(F).FiniteDimensional().WithBasis())
+                ....:     def x(self):
+                ....:         return self(self._xbar)
+                ....:     def one(self):
+                ....:         return self.basis()[self.base_ring().one()]
+                ....:     def product_on_basis(self, w1, w2):
+                ....:         return self.from_vector(vector(w1*w2))
+                sage: R.<x> = PolynomialRing(QQ)
+                sage: A = PQAlgebra(QQ, x**3 - x**2 + x + 1); y = A.x()
+                sage: a, b = y, 1-y
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, b))
+                False
+
+            For comparison::
+
+                sage: A = PQAlgebra(QQ, x**2 - x); y = A.x()
+                sage: a, b = y, 1-y
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, b))
+                True
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, A.zero(), b))
+                True
+                sage: A = PQAlgebra(QQ, x**3 - x**2 + x - 1); y = A.x()
+                sage: a = (y**2 + 1) / 2
+                sage: b = 1 - a
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, b))
+                True
+
+            2. Some idempotents summing to 1 but not orthogonal::
+
+                sage: R.<x> = PolynomialRing(GF(2))
+                sage: A = PQAlgebra(GF(2), x)
+                sage: a = A.one()
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a,))
+                True
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, a, a))
+                False
+
+            3. Some orthogonal idempotents not summing to the identity::
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a,a))
+                False
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents(())
+                False
             """
             return (self.sum(l) == self.one()
                     and all(e*e == e for e in l)
-                    and all(e*f == 0 for e in l for f in l if f != e))
+                    and all(e*f == 0 and f*e == 0 for i, e in enumerate(l)
+                                                  for f in l[:i]))
 
         @cached_method
         def is_commutative(self):

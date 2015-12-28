@@ -633,7 +633,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. NOTE::
 
-                For simplicity, the current implementation, assumes
+                For simplicity, the current implementation assumes
                 that the index set `I` is of the form
                 `\{0,\dots,n-1\}`. Better indexations will be possible
                 in the future.
@@ -828,7 +828,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 \dim e_i A e_j = C_{i,j} \dim S_i \dim S_j
 
             where `(S_i)_i` are the simple modules of `A` and
-            `C_{i,j}` is the Cartan invariants matrix.
+            `(C_{i,j})_{i, j}` is the Cartan invariants matrix.
 
             INPUT:
 
@@ -837,8 +837,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
               (default: the idempotents returned by
               :meth:`orthogonal_idempotents_central_mod_radical`)
 
-            - ``check`` -- (default:True) whether to check that the idempotents
-              are indeed orthogonal
+            - ``check`` -- (default: ``True``) whether to check that the
+              idempotents are indeed orthogonal and idempotent and
+              sum to `1`
 
             OUTPUT:
 

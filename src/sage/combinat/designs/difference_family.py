@@ -1406,7 +1406,11 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         G = Zmod(v)
         return G, [range(1,v)]
 
-    # construction that does not depend on factorization
+    factorization = arith.factor(v)
+    if len(factorization) == 1:
+        from sage.rings.finite_rings.constructor import GF
+        K = GF(v,'z')
+
     if are_mcfarland_1973_parameters(v,k,l):
         if existence:
             return True
@@ -1425,51 +1429,44 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
             _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)
             G,D = singer_difference_set(q,d)
 
-    else:
-        factorization = arith.factor(v)
-        D = None
+    elif len(factorization) == 1 and radical_difference_family(K, k, l, existence=True):
+        if existence:
+            return True
+        elif explain_construction:
+            return "Radical difference family on a finite field"
+        else:
+            D = radical_difference_family(K,k,l)
+            G = K
 
-        if len(factorization) == 1:  # i.e. is v a prime power
-            from sage.rings.finite_rings.constructor import GF
-            G = K = GF(v,'z')
+    elif len(factorization) == 1 and l == 1 and k == 6 and df_q_6_1(K, existence=True):
+        if existence:
+            return True
+        elif explain_construction:
+            return "Wilson 1972 difference family made from the union of two cyclotomic cosets"
+        else:
+            D = df_q_6_1(K)
+            G = K
 
-            if radical_difference_family(K, k, l, existence=True):
-                if existence:
-                    return True
-                elif explain_construction:
-                    return "Radical difference family on a finite field"
-                else:
-                    D = radical_difference_family(K,k,l)
-
-            elif l == 1 and k == 6 and df_q_6_1(K,existence=True):
-                if existence:
-                    return True
-                elif explain_construction:
-                    return "Wilson 1972 difference family made from the union of two cyclotomic cosets"
-                else:
-                    D = df_q_6_1(K)
-
+    elif (k == (v-1)//2 and
+          l == (k-1)//2 and
+          len(factorization) == 2 and
+          abs(pow(*factorization[0]) - pow(*factorization[1])) == 2):
         # Twin prime powers construction
         # i.e. v = p(p+2) where p and p+2 are prime powers
         #      k = (v-1)/2
         #      lambda = (k-1)/2 (ie 2l+1 = k)
-        elif (k == (v-1)//2 and
-              l == (k-1)//2 and
-              len(factorization) == 2 and
-              abs(pow(*factorization[0]) - pow(*factorization[1])) == 2):
-            if existence:
-                return True
-            elif explain_construction:
-                return "Twin prime powers difference family"
-            else:
-                p = pow(*factorization[0])
-                q = pow(*factorization[1])
-                if p > q:
-                    p,q = q,p
-                G,D = twin_prime_powers_difference_set(p,check=False)
+        if existence:
+            return True
+        elif explain_construction:
+            return "Twin prime powers difference family"
+        else:
+            p = pow(*factorization[0])
+            q = pow(*factorization[1])
+            if p > q:
+                p,q = q,p
+            G,D = twin_prime_powers_difference_set(p,check=False)
 
-
-    if D is None:
+    else:
         if existence:
             return Unknown
         raise NotImplementedError("No constructions for these parameters")

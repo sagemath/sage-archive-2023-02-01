@@ -979,6 +979,10 @@ def mcfarland_1973_parameters(M):
     r"""
     Iterator over the parameters ``(v,k,l,q,s)`` of the McFarland construction.
 
+    INPUT:
+
+    - ``M`` -- (integer) an upper bound for ``v``, ``k``, ``l``
+
     See :func:`mcfarland_1973_construction`.
 
     EXAMPLES::
@@ -1051,13 +1055,27 @@ def mcfarland_1973_construction(q, s):
     r"""
     Return a difference set.
 
-    The parameters are
+    The difference set returned has the following parameters
 
     .. MATH::
 
         v = \frac{q^{s+1}(q^{s+1}+q-2)}{q-1}
         k = \frac{q^s (q^{s+1}-1}{q-1}
         \lambda = \frac{q^s(q^s-1)}{q-1}
+
+    This construction is due to [McF1973]_.
+
+    INPUT:
+
+    - ``q``, ``s`` - (integers) parameters for the difference set (see the above
+      formulas for the expression of ``v``, ``k``, ``l`` in terms of ``q`` and
+      ``s``)
+
+    .. SEEALSO::
+
+        The function :func:`are_mcfarland_1973_parameters` makes the translation
+        between the parameters `(q,s)` corresponding to a given triple
+        `(v,k,\lambda)`.
 
     REFERENCES:
 

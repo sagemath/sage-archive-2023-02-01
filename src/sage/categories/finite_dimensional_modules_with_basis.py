@@ -439,7 +439,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def kernel_basis(self):
             """
-            Return a basis of the kernel of ``self``.
+            Return a basis of the kernel of ``self`` in echelon form.
 
             EXAMPLES::
 
@@ -471,7 +471,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def image_basis(self):
             """
-            Return a basis for the image of ``self``.
+            Return a basis for the image of ``self`` in echelon form.
 
             EXAMPLES::
 

@@ -975,48 +975,6 @@ def twin_prime_powers_difference_set(p, check=True):
 
     return G, [d]
 
-def mcfarland_1973_parameters(M):
-    r"""
-    Iterator over the parameters ``(v,k,l,q,s)`` of the McFarland construction.
-
-    INPUT:
-
-    - ``M`` -- (integer) an upper bound for ``v``, ``k``, ``l``
-
-    See :func:`mcfarland_1973_construction`.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.difference_family import mcfarland_1973_parameters
-        sage: for v,k,l,q,s in mcfarland_1973_parameters(100):
-        ....:     print v,k,l,q,s
-        ....:     assert designs.difference_family(v,k,l,existence=True) is True
-        ....:     G,D = designs.difference_family(v,k,l)
-        16 6 2 2 1
-        64 28 12 2 2
-        45 12 3 3 1
-        96 20 4 4 1
-    """
-    q = ZZ(2)
-    run = True
-    while run:
-        run = False
-        s = 1
-        while True:
-            v = q**(s+1) * (q**(s+1) + q - 2) // (q-1)
-            k = q**s * (q**(s+1)-1) // (q-1)
-            l = q**s * (q**s - 1) // (q-1)
-            if v >= M:
-                break
-            else:
-                run = True
-                yield v,k,l,q,s
-            s += 1
-        q = q.next_prime_power()
-
-_MCFARLAND_LIMIT = 10000
-_MCFARLAND_PARAMETERS = {(v,k,l): (q,s) for v,k,l,q,s in mcfarland_1973_parameters(_MCFARLAND_LIMIT)}
-
 def are_mcfarland_1973_parameters(v, k, lmbda, return_parameters=False):
     r"""
     Test whether ``(v,k,l)`` is a triple that can be obtained from the
@@ -1037,19 +995,47 @@ def are_mcfarland_1973_parameters(v, k, lmbda, return_parameters=False):
         True
         sage: are_mcfarland_1973_parameters(98125, 19500, 3875, True)
         (True, (5, 3))
+
+        sage: from sage.combinat.designs.difference_family import are_mcfarland_1973_parameters
+        sage: for v in range(1, 100):
+        ....:     for k in range(1,30):
+        ....:         for l in range(1,15):
+        ....:             if are_mcfarland_1973_parameters(v,k,l):
+        ....:                 answer, (q,s) = are_mcfarland_1973_parameters(v,k,l,return_parameters=True)
+        ....:                 print v,k,l,q,s
+        ....:                 assert answer is True
+        ....:                 assert designs.difference_family(v,k,l,existence=True) is True
+        ....:                 G,D = designs.difference_family(v,k,l)
+        16 6 2 2 1
+        45 12 3 3 1
+        64 28 12 2 2
+        96 20 4 4 1
     """
-    global _MCFARLAND_LIMIT, _MCFARLAND_PARAMETERS
-    if v <= _MCFARLAND_LIMIT:
-        t = _MCFARLAND_PARAMETERS.get((v,k,lmbda), False)
-        if t is False:
-            return (False,None) if return_parameters else False
-        else:
-            return (True, t) if return_parameters else True
-    else:
-        for vv,kk,ll,q,s in mcfarland_1973_parameters(v+1):
-            if v == vv and k == kk and lmbda == ll:
-                return (True, (q,s)) if return_parameters else True
+    if v <= k or k <= lmbda:
         return (False,None) if return_parameters else False
+    k = ZZ(k)
+    lmbda = ZZ(lmbda)
+    qs,r = (k - lmbda).sqrtrem()
+    if r or (qs*(qs-1))%lmbda:
+        return (False,None) if return_parameters else False
+
+    q = qs*(qs-1) // lmbda + 1
+    if q <= 1 or \
+       v != qs*q * (qs*q+q-2) // (q-1) or \
+       k != qs * (qs*q-1) // (q-1):
+        return (False,None) if return_parameters else False
+
+    # NOTE: below we compute the value of s so that qs = q^s. If the method
+    # is_power_of of integers would be able to return the exponent, we could use
+    # that... but currently this is not the case
+    # see trac ticket #19792
+    p1,a1 = qs.is_prime_power(get_data=True)
+    p2,a2 = q.is_prime_power(get_data=True)
+
+    if p1 != p2 or a1%a2:
+        return (False,None) if return_parameters else False
+
+    return (True, (q, a1//a2)) if return_parameters else True
 
 def mcfarland_1973_construction(q, s):
     r"""

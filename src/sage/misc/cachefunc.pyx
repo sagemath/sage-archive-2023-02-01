@@ -454,16 +454,21 @@ the parent as its first argument::
     sage: b._cache_key() == d._cache_key() # this would be True if the parents were not included
     False
 """
-########################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                          Mike Hansen <mhansen@gmail.com>
 #                     2011 Simon King <simon.king@uni-jena.de>
 #                     2014 Julian Rueth <julian.rueth@fsfe.org>
+#                     2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
+
 from cpython cimport PyObject
 
 cdef extern from "methodobject.h":
@@ -476,8 +481,7 @@ from os.path import relpath,normpath,commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 from inspect import isfunction
 
-import sage.misc.weak_dict
-from sage.misc.weak_dict import WeakValueDictionary
+from sage.misc.weak_dict cimport WeakValueDictionary
 from sage.misc.decorators import decorator_keywords
 
 cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
@@ -520,49 +524,86 @@ def _cached_function_unpickle(module,name):
     """
     return getattr(__import__(module, fromlist=['']),name)
 
-def _cache_key(o):
+
+cdef unhashable_key = object()
+
+cpdef inline dict_key(o):
+    """
+    Return a key to cache object ``o`` in a dict.
+
+    This is different from ``cache_key`` since the ``cache_key`` might
+    get confused with the key of a hashable object. Therefore, such keys
+    include ``unhashable_key`` which acts as a unique marker which is
+    certainly not stored in the dictionary otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.misc.cachefunc import dict_key
+        sage: dict_key(42)
+        42
+        sage: K.<u> = Qq(9)
+        sage: dict_key(u)
+        (<object object at ...>, (..., 20))
+    """
+    try:
+        hash(o)
+    except TypeError:
+        o = (unhashable_key, cache_key_unhashable(o))
+    return o
+
+
+cpdef inline cache_key(o):
     r"""
     Helper function to return a hashable key for ``o`` which can be used for
     caching.
 
     This function is intended for objects which are not hashable such as
     `p`-adic numbers. The difference from calling an object's ``_cache_key``
-    attribute directly, is that it also works for tuples and unpacks them
+    method directly, is that it also works for tuples and unpacks them
     recursively (if necessary, i.e., if they are not hashable).
 
     EXAMPLES::
 
-        sage: from sage.misc.cachefunc import _cache_key
+        sage: from sage.misc.cachefunc import cache_key
         sage: K.<u> = Qq(9)
         sage: a = K(1); a
         1 + O(3^20)
-        sage: _cache_key(a)
+        sage: cache_key(a)
         (..., ((1,),), 0, 20)
 
     This function works if ``o`` is a tuple. In this case it unpacks its
     entries recursively::
 
         sage: o = (1, 2, (3, a))
-        sage: _cache_key(o)
+        sage: cache_key(o)
         (1, 2, (3, (..., ((1,),), 0, 20)))
 
     Note that tuples are only partially unpacked if some of its entries are
     hashable::
 
         sage: o = (1/2, a)
-        sage: _cache_key(o)
+        sage: cache_key(o)
         (1/2, (..., ((1,),), 0, 20))
     """
     try:
         hash(o)
-        return o
     except TypeError:
-        if isinstance(o, sage.structure.sage_object.SageObject):
-            o = o._cache_key()
-        if isinstance(o,tuple):
-            return tuple(_cache_key(item) for item in o)
-        else:
-            return o
+        o = cache_key_unhashable(o)
+    return o
+
+
+cdef cache_key_unhashable(o):
+    """
+    Return a key for caching an item which is unhashable.
+    """
+    if isinstance(o, tuple):
+        return tuple(cache_key(item) for item in o)
+    try:
+        k = o._cache_key()
+    except AttributeError:
+        raise TypeError("unhashable type: {!r}".format(type(o).__name__))
+    return cache_key(k)
+
 
 cdef class CachedFunction(object):
     """
@@ -702,8 +743,6 @@ cdef class CachedFunction(object):
 
     cdef argfix_init(self):
         """
-        Perform initialization common to CachedFunction and CachedMethodCaller.
-
         TESTS::
 
             sage: @cached_function
@@ -933,15 +972,15 @@ cdef class CachedFunction(object):
         try:
             try:
                 return self.cache[k]
-            except TypeError: # k is not hashable
-                k = (_cache_key, _cache_key(k))
+            except TypeError:  # k is not hashable
+                k = dict_key(k)
                 return self.cache[k]
         except KeyError:
             w = self.f(*args, **kwds)
             self.cache[k] = w
             return w
 
-    cpdef get_cache(self):
+    def get_cache(self):
         """
         Returns the cache dictionary.
 
@@ -1007,8 +1046,8 @@ cdef class CachedFunction(object):
         k = self._fix_to_pos(*args, **kwds)
         try:
             return k in self.cache
-        except TypeError: # k is not hashable
-            k = (_cache_key, _cache_key(k))
+        except TypeError:  # k is not hashable
+            k = dict_key(k)
             return k in self.cache
 
     def set_cache(self, value, *args, **kwds):
@@ -1059,11 +1098,8 @@ cdef class CachedFunction(object):
         k = self._fix_to_pos(*args, **kwds)
         try:
             self.cache[k] = value
-        except TypeError: # k is not hashable
-            k = (_cache_key, _cache_key(k))
-            # to make sure that this key does not get confused with the key of
-            # a hashable object, such keys include _cache_key which is
-            # certainly not stored in the dictionary otherwise.
+        except TypeError:  # k is not hashable
+            k = dict_key(k)
             self.cache[k] = value
 
     def get_key(self, *args, **kwds):
@@ -1100,7 +1136,7 @@ cdef class CachedFunction(object):
         except AttributeError:
             return "Cached version of a method (pending reassignment)"
 
-    cpdef clear_cache(self):
+    def clear_cache(self):
         """
         Clear the cache dictionary.
 
@@ -1114,7 +1150,7 @@ cdef class CachedFunction(object):
             sage: g.cache
             {}
         """
-        cdef object cache = self.cache
+        cdef cache = self.cache
         for key in cache.keys():
             del cache[key]
 
@@ -1818,8 +1854,8 @@ cdef class CachedMethodCaller(CachedFunction):
         try:
             try:
                 return cache[k]
-            except TypeError: # k is not hashable
-                k = (_cache_key, _cache_key(k))
+            except TypeError:  # k is not hashable
+                k = dict_key(k)
                 return cache[k]
         except KeyError:
             w = self._cachedmethod._instance_call(self._instance, *args, **kwds)
@@ -2187,7 +2223,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         self.cache = value
 
-    cpdef clear_cache(self):
+    def clear_cache(self):
         r"""
         Clear the cache dictionary.
 
@@ -3022,7 +3058,7 @@ cdef class CachedInParentMethod(CachedMethod):
 
 cached_in_parent_method = decorator_keywords(CachedInParentMethod)
 
-class FileCache:
+class FileCache(object):
     """
     :class:`FileCache` is a dictionary-like class which stores keys
     and values on disk.  The keys take the form of a tuple ``(A,K)``

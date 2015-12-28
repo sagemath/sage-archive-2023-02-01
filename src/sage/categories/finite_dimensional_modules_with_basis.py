@@ -449,7 +449,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 ([1, 2, 3] - [3, 2, 1], [1, 3, 2] - [3, 2, 1], [2, 1, 3] - [3, 2, 1])
             """
             return tuple(map( self.domain().from_vector,
-                              self.matrix().right_kernel().basis() ))
+                              self.matrix().right_kernel_matrix().rows() ))
 
         def kernel(self):
             """

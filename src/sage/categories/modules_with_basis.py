@@ -741,7 +741,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S3A = S3.algebra(QQ)
                 sage: basis = S3A.annihilator_basis(S3A.algebra_generators(), S3A.bracket)
                 sage: basis
-                [(), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2)]
+                ((), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2))
                 sage: center = S3A.submodule(basis,
                 ....:                        category=AlgebrasWithBasis(QQ).Subobjects(),
                 ....:                        already_echelonized=True)

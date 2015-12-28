@@ -66,7 +66,7 @@ AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
 
-- Ben Hutz (9/2014): added support for cartesian products
+- Ben Hutz (9/2014): added support for Cartesian products
 """
 
 #*****************************************************************************
@@ -860,7 +860,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def cartesian_product(self, other):
         r"""
-        Return the cartesian product of the projective spaces ``self`` and
+        Return the Cartesian product of the projective spaces ``self`` and
         ``other``.
 
         INPUT:
@@ -869,7 +869,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         OUTPUT:
 
-        - A cartesian product of projective spaces
+        - A Cartesian product of projective spaces
 
         EXAMPLES::
 

@@ -4793,7 +4793,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         ALGORITHM:
 
         Algorithm 3 [Orlitzky]_ is used. Every closed convex cone is
-        isomorphic to a cartesian product of a proper cone, a subspace,
+        isomorphic to a Cartesian product of a proper cone, a subspace,
         and a trivial cone. The Lyapunov ranks of the subspace and
         trivial cone are easy to compute. Essentially, we "peel off"
         those easy parts of the cone and compute their Lyapunov ranks

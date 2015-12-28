@@ -557,7 +557,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         """
         Register actions with the coercion model.
 
-        The monoid actions are Minkowski sum and cartesian product. In
+        The monoid actions are Minkowski sum and Cartesian product. In
         addition, we want multiplication by a scalar to be dilation
         and addition by a vector to be translation. This is
         implemented as an action in the coercion model.

@@ -3737,7 +3737,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return the ordinal product of ``self`` and ``other``.
 
         The ordinal product of two posets `P` and `Q` is a partial
-        order on the cartesian product of the underlying sets of `P`
+        order on the Cartesian product of the underlying sets of `P`
         and `Q`, defined as follows (see [EnumComb1]_, p. 284).
 
         In the ordinal product, `(p,q) \leq (p',q')` if either `p \leq

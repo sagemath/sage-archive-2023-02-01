@@ -457,7 +457,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def __pow__(self, m):
         """
-        Return the cartesian power of self.
+        Return the Cartesian power of self.
 
         INPUT:
 

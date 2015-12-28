@@ -16630,7 +16630,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`~sage.graphs.graph_decompositions.graph_products.is_cartesian_product`
-              -- factorization of graphs according to the cartesian product
+              -- factorization of graphs according to the Cartesian product
 
             - :mod:`~sage.graphs.graph_decompositions.graph_products`
               -- a module on graph products.

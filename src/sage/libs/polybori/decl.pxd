@@ -147,7 +147,7 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
         size_t (* hash)()
         size_t (* stableHash)()
         PBNavigator (* navigation)()
-        PBSet (* cartesianProduct)(PBSet rhs)
+        PBSet (* CartesianProduct)(PBSet rhs)
         PBSet (* diff)(PBSet rhs)
         PBSet (* divide)(PBMonom rhs)
         PBSet (* change)(int idx)

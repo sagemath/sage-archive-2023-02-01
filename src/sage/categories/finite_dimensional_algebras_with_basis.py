@@ -72,10 +72,11 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             REFERENCES:
 
             .. [Eb89] Eberly, Wayne. "Computations for algebras and group
-               representations." Ph.D. Thesis, University of Toronto, 1989.
+               representations". Ph.D. Thesis, University of Toronto, 1989.
+               http://www.cpsc.ucalgary.ca/~eberly/Research/Papers/phdthesis.pdf
 
             .. [FR85] Friedl, Katalin, and Lajos Rónyai. "Polynomial time
-               solutions of some problems of computational algebra." Proceedings
+               solutions of some problems of computational algebra". Proceedings
                of the seventeenth annual ACM symposium on Theory of computing.
                ACM, 1985.
 
@@ -341,7 +342,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A.center_basis()
                 (x + y,)
             """
-            return tuple(self.annihilator_basis(self.algebra_generators(), self.bracket))
+            return self.annihilator_basis(self.algebra_generators(), self.bracket)
 
         @cached_method
         def center(self):

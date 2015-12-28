@@ -253,7 +253,6 @@ from sage.rings.integer import Integer
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 from operator import itemgetter
-import time
 
 class Components(SageObject):
     r"""
@@ -1009,6 +1008,219 @@ class Components(SageObject):
             for i in range(si, nsi):
                 self._set_value_list(ind + [i], format_type, val[i-si])
 
+    def display(self, symbol, latex_symbol=None, index_positions=None,
+                index_labels=None, index_latex_labels=None,
+                format_spec=None, only_nonzero=True, only_nonredundant=False):
+        r"""
+        Display all the components, one per line.
+
+        The output is either text-formatted (console mode) or LaTeX-formatted
+        (notebook mode).
+
+        INPUT:
+
+        - ``symbol`` -- string (typically a single letter) specifying the
+          symbol for the components
+        - ``latex_symbol`` -- (default: ``None``) string specifying the LaTeX
+          symbol for the components; if ``None``, ``symbol`` is used
+        - ``index_positions`` -- (default: ``None``) string of length the
+          number of indices of the components and composed of characters 'd'
+          (for "down") or 'u' (for "up") to specify the position of each index:
+          'd' corresponds to a subscript and 'u' to a superscript. If
+          ``index_positions`` is ``None``, all indices are printed as
+          subscripts
+        - ``index_labels`` -- (default: ``None``) list of strings representing
+          the labels of each of the individual indices within the index range
+          defined at the construction of the object; if ``None``, integer
+          labels are used
+        - ``index_latex_labels`` -- (default: ``None``) list of strings
+          representing the LaTeX labels of each of the individual indices
+          within the index range defined at the construction of the object; if
+          ``None``, integers labels are used
+        - ``format_spec`` -- (default: ``None``) format specification passed
+          to the output formatter declared at the construction of the object
+        - ``only_nonzero`` -- (default: ``True``) boolean; if ``True``, only
+          nonzero components are displayed
+        - ``only_nonredundant`` -- (default: ``False``) boolean; if ``True``,
+          only nonredundant components are displayed in case of symmetries
+
+        EXAMPLES:
+
+        Display of 3-indices components w.r.t. to the canonical basis of the
+        free module `\ZZ^2` over the integer ring::
+
+            sage: from sage.tensor.modules.comp import Components
+            sage: c = Components(ZZ, (ZZ^2).basis(), 3)
+            sage: c[0,1,0], c[1,0,1], c[1,1,1] = -2, 5, 3
+            sage: c.display('c')
+            c_010 = -2
+            c_101 = 5
+            c_111 = 3
+
+        By default, only nonzero components are shown; to display all the
+        components, it suffices to set the parameter ``only_nonzero`` to
+        ``False``::
+
+            sage: c.display('c', only_nonzero=False)
+            c_000 = 0
+            c_001 = 0
+            c_010 = -2
+            c_011 = 0
+            c_100 = 0
+            c_101 = 5
+            c_110 = 0
+            c_111 = 3
+
+        By default, all indices are printed as subscripts, but any index
+        position can be specifed::
+
+            sage: c.display('c', index_positions='udd')
+            c^0_10 = -2
+            c^1_01 = 5
+            c^1_11 = 3
+            sage: c.display('c', index_positions='udu')
+            c^0_1^0 = -2
+            c^1_0^1 = 5
+            c^1_1^1 = 3
+            sage: c.display('c', index_positions='ddu')
+            c_01^0 = -2
+            c_10^1 = 5
+            c_11^1 = 3
+
+        The LaTeX output is performed as an array, with the symbol adjustable
+        if it differs from the text symbol::
+
+            sage: latex(c.display('c', latex_symbol=r'\Gamma', index_positions='udd'))
+            \begin{array}{lcl} \Gamma_{\phantom{\, 0}\,1\,0}^{\,0\phantom{\, 1}\phantom{\, 0}} & = & -2 \\ \Gamma_{\phantom{\, 1}\,0\,1}^{\,1\phantom{\, 0}\phantom{\, 1}} & = & 5 \\ \Gamma_{\phantom{\, 1}\,1\,1}^{\,1\phantom{\, 1}\phantom{\, 1}} & = & 3 \end{array}
+
+        The index labels can differ from integers::
+
+            sage: c.display('c', index_labels=['x','y'])
+            c_xyx = -2
+            c_yxy = 5
+            c_yyy = 3
+
+        If the index labels are longer than a single character, they are
+        separated by a comma::
+
+            sage: c.display('c', index_labels=['r', 'th'])
+            c_r,th,r = -2
+            c_th,r,th = 5
+            c_th,th,th = 3
+
+        The LaTeX labels for the indices can be specified if they differ
+        from the text ones::
+
+            sage: c.display('c', index_labels=['r', 'th'],
+            ....:           index_latex_labels=['r', r'\theta'])
+            c_r,th,r = -2
+            c_th,r,th = 5
+            c_th,th,th = 3
+
+        The display of components with symmetries is governed by the parameter
+        ``only_nonredundant``::
+
+            sage: from sage.tensor.modules.comp import CompWithSym
+            sage: c = CompWithSym(ZZ, (ZZ^2).basis(), 3, sym=(1,2)) ; c
+            3-indices components w.r.t. [
+            (1, 0),
+            (0, 1)
+            ], with symmetry on the index positions (1, 2)
+            sage: c[0,0,1] = 2
+            sage: c.display('c')
+            c_001 = 2
+            c_010 = 2
+            sage: c.display('c', only_nonredundant=True)
+            c_001 = 2
+
+        If some nontrivial output formatter has been set, the format can be
+        specified by means of the argument ``format_spec``::
+
+            sage: c = Components(QQ, (QQ^3).basis(), 2,
+            ....:                output_formatter=Rational.numerical_approx)
+            sage: c[0,1] = 1/3
+            sage: c[2,1] = 2/7
+            sage: c.display('C')  # default format (53 bits of precision)
+            C_01 = 0.333333333333333
+            C_21 = 0.285714285714286
+            sage: c.display('C', format_spec=10)  # 10 bits of precision
+            C_01 = 0.33
+            C_21 = 0.29
+
+        """
+        from sage.misc.latex import latex
+        from sage.tensor.modules.format_utilities import FormattedExpansion
+        si = self._sindex
+        nsi = si + self._dim
+        if latex_symbol is None:
+            latex_symbol = symbol
+        if index_positions is None:
+            index_positions = self._nid * 'd'
+        elif len(index_positions) != self._nid:
+            raise ValueError("the argument 'index_positions' must contain " +
+                             "{} characters".format(self._nid))
+        if index_labels is None:
+            index_labels = [str(i) for i in range(si, nsi)]
+        elif len(index_labels) != self._dim:
+            raise ValueError("the argument 'index_labels' must contain " +
+                             "{} items".format(self._dim))
+        # Index separator:
+        max_len_symbols = max([len(s) for s in index_labels])
+        if max_len_symbols==1:
+            sep = ''
+        else:
+            sep = ','
+        if index_latex_labels is None:
+            index_latex_labels = index_labels
+        elif len(index_latex_labels) != self._dim:
+            raise ValueError("the argument 'index_latex_labels' must " +
+                             "contain {} items".format(self._dim))
+        if only_nonredundant:
+            generator = self.non_redundant_index_generator()
+        else:
+            generator = self.index_generator()
+        rtxt = ''
+        rlatex = r'\begin{array}{lcl}'
+        for ind in generator:
+            ind_arg = ind + (format_spec,)
+            val = self[ind_arg]
+            if val != 0 or not only_nonzero:
+                indices = ''  # text indices
+                d_indices = '' # LaTeX down indices
+                u_indices = '' # LaTeX up indices
+                previous = None  # position of previous index
+                for k in range(self._nid):
+                    i = ind[k] - si
+                    if index_positions[k]=='d':
+                        if previous == 'd':
+                            indices += sep + index_labels[i]
+                        else:
+                            indices += '_' + index_labels[i]
+                        d_indices += r'\,' + index_latex_labels[i]
+                        u_indices += r'\phantom{\, ' + index_latex_labels[i] + \
+                                     r'}'
+                        previous = 'd'
+                    else:
+                        if previous == 'u':
+                            indices += sep + index_labels[i]
+                        else:
+                            indices += '^' + index_labels[i]
+                        d_indices += r'\phantom{\, ' + index_latex_labels[i] + \
+                                     r'}'
+                        u_indices += r'\,' + index_latex_labels[i]
+                        previous = 'u'
+                rtxt += symbol + indices + ' = {} \n'.format(val)
+                rlatex += latex_symbol + r'_{' + d_indices + r'}^{' + \
+                              u_indices + r'} & = & ' + latex(val) + r'\\'
+        if rtxt == '':
+            # no component has been displayed
+            rlatex = ''
+        else:
+            # closing the display
+            rtxt = rtxt[:-1]  # remove the last new line
+            rlatex = rlatex[:-2] + r'\end{array}'
+        return FormattedExpansion(rtxt, rlatex)
+
     def swap_adjacent_indices(self, pos1, pos2, pos3):
         r"""
         Swap two adjacent sets of indices.
@@ -1286,13 +1498,13 @@ class Components(SageObject):
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: Parallelism().get('tensor')
-            2
             sage: s_par = a.__add__(b) ; s_par
             1-index components w.r.t. [1, 2, 3]
             sage: s_par[:]
             [5, 5, 3]
             sage: s_par == s
+            True
+            sage: b.__add__(a) == s  # test of commutativity of parallel comput.
             True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
@@ -1313,36 +1525,32 @@ class Components(SageObject):
         if other._sindex != self._sindex:
             raise ValueError("the two sets of components do not have the " +
                              "same starting index")
-
-
-        if Parallelism().get('tensor') != 1 :
-            # parallel sum
-            result = self._new_instance()
-            nproc = Parallelism().get('tensor')
+        # Initialization of the result to self.copy(), so that there remains
+        # only to add other:
+        result = self.copy()
+        nproc = Parallelism().get('tensor')
+        if nproc != 1 :
+            # Parallel computation
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+            ind_list = [ind for ind in other._comp]
+            ind_step = max(1, int(len(ind_list)/nproc/2))
+            local_list = lol(ind_list, ind_step)
+            # list of input parameters
+            listParalInput = [(self, other, ind_part) for ind_part in local_list]
 
-            ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]
-            ind_step = max(1,int(len(ind_list)/nproc/2))
-            local_list = lol(ind_list,ind_step)
-
-            # definition of the list of input parameters
-            listParalInput = [(self,other,ind_part) for ind_part in local_list]
-
-            @parallel(p_iter='multiprocessing',ncpus=nproc)
-            def paral_sum(a,b,local_list_ind):
+            @parallel(p_iter='multiprocessing', ncpus=nproc)
+            def paral_sum(a, b, local_list_ind):
                 partial = []
                 for ind in local_list_ind:
-                    partial.append([ind,a[[ind]]+b[[ind]]])
+                    partial.append([ind, a[[ind]]+b[[ind]]])
                 return partial
 
-            for ii,val in paral_sum(listParalInput):
+            for ii, val in paral_sum(listParalInput):
                 for jj in val:
                     result[[jj[0]]] = jj[1]
 
         else:
-            # sequential
-            result = self.copy()
-
+            # Sequential computation
             for ind, val in other._comp.iteritems():
                 result[[ind]] += val
 
@@ -1411,6 +1619,8 @@ class Components(SageObject):
             [-3, -5, -9]
             sage: s_par == s
             True
+            sage: b.__sub__(a) == -s # test of parallel comput.
+            True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
@@ -1474,6 +1684,13 @@ class Components(SageObject):
             [-12 -15 -18]
             sage: s == a*b
             True
+            sage: t = b*a
+            sage: aa = a*a ; aa
+            Fully symmetric 2-indices components w.r.t. [1, 2, 3]
+            sage: aa[:]
+            [ 1  0 -3]
+            [ 0  0  0]
+            [-3  0  9]
 
         Parallel computation::
 
@@ -1487,6 +1704,25 @@ class Components(SageObject):
             [  0   0   0]
             [-12 -15 -18]
             sage: s_par == s
+            True
+            sage: b.__mul__(a) == t  # test of parallel comput.
+            True
+            sage: a.__mul__(a) == aa  # test of parallel comput.
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
+        Tensor product with a set of symmetric components::
+
+            sage: s = b*aa; s
+            3-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (1, 2)
+            sage: s[:]
+            [[[4, 0, -12], [0, 0, 0], [-12, 0, 36]],
+             [[5, 0, -15], [0, 0, 0], [-15, 0, 45]],
+             [[6, 0, -18], [0, 0, 0], [-18, 0, 54]]]
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: s_par = b*aa; s_par
+            3-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (1, 2)
+            sage: s_par[:] == s[:]
             True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
@@ -1525,63 +1761,60 @@ class Components(SageObject):
                 # So we use a loop specific to the current case and return the
                 # result:
 
-                if Parallelism().get('tensor') != 1 :
-                    nproc = Parallelism().get('tensor')
+                nproc = Parallelism().get('tensor')
+                if nproc != 1 :
+                    # Parallel computation
                     lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
-
-                    ind_list = [ ind for ind  in result.non_redundant_index_generator()]
-                    ind_step = max(1,int(len(ind_list)/nproc))
-                    local_list = lol(ind_list,ind_step)
-
-                    # definition of the list of input parameters
-                    listParalInput = [(self,ind_part) for ind_part in local_list]
+                    ind_list = [ind for ind in result.non_redundant_index_generator()]
+                    ind_step = max(1, int(len(ind_list)/nproc))
+                    local_list = lol(ind_list, ind_step)
+                    # list of input parameters:
+                    listParalInput = [(self, ind_part) for ind_part in local_list]
 
                     @parallel(p_iter='multiprocessing',ncpus=nproc)
-                    def paral_mul(a,local_list_ind):
-                        return [[ind,a[[ind[0]]]*a[[ind[1]]]] for ind in local_list_ind]
+                    def paral_mul(a, local_list_ind):
+                        return [[ind, a[[ind[0]]]*a[[ind[1]]]] for ind in local_list_ind]
 
                     for ii,val in paral_mul(listParalInput):
                         for jj in val:
                             result[[jj[0]]] = jj[1]
                 else:
-
+                    # Sequential computation
                     for ind in result.non_redundant_index_generator():
                         result[[ind]] = self[[ind[0]]] * self[[ind[1]]]
-                    return result
+                return result
             else:
                 result = Components(self._ring, self._frame, 2, self._sindex,
                                     self._output_formatter)
         else:
             result = Components(self._ring, self._frame, self._nid + other._nid,
                                 self._sindex, self._output_formatter)
-
-        if Parallelism().get('tensor') != 1 :
-            nproc = Parallelism().get('tensor')
+        nproc = Parallelism().get('tensor')
+        if nproc != 1 :
+            # Parallel computation
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+            ind_list = [ind for ind  in self._comp]
+            ind_step = max(1, int(len(ind_list)/nproc))
+            local_list = lol(ind_list, ind_step)
+            # list of input parameters:
+            listParalInput = [(self, other, ind_part) for ind_part in local_list]
 
-            ind_list = [ ind for ind, ocomp  in self._comp.iteritems()]
-            ind_step = max(1,int(len(ind_list)/nproc))
-            local_list = lol(ind_list,ind_step)
-
-            # definition of the list of input parameters
-            listParalInput = [(self,other,ind_part) for ind_part in local_list]
-
-            @parallel(p_iter='multiprocessing',ncpus=nproc)
-            def paral_mul(a,b,local_list_ind):
+            @parallel(p_iter='multiprocessing', ncpus=nproc)
+            def paral_mul(a, b, local_list_ind):
                 partial = []
                 for ind in local_list_ind:
                     for ind_o, val_o in b._comp.iteritems():
-                        partial.append([ind + ind_o,a._comp[ind]*val_o])
+                        partial.append([ind + ind_o, a._comp[ind]*val_o])
                 return partial
 
             for ii,val in paral_mul(listParalInput):
                 for jj in val:
                     result._comp[jj[0]] = jj[1]
         else:
+            # Sequential computation
             for ind_s, val_s in self._comp.iteritems():
                 for ind_o, val_o in other._comp.iteritems():
                     result._comp[ind_s + ind_o] = val_s * val_o
-
         return result
 
 
@@ -1966,8 +2199,6 @@ class Components(SageObject):
             else:
                 o_sym = []
                 o_antisym = []
-            # print "s_sym, s_antisym: ", s_sym, s_antisym
-            # print "o_sym, o_antisym: ", o_sym, o_antisym
             res_sym = []
             res_antisym = []
             for isym in s_sym:
@@ -3129,6 +3360,18 @@ class CompWithSym(Components):
             [ 0  5 -3]
             sage: s == a + b
             True
+
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: s_par = a + b ; s_par
+            2-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1)
+            sage: s_par[:] == s[:]
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
+        Addition with different symmetries::
+
             sage: c = CompWithSym(ZZ, [1,2,3], 2, antisym=(0,1))
             sage: c[0,1], c[0,2] = 3, 7
             sage: s = a.__add__(c) ; s  # the symmetry is lost
@@ -3137,6 +3380,15 @@ class CompWithSym(Components):
             [ 0  7  7]
             [ 1  0  5]
             [-7  5  0]
+
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: s_par = a + c ; s_par
+            2-indices components w.r.t. [1, 2, 3]
+            sage: s_par[:] == s[:]
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if other == 0:
@@ -3161,8 +3413,33 @@ class CompWithSym(Components):
             if diff_sym == set() and diff_antisym == set():
                 # The symmetries/antisymmetries are identical:
                 result = self.copy()
-                for ind, val in other._comp.iteritems():
-                    result[[ind]] += val
+                nproc = Parallelism().get('tensor')
+                if nproc != 1 :
+                    # Parallel computation
+                    lol = lambda lst, sz: [lst[i:i+sz] for i in
+                                           range(0, len(lst), sz)]
+                    ind_list = [ind for ind in other._comp]
+                    ind_step = max(1, int(len(ind_list)/nproc/2))
+                    local_list = lol(ind_list, ind_step)
+                    # list of input parameters
+                    listParalInput = [(self, other, ind_part) for ind_part in
+                                      local_list]
+
+                    @parallel(p_iter='multiprocessing', ncpus=nproc)
+                    def paral_sum(a, b, local_list_ind):
+                        partial = []
+                        for ind in local_list_ind:
+                            partial.append([ind, a[[ind]]+b[[ind]]])
+                        return partial
+
+                    for ii, val in paral_sum(listParalInput):
+                        for jj in val:
+                            result[[jj[0]]] = jj[1]
+
+                else:
+                    # Sequential computation
+                    for ind, val in other._comp.iteritems():
+                        result[[ind]] += val
                 return result
             else:
                 # The symmetries/antisymmetries are different: only the
@@ -3191,10 +3468,31 @@ class CompWithSym(Components):
             # other has no symmetry at all:
             result = Components(self._ring, self._frame, self._nid,
                                 self._sindex, self._output_formatter)
-        for ind in result.non_redundant_index_generator():
-            result[[ind]] = self[[ind]] + other[[ind]]
-        return result
+        nproc = Parallelism().get('tensor')
+        if nproc != 1 :
+            # Parallel computation
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+            ind_list = [ind for ind in result.non_redundant_index_generator()]
+            ind_step = max(1, int(len(ind_list)/nproc/2))
+            local_list = lol(ind_list, ind_step)
+            # definition of the list of input parameters
+            listParalInput = [(self, other, ind_part) for ind_part in local_list]
 
+            @parallel(p_iter='multiprocessing', ncpus=nproc)
+            def paral_sum(a, b, local_list_ind):
+                partial = []
+                for ind in local_list_ind:
+                    partial.append([ind, a[[ind]]+b[[ind]]])
+                return partial
+
+            for ii,val in paral_sum(listParalInput):
+                for jj in val:
+                    result[[jj[0]]] = jj[1]
+        else:
+            # Sequential computation
+            for ind in result.non_redundant_index_generator():
+                result[[ind]] = self[[ind]] + other[[ind]]
+        return result
 
     def __mul__(self, other):
         r"""
@@ -3243,13 +3541,13 @@ class CompWithSym(Components):
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
             sage: s1_par[1,0,0,1]
             8
-            sage: s1_par == s1
+            sage: s1_par[:] == s1[:]
             True
             sage: s2_par = a.__mul__(c) ; s2_par
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)
             sage: s2_par[1,0,2,0]
             -28
-            sage: s2_par == s2
+            sage: s2_par[:] == s2[:]
             True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
@@ -3276,37 +3574,33 @@ class CompWithSym(Components):
                     antisym.append(ns)
         result = CompWithSym(self._ring, self._frame, self._nid + other._nid,
                              self._sindex, self._output_formatter, sym, antisym)
-
-
-        if Parallelism().get('tensor') != 1 :
-            nproc = Parallelism().get('tensor')
+        nproc = Parallelism().get('tensor')
+        if nproc != 1 :
+            # Parallel computation
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+            ind_list = [ind for ind in self._comp]
+            ind_step = max(1, int(len(ind_list)/nproc))
+            local_list = lol(ind_list, ind_step)
+            # list of input parameters:
+            listParalInput = [(self, other, ind_part) for ind_part in local_list]
 
-            ind_list = [ ind for ind, ocomp  in self._comp.iteritems()]
-            ind_step = max(1,int(len(ind_list)/nproc))
-            local_list = lol(ind_list,ind_step)
-
-            # definition of the list of input parameters
-            listParalInput = [(self,other,ind_part) for ind_part in local_list]
-
-            @parallel(p_iter='multiprocessing',ncpus=nproc)
-            def paral_mul(a,b,local_list_ind):
+            @parallel(p_iter='multiprocessing', ncpus=nproc)
+            def paral_mul(a, b, local_list_ind):
                 partial = []
                 for ind in local_list_ind:
                     for ind_o, val_o in b._comp.iteritems():
-                        partial.append([ind + ind_o,a._comp[ind]*val_o])
+                        partial.append([ind + ind_o, a._comp[ind]*val_o])
                 return partial
 
             for ii,val in paral_mul(listParalInput):
                 for jj in val:
                     result._comp[jj[0]] = jj[1]
         else:
+            # Sequential computation
             for ind_s, val_s in self._comp.iteritems():
                 for ind_o, val_o in other._comp.iteritems():
                     result._comp[ind_s + ind_o] = val_s * val_o
-
         return result
-
 
     def trace(self, pos1, pos2):
         r"""
@@ -4542,6 +4836,26 @@ class CompFullySym(CompWithSym):
             [ 0  5 -3]
             sage: s == a + b
             True
+
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: s_par = a.__add__(b) ; s_par
+            Fully symmetric 2-indices components w.r.t. (1, 2, 3)
+            sage: s_par[:]
+            [ 0  6  0]
+            [ 6  0  5]
+            [ 0  5 -3]
+            sage: s_par == s
+            True
+            sage: s_par == b.__add__(a)  # test of commutativity of parallel comput.
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
+        Addition with a set of components having different symmetries::
+
             sage: from sage.tensor.modules.comp import CompFullyAntiSym
             sage: c = CompFullyAntiSym(ZZ, (1,2,3), 2)
             sage: c[0,1], c[0,2] = 3, 7
@@ -4561,11 +4875,13 @@ class CompFullySym(CompWithSym):
             2
             sage: s_par = a.__add__(c) ; s_par
             2-indices components w.r.t. (1, 2, 3)
-            sage: s[:]
+            sage: s_par[:]
             [ 0  7  7]
             [ 1  0  5]
             [-7  5  0]
-            sage: s_par == s
+            sage: s_par[:] == s[:]
+            True
+            sage: s_par == c.__add__(a)  # test of commutativity of parallel comput.
             True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
@@ -4585,25 +4901,26 @@ class CompFullySym(CompWithSym):
             if other._sindex != self._sindex:
                 raise ValueError("the two sets of components do not have the " +
                                  "same starting index")
-
-            if Parallelism().get('tensor') != 1 :
+            # Initialization of the result to self.copy(), so that there
+            # remains only to add other:
+            result = self.copy()
+            nproc = Parallelism().get('tensor')
+            if nproc != 1 :
                 # parallel sum
-                result = self._new_instance()
-                nproc = Parallelism().get('tensor')
-                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
-
-                ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]
-                ind_step = max(1,int(len(ind_list)/nproc/2))
-                local_list = lol(ind_list,ind_step)
-
+                lol = lambda lst, sz: [lst[i:i+sz] for i
+                                       in range(0, len(lst), sz)]
+                ind_list = [ind for ind in other._comp]
+                ind_step = max(1, int(len(ind_list)/nproc/2))
+                local_list = lol(ind_list, ind_step)
                 # definition of the list of input parameters
-                listParalInput = [(self,other,ind_part) for ind_part in local_list]
+                listParalInput = [(self, other, ind_part) for ind_part
+                                  in local_list]
 
-                @parallel(p_iter='multiprocessing',ncpus=nproc)
-                def paral_sum(a,b,local_list_ind):
+                @parallel(p_iter='multiprocessing', ncpus=nproc)
+                def paral_sum(a, b, local_list_ind):
                     partial = []
                     for ind in local_list_ind:
-                        partial.append([ind,a[[ind]]+b[[ind]]])
+                        partial.append([ind, a[[ind]]+b[[ind]]])
                     return partial
 
                 for ii,val in paral_sum(listParalInput):
@@ -4611,8 +4928,7 @@ class CompFullySym(CompWithSym):
                         result[[jj[0]]] = jj[1]
 
             else:
-                # sequential
-                result = self.copy()
+                # sequential sum
                 for ind, val in other._comp.iteritems():
                     result[[ind]] += val
             return result

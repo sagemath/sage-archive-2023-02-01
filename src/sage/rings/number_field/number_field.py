@@ -92,7 +92,6 @@ from sage.misc.cachefunc import cached_method
 
 import sage.libs.ntl.all as ntl
 import sage.interfaces.gap
-import sage.rings.arith
 
 import sage.rings.complex_field
 from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -197,8 +196,8 @@ import sage.rings.arith as arith
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.infinity as infinity
-import sage.rings.rational as rational
-import sage.rings.integer as integer
+from sage.rings.rational import Rational
+from sage.rings.integer import Integer
 import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
@@ -211,8 +210,8 @@ import number_field_element_quadratic
 from number_field_ideal import is_NumberFieldIdeal, NumberFieldFractionalIdeal
 from sage.libs.pari.all import pari, pari_gen
 
-QQ = rational_field.RationalField()
-ZZ = integer_ring.IntegerRing()
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
 RIF = sage.rings.real_mpfi.RealIntervalField()
 CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 from sage.rings.real_double import RDF
@@ -3154,11 +3153,10 @@ class NumberField_generic(number_field_base.NumberField):
         if B<2:
             return []
 
-        from sage.rings.arith import primes
         if self is QQ:
-            return primes(B+1)
+            return arith.primes(B+1)
         else:
-            P = [pp for p in primes(B+1) for pp in self.primes_above(p)]
+            P = [pp for p in arith.primes(B+1) for pp in self.primes_above(p)]
             P = [p for p in P if p.norm() <= B]
             P.sort(key=lambda P: (P.norm(),P))
             return P
@@ -3202,12 +3200,11 @@ class NumberField_generic(number_field_base.NumberField):
         if B<2:
             raise StopIteration
 
-        from sage.rings.arith import primes
         if self is QQ:
-            for p in primes(B+1):
+            for p in arith.primes(B+1):
                 yield p
         else:
-            for p in primes(B+1):
+            for p in arith.primes(B+1):
                 for pp in self.primes_above(p):
                     if pp.norm() <= B:
                         yield pp
@@ -3326,7 +3323,7 @@ class NumberField_generic(number_field_base.NumberField):
                 return False
             # We need that elements of the base ring of the polynomial
             # ring map canonically into codomain.
-            codomain._coerce_(rational.Rational(1))
+            codomain._coerce_(QQ.one())
             f = self.defining_polynomial()
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
@@ -4880,7 +4877,7 @@ class NumberField_generic(number_field_base.NumberField):
             if self.__polynomial is not None:
                 X = self.__polynomial.parent().gen()
             else:
-                X = PolynomialRing(rational_field.RationalField()).gen()
+                X = PolynomialRing(QQ).gen()
             self.__gen = self._element_class(self, X)
             return self.__gen
 
@@ -6708,9 +6705,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K(b)
             -1/2*a^2 - 4
         """
-        if isinstance(x, (int, long, rational.Rational,
-                              integer.Integer, pari_gen,
-                              list)):
+        if isinstance(x, (int, long, Rational, Integer, pari_gen, list)):
             return self._element_class(self, x)
 
         if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
@@ -8863,7 +8858,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             latex_name = "\\zeta_{%s}"%n
         else:
             latex_name = None
-        self.__n = n = integer.Integer(n)
+        self.__n = n = Integer(n)
         NumberField_absolute.__init__(self, f,
                                       name= names,
                                       latex_name=latex_name,
@@ -9515,7 +9510,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             try:
                 # it may be that a number field element's string representation
                 # in GAP has an exclamation mark in it.
-                return self(rational.Rational(s.replace('!','')))
+                return self(QQ(s.replace('!','')))
             except TypeError:
                 # There is no 'E(...)' in the string representation. But it may
                 # be that 'E(...)' was overwritten in GAP. We can only hope that
@@ -9682,7 +9677,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             pass
         n = self._n()
         z = CC.zeta(n)
-        X = [m for m in range(n) if sage.rings.arith.gcd(m,n) == 1]
+        X = [m for m in range(n) if arith.gcd(m,n) == 1]
         v = [self.hom([z**n], check=False) for n in X]
         self.__embeddings[CC] = Sequence(v, cr=True, immutable=True,
                                          check=False, universe=self.Hom(CC))
@@ -9830,7 +9825,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         n = self._n()
         while True:
-            p = sage.rings.arith.next_prime(p)
+            p = arith.next_prime(p)
             if p % n == 1:
                 return p
 
@@ -9983,7 +9978,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         if n is None:
             n = self.zeta_order()
         else:
-            n = integer.Integer(n)
+            n = Integer(n)
 
         z = self.gen()
         m = self._n()
@@ -10002,7 +9997,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         v = [a]
         b = a*a
         for i in range(2,n):
-            if sage.rings.arith.gcd(i, n) == 1:
+            if n.gcd(i).is_one():
                 v.append(b)
             b = b * a
         return v
@@ -10086,7 +10081,7 @@ class NumberField_quadratic(NumberField_absolute):
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._standard_embedding = True
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
-        c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
+        c, b, a = [QQ(t) for t in self.defining_polynomial().list()]
         # set the generator
         Dpoly = b*b - 4*a*c
         D = (Dpoly.numer() * Dpoly.denom()).squarefree_part(bound=10000)

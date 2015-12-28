@@ -25,6 +25,7 @@
 #include "constant.h"
 #include "infinity.h"
 #include "symbol.h"
+#include "mul.h"
 #include "power.h"
 #include "operators.h"
 #include "pseries.h"
@@ -496,16 +497,16 @@ static ex tan_deriv(const ex & x, unsigned deriv_param)
 
 static ex tan_real_part(const ex & x)
 {
-	ex a = GiNaC::real_part(x);
-	ex b = GiNaC::imag_part(x);
-	return tan(a)/(1+power(tan(a),2)*power(tan(b),2));
+	ex a = GiNaC::real_part(mul(x, _ex2));
+	ex b = GiNaC::imag_part(mul(x, _ex2));
+	return sin(a)/(cos(a) + cosh(b));
 }
 
 static ex tan_imag_part(const ex & x)
 {
-	ex a = GiNaC::real_part(x);
-	ex b = GiNaC::imag_part(x);
-	return tanh(b)/(1+power(tan(a),2)*power(tan(b),2));
+	ex a = GiNaC::real_part(mul(x, _ex2));
+	ex b = GiNaC::imag_part(mul(x, _ex2));
+	return sinh(b)/(cos(a) + cosh(b));
 }
 
 static ex tan_series(const ex &x,

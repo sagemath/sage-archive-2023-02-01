@@ -1545,7 +1545,7 @@ class GraphGenerators():
           This option cannot be used with ``minimum_connectivity=3``, or if
           the minimum connectivity is not explicitely set.
 
-        - ``only_eulerian`` - default: ``False`` - if ``True`` only eulerian
+        - ``only_eulerian`` - default: ``False`` - if ``True`` only Eulerian
           triangulations will be generated. This option cannot be used if the
           minimum degree is explicitely set to anything else than 4.
 
@@ -1576,13 +1576,13 @@ class GraphGenerators():
             sage: [g.get_embedding() for g in gen]  # optional plantri
             [{1: [2, 3, 4], 2: [1, 4, 3], 3: [1, 2, 4], 4: [1, 3, 2]}]
 
-        but, of course, this graph is not eulerian::
+        but, of course, this graph is not Eulerian::
 
             sage: gen = graphs.triangulations(4, only_eulerian=True)  # optional plantri
             sage: len(list(gen))                                      # optional plantri
             0
 
-        The unique eulerian triangulation on 6 vertices is isomorphic to the octahedral
+        The unique Eulerian triangulation on 6 vertices is isomorphic to the octahedral
         graph. ::
 
             sage: gen = graphs.triangulations(6, only_eulerian=True)  # optional plantri
@@ -1656,7 +1656,7 @@ class GraphGenerators():
         if minimum_degree is  not None and not (3 <= minimum_degree <= 5):
             raise ValueError("Minimum degree should be None or a number between 3 and 5.")
 
-        # for eulerian triangulations the minimum degree is set to 4 (unless it was already specifically set)
+        # for Eulerian triangulations the minimum degree is set to 4 (unless it was already specifically set)
         if only_eulerian and minimum_degree is None:
             minimum_degree = 4
 

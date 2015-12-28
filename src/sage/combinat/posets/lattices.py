@@ -777,7 +777,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
 
         Ordinal product of planar lattices is obviously planar. Same does
-        not apply to cartesian products::
+        not apply to Cartesian products::
 
             sage: P = Posets.PentagonPoset()
             sage: Pc = P.product(P)

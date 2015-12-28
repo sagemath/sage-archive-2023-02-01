@@ -728,7 +728,7 @@ class ToricVarietyFactory(SageObject):
 
     def P1xA1(self, names='s t z', base_ring=QQ):
         r"""
-        Construct the cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
+        Construct the Cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
         a toric variety.
 
         INPUT:

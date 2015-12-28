@@ -1973,7 +1973,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of modules with basis constructed by cartesian products
+        The category of modules with basis constructed by Cartesian products
         of modules with basis.
         """
         @cached_method

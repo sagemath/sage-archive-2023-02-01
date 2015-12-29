@@ -759,25 +759,25 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         Return ``True`` if the lattice is pseudocomplemented, and ``False``
         otherwise.
-        
+
         A lattice is pseudocomplemented if every element `e` has a
         pseudocomplement `e^\star`, i.e. the maximum element such that
         the meet of `e` and `e^\star` is the bottom element.
-        
+
         EXAMPLES::
-    
+
             sage: L = LatticePoset({1:[2, 5], 2:[3, 6], 3:[4], 4:[7], 5:[6], 6:[7]})
             sage: L.is_pseudocomplemented()
             True
-            
+
             sage: L = LatticePoset({1:[2,3], 2:[4,5,6], 3:[6], 4:[7], 5:[7], 6:[7]})
             sage: L.is_pseudocomplemented()  # Element 3 has no pseudocomplement
             False
-        
+
         .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement()`.
-    
+
         TESTS::
-            
+
             sage: LatticePoset({}).is_pseudocomplemented()
             True
         """

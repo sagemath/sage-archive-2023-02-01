@@ -2004,8 +2004,8 @@ def SRG_243_110_37_60():
 
     .. NOTE::
 
-        This function is not used, as a quicker way to build this graph
-        is from a projective 2-weight code.
+        A strongly regular graph with the same parameters is also obtained from
+        the database of 2-weight codes.
 
     EXAMPLE::
 
@@ -3008,6 +3008,7 @@ def _build_small_srg_database():
         (210,  99,  48, 45): [SRG_210_99_48_45],
         (220,  84,  38, 28): [SRG_220_84_38_28],
         (231,  30,   9,  3): [CameronGraph],
+        (243, 110,  37, 60): [SRG_243_110_37_60],
         (253, 140,  87, 65): [SRG_253_140_87_65],
         (275, 112,  30, 56): [McLaughlinGraph],
         (276, 140,  58, 84): [SRG_276_140_58_84],

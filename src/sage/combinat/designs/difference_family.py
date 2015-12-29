@@ -977,10 +977,20 @@ def twin_prime_powers_difference_set(p, check=True):
 
 def are_mcfarland_1973_parameters(v, k, lmbda, return_parameters=False):
     r"""
-    Test whether ``(v,k,l)`` is a triple that can be obtained from the
+    Test whether ``(v,k,lmbda)`` is a triple that can be obtained from the
     construction of McFarland 1973.
 
     See :func:`mcfarland_1973_construction`.
+
+    INPUT:
+
+    - ``v``, ``k``, ``lmbda`` - (integers) parameters of the difference family
+
+    - ``return_parameters`` -- (boolean, default ``False``) if ``True`` return a
+      pair ``(True, (q, s))`` so that ``(q,s)`` can be used in the function
+      :func:`mcfarland_1973_construction` to actually build a
+      ``(v,k,lmbda)``-difference family. Or ``(False, None)`` if the
+      construction is not possible.
 
     EXAMPLES::
 

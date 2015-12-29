@@ -301,6 +301,8 @@ class Gap3(Gap_generic):
             sage: gap3.is_running()                        #optional - gap3
             True
         """
+        _identical_function = "IsIdentical"
+
         self.__gap3_command_string = command
         # Explanation of additional command-line options passed to gap3:
         #

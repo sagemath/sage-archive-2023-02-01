@@ -220,6 +220,59 @@ class FiniteMeetSemilattice(FinitePoset):
             m = self._hasse_diagram._meet[i, m]
         return self._vertex_to_element(m)
 
+    def pseudocomplement(self, element):
+        """
+        Return the pseudocomplement of ``element``, if it exists.
+
+        The pseudocomplement is the maximum element whose
+        meet with given element is the bottom element. I.e.
+        in a meet-semilattice with bottom element `\hat{0}`
+        the pseudocomplement of an element `e` is the element
+        `e^\star` such that `e \wedge e^\star = \hat{0}` and
+        `e' \le e^\star` if `e \wedge e' = \hat{0}`.
+
+        INPUT:
+
+        - ``element`` - an element of the lattice whose pseudocomplement is
+          returned.
+
+        EXAMPLES:
+
+        The pseudocompelement's pseudocomplement is not always the original
+        element::
+
+            sage: L = LatticePoset({1:[2, 3], 2:[4], 3:[5], 4:[6], 5:[6]})
+            sage: L.pseudocomplement(2)
+            5
+            sage: L.pseudocomplement(5)
+            4
+
+        An element can have complements but no pseudocomplement, or vice
+        versa::
+
+            sage: L = LatticePoset({0:[1, 2], 1:[3, 4, 5], 2:[5], 3:[6], 4:[6], 5:[6]})
+            sage: L.complements(1), L.pseudocomplement(1)
+            ([], 2)
+            sage: L.complements(2), L.pseudocomplement(2)
+            ([3, 4], None)
+
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteLatticePoset.is_pseudocomplemented()`.
+
+        TESTS::
+
+            sage: L = LatticePoset({'a':[]})
+            sage: L.pseudocomplement('a')
+            'a'
+            sage: L = LatticePoset({'a':['b'], 'b':['c']})
+            sage: [L.pseudocomplement(e) for e in ['a', 'b', 'c']]
+            ['c', 'a', 'a']
+        """
+        v = self._element_to_vertex(element)
+        e = self._hasse_diagram.pseudocomplement(v)
+        if e is None:
+            return None
+        return self._vertex_to_element(e)
+
 ####################################################################################
 
 def JoinSemilattice(data, *args, **options):
@@ -701,6 +754,35 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return [x for x in self if
          self.meet(x, element)==self.bottom() and
          self.join(x, element)==self.top()]
+
+    def is_pseudocomplemented(self):
+        """
+        Return ``True`` if the lattice is pseudocomplemented, and ``False``
+        otherwise.
+        
+        A lattice is pseudocomplemented if every element `e` has a
+        pseudocomplement `e^\star`, i.e. the maximum element such that
+        the meet of `e` and `e^\star` is the bottom element.
+        
+        EXAMPLES::
+    
+            sage: L = LatticePoset({1:[2, 5], 2:[3, 6], 3:[4], 4:[7], 5:[6], 6:[7]})
+            sage: L.is_pseudocomplemented()
+            True
+            
+            sage: L = LatticePoset({1:[2,3], 2:[4,5,6], 3:[6], 4:[7], 5:[7], 6:[7]})
+            sage: L.is_pseudocomplemented()  # Element 3 has no pseudocomplement
+            False
+        
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement()`.
+    
+        TESTS::
+            
+            sage: LatticePoset({}).is_pseudocomplemented()
+            True
+        """
+        H = self._hasse_diagram
+        return None not in [H.pseudocomplement(e) for e in H]
 
     def is_atomic(self):
         r"""

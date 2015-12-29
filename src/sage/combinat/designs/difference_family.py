@@ -1273,10 +1273,10 @@ def turyn_1965_3x3xK(k=4):
     else:
         raise ValueError("k must be 2 or 4")
 
-    L = [[(0,1),(1,1),(2,1),(0,2),(1,2),(2,2)], # complement of *0
-         [(0,0),(1,1),(2,2)],
-         [(0,0),(1,2),(2,1)],
-         [(0,0),(0,1),(0,2)]]
+    L = [[(0,1),(1,1),(2,1),(0,2),(1,2),(2,2)], # complement of y=0
+         [(0,0),(1,1),(2,2)],                   # x-y=0
+         [(0,0),(1,2),(2,1)],                   # x+y=0
+         [(0,0),(0,1),(0,2)]]                   # x=0
 
     return G, [[G(v+k) for l,k in zip(L,K) for v in l]]
 
@@ -1497,23 +1497,33 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
     Check the known Hadamard parameters::
 
-        sage: for N in range(2,14):                                         # long time
-        ....:     v = 4*N^2; k = 2*N^2-N; l = N^2-N                         # long time
-        ....:     status = designs.difference_family(v,k,l,existence=True)  # long time
-        ....:     print N, status                                           # long time
-        ....:     if status: _ = designs.difference_family(v,k,l)           # long time
-        2 True
-        3 True
-        4 True
+        sage: for N in range(2,21):
+        ....:     v = 4*N^2; k = 2*N^2-N; l = N^2-N
+        ....:     status = designs.difference_family(v,k,l,existence=True)
+        ....:     print N,
+        ....:     if status is True:
+        ....:         print designs.difference_family(v,k,l,explain_construction=True)
+        ....:     else:
+        ....:         print status
+        2 McFarland 1973 construction
+        3 Turyn 1965 construction
+        4 McFarland 1973 construction
         5 False
         6 Unknown
         7 False
-        8 True
+        8 McFarland 1973 construction
         9 Unknown
         10 Unknown
         11 False
-        12 True
+        12 Hadamard difference set product from N1=2 and N2=3
         13 False
+        14 Unknown
+        15 Unknown
+        16 McFarland 1973 construction
+        17 False
+        18 Hadamard difference set product from N1=3 and N2=3
+        19 False
+        20 Unknown
 
     Check a failing construction (:trac:`17528`)::
 

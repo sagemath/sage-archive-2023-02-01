@@ -1155,6 +1155,11 @@ def hadamard_difference_set_product_parameters(N):
     Check whether a product construction is available for Hadamard difference
     set with parameter ``N``.
 
+    This function looks for two integers `N_1` and `N_2`` greater than `1`
+    and so that `N = 2 N_1 N_2` and there exists Hadamard difference set with
+    parameters `(4 N_i^2, 2N_i^2 - N_i, N_i^2 - N_i)`. If such pair exists,
+    the output is the pair ``(N_1, N_2)`` otherwise it is ``None``.
+
     INPUT:
 
     - ``N`` -- positive integer
@@ -1242,15 +1247,16 @@ def hadamard_difference_set_product(G1, D1, G2, D2):
 
 def turyn_1965_3x3xK(k=4):
     r"""
-    Return a difference set in either C3xC3xC4 or C3xC3xC2xC2 with parameters
-    `v=36`, `k=15`, `\lambda=6`.
+    Return a difference set in either `C_3 \times C_3 \times C_4` or `C_3 \times
+    C_3 \times C_2 \times C_2` with parameters `v=36`, `k=15`, `\lambda=6`.
 
     This example appears in [Tu1965]_.
 
     INPUT::
 
-    - ``k`` -- either ``2`` (to get a difference set in C3xC3xC2xC2) or ``4``
-      (to get a difference set in C3xC3xC4)
+    - ``k`` -- either ``2`` (to get a difference set in `C_3 \times C_3 \times
+      C_2 \times C_2`) or ``4`` (to get a difference set in `C_3 \times C_3
+      \times C_3 \times C_4`).
 
     EXAMPLES::
 
@@ -1643,7 +1649,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
             if existence:
                 return False
             else:
-                raise EmptySetError("by McFarland 1989 such difference family can not exists")
+                raise EmptySetError("by McFarland 1989 such difference family does not exist")
         else:
             if existence:
                 return Unknown

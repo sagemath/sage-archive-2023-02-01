@@ -8,6 +8,7 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>,
 #                     2015 Stefan Kraemer <skraemer@th.physik.uni-bonn.de>
+#                     2016 Javier Honrubia <jhonrubia6@uned.es>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -47,6 +48,10 @@ class HyperbolicArc(BezierPath):
 
     def __init__(self, A, B, options):
         A, B = (CC(A), CC(B))
+        if A.imag()<0:
+            raise ValueError("%s is not a valid point in the UHP model"%(A))
+        if B.imag()<0:
+            raise ValueError("%s is not a valid point in the UHP model"%(B))
         self.path = []
         self._hyperbolic_arc(A, B, True);
         BezierPath.__init__(self, self.path, options)

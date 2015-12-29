@@ -978,7 +978,7 @@ def twin_prime_powers_difference_set(p, check=True):
 def are_mcfarland_1973_parameters(v, k, lmbda, return_parameters=False):
     r"""
     Test whether ``(v,k,lmbda)`` is a triple that can be obtained from the
-    construction of McFarland 1973.
+    construction from [McF1973]_.
 
     See :func:`mcfarland_1973_construction`.
 
@@ -1025,14 +1025,14 @@ def are_mcfarland_1973_parameters(v, k, lmbda, return_parameters=False):
         return (False,None) if return_parameters else False
     k = ZZ(k)
     lmbda = ZZ(lmbda)
-    qs,r = (k - lmbda).sqrtrem()
+    qs,r = (k - lmbda).sqrtrem() # sqrt(k-l) should be q^s
     if r or (qs*(qs-1))%lmbda:
         return (False,None) if return_parameters else False
 
     q = qs*(qs-1) // lmbda + 1
-    if q <= 1 or \
-       v != qs*q * (qs*q+q-2) // (q-1) or \
-       k != qs * (qs*q-1) // (q-1):
+    if (q <= 1 or
+        v * (q-1) != qs*q * (qs*q+q-2)  or
+        k * (q-1)!= qs * (qs*q-1)):
         return (False,None) if return_parameters else False
 
     # NOTE: below we compute the value of s so that qs = q^s. If the method
@@ -1042,7 +1042,7 @@ def are_mcfarland_1973_parameters(v, k, lmbda, return_parameters=False):
     p1,a1 = qs.is_prime_power(get_data=True)
     p2,a2 = q.is_prime_power(get_data=True)
 
-    if p1 != p2 or a1%a2:
+    if a1 == 0 or a2 == 0 or p1 != p2 or a1%a2:
         return (False,None) if return_parameters else False
 
     return (True, (q, a1//a2)) if return_parameters else True
@@ -1055,8 +1055,8 @@ def mcfarland_1973_construction(q, s):
 
     .. MATH::
 
-        v = \frac{q^{s+1}(q^{s+1}+q-2)}{q-1}
-        k = \frac{q^s (q^{s+1}-1}{q-1}
+        v = \frac{q^{s+1}(q^{s+1}+q-2)}{q-1},
+        k = \frac{q^s (q^{s+1}-1)}{q-1},
         \lambda = \frac{q^s(q^s-1)}{q-1}
 
     This construction is due to [McF1973]_.
@@ -1094,6 +1094,7 @@ def mcfarland_1973_construction(q, s):
     from sage.modules.free_module import VectorSpace
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     from sage.categories.cartesian_product import cartesian_product
+    from itertools import izip
 
     r = (q**(s+1)-1) // (q-1)
     F = GF(q,'a')
@@ -1102,10 +1103,8 @@ def mcfarland_1973_construction(q, s):
 
     G = cartesian_product([F]*(s+1) + [K])
 
-    K_iter = iter(K)
     D = []
-    for H in V.subspaces(s):
-        k = next(K_iter)
+    for k,H in izip(K, V.subspaces(s)):
         for v in H:
             D.append(G((tuple(v) + (k,))))
 

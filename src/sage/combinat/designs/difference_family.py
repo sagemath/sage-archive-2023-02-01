@@ -1123,16 +1123,13 @@ def mcfarland_1973_construction(q, s):
 
     return G,[D]
 
-def are_hadamard_difference_set_parameters(v, k, lmbda, return_parameters=False):
+def are_hadamard_difference_set_parameters(v, k, lmbda):
     r"""
     Check whether ``(v,k,lmbda)`` is of the form ``(4N^2, 2N^2 - N, N^2 - N)``.
 
     INPUT:
 
     - ``(v,k,lmbda)`` -- parameters of a difference set
-
-    - ``return_parameters`` -- (boolean, default ``False``) if ``True`` then
-      return pairs ``(True, N)`` or ``(False, None)`` instead of booleans.
 
     EXAMPLES::
 
@@ -1142,12 +1139,9 @@ def are_hadamard_difference_set_parameters(v, k, lmbda, return_parameters=False)
         sage: are_hadamard_difference_set_parameters(60, 13, 5)
         False
     """
-    N = ZZ(k - 2*lmbda)
+    N = k - 2*lmbda
     N2 = N*N
-    if v == 4*N2 and k == 2*N2 - N and lmbda == N2 - N:
-        return (True, N) if return_parameters else True
-    else:
-        return (False, None) if return_parameters else False
+    return v == 4*N2 and k == 2*N2 - N and lmbda == N2 - N
 
 @cached_method
 def hadamard_difference_set_product_parameters(N):
@@ -1538,6 +1532,10 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
     from database import DF, EDS
 
+    v = ZZ(v)
+    k = ZZ(k)
+    l = ZZ(l)
+
     if (v,k,l) in DF:
         if existence:
             return True
@@ -1622,39 +1620,33 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
             _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)
             G,D = singer_difference_set(q,d)
 
-    elif are_hadamard_difference_set_parameters(v,k,l):
-        _,N = are_hadamard_difference_set_parameters(v,k,l,True)
-
-        if N == 3:
-            if existence:
-                return True
-            elif explain_construction:
-                return "Turyn 1965 construction"
-            else:
-                G,D = turyn_1965_3x3xK(4)
-        elif hadamard_difference_set_product_parameters(N):
-            N1,N2 = hadamard_difference_set_product_parameters(N)
-            if existence:
-                return True
-            elif explain_construction:
-                return "Hadamard difference set product from N1={} and N2={}".format(N1,N2)
-            else:
-                v1 = 4*N1*N1; v2 = 4*N2*N2
-                k1 = 2*N1*N1 - N1; k2 = 2*N2*N2 - N2
-                l1 = N1*N1 - N1; l2 = N2*N2 - N2
-                G1,D1 = difference_family(v1,k1,l1)
-                G2,D2 = difference_family(v2,k2,l2)
-                G,D = hadamard_difference_set_product(G1,D1,G2,D2)
-        elif N.is_prime():
-            if existence:
-                return False
-            else:
-                raise EmptySetError("by McFarland 1989 such difference family does not exist")
+    elif are_hadamard_difference_set_parameters(v,k,l) and k-2*l == 3:
+        if existence:
+            return True
+        elif explain_construction:
+            return "Turyn 1965 construction"
         else:
-            if existence:
-                return Unknown
-            else:
-                raise NotImplementedError("No construction available for ({},{},{})-difference family".format(v,k,l))
+            G,D = turyn_1965_3x3xK(4)
+
+    elif are_hadamard_difference_set_parameters(v,k,l) and hadamard_difference_set_product_parameters(k-2*l):
+        N1,N2 = hadamard_difference_set_product_parameters(k-2*l)
+        if existence:
+            return True
+        elif explain_construction:
+            return "Hadamard difference set product from N1={} and N2={}".format(N1,N2)
+        else:
+            v1 = 4*N1*N1; v2 = 4*N2*N2
+            k1 = 2*N1*N1 - N1; k2 = 2*N2*N2 - N2
+            l1 = N1*N1 - N1; l2 = N2*N2 - N2
+            G1,D1 = difference_family(v1,k1,l1)
+            G2,D2 = difference_family(v2,k2,l2)
+            G,D = hadamard_difference_set_product(G1,D1,G2,D2)
+
+    elif are_hadamard_difference_set_parameters(v,k,l) and (k-2*l).is_prime():
+        if existence:
+            return False
+        else:
+            raise EmptySetError("by McFarland 1989 such difference family does not exist")
 
     elif len(factorization) == 1 and radical_difference_family(K, k, l, existence=True):
         if existence:

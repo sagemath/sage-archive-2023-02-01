@@ -59,6 +59,9 @@ DECLARE_FUNCTION_1P(cos)
 /** Tangent. */
 DECLARE_FUNCTION_1P(tan)
 
+/** Cotangent. */
+DECLARE_FUNCTION_1P(cot)
+
 /** Exponential function. */
 DECLARE_FUNCTION_1P(exp)
 
@@ -73,6 +76,9 @@ DECLARE_FUNCTION_1P(acos)
 
 /** Inverse tangent (arc tangent). */
 DECLARE_FUNCTION_1P(atan)
+
+/** Inverse cotangent (arc cotangent). */
+DECLARE_FUNCTION_1P(acot)
 
 /** Inverse tangent with two arguments. */
 DECLARE_FUNCTION_2P(atan2)

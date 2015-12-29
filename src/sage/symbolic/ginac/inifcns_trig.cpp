@@ -541,6 +541,101 @@ REGISTER_FUNCTION(tan, eval_func(tan_eval).
                        latex_name("\\tan"));
 
 //////////
+// cotangent (trigonometric function)
+//////////
+
+static ex cot_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return tan(ex_to<numeric>(x)).inverse();
+
+	return cot(x).hold();
+}
+
+static ex cot_eval(const ex & x)
+{
+	// cot(0) -> error
+	// This should be before the tests below, since multiplying infinity
+	// with other values raises runtime_errors
+	if (x.is_zero()) {
+		throw (std::runtime_error("cotan_eval(): cot(0) encountered"));
+	}
+
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+
+		// tan(atan(x)) -> x
+		if (is_ex_the_function(x, acot))
+			return t;
+	}
+
+	// cot(float) -> float
+	if (x.info(info_flags::numeric) && !x.info(info_flags::crational)) {
+		return tan(ex_to<numeric>(x)).inverse();
+	}
+
+        ex res = tan_eval(x);
+	if (not is_ex_the_function(res, tan))
+                return power(res, _ex_1);
+
+	return cot(x).hold();
+}
+
+static ex cot_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+
+	// d/dx cot(x) -> -1-cot(x)^2;
+	return (_ex_1-power(cot(x),_ex2));
+}
+
+// Ref.: http://dlmf.nist.gov/4.21.E40
+static ex cot_real_part(const ex & x)
+{
+	ex a = GiNaC::real_part(mul(x, _ex2));
+	ex b = GiNaC::imag_part(mul(x, _ex2));
+	return sin(a)/(cosh(b) - cos(a));
+}
+
+static ex cot_imag_part(const ex & x)
+{
+	ex a = GiNaC::real_part(mul(x, _ex2));
+	ex b = GiNaC::imag_part(mul(x, _ex2));
+	return sinh(b)/(cosh(b) - cos(a));
+}
+
+static ex cot_series(const ex &x,
+                     const relational &rel,
+                     int order,
+                     unsigned options)
+{
+	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
+	// method:
+	// Taylor series where there is no pole falls back to tan_deriv.
+	// On a pole simply expand cos(x)/sin(x).
+	const ex x_pt = x.subs(rel, subs_options::no_pattern);
+	if (!(2*x_pt/Pi).info(info_flags::even))
+		throw do_taylor();  // caught by function::series()
+	// if we got here we have to care for a simple pole
+	return (cos(x)/sin(x)).series(rel, order, options);
+}
+
+static ex cot_conjugate(const ex & x)
+{
+	// conjugate(tan(x))==1/tan(conjugate(x))
+	return power(tan(x.conjugate()), _ex_1);
+}
+
+REGISTER_FUNCTION(cot, eval_func(cot_eval).
+                       evalf_func(cot_evalf).
+                       derivative_func(cot_deriv).
+                       series_func(cot_series).
+                       real_part_func(cot_real_part).
+                       imag_part_func(cot_imag_part).
+                       conjugate_func(cot_conjugate).
+                       latex_name("\\cot"));
+
+//////////
 // inverse sine (arc sine)
 //////////
 
@@ -947,6 +1042,73 @@ REGISTER_FUNCTION(atan2, eval_func(atan2_eval).
                          evalf_func(atan2_evalf).
                          derivative_func(atan2_deriv).
 			 set_name("arctan2"));
+
+//////////
+// inverse cotangent (arc cotangent)
+//////////
+
+static ex acot_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return atan(ex_to<numeric>(x).inverse());
+
+	return acot(x).hold();
+}
+
+static ex acot_eval(const ex & x)
+{
+	if (x.info(info_flags::numeric)) {
+
+		if (x.is_zero())
+			return _ex1_2*Pi;
+
+		if (x.is_equal(_ex1))
+			return _ex1_4*Pi;
+
+		if (x.is_equal(_ex_1))
+			return _ex_1_4*Pi;
+
+		if (x.is_equal(I) || x.is_equal(-I))
+			throw (pole_error("acot_eval(): logarithmic pole",0));
+
+                if (!x.info(info_flags::crational))
+                        return atan(ex_to<numeric>(x).inverse());
+
+		if (x.info(info_flags::negative))
+			return -acot(-x);
+	}
+
+	if (x.info(info_flags::infinity)) {
+		return _ex0;
+	}
+
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+		if (is_ex_the_function(x, cot))
+			return t;
+	}
+	return acot(x).hold();
+}
+
+static ex acot_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+	return mul(power(_ex1+power(x,_ex2), _ex_1), _ex_1);
+}
+
+static ex acot_series(const ex &arg,
+                      const relational &rel,
+                      int order,
+                      unsigned options)
+{
+        return _ex1_2*Pi - atan_series(arg, rel, order, options);
+}
+
+REGISTER_FUNCTION(acot, eval_func(acot_eval).
+                        evalf_func(acot_evalf).
+                        derivative_func(acot_deriv).
+                        series_func(acot_series).
+			set_name("arccot", "\\arccot"));
 
 
 } // namespace GiNaC

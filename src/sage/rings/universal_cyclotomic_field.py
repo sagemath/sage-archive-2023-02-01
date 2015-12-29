@@ -1087,7 +1087,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
     def gen(self, n, k=1):
         r"""
-        Return the standard ``n``-th root of unity.
+        Return the standard primitive ``n``-th root of unity.
 
         If ``k`` is not ``None``, return the ``k``-th power of it.
 
@@ -1100,8 +1100,15 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             E(7)^3
             sage: UCF.gen(4,2)
             -1
+
+        There is an alias ``zeta`` also available::
+
+            sage: UCF.zeta(6)
+            -E(3)^2
         """
         return self.element_class(self, libgap.E(n)**k)
+
+    zeta = gen
 
     def _element_constructor_(self, elt):
         r"""

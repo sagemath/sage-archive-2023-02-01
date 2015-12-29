@@ -51,7 +51,7 @@ REFERENCES:
 
 
 from sage.structure.sage_object import SageObject
-from sage.rings.number_field.number_field import NumberField
+from sage.rings.number_field.number_field import NumberField, QuadraticField
 from sage.schemes.elliptic_curves.cm import cm_j_invariants
 from sage.rings.rational_field import QQ
 from sage.modules.free_module import VectorSpace
@@ -100,8 +100,6 @@ class GaloisRepresentation(SageObject):
             True
         """
         self.E = E
-        self._has_cm = E.has_cm()
-        self._has_rational_cm = E.has_rational_cm()
 
     def __repr__(self):
         r"""
@@ -120,7 +118,7 @@ class GaloisRepresentation(SageObject):
             sage: E.galois_representation()
             Compatible family of Galois representations associated to the CM Elliptic Curve defined by y^2 = x^3 + a*x over Number Field in a with defining polynomial x^2 - x + 1
         """
-        if self._has_cm:
+        if self.E.has_cm():
             return "Compatible family of Galois representations associated to the CM " + repr(self.E)
         else:
             return "Compatible family of Galois representations associated to the " + repr(self.E)
@@ -213,8 +211,9 @@ class GaloisRepresentation(SageObject):
             sage: rho = E.galois_representation()
             sage: rho.non_surjective()
             [2, 3]
+
         """
-        if self._has_cm:
+        if self.E.has_cm():
             return [0]
         return _non_surjective(self.E, A)
 
@@ -255,8 +254,19 @@ class GaloisRepresentation(SageObject):
             True
             sage: rhoQQ.is_surjective(5) == rhoK.is_surjective(5)
             True
-        """
 
+        For CM curves, the mod-p representation is never surjective::
+
+            sage: K.<a> = NumberField(x^2-x+1)
+            sage: E = EllipticCurve([0,0,0,0,a])
+            sage: E.has_cm()
+            True
+            sage: rho = E.galois_representation()
+            sage: any(rho.is_surjective(p) for p in [2,3,5,7])
+            False
+        """
+        if self.E.has_cm():
+            return False
         return (_exceptionals(self.E, [p], A) == [])
 
     def isogeny_bound(self, A=100):
@@ -300,8 +310,20 @@ class GaloisRepresentation(SageObject):
             sage: E = EllipticCurve_from_j(K(2268945/128)) # c.f. [Sutherland12]
             sage: E.galois_representation().isogeny_bound() # No 7-isogeny, but...
             [7]
+
+        For curves with rational CM, there are infintely many primes
+        `p` for which the mod-`p` representation is reducible, and [0]
+        is returned::
+
+            sage: K.<a> = NumberField(x^2-x+1)
+            sage: E = EllipticCurve([0,0,0,0,a])
+            sage: E.has_rational_cm()
+            True
+            sage: rho = E.galois_representation()
+            sage: rho.isogeny_bound()
+            [0]
         """
-        if self._has_rational_cm:
+        if self.E.has_rational_cm():
             return [0]
 
         E = _over_numberfield(self.E)
@@ -358,8 +380,20 @@ class GaloisRepresentation(SageObject):
             [7]
             sage: rho.reducible_primes()
             []
+
+        For curves with rational CM, there are infintely many primes
+        `p` for which the mod-`p` representation is reducible, and [0]
+        is returned::
+
+            sage: K.<a> = NumberField(x^2-x+1)
+            sage: E = EllipticCurve([0,0,0,0,a])
+            sage: E.has_rational_cm()
+            True
+            sage: rho = E.galois_representation()
+            sage: rho.reducible_primes()
+            [0]
         """
-        if self._has_rational_cm:
+        if self.E.has_rational_cm():
             return [0]
 
         return [l for l in self.isogeny_bound() if self.E.isogenies_prime_degree(l)]
@@ -486,6 +520,7 @@ def _maybe_borels(E, L, patience=100):
 
         sage: [len(E.isogenies_prime_degree(l)) for l in [2,3]]
         [1, 1]
+
     """
     E = _over_numberfield(E)
     K = E.base_field()
@@ -547,6 +582,14 @@ def _exceptionals(E, L, patience=1000):
         sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
         sage: sage.schemes.elliptic_curves.gal_reps_number_field._exceptionals(E, [29, 31])
         [29]
+
+    For CM curves an error is raised::
+
+        sage: E = EllipticCurve_from_j(1728).change_ring(K) # CM
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field._exceptionals(E,[2,3,5])
+        Traceback (most recent call last):
+        ...
+        ValueError: The curve E should not have CM.
     """
     if E.has_cm():
         raise ValueError("The curve E should not have CM.")
@@ -821,9 +864,9 @@ def _semistable_reducible_primes(E):
 
         a = (Integer(phi1x + phi2x)**2 - 4 * x.norm()).squarefree_part()
 
-        y = QQ['y'].gen()
-        # See #19229: can cause problems if this name is 'a' but it has to be something!
-        F = NumberField(y**2 - a, 'grnf_a')
+        # See #19229: the name given here, which is not used, should
+        # not be the name of the generator of the base field.
+        F = QuadraticField(a, 'gal_rep_nf_sqrt_a')
 
         # Next, we turn K into relative number field over F.
 
@@ -902,6 +945,16 @@ def _possible_normalizers(E, SA):
         sage: E = EllipticCurve([0,0,0,-56,4848])
         sage: 5 in sage.schemes.elliptic_curves.gal_reps_number_field._possible_normalizers(E, [ZZ.ideal(2)])
         True
+
+    For CM curves, an error is raised::
+
+        sage: K.<i> = QuadraticField(-1)
+        sage: E = EllipticCurve_from_j(1728).change_ring(K) # CM
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field._possible_normalizers(E, [])
+        Traceback (most recent call last):
+        ...
+        ValueError: The curve E should not have CM.
+
     """
     if E.has_cm():
         raise ValueError("The curve E should not have CM.")

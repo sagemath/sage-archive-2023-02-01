@@ -3365,7 +3365,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
     @cached_method
     def cm_discriminant(self):
         """
-        Returns the CM discriminant of the `j`-invariant of this curve.
+        Returns the CM discriminant of the `j`-invariant of this curve, or 0.
 
         OUTPUT:
 
@@ -3421,7 +3421,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         .. note::
 
            Even if `E` has CM in this sense (that its `j`-invariant is
-           a CM `j`-invariant), since the associated negative
+           a CM `j`-invariant), if the associated negative
            discriminant `D` is not a square in the base field `K`, the
            extra endomorphisms will not be defined over `K`.  See also
            the method :meth:`has_rational_cm` which tests whether `E`

@@ -1214,28 +1214,14 @@ def hadamard_difference_set_product(G1, D1, G2, D2):
     """
     from sage.categories.cartesian_product import cartesian_product
 
-    try:
-        fac1 = tuple(G1.cartesian_factors())
-        tup1 = tuple
-    except AttributeError:
-        fac1 = (G1,)
-        tup1 = lambda x: (x,)
-
-    try:
-        fac2 = tuple(G2.cartesian_factors())
-        tup2 = tuple
-    except AttributeError:
-        fac2 = (G2,)
-        tup2 = lambda x: (x,)
-
-    G = cartesian_product(fac1 + fac2)
+    G = cartesian_product([G1,G2])
     D1 = set(D1[0])
     D1c = set(s for s in G1 if s not in D1)
     D2 = set(D2[0])
     D2c = set(s for s in G2 if s not in D2)
 
-    D = set().union((G(tup1(s1)+tup2(s2)) for s1 in D1 for s2 in D2),
-                    (G(tup1(s1)+tup2(s2)) for s1 in D1c for s2 in D2c))
+    D = set().union((G((s1,s2)) for s1 in D1 for s2 in D2),
+                    (G((s1,s2)) for s1 in D1c for s2 in D2c))
 
     return G, [[s for s in G if s not in D]]
 

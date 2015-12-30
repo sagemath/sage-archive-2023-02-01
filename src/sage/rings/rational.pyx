@@ -832,36 +832,36 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self.numerator()._magma_init_(magma) + '/' + self.denominator()._magma_init_(magma)
 
-    property __array_interface__:
-        def __get__(self):
-            """
-            Used for NumPy conversion. If ``self`` is integral, it converts to
-            an ``Integer``. Otherwise it converts to a double floating point
-            value.
+    @property
+    def __array_interface__(self):
+        """
+        Used for NumPy conversion. If ``self`` is integral, it converts to
+        an ``Integer``. Otherwise it converts to a double floating point
+        value.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import numpy
-                sage: numpy.array([1, 2, 3/1])
-                array([1, 2, 3])
+            sage: import numpy
+            sage: numpy.array([1, 2, 3/1])
+            array([1, 2, 3])
 
-                sage: numpy.array(QQ(2**40)).dtype
-                dtype('int64')
-                sage: numpy.array(QQ(2**400)).dtype
-                dtype('O')
+            sage: numpy.array(QQ(2**40)).dtype
+            dtype('int64')
+            sage: numpy.array(QQ(2**400)).dtype
+            dtype('O')
 
-                sage: numpy.array([1, 1/2, 3/4])
-                array([ 1.  ,  0.5 ,  0.75])
-            """
-            if mpz_cmp_ui(mpq_denref(self.value), 1) == 0:
-                if mpz_fits_slong_p(mpq_numref(self.value)):
-                    return numpy_long_interface
-                elif sizeof(long) == 4 and mpz_sizeinbase(mpq_numref(self.value), 2) <= 63:
-                    return numpy_int64_interface
-                else:
-                    return numpy_object_interface
+            sage: numpy.array([1, 1/2, 3/4])
+            array([ 1.  ,  0.5 ,  0.75])
+        """
+        if mpz_cmp_ui(mpq_denref(self.value), 1) == 0:
+            if mpz_fits_slong_p(mpq_numref(self.value)):
+                return numpy_long_interface
+            elif sizeof(long) == 4 and mpz_sizeinbase(mpq_numref(self.value), 2) <= 63:
+                return numpy_int64_interface
             else:
-                return numpy_double_interface
+                return numpy_object_interface
+        else:
+            return numpy_double_interface
 
     def _mathml_(self):
         """

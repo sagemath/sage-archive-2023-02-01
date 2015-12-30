@@ -8600,7 +8600,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: matrix().inverse()
             []
-       """
+        """
         return ~self
 
     def adjoint(self):
@@ -14285,7 +14285,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             return sage.matrix.constructor.block_diagonal_matrix(companions, subdivide=subdivide)
 
     # A limited number of access-only properties are provided for matrices
-    property T:
+    @property
+    def T(self):
         r"""
         Returns the transpose of a matrix.
 
@@ -14299,10 +14300,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 3  8 13 18 23]
             [ 4  9 14 19 24]
         """
-        def __get__(self):
-            return self.transpose()
+        return self.transpose()
 
-    property C:
+    @property
+    def C(self):
         r"""
         Returns the conjugate matrix.
 
@@ -14317,10 +14318,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 3 - 3*I -3 - 6*I  5 - 1*I]
 
         """
-        def __get__(self):
-            return self.conjugate()
+        return self.conjugate()
 
-    property H:
+    @property
+    def H(self):
         r"""
         Returns the conjugate-transpose (Hermitian) matrix.
 
@@ -14334,10 +14335,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 5 + 3*I -1 - 6*I -3 - 6*I]
             [ 7 + 4*I  3 - 5*I  5 - 1*I]
         """
-        def __get__(self):
-            return self.conjugate().transpose()
+        return self.conjugate().transpose()
 
-    property I:
+    @property
+    def I(self):
         r"""
         Returns the inverse of the matrix, if it exists.
 
@@ -14362,10 +14363,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
-        def __get__(self):
-            return self.inverse()
+        return ~self
 
-    # end of Matrix class methods
 
 def _smith_diag(d):
     r"""

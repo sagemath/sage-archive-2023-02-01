@@ -1620,8 +1620,9 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     genfiles_mintides(intfile, drfile, f, [N(_) for _ in ics], N(initial), N(final), N(delta), N(tolrel),
                      N(tolabs), fileoutput)
     subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
-                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lm  -O2 ' +
-                          os.path.join('-I$SAGE_ROOT','local','include ') + os.path.join('-L$SAGE_ROOT','local','lib '),
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' $LDFLAGS '
+                          + os.path.join('-L$SAGE_ROOT','local','lib ') +' -lm  -O2 ' +
+                          os.path.join('-I$SAGE_ROOT','local','include '),
                           shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outfile = open(fileoutput)
@@ -1725,8 +1726,9 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
                       digits, tolrel, tolabs, fileoutput)
     subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
-                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lmpfr -lgmp -lm  -O2 -w ' +
-                          os.path.join('-I$SAGE_ROOT','local','include ') + os.path.join('-L$SAGE_ROOT','local','lib '),
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' $LDFLAGS '
+                          + os.path.join('-L$SAGE_ROOT','local','lib ') + '-lmpfr -lgmp -lm  -O2 -w ' +
+                          os.path.join('-I$SAGE_ROOT','local','include ') ,
                           shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outfile = open(fileoutput)

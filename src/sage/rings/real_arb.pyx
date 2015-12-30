@@ -3086,11 +3086,11 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(-1).zeta()
-            [-0.0833333333333333 +/- 4.36e-17]
+            [-0.0833333333333333 +/- 4.26e-17]
             sage: RBF(-1).zeta(1)
-            [-0.0833333333333333 +/- 6.81e-17]
-            sage: RBF(-1).zeta(2) # abs tol 1e-16
-            [-1.083333333333333 +/- 4.09e-16]
+            [-0.0833333333333333 +/- 4.26e-17]
+            sage: RBF(-1).zeta(2)
+            [-1.083333333333333 +/- 4.08e-16]
         """
         cdef RealBall a_ball
         cdef RealBall res = self._new()

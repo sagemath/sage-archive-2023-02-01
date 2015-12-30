@@ -612,7 +612,7 @@ class Sandpile(DiGraph):
         self._sink_ind = self.vertices().index(sink)
         self._nonsink_vertices = deepcopy(self.vertices())
         del self._nonsink_vertices[self._sink_ind]
-        # compute laplacians:
+        # compute Laplacians:
         self._laplacian = self.laplacian_matrix(indegree=False)
         temp = range(self.num_verts())
         del temp[self._sink_ind]
@@ -1939,7 +1939,7 @@ class Sandpile(DiGraph):
             [0 4 0 0]
             [0 0 4 0]
             [0 0 0 0]
-            sage: U*s.laplacian()*V == D  # laplacian symmetric => tranpose not necessary
+            sage: U*s.laplacian()*V == D  # Laplacian symmetric => tranpose not necessary
             True
         """
         return deepcopy(self._smith_form)

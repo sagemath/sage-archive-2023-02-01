@@ -1585,7 +1585,7 @@ class DyckWord(CombinatorialElement):
 
             sage: dw = DyckWord([1, 1, 0, 1, 0, 0, 1, 0])
             sage: ip = dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 1, 0, 0])); ip
-            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
             sage: ip.lower_dyck_word()
             [1, 1, 0, 1, 0, 0, 1, 0]
             sage: ip.upper_dyck_word()

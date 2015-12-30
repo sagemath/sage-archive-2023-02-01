@@ -1204,13 +1204,17 @@ cdef class CachedFunction(object):
         """
         from sage.parallel.decorate import parallel, normalize_input
         P = parallel(num_processes)(self.f)
-        has_key = self.cache.has_key
-        new = lambda x: not has_key(self.get_key(*x[0],**x[1]))
-        arglist = filter(new, map(normalize_input, arglist))
-        for ((args,kwargs), val) in P(arglist):
+        cdef list arglist2 = []
+        for a in arglist:
+            ak = normalize_input(a)
+            if self.get_key_args_kwds(ak[0], ak[1]) not in self.cache:
+                arglist2.append(ak)
+        for ((args,kwargs), val) in P(arglist2):
             self.set_cache(val, *args, **kwargs)
 
+
 cached_function = decorator_keywords(CachedFunction)
+
 
 cdef class WeakCachedFunction(CachedFunction):
     """
@@ -2014,10 +2018,12 @@ cdef class CachedMethodCaller(CachedFunction):
         """
         from sage.parallel.decorate import parallel, normalize_input
         P = parallel(num_processes)(self._instance_call)
-        has_key = self.cache.has_key
-        new = lambda x: not has_key(self.get_key(*x[0],**x[1]))
-        arglist = filter(new, map(normalize_input, arglist))
-        for ((args,kwargs), val) in P(arglist):
+        cdef list arglist2 = []
+        for a in arglist:
+            ak = normalize_input(a)
+            if self.get_key_args_kwds(ak[0], ak[1]) not in self.cache:
+                arglist2.append(ak)
+        for ((args,kwargs), val) in P(arglist2):
             self.set_cache(val, *args, **kwargs)
 
 

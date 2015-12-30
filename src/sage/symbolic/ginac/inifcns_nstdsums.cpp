@@ -3839,7 +3839,6 @@ unsigned zeta1_SERIAL::serial = function::register_new(function_options("zeta", 
                                 derivative_func(zeta1_deriv).
                                 series_func(zeta1_series).
                                 print_func<print_latex>(zeta1_print_latex).
-                                do_not_evalf_params().
                                 overloaded(2));
 
 
@@ -3977,7 +3976,6 @@ unsigned zeta2_SERIAL::serial = function::register_new(function_options("zeta", 
                                 eval_func(zeta2_eval).
                                 derivative_func(zeta2_deriv).
                                 print_func<print_latex>(zeta2_print_latex).
-                                do_not_evalf_params().
                                 overloaded(2));
 
 

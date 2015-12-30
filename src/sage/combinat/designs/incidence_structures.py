@@ -876,7 +876,7 @@ class IncidenceStructure(object):
             sage: IncidenceStructure([[1,2,3],[1,4]]).degrees(2)
             {(1, 2): 1, (1, 3): 1, (1, 4): 1, (2, 3): 1, (2, 4): 0, (3, 4): 0}
 
-        In a steiner triple system, all pairs have degree 1::
+        In a Steiner triple system, all pairs have degree 1::
 
             sage: S13 = designs.steiner_triple_system(13)
             sage: all(v == 1 for v in S13.degrees(2).itervalues())

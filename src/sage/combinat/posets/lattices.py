@@ -761,7 +761,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ALGORITHM:
 
         Using the result from [Platt76]_, this method returns its result by
-        testing that the hasse diagram of the lattice is planar (in the sense of
+        testing that the Hasse diagram of the lattice is planar (in the sense of
         graph theory) when an edge is added between the top and bottom elements.
 
         EXAMPLES:

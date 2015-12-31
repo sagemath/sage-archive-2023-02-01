@@ -3158,6 +3158,17 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [1 0]
+
+        TESTS:
+
+        The linear subspace of any closed convex cone can be identified
+        with the orthogonal complement of the span of its dual::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: expected = K.dual().span().vector_space().complement()
+            sage: K.linear_subspace() == expected
+            True
         """
         if self.is_strictly_convex():
             return span([vector(QQ, self.lattice_dim())], QQ)
@@ -4357,6 +4368,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant.is_solid()
             False
 
+        TESTS:
+
+        A closed convex cone is solid if and only if its dual is
+        strictly convex::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K.is_solid() == K.dual().is_strictly_convex()
+            True
         """
         return (self.dim() == self.lattice_dim())
 

@@ -271,7 +271,8 @@ static ex cos_eval(const ex & x)
 
 	const ex TwentyforExOverPi = _ex24*x/Pi;
         sign = _ex1;
-	if (TwentyforExOverPi.info(info_flags::integer)) {
+	if (is_exactly_a<numeric>(TwentyforExOverPi)
+                        and TwentyforExOverPi.info(info_flags::integer)) {
 		numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
 		if (z>=*_num24_p) {
 			// wrap to interval [0, Pi)
@@ -426,7 +427,8 @@ static ex tan_eval(const ex & x)
 
 	const ex FortyeightExOverPi = _ex48*x/Pi;
         sign = _ex1;
-	if (FortyeightExOverPi.info(info_flags::integer)) {
+	if (is_exactly_a<numeric>(FortyeightExOverPi)
+                        and FortyeightExOverPi.info(info_flags::integer)) {
 		numeric z = mod(ex_to<numeric>(FortyeightExOverPi),*_num48_p);
 		if (z>=*_num48_p) {
 			// wrap to interval [0, Pi)

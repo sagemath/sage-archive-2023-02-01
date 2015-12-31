@@ -1232,7 +1232,7 @@ def turyn_1965_3x3xK(k=4):
 
     This example appears in [Tu1965]_.
 
-    INPUT::
+    INPUT:
 
     - ``k`` -- either ``2`` (to get a difference set in `C_3 \times C_3 \times
       C_2 \times C_2`) or ``4`` (to get a difference set in `C_3 \times C_3

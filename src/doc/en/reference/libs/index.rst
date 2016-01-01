@@ -23,6 +23,8 @@ to be aware of the modules described in this chapter.
 .. toctree::
    :maxdepth: 2
 
+   sage/libs/cremona/interface
+   sage/libs/cremona/mwrank
    sage/libs/cremona/mat
    sage/libs/cremona/newforms
    sage/libs/cremona/homspace
@@ -64,8 +66,6 @@ to be aware of the modules described in this chapter.
    sage/libs/gap/element
    sage/libs/gap/saved_workspace
    sage/libs/ecl
-   sage/libs/mwrank/interface
-   sage/libs/mwrank/mwrank
 
    sage/gsl/gsl_array
 

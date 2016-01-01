@@ -14,11 +14,13 @@ Modular symbols using eclib newforms
 
 include "sage/ext/interrupt.pxi"
 
+from ..eclib cimport *
 from sage.libs.gmp.mpq cimport mpq_numref
 from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.rational cimport Rational
 from sage.modular.all import Cusp
+
 
 cdef class ECModularSymbol:
     """
@@ -99,15 +101,15 @@ cdef class ECModularSymbol:
         mpz_to_ZZ(&a6, mpq_numref((<Rational>(E.a6())).value))
 
         sig_on()
-        C = new_Curve(a1,a2,a3,a4,a6)
-        CD = new_Curvedata(C[0],0)
-        CR = new_CurveRed(CD[0])
+        C = new Curve(a1,a2,a3,a4,a6)
+        CD = new Curvedata(C[0],0)
+        CR = new CurveRed(CD[0])
         N = getconductor(CR[0])
         n = I2int(N)
         self.n = n
         self.sign = sign
 
-        self.nfs = new_newforms(n,0)
+        self.nfs = new newforms(n,0)
         self.nfs.createfromcurve(sign,CR[0])
         sig_off()
 
@@ -174,7 +176,7 @@ cdef class ECModularSymbol:
         if d != 0:
             n = n % d
         sig_on()
-        _r = new_rational(n,d)
+        _r = rational(n,d)
         _s = self.nfs.plus_modular_symbol(_r)
         sig_off()
         return Rational((rational_num(_s), rational_den(_s)))

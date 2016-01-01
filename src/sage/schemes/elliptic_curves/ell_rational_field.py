@@ -72,7 +72,7 @@ from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
 import sage.modular.modform.constructor
 import sage.modular.modform.element
-import sage.libs.mwrank.all as mwrank
+import sage.libs.cremona.all as mwrank
 import sage.databases.cremona
 
 import sage.rings.arith as arith
@@ -809,7 +809,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EE
             y^2+ y = x^3 - x^2 - 10*x - 20
             sage: type(EE)
-            <class 'sage.libs.mwrank.interface.mwrank_EllipticCurve'>
+            <class 'sage.libs.cremona.interface.mwrank_EllipticCurve'>
             sage: EE.isogeny_class()
             ([[0, -1, 1, -10, -20], [0, -1, 1, -7820, -263580], [0, -1, 1, 0, 0]],
             [[0, 5, 5], [5, 0, 0], [5, 0, 0]])

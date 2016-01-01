@@ -571,18 +571,6 @@ ext_modules = [
     Extension('sage.libs.lrcalc.lrcalc',
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
-    Extension('sage.libs.mwrank.mwrank',
-              sources = ["sage/libs/mwrank/mwrank.pyx",
-                         "sage/libs/mwrank/wrap.cc"],
-              define_macros = [("NTL_ALL",None)],
-              depends = ["sage/libs/mwrank/wrap.h"] +
-                        [ SAGE_INC + "/eclib/" + h for h in
-                          ["curve.h","egr.h","descent.h","points.h","isogs.h",
-                            "marith.h","htconst.h","interface.h"]
-                        ],
-              libraries = ["ec", "pari",
-                           "ntl", "gmp", "gmpxx", "stdc++", "m"]),
-
     Extension('sage.libs.pari.closure',
               sources = ["sage/libs/pari/closure.pyx"],
               libraries = ['pari', 'gmp']),
@@ -689,26 +677,7 @@ ext_modules = [
     ##
     ###################################
 
-    Extension('sage.libs.cremona.homspace',
-              sources = ["sage/libs/cremona/homspace.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)]),
-
-    Extension('sage.libs.cremona.mat',
-              sources = ["sage/libs/cremona/mat.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)]),
-
-    Extension('sage.libs.cremona.newforms',
-              sources = ["sage/libs/cremona/newforms.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)]),
+    Extension('*', ["sage/libs/cremona/*.pyx"]),
 
     ###################################
     ##

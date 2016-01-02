@@ -32,6 +32,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 
 class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
@@ -274,165 +275,17 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(n), base_ring,
                                                       gens, category=category)
 
-    def _finite_recognition(self):
-        """
-        Return ``True`` if and only if the type is finite.
-
-        This is an auxiliary function used during the initialisation.
-
-        EXAMPLES:
-
-        Some infinite ones::
-
-            sage: F = CoxeterGroups().Finite()
-            sage: W = CoxeterGroup([[1,3,2],[3,1,-1],[2,-1,1]])
-            sage: W in F  # indirect doctest
-            False
-            sage: W = CoxeterGroup([[1,-1,-1],[-1,1,-1],[-1,-1,1]])
-            sage: W in F  # indirect doctest
-            False
-
-        Some finite ones::
-
-            sage: CoxeterGroup(['D',4], base_ring=QQ) in F  # indirect doctest
-            True
-            sage: CoxeterGroup(['H',4]) in F  # indirect doctest
-            True
-        """
-        # First, we build the Coxeter graph of the group, without the
-        # edge labels.
-        coxeter_matrix = self._matrix
-        n = ZZ(coxeter_matrix.nrows())
-        G = Graph([(i, j) for i in range(n) for j in range(i)
-                   if coxeter_matrix[i, j] not in [1, 2]])
-        # Coxeter graphs of finite Coxeter groups are forests
-        if not(G.is_forest()):
-            return False
-        comps = G.connected_components()
-        finite = True
-        # The group is finite if and only if for every connected
-        # component ``comp`` of its Coxeter graph, the submatrix of
-        # the Coxeter matrix corresponding to ``comp`` is one of the
-        # type-A,B,D,E,F,H,I matrices (up to permutation). So we
-        # shall check this condition on every ``comp``.
-        for comp in comps:
-            l = len(comp)
-            if l == 1:
-                # Any `1 \times 1` Coxeter matrix gives a finite group.
-                continue  # A1
-            elif l == 2:
-                # A dihedral group is finite iff there is no `\infty`
-                # in its Coxeter matrix.
-                c0, c1 = comp
-                if coxeter_matrix[c0, c1] > 0:
-                    continue  # I2
-                return False
-            elif l == 3:
-                # The `3`-node case. The finite groups to check for
-                # here are `A_3`, `B_3` and `H_3`.
-                c0, c1, c2 = comp
-                s = sorted([coxeter_matrix[c0, c1],
-                            coxeter_matrix[c0, c2],
-                            coxeter_matrix[c1, c2]])
-                if s[1] == 3 and s[2] in [3, 4, 5]:
-                    continue  # A3, B3, H3
-                return False
-            elif l == 4:
-                # The `4`-node case. The finite groups to check for
-                # here are `A_4`, `B_4`, `D_4`, `F_4` and `H_4`.
-                c0, c1, c2, c3 = comp
-                u = [coxeter_matrix[c0, c1],
-                     coxeter_matrix[c0, c2],
-                     coxeter_matrix[c0, c3],
-                     coxeter_matrix[c1, c2],
-                     coxeter_matrix[c1, c3],
-                     coxeter_matrix[c2, c3]]
-                s = sorted(u)
-                # ``s`` is the list of all off-diagonal entries of
-                # the ``comp``-submatrix of the Coxeter matrix,
-                # sorted in increasing order.
-                if s[3:5] == [3, 3]:
-                    if s[5] == 3:
-                        continue  # A4, D4
-                    if s[5] in [4, 5]:
-                        u0 = u[0] + u[1] + u[2]
-                        u1 = u[0] + u[3] + u[4]
-                        u2 = u[1] + u[3] + u[5]
-                        u3 = u[2] + u[4] + u[5]
-                        ss = sorted([u0, u1, u2, u3])
-                        if ss in [[7, 7, 9, 9], [7, 8, 8, 9],
-                                  [7, 8, 9, 10]]:
-                            continue  # F4, B4, H4
-                return False
-            else:
-                # The case of `l \geq 5` nodes. The finite
-                # groups to check for here are `A_l`, `B_l`, `D_l`,
-                # and `E_l` (for `l = 6, 7, 8`).
-
-                # Checking that the Coxeter matrix of the subgroup
-                # corresponding to the vertices ``comp`` has all its
-                # off-diagonal entries equal to 2, 3 or at most once 4
-                found_a_4 = False
-                for j in range(l):
-                    for i in range(j):
-                        coxeter_entry = coxeter_matrix[comp[i], comp[j]]
-                        if coxeter_entry in [2, 3]:
-                            continue
-                        if coxeter_entry == 4 and not found_a_4:
-                            found_a_4 = True
-                            continue
-                        return False
-
-                G0 = G.subgraph(comp)
-                if found_a_4:
-                    # The case when a `4` has been found in the
-                    # Coxeter matrix. This needs only to be checked
-                    # against `B_l`. We use the observation that
-                    # the group is `B_l` if and only if the Coxeter
-                    # graph is an `l`-path (i.e., has diameter
-                    # `l - 1`) and the `4` corresponds to one of
-                    # its two outermost edges.
-                    diameter = G0.diameter()
-                    if diameter != l - 1:
-                        return False
-
-                    ecc = sorted(((u, v) for (v, u) in G0.eccentricity(with_labels=True).items()))
-                    left_end = ecc[-1][1]
-                    right_end = ecc[-2][1]
-                    left_almost_end = G0.neigbors(left_end)[0]
-                    right_almost_end = G0.neigbors(right_end)[0]
-                    if (coxeter_matrix[left_end, left_almost_end] == 4
-                        or coxeter_matrix[right_end, right_almost_end] == 4):
-                        continue  # Bl
-                    return False
-
-                # Now, all off-diagonal entries of the Coxeter matrix
-                # are 2's and 3's. We need to check our group against
-                # `A_l`, `D_l` and `E_l`. Knowing that the Coxeter
-                # graph is a tree, we can use its vertex
-                # eccentricities to check this.
-                ecc = sorted(G0.eccentricity())
-                if ecc[-1] == l - 1:
-                    continue  # Al
-                if ecc[-3] == l - 2:
-                    continue  # Dl
-                if l <= 8 and ecc[-2] == l - 2 and ecc[-5] == l - 3:
-                    continue  # El
-                return False
-
-        return True
-
     def _repr_(self):
         """
         Return a string representation of ``self``.
 
         EXAMPLES::
 
-            sage: CoxeterGroup([[1,3,2],[3,1,3],[2,3,1]])
+            sage: CoxeterGroup([[1,3,2],[3,1,4],[2,4,1]])
             Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
             [1 3 2]
-            [3 1 3]
-            [2 3 1]
+            [3 1 4]
+            [2 4 1]
         """
         rep = "Finite " if self.is_finite() else ""
         rep += "Coxeter group over {} with Coxeter matrix:\n{}".format(self.base_ring(), self._matrix)
@@ -559,6 +412,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         # the category of ``self``.
         return "Finite" in self.category().axioms()
 
+    @cached_method
     def order(self):
         """
         Return the order of ``self``.
@@ -575,7 +429,10 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             +Infinity
         """
         if self.is_finite():
-            return self._cardinality_from_iterator()
+            try:
+                return ZZ(len(self._list))
+            except AttributeError:
+                return self._cardinality_from_iterator()
         return infinity
 
     def canonical_representation(self):
@@ -646,12 +503,15 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 sage: W = CoxeterGroup(['A',3], implementation="reflection")
                 sage: a,b,c = W.gens()
                 sage: elt = b*a*c
-                sage: map(lambda i: elt.has_right_descent(i), [1, 2, 3])
+                sage: [elt.has_right_descent(i) for i in [1, 2, 3]]
                 [True, False, True]
             """
             i = self.parent().index_set().index(i)
-            col = self.matrix().column(i)
-            return all(x <= 0 for x in col)
+            n = len(self.parent().index_set())
+            M = self.matrix()
+            # When working over the UCF, this is the bottleneck because it has
+            #   to convert the entries to QQbar and do the comparison there.
+            return all(M[j,i] <= 0 for j in range(n))
 
         def canonical_matrix(self):
             r"""

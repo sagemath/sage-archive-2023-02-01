@@ -88,7 +88,7 @@ public:
 protected:
 	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_tree(const print_tree & c, unsigned level) const override;
-	int64_t calchash() const override;
+	long calchash() const override;
 
 	// member variables
 private:

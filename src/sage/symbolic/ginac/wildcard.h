@@ -44,7 +44,7 @@ public:
 	bool match(const ex & pattern, lst & repl_lst) const override;
 
 protected:
-	int64_t calchash() const override;
+	long calchash() const override;
 
 	// non-virtual functions in this class
 public:

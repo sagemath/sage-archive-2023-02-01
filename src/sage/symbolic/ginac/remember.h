@@ -46,7 +46,7 @@ public:
 	unsigned long get_successful_hits() const { return successful_hits; };
 
 protected:
-	int64_t hashvalue;
+	long hashvalue;
 	exvector seq;
 	ex result;
 	mutable unsigned long last_access;

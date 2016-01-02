@@ -58,7 +58,7 @@ public:
 protected:
 	ex derivative(const symbol & s) const override;
 	bool match_same_type(const basic & other) const override;
-	int64_t calchash() const override;
+	long calchash() const override;
 
 	// new virtual functions in this class
 public:

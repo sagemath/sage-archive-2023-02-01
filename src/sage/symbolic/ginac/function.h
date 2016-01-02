@@ -342,7 +342,7 @@ public:
 	ex expand(unsigned options=0) const override;
 	ex eval(int level=0) const override;
 	ex evalf(int level=0, PyObject* parent=nullptr) const override;
-	int64_t calchash() const override;
+	long calchash() const override;
 	ex series(const relational & r, int order, unsigned options = 0) const override;
         ex subs(const exmap & m, unsigned options = 0) const override;
 	ex thiscontainer(const exvector & v) const override;

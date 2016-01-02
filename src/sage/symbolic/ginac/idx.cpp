@@ -342,7 +342,7 @@ bool spinidx::match_same_type(const basic & other) const
 	return inherited::match_same_type(other);
 }
 
-int64_t idx::calchash() const
+long idx::calchash() const
 {
 	// NOTE: The code in simplify_indexed() assumes that canonically
 	// ordered sequences of indices have the two members of dummy index
@@ -352,7 +352,7 @@ int64_t idx::calchash() const
 	// hash keys. That is, the hash values must not depend on the index
 	// dimensions or other attributes (variance etc.).
 	// The compare_same_type() methods will take care of the rest.
-	int64_t v = golden_ratio_hash((p_int)tinfo());
+	long v = golden_ratio_hash((p_int)tinfo());
 	v = rotate_left(v);
 	v ^= value.gethash();
 

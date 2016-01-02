@@ -306,11 +306,11 @@ tinfo_t relational::return_type_tinfo() const
 	return lh.return_type_tinfo();
 }
 
-int64_t relational::calchash() const
+long relational::calchash() const
 {
-	int64_t v = golden_ratio_hash((p_int)tinfo());
-	int64_t lhash = lh.gethash();
-	int64_t rhash = rh.gethash();
+	long v = golden_ratio_hash((p_int)tinfo());
+	long lhash = lh.gethash();
+	long rhash = rh.gethash();
 
 	v = rotate_left(v);
 	switch(o) {

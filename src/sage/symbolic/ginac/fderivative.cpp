@@ -250,13 +250,13 @@ bool fderivative::match_same_type(const basic & other) const
 	return parameter_set == o.parameter_set && inherited::match_same_type(other);
 }
 
-int64_t fderivative::calchash() const
+long fderivative::calchash() const
 {
-	int64_t res = inherited::calchash();
-	int64_t prev=0;
+	long res = inherited::calchash();
+	long prev=0;
 
 	// FNV hash with custom prime and initial value
-	int64_t h = 2166136285L;
+	long h = 2166136285L;
 	for (const auto & elem : parameter_set) {
 		h = ( h * 2097287 ) ^ (elem-prev);
 		prev = elem;

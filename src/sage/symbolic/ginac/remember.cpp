@@ -156,14 +156,14 @@ remember_table::remember_table(unsigned s, unsigned as, unsigned strat)
 
 bool remember_table::lookup_entry(function const & f, ex & result) const
 {
-	int64_t entry = f.gethash() & (table_size-1);
+	long entry = f.gethash() & (table_size-1);
 	GINAC_ASSERT(entry<size());
 	return operator[](entry).lookup_entry(f,result);
 }
 
 void remember_table::add_entry(function const & f, ex const & result)
 {
-	int64_t entry = f.gethash() & (table_size-1);
+	long entry = f.gethash() & (table_size-1);
 	GINAC_ASSERT(entry<size());
 	operator[](entry).add_entry(f,result);
 }        

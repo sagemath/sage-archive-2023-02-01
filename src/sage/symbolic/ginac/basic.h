@@ -235,7 +235,7 @@ protected:
 	virtual int compare_same_type(const basic & other) const;
 	virtual bool is_equal_same_type(const basic & other) const;
 
-	virtual int64_t calchash() const;
+	virtual long calchash() const;
 
 	// non-virtual functions in this class
 public:
@@ -257,7 +257,7 @@ public:
 	bool is_equal(const basic & other) const;
 	const basic & hold() const;
 
-	int64_t gethash() const
+	long gethash() const
 	{
 #ifdef GINAC_COMPARE_STATISTICS
 		compare_statistics.total_gethash++;
@@ -287,7 +287,7 @@ protected:
 protected:
 	tinfo_t tinfo_key;                  ///< type info
 	mutable unsigned flags;             ///< of type status_flags
-	mutable int64_t hashvalue=0;         ///< hash value
+	mutable long hashvalue=0;         ///< hash value
 };
 
 

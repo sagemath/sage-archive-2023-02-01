@@ -318,6 +318,9 @@ class PseudoRiemannianMetric(TensorField):
         True
 
     """
+    DERIVED_OBJECTS = ('_connection', '_ricci_scalar', '_weyl',
+                       '_schouten', '_cotton', '_cotton_york')
+
     def __init__(self, vector_field_module, name, signature=None,
                  latex_name=None):
         r"""
@@ -447,9 +450,8 @@ class PseudoRiemannianMetric(TensorField):
         self._inverse = self._vmodule.tensor((2,0), name=inv_name,
                                              latex_name=inv_latex_name,
                                              sym=(0,1))
-        self._connection = None  # Levi-Civita connection (not set yet)
-        self._ricci_scalar = None # Ricci scalar (not set yet)
-        self._weyl = None # Weyl tensor (not set yet)
+        for attr in self.DERIVED_OBJECTS:
+            self.__setattr__(attr, None)
         self._determinants = {} # determinants in various frames
         self._sqrt_abs_dets = {} # sqrt(abs(det g)) in various frames
         self._vol_forms = [] # volume form and associated tensors
@@ -470,9 +472,9 @@ class PseudoRiemannianMetric(TensorField):
         # The inverse metric is cleared:
         self._del_inverse()
         # The connection, Ricci scalar and Weyl tensor are reset to None:
-        self._connection = None
-        self._ricci_scalar = None
-        self._weyl = None
+        # The Schouten, Cotton and Cotton-York tensors are reset to None:
+        for attr in self.DERIVED_OBJECTS:
+            self.__setattr__(attr, None)
         # The dictionary of determinants over the various frames is cleared:
         self._determinants.clear()
         self._sqrt_abs_dets.clear()
@@ -569,12 +571,10 @@ class PseudoRiemannianMetric(TensorField):
             resu._indic_signat = self._indic_signat
             # Restrictions of derived quantities:
             resu._inverse = self.inverse().restrict(subdomain)
-            if self._connection is not None:
-                resu._connection = self._connection.restrict(subdomain)
-            if self._ricci_scalar is not None:
-                resu._ricci_scalar = self._ricci_scalar.restrict(subdomain)
-            if self._weyl is not None:
-                resu._weyl = self._weyl.restrict(subdomain)
+            for attr in self.DERIVED_OBJECTS:
+                derived = self.__getattribute__(attr)
+                if derived is not None:
+                    resu.__setattr__(attr, derived.restrict(subdomain))
             if self._vol_forms != []:
                 for eps in self._vol_forms:
                     resu._vol_forms.append(eps.restrict(subdomain))
@@ -1188,6 +1188,186 @@ class PseudoRiemannianMetric(TensorField):
                 latex_name = r"\mathrm{C}\left(" + self._latex_name + r"\right)"
             self._weyl.set_name(name=name, latex_name=latex_name)
         return self._weyl
+
+    def schouten(self, name=None, latex_name=None):
+        r"""
+        Return the Schouten tensor associated with the metric.
+
+        The Schouten tensor is the tensor field `Sc` of type (0,2) defined
+        from the Ricci curvature tensor `Ric` and the scalar curvature `s`
+        and the metric `g` by
+
+        .. MATH::
+
+            Sc(u, v) = \frac{1}{n-2}\left(Ricci(u, v) + \frac{s}{2(n-1)}g(u,v)
+            \right)
+
+        for any vector fields `u` and `v`.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the Schouten tensor;
+          if none, it is set to "Schouten(g)", where "g" is the metric's name
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          Schouten tensor; if none, it is set to "\\mathrm{Schouten}(g)",
+          where "g" is the metric's name
+
+        OUTPUT:
+
+        - the Schouten tensor `Sc`, as an instance of
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField` of tensor
+          type (0,2) and symmetric
+
+        EXAMPLES:
+
+        Schouten tensor of the standard metric on the 2-sphere::
+
+            sage: M = Manifold(3, 'S^3', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.riemannian_metric('g')
+            sage: #standard round sphere, stereographic projection
+            sage: f = 4/(1 + x^2 + y^2 + z^2)
+            sage: g[1,1], g[2,2], g[3,3] = f, f, f
+            sage: g.display() # standard metric on the 3-sphere of radius 1:
+            g = 4/(x^2 + y^2 + z^2 + 1) dx*dx + 4/(x^2 + y^2 + z^2 + 1) dy*dy + 
+            4/(x^2 + y^2 + z^2 + 1) dz*dz
+            sage: g.schouten() # long time
+            Field of symmetric bilinear forms Schouten(g) on the 3-dimensional 
+            differentiable manifold S^3
+            sage: g.schouten()[1,2] # long time
+            -x*y/(x^4 + y^4 + z^4 + 2*(x^2 + 1)*y^2 + 2*(x^2 + y^2 + 1)*z^2 + 2*x^2 + 1)
+
+        """
+        n = self._ambient_domain.dimension()
+        if n < 3:
+            raise ValueError("the Schouten tensor is only defined for a " +
+                             "manifold of dimension >= 3")
+        if self._schouten is None:
+            s = (1/(n-2))*self.ricci() - (self.ricci_scalar()/(2*(n-1)*(n-2)))*self
+            name = name or 'Schouten(' + self._name + ')'
+            latex_name = latex_name or r'\mathrm{Schouten}(' + self._latex_name + ')'
+            s.set_name(name=name, latex_name=latex_name)
+            self._schouten = s
+        return self._schouten
+
+    def cotton(self, name=None, latex_name=None):
+        r"""
+        Return the Cotton conformal tensor associated with the metric.
+        The tensor has type (0,3) and is defined in terms of the Schouten
+        tensor `S`
+
+        .. MATH::
+
+            C_{ijk}=\left(\nabla_i S\right)_{jk}-\left(\nabla_j S\right)_{ik}
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the Cotton conformal
+          tensor; if ``None``, it is set to "Cot(g)", where "g" is the metric's
+          name
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          Cotton conformal tensor; if ``None``, it is set to "\\mathrm{Cot}(g)",
+          where "g" is the metric's name
+
+        OUTPUT:
+
+        - the Cotton conformal tensor `Cot`, as an instance of
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+
+        EXAMPLES:
+
+        Checking that the Cotton tensor identically vanishes on a conformally flat
+        3-dimensional manifold, for instance the hyperbolic space `H^3`::
+
+            sage: M = Manifold(3, 'H^3', start_index=1)
+            sage: U = M.open_subset('U') # the complement of the half-plane (y=0, x>=0)
+            sage: X.<rh,th,ph> = U.chart(r'rh:(0,+oo):\rho th:(0,pi):\theta  ph:(0,2*pi):\phi')
+            sage: g = U.metric('g')
+            sage: b = var('b')
+            sage: g[1,1], g[2,2], g[3,3] = b^2, (b*sinh(rh))^2, (b*sinh(rh)*sin(th))^2
+            sage: g.display()  # standard metric on H^3:
+            g = b^2 drh*drh + b^2*sinh(rh)^2 dth*dth
+             + b^2*sin(th)^2*sinh(rh)^2 dph*dph
+            sage: Cot = g.cotton() ; Cot # long time
+            Tensor field Cot(g) of type (0,3) on the Open subset U of the
+             3-dimensional differentiable manifold H^3
+            sage: Cot == 0 # long time
+            True
+
+        """
+        n = self._ambient_domain.dimension()
+        if n < 3:
+            raise ValueError("the Cotton tensor is only defined for a " +
+                             "manifold of dimension >= 3")
+        if self._cotton is None:
+            nabla = self.connection()
+            s = self.schouten()
+            cot = nabla(s).antisymmetrize(0,2)
+            name = name or 'Cot(' + self._name + ')'
+            latex_name = latex_name or r'\mathrm{Cot}(' + self._latex_name + ')'
+            cot.set_name(name=name, latex_name=latex_name)
+            self._cotton = cot
+        return self._cotton
+
+    def cotton_york(self, name=None, latex_name=None):
+        r"""
+        Return the Cotton-York conformal tensor associated with the metric.
+        The tensor has type (0,2) and is only defined for manifolds of 
+        dimension 3. It is defined in terms of the Cotton tensor `C` or the
+        Schouten tensor `S`
+
+        .. MATH::
+
+            CY_{ij} = \frac{1}{2}C_{kli} g_{jm} \frac{\epsilon^{klm}}{\sqrt{\det g}}
+            =g_{jm}\left(\nabla_k S \right)_{li}\frac{\epsilon^{klm}}{\sqrt{\det{g}}}
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the Cotton-York
+          tensor; if ``None``, it is set to "CY(g)", where "g" is the metric's
+          name
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          Cotton-York tensor; if ``None``, it is set to "\\mathrm{CY}(g)",
+          where "g" is the metric's name
+
+        OUTPUT:
+
+        - the Cotton-York conformal tensor `CY`, as an instance of
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+
+        EXAMPLES:
+
+        Checking that the Cotton-York tensor has determinant zero for a product
+        if :math:`\mathbb{R}` with a surface::
+
+            sage: M = Manifold(3, 'RxS', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.riemannian_metric('g')
+            sage: _f = function('F', y, z)
+            sage: f = X.domain().scalar_field(_f)
+            sage: g[1,1], g[2,2], g[3,3] = 1, f, f
+            sage: g.display()
+            g = dx*dx + F(y, z) dy*dy + F(y, z) dz*dz
+            sage: CY = g.cotton_york() ; CY # long time
+            Tensor field of type (0,2) on the 3-dimensional differentiable
+             manifold RxS
+            sage: det(CY[:]) # long time
+            0
+
+        """
+        n = self._ambient_domain.dimension()
+        if n < 3:
+            raise ValueError("the Cotton-York tensor is only defined for a " +
+                             "manifold of dimension 3")
+        if self._cotton_york is None:
+            cot = self.cotton()
+            eps = self.volume_form(2)
+            cy = -cot.contract(0,2,eps,0,1)
+            name = name or 'CY(' + self._name + ')'
+            latex_name = latex_name or r'\mathrm{CY}(' + self._latex_name + ')'
+            cot.set_name(name=name, latex_name=latex_name)
+            self._cotton_york = cy
+        return self._cotton_york
 
     def determinant(self, frame=None):
         r"""

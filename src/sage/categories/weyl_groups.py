@@ -160,8 +160,9 @@ class WeylGroups(Category_singleton):
             """
             if not self.cartan_type().is_finite():
                 raise ValueError("the Cartan type {} is not finite".format(self.cartan_type()))
-            from sage.graphs.digraph import DiGraph
-            WP = [x for x in self if x == x.coset_representative(index_set)]
+
+            # Find all the minimal length coset representatives
+            WP = [x for x in self if all(not x.has_descent(i) for i in index_set)]
 
             # This is a modified form of quantum_bruhat_successors.
             # It does not do any error checking and also is more efficient
@@ -201,6 +202,7 @@ class WeylGroups(Category_singleton):
                         successors.append((wrc, alpha))
                 return successors
 
+            from sage.graphs.digraph import DiGraph
             return DiGraph([[x,i[0],i[1]] for x in WP for i in succ(x)],
                            name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self, index_set))
 

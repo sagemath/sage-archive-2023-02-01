@@ -6,7 +6,7 @@ or complex value. We consider flint and NTL polynomials and values mpfr_t and
 mpfi_t. If you intend to implement more it would be better to find a template
 strategy instead of duplicating the code.
 
-The code in this file is mostly Sage agnostic and only do library calls.
+The code in this file is mostly Sage agnostic and only does library calls.
 
 For appropriate testing see
 :mod:`~sage.rings.polynomial.polynomial_integer_dense_flint` and
@@ -30,7 +30,7 @@ from sage.libs.ntl.ZZX cimport *
 
 cdef fmpz_poly_eval_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t a, mpfr_rnd_t rnd):
     cdef mpz_t c
-    cdef int i
+    cdef long i
 
     mpfr_set_ui(res, 0, rnd)
     mpz_init(c)
@@ -44,7 +44,7 @@ cdef fmpz_poly_eval_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t a, mpf
 
 cdef fmpz_poly_eval_mpfi(mpfi_t res, const fmpz_poly_t poly, const mpfi_t a):
     cdef mpz_t c
-    cdef int i
+    cdef long i
 
     mpfi_set_ui(res, 0)
     mpz_init(c)
@@ -59,7 +59,7 @@ cdef fmpz_poly_eval_mpfi(mpfi_t res, const fmpz_poly_t poly, const mpfi_t a):
 
 cdef ZZX_eval_mpfr(mpfr_t res, ZZX_c poly, const mpfr_t a, const mpfr_rnd_t rnd):
     cdef mpz_t c
-    cdef int i
+    cdef long i
 
     mpfr_set_ui(res, 0, rnd)
     mpz_init(c)
@@ -73,7 +73,7 @@ cdef ZZX_eval_mpfr(mpfr_t res, ZZX_c poly, const mpfr_t a, const mpfr_rnd_t rnd)
 
 cdef ZZX_eval_mpfi(mpfi_t res, ZZX_c poly, const mpfi_t a):
     cdef mpz_t c
-    cdef int i
+    cdef long i
 
     mpfi_set_ui(res, 0)
     mpz_init(c)

@@ -2578,15 +2578,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             AssertionError
-
-        TESTS::
-
-            sage: n = prod(primes_first_n(9))
-            sage: try:
-            ....:     alarm(1e-5)
-            ....:     _ = n._pari_divisors_small()
-            ....: except AlarmInterrupt:
-            ....:     pass
         """
         # we need n to fit into a long and not a unsigned long in order to use
         # smallInteger

@@ -178,16 +178,24 @@ class WeylGroups(Category_singleton):
                 NPR_data[alpha] = [self.from_reduced_word(ref), # the element
                                    len(ref) == full_NPR_sum.scalar(alphacheck) - 1, # is_quantum
                                    NPR_sum.scalar(alphacheck)] # the scalar
+            # We also create a temporary cache of lengths as they are
+            #   relatively expensive to compute and needed frequently
+            len_cache = {}
+            def length(x):
+                if x in len_cache:
+                    return len_cache[x]
+                len_cache[x] = x.length()
+                return len_cache[x]
             def succ(x):
-                w_length_plus_one = x.length() + 1
+                w_length_plus_one = length(x) + 1
                 successors = []
                 for alpha in NPR:
                     elt, is_quantum, scalar = NPR_data[alpha]
                     wr = x * elt
                     wrc = wr.coset_representative(index_set)
-                    if wrc == wr and wr.length() == w_length_plus_one:
+                    if wrc == wr and length(wr) == w_length_plus_one:
                         successors.append((wr, alpha))
-                    elif is_quantum and wrc.length() == w_length_plus_one - scalar:
+                    elif is_quantum and length(wrc) == w_length_plus_one - scalar:
                         successors.append((wrc, alpha))
                 return successors
 

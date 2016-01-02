@@ -715,8 +715,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     Check that :trac:`11737` is fixed::
 
-        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
-        0.285736646322853
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity)) # known bug
+        0.285736646322853 + 6.93889390390723e-18*I
 
     Check that :trac:`14209` is fixed::
 

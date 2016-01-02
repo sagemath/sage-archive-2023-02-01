@@ -43,7 +43,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     ctypedef struct GExprSeq "exprseq"
 
     ctypedef struct GBasic "basic":
-        unsigned int gethash()
+        long gethash()
         int compare(GBasic other)
 
     ctypedef struct GConstant "constant":
@@ -86,7 +86,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
         GExList append_sym "append" (GSymbol e)
 
     ctypedef struct GEx "ex":
-        unsigned int gethash()        except +
+        long gethash()                except +
         int compare(GEx other)        except +
         GEx expand(unsigned int opt)  except +
         GEx collect(GEx s, bint dist) except +

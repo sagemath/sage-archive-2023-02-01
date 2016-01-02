@@ -355,9 +355,45 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def _first_ngens(self, n):
         """
-        Used by the preparser for R.<x> = ...
+        Used by the preparser for ``R.<x> = ...``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: x
+            x
+            sage: parent(x)
+            Univariate Polynomial Ring in x over Rational Field
+
+        For orders, we correctly use the ring generator, see
+        :trac:`15348`::
+
+            sage: A.<i> = ZZ.extension(x^2 + 1)
+            sage: i
+            i
+            sage: parent(i)
+            Order in Number Field in i with defining polynomial x^2 + 1
+
+        ::
+
+            sage: B.<z> = EquationOrder(x^2 + 3)
+            sage: z.minpoly()
+            x^2 + 3
+
+        ::
+
+            sage: K.<a> = QuadraticField(-163)
+            sage: R.<w> = K.ring_of_integers()
+            sage: w
+            1/2*a + 1/2
+            sage: parent(w)
+            Maximal Order in Number Field in a with defining polynomial x^2 + 163
         """
-        return self.gens()[:n]
+        try:
+            gens = self.ring_generators
+        except AttributeError:
+            gens = self.gens
+        return gens()[:n]
 
     #################################################################################################
     # Names and Printers

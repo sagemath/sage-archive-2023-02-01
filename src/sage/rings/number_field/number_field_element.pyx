@@ -126,8 +126,8 @@ def __create__NumberFieldElement_version1(parent, cls, poly):
         sage: loads(dumps(a+1)) == a + 1 # indirect doctest
         True
 
-    This also gets called for unpickling order elements; we check that #6462 is
-    fixed::
+    This also gets called for unpickling order elements; we check that
+    :trac:`6462` is fixed::
 
         sage: L = NumberField(x^3 - x - 1,'a'); OL = L.maximal_order(); w = OL.0
         sage: loads(dumps(w)) == w # indirect doctest
@@ -145,8 +145,7 @@ def _inverse_mod_generic(elt, I):
 
     EXAMPLES::
 
-        sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
-        sage: w = OE.ring_generators()[0]
+        sage: OE.<w> = EquationOrder(x^3 - x + 2)
         sage: from sage.rings.number_field.number_field_element import _inverse_mod_generic
         sage: _inverse_mod_generic(w, 13*OE)
         6*w^2 - 6
@@ -4547,8 +4546,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
 
         EXAMPLES::
 
-            sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^3 - x + 2)
             sage: w.inverse_mod(13*OE)
             6*w^2 - 6
             sage: w * (w.inverse_mod(13)) - 1 in 13*OE

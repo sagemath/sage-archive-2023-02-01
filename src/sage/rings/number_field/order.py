@@ -36,6 +36,7 @@ We compute a suborder, which has index a power of 17 in the maximal order::
     17^45
 """
 
+from sage.misc.cachefunc import cached_method
 from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
@@ -568,6 +569,7 @@ class Order(IntegralDomain):
         self.__free_module = M
         return M
 
+    @cached_method
     def ring_generators(self):
         """
         Return generators for self as a ring.
@@ -596,24 +598,19 @@ class Order(IntegralDomain):
             sage: O.ring_generators()
             [(-5/3*b^2 + 3*b - 2)*a - 7/3*b^2 + b + 3, (-5*b^2 - 9)*a - 5*b^2 - b, (-6*b^2 - 11)*a - 6*b^2 - b]
         """
-        try:
-            return self.__ring_generators
-        except AttributeError:
-            K = self._K
-            n = []
-            V, from_V, to_V = self._K.absolute_vector_space()
-            A = ZZ**K.absolute_degree()
-            remaining = [x for x in self.basis() if x != 1]
-            gens = []
-            while len(remaining) > 0:
-                gens.append(remaining[0])
-                n.append(remaining[0].absolute_minpoly().degree())
-                del remaining[0]
-                W = A.span([to_V(x) for x in monomials(gens, n)])
-                remaining = [x for x in remaining if not to_V(x) in W]
-            self.__ring_generators = Sequence(gens,immutable=True)
-            return self.__ring_generators
-
+        K = self._K
+        n = []
+        V, from_V, to_V = self._K.absolute_vector_space()
+        A = ZZ**K.absolute_degree()
+        remaining = [x for x in self.basis() if x != 1]
+        gens = []
+        while remaining:
+            g = remaining.pop(0)
+            gens.append(g)
+            n.append(g.absolute_minpoly().degree())
+            W = A.span([to_V(x) for x in monomials(gens, n)])
+            remaining = [x for x in remaining if not to_V(x) in W]
+        return Sequence(gens,immutable=True)
 
     def zeta(self, n=2, all=False):
         r"""

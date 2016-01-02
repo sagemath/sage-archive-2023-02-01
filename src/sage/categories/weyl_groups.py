@@ -204,7 +204,8 @@ class WeylGroups(Category_singleton):
 
             from sage.graphs.digraph import DiGraph
             return DiGraph([[x,i[0],i[1]] for x in WP for i in succ(x)],
-                           name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self, index_set))
+                           name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self, index_set),
+                           format="list_of_edges")
 
     class ElementMethods:
 

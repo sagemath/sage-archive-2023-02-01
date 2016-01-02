@@ -182,10 +182,12 @@ class WeylGroups(Category_singleton):
             #   relatively expensive to compute and needed frequently
             len_cache = {}
             def length(x):
-                if x in len_cache:
-                    return len_cache[x]
-                len_cache[x] = x.length()
-                return len_cache[x]
+                # It is sufficient and faster to use the matrices as the keys
+                m = x.matrix()
+                if m in len_cache:
+                    return len_cache[m]
+                len_cache[m] = x.length()
+                return len_cache[m]
             def succ(x):
                 w_length_plus_one = length(x) + 1
                 successors = []

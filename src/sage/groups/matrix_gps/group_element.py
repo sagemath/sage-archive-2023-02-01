@@ -433,8 +433,13 @@ class MatrixGroupElement_gap(GroupElementMixinLibGAP, MatrixGroupElement_base, E
             sage: _.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
         """
-        g = self.gap()
-        m = g.matrix(self.base_ring())
+        # We do a slightly specialized version of sage.libs.gap.element.GapElement.matrix()
+        #   in order to use our current matrix space directly and avoid
+        #   some overhead safety checks.
+        entries = self.gap().Flat()
+        MS = self.parent().matrix_space()
+        ring = MS.base_ring()
+        m = MS([x.sage(ring=ring) for x in entries])
         m.set_immutable()
         return m
 

@@ -597,12 +597,21 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: CC(E(3))
             -0.500000000000000 + 0.866025403784439*I
 
+        Check that :trac:`19825` is fixed::
+
             sage: CIF(E(3))
             -0.500000000000000? + 0.866025403784439?*I
             sage: CIF(E(5))
             0.309016994374948? + 0.9510565162951536?*I
             sage: CIF(E(12))
             0.86602540378444? + 0.50000000000000?*I
+
+        If the input is real, the imaginary part is exactly 0::
+
+            sage: CIF(E(17,2) + E(17,15))
+            1.47801783444132?
+            sage: _.imag().is_zero()
+            True
         """
         if self._obj.IsRat():
             return R(self._obj.sage())
@@ -621,6 +630,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
     def _eval_real_(self, R):
         r"""
         Return a real value of this element in ``R``.
+
         TESTS::
 
             sage: RR(E(7) + E(7,6))
@@ -660,6 +670,11 @@ class UniversalCyclotomicFieldElement(FieldElement):
             ....:     assert l[i] >= l[i] and l[i] <= l[i]
             ....:     for j in range(i):
             ....:         assert l[i] > l[j] and l[j] < l[i]
+
+            sage: cmp(fibonacci(200)*(E(5)+E(5,4)), fibonacci(199))
+            -1
+            sage: cmp(fibonacci(201)*(E(5)+E(5,4)), fibonacci(200))
+            1
         """
         if self._obj == other._obj:
             return 0

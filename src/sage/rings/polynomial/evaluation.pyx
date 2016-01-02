@@ -28,7 +28,7 @@ from sage.libs.gmp.mpq cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.ntl.ZZX cimport *
 
-cdef fmpz_poly_eval_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t a, mpfr_rnd_t rnd):
+cdef fmpz_poly_evaluation_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t a, mpfr_rnd_t rnd):
     cdef mpz_t c
     cdef long i
 
@@ -42,7 +42,7 @@ cdef fmpz_poly_eval_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t a, mpf
 
     mpz_clear(c)
 
-cdef fmpz_poly_eval_mpfi(mpfi_t res, const fmpz_poly_t poly, const mpfi_t a):
+cdef fmpz_poly_evaluation_mpfi(mpfi_t res, const fmpz_poly_t poly, const mpfi_t a):
     cdef mpz_t c
     cdef long i
 
@@ -57,7 +57,7 @@ cdef fmpz_poly_eval_mpfi(mpfi_t res, const fmpz_poly_t poly, const mpfi_t a):
     mpz_clear(c)
 
 
-cdef ZZX_eval_mpfr(mpfr_t res, ZZX_c poly, const mpfr_t a, const mpfr_rnd_t rnd):
+cdef ZZX_evaluation_mpfr(mpfr_t res, ZZX_c poly, const mpfr_t a, const mpfr_rnd_t rnd):
     cdef mpz_t c
     cdef long i
 
@@ -71,7 +71,7 @@ cdef ZZX_eval_mpfr(mpfr_t res, ZZX_c poly, const mpfr_t a, const mpfr_rnd_t rnd)
 
     mpz_clear(c)
 
-cdef ZZX_eval_mpfi(mpfi_t res, ZZX_c poly, const mpfi_t a):
+cdef ZZX_evaluation_mpfi(mpfi_t res, ZZX_c poly, const mpfi_t a):
     cdef mpz_t c
     cdef long i
 

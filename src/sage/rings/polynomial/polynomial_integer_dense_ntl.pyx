@@ -65,7 +65,7 @@ import sage.rings.polynomial.polynomial_ring
 
 from sage.libs.ntl.ZZX cimport *
 
-from sage.rings.polynomial.evaluation cimport ZZX_eval_mpfr, ZZX_eval_mpfi
+from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfr, ZZX_evaluation_mpfi
 
 cdef class Polynomial_integer_dense_ntl(Polynomial):
     r"""
@@ -257,59 +257,65 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         ZZ_to_mpz(z.value, &y)
         return z
 
-    def _eval_mpfr(self, RealNumber a):
+    def _eval_mpfr_(self, RealNumber a):
         r"""
         Evaluate this polynomial on the real number element ``a``.
+
+        This method uses Horner's rule and might not be appropriate for
+        polynomials of large degree.
 
         TESTS::
 
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
-            sage: (x+1)._eval_mpfr(RR(1.2))
+            sage: (x+1)._eval_mpfr_(RR(1.2))
             2.20000000000000
-            sage: (x**2)._eval_mpfr(RR(2.2))
+            sage: (x**2)._eval_mpfr_(RR(2.2))
             4.84000000000000
 
             sage: RRu = RealField(17, rnd='RNDU')
             sage: RRd = RealField(17, rnd='RNDD')
             sage: RRz = RealField(17, rnd='RNDZ')
             sage: p = x**3 - 2*x**2 + x -1
-            sage: p._eval_mpfr(RRu(1.3))
+            sage: p._eval_mpfr_(RRu(1.3))
             -0.8829
             sage: assert _.parent() is RRu
-            sage: p._eval_mpfr(RRd(1.3))
+            sage: p._eval_mpfr_(RRd(1.3))
             -0.8831
             sage: assert _.parent() is RRd
-            sage: p._eval_mpfr(RRz(1.3))
+            sage: p._eval_mpfr_(RRz(1.3))
             -0.8830
             sage: assert _.parent() is RRz
         """
         cdef RealNumber res = a._new()
         sig_on()
-        ZZX_eval_mpfr(res.value, self.__poly, a.value,
+        ZZX_evaluation_mpfr(res.value, self.__poly, a.value,
                       (<RealField_class> a._parent).rnd)
         sig_off()
         return res
 
-    def _eval_mpfi(self, RealIntervalFieldElement a):
+    def _eval_mpfi_(self, RealIntervalFieldElement a):
         r"""
         Evaluate this polynomial on the real interval ``a``.
+
+        This method uses Horner's rule and might not be appropriate for
+        polynomials of large degree.
 
         TESTS::
 
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
-            sage: (x+1)._eval_mpfi(RIF(1.5))
+            sage: (x+1)._eval_mpfi_(RIF(1.5))
             2.5000000000000000?
-            sage: (x**2)._eval_mpfi(RIF(1.333,1.334))
+            sage: (x**2)._eval_mpfi_(RIF(1.333,1.334))
             1.78?
 
             sage: p = x**3 - x**2 - x - 1
             sage: r = p.roots(RIF, multiplicities=False)[0]
-            sage: p._eval_mpfi(r)
+            sage: p._eval_mpfi_(r)
             0.?e-27
         """
         cdef RealIntervalFieldElement res = a._new()
         sig_on()
-        ZZX_eval_mpfi(res.value, self.__poly, a.value)
+        ZZX_evaluation_mpfi(res.value, self.__poly, a.value)
         sig_off()
         return res
 

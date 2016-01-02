@@ -1410,7 +1410,7 @@ previous section, and to construct the example of sets of cards in
 Consider a large Cartesian product::
 
     sage: C = cartesian_product([Compositions(8), Permutations(20)]); C
-    The cartesian product of (Compositions of 8, Standard permutations of 20)
+    The Cartesian product of (Compositions of 8, Standard permutations of 20)
     sage: C.cardinality()
     311411457046609920000
 

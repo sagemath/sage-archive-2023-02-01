@@ -1197,7 +1197,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             self._read_equations(f)
             f.close()
             return
-        if self.is_reflexive.get_cache() is not None:
+        if self.is_reflexive.cache is not None:
             # If it is already known that this polytope is reflexive, its
             # polar (whose vertices are equations of facets of this one)
             # is already computed and there is no need to read equations

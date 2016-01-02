@@ -724,7 +724,7 @@ cdef class CoxGroupElement:
             sage: w._coxnumber()                                                                    # optional - coxeter3
             7
         """
-        return self.group.extendContext(self.word)
+        return int(self.group.extendContext(self.word))
 
     def __reduce__(self):
         """

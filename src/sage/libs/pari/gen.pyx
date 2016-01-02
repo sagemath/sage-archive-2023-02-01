@@ -3158,18 +3158,19 @@ cdef class gen(gen_auto):
 
     def centerlift(gen x, v=-1):
         """
-        centerlift(x,v): Centered lift of x. This function returns exactly
-        the same thing as lift, except if x is an integer mod.
+        Centered lift of x. This function returns exactly the same thing as lift,
+        except if x is an integer mod.
 
         INPUT:
 
+        -  ``x`` -- gen
 
-        -  ``x`` - gen
+        -  ``v`` -- var (default: x)
 
-        -  ``v`` - var (default: x)
+        OUTPUT:
 
-
-        OUTPUT: gen
+        - `r` -- gen. If `x` is an integer mod `n`, return the unique element `r` congruent
+          to `x` mod `n` such that `-n/2 < r \\leq n/2`.
 
         EXAMPLES::
 
@@ -3190,10 +3191,17 @@ cdef class gen(gen_auto):
             x - y
             sage: f.centerlift('y')
             Mod(x - y, x^2 + 1)
+
+        For compatibility with other classes in Sage, there is an alias
+        ``lift_centered``::
+
+            sage: pari("Mod(3,5)").lift_centered()
+            -2
         """
         pari_catch_sig_on()
         return P.new_gen(centerlift0(x.g, P.get_var(v)))
 
+    lift_centered = centerlift
 
     def component(gen x, long n):
         """
@@ -8445,32 +8453,31 @@ cdef class gen(gen_auto):
 
         The first 5 vectors of norm at most 10::
 
-             sage: pari(A).qfminim(10, 5).python()
-             [
-                      [-17 -14 -15 -16 -13]
-                      [  4   3   3   3   2]
-             146, 10, [  3   3   3   3   3]
-             ]
-
+            sage: pari(A).qfminim(10, 5).python()
+            [
+                     [17 14 15 16 13]
+                     [-4 -3 -3 -3 -2]
+            146, 10, [-3 -3 -3 -3 -3]
+            ]
 
         All vectors of minimal norm::
 
-             sage: pari(A).qfminim().python()
-             [
-                   [-5 -2  1]
-                   [ 1  1  0]
-             6, 1, [ 1  0  0]
-             ]
+            sage: pari(A).qfminim().python()
+            [
+                  [ 5  2  1]
+                  [-1 -1  0]
+            6, 1, [-1  0  0]
+            ]
+
 
         Use flag=2 for non-integral input::
 
-             sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).python()
-             [
-                                      [ -5 -10  -2  -7   3]
-                                      [  1   2   1   2   0]
-             10, 5.00000000000000000, [  1   2   0   1  -1]
-             ]
-
+            sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).python()
+            [
+                                     [ -5 -10  -2  -7   3]
+                                     [  1   2   1   2   0]
+            10, 5.00000000000000000, [  1   2   0   1  -1]
+            ]
         """
         cdef gen t0, t1
         cdef GEN g0, g1

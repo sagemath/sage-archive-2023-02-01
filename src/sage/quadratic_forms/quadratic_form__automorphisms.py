@@ -133,17 +133,17 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
          [],
          [(0, 1, 0, 0), (0, -1, 0, 0)],
          [(1, 1, 0, 0),
-         (-1, -1, 0, 0),
-         (-1, 1, 0, 0),
-         (1, -1, 0, 0),
-         (2, 0, 0, 0),
-         (-2, 0, 0, 0)]]
+          (-1, -1, 0, 0),
+          (1, -1, 0, 0),
+          (-1, 1, 0, 0),
+          (2, 0, 0, 0),
+          (-2, 0, 0, 0)]]
         sage: Q.short_vector_list_up_to_length(5, True)
         [[(0, 0, 0, 0)],
          [(1, 0, 0, 0)],
          [],
          [(0, 1, 0, 0)],
-         [(1, 1, 0, 0), (-1, 1, 0, 0), (2, 0, 0, 0)]]
+         [(1, 1, 0, 0), (1, -1, 0, 0), (2, 0, 0, 0)]]
         sage: Q = QuadraticForm(matrix(6, [2, 1, 1, 1, -1, -1, 1, 2, 1, 1, -1, -1, 1, 1, 2, 0, -1, -1, 1, 1, 0, 2, 0, -1, -1, -1, -1, 0, 2, 1, -1, -1, -1, -1, 1, 2]))
         sage: vs = Q.short_vector_list_up_to_length(8)
         sage: [len(vs[i]) for i in range(len(vs))]
@@ -179,7 +179,7 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
         45906840
         sage: vs = list(Q._pari_().qfminim(len_bound_pari)[2])  # long time (18s on sage.math, 2014)
         sage: v = vs[0]; v  # long time
-        [-66, 623]~
+        [66, -623]~
         sage: v.Vec() * Q._pari_() * v  # long time
         45902280
     """
@@ -240,11 +240,9 @@ def short_primitive_vector_list_up_to_length(self, len_bound, up_to_sign_flag=Fa
          [(1, 0, 0, 0)],
          [],
          [(0, 1, 0, 0)],
-         [(1, 1, 0, 0), (-1, 1, 0, 0), (2, 0, 0, 0)]]
+         [(1, 1, 0, 0), (1, -1, 0, 0), (2, 0, 0, 0)]]
         sage: Q.short_primitive_vector_list_up_to_length(5, True)
-        [[], [(1, 0, 0, 0)], [], [(0, 1, 0, 0)], [(1, 1, 0, 0), (-1, 1, 0, 0)]]
-
-
+        [[], [(1, 0, 0, 0)], [], [(0, 1, 0, 0)], [(1, 1, 0, 0), (1, -1, 0, 0)]]
     """
     ## Get a list of short vectors
     full_vec_list = self.short_vector_list_up_to_length(len_bound, up_to_sign_flag)

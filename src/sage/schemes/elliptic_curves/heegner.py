@@ -82,20 +82,15 @@ The above is consistent with the following analytic computation::
     3.0000?
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2005-2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 
 from sage.misc.all import verbose, prod
@@ -4698,13 +4693,13 @@ class HeegnerQuatAlg(SageObject):
             sage: H = heegner_points(11).reduce_mod(3)
             sage: R = H.left_orders()[0]
             sage: H.optimal_embeddings(-7, 1, R)
-            [Embedding sending sqrt(-7) to -i + j + k,
-             Embedding sending sqrt(-7) to i - j - k]
+            [Embedding sending sqrt(-7) to i - j - k,
+             Embedding sending sqrt(-7) to -i + j + k]
             sage: H.optimal_embeddings(-7, 2, R)
-            [Embedding sending 2*sqrt(-7) to -5*i + k,
-             Embedding sending 2*sqrt(-7) to 5*i - k,
-             Embedding sending 2*sqrt(-7) to -2*i + 2*j + 2*k,
-             Embedding sending 2*sqrt(-7) to 2*i - 2*j - 2*k]
+            [Embedding sending 2*sqrt(-7) to 5*i - k,
+             Embedding sending 2*sqrt(-7) to -5*i + k,
+             Embedding sending 2*sqrt(-7) to 2*i - 2*j - 2*k,
+             Embedding sending 2*sqrt(-7) to -2*i + 2*j + 2*k]
         """
         Q, G = R.ternary_quadratic_form(include_basis=True)
         n    = -D*c*c
@@ -5115,7 +5110,7 @@ class HeegnerQuatAlg(SageObject):
             sage: N = 37; D = -7; ell = 17; c=5
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: B = H.brandt_module(); I = B.right_ideals()[32]
-            sage: f = H.optimal_embeddings(D, 1, I.left_order())[0]
+            sage: f = H.optimal_embeddings(D, 1, I.left_order())[1]
             sage: g = H.kolyvagin_generators(f.domain().number_field(), c)
             sage: alpha_quaternion = f(g[0]); alpha_quaternion
             1 - 5/128*i - 77/192*j + 137/384*k
@@ -5262,9 +5257,9 @@ class HeegnerQuatAlg(SageObject):
             sage: k118 = H.kolyvagin_sigma_operator(D, c, 118)
             sage: k104 = H.kolyvagin_sigma_operator(D, c, 104)
             sage: [b.dot_product(k118.element().change_ring(GF(3))) for b in V.basis()]  # long time
-            [1, 0]
-            sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]  # long time
             [2, 0]
+            sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]  # long time
+            [1, 0]
 
         By the way, the above is the first ever provable verification
         of Kolyvagin's conjecture for any curve of rank at least 2.
@@ -5276,7 +5271,7 @@ class HeegnerQuatAlg(SageObject):
             sage: H.heegner_divisor(D,1).element().nonzero_positions()
             [32, 51]
             sage: k32 = H.kolyvagin_sigma_operator(D, c, 32); k32
-            (63, 68, 47, 47, 31, 52, 37, 0, 0, 47, 3, 31, 47, 7, 21, 26, 19, 10, 0, 0, 11, 28, 41, 2, 47, 25, 0, 0, 36, 0, 33, 0, 0, 0, 40, 6, 14, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            (17, 12, 33, 33, 49, 108, 3, 0, 0, 33, 37, 49, 33, 33, 59, 54, 21, 30, 0, 0, 29, 12, 41, 38, 33, 15, 0, 0, 4, 0, 7, 0, 0, 0, 0, 34, 26, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             sage: k51 = H.kolyvagin_sigma_operator(D, c, 51); k51
             (5, 13, 0, 0, 14, 0, 21, 0, 0, 0, 29, 0, 0, 45, 0, 6, 0, 40, 0, 61, 0, 0, 40, 32, 0, 9, 0, 0, 0, 0, 17, 0, 0, 0, 77, 40, 2, 10, 18, 0, 0, 61, 19, 45, 26, 80, 61, 35, 35, 19, 1, 0)
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('37a'), q, 5); V
@@ -5284,7 +5279,7 @@ class HeegnerQuatAlg(SageObject):
             Basis matrix:
             2 x 52 dense matrix over Ring of integers modulo 3
             sage: [b.dot_product(k32.element().change_ring(GF(q))) for b in V.basis()]
-            [1, 1]
+            [2, 2]
             sage: [b.dot_product(k51.element().change_ring(GF(q))) for b in V.basis()]
             [1, 1]
 
@@ -5295,7 +5290,7 @@ class HeegnerQuatAlg(SageObject):
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 5)
             sage: k = H.kolyvagin_sigma_operator(D, 17*41, 104)     # long time
             sage: k                                                 # long time
-            (494, 472, 1923, 1067, ..., 102, 926)
+            (990, 656, 219, ..., 246, 534, 1254)
             sage: [b.dot_product(k.element().change_ring(GF(3))) for b in V.basis()]   # long time (but only because depends on something slow)
             [0, 0]
         """
@@ -5412,13 +5407,13 @@ class HeegnerQuatAlg(SageObject):
             sage: N = 389; D = -7; ell = 5; c = 17; q = 3
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: k = H.rational_kolyvagin_divisor(D, c); k  # long time (5s on sage.math, 2013)
-            (14, 16, 0, 0, ... 0, 0, 0)
+            (2, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 4, 0, 0, 9, 11, 0, 6, 0, 0, 7, 0, 0, 0, 0, 14, 12, 13, 15, 17, 0, 0, 0, 0, 8, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 2)
             sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]  # long time
             [0, 0]
             sage: k = H.rational_kolyvagin_divisor(D, 59)
             sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]
-            [1, 0]
+            [2, 0]
         """
         if not self.satisfies_heegner_hypothesis(D, c):
             raise ValueError("D and c must be coprime to N and ell")
@@ -5464,7 +5459,7 @@ class HeegnerQuatAlg(SageObject):
             sage: N = 37; D = -7; ell = 17; c = 41; p = 3
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: H.kolyvagin_point_on_curve(D, c, EllipticCurve('37a'), p)
-            [1, 1]
+            [2, 2]
         """
         k = self.rational_kolyvagin_divisor(D, c)
         V = self.modp_dual_elliptic_curve_factor(E, p, bound)
@@ -5687,7 +5682,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
     EXAMPLES::
 
         sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-        sage: f = H.optimal_embeddings(-7, 2, R)[0]; f
+        sage: f = H.optimal_embeddings(-7, 2, R)[1]; f
         Embedding sending 2*sqrt(-7) to -5*i + k
         sage: type(f)
         <class 'sage.schemes.elliptic_curves.heegner.HeegnerQuatAlgEmbedding'>
@@ -5750,7 +5745,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: f = H.optimal_embeddings(-7, 1, R)[0]; f
+            sage: f = H.optimal_embeddings(-7, 1, R)[1]; f
             Embedding sending sqrt(-7) to -i + j + k
             sage: a = f.domain_gen(); a^2
             -7
@@ -5780,7 +5775,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: f = H.optimal_embeddings(-7, 1, R)[0]; f
+            sage: f = H.optimal_embeddings(-7, 1, R)[1]; f
             Embedding sending sqrt(-7) to -i + j + k
             sage: f.matrix()
             [ 1  0  0  0]
@@ -5851,7 +5846,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: H.optimal_embeddings(-7, 2, R)[0].beta()
+            sage: H.optimal_embeddings(-7, 2, R)[1].beta()
             -5*i + k
         """
         return self.__beta
@@ -5876,7 +5871,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: f = H.optimal_embeddings(-7, 2, R)[0]; f._repr_()
+            sage: f = H.optimal_embeddings(-7, 2, R)[1]; f._repr_()
             'Embedding sending 2*sqrt(-7) to -5*i + k'
         """
         a = '%ssqrt(%s)'%('%s*'%self.__c if self.__c > 1 else '', self.__D)
@@ -5890,7 +5885,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: f = H.optimal_embeddings(-7, 2, R)[0]
+            sage: f = H.optimal_embeddings(-7, 2, R)[1]
             sage: f.conjugate()
             Embedding sending 2*sqrt(-7) to 5*i - k
             sage: f

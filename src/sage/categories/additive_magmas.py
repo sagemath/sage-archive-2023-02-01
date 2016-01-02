@@ -496,7 +496,7 @@ class AdditiveMagmas(Category_singleton):
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             """
-            Implement the fact that a cartesian product of additive magmas is
+            Implement the fact that a Cartesian product of additive magmas is
             an additive magma.
 
             EXAMPLES::
@@ -592,7 +592,7 @@ class AdditiveMagmas(Category_singleton):
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 """
-                Implement the fact that a cartesian product of commutative
+                Implement the fact that a Cartesian product of commutative
                 additive magmas is a commutative additive magma.
 
                 EXAMPLES::
@@ -966,7 +966,7 @@ class AdditiveMagmas(Category_singleton):
             class CartesianProducts(CartesianProductsCategory):
                 def extra_super_categories(self):
                     """
-                    Implement the fact that a cartesian product of additive magmas
+                    Implement the fact that a Cartesian product of additive magmas
                     with inverses is an additive magma with inverse.
 
                     EXAMPLES::
@@ -1002,7 +1002,7 @@ class AdditiveMagmas(Category_singleton):
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 """
-                Implement the fact that a cartesian product of unital additive
+                Implement the fact that a Cartesian product of unital additive
                 magmas is a unital additive magma.
 
                 EXAMPLES::

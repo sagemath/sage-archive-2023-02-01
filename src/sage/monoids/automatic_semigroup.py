@@ -503,14 +503,14 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: len(M._retract.get_cache().keys())
+            sage: len(M._retract.cache.keys())
             24
         """
         element = self._retract(ambient_element)
         if check:
             self.construct(up_to=ambient_element)
             if element not in self._elements_set:
-                cache = self._retract.get_cache()
+                cache = self._retract.cache
                 del cache[((ambient_element,), ())]
                 raise ValueError("%s not in %s"%(ambient_element, self))
         return element

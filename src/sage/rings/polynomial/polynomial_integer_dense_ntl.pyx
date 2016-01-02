@@ -22,16 +22,20 @@ do::
     Univariate Polynomial Ring in x over Integer Ring (using NTL)
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
+
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
@@ -57,7 +61,7 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
 import sage.rings.polynomial.polynomial_ring
 
-from sage.libs.ntl.ntl_ZZX_decl cimport *
+from sage.libs.ntl.ZZX cimport *
 
 cdef class Polynomial_integer_dense_ntl(Polynomial):
     r"""

@@ -2521,7 +2521,7 @@ class Polyhedron_base(Element):
     @coerce_binop
     def product(self, other):
         """
-        Return the cartesian product.
+        Return the Cartesian product.
 
         INPUT:
 
@@ -2529,7 +2529,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        The cartesian product of ``self`` and ``other`` with a
+        The Cartesian product of ``self`` and ``other`` with a
         suitable base ring to encompass the two.
 
         EXAMPLES::
@@ -2539,7 +2539,7 @@ class Polyhedron_base(Element):
             sage: P1.product(P2)
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
 
-        The cartesian product is the product in the semiring of polyhedra::
+        The Cartesian product is the product in the semiring of polyhedra::
 
             sage: P1 * P1
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices

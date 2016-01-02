@@ -9723,6 +9723,15 @@ class Sloane(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: dog
+
+        ::
+
+            sage: sloane.__repr__
+            <method-wrapper '__repr__' of Sloane object at 0x...>
+            sage: sloane.__name__
+            Traceback (most recent call last):
+            ...
+            AttributeError: __name__
         """
         try:
             return SageObject.__getattribute__(self, name)
@@ -9733,7 +9742,7 @@ class Sloane(SageObject):
                 seq = f()
                 setattr(self, name, seq)
                 return seq
-            except AttributeError:
+            except (AttributeError, TypeError):
                 raise AttributeError(name)
 
 sloane = Sloane()

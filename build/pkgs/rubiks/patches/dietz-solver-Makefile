@@ -16,7 +16,7 @@ RM=/bin/rm -f
 all: build
 
 build: $(OBJS)
-	$(CXX) $(CXXFLAGS)  -o cubex  $(OBJS)
+	$(CXX) $(CXXFLAGS)  -o cubex  $(OBJS) $(LDFLAGS)
 
 clean:
 	$(RM) $(OBJS)

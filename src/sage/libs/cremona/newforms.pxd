@@ -1,4 +1,3 @@
-include "sage/libs/ntl/decl.pxi"
 include "defs.pxi"
 
 cdef extern from "eclib/moddata.h":

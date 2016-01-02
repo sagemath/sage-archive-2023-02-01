@@ -1,6 +1,5 @@
-include "decl.pxi"
-
-from ntl_GF2EContext cimport ntl_GF2EContext_class
+from .types cimport GF2E_c
+from .ntl_GF2EContext cimport ntl_GF2EContext_class
 
 cdef class ntl_GF2E(object):
     cdef GF2E_c x

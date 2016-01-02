@@ -38,8 +38,7 @@ element contains the following data:
   Then the modulus of unit is given by `p^{ceil(r/e)}`.  Note that all
   kinds of problems arise if you try to mix moduli.
   ``ZZ_pX_conv_modulus`` gives a semi-safe way to convert between
-  different moduli without having to pass through ``ZZX`` (see
-  ``sage/libs/ntl/decl.pxi`` and ``c_lib/src/ntlwrap.cpp``)
+  different moduli without having to pass through ``ZZX``.
 
 - ``prime_pow`` (some subclass of ``PowComputer_ZZ_pX``) -- a class,
   identical among all elements with the same parent, holding common
@@ -185,6 +184,7 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational

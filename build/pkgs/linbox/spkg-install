@@ -21,6 +21,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19761)
+cp "$SAGE_ROOT"/config/config.* build-aux
+
 ###############################################################################
 # Set up environment variables:
 ###############################################################################

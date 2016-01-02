@@ -187,7 +187,7 @@ def trigrid(tripts):
     INPUT:
 
     - ``tripts`` -- A list of 3 lists of the form [x,y] where x and y are the
-      cartesian co-ordinates of a point.
+      Cartesian co-ordinates of a point.
 
     OUTPUT:
 

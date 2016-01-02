@@ -55,6 +55,10 @@ set_environment()
         CC="$CC $CFLAG64" && export CC
     fi
 
+    # Pari ignores LDFLAGS when linking libpari-gmp.so, so we trick it:
+    DLLDFLAGS="$LDFLAGS"
+    export DLLDFLAGS
+    
     # PARI does not build correctly with LD set (which is set by
     # sage-env).  PARI actually needs LD set to a compiler to do the
     # linking, not to the linker directly.

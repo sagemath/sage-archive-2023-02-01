@@ -288,8 +288,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         cdef RealNumber res = a._new()
         sig_on()
-        ZZX_evaluation_mpfr(res.value, self.__poly, a.value,
-                      (<RealField_class> a._parent).rnd)
+        ZZX_evaluation_mpfr(res.value, self.__poly, a.value)
         sig_off()
         return res
 

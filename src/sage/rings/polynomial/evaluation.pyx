@@ -28,17 +28,17 @@ from sage.libs.gmp.mpq cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.ntl.ZZX cimport *
 
-cdef fmpz_poly_evaluation_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t a, mpfr_rnd_t rnd):
+cdef fmpz_poly_evaluation_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t a):
     cdef mpz_t c
     cdef long i
 
-    mpfr_set_ui(res, 0, rnd)
+    mpfr_set_ui(res, 0, MPFR_RNDN)
     mpz_init(c)
 
     for i in range(fmpz_poly_degree(poly), -1, -1):
-        mpfr_mul(res, res, a, rnd)
+        mpfr_mul(res, res, a, MPFR_RNDN)
         fmpz_poly_get_coeff_mpz(c, poly, i)
-        mpfr_add_z(res, res, c, rnd)
+        mpfr_add_z(res, res, c, MPFR_RNDN)
 
     mpz_clear(c)
 
@@ -57,17 +57,17 @@ cdef fmpz_poly_evaluation_mpfi(mpfi_t res, const fmpz_poly_t poly, const mpfi_t 
     mpz_clear(c)
 
 
-cdef ZZX_evaluation_mpfr(mpfr_t res, ZZX_c poly, const mpfr_t a, const mpfr_rnd_t rnd):
+cdef ZZX_evaluation_mpfr(mpfr_t res, ZZX_c poly, const mpfr_t a):
     cdef mpz_t c
     cdef long i
 
-    mpfr_set_ui(res, 0, rnd)
+    mpfr_set_ui(res, 0, MPFR_RNDN)
     mpz_init(c)
 
     for i in range(ZZX_deg(poly), -1, -1):
-        mpfr_mul(res, res, a, rnd)
+        mpfr_mul(res, res, a, MPFR_RNDN)
         ZZX_getitem_as_mpz(c, &poly, i)
-        mpfr_add_z(res, res, c, rnd)
+        mpfr_add_z(res, res, c, MPFR_RNDN)
 
     mpz_clear(c)
 

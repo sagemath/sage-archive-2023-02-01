@@ -314,8 +314,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         cdef RealNumber res = a._new()
         sig_on()
-        fmpz_poly_evaluation_mpfr(res.value, self.__poly, a.value,
-                                  (<RealField_class> a._parent).rnd)
+        fmpz_poly_evaluation_mpfr(res.value, self.__poly, a.value)
         sig_off()
         return res
 

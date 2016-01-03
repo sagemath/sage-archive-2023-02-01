@@ -35,10 +35,9 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.symbolic.ring import SR
-from sage.manifolds.abstract import AbstractNamedObject
 from sage.manifolds.scalarfield import ScalarField
 
-class ScalarFieldAlgebra(AbstractNamedObject, UniqueRepresentation, Parent):
+class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     r"""
     Commutative algebra of scalar fields on a topological manifold.
 
@@ -385,9 +384,6 @@ class ScalarFieldAlgebra(AbstractNamedObject, UniqueRepresentation, Parent):
             sage: TestSuite(CM).run()
 
         """
-        name = "C^0(" + domain._name + ")"
-        latex_name = r"C^0 \left("  + domain._latex_() + r"\right)"
-        AbstractNamedObject.__init__(self, name, latex_name=latex_name)
         base_field = domain.base_field()
         if domain.base_field_type() in ['real', 'complex']:
             base_field = SR
@@ -397,7 +393,6 @@ class ScalarFieldAlgebra(AbstractNamedObject, UniqueRepresentation, Parent):
         self._populate_coercion_lists_()
         self._zero = None # zero element (to be set by method zero())
         self._one = None  # unit element (to be set by method one())
-
 
     #### Methods required for any Parent
     def _element_constructor_(self, coord_expression=None, chart=None,
@@ -547,6 +542,22 @@ class ScalarFieldAlgebra(AbstractNamedObject, UniqueRepresentation, Parent):
 
         """
         return "Algebra of scalar fields on the {}".format(self._domain)
+
+    def _latex_(self):
+        r"""
+        LaTeX representation of the object.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: CM = M.scalar_field_algebra()
+            sage: CM._latex_()
+            'C^0 \\left(M\\right)'
+            sage: latex(CM)  # indirect doctest
+            C^0 \left(M\right)
+
+         """
+        return r"C^0 \left("  + self._domain._latex_() + r"\right)"
 
     def zero(self):
         r"""

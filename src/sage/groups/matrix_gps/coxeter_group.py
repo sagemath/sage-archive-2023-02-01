@@ -488,6 +488,14 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             See :meth:`descents` for a description of the options.
 
             EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], implementation="reflection")
+                sage: a,b,c = W.gens()
+                sage: elt = b*a*c
+                sage: elt.first_descent()
+                1
+                sage: elt.first_descent(side='left')
+                2
             """
             M = self.matrix()
             if side != 'right':

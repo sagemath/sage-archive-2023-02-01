@@ -322,8 +322,10 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
             [0 1]
         """
         parent = self.parent()
-        return parent.element_class(parent, self._matrix * other._matrix,
-                                    check=False, convert=False)
+        M = self._matrix * other._matrix
+        # Make it immutable so the constructor doesn't make a copy
+        M.set_immutable()
+        return parent.element_class(parent, M, check=False, convert=False)
 
     def __invert__(self):
         """
@@ -347,7 +349,10 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
            [0 1]
         """
         parent = self.parent()
-        return parent.element_class(parent, ~self._matrix, check=False, convert=False)
+        M = ~self._matrix
+        # Make it immutable so the constructor doesn't make a copy
+        M.set_immutable()
+        return parent.element_class(parent, M, check=False, convert=False)
 
     inverse = __invert__
 

@@ -509,9 +509,10 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             i = self.parent().index_set().index(i)
             n = len(self.parent().index_set())
             M = self.matrix()
+            zero = M.base_ring().zero()
             # When working over the UCF, this is the bottleneck because it has
             #   to convert the entries to QQbar and do the comparison there.
-            return all(M[j,i] <= 0 for j in range(n))
+            return all(M[j,i] <= zero for j in range(n))
 
         def canonical_matrix(self):
             r"""

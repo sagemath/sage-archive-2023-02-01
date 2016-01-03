@@ -480,6 +480,75 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         """
         A Coxeter group element.
         """
+        def first_descent(self, side = 'right', index_set=None, positive=False):
+            """
+            Return the first left (resp. right) descent of ``self``, as
+            ane element of ``index_set``, or ``None`` if there is none.
+
+            See :meth:`descents` for a description of the options.
+
+            EXAMPLES::
+            """
+            M = self.matrix()
+            if side != 'right':
+                M = ~M
+            I = self.parent().index_set()
+            n = len(I)
+            zero = M.base_ring().zero()
+            if index_set is None:
+                index_set = range(n)
+            else:
+                index_set = [I.index(i) for i in index_set]
+            if positive:
+                for i in index_set:
+                    if any(M[j,i] > zero for j in range(n)):
+                        return I[i]
+            else:
+                for i in index_set:
+                    if all(M[j,i] <= zero for j in range(n)):
+                        return I[i]
+            return None
+
+        def descents(self, side='right', index_set=None, positive=False):
+            """
+            Return the descents of ``self``, as a list of elements of the
+            ``index_set``.
+
+            INPUT:
+
+            - ``index_set`` -- (default: all of them) a subset (as a list
+              or iterable) of the nodes of the Dynkin diagram
+            - ``side`` -- (default: ``'right'``) ``'left'`` or ``'right'``
+            - ``positive`` -- (default: ``False``) boolean
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], implementation="reflection")
+                sage: a,b,c = W.gens()
+                sage: elt = b*a*c
+                sage: elt.descents()
+                [1, 3]
+                sage: elt.descents(positive=True)
+                [2]
+                sage: elt.descents(index_set=[1,2])
+                [1]
+                sage: elt.descents(side='left')
+                [2]
+            """
+            M = self.matrix()
+            if side != 'right':
+                M = ~M
+            I = self.parent().index_set()
+            n = len(I)
+            zero = M.base_ring().zero()
+            if index_set is None:
+                index_set = range(n)
+            else:
+                index_set = [I.index(i) for i in index_set]
+            if positive:
+                return [I[i] for i in index_set if any(M[j,i] > zero for j in range(n))]
+            return [I[i] for i in index_set if all(M[j,i] <= zero for j in range(n))]
+
         def has_right_descent(self, i):
             r"""
             Return whether ``i`` is a right descent of ``self``.

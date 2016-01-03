@@ -336,9 +336,6 @@ class TopologicalManifold(AbstractSet):
       :class:`~sage.manifolds.structure.RealTopologicalStructure`)
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the manifold; if none is provided, it is set to ``name``
-    - ``full_name`` -- (default: ``None``) string; short description of the
-      manifold; if none is provided, it is formed from the field, dimension
-      and structure
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g., coordinates
       in a chart
@@ -455,8 +452,7 @@ class TopologicalManifold(AbstractSet):
 
     """
     def __init__(self, n, name, field, structure, latex_name=None,
-                 full_name=None, start_index=0, category=None,
-                 unique_tag=None):
+                 start_index=0, category=None, unique_tag=None):
         r"""
         Construct a topological manifold.
 
@@ -496,29 +492,14 @@ class TopologicalManifold(AbstractSet):
         self._structure = structure
         category = Manifolds(self._field).or_subcategory(category)
         category = self._structure.subcategory(category)
-        # Full name:
-        if full_name is None:
-            if self._field_type == 'real':
-                full_name = "{}-dimensional {} manifold {}".format(n,
-                                                          self._structure.name,
-                                                          name)
-            elif self._field_type == 'complex':
-                full_name = "Complex {}-dimensional {} manifold {}".format(n,
-                                                          self._structure.name,
-                                                          name)
-            else:
-                full_name = "{}-dimensional {} manifold {} over the {}".format(n,
-                                                          self._structure.name,
-                                                          name, self._field)
         # Initialization as a manifold set:
         AbstractSet.__init__(self, name, latex_name=latex_name,
-                             full_name=full_name, base=self._field,
-                             category=category)
-
+                             base=self._field, category=category)
+        #
         if not isinstance(start_index, (int, Integer)):
             raise TypeError("the starting index must be an integer")
         self._sindex = start_index
-
+        #
         self._atlas = []  # list of charts defined on subsets of self
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
@@ -532,6 +513,46 @@ class TopologicalManifold(AbstractSet):
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
         self._open_covers.append([self])  # list of open covers of self
+
+    def _repr_(self):
+        r"""
+        Return a string representation of the manifold.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: M._repr_()
+            '3-dimensional topological manifold M'
+            sage: repr(M)  # indirect doctest
+            '3-dimensional topological manifold M'
+            sage: M  # indirect doctest
+            3-dimensional topological manifold M
+            sage: M = Manifold(3, 'M', structure='topological', field='complex')
+            sage: M._repr_()
+            'Complex 3-dimensional topological manifold M'
+            sage: M = Manifold(3, 'M', structure='topological', field=QQ)
+            sage: M._repr_()
+            '3-dimensional topological manifold M over the Rational Field'
+
+        If the manifold is actually an open subset of a larger manifold, the
+        string representation is different::
+
+            sage: U = M.open_subset('U')
+            sage: U._repr_()
+            'Open subset U of the 3-dimensional topological manifold M over the Rational Field'
+
+        """
+        if self._field_type == 'real':
+            return "{}-dimensional {} manifold {}".format(self._dim,
+                                                          self._structure.name,
+                                                          self._name)
+        elif self._field_type == 'complex':
+            return "Complex {}-dimensional {} manifold {}".format(self._dim,
+                                                          self._structure.name,
+                                                          self._name)
+        return "{}-dimensional {} manifold {} over the {}".format(self._dim,
+                                              self._structure.name, self._name,
+                                              self._field)
 
     def _an_element_(self):
         r"""

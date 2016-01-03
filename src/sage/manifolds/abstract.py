@@ -32,7 +32,7 @@ class AbstractNamedObject(object):
     r"""
     An abstract named object.
 
-    This abstract class handles the outputs (text and LaTeX) of named objects
+    This abstract class handles the symbols (text and LaTeX) of named objects
     (e.g. parent objects in manifold classes).
 
     INPUT:
@@ -40,16 +40,13 @@ class AbstractNamedObject(object):
     - ``name`` -- (short) string; name (symbol) given to the object
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the object; if ``None``, the LaTeX symbol is set to ``name``
-    - ``full_name`` -- (default: ``None``) string; short description of the
-      object;  if ``None``, the description is set to ``name``.
 
     EXAMPLES::
 
         sage: from sage.manifolds.abstract import AbstractNamedObject
-        sage: a = AbstractNamedObject('A', latex_name=r'\mathcal{A}',
-        ....:                         full_name='Object A')
+        sage: a = AbstractNamedObject('A', latex_name=r'\mathcal{A}')
         sage: a._repr_()
-        'Object A'
+        'A'
         sage: a._latex_()
         '\\mathcal{A}'
         sage: latex(a)
@@ -66,7 +63,7 @@ class AbstractNamedObject(object):
         A
 
     """
-    def __init__(self, name, latex_name=None, full_name=None):
+    def __init__(self, name, latex_name=None):
         """
         Initialize ``self``.
 
@@ -87,12 +84,6 @@ class AbstractNamedObject(object):
             if not isinstance(latex_name, str):
                 raise TypeError("{} is not a string".format(latex_name))
             self._latex_name = latex_name
-        if full_name is None:
-            self.__custom_name = self._name
-        else:
-            if not isinstance(full_name, str):
-                raise TypeError("{} is not a string".format(full_name))
-            self.__custom_name = full_name
 
     def _repr_(self):
         """
@@ -106,7 +97,7 @@ class AbstractNamedObject(object):
             'a'
 
         """
-        return self.__custom_name
+        return self._name
 
     def _latex_(self):
         r"""
@@ -150,15 +141,12 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
     - ``name`` -- (short) string; name (symbol) given to the object
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the object; if ``None``, the LaTeX symbol is set to ``name``
-    - ``full_name`` -- (default: ``None``) string; short description of the
-      object;  if ``None``, the description is set to ``name``.
     - ``base`` -- (default: ``None``) base for the
       :class:`~sage.structure.parent.Parent` constructor
     - ``category`` -- (default: ``None``) category of the object
 
     """
-    def __init__(self, name, latex_name=None, full_name=None, base=None,
-                 category=None):
+    def __init__(self, name, latex_name=None, base=None, category=None):
         r"""
         Initialize ``self``
 
@@ -169,8 +157,7 @@ class AbstractSet(AbstractNamedObject, UniqueRepresentation, Parent):
             sage: A = M.subset('A'); A
             Subset A of the 2-dimensional topological manifold M
         """
-        AbstractNamedObject.__init__(self, name, latex_name=latex_name,
-                                     full_name=full_name)
+        AbstractNamedObject.__init__(self, name, latex_name=latex_name)
 
         category = Sets().or_subcategory(category)
         Parent.__init__(self, base=base, category=category)

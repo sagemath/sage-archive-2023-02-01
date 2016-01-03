@@ -53,7 +53,7 @@ class SubwordComplex(SimplicialComplex, Parent):
     .. WARNING::
 
         This implementation only works for groups build using ``CoxeterGroup``,
-        and do not work with groups build using ``WeylGroup``.
+        and does not work with groups build using ``WeylGroup``.
 
     EXAMPLES:
 

@@ -2658,12 +2658,11 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``r``
-        
+
         .. SEEALSO::
 
             :meth:`M.independent_sets() <sage.matroids.matroid.Matroid.independent_sets>`
             :meth:`M.bases() <sage.matroids.matroid.Matroid.bases>`
-
         """
         res = []
         for X in combinations(self.groundset(), r):

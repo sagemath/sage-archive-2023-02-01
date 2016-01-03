@@ -1039,7 +1039,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: setprint(M.components())
             [{0, 1, 3, 4}, {2, 5}]
         """
-        if len(self._E)==0:
+        if not self._E:
             return SetSystem(self._E)
         cdef bitset_t *comp
         comp = <bitset_t*>sage_malloc((self.full_rank()) * sizeof(bitset_t))
@@ -1567,7 +1567,7 @@ cdef class BasisExchangeMatroid(Matroid):
         res = SetSystem(self._E)
         bitset_clear(self._input)
         res._append(self._input)
-        if len(self._E) == 0:
+        if not self._E:
             return res
 
         r = self.full_rank()

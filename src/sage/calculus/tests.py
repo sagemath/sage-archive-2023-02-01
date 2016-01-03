@@ -56,8 +56,8 @@ A polynomial over a symbolic base ring::
 
 A big product.  Notice that simplifying simplifies the product further::
 
-    sage: A = exp(I*pi/5, hold=True)
-    sage: b = A^10
+    sage: A = exp(I*pi/7)
+    sage: b = A^14
     sage: b
     1
 

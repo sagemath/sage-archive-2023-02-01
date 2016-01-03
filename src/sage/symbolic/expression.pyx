@@ -1455,14 +1455,15 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(SR(19.23))
             -1458111714  # 32-bit
             2836855582   # 64-bit
-            sage: hash(19.23)
-            -1458111714  # 32-bit
-            2836855582   # 64-bit
             sage: hash(SR(3/1))
             3
             sage: hash(SR(19/23)) == hash(19/23)
             True
-            sage: hash(SR(2^32)) == hash(ZZ(2^32))
+            sage: hash(SR(2^32)) == hash(2^32)
+            True
+            sage: hash(SR(2^64-1)) == hash(2^64-1)
+            True
+            sage: hash(SR(1e100)) == hash(1e100)
             True
 
         The hash for symbolic expressions are unfortunately random. Here we
@@ -11096,14 +11097,23 @@ cdef class Expression(CommutativeRingElement):
             sage: x = var('x', domain='real')
             sage: s = abs((1+I*x)^4); s
             abs(I*x + 1)^4
-            sage: s._plot_fast_callable(x)
+            sage: f = s._plot_fast_callable(x); f
             <sage.ext.interpreters.wrapper_py.Wrapper_py object at ...>
-            sage: s._plot_fast_callable(x)(10)
+            sage: f(10)
             10201
             sage: abs((I*10+1)^4)
             10201
             sage: plot(s)
             Graphics object consisting of 1 graphics primitive
+
+        Check that :trac:`19797` is fixed::
+
+            sage: a = RDF(10)
+            sage: b = f(a)
+            sage: b
+            10201.0
+            sage: parent(b)
+            Real Double Field
 
         Check that :trac:`15030` is fixed::
 

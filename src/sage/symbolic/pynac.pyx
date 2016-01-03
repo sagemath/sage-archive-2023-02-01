@@ -2124,8 +2124,8 @@ cdef object py_integer_from_mpz(mpz_t bigint) except +:
 
 cdef object py_rational_from_mpq(mpq_t bigrat) except +:
     cdef Rational rat = Rational.__new__(Rational)
-    mpq_canonicalize(bigrat)
     mpq_set(rat.value, bigrat)
+    mpq_canonicalize(rat.value)
     return rat
 
 cdef bint py_is_Integer(object x) except +:

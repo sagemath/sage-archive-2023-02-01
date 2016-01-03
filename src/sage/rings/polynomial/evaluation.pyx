@@ -19,7 +19,6 @@ For appropriate testing see
 """
 
 include "sage/ext/interrupt.pxi"
-include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.mpfr cimport *
 from sage.libs.mpfi cimport *

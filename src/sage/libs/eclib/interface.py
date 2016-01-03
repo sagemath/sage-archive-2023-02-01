@@ -41,7 +41,7 @@ def get_precision():
     """
     # don't want to load mwrank every time Sage starts up, so we do
     # the import here.
-    from sage.libs.cremona.mwrank import get_precision
+    from sage.libs.eclib.mwrank import get_precision
     return get_precision()
 
 def set_precision(n):
@@ -67,7 +67,7 @@ def set_precision(n):
     """
     # don't want to load mwrank every time Sage starts up, so we do
     # the import here.
-    from sage.libs.cremona.mwrank import set_precision
+    from sage.libs.eclib.mwrank import set_precision
     set_precision(n)
 
 class mwrank_EllipticCurve(SageObject):
@@ -142,7 +142,7 @@ class mwrank_EllipticCurve(SageObject):
         """
         # import here to save time during startup (mwrank takes a while to init)
 
-        from sage.libs.cremona.mwrank import _Curvedata
+        from sage.libs.eclib.mwrank import _Curvedata
 
         # if not isinstance(ainvs, list) and len(ainvs) <= 5:
         if not isinstance(ainvs, (list,tuple)) or not len(ainvs) <= 5:
@@ -177,7 +177,7 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: E.__reduce__()
-            (<class 'sage.libs.cremona.interface.mwrank_EllipticCurve'>, ([0, 0, 1, -7, 6], False))
+            (<class 'sage.libs.eclib.interface.mwrank_EllipticCurve'>, ([0, 0, 1, -7, 6], False))
 
 
         """
@@ -412,7 +412,7 @@ class mwrank_EllipticCurve(SageObject):
             True
 
         """
-        from sage.libs.cremona.mwrank import _two_descent # import here to save time
+        from sage.libs.eclib.mwrank import _two_descent # import here to save time
         first_limit = int(first_limit)
         second_limit = int(second_limit)
         n_aux = int(n_aux)
@@ -439,7 +439,7 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0,-1,1,0,0])
             sage: E._mwrank_EllipticCurve__two_descent_data()
-            <sage.libs.cremona.mwrank._two_descent object at ...>
+            <sage.libs.eclib.mwrank._two_descent object at ...>
         """
         try:
             return self.__descent
@@ -911,7 +911,7 @@ class mwrank_MordellWeil(SageObject):
             verb = 1
         else:
             verb = 0
-        from sage.libs.cremona.mwrank import _mw # import here to save time
+        from sage.libs.eclib.mwrank import _mw # import here to save time
         self.__mw = _mw(curve._curve_data(), verb, pp, maxr)
 
     def __reduce__(self):
@@ -923,7 +923,7 @@ class mwrank_MordellWeil(SageObject):
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: EQ = mwrank_MordellWeil(E)
             sage: EQ.__reduce__()
-            (<class 'sage.libs.cremona.interface.mwrank_MordellWeil'>, (y^2+ y = x^3 - 7*x + 6, True, 1, 999))
+            (<class 'sage.libs.eclib.interface.mwrank_MordellWeil'>, (y^2+ y = x^3 - 7*x + 6, True, 1, 999))
         """
         return mwrank_MordellWeil, (self.__curve, self.__verbose, self.__pp, self.__maxr)
 

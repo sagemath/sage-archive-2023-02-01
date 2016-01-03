@@ -23,12 +23,12 @@ to be aware of the modules described in this chapter.
 .. toctree::
    :maxdepth: 2
 
-   sage/libs/cremona/interface
-   sage/libs/cremona/mwrank
-   sage/libs/cremona/mat
-   sage/libs/cremona/newforms
-   sage/libs/cremona/homspace
-   sage/libs/cremona/constructor
+   sage/libs/eclib/interface
+   sage/libs/eclib/mwrank
+   sage/libs/eclib/mat
+   sage/libs/eclib/newforms
+   sage/libs/eclib/homspace
+   sage/libs/eclib/constructor
    sage/libs/gmp/rational_reconstruction
    sage/libs/lcalc/lcalc_Lfunction
    sage/libs/ratpoints

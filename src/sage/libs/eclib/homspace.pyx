@@ -15,7 +15,7 @@ cdef class ModularSymbols:
 
         sage: M = CremonaModularSymbols(225)
         sage: type(M)
-        <type 'sage.libs.cremona.homspace.ModularSymbols'>
+        <type 'sage.libs.eclib.homspace.ModularSymbols'>
     """
     def __init__(self, long level, int sign=0, bint cuspidal=False, int verbose=0):
         """

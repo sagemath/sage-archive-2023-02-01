@@ -3,7 +3,7 @@ Cython interface to Cremona's ``eclib`` library (also known as ``mwrank``)
 
 EXAMPLES::
 
-    sage: from sage.libs.cremona.mwrank import _Curvedata, _mw
+    sage: from sage.libs.eclib.mwrank import _Curvedata, _mw
     sage: c = _Curvedata(1,2,3,4,5)
 
     sage: print c
@@ -27,7 +27,7 @@ from sage.libs.eclib cimport bigint, Curvedata, mw, two_descent
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
 
-cdef extern from "wrap.cc":
+cdef extern from "wrap.cpp":
     ### misc functions ###
     long mwrank_get_precision()
     void mwrank_set_precision(long n)
@@ -88,7 +88,7 @@ def get_precision():
 
     EXAMPLE::
 
-        sage: from sage.libs.cremona.mwrank import get_precision
+        sage: from sage.libs.eclib.mwrank import get_precision
         sage: get_precision()
         50
     """
@@ -108,7 +108,7 @@ def set_precision(n):
 
     EXAMPLE::
 
-        sage: from sage.libs.cremona.mwrank import set_precision
+        sage: from sage.libs.eclib.mwrank import set_precision
         sage: set_precision(50)
 
     """
@@ -170,13 +170,13 @@ cdef class _bigint:
 
         EXAMPLES::
 
-           sage: from sage.libs.cremona.mwrank import _bigint
+           sage: from sage.libs.eclib.mwrank import _bigint
            sage: _bigint(123)
            123
            sage: _bigint('123')
            123
            sage: type(_bigint(123))
-           <type 'sage.libs.cremona.mwrank._bigint'>
+           <type 'sage.libs.eclib.mwrank._bigint'>
         """
         s = str(x)
         if s.isdigit() or s[0] == "-" and s[1:].isdigit():
@@ -200,7 +200,7 @@ cdef class _bigint:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _bigint
+            sage: from sage.libs.eclib.mwrank import _bigint
             sage: a = _bigint('123')
             sage: a.__repr__()
             '123'
@@ -241,7 +241,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: _Curvedata(1,2,3,4,5)
             [1,2,3,4,5]
             b2 = 9       b4 = 11         b6 = 29         b8 = 35
@@ -291,7 +291,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.__repr__()
             '[1,2,3,4,5]\nb2 = 9\t b4 = 11\t b6 = 29\t b8 = 35\nc4 = -183\t\tc6 = -3429\ndisc = -10351\t(# real components = 1)\n#torsion not yet computed'
@@ -323,7 +323,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.silverman_bound()
             6.52226179519101...
@@ -350,7 +350,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.cps_bound()
             0.11912451909250982
@@ -387,7 +387,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.height_constant()
             0.11912451909250982
@@ -404,7 +404,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.discriminant()
             -10351
@@ -429,7 +429,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.discriminant()
             -10351
@@ -459,7 +459,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,0,1,4,-6)
             sage: E.conductor()
             14
@@ -509,14 +509,14 @@ cdef class _mw:
 
         EXAMPLE::
 
-            sage: from sage.libs.cremona.mwrank import _mw
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,0,1,4,-6)
             sage: EQ = _mw(E)
             sage: EQ
             []
             sage: type(EQ)
-            <type 'sage.libs.cremona.mwrank._mw'>
+            <type 'sage.libs.eclib.mwrank._mw'>
 
             sage: E = _Curvedata(0,0,1,-7,6)
             sage: EQ = _mw(E)
@@ -526,8 +526,8 @@ cdef class _mw:
 
         Example to illustrate the verbose parameter::
 
-            sage: from sage.libs.cremona.mwrank import _mw
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(0,0,1,-7,6)
             sage: EQ = _mw(E, verb=False)
             sage: EQ.search(1)
@@ -617,8 +617,8 @@ cdef class _mw:
 
         Example to illustrate the process points ``pp`` parameter::
 
-            sage: from sage.libs.cremona.mwrank import _mw
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(0,0,1,-7,6)
             sage: EQ = _mw(E, pp=1)
             sage: EQ.search(1); EQ
@@ -648,8 +648,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
-            sage: from sage.libs.cremona.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,0,1,-7,6)
             sage: EQ = _mw(E)
             sage: EQ # indirect doctest
@@ -686,8 +686,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
-            sage: from sage.libs.cremona.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
 
@@ -737,8 +737,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
-            sage: from sage.libs.cremona.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
             sage: EQ.search(3)
@@ -766,8 +766,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
-            sage: from sage.libs.cremona.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
             sage: EQ.search(3)
@@ -793,8 +793,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
-            sage: from sage.libs.cremona.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
             sage: EQ.search(3)
@@ -835,8 +835,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
-            sage: from sage.libs.cremona.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
             sage: EQ.process([494, -5720, 6859]) # 3 times another point
@@ -911,8 +911,8 @@ cdef class _mw:
 
         EXAMPLE::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
-            sage: from sage.libs.cremona.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,0,1,-19569,-4064513) # 873c1
             sage: EQ = _mw(E)
             sage: EQ = _mw(E)
@@ -955,7 +955,7 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
         """
         self.x = <two_descent*> 0
@@ -1017,9 +1017,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1055,9 +1055,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1089,9 +1089,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1123,9 +1123,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1156,9 +1156,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1185,9 +1185,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1214,9 +1214,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1261,9 +1261,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1298,9 +1298,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.cremona.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800

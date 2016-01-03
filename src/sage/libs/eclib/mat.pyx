@@ -21,7 +21,7 @@ cdef class Matrix:
         sage: M = CremonaModularSymbols(225)
         sage: t = M.hecke_matrix(2)
         sage: type(t)
-        <type 'sage.libs.cremona.mat.Matrix'>
+        <type 'sage.libs.eclib.mat.Matrix'>
         sage: t
         61 x 61 Cremona matrix over Rational Field
 
@@ -30,7 +30,7 @@ cdef class Matrix:
         sage: t = CremonaModularSymbols(11).hecke_matrix(2); t
         3 x 3 Cremona matrix over Rational Field
         sage: type(t)
-        <type 'sage.libs.cremona.mat.Matrix'>
+        <type 'sage.libs.eclib.mat.Matrix'>
     """
     def __repr__(self):
         """

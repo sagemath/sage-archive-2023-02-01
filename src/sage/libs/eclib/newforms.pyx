@@ -29,7 +29,7 @@ cdef class ECModularSymbol:
 
     EXAMPLES::
 
-        sage: from sage.libs.cremona.newforms import ECModularSymbol
+        sage: from sage.libs.eclib.newforms import ECModularSymbol
         sage: E = EllipticCurve('11a')
         sage: M = ECModularSymbol(E,1); M
         Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
@@ -48,7 +48,7 @@ cdef class ECModularSymbol:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
             sage: E = EllipticCurve('37a')
@@ -60,7 +60,7 @@ cdef class ECModularSymbol:
 
         This one is from :trac:`8042`::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('858k2')
             sage: ECModularSymbol(E)
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + x*y = x^3 + 16353089*x - 335543012233 over Rational Field
@@ -117,7 +117,7 @@ cdef class ECModularSymbol:
         """
         TESTS::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E); M
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
@@ -136,7 +136,7 @@ cdef class ECModularSymbol:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
@@ -152,7 +152,7 @@ cdef class ECModularSymbol:
 
         TESTS (see :trac:`11211`)::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
             sage: M(oo)

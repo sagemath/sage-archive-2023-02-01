@@ -653,6 +653,14 @@ ext_modules = [
     Extension('sage.libs.mpmath.ext_libmp',
               sources = ["sage/libs/mpmath/ext_libmp.pyx"]),
 
+    ###################################
+    ##
+    ## sage.libs.eclib
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/eclib/*.pyx"]),
+
     ################################
     ##
     ## sage.libs.gap
@@ -670,14 +678,6 @@ ext_modules = [
     Extension('sage.libs.gap.libgap',
               sources = ["sage/libs/gap/libgap.pyx"],
               libraries = ['gmp', 'gap', 'm']),
-
-    ###################################
-    ##
-    ## sage.libs.cremona
-    ##
-    ###################################
-
-    Extension('*', ["sage/libs/cremona/*.pyx"]),
 
     ###################################
     ##

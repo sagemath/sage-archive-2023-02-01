@@ -1682,7 +1682,8 @@ class Function_beta(GinacFunction):
             sage: beta(-1/2,-1/2)
             0
             sage: beta(x/2,3)
-            beta(3, 1/2*x)
+            beta(1/2*x, 3)  # 32-bit
+            beta(3, 1/2*x)  # 64-bit
             sage: beta(.5,.5)
             3.14159265358979
             sage: beta(1,2.0+I)

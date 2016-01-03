@@ -11108,12 +11108,11 @@ cdef class Expression(CommutativeRingElement):
 
         Check that :trac:`19797` is fixed::
 
-            sage: a = RDF(10)
-            sage: b = f(a)
+            sage: b = f(10.0)
             sage: b
-            10201.0
+            10201.0000000000
             sage: parent(b)
-            Real Double Field
+            Real Field with 53 bits of precision
 
         Check that :trac:`15030` is fixed::
 

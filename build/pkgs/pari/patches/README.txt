@@ -3,7 +3,6 @@ Current patches to PARI in Sage:
 ======================================================================
 
 Patches to configuration files:
-* get_ld.patch (Carl Witty): Disable -rpath.
 * get_config_options.patch (Leif Leonhardy): Catch invalid arguments to
   "--graphic" (and treat such as an error) since otherwise strange
   compilation errors might occur (cf. #9722, too).

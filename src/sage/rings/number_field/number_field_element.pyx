@@ -33,6 +33,7 @@ import operator
 include 'sage/ext/interrupt.pxi'
 from cpython.int cimport *
 include "sage/ext/stdsage.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *

@@ -168,13 +168,12 @@ class Matlab(Expect):
            122
            505
     """
-    def __init__(self, maxread=100, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         Expect.__init__(self,
                         name = 'matlab',
                         prompt = '>> ',
                         command = "sage-native-execute matlab -nodisplay",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,

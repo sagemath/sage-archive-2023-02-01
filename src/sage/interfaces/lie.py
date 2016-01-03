@@ -307,7 +307,7 @@ class LiE(Expect):
 
     """
     def __init__(self,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  logfile=None,
                  server=None):
         """
@@ -329,7 +329,6 @@ class LiE(Expect):
                         # This is the command that starts up your program
                         command = "bash "+ SAGE_LOCAL + "/bin/lie",
 
-                        maxread = maxread,
                         server=server,
                         script_subdirectory = script_subdirectory,
 

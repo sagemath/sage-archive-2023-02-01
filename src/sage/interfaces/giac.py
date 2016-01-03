@@ -258,7 +258,7 @@ class Giac(Expect):
 
 
     """
-    def __init__(self, maxread=10000, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
+    def __init__(self, maxread=None, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the Giac interpreter.
 
@@ -272,7 +272,6 @@ class Giac(Expect):
                         prompt = '[0-9]*>> ',
                         command = "giac --sage",
                         init_code= ['maple_mode(0);I:=i;'],      #  coercion could be broken in maple_mode
-                        maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,                        server = server,
                         server_tmpdir = server_tmpdir,

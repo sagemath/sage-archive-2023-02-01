@@ -1,3 +1,4 @@
+# distutils: libraries = flint
 # This file was (manually) generated from FLINT's nmod_vec.h.
 #*****************************************************************************
 #       Copyright (C) 2010 William Hart

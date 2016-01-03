@@ -1,6 +1,5 @@
-include "decl.pxi"
-
-from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
+from .types cimport ZZ_pContext_c, ZZ_pEContext_c
+from .ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 cdef struct ZZ_pEContext_ptrs:
     ZZ_pEContext_c *zzpec

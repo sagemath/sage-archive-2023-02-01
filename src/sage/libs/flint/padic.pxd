@@ -1,3 +1,4 @@
+# distutils: libraries = flint
 # This file was (manually) generated from FLINT's padic.h.
 #*****************************************************************************
 #       Copyright (C) 2011 Sebastian Pancratz

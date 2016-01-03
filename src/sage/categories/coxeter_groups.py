@@ -1129,6 +1129,11 @@ v            EXAMPLES::
 
             TESTS::
 
+                sage: p = Permutation([3,2,4,1])
+                sage: pp = WeylGroup(['A',3]).from_reduced_word(p.reduced_word())
+                sage: pp.reduced_word_graph()
+                Graph on 3 vertices
+
                 sage: w1 = W.one()
                 sage: G = w1.reduced_word_graph()
                 sage: G.num_verts()
@@ -1172,7 +1177,7 @@ v            EXAMPLES::
                             or x[i+m:] != y[i+m:]):
                         continue
                     edges.append([x, y, m])
-            G = Graph(edges, immutable=True)
+            G = Graph(edges, immutable=True, format="list_of_edges")
             colors = {2: 'blue', 3: 'red', 4: 'green'}
             G.set_latex_options(edge_labels=True, color_by_label=lambda x: colors[x])
             return G

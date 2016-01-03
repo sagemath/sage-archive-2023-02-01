@@ -836,6 +836,52 @@ def is_haemers(int v,int k,int l,int mu):
             return (HaemersGraph, q)
 
 @cached_function
+def is_complete_multipartite(int v,int k,int l,int mu):
+    r"""
+    Test whether some complete multipartite graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    Any complete multipartite graph with parts of the same size is strongly regular.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_complete_multipartite
+        sage: t = is_complete_multipartite(12,8,4,8); t
+        (<cyfunction is_complete_multipartite.<locals>.CompleteMultipartiteSRG at ...>,
+         3,
+         4)
+        sage: g = t[0](*t[1:]); g
+        Multipartite Graph with set sizes [4, 4, 4]: Graph on 12 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (12, 8, 4, 8)
+
+    TESTS::
+
+        sage: t = is_complete_multipartite(5,5,5,5); t
+        sage: t = is_complete_multipartite(11,8,4,8); t
+        sage: t = is_complete_multipartite(20,16,12,16);
+        sage: g = t[0](*t[1:]); g
+        Multipartite Graph with set sizes [4, 4, 4, 4, 4]: Graph on 20 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (20, 16, 12, 16)
+    """
+    if v>k:
+        r = v/(v-k) # number of parts (of size v-k each)
+        if l==(v-k)*(r-2) and k==mu and v == r*(v-k):
+            from sage.graphs.generators.basic import CompleteMultipartiteGraph
+            def CompleteMultipartiteSRG(nparts, partsize):
+                return CompleteMultipartiteGraph([partsize]*nparts)
+            return (CompleteMultipartiteSRG, r, v-k)
+
+@cached_function
 def is_polhill(int v,int k,int l,int mu):
     r"""
     Test whether some graph from [Polhill09]_ is `(1024,k,\lambda,\mu)`-strongly regular.
@@ -2459,11 +2505,19 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
     cdef uint_fast32_t tmp[2]
 
     if (v<0 or k<=0 or l<0 or mu<0 or
-        k>=v-1 or l>=k or mu>=k or
+        k>=v-1 or l>=k or mu>k or
         v-2*k+mu-2 < 0 or # lambda of complement graph >=0
-        v-2*k+l    < 0 or # μ of complement graph >=0
+        v-2*k+l    < 0 or # μ of complement graph >= 0
         mu*(v-k-1) != k*(k-l-1)):
         return False
+
+    if mu == k: # complete multipartite graph
+        r = v/(v-k) # number of parts (of size v-k each)
+        return (l == (v-k)*(r-2) and v == r*(v-k))
+
+    if mu == 0: # the complement of a complete multipartite graph
+        r = v/(k+1) # number of parts (of size k+1 each)
+        return (l == k-1 and v == r*(k+1))
 
     # Conference graphs. Only possible if 'v' is a sum of two squares (3.A of
     # [BvL84]
@@ -2623,6 +2677,17 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         ....:         except RuntimeError as e:                        # not tested
         ....:             if 'Brouwer' not in str(e):                  # not tested
         ....:                 raise                                    # not tested
+
+    `\mu=0` behaves correctly (:trac:`19712`)::
+
+        sage: graphs.strongly_regular_graph(10,2,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: There exists no (10, 2, 1, 0)-strongly regular graph
+        sage: graphs.strongly_regular_graph(12,3,2)
+        complement(Multipartite Graph with set sizes [4, 4, 4]): Graph on 12 vertices
+        sage: graphs.strongly_regular_graph(6,3,0)
+        Multipartite Graph with set sizes [3, 3]: Graph on 6 vertices
     """
     load_brouwer_database()
     if mu == -1:
@@ -2651,7 +2716,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         val = _small_srg_database[params_complement]
         return True if existence else check_srg(val[0](*val[1:]).complement())
 
-    test_functions = [is_paley, is_johnson,
+    test_functions = [is_complete_multipartite, # must be 1st, to prevent 0-divisions
+                      is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
                       is_goethals_seidel,
@@ -2720,10 +2786,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
 
 def apparently_feasible_parameters(int n):
     r"""
-    Return a list of parameters `(v,k,\lambda,\mu)` which are a-priori feasible.
+    Return a list of a priori feasible parameters `(v,k,\lambda,\mu)`, with `0<\mu<k`.
 
     Note that some of those that it returns may also be infeasible for more
-    involved reasons.
+    involved reasons. The condition `0<\mu<k` makes sure we skip trivial cases of
+    complete multipartite graphs and their complements.
 
     INPUT:
 
@@ -2766,7 +2833,7 @@ def apparently_feasible_parameters(int n):
         for k in range(1,v-1):
             for l in range(k-1):
                 mu = k*(k-l-1)//(v-k-1)
-                if seems_feasible(v,k,l,mu):
+                if mu>0 and mu<k and seems_feasible(v,k,l,mu):
                     feasible.add((v,k,l,mu))
     return feasible
 

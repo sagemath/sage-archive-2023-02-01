@@ -44,12 +44,14 @@ def ntl_GF2E_random(ntl_GF2EContext_class ctx):
     Returns a random element from GF2E modulo the current modulus.
 
     INPUT:
-        ctx -- the GF2E context for which an random element should be created
 
-    EXAMPLES:
+    - ``ctx`` -- the GF2E context for which an random element should be created
+
+    EXAMPLES::
+
         sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
         sage: ntl.GF2E_random(ctx)
-        [1 0 1 0 1 0 0 1]
+        [1 1 0 0 1 0 1 1]
     """
     current_randstate().set_seed_ntl(False)
 

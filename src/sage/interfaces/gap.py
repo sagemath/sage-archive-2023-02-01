@@ -308,6 +308,7 @@ class Gap_generic(Expect):
       code
 
     """
+    _identical_function = "IsIdenticalObj"
 
     def _synchronize(self, timeout=0.5, cmd='%s;'):
         """
@@ -918,7 +919,7 @@ class Gap_generic(Expect):
         else:
             self.eval(marker)
             res = self.eval(cmd)
-        if self.eval('IsIdenticalObj(last,__SAGE_LAST__)') != 'true':
+        if self.eval(self._identical_function + '(last,__SAGE_LAST__)') != 'true':
             return self.new('last2;')
         else:
             if res.strip():
@@ -1101,7 +1102,7 @@ class Gap(Gap_generic):
     - William Stein and David Joyner
     """
     def __init__(self, max_workspace_size=None,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  use_workspace_cache=True,
                  server=None,
                  server_tmpdir=None,

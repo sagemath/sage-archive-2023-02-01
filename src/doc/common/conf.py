@@ -557,9 +557,10 @@ def skip_member(app, what, name, obj, skip, options):
     if getattr(obj, '__module__', None) == '__builtin__':
         return True
 
-    if (hasattr(obj, '__name__') and obj.__name__.find('.') != -1 and
-        obj.__name__.split('.')[-1] != name):
-        return True
+    objname = getattr(obj, "__name__", None)
+    if objname is not None:
+        if objname.find('.') != -1 and objname.split('.')[-1] != name:
+            return True
 
     if name.find("userchild_download_worksheets.zip") != -1:
         return True

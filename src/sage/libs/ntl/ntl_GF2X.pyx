@@ -395,7 +395,7 @@ cdef class ntl_GF2X(object):
         if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
 
-        gcd.x = GF2X_GCD(self.x, (<ntl_GF2X>other).x)
+        GF2X_GCD(gcd.x, self.x, (<ntl_GF2X>other).x)
         return gcd
 
     def XGCD(ntl_GF2X self, other):

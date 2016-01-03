@@ -6624,7 +6624,7 @@ def from_cycles(n, cycles, parent=None):
         sage: Permutation("(-12,2)(3,4)")
         Traceback (most recent call last):
         ...
-        ValueError: All elements should be strictly positive integers, and I just found a negative one.
+        ValueError: All elements should be strictly positive integers, and I just found a non-positive one.
         sage: Permutation("(1,2)(2,4)")
         Traceback (most recent call last):
         ...
@@ -6652,7 +6652,7 @@ def from_cycles(n, cycles, parent=None):
     # Only positive elements
     if int(flattened_and_sorted[0]) < 1:
         raise ValueError("All elements should be strictly positive "
-                         "integers, and I just found a negative one.")
+                         "integers, and I just found a non-positive one.")
 
     # Really smaller or equal to n ?
     if flattened_and_sorted[-1] > n:

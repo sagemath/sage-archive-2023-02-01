@@ -132,7 +132,7 @@ def python(z, locals=None):
         sage: a = pari('(3+I)').python(); a
         i + 3
         sage: a.parent()
-        Maximal Order in Number Field in i with defining polynomial x^2 + 1
+        Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
 
         sage: a = pari('2^31-1').python(); a
         2147483647

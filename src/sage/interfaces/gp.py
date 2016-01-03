@@ -890,7 +890,7 @@ class GpElement(ExpectElement):
             sage: gp(I).sage()
             i
             sage: gp(I).sage().parent()
-            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
 
         ::
 

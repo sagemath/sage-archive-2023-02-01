@@ -53,7 +53,7 @@ class SubwordComplex(SimplicialComplex, Parent):
     .. WARNING::
 
         This implementation only works for groups build using ``CoxeterGroup``,
-        and do not work with groups build using ``WeylGroup``.
+        and does not work with groups build using ``WeylGroup``.
 
     EXAMPLES:
 
@@ -66,7 +66,7 @@ class SubwordComplex(SimplicialComplex, Parent):
         sage: W = CoxeterGroup(['A',2], index_set=[1,2])
         sage: w = W.from_reduced_word([1,2,1])
         sage: SC = SubwordComplex([1,2,1,2,1], w); SC
-        Subword complex of unknown type for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
+        Subword complex of type ['A', 2] for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
         sage: SC.facets()
         [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
 
@@ -94,7 +94,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',3], index_set=[1,2,3])
             sage: w = W.from_reduced_word([1,2,3,1,2,1])
             sage: SC = SubwordComplex([1,2,3,1,2,3,1,2,1], w); SC
-            Subword complex of unknown type for Q = [1, 2, 3, 1, 2, 3, 1, 2, 1] and pi = [1, 2, 3, 1, 2, 1]
+            Subword complex of type ['A', 3] for Q = [1, 2, 3, 1, 2, 3, 1, 2, 1] and pi = [1, 2, 3, 1, 2, 1]
             sage: len(SC)
             14
         """
@@ -117,9 +117,10 @@ class SubwordComplex(SimplicialComplex, Parent):
                                    maximality_check=False)
         self.__custom_name = 'Subword complex'
         self._W = W
-        if hasattr(W, '_type'):
-            self._cartan_type = W._type
-        else:
+        try:
+            T = W.coxeter_matrix().coxeter_type()
+            self._cartan_type = T.cartan_type()
+        except AttributeError:
             self._cartan_type = None
         self._facets_dict = None
         if algorithm == "greedy":
@@ -141,12 +142,12 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: W = CoxeterGroup(['A',2],index_set=[1,2])
             sage: w = W.from_reduced_word([1,2,1])
             sage: SubwordComplex([1,2,1,2,1], w)
-            Subword complex of unknown type for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
+            Subword complex of type ['A', 2] for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
         """
         if self._cartan_type is None:
-            return 'Subword complex of unknown type for Q = %s and pi = %s' % (self._Q, self._pi.reduced_word())
+            return "Subword complex of unknown type for Q = {} and pi = {}".format(self._Q, self._pi.reduced_word())
         else:
-            return 'Subword complex of type %s for Q = %s and pi = %s' % (self.cartan_type(), self._Q, self._pi.reduced_word())
+            return 'Subword complex of type {} for Q = {} and pi = {}'.format(self.cartan_type(), self._Q, self._pi.reduced_word())
 
     def __eq__(self, other):
         r"""
@@ -256,26 +257,18 @@ class SubwordComplex(SimplicialComplex, Parent):
         r"""
         Return the Cartan type of ``self``.
 
-        .. WARNING::
-
-            not currently available
-
         EXAMPLES::
 
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
-            sage: SC.cartan_type()   # not tested
+            sage: SC.cartan_type()
             ['A', 2]
         """
-        from sage.combinat.root_system.cartan_type import CartanType
         if self._cartan_type is None:
             raise ValueError("No Cartan type defined for {}".format(self._W))
-        elif len(self._cartan_type) == 1:
-            return CartanType([self._cartan_type[0]['series'],
-                               self._cartan_type[0]['rank']])
         else:
-            return CartanType(self._cartan_type)
+            return self._cartan_type
 
     def word(self):
         r"""
@@ -780,7 +773,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: SC([1, 3])
             Traceback (most recent call last):
             ...
-            ValueError: The given iterable (1, 3) is not a facet of the Subword complex of unknown type for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
+            ValueError: The given iterable (1, 3) is not a facet of the Subword complex of type ['A', 2] for Q = [1, 2, 1, 2, 1] and pi = [1, 2, 1]
         """
         if facet_test and positions not in parent:
             raise ValueError("The given iterable %s is not a facet of the %s" % (positions, parent))
@@ -1286,13 +1279,12 @@ class SubwordComplexFacet(Simplex, Element):
         n = W.rank()
         N = len(W.long_element(as_word=True))
 
-        # if any(x is 'A' for x in self.parent().group().series()):
-        if N == (n + 1) * n / 2:
-            type = 'A'
-        # elif any(x is 'B' for x in self.parent().group().series()):
-        elif N == n ** 2:
-            type = 'B'
+        if self.parent()._cartan_type is not None:
+            type = self.parent()._cartan_type.type()
         else:
+            type = None
+
+        if not(type == 'A' or type == 'B'):
             raise ValueError("Plotting is currently only implemented "
                              "in types A or B")
 

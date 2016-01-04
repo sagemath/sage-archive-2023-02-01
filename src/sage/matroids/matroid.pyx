@@ -2616,24 +2616,30 @@ cdef class Matroid(SageObject):
             :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
 
         """
-        cdef int r, i
-        cdef list T = [set() for r in range(self.full_rank()+1)]
-        cdef list I = [frozenset() for i in range(self.full_rank()+1)]
+        cdef int r
+        cdef int full_rank = self.full_rank()
+        cdef list T = [set() for r in range(full_rank)]
+        cdef list I = [frozenset()] * (full_rank+1)
         r = 0
-        
+
         res = [frozenset()]
         T[0] = set(self.groundset()) - self.closure([])
         while r >= 0:
-            if T[r]:
-                e = T[r].pop()
-                I[r+1] = I[r].union([e])
-                res.append(I[r+1]) 
+            if r + 1 == full_rank:
+                for x in T[r]:
+                    I[r+1] = I[r].union([x])
+                    res.append(I[r+1])
+                T[r] = set()
+                r -= 1
+            elif T[r]:
+                I[r+1] = I[r].union([T[r].pop()])
+                res.append(I[r+1])
                 T[r+1] = T[r] - self._closure(I[r+1])
-                r = r + 1
+                r += 1
             else:
-                r = r - 1    
+                r -= 1
         return res
-    
+
     cpdef independent_r_sets(self, long r):
         r"""
         Return the list of size-``r`` independent subsets of the matroid.

@@ -823,7 +823,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         """
         if not f.is_endomorphism():
             raise TypeError("map must be an endomorphism for iteration")
-        if (isinstance(N,(list,tuple))==False):
+        if not isinstance(N,(list,tuple)):
             N = [0,N]
         N[0] = ZZ(N[0])
         N[1] = ZZ(N[1])

@@ -1279,22 +1279,41 @@ class SubwordComplexFacet(Simplex, Element):
         n = W.rank()
         N = len(W.long_element(as_word=True))
 
+        error_msg = "Plotting is currently only implemented for irreducibles types A, B, and C."
         if self.parent()._cartan_type is not None:
-            type = self.parent()._cartan_type.type()
+            cartan_type = self.parent()._cartan_type
+            type = cartan_type.type()
+            G = cartan_type.coxeter_matrix().coxeter_graph()
         else:
             type = None
 
-        if not(type == 'A' or type == 'B'):
-            raise ValueError("Plotting is currently only implemented "
-                             "in types A or B")
+        if type not in ['A','B','C'] or not G.is_connected():
+            raise ValueError(error_msg)
+
+        # organization of the indexing
+        # TODO: this might be better done in CoxeterType directly.
+        index_set = None
+        for a in G.vertex_iterator():
+            if G.degree(a) == 1:
+                b = G.neighbors(a)[0]
+                if ( type == "A" or G.edge_label(a,b) == 4 ):
+                    index_set = [a,b]
+                    break
+        assert index_set is not None, "Bug in the plot method"
+        while G.degree(b) == 2:
+            for c in G.neighbors(b):
+                if c != a:
+                    index_set.append(c)
+                    a = b
+                    b = c
+                    break
+        return index_set
 
         # import plot facilities
         from sage.plot.line import line
         from sage.plot.text import text
         from sage.plot.colors import colors
         from sage.combinat.permutation import Permutation
-
-        index_set = W.index_set()
 
         # get properties
         x = 1

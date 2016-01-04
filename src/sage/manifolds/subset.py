@@ -152,14 +152,11 @@ class ManifoldSubset(AbstractSet):
             <class 'sage.manifolds.subset.ManifoldSubset_with_category'>
             sage: A.category()
             Category of subobjects of sets
-            sage: TestSuite(A).run(skip=['_test_elements', \
-                                         '_test_not_implemented_methods'])
+            sage: TestSuite(A).run(skip='_test_elements')
 
-        .. TODO::
+        .. NOTE::
 
-            implement method ``lift`` so that ``_test_not_implemented_methods``
-            is passed.
-            NB: ``_test_elements`` cannot be passed without a proper
+            ``_test_elements`` cannot be passed without a proper
             coordinate definition of the subset.
 
         """
@@ -189,6 +186,82 @@ class ManifoldSubset(AbstractSet):
 
         """
         return "Subset {} of the {}".format(self._name, self._manifold)
+
+    def lift(self, p):
+        r"""
+        Lift map.
+
+        INPUT:
+
+        - ``p`` -- point of the subset
+
+        OUTPUT:
+
+        - the same point, considered as a point of the ambient manifold
+
+        EXAMPLE::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: A = M.open_subset('A', coord_def={X: x>0})
+            sage: p = A((1, -2)); p
+            Point on the 2-dimensional topological manifold M
+            sage: p.parent()
+            Open subset A of the 2-dimensional topological manifold M
+            sage: q = A.lift(p); q
+            Point on the 2-dimensional topological manifold M
+            sage: q.parent()
+            2-dimensional topological manifold M
+            sage: q.coord()
+            (1, -2)
+            sage: (p == q) and (q == p)
+            True
+
+        """
+        return self._manifold(p)
+
+    def retract(self, p):
+        r"""
+        Retraction map.
+
+        INPUT:
+
+        - ``p`` -- point of the ambient manifold
+
+        OUTPUT:
+
+        - the same point, considered as a point of the subset
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: A = M.open_subset('A', coord_def={X: x>0})
+            sage: p = M((1, -2)); p
+            Point on the 2-dimensional topological manifold M
+            sage: p.parent()
+            2-dimensional topological manifold M
+            sage: q = A.retract(p); q
+            Point on the 2-dimensional topological manifold M
+            sage: q.parent()
+            Open subset A of the 2-dimensional topological manifold M
+            sage: q.coord()
+            (1, -2)
+            sage: (q == p) and (p == q)
+            True
+
+        Of course, if the point does not belong to ``A``, the ``retract``
+        method fails::
+
+            sage: p = M((-1, 3))  #  x < 0, so that p is not in A
+            sage: q = A.retract(p)
+            Traceback (most recent call last):
+            ...
+            ValueError: the Point on the 2-dimensional topological manifold M
+             is not in Open subset A of the 2-dimensional topological manifold M
+
+        """
+        return self(p)
 
     def manifold(self):
         r"""
@@ -357,9 +430,6 @@ class ManifoldSubset(AbstractSet):
         if other._name in self._intersections:
             # the intersection has already been created:
             return self._intersections[other._name]
-
-        # TODO: Check to see if we've already created a union of ``self`` and ``other``
-
         # the intersection must be created:
         if latex_name is None:
             if name is None:
@@ -453,9 +523,6 @@ class ManifoldSubset(AbstractSet):
         if other._name in self._unions:
             # the union has already been created:
             return self._unions[other._name]
-
-        # TODO: Check to see if we've already created a union of ``self`` and ``other``
-
         # the union must be created:
         if latex_name is None:
             if name is None:
@@ -578,12 +645,7 @@ class OpenTopologicalSubmanifold(ManifoldSubset, TopologicalManifold):
             sage: A.category()
             Join of Category of subobjects of sets and Category of manifolds
              over Real Field with 53 bits of precision
-            sage: TestSuite(A).run(skip='_test_not_implemented_methods')
-
-        .. TODO::
-
-            implement method ``lift`` so that ``_test_not_implemented_methods``
-            is passed.
+            sage: TestSuite(A).run()
 
         """
         # TODO: This test probably needs a better place, like open_subset

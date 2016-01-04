@@ -1631,11 +1631,7 @@ class CoordChange(SageObject):
             Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
             sage: type(X_to_Y)
             <class 'sage.manifolds.chart.CoordChange'>
-            sage: TestSuite(X_to_Y).run(skip='_test_pickling')
-
-        .. TODO::
-
-            fix _test_pickling
+            sage: TestSuite(X_to_Y).run()
 
         """
         self._n1 = len(chart1._xx)
@@ -1695,6 +1691,55 @@ class CoordChange(SageObject):
 
         """
         return latex(self._chart1) + r' \rightarrow ' + latex(self._chart2)
+
+    def __eq__(self, other):
+        r"""
+        Equality operator.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y == X_to_Y
+            True
+            sage: X_to_Y1 = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y == X_to_Y1
+            True
+            sage: X_to_Y2 = X.transition_map(Y, [2*y, -x])
+            sage: X_to_Y == X_to_Y2
+            False
+            sage: Z.<w,z> = M.chart()
+            sage: X_to_Z = X.transition_map(Z, [x+y, x-y])
+            sage: X_to_Y == X_to_Z
+            False
+
+        """
+        if other is self:
+            return True
+        if not isinstance(other, CoordChange):
+            return False
+        return (self._chart1 == other._chart1) and \
+               (self._chart2 == other._chart2) and \
+               (self._transf == other._transf)
+
+    def __ne__(self, other):
+        r"""
+        Unequality operator.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y2 = X.transition_map(Y, [2*y, -x])
+            sage: X_to_Y != X_to_Y2
+            True
+
+        """
+        return not (self == other)
 
     def __call__(self, *coords):
         r"""
@@ -2033,4 +2078,3 @@ class CoordChange(SageObject):
         return FormattedExpansion(rtxt, rlatex)
 
     disp = display
-

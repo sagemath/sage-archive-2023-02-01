@@ -5001,6 +5001,77 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         # cf. Theorem 2
         return len(K_SP.lyapunov_like_basis()) + l*m + (n - m)*n
 
+    def random_element(self):
+        r"""
+        Return a random rational vector contained in this cone.
+
+        All elements of a convex cone can be represented as a
+        nonnegative linear combination of its generators. A
+        random element is thus constructed by assigning random
+        nonnegative weights to the generators of this cone.
+
+        OUTPUT:
+
+        A vector, contained in this cone, whose components are rational.
+
+        EXAMPLES:
+
+        The trivial element ``()`` is always returned in a trivial space::
+
+            sage: set_random_seed()
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.random_element()
+            ()
+
+        A random element of the trivial cone in a nontrivial space is zero::
+
+            sage: set_random_seed()
+            sage: K = Cone([(0,0,0)])
+            sage: K.random_element()
+            (0, 0, 0)
+
+        A random element of the nonnegative orthant should have all
+        components nonnegative::
+
+            sage: set_random_seed()
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: all([ x >= 0 for x in K.random_element() ])
+            True
+
+        TESTS:
+
+        Any cone should contain a random element of itself::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.contains(K.random_element())
+            True
+
+        A strictly convex cone contains no lines, and thus no negative
+        multiples of any of its elements besides zero::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8, strictly_convex=True)
+            sage: x = K.random_element()
+            sage: x.is_zero() or not K.contains(-x)
+            True
+
+        The sum of random elements of a cone lies in the cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.contains(sum([K.random_element() for i in range(10)]))
+            True
+        """
+        V = self.lattice().vector_space()
+
+        # Scale each generator by a random nonnegative factor.
+        terms = [ V.base_field().random_element().abs()*V(g) for g in self ]
+
+        # Make sure we return a vector. Without the coercion, we
+        # return ``0`` when we have no rays.
+        return V(sum(terms))
+
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                 min_rays=0, max_rays=None, strictly_convex=None, solid=None):

@@ -2454,6 +2454,49 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
             ::
 
+            sage: P2.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P5.<z0,z1,z2,z3,z4,z5> = ProjectiveSpace(QQ, 5)
+            sage: H = Hom(P2, P5)
+            sage: f = H([x^2,x*y,x*z,y^2,y*z,z^2]) #Veronese map
+            sage: X = P2.subscheme([])
+            sage: f(X)
+            Closed subscheme of Projective Space of dimension 5 over Rational Field
+            defined by:
+              -z4^2 + z3*z5,
+              -z2*z4 + z1*z5,
+              -z2*z3 + z1*z4,
+              -z2^2 + z0*z5,
+              -z1*z2 + z0*z4,
+              -z1^2 + z0*z3
+
+            ::
+
+            sage: P2.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: P3.<u,v,w,t>=ProjectiveSpace(QQ, 3)
+            sage: H = Hom(P2, P3)
+            sage: X = P2.subscheme([x-y,x-z])
+            sage: f = H([x^2,y^2,z^2,x*y])
+            sage: f(X)
+            Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+              w - t,
+              v - t,
+              u - t
+
+            ::
+
+            sage: P1.<u,v> = ProjectiveSpace(QQ, 1)
+            sage: P2.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P2,P1)
+            sage: f = H([x^2,y*z])
+            sage: X = P2.subscheme([x-y])
+            sage: f(X)
+            Traceback (most recent call last):
+            ...
+            TypeError: map must be a morphism
+
+            ::
+
             sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
             sage: H = End(PS)
             sage: f = H([x^3, x*y^2, x*z^2])
@@ -2542,6 +2585,32 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
               x^2 - y^2 - z^2,
               w^4 + 2*w^2*t^2 + t^4,
               -t^2
+
+        ::
+
+            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P3.<u,v,w,t> = ProjectiveSpace(QQ,3)
+            sage: H = Hom(P1, P3)
+            sage: X = P3.subscheme([u-v,2*u-w,u+t])
+            sage: f = H([x^2,y^2,x^2+y^2,x*y])
+            sage: X.preimage(f)
+            Closed subscheme of Projective Space of dimension 1 over Rational Field
+            defined by:
+              x^2 - y^2,
+              x^2 - y^2,
+              x^2 + x*y
+
+        ::
+
+            sage: P1.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P3.<u,v,w,t> = ProjectiveSpace(QQ, 3)
+            sage: H = Hom(P3, P1)
+            sage: X = P1.subscheme([x-y])
+            sage: f = H([u^2, v^2])
+            sage: X.preimage(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: map must be a morphism
 
         ::
 

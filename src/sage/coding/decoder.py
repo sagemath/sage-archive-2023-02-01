@@ -133,7 +133,7 @@ class Decoder(SageObject):
             sage: D1 != D2
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def decoder_type(self):
         r"""

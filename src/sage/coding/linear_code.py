@@ -1995,7 +1995,7 @@ class AbstractLinearCode(module.Module):
             sage: C1 != C2
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def encode(self, word, encoder_name=None, **kwargs):
         r"""

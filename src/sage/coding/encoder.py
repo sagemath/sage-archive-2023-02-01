@@ -106,7 +106,7 @@ class Encoder(SageObject):
             sage: E1 != E2
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def encode(self, word):
         r"""

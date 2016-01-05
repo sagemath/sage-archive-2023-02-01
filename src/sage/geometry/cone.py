@@ -5068,7 +5068,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         # Scale each generator by a random nonnegative factor.
         terms = [ V.base_field().random_element().abs()*V(g) for g in self ]
 
-        # Make sure we return a vector. Without the coercion, we
+        # Make sure we return a vector. Without the conversion, we
         # return ``0`` when we have no rays.
         return V(sum(terms))
 

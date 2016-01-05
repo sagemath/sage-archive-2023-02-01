@@ -615,14 +615,14 @@ class Function_arccot(GinacFunction):
 
             sage: arccot(1/2)
             arccot(1/2)
-            sage: RDF(arccot(1/2))
-            1.1071487177940904
+            sage: RDF(arccot(1/2))  # abs tol 2e-16
+            1.1071487177940906
             sage: arccot(1 + I)
             arccot(I + 1)
             sage: arccot(1/2).n(100)
             1.1071487177940905030170654602
-            sage: float(arccot(1/2))
-            1.1071487177940904
+            sage: float(arccot(1/2))  # abs tol 2e-16
+            1.1071487177940906
             sage: bool(diff(acot(x), x) == -diff(atan(x), x))
             True
             sage: diff(acot(x), x)

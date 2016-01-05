@@ -1336,10 +1336,9 @@ void mul::combine_overall_coeff(const ex & c1, const ex & c2)
 bool mul::can_make_flat(const expair & p) const
 {
 	GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
-	// this assertion will probably fail somewhere
-	// it would require a more careful make_flat, obeying the power laws
-	// probably should return true only if p.coeff is integer
-	return p.coeff.is_integer_one();
+
+        // (x*y)^c == x^c*y^c  if c ∈ ℤ
+        return p.coeff.info(info_flags::integer);
 }
 
 bool mul::can_be_further_expanded(const ex & e)

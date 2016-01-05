@@ -1341,9 +1341,9 @@ class HasseDiagram(DiGraph):
         """
         Return the pseudocomplement of ``element``, if it exists.
 
-        The pseudocomplement is the maximum element whose
+        The pseudocomplement is the greatest element whose
         meet with given element is the bottom element. It may
-        not exist.
+        not exist, and then the function returns ``None``.
 
         INPUT:
 
@@ -1352,11 +1352,11 @@ class HasseDiagram(DiGraph):
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[4], 3:[4]})
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
             sage: H.pseudocomplement(2)
             3
 
-            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
             sage: H.pseudocomplement(2) is None
             True
         """

@@ -1646,7 +1646,7 @@ std::unique_ptr<epvector> expairseq::evalchildren(int level) const
 	// returns a pointer to a newly created epvector otherwise
 	// (which has to be deleted somewhere else)
 
-	if (level==1)
+	if (likely(level==1))
 		return std::unique_ptr<epvector>(nullptr);
 	
 	if (level == -max_recursion_level)

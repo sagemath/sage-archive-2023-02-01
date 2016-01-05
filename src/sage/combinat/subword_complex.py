@@ -1275,13 +1275,14 @@ class SubwordComplexFacet(Simplex, Element):
         """
         # check that the type is A or B
         # TODO in a better way
-        W = self.parent().group()
+        S = self.parent()
+        Q = S.word()
+        W = S.group()
         n = W.rank()
-        N = len(W.long_element(as_word=True))
 
         error_msg = "Plotting is currently only implemented for irreducibles types A, B, and C."
-        if self.parent()._cartan_type is not None:
-            cartan_type = self.parent()._cartan_type
+        if S._cartan_type is not None:
+            cartan_type = S._cartan_type
             type = cartan_type.type()
             G = cartan_type.coxeter_matrix().coxeter_graph()
         else:
@@ -1302,12 +1303,12 @@ class SubwordComplexFacet(Simplex, Element):
         assert index_set is not None, "Bug in the plot method"
         while G.degree(b) == 2:
             for c in G.neighbors(b):
+                # picking the other neighbors of b
                 if c != a:
                     index_set.append(c)
                     a = b
                     b = c
                     break
-        return index_set
 
         # import plot facilities
         from sage.plot.line import line
@@ -1317,11 +1318,10 @@ class SubwordComplexFacet(Simplex, Element):
 
         # get properties
         x = 1
-        Q = self.parent().word()
         if type == 'A':
-            last = W.rank()
+            last = n
         else:
-            last = W.rank() - 1
+            last = n - 1
         permutation = Permutation(range(1, last + 2))
         x_max = .5
 
@@ -1339,7 +1339,7 @@ class SubwordComplexFacet(Simplex, Element):
             extended_root_conf = self.extended_root_configuration()
         for position in range(len(Q)):
             y = index_set.index(Q[position])
-            if type == 'B' and y == 0:
+            if type in ['B','C'] and y == 0:
                 pseudoline = permutation(1) - 1
                 x = pseudolines[pseudoline].pop()
                 if compact:
@@ -1359,7 +1359,7 @@ class SubwordComplexFacet(Simplex, Element):
                     root_labels.append((extended_root_conf[position],
                                         (shift[0] + x + .25, shift[1] - .2)))
             else:
-                if type == 'B':
+                if type in ['B','C']:
                     y -= 1
                 pseudoline1 = permutation(y + 1) - 1
                 pseudoline2 = permutation(y + 2) - 1
@@ -1413,7 +1413,7 @@ class SubwordComplexFacet(Simplex, Element):
                                             shift[1] + permutation.inverse()(pseudoline + 1) - 1))
             L += line(pseudolines[pseudoline], color=list_colors[pseudoline],
                       thickness=thickness)
-            if type == 'B':
+            if type in ['B','C']:
                 L += line(pseudolines_type_B[pseudoline],
                           color=list_colors[pseudoline],
                           thickness=thickness, linestyle="--")
@@ -1437,6 +1437,7 @@ class SubwordComplexFacet(Simplex, Element):
                           color=list_colors[pseudoline], fontsize=fontsize,
                           vertical_alignment="center",
                           horizontal_alignment="left")
+        L.axes(False)
         return L
 
     def show(self, *kwds, **args):
@@ -1455,7 +1456,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F = SC([1,2]); F.show()
             <BLANKLINE>
         """
-        return self.plot().show(axes=False, *kwds, **args)
+        return self.plot().show(*kwds, **args)
 
 
 def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):

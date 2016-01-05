@@ -9,7 +9,7 @@ share memory.
 
 EXAMPLES::
 
-    sage: from sage.misc.lazy_list import lazy_list
+    sage: from sage.data_structures.lazy_list import lazy_list
     sage: P = lazy_list(Primes())
     sage: P[100]
     547
@@ -74,7 +74,7 @@ cdef class lazy_list_iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: l = lazy_list(2*i for i in xrange(2**10))
             sage: e1 = iter(l)
             sage: e2 = iter(l)
@@ -102,7 +102,7 @@ cdef class lazy_list_iterator(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: from itertools import count
             sage: l = lazy_list(count())
             sage: iterator = iter(l)
@@ -120,7 +120,7 @@ cdef class lazy_list_iterator(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: l = lazy_list(p**2-18*2+4 for p in Primes())
             sage: iter(l)   #indirect doctest
             iterator of lazy list [-28, -23, -7, ...]
@@ -133,7 +133,7 @@ cdef class lazy_list_iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: l = lazy_list(iter(Primes()))
             sage: i = iter(l)
             sage: i.__iter__() is i
@@ -147,7 +147,7 @@ cdef class lazy_list_iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: l = lazy_list(p**2-18*2+4 for p in Primes())
             sage: i = iter(l)
             sage: next(i)    # indirect doctest
@@ -176,7 +176,7 @@ cdef class stopped_lazy_list_iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: from itertools import count
             sage: l = lazy_list((i**2-i-1 for i in count()), start=5, stop=15555)
             sage: i1 = iter(l); i2 = iter(l)
@@ -205,7 +205,7 @@ cdef class stopped_lazy_list_iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: from itertools import count
             sage: l = lazy_list(count(), start=3, stop=255, step=18)
             sage: l
@@ -222,11 +222,11 @@ cdef class stopped_lazy_list_iterator(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: L = lazy_list(iter(Primes()))[:100]
             sage: i = iter(L)
             sage: type(i)
-            <type 'sage.misc.lazy_list.stopped_lazy_list_iterator'>
+            <type 'sage.data_structures.lazy_list.stopped_lazy_list_iterator'>
             sage: i is iter(i)   #indirect doctest
             True
         """
@@ -238,11 +238,11 @@ cdef class stopped_lazy_list_iterator(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: L = lazy_list(iter(Primes()))[:100]
             sage: i = iter(L)
             sage: type(i)
-            <type 'sage.misc.lazy_list.stopped_lazy_list_iterator'>
+            <type 'sage.data_structures.lazy_list.stopped_lazy_list_iterator'>
             sage: next(i)  #indirect doctest
             2
             sage: next(i)  #indirect doctest
@@ -271,7 +271,7 @@ cdef class lazy_list(object):
 
     EXAMPLES::
 
-        sage: from sage.misc.lazy_list import lazy_list
+        sage: from sage.data_structures.lazy_list import lazy_list
         sage: from itertools import count
         sage: m = lazy_list(count()); m
         lazy list [0, 1, 2, ...]
@@ -303,7 +303,7 @@ cdef class lazy_list(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: from itertools import count
             sage: f = lazy_list(count())
             sage: loads(dumps(f))
@@ -362,7 +362,7 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: p = lazy_list(iter(Primes()))[:2147483647]
             sage: p.start_stop_step()
             (0, 2147483647, 1)
@@ -389,7 +389,7 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: P = lazy_list(iter(Primes()))
             sage: P[2:143:5].list()
             [5, 19, 41, 61, 83, 107, 137, 163, 191, 223, 241, 271, 307, 337, 367, 397, 431, 457, 487, 521, 563, 593, 617, 647, 677, 719, 751, 787, 823]
@@ -425,7 +425,7 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: P = lazy_list(iter(Primes()))[10:21474838:4]
             sage: P.info()
             cache length 0
@@ -452,7 +452,7 @@ cdef class lazy_list(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: from itertools import count
             sage: l = lazy_list(i**3 - i + 1 for i in count()); l
             lazy list [1, 1, 7, ...]
@@ -474,7 +474,7 @@ cdef class lazy_list(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: from itertools import count
             sage: r = lazy_list(count()); r  # indirect doctest
             lazy list [0, 1, 2, ...]
@@ -530,7 +530,7 @@ cdef class lazy_list(object):
         EXAMPLES::
 
             sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: m = lazy_list(count())
             sage: x = loads(dumps(m))
             sage: y = iter(x)
@@ -572,7 +572,7 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: l = lazy_list([0,1,2,-34,3,2,-5,12,1,4,-18,5,-12])[2::3]
             sage: l.info()
             cache length 0
@@ -611,7 +611,7 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: from itertools import chain, repeat
             sage: f = lazy_list(chain(iter([1,2,3]), repeat('a')))
             sage: f.get(0)
@@ -661,7 +661,7 @@ cdef class lazy_list(object):
         TESTS::
 
             sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: iter(lazy_list(count()))
             iterator of lazy list [0, 1, 2, ...]
         """
@@ -675,7 +675,7 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.data_structures.lazy_list import lazy_list
             sage: f = lazy_list(iter([1,2,3]))
             sage: f0 = f[0:]
             sage: print f.get(0), f.get(1), f.get(2)

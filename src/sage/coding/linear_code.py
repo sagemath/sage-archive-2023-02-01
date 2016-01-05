@@ -1682,10 +1682,12 @@ class AbstractLinearCode(module.Module):
                 and self.dimension() == right.dimension()\
                 and self.base_ring() == right.base_ring()):
             return False
-        Ks, rbas = self.parity_check_matrix().right_kernel(), right.gens()
+        Ks = self.parity_check_matrix().right_kernel()
+        rbas = right.gens()
         if not all(c in Ks for c in rbas):
             return False
-        Kr, sbas = self.parity_check_matrix().right_kernel(), right.gens()
+        Kr = right.parity_check_matrix().right_kernel()
+        sbas = self.gens()
         if not all(c in Kr for c in sbas):
             return False
         return True

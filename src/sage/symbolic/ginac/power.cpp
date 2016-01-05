@@ -846,55 +846,71 @@ ex power::conjugate() const
 
 ex power::real_part() const
 {
+	// basis == a+I*b, exponent == c+I*d
+	const ex a = basis.real_part();
+	const ex c = exponent.real_part();
+	if (basis.is_equal(a) && exponent.is_equal(c)) {
+		// Re(a^c)
+		return *this;
+	}
+
+	const ex b = basis.imag_part();
 	if (exponent.info(info_flags::integer)) {
-		ex basis_real = basis.real_part();
-		if (basis_real == basis)
-			return *this;
-		symbol a("a"),b("b");
-                a.set_domain(domain::real);
-                b.set_domain(domain::real);
-		ex result;
-		if (exponent.info(info_flags::posint))
-			result = power(a+I*b,exponent);
-		else
-			result = power(a/(a*a+b*b)-I*b/(a*a+b*b),-exponent);
-		result = result.expand();
-		result = result.real_part();
-		result = result.subs(lst( a==basis_real, b==basis.imag_part() ));
+		// Re((a+I*b)^c)  w/  c ∈ ℤ
+		long N = ex_to<numeric>(c).to_long();
+		// Use real terms in Binomial expansion to construct
+		// Re(expand(power(a+I*b, N))).
+		long NN = N > 0 ? N : -N;
+		ex numer = N > 0 ? _ex1 : power(power(a,2) + power(b,2), NN);
+		ex result = 0;
+		for (long n = 0; n <= NN; n += 2) {
+			ex term = binomial(NN, n) * power(a, NN-n) * power(b, n) / numer;
+			if (n % 4 == 0) {
+				result += term;  // sign: I^n w/ n == 4*m
+			} else {
+				result -= term;  // sign: I^n w/ n == 4*m+2
+			}
+		}
 		return result;
 	}
-	
-	ex a = basis.real_part();
-	ex b = basis.imag_part();
-	ex c = exponent.real_part();
-	ex d = exponent.imag_part();
+
+	// Re((a+I*b)^(c+I*d))
+	const ex d = exponent.imag_part();
 	return power(abs(basis),c)*exp(-d*atan2(b,a))*cos(c*atan2(b,a)+d*log(abs(basis)));
 }
 
 ex power::imag_part() const
 {
+	const ex a = basis.real_part();
+	const ex c = exponent.real_part();
+	if (basis.is_equal(a) && exponent.is_equal(c)) {
+		// Im(a^c)
+		return 0;
+	}
+
+	const ex b = basis.imag_part();
 	if (exponent.info(info_flags::integer)) {
-		ex basis_real = basis.real_part();
-		if (basis_real == basis)
-			return 0;
-		symbol a("a"),b("b");
-                a.set_domain(domain::real);
-                b.set_domain(domain::real);
-		ex result;
-		if (exponent.info(info_flags::posint))
-			result = power(a+I*b,exponent);
-		else
-			result = power(a/(a*a+b*b)-I*b/(a*a+b*b),-exponent);
-		result = result.expand();
-		result = result.imag_part();
-		result = result.subs(lst( a==basis_real, b==basis.imag_part() ));
+		// Im((a+I*b)^c)  w/  c ∈ ℤ
+		long N = ex_to<numeric>(c).to_long();
+		// Use imaginary terms in Binomial expansion to construct
+		// Im(expand(power(a+I*b, N))).
+		long p = N > 0 ? 1 : 3;  // modulus for positive sign
+		long NN = N > 0 ? N : -N;
+		ex numer = N > 0 ? _ex1 : power(power(a,2) + power(b,2), NN);
+		ex result = 0;
+		for (long n = 1; n <= NN; n += 2) {
+			ex term = binomial(NN, n) * power(a, NN-n) * power(b, n) / numer;
+			if (n % 4 == p) {
+				result += term;  // sign: I^n w/ n == 4*m+p
+			} else {
+				result -= term;  // sign: I^n w/ n == 4*m+2+p
+			}
+		}
 		return result;
 	}
-	
-	ex a=basis.real_part();
-	ex b=basis.imag_part();
-	ex c=exponent.real_part();
-	ex d=exponent.imag_part();
+
+	// Im((a+I*b)^(c+I*d))
+	const ex d = exponent.imag_part();
 	return power(abs(basis),c)*exp(-d*atan2(b,a))*sin(c*atan2(b,a)+d*log(abs(basis)));
 }
 

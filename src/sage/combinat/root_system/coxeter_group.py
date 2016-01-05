@@ -104,6 +104,9 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
         ...
         NotImplementedError: Coxeter group of type ['A', 4, 1] as permutation group not implemented
 
+        sage: W = CoxeterGroup(["A",4], implementation="chevie")
+        Irreducible real reflection group of rank 4 and type A4
+
     We use the different options for the "reflection" implementation::
 
         sage: W = CoxeterGroup(["H",3], implementation="reflection", base_ring=RR)
@@ -122,7 +125,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = groups.misc.CoxeterGroup(["H",3])
     """
-    if implementation not in ["permutation", "matrix", "coxeter3", "reflection", None]:
+    if implementation not in ["permutation", "matrix", "coxeter3", "reflection", "chevie", None]:
         raise ValueError("invalid type implementation")
 
     try:
@@ -149,6 +152,9 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
         if cartan_type.is_crystallographic():
             return WeylGroup(cartan_type)
         return CoxeterMatrixGroup(cartan_type, base_ring, index_set)
+    elif implementation == "chevie":
+        from sage.combinat.root_system.reflection_group_real import ReflectionGroup
+        return ReflectionGroup(data, index_set=index_set)
 
     raise NotImplementedError("Coxeter group of type {} as {} group not implemented".format(cartan_type, implementation))
 

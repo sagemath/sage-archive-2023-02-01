@@ -408,7 +408,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         Check that :trac:`19835` is fixed::
 
-            sage: 
+            sage: QQ((0r,-1r))
+            0
+            sage: QQ((-1r,-1r))
+            1
 
         .. NOTE::
 

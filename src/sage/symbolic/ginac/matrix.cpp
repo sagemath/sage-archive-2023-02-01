@@ -1587,7 +1587,7 @@ ex diag_matrix(const lst & l)
 ex unit_matrix(unsigned r, unsigned c)
 {
 	matrix &Id = *new matrix(r, c);
-	Id.setflag(status_flags::dynallocated);
+	Id.setflag(status_flags::dynallocated | status_flags::evaluated);
 	for (unsigned i=0; i<r && i<c; i++)
 		Id(i,i) = _ex1;
 

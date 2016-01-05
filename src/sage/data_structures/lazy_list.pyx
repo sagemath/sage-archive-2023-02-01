@@ -43,6 +43,30 @@ But, naturally, not the other way around::
     Traceback (most recent call last):
     ...
     TypeError: can only add list to lazy_list
+
+You can easily create your own class inheriting from ``lazy_list_abstract``. You
+should call the ``lazy_list_abstract`` constructor (optionally with some
+precomputed values for the cache) and implement the method ``_new_slice`` that
+returns a new chunk of data at each call. Here is an example of implementation
+of the Thue-Morse word that is obtained as the fixed point of the substitution
+0->01 and 1->10::
+
+    sage: from sage.data_structures.lazy_list import lazy_list_abstract
+    sage: class MyThueMorseWord(lazy_list_abstract):
+    ....:     def __init__(self):
+    ....:         self.i = 1
+    ....:         lazy_list_abstract.__init__(self, cache=[0,1])
+    ....:     def _new_slice(self):
+    ....:         letter = self.get(self.i)
+    ....:         self.i += 1
+    ....:         return [0,1] if letter == 0 else [1,0]
+    sage: w = MyThueMorseWord()
+    sage: w
+    lazy list [0, 1, 1, ...]
+    sage: all(w[i] == ZZ(i).popcount()%2 for i in range(100))
+    True
+    sage: w[:500].list() == w[:1000:2].list()
+    True
 """
 
 # in types.pxd
@@ -53,9 +77,15 @@ But, naturally, not the other way around::
 cdef extern from "Python.h":
     Py_ssize_t PY_SSIZE_T_MAX
 
-from cpython.list cimport *
-
 from libc cimport limits
+
+# make a unique instance of empty lazy lists
+cdef lazy_list_abstract empty_lazy_list
+empty_lazy_list = lazy_list_abstract.__new__(lazy_list_abstract)
+empty_lazy_list.start = 0
+empty_lazy_list.stop = 0
+empty_lazy_list.step = 1
+empty_lazy_list.cache = []
 
 cdef class lazy_list_iterator(object):
     """
@@ -68,7 +98,7 @@ cdef class lazy_list_iterator(object):
     - ``pos`` -- (Default: ``None``) ``None`` or a non-negative integer
       specifying the starting position
     """
-    def __init__(self, l, pos=None):
+    def __init__(self, lazy_list_abstract l, pos=None):
         r"""
         Initialize ``self``.
 
@@ -87,9 +117,7 @@ cdef class lazy_list_iterator(object):
             sage: next(e2)
             6
         """
-        if not isinstance(l, lazy_list):
-            raise TypeError("argument must be lazy_list not %s"%type(l).__name__)
-        self.l = <lazy_list> l
+        self.l = l
         self.step = self.l.step
         if pos is not None:
             self.pos = pos
@@ -157,7 +185,7 @@ cdef class lazy_list_iterator(object):
         """
         self.pos += self.step
         self.l.update_cache_up_to(self.pos)   # possibly raise a StopIteration
-        return <object> PyList_GET_ITEM(self.l.cache, self.pos)
+        return self.l.cache[self.pos]
 
 cdef class stopped_lazy_list_iterator(object):
     """
@@ -187,10 +215,10 @@ cdef class stopped_lazy_list_iterator(object):
             sage: print next(i1), next(i2)
             41 41
         """
-        if not isinstance(l, lazy_list):
+        if not isinstance(l, lazy_list_abstract):
             raise TypeError("argument must be a lazy list")
 
-        self.l = <lazy_list> l
+        self.l = <lazy_list_abstract> l
         self.step = self.l.step
         self.stop = self.l.stop
         if pos is not None:
@@ -254,106 +282,94 @@ cdef class stopped_lazy_list_iterator(object):
                                     # modulo step
             raise StopIteration
         self.l.update_cache_up_to(self.pos)   # possibly raise a StopIteration
-        return <object> PyList_GET_ITEM(self.l.cache, self.pos)
+        return self.l.cache[self.pos]
 
-cdef class lazy_list(object):
+def lazy_list(data, cache=None, start=None, stop=None, step=None):
     r"""
-    Lazy list.
+    Initialize ``self``.
 
-    INPUT:
-
-    - ``iterator`` -- an iterable or an iterator
-
-    - ``cache`` -- ``None`` (default) or a list - used to initialize the cache.
-
-    - ``start``, ``stop``, ``step`` -- ``None`` (default) or a non-negative
-      integer - parameters for slices
-
-    EXAMPLES::
+    TESTS::
 
         sage: from sage.data_structures.lazy_list import lazy_list
         sage: from itertools import count
-        sage: m = lazy_list(count()); m
+        sage: f = lazy_list(count())
+        sage: loads(dumps(f))
         lazy list [0, 1, 2, ...]
+        sage: lazy_list(lambda n: (n**2)%17)
+        lazy list [0, 1, 4, ...]
 
-        sage: m2 = lazy_list(count(), start=8, stop=20551, step=2)
-        sage: m2
-        lazy list [8, 10, 12, ...]
-
-        sage: x = iter(m)
-        sage: print next(x), next(x), next(x)
-        0 1 2
-        sage: y = iter(m)
-        sage: print next(y), next(y), next(y)
-        0 1 2
-        sage: print next(x), next(y)
-        3 3
-        sage: loads(dumps(m))
-        lazy list [0, 1, 2, ...]
-
-    .. NOTE::
-
-        - :class:`lazy_list` interprets the constant ``(size_t)-1`` as infinity
-        - all entry indices are stictly less than ``stop`` so that
-          :class:`lazy_list` agrees with ``range(start, stop)``
+        sage: l3 = lazy_list([1,5,7,2])
+        sage: l3
+        lazy list [1, 5, 7, ...]
+        sage: l3[::2]
+        lazy list [1, 7]
     """
-    def __init__(self, iterator, cache=None, start=None, stop=None, step=None):
-        r"""
-        Initialize ``self``.
+    cdef lazy_list_abstract l
 
-        TESTS::
+    if cache is None:
+        cache = []
 
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: from itertools import count
-            sage: f = lazy_list(count())
-            sage: loads(dumps(f))
-            lazy list [0, 1, 2, ...]
-        """
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = PY_SSIZE_T_MAX
-        if step is None:
-            step = 1
+    if isinstance(data, (tuple,list)):
+        l = lazy_list_abstract(list(data), 0, len(data), 1)
+    else:
+        # the code below is not very clean
+        # we just want to differentiate on the one hand iterable (= object with a
+        # proper __iter__ method)/iterator (= object with a next method) and on the
+        # other hand callable (= object with __call__)
+        try:
+            data = iter(data)
+        except TypeError:
+            pass
 
         from sage.misc.misc import is_iterator
-        if not is_iterator(iterator):
-            if isinstance(iterator, (list, tuple)):
-                stop = min(stop,len(iterator))
-            iterator = iter(iterator)
-        self.iterator = iterator
+        if is_iterator(data):
+            l = lazy_list_from_iterator(iter(data), cache)
+        elif callable(data):
+            l = lazy_list_from_function(data, cache)
+        else:
+            raise ValueError("not able to build a lazy list from {}".format(type(data)))
 
-        if cache is None or stop <= start:
-            cache = []
-        elif not isinstance(cache, list):
-            raise TypeError("cache must be a list, not %s"%type(cache).__name__)
-        self.cache = cache
+    if start is not None or stop is not None or step is not None:
+        return l[start:stop:step]
+    else:
+        return l
 
-        if not isinstance(start, (int,long)):
-            try:
-                start = start.__index__()
-            except Exception:
-                raise TypeError("start must be None or integer")
-        if start < 0:
-            raise ValueError("start must be non negative")
-        if not isinstance(stop, (int,long)):
-            try:
-                stop = stop.__index__()
-            except Exception:
-                raise TypeError("stop must be None or integer")
-        if stop < 0:
-            raise ValueError("stop must be larger than -2")
-        if not isinstance(step, (int,long)):
-            try:
-                step = step.__index__()
-            except Exception:
-                raise TypeError("step must be None or integer")
-        if step <= 0:
-            raise ValueError("step must be positive")
+def slice_unpickle(master, start, stop, step):
+    r"""
+    Unpickle helper
 
-        self.start = <Py_ssize_t> start
-        self.stop  = <Py_ssize_t> stop
-        self.step  = <Py_ssize_t> step
+    TESTS::
+
+        sage: from sage.data_structures.lazy_list import slice_unpickle
+        sage: slice_unpickle(range(35), 1, 3, 7) == range(35)[1:3:7]
+        True
+    """
+    return master[start:stop:step]
+
+cdef class lazy_list_abstract(object):
+    def __init__(self, cache=None, start=None, stop=None, step=None):
+        r"""
+        No check is performed on input and bad input can result in a Sage crash.
+        You are advised to use the function :func:`lazy_list` instead. The only
+        case where you might want to use directly this constructor is if you
+        have a list that you want to convert (without copy) into a lazy list.
+
+        INPUT::
+
+        - ``cache`` - an optional cache
+
+        - ``start``, ``stop``, ``step`` - for slices
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.lazy_list import lazy_list_abstract
+            sage: lazy_list_abstract([0,1,2], 0, 2, None)
+            lazy list [0, 1]
+        """
+        self.cache = [] if cache is None else cache
+        self.start = 0 if start is None else start
+        self.stop = PY_SSIZE_T_MAX if stop is None else stop
+        self.step = 1 if step is None else step
 
     def start_stop_step(self):
         r"""
@@ -421,20 +437,40 @@ cdef class lazy_list(object):
 
     def info(self):
         r"""
+        Deprecated method.
+
+        TESTS::
+
+            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: lazy_list([0]).info()
+            doctest:...: DeprecationWarning: info is deprecated in favor of a private method.
+            Use _info() instead
+            See http://trac.sagemath.org/19428 for details.
+            cache length 1
+            start        0
+            stop         1
+            step         1
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(19428, "info is deprecated in favor of a private method. Use _info() instead")
+        return self._info()
+
+    def _info(self):
+        r"""
         Print information about ``self`` on standard output.
 
         EXAMPLES::
 
             sage: from sage.data_structures.lazy_list import lazy_list
             sage: P = lazy_list(iter(Primes()))[10:21474838:4]
-            sage: P.info()
+            sage: P._info()
             cache length 0
             start        10
             stop         21474838
             step         4
             sage: P[0]
             31
-            sage: P.info()
+            sage: P._info()
             cache length 11
             start        10
             stop         21474838
@@ -463,10 +499,19 @@ cdef class lazy_list(object):
             True
             sage: p
             ['huit', 'douze']
+            sage: ([0,2] + lazy_list([0,1])).list()
+            [0, 2, 0, 1]
         """
-        if isinstance(self, list):
-            return lazy_list(iter(other), cache=self[:])
-        raise TypeError("can only add list to lazy_list")
+        if not isinstance(self, list):
+            raise TypeError("can only add list to lazy_list")
+
+        cdef lazy_list_from_iterator l = lazy_list_from_iterator.__new__(lazy_list_from_iterator)
+        l.cache = self[:]
+        l.start = 0
+        l.stop = PY_SSIZE_T_MAX
+        l.step = 1
+        l.iterator = iter(other)
+        return l
 
     def __repr__(self):
         r"""
@@ -494,7 +539,7 @@ cdef class lazy_list(object):
             lazy list [0, 1, 2, ...]
         """
         cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
-        cdef Py_ssize_t length = PyList_GET_SIZE(self.cache)
+        cdef Py_ssize_t length = len(self.cache)
 
         if (length <= self.start + 3*self.step and
             num_elts != length / self.step):
@@ -505,23 +550,23 @@ cdef class lazy_list(object):
             return "lazy list []"
 
         if num_elts == 1:
-            return "lazy list [%s]"%(repr(self.get(0)))
+            return "lazy list [{!r}]".format(self.get(0))
 
         if num_elts == 2:
-            return "lazy list [%s, %s]"%(
-                    repr(self.get(0)),
-                    repr(self.get(1)))
+            return "lazy list [{!r}, {!r}]".format(
+                    self.get(0),
+                    self.get(1))
 
         if num_elts == 3:
-            return "lazy list [%s, %s, %s]"%(
-                repr(self.get(0)),
-                repr(self.get(1)),
-                repr(self.get(2)))
+            return "lazy list [{!r}, {!r}, {!r}]".format(
+                self.get(0),
+                self.get(1),
+                self.get(2))
 
-        return "lazy list [%s, %s, %s, ...]"%(
-                repr(self.get(0)),
-                repr(self.get(1)),
-                repr(self.get(2)))
+        return "lazy list [{!r}, {!r}, {!r}, ...]".format(
+                self.get(0),
+                self.get(1),
+                self.get(2))
 
     def __reduce__(self):
         r"""
@@ -536,30 +581,13 @@ cdef class lazy_list(object):
             sage: y = iter(x)
             sage: print next(y), next(y), next(y)
             0 1 2
+            sage: m2 = m[3::2]
+            sage: loads(dumps(m2))
+            lazy list [3, 5, 7, ...]
         """
-        return lazy_list, (self.iterator, self.cache, self.start, self.stop, self.step)
-
-    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
-        r"""
-        Update the cache up to ``i``.
-
-        If the iterator stops, the function silently return 0 (no error are
-        raised). Otherwise it returns 1.
-
-        .. TODO::
-
-            This method should be implemented in such way that it does not raise
-            StopIteration (using PyIter_Next from sage/ext/python_iterator.pxi).
-            The fact that the iterator stops before than expected may be encoded
-            in the returned value of the function:
-
-            * 0 : function succeded
-            * 1 : iterator stopped before stop was reached
-            * -1 : an error occurred
-        """
-        while PyList_GET_SIZE(self.cache) <= i:
-            PyList_Append(self.cache, next(self.iterator))
-        return 0
+        if self.master is None:
+            raise NotImplementedError
+        return slice_unpickle, (self.master, self.start, self.stop, self.step)
 
     def _fit(self, n):
         r"""
@@ -573,34 +601,34 @@ cdef class lazy_list(object):
         EXAMPLES::
 
             sage: from sage.data_structures.lazy_list import lazy_list
-            sage: l = lazy_list([0,1,2,-34,3,2,-5,12,1,4,-18,5,-12])[2::3]
-            sage: l.info()
+            sage: l = lazy_list(iter([0,1,2,-34,3,2,-5,12,1,4,-18,5,-12]))[2::3]
+            sage: l._info()
             cache length 0
             start        2
-            stop         14
+            stop         9223372036854775807
             step         3
-            sage: l
-            lazy list [2, 2, 1, ...]
             sage: l._fit(13)
-            sage: l.info()
+            sage: l._info()
             cache length 13
             start        2
             stop         14
             step         3
+
+            sage: l = lazy_list([0]*12)[1::2]
+            sage: l._fit(100)
         """
-        if n >= self.stop:
-            n = self.stop
+        n = min(n, self.stop - self.step)
         try:
             self.update_cache_up_to(n)
         except StopIteration:
-            self.stop = PyList_GET_SIZE(self.cache)
+            self.stop = len(self.cache)
             if self.stop <= self.start:
                 self.start = self.stop = 0
                 self.step = 1
             if (self.start - self.stop) % self.step:
                 self.stop += self.step + (self.start - self.stop) % self.step
 
-    def __call__(self, i):
+    cpdef get(self, Py_ssize_t i):
         r"""
         Return the element at position ``i``.
 
@@ -635,24 +663,30 @@ cdef class lazy_list(object):
             ...
             TypeError: rational is not an integer
         """
-        cdef Py_ssize_t j
-
-        if not hasattr(i, '__index__'):
-            raise TypeError("indices must be integers, not %s"%type(i).__name__)
-
-        j = <Py_ssize_t> i.__index__()
-        if j < 0:
+        if i < 0:
             raise ValueError("indices must be non negative")
 
-        j = self.start + j * self.step
-        if j >= self.stop:
+        i = self.start + i*self.step
+        if i >= self.stop:
             raise IndexError("lazy list index out of range")
-        self._fit(j)
-        if j >= self.stop:
+        self._fit(i)
+        if i >= self.stop:
             raise IndexError("lazy list index out of range")
-        return <object> PyList_GET_ITEM(self.cache, j)
+        return self.cache[i]
 
-    get = __call__
+    def __call__(self, i):
+        r"""
+        TESTS::
+
+            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from itertools import chain, repeat
+            sage: f = lazy_list(chain(iter([1,2,3]), repeat('a')))
+            sage: f(2)
+            3
+            sage: f(3)
+            'a'
+        """
+        return self.get(i)
 
     def __iter__(self):
         r"""
@@ -732,42 +766,17 @@ cdef class lazy_list(object):
             lazy list [0, 0]
             sage: l[::2][2::][2::3]
             lazy list [0, 0, 0]
+            sage: l[4:3][:] is l[18:2]   # *the* empty_lazy_list
+            True
         """
         if not isinstance(key, slice):
-            key = key.__index__()
-        if isinstance(key, (int,long)):
             return self.get(key)
 
         # the following make all terms > 0
-        if key.start is None:
-            start = 0
-        elif isinstance(key.start, (int,long)):
-            start = key.start
-        else:
-            try:
-                start = key.start.__index__()
-            except Exception:
-                raise TypeError("slice indices must be integers or None or have an __index__ method")
-
-        if key.stop is None:
-            stop = PY_SSIZE_T_MAX
-        elif isinstance(key.stop, (int,long)):
-            stop = key.stop
-        else:
-            try:
-                stop = key.stop.__index__()
-            except Exception:
-                raise TypeError("slice indices must be integers or None or have an __index__ method")
-
-        if key.step is None:
-            step = 1
-        elif isinstance(key.step, (int,long)):
-            step = key.step
-        else:
-            try:
-                step = key.step.__index__()
-            except Exception:
-                raise TypeError("slice indices must be integers or None or have an __index__ method")
+        cdef Py_ssize_t start, stop, step
+        start = 0 if key.start is None else key.start
+        stop = PY_SSIZE_T_MAX if key.stop is None else key.stop
+        step = 1 if key.step is None else key.step
 
         if step == 0:
             raise TypeError("step may not be 0")
@@ -783,9 +792,157 @@ cdef class lazy_list(object):
         if stop != PY_SSIZE_T_MAX and stop%step != start%step:
             stop = stop - (stop-start)%step + step
 
-        if start >= stop:
-            l = []
-            return lazy_list(iter(l), l, 0, 0, 1)
+        if stop <= start:
+            return empty_lazy_list
 
-        return lazy_list(self.iterator, self.cache, start, stop, step)
+        # here we return a slice of self. That is to say, a lazy list which
+        # shares the same cache of values
+        cdef lazy_list_abstract l = lazy_list_abstract.__new__(lazy_list_abstract)
+        l.master = self
+        l.cache = self.cache
+        l.start = start
+        l.stop = stop
+        l.step = step
 
+        return l
+
+    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+        r"""
+        Update the cache up to ``i``.
+
+        This is the default implementation that calls ``_new_slice``.
+        """
+        if self.master is not None:    # this is a slice
+            return self.master.update_cache_up_to(i)
+
+        else:
+            while len(self.cache) <= i:
+                self.cache.extend(self._new_slice())
+
+        return 0
+
+cdef class lazy_list_from_iterator(lazy_list_abstract):
+    r"""
+    Lazy list.
+
+    INPUT:
+
+    - ``iterator`` -- an iterable or an iterator
+
+    - ``cache`` -- ``None`` (default) or a list - used to initialize the cache.
+
+    - ``start``, ``stop``, ``step`` -- ``None`` (default) or a non-negative
+      integer - parameters for slices
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.lazy_list import lazy_list
+        sage: from itertools import count
+        sage: m = lazy_list(count()); m
+        lazy list [0, 1, 2, ...]
+
+        sage: m2 = lazy_list(count(), start=8, stop=20551, step=2)
+        sage: m2
+        lazy list [8, 10, 12, ...]
+
+        sage: x = iter(m)
+        sage: print next(x), next(x), next(x)
+        0 1 2
+        sage: y = iter(m)
+        sage: print next(y), next(y), next(y)
+        0 1 2
+        sage: print next(x), next(y)
+        3 3
+        sage: loads(dumps(m))
+        lazy list [0, 1, 2, ...]
+
+    .. NOTE::
+
+        - :class:`lazy_list` interprets the constant ``(size_t)-1`` as infinity
+        - all entry indices are stictly less than ``stop`` so that
+          :class:`lazy_list` agrees with ``range(start, stop)``
+    """
+    def __init__(self, iterator, cache=None):
+        r"""
+        INPUT:
+
+        - ``iterator`` - an iterator
+
+        - ``cache`` - an optional cache
+
+        TESTS::
+
+            sage: from sage.data_structures.lazy_list import lazy_list_from_iterator
+            sage: from itertools import count
+            sage: lazy_list_from_iterator(count())
+            lazy list [0, 1, 2, ...]
+            sage: lazy_list_from_iterator(count(), ['a'])
+            lazy list ['a', 0, 1, ...]
+        """
+        self.iterator = iterator
+        lazy_list_abstract.__init__(self, cache)
+
+    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+        r"""
+        Update the cache up to ``i``.
+        """
+        while len(self.cache) <= i:
+            self.cache.append(next(self.iterator))
+        return 0
+
+    def __reduce__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.data_structures.lazy_list import lazy_list_from_iterator
+            sage: from itertools import count
+            sage: loads(dumps(lazy_list_from_iterator(count())))
+            lazy list [0, 1, 2, ...]
+            sage: loads(dumps(lazy_list_from_iterator(count(), ['a'])))
+            lazy list ['a', 0, 1, ...]
+        """
+        return lazy_list_from_iterator, (self.iterator, self.cache)
+
+cdef class lazy_list_from_function(lazy_list_abstract):
+    def __init__(self, function, cache=None):
+        r"""
+        INPUT:
+
+        - ``function`` -- a function ``n`` -> element at position ``n`` (this
+          function only needs to be defined for length larger than the length of
+          the cache)
+
+        - ``cache`` - an optional cache
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.lazy_list import lazy_list_from_function
+            sage: lazy_list_from_function(euler_phi)
+            lazy list [0, 1, 1, ...]
+            sage: lazy_list_from_function(divisors, [None])
+            lazy list [None, [1], [1, 2], ...]
+        """
+        self.callable = function
+        lazy_list_abstract.__init__(self, cache)
+
+    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+        r"""
+        Update the cache up to ``i``.
+        """
+        while len(self.cache) <= i:
+            self.cache.append(self.callable(len(self.cache)))
+        return 0
+
+    def __reduce__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.data_structures.lazy_list import lazy_list_from_function
+            sage: loads(dumps(lazy_list_from_function(euler_phi)))
+            lazy list [0, 1, 1, ...]
+            sage: loads(dumps(lazy_list_from_function(divisors, [None])))
+            lazy list [None, [1], [1, 2], ...]
+        """
+        if self.start != 0 or self.stop != PY_SSIZE_T_MAX or self.step != 1:
+            raise RuntimeError
+        return lazy_list_from_function, (self.callable, self.cache)

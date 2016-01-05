@@ -1269,7 +1269,16 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F = SC[1]; F.plot()
             Traceback (most recent call last):
             ...
-            ValueError: Plotting is currently only implemented in types A or B
+            ValueError: Plotting is currently only implemented for irreducibles types A, B, and C.
+
+            sage: W = CoxeterGroup(CoxeterMatrix((['A',2],['A',2])))
+            sage: c = W.from_reduced_word([1,2,3,4])
+            sage: Q = c.reduced_word() + W.w0.coxeter_sorting_word(c)
+            sage: SC = SubwordComplex(Q, W.w0)
+            sage: F = SC[1]; F.plot()
+            Traceback (most recent call last):
+            ...
+            ValueError: Plotting is currently only implemented for irreducibles types A, B, and C.
 
         REFERENCES: [PilStu]_
         """

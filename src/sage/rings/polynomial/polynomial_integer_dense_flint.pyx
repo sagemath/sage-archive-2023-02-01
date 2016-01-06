@@ -297,6 +297,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             2.20000000000000
             sage: (x**2)._eval_mpfr_(RR(2.2))
             4.84000000000000
+            sage: R.zero()._eval_mpfr_(RR(2.1))
+            0.000000000000000
+            sage: R.one()._eval_mpfr_(RR(2.1))
+            1.00000000000000
 
             sage: RRu = RealField(17, rnd='RNDU')
             sage: RRd = RealField(17, rnd='RNDD')
@@ -332,6 +336,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             2.5000000000000000?
             sage: (x**2)._eval_mpfi_(RIF(1.333,1.334))
             1.78?
+            sage: R.zero()._eval_mpfi_(RIF(2.1))
+            0
+            sage: R.one()._eval_mpfi_(RIF(2.1))
+            1
 
             sage: p = x**3 - x**2 - x - 1
             sage: r = p.roots(RIF, multiplicities=False)[0]

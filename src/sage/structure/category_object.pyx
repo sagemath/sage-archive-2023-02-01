@@ -390,10 +390,10 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: parent(w)
             Maximal Order in Number Field in a with defining polynomial x^2 + 163
         """
-        return self.defining_generators()[:n]
+        return self._defining_generators()[:n]
 
     @cached_method
-    def defining_generators(self):
+    def _defining_generators(self):
         """
         The generators used to "define" this object. What this means
         depends on the type of object: for rings, it usually means
@@ -402,31 +402,31 @@ cdef class CategoryObject(sage_object.SageObject):
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(QQ)
-            sage: R.defining_generators()
+            sage: R._defining_generators()
             (x,)
 
         For orders, we correctly use the ring generator, see
         :trac:`15348`::
 
             sage: B.<z> = EquationOrder(x^2 + 3)
-            sage: B.defining_generators()
+            sage: B._defining_generators()
             [z]
 
         For vector spaces and free modules, we get a basis::
 
             sage: V = ZZ^3
-            sage: V.defining_generators()
+            sage: V._defining_generators()
             ((1, 0, 0), (0, 1, 0), (0, 0, 1))
             sage: W = V.span([(1/2, 1, 0)])
-            sage: W.defining_generators()
+            sage: W._defining_generators()
             ((1/2, 1, 0),)
 
         This is cached, so we can manually set the result if required.
         Beware that this might break stuff because of unique
         representation! ::
 
-            sage: (ZZ^3).defining_generators.set_cache(["foo", "bar"])
-            sage: V.defining_generators()
+            sage: (ZZ^3)._defining_generators.set_cache(["foo", "bar"])
+            sage: V._defining_generators()
             ['foo', 'bar']
         """
         try:

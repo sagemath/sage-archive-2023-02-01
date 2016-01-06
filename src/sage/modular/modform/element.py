@@ -14,15 +14,18 @@ Elements of modular forms spaces
 import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
+
 from sage.rings.fast_arith import prime_range
+from sage.rings.morphism import RingHomomorphism
+from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, sxrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
-from sage.rings.arith import lcm
+from sage.rings.arith import lcm, divisors, moebius
 from sage.structure.element import get_coercion_model
 
 
@@ -674,81 +677,115 @@ class ModularForm_abstract(ModuleElement):
                      + mu_dN ** n * (mu_d ** (n * b) - eps * mu_d ** (n * c)))
                    for n in range(1, numterms + 1))
 
-    def lseries(self, conjugate=0, prec=53,
+    def lseries(self, embedding=0, prec=53,
                          max_imaginary_part=0,
-                         max_asymp_coeffs=40):
+                         max_asymp_coeffs=40,
+                         conjugate=None):
         r"""
         Return the L-series of the weight k cusp form
-        f on `\Gamma_0(N)`.
+        `f` on `\Gamma_0(N)`.
 
-        This actually returns an interface to Tim Dokchitser's program
-        for computing with the L-series of the cusp form.
+        This actually returns an interface to Tim Dokchitser's program for
+        computing with the L-series of the cusp form.
 
         INPUT:
 
-        - ``conjugate`` - (default: 0), integer between 0 and degree-1
+        - ``embedding`` - either an embedding of the coefficient field of self
+          into `\CC`, or an integer `i` between 0 and D-1 where D is the degree
+          of the coefficient field (meaning to pick the `i`-th embedding).
+          (Default: 0)
 
-        - ``prec`` - integer (bits precision)
+        - ``prec`` - integer (bits precision). Default: 53.
 
-        - ``max_imaginary_part`` - real number
+        - ``max_imaginary_part`` - real number. Default: 0.
 
-        - ``max_asymp_coeffs`` - integer
+        - ``max_asymp_coeffs`` - integer. Default: 40.
+
+        - ``conjugate`` -- deprecated synonym for ``embedding``.
+
+        For more information on the significance of the last three arguments,
+        see :mod:`~sage.lfunctions.dokchitser`.
+
+        .. note::
+
+            If an explicit embedding is given, but this embedding is specified
+            to smaller precision than ``prec``, it will be automatically
+            refined to precision ``prec``.
 
         OUTPUT:
 
-        The L-series of the cusp form.
+        The L-series of the cusp form, as a
+        :class:`sage.lfunctions.dokchitser.Dokchitser` object.
 
         EXAMPLES::
 
-           sage: f = CuspForms(2,8).newforms()[0]
-           sage: L = f.lseries()
-           sage: L(1)
-           0.0884317737041015
-           sage: L(0.5)
-           0.0296568512531983
+            sage: f = CuspForms(2,8).newforms()[0]
+            sage: L = f.lseries()
+            sage: L
+            L-series associated to the cusp form q - 8*q^2 + 12*q^3 + 64*q^4 - 210*q^5 + O(q^6)
+            sage: L(1)
+            0.0884317737041015
+            sage: L(0.5)
+            0.0296568512531983
 
-        For non-rational newforms we can specify a conjugate::
+        As a consistency check, we verify that the functional equation holds::
 
-           sage: f = Newforms(43, names='a')[1]
-           sage: L = f.lseries(conjugate=0)
-           sage: L(1)
-           0.620539857407845
-           sage: L = f.lseries(conjugate=1)
-           sage: L(1)
-           0.921328017272472
+            sage: abs(L.check_functional_equation()) < 1.0e-20
+            True
+
+        For non-rational newforms we can specify an embedding of the coefficient field::
+
+            sage: f = Newforms(43, names='a')[1]
+            sage: K = f.hecke_eigenvalue_field()
+            sage: phi1, phi2 = K.embeddings(CC)
+            sage: L = f.lseries(embedding=phi1)
+            sage: L
+            L-series associated to the cusp form q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6), a1=-1.41421356237310
+            sage: L(1)
+            0.620539857407845
+            sage: L = f.lseries(embedding=1)
+            sage: L(1)
+            0.921328017272472
+
+        For backward-compatibility, ``conjugate`` is accepted as a synonym for ``embedding``::
+
+            sage: f.lseries(conjugate=1)
+            doctest:...: DeprecationWarning: The argument 'conjugate' for 'lseries' is deprecated -- use the synonym 'embedding'
+            See http://trac.sagemath.org/19668 for details.
+            L-series associated to the cusp form q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6), a1=1.41421356237310
 
         We compute with the L-series of the Eisenstein series `E_4`::
 
-           sage: f = ModularForms(1,4).0
-           sage: L = f.lseries()
-           sage: L(1)
-           -0.0304484570583933
-           sage: L = eisenstein_series_lseries(4)
-           sage: L(1)
-           -0.0304484570583933
+            sage: f = ModularForms(1,4).0
+            sage: L = f.lseries()
+            sage: L(1)
+            -0.0304484570583933
+            sage: L = eisenstein_series_lseries(4)
+            sage: L(1)
+            -0.0304484570583933
 
         Consistency check with delta_lseries (which computes coefficients in pari)::
 
-           sage: delta = CuspForms(1,12).0
-           sage: L = delta.lseries()
-           sage: L(1)
-           0.0374412812685155
-           sage: L = delta_lseries()
-           sage: L(1)
-           0.0374412812685155
+            sage: delta = CuspForms(1,12).0
+            sage: L = delta.lseries()
+            sage: L(1)
+            0.0374412812685155
+            sage: L = delta_lseries()
+            sage: L(1)
+            0.0374412812685155
 
-        We check that #5262 is fixed::
+        We check that :trac:`5262` is fixed::
 
-            sage: E=EllipticCurve('37b2')
-            sage: h=Newforms(37)[1]
+            sage: E = EllipticCurve('37b2')
+            sage: h = Newforms(37)[1]
             sage: Lh = h.lseries()
-            sage: LE=E.lseries()
+            sage: LE = E.lseries()
             sage: Lh(1), LE(1)
             (0.725681061936153, 0.725681061936153)
             sage: CuspForms(1, 30).0.lseries().eps
             -1
 
-        We can change the precision (in bits)
+        We can change the precision (in bits)::
 
             sage: f = Newforms(389, names='a')[0]
             sage: L = f.lseries(prec=30)
@@ -766,6 +803,11 @@ class ModularForm_abstract(ModuleElement):
             sage: L(1)
             0.588879583428483
         """
+
+        if conjugate is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(19668, "The argument 'conjugate' for 'lseries' is deprecated -- use the synonym 'embedding'")
+            embedding=conjugate
         from sage.lfunctions.all import Dokchitser
         # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
@@ -798,16 +840,192 @@ class ModularForm_abstract(ModuleElement):
             coeffs = (invb*c for c in coeffs)
 
         # compute the requested embedding
-        emb = self.base_ring().embeddings(rings.ComplexField(prec))[conjugate]
+        K = self.base_ring()
+        if isinstance(embedding, RingHomomorphism):
+            # Target of embedding might have precision less than desired, so
+            # need to refine
+            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
+        else:
+            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
+
         s = 'coeff = %s;' % [emb(_) for _ in coeffs]
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
         L.check_functional_equation()
-        L.rename('L-series associated to the cusp form %s'%self)
+        if K == rings.QQ:
+            L.rename('L-series associated to the cusp form %s'%self)
+        else:
+            L.rename('L-series associated to the cusp form %s, %s=%s' \
+                % (self, K.variable_name(), emb(K.gen())))
         return L
 
     cuspform_lseries = deprecated_function_alias(16917, lseries)
+
+    def symsquare_lseries(self, chi=None, embedding=0, prec=53):
+        """
+        Compute the symmetric square L-series of this modular form, twisted by
+        the character `\chi`.
+
+        INPUT:
+
+        - ``chi`` -- Dirichlet character to twist by, or None (default None,
+          interpreted as the trivial character).
+        - ``embedding`` -- embedding of the coefficient field into `\RR` or
+          `\CC`, or an integer `i` (in which case take the `i`-th embedding)
+        - ``prec`` -- The desired precision in bits (default 53).
+
+        OUTPUT: The symmetric square L-series of the cusp form, as a
+        :class:`sage.lfunctions.dokchitser.Dokchitser` object.
+
+        EXAMPLES::
+
+            sage: CuspForms(1, 12).0.symsquare_lseries()(22)
+            0.999645711124771
+
+        An example twisted by a nontrivial character::
+
+            sage: psi = DirichletGroup(7).0^2
+            sage: L = CuspForms(1, 16).0.symsquare_lseries(psi)
+            sage: L(22)
+            0.998407750967420 - 0.00295712911510708*I
+
+        An example with coefficients not in `\QQ`::
+
+            sage: F = Newforms(1, 24, names='a')[0]
+            sage: K = F.hecke_eigenvalue_field()
+            sage: phi = K.embeddings(RR)[0]
+            sage: L = F.symsquare_lseries(embedding=phi)
+            sage: L(5)
+            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
+            -3.57698266793901e19
+
+        TESTS::
+
+            sage: CuspForms(1,16).0.symsquare_lseries(prec=200).check_functional_equation().abs() < 1.0e-80
+            True
+            sage: CuspForms(1, 12).0.symsquare_lseries(prec=1000)(22) # long time (20s)
+            0.999645711124771397835729622033153189549796658647254961493709341358991830134499267117001769570658192128781135161587571716303826382489492569725002840546129937149159065273765309218543427544527498868033604310899372849565046516553245752253255585377793879866297612679545029546953895098375829822346290125161
+
+        AUTHORS:
+
+        - Martin Raum (2011) -- original code posted to sage-nt
+        - David Loeffler (2015) -- added support for twists, integrated into
+          Sage library
+        """
+        from sage.lfunctions.all import Dokchitser
+        weight = self.weight()
+        C = rings.ComplexField(prec)
+        if self.level() != 1:
+            raise NotImplementedError("Symmetric square L-functions only implemented for level 1")
+
+        # compute the requested embedding
+        if isinstance(embedding, RingHomomorphism):
+            # Target of embedding might have precision less than desired, so
+            # need to refine
+            K = self.base_ring()
+            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
+        else:
+            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
+
+        if chi is None:
+            eps = 1
+            N = 1
+        else:
+            assert chi.is_primitive()
+            chi = chi.change_ring(C)
+            eps = chi.gauss_sum()**3 / chi.base_ring()(chi.conductor())**rings.QQ( (3, 2) )
+            N = chi.conductor()**3
+
+        L = Dokchitser(N, [0, 1, -weight + 2], 2 * weight - 1, eps, prec=prec)
+        lcoeffs_prec = L.num_coeffs()
+
+        t = verbose("Computing %s coefficients of F" % lcoeffs_prec, level=1)
+        F_series = [u**2 for u in self.qexp(lcoeffs_prec + 1).list()[1:]]
+        verbose("done", t, level=1)
+
+        # utility function for Dirichlet convolution of series
+        def dirichlet_convolution(A, B):
+            return [sum(A[d-1] * B[n/d - 1] for d in divisors(n))
+                for n in xrange(1, 1 + min(len(A), len(B)))]
+
+        # The Dirichlet series for \zeta(2 s - 2 k + 2)
+        riemann_series = [ n**(weight - 1) if n.is_square() else 0
+                       for n in sxrange(1, lcoeffs_prec + 1) ]
+        # The Dirichlet series for 1 / \zeta(s - k + 1)
+        mu_series = [ moebius(n) * n**(weight - 1) for n in sxrange(1, lcoeffs_prec + 1) ]
+        conv_series = dirichlet_convolution(mu_series, riemann_series)
+
+        dirichlet_series = dirichlet_convolution(conv_series, F_series)
+
+        # If the base ring is QQ we pass the coefficients to GP/PARI as exact
+        # rationals. Otherwise, need to use the embedding.
+        if self.base_ring() != rings.QQ:
+            dirichlet_series = map(emb, dirichlet_series)
+
+        if chi is not None:
+            pari_precode_chi = str(chi.values()) + "[n%" + str(chi.conductor()) + "+1]; "
+        else:
+            pari_precode_chi = "1"
+
+        pari_precode = "hhh(n) = " + str(dirichlet_series) + "[n] * " + pari_precode_chi
+
+        L.init_coeffs( "hhh(k)", w="conj(hhh(k))",
+            pari_precode=pari_precode)
+
+        return L
+
+    def petersson_norm(self, embedding=0, prec=53):
+        r"""
+        Compute the Petersson scalar product of f with itself:
+
+        .. math::
+
+            \langle f, f \rangle = \int_{\Gamma_0(N) \backslash \mathbb{H}} |f(x + iy)|^2 y^k\, \mathrm{d}x\, \mathrm{d}y.
+
+        Only implemented for N = 1 at present. It is assumed that `f` has real
+        coefficients. The norm is computed as a special value of the symmetric
+        square L-function, using the identity
+
+        .. math::
+
+            \langle f, f \rangle = \frac{(k-1)! L(\mathrm{Sym}^2 f, k)}{2^{2k-1} \pi^{k+1}}
+
+        INPUT:
+
+        - ``embedding``: embedding of the coefficient field into `\RR` or
+          `\CC`, or an integer `i` (interpreted as the `i`-th embedding)
+          (default: 0)
+        - ``prec`` (integer, default 53): precision in bits
+
+        EXAMPLE::
+
+            sage: CuspForms(1, 16).0.petersson_norm()
+            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
+            2.16906134759063e-6
+
+        The Petersson norm depends on a choice of embedding::
+
+            sage: set_verbose(-2, "dokchitser.py") # disable precision-loss warnings
+            sage: F = Newforms(1, 24, names='a')[0]
+            sage: F.petersson_norm(embedding=0)
+            0.000107836545077234
+            sage: F.petersson_norm(embedding=1)
+            0.000128992800758160
+
+        TESTS:
+
+        Verify that the Petersson norm is a quadratic form::
+
+            sage: F, G = CuspForms(1, 24).basis()
+            sage: X = lambda u: u.petersson_norm(prec=100)
+            sage: (X(F + G) + X(F - G) - 2*X(F) - 2*X(G)).abs() < 1e-25
+            True
+        """
+        pi = rings.RealField(prec).pi()
+        L = self.symsquare_lseries(prec=prec, embedding=embedding)
+        k = self.weight()
+        return (rings.ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()
 
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):
@@ -1824,7 +2042,7 @@ class EisensteinSeries(ModularFormElement):
             else:
                 m = i // t
                 v.append(sum([psi(d) * chi(m / d) * d ** (k - 1)
-                              for d in rings.divisors(m)]))
+                              for d in divisors(m)]))
         return v
 
     def __defining_parameters(self):

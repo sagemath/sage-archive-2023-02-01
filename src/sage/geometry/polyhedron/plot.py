@@ -503,7 +503,7 @@ class Projection(SageObject):
         self.arrows.set_immutable()
         self.polygons.set_immutable()
 
-        self.__call__(proj)
+        self(proj)
 
 
     def _repr_(self):
@@ -556,7 +556,7 @@ class Projection(SageObject):
             sage: ppid.dimension
             3
         """
-        return self.__call__(projection_func_identity)
+        return self(projection_func_identity)
 
 
     def stereographic(self, projection_point=None):
@@ -581,7 +581,7 @@ class Projection(SageObject):
         """
         if projection_point is None:
             projection_point = [1] + [0]*(self.polyhedron_ambient_dim-1)
-        return self.__call__(ProjectionFuncStereographic(projection_point))
+        return self(ProjectionFuncStereographic(projection_point))
 
 
     def schlegel(self, projection_direction=None, height=1.1):
@@ -629,7 +629,7 @@ class Projection(SageObject):
             else:
                 from sage.rings.arith import primes_first_n
                 projection_direction = primes_first_n(self.polyhedron_ambient_dim)
-        return self.__call__(ProjectionFuncSchlegel(
+        return self(ProjectionFuncSchlegel(
             projection_direction, height=height, center=center))
 
     def coord_index_of(self, v):

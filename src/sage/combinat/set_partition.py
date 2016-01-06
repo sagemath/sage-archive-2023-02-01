@@ -286,7 +286,7 @@ class SetPartition(ClonableArray):
             sage: A <= A
             True
         """
-        return self.__eq__(y) or self.__lt__(y)
+        return self == y or self < y
 
     def __ge__(self, y):
         """
@@ -312,7 +312,7 @@ class SetPartition(ClonableArray):
             sage: B >= B
             True
         """
-        return self.__eq__(y) or self.__gt__(y)
+        return self == y or self > y
 
     def _cmp_(self, y):
         """
@@ -1642,88 +1642,6 @@ def _set_union(s):
     for ss in s:
         result = result.union(ss)
     return Set([result])
-
-def inf(s,t):
-    """
-    Deprecated in :trac:`14140`. Use :meth:`SetPartition.inf()` instead.
-
-    EXAMPLES::
-
-        sage: sp1 = Set([Set([2,3,4]),Set([1])])
-        sage: sp2 = Set([Set([1,3]), Set([2,4])])
-        sage: s = Set([ Set([2,4]), Set([3]), Set([1])]) #{{2, 4}, {3}, {1}}
-        sage: sage.combinat.set_partition.inf(sp1, sp2) == s
-        doctest:...: DeprecationWarning: inf(s, t) is deprecated. Use s.inf(t) instead.
-        See http://trac.sagemath.org/14140 for details.
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14140, 'inf(s, t) is deprecated. Use s.inf(t) instead.')
-    temp = [ss.intersection(ts) for ss in s for ts in t]
-    temp = [x for x in temp if x != Set([])]
-    return Set(temp)
-
-def sup(s,t):
-    """
-    Deprecated in :trac:`14140`. Use :meth:`SetPartition.sup()` instead.
-
-    EXAMPLES::
-
-        sage: sp1 = Set([Set([2,3,4]),Set([1])])
-        sage: sp2 = Set([Set([1,3]), Set([2,4])])
-        sage: s = Set([ Set([1,2,3,4]) ])
-        sage: sage.combinat.set_partition.sup(sp1, sp2) == s
-        doctest:...: DeprecationWarning: sup(s, t) is deprecated. Use s.sup(t) instead.
-        See http://trac.sagemath.org/14140 for details.
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14140, 'sup(s, t) is deprecated. Use s.sup(t) instead.')
-    res = s
-    for p in t:
-        inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
-        res = res.difference(inters).union(_set_union(inters))
-    return res
-
-def standard_form(sp):
-    """
-    Deprecated in :trac:`14140`. Use :meth:`SetPartition.standard_form()`
-    instead.
-
-    EXAMPLES::
-
-        sage: map(sage.combinat.set_partition.standard_form, SetPartitions(4, [2,2]))
-        doctest:...: DeprecationWarning: standard_form(sp) is deprecated. Use sp.standard_form() instead.
-        See http://trac.sagemath.org/14140 for details.
-        [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14140, 'standard_form(sp) is deprecated. Use sp.standard_form() instead.')
-    return [list(x) for x in sp]
-
-def less(s, t):
-    """
-    Deprecated in :trac:`14140`. Use :meth:`SetPartitions.is_less_than()`
-    instead.
-
-    EXAMPLES::
-
-        sage: z = SetPartitions(3).list()
-        sage: sage.combinat.set_partition.less(z[0], z[1])
-        doctest:...: DeprecationWarning: less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.
-        See http://trac.sagemath.org/14140 for details.
-        False
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14140, 'less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.')
-    if _union(s) != _union(t):
-        raise ValueError("cannot compare partitions of different sets")
-    if s == t:
-        return False
-    for p in s:
-        if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
-            return False
-    return True
 
 def cyclic_permutations_of_set_partition(set_part):
     """

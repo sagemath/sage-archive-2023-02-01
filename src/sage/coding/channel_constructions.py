@@ -62,7 +62,8 @@ def random_error_vector(n, F, error_positions):
 
     EXAMPLES::
 
-        sage: sage.coding.channel_constructions.random_error_vector(5, GF(2), [1,3])
+        sage: from sage.coding.channel_constructions import random_error_vector
+        sage: random_error_vector(5, GF(2), [1,3])
         (0, 1, 0, 1, 0)
     """
     vect = [F.zero()]*n
@@ -90,12 +91,13 @@ def format_interval(t):
 
     TESTS::
 
+        sage: from sage.coding.channel_constructions import format_interval
         sage: t = (5, 5)
-        sage: sage.coding.channel_constructions.format_interval(t)
+        sage: format_interval(t)
         '5'
 
         sage: t = (2, 10)
-        sage: sage.coding.channel_constructions.format_interval(t)
+        sage: format_interval(t)
         'between 2 and 10'
 
     """
@@ -142,7 +144,8 @@ class Channel(SageObject):
 
         We first create a new Channel subclass::
 
-            sage: class ChannelExample(sage.coding.channel_constructions.Channel):
+            sage: from sage.coding.channel_constructions import Channel
+            sage: class ChannelExample(Channel):
             ....:   def __init__(self, input_space, output_space):
             ....:       super(ChannelExample, self).__init__(input_space, output_space)
 
@@ -430,7 +433,7 @@ class ErrorErasureChannel(Channel):
     r"""
     Channel which adds errors and erases several positions in any message it transmits.
 
-    The output space of this channel is a cartesian product
+    The output space of this channel is a Cartesian product
     between its input space and a VectorSpace of the same dimension over GF(2)
 
     The main purpose of communication channels is to transmit messages, which can be achieved with
@@ -475,7 +478,7 @@ class ErrorErasureChannel(Channel):
         sage: Chan
         Error-and-erasure channel creating 2 errors and 2 erasures
         of input space Vector space of dimension 40 over Finite Field of size 59
-        and output space The cartesian product of (Vector space of dimension 40
+        and output space The Cartesian product of (Vector space of dimension 40
         over Finite Field of size 59, Vector space of dimension 40 over Finite Field of size 2)
 
     We can also pass the number of errors and erasures as a couple of integers::
@@ -485,7 +488,7 @@ class ErrorErasureChannel(Channel):
         sage: Chan
         Error-and-erasure channel creating between 1 and 10 errors and
         between 1 and 10 erasures of input space Vector space of dimension 40
-        over Finite Field of size 59 and output space The cartesian product of
+        over Finite Field of size 59 and output space The Cartesian product of
         (Vector space of dimension 40 over Finite Field of size 59,
         Vector space of dimension 40 over Finite Field of size 2)
     """
@@ -534,7 +537,7 @@ class ErrorErasureChannel(Channel):
             sage: Chan
             Error-and-erasure channel creating 21 errors and 21 erasures
             of input space Vector space of dimension 50 over Finite Field of size 59
-            and output space The cartesian product of (Vector space of dimension 50
+            and output space The Cartesian product of (Vector space of dimension 50
             over Finite Field of size 59, Vector space of dimension 50 over Finite Field of size 2)
         """
         no_err = self.number_errors()
@@ -553,7 +556,7 @@ class ErrorErasureChannel(Channel):
             sage: latex(Chan)
             \textnormal{Error-and-erasure channel creating 21 errors and 21 erasures
             of input space Vector space of dimension 50 over Finite Field of size 59
-            and output space The cartesian product of (Vector space of dimension 50
+            and output space The Cartesian product of (Vector space of dimension 50
             over Finite Field of size 59, Vector space of dimension 50 over Finite Field of size 2)}
         """
         no_err = self.number_errors()

@@ -21,7 +21,7 @@ AUTHORS:
     ``createline`` function to produce sequence of ``100`` points on a smooth
     curve containing the points in the specified line which inturn uses
     ``scipy.interpolate.splprep`` and ``scipy.interpolate.splev``.  Then one
-    can use sage's graphics primitives ``line``,``point``, ``text`` and
+    can use sage's graphics primitives ``line``, ``point``, ``text`` and
     ``points`` to produce graphics object containg points (ground set
     elements) and lines (for a rank 3 matroid, these are flats of rank 2 of
     size greater than equal to 3) of the geometric representation of the
@@ -187,7 +187,7 @@ def trigrid(tripts):
     INPUT:
 
     - ``tripts`` -- A list of 3 lists of the form [x,y] where x and y are the
-      cartesian co-ordinates of a point.
+      Cartesian co-ordinates of a point.
 
     OUTPUT:
 

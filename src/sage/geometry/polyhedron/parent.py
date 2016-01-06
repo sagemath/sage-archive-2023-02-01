@@ -557,7 +557,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         """
         Register actions with the coercion model.
 
-        The monoid actions are Minkowski sum and cartesian product. In
+        The monoid actions are Minkowski sum and Cartesian product. In
         addition, we want multiplication by a scalar to be dilation
         and addition by a vector to be translation. This is
         implemented as an action in the coercion model.
@@ -578,17 +578,19 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: Polyhedra(ZZ,2).get_action(ZZ)   # indirect doctest
+            sage: PZZ2 = Polyhedra(ZZ, 2)
+            sage: PZZ2.get_action(ZZ)   # indirect doctest
             Right action by Integer Ring on Polyhedra in ZZ^2
-            sage: Polyhedra(ZZ,2).get_action(QQ)
+            sage: PZZ2.get_action(QQ)
             Right action by Rational Field on Polyhedra in QQ^2
             with precomposition on left by Conversion map:
               From: Polyhedra in ZZ^2
               To:   Polyhedra in QQ^2
             with precomposition on right by Identity endomorphism of Rational Field
-            sage: Polyhedra(QQ,2).get_action(ZZ)
+            sage: PQQ2 = Polyhedra(QQ, 2)
+            sage: PQQ2.get_action(ZZ)
             Right action by Integer Ring on Polyhedra in QQ^2
-            sage: Polyhedra(QQ,2).get_action(QQ)
+            sage: PQQ2.get_action(QQ)
             Right action by Rational Field on Polyhedra in QQ^2
 
             sage: Polyhedra(ZZ,2).an_element() * 2
@@ -610,7 +612,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: Polyhedra(ZZ,2).get_action( ZZ^2, op=operator.add)
+            sage: PZZ2.get_action(ZZ^2, op=operator.add)
             Right action by Ambient free module of rank 2 over the principal ideal domain Integer Ring on Polyhedra in ZZ^2
             with precomposition on left by Identity endomorphism of Polyhedra in ZZ^2
             with precomposition on right by Generic endomorphism of Ambient free module of rank 2 over the principal ideal domain Integer Ring

@@ -316,7 +316,6 @@ class Gap3(Gap_generic):
              command=self.__gap3_command_string + " -p -y 500",
              server=None,
              ulimit=None,
-             maxread=100000,
              script_subdirectory=None,
              restart_on_ctrlc=True,
              verbose_start=False,

@@ -275,7 +275,7 @@ class Order(IntegralDomain):
             sage: 17*Ok
             Fractional ideal (17)
         """
-        return self.__mul__(left)
+        return self * left
 
     def is_maximal(self):
         """

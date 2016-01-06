@@ -23,13 +23,18 @@ EXAMPLE::
 """
 
 #*****************************************************************************
-#  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.all import PolynomialRing, RR, PowerSeriesRing, LaurentSeriesRing, O
 from sage.functions.all import log
+from sage.structure.category_object import normalize_names
 
 import sage.schemes.plane_curves.projective_curve as plane_curve
 
@@ -59,12 +64,12 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         plane_curve.ProjectiveCurve_generic.__init__(self,PP,F)
         R = PP.base_ring()
         if names is None:
-            names = ["x","y"]
-        elif isinstance(names,str):
-            names = names.split(",")
+            names = ("x", "y")
+        else:
+            names = normalize_names(2, names)
         self._names = names
-        P1 = PolynomialRing(R,name=names[0])
-        P2 = PolynomialRing(P1,name=names[1])
+        P1 = PolynomialRing(R, name=names[0])
+        P2 = PolynomialRing(P1, name=names[1])
         self._PP = PP
         self._printing_ring = P2
         self._hyperelliptic_polynomials = (f,h)

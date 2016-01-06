@@ -511,3 +511,48 @@ class ElementWrapperTester(ElementWrapper):
         """
         return "[n=%s, value=%s]"%(self.n, self.value)
 
+cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
+    """
+    An :class:`element wrapper <ElementWrapper>` such that comparison
+    operations are done against subclasses of ``wrapped_class``.
+    """
+    wrapped_class = object
+
+    def __richcmp__(left, right, int op):
+        """
+        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+
+        .. SEEALSO::
+
+            :meth:`ElementWrapper.__richcmp__`
+
+        TESTS::
+
+            sage: A = cartesian_product([ZZ, ZZ])
+            sage: elt = A((1,1))
+            sage: (1, 1) == elt
+            True
+            sage: elt == (1, 1)
+            True
+            sage: A((1, 2)) == elt
+            False
+        """
+        cdef ElementWrapperCheckWrappedClass self
+        self = left
+
+        if self.__class__ != right.__class__:
+            if isinstance(right, self.wrapped_class):
+                if op == Py_EQ or op == Py_LE or op == Py_GE:
+                    return self.value == right
+                if op == Py_NE:
+                    return self.value != right
+                return False
+            return op == Py_NE
+        if self._parent != (<ElementWrapper>right)._parent:
+            return op == Py_NE
+        if op == Py_EQ or op == Py_LE or op == Py_GE:
+            return self.value == (<ElementWrapper>right).value
+        if op == Py_NE:
+            return self.value != (<ElementWrapper>right).value
+        return False
+

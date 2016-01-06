@@ -457,7 +457,7 @@ class MinorMatroid(Matroid):
             sage: M1 != M3
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # Copying, loading, saving:
 

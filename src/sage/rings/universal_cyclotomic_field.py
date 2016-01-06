@@ -533,15 +533,24 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
             sage: UCF = UniversalCyclotomicField()
             sage: hash(UCF.zero())  # indirect doctest
-            1302034650              # 32-bit
-            3713081631936575706     # 64-bit
+            0
             sage: hash(UCF.gen(3,2))
             313156239               # 32-bit
             1524600308199219855     # 64-bit
+
+        TESTS:
+
+        See :trac:`19514`::
+
+            sage: hash(UCF.one())
+            1
         """
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
-        return hash((k,) + tuple(coeffs))
+        if k == 1:
+            return hash(coeffs[0])
+        else:
+            return hash((k,) + tuple(coeffs))
 
     def _algebraic_(self, R):
         r"""
@@ -1078,7 +1087,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
     def gen(self, n, k=1):
         r"""
-        Return the standard ``n``-th root of unity.
+        Return the standard primitive ``n``-th root of unity.
 
         If ``k`` is not ``None``, return the ``k``-th power of it.
 
@@ -1091,8 +1100,15 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             E(7)^3
             sage: UCF.gen(4,2)
             -1
+
+        There is an alias ``zeta`` also available::
+
+            sage: UCF.zeta(6)
+            -E(3)^2
         """
         return self.element_class(self, libgap.E(n)**k)
+
+    zeta = gen
 
     def _element_constructor_(self, elt):
         r"""

@@ -598,7 +598,7 @@ def cartesian_product_iterator(X):
     -  ``X`` - list or tuple of lists
 
 
-    OUTPUT: iterator over the cartesian product of the elements of X
+    OUTPUT: iterator over the Cartesian product of the elements of X
 
     EXAMPLES::
 

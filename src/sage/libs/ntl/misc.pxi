@@ -29,7 +29,3 @@ cdef object string_delete(char* s):
     t = str(s)
     del_charstar(s)
     return t
-
-
-_INIT = None
-

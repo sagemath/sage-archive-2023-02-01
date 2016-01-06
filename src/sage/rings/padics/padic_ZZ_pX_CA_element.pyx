@@ -20,8 +20,7 @@ element contains the following data:
   `\mathbb{Q}_p` or `\mathbb{Z}_p`.  Then the modulus is given by
   `p^{ceil(a/e)}`.  Note that all kinds of problems arise if you try
   to mix moduli.  ``ZZ_pX_conv_modulus`` gives a semi-safe way to
-  convert between different moduli without having to pass through ZZX
-  (see ``sage/libs/ntl/decl.pxi`` and ``c_lib/src/ntlwrap.cpp``)
+  convert between different moduli without having to pass through ZZX.
 
 - ``prime_pow`` (some subclass of ``PowComputer_ZZ_pX``) -- a class,
   identical among all elements with the same parent, holding common
@@ -162,6 +161,7 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -791,14 +791,12 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + O(w^13)
         """
         if absprec < 0:
-            raise ValueError, "absprec must be non-negative"
+            raise ValueError("absprec must be non-negative")
         if self.absprec == absprec:
             return False
-        if self.absprec > 0:
-            ZZ_pX_destruct(&self.value)
         if absprec > 0:
             self.prime_pow.restore_context_capdiv(absprec)
-            ZZ_pX_construct(&self.value)
+            self.value = ZZ_pX_c()
         self.absprec = absprec
         return True
 
@@ -838,22 +836,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         else:
             self._set_prec_abs(ordp + relprec)
 
-    def __dealloc__(self):
-        """
-        Deallocates ``self.value``.
-
-        EXAMPLES::
-
-            sage: R = ZpCA(5,5)
-            sage: S.<x> = ZZ[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = W(25/3, relprec = 6)
-            sage: del z #indirect doctest
-        """
-        if self.absprec != 0:
-            ZZ_pX_destruct(&self.value)
-
     cdef pAdicZZpXCAElement _new_c(self, long absprec):
         """
         Returns a new element with the same parent as ``self`` and
@@ -874,9 +856,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         ans.absprec = absprec
         if absprec > 0:
             self.prime_pow.restore_context_capdiv(absprec)
-            ZZ_pX_construct(&ans.value)
         elif absprec < 0:
-            raise ValueError, "absprec must be positive"
+            raise ValueError("absprec must be positive")
         return ans
 
     def __reduce__(self):
@@ -977,7 +958,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         ans.relprec = -self.absprec
         if self.absprec != 0:
             self.prime_pow.restore_context_capdiv(self.absprec)
-            ZZ_pX_construct(&ans.unit)
             ans.unit = self.value
         return ans
 

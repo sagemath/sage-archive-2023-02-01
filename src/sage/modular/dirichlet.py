@@ -1095,9 +1095,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
             11
 
-        And sums where exactly one character is nontrivial (see trac #6393)::
+        And sums where exactly one character is nontrivial (see :trac:`6393`)::
 
-            sage: G=DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
+            sage: G = DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
             sage: Y.jacobi_sum(Z)
             -1
             sage: Z.jacobi_sum(Y)
@@ -1183,7 +1183,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             if arith.gcd(c,m)==1:
                 e = rings.Mod(c,m)
                 z = zeta ** int(a*e + b*(e**(-1)))
-                g += self.__call__(c)*z
+                g += self(c)*z
         return g
 
     def kloosterman_sum_numerical(self, prec=53, a=1,b=0):
@@ -1230,7 +1230,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             if arith.gcd(c,m)==1:
                 e = rings.Mod(c,m)
                 z = zeta ** int(a*e + b*(e**(-1)))
-                g += phi(self.__call__(c))*z
+                g += phi(self(c))*z
         return g
 
     @cached_method

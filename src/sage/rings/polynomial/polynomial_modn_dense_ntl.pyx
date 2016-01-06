@@ -17,13 +17,15 @@ AUTHORS:
 - Robert Bradshaw: Major rewrite to use NTL directly (2007-09)
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial_generic_dense
 
@@ -45,10 +47,11 @@ from sage.interfaces.all import singular as singular_default
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
 from sage.structure.element cimport have_same_parent_c
 
-from sage.libs.ntl.ntl_ZZ_p_decl cimport *
-from sage.libs.ntl.ntl_lzz_p_decl cimport *
-from sage.libs.ntl.ntl_lzz_pX_decl cimport *
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
+from sage.libs.ntl.types cimport NTL_SP_BOUND
+from sage.libs.ntl.ZZ_p cimport *
+from sage.libs.ntl.lzz_p cimport *
+from sage.libs.ntl.lzz_pX cimport *
+from sage.libs.ntl.ZZ_pX cimport *
 
 def make_element(parent, args):
     return parent(*args)
@@ -619,7 +622,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
     def __dealloc__(self):
         if <object>self.c is not None:
             self.c.restore_c()
-        zz_pX_destruct(&self.x)
 
     def ntl_set_directly(self, v):
         # TODO: Get rid of this
@@ -873,14 +875,12 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         else:
             if not isinstance(modulus, Polynomial_dense_modn_ntl_zz):
                 modulus = self.parent()._coerce_(modulus)
-            zz_pX_Modulus_construct(mod)
             zz_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_zz>modulus).x)
 
             do_sig = zz_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: sig_on()
             zz_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
             if do_sig: sig_off()
-            zz_pX_Modulus_destruct(mod)
 
         if recip:
             return ~r
@@ -1207,8 +1207,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
     def __dealloc__(self):
         if <object>self.c is not None:
             self.c.restore_c()
-        ZZ_pX_destruct(&self.x)
-
 
     cdef Polynomial_dense_modn_ntl_ZZ _new(self):
         cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>Polynomial_dense_modn_ntl_ZZ.__new__(Polynomial_dense_modn_ntl_ZZ)
@@ -1436,14 +1434,12 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         else:
             if not isinstance(modulus, Polynomial_dense_modn_ntl_ZZ):
                 modulus = self.parent()._coerce_(modulus)
-            ZZ_pX_Modulus_construct(mod)
             ZZ_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_ZZ>modulus).x)
 
             do_sig = ZZ_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: sig_on()
             ZZ_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
             if do_sig: sig_off()
-            ZZ_pX_Modulus_destruct(mod)
         if recip:
             return ~r
         else:

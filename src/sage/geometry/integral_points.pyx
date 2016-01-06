@@ -1012,7 +1012,7 @@ cdef class InequalityCollection:
 
         A pair ``(A,b)``.
 
-        EXAXMPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.integral_points import InequalityCollection
             sage: line = Polyhedron(eqns=[(2,3,7)])

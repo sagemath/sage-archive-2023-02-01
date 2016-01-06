@@ -500,7 +500,7 @@ class ContinuedFraction_base(SageObject):
         """
         if self.quotient(0) >= 0:
             return self
-        return self.__neg__()
+        return -self
 
     def __cmp__(self, other):
         """
@@ -871,7 +871,7 @@ class ContinuedFraction_base(SageObject):
             7
         """
         if isinstance(n, slice):
-            quots = self.quotients().__getitem__(n)
+            quots = self.quotients()[n]
             if n.stop is not None:
                 quots = list(quots)
             return continued_fraction(quots)
@@ -1510,7 +1510,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             raise ZeroDivisionError("rational division by zero")
         if self._x1:
             if self._x1[0] < 0:
-                return -(-self).__invert__()
+                return -~-self
             if self._x1[0] == 0:
                 return self.__class__(self._x1[1:], self._x2)
         return self.__class__((0,) + self._x1, self._x2)
@@ -1852,9 +1852,16 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             ValueError: the sequence must consist of integers
 
             sage: from itertools import count
-            sage: w = Word(count())
+            sage: w = Word(count(), length="infinite")
             sage: continued_fraction(w)
             [0; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19...]
+
+            sage: w = Word(count(), length="unknown")
+            sage: continued_fraction(w)
+            Traceback (most recent call last):
+            ...
+            ValueError: word with unknown length can not be converted to
+            continued fractions
 
             sage: continued_fraction(words.FibonacciWord([0,1]))
             Traceback (most recent call last):
@@ -2397,6 +2404,10 @@ def continued_fraction(x, value=None):
     from sage.combinat.words.infinite_word import InfiniteWord_class
     if isinstance(x, (lazy_list, InfiniteWord_class)):
         return ContinuedFraction_infinite(x, value)
+
+    from sage.combinat.words.abstract_word import Word_class
+    if isinstance(x, Word_class):
+        raise ValueError("word with unknown length can not be converted to continued fractions")
 
     # input for numbers
     #TODO: the approach used below might be not what the user expects as we

@@ -721,7 +721,7 @@ class DiGraphGenerators():
         When `n = d^{D}`, the generalized de Bruijn digraph is isomorphic to the
         de Bruijn digraph of degree `d` and diameter `D`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- is the number of vertices of the digraph
 
@@ -795,7 +795,7 @@ class DiGraphGenerators():
         the digraph of Imase and Itoh is isomorphic to the Kautz digraph
         [Kautz68]_ of degree `d` and diameter `D`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- is the number of vertices of the digraph
 
@@ -868,7 +868,7 @@ class DiGraphGenerators():
         See also the
         :wikipedia:`Wikipedia article on Kautz Graphs <Kautz_graph>`.
 
-        INPUTS:
+        INPUT:
 
         - ``k`` -- Two possibilities for this parameter :
             - An integer equal to the degree of the digraph to be produced, that
@@ -946,7 +946,7 @@ class DiGraphGenerators():
         from sage.rings.integer import Integer
 
         my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
-        if my_alphabet.size_of_alphabet() < 2:
+        if my_alphabet.alphabet().cardinality() < 2:
             raise ValueError("Kautz digraphs are defined for degree at least one.")
 
         if vertices == 'strings':
@@ -1052,7 +1052,7 @@ class DiGraphGenerators():
         Returns a random digraph on `n` nodes. Each edge is inserted
         independently with probability `p`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- number of nodes of the digraph
 

@@ -57,12 +57,14 @@ TESTS::
     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
 
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -103,6 +105,7 @@ from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
 from sage.structure.sage_object import register_unpickle_override
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.parent cimport Parent
 
@@ -127,7 +130,7 @@ def Mod(n, m, parent=None):
         2
 
     Illustrates that trac #5971 is fixed. Consider `n` modulo `m` when
-    `m = 0`. Then `\ZZ/0\ZZ` is isomorphic to `\ZZ` so `n` modulo `0` is
+    `m = 0`. Then `\ZZ/0\ZZ` is isomorphic to `\ZZ` so `n` modulo `0`
     is equivalent to `n` for any integer value of `n`::
 
         sage: Mod(10, 0)
@@ -746,28 +749,32 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return self
 
-    def centerlift(self):
+    def lift_centered(self):
         r"""
-        Lift ``self`` to an integer `i` such that `n/2 < i <= n/2`
+        Lift ``self`` to a centered congruent integer.
+
+        OUTPUT:
+
+        The unique integer `i` such that `-n/2 < i \leq n/2` and `i = self \mod n`
         (where `n` denotes the modulus).
 
         EXAMPLES::
 
-            sage: Mod(0,5).centerlift()
+            sage: Mod(0,5).lift_centered()
             0
-            sage: Mod(1,5).centerlift()
+            sage: Mod(1,5).lift_centered()
             1
-            sage: Mod(2,5).centerlift()
+            sage: Mod(2,5).lift_centered()
             2
-            sage: Mod(3,5).centerlift()
+            sage: Mod(3,5).lift_centered()
             -2
-            sage: Mod(4,5).centerlift()
+            sage: Mod(4,5).lift_centered()
             -1
-            sage: Mod(50,100).centerlift()
+            sage: Mod(50,100).lift_centered()
             50
-            sage: Mod(51,100).centerlift()
+            sage: Mod(51,100).lift_centered()
             -49
-            sage: Mod(-1,3^100).centerlift()
+            sage: Mod(-1,3^100).lift_centered()
             -1
         """
         n = self.modulus()
@@ -776,6 +783,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             return x
         else:
             return x - n
+
+    centerlift = deprecated_function_alias(15804,lift_centered)
 
     cpdef bint is_one(self):
         raise NotImplementedError
@@ -1489,7 +1498,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             45154201192451
         """
         n = self.__modulus.sageInteger
-        return sage.rings.integer.Integer(n.__floordiv__(self.lift().gcd(n)))
+        return sage.rings.integer.Integer(n // self.lift().gcd(n))
 
     def is_primitive_root(self):
         """
@@ -2107,8 +2116,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: hash(a)
             8943
         """
-#        return mpz_pythonhash(self.value)
-        return hash(self.lift())
+        return mpz_pythonhash(self.value)
 
     @coerce_binop
     def gcd(self, IntegerMod_gmp other):
@@ -3768,7 +3776,9 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     - Robert Bradshaw
 
-    TESTS: Every case appears in the first hundred primes.
+    TESTS:
+
+    Every case appears in the first hundred primes.
 
     ::
 

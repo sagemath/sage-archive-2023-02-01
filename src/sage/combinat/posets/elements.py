@@ -147,7 +147,7 @@ class PosetElement(Element):
             sage: PosetElement(P,1,"c") != PosetElement(P,0,"c")
             False
         """
-        return not (self.__eq__(other))
+        return not self == other
 
     def _cmp(self,other):
         """

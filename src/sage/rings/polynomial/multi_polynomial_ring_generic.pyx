@@ -640,8 +640,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             We do not check if the provided index/rank is within the allowed
             range. If it is not an infinite loop will occur.
         """
-        from sage.combinat import choose_nk
-        comb = choose_nk.from_rank(i, n+d-1, n-1)
+        from sage.combinat import combination
+        comb = combination.from_rank(i, n+d-1, n-1)
         if comb == []:
             return (d,)
         monomial = [ comb[0] ]

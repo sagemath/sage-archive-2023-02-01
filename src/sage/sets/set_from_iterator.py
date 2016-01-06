@@ -354,7 +354,7 @@ class EnumeratedSetFromIterator(Parent):
             sage: E5 != E5
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __iter__(self):
         r"""

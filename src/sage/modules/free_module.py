@@ -70,7 +70,9 @@ Base ring::
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
 
-TESTS: We intersect a zero-dimensional vector space with a
+TESTS:
+
+We intersect a zero-dimensional vector space with a
 1-dimension submodule.
 
 ::
@@ -4488,7 +4490,7 @@ class FreeModule_ambient(FreeModule_generic):
         Return the linear combination of the basis for self obtained from
         the elements of the list v.
 
-        INPUTS:
+        INPUT:
 
         - ``v`` - list
 
@@ -6047,7 +6049,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Return the linear combination of the basis for self obtained from
         the coordinates of v.
 
-        INPUTS:
+        INPUT:
 
         - ``v`` - list
 

@@ -436,13 +436,13 @@ class CoxeterGroups(Category_singleton):
         @cached_method
         def rank(self):
             r"""
-                Return the rank of ``self``.
+            Return the rank of ``self``.
 
-                EXAMPLES::
+            EXAMPLES::
 
-                    sage: W = CoxeterGroups().example()
-                    sage: W.rank()
-                    3
+                sage: W = CoxeterGroups().example()
+                sage: W.rank()
+                3
             """
             return len(self.simple_reflections())
 

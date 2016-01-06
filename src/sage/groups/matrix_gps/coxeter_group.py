@@ -682,7 +682,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         """
         Return the set of reflections.
 
-        The order is the one given by :meth:`roots`.
+        The order is the one given by :meth:`positive_roots`.
 
         EXAMPLES::
 
@@ -755,6 +755,8 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         Return the fundamental weights for ``self``.
 
         This is the dual basis to the basis of simple roots.
+
+        The base ring must be a field.
 
         EXAMPLES::
 

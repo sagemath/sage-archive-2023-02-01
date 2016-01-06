@@ -53,7 +53,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
-from sage.libs.cremona.newforms import ECModularSymbol
+from sage.libs.eclib.newforms import ECModularSymbol
 from sage.databases.cremona import parse_cremona_label
 
 from sage.rings.arith import next_prime, kronecker_symbol, prime_divisors, valuation

@@ -1076,18 +1076,18 @@ class AbstractLinearCode(module.Module):
         nonzerowts = [i for i in range(len(wts)) if wts[i]!=0 and i<=n and i>=d]
         if mode=="verbose":
             for w in nonzerowts:
-                print "The weight ",w," codewords of C form a t-(v,k,lambda) design, where"
-                print "      t = ",t," , v = ",n," , k = ",w," , lambda = ",wts[w]*binomial(w,t)/binomial(n,t)
-                print "      There are ",wts[w]," blocks of this design."
+                print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
+                        t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
+                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
         wtsp = Cp.spectrum()
         dp = min([i for i in range(1,len(wtsp)) if wtsp[i]!=0])
         nonzerowtsp = [i for i in range(len(wtsp)) if wtsp[i]!=0 and i<=n-t and i>=dp]
         s = len([i for i in range(1,n) if wtsp[i]!=0 and i<=n-t and i>0])
         if mode=="verbose":
             for w in nonzerowtsp:
-                print "The weight ",w," codewords of C* form a t-(v,k,lambda) design, where"
-                print "      t = ",t," , v = ",n," , k = ",w," , lambda = ",wtsp[w]*binomial(w,t)/binomial(n,t)
-                print "      There are ",wts[w]," blocks of this design."
+                print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
+                        t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
+                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
         if s<=d-t:
             des = [[t,(n,w,wts[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowts]
             ans = ans + ["weights from C: ",nonzerowts,"designs from C: ",des]

@@ -252,6 +252,7 @@ __append_to_doc(
      "TaylorTwographSRG",
      "T2starGeneralizedQuadrangleGraph",
      "HaemersGraph",
+     "CossidentePenttilaGraph",
      "UnitaryDualPolarGraph",
      "UnitaryPolarGraph"])
 
@@ -2029,6 +2030,7 @@ class GraphGenerators():
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
     T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
     HaemersGraph      = staticmethod(sage.graphs.generators.classical_geometries.HaemersGraph)
+    CossidentePenttilaGraph = staticmethod(sage.graphs.generators.classical_geometries.CossidentePenttilaGraph)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
     UnitaryPolarGraph      = staticmethod(sage.graphs.generators.classical_geometries.UnitaryPolarGraph)
 

@@ -67,11 +67,10 @@ parameters. We also need to create the dictionary of known encoders and decoders
 
 Let's now write the constructor for our code class, that we store in some file called ``repetition_code.py``::
 
-    sage: class BinaryRepetitionCode(AbstractLinearCode):
-    ....:
+    sage: from sage.coding.linear_code import AbstractLinearCode
+    ....: class BinaryRepetitionCode(AbstractLinearCode):
     ....:   _registered_encoders = {}
     ....:   _registered_decoders = {}
-    ....:
     ....:   def __init__(length):
     ....:       super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionEncoder", "MajorityVoteDecoder")
     ....:       self._dimension = 1
@@ -140,7 +139,8 @@ Let's continue our example. We ask the same question as before: what do we need 
 For most of the cases (this one included), we only need the associated code. In that case, writing the
 constructor is really straightforward (we store the code in the same ``.py`` file as the code class)::
 
-    sage: class BinaryRepetitionCodeGeneratorMatrixEncoder(Encoder):
+    sage: from sage.coding.encoder import Encoder
+    ....: class BinaryRepetitionCodeGeneratorMatrixEncoder(Encoder):
     ....:   def __init__(self, code):
     ....:       super(BinaryRepetitionCodeGeneratorMatrixEncoder, self).__init__(code)
 
@@ -242,10 +242,11 @@ Eventually, we also need to know the input space of the decoder.
 As usual, initializing these parameters can be delegated to the topclass, and our constructor
 looks like that::
 
-    sage: class BinaryRepetitionCodeMajorityVoteDecoder(Decoder):
+    sage: from sage.coding.decoder import Decoder
+    ....: class BinaryRepetitionCodeMajorityVoteDecoder(Decoder):
     ....:   def __init__(self, code):
     ....:       super(BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),\
-                    "RepetitionGeneratorMatrixEncoder")
+    ....:                "RepetitionGeneratorMatrixEncoder")
 
 Remember to inherit from :class:`sage.coding.decoder.Decoder`!
 
@@ -356,7 +357,8 @@ Plus, in our case, as this channel only works for vectors over :math:`\mathbb{F}
 input and output spaces are the same.
 Let's write the constructor of our new channel class::
 
-    sage: class: BinaryStaticErrorRateChannel(Channel):
+    from sage.coding.channel_constructions import Channel
+    ....: class BinaryStaticErrorRateChannel(Channel):
     ....:   def __init__(space, number_errors):
     ....:       if space.base_ring() is not GF(2):
     ....:           raise ValueError("Provided space must be a vector space over GF(2)")
@@ -371,10 +373,11 @@ We also want to override representation methods ``_repr_`` and ``_latex_``::
 
     sage: def _repr_(self):
     ....:   return "Binary static error rate channel creating %s errors, of input and output space %s"\
-                    % (format_interval(no_err), self.input_space())
+    ....:                % (format_interval(no_err), self.input_space())
+
     sage: def _latex_(self):
     ....:   return "\\textnormal{Static error rate channel creating %s errors, of input and output space %s}"\
-                    % (format_interval(no_err), self.input_space())
+    ....:                % (format_interval(no_err), self.input_space())
 
 We don't really see any use case for equality methods (``__eq__`` and ``__ne__``) so do not provide any
 default implementation. If one needs these, one can of course override Python's default methods.
@@ -396,7 +399,7 @@ only need to override ``transmit_unsafe``! Let's do it::
     ....:   w = copy(message)
     ....:   number_err = self.number_errors()
     ....:   V = self.input_space()
-    ....:   for i in sample(xrange(V.dimension(), number_err):
+    ....:   for i in sample(xrange(V.dimension(), number_err)):
     ....:       w[i] += 1
     ....:   return w
 
@@ -446,6 +449,10 @@ VII. Complete code of this tutorial
 If you need some base code to start from, feel free to copy-paste and derive from the one that follows.
 
 **repetition_code.py** (with two encoders)::
+
+    from sage.coding.linear_code import AbstractLinearCode
+    from sage.coding.encoder import Encoder
+    from sage.coding.decoder import Decoder
 
     class BinaryRepetitionCode(AbstractLinearCode):
 

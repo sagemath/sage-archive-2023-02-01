@@ -36,6 +36,14 @@ We compute a suborder, which has index a power of 17 in the maximal order::
     17^45
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.misc.cachefunc import cached_method
 from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
@@ -424,7 +432,7 @@ class Order(IntegralDomain):
 
     def gens(self):
         """
-        Return a list of the module generators of this order.
+        Deprecated alias for :meth:`basis`.
 
         .. note::
 
@@ -436,8 +444,12 @@ class Order(IntegralDomain):
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
             sage: O = K.maximal_order()
             sage: O.gens()
+            doctest:...: DeprecationWarning: the gens() method is deprecated, use basis() or ring_generators() instead
+            See http://trac.sagemath.org/15348 for details.
             [1, 1/2*a^2 + 1/2*a, a^2]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(15348, "the gens() method is deprecated, use basis() or ring_generators() instead")
         return self.basis()
 
     def ngens(self):
@@ -953,7 +965,7 @@ class Order(IntegralDomain):
             sage: A.random_element().parent() is A
             True
         """
-        return sum([ZZ.random_element(*args, **kwds)*a for a in self.gens()])
+        return sum([ZZ.random_element(*args, **kwds)*a for a in self.basis()])
 
     def absolute_degree(self):
         r"""
@@ -1340,7 +1352,7 @@ class AbsoluteOrder(Order):
             1
             sage: O.1
             c
-            sage: O.gens()
+            sage: O.basis()
             [1, c, c^2]
             sage: O.ngens()
             3
@@ -1422,7 +1434,7 @@ class RelativeOrder(Order):
             sage: R = K2.order(b)
             sage: b in R
             True
-            sage: bb = R.gens()[1] # b by any other name
+            sage: bb = R.basis()[1]  # b by any other name
             sage: bb == b
             True
             sage: bb.parent() is R
@@ -1510,12 +1522,7 @@ class RelativeOrder(Order):
 
     def basis(self):
         """
-        Return module basis for this relative order.  This is a list
-        of elements that generate this order over the base order.
-
-        .. warning::
-
-           For now this basis is actually just a basis over `\ZZ`.
+        Return a basis for this order as `\ZZ`-module.
 
         EXAMPLES::
 
@@ -1797,7 +1804,7 @@ def absolute_order_from_module_generators(gens,
         [  0 1/2   0 1/2]
         [  0   0   1   0]
         [  0   0   0   1]
-        sage: g = O.gens(); g
+        sage: g = O.basis(); g
         [1/2*a^2 + 1/2, 1/2*a^3 + 1/2*a, a^2, a^3]
         sage: absolute_order_from_module_generators(g)
         Order in Number Field in a with defining polynomial x^4 - 5

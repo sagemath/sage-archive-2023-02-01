@@ -141,7 +141,7 @@ def _inverse_mod_generic(elt, I):
     function called from each of the OrderElement_xxx classes, since
     otherwise we'd have to have the same code three times over (there
     is no OrderElement_generic class - no multiple inheritance). See
-    trac 4190.
+    :trac:`4190`.
 
     EXAMPLES::
 
@@ -159,7 +159,8 @@ def _inverse_mod_generic(elt, I):
     if I == 0:
         raise ValueError, "inverse is not defined modulo the zero ideal"
     n = R.absolute_degree()
-    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in R.gens()]))
+    B = R.basis()
+    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in B]))
     a, b = m.echelon_form(transformation=True)
     if a[0:n] != 1:
         raise ZeroDivisionError, "%s is not invertible modulo %s" % (elt, I)
@@ -167,7 +168,7 @@ def _inverse_mod_generic(elt, I):
     y = R(0)
     for j in xrange(n):
         if v[j] != 0:
-            y += v[j] * sum([b[j,i+n] * R.gen(i) for i in xrange(n)])
+            y += v[j] * sum([b[j,i+n] * B[i] for i in xrange(n)])
     return I.small_residue(y)
 
 __pynac_pow = False
@@ -4644,7 +4645,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: R.<y> = K1[]
             sage: K2 = K1.extension(y^2 - a, 'b')
             sage: OK2 = K2.order(K2.gen()) # (not maximal)
-            sage: b = OK2.gens()[1]; b
+            sage: b = OK2.basis()[1]; b
             b
             sage: (17/b).parent() is K2 # indirect doctest
             True
@@ -4668,7 +4669,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: R.<y> = K1[]
             sage: K2 = K1.extension(y^2 - a, 'b')
             sage: OK2 = K2.order(K2.gen()) # (not maximal)
-            sage: b = OK2.gens()[1]; b
+            sage: b = OK2.basis()[1]; b
             b
             sage: b.parent() is OK2
             True

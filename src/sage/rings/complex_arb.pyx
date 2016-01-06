@@ -184,6 +184,30 @@ cdef int acb_to_ComplexIntervalFieldElement(
     arb_to_mpfi(target.__im, acb_imagref(source), precision)
     return 0
 
+
+def is_ComplexBallField(F):
+    r"""
+    Return whether `F` is a complex ball field.
+
+    INPUT:
+
+    - ``F`` -- a parent.
+
+    OUTPUT:
+
+    A boolean.
+
+    EXAMPLES::
+
+        sage: from sage.rings.complex_arb import is_ComplexBallField
+        sage: is_ComplexBallField(ComplexBallField())
+        True
+        sage: is_ComplexBallField(CIF)
+        False
+    """
+    return isinstance(F, ComplexBallField)
+
+
 class ComplexBallField(UniqueRepresentation, Field):
     r"""
     An approximation of the field of complex numbers using pairs of mid-rad

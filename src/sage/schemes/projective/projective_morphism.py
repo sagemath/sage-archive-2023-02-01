@@ -698,8 +698,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom (P, P )
             sage: f = H ([x^2 + (t ^ 2 + 1) * y^2 , y^2 ])
             sage: f.dynatomic_polynomial(2)
-            doctest:...: DeprecationWarning: the gens() method is deprecated, use basis() or ring_generators() instead
-            See http://trac.sagemath.org/15348 for details.
             x^2 + x*y + (t^2 + 2)*y^2
 
         TESTS:

@@ -1274,7 +1274,7 @@ def CossidentePenttilaGraph(q):
         sage: graphs.CossidentePenttilaGraph(2)
         Traceback (most recent call last):
         ...
-        ValueError: q must be an odd prime power
+        ValueError: q(=2) must be an odd prime power
 
     REFERENCES:
 
@@ -1284,40 +1284,42 @@ def CossidentePenttilaGraph(q):
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p==2:
-        raise ValueError('q must be an odd prime power')
-    from sage.libs.gap.libgap import libgap
-    if not bool(libgap.LoadPackage("grape")):
-        raise RuntimeError('optional package gap_packages needs to be installed')
+        raise ValueError('q(={}) must be an odd prime power'.format(q))
 
-    adj_list=libgap.function_factory('function(q)                                       \
-        local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;                           \
-        G0:=SO(3,q^2);                                                                  \
-        so:=GeneratorsOfGroup(G0);                                                      \
-        G1:=Group(Comm(so[1],so[2]),Comm(so[1],so[3]),Comm(so[2],so[3]));               \
-        B:=InvariantBilinearForm(G0).matrix;                                            \
-        z:=Z(q^2); e:=z; sqo:=(q^2-1)/2;                                              \
-        if IsInt(sqo/Order(e^2+z^0)) then                                             \
-            e:=z^First([2..q^2-2], x-> not IsInt(sqo/Order(z^(2*x)+z^0)));            \
-        fi;                                                                             \
-        nu:=z^First([0..q^2-2], x->z^x*(e^2+z^0)+(z^x*(e^2+z^0))^q=0*z);            \
-        T:=function(x)                                                                  \
-            local r;                                                                    \
-            r:=nu*x*B*x;                                                                \
-            return r+r^q;                                                               \
-        end;                                                                            \
-        s:=Group([Z(q)*IdentityMat(3,GF(q))]);                                          \
-        O1:=Orbit(G1, Set(Orbit(s,z^0*[1,0,0])), OnSets);                               \
-        O2:=Orbit(G1, Set(Orbit(s,z^0*[1,1,e])), OnSets);                             \
-        G:=Graph(G1,Concatenation(O1,O2),OnSets,                                        \
-            function(x,y) return x<>y and 0*z=T(x[1]+y[1]); end);                       \
-        return List([1..OrderGraph(G)],x->Adjacency(G,x));                              \
-        end;')
+    from sage.libs.gap.libgap import libgap
+    from sage.misc.package import is_package_installed, PackageNotFoundError
+
+    if not is_package_installed('gap_packages'):
+        raise PackageNotFoundError('gap_packages')
+
+    adj_list=libgap.function_factory("""function(q)
+        local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
+        LoadPackage("grape");
+        G0:=SO(3,q^2);
+        so:=GeneratorsOfGroup(G0);
+        G1:=Group(Comm(so[1],so[2]),Comm(so[1],so[3]),Comm(so[2],so[3]));
+        B:=InvariantBilinearForm(G0).matrix;
+        z:=Z(q^2); e:=z; sqo:=(q^2-1)/2;
+        if IsInt(sqo/Order(e^2+z^0)) then
+            e:=z^First([2..q^2-2], x-> not IsInt(sqo/Order(z^(2*x)+z^0)));
+        fi;
+        nu:=z^First([0..q^2-2], x->z^x*(e^2+z^0)+(z^x*(e^2+z^0))^q=0*z);
+        T:=function(x)
+            local r;
+            r:=nu*x*B*x;
+            return r+r^q;
+        end;
+        s:=Group([Z(q)*IdentityMat(3,GF(q))]);
+        O1:=Orbit(G1, Set(Orbit(s,z^0*[1,0,0])), OnSets);
+        O2:=Orbit(G1, Set(Orbit(s,z^0*[1,1,e])), OnSets);
+        G:=Graph(G1,Concatenation(O1,O2),OnSets,
+            function(x,y) return x<>y and 0*z=T(x[1]+y[1]); end);
+        return List([1..OrderGraph(G)],x->Adjacency(G,x));
+        end;""")
 
     adj = adj_list(q) # for each vertex, we get the list of vertices it is adjacent to
-    v = len(adj)
-    G = Graph(v)
-    from itertools import izip
-    for ctr,a in izip(xrange(v),adj):
-        G.add_edges(map(lambda x: (int(ctr),int(x)-1), a))
+    G = Graph(((i,int(j-1))
+               for i,ni in enumerate(adj) for j in ni),
+               format='list_of_edges', multiedges=False)
     G.name('CossidentePenttila('+str(q)+')')
     return G

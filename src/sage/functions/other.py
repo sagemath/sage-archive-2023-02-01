@@ -670,6 +670,19 @@ class Function_floor(BuiltinFunction):
 
 floor = Function_floor()
 
+class Function_Order(GinacFunction):
+    def __init__(self):
+        r"""
+        The order function.
+
+        This function gives the order of magnitude of some expression,
+        similar to `O`-terms.
+        """
+        GinacFunction.__init__(self, "Order", latex_name=r"\mathcal{O}")
+
+Function_Order()
+
+
 class Function_gamma(GinacFunction):
     def __init__(self):
         r"""

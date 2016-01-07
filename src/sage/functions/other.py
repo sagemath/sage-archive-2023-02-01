@@ -670,6 +670,39 @@ class Function_floor(BuiltinFunction):
 
 floor = Function_floor()
 
+class Function_Order(GinacFunction):
+    def __init__(self):
+        r"""
+        The order function.
+
+        This function gives the order of magnitude of some expression,
+        similar to `O`-terms.
+
+        .. SEEALSO::
+
+            :meth:`~sage.symbolic.expression.Expression.Order`,
+            :mod:`~sage.rings.big_oh`
+
+        EXAMPLES::
+
+            sage: x = SR('x')
+            sage: x.Order()
+            Order(x)
+            sage: (x^2 + x).Order()
+            Order(x^2 + x)
+
+        TESTS:
+
+        Check that :trac:`19425` is resolved::
+
+            sage: x.Order().operator()
+            Order
+        """
+        GinacFunction.__init__(self, "Order", latex_name=r"\mathcal{O}")
+
+Function_Order()
+
+
 class Function_gamma(GinacFunction):
     def __init__(self):
         r"""

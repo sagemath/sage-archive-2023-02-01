@@ -420,14 +420,6 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: W = V.span([(1/2, 1, 0)])
             sage: W._defining_generators()
             ((1/2, 1, 0),)
-
-        This is cached, so we can manually set the result if required.
-        Beware that this might break stuff because of unique
-        representation! ::
-
-            sage: (ZZ^3)._defining_generators.set_cache(["foo", "bar"])
-            sage: V._defining_generators()
-            ['foo', 'bar']
         """
         try:
             gens = self.ring_generators

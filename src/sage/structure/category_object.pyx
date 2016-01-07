@@ -380,15 +380,6 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: B.<z> = EquationOrder(x^2 + 3)
             sage: z.minpoly()
             x^2 + 3
-
-        ::
-
-            sage: K.<a> = QuadraticField(-163)
-            sage: R.<w> = K.ring_of_integers()
-            sage: w
-            a
-            sage: parent(w)
-            Maximal Order in Number Field in a with defining polynomial x^2 + 163
         """
         return self._defining_generators()[:n]
 

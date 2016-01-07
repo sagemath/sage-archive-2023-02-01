@@ -677,6 +677,21 @@ class Function_Order(GinacFunction):
 
         This function gives the order of magnitude of some expression,
         similar to `O`-terms.
+
+        EXAMPLES::
+
+            sage: x = SR('x')
+            sage: x.Order()
+            Order(x)
+            sage: (x^2 + x).Order()
+            Order(x^2 + x)
+
+        TESTS:
+
+        Check that :trac:`19425` is resolved::
+
+            sage: x.Order().operator()
+            Order
         """
         GinacFunction.__init__(self, "Order", latex_name=r"\mathcal{O}")
 

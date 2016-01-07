@@ -5001,18 +5001,31 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         # cf. Theorem 2
         return len(K_SP.lyapunov_like_basis()) + l*m + (n - m)*n
 
-    def random_element(self):
+    def random_element(self, ring=ZZ):
         r"""
-        Return a random rational vector contained in this cone.
+        Return a random element of this cone.
 
         All elements of a convex cone can be represented as a
-        nonnegative linear combination of its generators. A
-        random element is thus constructed by assigning random
-        nonnegative weights to the generators of this cone.
+        nonnegative linear combination of its generators. A random
+        element is thus constructed by assigning random nonnegative
+        weights to the generators of this cone.  By default, these
+        weights are integral and the resulting random element will live
+        in the same lattice as the cone.
+
+        If ``ring`` is ``QQ``, then the weights may be rational and the
+        random element returned will be a vector.
+
+        INPUT:
+
+          - ``ring`` -- the ring from which the random generator weights
+            are chosen; either ``ZZ`` or ``QQ``.
 
         OUTPUT:
 
-        A vector, contained in this cone, whose components are rational.
+        Either a lattice element or vector contained in this cone. If
+        ``ring`` is neither ``ZZ`` nor ``QQ``, then a ``ValueError`` is
+        raised (to ensure that both this cone and its ambient vector
+        space contain the random element).
 
         EXAMPLES:
 
@@ -5021,6 +5034,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = Cone([], ToricLattice(0))
             sage: K.random_element()
+            N()
+            sage: K.random_element(ring=QQ)
             ()
 
         A random element of the trivial cone in a nontrivial space is zero::
@@ -5028,6 +5043,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = Cone([(0,0,0)])
             sage: K.random_element()
+            N(0, 0, 0)
+            sage: K.random_element(ring=QQ)
             (0, 0, 0)
 
         A random element of the nonnegative orthant should have all
@@ -5037,6 +5054,17 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
             sage: all([ x >= 0 for x in K.random_element() ])
             True
+            sage: all([ x >= 0 for x in K.random_element(ring=QQ) ])
+            True
+
+        If ``ring`` is not ``ZZ`` or ``QQ``, a ``ValueError`` is raised::
+
+            sage: set_random_seed()
+            sage: K = Cone([(1,0),(0,1)])
+            sage: K.random_element(ring=RR)
+            Traceback (most recent call last):
+            ...
+            ValueError: ring must be either ZZ or QQ.
 
         TESTS:
 
@@ -5045,6 +5073,25 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: K.contains(K.random_element())
+            True
+            sage: K.contains(K.random_element(ring=QQ))
+            True
+
+        The ambient vector space of the cone should contain a random
+        element of the cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.random_element() in K.lattice().vector_space()
+            True
+            sage: K.random_element(ring=QQ) in K.lattice().vector_space()
+            True
+
+        By default, the random element should live in this cone's lattice::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.random_element() in K.lattice()
             True
 
         A strictly convex cone contains no lines, and thus no negative
@@ -5062,15 +5109,42 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = random_cone(max_ambient_dim=8)
             sage: K.contains(sum([K.random_element() for i in range(10)]))
             True
+            sage: K.contains(sum([K.random_element(QQ) for i in range(10)]))
+            True
+
+        The sum of random elements of a cone belongs to its ambient
+        vector space::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: V = K.lattice().vector_space()
+            sage: sum([K.random_element() for i in range(10)]) in V
+            True
+            sage: sum([K.random_element(ring=QQ) for i in range(10)]) in V
+            True
+
+        By default, the sum of random elements of the cone should live
+        in the cone's lattice::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: sum([K.random_element() for i in range(10)]) in K.lattice()
+            True
         """
-        V = self.lattice().vector_space()
+        if not ring in [ZZ, QQ]:
+            raise ValueError('ring must be either ZZ or QQ.')
+
+        # The lattice or vector space in which the return value will live.
+        L = self.lattice()
+        if ring is QQ:
+            L = L.vector_space()
 
         # Scale each generator by a random nonnegative factor.
-        terms = [ V.base_field().random_element().abs()*V(g) for g in self ]
+        terms = [ ring.random_element().abs()*L(g) for g in self ]
 
-        # Make sure we return a vector. Without the conversion, we
-        # return ``0`` when we have no rays.
-        return V(sum(terms))
+        # Make sure we return a lattice element or vector. Without the
+        # explicit conversion, we return ``0`` when we have no rays.
+        return L(sum(terms))
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

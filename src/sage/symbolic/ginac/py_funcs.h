@@ -60,6 +60,7 @@ namespace GiNaC {
 	PyObject* (*py_sin)(PyObject* n);
 	PyObject* (*py_cos)(PyObject* n);
 	PyObject* (*py_zeta)(PyObject* n);
+	PyObject* (*py_stieltjes)(PyObject* n);
 	PyObject* (*py_exp)(PyObject* n);
 	PyObject* (*py_log)(PyObject* n);
 	PyObject* (*py_tan)(PyObject* n);

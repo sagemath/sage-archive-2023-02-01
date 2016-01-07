@@ -129,6 +129,12 @@ template<> inline bool is_the_function<zeta_SERIAL>(const ex& x)
 	return is_the_function<zeta1_SERIAL>(x) || is_the_function<zeta2_SERIAL>(x);
 }
 
+class stieltjes1_SERIAL { public: static unsigned serial; };
+template<typename T1>
+inline function stieltjes(const T1& p1) {
+	return function(stieltjes1_SERIAL::serial, ex(p1));
+}
+
 // overloading at work: we cannot use the macros here
 /** Generalized multiple polylogarithm. */
 class G2_SERIAL { public: static unsigned serial; };

@@ -2,6 +2,7 @@
 
 #include "infinity.h"
 #include "lst.h"
+#include "constant.h"
 #include "numeric.h"
 #include "operators.h"
 #include "power.h"
@@ -14,6 +15,53 @@
 
 
 namespace GiNaC {
+
+// Stieltjes constants
+
+static ex stieltjes1_evalf(const ex& x, PyObject* parent)
+{
+        if (is_exactly_a<numeric>(x)) {
+		try {
+			return stieltjes(ex_to<numeric>(x.evalf(0, parent)));
+		} catch (const dunno &e) { }
+	}
+
+	return stieltjes(x).hold();
+}
+
+
+static ex stieltjes1_eval(const ex& arg)
+{
+	if (not arg.info(info_flags::numeric))
+                return stieltjes(arg).hold();
+
+	if (not arg.info(info_flags::integer))
+                return stieltjes(ex_to<numeric>(arg));
+
+        if (ex_to<numeric>(arg).is_zero())
+                return Euler;
+        else if (not ex_to<numeric>(arg).is_negative())
+                return stieltjes(arg).hold();
+        else
+                throw std::runtime_error("Stieltjes constant of negative index");
+}
+
+static void stieltjes1_print_latex(const ex& arg, const print_context& c)
+{
+	c.s << "\\gamma";
+        if (is_exactly_a<numeric>(arg) and ex_to<numeric>(arg).is_zero())
+                return;
+        c.s << "_{";
+	arg.print(c);
+	c.s << "}";
+}
+
+
+unsigned stieltjes1_SERIAL::serial = function::register_new(function_options("stieltjes", 1).
+                                evalf_func(stieltjes1_evalf).
+                                eval_func(stieltjes1_eval).
+                                print_func<print_latex>(stieltjes1_print_latex).
+                                overloaded(2));
 
 //////////////////////////////////////////////////////////////////////
 //

@@ -2020,6 +2020,10 @@ const numeric numeric::zeta() const {
         PY_RETURN(py_funcs.py_zeta);
 }
 
+const numeric numeric::stieltjes() const {
+        PY_RETURN(py_funcs.py_stieltjes);
+}
+
 const numeric numeric::exp() const {
         PY_RETURN(py_funcs.py_exp);
 }
@@ -2480,6 +2484,10 @@ const numeric Li2(const numeric &x, const numeric &n, PyObject* parent) {
 /** Evaluation of Riemann's Zeta function.  */
 const numeric zeta(const numeric &x) {
         return x.zeta();
+}
+
+const numeric stieltjes(const numeric &x) {
+        return x.stieltjes();
 }
 
 /** The Gamma function.

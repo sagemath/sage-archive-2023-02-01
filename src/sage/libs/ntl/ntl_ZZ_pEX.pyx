@@ -21,6 +21,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import division
+
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
@@ -336,7 +338,7 @@ cdef class ntl_ZZ_pEX(object):
         sig_off()
         return r
 
-    def __div__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
+    def __truediv__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -365,6 +367,9 @@ cdef class ntl_ZZ_pEX(object):
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return r
+
+    def __div__(self, other):
+        return self / other
 
     def __mod__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
         """
@@ -1106,7 +1111,7 @@ cdef class ntl_ZZ_pEX(object):
 
         c = ~self.leading_coefficient()
         m = self.degree()
-        if (m*(m-1)/2) % 2:
+        if (m*(m-1) // 2) % 2:
             c = -c
         return c*self.resultant(self.derivative())
 

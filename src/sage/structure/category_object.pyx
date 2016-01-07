@@ -301,7 +301,7 @@ cdef class CategoryObject(sage_object.SageObject):
             {'a': a, 'b': b, 'c': c, 'd': d}
         """
         cdef dict v = {}
-        for x in self._defining_generators():
+        for x in self._defining_names():
             v[str(x)] = x
         return v
 
@@ -381,10 +381,10 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: z.minpoly()
             x^2 + 3
         """
-        return self._defining_generators()[:n]
+        return self._defining_names()[:n]
 
     @cached_method
-    def _defining_generators(self):
+    def _defining_names(self):
         """
         The generators used to "define" this object. What this means
         depends on the type of object: for rings, it usually means
@@ -393,23 +393,23 @@ cdef class CategoryObject(sage_object.SageObject):
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(QQ)
-            sage: R._defining_generators()
+            sage: R._defining_names()
             (x,)
 
         For orders, we correctly use the ring generator, see
         :trac:`15348`::
 
             sage: B.<z> = EquationOrder(x^2 + 3)
-            sage: B._defining_generators()
+            sage: B._defining_names()
             (z,)
 
         For vector spaces and free modules, we get a basis::
 
             sage: V = ZZ^3
-            sage: V._defining_generators()
+            sage: V._defining_names()
             ((1, 0, 0), (0, 1, 0), (0, 0, 1))
             sage: W = V.span([(1/2, 1, 0)])
-            sage: W._defining_generators()
+            sage: W._defining_names()
             ((1/2, 1, 0),)
         """
         return self.gens()

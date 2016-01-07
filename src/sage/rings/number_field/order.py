@@ -624,6 +624,27 @@ class Order(IntegralDomain):
             remaining = [x for x in remaining if not to_V(x) in W]
         return Sequence(gens,immutable=True)
 
+    @cached_method
+    def _defining_generators(self):
+        """
+        Return the generators of the ambient number field, but with
+        this order as parent.
+
+        EXAMPLES::
+
+            sage: B.<z> = EquationOrder(x^2 + 3)
+            sage: B._defining_generators()
+            (z,)
+
+        For relative extensions::
+
+            sage: O.<a,b> = EquationOrder([x^2 + 1, x^2 + 2])
+            sage: O._defining_generators()
+            (a, b)
+        """
+        gens = self.number_field().gens()
+        return tuple(self(g) for g in gens)
+
     def zeta(self, n=2, all=False):
         r"""
         Return a primitive n-th root of unity in this order, if it

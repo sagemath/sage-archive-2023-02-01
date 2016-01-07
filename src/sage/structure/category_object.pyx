@@ -386,7 +386,7 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: K.<a> = QuadraticField(-163)
             sage: R.<w> = K.ring_of_integers()
             sage: w
-            1/2*a + 1/2
+            a
             sage: parent(w)
             Maximal Order in Number Field in a with defining polynomial x^2 + 163
         """
@@ -410,7 +410,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
             sage: B.<z> = EquationOrder(x^2 + 3)
             sage: B._defining_generators()
-            [z]
+            (z,)
 
         For vector spaces and free modules, we get a basis::
 
@@ -421,11 +421,7 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: W._defining_generators()
             ((1/2, 1, 0),)
         """
-        try:
-            gens = self.ring_generators
-        except AttributeError:
-            gens = self.gens
-        return gens()
+        return self.gens()
 
     #################################################################################################
     # Names and Printers

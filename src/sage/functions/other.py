@@ -678,6 +678,11 @@ class Function_Order(GinacFunction):
         This function gives the order of magnitude of some expression,
         similar to `O`-terms.
 
+        .. SEEALSO::
+
+            :meth:`~sage.symbolic.expression.Expression.Order`,
+            :mod:`~sage.rings.big_oh`
+
         EXAMPLES::
 
             sage: x = SR('x')

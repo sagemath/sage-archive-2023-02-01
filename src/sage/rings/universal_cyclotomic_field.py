@@ -456,7 +456,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: SR(E(7))
             e^(2/7*I*pi)
             sage: SR(E(5) + 2*E(5,2) + 3*E(5,3))
-            3*e^(6/5*I*pi) + 2*e^(4/5*I*pi) + e^(2/5*I*pi)
+            -sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 3/2
         """
         from sage.symbolic.constants import pi
         from sage.symbolic.all import i as I

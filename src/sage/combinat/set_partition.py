@@ -517,12 +517,12 @@ class SetPartition(ClonableArray):
 
     @combinatorial_map(name='to permutation')
     def to_permutation(self):
-        """
-        Convert a set partition of {1,...,n} to a permutation by considering
+        r"""
+        Convert a set partition of `\{1,...,n\}` to a permutation by considering
         the blocks of the partition as cycles.
 
-        The cycles are such that the number of excedences is maximised,
-        that is, each cycle is of the form (a1,a2, ...,ak) with a1<a2<...<ak.
+        The cycles are such that the number of excedences is maximised, that is,
+        each cycle is of the form `(a_1,a_2, ...,a_k)` with `a_1<a_2<...<a_k`.
 
         EXAMPLES::
 

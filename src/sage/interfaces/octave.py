@@ -155,6 +155,7 @@ from __future__ import absolute_import
 
 import os
 from .expect import Expect, ExpectElement
+from sage.misc.misc import verbose
 
 def get_octave_version(command=None, server=None):
     r"""
@@ -242,8 +243,11 @@ class Octave(Expect):
 
         Expect.__init__(self,
                         name = 'octave',
-                        prompt = prompt,
-                        command = command + options,
+                        # We want the prompt sequence to be unique to avoid confusion with syntax error messages containing >>>
+                        prompt = 'octave\:\d+> ',
+                        # We don't want any pagination of output
+                        command = "sage-native-execute octave --no-line-editing --silent --eval 'PS2(PS1());more off' --persist",
+                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -330,6 +334,57 @@ class Octave(Expect):
              octave starts up.
            * Darwin ports and fink have Octave as well.
         """
+    def _eval_line(self, line, reformat=True, allow_use_file=False,
+                   wait_for_prompt=True, restart_if_needed=False):
+        """
+        EXAMPLES::
+
+            sage: print(octave._eval_line('2+2'))  #optional - octave
+              ans =  4
+        """
+        if not wait_for_prompt:
+            return Expect._eval_line(self, line)
+        if line == '':
+            return ''
+        if self._expect is None:
+            self._start()
+        if allow_use_file and len(line)>3000:
+            return self._eval_line_using_file(line)
+        try:
+            E = self._expect
+            # debug
+            # self._synchronize(cmd='1+%s\n')
+            verbose("in = '%s'"%line,level=3)
+            E.sendline(line)
+            E.expect(self._prompt)
+            out = E.before
+            # debug
+            verbose("out = '%s'"%out,level=3)
+        except EOF:
+            if self._quit_string() in line:
+                return ''
+        except KeyboardInterrupt:
+            self._keyboard_interrupt()
+        if reformat:
+            if 'syntax error' in out:
+                raise SyntaxError(out)
+        out = "\n".join(out.splitlines()[1:])
+        return out
+
+    def _keyboard_interrupt(self):
+        print("CntrlC: Interrupting %s..."%self)
+        if self._restart_on_ctrlc:
+            try:
+                self._expect.close(force=1)
+            except pexpect.ExceptionPexpect as msg:
+                raise pexpect.ExceptionPexpect( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+            self._start()
+            raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self)
+        else:
+            self._expect.send('\003') # control-c
+            #self._expect.expect(self._prompt)
+            #self._expect.expect(self._prompt)
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def quit(self, verbose=False):
         """
@@ -408,7 +463,7 @@ class Octave(Expect):
         """
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
-        if out.find("error") != -1:
+        if out.find("error") != -1 or out.find("Error") != -1:
             raise TypeError("Error executing code in Octave\nCODE:\n\t%s\nOctave ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
@@ -686,8 +741,11 @@ class OctaveElement(ExpectElement):
             sage: matrix(ZZ, A)                 # optional - octave
             [1 2]
             [3 4]
+            sage: A = octave('[1,2;3,4.5]')     # optional - octave
+            sage: matrix(RR, A)                 # optional - octave
+            [1.00000000000000 2.00000000000000]
+            [3.00000000000000 4.50000000000000]
         """
-        oc = self.parent()
         if not self.ismatrix():
             raise TypeError('not an octave matrix')
         if R is None:

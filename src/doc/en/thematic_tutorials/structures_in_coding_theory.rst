@@ -65,7 +65,7 @@ This class provide a lot of useful methods and, as we illustrate thereafter, a d
 which sets the *length*, the *base_field*, the *default encoder* and the *default decoder* as class
 parameters. We also need to create the dictionary of known encoders and decoders for the class.
 
-Let's now write the constructor for our code class, that we store in some file called ``repetition_code.py``::
+Let us now write the constructor for our code class, that we store in some file called ``repetition_code.py``::
 
     sage: from sage.coding.linear_code import AbstractLinearCode
     ....: class BinaryRepetitionCode(AbstractLinearCode):
@@ -96,7 +96,7 @@ We also write a method to check equality::
     ....:           and self.dimension() == other.dimension())
 
 After these examples, you probably noticed that we use two methods, namely ``length()``
-and ``dimension()`` without defining them. That's because their implementation is provided in
+and ``dimension()`` without defining them. That is  because their implementation is provided in
 :class:`sage.coding.linear_code.AbstractLinearCode`. The abstract class provides default implantation
 on the following getter methods:
 
@@ -130,13 +130,13 @@ Summary of the implementation for linear codes
 Please note that ``dimension`` will not work is there is no field ``_dimension`` as class parameter.
 
 
-We now know how to write a new code class. Let's see how to write a new encoder and a new decoder.
+We now know how to write a new code class. Let us see how to write a new encoder and a new decoder.
 
 
 III. Write a new encoder class
 ==============================
 
-Let's continue our example. We ask the same question as before: what do we need to describe the encoder?
+Let us continue our example. We ask the same question as before: what do we need to describe the encoder?
 For most of the cases (this one included), we only need the associated code. In that case, writing the
 constructor is really straightforward (we store the code in the same ``.py`` file as the code class)::
 
@@ -169,7 +169,7 @@ This implementation changes quite a lot whether we have a generator matrix or no
 We have a generator matrix
 --------------------------
 
-In that case, the message space is a vector space, and it's especially easy: the only method you need to implement is ``generator_matrix``.
+In that case, the message space is a vector space, and it is especially easy: the only method you need to implement is ``generator_matrix``.
 
 Continuing our example, it will be::
 
@@ -234,7 +234,7 @@ Summary of the implementation for encoders
 IV. Write a new decoder class
 ==============================
 
-Let's continue by writing a decoder. As before, we need to know what's required to describe a decoder.
+Let us continue by writing a decoder. As before, we need to know what is required to describe a decoder.
 We need of course the associated code of the decoder. We also want to know which ``Encoder`` we should use
 when we try to recover the original message from a received word containing errors. We call this
 encoder ``connected_encoder``. As different decoding algorithms do not have the same behaviour
@@ -359,7 +359,7 @@ In our case, it will be the number of bits to flip (aka the number of errors).
 As you might have guess, there is an abstract class to take care of the mandatory arguments!
 Plus, in our case, as this channel only works for vectors over :math:`\mathbb{F}_{2}`, the
 input and output spaces are the same.
-Let's write the constructor of our new channel class::
+Let us write the constructor of our new channel class::
 
     from sage.coding.channel_constructions import Channel
     ....: class BinaryStaticErrorRateChannel(Channel):
@@ -386,18 +386,18 @@ We also want to override representation methods ``_repr_`` and ``_latex_``::
 We don't really see any use case for equality methods (``__eq__`` and ``__ne__``) so do not provide any
 default implementation. If one needs these, one can of course override Python's default methods.
 
-We of course want getter methods. There's a provided default implementation for ``input_space`` and
+We of course want getter methods. There is a provided default implementation for ``input_space`` and
 ``output_space``, so we only need one for ``number_errors``::
 
     sage: def number_errors(self):
     ....:     return self._number_errors
 
-So, now we want a method to actually add errors to words. As it's the same thing as transmitting
+So, now we want a method to actually add errors to words. As it is the same thing as transmitting
 messages over a real-world channel, we propose two methods, ``transmit`` and ``transmit_unsafe``.
 As you can guess, ``transmit_unsafe`` tries to transmit the message without checking if it is
 in the input space or not, while ``transmit`` checks this before the transmission... Which
 means that ``transmit`` has a default implementation which calls ``transmit_unsafe``. So we
-only need to override ``transmit_unsafe``! Let's do it::
+only need to override ``transmit_unsafe``! Let us do it::
 
     sage: def transmit_unsafe(self, message):
     ....:     w = copy(message)
@@ -408,7 +408,7 @@ only need to override ``transmit_unsafe``! Let's do it::
     ....:         w[i] += F.one()
     ....:     return w
 
-And that's it, we now have our new channel class ready to use!
+And that is it, we now have our new channel class ready to use!
 
 Summary of the implementation for channels
 ------------------------------------------

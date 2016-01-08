@@ -5012,20 +5012,23 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         weights are integral and the resulting random element will live
         in the same lattice as the cone.
 
-        If ``ring`` is ``QQ``, then the weights may be rational and the
-        random element returned will be a vector.
+        The random nonnegative weights are chosen from ``ring`` which
+        defaults to ``ZZ``. When ``ring`` is not ``ZZ``, the random
+        element returned will be a vector. Only the rings ``ZZ`` and
+        ``QQ`` are currently supported.
 
         INPUT:
 
-          - ``ring`` -- the ring from which the random generator weights
-            are chosen; either ``ZZ`` or ``QQ``.
+          - ``ring`` -- (default: ``ZZ``) the ring from which the random
+            generator weights are chosen; either ``ZZ`` or ``QQ``.
 
         OUTPUT:
 
-        Either a lattice element or vector contained in this cone. If
-        ``ring`` is neither ``ZZ`` nor ``QQ``, then a ``ValueError`` is
-        raised (to ensure that both this cone and its ambient vector
-        space contain the random element).
+        Either a lattice element or vector contained in both this cone
+        and its ambient vector space. If ``ring`` is ``ZZ``, a lattice
+        element is returned; otherwise a vector is returned. If ``ring``
+        is neither ``ZZ`` nor ``QQ``, then a ``NotImplementedError`` is
+        raised.
 
         EXAMPLES:
 
@@ -5057,14 +5060,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: all([ x >= 0 for x in K.random_element(ring=QQ) ])
             True
 
-        If ``ring`` is not ``ZZ`` or ``QQ``, a ``ValueError`` is raised::
+        If ``ring`` is not ``ZZ`` or ``QQ``, an error is raised::
 
             sage: set_random_seed()
             sage: K = Cone([(1,0),(0,1)])
             sage: K.random_element(ring=RR)
             Traceback (most recent call last):
             ...
-            ValueError: ring must be either ZZ or QQ.
+            NotImplementedError: ring must be either ZZ or QQ.
 
         TESTS:
 
@@ -5132,11 +5135,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
         """
         if not ring in [ZZ, QQ]:
-            raise ValueError('ring must be either ZZ or QQ.')
+            # This cone theoretically lives in a real vector space,
+            # but in Sage, we work over the rationals to avoid
+            # numerical issues. Thus ``ring`` must consist of
+            # rationals so that the ambient vector space will contain
+            # the resulting random element.
+            raise NotImplementedError('ring must be either ZZ or QQ.')
 
         # The lattice or vector space in which the return value will live.
         L = self.lattice()
-        if ring is QQ:
+        if ring is not ZZ:
             L = L.vector_space()
 
         # Scale each generator by a random nonnegative factor.

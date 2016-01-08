@@ -509,7 +509,7 @@ class Graph(GenericGraph):
          :meth:`sparse6_string`).
 
       #. ``Graph(a_seidel_matrix, format='seidel_adjacency_matrix')`` -- return
-         a graph with a given seidel adjacency matrix (see documentation of
+         a graph with a given Seidel adjacency matrix (see documentation of
          :meth:`seidel_adjacency_matrix`).
 
       #. ``Graph(another_graph)`` -- return a graph from a Sage (di)graph,

@@ -1332,26 +1332,25 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return "%s!%sp%s" % (self.parent()._magma_init_(magma),
                              real_string, digit_precision_upper_bound)
 
-    property __array_interface__:
-        def __get__(self):
-            """
-            Used for NumPy conversion.
+    @property
+    def __array_interface__(self):
+        """
+        Used for NumPy conversion.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import numpy
-                sage: numpy.arange(10.0)
-                array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
-                sage: numpy.array([1.0, 1.1, 1.2]).dtype
-                dtype('float64')
-                sage: numpy.array([1.000000000000000000000000000000000000]).dtype
-                dtype('O')
-            """
-            if (<RealField_class>self._parent).__prec <= 57: # max size of repr(float)
-                return numpy_double_interface
-            else:
-                return numpy_object_interface
-
+            sage: import numpy
+            sage: numpy.arange(10.0)
+            array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
+            sage: numpy.array([1.0, 1.1, 1.2]).dtype
+            dtype('float64')
+            sage: numpy.array([1.000000000000000000000000000000000000]).dtype
+            dtype('O')
+        """
+        if (<RealField_class>self._parent).__prec <= 53:
+            return numpy_double_interface
+        else:
+            return numpy_object_interface
 
     cdef _set(self, x, int base):
         # This should not be called except when the number is being created.

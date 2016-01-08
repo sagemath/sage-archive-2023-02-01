@@ -894,7 +894,7 @@ class WordPaths_cube_grid(WordPaths_all):
 
 class WordPaths_dyck(WordPaths_all):
     r"""
-    The combinatorial class of all dyck paths.
+    The combinatorial class of all Dyck paths.
     """
     def __init__(self, alphabet):
         r"""
@@ -1530,7 +1530,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: P('abababAABABB').plot()
             Graphics object consisting of 4 graphics primitives
 
-        A dyck path::
+        A Dyck path::
 
             sage: P = WordPaths('()', steps='dyck')
             sage: P('()()()((()))').plot()

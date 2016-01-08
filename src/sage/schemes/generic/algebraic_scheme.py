@@ -105,7 +105,7 @@ AUTHORS:
 - Andrey Novoseltsev (2010-05-17): subschemes of toric varieties.
 - Volker Braun (2010-12-24): documentation of schemes and
   refactoring. Added coordinate neighborhoods and is_smooth()
-- Ben Hutz (2014): subschemes of cartesian products of projective space
+- Ben Hutz (2014): subschemes of Cartesian products of projective space
 """
 
 #*****************************************************************************

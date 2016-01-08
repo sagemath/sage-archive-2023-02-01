@@ -65,7 +65,6 @@ toolchain-deps:
 	$(MAKE) $(INST)/$(SAGE_MP_LIBRARY)
 	$(MAKE) $(INST)/$(MPFR)
 	$(MAKE) $(INST)/$(MPC)
-	$(MAKE) $(INST)/$(PPL)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.

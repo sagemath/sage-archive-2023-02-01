@@ -69,11 +69,11 @@ Let's now write the constructor for our code class, that we store in some file c
 
     sage: from sage.coding.linear_code import AbstractLinearCode
     ....: class BinaryRepetitionCode(AbstractLinearCode):
-    ....:   _registered_encoders = {}
-    ....:   _registered_decoders = {}
-    ....:   def __init__(length):
-    ....:       super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionEncoder", "MajorityVoteDecoder")
-    ....:       self._dimension = 1
+    ....:     _registered_encoders = {}
+    ....:     _registered_decoders = {}
+    ....:     def __init__(length):
+    ....:         super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionEncoder", "MajorityVoteDecoder")
+    ....:         self._dimension = 1
 
 
 As you notice, the constructor is really simple. Most of the work is indeed managed by the
@@ -84,26 +84,26 @@ set it using ``_dimension`` as class parameter.
 We can now write representation methods for our code class::
 
     sage: def _repr_(self):
-    ....:   return "Binary repetition code of length %s" % self.length()
+    ....:     return "Binary repetition code of length %s" % self.length()
     sage: def _latex_(self):
-    ....:   return "\textnormal{Binary repetition code of length } %s" % self.length()
+    ....:     return "\textnormal{Binary repetition code of length } %s" % self.length()
 
 We also write a method to check equality::
 
     sage: def __eq__(self, other):
-    ....:   return isinstance(other, BinaryRepetitionCode) \
-    ....:           and self.length() == other.length() \
-    ....:           and self.dimension() == other.dimension()
+    ....:     return (isinstance(other, BinaryRepetitionCode)
+    ....:           and self.length() == other.length()
+    ....:           and self.dimension() == other.dimension())
 
 After these examples, you probably noticed that we use two methods, namely ``length()``
 and ``dimension()`` without defining them. That's because their implementation is provided in
 :class:`sage.coding.linear_code.AbstractLinearCode`. The abstract class provides default implantation
 on the following getter methods:
 
-- dimension,
-- length,
-- base_field and
-- ambient space
+- :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`
+- :meth:`sage.coding.linear_code.AbstractLinearCode.length`,
+- :meth:`sage.coding.linear_code.AbstractLinearCode.base_field` and
+- :meth:`sage.coding.linear_code.AbstractLinearCode.ambient_space`.
 
 It also provides an implementation of ``__ne__`` which returns the inverse of ``__eq__`` and
 several other very useful methods, like ``__contains__``. Note that a lot of these other methods
@@ -118,13 +118,14 @@ enough to describe properly a repetition code.
 Summary of the implementation for linear codes
 ----------------------------------------------
 
-1. Inherit from :class:`sage.coding.linear_code.AbstractLinearCode`
-2. Add ``_registered_encoders =  {}`` and ``_registered_decoders = {}`` as global variables for the class
+1. Inherit from :class:`sage.coding.linear_code.AbstractLinearCode`.
+2. Add ``_registered_encoders =  {}`` and ``_registered_decoders = {}`` as global variables for the class.
 3. Add this line in the class' constructor::
-    super(ClassName, self).__init__(base_field, length, "DefaultEncoder", "DefaultDecoder")
-4. Implement representation methods (not mandatory, but highly advised) ``_repr_`` and ``_latex_``
-5. Implement ``__eq__``
-6. ``__ne__``, ``length`` and ``dimension`` come with the abstract class
+
+      super(ClassName, self).__init__(base_field, length, "DefaultEncoder", "DefaultDecoder")
+4. Implement representation methods (not mandatory, but highly advised) ``_repr_`` and ``_latex_``.
+5. Implement ``__eq__``.
+6. ``__ne__``, ``length`` and ``dimension`` come with the abstract class.
 
 Please note that ``dimension`` will not work is there is no field ``_dimension`` as class parameter.
 
@@ -141,8 +142,8 @@ constructor is really straightforward (we store the code in the same ``.py`` fil
 
     sage: from sage.coding.encoder import Encoder
     ....: class BinaryRepetitionCodeGeneratorMatrixEncoder(Encoder):
-    ....:   def __init__(self, code):
-    ....:       super(BinaryRepetitionCodeGeneratorMatrixEncoder, self).__init__(code)
+    ....:     def __init__(self, code):
+    ....:         super(BinaryRepetitionCodeGeneratorMatrixEncoder, self).__init__(code)
 
 Same thing as before, as an encoder always needs to know its associated code, the work can be done by
 the topclass. Remember to inherit from :class:`sage.coding.encoder.Encoder`!
@@ -150,15 +151,15 @@ the topclass. Remember to inherit from :class:`sage.coding.encoder.Encoder`!
 We also want to override representation methods ``_repr_`` and ``_latex_``::
 
     sage: def _repr_(self):
-    ....:   return "Binary repetition encoder for the %s" % self.code()
+    ....:     return "Binary repetition encoder for the %s" % self.code()
     sage: def _latex_(self):
-    ....:   return "\textnormal{Binary repetition encoder for the } %s" % self.code()
+    ....:     return "\textnormal{Binary repetition encoder for the } %s" % self.code()
 
 And we want to have an equality check too::
 
     sage: def __eq__(self, other):
-    ....:   return isinstance(other, BinaryRepetitionCodeGeneratorMatrixEncoder) \
-    ....:           and self.code() == other.code()
+    ....:     return isinstance((other, BinaryRepetitionCodeGeneratorMatrixEncoder)
+    ....:           and self.code() == other.code())
 
 As before, default getter method is provided by the topclass, namely :meth:`sage.coding.encoder.Encoder.code`.
 
@@ -173,8 +174,8 @@ In that case, the message space is a vector space, and it's especially easy: the
 Continuing our example, it will be::
 
     sage: def generator_matrix(self):
-    ....:   n = self.code().length()
-    ....:   return Matrix(GF(2), 1, n, [GF(2).one()] * n)
+    ....:     n = self.code().length()
+    ....:     return Matrix(GF(2), 1, n, [GF(2).one()] * n)
 
 As the topclass provides default implementation for encode and the inverse operation, that we call
 *unencode* (see: :meth:`sage.coding.encoder.Encoder.encode` and :meth:`sage.coding.encoder.Encoder.unencode`), alongside
@@ -200,13 +201,13 @@ In our example, it is easy to create an encoder which does not need a generator 
 perform the encoding and the unencoding. We propose the following implementation::
 
     sage: def encode(self, message):
-    ....:   return vector(GF(2), [word] * self.code().length())
+    ....:     return vector(GF(2), [word] * self.code().length())
 
     sage: def unencode_nocheck(self, word):
-    ....:   return word[0]
+    ....:     return word[0]
 
     sage: def message_space(self):
-    ....:   return GF(2)
+    ....:     return GF(2)
 
 Our work here is done.
 
@@ -218,15 +219,16 @@ associated code class. To do that, just add the following line at the end of you
 Summary of the implementation for encoders
 ------------------------------------------
 
-1. Inherit from :class:`sage.coding.encoder.Encoder`
+1. Inherit from :class:`sage.coding.encoder.Encoder`.
 2. Add this line in the class' constructor::
-    super(ClassName, self).__init__(associated_code)
-3. Implement representation methods (not mandatory) ``_repr_`` and ``_latex_``
+
+      super(ClassName, self).__init__(associated_code)
+3. Implement representation methods (not mandatory) ``_repr_`` and ``_latex_``.
 4. Implement ``__eq__``
-5. ``__ne__``, ``code`` come with the abstract class
-6. If a generator matrix is known, override ``generator_matrix``
-7. Else override ``encode``, ``unencode_nocheck`` and if needed ``message_space``
-8. Add the encoder to ``CodeClass._registered_encoders``
+5. ``__ne__``, ``code`` come with the abstract class.
+6. If a generator matrix is known, override ``generator_matrix``.
+7. Else override ``encode``, ``unencode_nocheck`` and if needed ``message_space``.
+8. Add the encoder to ``CodeClass._registered_encoders``.
 
 
 IV. Write a new decoder class
@@ -244,9 +246,9 @@ looks like that::
 
     sage: from sage.coding.decoder import Decoder
     ....: class BinaryRepetitionCodeMajorityVoteDecoder(Decoder):
-    ....:   def __init__(self, code):
-    ....:       super(BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),\
-    ....:                "RepetitionGeneratorMatrixEncoder")
+    ....:     def __init__(self, code):
+    ....:         super((BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),
+    ....:                "RepetitionGeneratorMatrixEncoder"))
 
 Remember to inherit from :class:`sage.coding.decoder.Decoder`!
 
@@ -256,15 +258,15 @@ For readability, we suggest to add this statement at the bottom of the file. We'
 We also want to override representation methods ``_repr_`` and ``_latex_``::
 
     sage: def _repr_(self):
-    ....:   return "Majority vote-based decoder for the %s" % self.code()
+    ....:     return "Majority vote-based decoder for the %s" % self.code()
     sage: def _latex_(self):
-    ....:   return "\textnormal{Majority vote based-decoder for the } %s" % self.code()
+    ....:     return "\textnormal{Majority vote based-decoder for the } %s" % self.code()
 
 And we want to have an equality check too::
 
     sage: def __eq__(self, other):
-    ....:   return isinstance(other, BinaryRepetitionCodeMajorityVoteDecoder) \
-    ....:           and self.code() == other.code()
+    ....:     return isinstance((other, BinaryRepetitionCodeMajorityVoteDecoder)
+    ....:           and self.code() == other.code())
 
 As before, default getter methods are provided by the topclass, namely :meth:`sage.coding.decoder.Decoder.code`,
 :meth:`sage.coding.decoder.Decoder.input_space`, :meth:`sage.coding.decoder.Decoder.decoder_type`
@@ -281,16 +283,16 @@ first ``decode_to_code`` and then ``unencode``, while ``decode_to_code`` calls s
 to override ``decode_to_code``::
 
     sage: def decode_to_code(self, word):
-    ....:   list_word = word.list()
-    ....:   count_one = list_word.count(GF(2).one())
-    ....:   n = self.code().length()
-    ....:   len = len(list_word)
-    ....:   if count_one > len / 2:
-    ....:       return vector(GF(2), [1] * n)
-    ....:   elif count_one < len / 2:
-    ....:      return vector(GF(2), [0] * n)
-    ....:   else:
-    ....:      raise DecodingFailure("Impossible to find a majority")
+    ....:     list_word = word.list()
+    ....:     count_one = list_word.count(GF(2).one())
+    ....:     n = self.code().length()
+    ....:     len = len(list_word)
+    ....:     if count_one > len / 2:
+    ....:         return vector(GF(2), [1] * n)
+    ....:     elif count_one < len / 2:
+    ....:         return vector(GF(2), [0] * n)
+    ....:     else:
+    ....:         raise DecodingError("impossible to find a majority")
 
 .. NOTE::
 
@@ -303,7 +305,7 @@ Only one method is missing: one to provide to the user the number of errors our 
 This is the method :meth:`sage.coding.decoder.Decoder.decoding_radius`, which we override::
 
     sage: def decoding_radius(self):
-    ....:   return self.code().length() // 2
+    ....:     return self.code().length() // 2
 
 As for some cases, the decoding might not be precisely known, its implementation is not mandatory in
 :class:`sage.coding.decoder.Decoder`'s subclasses.
@@ -320,14 +322,15 @@ Also put this line to set ``decoder_type``::
 Summary of the implementation for decoders
 ------------------------------------------
 
-1. Inherit from :class:`sage.coding.decoder.Decoder`
+1. Inherit from :class:`sage.coding.decoder.Decoder`.
 2. Add this line in the class' constructor::
-    super(ClassName, self).__init__(associated_code, input_space, connected_encoder_name, decoder_type)
-3. Implement representation methods (not mandatory) ``_repr_`` and ``_latex_``
-4. Implement ``__eq__``
-5. ``__ne__``, ``code``, ``connected_encoder``, ``decoder_type`` come with the abstract class
-6. Override ``decode_to_code`` or ``decode_to_message`` and ``decoding_radius``
-7. Add the encoder to ``CodeClass._registered_decoders``
+
+      super(ClassName, self).__init__(associated_code, input_space, connected_encoder_name, decoder_type)
+3. Implement representation methods (not mandatory) ``_repr_`` and ``_latex_``.
+4. Implement ``__eq__``.
+5. ``__ne__``, ``code``, ``connected_encoder``, ``decoder_type`` come with the abstract class.
+6. Override ``decode_to_code`` or ``decode_to_message`` and ``decoding_radius``.
+7. Add the encoder to ``CodeClass._registered_decoders``.
 
 V. Write a new channel class
 ============================
@@ -359,25 +362,25 @@ Let's write the constructor of our new channel class::
 
     from sage.coding.channel_constructions import Channel
     ....: class BinaryStaticErrorRateChannel(Channel):
-    ....:   def __init__(space, number_errors):
-    ....:       if space.base_ring() is not GF(2):
-    ....:           raise ValueError("Provided space must be a vector space over GF(2)")
-    ....:       if number_errors > space.dimension():
-    ....:           raise ValueErrors("number_errors cannot be bigger than input space's dimension")
-    ....:       super(BinaryStaticErrorRateChannel, self).__init__(space, space)
-    ....:       self._number_errors = number_errors
+    ....:     def __init__(space, number_errors):
+    ....:         if space.base_ring() is not GF(2):
+    ....:             raise ValueError("Provided space must be a vector space over GF(2)")
+    ....:         if number_errors > space.dimension():
+    ....:             raise ValueErrors("number_errors cannot be bigger than input space's dimension")
+    ....:         super(BinaryStaticErrorRateChannel, self).__init__(space, space)
+    ....:         self._number_errors = number_errors
 
 Remember to inherit from :class:`sage.coding.channel_constructions.Channel`!
 
 We also want to override representation methods ``_repr_`` and ``_latex_``::
 
     sage: def _repr_(self):
-    ....:   return "Binary static error rate channel creating %s errors, of input and output space %s"\
-    ....:                % (format_interval(no_err), self.input_space())
+    ....:     return ("Binary static error rate channel creating %s errors, of input and output space %s"
+    ....:                % (format_interval(no_err), self.input_space()))
 
     sage: def _latex_(self):
-    ....:   return "\\textnormal{Static error rate channel creating %s errors, of input and output space %s}"\
-    ....:                % (format_interval(no_err), self.input_space())
+    ....:     return ("\\textnormal{Static error rate channel creating %s errors, of input and output space %s}"
+    ....:                % (format_interval(no_err), self.input_space()))
 
 We don't really see any use case for equality methods (``__eq__`` and ``__ne__``) so do not provide any
 default implementation. If one needs these, one can of course override Python's default methods.
@@ -386,7 +389,7 @@ We of course want getter methods. There's a provided default implementation for 
 ``output_space``, so we only need one for ``number_errors``::
 
     sage: def number_errors(self):
-    ....:   return self._number_errors
+    ....:     return self._number_errors
 
 So, now we want a method to actually add errors to words. As it's the same thing as transmitting
 messages over a real-world channel, we propose two methods, ``transmit`` and ``transmit_unsafe``.
@@ -396,24 +399,25 @@ means that ``transmit`` has a default implementation which calls ``transmit_unsa
 only need to override ``transmit_unsafe``! Let's do it::
 
     sage: def transmit_unsafe(self, message):
-    ....:   w = copy(message)
-    ....:   number_err = self.number_errors()
-    ....:   V = self.input_space()
-    ....:   for i in sample(xrange(V.dimension(), number_err)):
-    ....:       w[i] += 1
-    ....:   return w
+    ....:     w = copy(message)
+    ....:     number_err = self.number_errors()
+    ....:     V = self.input_space()
+    ....:     for i in sample(xrange(V.dimension(), number_err)):
+    ....:         w[i] += 1
+    ....:     return w
 
 And that's it, we now have our new channel class ready to use!
 
 Summary of the implementation for channels
 ------------------------------------------
 
-1. Inherit from :class:`sage.coding.channel_constructions.Channel`
+1. Inherit from :class:`sage.coding.channel_constructions.Channel`.
 2. Add this line in the class' constructor::
-    super(ClassName, self).__init__(input_space, output_space)
-3. Implement representation methods (not mandatory) ``_repr_`` and ``_latex_``
-4. ``input_space`` and ``output_space`` getter methods come with the abstract class
-5. Override ``transmit_unsafe``
+
+      super(ClassName, self).__init__(input_space, output_space)
+3. Implement representation methods (not mandatory) ``_repr_`` and ``_latex_``.
+4. ``input_space`` and ``output_space`` getter methods come with the abstract class.
+5. Override ``transmit_unsafe``.
 
 
 VI. Sort our new elements
@@ -470,9 +474,9 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             return "\textnormal{Binary repetition code of length } %s" % self.length()
 
         def __eq__(self, other):
-            return isinstance(other, BinaryRepetitionCode) \
-               and self.length() == other.length() \
-               and self.dimension() == other.dimension()
+            return (isinstance(other, BinaryRepetitionCode)
+               and self.length() == other.length()
+               and self.dimension() == other.dimension())
 
 
 
@@ -488,8 +492,8 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             return "\textnormal{Binary repetition encoder for the } %s" % self.code()
 
         def __eq__(self, other):
-            return isinstance(other, BinaryRepetitionCodeGeneratorMatrixEncoder) \
-               and self.code() == other.code()
+            return (isinstance(other, BinaryRepetitionCodeGeneratorMatrixEncoder)
+               and self.code() == other.code())
 
         def generator_matrix(self):
             n = self.code().length()
@@ -509,8 +513,8 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             return "\textnormal{Binary repetition encoder for the } %s" % self.code()
 
         def __eq__(self, other):
-            return isinstance(other, BinaryRepetitionCodeStraightforwardEncoder) \
-               and self.code() == other.code()
+            return (isinstance(other, BinaryRepetitionCodeStraightforwardEncoder)
+               and self.code() == other.code())
 
         def encode(self, message):
             return vector(GF(2), [word] * self.code().length())
@@ -526,7 +530,7 @@ If you need some base code to start from, feel free to copy-paste and derive fro
     class BinaryRepetitionCodeMajorityVoteDecoder(Decoder):
 
         def __init__(self, code):
-            super(BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),\
+            super(BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),
                "RepetitionEncoder")
 
         def _repr_(self):
@@ -537,8 +541,8 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
 
         def __eq__(self, other):
-            return isinstance(other, BinaryRepetitionCodeMajorityVoteDecoder) \
-               and self.code() == other.code()
+            return (isinstance(other, BinaryRepetitionCodeMajorityVoteDecoder)
+               and self.code() == other.code())
 
         def decode_to_code(self, word):
             list_word = word.list()
@@ -550,7 +554,7 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             elif count_one < len / 2:
                return vector(GF(2), [0] * n)
             else:
-               raise DecodingFailure("Impossible to find a majority")
+               raise DecodingError("impossible to find a majority")
 
 
 
@@ -572,12 +576,12 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             self._number_errors = number_errors
 
         def _repr_(self):
-          return "Binary static error rate channel creating %s errors, of input and output space %s"\
-                  % (format_interval(no_err), self.input_space())
+          return ("Binary static error rate channel creating %s errors, of input and output space %s"
+                  % (format_interval(no_err), self.input_space()))
 
         def _latex_(self):
-          return "\\textnormal{Static error rate channel creating %s errors, of input and output space %s}"\
-                  % (format_interval(no_err), self.input_space())
+          return ("\\textnormal{Static error rate channel creating %s errors, of input and output space %s}"
+                  % (format_interval(no_err), self.input_space()))
 
         def number_errors(self):
           return self._number_errors
@@ -596,3 +600,4 @@ If you need some base code to start from, feel free to copy-paste and derive fro
     :class:`repetion_code.BinaryRepetitionCode <sage.coding.repetion_code.BinaryRepetitionCode>`
     #the line above creates a link to the class in the html documentation of coding theory library
     from repetition_code import BinaryRepetitionCode
+    from channel_constructions import (ErrorErasureChannel, StaticErrorRateChannel, BinaryStaticErrorRateChannel)

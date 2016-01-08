@@ -124,6 +124,17 @@ class GenericSpeciesStructure(CombinatorialObject):
 
     def change_labels(self, labels):
         """
+        Return a relabelled structure.
+
+        INPUT:
+
+        - ``labels``, a list of labels.
+
+        OUTPUT:
+
+        A structure with the i-th label of self replaced with the i-th
+        label of the list.
+
         EXAMPLES::
 
             sage: P = species.SubsetSpecies()
@@ -266,6 +277,17 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
 
     def change_labels(self, labels):
         """
+        Return a relabelled structure.
+
+        INPUT:
+
+        - ``labels``, a list of labels.
+
+        OUTPUT:
+
+        A structure with the i-th label of self replaced with the i-th
+        label of the list.
+
         EXAMPLES::
 
             sage: X = species.SingletonSpecies()

@@ -41,7 +41,7 @@ and pick the vector thus formed.
 
 The decoding uses majority voting to select the right symbol (over :math:`\mathbb{F}_{2}`).
 If we receive the word :math:`(1, 0, 1)` (example cont'd), we deduce that
-the original word was :math:`(1)`. It can correct up to :math:`\frac{n}{2}` errors.
+the original word was :math:`(1)`. It can correct up to :math:`\lceil \frac{n-1}{2} \rceil` errors.
 
 Through all this tutorial, we will illustrate the implementation of the :math:`(n, 1)`-repetition
 code over :math:`\mathbb{F}_{2}`
@@ -71,8 +71,8 @@ Let's now write the constructor for our code class, that we store in some file c
     ....: class BinaryRepetitionCode(AbstractLinearCode):
     ....:     _registered_encoders = {}
     ....:     _registered_decoders = {}
-    ....:     def __init__(length):
-    ....:         super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionEncoder", "MajorityVoteDecoder")
+    ....:     def __init__(self, length):
+    ....:         super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionGeneratorMatrixEncoder", "MajorityVoteDecoder")
     ....:         self._dimension = 1
 
 
@@ -163,7 +163,7 @@ And we want to have an equality check too::
 
 As before, default getter method is provided by the topclass, namely :meth:`sage.coding.encoder.Encoder.code`.
 
-All we have to do know is to implement the methods related to the encoding.
+All we have to do is to implement the methods related to the encoding.
 This implementation changes quite a lot whether we have a generator matrix or not.
 
 We have a generator matrix
@@ -201,7 +201,7 @@ In our example, it is easy to create an encoder which does not need a generator 
 perform the encoding and the unencoding. We propose the following implementation::
 
     sage: def encode(self, message):
-    ....:     return vector(GF(2), [word] * self.code().length())
+    ....:     return vector(GF(2), [message] * self.code().length())
 
     sage: def unencode_nocheck(self, word):
     ....:     return word[0]
@@ -239,7 +239,7 @@ We need of course the associated code of the decoder. We also want to know which
 when we try to recover the original message from a received word containing errors. We call this
 encoder ``connected_encoder``. As different decoding algorithms do not have the same behaviour
 (e.g. probabilistic decoding vs deterministic), we would like to give a few clues about the type
-of a decoder. So we can store a lists of keywords in the class parameter ``_decoder_type``.
+of a decoder. So we can store a list of keywords in the class parameter ``_decoder_type``.
 Eventually, we also need to know the input space of the decoder.
 As usual, initializing these parameters can be delegated to the topclass, and our constructor
 looks like that::
@@ -286,11 +286,12 @@ to override ``decode_to_code``::
     ....:     list_word = word.list()
     ....:     count_one = list_word.count(GF(2).one())
     ....:     n = self.code().length()
-    ....:     len = len(list_word)
-    ....:     if count_one > len / 2:
-    ....:         return vector(GF(2), [1] * n)
-    ....:     elif count_one < len / 2:
-    ....:         return vector(GF(2), [0] * n)
+    ....:     length = len(list_word)
+    ....:     F = GF(2)
+    ....:     if count_one > length / 2:
+    ....:         return vector(F, [F.one()] * n)
+    ....:     elif count_one < length / 2:
+    ....:         return vector(F, [F.zero()] * n)
     ....:     else:
     ....:         raise DecodingError("impossible to find a majority")
 
@@ -305,7 +306,7 @@ Only one method is missing: one to provide to the user the number of errors our 
 This is the method :meth:`sage.coding.decoder.Decoder.decoding_radius`, which we override::
 
     sage: def decoding_radius(self):
-    ....:     return self.code().length() // 2
+    ....:     return (self.code().length()-1) // 2
 
 As for some cases, the decoding might not be precisely known, its implementation is not mandatory in
 :class:`sage.coding.decoder.Decoder`'s subclasses.
@@ -362,7 +363,7 @@ Let's write the constructor of our new channel class::
 
     from sage.coding.channel_constructions import Channel
     ....: class BinaryStaticErrorRateChannel(Channel):
-    ....:     def __init__(space, number_errors):
+    ....:     def __init__(self, space, number_errors):
     ....:         if space.base_ring() is not GF(2):
     ....:             raise ValueError("Provided space must be a vector space over GF(2)")
     ....:         if number_errors > space.dimension():
@@ -402,8 +403,9 @@ only need to override ``transmit_unsafe``! Let's do it::
     ....:     w = copy(message)
     ....:     number_err = self.number_errors()
     ....:     V = self.input_space()
-    ....:     for i in sample(xrange(V.dimension(), number_err)):
-    ....:         w[i] += 1
+    ....:     F = GF(2)
+    ....:     for i in sample(xrange(V.dimension()), number_err):
+    ....:         w[i] += F.one()
     ....:     return w
 
 And that's it, we now have our new channel class ready to use!
@@ -439,11 +441,11 @@ folder's ``all.py``.
 Here it means the following:
 
 - add the following in ``codes_catalog.py``::
-    from repetion_code import BinaryRepetitionCode
+    from repetition_code import BinaryRepetitionCode
 - add the following in ``encoders_catalog.py``::
-    from repetion_code import BinaryRepetitionCodeGeneratorMatrixEncoder
+    from repetition_code import BinaryRepetitionCodeGeneratorMatrixEncoder
 - add the following in ``decoders_catalog.py``::
-    from repetion_code import BinaryRepetitionCodeMajorityVoteDecoder
+    from repetition_code import BinaryRepetitionCodeMajorityVoteDecoder
 - add the following in ``channels_catalog.py``::
     from channel_constructions import BinaryStaticErrorRateChannel
 
@@ -463,8 +465,8 @@ If you need some base code to start from, feel free to copy-paste and derive fro
         _registered_encoders = {}
         _registered_decoders = {}
 
-        def __init__(length):
-            super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionEncoder", "MajorityVoteDecoder")
+        def __init__(self, length):
+            super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionGeneratorMatrixEncoder", "MajorityVoteDecoder")
             self._dimension = 1
 
         def _repr_(self):
@@ -517,7 +519,7 @@ If you need some base code to start from, feel free to copy-paste and derive fro
                and self.code() == other.code())
 
         def encode(self, message):
-            return vector(GF(2), [word] * self.code().length())
+            return vector(GF(2), [message] * self.code().length())
 
         def unencode_nocheck(self, word):
             return word[0]
@@ -531,7 +533,7 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
         def __init__(self, code):
             super(BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),
-               "RepetitionEncoder")
+               "RepetitionGeneratorMatrixEncoder")
 
         def _repr_(self):
             return "Majority vote-based decoder for the %s" % self.code()
@@ -548,13 +550,17 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             list_word = word.list()
             count_one = list_word.count(GF(2).one())
             n = self.code().length()
-            len = len(list_word)
-            if count_one > len / 2:
-                return vector(GF(2), [1] * n)
-            elif count_one < len / 2:
-               return vector(GF(2), [0] * n)
+            length = len(list_word)
+            F = GF(2)
+            if count_one > length / 2:
+                return vector(F, [F.one()] * n)
+            elif count_one < length / 2:
+               return vector(F, [F.zero()] * n)
             else:
                raise DecodingError("impossible to find a majority")
+
+        def decoding_radius(self):
+            return (self.code().length()-1) // 2
 
 
 
@@ -567,7 +573,7 @@ If you need some base code to start from, feel free to copy-paste and derive fro
 
     class BinaryStaticErrorRateChannel(Channel):
 
-        def __init__(space, number_errors):
+        def __init__(self, space, number_errors):
             if space.base_ring() is not GF(2):
                 raise ValueError("Provided space must be a vector space over GF(2)")
             if number_errors > space.dimension():
@@ -590,14 +596,15 @@ If you need some base code to start from, feel free to copy-paste and derive fro
             w = copy(message)
             number_err = self.number_errors()
             V = self.input_space()
-            for i in sample(xrange(V.dimension(), number_err):
-                w[i] += 1
+            F = GF(2)
+            for i in sample(xrange(V.dimension()), number_err):
+                w[i] += F.one()
             return w
 
 **codes_catalog.py** (continued, do the same in **encoders_catalog.py**, **decoders_catalog.py** and
 **channels_catalog.py**)::
 
-    :class:`repetion_code.BinaryRepetitionCode <sage.coding.repetion_code.BinaryRepetitionCode>`
+    :class:`repetition_code.BinaryRepetitionCode <sage.coding.repetition_code.BinaryRepetitionCode>`
     #the line above creates a link to the class in the html documentation of coding theory library
     from repetition_code import BinaryRepetitionCode
     from channel_constructions import (ErrorErasureChannel, StaticErrorRateChannel, BinaryStaticErrorRateChannel)

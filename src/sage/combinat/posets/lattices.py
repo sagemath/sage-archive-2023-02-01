@@ -257,7 +257,7 @@ class FiniteMeetSemilattice(FinitePoset):
         versa::
 
             sage: L = LatticePoset({0: [1, 2], 1: [3, 4, 5], 2: [5], 3: [6],
-            ....:                   4:[6], 5:[6]})
+            ....:                   4: [6], 5: [6]})
             sage: L.complements(1), L.pseudocomplement(1)
             ([], 2)
             sage: L.complements(2), L.pseudocomplement(2)
@@ -776,12 +776,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         EXAMPLES::
 
             sage: L = LatticePoset({1: [2, 5], 2: [3, 6], 3: [4], 4: [7],
-            ....:                   5:[6], 6:[7]})
+            ....:                   5: [6], 6: [7]})
             sage: L.is_pseudocomplemented()
             True
 
             sage: L = LatticePoset({1: [2, 3], 2: [4, 5, 6], 3: [6], 4: [7],
-            ....:                   5:[7], 6:[7]})
+            ....:                   5: [7], 6: [7]})
             sage: L.is_pseudocomplemented()  # Element 3 has no pseudocomplement
             False
 

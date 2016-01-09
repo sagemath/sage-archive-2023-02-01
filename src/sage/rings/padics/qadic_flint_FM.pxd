@@ -1,5 +1,3 @@
-include "sage/ext/cdefs.pxi"
-
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_t
 from sage.rings.padics.pow_computer_flint cimport PowComputer_flint_unram

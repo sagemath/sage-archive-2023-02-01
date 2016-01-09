@@ -1,6 +1,7 @@
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
+from sage.libs.gmp.mpz cimport mpz_init, mpz_clear, mpz_pow_ui
 from sage.libs.flint.padic cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.nmod_vec cimport *

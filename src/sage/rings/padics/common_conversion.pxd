@@ -1,7 +1,6 @@
-include "sage/ext/cdefs.pxi"
-
 from sage.rings.integer cimport Integer
 from sage.rings.padics.pow_computer cimport PowComputer_class
+from sage.libs.gmp.mpz cimport mpz_t, mpq_t
 
 cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000
 cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000

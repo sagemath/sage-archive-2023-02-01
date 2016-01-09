@@ -13,13 +13,3 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
 
 cdef class lazy_list_from_function(lazy_list_abstract):
     cdef object callable
-
-cdef class lazy_list_iterator(object):
-    cdef lazy_list_abstract l
-    cdef Py_ssize_t pos, step
-
-cdef class stopped_lazy_list_iterator(object):
-    cdef lazy_list_abstract l
-    cdef Py_ssize_t pos, step, stop
-
-

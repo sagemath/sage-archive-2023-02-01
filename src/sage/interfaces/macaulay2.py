@@ -1220,6 +1220,9 @@ def macaulay2_console():
         ...
 
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%macaulay2 magics instead.')
     os.system('M2')
 
 

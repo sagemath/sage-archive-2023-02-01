@@ -87,202 +87,6 @@ empty_lazy_list.stop = 0
 empty_lazy_list.step = 1
 empty_lazy_list.cache = []
 
-cdef class lazy_list_iterator(object):
-    """
-    Iterator for a lazy list.
-
-    INPUT:
-
-    - ``l`` -- a lazy list
-
-    - ``pos`` -- (Default: ``None``) ``None`` or a non-negative integer
-      specifying the starting position
-    """
-    def __init__(self, lazy_list_abstract l, pos=None):
-        r"""
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: l = lazy_list(2*i for i in xrange(2**10))
-            sage: e1 = iter(l)
-            sage: e2 = iter(l)
-            sage: next(e1), next(e1)
-            (0, 2)
-            sage: next(e2), next(e2), next(e2)
-            (0, 2, 4)
-            sage: next(e1), next(e1)
-            (4, 6)
-            sage: next(e2)
-            6
-        """
-        self.l = l
-        self.step = self.l.step
-        if pos is not None:
-            self.pos = pos
-        else:
-            self.pos = self.l.start - self.step
-
-    def __reduce__(self):
-        r"""
-        Pickling support.
-
-        TESTS::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: from itertools import count
-            sage: l = lazy_list(count())
-            sage: iterator = iter(l)
-            sage: next(iterator)
-            0
-            sage: iterator2 = loads(dumps(iterator))
-            sage: next(iterator2)
-            1
-        """
-        return lazy_list_iterator, (self.l, self.pos)
-
-    def __repr__(self):
-        r"""
-        Return a string representation.
-
-        TESTS::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: l = lazy_list(p**2-18*2+4 for p in Primes())
-            sage: iter(l)   #indirect doctest
-            iterator of lazy list [-28, -23, -7, ...]
-        """
-        return "iterator of %s"%self.l
-
-    def __iter__(self):
-        r"""
-        Return ``self`` since this is an iterator.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: l = lazy_list(iter(Primes()))
-            sage: i = iter(l)
-            sage: i.__iter__() is i
-            True
-        """
-        return self
-
-    def __next__(self):
-        r"""
-        Return the next element.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: l = lazy_list(p**2-18*2+4 for p in Primes())
-            sage: i = iter(l)
-            sage: next(i)    # indirect doctest
-            -28
-            sage: next(i)    # indirect doctest
-            -23
-        """
-        self.pos += self.step
-        self.l.update_cache_up_to(self.pos)   # possibly raise a StopIteration
-        return self.l.cache[self.pos]
-
-cdef class stopped_lazy_list_iterator(object):
-    """
-    A lazy list iterator which eventually stops.
-
-    INPUT:
-
-    - ``l`` -- a lazy list
-
-    - ``pos`` -- (Default: ``None``) ``None`` or a non-negative integer
-      specifying the starting position
-    """
-    def __init__(self, l, pos=None):
-        r"""
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: from itertools import count
-            sage: l = lazy_list((i**2-i-1 for i in count()), start=5, stop=15555)
-            sage: i1 = iter(l); i2 = iter(l)
-            sage: print next(i1), next(i1)
-            19 29
-            sage: print next(i2), next(i2)
-            19 29
-            sage: print next(i1), next(i2)
-            41 41
-        """
-        if not isinstance(l, lazy_list_abstract):
-            raise TypeError("argument must be a lazy list")
-
-        self.l = <lazy_list_abstract> l
-        self.step = self.l.step
-        self.stop = self.l.stop
-        if pos is not None:
-            self.pos = pos
-        else:
-            self.pos = self.l.start - self.l.step
-        self.stop = self.l.stop
-
-    def __reduce__(self):
-        r"""
-        Pickling support.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: from itertools import count
-            sage: l = lazy_list(count(), start=3, stop=255, step=18)
-            sage: l
-            lazy list [3, 21, 39, ...]
-            sage: i = iter(l)
-            sage: loads(dumps(i))
-            iterator of lazy list [3, 21, 39, ...]
-        """
-        return lazy_list_iterator, (self.l,self.pos)
-
-    def __iter__(self):
-        r"""
-        Return ``self`` since this is an iterator.
-
-        TESTS::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: L = lazy_list(iter(Primes()))[:100]
-            sage: i = iter(L)
-            sage: type(i)
-            <type 'sage.data_structures.lazy_list.stopped_lazy_list_iterator'>
-            sage: i is iter(i)   #indirect doctest
-            True
-        """
-        return self
-
-    def __next__(self):
-        r"""
-        Return the current object and go to the next state.
-
-        TESTS::
-
-            sage: from sage.data_structures.lazy_list import lazy_list
-            sage: L = lazy_list(iter(Primes()))[:100]
-            sage: i = iter(L)
-            sage: type(i)
-            <type 'sage.data_structures.lazy_list.stopped_lazy_list_iterator'>
-            sage: next(i)  #indirect doctest
-            2
-            sage: next(i)  #indirect doctest
-            3
-        """
-        self.pos += self.step
-        if self.pos == self.stop:   # in the definition of a lazy list
-                                    # the stop index is congruent to start
-                                    # modulo step
-            raise StopIteration
-        self.l.update_cache_up_to(self.pos)   # possibly raise a StopIteration
-        return self.l.cache[self.pos]
 
 def lazy_list(data, cache=None, start=None, stop=None, step=None):
     r"""
@@ -705,11 +509,22 @@ cdef class lazy_list_abstract(object):
             sage: from itertools import count
             sage: from sage.data_structures.lazy_list import lazy_list
             sage: iter(lazy_list(count()))
-            iterator of lazy list [0, 1, 2, ...]
+            <generator object at 0x...>
+
+        ::
+
+            sage: l = lazy_list(i^2 for i in xrange(5))
+            sage: list(iter(l))
+            [0, 1, 4, 9, 16]
+            sage: l.start_stop_step()
+            (0, 5, 1)
         """
-        if self.stop == PY_SSIZE_T_MAX:
-            return lazy_list_iterator(self)
-        return stopped_lazy_list_iterator(self)
+        cdef Py_ssize_t i
+
+        for i in xrange(self.start, self.stop, self.step):
+            if self._fit(i):
+                return
+            yield <object> self.cache[i]
 
     def __getitem__(self, key):
         r"""

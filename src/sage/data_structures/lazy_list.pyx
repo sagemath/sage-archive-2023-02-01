@@ -88,33 +88,81 @@ empty_lazy_list.step = 1
 empty_lazy_list.cache = []
 
 
-def lazy_list(data, cache=None, start=None, stop=None, step=None):
+def lazy_list(data, begining=None, start=None, stop=None, step=None):
     r"""
-    Initialize ``self``.
+    Return a lazy list
 
-    TESTS::
+    INPUT:
+
+    - ``data`` -- data to create a lazy list from. This can be an iterable, a
+      function (that takes as input an integer ``n`` and return the ``n``-th
+      term of the list) or a standard Python container ``list`` or ``tuple``.
+
+    - ``begining`` -- the begining of the sequence that will not be computed from
+      the ``data`` provided
+
+    - ``start``, ``stop``, ``step`` -- deprecated arguments
+
+    .. NOTE::
+
+        If you want finer tuning of the constructor you can directly instantiate
+        the classes associated to lazy lists that are
+        :class:`lazy_list_abstract`, :class:`lazy_list_from_iterator`,
+        :class:`lazy_list_from_function`.
+
+    EXAMPLES:
+
+    The basic construction of lazy lists are from iterators, functions and plain
+    lists::
 
         sage: from sage.data_structures.lazy_list import lazy_list
         sage: from itertools import count
-        sage: f = lazy_list(count())
-        sage: loads(dumps(f))
+        sage: lazy_list(count())
         lazy list [0, 1, 2, ...]
         sage: lazy_list(lambda n: (n**2)%17)
         lazy list [0, 1, 4, ...]
-
-        sage: l3 = lazy_list([1,5,7,2])
-        sage: l3
+        sage: lazy_list([1,5,7,2])
         lazy list [1, 5, 7, ...]
-        sage: l3[::2]
-        lazy list [1, 7]
+
+    If a function is only defined for large values, you can provide the begining
+    of the sequence manually::
+
+        sage: l = lazy_list(divisors, [None])
+        sage: l
+        lazy list [None, [1], [1, 2], ...]
+
+    Lazy lists behave like lists except that they are immutable::
+
+        sage: l[3::5]
+        lazy list [[1, 3], [1, 2, 4, 8], [1, 13], ...]
+
+    If your lazy list is finite, you can obtain the underlying list with the
+    method `.list()`::
+
+        sage: l[30:50:5].list()
+        [[1, 2, 3, 5, 6, 10, 15, 30],
+         [1, 5, 7, 35],
+         [1, 2, 4, 5, 8, 10, 20, 40],
+         [1, 3, 5, 9, 15, 45]]
+
+    TESTS::
+
+        sage: lazy_list(count(), start=5)
+        doctest:...: DeprecationWarning: The arguments start, stop, step are deprecated. Use
+        direct slicing as in my_data[start:stop:step]
+        See http://trac.sagemath.org/16137 for details.
+        lazy list [5, 6, 7, ...]
     """
     cdef lazy_list_abstract l
 
-    if cache is None:
+    if begining is None:
         cache = []
+    else:
+        cache = list(begining)
 
     if isinstance(data, (tuple,list)):
-        l = lazy_list_abstract(list(data), 0, len(data), 1)
+        data = cache + list(data)
+        l = lazy_list_abstract(data, 0, len(data), 1)
     else:
         # the code below is not very clean
         # we just want to differentiate on the one hand iterable (= object with a
@@ -134,6 +182,8 @@ def lazy_list(data, cache=None, start=None, stop=None, step=None):
             raise ValueError("not able to build a lazy list from {}".format(type(data)))
 
     if start is not None or stop is not None or step is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(16137, "The arguments start, stop, step are deprecated. Use direct slicing as in my_data[start:stop:step]")
         return l[start:stop:step]
     else:
         return l
@@ -151,24 +201,51 @@ def slice_unpickle(master, start, stop, step):
     return master[start:stop:step]
 
 cdef class lazy_list_abstract(object):
+    r"""
+    A lazy list
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.lazy_list import lazy_list
+        sage: l = lazy_list(Primes())
+        sage: l
+        lazy list [2, 3, 5, ...]
+        sage: l[200]
+        1229
+    """
     def __init__(self, cache=None, start=None, stop=None, step=None):
         r"""
         No check is performed on input and bad input can result in a Sage crash.
         You are advised to use the function :func:`lazy_list` instead. The only
         case where you might want to use directly this constructor is if you
-        have a list that you want to convert (without copy) into a lazy list.
+        have a list that you want to wrap it (without copy) into a lazy list.
+        See in the example below.
 
         INPUT::
 
-        - ``cache`` -- an optional cache
+        - ``cache`` -- an optional list to be used as the cache. Be careful that
+          there is no copy.
 
         - ``start``, ``stop``, ``step`` -- for slices
+
+        .. NOTE::
+
+            Everywhere the constant ``PY_SSIZE_T_MAX`` plays the role of infinity
 
         EXAMPLES::
 
             sage: from sage.data_structures.lazy_list import lazy_list_abstract
-            sage: lazy_list_abstract([0,1,2], 0, 2, None)
+            sage: l = [0,1,2]
+            sage: ll = lazy_list_abstract(l, 0, 2, None)
+            sage: ll
             lazy list [0, 1]
+
+        The above code may be dangerous since the lazy list holds a reference
+        to the initial list::
+
+            sage: l[0] = 'haha'
+            sage: ll
+            lazy list ['haha', 1]
         """
         self.cache = [] if cache is None else cache
         self.start = 0 if start is None else start
@@ -183,18 +260,14 @@ cdef class lazy_list_abstract(object):
         EXAMPLES::
 
             sage: from sage.data_structures.lazy_list import lazy_list
-            sage: p = lazy_list(iter(Primes()))[:2147483647]
+            sage: p = lazy_list(Primes())[100:1042240:12]
             sage: p.start_stop_step()
-            (0, 2147483647, 1)
-            sage: q = p[100:1042233:12]
-            sage: q.start_stop_step()
+            doctest:...: DeprecationWarning: The method start_stop_step is deprecated. Consider using _info() instead.
+            See http://trac.sagemath.org/16132 for details.
             (100, 1042240, 12)
-            sage: r = q[233::3]
-            sage: r.start_stop_step()
-            (2896, 1042252, 36)
-            sage: 1042241%3 == 233%3
-            True
         """
+        from sage.misc.superseded import deprecation
+        deprecation(16132, "The method start_stop_step is deprecated. Consider using _info() instead.")
         return (self.start, self.stop, self.step)
 
     def list(self):
@@ -204,7 +277,7 @@ cdef class lazy_list_abstract(object):
         .. NOTE::
 
             If the iterator is sufficiently large, this will build a list
-            of length ``(size_t)-1`` which should be beyond the capacity of
+            of length ``PY_SSIZE_T_MAX`` which should be beyond the capacity of
             your RAM!
 
         EXAMPLES::
@@ -488,6 +561,8 @@ cdef class lazy_list_abstract(object):
 
     def __call__(self, i):
         r"""
+        An alias for :meth:`get`
+
         TESTS::
 
             sage: from sage.data_structures.lazy_list import lazy_list
@@ -514,10 +589,13 @@ cdef class lazy_list_abstract(object):
         ::
 
             sage: l = lazy_list(i^2 for i in xrange(5))
-            sage: list(iter(l))
+            sage: list(l)
             [0, 1, 4, 9, 16]
-            sage: l.start_stop_step()
-            (0, 5, 1)
+            sage: l._info()
+            cache length 5
+            start        0
+            stop         5
+            step         1
         """
         cdef Py_ssize_t i
 
@@ -559,24 +637,63 @@ cdef class lazy_list_abstract(object):
         stop are congruent modulo step::
 
             sage: P = lazy_list(iter(Primes()))
-            sage: P[1:12:4].start_stop_step()
-            (1, 13, 4)
-            sage: P[1:13:4].start_stop_step()
-            (1, 13, 4)
-            sage: P[1:14:4].start_stop_step()
-            (1, 17, 4)
+            sage: P[1:12:4]._info()
+            cache length 0
+            start        1
+            stop         13
+            step         4
+            sage: P[1:13:4]._info()
+            cache length 0
+            start        1
+            stop         13
+            step         4
+            sage: P[1:14:4]._info()
+            cache length 0
+            start        1
+            stop         17
+            step         4
+            sage: Q = P[100:1042233:12]
+            sage: Q._info()
+            cache length 0
+            start        100
+            stop         1042240
+            step         12
+            sage: R = Q[233::3]
+            sage: R._info()
+            cache length 0
+            start        2896
+            stop         1042252
+            step         36
+            sage: 1042252%36 == 2896%36
+            True
 
         We check commutation::
 
             sage: l = lazy_list(iter(xrange(10000)))
             sage: l1 = l[::2][:3001]
             sage: l2 = l[:6002][::2]
-            sage: l1.start_stop_step() == l2.start_stop_step()
-            True
+            sage: l1._info()
+            cache length 0
+            start        0
+            stop         6002
+            step         2
+            sage: l2._info()
+            cache length 0
+            start        0
+            stop         6002
+            step         2
             sage: l3 = l1[13::2][:50:2]
             sage: l4 = l1[:200][13:113:4]
-            sage: l3.start_stop_step() == l4.start_stop_step()
-            True
+            sage: l3._info()
+            cache length 0
+            start        26
+            stop         226
+            step         8
+            sage: l4._info()
+            cache length 0
+            start        26
+            stop         226
+            step         8
 
         Further tests::
 
@@ -642,20 +759,9 @@ cdef class lazy_list_abstract(object):
             while len(self.cache) <= i:
                 self.cache.extend(self._new_slice())
 
-        return 0
-
 cdef class lazy_list_from_iterator(lazy_list_abstract):
     r"""
-    Lazy list.
-
-    INPUT:
-
-    - ``iterator`` -- an iterable or an iterator
-
-    - ``cache`` -- ``None`` (default) or a list - used to initialize the cache.
-
-    - ``start``, ``stop``, ``step`` -- ``None`` (default) or a non-negative
-      integer - parameters for slices
+    Lazy list built from an iterator.
 
     EXAMPLES::
 
@@ -678,12 +784,6 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
         3 3
         sage: loads(dumps(m))
         lazy list [0, 1, 2, ...]
-
-    .. NOTE::
-
-        - :class:`lazy_list` interprets the constant ``(size_t)-1`` as infinity
-        - all entry indices are stictly less than ``stop`` so that
-          :class:`lazy_list` agrees with ``range(start, stop)``
     """
     def __init__(self, iterator, cache=None):
         r"""
@@ -691,7 +791,8 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
 
         - ``iterator`` -- an iterator
 
-        - ``cache`` -- an optional cache
+        - ``cache`` -- an optional list to be used as the cache. Be careful that
+          there is no copy.
 
         TESTS::
 
@@ -711,7 +812,6 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
         """
         while len(self.cache) <= i:
             self.cache.append(next(self.iterator))
-        return 0
 
     def __reduce__(self):
         r"""
@@ -735,7 +835,8 @@ cdef class lazy_list_from_function(lazy_list_abstract):
           function only needs to be defined for length larger than the length of
           the cache)
 
-        - ``cache`` -- an optional cache
+        - ``cache`` -- an optional list to be used as the cache. Be careful that
+          there is no copy.
 
         EXAMPLES::
 
@@ -754,7 +855,6 @@ cdef class lazy_list_from_function(lazy_list_abstract):
         """
         while len(self.cache) <= i:
             self.cache.append(self.callable(len(self.cache)))
-        return 0
 
     def __reduce__(self):
         r"""

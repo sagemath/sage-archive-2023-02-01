@@ -67,6 +67,28 @@ of the Thue--Morse word that is obtained as the fixed point of the substitution
     True
     sage: w[:500].list() == w[:1000:2].list()
     True
+
+Alternatively, you can create the lazy list from an update function::
+
+    sage: def thue_morse_update(values):
+    ....:     n = len(values)
+    ....:     if n == 0:
+    ....:         letter = 0
+    ....:     else:
+    ....:         assert n%2 == 0
+    ....:         letter = values[n//2]
+    ....:     values.append(letter)
+    ....:     values.append(1-letter)
+    sage: w2 = lazy_list(update_function=thue_morse_update)
+    sage: w2
+    lazy list [0, 1, 1, ...]
+    sage: w2[:500].list() == w[:500].list()
+    True
+
+You can also create extension type inheriting from :class:`lazy_list_abstract`
+(with Cython). In that case you would better implement directly the method
+`update_cache_up_to`. See the examples in this file with the classes
+:class:`lazy_list_from_iterator` and :class:`lazy_list_from_function`.
 """
 
 # in types.pxd
@@ -88,7 +110,8 @@ empty_lazy_list.step = 1
 empty_lazy_list.cache = []
 
 
-def lazy_list(data, begining=None, start=None, stop=None, step=None):
+def lazy_list(data=None, begining=None, start=None, stop=None, step=None,
+        update_function=None):
     r"""
     Return a lazy list
 
@@ -100,6 +123,10 @@ def lazy_list(data, begining=None, start=None, stop=None, step=None):
 
     - ``begining`` -- the begining of the sequence that will not be computed from
       the ``data`` provided
+
+    - ``update_function`` -- you can also construct a lazy list from a function
+      that takes as input a list of precomputed values and updates it with some
+      more values.
 
     - ``start``, ``stop``, ``step`` -- deprecated arguments
 
@@ -152,13 +179,30 @@ def lazy_list(data, begining=None, start=None, stop=None, step=None):
         direct slicing as in my_data[start:stop:step]
         See http://trac.sagemath.org/16137 for details.
         lazy list [5, 6, 7, ...]
+
+        sage: lazy_list()
+        lazy list []
+        sage: lazy_list(data='hey', update_function='hello')
+        Traceback (most recent call last):
+        ...
+        ValueError: only one of the arguement 'data' or 'update_function' could
+        be used
     """
     cdef lazy_list_abstract l
+
+    if data is None and update_function is None:
+        return empty_lazy_list
+    elif data is not None and update_function is not None:
+        raise ValueError("only one of the arguement 'data' or 'update_function' could be used")
 
     if begining is None:
         cache = []
     else:
         cache = list(begining)
+
+    if update_function is not None:
+        assert callable(update_function)
+        return lazy_list_from_update_function(update_function, cache)
 
     if isinstance(data, (tuple,list)):
         data = cache + list(data)
@@ -466,18 +510,20 @@ cdef class lazy_list_abstract(object):
             raise NotImplementedError
         return slice_unpickle, (self.master, self.start, self.stop, self.step)
 
-    def _fit(self, n):
+    cpdef int _fit(self, Py_ssize_t n) except -1:
         r"""
-        Re-adjust ``self.stop`` if the iterator stops before ``n``.
+        Fill the cache making the term at index ``n`` available.
 
-        After a call to ``self._fit(n)`` and if *after the call* ``n`` is less
-        than ``self.stop`` then you may safely call ``self.cache[n]``. In other
-        words, ``self._fit(n)` ensure that either the lazy list is completely
-        expanded in memory or that you may have access to the ``n``-th item.
+        You can access the term at position ``n`` from the cache when it returns
+        ``0``.
 
         OUTPUT:
 
-        A booleal indicating whether ``self.stop`` was updated.
+        - ``1`` -- the lazy list is actually finite and shorter than ``n``
+
+        - ``0`` -- you can safely access the term at position ``n`` after this call
+
+        - ``-1`` -- to handle Python errors (you can ignore it in Python code)
 
         EXAMPLES::
 
@@ -489,7 +535,7 @@ cdef class lazy_list_abstract(object):
             stop         9223372036854775807
             step         3
             sage: l._fit(13)
-            True
+            1
             sage: l._info()
             cache length 13
             start        2
@@ -498,20 +544,26 @@ cdef class lazy_list_abstract(object):
 
             sage: l = lazy_list([0]*12)[1::2]
             sage: l._fit(100)
-            False
+            1
+            sage: l._info()
+            cache length 12
+            start        1
+            stop         13
+            step         2
+            sage: l._fit(100)
+            1
         """
-        n = min(n, self.stop - self.step)
-        try:
-            self.update_cache_up_to(n)
-        except StopIteration:
+        if n > self.stop - self.step:
+            return 1
+        if self.update_cache_up_to(n):
             self.stop = len(self.cache)
             if self.stop <= self.start:
                 self.start = self.stop = 0
                 self.step = 1
             if (self.start - self.stop) % self.step:
                 self.stop += self.step + (self.start - self.stop) % self.step
-            return True
-        return False
+            return 1
+        return 0
 
     cpdef get(self, Py_ssize_t i):
         r"""
@@ -552,10 +604,7 @@ cdef class lazy_list_abstract(object):
             raise ValueError("indices must be non negative")
 
         i = self.start + i*self.step
-        if i >= self.stop:
-            raise IndexError("lazy list index out of range")
-        self._fit(i)
-        if i >= self.stop:
+        if self._fit(i):
             raise IndexError("lazy list index out of range")
         return self.cache[i]
 
@@ -599,10 +648,12 @@ cdef class lazy_list_abstract(object):
         """
         cdef Py_ssize_t i
 
-        for i in xrange(self.start, self.stop, self.step):
+        i = self.start
+        while i < self.stop:
             if self._fit(i):
                 return
-            yield <object> self.cache[i]
+            yield self.cache[i]
+            i += self.step
 
     def __getitem__(self, key):
         r"""
@@ -751,13 +802,25 @@ cdef class lazy_list_abstract(object):
         Update the cache up to ``i``.
 
         This is the default implementation that calls ``_new_slice``.
+
+        OUTPUT:
+
+        - ``-1`` -- a Python error occurred
+
+        - ``0`` -- the cache has now size larger than ``i``
+
+        - ``1`` -- the lazy list is actually finite and shorter than ``i``
         """
         if self.master is not None:    # this is a slice
             return self.master.update_cache_up_to(i)
 
-        else:
-            while len(self.cache) <= i:
-                self.cache.extend(self._new_slice())
+        cdef list l
+        while len(self.cache) <= i:
+            l = self._new_slice()
+            if not l:
+                return 1
+            self.cache.extend(l)
+        return 0
 
 cdef class lazy_list_from_iterator(lazy_list_abstract):
     r"""
@@ -809,9 +872,22 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
+
+        OUTPUT:
+
+        - ``-1`` -- a Python error occurred
+
+        - ``0`` -- everything went fine
+
+        - ``1`` -- the iterator stopped before ``i`
         """
         while len(self.cache) <= i:
-            self.cache.append(next(self.iterator))
+            try:
+                o = next(self.iterator)
+            except StopIteration:
+                return 1
+            self.cache.append(o)
+        return 0
 
     def __reduce__(self):
         r"""
@@ -827,7 +903,7 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
         return lazy_list_from_iterator, (self.iterator, self.cache)
 
 cdef class lazy_list_from_function(lazy_list_abstract):
-    def __init__(self, function, cache=None):
+    def __init__(self, function, cache=None, stop=None):
         r"""
         INPUT:
 
@@ -837,6 +913,9 @@ cdef class lazy_list_from_function(lazy_list_abstract):
 
         - ``cache`` -- an optional list to be used as the cache. Be careful that
           there is no copy.
+
+        - ``stop`` -- an optional integer to specify the length of this lazy list
+          (otherwise it is considered infinite)
 
         EXAMPLES::
 
@@ -852,6 +931,14 @@ cdef class lazy_list_from_function(lazy_list_abstract):
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
+
+        OUTPUT:
+
+        - ``-1`` -- a Python error occurred
+
+        - ``0`` -- everything went fine
+
+        - ``1`` -- the iterator stopped before ``i`
         """
         while len(self.cache) <= i:
             self.cache.append(self.callable(len(self.cache)))
@@ -866,6 +953,98 @@ cdef class lazy_list_from_function(lazy_list_abstract):
             sage: loads(dumps(lazy_list_from_function(divisors, [None])))
             lazy list [None, [1], [1, 2], ...]
         """
-        if self.start != 0 or self.stop != PY_SSIZE_T_MAX or self.step != 1:
+        if self.start != 0 or self.step != 1:
             raise RuntimeError
-        return lazy_list_from_function, (self.callable, self.cache)
+        return lazy_list_from_function, (self.callable, self.cache, self.stop)
+
+cdef class lazy_list_from_update_function(lazy_list_abstract):
+    def __init__(self, function, cache=None, stop=None):
+        r"""
+        INPUT:
+
+        - ``function`` -- a function that updates a list of precomputed values.
+          The update function should take as input a list and make it longer
+          (using either the methods ``append`` or ``extend``). If after a call
+          to the update function the list of values is shorter a
+          ``RuntimeError`` will occurr. If no value is added then the lazy list
+          is considered finite.
+
+        - ``cache`` -- an optional list to be used as the cache. Be careful that
+          there is no copy.
+
+        - ``stop`` -- an optional integer to specify the length of this lazy list
+          (otherwise it is considered infinite)
+
+        TESTS::
+
+            sage: from sage.data_structures.lazy_list import lazy_list_from_update_function
+            sage: def update_function(values):
+            ....:     n = len(values)+1
+            ....:     values.extend([n]*n)
+            sage: l = lazy_list_from_update_function(update_function)
+            sage: l[:20].list()
+            [1, 2, 2, 4, 4, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 16]
+        """
+        self.update_function = function
+        lazy_list_abstract.__init__(self, cache, None, stop, None)
+
+    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+        r"""
+        Update the cache up to ``i``.
+
+        OUTPUT:
+
+        - ``-1`` -- a Python error occurred
+
+        - ``0`` -- everything went fine
+
+        - ``1`` -- the iterator stopped before ``i`
+        """
+        cdef Py_ssize_t l,ll
+        l = len(self.cache)
+        while l <= i:
+            self.update_function(self.cache)
+            ll = len(self.cache)
+            if ll < l:
+                raise RuntimeError("the update function made the cache shorter")
+            elif l == ll:
+                return 1
+            l = ll
+        return 0
+
+    def __reduce__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.data_structures.lazy_list import lazy_list
+
+            sage: def my_update_function(values): values.append(ZZ(len(values)).is_prime())
+            sage: l = lazy_list(update_function=my_update_function)
+            sage: l[4]
+            False
+            sage: loads(dumps(l))   # not tested (works in console though)
+            lazy list [False, False, True, ...]
+
+            sage: def say_hey(cache): print "hey"
+            sage: l = lazy_list(update_function=say_hey, begining=range(10))
+            sage: l._fit(10)
+            hey
+            1
+            sage: l._info()
+            cache length 10
+            start        0
+            stop         10
+            step         1
+            sage: l2 = loads(dumps(l))   # not tested
+            sage: l2._info()             # not tested
+            sage: l2._info()             # not tested
+            cache length 10
+            start        0
+            stop         10
+            step         1
+            sage: l.list() == l2.list()  # not tested
+            True
+        """
+        if self.start != 0 or self.step != 1:
+            raise RuntimeError
+        return lazy_list_from_update_function, (self.update_function, self.cache, self.stop)

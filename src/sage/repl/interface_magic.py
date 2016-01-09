@@ -35,6 +35,9 @@ language to separate multiple commands.
 #*****************************************************************************
 
 
+from sage.repl.rich_output.display_manager import get_display_manager
+
+
 LINE_DOCSTRING = """
 Interact with {name}
 
@@ -74,6 +77,7 @@ EXAMPLES::
     ....: 1 + 2 + 3;
     ....: some_{name}_command();
 """
+
 
 
 class InterfaceMagic(object):
@@ -214,8 +218,15 @@ class InterfaceMagic(object):
             The line magic %gap sends a single line to the gap interface.
             ...
         """
+        terminal = get_display_manager().is_in_terminal()
         def line_magic(line):
-            return self._interface(line)
+            if line:
+                return self._interface(line)
+            else:
+                if terminal:
+                    self._interface.interact()
+                else:
+                    raise SyntaxError('{0} command required'.format(self._name))
         line_magic.__doc__ = LINE_DOCSTRING.format(name=self._name)
         return line_magic
 

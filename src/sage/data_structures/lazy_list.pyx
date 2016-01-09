@@ -44,12 +44,12 @@ But, naturally, not the other way around::
     ...
     TypeError: can only add list to lazy_list
 
-You can easily create your own class inheriting from ``lazy_list_abstract``. You
-should call the ``lazy_list_abstract`` constructor (optionally with some
+You can easily create your own class inheriting from :class:`lazy_list_abstract`. You
+should call the :class:`lazy_list_abstract` constructor (optionally with some
 precomputed values for the cache) and implement the method ``_new_slice`` that
 returns a new chunk of data at each call. Here is an example of implementation
-of the Thue-Morse word that is obtained as the fixed point of the substitution
-0->01 and 1->10::
+of the Thue--Morse word that is obtained as the fixed point of the substitution
+`0 \to 01` and `1 \to 10`::
 
     sage: from sage.data_structures.lazy_list import lazy_list_abstract
     sage: class MyThueMorseWord(lazy_list_abstract):
@@ -356,9 +356,9 @@ cdef class lazy_list_abstract(object):
 
         INPUT::
 
-        - ``cache`` - an optional cache
+        - ``cache`` -- an optional cache
 
-        - ``start``, ``stop``, ``step`` - for slices
+        - ``start``, ``stop``, ``step`` -- for slices
 
         EXAMPLES::
 
@@ -705,7 +705,7 @@ cdef class lazy_list_abstract(object):
 
     def __getitem__(self, key):
         r"""
-        Returns a lazy list which shares the same cache.
+        Return a lazy list which shares the same cache.
 
         EXAMPLES::
 
@@ -866,9 +866,9 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
         r"""
         INPUT:
 
-        - ``iterator`` - an iterator
+        - ``iterator`` -- an iterator
 
-        - ``cache`` - an optional cache
+        - ``cache`` -- an optional cache
 
         TESTS::
 
@@ -912,7 +912,7 @@ cdef class lazy_list_from_function(lazy_list_abstract):
           function only needs to be defined for length larger than the length of
           the cache)
 
-        - ``cache`` - an optional cache
+        - ``cache`` -- an optional cache
 
         EXAMPLES::
 

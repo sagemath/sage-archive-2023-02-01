@@ -27,7 +27,6 @@ etoolbox
 
 # Used by IPython nbconvert (ipynb -> latex -> pdf conversion)
 adjustbox
-extension
 xkeyval
 booktabs
 collectbox
@@ -50,3 +49,6 @@ babel-russian
 babel-slovak
 babel-spanish
 
+# Japanese
+jsclasses
+ptex

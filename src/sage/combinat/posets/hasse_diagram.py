@@ -1347,7 +1347,12 @@ class HasseDiagram(DiGraph):
 
         INPUT:
 
-        - ``element`` - an element of the lattice.
+        - ``element`` -- an element of the lattice.
+
+        OUTPUT:
+
+        An element of the Hasse diagram, i.e. an integer, or
+        ``None`` if the pseudocomplement does not exist.
 
         EXAMPLES::
 

@@ -1,6 +1,7 @@
 from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.types cimport *
+from sage.libs.gmp.types cimport mpz_t
 
 cdef class PowComputer_ext(PowComputer_class):
     cdef ZZ_c* small_powers

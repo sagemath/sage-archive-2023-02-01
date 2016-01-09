@@ -845,7 +845,7 @@ class AbstractLinearCode(module.Module):
             sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: You must set a valid decoder as default decoder for this code, by filling in the dicitonary of registered decoders
+            ValueError: You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders
 
         If the name of the default encoder is not known by the class, it will raise
         an exception::
@@ -879,7 +879,7 @@ class AbstractLinearCode(module.Module):
         if not default_encoder_name in self._registered_encoders:
             raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
         if not default_decoder_name in self._registered_decoders:
-            raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dicitonary of registered decoders")
+            raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders")
         self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
         self._default_encoder_name = default_encoder_name

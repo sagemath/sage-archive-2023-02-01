@@ -114,7 +114,6 @@ Lazyness
    sage/misc/lazy_attribute
    sage/misc/lazy_format
    sage/misc/lazy_import
-   sage/misc/lazy_list
    sage/misc/lazy_import_cache
    sage/misc/lazy_string
 

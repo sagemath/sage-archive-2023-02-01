@@ -352,21 +352,12 @@ class SageCustomizations(object):
         if SAGE_IMPORTALL == 'yes':
             self.init_environment()
 
-
     def register_interface_magics(self):
         """
         Register magics for each of the Sage interfaces
         """
-        import sage.interfaces.all
-        interfaces = [(name, obj)
-                      for name, obj in sage.interfaces.all.__dict__.items()
-                      if isinstance(obj, sage.interfaces.interface.Interface)]
-
-        for real_name, obj in interfaces:
-            def tmp(line, name=real_name):
-                self.shell.run_cell('%s.interact()' % name)
-            tmp.__doc__ = "Interact with %s" % real_name
-            self.shell.register_magic_function(tmp, magic_name=real_name)
+        from sage.repl.interface_magic import InterfaceMagic
+        InterfaceMagic.register_all(self.shell)
 
     def set_quit_hook(self):
         """

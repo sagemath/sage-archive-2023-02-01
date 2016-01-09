@@ -839,7 +839,7 @@ class CoxeterMatrix(CoxeterType):
         """
         return self
 
-    def bilinear_form(self):
+    def bilinear_form(self, R=None):
         r"""
         Return the bilinear form of ``self``.
 
@@ -859,7 +859,7 @@ class CoxeterMatrix(CoxeterType):
             [-1  1 -1]
             [-1 -1  1]
         """
-        return CoxeterType.bilinear_form(self)
+        return CoxeterType.bilinear_form(self, R=R)
 
     @cached_method
     def coxeter_graph(self):

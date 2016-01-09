@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from sage.libs.flint.types cimport fq_ctx_t, fq_t, fmpz_t, fmpz_mod_poly_t, slong, ulong
 
 cdef extern from "flint/fq.h":

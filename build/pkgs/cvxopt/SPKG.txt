@@ -16,7 +16,7 @@ programming language.
  * J. Dahl <dahl.joachim@gmail.com>
  * L. Vandenberghe <vandenbe@ee.ucla.edu>
 
-Downloaded from http://abel.ee.ucla.edu/cvxopt/
+Downloaded from http://cvxopt.org
 
 == License ==
 
@@ -38,6 +38,9 @@ GNU Lesser General Public License, v2.1.  See src/LICENSE for more details.
    instead of /usr.  Add fortran, blas,... libraries if needed.
    Build with GSL and GLPK support.
 
+ * remove doc/html/, as it can be rebuild by invoking 'sage -sh' and
+   running 'make html' in doc/
+
  * TODO: Add more tests in spkg-check
 
  * TODO: one might want to enhance the code to allow other Sage
@@ -46,6 +49,9 @@ GNU Lesser General Public License, v2.1.  See src/LICENSE for more details.
    construct.
 
 == Changelog ==
+
+=== cvxopt-1.1.8 (Dima Pasechnik, 10 Dec 2015) ===
+ * #19687: upgrade to version 1.1.8.
 
 === cvxopt-1.1.7 (Dima Pasechnik, 24 Aug 2014) ===
  * #16874: upgrade to version 1.1.7.

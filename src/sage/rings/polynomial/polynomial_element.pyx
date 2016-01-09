@@ -959,16 +959,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
             sage: f._cache_key()
-            (..., (0, 1 + O(2^20)))
-
+            (Univariate Polynomial Ring in x over Unramified Extension of 2-adic Field with capped relative precision 20 in u defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20)),
+             0,
+             1 + O(2^20))
             sage: @cached_function
             ....: def foo(t): return t
             ....:
             sage: foo(x)
             (1 + O(2^20))*x
-
         """
-        return (self.parent(), tuple(self))
+        return (self._parent,) + tuple(self)
 
     def __hash__(self):
         return self._hash_c()
@@ -1340,6 +1340,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: the precision must be positive, got 0
+
+        AUTHORS:
+
+        - David Harvey (2006-09-09): Newton's method implementation for power
+          series
+
+        - Vincent Delecroix (2014-2015): move the implementation directly in
+          polynomial
         """
         if prec <= 0:
             raise ValueError("the precision must be positive, got {}".format(prec))
@@ -6237,6 +6245,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(ring=CC)
             [(-0.500000000000000 - 0.866025403784439*I, 3),
              (-0.500000000000000 + 0.866025403784439*I, 3)]
+
+        Test a crash reported at :trac:`19649`::
+
+            sage: polRing.<x> = PolynomialRing(ZZ)
+            sage: j = (x+1)^2 * (x-1)^7 * (x^2-x+1)^5
+            sage: j.roots(CC)
+            [(-1.00000000000000, 2),
+             (1.00000000000000, 7),
+             (0.500000000000000 - 0.866025403784439*I, 5),
+             (0.500000000000000 + 0.866025403784439*I, 5)]
         """
         K = self.parent().base_ring()
         if hasattr(K, '_roots_univariate_polynomial'):
@@ -6309,7 +6327,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if algorithm == 'pari':
                 if not input_arbprec:
                     self = self.change_ring(CC if input_complex else RR)
-                ext_rts = pari(self.monic()).polroots(precision = L.prec())
+                ext_rts = self._pari_().polroots(precision=L.prec())
 
             if output_complex:
                 rts = sort_complex_numbers_for_display([L(root) for root in ext_rts])

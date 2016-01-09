@@ -72,6 +72,14 @@ bootstrap-download () {
 save () {
     set -e
 
+    # Check that config.guess is sufficiently recent
+    if ! grep '^timestamp=.*201[5-9]' config/config.guess >/dev/null; then
+        echo >&2 "Error: config.guess is outdated:"
+        grep >&2 '^timestamp=' config/config.guess
+        echo >&2 "You should update the 'gnuconfig' or 'automake' package and try again"
+        exit 63
+    fi
+
     # Create configure tarball
     echo "Creating $CONFBALL..."
     mkdir -p upstream

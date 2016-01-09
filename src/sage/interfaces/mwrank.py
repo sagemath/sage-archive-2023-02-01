@@ -190,7 +190,6 @@ class Mwrank_class(Expect):
                         command = "mwrank %s"%options,
                         server = server,
                         server_tmpdir = server_tmpdir,
-                        maxread = 10000,
                         restart_on_ctrlc = True,
                         verbose_start = False)
 

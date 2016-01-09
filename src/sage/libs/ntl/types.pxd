@@ -1,6 +1,8 @@
 # distutils: depends = NTL/ZZ.h
 
 cdef extern from "sage/libs/ntl/ntlwrap.h":
+    long NTL_OVFBND, NTL_SP_BOUND
+
     cdef cppclass ZZ_c "ZZ":
         bint operator==(ZZ_c)
         bint operator!=(ZZ_c)

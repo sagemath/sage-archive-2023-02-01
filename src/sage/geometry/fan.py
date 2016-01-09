@@ -2628,7 +2628,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         if not fan_isomorphic_necessary_conditions(self, other):
             return False
         if self.lattice_dim() == 2:
-            if self._2d_echelon_forms.get_cache() is None:
+            if self._2d_echelon_forms.cache is None:
                 return self._2d_echelon_form() in other._2d_echelon_forms()
             else:
                 return other._2d_echelon_form() in self._2d_echelon_forms()

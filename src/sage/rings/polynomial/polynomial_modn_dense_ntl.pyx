@@ -17,13 +17,15 @@ AUTHORS:
 - Robert Bradshaw: Major rewrite to use NTL directly (2007-09)
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial_generic_dense
 
@@ -45,10 +47,11 @@ from sage.interfaces.all import singular as singular_default
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
 from sage.structure.element cimport have_same_parent_c
 
-from sage.libs.ntl.ntl_ZZ_p_decl cimport *
-from sage.libs.ntl.ntl_lzz_p_decl cimport *
-from sage.libs.ntl.ntl_lzz_pX_decl cimport *
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
+from sage.libs.ntl.types cimport NTL_SP_BOUND
+from sage.libs.ntl.ZZ_p cimport *
+from sage.libs.ntl.lzz_p cimport *
+from sage.libs.ntl.lzz_pX cimport *
+from sage.libs.ntl.ZZ_pX cimport *
 
 def make_element(parent, args):
     return parent(*args)

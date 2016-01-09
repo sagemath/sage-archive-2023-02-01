@@ -1745,7 +1745,7 @@ def some_tuples(elements, repeat, bound):
     .. TODO::
 
         Currently, this only return an iterator over the first element of the
-        cartesian product. It would be smarter to return something more
+        Cartesian product. It would be smarter to return something more
         "random like" as it is used in tests. However, this should remain
         deterministic.
     """

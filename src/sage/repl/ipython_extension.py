@@ -357,7 +357,6 @@ class SageCustomizations(object):
         """
         Register magics for each of the Sage interfaces
         """
-        from sage.misc.superseded import deprecation
         import sage.interfaces.all
         interfaces = [(name, obj)
                       for name, obj in sage.interfaces.all.__dict__.items()
@@ -368,15 +367,6 @@ class SageCustomizations(object):
                 self.shell.run_cell('%s.interact()' % name)
             tmp.__doc__ = "Interact with %s" % real_name
             self.shell.register_magic_function(tmp, magic_name=real_name)
-
-            obj_name = obj.name()
-            if real_name != obj_name:
-                def tmp_deprecated(line, name=real_name, badname=obj_name):
-                    deprecation(6288, 'Use %%%s instead of %%%s.' % (name,
-                                                                     badname))
-                    self.shell.run_cell('%s.interact()' % name)
-                tmp_deprecated.__doc__ = "Interact with %s" % real_name
-                self.shell.register_magic_function(tmp_deprecated, magic_name=obj_name)
 
     def set_quit_hook(self):
         """

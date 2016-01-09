@@ -598,6 +598,10 @@ cdef class lazy_list_abstract(object):
         words, ``self._fit(n)` ensure that either the lazy list is completely
         expanded in memory or that you may have access to the ``n``-th item.
 
+        OUTPUT:
+
+        A booleal indicating whether ``self.stop`` was updated.
+
         EXAMPLES::
 
             sage: from sage.data_structures.lazy_list import lazy_list
@@ -608,6 +612,7 @@ cdef class lazy_list_abstract(object):
             stop         9223372036854775807
             step         3
             sage: l._fit(13)
+            True
             sage: l._info()
             cache length 13
             start        2
@@ -616,6 +621,7 @@ cdef class lazy_list_abstract(object):
 
             sage: l = lazy_list([0]*12)[1::2]
             sage: l._fit(100)
+            False
         """
         n = min(n, self.stop - self.step)
         try:
@@ -627,6 +633,8 @@ cdef class lazy_list_abstract(object):
                 self.step = 1
             if (self.start - self.stop) % self.step:
                 self.stop += self.step + (self.start - self.stop) % self.step
+            return True
+        return False
 
     cpdef get(self, Py_ssize_t i):
         r"""

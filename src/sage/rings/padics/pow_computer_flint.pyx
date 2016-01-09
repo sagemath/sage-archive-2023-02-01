@@ -44,11 +44,7 @@ cdef class PowComputer_flint(PowComputer_class):
         sig_on()
         try:
             mpz_init(self.top_power)
-            try:
-                padic_ctx_init(self.ctx, self.fprime, 0, prec_cap, PADIC_SERIES)
-            except:
-                mpz_clear(self.top_power)
-                raise
+            padic_ctx_init(self.ctx, self.fprime, 0, prec_cap, PADIC_SERIES)
         finally:
             sig_off()
 

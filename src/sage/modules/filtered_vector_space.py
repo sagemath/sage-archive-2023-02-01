@@ -130,7 +130,7 @@ def FilteredVectorSpace(arg1, arg2=None, base_ring=QQ, check=True):
 
     INPUT:
 
-    This function accepcts various input that determines the vector space and filtration.
+    This function accepts various input that determines the vector space and filtration.
 
     - Just the dimensionFilteredVectorSpace(dimension): Return the trivial filtration
       (where all vector spaces are isomorphic).

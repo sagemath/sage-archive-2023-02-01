@@ -90,16 +90,17 @@ You can also create extension type inheriting from :class:`lazy_list_generic`
 `update_cache_up_to`. See the examples in this file with the classes
 :class:`lazy_list_from_iterator` and :class:`lazy_list_from_function`.
 """
-
-# in types.pxd
-#    bint PyType_Check(object o)
-#    bint PyType_CheckExact(object o)
-# include "sage/ext/python_iterator.pxi"
+#*****************************************************************************
+#       Copyright (C) 2015 Vincent Delecroix <20100.delecroix@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 cdef extern from "Python.h":
     Py_ssize_t PY_SSIZE_T_MAX
-
-from libc cimport limits
 
 # make a unique instance of empty lazy lists
 cdef lazy_list_generic empty_lazy_list

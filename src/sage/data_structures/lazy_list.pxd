@@ -1,5 +1,3 @@
-from cpython.object cimport *
-
 cdef class lazy_list_generic(object):
     cdef list cache                  # the cache
     cdef lazy_list_generic master   # a reference if self is a slice

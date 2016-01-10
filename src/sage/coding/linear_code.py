@@ -963,7 +963,7 @@ class AbstractLinearCode(module.Module):
 
         TESTS:
 
-        It is impossible to use a name which is in the dictionnary of available decoders::
+        It is impossible to use a name which is in the dictionary of available decoders::
 
             sage: C.add_decoder("Syndrome", MyDecoder)
             Traceback (most recent call last):
@@ -1025,7 +1025,7 @@ class AbstractLinearCode(module.Module):
 
         TESTS:
 
-        It is impossible to use a name which is in the dictionnary of available encoders::
+        It is impossible to use a name which is in the dictionary of available encoders::
 
             sage: C.add_encoder("GeneratorMatrix", MyEncoder)
             Traceback (most recent call last):

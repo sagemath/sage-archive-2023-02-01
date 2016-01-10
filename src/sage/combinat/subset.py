@@ -827,7 +827,7 @@ def dict_to_list(d):
 
 def list_to_dict(l):
     r"""
-    Return a dictionnary whose keys are the elements of l and values are the
+    Return a dictionary whose keys are the elements of l and values are the
     multiplicity they appear in l.
 
     EXAMPLES::

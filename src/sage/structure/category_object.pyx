@@ -386,9 +386,16 @@ cdef class CategoryObject(sage_object.SageObject):
     @cached_method
     def _defining_names(self):
         """
-        The generators used to "define" this object. What this means
-        depends on the type of object: for rings, it usually means
-        generators as a ring.
+        The elements used to "define" this object.
+
+        What this means depends on the type of object: for rings, it
+        usually means generators as a ring. The result of this function
+        is not required to generate the object, but it should contain
+        all named elements if the object was constructed using a
+        ``names'' argument.
+
+        This function is used by the preparser to implement
+        ``R.<x> = ...`` and it is also used by :meth:`gens_dict`.
 
         EXAMPLES::
 
@@ -403,14 +410,15 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: B._defining_names()
             (z,)
 
-        For vector spaces and free modules, we get a basis::
+        For vector spaces and free modules, we get a basis (which can
+        be different from the given generators)::
 
             sage: V = ZZ^3
             sage: V._defining_names()
             ((1, 0, 0), (0, 1, 0), (0, 0, 1))
-            sage: W = V.span([(1/2, 1, 0)])
+            sage: W = V.span([(0, 1, 0), (1/2, 1, 0)])
             sage: W._defining_names()
-            ((1/2, 1, 0),)
+            ((1/2, 0, 0), (0, 1, 0))
         """
         return self.gens()
 

@@ -821,32 +821,33 @@ class FunctionDocumenter(ModuleLevelDocumenter):
                 or (isclassinstance(member)
                     and sage_getdoc_original(member) != sage_getdoc_original(member.__class__)))
 
-    #SAGE TRAC 9976: This function has been rewritten to support the
-    #_sage_argspec_ attribute which makes it possible to get argument
-    #specification of decorated callables in documentation correct. See e.g.
-    #sage.misc.decorators.sage_wraps
+    # Sage Trac #9976: This function has been rewritten to support the
+    # _sage_argspec_ attribute which makes it possible to get argument
+    # specification of decorated callables in documentation correct.
+    # See e.g. sage.misc.decorators.sage_wraps
+    def args_on_obj(self, obj):
+        if hasattr(obj, "_sage_argspec_"):
+            return obj._sage_argspec_()
+        if inspect.isbuiltin(obj) or \
+               inspect.ismethoddescriptor(obj):
+            # can never get arguments of a C function or method unless
+            # a function to do so is supplied
+            if self.env.config.autodoc_builtin_argspec:
+                argspec = self.env.config.autodoc_builtin_argspec(obj)
+                return argspec
+            else:
+                return None
+        argspec = sage_getargspec(obj) #inspect.getargspec(obj)
+        if isclassinstance(obj) or inspect.isclass(obj):
+            # if a class should be documented as function, we try
+            # to use the constructor signature as function
+            # signature without the first argument.
+            if argspec is not None and argspec[0]:
+                del argspec[0][0]
+        return argspec
+
     def format_args(self):
-        def args_on_obj(obj):
-            if hasattr(obj, "_sage_argspec_"):
-                return obj._sage_argspec_()
-            if inspect.isbuiltin(obj) or \
-                   inspect.ismethoddescriptor(obj):
-                # can never get arguments of a C function or method unless
-                # a function to do so is supplied
-                if self.env.config.autodoc_builtin_argspec:
-                    argspec = self.env.config.autodoc_builtin_argspec(obj)
-                    return argspec
-                else:
-                    return None
-            argspec = sage_getargspec(obj) #inspect.getargspec(obj)
-            if isclassinstance(obj) or inspect.isclass(obj):
-                # if a class should be documented as function, we try
-                # to use the constructor signature as function
-                # signature without the first argument.
-                if argspec is not None and argspec[0]:
-                    del argspec[0][0]
-            return argspec
-        argspec = args_on_obj(self.object)
+        argspec = self.args_on_obj(self.object)
         return inspect.formatargspec(*argspec) if argspec is not None else None
 
     def document_members(self, all_members=False):
@@ -1064,32 +1065,34 @@ class MethodDocumenter(ClassLevelDocumenter):
         return ret
 
 
-    #SAGE TRAC 9976: This function has been rewritten to support the
-    #_sage_argspec_ attribute which makes it possible to get argument
-    #specification of decorated callables in documentation correct. See e.g.
-    #sage.misc.decorators.sage_wraps
-    #Note, however, that sage.misc.sageinspect.sage_getargspec already
-    #uses a method _sage_argspec_, that only works on objects, not on classes, though.
-    def format_args(self):
-        def args_on_obj(obj):
-            if hasattr(obj, "_sage_argspec_"):
-                argspec = obj._sage_argspec_()
-            elif inspect.isbuiltin(obj) or inspect.ismethoddescriptor(obj):
-                # can never get arguments of a C function or method unless
-                # a function to do so is supplied
-                if self.env.config.autodoc_builtin_argspec:
-                    argspec = self.env.config.autodoc_builtin_argspec(obj)
-                else:
-                    return None
+    # Sage Trac #9976: This function has been rewritten to support the
+    # _sage_argspec_ attribute which makes it possible to get argument
+    # specification of decorated callables in documentation correct.
+    # See e.g. sage.misc.decorators.sage_wraps
+    #
+    # Note, however, that sage.misc.sageinspect.sage_getargspec already
+    # uses a method _sage_argspec_, that only works on objects, not on classes, though.
+    def args_on_obj(self, obj):
+        if hasattr(obj, "_sage_argspec_"):
+            argspec = obj._sage_argspec_()
+        elif inspect.isbuiltin(obj) or inspect.ismethoddescriptor(obj):
+            # can never get arguments of a C function or method unless
+            # a function to do so is supplied
+            if self.env.config.autodoc_builtin_argspec:
+                argspec = self.env.config.autodoc_builtin_argspec(obj)
             else:
-                # The check above misses ordinary Python methods in Cython
-                # files.
-                argspec = sage_getargspec(obj) #inspect.getargspec(obj)
-            #if isclassinstance(obj) or inspect.isclass(obj):
-            if argspec is not None and argspec[0] and argspec[0][0] in ('cls', 'self'):
-                del argspec[0][0]
-            return argspec
-        argspec = args_on_obj(self.object)
+                return None
+        else:
+            # The check above misses ordinary Python methods in Cython
+            # files.
+            argspec = sage_getargspec(obj) #inspect.getargspec(obj)
+        #if isclassinstance(obj) or inspect.isclass(obj):
+        if argspec is not None and argspec[0] and argspec[0][0] in ('cls', 'self'):
+            del argspec[0][0]
+        return argspec
+
+    def format_args(self):
+        argspec = self.args_on_obj(self.object)
         return inspect.formatargspec(*argspec) if argspec is not None else None
 
     def document_members(self, all_members=False):

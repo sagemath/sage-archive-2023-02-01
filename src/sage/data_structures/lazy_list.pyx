@@ -118,6 +118,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
     INPUT:
 
     - ``data`` -- data to create a lazy list from. This can be
+
       #. a (possibly infinite) iterable,
       #. a function (that takes as input an integer ``n`` and return
          the ``n``-th term of the list),
@@ -339,7 +340,7 @@ cdef class lazy_list_generic(object):
         EXAMPLES::
 
             sage: from sage.data_structures.lazy_list import lazy_list
-            sage: P = lazy_list(iter(Primes()))
+            sage: P = lazy_list(Primes())
             sage: P[2:143:5].list()
             [5, 19, 41, 61, 83, 107, 137, 163, 191, 223, 241, 271, 307, 337, 367, 397, 431, 457, 487, 521, 563, 593, 617, 647, 677, 719, 751, 787, 823]
             sage: P = lazy_list(iter([1,2,3]))

@@ -95,8 +95,8 @@ cdef extern from "mpc.h":
     int  mpc_mul_2ui (mpc_t, mpc_t, unsigned long int, mpc_rnd_t)
     int  mpc_mul_2si (mpc_t, mpc_t, long int, mpc_rnd_t)
     #
-    int  mpc_abs (mpfr_t, mpc_t, mp_rnd_t)
-    int  mpc_norm (mpfr_t, mpc_t, mp_rnd_t)
+    int  mpc_abs (mpfr_t, mpc_t, mpfr_rnd_t)
+    int  mpc_norm (mpfr_t, mpc_t, mpfr_rnd_t)
 
 
     # Power functions and logarithm

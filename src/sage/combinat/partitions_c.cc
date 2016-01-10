@@ -179,7 +179,7 @@ const long double ld_pi = 3.141592653589793238462643L;
 const double d_pi = ld_pi;
 
 // Third, the rounding mode for mpfr.
-const mp_rnd_t round_mode = MPFR_RNDN;
+const mpfr_rnd_t round_mode = MPFR_RNDN;
 
 /*****************************************************************************
  *
@@ -649,7 +649,7 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     //
     // NOTE: Calls to this function must be paired with calls to clear_constants()
     static bool init = false;
-    mp_prec_t p = prec;
+    mpfr_prec_t p = prec;
 
     mpfr_init2(mp_one_over_12,p); mpfr_init2(mp_one_over_24,p); mpfr_init2(mp_sqrt2,p); mpfr_init2(mp_sqrt3,p); mpfr_init2(mp_pi,p);
     mpfr_init2(mp_A,p); mpfr_init2(mp_B,p); mpfr_init2(mp_C,p); mpfr_init2(mp_D,p); mpfr_init2(fourth, p); mpfr_init2(half, p);
@@ -1270,7 +1270,7 @@ void cospi (mpfr_t res,
         //       and tt to tempc1
 
 
-        mp_rnd_t r = round_mode;
+        mpfr_rnd_t r = round_mode;
 
 
     mpfr_div_2ui (tempc1, x, 1, r);

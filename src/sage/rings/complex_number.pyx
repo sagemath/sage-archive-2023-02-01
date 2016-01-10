@@ -45,7 +45,7 @@ from sage.rings.integer_ring import ZZ
 cdef object numpy_complex_interface = {'typestr': '=c16'}
 cdef object numpy_object_interface = {'typestr': '|O'}
 
-cdef mp_rnd_t rnd
+cdef mpfr_rnd_t rnd
 rnd = MPFR_RNDN
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)

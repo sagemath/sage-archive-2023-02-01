@@ -230,7 +230,7 @@ optional GAP database** by typing:
 
 then installing (with "./sage -i") the package whose name begins  
 with database_gap. This will download the package from  
-sage.math.washington.edu and install it. While you're at it,  
+a Sage mirror and install it. While you're at it,  
 you might install other databases of interest to you.  
 
 **9. OPTIONAL: It is recommended that you have both LaTeX and the  

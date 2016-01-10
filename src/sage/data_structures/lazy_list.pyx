@@ -44,18 +44,18 @@ But, naturally, not the other way around::
     ...
     TypeError: can only add list to lazy_list
 
-You can easily create your own class inheriting from :class:`lazy_list_abstract`. You
-should call the :class:`lazy_list_abstract` constructor (optionally with some
+You can easily create your own class inheriting from :class:`lazy_list_generic`. You
+should call the :class:`lazy_list_generic` constructor (optionally with some
 precomputed values for the cache) and implement the method ``_new_slice`` that
 returns a new chunk of data at each call. Here is an example of implementation
 of the Thue--Morse word that is obtained as the fixed point of the substitution
 `0 \to 01` and `1 \to 10`::
 
-    sage: from sage.data_structures.lazy_list import lazy_list_abstract
-    sage: class MyThueMorseWord(lazy_list_abstract):
+    sage: from sage.data_structures.lazy_list import lazy_list_generic
+    sage: class MyThueMorseWord(lazy_list_generic):
     ....:     def __init__(self):
     ....:         self.i = 1
-    ....:         lazy_list_abstract.__init__(self, cache=[0,1])
+    ....:         lazy_list_generic.__init__(self, cache=[0,1])
     ....:     def _new_slice(self):
     ....:         letter = self.get(self.i)
     ....:         self.i += 1
@@ -85,7 +85,7 @@ Alternatively, you can create the lazy list from an update function::
     sage: w2[:500].list() == w[:500].list()
     True
 
-You can also create extension type inheriting from :class:`lazy_list_abstract`
+You can also create extension type inheriting from :class:`lazy_list_generic`
 (with Cython). In that case you would better implement directly the method
 `update_cache_up_to`. See the examples in this file with the classes
 :class:`lazy_list_from_iterator` and :class:`lazy_list_from_function`.
@@ -102,15 +102,15 @@ cdef extern from "Python.h":
 from libc cimport limits
 
 # make a unique instance of empty lazy lists
-cdef lazy_list_abstract empty_lazy_list
-empty_lazy_list = lazy_list_abstract.__new__(lazy_list_abstract)
+cdef lazy_list_generic empty_lazy_list
+empty_lazy_list = lazy_list_generic.__new__(lazy_list_generic)
 empty_lazy_list.start = 0
 empty_lazy_list.stop = 0
 empty_lazy_list.step = 1
 empty_lazy_list.cache = []
 
 
-def lazy_list(data=None, beginning=None, start=None, stop=None, step=None,
+def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         update_function=None):
     r"""
     Return a lazy list.
@@ -123,7 +123,7 @@ def lazy_list(data=None, beginning=None, start=None, stop=None, step=None,
          the ``n``-th term of the list),
       #. or a standard Python container ``list`` or ``tuple``.
 
-    - ``beginning`` -- the beginning of the sequence that will not be computed from
+    - ``initial_values`` -- the beginning of the sequence that will not be computed from
       the ``data`` provided.
 
     - ``update_function`` -- you can also construct a lazy list from a function
@@ -136,7 +136,7 @@ def lazy_list(data=None, beginning=None, start=None, stop=None, step=None,
 
         If you want finer tuning of the constructor you can directly instantiate
         the classes associated to lazy lists that are
-        :class:`lazy_list_abstract`, :class:`lazy_list_from_iterator`,
+        :class:`lazy_list_generic`, :class:`lazy_list_from_iterator`,
         :class:`lazy_list_from_function`.
 
     EXAMPLES:
@@ -199,17 +199,17 @@ def lazy_list(data=None, beginning=None, start=None, stop=None, step=None,
         ValueError: only one of the arguments 'data' or 'update_function'
         can be used
     """
-    cdef lazy_list_abstract l
+    cdef lazy_list_generic l
 
     if data is None and update_function is None:
         return empty_lazy_list
     elif data is not None and update_function is not None:
         raise ValueError("only one of the arguments 'data' or 'update_function' can be used")
 
-    if beginning is None:
+    if initial_values is None:
         cache = []
     else:
-        cache = list(beginning)
+        cache = list(initial_values)
 
     if update_function is not None:
         assert callable(update_function)
@@ -217,7 +217,7 @@ def lazy_list(data=None, beginning=None, start=None, stop=None, step=None,
 
     if isinstance(data, (tuple,list)):
         data = cache + list(data)
-        l = lazy_list_abstract(data, 0, len(data), 1)
+        l = lazy_list_generic(data, 0, len(data), 1)
     else:
         # the code below is not very clean
         # we just want to differentiate on the one hand iterable (= object with a
@@ -256,7 +256,7 @@ def slice_unpickle(master, start, stop, step):
     """
     return master[start:stop:step]
 
-cdef class lazy_list_abstract(object):
+cdef class lazy_list_generic(object):
     r"""
     A lazy list
 
@@ -290,9 +290,9 @@ cdef class lazy_list_abstract(object):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list_abstract
+            sage: from sage.data_structures.lazy_list import lazy_list_generic
             sage: l = [0,1,2]
-            sage: ll = lazy_list_abstract(l, 0, 2, None)
+            sage: ll = lazy_list_generic(l, 0, 2, None)
             sage: ll
             lazy list [0, 1]
 
@@ -362,10 +362,7 @@ cdef class lazy_list_abstract(object):
             sage: lazy.list()
             [2, 3, 5, 7, 11]
         """
-        try:
-            self.update_cache_up_to(self.stop-1)
-        except StopIteration:
-            pass
+        self._fit(self.stop - self.step)
         return self.cache[self.start:self.stop:self.step]
 
     def info(self):
@@ -800,7 +797,7 @@ cdef class lazy_list_abstract(object):
 
         # here we return a slice of self. That is to say, a lazy list which
         # shares the same cache of values
-        cdef lazy_list_abstract l = lazy_list_abstract.__new__(lazy_list_abstract)
+        cdef lazy_list_generic l = lazy_list_generic.__new__(lazy_list_generic)
         l.master = self
         l.cache = self.cache
         l.start = start
@@ -834,7 +831,7 @@ cdef class lazy_list_abstract(object):
             self.cache.extend(l)
         return 0
 
-cdef class lazy_list_from_iterator(lazy_list_abstract):
+cdef class lazy_list_from_iterator(lazy_list_generic):
     r"""
     Lazy list built from an iterator.
 
@@ -879,7 +876,7 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
             lazy list ['a', 0, 1, ...]
         """
         self.iterator = iterator
-        lazy_list_abstract.__init__(self, cache)
+        lazy_list_generic.__init__(self, cache)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
@@ -914,7 +911,7 @@ cdef class lazy_list_from_iterator(lazy_list_abstract):
         """
         return lazy_list_from_iterator, (self.iterator, self.cache)
 
-cdef class lazy_list_from_function(lazy_list_abstract):
+cdef class lazy_list_from_function(lazy_list_generic):
     def __init__(self, function, cache=None, stop=None):
         r"""
         INPUT:
@@ -947,7 +944,7 @@ cdef class lazy_list_from_function(lazy_list_abstract):
             [5, 4, 3, 2, 1]
         """
         self.callable = function
-        lazy_list_abstract.__init__(self, cache)
+        lazy_list_generic.__init__(self, cache)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
@@ -978,7 +975,7 @@ cdef class lazy_list_from_function(lazy_list_abstract):
             raise RuntimeError
         return lazy_list_from_function, (self.callable, self.cache, self.stop)
 
-cdef class lazy_list_from_update_function(lazy_list_abstract):
+cdef class lazy_list_from_update_function(lazy_list_generic):
     def __init__(self, function, cache=None, stop=None):
         r"""
         INPUT:
@@ -1007,7 +1004,7 @@ cdef class lazy_list_from_update_function(lazy_list_abstract):
             [1, 2, 2, 4, 4, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 16]
         """
         self.update_function = function
-        lazy_list_abstract.__init__(self, cache, None, stop, None)
+        lazy_list_generic.__init__(self, cache, None, stop, None)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
@@ -1047,7 +1044,7 @@ cdef class lazy_list_from_update_function(lazy_list_abstract):
             lazy list [False, False, True, ...]
 
             sage: def say_hey(cache): print "hey"
-            sage: l = lazy_list(update_function=say_hey, beginning=range(10))
+            sage: l = lazy_list(update_function=say_hey, initial_values=range(10))
             sage: l._fit(10)
             hey
             1

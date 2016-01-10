@@ -1,5 +1,5 @@
 r"""
-Coordinate charts
+Coordinate Charts
 
 The class :class:`Chart` implements coordinate charts on a topological manifold
 over a topological field `K`. The subclass :class:`RealChart` is devoted
@@ -41,9 +41,9 @@ from sage.misc.latex import latex
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
-    Chart on a manifold.
+    Chart on a topological manifold.
 
-    Given a (topological) manifold `M` of dimension `n` over a topological
+    Given a topological manifold `M` of dimension `n` over a topological
     field `K`, a *chart* on `M` is a pair `(U,\varphi)`, where `U` is an
     open subset of `M` and `\varphi: U \rightarrow V \subset K^n` is a
     homeomorphism from `U` to an open subset `V` of `K^n`.

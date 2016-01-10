@@ -1,5 +1,5 @@
 r"""
-Points of topological manifolds
+Points of Topological Manifolds
 
 The class :class:`ManifoldPoint` implements points of a
 topological manifold.
@@ -80,7 +80,7 @@ class ManifoldPoint(Element):
 
     INPUT:
 
-    - ``parent`` -- the manifold (subset) to which the point belongs
+    - ``parent`` -- the manifold subset to which the point belongs
     - ``coords`` -- (default: ``None``) the point coordinates (as a tuple
       or a list) in the chart ``chart``
     - ``chart`` -- (default: ``None``) chart in which the coordinates are

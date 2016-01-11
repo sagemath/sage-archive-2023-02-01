@@ -127,7 +127,7 @@ const bool debug = false;                                       // If true, outp
 const bool debug_precision = false;                             // If true, output information that might be useful for
                                                                 // debugging the precision setting code.
 
-const bool debugs = false;                                      // If true, output informaiton that might be useful for
+const bool debugs = false;                                      // If true, output information that might be useful for
                                                                 // debugging the various s() functions.
 const bool debugf = false;                                      // Same for the f() functions.
 const bool debuga = false;                                      // Same for the a() functions.

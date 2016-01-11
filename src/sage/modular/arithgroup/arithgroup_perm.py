@@ -1782,7 +1782,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
 
         INPUT:
 
-        ``exp`` - boolean (default: False) - if True, return a dictionnary with
+        ``exp`` - boolean (default: False) - if True, return a dictionary with
         keys the possible widths and with values the number of cusp with that
         width.
 

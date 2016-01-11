@@ -803,7 +803,7 @@ class ContinuedFraction_base(SageObject):
         Return the list of partial convergents of ``self``.
 
         If ``self`` is an infinite continued fraction, then the object returned
-        is a :class:`~sage.data_structures.lazy_list.lazy_list_generic` which
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which
         behave like an infinite list.
 
         EXAMPLES::
@@ -816,7 +816,7 @@ class ContinuedFraction_base(SageObject):
             sage: #TODO: example with infinite list
         """
         if self.length() == Infinity:
-            from sage.data_structures.lazy_list import lazy_list
+            from sage.misc.lazy_list import lazy_list
             from itertools import count
             return lazy_list(self.numerator(n) / self.denominator(n) for n in count())
         return [self.numerator(n) / self.denominator(n) for n in xrange(len(self))]
@@ -826,7 +826,7 @@ class ContinuedFraction_base(SageObject):
         Return the list of partial quotients of ``self``.
 
         If ``self`` is an infinite continued fraction, the the object returned
-        is a :class:`~sage.data_structures.lazy_list.lazy_list_generic` which behave like an
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which behave like an
         infinite list.
 
         EXAMPLES::
@@ -839,7 +839,7 @@ class ContinuedFraction_base(SageObject):
             sage: #TODO: example with infinite list
         """
         if self.length() == Infinity:
-            from sage.data_structures.lazy_list import lazy_list
+            from sage.misc.lazy_list import lazy_list
             from itertools import count
             return lazy_list(self.quotient(n) for n in count())
         return [self.quotient(n) for n in xrange(len(self))]
@@ -2400,7 +2400,7 @@ def continued_fraction(x, value=None):
         return ContinuedFraction_periodic(x1, x2)
 
     # input for infinite partial quotient expansion
-    from sage.data_structures.lazy_list import lazy_list_generic
+    from sage.misc.lazy_list import lazy_list_generic
     from sage.combinat.words.infinite_word import InfiniteWord_class
     if isinstance(x, (lazy_list_generic, InfiniteWord_class)):
         return ContinuedFraction_infinite(x, value)

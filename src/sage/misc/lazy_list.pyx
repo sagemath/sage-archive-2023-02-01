@@ -9,7 +9,7 @@ share memory.
 
 EXAMPLES::
 
-    sage: from sage.data_structures.lazy_list import lazy_list
+    sage: from sage.misc.lazy_list import lazy_list
     sage: P = lazy_list(Primes())
     sage: P[100]
     547
@@ -51,7 +51,7 @@ returns a new chunk of data at each call. Here is an example of implementation
 of the Thue--Morse word that is obtained as the fixed point of the substitution
 `0 \to 01` and `1 \to 10`::
 
-    sage: from sage.data_structures.lazy_list import lazy_list_generic
+    sage: from sage.misc.lazy_list import lazy_list_generic
     sage: class MyThueMorseWord(lazy_list_generic):
     ....:     def __init__(self):
     ....:         self.i = 1
@@ -146,7 +146,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
     The basic construction of lazy lists.
     ::
 
-        sage: from sage.data_structures.lazy_list import lazy_list
+        sage: from sage.misc.lazy_list import lazy_list
 
     #. Iterators::
 
@@ -252,7 +252,7 @@ def slice_unpickle(master, start, stop, step):
 
     TESTS::
 
-        sage: from sage.data_structures.lazy_list import slice_unpickle
+        sage: from sage.misc.lazy_list import slice_unpickle
         sage: slice_unpickle(range(35), 1, 3, 7) == range(35)[1:3:7]
         True
     """
@@ -264,7 +264,7 @@ cdef class lazy_list_generic(object):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.lazy_list import lazy_list
+        sage: from sage.misc.lazy_list import lazy_list
         sage: l = lazy_list(Primes())
         sage: l
         lazy list [2, 3, 5, ...]
@@ -292,7 +292,7 @@ cdef class lazy_list_generic(object):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list_generic
+            sage: from sage.misc.lazy_list import lazy_list_generic
             sage: l = [0,1,2]
             sage: ll = lazy_list_generic(l, 0, 2, None)
             sage: ll
@@ -317,7 +317,7 @@ cdef class lazy_list_generic(object):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: p = lazy_list(Primes())[100:1042240:12]
             sage: p.start_stop_step()
             doctest:...: DeprecationWarning: The method start_stop_step is deprecated. Consider using _info() instead.
@@ -340,7 +340,7 @@ cdef class lazy_list_generic(object):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: P = lazy_list(Primes())
             sage: P[2:143:5].list()
             [5, 19, 41, 61, 83, 107, 137, 163, 191, 223, 241, 271, 307, 337, 367, 397, 431, 457, 487, 521, 563, 593, 617, 647, 677, 719, 751, 787, 823]
@@ -373,7 +373,7 @@ cdef class lazy_list_generic(object):
 
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: lazy_list([0]).info()
             doctest:...: DeprecationWarning: info is deprecated in favor of a private method.
             Use _info() instead
@@ -393,7 +393,7 @@ cdef class lazy_list_generic(object):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: P = lazy_list(iter(Primes()))[10:21474838:4]
             sage: P._info()
             cache length 0
@@ -420,7 +420,7 @@ cdef class lazy_list_generic(object):
 
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: from itertools import count
             sage: l = lazy_list(i**3 - i + 1 for i in count()); l
             lazy list [1, 1, 7, ...]
@@ -451,7 +451,7 @@ cdef class lazy_list_generic(object):
 
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: from itertools import count
             sage: r = lazy_list(count()); r  # indirect doctest
             lazy list [0, 1, 2, ...]
@@ -507,7 +507,7 @@ cdef class lazy_list_generic(object):
         EXAMPLES::
 
             sage: from itertools import count
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: m = lazy_list(count())
             sage: x = loads(dumps(m))
             sage: y = iter(x)
@@ -538,7 +538,7 @@ cdef class lazy_list_generic(object):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: l = lazy_list(iter([0,1,2,-34,3,2,-5,12,1,4,-18,5,-12]))[2::3]
             sage: l._info()
             cache length 0
@@ -587,7 +587,7 @@ cdef class lazy_list_generic(object):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: from itertools import chain, repeat
             sage: f = lazy_list(chain(iter([1,2,3]), repeat('a')))
             sage: f.get(0)
@@ -625,7 +625,7 @@ cdef class lazy_list_generic(object):
 
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: from itertools import chain, repeat
             sage: f = lazy_list(chain(iter([1,2,3]), repeat('a')))
             sage: f(2)
@@ -642,7 +642,7 @@ cdef class lazy_list_generic(object):
         TESTS::
 
             sage: from itertools import count
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: iter(lazy_list(count()))
             <generator object at 0x...>
 
@@ -672,7 +672,7 @@ cdef class lazy_list_generic(object):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: f = lazy_list(iter([1,2,3]))
             sage: f0 = f[0:]
             sage: print f.get(0), f.get(1), f.get(2)
@@ -839,7 +839,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.lazy_list import lazy_list
+        sage: from sage.misc.lazy_list import lazy_list
         sage: from itertools import count
         sage: m = lazy_list(count()); m
         lazy list [0, 1, 2, ...]
@@ -870,7 +870,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
 
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list_from_iterator
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
             sage: from itertools import count
             sage: lazy_list_from_iterator(count())
             lazy list [0, 1, 2, ...]
@@ -904,7 +904,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         r"""
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list_from_iterator
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
             sage: from itertools import count
             sage: loads(dumps(lazy_list_from_iterator(count())))
             lazy list [0, 1, 2, ...]
@@ -931,7 +931,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.lazy_list import lazy_list_from_function
+            sage: from sage.misc.lazy_list import lazy_list_from_function
             sage: lazy_list_from_function(euler_phi)
             lazy list [0, 1, 1, ...]
             sage: lazy_list_from_function(divisors, [None])
@@ -967,7 +967,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
         r"""
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list_from_function
+            sage: from sage.misc.lazy_list import lazy_list_from_function
             sage: loads(dumps(lazy_list_from_function(euler_phi)))
             lazy list [0, 1, 1, ...]
             sage: loads(dumps(lazy_list_from_function(divisors, [None])))
@@ -997,7 +997,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
 
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list_from_update_function
+            sage: from sage.misc.lazy_list import lazy_list_from_update_function
             sage: def update_function(values):
             ....:     n = len(values)+1
             ....:     values.extend([n]*n)
@@ -1036,7 +1036,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
         r"""
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
 
             sage: def my_update_function(values): values.append(ZZ(len(values)).is_prime())
             sage: l = lazy_list(update_function=my_update_function)

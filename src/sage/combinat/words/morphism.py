@@ -141,7 +141,7 @@ def get_cycles(f, domain=None):
 
     return cycles
 
-from sage.data_structures.lazy_list import lazy_list
+from sage.misc.lazy_list import lazy_list
 
 class PeriodicPointIterator(object):
     r"""

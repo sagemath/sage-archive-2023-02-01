@@ -1,5 +1,5 @@
 r"""
-Tangent spaces
+Tangent Spaces
 
 The class :class:`TangentSpace` implements tangent vector spaces to a
 differentiable manifold.

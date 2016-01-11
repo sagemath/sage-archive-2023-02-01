@@ -1,4 +1,4 @@
-Tangent spaces
+Tangent Spaces
 ==============
 
 .. toctree::

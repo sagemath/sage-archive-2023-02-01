@@ -1,5 +1,5 @@
 r"""
-Continuous maps between topological manifolds
+Continuous Maps between Topological Manifolds
 
 The class :class:`ContinuousMap` implements continuous maps from a topological
 manifold `M` to some topological manifold `N` over the same topological field

@@ -1,4 +1,4 @@
-Tensor fields
+Tensor Fields
 =============
 
 .. toctree::

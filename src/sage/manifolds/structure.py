@@ -1,16 +1,18 @@
 r"""
-Manifold structures
+Manifold Structures
 
-These classes encode the sturcture of a manifold.
+These classes encode the structure of a manifold.
 
 AUTHORS:
 
 - Travis Scrimshaw (2015-11-25): Initial version
+- Eric Gourgoulhon (2015): add :class:`DifferentialStructure` and
+  :class:`RealDifferentialStructure`
+
 """
 
 #*****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2015 Travis Scrimshaw <tscrimsh at umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

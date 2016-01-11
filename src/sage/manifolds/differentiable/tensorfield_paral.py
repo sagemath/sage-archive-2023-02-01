@@ -1,5 +1,5 @@
 r"""
-Tensor fields with values on a parallelizable manifold
+Tensor Fields with Values on a Parallelizable Manifold
 
 The class :class:`TensorFieldParal` implements tensor fields along a
 differentiable manifolds with values on a parallelizable differentiable

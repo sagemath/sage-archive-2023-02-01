@@ -1,5 +1,5 @@
 r"""
-Tangent vectors
+Tangent Vectors
 
 The class :class:`TangentVector` implements tangent vectors to a differentiable
 manifold.

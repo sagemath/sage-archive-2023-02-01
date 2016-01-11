@@ -1,5 +1,5 @@
 r"""
-Algebra of differentiable scalar fields
+Algebra of Differentiable Scalar Fields
 
 The class :class:`DiffScalarFieldAlgebra` implements the commutative algebra
 `C^k(M)` of differentiable scalar fields on a differentiable manifold `M` of

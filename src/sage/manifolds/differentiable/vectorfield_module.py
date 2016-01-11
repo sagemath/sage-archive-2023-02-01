@@ -1,5 +1,5 @@
 r"""
-Vector field modules
+Vector Field Modules
 
 The set of vector fields along a differentiable manifold `U` with values on
 a differentiable manifold `M` via a differentiable map `\Phi: U\rightarrow M`

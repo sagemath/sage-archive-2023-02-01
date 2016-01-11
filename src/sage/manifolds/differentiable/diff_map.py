@@ -1,5 +1,5 @@
 r"""
-Differentiable maps between differentiable manifolds
+Differentiable Maps between Differentiable Manifolds
 
 The class :class:`DiffMap` implements differentiable maps from a differentiable
 manifold `M` to a differentiable manifold `N` over the same topological field

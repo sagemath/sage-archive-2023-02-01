@@ -1,4 +1,4 @@
-Differential forms
+Differential Forms
 ==================
 
 .. toctree::

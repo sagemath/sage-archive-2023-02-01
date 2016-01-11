@@ -1,5 +1,5 @@
 r"""
-Vector fields
+Vector Fields
 
 Given two differentiable manifolds `U` and `M` over the same topological field
 `K` and a differentiable map

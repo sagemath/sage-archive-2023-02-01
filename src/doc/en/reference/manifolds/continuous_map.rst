@@ -1,4 +1,4 @@
-Continuous maps
+Continuous Maps
 ===============
 
 .. toctree::

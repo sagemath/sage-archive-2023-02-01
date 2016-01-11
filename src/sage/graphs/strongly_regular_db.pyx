@@ -2552,7 +2552,6 @@ def SRG_1288_792_476_504():
     G.relabel()
     return G
 
-
 cdef bint seems_feasible(int v, int k, int l, int mu):
     r"""
     Tests is the set of parameters seems feasible
@@ -2979,6 +2978,7 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     from sage.graphs.generators.smallgraphs import SchlaefliGraph
     from sage.graphs.generators.smallgraphs import HigmanSimsGraph
+    from sage.graphs.generators.smallgraphs import JankoKharaghaniGraph
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
     from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
@@ -3020,8 +3020,10 @@ def _build_small_srg_database():
         (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
         (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
         (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],
+        (936, 375, 150,150): [JankoKharaghaniGraph, 936],
         (1288,792, 476,504): [SRG_1288_792_476_504],
         (1782,416, 100, 96): [SuzukiGraph],
+        (1800,1029,588,588): [JankoKharaghaniGraph, 1800],
     }
 
     # Turns the known two-weight codes into SRG constructors

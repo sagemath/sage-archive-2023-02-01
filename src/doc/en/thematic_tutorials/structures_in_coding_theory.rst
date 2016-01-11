@@ -8,19 +8,22 @@ How to write your own classes for coding theory
 
 .. MODULEAUTHOR:: David Lucas
 
-This tutorial, designed for advanced users who want to build their own classes, will
-explain step by step what you need to do to write code which integrates well in the
-framework of coding theory. During this tutorial, we will cover the following parts:
+This tutorial, designed for advanced users who want to build their own classes,
+will explain step by step what you need to do to write code which integrates
+well in the framework of coding theory.
+During this tutorial, we will cover the following parts:
 
 - how to write a new **code family**
 - how to write a new **encoder**
 - how to write a new **decoder**
 - how to write a new **channel**
 
-Through all this tutorial, we will follow the same example, namely the implementation of repetition code.
-At the end of each part, we will summarize every important step of the implementation. If one just wants
-a quick access to the implementation of one of the objects cited above, one can jump directly to the end
-of related part, which presents a summary of what to do.
+Through all this tutorial, we will follow the same example, namely the
+implementation of repetition code. At the end of each part, we will summarize
+every important step of the implementation. If one just wants
+a quick access to the implementation of one of the objects cited above, one can
+jump directly to the end of related part,
+which presents a summary of what to do.
 
 .. contents:: Table of contents
    :depth: 2
@@ -28,28 +31,32 @@ of related part, which presents a summary of what to do.
 I. The repetition code
 ======================
 
-We want to implement in Sage the well-known repetition code. Its definition follows:
+We want to implement in Sage the well-known repetition code.
+Its definition follows:
 
-the :math:`(n, 1)`-repetition code over :math:`\mathbb{F}_{q}` is the code formed by all the vectors
-of :math:`\mathbb{F}_{q}^{n}` of the form :math:`(i, i, i, \dots, i), \forall i \in \mathbb{F}_{q}`
+the :math:`(n, 1)`-repetition code over :math:`\GF{q}` is the code formed
+by all the vectors of :math:`\GF{q}^{n}` of the form
+:math:`(i, i, i, \dots, i), \forall i \in \GF{q}`
 
-For example, the :math:`(3, 1)`-repetition code over :math:`\mathbb{F}_{2}` is:
+For example, the :math:`(3, 1)`-repetition code over :math:`\GF{2}` is:
 :math:`C = \{(0, 0, 0), (1, 1, 1)\}`.
 
-The encoding is very simple, it only consists in repeating :math:`n` times the input symbol
-and pick the vector thus formed.
+The encoding is very simple, it only consists in repeating :math:`n`
+times the input symbol and pick the vector thus formed.
 
-The decoding uses majority voting to select the right symbol (over :math:`\mathbb{F}_{2}`).
-If we receive the word :math:`(1, 0, 1)` (example cont'd), we deduce that
-the original word was :math:`(1)`. It can correct up to :math:`\lceil \frac{n-1}{2} \rceil` errors.
+The decoding uses majority voting to select the right symbol
+(over :math:`\GF{2}`). If we receive the word :math:`(1, 0, 1)`
+(example cont'd), we deduce that the original word was :math:`(1)`.
+It can correct up to :math:`\lceil \frac{n-1}{2} \rceil` errors.
 
-Through all this tutorial, we will illustrate the implementation of the :math:`(n, 1)`-repetition
-code over :math:`\mathbb{F}_{2}`
+Through all this tutorial, we will illustrate the implementation of the
+:math:`(n, 1)`-repetition code over :math:`\GF{2}`
 
 II. Write a new code class
 ==========================
 
-The first thing to do to write a new code class is to identify the following elements:
+The first thing to do to write a new code class is to identify
+the following elements:
 
 - the length of the code,
 - the base field of the code,
@@ -57,29 +64,38 @@ The first thing to do to write a new code class is to identify the following ele
 - the default decoder for the code and
 - any other useful argument we want to set at construction time.
 
-For our code, we know its length, its dimension, its base field, one encoder and one decoder.
+For our code, we know its length, its dimension, its base field, one encoder
+and one decoder.
 
-Now we isolated the parameters of the code, we can write the constructor of our class.
-Every linear code class must inherit from :class:`sage.coding.linear_code.AbstractLinearCode`.
-This class provide a lot of useful methods and, as we illustrate thereafter, a default constructor
-which sets the *length*, the *base_field*, the *default encoder* and the *default decoder* as class
-parameters. We also need to create the dictionary of known encoders and decoders for the class.
+Now we isolated the parameters of the code, we can write the
+constructor of our class.
+Every linear code class must inherit from
+:class:`sage.coding.linear_code.AbstractLinearCode`.
+This class provide a lot of useful methods and, as we illustrate thereafter,
+a default constructor which sets the *length*, the *base_field*,
+the *default encoder* and the *default decoder* as class parameters.
+We also need to create the dictionary of known encoders and decoders
+for the class.
 
-Let us now write the constructor for our code class, that we store in some file called ``repetition_code.py``::
+Let us now write the constructor for our code class,
+that we store in some file called ``repetition_code.py``::
 
     sage: from sage.coding.linear_code import AbstractLinearCode
     ....: class BinaryRepetitionCode(AbstractLinearCode):
     ....:     _registered_encoders = {}
     ....:     _registered_decoders = {}
     ....:     def __init__(self, length):
-    ....:         super(BinaryRepetitionCode, self).__init__(GF(2), length, "RepetitionGeneratorMatrixEncoder", "MajorityVoteDecoder")
+    ....:         super(BinaryRepetitionCode, self).__init__(GF(2), length,
+    ....:         "RepetitionGeneratorMatrixEncoder", "MajorityVoteDecoder")
     ....:         self._dimension = 1
 
 
-As you notice, the constructor is really simple. Most of the work is indeed managed by the
-topclass through the ``super`` statement. Note that the dimension is not set by the abstract class,
-because for some code families the exact dimension is hard to compute. If the exact dimension is known,
-set it using ``_dimension`` as class parameter.
+As you notice, the constructor is really simple. Most of the work is indeed
+managed by the topclass through the ``super`` statement.
+Note that the dimension is not set by the abstract class, because for some
+code families the exact dimension is hard to compute.
+If the exact dimension is known, set it using ``_dimension``
+as class parameter.
 
 We can now write representation methods for our code class::
 
@@ -95,58 +111,69 @@ We also write a method to check equality::
     ....:           and self.length() == other.length()
     ....:           and self.dimension() == other.dimension())
 
-After these examples, you probably noticed that we use two methods, namely ``length()``
-and ``dimension()`` without defining them. That is  because their implementation is provided in
-:class:`sage.coding.linear_code.AbstractLinearCode`. The abstract class provides default implantation
-on the following getter methods:
+After these examples, you probably noticed that we use two methods, namely
+``length()`` and ``dimension()`` without defining them.
+That is because their implementation is provided in
+:class:`sage.coding.linear_code.AbstractLinearCode`.
+The abstract class provides default implantation of the
+following getter methods:
 
 - :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`
 - :meth:`sage.coding.linear_code.AbstractLinearCode.length`,
 - :meth:`sage.coding.linear_code.AbstractLinearCode.base_field` and
 - :meth:`sage.coding.linear_code.AbstractLinearCode.ambient_space`.
 
-It also provides an implementation of ``__ne__`` which returns the inverse of ``__eq__`` and
-several other very useful methods, like ``__contains__``. Note that a lot of these other methods
-rely on the computation of a generator matrix. It is thus highly recommended to set an encoder which
-knows how to compute such a matrix as default encoder. As default encoder will be used by all these
-methods which expect a generator matrix, if one provides a default encoder which does not have a
+It also provides an implementation of ``__ne__`` which returns the inverse
+of ``__eq__`` and several other very useful methods, like ``__contains__``.
+Note that a lot of these other methods rely on the computation of a generator
+matrix. It is thus highly recommended to set an encoder which
+knows how to compute such a matrix as default encoder.
+As default encoder will be used by all these methods which expect a
+generator matrix, if one provides a default encoder which does not have a
 ``generator_matrix`` method, a lot of generic methods will fail.
 
-As our code family is really simple, we do not need anything else, and the code provided above is
-enough to describe properly a repetition code.
+As our code family is really simple, we do not need anything else,
+and the code provided above is enough to describe properly a repetition code.
 
 Summary of the implementation for linear codes
 ----------------------------------------------
 
 1. Inherit from :class:`sage.coding.linear_code.AbstractLinearCode`.
-2. Add ``_registered_encoders =  {}`` and ``_registered_decoders = {}`` as global variables for the class.
+2. Add ``_registered_encoders =  {}`` and ``_registered_decoders = {}``
+   as global variables for the class.
 3. Add this line in the class' constructor::
 
       super(ClassName, self).__init__(base_field, length, "DefaultEncoder", "DefaultDecoder")
-4. Implement representation methods (not mandatory, but highly advised) ``_repr_`` and ``_latex_``.
+4. Implement representation methods (not mandatory, but highly advised)
+   ``_repr_`` and ``_latex_``.
 5. Implement ``__eq__``.
 6. ``__ne__``, ``length`` and ``dimension`` come with the abstract class.
 
-Please note that ``dimension`` will not work is there is no field ``_dimension`` as class parameter.
+Please note that ``dimension`` will not work is there is no field
+``_dimension`` as class parameter.
 
 
-We now know how to write a new code class. Let us see how to write a new encoder and a new decoder.
+We now know how to write a new code class.
+Let us see how to write a new encoder and a new decoder.
 
 
 III. Write a new encoder class
 ==============================
 
-Let us continue our example. We ask the same question as before: what do we need to describe the encoder?
-For most of the cases (this one included), we only need the associated code. In that case, writing the
-constructor is really straightforward (we store the code in the same ``.py`` file as the code class)::
+Let us continue our example. We ask the same question as before:
+what do we need to describe the encoder?
+For most of the cases (this one included), we only need the associated code.
+In that case, writing the constructor is really straightforward
+(we store the code in the same ``.py`` file as the code class)::
 
     sage: from sage.coding.encoder import Encoder
     ....: class BinaryRepetitionCodeGeneratorMatrixEncoder(Encoder):
     ....:     def __init__(self, code):
     ....:         super(BinaryRepetitionCodeGeneratorMatrixEncoder, self).__init__(code)
 
-Same thing as before, as an encoder always needs to know its associated code, the work can be done by
-the topclass. Remember to inherit from :class:`sage.coding.encoder.Encoder`!
+Same thing as before, as an encoder always needs to know its associated code,
+the work can be done by the topclass.
+Remember to inherit from :class:`sage.coding.encoder.Encoder`!
 
 We also want to override representation methods ``_repr_`` and ``_latex_``::
 
@@ -161,15 +188,18 @@ And we want to have an equality check too::
     ....:     return isinstance((other, BinaryRepetitionCodeGeneratorMatrixEncoder)
     ....:           and self.code() == other.code())
 
-As before, default getter method is provided by the topclass, namely :meth:`sage.coding.encoder.Encoder.code`.
+As before, default getter method is provided by the topclass,
+namely :meth:`sage.coding.encoder.Encoder.code`.
 
 All we have to do is to implement the methods related to the encoding.
-This implementation changes quite a lot whether we have a generator matrix or not.
+This implementation changes quite a lot whether
+we have a generator matrix or not.
 
 We have a generator matrix
 --------------------------
 
-In that case, the message space is a vector space, and it is especially easy: the only method you need to implement is ``generator_matrix``.
+In that case, the message space is a vector space, and it is especially easy:
+the only method you need to implement is ``generator_matrix``.
 
 Continuing our example, it will be::
 
@@ -177,28 +207,34 @@ Continuing our example, it will be::
     ....:     n = self.code().length()
     ....:     return Matrix(GF(2), 1, n, [GF(2).one()] * n)
 
-As the topclass provides default implementation for encode and the inverse operation, that we call
-*unencode* (see: :meth:`sage.coding.encoder.Encoder.encode` and :meth:`sage.coding.encoder.Encoder.unencode`), alongside
-with a default implementation of :meth:`sage.coding.encoder.Encoder.message_space`, our work here is done.
+As the topclass provides default implementation for encode and the inverse
+operation, that we call *unencode*
+(see: :meth:`sage.coding.encoder.Encoder.encode` and
+:meth:`sage.coding.encoder.Encoder.unencode`), alongside
+with a default implementation of
+:meth:`sage.coding.encoder.Encoder.message_space`, our work here is done.
 
 .. NOTE::
 
     default ``encode`` method multiplies the provide word by the generator matrix,
-    while default ``unencode`` computes an information set for the generator matrix,
-    inverses it and performs a matrix-vector multiplication to recover the original message.
-    If one has a better implementation for one's specific code family, one should obviously
-    override the default ``encode`` and ``unencode``.
+    while default ``unencode`` computes an information set for
+    the generator matrix, inverses it and performs a matrix-vector multiplication
+    to recover the original message.
+    If one has a better implementation for one's specific code family,
+    one should obviously override the default ``encode`` and ``unencode``.
 
 We do not have any generator matrix
 -----------------------------------
 
-In that case, we need to override several methods, namely ``encode``, ``unencode_nocheck`` and probably
-``message_space`` (in the case where the message space is not a vector space). Note that the default
-implementation of :meth:`sage.coding.encoder.Encoder.unencode` relies on ``unencode_nocheck`` so reimplementing the former
-is not necessary.
+In that case, we need to override several methods, namely ``encode``,
+``unencode_nocheck`` and probably ``message_space`` (in the case where
+the message space is not a vector space). Note that the default implementation
+of :meth:`sage.coding.encoder.Encoder.unencode` relies on ``unencode_nocheck``
+so reimplementing the former is not necessary.
 
-In our example, it is easy to create an encoder which does not need a generator matrix to
-perform the encoding and the unencoding. We propose the following implementation::
+In our example, it is easy to create an encoder which does not need a generator
+matrix to perform the encoding and the unencoding.
+We propose the following implementation::
 
     sage: def encode(self, message):
     ....:     return vector(GF(2), [message] * self.code().length())
@@ -211,8 +247,9 @@ perform the encoding and the unencoding. We propose the following implementation
 
 Our work here is done.
 
-We need to do one extra thing: set this encoder in the dictionary of known encoders for the
-associated code class. To do that, just add the following line at the end of your file::
+We need to do one extra thing: set this encoder in the dictionary
+of known encoders for the associated code class.
+To do that, just add the following line at the end of your file::
 
    BinaryRepetitionCode._registered_encoders["RepetitionGeneratorMatrixEncoder"] = BinaryRepetitionCodeGeneratorMatrixEncoder
 
@@ -234,26 +271,31 @@ Summary of the implementation for encoders
 IV. Write a new decoder class
 ==============================
 
-Let us continue by writing a decoder. As before, we need to know what is required to describe a decoder.
-We need of course the associated code of the decoder. We also want to know which ``Encoder`` we should use
-when we try to recover the original message from a received word containing errors. We call this
-encoder ``connected_encoder``. As different decoding algorithms do not have the same behaviour
-(e.g. probabilistic decoding vs deterministic), we would like to give a few clues about the type
-of a decoder. So we can store a list of keywords in the class parameter ``_decoder_type``.
+Let us continue by writing a decoder. As before, we need to know what is
+required to describe a decoder. We need of course the associated code of
+the decoder. We also want to know which ``Encoder`` we should use when we
+try to recover the original message from a received word containing errors.
+We call this encoder ``connected_encoder``.
+As different decoding algorithms do not have the same behaviour
+(e.g. probabilistic decoding vs deterministic), we would like to give a few
+clues about the type of a decoder. So we can store a list of keywords in the
+class parameter ``_decoder_type``.
 Eventually, we also need to know the input space of the decoder.
-As usual, initializing these parameters can be delegated to the topclass, and our constructor
-looks like that::
+As usual, initializing these parameters can be delegated to the topclass,
+and our constructor looks like that::
 
     sage: from sage.coding.decoder import Decoder
     ....: class BinaryRepetitionCodeMajorityVoteDecoder(Decoder):
     ....:     def __init__(self, code):
-    ....:         super((BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code, code.ambient_space(),
-    ....:                "RepetitionGeneratorMatrixEncoder"))
+    ....:         super((BinaryRepetitionCodeMajorityVoteDecoder, self).__init__(code,
+    ....:          code.ambient_space(), "RepetitionGeneratorMatrixEncoder"))
 
 Remember to inherit from :class:`sage.coding.decoder.Decoder`!
 
-As ``_decoder_type`` is actually a class parameter, one should set it in the file itself, outside of any method.
-For readability, we suggest to add this statement at the bottom of the file. We'll get back to this in a moment.
+As ``_decoder_type`` is actually a class parameter, one should set it
+in the file itself, outside of any method.
+For readability, we suggest to add this statement at the bottom of the file.
+We'll get back to this in a moment.
 
 We also want to override representation methods ``_repr_`` and ``_latex_``::
 
@@ -268,18 +310,23 @@ And we want to have an equality check too::
     ....:     return isinstance((other, BinaryRepetitionCodeMajorityVoteDecoder)
     ....:           and self.code() == other.code())
 
-As before, default getter methods are provided by the topclass, namely :meth:`sage.coding.decoder.Decoder.code`,
-:meth:`sage.coding.decoder.Decoder.input_space`, :meth:`sage.coding.decoder.Decoder.decoder_type`
-and :meth:`sage.coding.decoder.Decoder.connected_encoder`.
+As before, default getter methods are provided by the topclass, namely
+:meth:`sage.coding.decoder.Decoder.code`,
+:meth:`sage.coding.decoder.Decoder.input_space`,
+:meth:`sage.coding.decoder.Decoder.decoder_type` and
+:meth:`sage.coding.decoder.Decoder.connected_encoder`.
 
 All we have to do know is to implement the methods related to the decoding.
 
-There are two methods, namely :meth:`sage.coding.decoder.Decoder.decode_to_code`
+There are two methods, namely
+:meth:`sage.coding.decoder.Decoder.decode_to_code`
 and :meth:`sage.coding.decoder.Decoder.decode_to_message`.
 
-By the magic of default implementation, these two are linked, as ``decode_to_message`` calls
-first ``decode_to_code`` and then ``unencode``, while ``decode_to_code`` calls successively
-``decode_to_message`` and ``encode``. So we only need to implement one of these two, and we choose
+By the magic of default implementation, these two are linked, as
+``decode_to_message`` calls first ``decode_to_code`` and then
+``unencode``, while ``decode_to_code`` calls successively
+``decode_to_message`` and ``encode``.
+So we only need to implement one of these two, and we choose
 to override ``decode_to_code``::
 
     sage: def decode_to_code(self, word):
@@ -297,22 +344,28 @@ to override ``decode_to_code``::
 
 .. NOTE::
 
-    One notices that if default ``decode_to_code`` calls default ``decode_to_message`` and
-    default ``decode_to_message`` calls default ``decode_to_code``, if none is overriden and
-    one is called, it will end up stuck in an infinite loop. We added a trigger guard against this,
-    so if none is overriden and one is called, an exception will be raised.
+    One notices that if default ``decode_to_code`` calls default
+    ``decode_to_message`` and default ``decode_to_message`` calls default
+    ``decode_to_code``, if none is overriden and one is called,
+    it will end up stuck in an infinite loop. We added a trigger guard
+    against this, so if none is overriden and one is called,
+    an exception will be raised.
 
-Only one method is missing: one to provide to the user the number of errors our decoder can decode.
-This is the method :meth:`sage.coding.decoder.Decoder.decoding_radius`, which we override::
+Only one method is missing: one to provide to the user the number of errors our
+decoder can decode.
+This is the method :meth:`sage.coding.decoder.Decoder.decoding_radius`,
+which we override::
 
     sage: def decoding_radius(self):
     ....:     return (self.code().length()-1) // 2
 
-As for some cases, the decoding might not be precisely known, its implementation is not mandatory in
-:class:`sage.coding.decoder.Decoder`'s subclasses.
+As for some cases, the decoding might not be precisely known, its
+implementation is not mandatory in :class:`sage.coding.decoder.Decoder`'s
+subclasses.
 
-We need to do one extra thing: set this encoder in the dictionary of known decoders for the
-associated code class. To do that, just add the following line at the end of your file::
+We need to do one extra thing: set this encoder in the dictionary of
+known decoders for the associated code class.
+To do that, just add the following line at the end of your file::
 
    BinaryRepetitionCode._registered_decoders["MajorityVoteDecoder"] = BinaryRepetitionCodeMajorityVoteDecoder
 
@@ -336,29 +389,36 @@ Summary of the implementation for decoders
 V. Write a new channel class
 ============================
 
-Alongside all these new structures directly related to codes, we also propose a whole new
-and shiny structure to experiment on codes, and more specifically on their decoding.
+Alongside all these new structures directly related to codes, we also propose
+a whole new and shiny structure to experiment on codes, and more specifically
+on their decoding.
 
-Indeed, we implemented a structure to emulate real-world communication channels.
+Indeed, we implemented a structure to emulate real-world communication
+channels.
 
-I'll propose here a step-by-step implementation of a dummy channel for example's sake.
+I'll propose here a step-by-step implementation of a dummy channel
+for example's sake.
 
-We will implement a very naive channel which works only for words over :math:`\mathbb{F}_{2}` and flips as
-many bits as requested by the user.
+We will implement a very naive channel which works only for words over
+:math:`\mathbb{F}_{2}` and flips as many bits as requested by the user.
 
-As channels are not directly related to code families, but more to vectors and words, we have a specific file,
-``channel_constructions.py`` to store them.
+As channels are not directly related to code families, but more to
+vectors and words, we have a specific file, ``channel_constructions.py``
+to store them.
 
 So we will just add our new class in this file.
 
-For starters, we ask ourselves the eternal question: What do we need to describe a channel?
-Well, we mandatorily need its ``input_space`` and its ``output_space``. Of course, in most
-of the cases, the user will be able to provide some extra information on the channel's behaviour.
+For starters, we ask ourselves the eternal question: What do we need to
+describe a channel?
+Well, we mandatorily need its ``input_space`` and its ``output_space``.
+Of course, in most of the cases, the user will be able to provide some extra
+information on the channel's behaviour.
 In our case, it will be the number of bits to flip (aka the number of errors).
 
-As you might have guess, there is an abstract class to take care of the mandatory arguments!
-Plus, in our case, as this channel only works for vectors over :math:`\mathbb{F}_{2}`, the
-input and output spaces are the same.
+As you might have guess, there is an abstract class to take care
+of the mandatory arguments!
+Plus, in our case, as this channel only works for vectors
+over :math:`\mathbb{F}_{2}`, the input and output spaces are the same.
 Let us write the constructor of our new channel class::
 
     from sage.coding.channel_constructions import Channel
@@ -383,21 +443,25 @@ We also want to override representation methods ``_repr_`` and ``_latex_``::
     ....:     return ("\\textnormal{Static error rate channel creating %s errors, of input and output space %s}"
     ....:                % (format_interval(no_err), self.input_space()))
 
-We don't really see any use case for equality methods (``__eq__`` and ``__ne__``) so do not provide any
-default implementation. If one needs these, one can of course override Python's default methods.
+We don't really see any use case for equality methods
+(``__eq__`` and ``__ne__``) so do not provide any default implementation.
+If one needs these, one can of course override Python's default methods.
 
-We of course want getter methods. There is a provided default implementation for ``input_space`` and
+We of course want getter methods.
+There is a provided default implementation for ``input_space`` and
 ``output_space``, so we only need one for ``number_errors``::
 
     sage: def number_errors(self):
     ....:     return self._number_errors
 
-So, now we want a method to actually add errors to words. As it is the same thing as transmitting
-messages over a real-world channel, we propose two methods, ``transmit`` and ``transmit_unsafe``.
-As you can guess, ``transmit_unsafe`` tries to transmit the message without checking if it is
-in the input space or not, while ``transmit`` checks this before the transmission... Which
-means that ``transmit`` has a default implementation which calls ``transmit_unsafe``. So we
-only need to override ``transmit_unsafe``! Let us do it::
+So, now we want a method to actually add errors to words.
+As it is the same thing as transmitting messages over a real-world channel
+, we propose two methods, ``transmit`` and ``transmit_unsafe``.
+As you can guess, ``transmit_unsafe`` tries to transmit the message
+without checking if it is in the input space or not, while ``transmit`` checks
+this before the transmission... Which means that ``transmit`` has a default
+implementation which calls ``transmit_unsafe``.
+So we only need to override ``transmit_unsafe``! Let us do it::
 
     sage: def transmit_unsafe(self, message):
     ....:     w = copy(message)
@@ -418,15 +482,16 @@ Summary of the implementation for channels
 
       super(ClassName, self).__init__(input_space, output_space)
 3. Implement representation methods (not mandatory) ``_repr_`` and ``_latex_``.
-4. ``input_space`` and ``output_space`` getter methods come with the abstract class.
+4. ``input_space`` and ``output_space`` getter methods come with the
+   abstract class.
 5. Override ``transmit_unsafe``.
 
 
 VI. Sort our new elements
 =========================
 
-As there is many code families and channels in the coding theory library, we do not wish to
-store all our classes directly in Sage's global namespace.
+As there is many code families and channels in the coding theory library,
+we do not wish to store all our classes directly in Sage's global namespace.
 
 We propose several catalog files to store our constructions, namely:
 
@@ -435,8 +500,8 @@ We propose several catalog files to store our constructions, namely:
 - ``decoders_catalog`` and
 - ``channels_catalog``.
 
-Everytime one creates a new object, it should be added in the dedicated catalog file instead of coding theory
-folder's ``all.py``.
+Everytime one creates a new object, it should be added in the dedicated catalog
+file instead of coding theory folder's ``all.py``.
 
 Here it means the following:
 
@@ -452,7 +517,8 @@ Here it means the following:
 VII. Complete code of this tutorial
 ===================================
 
-If you need some base code to start from, feel free to copy-paste and derive from the one that follows.
+If you need some base code to start from, feel free to copy-paste and
+derive from the one that follows.
 
 **repetition_code.py** (with two encoders)::
 

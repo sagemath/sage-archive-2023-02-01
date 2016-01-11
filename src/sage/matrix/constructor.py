@@ -1635,7 +1635,7 @@ def identity_matrix(ring, n=0, sparse=False):
 
 
 @matrix_method
-def zero_matrix(ring, nrows, ncols=None, sparse=False):
+def zero_matrix(ring, nrows=None, ncols=None, sparse=False):
     r"""
     Return the `nrows \times ncols` zero matrix over the given
     ring.
@@ -1664,12 +1664,18 @@ def zero_matrix(ring, nrows, ncols=None, sparse=False):
         Full MatrixSpace of 3 by 1 sparse matrices over Integer Ring
         sage: M.is_mutable()
         True
+        sage: matrix.zero(5)
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+
     """
     if isinstance(ring, (int, long, rings.Integer)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
-
 
 @matrix_method
 def ones_matrix(ring, nrows=None, ncols=None, sparse=False):

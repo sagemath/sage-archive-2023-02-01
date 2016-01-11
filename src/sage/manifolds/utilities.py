@@ -1,5 +1,5 @@
 r"""
-Utilities for calculus
+Utilities for Calculus
 
 This module defines helper functions which are used for simplifications
 and display of symbolic expressions.

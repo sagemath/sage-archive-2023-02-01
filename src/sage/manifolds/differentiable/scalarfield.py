@@ -1,5 +1,5 @@
 r"""
-Differentiable scalar fields
+Differentiable Scalar Fields
 
 Given a differentiable manifold `M` of class `C^k` over a topological field `K`
 (in most applications, `K = \RR` or `K = \CC`), a *differentiable scalar field*

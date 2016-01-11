@@ -1343,7 +1343,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: M = Manifold(3, 'RxS', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.riemannian_metric('g')
-            sage: _f = function('F', y, z)
+            sage: _f = function('F')(y, z)
             sage: f = X.domain().scalar_field(_f)
             sage: g[1,1], g[2,2], g[3,3] = 1, f, f
             sage: g.display()

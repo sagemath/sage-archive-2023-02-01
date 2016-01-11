@@ -405,7 +405,8 @@ class StaticErrorRateChannel(Channel):
             sage: V = VectorSpace(GF(2), 1000)
             sage: Chan = channels.StaticErrorRateChannel(V, 367)
             sage: c = V.random_element()
-            sage: assert (c - Chan(c)).hamming_weight() == 367
+            sage: (c - Chan(c)).hamming_weight()
+            367
         """
         w = copy(message)
         number_errors = randint(*self.number_errors())

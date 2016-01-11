@@ -1,5 +1,5 @@
 r"""
-Group of tangent-space automorphism fields
+Group of Tangent-Space Automorphism Fields
 
 Given a differentiable manifold `U` and a differentiable map
 `\Phi: U \rightarrow M` to a differentiable manifold `M` (possibly `U=M` and

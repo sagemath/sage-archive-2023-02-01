@@ -1,12 +1,10 @@
-Differentiable manifolds
+Differentiable Manifolds
 ========================
 
 .. toctree::
    :maxdepth: 2
 
    sage/manifolds/differentiable/manifold
-
-   sage/manifolds/differentiable/subset
 
    sage/manifolds/differentiable/chart
 

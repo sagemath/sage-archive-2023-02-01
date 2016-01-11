@@ -1,4 +1,4 @@
-Differentiable maps
+Differentiable Maps
 ===================
 
 .. toctree::

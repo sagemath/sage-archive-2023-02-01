@@ -1,5 +1,5 @@
 r"""
-Tensor fields
+Tensor Fields
 
 The class :class:`TensorField` implements tensor fields on differentiable
 manifolds. The derived class

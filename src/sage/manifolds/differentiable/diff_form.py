@@ -1,5 +1,5 @@
 r"""
-Differential forms
+Differential Forms
 
 Let `U` and `M` be two differentiable manifolds.
 Given a positive integer `p` and a differentiable map `\Phi: U \rightarrow M`,

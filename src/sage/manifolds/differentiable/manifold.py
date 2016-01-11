@@ -1,5 +1,5 @@
 r"""
-Differentiable manifolds
+Differentiable Manifolds
 
 Given a non-discrete topological field `K` (in most applications, `K = \RR` or
 `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
@@ -419,27 +419,187 @@ from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopologicalManifold
-from sage.manifolds.differentiable.scalarfield_algebra import \
-                                                         DiffScalarFieldAlgebra
 
-class DifferentiableMixin(object):
+###############################################################################
+
+class DifferentiableManifold(TopologicalManifold):
     r"""
-    Mixin class for differentiable manifolds over a topological field `K`.
+    Differentiable manifold over a topological field `K`.
 
-    This class gathers attributes and methods characteristic of differentiable
-    manifolds. It is intended to serve as a base class for both
-    :class:`DifferentiableManifold` and
-    :class:`~sage.manifolds.differentiable.subset.OpenDifferentiableSubmanifold`
+    Given a non-discrete topological field `K` (in most applications,
+    `K = \RR` or `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for
+    other fields), a *differentiable manifold over* `K` is a topological
+    manifold `M` over `K` equipped with an atlas whose transitions maps are of
+    class `C^k` (i.e. `k`-times  continuously differentiable) for a fixed
+    positive integer `k` (possibly `k=\infty`). `M` is then called a
+    `C^k`-*manifold over* `K`.
+
+    Note that
+
+    - if the mention of `K` is omitted, then `K=\RR` is assumed;
+    - if `K=\CC`, any `C^k`-manifold with `k\geq 1` is actually a
+      `C^\infty`-manifold (even an analytic manifold);
+    - if `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible
+      `C^\infty`-structure (Whitney's smoothing theorem).
 
     INPUT:
 
+    - ``n`` -- positive integer; dimension of the manifold
+    - ``name`` -- string; name (symbol) given to the manifold
+    - ``field`` -- field `K` on which the manifold is
+      defined; allowed values are
+
+      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+        a manifold over `\RR`
+      - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
+        for a manifold over `\CC`
+      - an object in the category of topological fields (see
+        :class:`~sage.categories.fields.Fields` and
+        :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
+        for other types of manifolds
+
+    - ``structure`` -- manifold structure (see
+      :class:`~sage.manifolds.structure.DifferentialStructure` or
+      :class:`~sage.manifolds.structure.RealDifferentialStructure`)
+    - ``ambient`` -- (default: ``None``) if not ``None``, must be a
+      differentiable manifold; the created object is then an open subset of
+      ``ambient``
     - ``diff_degree`` -- (default: ``infinity``) degree `k` of
       differentiability
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
+      denote the manifold; if none is provided, it is set to ``name``
+    - ``start_index`` -- (default: 0) integer; lower value of the range of
+      indices used for "indexed objects" on the manifold, e.g. coordinates
+      in a chart
+    - ``category`` -- (default: ``None``) to specify the category; if ``None``,
+      ``Manifolds(field).Differentiable()`` (or ``Manifolds(field).Smooth()``
+      if ``diff_degree`` = ``infinity``) is assumed (see the category
+      :class:`~sage.categories.manifolds.Manifolds`)
+    - ``unique_tag`` -- (default: ``None``) tag used to force the construction
+      of a new object when all the other arguments have been used previously
+      (without ``unique_tag``, the
+      :class:`~sage.structure.unique_representation.UniqueRepresentation`
+      behavior inherited from
+      :class:`~sage.manifolds.subset.ManifoldSubset`,
+      via :class:`~sage.manifolds.manifold.TopologicalManifold`,
+      would return the previously constructed object corresponding to these
+      arguments).
+
+    EXAMPLES:
+
+    A 4-dimensional differentiable manifold (over `\RR`)::
+
+        sage: M = Manifold(4, 'M', latex_name=r'\mathcal{M}'); M
+        4-dimensional differentiable manifold M
+        sage: type(M)
+        <class 'sage.manifolds.differentiable.manifold.DifferentiableManifold_with_category'>
+        sage: latex(M)
+        \mathcal{M}
+        sage: dim(M)
+        4
+
+    Since the base field has not been specified, `\RR` has been assumed::
+
+        sage: M.base_field()
+        Real Field with 53 bits of precision
+
+    Since the degree of differentiability has not been specified, the default
+    value, `C^\infty`, has been assumed::
+
+        sage: M.diff_degree()
+        +Infinity
+
+    The input parameter ``start_index`` defines the range of indices on the
+    manifold::
+
+        sage: M = Manifold(4, 'M')
+        sage: list(M.irange())
+        [0, 1, 2, 3]
+        sage: M = Manifold(4, 'M', start_index=1)
+        sage: list(M.irange())
+        [1, 2, 3, 4]
+        sage: list(Manifold(4, 'M', start_index=-2).irange())
+        [-2, -1, 0, 1]
+
+    A complex manifold::
+
+        sage: N = Manifold(3, 'N', field='complex'); N
+        3-dimensional complex manifold N
+
+    A differentiable manifold over `\QQ_5`, the field of 5-adic numbers::
+
+        sage: N = Manifold(2, 'N', field=Qp(5)); N
+        2-dimensional differentiable manifold N over the 5-adic Field with
+         capped relative precision 20
+
+    A differentiable manifold is of course a topological manifold::
+
+        sage: isinstance(M, sage.manifolds.manifold.TopologicalManifold)
+        True
+        sage: isinstance(N, sage.manifolds.manifold.TopologicalManifold)
+        True
+
+    A differentiable manifold is a Sage *parent* object, in the category of
+    differentiable (here smooth) manifolds over a given topological field (see
+    :class:`~sage.categories.manifolds.Manifolds`)::
+
+        sage: isinstance(M, Parent)
+        True
+        sage: M.category()
+        Category of smooth manifolds over Real Field with 53 bits of precision
+        sage: from sage.categories.manifolds import Manifolds
+        sage: M.category() is Manifolds(RR).Smooth()
+        True
+        sage: M.category() is Manifolds(M.base_field()).Smooth()
+        True
+        sage: M in Manifolds(RR).Smooth()
+        True
+        sage: N in Manifolds(Qp(5)).Smooth()
+        True
+
+    The corresponding Sage *elements* are points::
+
+        sage: X.<t, x, y, z> = M.chart()
+        sage: p = M.an_element(); p
+        Point on the 4-dimensional differentiable manifold M
+        sage: p.parent()
+        4-dimensional differentiable manifold M
+        sage: M.is_parent_of(p)
+        True
+        sage: p in M
+        True
+
+    The manifold's points are instances of class
+    :class:`~sage.manifolds.point.ManifoldPoint`::
+
+        sage: isinstance(p, sage.manifolds.point.ManifoldPoint)
+        True
+
+    Since an open subset of a differentiable manifold `M` is itself a
+    differentiable manifold, open subsets of `M` have all attributes of
+    manifolds::
+
+        sage: U = M.open_subset('U', coord_def={X: t>0}); U
+        Open subset U of the 4-dimensional differentiable manifold M
+        sage: U.category()
+        Join of Category of subobjects of sets and Category of smooth manifolds
+         over Real Field with 53 bits of precision
+        sage: U.base_field() == M.base_field()
+        True
+        sage: dim(U) == dim(M)
+        True
+
+    The manifold passes all the tests of the test suite relative to its
+    category::
+
+        sage: TestSuite(M).run()
 
     """
-    def __init__(self, diff_degree=infinity):
+    def __init__(self, n, name, field, structure, ambient=None,
+                 diff_degree=infinity, latex_name=None, start_index=0,
+                 category=None, unique_tag=None):
         r"""
-        Construct the differentiable mixin part.
+        Construct a differentiable manifold.
 
         TESTS::
 
@@ -447,10 +607,44 @@ class DifferentiableMixin(object):
             ....:                  start_index=1)
             sage: M
             3-dimensional differentiable manifold M
+            sage: latex(M)
+            \mathbb{M}
+            sage: dim(M)
+            3
             sage: X.<x,y,z> = M.chart()
             sage: TestSuite(M).run()
 
+        Tests for open subsets, which are constructed as differentiable
+        manifolds::
+
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: type(U)
+            <class 'sage.manifolds.differentiable.manifold.DifferentiableManifold_with_category'>
+            sage: U.category() is M.category().Subobjects()
+            True
+            sage: TestSuite(U).run()
+
         """
+        if ambient is None:
+            if category is None:
+                if field == 'real':
+                    field_c = RR
+                elif field == 'complex':
+                    field_c = CC
+                else:
+                    field_c = field
+                if diff_degree == infinity:
+                    category = Manifolds(field_c).Smooth()
+                else:
+                    category = Manifolds(field_c).Differentiable()
+        elif not isinstance(ambient, DifferentiableManifold):
+            raise TypeError("the argument 'ambient' must be a " +
+                            "differentiable manifold")
+        TopologicalManifold.__init__(self, n, name, field, structure,
+                                     ambient=ambient,
+                                     latex_name=latex_name,
+                                     start_index=start_index,
+                                     category=category)
         # The degree of differentiability:
         if diff_degree == infinity:
             self._diff_degree = infinity
@@ -504,7 +698,8 @@ class DifferentiableMixin(object):
 
         An open subset is a set that is (i) included in the manifold and (ii)
         open with respect to the manifold's topology. It is a differentiable
-        manifold by itself.
+        manifold by itself. Hence the returned object is an instance of
+        :class:`DifferentiableManifold`.
 
         INPUT:
 
@@ -518,20 +713,19 @@ class DifferentiableMixin(object):
 
         OUTPUT:
 
-        - the open subset, as an instance of
-          :class:`~sage.manifolds.differentiable.subset.OpenDifferentiableSubmanifold`
+        - the open subset, as an instance of :class:`DifferentiableManifold`
 
         EXAMPLES:
 
-        Creating an open subset of a manifold::
+        Creating an open subset of a differentiable manifold::
 
             sage: M = Manifold(2, 'M')
             sage: A = M.open_subset('A'); A
             Open subset A of the 2-dimensional differentiable manifold M
 
-        As an open subset of a differentiable manifold, A is itself a
+        As an open subset of a differentiable manifold, ``A`` is itself a
         differentiable manifold, on the same topological field and of the same
-        dimension as M::
+        dimension as ``M``::
 
             sage: A.category()
             Join of Category of subobjects of sets and Category of smooth
@@ -541,50 +735,66 @@ class DifferentiableMixin(object):
             sage: dim(A) == dim(M)
             True
 
-        Creating an open subset of A::
+        Creating an open subset of ``A``::
 
             sage: B = A.open_subset('B'); B
             Open subset B of the 2-dimensional differentiable manifold M
 
         We have then::
 
-            sage: A.subsets()  # random (set output)
-            {Open subset B of the 2-dimensional differentiable manifold M,
-             Open subset A of the 2-dimensional differentiable manifold M}
+            sage: A.list_of_subsets()
+            [Open subset A of the 2-dimensional differentiable manifold M,
+             Open subset B of the 2-dimensional differentiable manifold M]
             sage: B.is_subset(A)
             True
             sage: B.is_subset(M)
             True
 
         Defining an open subset by some coordinate restrictions: the open
-        unit disk in `\RR^2`::
+        unit disk in of the Euclidean plane::
 
-            sage: M = Manifold(2, 'R^2')
-            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
-            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}); U
-            Open subset U of the 2-dimensional differentiable manifold R^2
+            sage: X.<x,y> = M.chart() # Cartesian coordinates on M
+            sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1}); U
+            Open subset U of the 2-dimensional differentiable manifold M
 
-        Since the argument ``coord_def`` has been set, U is automatically
-        provided with a chart, which is the restriction of the Cartesian one
-        to U::
+        Since the argument ``coord_def`` has been set, ``U`` is automatically
+        endowed with a chart, which is the restriction of ``X``
+        to ``U``::
 
             sage: U.atlas()
             [Chart (U, (x, y))]
-
-        Therefore, one can immediately check whether a point belongs to U::
-
-            sage: M.point((0,0)) in U
+            sage: U.default_chart()
+            Chart (U, (x, y))
+            sage: U.default_chart() is X.restrict(U)
             True
-            sage: M.point((1/2,1/3)) in U
+
+        An point in ``U``::
+
+            sage: p = U.an_element(); p
+            Point on the 2-dimensional differentiable manifold M
+            sage: X(p)  # the coordinates (x,y) of p
+            (0, 0)
+            sage: p in U
             True
-            sage: M.point((1,2)) in U
+
+        Checking whether various points, defined by their coordinates w.r.t.
+        chart ``X``,  are in ``U``::
+
+            sage: M((0,1/2)) in U
+            True
+            sage: M((0,1)) in U
             False
+            sage: M((1/2,1)) in U
+            False
+            sage: M((-1/2,1/3)) in U
+            True
 
         """
-        from sage.manifolds.differentiable.subset import \
-                                                  OpenDifferentiableSubmanifold
-        resu = OpenDifferentiableSubmanifold(self.manifold(), name,
-                                             latex_name=latex_name)
+        resu = DifferentiableManifold(self._dim, name, self._field,
+                                   self._structure, ambient=self._manifold,
+                                   diff_degree=self._diff_degree,
+                                   latex_name=latex_name,
+                                   start_index=self._sindex)
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)
@@ -2188,212 +2398,3 @@ class DifferentiableMixin(object):
 
         """
         return not self._covering_frames == []
-
-
-###############################################################################
-
-class DifferentiableManifold(DifferentiableMixin, TopologicalManifold):
-    r"""
-    Differentiable manifold over a topological field `K`.
-
-    Given a non-discrete topological field `K` (in most applications,
-    `K = \RR` or `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for
-    other fields), a *differentiable manifold over* `K` is a topological
-    manifold `M` over `K` equipped with an atlas whose transitions maps are of
-    class `C^k` (i.e. `k`-times  continuously differentiable) for a fixed
-    positive integer `k` (possibly `k=\infty`). `M` is then called a
-    `C^k`-*manifold over* `K`.
-
-    Note that
-
-    - if the mention of `K` is omitted, then `K=\RR` is assumed;
-    - if `K=\CC`, any `C^k`-manifold with `k\geq 1` is actually a
-      `C^\infty`-manifold (even an analytic manifold);
-    - if `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible
-      `C^\infty`-structure (Whitney's smoothing theorem).
-
-    INPUT:
-
-    - ``n`` -- positive integer; dimension of the manifold
-    - ``name`` -- string; name (symbol) given to the manifold
-    - ``field`` -- field `K` on which the manifold is
-      defined; allowed values are
-
-      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
-        a manifold over `\RR`
-      - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
-        for a manifold over `\CC`
-      - an object in the category of topological fields (see
-        :class:`~sage.categories.fields.Fields` and
-        :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
-        for other types of manifolds
-
-    - ``structure`` -- manifold structure (see
-      :class:`~sage.manifolds.structure.DifferentialStructure` or
-      :class:`~sage.manifolds.structure.RealDifferentialStructure`)
-    - ``diff_degree`` -- (default: ``infinity``) degree `k` of
-      differentiability
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
-      denote the manifold; if none is provided, it is set to ``name``
-    - ``start_index`` -- (default: 0) integer; lower value of the range of
-      indices used for "indexed objects" on the manifold, e.g. coordinates
-      in a chart
-    - ``category`` -- (default: ``None``) to specify the category; if ``None``,
-      ``Manifolds(field).Differentiable()`` (or ``Manifolds(field).Smooth()``
-      if ``diff_degree`` = ``infinity``) is assumed (see the category
-      :class:`~sage.categories.manifolds.Manifolds`)
-    - ``unique_tag`` -- (default: ``None``) tag used to force the construction
-      of a new object when all the other arguments have been used previously
-      (without ``unique_tag``, the
-      :class:`~sage.structure.unique_representation.UniqueRepresentation`
-      behavior inherited from
-      :class:`~sage.manifolds.abstract.AbstractSet`
-      would return the previously constructed object corresponding to these
-      arguments).
-
-    EXAMPLES:
-
-    A 4-dimensional differentiable manifold (over `\RR`)::
-
-        sage: M = Manifold(4, 'M', latex_name=r'\mathcal{M}'); M
-        4-dimensional differentiable manifold M
-        sage: type(M)
-        <class 'sage.manifolds.differentiable.manifold.DifferentiableManifold_with_category'>
-        sage: latex(M)
-        \mathcal{M}
-        sage: dim(M)
-        4
-
-    Since the base field has not been specified, `\RR` has been assumed::
-
-        sage: M.base_field()
-        Real Field with 53 bits of precision
-
-    Since the degree of differentiability has not been specified, the default
-    value, `C^\infty`, has been assumed::
-
-        sage: M.diff_degree()
-        +Infinity
-
-    The input parameter ``start_index`` defines the range of indices on the
-    manifold::
-
-        sage: M = Manifold(4, 'M')
-        sage: list(M.irange())
-        [0, 1, 2, 3]
-        sage: M = Manifold(4, 'M', start_index=1)
-        sage: list(M.irange())
-        [1, 2, 3, 4]
-        sage: list(Manifold(4, 'M', start_index=-2).irange())
-        [-2, -1, 0, 1]
-
-    A complex manifold::
-
-        sage: N = Manifold(3, 'N', field='complex'); N
-        3-dimensional complex manifold N
-
-    A differentiable manifold over `\QQ_5`, the field of 5-adic numbers::
-
-        sage: N = Manifold(2, 'N', field=Qp(5)); N
-        2-dimensional differentiable manifold N over the 5-adic Field with
-         capped relative precision 20
-
-    A differentiable manifold is of course a topological manifold::
-
-        sage: isinstance(M, sage.manifolds.manifold.TopologicalManifold)
-        True
-        sage: isinstance(N, sage.manifolds.manifold.TopologicalManifold)
-        True
-
-    A differentiable manifold is a Sage *parent* object, in the category of
-    differentiable (here smooth) manifolds over a given topological field (see
-    :class:`~sage.categories.manifolds.Manifolds`)::
-
-        sage: isinstance(M, Parent)
-        True
-        sage: M.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
-        sage: from sage.categories.manifolds import Manifolds
-        sage: M.category() is Manifolds(RR).Smooth()
-        True
-        sage: M.category() is Manifolds(M.base_field()).Smooth()
-        True
-        sage: M in Manifolds(RR).Smooth()
-        True
-        sage: N in Manifolds(Qp(5)).Smooth()
-        True
-
-    The corresponding Sage *elements* are points::
-
-        sage: X.<t, x, y, z> = M.chart()
-        sage: p = M.an_element(); p
-        Point on the 4-dimensional differentiable manifold M
-        sage: p.parent()
-        4-dimensional differentiable manifold M
-        sage: M.is_parent_of(p)
-        True
-        sage: p in M
-        True
-
-    The manifold's points are instances of class
-    :class:`~sage.manifolds.point.ManifoldPoint`::
-
-        sage: isinstance(p, sage.manifolds.point.ManifoldPoint)
-        True
-
-    Since an open subset of a differentiable manifold `M` is itself a
-    differentiable manifold, open subsets of `M` have all attributes of
-    manifolds::
-
-        sage: U = M.open_subset('U', coord_def={X: t>0}); U
-        Open subset U of the 4-dimensional differentiable manifold M
-        sage: U.category()
-        Join of Category of subobjects of sets and Category of smooth manifolds
-         over Real Field with 53 bits of precision
-        sage: U.base_field() == M.base_field()
-        True
-        sage: dim(U) == dim(M)
-        True
-
-    The manifold passes all the tests of the test suite relative to its
-    category::
-
-        sage: TestSuite(M).run()
-
-    """
-    def __init__(self, n, name, field, structure,
-                 diff_degree=infinity, latex_name=None, start_index=0,
-                 category=None, unique_tag=None):
-        r"""
-        Construct a differentiable manifold.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', latex_name=r'\mathbb{M}',
-            ....:                  start_index=1)
-            sage: M
-            3-dimensional differentiable manifold M
-            sage: latex(M)
-            \mathbb{M}
-            sage: dim(M)
-            3
-            sage: X.<x,y,z> = M.chart()
-            sage: TestSuite(M).run()
-
-        """
-        DifferentiableMixin.__init__(self, diff_degree=diff_degree)
-        if category is None:
-            if field == 'real':
-                field_c = RR
-            elif field == 'complex':
-                field_c = CC
-            else:
-                field_c = field
-            if diff_degree == infinity:
-                category = Manifolds(field_c).Smooth()
-            else:
-                category = Manifolds(field_c).Differentiable()
-        TopologicalManifold.__init__(self, n, name, field, structure,
-                                     latex_name=latex_name,
-                                     start_index=start_index,
-                                     category=category)

@@ -1,5 +1,5 @@
 r"""
-Differential form modules
+Differential Form Modules
 
 The set `\Lambda^p(U,\Phi)` of `p`-forms along a differentiable manifold `U`
 with values on a differentiable manifold `M` via a differentiable map

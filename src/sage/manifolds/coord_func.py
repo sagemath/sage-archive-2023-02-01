@@ -1,5 +1,5 @@
 r"""
-Coordinate functions
+Coordinate Functions
 
 In the context of a topological manifold `M` over a topological field `K`,
 a *coordinate function*  is a function from a chart codomain

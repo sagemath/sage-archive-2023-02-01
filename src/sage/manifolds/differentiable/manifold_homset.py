@@ -1,5 +1,5 @@
 r"""
-Sets of morphisms between differentiable manifolds
+Sets of Morphisms between Differentiable Manifolds
 
 The class :class:`DifferentiableManifoldHomset` implements sets of morphisms between
 two differentiable manifolds over the same topological field `K` (in most
@@ -162,13 +162,14 @@ class DifferentiableManifoldHomset(TopologicalManifoldHomset):
             sage: TestSuite(E).run()
 
         """
-        from sage.manifolds.differentiable.manifold import DifferentiableMixin
-        if not isinstance(domain, DifferentiableMixin):
-            raise TypeError("domain = {} is not a ".format(domain) +
-                            "differentiable manifold")
-        if not isinstance(codomain, DifferentiableMixin):
+        from sage.manifolds.differentiable.manifold import \
+                                                         DifferentiableManifold
+        if not isinstance(domain, DifferentiableManifold):
+            raise TypeError("domain = {} is not an ".format(domain) +
+                            "instance of DifferentiableManifold")
+        if not isinstance(codomain, DifferentiableManifold):
             raise TypeError("codomain = {} is not an ".format(codomain) +
-                            "differentiable manifold")
+                            "instance of DifferentiableManifold")
         TopologicalManifoldHomset.__init__(self, domain, codomain, name=name,
                                    latex_name=latex_name)
 

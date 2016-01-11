@@ -1,5 +1,5 @@
 r"""
-Tangent-space automorphism fields
+Tangent-Space Automorphism Fields
 
 The class :class:`AutomorphismField` implements fields of automorphisms of
 tangent spaces to a generic (i.e. a priori not parallelizable) differentiable

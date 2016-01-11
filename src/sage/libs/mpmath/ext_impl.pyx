@@ -128,7 +128,7 @@ cdef inline rndmode_from_python(str rnd):
     if rnd == 'd': return ROUND_D
     if rnd == 'u': return ROUND_U
 
-cdef inline mpfr_rnd_t rndmode_to_mpfr(int rnd, int sign):
+cdef inline mpfr_rnd_t rndmode_to_mpfr(int rnd):
     if rnd == ROUND_N: return MPFR_RNDN
     if rnd == ROUND_F: return MPFR_RNDD
     if rnd == ROUND_C: return MPFR_RNDU
@@ -1359,7 +1359,7 @@ cdef int MPF_log(MPF *y, MPF *x, MPopts opts):
     mpfr_init2(yy, opts.prec)
 
     overflow = MPF_get_mpfr_overflow(xx, x)
-    rndmode = rndmode_to_mpfr(opts.rounding, mpfr_cmp_ui(xx, 1))
+    rndmode = rndmode_to_mpfr(opts.rounding)
 
     if overflow:
         MPF_init(&t)
@@ -1567,7 +1567,7 @@ cdef MPF_cos(MPF *c, MPF *x, MPopts opts):
     if overflow or opts.rounding == ROUND_U:
         _MPF_cos_python(c, x, opts)
     else:
-        mpfr_cos(cf, xf, rndmode_to_mpfr(opts.rounding, 1))
+        mpfr_cos(cf, xf, rndmode_to_mpfr(opts.rounding))
         MPF_set_mpfr(c, cf, opts)
     mpfr_clear(xf)
     mpfr_clear(cf)
@@ -1590,7 +1590,7 @@ cdef MPF_sin(MPF *s, MPF *x, MPopts opts):
     if overflow or opts.rounding == ROUND_U:
         _MPF_sin_python(s, x, opts)
     else:
-        mpfr_sin(sf, xf, rndmode_to_mpfr(opts.rounding, 1))
+        mpfr_sin(sf, xf, rndmode_to_mpfr(opts.rounding))
         MPF_set_mpfr(s, sf, opts)
     mpfr_clear(xf)
     mpfr_clear(sf)
@@ -1617,7 +1617,7 @@ cdef MPF_cos_sin(MPF *c, MPF *s, MPF *x, MPopts opts):
         _MPF_cos_python(c, x, opts)
         _MPF_sin_python(s, x, opts)
     else:
-        mpfr_sin_cos(sf, cf, xf, rndmode_to_mpfr(opts.rounding, 1))
+        mpfr_sin_cos(sf, cf, xf, rndmode_to_mpfr(opts.rounding))
         MPF_set_mpfr(s, sf, opts)
         MPF_set_mpfr(c, cf, opts)
     mpfr_clear(xf)

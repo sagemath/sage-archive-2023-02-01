@@ -1,7 +1,7 @@
 r"""
-Manifold structures
+Manifold Structures
 
-These classes encode the sturcture of a manifold.
+These classes encode the structure of a manifold.
 
 AUTHORS:
 

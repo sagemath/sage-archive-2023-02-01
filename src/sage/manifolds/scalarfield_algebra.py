@@ -1,5 +1,5 @@
 r"""
-Scalar field algebra
+Algebra of Scalar Fields
 
 The class :class:`ScalarFieldAlgebra` implements the commutative algebra
 `C^0(M)` of scalar fields on a topological manifold `M` over a topological

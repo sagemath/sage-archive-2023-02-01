@@ -1,5 +1,5 @@
 r"""
-Scalar fields
+Scalar Fields
 
 Given a topological manifold `M` over a topological field `K` (in most
 applications, `K = \RR` or `K = \CC`), a *scalar field* on `M` is a continuous

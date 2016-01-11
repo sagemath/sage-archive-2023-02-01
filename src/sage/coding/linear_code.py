@@ -241,6 +241,7 @@ from sage.misc.superseded import deprecated_function_alias
 from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
+from sage.combinat.permutation import Permutations
 # import compatible with py2 and py3
 from six.moves.urllib.request import urlopen
 
@@ -4077,7 +4078,19 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: latex(D)
             \textnormal{Syndrome decoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
         """
-        return "\\textnormal{Syndrome decoder for %s correcting up to %s errors}" % (self.code()._latex_(), self.number_errors9())
+        return "\\textnormal{Syndrome decoder for %s correcting up to %s errors}" % (self.code()._latex_(), self.number_errors())
+
+    def _list_all_error_values(self):
+        F = self.code().base_ring()
+        t = self.number_errors()
+        l = F.list()
+        if F.zero() in l:
+            l.remove(F.zero())
+        l = l * t
+        final = []
+        for i in range(1,t+1):
+            final.append(Permutations(l, i).list())
+        return final
 
     @cached_method
     def _build_lookup_table(self):
@@ -4091,22 +4104,36 @@ class LinearCodeSyndromeDecoder(Decoder):
         H = C.parity_check_matrix()
         F = C.base_ring()
         lookup = {}
+        debug = []
         Ierrors = iter(range(1,t+1))
+        values = self._list_all_error_values()
+        value_index = 0
         while(True):
             try:
                 patterns = Subsets(range(n), Ierrors.next())
-                basic = vector(GF(2), n)
+                errors = values[value_index]
+                basic = vector(F, n)
                 for p in patterns:
-                    e = copy(basic)
                     for i in p:
-                        e[i] = GF(2).one()
-                    s = H * e
-                    s.set_immutable()
-                    try:
-                        lookup[s]
-                        #lexicographic order part
-                    except KeyError:
-                        lookup[s] = e
+                        e = copy(basic) #preparing error vector
+                        #here goes nothin'
+                        for j in range(len(errors)):
+                            error = errors[j]
+                            for k in error:
+                                e[i] = k
+                            s = C.syndrome(e)
+                            s.set_immutable()
+                            print s, e
+                            try:
+                                lookup[s]
+                                print "Passed"
+                                #lexicographic order part
+                            except KeyError:
+                                #print "Added %s, %s" % (s, e)
+                                lookup[s] = copy(e)
+                                debug.append([s, e])
+                                #print lookup[s]
+                value_index += 1
             except StopIteration:
                 break
         return lookup
@@ -4130,9 +4157,9 @@ class LinearCodeSyndromeDecoder(Decoder):
         s = self.code().parity_check_matrix() * r
         s.set_immutable()
         err = lookup_table[s]
-        print r, err
-        print r - err
-        return (r - err)
+        for i in range(self.code().length()):
+            r[i] = r[i] - err[i]
+        return r
 
     def number_errors(self):
         r"""

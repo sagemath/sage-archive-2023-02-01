@@ -404,7 +404,10 @@ class StaticErrorRateChannel(Channel):
         number_errors = randint(*self.number_errors())
         V = self.input_space()
         for i in sample(xrange(V.dimension()), number_errors):
-            w[i] = V.base_ring().random_element()
+            err = V.base_ring().random_element()
+            while (w[i] == err):
+                err = V.base_ring().random_element()
+            w[i] = err
         return w
 
     def number_errors(self):

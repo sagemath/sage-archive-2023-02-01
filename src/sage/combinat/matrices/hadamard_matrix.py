@@ -506,11 +506,28 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     A Hadamard matrix is said to be *regular* if its rows all sum to the same
     value.
 
-    When `\epsilon\in\{-1,+1\}`, we say that `M` is a `(n,\epsilon)-RSHCD` if
+    For `\epsilon\in\{-1,+1\}`, we say that `M` is a `(n,\epsilon)-RSHCD` if
     `M` is a regular symmetric Hadamard matrix with constant diagonal
-    `\delta\in\{-1,+1\}` and row values all equal to `\delta \epsilon
+    `\delta\in\{-1,+1\}` and row sums all equal to `\delta \epsilon
     \sqrt(n)`. For more information, see [HX10]_ or 10.5.1 in
     [BH12]_.
+    We build the matrix `M` for the case `n=324`, `\epsilon=1` directly from
+    :func:`JankoKharaghaniTonchevGraph
+    <sage.graphs.graph_generators.GraphGenerators.JankoKharaghaniTonchevGraph>`
+    and for the case `\epsilon=-1` from the "twist" `M'` of `M`, using
+    Lemma 11 in [HX10]_. Namely, it turns out that the matrix
+
+    .. math::
+
+        M'=\begin{pmatrix} M_{12} & M_{11}\\ M_{11}^\top & M_{21} \end{pmatrix},
+        \quad\text{where}\quad
+        M=\begin{pmatrix} M_{11} & M_{12}\\ M_{21} & M_{22} \end{pmatrix},
+
+    and the `M_{ij}` are 162x162-blocks, also RSHCD, its diagonal blocks having zero row
+    sums, as needed by [loc.cit.]. Interestingly, the corresponding
+    `(324,152,70,72)`-strongly regular graph
+    has a vertex-transitive automorphism group of order 2592, twice the order of the
+    (intransitive) automorphism group of the graph corresponding to `M`.
 
     INPUT:
 
@@ -541,6 +558,11 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         100 x 100 dense matrix over Integer Ring
         100 x 100 dense matrix over Integer Ring
         196 x 196 dense matrix over Integer Ring
+
+        sage: for n,e in [(324,1),(324,-1)]: # long time
+        ....:     print regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e) # long time
+        324 x 324 dense matrix over Integer Ring
+        324 x 324 dense matrix over Integer Ring
 
     From two close prime powers::
 
@@ -611,6 +633,19 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
             return true()
         M = strongly_regular_graph(196,91,42,42).adjacency_matrix()
         M = J(196) - 2*M
+    elif n == 324:
+        if existence:
+            return true()
+        from sage.graphs.generators.smallgraphs import JankoKharaghaniTonchevGraph as JKTG
+        M = JKTG().adjacency_matrix()
+        M = J(324) - 2*M
+        if e==-1:
+            M1=M[:162].T
+            M2=M[162:].T
+            M11=M1[:162]
+            M12=M1[162:].T
+            M21=M2[:162].T
+            M=block_matrix([[M12,-M11],[-M11.T,M21]])
     elif (  e  == 1                 and
           n%16 == 0                 and
           is_square(n)              and

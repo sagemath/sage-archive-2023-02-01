@@ -487,7 +487,7 @@ def is_rationally_isometric(self, other):
 
     return True
 
-def isometry(self, other):
+def explicit_isometry(self, other):
     r"""
     Given two rationally equivalent quadratic forms, computes a 
     transition matrix mapping from one to the other.
@@ -507,14 +507,14 @@ def isometry(self, other):
     
         sage: Q = DiagonalQuadraticForm(QQ, [1, 1, 2])
         sage: F = DiagonalQuadraticForm(QQ, [2, 2, 2])
-        sage: T = Q.isometry(F); T
+        sage: T = Q.explicit_isometry(F); T
         [-1/2 -1/2    0]
         [   0    0   -1]
         [-1/2  1/2    0]
         sage: Q.Gram_matrix() == T.transpose() * F.Gram_matrix() * T
         True
     
-        sage: T = F.isometry(Q); T
+        sage: T = F.explicit_isometry(Q); T
         [-1/3 -4/3 -1/3]
         [  -1    0    1]
         [ 2/3 -1/3  2/3]
@@ -525,7 +525,7 @@ def isometry(self, other):
 
         sage: L = QuadraticForm(QQ, 3, [2, 2, 0, 2, 2, 5])
         sage: M = QuadraticForm(QQ, 3, [2, 2, 0, 3, 2, 3])
-        sage: L.isometry(M)
+        sage: L.explicit_isometry(M)
         Traceback (most recent call last):
         ...
         ArithmeticError: Quadratic form in 3 variables over Rational Field with coefficients: 
@@ -540,7 +540,7 @@ def isometry(self, other):
     
         sage: A = DiagonalQuadraticForm(QQ, [1, 5])
         sage: B = QuadraticForm(QQ, 2, [1, 12, 81])
-        sage: T = A.isometry(B); T
+        sage: T = A.explicit_isometry(B); T
         [  1  -2]
         [  0 1/3]
         sage: A.Gram_matrix() == T.T * B.Gram_matrix() * T
@@ -550,7 +550,7 @@ def isometry(self, other):
     
         sage: C = DiagonalQuadraticForm(QQ, [1, 5, 9])
         sage: D = DiagonalQuadraticForm(QQ, [6, 30, 1])
-        sage: T = C.isometry(D); T
+        sage: T = C.explicit_isometry(D); T
         [ 7/18  5/18     0]
         [-1/18  7/18     0]
         [    0     0     3]
@@ -561,7 +561,7 @@ def isometry(self, other):
     
         sage: E = DiagonalQuadraticForm(QQ, [1, 1])
         sage: F = QuadraticForm(QQ, 2, [17, 94, 130])
-        sage: T = F.isometry(E); T
+        sage: T = F.explicit_isometry(E); T
         [     -4 -189/17]
         [     -1  -43/17]
         sage: F.Gram_matrix() == T.T * E.Gram_matrix() * T
@@ -581,12 +581,12 @@ def isometry(self, other):
     F, f_diagonal_transform = other.rational_diagonal_form(True)
         
     # Call the method that does all the work to compute the isometry.
-    transform = diagonal_isometry(Q,F)
+    transform = _diagonal_isometry(Q,F)
     
     return f_diagonal_transform * transform * q_diagonal_transform.inverse()
 
 
-def diagonal_isometry(V, W):
+def _diagonal_isometry(V, W):
     r"""
     Given two diagonal, rationally equivalent quadratic forms, computes a 
     transition matrix mapping from one to the other.
@@ -610,14 +610,14 @@ def diagonal_isometry(V, W):
     
         sage: Q = DiagonalQuadraticForm(QQ, [1, 1, 2])
         sage: F = DiagonalQuadraticForm(QQ, [2, 2, 2])
-        sage: T = Q.isometry(F); T
+        sage: T = Q.explicit_isometry(F); T
         [-1/2 -1/2    0]
         [   0    0   -1]
         [-1/2  1/2    0]
         sage: Q.Gram_matrix() == T.transpose() * F.Gram_matrix() * T
         True
     
-        sage: T = F.isometry(Q); T
+        sage: T = F.explicit_isometry(Q); T
         [-1/3 -4/3 -1/3]
         [  -1    0    1]
         [ 2/3 -1/3  2/3]
@@ -634,13 +634,15 @@ def diagonal_isometry(V, W):
     QM, FM = Q.Gram_matrix(), F.Gram_matrix()
     n = Q.dim()
     
+    # These matrices represent a basis for each quadratic form.
+    # The identity matrix is equivalent to the standard basis.
     q_basis, f_basis = Matrix.identity(QQ, n), Matrix.identity(QQ, n)
     for i in range(n):
         # If first terms are not equal,
         if Q.Gram_matrix()[0][0] != F.Gram_matrix()[0][0]:
             # Find a vector w such that Q(v) = F(w) where v starts at [1, 0, ..., 0]
             # and increments each term by 1 until a vector is found that satisfies the
-            # conditions below.
+            # conditions below
             v = vector([0] * (n - i))
             index = 0;
             while True:
@@ -649,29 +651,26 @@ def diagonal_isometry(V, W):
                 c = Q(v)
                 try:
                     w = F.solve(c)
-                    qb = modify_basis(q_basis, v, i)
-                    fb = modify_basis(f_basis, w, i)
+                    # qb and fb are temporary variables to hold the modified bases.
+                    qb = _modify_basis(q_basis, v, i)
+                    fb = _modify_basis(f_basis, w, i)
                     if not qb.is_singular() and not fb.is_singular():
                         break
                 except ArithmeticError:
-                    # No solution found, try another vector.
+                    #No solution found, try another vector.
                     pass
 
             # Modify the bases to include v and w.
-            q_basis = modify_basis(q_basis, v, i)
-            f_basis = modify_basis(f_basis, w, i)
+            q_basis = _modify_basis(q_basis, v, i)
+            f_basis = _modify_basis(f_basis, w, i)
         
-            # Compute the gram matrices with respect to the modified bases.
-            QM = compute_gram_matrix_from_basis(V, q_basis)
-            FM = compute_gram_matrix_from_basis(W, f_basis)
-
             # Ensure that the bases are orthogonal, so the gram matrices will be diagonal.
-            q_basis = gram_schmidt(q_basis, i, V.bilinear_map)
-            f_basis = gram_schmidt(f_basis, i, W.bilinear_map)
+            q_basis = _gram_schmidt(q_basis, i, V.bilinear_map)
+            f_basis = _gram_schmidt(f_basis, i, W.bilinear_map)
 
             # Compute the gram matrices with respect to the orthogonal bases.
-            QM = compute_gram_matrix_from_basis(V, q_basis)
-            FM = compute_gram_matrix_from_basis(W, f_basis)
+            QM = _compute_gram_matrix_from_basis(V, q_basis)
+            FM = _compute_gram_matrix_from_basis(W, f_basis)
 
         # Pull off the first term and continue
         Q = DiagonalQuadraticForm(Q.base_ring(), QM.diagonal())
@@ -682,7 +681,7 @@ def diagonal_isometry(V, W):
     return f_basis * q_basis.inverse()
 
 
-def compute_gram_matrix_from_basis(Q, basis):
+def _compute_gram_matrix_from_basis(Q, basis):
     r"""
     Computes the gram matrix of a quadratic form with respect to the given basis.
 
@@ -697,11 +696,11 @@ def compute_gram_matrix_from_basis(Q, basis):
     
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import *
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import _compute_gram_matrix_from_basis
         
         sage: Q = QuadraticForm(QQ, 3, [1, 2, 2, 1, 2, 0])
         sage: std_basis = matrix.identity(3)
-        sage: QM = compute_gram_matrix_from_basis(Q, std_basis)
+        sage: QM = _compute_gram_matrix_from_basis(Q, std_basis)
         sage: Q.Gram_matrix() == QM
         True
 
@@ -709,7 +708,7 @@ def compute_gram_matrix_from_basis(Q, basis):
 
         sage: Q = DiagonalQuadraticForm(QQ, [1, 2, 2])
         sage: basis = matrix([[1, 1, 0], [2, 1, 0], [0, 0, 1]])
-        sage: QM = compute_gram_matrix_from_basis(Q, basis); QM
+        sage: QM = _compute_gram_matrix_from_basis(Q, basis); QM
         [9 5 0]
         [5 3 0]
         [0 0 2]
@@ -723,12 +722,14 @@ def compute_gram_matrix_from_basis(Q, basis):
     return Matrix(rows)
 
 
-def modify_basis(basis, v, i):
+def _modify_basis(basis, v, i):
     r""" 
-    Modifies one of the vectors in a basis to be a linear combination of the vectors in the basis.
+    Given a lattice L with basis matrix M and a vector, v=(v_1,...,v_n) of length n,
+    this function extends the basis {b_1,...,b_n} of an underlying nxn orthogonal component 
+    of L to contain the vector v_1b_1+...+v_nb_n.
 
     Note: This function is not intended for general use. It expects the length of ``v`` to be 
-    the dimension of ``basis`` - ``i``. It was designed as a helper for the ``diagonally_isometry`` method.
+    the dimension of ``basis`` - ``i``. It was designed as a helper for the ``diagonal_isometry`` method.
 
     INPUT:
 
@@ -742,17 +743,17 @@ def modify_basis(basis, v, i):
     
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import *
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import _modify_basis
         sage: std_basis = matrix.identity(3)                                        
-        sage: b1 = modify_basis(std_basis, vector([1, 1, 1]), 0); b1
+        sage: b1 = _modify_basis(std_basis, vector([1, 1, 1]), 0); b1
         [1 0 0]
         [1 1 0]
         [1 0 1]
-        sage: b2 = modify_basis(b1, vector([3, 2]), 1); b2
+        sage: b2 = _modify_basis(b1, vector([3, 2]), 1); b2
         [1 0 0]
         [1 3 0]
         [1 2 1]
-        sage: b3 = modify_basis(b2, vector([2, 2]), 1); b3
+        sage: b3 = _modify_basis(b2, vector([2, 2]), 1); b3
         [1 0 0]
         [1 6 0]
         [1 6 1]
@@ -767,7 +768,7 @@ def modify_basis(basis, v, i):
     b.set_column(i, column)
     return b
 
-def gram_schmidt(m, fixed_vector_index, inner_product):
+def _gram_schmidt(m, fixed_vector_index, inner_product):
     r"""
     Orthogonalizes a set of vectors, starting at a fixed vector, with respect to a given 
     inner product.
@@ -786,7 +787,7 @@ def gram_schmidt(m, fixed_vector_index, inner_product):
     
     EXAMPLES:: 
 
-        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import *
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import _gram_schmidt
         sage: Q = QuadraticForm(QQ, 3, [1, 4, 6, 1, 2, 4]); Q
         Quadratic form in 3 variables over Rational Field with coefficients: 
         [ 1 4 6 ]
@@ -796,7 +797,7 @@ def gram_schmidt(m, fixed_vector_index, inner_product):
         [1 2 3]
         [2 1 1]
         [3 1 4]
-        sage: om = gram_schmidt(QM, 0, Q.bilinear_map); om
+        sage: om = _gram_schmidt(QM, 0, Q.bilinear_map); om
         [     1 106/79 -50/51]
         [     2 -25/79 -70/51]
         [     3 -77/79  70/51]

@@ -839,7 +839,7 @@ def isogenies_5_1728(E):
         [Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in a with defining polynomial x^4 + 20*x^2 - 80 to Elliptic Curve defined by y^2 = x^3 + (-753/4*a^2-4399)*x + (2779*a^3+65072*a) over Number Field in a with defining polynomial x^4 + 20*x^2 - 80,
         Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in a with defining polynomial x^4 + 20*x^2 - 80 to Elliptic Curve defined by y^2 = x^3 + (-753/4*a^2-4399)*x + (-2779*a^3-65072*a) over Number Field in a with defining polynomial x^4 + 20*x^2 - 80]
 
-    See `trac``19840`:
+    See :trac:`19840`:
 
         sage: K.<a> = NumberField(x^4 - 5*x^2 + 5)
         sage: E = EllipticCurve([a^2 + a + 1, a^3 + a^2 + a + 1, a^2 + a, 17*a^3 + 34*a^2 - 16*a - 37, 54*a^3 + 105*a^2 - 66*a - 135])

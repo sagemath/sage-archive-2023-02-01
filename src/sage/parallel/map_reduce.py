@@ -499,7 +499,7 @@ logger.setLevel(logging.WARN)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
-    '[%(processName)s] (%(asctime)s.%(msecs)03.f) %(message)s',
+    '[%(processName)s-%(threadName)s] (%(asctime)s.%(msecs)03.f) %(message)s',
     datefmt='%H:%M:%S')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
@@ -910,7 +910,7 @@ class RESetMapReduce(object):
 
             sage: S.finish()
         """
-        logger.info("Aborting")
+        logger.info("Abort called")
         self._abort.value = True
         while self._active_tasks.acquire(False):
             pass
@@ -978,8 +978,9 @@ class RESetMapReduce(object):
             ...
             AbortError
         """
-        if self._active_tasks._semlock._is_zero():
-            raise AbortError
+        #if self._active_tasks._semlock._is_zero():
+        #    raise AbortError
+        logger.debug("_signal_task_start called")
         self._active_tasks.release()
 
     def _signal_task_done(self):
@@ -1012,7 +1013,9 @@ class RESetMapReduce(object):
 
             sage: del S._results, S._active_tasks, S._done, S._workers
         """
+        logger.debug("_signal_task_done called")
         if not self._active_tasks.acquire(False):
+            logger.debug("raising AbortError")
             raise AbortError
         if self._active_tasks._semlock._is_zero():
             self._shutdown()
@@ -1259,17 +1262,19 @@ class RESetMapReduceWorker(Process):
                     work = self._todo.popleft()
                 except IndexError:
                     target._write_task.send(None)
+                    logger.debug("Failed Steal %s"%target.name)
                     self._mapred._signal_task_done()
                 else:
                     target._write_task.send(work)
                     logger.debug("Succesful Steal %s"%target.name)
                     thefts += 1
         except AbortError:
-            logger.debug("Thief aborted %s"%self.name)
-            pass
-        if self._mapred._abort.value:
-            self._todo.clear()
+            logger.debug("Thief aborted")
         else:
+            logger.debug("Thief received poison pill")
+        if self._mapred._abort.value:  # Computation was aborted
+            self._todo.clear()
+        else: # Check that there is no remaining work
             assert len(self._todo) == 0, "Bad stop the result may be wrong"
 
         self._stats[1] = reqs
@@ -1307,10 +1312,10 @@ class RESetMapReduceWorker(Process):
                 self._stats[0] += 1
                 logger.debug("waiting from steal answer from %s"%(victim.name))
                 node = self._read_task.recv()
+                logger.debug("Request answer: %s"%(node,))
                 if node is AbortError:
                     raise AbortError
-                logger.debug("Request answer: %s"%(node,))
-        logger.debug("Node stolen: %s"%(node,))
+        logger.debug("Received a stolen node: %s"%(node,))
         self._stats[3] += 1
         return node
 
@@ -1399,7 +1404,7 @@ class RESetMapReduceWorker(Process):
                 if not self._reduce_locally:
                     self.send_partial_result()
         except AbortError:
-            logger.debug("Aborted !")
+            logger.debug("Worker Done !")
             results.put(self._res)
         results.put(None)
         self._thief.join()

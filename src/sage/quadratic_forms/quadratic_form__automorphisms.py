@@ -102,7 +102,7 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=None):
         return basis
 
 
-def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False, real_entry_flag=False):
+def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
     """
     Return a list of lists of short vectors `v`, sorted by length, with
     Q(`v`) < len_bound.
@@ -113,9 +113,6 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False, real_
     
     - ``up_to_sign_flag`` -- (default: ``False``) if set to True, then
       only one of the vectors of the pair `[v, -v]` is listed.
-
-    - "real_entry_flag" -- (default: "False") if set to True, then qfminim can
-      operate on forms with non-integral real entries.
 
     OUTPUT:
 
@@ -204,8 +201,7 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False, real_
     len_bound_pari = 2*(len_bound - 1)
 
     # Call PARI's qfminim()
-    real_flag = 2 if real_entry_flag else 0
-    parilist = self._pari_().qfminim(len_bound_pari, flag=real_flag)[2].Vec()
+    parilist = self._pari_().qfminim(len_bound_pari)[2].Vec()
 
     # List of lengths
     parilens = pari(r"(M,v) -> vector(#v, i, (v[i]~ * M * v[i])\2)")(self, parilist)

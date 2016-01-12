@@ -82,6 +82,16 @@ class NotebookJupyter(object):
         main(argv)
 
 
+class SageNBExport(NotebookJupyter):
+
+    def __init__(self, argv):
+        argv += [
+            "--NotebookApp.server_extensions=['sagenb_export.nbextension']",
+            "--NotebookApp.default_url='/sagenb'",
+        ]
+        super(SageNBExport, self).__init__(argv)
+        
+
 description = \
 """
 The Sage notebook launcher is used to start the notebook, and allows
@@ -118,6 +128,7 @@ notebook_launcher = {
     'sagenb': NotebookSageNB,
     'ipython': NotebookJupyter,
     'jupyter': NotebookJupyter,
+    'export': SageNBExport,
 } 
 
 notebook_names = ', '.join(notebook_launcher.keys())

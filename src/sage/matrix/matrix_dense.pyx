@@ -325,7 +325,6 @@ cdef class Matrix_dense(matrix.Matrix):
             ...
             ArithmeticError: number of columns of left must equal number of rows of right
         """
-        cdef RingElement dotp
         cdef Py_ssize_t i, j
         if left._ncols != right._nrows:
             raise ArithmeticError("number of columns of left must equal number of rows of right")
@@ -335,6 +334,6 @@ cdef class Matrix_dense(matrix.Matrix):
             for j in range(right._ncols):
                 dotp = zero
                 for k in range(left._ncols):
-                    dotp = dotp._add_(left.get_unsafe(i, k)._mul_(right.get_unsafe(k, j)))
+                    dotp += left.get_unsafe(i, k) * right.get_unsafe(k, j)
                 res.set_unsafe(i, j, dotp)
         return res

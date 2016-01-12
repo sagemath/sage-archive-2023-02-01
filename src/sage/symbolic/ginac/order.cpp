@@ -97,6 +97,12 @@ const tinfo_t & print_order::wildcard_id() const
 	return id;
 }
 
+const tinfo_t & print_order::pseries_id() const
+{
+	static tinfo_t id = find_tinfo_key("pseries");
+	return id;
+}
+
 
 /** What Sage does for printing:
  To print multivariate polynomials, SAGE uses "reversed" (bigger terms first)
@@ -282,6 +288,12 @@ int print_order::compare(const basic &lh, const basic &rh) const
 					static_cast<const symbol&>(lh));
 		else return generic_compare(typeid_lh, typeid_rh);
                 }
+	else if (typeid_lh == pseries_id())
+		//print pseries after everything else
+		return -1;
+	else if (typeid_rh == pseries_id())
+		//print pseries after everything esle
+		return 1;
         return generic_compare(typeid_lh, typeid_rh);
 }
 

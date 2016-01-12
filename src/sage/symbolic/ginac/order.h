@@ -46,6 +46,7 @@ private:
 	const tinfo_t& numeric_id() const;
 	const tinfo_t& constant_id() const;
 	const tinfo_t& wildcard_id() const;
+	const tinfo_t& pseries_id() const;
 
 public:
 	virtual ~print_order() {}

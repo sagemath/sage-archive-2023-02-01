@@ -1,5 +1,5 @@
 r"""
-Differentiable maps between differentiable manifolds
+Differentiable Maps between Differentiable Manifolds
 
 The class :class:`DiffMap` implements differentiable maps from a differentiable
 manifold `M` to a differentiable manifold `N` over the same topological field
@@ -293,10 +293,10 @@ class DiffMap(ContinuousMap):
          differentiable manifold R^2 to the 2-dimensional differentiable
          manifold R^2
         sage: Phi.parent()
-         Set of Morphisms from Open subset D of the 2-dimensional
-          differentiable manifold R^2 to 2-dimensional differentiable manifold
-          R^2 in Category of smooth facade manifolds over Real Field with 53
-          bits of precision
+        Set of Morphisms from Open subset D of the 2-dimensional differentiable
+         manifold R^2 to 2-dimensional differentiable manifold R^2 in Join of
+         Category of subobjects of sets and Category of smooth manifolds over
+         Real Field with 53 bits of precision
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
@@ -354,8 +354,8 @@ class DiffMap(ContinuousMap):
         sage: id.parent()
         Set of Morphisms from Open subset D of the 2-dimensional differentiable
          manifold R^2 to Open subset D of the 2-dimensional differentiable
-         manifold R^2 in Category of smooth facade manifolds over Real Field
-         with 53 bits of precision
+         manifold R^2 in Join of Category of subobjects of sets and Category of
+         smooth manifolds over Real Field with 53 bits of precision
         sage: id.parent() is Hom(D, D)
         True
         sage: id is Hom(D,D).one()  # the identity element of the monoid Hom(D,D)
@@ -958,7 +958,7 @@ class DiffMap(ContinuousMap):
                             coord2_1 = phi(*(chart1._xx))
                             for ind_new in ptcomp.non_redundant_index_generator():
                                 res = 0
-                                for ind_old in dom2._manifold.index_generator(ncov):
+                                for ind_old in dom2.manifold().index_generator(ncov):
                                     ff = tcomp[[ind_old]].coord_function(chart2)
                                     t = chart1.function(ff(*coord2_1))
                                     for i in range(ncov):

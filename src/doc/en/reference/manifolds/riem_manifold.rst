@@ -1,4 +1,4 @@
-Pseudo-Riemannian manifolds
+Pseudo-Riemannian Manifolds
 ===========================
 
 .. toctree::

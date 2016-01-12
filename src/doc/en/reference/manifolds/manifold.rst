@@ -1,4 +1,4 @@
-Topological manifolds
+Topological Manifolds
 =====================
 
 .. toctree::
@@ -6,9 +6,11 @@ Topological manifolds
 
    sage/manifolds/manifold
 
-   sage/manifolds/point
-
    sage/manifolds/subset
+
+   sage/manifolds/structure
+
+   sage/manifolds/point
 
    chart
 

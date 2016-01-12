@@ -1,5 +1,5 @@
 r"""
-Scalar fields
+Scalar Fields
 
 Given a topological manifold `M` over a topological field `K` (in most
 applications, `K = \RR` or `K = \CC`), a *scalar field* on `M` is a continuous
@@ -621,7 +621,7 @@ class ScalarField(CommutativeAlgebraElement):
         CommutativeAlgebraElement.__init__(self, parent)
         domain = parent._domain
         self._domain = domain
-        self._manifold = domain._manifold
+        self._manifold = domain.manifold()
         self._is_zero = False # a priori, may be changed below or via
                               # method __nonzero__()
         self._name = name

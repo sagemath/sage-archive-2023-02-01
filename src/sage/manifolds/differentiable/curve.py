@@ -1,5 +1,5 @@
 r"""
-Curves in manifolds
+Curves in Manifolds
 
 Given a differentiable manifold `M`, a *differentiable curve* curve in
 `M` is a differentiable mapping
@@ -36,7 +36,7 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.misc.latex import latex
-from sage.manifolds.point import TopologicalManifoldPoint
+from sage.manifolds.point import ManifoldPoint
 from sage.manifolds.differentiable.diff_map import DiffMap
 from sage.manifolds.utilities import simplify_chain_real
 
@@ -116,8 +116,9 @@ class DifferentiableCurve(DiffMap):
 
         sage: c.parent()
         Set of Morphisms from Real interval (0, 2*pi) to 2-dimensional
-         differentiable manifold M in Category of smooth facade manifolds over
-         Real Field with 53 bits of precision
+         differentiable manifold M in Join of Category of subobjects of sets
+         and Category of smooth manifolds over Real Field with 53 bits of
+         precision
         sage: I = R.open_interval(0, 2*pi)
         sage: c.parent() is Hom(I, M)
         True
@@ -342,8 +343,9 @@ class DifferentiableCurve(DiffMap):
             sage: c.__reduce__()
             (<class 'sage.manifolds.differentiable.curve.DifferentiableCurveSet_with_category.element_class'>,
              (Set of Morphisms from Real interval (0, 2*pi) to 2-dimensional
-              differentiable manifold M in Category of smooth facade manifolds
-              over Real Field with 53 bits of precision,
+              differentiable manifold M in Join of Category of subobjects of
+              sets and Category of smooth manifolds over Real Field with 53
+              bits of precision,
               None,
               None,
               None,
@@ -416,9 +418,8 @@ class DifferentiableCurve(DiffMap):
 
         This is a redefinition of :meth:`sage.categories.map.Map.__call__`
         to allow for the direct call with some value of the parameter
-        (numerical value or symbolic expression) instead
-        of the element (TopologicalManifoldPoint) of the domain corresponding to that
-        value.
+        (numerical value or symbolic expression) instead of the element
+        (ManifoldPoint) of the domain corresponding to that value.
 
         EXAMPLES:
 
@@ -443,7 +444,7 @@ class DifferentiableCurve(DiffMap):
 
         """
         # Case of a point in the domain:
-        if isinstance(t, TopologicalManifoldPoint):
+        if isinstance(t, ManifoldPoint):
             return DiffMap.__call__(self, t)
         # Case of a value of the canonical coordinate in the domain:
         codom = self._codomain

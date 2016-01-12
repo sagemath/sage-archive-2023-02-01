@@ -1,5 +1,5 @@
 r"""
-Pseudo-Riemannian metrics
+Pseudo-Riemannian Metrics
 
 The class :class:`PseudoRiemannianMetric` implements pseudo-Riemannian metrics
 on differentiable manifolds over `\RR`. The derived class

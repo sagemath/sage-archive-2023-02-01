@@ -1,4 +1,4 @@
-Scalar fields
+Scalar Fields
 =============
 
 .. toctree::

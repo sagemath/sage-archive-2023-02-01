@@ -5156,6 +5156,35 @@ class CompFullyAntiSym(CompWithSym):
             sage: s == a + c
             True
 
+        Parallel computation::
+
+            sage: from sage.tensor.modules.comp import CompFullyAntiSym
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: a = CompFullyAntiSym(ZZ, (1,2,3), 2)
+            sage: a[0,1], a[1,2] = 4, 5
+            sage: b = CompFullyAntiSym(ZZ, (1,2,3), 2)
+            sage: b[0,1], b[0,2] = 2, -3
+            sage: s_par = a.__add__(b) ; s_par  # the antisymmetry is kept
+            Fully antisymmetric 2-indices components w.r.t. (1, 2, 3)
+            sage: s_par[:]
+            [ 0  6 -3]
+            [-6  0  5]
+            [ 3 -5  0]
+            sage: s_par == a + b
+            True
+            sage: from sage.tensor.modules.comp import CompFullySym
+            sage: c = CompFullySym(ZZ, (1,2,3), 2)
+            sage: c[0,1], c[0,2] = 3, 7
+            sage: s_par = a.__add__(c) ; s_par  # the antisymmetry is lost
+            2-indices components w.r.t. (1, 2, 3)
+            sage: s_par[:]
+            [ 0  7  7]
+            [-1  0  5]
+            [ 7 -5  0]
+            sage: s_par == a + c
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
         """
         if other == 0:
             return +self
@@ -5172,9 +5201,35 @@ class CompFullyAntiSym(CompWithSym):
             if other._sindex != self._sindex:
                 raise ValueError("the two sets of components do not have the " +
                                  "same starting index")
+            # Initialization of the result to self.copy(), so that there remains
+            # only to add other:
             result = self.copy()
-            for ind, val in other._comp.iteritems():
-                result[[ind]] += val
+            nproc = Parallelism().get('tensor')
+            if nproc != 1 :
+                # Parallel computation
+                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+                ind_list = [ind for ind in other._comp]
+                ind_step = max(1, int(len(ind_list)/nproc/2))
+                local_list = lol(ind_list, ind_step)
+                # list of input parameters
+                listParalInput = [(self, other, ind_part) for ind_part in local_list]
+
+                @parallel(p_iter='multiprocessing', ncpus=nproc)
+                def paral_sum(a, b, local_list_ind):
+                    partial = []
+                    for ind in local_list_ind:
+                        partial.append([ind, a[[ind]]+b[[ind]]])
+                    return partial
+
+                for ii, val in paral_sum(listParalInput):
+                    for jj in val:
+                        result[[jj[0]]] = jj[1]
+
+            else:
+                # Sequential computation
+                for ind, val in other._comp.iteritems():
+                    result[[ind]] += val
+
             return result
         else:
             return CompWithSym.__add__(self, other)

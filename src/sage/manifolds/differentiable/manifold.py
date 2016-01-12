@@ -1,5 +1,5 @@
 r"""
-Differentiable manifolds
+Differentiable Manifolds
 
 Given a non-discrete topological field `K` (in most applications, `K = \RR` or
 `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
@@ -447,10 +447,10 @@ from sage.categories.homset import Hom
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
-from sage.misc.latex import latex
+from sage.rings.integer import Integer
 from sage.manifolds.manifold import TopologicalManifold
-from sage.manifolds.differentiable.scalarfield_algebra import \
-                                                         DiffScalarFieldAlgebra
+
+###############################################################################
 
 class DifferentiableManifold(TopologicalManifold):
     r"""
@@ -476,22 +476,28 @@ class DifferentiableManifold(TopologicalManifold):
 
     - ``n`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      manifold; if none is provided, it is set to ``name``
-    - ``field`` -- (default: ``'real'``) field `K` on which the manifold is
+    - ``field`` -- field `K` on which the manifold is
       defined; allowed values are
 
-        - ``'real'`` or an object of type ``RealField`` (e.g. ``RR``) for a
-          manifold over `\RR`
-        - ``'complex'`` or an object of type ``ComplexField`` (e.g. ``CC``) for
-          a manifold over `\CC`
-        - an object in the category of topological fields (see
-          :class:`~sage.categories.fields.Fields` and
-          :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
-          for other types of manifolds
+      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+        a manifold over `\RR`
+      - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
+        for a manifold over `\CC`
+      - an object in the category of topological fields (see
+        :class:`~sage.categories.fields.Fields` and
+        :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
+        for other types of manifolds
 
+    - ``structure`` -- manifold structure (see
+      :class:`~sage.manifolds.structure.DifferentialStructure` or
+      :class:`~sage.manifolds.structure.RealDifferentialStructure`)
+    - ``ambient`` -- (default: ``None``) if not ``None``, must be a
+      differentiable manifold; the created object is then an open subset of
+      ``ambient``
     - ``diff_degree`` -- (default: ``infinity``) degree `k` of
       differentiability
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
+      denote the manifold; if none is provided, it is set to ``name``
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
@@ -499,30 +505,19 @@ class DifferentiableManifold(TopologicalManifold):
       ``Manifolds(field).Differentiable()`` (or ``Manifolds(field).Smooth()``
       if ``diff_degree`` = ``infinity``) is assumed (see the category
       :class:`~sage.categories.manifolds.Manifolds`)
-    - ``ambient_manifold`` -- (default: ``None``) ``None`` or a differentiable
-      manifold; in the latter case, the created object is considered as an
-      open subset of the differentiable manifold ``ambient_manifold``
     - ``unique_tag`` -- (default: ``None``) tag used to force the construction
       of a new object when all the other arguments have been used previously
       (without ``unique_tag``, the
       :class:`~sage.structure.unique_representation.UniqueRepresentation`
       behavior inherited from
-      :class:`~sage.manifolds.subset.TopologicalManifoldSubset`
+      :class:`~sage.manifolds.subset.ManifoldSubset`,
+      via :class:`~sage.manifolds.manifold.TopologicalManifold`,
       would return the previously constructed object corresponding to these
       arguments).
 
     EXAMPLES:
 
     A 4-dimensional differentiable manifold (over `\RR`)::
-
-        sage: from sage.manifolds.differentiable.manifold import DifferentiableManifold
-        sage: M = DifferentiableManifold(4, 'M', latex_name=r'\mathcal{M}'); M
-        4-dimensional differentiable manifold M
-
-    Instead of importing
-    :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
-    in the global namespace, it is recommended to use the function
-    :func:`~sage.manifolds.manifold.Manifold` instead::
 
         sage: M = Manifold(4, 'M', latex_name=r'\mathcal{M}'); M
         4-dimensional differentiable manifold M
@@ -605,20 +600,20 @@ class DifferentiableManifold(TopologicalManifold):
         True
 
     The manifold's points are instances of class
-    :class:`~sage.manifolds.point.TopologicalManifoldPoint`::
+    :class:`~sage.manifolds.point.ManifoldPoint`::
 
-        sage: isinstance(p, sage.manifolds.point.TopologicalManifoldPoint)
+        sage: isinstance(p, sage.manifolds.point.ManifoldPoint)
         True
 
     Since an open subset of a differentiable manifold `M` is itself a
-    differentiable manifold, open subsets of `M` are instances of the class
-    :class:`DifferentiableManifold`::
+    differentiable manifold, open subsets of `M` have all attributes of
+    manifolds::
 
-        sage: U = M.open_subset('U'); U
+        sage: U = M.open_subset('U', coord_def={X: t>0}); U
         Open subset U of the 4-dimensional differentiable manifold M
-        sage: isinstance(U,
-        ....:    sage.manifolds.differentiable.manifold.DifferentiableManifold)
-        True
+        sage: U.category()
+        Join of Category of subobjects of sets and Category of smooth manifolds
+         over Real Field with 53 bits of precision
         sage: U.base_field() == M.base_field()
         True
         sage: dim(U) == dim(M)
@@ -630,9 +625,9 @@ class DifferentiableManifold(TopologicalManifold):
         sage: TestSuite(M).run()
 
     """
-    def __init__(self, n, name, latex_name=None, field='real',
-                 diff_degree=infinity, start_index=0, category=None,
-                 ambient_manifold=None, unique_tag=None):
+    def __init__(self, n, name, field, structure, ambient=None,
+                 diff_degree=infinity, latex_name=None, start_index=0,
+                 category=None, unique_tag=None):
         r"""
         Construct a differentiable manifold.
 
@@ -649,28 +644,37 @@ class DifferentiableManifold(TopologicalManifold):
             sage: X.<x,y,z> = M.chart()
             sage: TestSuite(M).run()
 
+        Tests for open subsets, which are constructed as differentiable
+        manifolds::
+
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: type(U)
+            <class 'sage.manifolds.differentiable.manifold.DifferentiableManifold_with_category'>
+            sage: U.category() is M.category().Subobjects()
+            True
+            sage: TestSuite(U).run()
+
         """
-        from sage.rings.integer import Integer
-        if category is None:
-            if field == 'real':
-                field_c = RR
-            elif field == 'complex':
-                field_c = CC
-            else:
-                field_c = field
-            if diff_degree == infinity:
-                category = Manifolds(field_c).Smooth()
-            else:
-                category = Manifolds(field_c).Differentiable()
-        if ambient_manifold is None:
-            ambient_manifold = self
-        elif not isinstance(ambient_manifold, DifferentiableManifold):
-            raise TypeError("the argument 'ambient_manifold' must be " +
-                            "a differentiable manifold")
-        TopologicalManifold.__init__(self, n, name, latex_name=latex_name,
-                                     field=field, start_index=start_index,
-                                     category=category,
-                                     ambient_manifold=ambient_manifold)
+        if ambient is None:
+            if category is None:
+                if field == 'real':
+                    field_c = RR
+                elif field == 'complex':
+                    field_c = CC
+                else:
+                    field_c = field
+                if diff_degree == infinity:
+                    category = Manifolds(field_c).Smooth()
+                else:
+                    category = Manifolds(field_c).Differentiable()
+        elif not isinstance(ambient, DifferentiableManifold):
+            raise TypeError("the argument 'ambient' must be a " +
+                            "differentiable manifold")
+        TopologicalManifold.__init__(self, n, name, field, structure,
+                                     ambient=ambient,
+                                     latex_name=latex_name,
+                                     start_index=start_index,
+                                     category=category)
         # The degree of differentiability:
         if diff_degree == infinity:
             self._diff_degree = infinity
@@ -697,47 +701,6 @@ class DifferentiableManifold(TopologicalManifold):
         # (keys = diff. map from self to an open set (possibly the identity
         #  map))
         self._vector_field_modules = {}
-
-    def _repr_(self):
-        r"""
-        String representation of the manifold.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M')
-            sage: M._repr_()
-            '3-dimensional differentiable manifold M'
-            sage: repr(M)  # indirect doctest
-            '3-dimensional differentiable manifold M'
-            sage: M  # indirect doctest
-            3-dimensional differentiable manifold M
-            sage: M = Manifold(3, 'M', field='complex')
-            sage: M._repr_()
-            '3-dimensional complex manifold M'
-            sage: M = Manifold(3, 'M', field=QQ)
-            sage: M._repr_()
-            '3-dimensional differentiable manifold M over the Rational Field'
-
-        If the manifold is actually an open subset of a larger manifold, the
-        string representation is different::
-
-            sage: U = M.open_subset('U')
-            sage: U._repr_()
-            'Open subset U of the 3-dimensional differentiable manifold M over the Rational Field'
-
-        """
-        if self._manifold is self:
-            if self._field == RR:
-                return "{}-dimensional differentiable manifold {}".format(
-                                                         self._dim, self._name)
-            elif self._field == CC:
-                return "{}-dimensional complex manifold {}".format(
-                                                         self._dim, self._name)
-            return "{}-dimensional differentiable ".format(self._dim) + \
-                   "manifold {} over the {}".format(self._name, self._field)
-        else:
-            return "Open subset {} of the {}".format(self._name,
-                                                     self._manifold)
 
     def diff_degree(self):
         r"""
@@ -780,82 +743,88 @@ class DifferentiableManifold(TopologicalManifold):
 
         OUTPUT:
 
-        - the open subset, as an instance of :class:`DifferentiableManifold`.
+        - the open subset, as an instance of :class:`DifferentiableManifold`
 
         EXAMPLES:
 
-        Creating an open subset of a manifold::
+        Creating an open subset of a differentiable manifold::
 
             sage: M = Manifold(2, 'M')
             sage: A = M.open_subset('A'); A
             Open subset A of the 2-dimensional differentiable manifold M
 
-        As an open subset of a differentiable manifold, A is itself a
+        As an open subset of a differentiable manifold, ``A`` is itself a
         differentiable manifold, on the same topological field and of the same
-        dimension as M::
+        dimension as ``M``::
 
-            sage: isinstance(A,
-            ....:  sage.manifolds.differentiable.manifold.DifferentiableManifold)
-            True
+            sage: A.category()
+            Join of Category of subobjects of sets and Category of smooth
+             manifolds over Real Field with 53 bits of precision
             sage: A.base_field() == M.base_field()
             True
             sage: dim(A) == dim(M)
             True
 
-        Creating an open subset of A::
+        Creating an open subset of ``A``::
 
             sage: B = A.open_subset('B'); B
             Open subset B of the 2-dimensional differentiable manifold M
 
         We have then::
 
-            sage: A.subsets()  # random (set output)
-            {Open subset B of the 2-dimensional differentiable manifold M,
-             Open subset A of the 2-dimensional differentiable manifold M}
+            sage: A.list_of_subsets()
+            [Open subset A of the 2-dimensional differentiable manifold M,
+             Open subset B of the 2-dimensional differentiable manifold M]
             sage: B.is_subset(A)
             True
             sage: B.is_subset(M)
             True
 
         Defining an open subset by some coordinate restrictions: the open
-        unit disk in `\RR^2`::
+        unit disk in of the Euclidean plane::
 
-            sage: M = Manifold(2, 'R^2')
-            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
-            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}); U
-            Open subset U of the 2-dimensional differentiable manifold R^2
+            sage: X.<x,y> = M.chart() # Cartesian coordinates on M
+            sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1}); U
+            Open subset U of the 2-dimensional differentiable manifold M
 
-        Since the argument ``coord_def`` has been set, U is automatically
-        provided with a chart, which is the restriction of the Cartesian one
-        to U::
+        Since the argument ``coord_def`` has been set, ``U`` is automatically
+        endowed with a chart, which is the restriction of ``X``
+        to ``U``::
 
             sage: U.atlas()
             [Chart (U, (x, y))]
-
-        Therefore, one can immediately check whether a point belongs to U::
-
-            sage: M.point((0,0)) in U
+            sage: U.default_chart()
+            Chart (U, (x, y))
+            sage: U.default_chart() is X.restrict(U)
             True
-            sage: M.point((1/2,1/3)) in U
+
+        An point in ``U``::
+
+            sage: p = U.an_element(); p
+            Point on the 2-dimensional differentiable manifold M
+            sage: X(p)  # the coordinates (x,y) of p
+            (0, 0)
+            sage: p in U
             True
-            sage: M.point((1,2)) in U
+
+        Checking whether various points, defined by their coordinates w.r.t.
+        chart ``X``,  are in ``U``::
+
+            sage: M((0,1/2)) in U
+            True
+            sage: M((0,1)) in U
             False
+            sage: M((1/2,1)) in U
+            False
+            sage: M((-1/2,1/3)) in U
+            True
 
         """
-        resu = DifferentiableManifold(self._dim, name, latex_name=latex_name,
-                            field=self._field, diff_degree=self._diff_degree,
-                            start_index=self._sindex, category=self.category(),
-                            ambient_manifold=self._manifold)
-        #!# NB: the above could have been
-        #   resu = type(self).__base__(...)
-        # instead of
-        #   resu = DifferentiableManifold(...)
-        # to allow for open_subset() of derived classes to call first this
-        # version,
-        # but, because of the category framework, it could NOT have been
-        #   resu = type(self)(...)
-        # cf. the discussion in
-        # https://groups.google.com/forum/#!topic/sage-devel/jHlFxhMDf3Y
+        resu = DifferentiableManifold(self._dim, name, self._field,
+                                   self._structure, ambient=self._manifold,
+                                   diff_degree=self._diff_degree,
+                                   latex_name=latex_name,
+                                   start_index=self._sindex)
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)
@@ -869,207 +838,10 @@ class DifferentiableManifold(TopologicalManifold):
         # Transition maps on the result inferred from those of self:
         for chart1 in coord_def:
             for chart2 in coord_def:
-                if chart2 != chart1:
-                    if (chart1, chart2) in self._coord_changes:
-                        self._coord_changes[(chart1, chart2)].restrict(resu)
+                if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
+                    self._coord_changes[(chart1, chart2)].restrict(resu)
         #!# update vector frames and change of frames
         return resu
-
-    def chart(self, coordinates='', names=None):
-        r"""
-        Define a chart, the domain of which is the manifold, in the
-        differentiable atlas of the manifold.
-
-        A *chart* is a member `(U,\varphi)` of the manifold's differentiable
-        atlas, where `U` stands for the manifold and
-        `\varphi: U \rightarrow V \subset K^n`
-        is a homeomorphism from `U` to an open subset `V` of `K^n`, `K` being
-        the field on which the manifold is defined.
-
-        The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-        `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`,
-        are called the *coordinates* of the chart `(U,\varphi)`.
-
-        See :class:`~sage.manifolds.differentiable.chart.DiffChart` for a
-        complete documentation.
-
-        INPUT:
-
-        - ``coordinates`` -- (default: '' (empty string)) single string
-          defining the coordinate symbols and ranges: the coordinates are
-          separated by ' ' (space) and each coordinate has at most three
-          fields, separated by ':':
-
-          1. The coordinate symbol (a letter or a few letters)
-          2. (optional, only for manifolds over `\RR`) The interval `I`
-             defining the coordinate range: if not
-             provided, the coordinate is assumed to span all `\RR`; otherwise
-             `I` must be provided in the form (a,b) (or equivalently ]a,b[)
-             The bounds a and b can be +/-Infinity, Inf, infinity, inf or oo.
-             For *singular* coordinates, non-open intervals such as [a,b] and
-             (a,b] (or equivalently ]a,b]) are allowed.
-             Note that the interval declaration must not contain any space
-             character.
-          3. (optional) The LaTeX spelling of the coordinate; if not provided,
-             the coordinate symbol given in the first field will be used.
-
-          The order of the fields 2 and 3 does not matter and each of them can
-          be omitted.
-          If it contains any LaTeX expression, the string ``coordinates`` must
-          be declared with the prefix 'r' (for "raw") to allow for a proper
-          treatment of the backslash character (see examples below).
-          If no interval range and no LaTeX spelling is to be provided for any
-          coordinate, the argument ``coordinates`` can be omitted when the
-          shortcut operator ``<,>`` is used via Sage preparser (see examples
-          below)
-        - ``names`` -- (default: ``None``) unused argument, except if
-          ``coordinates`` is not provided; it must then be a tuple containing
-          the coordinate symbols (this is guaranteed if the shortcut operator
-          ``<,>`` is used).
-
-        OUTPUT:
-
-        - the created chart, as an instance of
-          :class:`~sage.manifolds.differentiable.chart.DiffChart` or of the
-          subclass
-          :class:`~sage.manifolds.differentiable.chart.RealDiffChart` for
-          manifolds over `\RR`.
-
-        EXAMPLES:
-
-        Chart on a 2-dimensional differentiable manifold::
-
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U')
-            sage: X = U.chart('x y'); X
-            Chart (U, (x, y))
-            sage: X[0]
-            x
-            sage: X[1]
-            y
-            sage: X[:]
-            (x, y)
-
-        The declared coordinates are not known at the global level::
-
-            sage: y
-            Traceback (most recent call last):
-            ...
-            NameError: name 'y' is not defined
-
-        They can be recovered by the operator ``[:]`` applied to the chart::
-
-            sage: (x, y) = X[:]
-            sage: y
-            y
-            sage: type(y)
-            <type 'sage.symbolic.expression.Expression'>
-
-        But a shorter way to proceed is to use the operator ``<,>`` in the
-        left-hand side of the chart declaration (there is then no need to
-        pass the string 'x y' to chart())::
-
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U')
-            sage: X.<x,y> = U.chart(); X
-            Chart (U, (x, y))
-
-        Indeed, the declared coordinates are then known at the global level::
-
-            sage: y
-            y
-            sage: (x,y) == X[:]
-            True
-
-        Actually the instruction ``X.<x,y> = U.chart()`` is
-        equivalent to the combination of the two instructions
-        ``X = U.chart('x y')`` and ``(x,y) = X[:]``.
-
-        See the documentation of class
-        :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
-        for more examples, especially regarding the coordinates ranges and
-        restrictions.
-
-        """
-        from sage.manifolds.differentiable.chart import DiffChart, RealDiffChart
-        if self._field == RR:
-            return RealDiffChart(self, coordinates=coordinates, names=names)
-        return DiffChart(self, coordinates=coordinates, names=names)
-
-    def scalar_field_algebra(self):
-        r"""
-        Return the algebra of scalar fields defined the manifold.
-
-        See
-        :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`
-        for a complete documentation.
-
-        OUTPUT:
-
-        - instance of
-          :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`
-          representing the algebra `C^k(M)` of all scalar fields defined
-          on `M` (the current manifold), `k` being the degree of
-          differentiability of the manifold.
-
-        EXAMPLE:
-
-        Scalar algebra of a 3-dimensional open subset of a differentiable
-        manifold::
-
-            sage: M = Manifold(3, 'M')
-            sage: U = M.open_subset('U')
-            sage: CU = U.scalar_field_algebra() ; CU
-            Algebra of differentiable scalar fields on the Open subset U of the
-             3-dimensional differentiable manifold M
-            sage: CU.category()
-            Category of commutative algebras over Symbolic Ring
-            sage: CU.zero()
-            Scalar field zero on the Open subset U of the 3-dimensional
-             differentiable manifold M
-
-        """
-        if self._scalar_field_algebra is None:
-            self._scalar_field_algebra = DiffScalarFieldAlgebra(self)
-        return self._scalar_field_algebra
-
-    def _Hom_(self, other, category=None):
-        r"""
-        Construct the set of morphisms (i.e. differentiable maps)
-        ``self`` --> ``other``.
-
-        INPUT:
-
-        - ``other`` -- a differentiable manifold over the same field as
-          ``self``
-        - ``category`` -- (default: ``None``) not used here (to ensure
-          compatibility with generic hook ``_Hom_``)
-
-        OUTPUT:
-
-        - the homset Hom(M,N), where M is ``self`` and N is ``other``
-
-        See class
-        :class:`~sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset`
-        for more documentation.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M')
-            sage: N = Manifold(3, 'N')
-            sage: H = M._Hom_(N); H
-            Set of Morphisms from 2-dimensional differentiable manifold M to
-             3-dimensional differentiable manifold N in Category of smooth
-             manifolds over Real Field with 53 bits of precision
-            sage: H is Hom(M, N)
-            True
-
-        """
-        from sage.manifolds.differentiable.manifold_homset import \
-                                                   DifferentiableManifoldHomset
-        if other not in self._homsets:
-            self._homsets[other] = DifferentiableManifoldHomset(self, other)
-        return self._homsets[other]
 
     def diff_map(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
@@ -1299,7 +1071,6 @@ class DifferentiableManifold(TopologicalManifold):
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_isomorphism=True)
-
 
     def vector_field_module(self, dest_map=None, force_free=False):
         r"""
@@ -2506,7 +2277,6 @@ class DifferentiableManifold(TopologicalManifold):
             if not sd.is_manifestly_parallelizable():
                 sd._parallelizable_parts.add(self)
 
-
     def frames(self):
         r"""
         Return the list of vector frames defined on open subsets of the
@@ -2666,7 +2436,7 @@ class DifferentiableManifold(TopologicalManifold):
         INPUT:
 
         - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` on the
+          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` on the
           manifold
 
         OUTPUT:
@@ -2696,9 +2466,9 @@ class DifferentiableManifold(TopologicalManifold):
         for more examples.
 
         """
-        from sage.manifolds.point import TopologicalManifoldPoint
+        from sage.manifolds.point import ManifoldPoint
         from sage.manifolds.differentiable.tangent_space import TangentSpace
-        if not isinstance(point, TopologicalManifoldPoint):
+        if not isinstance(point, ManifoldPoint):
             raise TypeError("{} is not a manifold point".format(point))
         if point not in self:
             raise ValueError("{} is not a point on the {}".format(point, self))
@@ -2798,7 +2568,6 @@ class DifferentiableManifold(TopologicalManifold):
                 # case self.dim()=1
                 coord_expression = {chart: (coord_expression,)}
         return curve_set(coord_expression, name=name, latex_name=latex_name)
-
 
     def affine_connection(self, name, latex_name=None):
         r"""

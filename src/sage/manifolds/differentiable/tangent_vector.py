@@ -1,5 +1,5 @@
 r"""
-Tangent vectors
+Tangent Vectors
 
 The class :class:`TangentVector` implements tangent vectors to a differentiable
 manifold.
@@ -370,7 +370,7 @@ class TangentVector(FiniteRankFreeModuleElement):
         # The chart w.r.t. which the vector is plotted
         #
         if chart is None:
-            chart = base_point.containing_set().default_chart()
+            chart = base_point.parent().default_chart()
         elif not isinstance(chart, DiffChart):
             raise TypeError("{} is not a chart".format(chart))
         #

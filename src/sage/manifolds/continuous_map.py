@@ -1,5 +1,5 @@
 r"""
-Continuous maps between topological manifolds
+Continuous Maps between Topological Manifolds
 
 The class :class:`ContinuousMap` implements continuous maps from a topological
 manifold `M` to some topological manifold `N` over the same topological field
@@ -245,8 +245,9 @@ class ContinuousMap(Morphism):
          topological manifold R^2 to the 2-dimensional topological manifold R^2
         sage: Phi.parent()
         Set of Morphisms from Open subset D of the 2-dimensional topological
-         manifold R^2 to 2-dimensional topological manifold R^2 in Category
-         of facade manifolds over Real Field with 53 bits of precision
+         manifold R^2 to 2-dimensional topological manifold R^2 in Join of
+         Category of subobjects of sets and Category of manifolds over Real
+         Field with 53 bits of precision
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
@@ -304,8 +305,8 @@ class ContinuousMap(Morphism):
         sage: id.parent()
         Set of Morphisms from Open subset D of the 2-dimensional topological
          manifold R^2 to Open subset D of the 2-dimensional topological
-         manifold R^2 in Category of facade manifolds over Real Field with
-         53 bits of precision
+         manifold R^2 in Join of Category of subobjects of sets and Category of
+         manifolds over Real Field with 53 bits of precision
         sage: id.parent() is Hom(D, D)
         True
         sage: id is Hom(D,D).one()  # the identity element of the monoid Hom(D,D)
@@ -1621,8 +1622,8 @@ class ContinuousMap(Morphism):
             sage: Phi.restrict(U).parent()
             Set of Morphisms from Open subset U of the 2-dimensional
              topological manifold R^2 to 2-dimensional topological manifold R^2
-             in Category of facade manifolds over Real Field with 53 bits of
-             precision
+             in Join of Category of subobjects of sets and Category of
+             manifolds over Real Field with 53 bits of precision
             sage: Phi.domain()
             Open subset D of the 2-dimensional topological manifold R^2
             sage: Phi.restrict(U).domain()

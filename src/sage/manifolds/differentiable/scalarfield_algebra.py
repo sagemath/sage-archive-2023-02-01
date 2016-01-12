@@ -1,5 +1,5 @@
 r"""
-Algebra of differentiable scalar fields
+Algebra of Differentiable Scalar Fields
 
 The class :class:`DiffScalarFieldAlgebra` implements the commutative algebra
 `C^k(M)` of differentiable scalar fields on a differentiable manifold `M` of
@@ -394,7 +394,6 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         ScalarFieldAlgebra.__init__(self, domain)
 
     #### Methods required for any Parent
-
 
     def _coerce_map_from_(self, other):
         r"""

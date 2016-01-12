@@ -1,5 +1,5 @@
 r"""
-Tangent-space automorphism fields
+Tangent-Space Automorphism Fields
 
 The class :class:`AutomorphismField` implements fields of automorphisms of
 tangent spaces to a generic (i.e. a priori not parallelizable) differentiable
@@ -1176,7 +1176,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         INPUT:
 
         - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` in the
+          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in the
           domain of the field of automorphisms `a`
 
         OUTPUT:

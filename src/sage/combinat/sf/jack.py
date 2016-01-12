@@ -73,7 +73,7 @@ class Jack(UniqueRepresentation):
         self._name_suffix = ""
         if str(t) !='t':
             self._name_suffix += " with t=%s"%t
-        self._name = "Jack polynomials"+self._name_suffix+" over "+Sym.base_ring().__repr__()
+        self._name = "Jack polynomials"+self._name_suffix+" over "+repr(Sym.base_ring())
 
     def __repr__(self):
         r"""

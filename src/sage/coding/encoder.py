@@ -47,7 +47,7 @@ class Encoder(SageObject):
       need something more clever, override ``__eq__`` and ``__ne__`` in your subclass.
 
     - As :class:`Encoder` is not designed to be instantiated, it does not have any representation
-      methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
+      methods. You should implement ``_repr_`` and ``_latex_`` methods in the subclass.
 
     REFERENCES:
 
@@ -87,6 +87,26 @@ class Encoder(SageObject):
             Linear code of length 4, dimension 2 over Finite Field of size 2
         """
         self._code = code
+
+    def __ne__(self, other):
+        r"""
+        Tests inequality of ``self`` and ``other``.
+
+        This is a generic implementation, which returns the inverse of ``__eq__`` for self.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: E1 = LinearCode(G).encoder()
+            sage: E2 = LinearCode(G).encoder()
+            sage: E1 != E2
+            False
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
+            sage: E2 = LinearCode(G).encoder()
+            sage: E1 != E2
+            True
+        """
+        return not self == other
 
     def encode(self, word):
         r"""
@@ -142,12 +162,11 @@ class Encoder(SageObject):
 
         INPUT:
 
-        - ``c`` -- a vector of the same length as :meth:`code` over the
-          base field of :meth:`code`.
+        - ``c`` -- a codeword of :meth:`code`.
 
-        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in ``self``. You might set
+        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in :meth:`code`. You might set
           this to ``True`` to disable the check for saving computation. Note that if ``c`` is
-          not in ``self`` and ``nocheck = True``, then the output of :meth:`unencode` is
+          not in :meth:`self` and ``nocheck = True``, then the output of :meth:`unencode` is
           not defined (except that it will be in the message space of ``self``).
 
         OUTPUT:
@@ -231,12 +250,12 @@ class Encoder(SageObject):
 
         INPUT:
 
-        - ``c`` -- a vector of the same length as ``self`` over the
-          base field of ``self``
+
+        - ``c`` -- a codeword of :meth:`code`.
 
         OUTPUT:
 
-        - a vector
+        - an element of the message space of ``self``.
 
         EXAMPLES::
 

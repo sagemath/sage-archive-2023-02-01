@@ -642,7 +642,7 @@ class TransducerGenerators(object):
         `\mathrm{operator}(i_1, \dots, i_n)`. Here, `n` equals
         ``number_of_operands``.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -721,7 +721,7 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} \land \cdots \land i_{0d})\ldots (i_{k1} \land \cdots \land i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -773,7 +773,7 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} \lor \cdots \lor i_{0d})\ldots (i_{k1} \lor \cdots \lor i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -825,7 +825,7 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} + \cdots + i_{0d})\ldots (i_{k1} + \cdots + i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -876,7 +876,7 @@ class TransducerGenerators(object):
         A transducer mapping an input word `(i_0, i'_0)\ldots (i_k, i'_k)`
         to the word `(i_0 - i'_0)\ldots (i_k - i'_k)`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of two copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -1537,7 +1537,7 @@ class TransducerGenerators(object):
             and use the parameter ``word_function`` to announce this.
 
             Similarly, we use ``w(-1, 0)`` to write an output word of
-            length `2` in one interation. Finally, we write ``f(0) == w()``
+            length `2` in one iteration. Finally, we write ``f(0) == w()``
             to write an empty word upon completion.
 
             Moreover, there is a cycle with output ``[0]`` which---from

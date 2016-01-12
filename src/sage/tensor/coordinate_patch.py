@@ -156,10 +156,7 @@ class CoordinatePatch(Parent):
             sage: S != T
             True
         """
-
-        return not self.__eq__(other)
-
-
+        return not self == other
 
     def coordinates(self):
         """

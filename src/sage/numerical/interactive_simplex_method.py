@@ -85,8 +85,9 @@ the simplex method.
 The simplest way to use the simplex method is::
 
     sage: P.run_simplex_method()
-    %notruncate
+    \begin{equation*}
     ...
+    The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.
 
 (This method produces quite long formulas which have been omitted here.)
 But, of course, it is much more fun to do most of the steps by hand. Let's start
@@ -195,7 +196,9 @@ from sage.misc.all import (LatexExpr,
                            latex,
                            randint,
                            random)
+from sage.misc.html import HtmlFragment
 from sage.misc.misc import get_main_globals
+from sage.misc.superseded import deprecation
 from sage.modules.all import random_vector, vector
 from sage.plot.all import Graphics, arrow, line, point, rainbow, text
 from sage.rings.all import Infinity, PolynomialRing, QQ, RDF, ZZ
@@ -2052,11 +2055,12 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
     def run_revised_simplex_method(self):
         r"""
-        Apply the revised simplex method to solve ``self`` and show the steps.
+        Apply the revised simplex method and return all steps.
 
         OUTPUT:
 
-        - a string with `\LaTeX` code of intermediate dictionaries
+        - :class:`~sage.misc.html.HtmlFragment` with HTML/`\LaTeX` code of
+          all encountered dictionaries
 
         .. NOTE::
 
@@ -2081,62 +2085,46 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.run_revised_simplex_method()
-            %notruncate
-            \renewcommand{\arraystretch}{1.500000}
-            \begin{array}{l}
+            \begin{equation*}
             ...
-            \text{Entering: $x_{1}$. Leaving: $x_{0}$.}\\
+            \end{equation*}
+            Entering: $x_{1}$. Leaving: $x_{0}$.
+            \begin{equation*}
             ...
-            \text{Entering: $x_{5}$. Leaving: $x_{4}$.}\\
+            \end{equation*}
+            Entering: $x_{5}$. Leaving: $x_{4}$.
+            \begin{equation*}
             ...
-            \text{Entering: $x_{2}$. Leaving: $x_{3}$.}\\
+            \end{equation*}
+            Entering: $x_{2}$. Leaving: $x_{3}$.
+            \begin{equation*}
             ...
-            \text{The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.}
-            \end{array}
+            \end{equation*}
+            The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.
         """
-        result = []
         d = self.revised_dictionary()
-        while not d.is_optimal():
-            entering, leaving = min(d.possible_simplex_method_steps())
-            d.enter(entering)
-            if leaving:
-                leaving = min(leaving)
-                d.leave(leaving)
-                result.append(latex(d))
-                result.append(r"\text{{Entering: ${}$. Leaving: ${}$.}}"
-                              .format(latex(entering), latex(leaving)))
-                result.append("")
-                result.append(
-                        r"B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} = " +
-                        latex(d.E_inverse()) + latex(d.B_inverse()))
-                result.append("")
-                d.update()
-            else:
-                result.append(latex(d))
-                result.append(r"\text{{The problem is unbounded in the "
-                              r"${}$ direction.}}".format(latex(entering)))
-                break
+        output = [d.run_simplex_method()]
         if d.is_optimal():
-            result.append(latex(d))
             if self.auxiliary_variable() in d.basic_variables():
-                result.append(r"\text{The problem is infeasible.}")
+                output.append("The problem is infeasible.")
             else:
                 v = d.objective_value()
                 if self._is_negative:
                     v = - v
-                result.append((r"\text{{The optimal value: ${}$. "
-                               "An optimal solution: ${}$.}}").format(
+                output.append(("The optimal value: ${}$. "
+                               "An optimal solution: ${}$.").format(
                                latex(v), latex(d.basic_solution())))
         self._final_revised_dictionary = d
-        return _assemble_arrayl(result, 1.5)
+        return HtmlFragment("\n".join(output))
 
     def run_simplex_method(self):
         r"""
-        Apply the simplex method to solve ``self`` and show the steps.
+        Apply the simplex method and return all steps and intermediate states.
 
         OUTPUT:
 
-        - a string with `\LaTeX` code of intermediate dictionaries
+        - :class:`~sage.misc.html.HtmlFragment` with HTML/`\LaTeX` code of
+          all encountered dictionaries
 
         .. NOTE::
 
@@ -2158,86 +2146,53 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: P.run_simplex_method()  # not tested
-
-        You should use the typeset mode as the command above generates long
-        `\LaTeX` code::
-
-            sage: print P.run_simplex_method()
-            %notruncate
+            sage: P.run_simplex_method()
+            \begin{equation*}
             ...
-            \text{The initial dictionary is infeasible, solving auxiliary problem.}\\
+            \end{equation*}
+            The initial dictionary is infeasible, solving auxiliary problem.
             ...
-            \text{Entering: $x_{0}$. Leaving: $x_{5}$.}\\
+            Entering: $x_{0}$. Leaving: $x_{5}$.
             ...
-            \text{Entering: $x_{1}$. Leaving: $x_{0}$.}\\
+            Entering: $x_{1}$. Leaving: $x_{0}$.
             ...
-            \text{Back to the original problem.}\\
+            Back to the original problem.
             ...
-            \text{Entering: $x_{5}$. Leaving: $x_{4}$.}\\
+            Entering: $x_{5}$. Leaving: $x_{4}$.
             ...
-            \text{Entering: $x_{2}$. Leaving: $x_{3}$.}\\
+            Entering: $x_{2}$. Leaving: $x_{3}$.
             ...
-            \text{The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.}
-            ...
+            The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.
         """
-        result = []
+        output = []
         d = self.initial_dictionary()
-        result.append(latex(d))
-
-        def step(entering, leaving):
-            result.append(r"\text{{Entering: ${}$. Leaving: ${}$.}}"
-                          .format(latex(entering), latex(leaving)))
-            result.append(d.ELLUL(entering, leaving))
-
-        if d.is_feasible():
-            is_feasible = True
-        else:
-            result.append(r"\text{The initial dictionary is infeasible, "
-                          "solving auxiliary problem.}")
-            d = self.auxiliary_problem().initial_dictionary()
-            result.append(latex(d))
-            x0 = self.auxiliary_variable()
-            _, leaving = min(zip(d.constant_terms(), d.basic_variables()))
-            step(x0, leaving)
-            # while not d.is_optimal():
-            # either optimality check should handle rounding errors or
-            while not (d.is_optimal() or x0 in d.nonbasic_variables()):
-                entering, leaving = min(d.possible_simplex_method_steps())
-                step(entering, min(leaving))
-            is_feasible = x0 in d.nonbasic_variables()
-            if is_feasible:
-                result.append(r"\text{Back to the original problem.}")
-                d = self.feasible_dictionary(d)
-                result.append(latex(d))
+        if not d.is_feasible():
+            output.append(d._html_())
+            output.append("The initial dictionary is infeasible, "
+                          "solving auxiliary problem.")
+            # Phase I
+            ad = self.auxiliary_problem().initial_dictionary()
+            ad.enter(self.auxiliary_variable())
+            ad.leave(min(zip(ad.constant_terms(), ad.basic_variables()))[1])
+            output.append(ad.run_simplex_method())
+            if ad.objective_value() < 0:
+                output.append("The original problem is infeasible.")
+                self._final_dictionary = ad
             else:
-                result.append(r"\text{The original problem is infeasible.}")
-        if is_feasible:
-            while not d.is_optimal():
-                entering, leaving = min(d.possible_simplex_method_steps())
-                if leaving:
-                    step(entering, min(leaving))
-                else:
-                    d.enter(entering)
-                    result.append(r"\text{{The problem is unbounded in the "
-                                  r"${}$ direction.}}".format(latex(entering)))
-                    result.append(latex(d))
-                    break
+                output.append("Back to the original problem.")
+                d = self.feasible_dictionary(ad)
+        if d.is_feasible():
+            # Phase II
+            output.append(d.run_simplex_method())
             if d.is_optimal():
                 v = d.objective_value()
                 if self._is_negative:
                     v = - v
-                result.append((r"\text{{The optimal value: ${}$. "
-                               "An optimal solution: ${}$.}}").format(
+                output.append(("The optimal value: ${}$. "
+                               "An optimal solution: ${}$.").format(
                                latex(v), latex(d.basic_solution())))
-        self._final_dictionary = d
-        if generate_real_LaTeX:
-            # This will have to be used via \sagestr, as line&display breaks
-            # don't get along with reference substitution without wrapping.
-            return ("\\begin{gather*}\n\\allowdisplaybreaks\n" +
-                    "\\displaybreak[0]\\\\\n".join(result) +
-                    "\n\\end{gather*}")
-        return _assemble_arrayl(result, 1.5)
+            self._final_dictionary = d
+        return HtmlFragment("\n".join(output))
 
     def slack_variables(self):
         r"""
@@ -2292,6 +2247,68 @@ class LPAbstractDictionary(SageObject):
         super(LPAbstractDictionary, self).__init__()
         self._entering = None
         self._leaving = None
+        
+    def _html_(self):
+        r"""
+        Return an HTML representation of ``self``.
+
+        OUTPUT:
+
+        - a string
+
+        TESTS::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: print D._html_()
+            \begin{equation*}
+            ...
+            \end{equation*}
+        """
+        return HtmlFragment("\n".join([r"\begin{equation*}",
+                                       latex(self),
+                                       r"\end{equation*}"]))
+
+    def _preupdate_output(self, direction):
+        r"""
+        Return auxiliary output before the update step.
+        
+        Called from :meth:`run_simplex_method`.
+        
+        INPUT:
+        
+        - ``direction`` -- a string specifying the type of the simplex method
+          used, either "primal" or "dual"
+
+        OUTPUT:
+        
+        - :class:`~sage.misc.html.HtmlFragment`.
+        
+        TESTS::
+        
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.enter(1)
+            sage: D.leave(4)
+            sage: D._preupdate_output("primal")
+            Entering: $x_{1}$. Leaving: $x_{4}$.
+            sage: D._preupdate_output("dual")
+            Leaving: $x_{4}$. Entering: $x_{1}$.
+        """
+        entering = "Entering: ${}$. ".format(latex(self.entering()))
+        leaving = "Leaving: ${}$. ".format(latex(self.leaving()))
+        if direction == "primal":
+            return HtmlFragment(entering + leaving)
+        elif direction =="dual":
+            return HtmlFragment(leaving + entering)
+        else:
+            raise ValueError("direction must be either primal or dual")
 
     def _repr_(self):
         r"""
@@ -2459,7 +2476,7 @@ class LPAbstractDictionary(SageObject):
 
         - ``v`` -- a non-basic variable of ``self``, can be given as a string,
           an actual variable, or an integer interpreted as the index of a
-          variable
+          variable. It is also possible to enter ``None`` to reset choice.
 
         OUTPUT:
 
@@ -2491,10 +2508,34 @@ class LPAbstractDictionary(SageObject):
             sage: D = P.revised_dictionary()
             sage: D.enter(x1)
         """
-        v = variable(self.coordinate_ring(), v)
-        if v not in self.nonbasic_variables():
-            raise ValueError("entering variable must be non-basic")
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.nonbasic_variables():
+                raise ValueError("entering variable must be non-basic")
         self._entering = v
+
+    def entering(self):
+        r"""
+        Return the currently chosen entering variable.
+
+        OUTPUT:
+
+        - a variable if the entering one was chosen, otherwise ``None``
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.entering() is None
+            True
+            sage: D.enter(1)
+            sage: D.entering()
+            x1
+        """
+        return self._entering
 
     def is_dual_feasible(self):
         r"""
@@ -2527,7 +2568,7 @@ class LPAbstractDictionary(SageObject):
         OUTPUT:
 
         - ``True`` if all :meth:`~LPDictionary.constant_terms` are
-          non-negative,``False`` otherwise
+          non-negative, ``False`` otherwise
 
         EXAMPLES::
 
@@ -2580,7 +2621,8 @@ class LPAbstractDictionary(SageObject):
         INPUT:
 
         - ``v`` -- a basic variable of ``self``, can be given as a string, an
-          actual variable, or an integer interpreted as the index of a variable
+          actual variable, or an integer interpreted as the index of a
+          variable. It is also possible to leave ``None`` to reset choice.
 
         OUTPUT:
 
@@ -2612,10 +2654,34 @@ class LPAbstractDictionary(SageObject):
             sage: D = P.revised_dictionary()
             sage: D.leave(x4)
         """
-        v = variable(self.coordinate_ring(), v)
-        if v not in self.basic_variables():
-            raise ValueError("leaving variable must be basic")
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.basic_variables():
+                raise ValueError("leaving variable must be basic")
         self._leaving = v
+
+    def leaving(self):
+        r"""
+        Return the currently chosen leaving variable.
+
+        OUTPUT:
+
+        - a variable if the leaving one was chosen, otherwise ``None``
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.leaving() is None
+            True
+            sage: D.leave(4)
+            sage: D.leaving()
+            x4
+        """
+        return self._leaving
 
     def possible_dual_simplex_method_steps(self):
         r"""
@@ -2805,6 +2871,162 @@ class LPAbstractDictionary(SageObject):
                                               self.entering_coefficients(),
                                               self.basic_variables()) if a > 0]
 
+    def run_dual_simplex_method(self):
+        r"""
+        Apply the dual simplex method and return all steps/intermediate states.
+        
+        If either entering or leaving variables were already set, they will be
+        used.
+
+        OUTPUT:
+
+        - :class:`~sage.misc.html.HtmlFragment` with HTML/`\LaTeX` code of
+          all encountered dictionaries
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1], [-1, -1])
+            sage: b = (1000, 1500, -400)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.run_dual_simplex_method()
+            Traceback (most recent call last):
+            ...
+            ValueError: leaving variables can be determined for feasible
+            dictionaries with a set entering variable or for dual feasible
+            dictionaries
+            
+        Let's start with a dual feasible dictionary then::
+        
+            sage: D = P.dictionary(2, 3, 5)
+            sage: D.is_dual_feasible()
+            True
+            sage: D.is_optimal()
+            False
+            sage: D.run_dual_simplex_method()
+            \begin{equation*}
+            ...
+            \end{equation*}
+            Leaving: $x_{3}$. Entering: $x_{1}$.
+            \begin{equation*}
+            ...
+            \end{equation*}
+            sage: D.is_optimal()
+            True
+            
+        This method detects infeasible problems::
+        
+            sage: A = ([1, 0],)
+            sage: b = (-1,)
+            sage: c = (0, -1)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.run_dual_simplex_method()
+            \begin{equation*}
+            ...
+            \end{equation*}
+            The problem is infeasible because of $x_{3}$ constraint.
+        """
+        output = []
+        while not self.is_optimal():
+            if self.leaving() is None:
+                self.leave(min(self.possible_leaving()))
+            if self.entering() is None:
+                possible = self.possible_entering()
+                if possible:
+                    self.enter(min(possible))
+            output.append(self._html_())
+            if self.entering() is None:
+                output.append("The problem is infeasible because of "
+                              "${}$ constraint.".format(latex(self.leaving())))
+                break
+            output.append(self._preupdate_output("dual"))
+            self.update()
+        if self.is_optimal():
+            output.append(self._html_())
+        return HtmlFragment("\n".join(output))
+
+    def run_simplex_method(self):
+        r"""
+        Apply the simplex method and return all steps and intermediate states.
+        
+        If either entering or leaving variables were already set, they will be
+        used.
+
+        OUTPUT:
+
+        - :class:`~sage.misc.html.HtmlFragment` with HTML/`\LaTeX` code of
+          all encountered dictionaries
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1], [-1, -1])
+            sage: b = (1000, 1500, -400)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.run_simplex_method()
+            Traceback (most recent call last):
+            ...
+            ValueError: entering variables can be determined for feasible
+            dictionaries or for dual feasible dictionaries with a set leaving
+            variable
+            
+        Let's start with a feasible dictionary then::
+        
+            sage: D = P.dictionary(1, 3, 4)
+            sage: D.is_feasible()
+            True
+            sage: D.is_optimal()
+            False
+            sage: D.run_simplex_method()
+            \begin{equation*}
+            ...
+            \end{equation*}
+            Entering: $x_{5}$. Leaving: $x_{4}$.
+            \begin{equation*}
+            ...
+            \end{equation*}
+            Entering: $x_{2}$. Leaving: $x_{3}$.
+            \begin{equation*}
+            ...
+            \end{equation*}
+            sage: D.is_optimal()
+            True
+            
+        This method detects unbounded problems::
+        
+            sage: A = ([1, 0],)
+            sage: b = (1,)
+            sage: c = (0, 1)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.run_simplex_method()
+            \begin{equation*}
+            ...
+            \end{equation*}
+            The problem is unbounded in $x_{2}$ direction.
+        """
+        output = []
+        while not self.is_optimal():
+            if self.entering() is None:
+                self.enter(min(self.possible_entering()))
+            if self.leaving() is None:
+                possible = self.possible_leaving()
+                if possible:
+                    self.leave(min(possible))
+            output.append(self._html_())
+            if self.leaving() is None:
+                output.append("The problem is unbounded in ${}$ direction."
+                              .format(latex(self.entering())))
+                break
+            output.append(self._preupdate_output("primal"))
+            self.update()
+        if self.is_optimal():
+            output.append(self._html_())
+        return HtmlFragment("\n".join(output))
+
 
 class LPDictionary(LPAbstractDictionary):
     r"""
@@ -2953,7 +3175,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: print D._latex_()
-            \renewcommand{\arraystretch}{1.5}
+            \renewcommand{\arraystretch}{1.5} %notruncate
             \begin{array}{|rcrcrcr|}
             \hline
             x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
@@ -2965,7 +3187,7 @@ class LPDictionary(LPAbstractDictionary):
         """
         A, b, c, v, B, N, z = self._AbcvBNz
         lines = []
-        lines.append(r"\renewcommand{\arraystretch}{1.5}")
+        lines.append(r"\renewcommand{\arraystretch}{1.5} %notruncate")
         if generate_real_LaTeX:
             lines[-1] += r" \setlength{\arraycolsep}{0.125em}"
         relations = [_latex_product(-Ai,N, head=[xi, "=", bi],
@@ -3032,7 +3254,9 @@ class LPDictionary(LPAbstractDictionary):
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.ELLUL("x1", "x4")
-            \renewcommand{\arraystretch}{1.5}
+            doctest:...: DeprecationWarning: ELLUL is deprecated, please use separate enter-leave-update and output commands
+            See http://trac.sagemath.org/19097 for details.
+            \renewcommand{\arraystretch}{1.5} %notruncate
             \begin{array}{|rcrcrcr|}
             \hline
             x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\color{green}\mspace{-6mu} x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
@@ -3074,6 +3298,8 @@ class LPDictionary(LPAbstractDictionary):
         leaving variable is red in the original dictionary state on the top.
         The new state after the update step is shown on the bottom.
         """
+        deprecation(19097, "ELLUL is deprecated, please use separate "
+                    "enter-leave-update and output commands")
         self.enter(entering)
         self.leave(leaving)
         result = latex(self).rsplit("\n", 1)[0] # Remove \end{array}
@@ -3633,6 +3859,52 @@ class LPRevisedDictionary(LPAbstractDictionary):
         lines.append(r"\end{array}")
         bottom = "\n".join(lines)
         return _assemble_arrayl([top, "", bottom], 1.5)
+
+    def _preupdate_output(self, direction):
+        r"""
+        Return auxiliary output before the update step.
+        
+        In addition to generic output, show matrices for updating B-inverse.
+        
+        INPUT:
+        
+        - ``direction`` -- a string specifying the type of the simplex method
+          used, either "primal" or "dual"
+        
+        OUTPUT:
+        
+        - :class:`~sage.misc.html.HtmlFragment`.
+        
+        TESTS::
+        
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.enter(1)
+            sage: D.leave(4)
+            sage: D._preupdate_output("primal")
+            Entering: $x_{1}$. Leaving: $x_{4}$.
+            \begin{equation*}
+            B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} = 
+            \left(\begin{array}{rr}
+            1 & -\frac{1}{3} \\
+            0 & \frac{1}{3}
+            \end{array}\right)
+            \left(\begin{array}{rr}
+            1 & 0 \\
+            0 & 1
+            \end{array}\right)
+            \end{equation*}
+        """
+        return HtmlFragment("\n".join([
+            super(LPRevisedDictionary, self)._preupdate_output(direction),
+            r"\begin{equation*}",
+            r"B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} = ",
+            latex(self.E_inverse()),
+            latex(self.B_inverse()),
+            r"\end{equation*}"]))
 
     def A(self, v):
         r"""

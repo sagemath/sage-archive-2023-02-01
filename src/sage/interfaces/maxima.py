@@ -413,7 +413,9 @@ a robust manner, as long as you are creating a new object.
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = maxima(t)
 
-TESTS: This working tests that a subtle bug has been fixed::
+TESTS:
+
+This working tests that a subtle bug has been fixed::
 
     sage: f = maxima.function('x','gamma(x)')
     sage: g = f(1/7)
@@ -553,7 +555,6 @@ class Maxima(MaximaAbstract, Expect):
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\) ',
                         command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
-                        maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,

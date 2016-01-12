@@ -601,9 +601,6 @@ class ComplexBallField(UniqueRepresentation, Field):
 cdef inline bint _do_sig(long prec):
     """
     Whether signal handlers should be installed for calls to arb.
-
-    TESTS::
-
     """
     return (prec > 1000)
 

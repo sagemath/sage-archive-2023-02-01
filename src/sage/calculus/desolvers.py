@@ -377,13 +377,13 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     :trac:`10682` updated Maxima to 5.26, and it started to show a different
     solution in the complex domain for the ODE above::
 
+        sage: forget()
         sage: sage.calculus.calculus.maxima('domain:complex')  # back to the default complex domain
         complex
+        sage: assume(x>0)
+        sage: assume(y>0)
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
-        [1/2*(2*x^2*sqrt(x^(-2)) - 2*x*sqrt(x^(-2))*arcsinh(y(x)/sqrt(x^2)) -
-            2*x*sqrt(x^(-2))*arcsinh(y(x)^2/(x*sqrt(y(x)^2))) +
-            log(4*(2*x^2*sqrt((x^2*y(x)^2 + y(x)^4)/x^2)*sqrt(x^(-2)) + x^2 +
-            2*y(x)^2)/x^2))/(x*sqrt(x^(-2))) == _C]
+        [x - arcsinh(y(x)^2/(x*sqrt(y(x)^2))) - arcsinh(y(x)/x) + 1/2*log(4*(x^2 + 2*y(x)^2 + 2*x*sqrt((x^2*y(x)^2 + y(x)^4)/x^2))/x^2) == _C]
 
     :trac:`6479` fixed::
 
@@ -676,7 +676,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
         dvar, ivar = dvar
     elif ivar is None:
         ivars = de.variables()
-        ivars = [t for t in ivars if t != dvar]
+        ivars = [t for t in ivars if t is not dvar]
         if len(ivars) != 1:
             raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
@@ -1148,7 +1148,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
     Variant 2 for input - more common in numerics::
 
-        sage: x,y=var('x y')
+        sage: x,y = var('x,y')
         sage: desolve_rk4(x*y*(2-y),y,ics=[0,1],end_points=1,step=0.5)
         [[0, 1], [0.5, 1.12419127424558], [1.0, 1.461590162288825]]
 
@@ -1156,7 +1156,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     desolve function In this example we integrate bakwards, since
     ``end_points < ics[0]``::
 
-        sage: y=function('y')(x)
+        sage: y = function('y')(x)
         sage: desolve_rk4(diff(y,x)+y*(y-1) == x-2,y,ics=[1,1],step=0.5, end_points=0)
         [[0.0, 8.904257108962112], [0.5, 1.909327945361535], [1, 1]]
 
@@ -1164,7 +1164,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     aplications use list_plot instead. To see the resulting picture
     use ``show(P)`` in Sage notebook. ::
 
-        sage: x,y=var('x y')
+        sage: x,y = var('x,y')
         sage: P=desolve_rk4(y*(2-y),y,ics=[0,.1],ivar=x,output='slope_field',end_points=[-4,6],thickness=3)
 
     ALGORITHM:
@@ -1620,8 +1620,9 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     genfiles_mintides(intfile, drfile, f, [N(_) for _ in ics], N(initial), N(final), N(delta), N(tolrel),
                      N(tolabs), fileoutput)
     subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
-                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lm  -O2 ' +
-                          os.path.join('-I$SAGE_ROOT','local','include ') + os.path.join('-L$SAGE_ROOT','local','lib '),
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' $LDFLAGS '
+                          + os.path.join('-L$SAGE_ROOT','local','lib ') +' -lm  -O2 ' +
+                          os.path.join('-I$SAGE_ROOT','local','include '),
                           shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outfile = open(fileoutput)
@@ -1725,8 +1726,9 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
                       digits, tolrel, tolabs, fileoutput)
     subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
-                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lmpfr -lgmp -lm  -O2 -w ' +
-                          os.path.join('-I$SAGE_ROOT','local','include ') + os.path.join('-L$SAGE_ROOT','local','lib '),
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' $LDFLAGS '
+                          + os.path.join('-L$SAGE_ROOT','local','lib ') + '-lmpfr -lgmp -lm  -O2 -w ' +
+                          os.path.join('-I$SAGE_ROOT','local','include ') ,
                           shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outfile = open(fileoutput)

@@ -1,17 +1,18 @@
 """
 Partition backtrack functions for binary codes
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_binary
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 

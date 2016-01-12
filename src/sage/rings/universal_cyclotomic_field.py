@@ -573,7 +573,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: float(E(7) + E(7,6))
-            1.2469796037174672
+            1.246979603717467
         """
         from sage.rings.real_mpfr import RR
         return float(RR(self))
@@ -588,8 +588,49 @@ class UniversalCyclotomicFieldElement(FieldElement):
         f = self.parent().coerce_embedding()
         return complex(f(self))
 
-    def _mpfr_(self, R):
+    def _eval_complex_(self, R):
         r"""
+        Return a complex value of this element in ``R``.
+
+        TESTS::
+
+            sage: CC(E(3))
+            -0.500000000000000 + 0.866025403784439*I
+
+        Check that :trac:`19825` is fixed::
+
+            sage: CIF(E(3))
+            -0.500000000000000? + 0.866025403784439?*I
+            sage: CIF(E(5))
+            0.309016994374948? + 0.9510565162951536?*I
+            sage: CIF(E(12))
+            0.86602540378444? + 0.50000000000000?*I
+
+        If the input is real, the imaginary part is exactly 0::
+
+            sage: CIF(E(17,2) + E(17,15))
+            1.47801783444132?
+            sage: _.imag().is_zero()
+            True
+        """
+        if self._obj.IsRat():
+            return R(self._obj.sage())
+
+        k = self._obj.Conductor().sage()
+        coeffs = self._obj.CoeffsCyc(k).sage()
+        zeta = R.zeta(k)
+        s = sum(coeffs[i] * zeta**i for i in range(1,k))
+        if self.is_real():
+            return R(s.real())
+        return s
+
+    _complex_mpfi_ = _eval_complex_
+    _complex_mpfr_field_ = _eval_complex_
+
+    def _eval_real_(self, R):
+        r"""
+        Return a real value of this element in ``R``.
+
         TESTS::
 
             sage: RR(E(7) + E(7,6))
@@ -600,10 +641,17 @@ class UniversalCyclotomicFieldElement(FieldElement):
         if not self.is_real():
             raise TypeError("self is not real")
 
-        from sage.rings.qqbar import QQbar, AA
-        return AA(QQbar(self))._mpfr_(R)
+        if self._obj.IsRat():
+            return R(self._obj.sage())
 
-    def __cmp__(self, other):
+        k = self._obj.Conductor().sage()
+        coeffs = self._obj.CoeffsCyc(k).sage()
+        t = (2*R.pi())/k
+        return sum(coeffs[i] * (i*t).cos() for i in range(1,k))
+
+    _mpfr_ = _eval_real_
+
+    def _cmp_(self, other):
         r"""
         Comparison (using the complex embedding).
 
@@ -622,12 +670,32 @@ class UniversalCyclotomicFieldElement(FieldElement):
             ....:     assert l[i] >= l[i] and l[i] <= l[i]
             ....:     for j in range(i):
             ....:         assert l[i] > l[j] and l[j] < l[i]
+
+            sage: cmp(fibonacci(200)*(E(5)+E(5,4)), fibonacci(199))
+            -1
+            sage: cmp(fibonacci(201)*(E(5)+E(5,4)), fibonacci(200))
+            1
         """
         if self._obj == other._obj:
             return 0
-        else:
-            from sage.rings.qqbar import QQbar
-            return cmp(QQbar(self), QQbar(other))
+        
+        s = self.real_part()
+        o = other.real_part()
+        if s == o:
+            s = self.imag_part()
+            o = other.imag_part()
+            
+        from sage.rings.real_mpfi import RealIntervalField
+        prec = 53
+        R = RealIntervalField(prec)
+        sa = s._eval_real_(R)
+        oa = o._eval_real_(R)
+        while sa.overlaps(oa):
+            prec <<= 2
+            R = RealIntervalField(prec)
+            sa = s._eval_real_(R)
+            oa = o._eval_real_(R)
+        return sa._cmp_(oa)
 
     def denominator(self):
         r"""
@@ -1087,7 +1155,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
     def gen(self, n, k=1):
         r"""
-        Return the standard ``n``-th root of unity.
+        Return the standard primitive ``n``-th root of unity.
 
         If ``k`` is not ``None``, return the ``k``-th power of it.
 
@@ -1100,8 +1168,15 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             E(7)^3
             sage: UCF.gen(4,2)
             -1
+
+        There is an alias ``zeta`` also available::
+
+            sage: UCF.zeta(6)
+            -E(3)^2
         """
         return self.element_class(self, libgap.E(n)**k)
+
+    zeta = gen
 
     def _element_constructor_(self, elt):
         r"""

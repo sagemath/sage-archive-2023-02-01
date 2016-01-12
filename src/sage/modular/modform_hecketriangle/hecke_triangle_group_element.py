@@ -2089,7 +2089,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: U[1][0].parent()
             Maximal Order in Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1
         """
-        return self._matrix.__getitem__(key)
+        return self._matrix[key]
 
     def a(self):
         r"""

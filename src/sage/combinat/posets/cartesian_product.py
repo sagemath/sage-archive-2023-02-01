@@ -20,7 +20,7 @@ from sage.sets.cartesian_product import CartesianProduct
 
 class CartesianProductPoset(CartesianProduct):
     r"""
-    A class implementing cartesian products of posets (and elements
+    A class implementing Cartesian products of posets (and elements
     thereof). Compared to :class:`CartesianProduct` you are able to
     specify an order for comparison of the elements.
 
@@ -41,7 +41,7 @@ class CartesianProductPoset(CartesianProduct):
 
       - ``'product'`` -- an element is less or equal to another
         element, if less or equal is true for all its components
-        (cartesian projections).
+        (Cartesian projections).
 
       - A function which performs the comparison `\leq`. It takes two
         input arguments and outputs a boolean.
@@ -132,7 +132,7 @@ class CartesianProductPoset(CartesianProduct):
         .. NOTE::
 
             This method uses the order defined on creation of this
-            cartesian product. See :class:`CartesianProductPoset`.
+            Cartesian product. See :class:`CartesianProductPoset`.
 
         EXAMPLES::
 
@@ -432,8 +432,7 @@ class CartesianProductPoset(CartesianProduct):
                 sage: C((1/3, 2)) >= C((2, 2))
                 False
             """
-            return other.__le__(self)
-
+            return other <= self
 
         def __lt__(self, other):
             r"""
@@ -467,8 +466,7 @@ class CartesianProductPoset(CartesianProduct):
                 sage: C((1/3, 2)) < C((2, 2))
                 True
             """
-            return not self == other and self.__le__(other)
-
+            return not self == other and self <= other
 
         def __gt__(self, other):
             r"""
@@ -502,4 +500,4 @@ class CartesianProductPoset(CartesianProduct):
                 sage: C((1/3, 2)) > C((2, 2))
                 False
             """
-            return not self == other and other.__le__(self)
+            return not self == other and other <= self

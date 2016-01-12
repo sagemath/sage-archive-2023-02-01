@@ -835,7 +835,7 @@ cdef class MultiModularBasis_base:
             [10007, 10009]
 
         """
-        return self.list().__iter__()
+        return iter(self.list())
 
     def __getitem__(self, ix):
         """

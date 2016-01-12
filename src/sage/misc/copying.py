@@ -7,7 +7,7 @@ from sage.env import SAGE_ROOT
 
 class License:
     def __call__(self):
-        pager.pager()(self.__str__())
+        pager.pager()(str(self))
 
     def __repr__(self):
         return "Type license() to see the full license text."

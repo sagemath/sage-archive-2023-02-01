@@ -215,6 +215,16 @@ def list_of_subfunctions(root, only_local_functions=True):
         sage: l = list_of_subfunctions(Graph)[0]
         sage: Graph.bipartite_color in l
         True
+
+    TESTS:
+
+    A ``staticmethod`` is not callable. We must handle them correctly, however::
+
+        sage: class A:
+        ....:     x = staticmethod(Graph.order)
+        sage: list_of_subfunctions(A)
+        ([<unbound method Graph.order>], {<unbound method Graph.order>: 'x'})
+
     """
     import inspect
     if inspect.ismodule(root):
@@ -235,12 +245,13 @@ def list_of_subfunctions(root, only_local_functions=True):
             return inspect.isclass(root) or not (f is gen_rest_table_index)
 
     functions =  {getattr(root,name):name for name,f in root.__dict__.items() if
-                  (not name.startswith('_')     and # private functions
-                   not hasattr(f,'trac_number') and # deprecated functions
-                   not inspect.isclass(f)       and # classes
-                   callable(f)                  and # e.g. GenericGraph.graphics_array_defaults
-                   local_filter(f,name))            # possibly filter imported functions
+                  (not name.startswith('_')          and # private functions
+                   not hasattr(f,'trac_number')      and # deprecated functions
+                   not inspect.isclass(f)            and # classes
+                   callable(getattr(f,'__func__',f)) and # e.g. GenericGraph.graphics_array_defaults
+                   local_filter(f,name))                 # possibly filter imported functions
                   }
+
     return functions.keys(),functions
 
 def gen_thematic_rest_table_index(root,additional_categories=None,only_local_functions=True):

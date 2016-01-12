@@ -101,7 +101,7 @@ def difference_matrix_product(k, M1, G1, lmbda1, M2, G2, lmbda2, check=True):
         sage: G2
         Finite Field of size 7
         sage: G
-        The cartesian product of (Finite Field of size 11, Finite Field of size 7)
+        The Cartesian product of (Finite Field of size 11, Finite Field of size 7)
         sage: is_difference_matrix(M,G,6,1)
         True
     """

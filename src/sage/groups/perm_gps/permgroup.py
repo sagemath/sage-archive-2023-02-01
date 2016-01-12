@@ -721,7 +721,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.list()
             [(), ('a','b')]
         """
-        return list(self.__iter__())
+        return [x for x in self]
 
     def __contains__(self, item):
         """
@@ -1438,13 +1438,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         - A list of lists of permutations from the group, which form a strong
           generating system.
 
-        TESTS::
-
-            sage: G = SymmetricGroup(10)
-            sage: H = PermutationGroup([G.random_element() for i in range(randrange(1,3,1))])
-            sage: prod(map(lambda x : len(x), H.strong_generating_system()),1) == H.cardinality()
-            True
-
         EXAMPLES::
 
             sage: G = PermutationGroup([[(7,8)],[(3,4)],[(4,5)]])
@@ -1467,6 +1460,14 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = TransitiveGroup(12,17)                # optional - database_gap
             sage: G.strong_generating_system()              # optional - database_gap
             [[(), (1,4,11,2)(3,6,5,8)(7,10,9,12), (1,8,3,2)(4,11,10,9)(5,12,7,6), (1,7)(2,8)(3,9)(4,10)(5,11)(6,12), (1,12,7,2)(3,10,9,8)(4,11,6,5), (1,11)(2,8)(3,5)(4,10)(6,12)(7,9), (1,10,11,8)(2,3,12,5)(4,9,6,7), (1,3)(2,8)(4,10)(5,7)(6,12)(9,11), (1,2,3,8)(4,9,10,11)(5,6,7,12), (1,6,7,8)(2,3,4,9)(5,10,11,12), (1,5,9)(3,11,7), (1,9,5)(3,7,11)], [(), (2,6,10)(4,12,8), (2,10,6)(4,8,12)], [()], [()], [()], [()], [()], [()], [()], [()], [()], [()]]
+
+        TESTS::
+
+            sage: G = SymmetricGroup(10)
+            sage: H = PermutationGroup([G.random_element() for i in range(randrange(1,3,1))])
+            sage: prod(map(lambda x : len(x), H.strong_generating_system()),1) == H.cardinality()
+            True
+
         """
         sgs = []
         stab = self
@@ -3273,7 +3274,9 @@ class PermutationGroup_generic(group.FiniteGroup):
               parameter := 5,
               series := "Z" )
 
-        TESTS: This shows that the issue at trac ticket 7360 is fixed::
+        TESTS:
+
+        This shows that the issue at trac ticket 7360 is fixed::
 
             sage: G = KleinFourGroup()
             sage: G.is_simple()

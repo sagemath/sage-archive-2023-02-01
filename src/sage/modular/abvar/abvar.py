@@ -831,7 +831,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: B + J0(33)[2]
             Abelian subvariety of dimension 2 of J0(33)
 
-        TESTS: This exposed a bug in HNF (see :trac:`4527`)::
+        TESTS:
+
+        This exposed a bug in HNF (see trac #4527)::
 
             sage: A = J0(206).new_subvariety().decomposition()[3] ; A # long time
             Simple abelian subvariety 206d(1,206) of dimension 4 of J0(206)
@@ -975,9 +977,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J0(11).direct_product(J1(13))
             Abelian variety J0(11) x J1(13) of dimension 3
         """
-        return self.__div__(other)
+        return self / other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Compute the quotient of self and other, where other is either an
         abelian subvariety of self or a finite subgroup of self.

@@ -135,8 +135,6 @@ class Graphics(WithEqualityById, SageObject):
         sage: isinstance(g2, Graphics)
         True
 
-    TESTS::
-
         sage: hash(Graphics()) # random
         42
 
@@ -866,7 +864,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: P._repr_()
             'Graphics object consisting of 1 graphics primitive'
         """
-        return self.__str__()
+        return str(self)
 
     def _rich_repr_(self, display_manager, **kwds):
         """
@@ -1962,17 +1960,6 @@ class Graphics(WithEqualityById, SageObject):
 
         TESTS:
 
-        The figsize width and height parameters (at default dpi) must be
-        less than 328 inches each, corresponding to the maximum allowed
-        pixels in each direction of 32768.  See :trac:`5956` for more about
-        the next several tests::
-
-            sage: p = ellipse((0,0),4,1)
-            sage: p.show(figsize=[328,10],dpi=100)
-            Traceback (most recent call last):
-            ...
-            ValueError: width and height must each be below 32768
-
         The following tests result in a segmentation fault and should not
         be run or doctested::
 
@@ -2014,7 +2001,7 @@ class Graphics(WithEqualityById, SageObject):
             ValueError: figsize should be a positive number or a list of two positive numbers, not [2, 3, 4]
             sage: P.show(figsize=[sqrt(2),sqrt(3)])
 
-        TESTS::
+        ::
 
             sage: P = plot(x^2,(x,0,1))
             sage: P.show(linkmode=True)
@@ -3330,7 +3317,7 @@ class GraphicsArray(WithEqualityById, SageObject):
             sage: graphics_array(L,2,3)
             Graphics Array of size 2 x 3
         """
-        return self.__str__()
+        return str(self)
 
     def _rich_repr_(self, display_manager, **kwds):
         """

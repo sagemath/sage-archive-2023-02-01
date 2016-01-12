@@ -75,7 +75,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
        for each coloring
 
     * `hex_colors` -- (default: ``False``) when set to ``False``, it labels
-      the colors [0,1,..,``n``-1], otherwise it uses the RGB Hex labeling
+      the colors [0,1,.., ``n`` - 1], otherwise it uses the RGB Hex labeling
 
     * `vertex_color_dict` -- (default: ``False``) when set to ``True``, it
       returns a dictionary {vertex:color}, otherwise it returns a dictionary
@@ -125,14 +125,14 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: n = 0
         sage: for C in all_graph_colorings(G,3,hex_colors=True):
-        ...       parts = [C[k] for k in C]
-        ...       for P in parts:
-        ...           l = len(P)
-        ...           for i in range(l):
-        ...               for j in range(i+1,l):
-        ...                   if G.has_edge(P[i],P[j]):
-        ...                       raise RuntimeError, "Coloring Failed."
-        ...       n+=1
+        ....:     parts = [C[k] for k in C]
+        ....:     for P in parts:
+        ....:         l = len(P)
+        ....:         for i in range(l):
+        ....:             for j in range(i+1,l):
+        ....:                 if G.has_edge(P[i],P[j]):
+        ....:                     raise RuntimeError("Coloring Failed.")
+        ....:     n+=1
         sage: print "G has %s 3-colorings."%n
         G has 12 3-colorings.
 

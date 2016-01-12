@@ -18,7 +18,6 @@ fi
 #   but if they are not empty, the -g -O2 is not added
 CXXFLAGS="-g -O2 $CXXFLAGS"
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-LDFLAGS="-L$SAGE_LOCAL/lib/ $LDFLAGS"
 
 
 

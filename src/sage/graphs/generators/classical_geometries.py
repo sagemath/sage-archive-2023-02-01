@@ -224,7 +224,7 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     - ``point_type`` -- a list of elements from `F_q`
 
     EXAMPLES:
-    
+
     Petersen graph::
 `
         sage: from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
@@ -452,7 +452,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'+')
         sage: g.is_strongly_regular(parameters=True)
         (136, 75, 42, 40)
-        sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'-') 
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'-')
         sage: g.is_strongly_regular(parameters=True)
         (120, 51, 18, 24)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(7,4,'+'); g # not tested (long time)
@@ -486,7 +486,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,4,'+')
         Traceback (most recent call last):
         ...
-        ValueError: for m even q must be 2 or 3 
+        ValueError: for m even q must be 2 or 3
 
     """
     from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
@@ -806,7 +806,7 @@ def SymplecticDualPolarGraph(m, q):
         Traceback (most recent call last):
         ...
         ValueError: libGAP: Error, <subfield> must be a prime or a finite field
-    
+
     REFERENCE:
 
     .. [Co81] A. M. Cohen,
@@ -1101,4 +1101,122 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     else:
         G = IncidenceStructure(L).dual().intersection_graph()
         G.name('T2*(O,'+str(q)+'); GQ'+str((q-1,q+1)))
+    return G
+
+def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_hyperoval=True):
+    r"""
+    Return the Haemers graph obtained from `T_2^*(q)^*`
+
+    Let `q` be a power of 2. In Sect. 8.A of [BvL84]_ one finds a construction
+    of a strongly regular graph with parameters `(q^2(q+2),q^2+q-1,q-2,q)` from
+    the graph of `T_2^*(q)^*`, constructed by
+    :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
+    by redefining adjacencies in the way specified by an arbitrary ``hyperoval_matching``
+    of the the points (i.e. partitioning into size two parts) of ``hyperoval`` defining
+    `T_2^*(q)^*`.
+
+    While [BvL84]_ gives the construction in geometric terms, it can be formulated,
+    and is implemented, in graph-theoretic ones, of re-adjusting the edges.
+    Namely, `G=T_2^*(q)^*` has a partition
+    into `q+2` independent sets `I_k` of size `q^2` each. Each vertex in `I_j` is
+    adajcent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
+    according to ``hyperoval_matching``. One adds edges `(s,t)` for `s,t \in I_k` whenever
+    `s` and `t` are adjacent to some `u \in I_{k'}`, and removes all the edges
+    between `I_k` and `I_{k'}`.
+
+    INPUT:
+
+    - ``q`` -- a power of two
+
+    - ``hyperoval_matching`` -- if ``None`` (default), pair each `i`-th point of
+      ``hyperoval`` with `(i+1)`-th. Otherwise, specifies the pairing
+      in the format `((i_1,i'_1),(i_2,i'_2),...)`.
+
+    - ``hyperoval`` -- a hyperoval defining `T_2^*(q)^*`. If ``None`` (default),
+      the classical hyperoval obtained from a conic is used. See the
+      documentation of
+      :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
+      for more information.
+
+    - ``field`` -- an instance of a finite field of order `q`, must be provided
+      if ``hyperoval`` is provided.
+
+    - ``check_hyperoval`` -- (default: ``True``) if ``True``, check
+      ``hyperoval`` for correctness.
+
+    EXAMPLES:
+
+    using the built-in constructions::
+
+        sage: g=graphs.HaemersGraph(4); g
+        Haemers(4): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 19, 2, 4)
+
+    supplying your own hyperoval_matching::
+
+        sage: g=graphs.HaemersGraph(4,hyperoval_matching=((0,5),(1,4),(2,3))); g
+        Haemers(4): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 19, 2, 4)
+
+    TESTS::
+
+        sage: F=GF(4,'b') # repeating a point...
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval size
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval
+
+        sage: g=graphs.HaemersGraph(8); g               # not tested (long time)
+        Haemers(8): Graph on 640 vertices
+        sage: g.is_strongly_regular(parameters=True)    # not tested (long time)
+        (640, 71, 6, 8)
+
+    """
+    from sage.modules.free_module_element import free_module_element as vector
+    from sage.rings.finite_rings.constructor import GF
+    from itertools import combinations
+
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p!=2:
+        raise ValueError('q must be a power of 2')
+
+    if hyperoval_matching is None:
+        hyperoval_matching = map(lambda k: (2*k+1,2*k), xrange(1+q/2))
+    if field is None:
+        F = GF(q,'a')
+    else:
+        F = field
+
+    # for q=8, 95% of CPU time taken by this function is spent in the follwing call
+    G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval, check_hyperoval=check_hyperoval)
+
+    def normalize(v):  # make sure the 1st non-0 coordinate is 1.
+        d=next(x for x in v if x!=F.zero())
+        return vector(map(lambda x: x/d, v))
+
+    # build the partition into independent sets
+    P = map(lambda x: normalize(x[0]-x[1]), G.vertices())
+    O = list(set(map(tuple,P)))
+    I_ks = {x:[] for x in range(q+2)} # the partition into I_k's
+    for i in xrange(len(P)):
+        I_ks[O.index(tuple(P[i]))].append(i)
+
+    # perform the adjustment of the edges, as described.
+    G.relabel()
+    cliques = []
+    for i,j in hyperoval_matching:
+        Pij = set(I_ks[i]+I_ks[j])
+        for v in Pij:
+            cliques.append(Pij.intersection(G.neighbors(v)))
+        G.delete_edges(G.edge_boundary(I_ks[i],I_ks[j])) # edges on (I_i,I_j)
+    G.add_edges(e for c in cliques for e in combinations(c,2))
+    G.name('Haemers('+str(q)+')')
     return G

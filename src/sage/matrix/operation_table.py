@@ -479,6 +479,7 @@ class OperationTable(SageObject):
             ()
 
         TESTS:
+
         We test the error conditions here, rather than as part of the
         doctests for the :class:`OperationTable` and :meth:`change_names`
         methods that rely on this one. ::
@@ -641,7 +642,7 @@ class OperationTable(SageObject):
             sage: P != P, P != Q, P != R, P != S
             (False, False, True, True)
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def _repr_(self):
         r"""

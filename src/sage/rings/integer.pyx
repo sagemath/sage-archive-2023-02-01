@@ -153,9 +153,11 @@ from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent_c, coercion_model)
 include "sage/ext/python_debug.pxi"
 from sage.libs.pari.paridecl cimport *
+include "sage/libs/pari/pari_err.pxi"
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
+from sage.libs.ntl.convert cimport mpz_to_ZZ
 
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
@@ -639,13 +641,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if isinstance(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
-            elif PyInt_Check(x):
+            elif isinstance(x, int):
                 mpz_set_si(self.value, PyInt_AS_LONG(x))
 
-            elif PyLong_Check(x):
+            elif isinstance(x, long):
                 mpz_set_pylong(self.value, x)
 
-            elif PyFloat_Check(x):
+            elif isinstance(x, float):
                 n = long(x)
                 if n == x:
                     mpz_set_pylong(self.value, n)
@@ -895,7 +897,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set_pylong(mpz_tmp, right)
                 c = mpz_cmp((<Integer>left).value, mpz_tmp)
             elif isinstance(right, float):
-                d = PyFloat_AsDouble(right)
+                d = right
                 if isnan(d): return op == 3
                 c = mpz_cmp_d((<Integer>left).value, d)
             else:
@@ -907,7 +909,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set_pylong(mpz_tmp, left)
                 c = mpz_cmp(mpz_tmp, (<Integer>right).value)
             if isinstance(left, float):
-                d = PyFloat_AsDouble(left)
+                d = left
                 if isnan(d): return op == 3
                 c = -mpz_cmp_d((<Integer>right).value, d)
             else:
@@ -1051,7 +1053,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_on()
         mpz_get_str(s, base, self.value)
         sig_off()
-        k = <object> PyString_FromString(s)
+        k = <bytes>s
         sage_free(s)
         return k
 
@@ -2552,32 +2554,77 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     prime_factors = prime_divisors
 
+
+    cpdef list _pari_divisors_small(self):
+        r"""
+        Return the list of divisors of this number using PARI ``divisorsu``.
+
+        .. SEEALSO::
+
+        This method is better used through :meth:`divisors`.
+
+        EXAMPLES::
+
+            sage: 4._pari_divisors_small()
+            [1, 2, 4]
+
+        The integer must fit into an unsigned long::
+
+            sage: (-4)._pari_divisors_small()
+            Traceback (most recent call last):
+            ...
+            AssertionError
+            sage: (2**65)._pari_divisors_small()
+            Traceback (most recent call last):
+            ...
+            AssertionError
+        """
+        # we need n to fit into a long and not a unsigned long in order to use
+        # smallInteger
+        assert mpz_fits_slong_p(self.value) and mpz_sgn(self.value) > 0
+
+        cdef unsigned long n = mpz_get_ui(self.value)
+
+        global avma
+        cdef pari_sp ltop = avma
+        cdef GEN d
+        cdef list output
+
+        try:
+            pari_catch_sig_on()
+            d = divisorsu(n)
+            pari_catch_sig_off()
+            output = [smallInteger(d[i]) for i in range(1,lg(d))]
+            return output
+        finally:
+            avma = ltop
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def divisors(self):
+    def divisors(self, method=None):
         """
         Returns a list of all positive integer divisors of the integer
         self.
 
         EXAMPLES::
 
-            sage: a = -3; a.divisors()
+            sage: (-3).divisors()
             [1, 3]
-            sage: a = 6; a.divisors()
+            sage: 6.divisors()
             [1, 2, 3, 6]
-            sage: a = 28; a.divisors()
+            sage: 28.divisors()
             [1, 2, 4, 7, 14, 28]
-            sage: a = 2^5; a.divisors()
+            sage: (2^5).divisors()
             [1, 2, 4, 8, 16, 32]
-            sage: a = 100; a.divisors()
+            sage: 100.divisors()
             [1, 2, 4, 5, 10, 20, 25, 50, 100]
-            sage: a = 1; a.divisors()
+            sage: 1.divisors()
             [1]
-            sage: a = 0; a.divisors()
+            sage: 0.divisors()
             Traceback (most recent call last):
             ...
             ValueError: n must be nonzero
-            sage: a = 2^3 * 3^2 * 17; a.divisors()
+            sage: (2^3 * 3^2 * 17).divisors()
             [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72, 102, 136, 153, 204, 306, 408, 612, 1224]
             sage: a = odd_part(factorial(31))
             sage: v = a.divisors(); len(v)
@@ -2621,7 +2668,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ....:     except AlarmInterrupt:
             ....:         pass
 
-        .. note::
+        Test a strange method::
+
+            sage: 100.divisors(method='hey')
+            Traceback (most recent call last):
+            ...
+            ValueError: method must be 'pari' or 'sage'
+
+
+        .. NOTE::
 
            If one first computes all the divisors and then sorts it,
            the sorting step can easily dominate the runtime. Note,
@@ -2630,13 +2685,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            keep the list in order as one computes it using a process
            similar to that of the merge sort algorithm.
         """
+        if mpz_cmp_ui(self.value, 0) == 0:
+            raise ValueError("n must be nonzero")
+
+        if (method is None or method == 'pari') and mpz_fits_slong_p(self.value):
+            if mpz_sgn(self.value) > 0:
+                return self._pari_divisors_small()
+            else:
+                return (-self)._pari_divisors_small()
+        elif method is not None and method != 'sage':
+            raise ValueError("method must be 'pari' or 'sage'")
+
         cdef list all, prev, sorted
         cdef Py_ssize_t tip, top
         cdef Py_ssize_t i, j, e, ee
         cdef Integer apn, p, pn, z, all_tip
 
-        if not self:
-            raise ValueError, "n must be nonzero"
         f = self.factor()
 
         # All of the declarations below are for optimizing the unsigned long-sized
@@ -3383,12 +3447,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
              Lenstra's elliptic curve method.
 
         - ``proof`` - bool (default: True) whether or not to prove
-           primality of each factor (only applicable for ``'pari'``
-           and ``'ecm'``).
+          primality of each factor (only applicable for ``'pari'``
+          and ``'ecm'``).
 
-        -  ``limit`` - int or None (default: None) if limit is
-           given it must fit in a signed int, and the factorization is done
-           using trial division and primes up to limit.
+        - ``limit`` - int or None (default: None) if limit is
+          given it must fit in a signed int, and the factorization is done
+          using trial division and primes up to limit.
 
         OUTPUT:
 
@@ -3455,6 +3519,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
+            sage: n = 42
             sage: n.factor(algorithm='foobar')
             Traceback (most recent call last):
             ...
@@ -3463,12 +3528,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         from sage.structure.factorization import Factorization
         from sage.structure.factorization_integer import IntegerFactorization
 
+        if algorithm not in ['pari', 'kash', 'magma', 'qsieve', 'ecm']:
+            raise ValueError("Algorithm is not known")
+
         cdef Integer n, p, unit
         cdef int i
         cdef n_factor_t f
 
         if mpz_sgn(self.value) == 0:
-            raise ArithmeticError, "Prime factorization of 0 not defined."
+            raise ArithmeticError("Prime factorization of 0 not defined.")
 
         if mpz_sgn(self.value) > 0:
             n    = self
@@ -3528,13 +3596,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             res = [(p, 1) for p in qsieve(n)[0]]
             F = IntegerFactorization(res, unit)
             return F
-        elif algorithm == 'ecm':
+        else:
             from sage.interfaces.ecm import ecm
             res = [(p, 1) for p in ecm.factor(n, proof=proof)]
             F = IntegerFactorization(res, unit)
             return F
-        else:
-            raise ValueError, "Algorithm is not known"
 
     def support(self):
         """
@@ -5405,34 +5471,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return str(self)
 
-    property __array_interface__:
-        def __get__(self):
-            """
-            Used for NumPy conversion.
+    @property
+    def __array_interface__(self):
+        """
+        Used for NumPy conversion.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import numpy
-                sage: numpy.array([1, 2, 3])
-                array([1, 2, 3])
-                sage: numpy.array([1, 2, 3]).dtype
-                dtype('int32')                         # 32-bit
-                dtype('int64')                         # 64-bit
+            sage: import numpy
+            sage: numpy.array([1, 2, 3])
+            array([1, 2, 3])
+            sage: numpy.array([1, 2, 3]).dtype
+            dtype('int32')                         # 32-bit
+            dtype('int64')                         # 64-bit
 
-                sage: numpy.array(2**40).dtype
-                dtype('int64')
-                sage: numpy.array(2**400).dtype
-                dtype('O')
+            sage: numpy.array(2**40).dtype
+            dtype('int64')
+            sage: numpy.array(2**400).dtype
+            dtype('O')
 
-                sage: numpy.array([1,2,3,0.1]).dtype
-                dtype('float64')
-            """
-            if mpz_fits_slong_p(self.value):
-                return numpy_long_interface
-            elif sizeof(long) == 4 and mpz_sizeinbase(self.value, 2) <= 63:
-                return numpy_int64_interface
-            else:
-                return numpy_object_interface
+            sage: numpy.array([1,2,3,0.1]).dtype
+            dtype('float64')
+        """
+        if mpz_fits_slong_p(self.value):
+            return numpy_long_interface
+        elif sizeof(long) == 4 and mpz_sizeinbase(self.value, 2) <= 63:
+            return numpy_int64_interface
+        else:
+            return numpy_object_interface
 
     def _magma_init_(self, magma):
         """
@@ -5851,6 +5917,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: n._shift_helper(-100, -1)
             1564280840681635081446931755433984
+
+        TESTS::
+
+            sage: 1 << (2^60)
+            Traceback (most recent call last):
+            ...
+            MemoryError: failed to allocate ... bytes   # 64-bit
+            OverflowError: ...                          # 32-bit
         """
         cdef long n
 
@@ -5885,10 +5959,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # Now finally call into MPIR to do the shifting.
         cdef Integer z = PY_NEW(Integer)
+        sig_on()
         if n < 0:
             mpz_fdiv_q_2exp(z.value, self.value, -n)
         else:
             mpz_mul_2exp(z.value, self.value, n)
+        sig_off()
         return z
 
     def __lshift__(x, y):

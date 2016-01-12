@@ -62,7 +62,8 @@ EXAMPLES::
     sage: a.rank()
     3
 
-TESTS:
+TESTS::
+
     sage: matrix(Integers(37),0,0,sparse=True).inverse()
     []
 """

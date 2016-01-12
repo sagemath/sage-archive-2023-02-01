@@ -322,8 +322,10 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
             [0 1]
         """
         parent = self.parent()
-        return parent.element_class(parent, self._matrix * other._matrix,
-                                    check=False, convert=False)
+        M = self._matrix * other._matrix
+        # Make it immutable so the constructor doesn't make a copy
+        M.set_immutable()
+        return parent.element_class(parent, M, check=False, convert=False)
 
     def __invert__(self):
         """
@@ -347,7 +349,10 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
            [0 1]
         """
         parent = self.parent()
-        return parent.element_class(parent, ~self._matrix, check=False, convert=False)
+        M = ~self._matrix
+        # Make it immutable so the constructor doesn't make a copy
+        M.set_immutable()
+        return parent.element_class(parent, M, check=False, convert=False)
 
     inverse = __invert__
 
@@ -427,14 +432,19 @@ class MatrixGroupElement_gap(GroupElementMixinLibGAP, MatrixGroupElement_base, E
             sage: F = GF(3); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
-            sage: G.gen(0).matrix()
+            sage: m = G.gen(0).matrix(); m
             [1 0]
             [0 1]
-            sage: _.parent()
+            sage: m.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
         """
-        g = self.gap()
-        m = g.matrix(self.base_ring())
+        # We do a slightly specialized version of sage.libs.gap.element.GapElement.matrix()
+        #   in order to use our current matrix space directly and avoid
+        #   some overhead safety checks.
+        entries = self.gap().Flat()
+        MS = self.parent().matrix_space()
+        ring = MS.base_ring()
+        m = MS([x.sage(ring=ring) for x in entries])
         m.set_immutable()
         return m
 

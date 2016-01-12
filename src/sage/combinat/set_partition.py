@@ -1170,8 +1170,13 @@ class SetPartitions(UniqueRepresentation, Parent):
             return False
 
         for p in s:
-            if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
-                return False
+            x = p[0]
+            for t_ in t:
+                if x in t_:
+                    break
+            for p_ in p:
+                if p_ not in t_:
+                    return False
         return True
 
     lt = is_less_than

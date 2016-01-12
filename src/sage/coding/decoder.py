@@ -285,7 +285,7 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D.decoding_radius()
-            1
+            7
         """
         raise NotImplementedError
 

@@ -977,9 +977,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J0(11).direct_product(J1(13))
             Abelian variety J0(11) x J1(13) of dimension 3
         """
-        return self.__div__(other)
+        return self / other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Compute the quotient of self and other, where other is either an
         abelian subvariety of self or a finite subgroup of self.

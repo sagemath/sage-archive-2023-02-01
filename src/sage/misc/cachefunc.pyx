@@ -475,7 +475,6 @@ cdef extern from "methodobject.h":
     cdef int METH_NOARGS, METH_O
     cdef int PyCFunction_GetFlags(object op) except -1
 
-from function_mangling import ArgumentFixer
 import os
 from os.path import relpath,normpath,commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
@@ -498,6 +497,7 @@ cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
             '__rmod__', '__rmul__', '__ror__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__',
             '__rtruediv__', '__rxor__', '__set__', '__setattr__', '__setitem__', '__setslice__', '__sizeof__',
             '__str__', '__sub__', '__subclasscheck__', '__truediv__', '__unicode__', '__xor__', 'next'])
+
 
 def _cached_function_unpickle(module,name):
     """
@@ -670,7 +670,7 @@ cdef class CachedFunction(object):
         sage: mul(1,1,algorithm="default") is mul(1,1,algorithm="algorithm") is mul(1,1) is mul(1,1,'default')
         True
     """
-    def __init__(self, f, classmethod=False, name=None, key=None):
+    def __init__(self, f, *, classmethod=False, name=None, key=None):
         """
         Create a cached version of a function, which only recomputes
         values it hasn't already computed. A custom name can be
@@ -736,12 +736,23 @@ cdef class CachedFunction(object):
         if argument_fixer is not None: # it is None unless the argument fixer
                                        # was known previously. See #15038.
             self._argument_fixer = argument_fixer
-            if self.key is None:
-                self._fix_to_pos = argument_fixer.fix_to_pos
-            else:
-                self._fix_to_pos = self._fix_to_pos_and_create_key
 
-    cdef argfix_init(self):
+    cdef get_key_args_kwds(self, tuple args, dict kwds):
+        """
+        Return the key in the cache to be used when ``args`` and
+        ``kwds`` are passed in as parameters.
+
+        See ``get_key`` for the Python interface and tests.
+        """
+        # The key for "no arguments" is cached in empty_key
+        if not args and not kwds:
+            if self.empty_key is None:
+                self.empty_key = self.fix_args_kwds(args, kwds)
+            return self.empty_key
+
+        return self.fix_args_kwds(args, kwds)
+
+    cdef int argfix_init(self) except -1:
         """
         TESTS::
 
@@ -750,36 +761,30 @@ cdef class CachedFunction(object):
             ....:     return -x
             sage: test_cache(1)
             -1
-            sage: test_cache._fix_to_pos is not None  # indirect doctest
-            True
-
         """
-        A = ArgumentFixer(self.f,classmethod=self.is_classmethod)
-        self._argument_fixer = A
-        if self.key:
-            self._fix_to_pos = self._fix_to_pos_and_create_key
-        else:
-            self._fix_to_pos = A.fix_to_pos
+        self._argument_fixer = ArgumentFixer(self.f,
+                classmethod=self.is_classmethod)
 
-    def _fix_to_pos_and_create_key(self, *args, **kwargs):
+    cdef fix_args_kwds(self, tuple args, dict kwds):
         r"""
         Normalize parameters to obtain a key for the cache.
-
-        For performance reasons, this method is only called if a ``create_key`` has been passed in
-        the constructor.
 
         TESTS::
 
             sage: @cached_function(key=lambda x,y,algorithm: (x,y))
             ....: def mul(x, y, algorithm="default"):
             ....:     return x*y
-            sage: mul(2,3) # this initializes _argument_fixer
-            6
-            sage: mul._fix_to_pos_and_create_key(1,1,"default")
+            sage: mul.get_key(1,1,"default")  # indirect doctest
             (1, 1)
         """
-        args, kwargs = self._argument_fixer.fix_to_pos(*args, **kwargs)
-        return self.key(*args, **dict(kwargs))
+        if self._argument_fixer is None:
+            self.argfix_init()
+
+        k = self._argument_fixer.fix_to_pos_args_kwds(args, kwds)
+        if self.key is None:
+            return k
+        else:
+            return self.key(*k[0], **dict(k[1]))
 
     def __reduce__(self):
         """
@@ -844,7 +849,7 @@ cdef class CachedFunction(object):
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_SRC, SAGE_LIB
                 filename = sage_getfile(f)
-                
+
                 #it would be nice if we could be sure that SAGE_SRC and
                 #SAGE_LIB were already normalized (e.g. not end in a slash)
                 S=normpath(SAGE_SRC)
@@ -956,18 +961,7 @@ cdef class CachedFunction(object):
             True
 
         """
-        # We shortcut a common case of no arguments
-        if args or kwds:
-            if self._argument_fixer is None:
-                self.argfix_init()
-            k = self._fix_to_pos(*args, **kwds)
-        else:
-            if self._default_key is not None:
-                k = self._default_key
-            else:
-                if self._argument_fixer is None:
-                    self.argfix_init()
-                k = self._default_key = self._fix_to_pos()
+        k = self.get_key_args_kwds(args, kwds)
 
         try:
             try:
@@ -1041,9 +1035,7 @@ cdef class CachedFunction(object):
             True
 
         """
-        if self._argument_fixer is None:
-            self.argfix_init()
-        k = self._fix_to_pos(*args, **kwds)
+        k = self.get_key_args_kwds(args, kwds)
         try:
             return k in self.cache
         except TypeError:  # k is not hashable
@@ -1093,9 +1085,7 @@ cdef class CachedFunction(object):
             sage: g(5)         # todo: not implemented
             19
         """
-        if self._argument_fixer is None:
-            self.argfix_init()
-        k = self._fix_to_pos(*args, **kwds)
+        k = self.get_key_args_kwds(args, kwds)
         try:
             self.cache[k] = value
         except TypeError:  # k is not hashable
@@ -1118,10 +1108,44 @@ cdef class CachedFunction(object):
             ((2,), ())
             sage: foo.get_key(x=3)
             ((3,), ())
+
+        Examples for cached methods::
+
+            sage: class Foo:
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self, y, z=0):
+            ....:         return self._x * y + z
+            sage: a = Foo(2)
+            sage: z = a.f(37)
+            sage: k = a.f.get_key(37); k
+            ((37, 0), ())
+            sage: a.f.cache[k] is z
+            True
+
+        Note that the method does not test whether there are
+        too many arguments, or wrong argument names::
+
+            sage: a.f.get_key(1,2,3,x=4,y=5,z=6)
+            ((1, 2, 3), (('x', 4), ('y', 5), ('z', 6)))
+
+        It does, however, take into account the different
+        ways of providing named arguments, possibly with a
+        default value::
+
+            sage: a.f.get_key(5)
+            ((5, 0), ())
+            sage: a.f.get_key(y=5)
+            ((5, 0), ())
+            sage: a.f.get_key(5,0)
+            ((5, 0), ())
+            sage: a.f.get_key(5,z=0)
+            ((5, 0), ())
+            sage: a.f.get_key(y=5,z=0)
+            ((5, 0), ())
         """
-        if self._argument_fixer is None:
-            self.argfix_init()
-        return self._fix_to_pos(*args, **kwds)
+        return self.get_key_args_kwds(args, kwds)
 
     def __repr__(self):
         """
@@ -1180,16 +1204,17 @@ cdef class CachedFunction(object):
         """
         from sage.parallel.decorate import parallel, normalize_input
         P = parallel(num_processes)(self.f)
-        has_key = self.cache.has_key
-        if self._argument_fixer is None:
-            self.argfix_init()
-        get_key = self._fix_to_pos
-        new = lambda x: not has_key(get_key(*x[0],**x[1]))
-        arglist = filter(new, map(normalize_input, arglist))
-        for ((args,kwargs), val) in P(arglist):
+        cdef list arglist2 = []
+        for a in arglist:
+            ak = normalize_input(a)
+            if self.get_key_args_kwds(ak[0], ak[1]) not in self.cache:
+                arglist2.append(ak)
+        for ((args,kwargs), val) in P(arglist2):
             self.set_cache(val, *args, **kwargs)
 
+
 cached_function = decorator_keywords(CachedFunction)
+
 
 cdef class WeakCachedFunction(CachedFunction):
     """
@@ -1353,7 +1378,7 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: f.is_in_cache(t)
         True
     """
-    def __init__(self, f, classmethod=False, name=None, key=None):
+    def __init__(self, f, *, classmethod=False, name=None, key=None):
         """
         The inputs to the function must be hashable or they must define
         :meth:`sage.structure.sage_object.SageObject._cache_key`.
@@ -1609,6 +1634,7 @@ class CachedMethodPickle(object):
                     CM.cache[k] = v
         return getattr(CM,s)
 
+
 cdef class CachedMethodCaller(CachedFunction):
     """
     Utility class that is used by :class:`CachedMethod` to bind a
@@ -1634,7 +1660,7 @@ cdef class CachedMethodCaller(CachedFunction):
         sage: a.bar(2) is a.bar(x=2)
         True
     """
-    def __init__(self, CachedMethod cachedmethod, inst, cache=None, inst_in_key=False, name=None, key=None):
+    def __init__(self, CachedMethod cachedmethod, inst, *, cache=None, name=None, key=None):
         """
         EXAMPLES::
 
@@ -1664,7 +1690,6 @@ cdef class CachedMethodCaller(CachedFunction):
                           key=key)
         self.cache = {} if cache is None else cache
         self._instance = inst
-        self._inst_in_key = inst_in_key
         self._cachedmethod = cachedmethod
 
     def __reduce__(self):
@@ -1694,7 +1719,7 @@ cdef class CachedMethodCaller(CachedFunction):
         """
         Call the cached method without using the cache.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -1705,15 +1730,36 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: I.groebner_basis._instance_call() == I.groebner_basis()
             True
 
-        """
-        return self._cachedmethod._instance_call(self._instance, *args, **kwds)
+        ::
 
-    def _fix_to_pos_and_create_key(self, *args, **kwargs):
+            sage: class Foo(object):
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self,n=2):
+            ....:         return self._x^n
+            sage: a = Foo(2)
+            sage: a.f()
+            4
+
+        Usually, a cached method is indeed cached::
+
+            sage: a.f() is a.f()
+            True
+
+        However, when it becomes necessary, one can call it without
+        using the cache::
+
+            sage: a.f._instance_call() is a.f()
+            False
+            sage: a.f._instance_call() == a.f()
+            True
+        """
+        return self.f(self._instance, *args, **kwds)
+
+    cdef fix_args_kwds(self, tuple args, dict kwds):
         r"""
         Normalize parameters to obtain a key for the cache.
-
-        For performance reasons, this method is only called if a
-        ``create_key`` has been passed in the constructor.
 
         TESTS::
 
@@ -1725,9 +1771,14 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: a.f(1, algorithm="default") is a.f(1) is a.f(1, algorithm="algorithm")
             True
         """
-        args, kwargs = self._argument_fixer.fix_to_pos(*args, **kwargs)
-        ret = self.key(self._instance, *args, **dict(kwargs))
-        return ret
+        if self._argument_fixer is None:
+            self.argfix_init()
+
+        k = self._argument_fixer.fix_to_pos_args_kwds(args, kwds)
+        if self.key is None:
+            return k
+        else:
+            return self.key(self._instance, *k[0], **dict(k[1]))
 
     def __call__(self, *args, **kwds):
         """
@@ -1818,39 +1869,9 @@ cdef class CachedMethodCaller(CachedFunction):
             args = args[1:]
             return self._cachedmethod.__get__(instance)(*args, **kwds)
 
-        # We shortcut a common case of no arguments
-        # and we avoid calling another python function,
-        # although that means to duplicate code.
-        cdef int lenargs
-        cdef int nargs
-        cdef object k
-        cdef dict cache = self.cache
-        if kwds or self.key is not None:
-            if self._argument_fixer is None:
-                self.argfix_init()
-            if self._inst_in_key:
-                k = (self._instance,self._fix_to_pos(*args, **kwds))
-            else:
-                k = self._fix_to_pos(*args, **kwds)
-        else:
-            if args:
-                lenargs = len(args)
-                nargs = self._argument_fixer._nargs
-                if lenargs >= nargs:
-                    k = (args,())
-                else:
-                    k = (<tuple>args+(<tuple>self._argument_fixer._default_tuple)[-nargs+lenargs:],())
-                if self._inst_in_key:
-                    k = (self._instance, k)
-            elif self._default_key is not None:
-                k = self._default_key
-            else:
-                if self._argument_fixer is None:
-                    self.argfix_init()
-                if self._inst_in_key:
-                    k = self._default_key = (self._instance,self._fix_to_pos())
-                else:
-                    k = self._default_key = self._fix_to_pos()
+        k = self.get_key_args_kwds(args, kwds)
+
+        cdef dict cache = <dict>self.cache
         try:
             try:
                 return cache[k]
@@ -1858,58 +1879,11 @@ cdef class CachedMethodCaller(CachedFunction):
                 k = dict_key(k)
                 return cache[k]
         except KeyError:
-            w = self._cachedmethod._instance_call(self._instance, *args, **kwds)
+            w = self._instance_call(*args, **kwds)
             cache[k] = w
             return w
 
-    def get_key(self, *args, **kwds):
-        """
-        Convert arguments to the key for this instance's cache.
-
-        EXAMPLES::
-
-            sage: class Foo:
-            ....:     def __init__(self, x):
-            ....:         self._x = x
-            ....:     @cached_method
-            ....:     def f(self, y, z=0):
-            ....:         return self._x * y + z
-            sage: a = Foo(2)
-            sage: z = a.f(37)
-            sage: k = a.f.get_key(37); k
-            ((37, 0), ())
-            sage: a.f.cache[k] is z
-            True
-
-        Note that the method does not test whether there are
-        too many arguments, or wrong argument names::
-
-            sage: a.f.get_key(1,2,3,x=4,y=5,z=6)
-            ((1, 2, 3), (('x', 4), ('y', 5), ('z', 6)))
-
-        It does, however, take into account the different
-        ways of providing named arguments, possibly with a
-        default value::
-
-            sage: a.f.get_key(5)
-            ((5, 0), ())
-            sage: a.f.get_key(y=5)
-            ((5, 0), ())
-            sage: a.f.get_key(5,0)
-            ((5, 0), ())
-            sage: a.f.get_key(5,z=0)
-            ((5, 0), ())
-            sage: a.f.get_key(y=5,z=0)
-            ((5, 0), ())
-
-        """
-        if self._argument_fixer is None:
-            self.argfix_init()
-        if self._inst_in_key:
-            return (self._instance,self._fix_to_pos(*args,**kwds))
-        return self._fix_to_pos(*args,**kwds)
-
-    def __get__(self, inst, cls): #cls=None):
+    def __get__(self, inst, cls):
         r"""
         Get a :class:`CachedMethodCaller` bound to a specific
         instance of the class of the cached method.
@@ -1993,7 +1967,12 @@ cdef class CachedMethodCaller(CachedFunction):
             return (<dict>inst.__cached_methods)[self._cachedmethod._cachedfunc.__name__]
         except (AttributeError, TypeError, KeyError):
             pass
-        Caller = CachedMethodCaller(self._cachedmethod, inst, cache=self._cachedmethod._get_instance_cache(inst), inst_in_key=self._inst_in_key, name=self._cachedmethod._cachedfunc.__name__, key=self.key)
+
+        cls = type(self)
+        Caller = cls(self._cachedmethod, inst,
+                cache=self._cachedmethod._get_instance_cache(inst),
+                name=self._cachedmethod._cachedfunc.__name__, key=self.key)
+
         try:
             setattr(inst,self._cachedmethod._cachedfunc.__name__, Caller)
             return Caller
@@ -2039,14 +2018,14 @@ cdef class CachedMethodCaller(CachedFunction):
         """
         from sage.parallel.decorate import parallel, normalize_input
         P = parallel(num_processes)(self._instance_call)
-        has_key = self.cache.has_key
-        if self._argument_fixer is None:
-            self.argfix_init()
-        get_key = self._fix_to_pos
-        new = lambda x: not has_key(get_key(*x[0],**x[1]))
-        arglist = filter(new, map(normalize_input, arglist))
-        for ((args,kwargs), val) in P(arglist):
+        cdef list arglist2 = []
+        for a in arglist:
+            ak = normalize_input(a)
+            if self.get_key_args_kwds(ak[0], ak[1]) not in self.cache:
+                arglist2.append(ak)
+        for ((args,kwargs), val) in P(arglist2):
             self.set_cache(val, *args, **kwargs)
+
 
 cdef class CachedMethodCallerNoArgs(CachedFunction):
     """
@@ -2270,7 +2249,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         return self.cache is not None
 
-    def __get__(self, inst, cls): #cls=None):
+    def __get__(self, inst, cls):
         """
         Get a :class:`CachedMethodCallerNoArgs` bound to a specific
         instance of the class of the cached method.
@@ -2353,6 +2332,43 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         except AttributeError:
             pass
         return Caller
+
+
+cdef class GloballyCachedMethodCaller(CachedMethodCaller):
+    """
+    Implementation of cached methods in case that the cache is not
+    stored in the instance, but in some global object. In particular,
+    it is used to implement :class:`CachedInParentMethod`.
+
+    The only difference is that the instance is used as part of the
+    key.
+    """
+    cdef get_key_args_kwds(self, tuple args, dict kwds):
+        """
+        Return the key in the cache to be used when ``args`` and
+        ``kwds`` are passed in as parameters.
+
+        EXAMPLES::
+
+            sage: class MyParent(Parent):
+            ....:     pass
+            sage: class MyElement:
+            ....:     def __init__(self, x):
+            ....:         self.x = x
+            ....:     def parent(self):
+            ....:         return MyParent()
+            ....:     @cached_in_parent_method  #indirect doctest
+            ....:     def f(self):
+            ....:         return self.x^2
+            sage: a = MyElement(2)
+            sage: a.f.get_key()
+            (<__main__.MyElement instance at 0x...>, ((), ()))
+            sage: a.f.get_key()[0] is a
+            True
+        """
+        k = self.fix_args_kwds(args, kwds)
+        return (self._instance, k)
+
 
 cdef class CachedMethod(object):
     """
@@ -2476,46 +2492,6 @@ cdef class CachedMethod(object):
         self.__name__ = self._cachedfunc.__name__
         self.__module__ = self._cachedfunc.__module__
 
-    def _instance_call(self, inst, *args, **kwds):
-        """
-        Call the cached method *without* using the cache.
-
-        INPUT:
-
-        - ``inst`` -- an instance at which the method is to be called
-        - Further positional or named arguments.
-
-        EXAMPLES::
-
-            sage: class Foo(object):
-            ....:     def __init__(self, x):
-            ....:         self._x = x
-            ....:     @cached_method
-            ....:     def f(self,n=2):
-            ....:         return self._x^n
-            sage: a = Foo(2)
-            sage: a.f()
-            4
-
-        Usually, a cached method is indeed cached::
-
-            sage: a.f() is a.f()
-            True
-
-        However, when it becomes necessary, one can call it without
-        using the cache. Note that ``a.f`` is an instance of
-        :class:`CachedMethodCaller`.  But its
-        :meth:`CachedMethodCaller._instance_call` relies on this
-        method, so, we have an indirect doctest::
-
-            sage: a.f._instance_call() is a.f() # indirect doctest
-            False
-            sage: a.f._instance_call() == a.f()
-            True
-
-        """
-        return self._cachedfunc.f(inst, *args, **kwds)
-
     def __call__(self, inst, *args, **kwds):
         """
         Call the cached method as a function on an instance
@@ -2591,7 +2567,7 @@ cdef class CachedMethod(object):
         except AttributeError:
             return {}
 
-    def __get__(self, object inst, cls): #cls=None):
+    def __get__(self, object inst, cls):
         """
         Get a CachedMethodCaller bound to this specific instance of
         the class of the cached method.
@@ -2649,7 +2625,7 @@ cdef class CachedMethod(object):
         # Apparently we need to construct the caller.
         # Since we have an optimized version for functions that do not accept arguments,
         # we need to analyse the argspec
-        f = (<CachedFunction>self._cachedfunc).f
+        f = self._cachedfunc.f
         if self.nargs == 0:
             if isinstance(f, object) and not isfunction(f):
                 try:
@@ -2686,12 +2662,6 @@ cdef class CachedMethod(object):
             pass
         return Caller
 
-        # Note: a simpler approach to this would be
-        # def caller(*args, **kwds):
-        #     return self._instance_call(inst, *args, **kwds)
-        # return caller
-        # The disadvantage to this is that it does not provide
-        # is_in_cache(), set_cache(), clear_cache(), ... methods.
 
 cdef class CachedSpecialMethod(CachedMethod):
     """
@@ -2799,7 +2769,7 @@ cdef class CachedSpecialMethod(CachedMethod):
         # Apparently we need to construct the caller.
         # Since we have an optimized version for functions that do not accept arguments,
         # we need to analyse the argspec
-        f = (<CachedFunction>self._cachedfunc).f
+        f = self._cachedfunc.f
         if self.nargs == 0:
             args, varargs, keywords, defaults = sage_getargspec(f)
             if varargs is None and keywords is None and len(args)<=1:
@@ -2893,6 +2863,7 @@ def cached_method(f, name=None, key=None):
         return CachedSpecialMethod(f, name, key=key)
     return CachedMethod(f, name, key=key)
 
+
 cdef class CachedInParentMethod(CachedMethod):
     r"""
     A decorator that creates a cached version of an instance
@@ -2945,6 +2916,9 @@ cdef class CachedInParentMethod(CachedMethod):
             sage: a = Foo(2)
             sage: a.f()
             4
+            sage: b = Foo(3)
+            sage: b.f()
+            9
             sage: hasattr(a.parent(), '_cache__element_f')
             True
 
@@ -3044,19 +3018,21 @@ cdef class CachedInParentMethod(CachedMethod):
             P.__cached_methods = {}
         return (<dict>P.__cached_methods).setdefault(self._cache_name, {})
 
-    def __get__(self, inst, cls): #cls=None):
+    def __get__(self, inst, cls):
         """
         Get a CachedMethodCaller bound to this specific instance of
         the class of the cached-in-parent method.
         """
-        Caller = CachedMethodCaller(self, inst, cache=self._get_instance_cache(inst), inst_in_key=True, key=self._cachedfunc.key)
+        Caller = GloballyCachedMethodCaller(self, inst, cache=self._get_instance_cache(inst), key=self._cachedfunc.key)
         try:
             setattr(inst,self._cachedfunc.__name__, Caller)
         except AttributeError:
             pass
         return Caller
 
+
 cached_in_parent_method = decorator_keywords(CachedInParentMethod)
+
 
 class FileCache(object):
     """

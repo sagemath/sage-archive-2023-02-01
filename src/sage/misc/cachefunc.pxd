@@ -1,16 +1,19 @@
+from function_mangling cimport ArgumentFixer
+
 cpdef dict_key(o)
 cpdef cache_key(o)
 
 cdef class CachedFunction(object):
     cdef public str __name__
     cdef public str __module__
-    cdef _argument_fixer
-    cdef public _fix_to_pos
+    cdef ArgumentFixer _argument_fixer
     cdef public f
     cdef public cache  # not always of type <dict>
-    cdef _default_key
     cdef bint is_classmethod
-    cdef argfix_init(self)
+    cdef int argfix_init(self) except -1
+    cdef get_key_args_kwds(self, tuple args, dict kwds)
+    cdef fix_args_kwds(self, tuple args, dict kwds)
+    cdef empty_key
     cdef key
 
 cdef class CachedMethod(object):
@@ -18,13 +21,18 @@ cdef class CachedMethod(object):
     cdef public str __name__
     cdef public str __module__
     cdef CachedFunction _cachedfunc
-    cdef int nargs
+    cdef Py_ssize_t nargs
     cpdef dict _get_instance_cache(self, inst)
+
+cdef class CachedInParentMethod(CachedMethod):
+    pass
 
 cdef class CachedMethodCaller(CachedFunction):
     cdef public _instance
-    cdef public bint _inst_in_key
     cdef public CachedMethod _cachedmethod
 
 cdef class CachedMethodCallerNoArgs(CachedFunction):
     cdef public _instance
+
+cdef class GloballyCachedMethodCaller(CachedMethodCaller):
+    pass

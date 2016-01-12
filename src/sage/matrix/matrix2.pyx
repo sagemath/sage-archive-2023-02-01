@@ -3063,7 +3063,7 @@ cdef class Matrix(matrix1.Matrix):
         - ``basis`` - default: 'echelon' - a keyword that describes
           the format of the basis returned.  Allowable values are:
 
-          - 'echelon': the basis matrix is in echelon form
+          - 'echelon': the basis matrix is returned in echelon form
           - 'pivot' : each basis vector is computed from the reduced
             row-echelon form of ``self`` by placing a single one in a
             non-pivot column and zeros in the remaining non-pivot columns.
@@ -3704,10 +3704,10 @@ cdef class Matrix(matrix1.Matrix):
           - 'pluq' - PLUQ matrix factorization for matrices mod 2
 
         - ``basis`` - default: 'echelon' - a keyword that describes the
-          format of the basis used to construct the left kernel.
+          format of the basis used to construct the right kernel.
           Allowable values are:
 
-          - 'echelon': the basis matrix is in echelon form
+          - 'echelon': the basis matrix is returned in echelon form
           - 'pivot' : each basis vector is computed from the reduced
             row-echelon form of ``self`` by placing a single one in a
             non-pivot column and zeros in the remaining non-pivot columns.
@@ -3718,8 +3718,8 @@ cdef class Matrix(matrix1.Matrix):
         OUTPUT:
 
         A vector space or free module whose degree equals the number
-        of columns in ``self`` and contains all the vectors ``x`` such
-        that ``self*x = 0``.
+        of columns in ``self`` and which contains all the vectors ``x``
+        such that ``self*x = 0``.
 
         If ``self`` has 0 columns, the kernel has dimension 0, while if
         ``self`` has 0 rows the kernel is the entire ambient vector space.
@@ -4051,7 +4051,7 @@ cdef class Matrix(matrix1.Matrix):
           the format of the basis used to construct the left kernel.
           Allowable values are:
 
-          - 'echelon': the basis matrix is in echelon form
+          - 'echelon': the basis matrix is returned in echelon form
           - 'pivot' : each basis vector is computed from the reduced
             row-echelon form of ``self`` by placing a single one in a
             non-pivot column and zeros in the remaining non-pivot columns.
@@ -4062,14 +4062,14 @@ cdef class Matrix(matrix1.Matrix):
         OUTPUT:
 
         A vector space or free module whose degree equals the number
-        of rows in ``self`` and contains all the vectors ``x`` such
+        of rows in ``self`` and which contains all the vectors ``x`` such
         that ``x*self = 0``.
 
         If ``self`` has 0 rows, the kernel has dimension 0, while if ``self``
         has 0 columns the kernel is the entire ambient vector space.
 
         The result is cached.  Requesting the left kernel a second time,
-        but with a different basis format will return the cached result
+        but with a different basis format, will return the cached result
         with the format from the first computation.
 
         .. note::
@@ -8600,7 +8600,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: matrix().inverse()
             []
-       """
+        """
         return ~self
 
     def adjoint(self):
@@ -14285,7 +14285,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             return sage.matrix.constructor.block_diagonal_matrix(companions, subdivide=subdivide)
 
     # A limited number of access-only properties are provided for matrices
-    property T:
+    @property
+    def T(self):
         r"""
         Returns the transpose of a matrix.
 
@@ -14299,10 +14300,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 3  8 13 18 23]
             [ 4  9 14 19 24]
         """
-        def __get__(self):
-            return self.transpose()
+        return self.transpose()
 
-    property C:
+    @property
+    def C(self):
         r"""
         Returns the conjugate matrix.
 
@@ -14317,10 +14318,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 3 - 3*I -3 - 6*I  5 - 1*I]
 
         """
-        def __get__(self):
-            return self.conjugate()
+        return self.conjugate()
 
-    property H:
+    @property
+    def H(self):
         r"""
         Returns the conjugate-transpose (Hermitian) matrix.
 
@@ -14334,10 +14335,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 5 + 3*I -1 - 6*I -3 - 6*I]
             [ 7 + 4*I  3 - 5*I  5 - 1*I]
         """
-        def __get__(self):
-            return self.conjugate().transpose()
+        return self.conjugate().transpose()
 
-    property I:
+    @property
+    def I(self):
         r"""
         Returns the inverse of the matrix, if it exists.
 
@@ -14362,10 +14363,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
-        def __get__(self):
-            return self.inverse()
+        return ~self
 
-    # end of Matrix class methods
 
 def _smith_diag(d):
     r"""

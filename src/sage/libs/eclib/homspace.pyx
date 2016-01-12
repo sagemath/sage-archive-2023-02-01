@@ -2,7 +2,8 @@
 
 include "sage/ext/interrupt.pxi"
 
-from mat cimport MatrixFactory
+from ..eclib cimport mat
+from .mat cimport MatrixFactory
 
 cdef MatrixFactory MF = MatrixFactory()
 
@@ -14,7 +15,7 @@ cdef class ModularSymbols:
 
         sage: M = CremonaModularSymbols(225)
         sage: type(M)
-        <type 'sage.libs.cremona.homspace.ModularSymbols'>
+        <type 'sage.libs.eclib.homspace.ModularSymbols'>
     """
     def __init__(self, long level, int sign=0, bint cuspidal=False, int verbose=0):
         """
@@ -43,11 +44,11 @@ cdef class ModularSymbols:
         if level <= 1:
             raise ValueError, "the level (= %s) must be at least 2"%level
         sig_on()
-        self.H = new_homspace(level, sign, cuspidal, verbose)
+        self.H = new homspace(level, sign, cuspidal, verbose)
         sig_off()
 
     def __dealloc__(self):
-        delete_homspace(self.H)
+        del self.H
 
     def __repr__(self):
         """
@@ -203,4 +204,3 @@ cdef class ModularSymbols:
         cdef mat M = self.H.heckeop(p, dual, verbose)
         sig_off()
         return MF.new_matrix(M)
-

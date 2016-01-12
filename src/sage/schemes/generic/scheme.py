@@ -377,7 +377,7 @@ class Scheme(Parent):
         """
         raise NotImplementedError
 
-    def __div__(self, Y):
+    def __truediv__(self, Y):
         """
         Return the base extension of self to Y.
 

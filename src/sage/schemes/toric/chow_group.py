@@ -786,7 +786,7 @@ class ChowGroup_class(FGP_Module_class):
         return V.span(relations)
 
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of the Chow group by a subgroup.
 

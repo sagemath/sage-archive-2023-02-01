@@ -46,6 +46,8 @@ This example illustrates generators for a free module over `\ZZ`.
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 """
 
+from __future__ import division
+
 #*****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -768,6 +770,31 @@ cdef class CategoryObject(sage_object.SageObject):
         if self._hash_value == -1:
             self._hash_value = hash(repr(self))
         return self._hash_value
+
+    ##############################################################################
+    # For compatibility with Python 2
+    ##############################################################################
+    def __div__(self, other):
+        """
+        Implement Python 2 division as true division.
+
+        EXAMPLES::
+
+            sage: V = QQ^2
+            sage: V.__div__(V.span([(1,3)]))
+            Vector space quotient V/W of dimension 1 over Rational Field where
+            V: Vector space of dimension 2 over Rational Field
+            W: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 3]
+            sage: V.__truediv__(V.span([(1,3)]))
+            Vector space quotient V/W of dimension 1 over Rational Field where
+            V: Vector space of dimension 2 over Rational Field
+            W: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 3]
+        """
+        return self / other
 
 
 cpdef normalize_names(Py_ssize_t ngens, names):

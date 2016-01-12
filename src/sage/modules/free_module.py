@@ -2991,11 +2991,9 @@ class FreeModule_generic_pid(FreeModule_generic):
         else:
             raise NotImplementedError("quotients of modules over rings other than fields or ZZ is not fully implemented")
 
-    def __div__(self, sub, check=True):
+    def __truediv__(self, sub):
         """
         Return the quotient of self by the given submodule sub.
-
-        This just calls self.quotient(sub, check).
 
         EXAMPLES::
 
@@ -3006,7 +3004,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: V2/W2
             Finitely generated module V/W over Integer Ring with invariants (4, 12)
         """
-        return self.quotient(sub, check)
+        return self.quotient(sub, check=True)
 
 class FreeModule_generic_field(FreeModule_generic_pid):
     """
@@ -3828,11 +3826,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         A = sage.matrix.constructor.matrix(vectors)  # as rows, so get left kernel
         return A.left_kernel(basis=basis).basis()
 
-    def __div__(self, sub, check=True):
+    def __truediv__(self, sub):
         """
         Return the quotient of self by the given subspace sub.
-
-        This just calls self.quotient(sub, check)
 
         EXAMPLES::
 
@@ -3853,7 +3849,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: Q(W.0)
             (0.0)
         """
-        return self.quotient(sub, check)
+        return self.quotient(sub, check=True)
 
     def quotient(self, sub, check=True):
         """

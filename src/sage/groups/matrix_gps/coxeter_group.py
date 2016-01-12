@@ -33,6 +33,8 @@ from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.cachefunc import cached_method
+
 
 class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
@@ -522,7 +524,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [   0 -1/2    1    0]
             [   0 -1/2    0    1]
         """
-        return self._matrix.bilinear_form()
+        return self._matrix.bilinear_form(self.base_ring())
 
     def is_finite(self):
         """
@@ -619,6 +621,153 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             raise ValueError("%s is not in the index set %s" % (i, self.index_set()))
         return self.gen(self.index_set().index(i))
 
+    @cached_method
+    def positive_roots(self, as_reflections=False):
+        """
+        Return the positive roots.
+
+        These are roots in the Coxeter sense, that all have the
+        same norm. They are given by their coefficients in the
+        base of simple roots, also taken to have all the same
+        norm.
+
+        This can also be used to obtain the associated reflections.
+
+        .. SEEALSO::
+
+            :meth:`reflections`
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',3], implementation='reflection')
+            sage: W.positive_roots()
+            [(1, 0, 0), (1, 1, 0), (0, 1, 0), (1, 1, 1), (0, 1, 1), (0, 0, 1)]
+            sage: W = CoxeterGroup(['I',5], implementation='reflection')
+            sage: W.positive_roots()
+            [(1, 0),
+             (-E(5)^2 - E(5)^3, 1),
+             (-E(5)^2 - E(5)^3, -E(5)^2 - E(5)^3),
+             (1, -E(5)^2 - E(5)^3),
+             (0, 1)]
+        """
+        if not self.is_finite():
+            raise NotImplementedError('not available for infinite groups')
+
+        word = self.long_element(as_word=True)
+        N = len(word)
+
+        if not as_reflections:
+            from sage.modules.free_module import FreeModule
+            simple_roots = FreeModule(self.base_ring(), self.ngens()).gens()
+
+        refls = self.simple_reflections()
+        resu = []
+        for i in range(1, N + 1):
+            segment = word[:i]
+            if as_reflections:
+                rt = refls[segment.pop()]
+            else:
+                rt = simple_roots[segment.pop() - 1]
+            while segment:
+                if as_reflections:
+                    cr = refls[segment.pop()]
+                    rt = cr * rt * cr
+                else:
+                    rt = refls[segment.pop()] * rt
+            resu += [rt]
+        return resu
+
+    @cached_method
+    def reflections(self):
+        """
+        Return the set of reflections.
+
+        The order is the one given by :meth:`positive_roots`.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',2], implementation='reflection')
+            sage: W.reflections()
+            [
+            [-1  1]  [ 0 -1]  [ 1  0]
+            [ 0  1], [-1  0], [ 1 -1]
+            ]
+        """
+        return self.positive_roots(as_reflections=True)
+
+    @cached_method    
+    def roots(self):
+        """
+        Return the roots.
+
+        These are roots in the Coxeter sense, that all have the
+        same norm. They are given by their coefficients in the
+        base of simple roots, also taken to have all the same
+        norm.
+
+        The positive roots are listed first, then the negative roots
+        in the same order. The order is the one given by :meth:`roots`.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',3], implementation='reflection')
+            sage: W.roots()
+            [(1, 0, 0),
+            (1, 1, 0),
+            (0, 1, 0),
+            (1, 1, 1),
+            (0, 1, 1),
+            (0, 0, 1),
+            (-1, 0, 0),
+            (-1, -1, 0),
+            (0, -1, 0),
+            (-1, -1, -1),
+            (0, -1, -1),
+            (0, 0, -1)]
+            sage: W = CoxeterGroup(['I',5], implementation='reflection')
+            sage: len(W.roots())
+            10
+        """
+        if not self.is_finite():
+            raise NotImplementedError('not available for infinite groups')
+        positive = self.positive_roots()
+        return positive + [-v for v in positive]
+    
+    def simple_root_index(self, i):
+        r"""
+        Return the index of the simple root `\alpha_i`.
+
+        This is the position of `\alpha_i` in the list of all roots
+        as given be :meth:`roots`.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',3], implementation='reflection')
+            sage: [W.simple_root_index(i) for i in W.index_set()]
+            [0, 2, 5]
+        """
+        roots = self.roots()
+        rt = roots[0].parent().gen(self.index_set().index(i))
+        return roots.index(rt)
+
+    def fundamental_weights(self):
+        """
+        Return the fundamental weights for ``self``.
+
+        This is the dual basis to the basis of simple roots.
+
+        The base ring must be a field.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',3], implementation='reflection')
+            sage: W.fundamental_weights()
+            {1: (3/2, 1, 1/2), 2: (1, 2, 1), 3: (1/2, 1, 3/2)}    
+        """
+        simple_weights = self.bilinear_form().inverse()
+        return {i: simple_weights[k]
+                for k, i in enumerate(self.index_set())}
+
     class Element(MatrixGroupElement_generic):
         """
         A Coxeter group element.
@@ -670,3 +819,20 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             """
             return self.matrix()
 
+        @cached_method
+        def action_on_root_indices(self, i):
+            """
+            Return the action on the set of roots.
+
+            The roots are ordered as in the output of the method `roots`.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], implementation="reflection")
+                sage: w = W.w0
+                sage: w.action_on_root_indices(0)
+                11
+            """
+            roots = self.parent().roots()
+            rt = self * roots[i]
+            return roots.index(rt)

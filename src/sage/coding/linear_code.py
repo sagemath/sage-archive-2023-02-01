@@ -1979,6 +1979,26 @@ class AbstractLinearCode(module.Module):
                 return False
         return True
 
+    def __ne__(self, other):
+        r"""
+        Tests inequality of ``self`` and ``other``.
+
+        This is a generic implementation, which returns the inverse of ``__eq__`` for self.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C1 = LinearCode(G)
+            sage: C2 = LinearCode(G)
+            sage: C1 != C2
+            False
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
+            sage: C2 = LinearCode(G)
+            sage: C1 != C2
+            True
+        """
+        return not self == other
+
     def encode(self, word, encoder_name=None, **kwargs):
         r"""
         Transforms an element of a message space into a codeword.
@@ -3978,6 +3998,21 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
         """
         super(LinearCodeGeneratorMatrixEncoder, self).__init__(code)
 
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeGeneratorMatrixEncoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: E1 = LinearCode(G).encoder()
+            sage: E2 = LinearCode(G).encoder()
+            sage: E1 == E2
+            True
+        """
+        return isinstance(other, LinearCodeGeneratorMatrixEncoder)\
+                and self.code() == other.code()
+
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.
@@ -4051,6 +4086,21 @@ class LinearCodeSyndromeDecoder(Decoder):
             self._number_errors = number_errors
         super(LinearCodeSyndromeDecoder, self).__init__(code, code.ambient_space(),\
                 code._default_encoder_name)
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeSyndromeDecoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: D1 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
+            sage: D2 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
+            sage: D1 == D2
+            True
+        """
+        return isinstance(other, LinearCodeSyndromeDecoder)\
+                and self.code() == other.code()
 
     def _repr_(self):
         r"""
@@ -4340,6 +4390,21 @@ class LinearCodeNearestNeighborDecoder(Decoder):
         """
         super(LinearCodeNearestNeighborDecoder, self).__init__(code, code.ambient_space(), \
                 code._default_encoder_name)
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeNearestNeighborDecoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: D1 = codes.decoders.LinearCodeNearestNeighborDecoder(LinearCode(G))
+            sage: D2 = codes.decoders.LinearCodeNearestNeighborDecoder(LinearCode(G))
+            sage: D1 == D2
+            True
+        """
+        return isinstance(other, LinearCodeNearestNeighborDecoder)\
+                and self.code() == other.code()
 
     def _repr_(self):
         r"""

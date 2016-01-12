@@ -740,6 +740,48 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
+    def is_geometric(self):
+        """
+        Return ``True`` if the lattice is geometric, and ``False`` otherwise.
+
+        A lattice is geometric if it is both atomic and upper semimodular.
+
+        EXAMPLES:
+
+        Canonical example is the lattice of partitions of finite set
+        ordered by refinement::
+
+            sage: S = SetPartitions(3)
+            sage: L = LatticePoset( (S, lambda a, b: S.is_less_than(a, b)) )
+            sage: L.is_geometric()
+            True
+
+        Smallest example of geometric lattice that is not modular::
+
+            sage: L = LatticePoset(DiGraph('K]?@g@S?q?M?@?@?@?@?@?@??'))
+            sage: L.is_geometric()
+            True
+            sage: L.is_modular()
+            False
+
+        Two non-examples::
+
+            sage: L = LatticePoset({1:[2, 3, 4], 2:[5, 6], 3:[5], 4:[6], 5:[7], 6:[7]})
+            sage: L.is_geometric()  # Graded, but not upper semimodular
+            False
+            sage: L = Posets.ChainPoset(3)
+            sage: L.is_geometric()  # Modular, but not atomic
+            False
+
+        TESTS::
+
+            sage: LatticePoset({}).is_geometric()
+            True
+            sage: LatticePoset({1:[]}).is_geometric()
+            True
+        """
+        return self.is_atomic() and self.is_upper_semimodular()
+
     def is_planar(self):
         r"""
         Return ``True`` if the lattice is *upward* planar, and ``False``
@@ -761,7 +803,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ALGORITHM:
 
         Using the result from [Platt76]_, this method returns its result by
-        testing that the hasse diagram of the lattice is planar (in the sense of
+        testing that the Hasse diagram of the lattice is planar (in the sense of
         graph theory) when an edge is added between the top and bottom elements.
 
         EXAMPLES:

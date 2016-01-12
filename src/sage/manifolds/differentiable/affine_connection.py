@@ -1101,6 +1101,36 @@ class AffineConnection(SageObject):
              & = & x^{2} \\ C_{ \phantom{\, z } \, y \, z }^{ \, z \phantom{\, y } \phantom{\, z } }
              & = & y z \end{array}
 
+        Display of Christoffel symbols, skipping the redundancy associated
+        with the symmetry of the last two indices::
+
+            sage: M = Manifold(3, 'R^3', start_index=1)
+            sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
+            sage: g = M.metric('g')
+            sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
+            sage: g.display()
+            g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+            sage: g.connection().display(only_nonredundant=True)
+            Gam^r_th,th = -r
+            Gam^r_ph,ph = -r*sin(th)^2
+            Gam^th_r,th = 1/r
+            Gam^th_ph,ph = -cos(th)*sin(th)
+            Gam^ph_r,ph = 1/r
+            Gam^ph_th,ph = cos(th)/sin(th)
+
+        By default, the parameter ``only_nonredundant`` is set to ``False``::
+
+            sage: g.connection().display()
+            Gam^r_th,th = -r
+            Gam^r_ph,ph = -r*sin(th)^2
+            Gam^th_r,th = 1/r
+            Gam^th_th,r = 1/r
+            Gam^th_ph,ph = -cos(th)*sin(th)
+            Gam^ph_r,ph = 1/r
+            Gam^ph_th,ph = cos(th)/sin(th)
+            Gam^ph_ph,r = 1/r
+            Gam^ph_ph,th = cos(th)/sin(th)
+
         """
         from sage.misc.latex import latex
         from sage.manifolds.differentiable.vectorframe import CoordFrame

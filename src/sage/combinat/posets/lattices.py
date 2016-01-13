@@ -866,8 +866,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             :meth:`~FiniteLatticePoset.is_coatomic`
         """
-        return (self.cardinality() == 0 or 
-                self._hasse_diagram.out_degree(0) == 
+        return (self.cardinality() == 0 or
+                self._hasse_diagram.out_degree(0) ==
                 self._hasse_diagram.in_degree().count(1))
 
     def is_coatomic(self):
@@ -899,7 +899,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n = self.cardinality()
         if n == 0:
             return True
-        return (self._hasse_diagram.in_degree(n-1) == 
+        return (self._hasse_diagram.in_degree(n-1) ==
                 self._hasse_diagram.out_degree().count(1))
 
     def is_geometric(self):

@@ -23,6 +23,7 @@ Coding Theory
    sage/coding/codecan/codecan
    sage/coding/codecan/autgroup_can_label
    sage/coding/delsarte_bounds
+   sage/coding/punctured_code
    sage/coding/source_coding/huffman
    sage/coding/binary_code
    sage/coding/decoder

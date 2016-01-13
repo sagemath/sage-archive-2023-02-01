@@ -1938,10 +1938,6 @@ class AbstractLinearCode(module.Module):
             sage: C2 = codes.HammingCode(3,GF(2))
             sage: C1 == C2
             True
-            sage: C2 = C1.extended_code()
-            sage: C3 = C2.punctured([7])
-            sage: C1 == C3
-            True
 
         TESTS:
 
@@ -2981,43 +2977,24 @@ class AbstractLinearCode(module.Module):
 
     def punctured(self, L):
         r"""
-        Returns the code punctured at the positions `L`,
-        `L \subset \{1,2,...,n\}`. If this code `C` is of length `n` in
-        GF(q) then the code `C^L` obtained from `C` by puncturing at the
-        positions in `L` is the code of length `n-L` consisting of codewords
-        of `C` which have their `i-th` coordinate deleted if `i \in L` and
-        left alone if `i\notin L`:
-
-        .. math::
-
-            C^L = \{(c_{i_1},...,c_{i_N})\ |\ (c_1,...,c_n)\in C\},
-
-        where `\{1,2,...,n\}-T = \{i_1,...,i_N\}`. In particular, if `L=\{j\}`
-        then `C^L` is simply the code obtainen from `C` by deleting the `j-th`
-        coordinate of each codeword. The code `C^L` is called the punctured
-        code at `L`. The dimension of `C^L` can decrease if `|L|>d-1`.
+        Returns a :class:`sage.coding.punctured_code` object from ``L``.
 
         INPUT:
 
-        - ``L`` - Subset of `\{1,...,n\}`, where `n` is the length of ``self``
+        - ``L`` - List of positions to puncture
 
         OUTPUT:
 
-        - Linear code, the punctured code described above
+        - an instance of :class:`sage.coding.punctured_code`
 
         EXAMPLES::
 
             sage: C = codes.HammingCode(3,GF(2))
             sage: C.punctured([1,2])
-            Linear code of length 5, dimension 4 over Finite Field of size 2
+            Punctured code coming from Linear code of length 7, dimension 4 over Finite Field of size 2 punctured on position(s) [1, 2]
         """
-        G = self.generator_matrix()
-        GL = G.matrix_from_columns([i for i in range(G.ncols()) if i not in L])
-        r = GL.rank()
-        if r < GL.nrows():
-            GL.echelonize()
-            GL = GL[:r]
-        return LinearCode(GL)
+        from punctured_code import PuncturedCode
+        return PuncturedCode(self, L)
 
     def random_element(self, *args, **kwds):
         """

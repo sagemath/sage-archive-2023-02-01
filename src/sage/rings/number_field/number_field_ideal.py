@@ -1715,7 +1715,7 @@ class NumberFieldIdeal(Ideal_generic):
             from sage.quadratic_forms.binary_qf import BinaryQF
             gens = self.gens_reduced()
             if len(gens) == 1:
-                u, v = K.ring_of_integers().gens()
+                u, v = K.ring_of_integers().basis()
                 alpha, beta = gens[0] * u, gens[0] * v
             else:
                 alpha, beta = gens

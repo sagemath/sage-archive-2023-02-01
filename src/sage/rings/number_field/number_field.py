@@ -7333,7 +7333,7 @@ class NumberField_absolute(NumberField_generic):
         polynomials are supported (:trac:`252`)::
 
             sage: K.<a> = NumberField(3*x^2 + 1)
-            sage: K.maximal_order().gens()
+            sage: K.maximal_order().basis()
             [3/2*a + 1/2, 3*a]
         """
         B = [self(b, check=False) for b in self._pari_integral_basis(v=v)]
@@ -7451,7 +7451,7 @@ class NumberField_absolute(NumberField_generic):
         if ret.ambient() is not self:
             return ret.ambient().order(gens, **kwds)
 
-        gens = ret.gens()
+        gens = ret.basis()
         if self._order.is_in_cache(gens):
             # different ways of specifying the same set of generators lead to
             # the same order - this is to make sure that orders are unique

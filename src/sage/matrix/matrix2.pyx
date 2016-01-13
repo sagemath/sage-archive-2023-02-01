@@ -12977,8 +12977,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: OE = EquationOrder(x^2 - x + 2, 'w')
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^2 - x + 2)
             sage: m = Matrix([ [1, w],[w,7]])
             sage: m.elementary_divisors()
             [1, -w + 9]
@@ -13027,8 +13026,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         An example over the ring of integers of a number field (of class
         number 1)::
 
-            sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^2 - x + 2)
             sage: m = Matrix([ [1, w],[w,7]])
             sage: d, u, v = m.smith_form()
             sage: (d, u, v)
@@ -13063,8 +13061,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Some examples over non-PID's work anyway::
 
-            sage: R = EquationOrder(x^2 + 5, 's') # class number 2
-            sage: s = R.ring_generators()[0]
+            sage: R.<s> = EquationOrder(x^2 + 5) # class number 2
             sage: A = matrix(R, 2, 2, [s-1,-s,-s,2*s+1])
             sage: D, U, V = A.smith_form()
             sage: D, U, V
@@ -14558,8 +14555,7 @@ def _smith_onestep(m):
     EXAMPLE::
 
         sage: from sage.matrix.matrix2 import _smith_onestep
-        sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
-        sage: w = OE.ring_generators()[0]
+        sage: OE.<w> = EquationOrder(x^2 - x + 2)
         sage: m = matrix(OE, 3,3,[1,0,7,2,w, w+17, 13+8*w, 0, 6])
         sage: a,b,c = _smith_onestep(m); b
         [         1          0          0]

@@ -51,7 +51,7 @@ cdef class NumberField(Field):
             sage: K.ring_of_integers()
             Maximal Order in Number Field in a with defining polynomial x^2 + 1
         """
-        return self.maximal_order()
+        return self.maximal_order(*args, **kwds)
 
     def OK(self, *args, **kwds):
         r"""

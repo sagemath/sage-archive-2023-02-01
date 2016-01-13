@@ -646,3 +646,152 @@ class ErrorErasureChannel(Channel):
             (3, 3)
         """
         return self._number_erasures
+
+
+
+
+
+
+
+
+
+
+class QarySymmetricChannel(Channel):
+    r"""
+    With error probability `\epsilon`, a q-ary symmetric channel (qSC) takes a q-ary symbol
+    as input and outputs either this symbol with probability `1 - \epsilon` or one of the other
+    `q - 1` symbols with probability `\frac{\epsilon}{q - 1}`.
+
+    The input space and the output space of this channel are the same.
+
+    The main purpose of communication channels is to transmit messages, which can be achieved with
+    two methods:
+
+    - with the method :meth:`Channel.transmit`. Considering a channel ``Chan``
+      and a message ``msg``, transmitting
+      ``msg`` with ``Chan`` can be done this way::
+
+        Chan.transmit(msg)
+
+      It can also be written in a more convenient way::
+
+        Chan(msg)
+
+    - with the method :meth:`transmit_unsafe`. It does the exact same thing as :meth:`transmit` except
+      that it does not check if ``msg`` belongs to the input space of ``Chan``::
+
+        Chan.transmit_unsafe(msg)
+
+    INPUT:
+
+    - ``space`` -- the input and output space
+
+    - ``epsilon`` -- the error probability
+
+    EXAMPLES:
+
+    We construct a ErrorErasureChannel which adds 2 errors
+    and 2 erasures to any transmitted message::
+
+        sage: epsilon = 0.3
+        sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+        sage: Chan
+        q-ary symmetric channel with error probability 0.300000000000000,
+        of input and output space Vector space of dimension 50 over Finite Field of size 59
+    """
+
+    def __init__(self, space, epsilon):
+        r"""
+
+
+        TESTS:
+
+        If ``epsilon`` is not between 0 and 1, an error is raised::
+
+            sage: epsilon = 42
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            Traceback (most recent call last):
+            ...
+            ValueError: Error probability must be between 0 and 1
+        """
+        if epsilon >= 1 or epsilon <= 0:
+            raise ValueError("Error probability must be between 0 and 1")
+
+        super(QarySymmetricChannel, self).__init__(space, space)
+        self._epsilon = epsilon
+
+    def __repr__(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: Chan
+            q-ary symmetric channel with error probability 0.300000000000000,
+            of input and output space Vector space of dimension 50 over Finite Field of size 59
+        """
+        return "q-ary symmetric channel with error probability %s, of input and output space %s"\
+                    % (self.error_probability(), self.input_space())
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: latex(Chan)
+            \textnormal{q-ary symmetric channel with error probability 0.300000000000000,
+            of input and output space Vector space of dimension 50 over Finite Field of size 59}
+        """
+        return "\\textnormal{q-ary symmetric channel with error probability %s, of input and output space %s}"\
+                    % (self.error_probability(), self.input_space())
+
+    def transmit_unsafe(self, message):
+        r"""
+        Returns ``message`` with each of its symbols changed to another of the alphabet with
+        probability :meth:`error_probability`.
+
+        This method does not check if ``message`` belongs to the input space of``self``.
+
+        INPUT:
+
+        - ``message`` -- a vector
+
+        EXAMPLES::
+
+            sage: F = GF(59)^11
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(F, epsilon)
+            sage: msg = F((3, 14, 15, 9, 26, 53, 58, 9, 7, 9, 3))
+            sage: set_random_seed(10)
+            sage: Chan.transmit_unsafe(msg)
+            (3, 14, 15, 53, 12, 53, 58, 9, 55, 9, 3)
+        """
+        epsilon = self.error_probability()
+        V = self.input_space()
+        F = V.base_ring()
+        msg = copy(message.list())
+        for i in range(len(msg)):
+            if random() <= epsilon:
+                a = F.random_element()
+                while a == i:
+                    a = F.random_element()
+                msg[i] = a
+        return V(msg)
+
+    def error_probability(self):
+        r"""
+        Returns the probability that ``self`` creates an error.
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: Chan.error_probability()
+            0.300000000000000
+        """
+        return self._epsilon

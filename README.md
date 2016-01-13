@@ -69,7 +69,7 @@ Installation Guide:
 
    http://www.sagemath.org/doc/installation
 
-1. Make sure you have the dependencies and 5 GB of free disk space.
+__1. Make sure you have the dependencies and 5 GB of free disk space.__
 
    >* __All Linux versions:__ gcc, make, m4, perl, ranlib, and tar.  
    
@@ -97,11 +97,11 @@ Installation Guide:
 
    >* Other platforms: See detailed instructions below.
 
-2. Extract the tarball:
+__2. Extract the tarball:__
 
          tar xvf sage-*.tar
 
-3. cd into the Sage directory and type make:
+__3. cd into the Sage directory and type make:__
 
          cd sage-*/
          make
@@ -132,9 +132,9 @@ Sage has significant components written in the following languages:
 More Detailed Instructions to Build from Source
 -----------------------------------------------
 
-1. Make sure you have about 5 GB of free disk space.
+__1.__ Make sure you have about __5 GB of free disk space__.
 
-2. Install build dependencies.
+__2. Install build dependencies.__
 
    >* __Linux:__ See quick instructions above.
 
@@ -158,7 +158,7 @@ More Detailed Instructions to Build from Source
    gas/as, gld/ld, gnm/nm. On most platforms, these are automatically  
    installed when you install the programs listed above.  
 
-3. Extract the Sage source tarball and cd into a directory with no  
+__3. Extract the Sage source tarball__ and cd into a directory with no  
    spaces in it. If you have a machine with 4 processors, say, type  
    the following to configure the build script to perform a parallel  
    compilation of Sage using 4 jobs:
@@ -192,19 +192,19 @@ More Detailed Instructions to Build from Source
 
          make
 
-4. Wait about 20 minutes to 14 days, depending on your computer (it took  
+__4. Wait about 20 minutes to 14 days, depending on your computer__ (it took  
    about 2 weeks to build Sage on the T-Mobile G1 Android cell phone).  
 
-5. Type "./sage" to try it out.  
+__5. Type "./sage" to try it out.__  
 
-6. __Optional__: Type "make ptest" to test all examples in the documentation  
+__6. Optional__: Type "make ptest" to test all examples in the documentation  
    (over 200,000 lines of input!) -- this takes from 10 minutes to  
    several hours. Don't get too disturbed if there are 2 to 3 failures,  
    but always feel free to email the section of logs/ptest.log that  
    contains errors to the sage-support mailing list. If there are  
    numerous failures, there was a serious problem with your build.  
 
-7. The HTML version of the documentation is built during the compilation  
+__7.__ The HTML version of the documentation is built during the compilation  
    process of Sage and resides in the directory:
 
          $SAGE_ROOT/src/doc/output/html/
@@ -214,7 +214,7 @@ More Detailed Instructions to Build from Source
 
          make doc-pdf
 
-8. __Optional__: It is highly recommended that you install the optional GAP  
+__8. Optional__: It is highly recommended that you install the optional GAP  
    database by typing:
 
          ./sage --optional
@@ -224,11 +224,11 @@ More Detailed Instructions to Build from Source
    and install it. While you're at it, you might install other databases  
    of interest to you.  
 
-9. __Optional__: It is recommended that you have both LaTeX and the  
+__9. Optional__: It is recommended that you have both LaTeX and the  
    ImageMagick tools (e.g. the "convert" command) installed since some  
    plotting functionality benefits from it.  
 
-10. __Optional__: Read this if you are intending to run a Sage notebook  
+__10. Optional__: Read this if you are intending to run a Sage notebook  
     server for multiple users. For security (i.e., to run  
     "notebook(secure=True)") you want to access the server using the  
     HTTPS protocol. First, install OpenSSL and the OpenSSL development  
@@ -271,8 +271,8 @@ Solaris or OpenSolaris, building with the Sun compiler should also work.
 
 * The GCC package in Sage is not always installed. It is determined  
 automatically whether it needs to be installed. You can override this  
-by setting the environment variable SAGE_INSTALL_GCC=yes (to force  
-installation of GCC) or SAGE_INSTALL_GCC=no (to disable installation of  
+by setting the environment variable **SAGE_INSTALL_GCC=yes** (to force  
+installation of GCC) or **SAGE_INSTALL_GCC=no** (to disable installation of  
 GCC). If you don't want to install GCC, you need to have recent  
 versions of gcc, g++ and gfortran; moreover, the versions must be equal.  
 

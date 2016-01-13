@@ -154,9 +154,9 @@ class Posets(object):
             sage: C.linear_extension()
             [0, 1, 2, 3, 4, 5]
             sage: for i in range(5):
-            ...       for j in range(5):
-            ...           if C.covers(C(i),C(j)) and j != i+1:
-            ...              print "TEST FAILED"
+            ....:     for j in range(5):
+            ....:         if C.covers(C(i),C(j)) and j != i+1:
+            ....:             print "TEST FAILED"
 
         TESTS:
 
@@ -192,9 +192,9 @@ class Posets(object):
             sage: A = Posets.AntichainPoset(6); A
             Finite poset containing 6 elements
             sage: for i in range(5):
-            ...       for j in range(5):
-            ...           if A.covers(A(i),A(j)):
-            ...              print "TEST FAILED"
+            ....:     for j in range(5):
+            ....:         if A.covers(A(i),A(j)):
+            ....:             print "TEST FAILED"
 
         TESTS:
 
@@ -497,7 +497,7 @@ class Posets(object):
     @staticmethod
     def SetPartitions(n):
         r"""
-        Return the poset of set partitions of the set `\{1,\ldots,n\}`
+        Return the lattice of set partitions of the set `\{1,\ldots,n\}`
         ordered by refinement.
 
         INPUT:
@@ -507,11 +507,11 @@ class Posets(object):
         EXAMPLES::
 
             sage: Posets.SetPartitions(4)
-            Finite poset containing 15 elements
+            Finite lattice containing 15 elements
         """
         from sage.combinat.set_partition import SetPartitions
         S = SetPartitions(n)
-        return Poset((S, S.is_less_than))
+        return LatticePoset((S, S.is_less_than))
 
     @staticmethod
     def SSTPoset(s,f=None):

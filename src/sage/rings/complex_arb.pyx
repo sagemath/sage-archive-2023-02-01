@@ -2126,7 +2126,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(pi/2, 1/10).tan()
-            [+/- 3.93e-14] + [10.033311132254 +/- 3.64e-13]*I
+            [+/- 4.00e-14] + [10.0333111322540 +/- 3.60e-14]*I
             sage: CBF(pi/2).tan()
             [+/- inf]
         """
@@ -2143,7 +2143,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(pi, 1/10).cot()
-            [+/- 5.65e-14] + [-10.033311132254 +/- 4.75e-13]*I
+            [+/- 5.74e-14] + [-10.0333111322540 +/- 4.05e-14]*I
             sage: CBF(pi).cot()
             [+/- inf]
         """
@@ -2217,7 +2217,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1000, 1000).log_gamma()
             [5466.22252162990 +/- 3.05e-12] + [7039.33429191119 +/- 3.81e-12]*I
             sage: CBF(-1/2).log_gamma()
-            [1.26551212348465 +/- 7.54e-15] + [-3.141592653589793 +/- 5.61e-16]*I
+            [1.265512123484645 +/- 8.82e-16] + [-3.141592653589793 +/- 5.68e-16]*I
             sage: CBF(-1).log_gamma()
             nan + [-3.141592653589793 +/- 5.68e-16]*I
         """
@@ -2505,7 +2505,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1, 1).bessel_K(1)
             [0.02456830552374 +/- 6.22e-15] + [-0.45971947380119 +/- 6.74e-15]*I
             sage: CBF(100, 100).bessel_K(QQbar(i))
-            [3.8693896656383e-45 +/- 2.43e-59] + [5.5071004234177e-46 +/- 7.41e-60]*I
+            [3.8693896656383e-45 +/- 2.38e-59] + [5.5071004234177e-46 +/- 5.86e-60]*I
         """
         cdef ComplexBall result = self._new()
         cdef ComplexBall my_nu = self._parent.coerce(nu)

@@ -159,18 +159,20 @@ cdef int _pari_err_handle(GEN E) except 0:
 
     """
     cdef long errnum = E[1]
-    if errnum == e_STACK:
-        # PARI is out of memory.  We double the size of the PARI stack
-        # and retry the computation.
-        pari_instance.allocatemem(silent=True)
-        return 0
 
     sig_block()
     cdef char* errstr
     cdef char* s
     try:
-        errstr = pari_err2str(E)
-        pari_error_string = errstr.decode('ascii')
+        if errnum == e_STACK:
+            # Custom error message for PARI stack overflow
+            pari_error_string = "the PARI stack overflows (current size: {}; maximum size: {})\n"
+            pari_error_string += "You can use pari.allocatemem() to change the stack size and try again"
+            pari_error_string = pari_error_string.format(pari_mainstack.size, pari_mainstack.vsize)
+        else:
+            errstr = pari_err2str(E)
+            pari_error_string = errstr.decode('ascii')
+            pari_free(errstr)
 
         s = closure_func_err()
         if s is not NULL:
@@ -178,7 +180,6 @@ cdef int _pari_err_handle(GEN E) except 0:
 
         raise PariError(errnum, pari_error_string, pari_instance.new_gen_noclear(E))
     finally:
-        pari_free(errstr)
         sig_unblock()
 
 
@@ -200,12 +201,6 @@ cdef void _pari_err_recover(long errnum):
         True
 
     """
-    if not PyErr_Occurred():
-        # No exception was raised => retry the computation starting
-        # from sig_on(). This can happen if we successfully enlarged the
-        # PARI stack in _pari_handle_exception().
-        sig_retry()
-    else:
-        # An exception was raised.  Jump to the signal-handling code
-        # which will cause sig_on() to see the exception.
-        sig_error()
+    # An exception was raised.  Jump to the signal-handling code
+    # which will cause sig_on() to see the exception.
+    sig_error()

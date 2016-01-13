@@ -10,13 +10,10 @@ fi
 unset GREP_OPTIONS
 
 # Make sure CPPFLAGS and LDFLAGS are set to something (even the empty
-# string) to prevent R from overriding them.
-#
-# We need to explicitly add $SAGE_LOCAL/lib to LDFLAGS for R to find readline.
+# string) to prevent R from overriding them. Note: LDFLAGS is set by default.
 # The --with-readline configure option only understands yes/no
 # and cannot be used to pass this path.
 CPPFLAGS="$CPPFLAGS"
-LDFLAGS="-L$SAGE_LOCAL/lib/ $LDFLAGS"
 
 # Optimization flags
 if [ "$SAGE_DEBUG" = yes ]; then

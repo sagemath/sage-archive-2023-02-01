@@ -1,13 +1,14 @@
 """
 Graph-theoretic partition backtrack functions
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
 """
 
@@ -202,7 +203,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         list -- if base
         integer -- if order
 
-    DOCTEST:
+    EXAMPLES::
+
         sage: st = sage.groups.perm_gps.partn_ref.refinement_graphs.search_tree
         sage: from sage.graphs.base.dense_graph import DenseGraph
         sage: from sage.graphs.base.sparse_graph import SparseGraph

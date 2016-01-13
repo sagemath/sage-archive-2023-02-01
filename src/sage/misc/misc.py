@@ -1315,7 +1315,9 @@ def ellipsis_range(*args, **kwds):
         sage: ellipsis_range(10,Ellipsis,0)
         []
 
-    TESTS: These were carefully chosen tests, only to be changed if the
+    TESTS:
+
+    These were carefully chosen tests, only to be changed if the
     semantics of ellipsis ranges change. In other words, if they don't
     pass it's probably a bug in the implementation, not in the
     doctest.
@@ -1743,7 +1745,7 @@ def some_tuples(elements, repeat, bound):
     .. TODO::
 
         Currently, this only return an iterator over the first element of the
-        cartesian product. It would be smarter to return something more
+        Cartesian product. It would be smarter to return something more
         "random like" as it is used in tests. However, this should remain
         deterministic.
     """

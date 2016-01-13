@@ -10,14 +10,13 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
-from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport ZZ_pEContext_c
-from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_to_PyString
-from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_to_ZZ_pX
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_to_PyString
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_deg, ZZ_pX_coeff
+from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_PyString
+from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_ZZ_pX
+from sage.libs.ntl.ZZ_pX cimport ZZ_pX_to_PyString
+from sage.libs.ntl.ZZ_pX cimport ZZ_pX_deg, ZZ_pX_coeff
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_to_PyString
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
+from sage.libs.ntl.ZZ_p cimport ZZ_p_to_PyString
+from sage.libs.ntl.ZZ_p cimport ZZ_p_rep
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 # We need to define this stuff before including the templating stuff

@@ -163,7 +163,7 @@ class ImmutableListWithParent(CombinatorialElement):
             sage: m != n
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __lt__(self, other):
         """
@@ -199,9 +199,7 @@ class ImmutableListWithParent(CombinatorialElement):
             sage: m <= n
             True
         """
-        if self == other:
-            return True
-        return self.__lt__(other)
+        return self == other or self.__lt__(other)
 
     def __gt__(self, other):
         """
@@ -237,9 +235,7 @@ class ImmutableListWithParent(CombinatorialElement):
             sage: m >= n
             False
         """
-        if self == other:
-            return True
-        return self.__gt__(other)
+        return self == other or self.__gt__(other)
 
     def sibling(self, l):
         """

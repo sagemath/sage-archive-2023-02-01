@@ -24,12 +24,13 @@ fi
 cd src
 
 # Apply patches.
-patches=""
+patches="../patches/*.patch"
 if [ $UNAME = "CYGWIN" ]; then
     echo "CYGWIN: Patching numpy/linalg/setup.py"
     patches="$patches ../patches/cygwin-lapack_lite-setup.py.diff"
 fi
 for patch in $patches; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"

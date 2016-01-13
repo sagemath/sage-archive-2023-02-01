@@ -128,9 +128,6 @@ cdef class Graphics3d(SageObject):
         can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
         opts = self._process_viewing_options(kwds)
         viewer = opts.get('viewer', None)
-        if viewer == 'java3d':
-            from sage.misc.superseded import deprecation
-            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
         # make sure viewer is one of the supported options
         if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
             import warnings
@@ -1296,8 +1293,6 @@ end_scene""" % (render_params.antialiasing,
            * 'jmol': Interactive 3D viewer using Java
 
            * 'tachyon': Ray tracer generates a static PNG image
-
-           * 'java3d': Interactive OpenGL based 3D
 
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)

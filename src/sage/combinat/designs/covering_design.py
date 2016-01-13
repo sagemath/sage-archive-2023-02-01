@@ -486,7 +486,9 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     This function raises a ValueError if the ``(v,k,t)`` parameters are not
     found in the database.
     """
-    import urllib
+    # import compatible with py2 and py3
+    from six.moves.urllib.request import urlopen
+
     from sage.misc.sage_eval import sage_eval
 
     v = int(v)
@@ -497,8 +499,8 @@ def best_known_covering_design_www(v, k, t, verbose=False):
 
     url = "http://www.ccrwest.org/cover/get_cover.php"+param
     if verbose:
-        print "Looking up the bounds at %s"%url
-    f = urllib.urlopen(url)
+        print "Looking up the bounds at %s" % url
+    f = urlopen(url)
     s = f.read()
     f.close()
 

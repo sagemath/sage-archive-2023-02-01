@@ -40,6 +40,7 @@ AUTHORS:
 - Joris Vankerschaver (2010): for the idea of storing only the non-zero
   components as dictionaries, whose keys are the component indices (see
   class :class:`~sage.tensor.differential_form_element.DifferentialForm`)
+- Marco Mancini (2015) : parallelization of some computations
 
 EXAMPLES:
 
@@ -239,6 +240,7 @@ In case of symmetries, only non-redundant components are stored::
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Marco Mancini <marco.mancini@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -248,6 +250,10 @@ In case of symmetries, only non-redundant components are stored::
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
+from sage.parallel.decorate import parallel
+from sage.parallel.parallelism import Parallelism
+from operator import itemgetter
+import time
 
 class Components(SageObject):
     r"""
@@ -841,7 +847,7 @@ class Components(SageObject):
                 return self[ind]
             else:
                 args = tuple(ind + [format_type])
-                return self.__getitem__(args)
+                return self[args]
         else:
             si = self._sindex
             nsi = si + self._dim
@@ -1197,7 +1203,7 @@ class Components(SageObject):
             True
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __pos__(self):
         r"""
@@ -1277,6 +1283,19 @@ class Components(SageObject):
             sage: s == a+b
             True
 
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: s_par = a.__add__(b) ; s_par
+            1-index components w.r.t. [1, 2, 3]
+            sage: s_par[:]
+            [5, 5, 3]
+            sage: s_par == s
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
         """
         if other == 0:
             return +self
@@ -1294,9 +1313,39 @@ class Components(SageObject):
         if other._sindex != self._sindex:
             raise ValueError("the two sets of components do not have the " +
                              "same starting index")
-        result = self.copy()
-        for ind, val in other._comp.iteritems():
-            result[[ind]] += val
+
+
+        if Parallelism().get('tensor') != 1 :
+            # parallel sum
+            result = self._new_instance()
+            nproc = Parallelism().get('tensor')
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+
+            ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]
+            ind_step = max(1,int(len(ind_list)/nproc/2))
+            local_list = lol(ind_list,ind_step)
+
+            # definition of the list of input parameters
+            listParalInput = [(self,other,ind_part) for ind_part in local_list]
+
+            @parallel(p_iter='multiprocessing',ncpus=nproc)
+            def paral_sum(a,b,local_list_ind):
+                partial = []
+                for ind in local_list_ind:
+                    partial.append([ind,a[[ind]]+b[[ind]]])
+                return partial
+
+            for ii,val in paral_sum(listParalInput):
+                for jj in val:
+                    result[[jj[0]]] = jj[1]
+
+        else:
+            # sequential
+            result = self.copy()
+
+            for ind, val in other._comp.iteritems():
+                result[[ind]] += val
+
         return result
 
     def __radd__(self, other):
@@ -1322,7 +1371,7 @@ class Components(SageObject):
             True
 
         """
-        return self.__add__(other)
+        return self + other
 
 
     def __sub__(self, other):
@@ -1351,11 +1400,24 @@ class Components(SageObject):
             sage: s == a - b
             True
 
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: s_par = a.__sub__(b) ; s_par
+            1-index components w.r.t. [1, 2, 3]
+            sage: s_par[:]
+            [-3, -5, -9]
+            sage: s_par == s
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
         """
         if other == 0:
             return +self
-        return self.__add__(-other)  #!# correct, deals properly with
-                                     # symmetries, but is probably not optimal
+        return self + (-other)  #!# correct, deals properly with
+                                # symmetries, but is probably not optimal
 
     def __rsub__(self, other):
         r"""
@@ -1382,7 +1444,7 @@ class Components(SageObject):
             True
 
         """
-        return (-self).__add__(other)
+        return (-self) + other
 
 
     def __mul__(self, other):
@@ -1412,6 +1474,21 @@ class Components(SageObject):
             [-12 -15 -18]
             sage: s == a*b
             True
+
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: s_par = a.__mul__(b) ; s_par
+            2-indices components w.r.t. [1, 2, 3]
+            sage: s_par[:]
+            [  4   5   6]
+            [  0   0   0]
+            [-12 -15 -18]
+            sage: s_par == s
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if not isinstance(other, Components):
@@ -1447,18 +1524,64 @@ class Components(SageObject):
                 # (it would not deal correctly with redundant indices)
                 # So we use a loop specific to the current case and return the
                 # result:
-                for ind in result.non_redundant_index_generator():
-                    result[[ind]] = self[[ind[0]]] * self[[ind[1]]]
-                return result
+
+                if Parallelism().get('tensor') != 1 :
+                    nproc = Parallelism().get('tensor')
+                    lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+
+                    ind_list = [ ind for ind  in result.non_redundant_index_generator()]
+                    ind_step = max(1,int(len(ind_list)/nproc))
+                    local_list = lol(ind_list,ind_step)
+
+                    # definition of the list of input parameters
+                    listParalInput = [(self,ind_part) for ind_part in local_list]
+
+                    @parallel(p_iter='multiprocessing',ncpus=nproc)
+                    def paral_mul(a,local_list_ind):
+                        return [[ind,a[[ind[0]]]*a[[ind[1]]]] for ind in local_list_ind]
+
+                    for ii,val in paral_mul(listParalInput):
+                        for jj in val:
+                            result[[jj[0]]] = jj[1]
+                else:
+
+                    for ind in result.non_redundant_index_generator():
+                        result[[ind]] = self[[ind[0]]] * self[[ind[1]]]
+                    return result
             else:
                 result = Components(self._ring, self._frame, 2, self._sindex,
                                     self._output_formatter)
         else:
             result = Components(self._ring, self._frame, self._nid + other._nid,
                                 self._sindex, self._output_formatter)
-        for ind_s, val_s in self._comp.iteritems():
-            for ind_o, val_o in other._comp.iteritems():
-                result._comp[ind_s + ind_o] = val_s * val_o
+
+        if Parallelism().get('tensor') != 1 :
+            nproc = Parallelism().get('tensor')
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+
+            ind_list = [ ind for ind, ocomp  in self._comp.iteritems()]
+            ind_step = max(1,int(len(ind_list)/nproc))
+            local_list = lol(ind_list,ind_step)
+
+            # definition of the list of input parameters
+            listParalInput = [(self,other,ind_part) for ind_part in local_list]
+
+            @parallel(p_iter='multiprocessing',ncpus=nproc)
+            def paral_mul(a,b,local_list_ind):
+                partial = []
+                for ind in local_list_ind:
+                    for ind_o, val_o in b._comp.iteritems():
+                        partial.append([ind + ind_o,a._comp[ind]*val_o])
+                return partial
+
+            for ii,val in paral_mul(listParalInput):
+                for jj in val:
+                    result._comp[jj[0]] = jj[1]
+        else:
+            for ind_s, val_s in self._comp.iteritems():
+                for ind_o, val_o in other._comp.iteritems():
+                    result._comp[ind_s + ind_o] = val_s * val_o
+
         return result
 
 
@@ -1491,8 +1614,7 @@ class Components(SageObject):
             result._comp[ind] = other * val
         return result
 
-
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Division (by a scalar).
 
@@ -1518,6 +1640,8 @@ class Components(SageObject):
         for ind, val in self._comp.iteritems():
             result._comp[ind] = val / other
         return result
+
+    __div__ = __truediv__
 
     def trace(self, pos1, pos2):
         r"""
@@ -1638,20 +1762,42 @@ class Components(SageObject):
             sage: a[:] = (-1, 2, 3)
             sage: b = Components(QQ, V.basis(), 2)
             sage: b[:] = [[1,2,3], [4,5,6], [7,8,9]]
-            sage: s = a.contract(0, b, 0) ; s
+            sage: s0 = a.contract(0, b, 0) ; s0
             1-index components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
             ]
-            sage: s[:]
+            sage: s0[:]
             [28, 32, 36]
-            sage: [sum(a[j]*b[j,i] for j in range(3)) for i in range(3)]  # check
+            sage: s0[:] == [sum(a[j]*b[j,i] for j in range(3)) for i in range(3)]  # check
+            True
+            sage: s1 = a.contract(0, b, 1) ; s1[:]
+            [12, 24, 36]
+            sage: s1[:] == [sum(a[j]*b[i,j] for j in range(3)) for i in range(3)]  # check
+            True
+
+        Parallel computations (see
+        :class:`~sage.parallel.parallelism.Parallelism`)::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: s0_par = a.contract(0, b, 0) ; s0_par
+            1-index components w.r.t. [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
+            sage: s0_par[:]
             [28, 32, 36]
-            sage: s = a.contract(0, b, 1) ; s[:]
+            sage: s0_par == s0
+            True
+            sage: s1_par = a.contract(0, b, 1) ; s1_par[:]
             [12, 24, 36]
-            sage: [sum(a[j]*b[i,j] for j in range(3)) for i in range(3)]  # check
-            [12, 24, 36]
+            sage: s1_par == s1
+            True
+            sage: Parallelism().set('tensor', nproc = 1)  # switch off parallelization
 
         Contraction on 2 indices::
 
@@ -1672,6 +1818,29 @@ class Components(SageObject):
             sage: [sum(sum(c[i,j,k]*b[j,k] for k in range(3)) # check
             ....:      for j in range(3)) for i in range(3)]
             [-285, 570, 855]
+
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: c_par = a*b ; c_par
+            3-indices components w.r.t. [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
+            sage: c_par == c
+            True
+            sage: s_par = c_par.contract(1,2, b, 0,1) ; s_par
+            1-index components w.r.t. [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
+            sage: s_par[:]
+            [-285, 570, 855]
+            sage: s_par == s
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         Consistency check with :meth:`trace`::
 
@@ -1732,9 +1901,30 @@ class Components(SageObject):
             comp_for_contr = Components(self._ring, self._frame, ncontr,
                                         start_index=self._sindex)
             res = 0
-            for ind in comp_for_contr.index_generator():
-                res += self[[ind]] * other[[ind]]
+
+
+            if Parallelism().get('tensor') != 1:
+                # parallel contraction to scalar
+
+                # parallel multiplication
+                @parallel(p_iter='multiprocessing',ncpus=Parallelism().get('tensor'))
+                def compprod(a,b):
+                    return a*b
+
+                # parallel list of inputs
+                partial = list(compprod([(other[[ind]],self[[ind]]) for ind in
+                                     comp_for_contr.index_generator()
+                    ]))
+                res = sum(map(itemgetter(1),partial))
+            else:
+                # sequential
+                res = 0
+                for ind in comp_for_contr.index_generator():
+                    res += self[[ind]] * other[[ind]]
+
             return res
+
+
         #
         # Positions of self and other indices in the result
         #  (None = the position is involved in a contraction and therefore
@@ -1846,23 +2036,65 @@ class Components(SageObject):
         comp_for_contr = Components(self._ring, self._frame, ncontr,
                                     start_index=self._sindex)
         shift_o = self._nid - ncontr
-        for ind in res.non_redundant_index_generator():
-            ind_s = [None for i in range(self._nid)]  # initialization
-            ind_o = [None for i in range(other._nid)] # initialization
-            for i, pos in enumerate(rev_s):
-                ind_s[pos] = ind[i]
-            for i, pos in enumerate(rev_o):
-                ind_o[pos] = ind[shift_o+i]
-            sm = 0
-            for ind_c in comp_for_contr.index_generator():
-                ic = 0
-                for pos_s, pos_o in contractions:
-                    k = ind_c[ic]
-                    ind_s[pos_s] = k
-                    ind_o[pos_o] = k
-                    ic += 1
-                sm += self[[ind_s]] * other[[ind_o]]
-            res[[ind]] = sm
+
+        if Parallelism().get('tensor') != 1:
+            # parallel computation
+            nproc = Parallelism().get('tensor')
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+            ind_list = [ind for ind in res.non_redundant_index_generator()]
+            ind_step = max(1,int(len(ind_list)/nproc/2))
+            local_list = lol(ind_list,ind_step)
+
+            listParalInput = []
+            for ind_part in local_list:
+                listParalInput.append((self,other,ind_part,rev_s,rev_o,shift_o,contractions,comp_for_contr))
+
+            # definition of the parallel function
+            @parallel(p_iter='multiprocessing',ncpus=nproc)
+            def make_Contraction(this,other,local_list,rev_s,rev_o,shift_o,contractions,comp_for_contr):
+                local_res = []
+                for ind in local_list:
+                    ind_s = [None for i in range(this._nid)]  # initialization
+                    ind_o = [None for i in range(other._nid)] # initialization
+                    for i, pos in enumerate(rev_s):
+                        ind_s[pos] = ind[i]
+                    for i, pos in enumerate(rev_o):
+                        ind_o[pos] = ind[shift_o+i]
+                    sm = 0
+                    for ind_c in comp_for_contr.index_generator():
+                        ic = 0
+                        for pos_s, pos_o in contractions:
+                            k = ind_c[ic]
+                            ind_s[pos_s] = k
+                            ind_o[pos_o] = k
+                            ic += 1
+                        sm += this[[ind_s]] * other[[ind_o]]
+                    local_res.append([ind,sm])
+                return local_res
+
+            for ii, val in make_Contraction(listParalInput):
+                for jj in val :
+                      res[[jj[0]]] = jj[1]
+        else:
+            # sequential
+            for ind in res.non_redundant_index_generator():
+                ind_s = [None for i in range(self._nid)]  # initialization
+                ind_o = [None for i in range(other._nid)] # initialization
+                for i, pos in enumerate(rev_s):
+                    ind_s[pos] = ind[i]
+                for i, pos in enumerate(rev_o):
+                    ind_o[pos] = ind[shift_o+i]
+                sm = 0
+                for ind_c in comp_for_contr.index_generator():
+                    ic = 0
+                    for pos_s, pos_o in contractions:
+                        k = ind_c[ic]
+                        ind_s[pos_s] = k
+                        ind_o[pos_o] = k
+                        ic += 1
+                    sm += self[[ind_s]] * other[[ind_o]]
+                res[[ind]] = sm
+
         return res
 
 
@@ -2984,24 +3216,43 @@ class CompWithSym(Components):
             sage: a[0,1], a[1,2] = 4, 5
             sage: b = CompWithSym(ZZ, [1,2,3], 2, sym=(0,1))
             sage: b[0,1], b[2,2] = 2, -3
-            sage: s = a.__mul__(b) ; s
+            sage: s1 = a.__mul__(b) ; s1
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
-            sage: s[1,0,0,1]
+            sage: s1[1,0,0,1]
             8
-            sage: s[1,0,0,1] == a[1,0] * b[0,1]
+            sage: s1[1,0,0,1] == a[1,0] * b[0,1]
             True
-            sage: s == a*b
+            sage: s1 == a*b
             True
             sage: c = CompWithSym(ZZ, [1,2,3], 2, antisym=(0,1))
             sage: c[0,1], c[0,2] = 3, 7
-            sage: s = a.__mul__(c) ; s
+            sage: s2 = a.__mul__(c) ; s2
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)
-            sage: s[1,0,2,0]
+            sage: s2[1,0,2,0]
             -28
-            sage: s[1,0,2,0] == a[1,0] * c[2,0]
+            sage: s2[1,0,2,0] == a[1,0] * c[2,0]
             True
-            sage: s == a*c
+            sage: s2 == a*c
             True
+
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: s1_par = a.__mul__(b) ; s1_par
+            4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
+            sage: s1_par[1,0,0,1]
+            8
+            sage: s1_par == s1
+            True
+            sage: s2_par = a.__mul__(c) ; s2_par
+            4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)
+            sage: s2_par[1,0,2,0]
+            -28
+            sage: s2_par == s2
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if not isinstance(other, Components):
@@ -3026,9 +3277,35 @@ class CompWithSym(Components):
                     antisym.append(ns)
         result = CompWithSym(self._ring, self._frame, self._nid + other._nid,
                              self._sindex, self._output_formatter, sym, antisym)
-        for ind_s, val_s in self._comp.iteritems():
-            for ind_o, val_o in other._comp.iteritems():
-                result._comp[ind_s + ind_o] = val_s * val_o
+
+
+        if Parallelism().get('tensor') != 1 :
+            nproc = Parallelism().get('tensor')
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+
+            ind_list = [ ind for ind, ocomp  in self._comp.iteritems()]
+            ind_step = max(1,int(len(ind_list)/nproc))
+            local_list = lol(ind_list,ind_step)
+
+            # definition of the list of input parameters
+            listParalInput = [(self,other,ind_part) for ind_part in local_list]
+
+            @parallel(p_iter='multiprocessing',ncpus=nproc)
+            def paral_mul(a,b,local_list_ind):
+                partial = []
+                for ind in local_list_ind:
+                    for ind_o, val_o in b._comp.iteritems():
+                        partial.append([ind + ind_o,a._comp[ind]*val_o])
+                return partial
+
+            for ii,val in paral_mul(listParalInput):
+                for jj in val:
+                    result._comp[jj[0]] = jj[1]
+        else:
+            for ind_s, val_s in self._comp.iteritems():
+                for ind_o, val_o in other._comp.iteritems():
+                    result._comp[ind_s + ind_o] = val_s * val_o
+
         return result
 
 
@@ -4278,6 +4555,21 @@ class CompFullySym(CompWithSym):
             sage: s == a + c
             True
 
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: s_par = a.__add__(c) ; s_par
+            2-indices components w.r.t. (1, 2, 3)
+            sage: s[:]
+            [ 0  7  7]
+            [ 1  0  5]
+            [-7  5  0]
+            sage: s_par == s
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
         """
         if other == 0:
             return +self
@@ -4294,9 +4586,36 @@ class CompFullySym(CompWithSym):
             if other._sindex != self._sindex:
                 raise ValueError("the two sets of components do not have the " +
                                  "same starting index")
-            result = self.copy()
-            for ind, val in other._comp.iteritems():
-                result[[ind]] += val
+
+            if Parallelism().get('tensor') != 1 :
+                # parallel sum
+                result = self._new_instance()
+                nproc = Parallelism().get('tensor')
+                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+
+                ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]
+                ind_step = max(1,int(len(ind_list)/nproc/2))
+                local_list = lol(ind_list,ind_step)
+
+                # definition of the list of input parameters
+                listParalInput = [(self,other,ind_part) for ind_part in local_list]
+
+                @parallel(p_iter='multiprocessing',ncpus=nproc)
+                def paral_sum(a,b,local_list_ind):
+                    partial = []
+                    for ind in local_list_ind:
+                        partial.append([ind,a[[ind]]+b[[ind]]])
+                    return partial
+
+                for ii,val in paral_sum(listParalInput):
+                    for jj in val:
+                        result[[jj[0]]] = jj[1]
+
+            else:
+                # sequential
+                result = self.copy()
+                for ind, val in other._comp.iteritems():
+                    result[[ind]] += val
             return result
         else:
             return CompWithSym.__add__(self, other)

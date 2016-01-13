@@ -739,7 +739,7 @@ class CFiniteSequence(FieldElement):
         astr = ', starting a(%s...) = [' % str(self._off)
         maxwexp = self.numerator().quo_rem(self.denominator())[0].degree() + 1
         for i in range(maxwexp + self._deg):
-            astr = astr + str(self.__getitem__(self._off + i)) + ', '
+            astr = astr + str(self[self._off + i]) + ', '
         astr = astr[:-2] + ']'
         return 'Homogenous linear recurrence with constant coefficients of degree ' + str(self._deg) + ': ' + cstr + astr
 

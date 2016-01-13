@@ -447,7 +447,8 @@ def _maybe_borels(E, L, patience=100):
         sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, [7, 11])
         [7]
 
-    This curve does posess a 7-isogeny modulo every prime of good reduction, but has no rational 7-isogeny::
+    This curve does possess a 7-isogeny modulo every prime of good
+    reduction, but has no rational 7-isogeny::
 
         sage: E.isogenies_prime_degree(7)
         []

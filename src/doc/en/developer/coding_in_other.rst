@@ -648,13 +648,12 @@ basic class for interfaces. The third line defines the class
 ``Octave``; it derives from ``Expect`` as well. After this comes a
 docstring, which we omit here (see the file for details). Next comes::
 
-        def __init__(self, maxread=100, script_subdirectory="", logfile=None,
+        def __init__(self, script_subdirectory="", logfile=None,
                      server=None, server_tmpdir=None):
             Expect.__init__(self,
                             name = 'octave',
                             prompt = '>',
                             command = "octave --no-line-editing --silent",
-                            maxread = maxread,
                             server = server,
                             server_tmpdir = server_tmpdir,
                             script_subdirectory = script_subdirectory,

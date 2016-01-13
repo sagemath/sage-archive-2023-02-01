@@ -199,7 +199,7 @@ cdef class MultiModularBasis_base:
             try:
                 self.extend_with_primes(val, check=True)
             except ArithmeticError:
-                #See :trac:`10217`
+                # See trac #10217
                 raise ValueError("the values provided are not relatively prime")
         else:
             self._extend_moduli_to_height(val)
@@ -835,7 +835,7 @@ cdef class MultiModularBasis_base:
             [10007, 10009]
 
         """
-        return self.list().__iter__()
+        return iter(self.list())
 
     def __getitem__(self, ix):
         """

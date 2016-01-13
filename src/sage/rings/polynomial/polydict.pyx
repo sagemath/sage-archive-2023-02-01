@@ -1207,7 +1207,7 @@ cdef class ETuple:
         return ETupleIter(d,self._length)
 
     def __str__(ETuple self):
-        return self.__repr__()
+        return repr(self)
 
     def __repr__(ETuple self):
         res = [0,]*self._length

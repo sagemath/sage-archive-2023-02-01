@@ -948,7 +948,6 @@ class NumberField_relative(NumberField_generic):
             sage: L in L
             False
 
-        MORE TESTS:
         We construct the composite of three quadratic fields, then
         coerce from the quartic subfield of the relative extension::
 

@@ -82,14 +82,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         sage: H.zero()(x)
         0
 
-    TESTS::
-
-        sage: f = H.zero().on_basis()
-        sage: f(1)
-        0
-        sage: f(2)
-        0
-
     EXAMPLES:
 
     We now construct a more interesting morphism by extending a
@@ -134,7 +126,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     TESTS::
 
+        sage: f = H.zero().on_basis()
+        sage: f(1)
+        0
+        sage: f(2)
+        0
+
         sage: TestSuite(ModulesWithBasis(ZZ)).run()
+
     """
 
     def _call_(self, x):
@@ -742,7 +741,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S3A = S3.algebra(QQ)
                 sage: basis = S3A.annihilator_basis(S3A.algebra_generators(), S3A.bracket)
                 sage: basis
-                [(), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2)]
+                ((), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2))
                 sage: center = S3A.submodule(basis,
                 ....:                        category=AlgebrasWithBasis(QQ).Subobjects(),
                 ....:                        already_echelonized=True)
@@ -797,10 +796,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S = SymmetricGroupAlgebra(QQ, 4)
                 sage: S.cardinality()
                 +Infinity
-                sage: S = SymmetricGroupAlgebra(GF(2), 4) # not tested -- MRO bug :trac:`15475`
-                sage: S.cardinality() # not tested -- MRO bug :trac:`15475`
+                sage: S = SymmetricGroupAlgebra(GF(2), 4) # not tested -- MRO bug trac #15475
+                sage: S.cardinality() # not tested -- MRO bug trac #15475
                 16777216
-                sage: S.cardinality().factor() # not tested -- MRO bug :trac:`15475`
+                sage: S.cardinality().factor() # not tested -- MRO bug trac #15475
                 2^24
 
                 sage: E.<x,y> = ExteriorAlgebra(QQ)
@@ -1099,7 +1098,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             TESTS:
 
-            We check that we make a copy of the coefficient dictonary::
+            We check that we make a copy of the coefficient dictionary::
 
                 sage: F = CombinatorialFreeModule(ZZ, ['a','b','c'])
                 sage: B = F.basis()
@@ -1974,7 +1973,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of modules with basis constructed by cartesian products
+        The category of modules with basis constructed by Cartesian products
         of modules with basis.
         """
         @cached_method

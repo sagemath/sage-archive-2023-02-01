@@ -101,7 +101,7 @@ cdef class PolynomialRealDense(Polynomial):
         self._base_ring = parent._base
         cdef Py_ssize_t i, degree
         cdef int prec = self._base_ring.__prec
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         if x is None:
             self._coeffs = <mpfr_t*>check_allocarray(1, sizeof(mpfr_t)) # degree zero
             mpfr_init2(self._coeffs[0], prec)
@@ -363,7 +363,7 @@ cdef class PolynomialRealDense(Polynomial):
             -x^2 + 2.00000000000000
         """
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree)
         for i from 0 <= i <= f._degree:
             mpfr_neg(f._coeffs[i], self._coeffs[i], rnd)
@@ -386,7 +386,7 @@ cdef class PolynomialRealDense(Polynomial):
             0
         """
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = left._base_ring.rnd
+        cdef mpfr_rnd_t rnd = left._base_ring.rnd
         cdef PolynomialRealDense right = _right
         cdef Py_ssize_t min = left._degree if left._degree < right._degree else right._degree
         cdef Py_ssize_t max = left._degree if left._degree > right._degree else right._degree
@@ -417,7 +417,7 @@ cdef class PolynomialRealDense(Polynomial):
             True
         """
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = left._base_ring.rnd
+        cdef mpfr_rnd_t rnd = left._base_ring.rnd
         cdef PolynomialRealDense right = _right
         cdef Py_ssize_t min = left._degree if left._degree < right._degree else right._degree
         cdef Py_ssize_t max = left._degree if left._degree > right._degree else right._degree
@@ -452,7 +452,7 @@ cdef class PolynomialRealDense(Polynomial):
         cdef RealNumber a = c
         if mpfr_zero_p(a.value):
             return self._new(-1)
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree)
         for i from 0 <= i <= self._degree:
             mpfr_mul(f._coeffs[i], self._coeffs[i], a.value, rnd)
@@ -478,7 +478,7 @@ cdef class PolynomialRealDense(Polynomial):
             8.00000000000000*x^6 + 10.0000000000000*x^5 + 7.00000000000000*x^4 + 4.00000000000000*x^3 + x^2
         """
         cdef Py_ssize_t i, j
-        cdef mp_rnd_t rnd = left._base_ring.rnd
+        cdef mpfr_rnd_t rnd = left._base_ring.rnd
         cdef PolynomialRealDense right = _right
         cdef PolynomialRealDense f
         cdef mpfr_t tmp
@@ -511,7 +511,7 @@ cdef class PolynomialRealDense(Polynomial):
         """
         if var is not None and var != self._parent.gen():
             return self._new(-1)
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree-1)
         for i from 0 <= i < self._degree:
             mpfr_mul_ui(f._coeffs[i], self._coeffs[i+1], i+1, rnd)
@@ -526,7 +526,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f.integral()
             0.333333333333333*x^3 + 1.57079632679490*x^2 + 3.00000000000000*x
         """
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree+1)
         mpfr_set_ui(f._coeffs[0], 0, rnd)
         for i from 0 <= i <= self._degree:
@@ -544,7 +544,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f.reverse()
             -3.00000000000000*x^3 + 3.14159265358979*x^2 + 1.00000000000000
         """
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree)
         for i from 0 <= i <= self._degree:
             mpfr_set(f._coeffs[self._degree-i], self._coeffs[i], rnd)
@@ -598,7 +598,7 @@ cdef class PolynomialRealDense(Polynomial):
             return self * ~other[0], self._parent.zero()
         elif other._degree > self._degree:
             return self._parent.zero(), self
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense q, r
         cdef Py_ssize_t i, j
         cdef mpfr_t tmp
@@ -653,7 +653,7 @@ cdef class PolynomialRealDense(Polynomial):
 
         TESTS::
 
-            sage: R.<x> = RR[]       # :trac:`17311`
+            sage: R.<x> = RR[]       # trac #17311
             sage: (x^2+1)(x=5)
             26.0000000000000
         """
@@ -669,7 +669,7 @@ cdef class PolynomialRealDense(Polynomial):
                 return Polynomial.__call__(self, xx)
 
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef RealNumber x = <RealNumber>xx
         cdef RealNumber res
 
@@ -713,7 +713,7 @@ cdef class PolynomialRealDense(Polynomial):
             1.5000000000000000000000000000*x^2 - 2.0000000000000000000000000000
         """
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f
         if isinstance(R, RealField_class):
             f = PolynomialRealDense(R[self.variable_name()])

@@ -328,14 +328,6 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
 
         Complexity: constant amortized time.
         """
-# FIXME : currently composition is extremenly slow.
-# Activate the following code as soon as compositions use
-# the integer_list_lex machinery
-#         for i in range(self.n, self.n*(self.n+1)/2+1):
-#             for z in Compositions(i, length=self.n, outer=range(1, self.n+1),
-#                                   min_slope=0).__iter__():
-#                 yield NonDecreasingParkingFunction(z._list)
-#         return
         def iterator_rec(n):
             """
             TESTS::

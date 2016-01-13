@@ -400,9 +400,9 @@ class MatrixGroup_generic(MatrixGroup_base):
 
         INPUT:
 
-        - ``G`` -- group. The codomain.
+        - ``G`` -- group; the codomain
 
-        - ``cat`` -- a category. Must be unset.
+        - ``cat`` -- category; must be unset
 
         OUTPUT:
 
@@ -420,13 +420,22 @@ class MatrixGroup_generic(MatrixGroup_base):
             [1 0]  [1 2]
             [0 1], [3 4]
             )
+
+        TESTS:
+
+        Check that :trac:`19407` is fixed::
+
+            sage: G = GL(2, GF(2))
+            sage: H = GL(3, ZZ)
+            sage: Hom(G, H)
+            Set of Homomorphisms from General Linear Group of degree 2
+             over Finite Field of size 2 to General Linear Group of degree 3
+             over Integer Ring
         """
-        if not (cat is None or (cat is G.category() and cat is self.category())):
-            raise TypeError
         if not is_MatrixGroup(G):
             raise TypeError("G (=%s) must be a matrix group."%G)
         import homset
-        return homset.MatrixGroupHomset(self, G)
+        return homset.MatrixGroupHomset(self, G, cat)
 
     def hom(self, x):
         """

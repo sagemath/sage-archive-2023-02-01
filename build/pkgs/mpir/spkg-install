@@ -8,7 +8,6 @@ fi
 
 CUR=`pwd`
 
-mv mpir-2.7.0 src
 cd src
 
 ###############################################################################
@@ -31,8 +30,31 @@ done
 ###############################################################################
 
 ###############################################################################
+# Find out the machine type
+###############################################################################
+
+MACHINE_TYPE_MPIR=$(bash ./config.guess)
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to determine the machine type (mpir-extended)"
+    exit 1
+fi
+
+#  This is the vanilla config.guess (renamed to configfsf.guess in
+#  MPIR) file instead of MPIR's version. It is used when
+#  SAGE_FAT_BINARY is set.
+MACHINE_TYPE_DEFAULT=$(bash ./configfsf.guess)
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to determine the machine type (default)"
+    exit 1
+fi
+
+echo "Machine type (default): $MACHINE_TYPE_DEFAULT"
+echo "Machine type (mpir): $MACHINE_TYPE_MPIR"
+
+###############################################################################
 # Set up environment variables:
 ###############################################################################
+
 
 # The Yasm build uses PYTHON from the environment to find the Python interpreter,
 # so unset it in case it apparently contains nothing useful (like it did in Sage
@@ -136,8 +158,8 @@ case "$UNAME" in
                 # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
                 echo "Building a 64-bit version of MPIR."
                 case "`uname -m`" in
-                    ppc64) ABI=mode64;;
-                    *)     ABI=64
+                    ppc*) ABI=mode64;;
+                    *)    ABI=64;;
                 esac
             elif $CC $CFLAGS $CFLAG32 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
                 # We're on a 32-bit OS which cannot run 64-bit executables.
@@ -162,6 +184,12 @@ case "$UNAME" in
         echo >&2 "Warning: Your platform ($UNAME) isn't yet explicitly supported" \
             "by this MPIR spkg, i.e., by Sage's part of it."
 esac
+
+# MPIR 2.7.2 does not know about ppc64le and confuses it with plain
+# ppc64. We need to disable specific powerpc64 assembly.
+if [ "`uname -m`" = ppc64le ]; then
+    export MPN_PATH=generic
+fi
 
 # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs.
 # See #12765, #12751, and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
@@ -218,9 +246,8 @@ fi
 
 # If SAGE_FAT_BINARY is enabled, then add --enable-fat to configure
 # options on Linux x86 systems.  On other systems, fat binaries are not
-# supported.  Then we specify a build architecture which doesn't
-# have a CPU name in it.  This means which use the vanilla config.guess
-# (renamed to configfsf.guess in MPIR) file instead of MPIR's version.
+# supported.  There, we specify a build architecture which doesn't
+# have a CPU name in it.
 if [ "$SAGE_FAT_BINARY" = "yes" ]; then
     case "$UNAME-`uname -m`" in
         Linux-i[3456]86)
@@ -233,7 +260,7 @@ if [ "$SAGE_FAT_BINARY" = "yes" ]; then
             ;;
         *) # Anything else
             echo "** Building a generic binary (not assuming any specific CPU) **"
-            MPIR_CONFIGURE="--build=`./configfsf.guess` $MPIR_CONFIGURE"
+            MPIR_CONFIGURE="--build=$MACHINE_TYPE_DEFAULT $MPIR_CONFIGURE"
             ;;
     esac
 fi

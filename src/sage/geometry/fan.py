@@ -2628,7 +2628,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         if not fan_isomorphic_necessary_conditions(self, other):
             return False
         if self.lattice_dim() == 2:
-            if self._2d_echelon_forms.get_cache() is None:
+            if self._2d_echelon_forms.cache is None:
                 return self._2d_echelon_form() in other._2d_echelon_forms()
             else:
                 return other._2d_echelon_form() in self._2d_echelon_forms()
@@ -3289,7 +3289,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         boundaries = {self:FormalSum(generating_cones)}
 
         # The orientation of each facet is arbitrary, but the
-        # partititon of the boundary in positively and negatively
+        # partition of the boundary in positively and negatively
         # oriented facets is not.
         for d in range(dim, -1, -1):
             for c in self(d):

@@ -17,9 +17,12 @@ removed. `C_i` is the punctured code of `C` on the `i`-th position.
 
 from linear_code import AbstractLinearCode
 from encoder import Encoder
+from decoder import Decoder, DecodingError
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
+from sage.rings.finite_rings.constructor import GF
+from copy import copy
 
 def puncture(v, points, code):
     r"""
@@ -74,6 +77,7 @@ class PuncturedCode(AbstractLinearCode):
         Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3, 5]
     """
     _registered_encoders = {}
+    _registered_decoders = {}
 
     def __init__(self, C, positions):
         r"""
@@ -100,7 +104,7 @@ class PuncturedCode(AbstractLinearCode):
         for i in unique_positions:
             positions.append(i)
         super(PuncturedCode, self).__init__(C.base_ring(), C.length() - len(positions), \
-                "PuncturedMatrix")
+                "PuncturedMatrix", "OriginalCode")
         positions.sort()
         self._original_code = C
         self._positions = positions
@@ -354,6 +358,258 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             cpt += 1
         return G.delete_rows(delete)
 
+
+
+
+
+
+
+
+
+class PuncturedCodeOriginalCodeDecoder(Decoder):
+    r"""
+    Decoder decoding through a decoder over the original code of its punctured code.
+
+    INPUT:
+
+    - ``code`` -- The associated code of this encoder
+
+    - ``strategy`` -- (dafault: ``None``) the strategy used to decode.
+      The available strategies are:
+
+        * ``'error-erasure'`` -- uses an error erasure decoder over the original code if available,
+           fails otherwise.
+
+        * ``'random-values'`` -- fills the punctured positions with random elements
+           in ``code``'s base field and tries to decode using
+           the default decoder of the original code
+
+        * ``'try-all'`` -- fills the punctured positions with every possible combination of
+           symbols until decoding succeeds, or until every combination have been tried
+
+        * ``None`` -- uses ``error-erasure`` if an error-erasure decoder is available,
+           switch to ``random-values`` behaviour otherwise
+
+    - ``original_decoder`` -- (default: ``None``) the decoder that will be used over the original code.
+      It has to be a decoder object over the original code.
+      This argument takes precedence over ``strategy``: if both ``original_decoder`` and ``strategy``
+      are filled, ``self`` will use the ``original_decoder`` to decode over the original code.
+      If ``original_decoder`` is set to ``None``, it will use the decoder picked by ``strategy``.
+
+    - ``**kwargs`` -- all extra arguments are forwarded to original code's decoder
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
+            sage: D
+            Decoder of Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3] through Syndrome decoder for Linear code of length 11, dimension 5 over Finite Field of size 7
+    """
+
+    def __init__(self, code, strategy = None, original_decoder = None, **kwargs):
+        r"""
+        TESTS:
+
+        If one tries to use ``'error-erasure'`` strategy when the original code has no such
+        decoder, it returns an error::
+
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp, strategy = 'error-erasure')
+            Traceback (most recent call last):
+            ...
+            ValueError: Original code has no error-erasure decoder
+        """
+        original_code = code.original_code()
+        if original_decoder is not None:
+            if not isinstance(original_decoder, Decoder):
+                raise TypeError("original_decoder must be a decoder object")
+            if not original_decoder.code() == original_code:
+                raise ValueError("original decoder must have the original code as associated code")
+            if 'error-erasure' in original_decoder.decoder_type():
+                strategy = 'error-erasure'
+            self._original_decoder = original_decoder
+        elif strategy == 'error-erasure':
+            error_erasure = 0
+            for D in original_code._registered_decoders.values():
+                if 'error-erasure' in D._decoder_type:
+                    error_erasure = 1
+                    self._original_decoder = D(original_code, **kwargs)
+                    break
+            if not error_erasure:
+                raise ValueError("Original code has no error-erasure decoder")
+        elif strategy == 'random-values' or strategy == 'try-all':
+            self._original_decoder = code.original_code().decoder(**kwargs)
+        else:
+            error_erasure = 0
+            for D in original_code._registered_decoders.values():
+                if 'error-erasure' in D._decoder_type:
+                    error_erasure = 1
+                    self._original_decoder = D(original_code, **kwargs)
+                    break
+            if not error_erasure:
+                self._original_decoder = original_code.decoder(**kwargs)
+        self._strategy = strategy
+        self._original_decoder.decoder_type()
+        super(PuncturedCodeOriginalCodeDecoder, self).__init__(code, code.ambient_space(),\
+                self._original_decoder.connected_encoder())
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
+            sage: D
+            Decoder of Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3] through Syndrome decoder for Linear code of length 11, dimension 5 over Finite Field of size 7
+        """
+        return "Decoder of %s through %s" % (self.code(), self.original_decoder())
+
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
+            sage: latex(D)
+            \textnormal{Decoder of } Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3] \textnormal{ through } Syndrome decoder for Linear code of length 11, dimension 5 over Finite Field of size 7
+        """
+        return "\\textnormal{Decoder of } %s \\textnormal{ through } %s" % (self.code(), self.original_decoder())
+
+    def original_decoder(self):
+        r"""
+        Returns the decoder over the original code that will be used to decode words of
+        :meth:`sage.coding.decoder.Decoder.code`.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
+            sage: D.original_decoder()
+            Syndrome decoder for Linear code of length 11, dimension 5 over Finite Field of size 7
+        """
+        return self._original_decoder
+
+    def decode_to_code(self, y):
+        r"""
+        Decodes ``y`` to an element in :meth:`sage.coding.decoder.Decoder.code`.
+
+        EXAMPLES::
+
+            sage: set_random_seed(42)
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
+            sage: c = vector(GF(7), [6, 5, 5, 6, 2, 3, 4, 4, 1, 5])
+            sage: c in Cp
+            True
+            sage: y = vector(GF(7), [6, 5, 5, 6, 0, 3, 4, 4, 1, 5])
+            sage: y in Cp
+            False
+            sage: D.decode_to_code(y) == c
+            True
+        """
+        D = self.original_decoder()
+        C = self.code()
+        A = C.original_code().ambient_space()
+        Cor = C.original_code()
+        pts = C.punctured_positions()
+        F = self.code().base_field()
+        zero, one = F.zero(), F.one()
+        if "error-erasure" in D.decoder_type():
+            if isinstance(y, (tuple, list)):
+                y, e = y[0], y[1]
+                e_list = e.list()
+                shift = 0
+                for i in range(Cor.length()):
+                    if i in pts:
+                        e_list.insert(i + shift, one)
+            else:
+                e_list = []
+                for i in range(Cor.length()):
+                    if i in pts:
+                        e_list.append(one)
+                    else:
+                        e_list.append(zero)
+            e = vector(GF(2), e_list)
+            yl = y.list()
+            shift = 0
+            for i in pts:
+                yl.insert(i + shift, F.zero())
+                shift += 1
+            y = A(yl)
+            return puncture(D.decode_to_code((y, e)), pts, C)
+        elif self._strategy == 'try-all':
+            end = False
+            yl = y.list()
+            I = iter(VectorSpace(F, len(pts)))
+            shift = 0
+            for i in pts:
+                yl.insert(i + shift, F.zero())
+                shift += 1
+            values = I.next()
+            while not end:
+                try:
+                    shift = 0
+                    for i in pts:
+                        yl[i + shift] =  values[shift]
+                        shift += 1
+                    y = A(yl)
+                    values = I.next()
+                    try:
+                        c_or = self.original_decoder().decode_to_code(y)
+                        end = True
+                        break
+                    except:
+                        pass
+                except StopIteration:
+                    raise DecodingError
+            return puncture(c_or, pts, C)
+        A = C.original_code().ambient_space()
+        yl = y.list()
+        shift = 0
+        for i in pts:
+            yl.insert(i + shift, F.random_element())
+            shift += 1
+        y = A(yl)
+        return puncture(self.original_decoder().decode_to_code(y), pts, C)
+
+    def decoding_radius(self, number_erasures = None):
+        r"""
+        Returns maximal number of errors that ``self`` can decode.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
+            sage: D.decoding_radius()
+            1
+        """
+        punctured = len(self.code().punctured_positions())
+        D = self.original_decoder()
+        if self._strategy != 'try-all' and "error-erasure" not in D.decoder_type():
+            return D.decoding_radius() - punctured
+        elif "error-erasure" in D.decoder_type() and number_erasures is not None:
+            diff = self.code().original_code().minimum_distance() - number_erasures
+            if diff <= 0:
+                raise ValueError("The number of erasures exceed decoding capability")
+            return (diff - punctured) // 2
+        elif "error-erasure" in D.decoder_type() and number_erasures is None:
+            raise ValueError("You must provide the number of erasures")
+        return D.decoding_radius()
+
 ####################### registration ###############################
 
 PuncturedCode._registered_encoders["PuncturedMatrix"] = PuncturedCodePuncturedMatrixEncoder
+PuncturedCode._registered_decoders["OriginalCode"] = PuncturedCodeOriginalCodeDecoder
+PuncturedCodeOriginalCodeDecoder._decoder_type = {"dynamic"}

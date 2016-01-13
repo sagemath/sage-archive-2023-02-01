@@ -1865,6 +1865,24 @@ class Permutation(CombinatorialElement):
         """
         return self.number_of_inversions()
 
+    def absolute_length(self):
+        """
+        Return the absolute length of ``self``
+
+        The absolute length is the length of the shortest expression
+        of the element as a product of reflections.
+
+        For permutations in the symmetric groups, the absolute
+        length is the size minus the number of its disjoint
+        cycles.
+
+        EXAMPLES::
+
+            sage: Permutation([4,2,3,1]).absolute_length()
+            1
+        """
+        return self.size() - len(self.cycle_type())
+
     @combinatorial_map(order=2,name='inverse')
     def inverse(self):
         r"""

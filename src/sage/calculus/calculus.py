@@ -382,22 +382,32 @@ Check that the problem with Taylor expansions of the gamma function
     sage: map(lambda f:f[0].n(), _.coefficients())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
     [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
 
-Ensure that ticket #8582 is fixed::
+Ensure that :trac:`8582` is fixed::
 
     sage: k = var("k")
     sage: sum(1/(1+k^2), k, -oo, oo)
     -1/2*I*psi(I + 1) + 1/2*I*psi(-I + 1) - 1/2*I*psi(I) + 1/2*I*psi(-I)
 
-Ensure that ticket #8624 is fixed::
+Ensure that :trac:`8624` is fixed::
 
     sage: integrate(abs(cos(x)) * sin(x), x, pi/2, pi)
     1/2
     sage: integrate(sqrt(cos(x)^2 + sin(x)^2), x, 0, 2*pi)
     2*pi
+
+Check if maxima has redundant variables defined after initialization,
+see :trac:`9538`::
+
+    sage: maxima = sage.interfaces.maxima.maxima
+    sage: maxima('f1')
+    f1
+    sage: sage.calculus.calculus.maxima('f1')
+    f1
 """
 
 import re
-from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement, algdep
+from sage.arith.all import algdep
+from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement
 from sage.rings.real_mpfr import create_RealNumber
 
 from sage.misc.latex import latex
@@ -407,27 +417,13 @@ from sage.symbolic.ring import var, SR, is_SymbolicVariable
 from sage.symbolic.expression import Expression
 from sage.symbolic.function import Function
 from sage.symbolic.function_factory import function_factory
-from sage.symbolic.integration.integral import indefinite_integral, \
-        definite_integral
+from sage.symbolic.integration.integral import (indefinite_integral,
+        definite_integral)
 import sage.symbolic.pynac
 
-"""
-Check if maxima has redundant variables defined after initialization #9538::
-
-    sage: maxima = sage.interfaces.maxima.maxima
-    sage: maxima('f1')
-    f1
-    sage: sage.calculus.calculus.maxima('f1')
-    f1
-"""
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.interfaces.maxima_lib','maxima')
-# This is not the same instance of Maxima as the general purpose one
-#from sage.interfaces.maxima import Maxima
-#maxima = Maxima(init_code = ['display2d : false', 'domain : complex',
-#                             'keepfloat : true', 'load(to_poly_solver)',
-#                             'load(simplify_sum)'],
-#                script_subdirectory=None)
+
 
 ########################################################
 def symbolic_sum(expression, v, a, b, algorithm='maxima'):

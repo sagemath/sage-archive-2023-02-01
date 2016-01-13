@@ -3023,7 +3023,7 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         Return the least common multiple of ``self`` and ``right``.
         """
         if not isinstance(right, Element) or not ((<Element>right)._parent is self._parent):
-            from sage.rings.arith import lcm
+            from sage.arith.all import lcm
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
@@ -3541,7 +3541,7 @@ coerce_binop = NamedBinopMethod
 ###############################################################################
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.arith', ['gcd', 'xgcd', 'lcm'], deprecation=10779)
+lazy_import('sage.arith.all', ['gcd', 'xgcd', 'lcm'], deprecation=10779)
 
 
 ######################

@@ -92,7 +92,6 @@ from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme
 
-from sage.rings.arith            import gcd, lcm
 from sage.categories.gcd_domains import GcdDomains
 from sage.rings.qqbar            import QQbar
 from sage.rings.quotient_ring    import QuotientRing_generic

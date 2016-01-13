@@ -126,7 +126,7 @@ AUTHORS:
 ######################################################################
 
 from sage.structure.sage_object import SageObject
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.all as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF

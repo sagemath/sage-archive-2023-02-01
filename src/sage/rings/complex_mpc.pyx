@@ -1284,8 +1284,8 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: z^2 - z + 1
             1.11022302462516e-16
         """
-        import sage.rings.arith
-        return sage.rings.arith.algdep(self,n, **kwds)
+        import sage.arith.all
+        return sage.arith.all.algdep(self, n, **kwds)
 
     # Former misspelling
     algebraic_dependancy = algebraic_dependency

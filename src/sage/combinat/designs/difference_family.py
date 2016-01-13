@@ -43,7 +43,7 @@ Functions
 #*****************************************************************************
 
 from sage.categories.sets_cat import EmptySetError
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.misc.unknown import Unknown
 from sage.rings.integer import Integer
 

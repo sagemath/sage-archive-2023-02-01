@@ -29,7 +29,7 @@ from sage.categories.all import AlgebrasWithBasis, FiniteDimensionalAlgebrasWith
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polydict import ETuple
-from sage.rings.arith import is_square
+from sage.arith.all import is_square
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement

@@ -46,7 +46,6 @@ import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
 import sage.rings.integer
-import sage.rings.arith
 
 cimport number_field_base
 import number_field

@@ -87,11 +87,15 @@ TESTS::
     True
 """
 
-###########################################################################
-#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
-#  Distributed under the terms of the GNU General Public License (GPL)    #
-#                  http://www.gnu.org/licenses/                           #
-###########################################################################
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module import Module
@@ -99,7 +103,8 @@ from sage.modules.free_module import is_FreeModule
 from sage.structure.element import ModuleElement
 from sage.structure.gens_py import abelian_iterator
 from sage.structure.sequence import Sequence
-from sage.rings.all import gcd, lcm, QQ, ZZ, QQbar, Integer
+from sage.rings.all import QQ, ZZ, QQbar, Integer
+from sage.arith.all import gcd, lcm
 from sage.misc.all import prod
 from sage.structure.element import get_coercion_model
 

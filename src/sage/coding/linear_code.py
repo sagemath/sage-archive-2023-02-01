@@ -2996,6 +2996,31 @@ class AbstractLinearCode(module.Module):
         from punctured_code import PuncturedCode
         return PuncturedCode(self, L)
 
+    def _punctured_form(self, points):
+        r"""
+        Returns a representation of self as a :class:`LinearCode` punctured in ``points``.
+
+        INPUT:
+
+        - ``points`` -- a list of positions where to puncture ``self``
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(11, 4, GF(7))
+            sage: C._punctured_form([3])
+            Linear code of length 10, dimension 4 over Finite Field of size 7
+        """
+        M = self.generator_matrix()
+        G = M.delete_columns(points)
+        G = G.echelon_form()
+        delete = []
+        cpt = 0
+        for i in G.rows():
+            if i.is_zero():
+                delete.append(cpt)
+            cpt += 1
+        return LinearCode(G.delete_rows(delete))
+
     def random_element(self, *args, **kwds):
         """
         Returns a random codeword; passes other positional and keyword

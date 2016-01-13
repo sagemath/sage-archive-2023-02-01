@@ -1,8 +1,9 @@
 r"""
 Punctured code
 
-Let `C` be a linear code. Let `C_i` be the set of all words of `C` with the `i`-th coordinate being
-removed. `C_i` is the punctured code of `C` on the `i`-th position.
+Let `C` be a linear code. Let `C_i` be the set of all words of `C` with the
+`i`-th coordinate beingremoved. `C_i` is the punctured code of `C`
+on the `i`-th position.
 """
 
 #*****************************************************************************
@@ -270,7 +271,45 @@ class PuncturedCode(AbstractLinearCode):
             return puncture(c, self.punctured_positions, self)
         return self.encoder(encoder_name, **kwargs).encode(m)
 
+    @cached_method
+    def structured_representation(self):
+        r"""
+        Returns ``self`` as a structured code object.
 
+        If ``self`` has a specific structured representation (e.g. a punctured GRS code is
+        a GRS code too), it will return this representation, else it returns a
+        :class:`sage.coding.linear_code.LinearCode`.
+
+        EXAMPLES:
+
+        We consider a GRS code::
+
+            sage: C_grs = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+
+        A punctured GRS code is still a punctured code::
+
+            sage: Cp_grs = codes.PuncturedCode(C_grs, 3)
+            sage: Cp_grs.structured_representation()
+            [39, 12, 28] Generalized Reed-Solomon Code over Finite Field of size 59
+
+        Which is not the case for generic linear codes::
+
+            sage: set_random_seed(42)
+            sage: C_lin  = codes.RandomLinearCode(10, 5, GF(2))
+            sage: Cp_lin = codes.PuncturedCode(C_lin, 2)
+            sage: Cp_lin.structured_representation()
+            Linear code of length 9, dimension 5 over Finite Field of size 2
+        """
+        C = self.original_code()
+        pts = copy(self.punctured_positions())
+        cpt = 1
+        while(isinstance(C, PuncturedCode)):
+            cur_pts = C.punctured_positions()
+            for i in cur_pts:
+                pts.append(i + cpt)
+                cpt += 1
+            C = C.original_code()
+        return C._punctured_form(pts)
 
 
 

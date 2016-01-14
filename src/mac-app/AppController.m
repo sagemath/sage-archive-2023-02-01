@@ -378,7 +378,7 @@ You can change it later in Preferences."];
                            [sageBinary stringByDeletingLastPathComponent]]];
     } else {
         [[NSWorkspace sharedWorkspace] selectFile:[sageBinary stringByDeletingLastPathComponent]
-                         inFileViewerRootedAtPath:nil];
+                         inFileViewerRootedAtPath:@""];
     }
 }
 

@@ -53,6 +53,7 @@ Basic Shapes
    sage/plot/polygon
    sage/plot/hyperbolic_arc
    sage/plot/hyperbolic_polygon
+   sage/plot/hyperbolic_regular_polygon
 
 Infrastructure and Low-Level Functions
 --------------------------------------

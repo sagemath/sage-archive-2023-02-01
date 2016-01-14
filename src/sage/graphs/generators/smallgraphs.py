@@ -4956,7 +4956,7 @@ def JankoKharaghaniTonchevGraph():
     from itertools import product
     from sage.misc.misc_c import prod
     from sage.combinat.permutation import Permutation as P
-    from sage.groups.perm_gps.permgroup import PermutationGroup
+    from sage.libs.gap.libgap import libgap
 
     m1=prod([P((9*x+k,9*x+k+3,9*x+k+6)) for k,x in product(xrange(1,4),xrange(36))])
     m2=prod([P((3*x+1,3*x+2,3*x+3)) for x in xrange(108)])
@@ -4975,7 +4975,8 @@ def JankoKharaghaniTonchevGraph():
                 (18*x+4,18*x+13),(18*x+5,18*x+14),(18*x+6,18*x+15),(18*x+7,18*x+16),
                 (18*x+8,18*x+17),(18*x+9,18*x+18)]))
                  for x in xrange(18))
-    G=PermutationGroup([m1,m2,t,n1,n2,s,k])
+    G=libgap.Group(map(lambda p: libgap.PermList(p), [m1,m2,t,n1,n2,s,k]))
+    st=libgap.Group(map(lambda p: libgap.PermList(p), [t,s]))
     B1=(19,22,25,29,30,31,33,34,35,37,40,43,47,48,49,51,52,53,55,56,57,65,
         66,67,68,70,72,76,77,78,79,80,81,82,86,90,92,93,95,96,98,99,100,105,107,
         109,110,111,119,120,121,122,124,126,128,129,131,132,134,135,136,141,143,
@@ -4994,7 +4995,7 @@ def JankoKharaghaniTonchevGraph():
         292,293,295,297,298,301,304,308,309,310,312,313,314,316,317,318)
     Gamma=Graph(multiedges=False,name='Janko-Kharaghani-Tonchev')
     for i,b in ((1,B1),(163,B163)):
-        for j in b:
-            Gamma.add_edges(map(tuple,G.orbit((i,j),action="OnSets")))
+        for j in map(lambda x: x[0], st.OrbitsDomain(b)):
+            Gamma.add_edges(map(tuple,G.Orbit(libgap.Set([i,j]), libgap.OnSets)))
     Gamma.relabel()
     return Gamma

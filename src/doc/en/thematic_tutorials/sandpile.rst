@@ -644,7 +644,7 @@ sandpile group.  The zero set is actually linearly isomorphic to a faithful repr
     The zeros are generated as a group by a single vector:
 
     sage: S.points()
-    [[e^(1/4*I*pi), e^(-3/4*I*pi)]]
+    [[(1/2*I + 1/2)*sqrt(2), -(1/2*I + 1/2)*sqrt(2)]]
 
 
 Resolutions

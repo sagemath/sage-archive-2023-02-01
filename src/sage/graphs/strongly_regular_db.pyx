@@ -836,6 +836,51 @@ def is_haemers(int v,int k,int l,int mu):
             return (HaemersGraph, q)
 
 @cached_function
+def is_cossidente_penttila(int v,int k,int l,int mu):
+    r"""
+    Test whether some CossidentePenttilaGraph graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`~sage.graphs.graph_generators.GraphGenerators.CossidentePenttilaGraph`.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_cossidente_penttila
+        sage: t =  is_cossidente_penttila(378, 52, 1, 8); t
+        (<function CossidentePenttilaGraph at ...>, 5)
+        sage: g = t[0](*t[1:]); g                      # optional - gap_packages
+        CossidentePenttila(5): Graph on 378 vertices
+        sage: g.is_strongly_regular(parameters=True)   # optional - gap_packages
+        (378, 52, 1, 8)
+
+    TESTS::
+
+        sage: t =  is_cossidente_penttila(56,10,0,2); t
+        (<function CossidentePenttilaGraph at ...>, 3)
+        sage: t =  is_cossidente_penttila(1376,150,2,18); t
+        (<function CossidentePenttilaGraph at ...>, 7)
+        sage: t = is_cossidente_penttila(5,5,5,5); t
+    """
+    cdef int q, n, p
+    q = 2*l+3
+    p, n = is_prime_power(q, get_data=True)
+    if 2 < p and n != 0:
+        if (v  == (q**3+1)*(q+1)/2     and
+            k  == (q**2+1)*(q-1)/2      and
+            mu  == (q-1)**2/2):
+            from sage.graphs.generators.classical_geometries import CossidentePenttilaGraph
+            return (CossidentePenttilaGraph, q)
+
+@cached_function
 def is_complete_multipartite(int v,int k,int l,int mu):
     r"""
     Test whether some complete multipartite graph is `(v,k,\lambda,\mu)`-strongly regular.
@@ -1924,7 +1969,7 @@ def SRG_176_105_68_54():
     To build this graph, we first build a `2-(22,7,16)` design, by removing one
     point from the :func:`~sage.combinat.designs.block_design.WittDesign` on 23
     points. We then build the intersection graph of blocks with intersection
-    size 3.
+    size 3. Known as S.7 in [Hu75]_.
 
     EXAMPLE::
 
@@ -1998,9 +2043,8 @@ def SRG_243_110_37_60():
 
     Consider the orthogonal complement of the
     :func:`~sage.coding.code_constructions.TernaryGolayCode`, which has 243
-    words. On those words we define a graph, in which two points are adjacent
-    when their Hamming distance is equal to 9. This construction appears in
-    [GS75]_.
+    words. On them we define a graph, in which two words are adjacent
+    whenever their Hamming distance is 9. This construction appears in [GS75]_.
 
     .. NOTE::
 
@@ -2033,7 +2077,7 @@ def SRG_253_140_87_65():
     To build this graph, we first build the
     :func:`~sage.combinat.designs.block_design.WittDesign` on 23 points which is
     a `2-(23,7,21)` design. We then build the intersection graph of blocks with
-    intersection size 3.
+    intersection size 3. Known as S.6 in [Hu75]_.
 
     EXAMPLE::
 
@@ -2274,7 +2318,7 @@ def SRG_416_100_36_20():
     (among 2 that exists) of the group `G_2(4)`.
     This graph is isomorphic to the subgraph of the from :meth:`Suzuki Graph
     <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>` induced on
-    the neighbors of a vertex.
+    the neighbors of a vertex. Known as S.14 in [Hu75]_.
 
     EXAMPLE::
 
@@ -2419,7 +2463,7 @@ def SRG_175_72_20_36():
     This graph is obtained from the line graph of
     :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`. Setting
     two vertices to be adjacent if their distance in the line graph is exactly
-    two yields the strongly regular graph. For more information, see
+    2 yields the graph. For more information, see 10.B.(iv) in [BvL84]_ and
     http://www.win.tue.nl/~aeb/graphs/McL.html.
 
     EXAMPLES::
@@ -2551,7 +2595,6 @@ def SRG_1288_792_476_504():
                lambda x,y:len(x.symmetric_difference(y))==12])
     G.relabel()
     return G
-
 
 cdef bint seems_feasible(int v, int k, int l, int mu):
     r"""
@@ -2792,6 +2835,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_switch_OA_srg,
                       is_polhill,
                       is_haemers,
+                      is_cossidente_penttila,
                       is_mathon_PC_srg,
                       is_switch_skewhad]
 
@@ -2979,6 +3023,7 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     from sage.graphs.generators.smallgraphs import SchlaefliGraph
     from sage.graphs.generators.smallgraphs import HigmanSimsGraph
+    from sage.graphs.generators.smallgraphs import JankoKharaghaniGraph
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
     from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
@@ -3020,8 +3065,10 @@ def _build_small_srg_database():
         (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
         (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
         (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],
+        (936, 375, 150,150): [JankoKharaghaniGraph, 936],
         (1288,792, 476,504): [SRG_1288_792_476_504],
         (1782,416, 100, 96): [SuzukiGraph],
+        (1800,1029,588,588): [JankoKharaghaniGraph, 1800],
     }
 
     # Turns the known two-weight codes into SRG constructors

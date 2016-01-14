@@ -1098,7 +1098,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             TESTS:
 
-            We check that we make a copy of the coefficient dictonary::
+            We check that we make a copy of the coefficient dictionary::
 
                 sage: F = CombinatorialFreeModule(ZZ, ['a','b','c'])
                 sage: B = F.basis()

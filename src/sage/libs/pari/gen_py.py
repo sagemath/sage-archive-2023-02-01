@@ -1,3 +1,15 @@
+def pari(x):
+    """
+    Return the PARI object constructed from a Sage/Python object.
+
+    This is deprecated, import ``pari`` from ``sage.libs.pari.all``.
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(17451, 'gen_py.pari is deprecated, use sage.libs.pari.all.pari instead')
+    from sage.libs.pari.all import pari
+    return pari(x)
+
+
 def python(z, locals=None):
     """
     Return the closest Python/Sage equivalent of the given PARI object.

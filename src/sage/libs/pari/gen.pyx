@@ -1425,7 +1425,7 @@ cdef class gen(gen_auto):
             will be a RealField element of the equivalent precision;
             if ``self`` is a complex (type ``t_COMPLEX``), then the
             result will be a ComplexField element of precision the
-            minimum precision of the real and imaginary parts.
+            maximal precision of the real and imaginary parts.
 
         EXAMPLES::
 
@@ -9716,7 +9716,8 @@ cpdef gen objtogen(s):
     By default, this is 64 bits::
 
         sage: a = pari('1.2'); a, a.type(), a.precision()
-        (1.20000000000000, 't_REAL', 3)
+        (1.20000000000000, 't_REAL', 4)  # 32-bit
+        (1.20000000000000, 't_REAL', 3)  # 64-bit
 
     But we can change this precision::
 
@@ -9874,7 +9875,7 @@ cpdef gentoobj(gen z, locals={}):
             elif yprec == 0:
                 prec = prec_words_to_bits(xprec)
             else:
-                prec = min(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
+                prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
 
             from sage.rings.all import RealField, ComplexField
             R = RealField(prec)

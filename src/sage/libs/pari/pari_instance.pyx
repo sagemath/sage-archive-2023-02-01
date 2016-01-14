@@ -535,12 +535,6 @@ cdef class PariInstance(PariInstance_auto):
         indirect doctest. See the discussion at :trac:`13741`.
 
         """
-        sage_free(<void*>pari_mainstack.vbot)
-        pari_mainstack.rsize = 0
-        pari_mainstack.vsize = 0
-        pari_mainstack.bot = 0
-        pari_mainstack.vbot = 0
-        pari_mainstack.top = 0
         pari_close()
 
     def __repr__(self):

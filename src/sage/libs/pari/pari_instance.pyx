@@ -440,8 +440,8 @@ cdef class PariInstance(PariInstance_auto):
         # PARI has a "real" stack size (parisize) and a "virtual" stack
         # size (parisizemax). The idea is that the real stack will be
         # used if possible, but the stack might be increased up to
-        # the complete virtual stack. There, it is not a problem to set
-        # the virtual stack size to a large value. There are two
+        # the complete virtual stack. Therefore, it is not a problem to
+        # set the virtual stack size to a large value. There are two
         # constraints for the virtual stack size:
         # 1) on 32-bit systems, even virtual memory can be a scarce
         #    resource since it is limited by 4GB (of which the kernel

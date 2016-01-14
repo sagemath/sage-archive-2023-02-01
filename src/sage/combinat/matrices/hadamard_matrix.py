@@ -510,7 +510,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     `M` is a regular symmetric Hadamard matrix with constant diagonal
     `\delta\in\{-1,+1\}` and row sums all equal to `\delta \epsilon
     \sqrt(n)`. For more information, see [HX10]_ or 10.5.1 in
-    [BH12]_. For the case `n=324`, see [CP16]_.
+    [BH12]_. For the case `n=324`, see :func:`RSHCD_324` and [CP16]_.
 
     INPUT:
 
@@ -542,7 +542,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         100 x 100 dense matrix over Integer Ring
         196 x 196 dense matrix over Integer Ring
 
-        sage: for n,e in [(324,1),(324,-1)]: # not tested - long time, tested in _RSHCD_324
+        sage: for n,e in [(324,1),(324,-1)]: # not tested - long time, tested in RSHCD_324
         ....:     print regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e) # not tested - long time
         324 x 324 dense matrix over Integer Ring
         324 x 324 dense matrix over Integer Ring
@@ -661,10 +661,10 @@ def RSHCD_324(e):
     Return a size 324x324 Regular Symmetric Hadamard Matrix with Constant Diagonal.
 
     We build the matrix `M` for the case `n=324`, `\epsilon=1` directly from
-    :func:`JankoKharaghaniTonchevGraph
+    :meth:`JankoKharaghaniTonchevGraph
     <sage.graphs.graph_generators.GraphGenerators.JankoKharaghaniTonchevGraph>`
-    and for the case `\epsilon=-1` from the "twist" `M'` of `M`, using
-    Lemma 11 in [HX10]_. Namely, it turns out that the matrix
+    and for the case `\epsilon=-1` from the "twist" `M'` of `M`, using Lemma 11
+    in [HX10]_. Namely, it turns out that the matrix
 
     .. math::
 

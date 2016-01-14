@@ -69,7 +69,7 @@ from sage.categories.sets_cat import EmptySetError
 from itertools import izip_longest
 import os
 from sage.misc.function_mangling import ArgumentFixer
-from sage.data_structures.lazy_list import lazy_list
+from sage.misc.lazy_list import lazy_list
 
 class EnumeratedSetFromIterator(Parent):
     """

@@ -1195,13 +1195,13 @@ cdef class PariInstance(PariInstance_auto):
         EXAMPLES::
 
             sage: pari.allocatemem(10^7)
-            PARI stack size set to 10000000 bytes
+            PARI stack size set to 10000000 bytes, maximum size set to 67108864
             sage: pari.allocatemem()  # Double the current size
-            PARI stack size set to 20000000 bytes
+            PARI stack size set to 20000000 bytes, maximum size set to 67108864
             sage: pari.stacksize()
             20000000
             sage: pari.allocatemem(10^6)
-            PARI stack size set to 1000000 bytes
+            PARI stack size set to 1000000 bytes, maximum size set to 67108864
 
         The following computation will automatically increase the PARI
         stack size::
@@ -1218,7 +1218,7 @@ cdef class PariInstance(PariInstance_auto):
         Setting a small maximum size makes this fail::
 
             sage: pari.allocatemem(10^6, 2^22)
-            PARI stack size set to 1000000 bytes
+            PARI stack size set to 1000000 bytes, maximum size set to 4194304
             sage: a = pari('2^100000000')
             Traceback (most recent call last):
             ...
@@ -1230,8 +1230,8 @@ cdef class PariInstance(PariInstance_auto):
         Do the same without using the string interface and starting
         from a very small stack size::
 
-            sage: pari.allocatemem(1, 10^8)
-            PARI stack size set to 1024 bytes
+            sage: pari.allocatemem(1, 2^26)
+            PARI stack size set to 1024 bytes, maximum size set to 67108864
             sage: a = pari(2)^100000000
             sage: pari.stacksize()
             16777216
@@ -1262,7 +1262,8 @@ cdef class PariInstance(PariInstance_auto):
         paristack_setsize(s, sizemax)
         pari_catch_sig_off()
         if not silent:
-            print("PARI stack size set to {} bytes".format(self.stacksize()))
+            print("PARI stack size set to {} bytes, maximum size set to {}".
+                format(self.stacksize(), self.stacksizemax()))
 
     def pari_version(self):
         return str(PARIVERSION)

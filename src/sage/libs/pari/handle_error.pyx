@@ -194,8 +194,8 @@ cdef void _pari_err_recover(long errnum):
     Perform a computation that requires doubling the default stack
     several times::
 
-        sage: pari.allocatemem(2^12)
-        PARI stack size set to 4096 bytes
+        sage: pari.allocatemem(2^12, 2^26)
+        PARI stack size set to 4096 bytes, maximum size set to 67108864
         sage: x = pari('2^(2^26)')
         sage: x == 2^(2^26)
         True

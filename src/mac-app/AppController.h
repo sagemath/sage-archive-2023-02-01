@@ -62,6 +62,8 @@
 -(IBAction)showPreferences:(id)sender;
 
 -(void)ensureReadWrite;
+-(void)offerNotebookUpgrade;
+-(IBAction)upgradeNotebook:(id)sender;
 -(void)setupPaths;
 
 // Quit

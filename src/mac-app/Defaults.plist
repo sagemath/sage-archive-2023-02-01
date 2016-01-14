@@ -156,5 +156,11 @@ end tell</string>
 	<true/>
 	<key>autoStartServer</key>
 	<true/>
+	<key>askToUpgradeNB</key>
+	<true/>
+	<key>preferSageNB</key>
+	<true/>
+	<key>defaultJupyterPath</key>
+	<string>~/Documents/Sage/</string>
 </dict>
 </plist>

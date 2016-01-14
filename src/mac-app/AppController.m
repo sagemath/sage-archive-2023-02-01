@@ -34,6 +34,7 @@
     // Find sageBinary etc.
     [self setupPaths];
     [self ensureReadWrite];
+    [self offerNotebookUpgrade];
 
     // Initialize the StatusItem if desired.
     // If we are on Tiger, then showing in the dock doesn't work
@@ -370,6 +371,47 @@ You can change it later in Preferences."];
             NSLog(@"Continuing from read-only Sage warning.");
         }
     }
+}
+
+-(void)offerNotebookUpgrade {
+    NSFileManager *filemgr = [NSFileManager defaultManager];
+    NSLog(@"Checking if sagenb exists %d.", [defaults boolForKey:@"askToUpgradeNB"]);
+    if ( ! [filemgr fileExistsAtPath:@"~/.sage/sage_notebook.sagenb/users.pickle"]
+        && [defaults boolForKey:@"askToUpgradeNB"]) {
+        
+        // TODO: variable to
+        NSAlert *alert = [NSAlert alertWithMessageText:@"Sage Notebook Upgrade"
+                                         defaultButton:@"Upgrade"
+                                       alternateButton:@"Ask me Later"
+                                           otherButton:@"Don't ask again"
+                             informativeTextWithFormat:@"You appear to have data in the old notebook format.\n"
+                          "Sage has changed to use Jupyter notebooks by default.\n"
+                          "Unfortunately, they are not completely compatible.\n"
+                          "We can attempt to upgrade, .\n"
+                          ];
+        
+        [alert setAlertStyle:NSWarningAlertStyle];
+        NSInteger resp = [alert runModal];
+        if (resp == NSAlertDefaultReturn) { // Upgrade
+            [self upgradeNotebook:self];
+        } else if ( resp == NSAlertAlternateReturn) { // Ask Me Later
+            // nothing
+            NSLog(@"Ask to upgrade later.");
+        } else { // Don't ask again
+            NSLog(@"Don't ask to upgrade again.");
+            [defaults setBool:NO forKey:@"askToUpgradeNB"];
+            [defaults setObject:@"sagenb" forKey:@"preferredNotebookType"];
+            NSLog(@"synchronizing defaults: %@",defaults);
+        }
+    }
+}
+
+-(IBAction)upgradeNotebook:(id)sender{
+    NSLog(@"Upgrade Notebook.");
+    // TODO: the variable will be set in the upgrade function
+    [self sageTerminalRun:@"notebook=export" withArguments:nil];
+    [defaults setBool:NO forKey:@"askToUpgradeNB"];
+    [defaults setObject:@"jupyter" forKey:@"preferredNotebookType"];
 }
 
 -(IBAction)revealInFinder:(id)sender{

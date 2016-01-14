@@ -7511,6 +7511,7 @@ def permutohedron_lequal(p1, p2, side="right"):
 ############
 # Patterns #
 ############
+from itertools import imap
 
 def to_standard(p):
     r"""
@@ -7538,6 +7539,50 @@ def to_standard(p):
     """
     if not p:
         return Permutations()([])
+
+    def merge(shelves, i=0):
+
+        if len(shelves) == 0:
+            return
+        if len(shelves) == 1:
+            yield (shelves[0], i)
+            return
+
+        n = len(shelves)
+        m = int(n / 2)
+
+        L, R = merge(shelves[:m], i), merge(shelves[m:], i+m)
+
+        aL, aR = L.next(), R.next()
+        j, k = 1, 1
+
+        while True:
+            if aL[0] <= aR[0]:
+                yield aL
+                j += 1
+                if j == m+1: break
+                else: aL = L.next()
+            else:
+                yield aR
+                k += 1
+                if k == n - m + 1: break
+                else: aR = R.next()
+
+        if j == m+1:
+            it = R
+            yield aR
+        else:
+            it = L
+            yield aL
+        for a in it:
+            yield a
+
+    std = [0]*len(p)
+    for i, (_, j) in enumerate(merge(p)):
+        std[j] = i+1
+
+    return Permutations()(std)
+
     s = [0]*len(p)
     c = p[:]
     biggest = max(p) + 1

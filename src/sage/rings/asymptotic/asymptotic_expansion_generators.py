@@ -212,6 +212,25 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: _.parent()
             Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
             sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=0)
+            O(n*log(n))
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=1)
+            n*log(n) + O(n)
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=2)
+            n*log(n) - n + O(log(n))
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=3)
+            n*log(n) - n + 1/2*log(n) + O(1)
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=4)
+            n*log(n) - n + 1/2*log(n) + 1/2*log(2*pi) + O(n^(-1))
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=5)
+            n*log(n) - n + 1/2*log(n) + 1/2*log(2*pi) + 1/12*n^(-1)
+            + O(n^(-3))
+            sage: asymptotic_expansions.log_Stirling(
             ....:     'm', precision=7, skip_constant_summand=True)
             m*log(m) - m + 1/2*log(m) + 1/12*m^(-1) - 1/360*m^(-3) +
             1/1260*m^(-5) + O(m^(-7))
@@ -247,7 +266,17 @@ class AsymptoticExpansionGenerators(SageObject):
         for k in srange(2, 2*precision - 6, 2):
             result += bernoulli(k) / k / (k-1) / n**(k-1)
 
-        result += (1 / n**(2*precision - 7)).O()
+        if precision < 1:
+            result += (n * log(n)).O()
+        elif precision == 1:
+            result += n.O()
+        elif precision == 2:
+            result += log(n).O()
+        elif precision ==3:
+            result += A(1).O()
+        else:
+            result += (1 / n**(2*precision - 7)).O()
+
         return result
 
 

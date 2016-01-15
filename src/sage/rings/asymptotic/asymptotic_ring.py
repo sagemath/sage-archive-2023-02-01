@@ -1160,6 +1160,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Cannot invert O(x).
+
+        TESTS:
+
+        See :trac:`19521`::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', SR.subring(no_variables=True))
+            sage: (A.one() / 1).parent()
+            Asymptotic Ring <n^ZZ> over Symbolic Constants Subring
         """
         return self * ~other
 
@@ -1787,6 +1795,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: exp(x+1)
             e*e^x
+
+        See :trac:`19521`::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', SR.subring(no_variables=True))
+            sage: exp(O(n^(-3))).parent()
+            Asymptotic Ring <n^ZZ> over Symbolic Constants Subring
         """
         return self.rpow('e', precision=precision)
 
@@ -2103,6 +2117,59 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
 
     _symbolic_ = symbolic_expression  # will be used by SR._element_constructor_
+
+
+    def map_coefficients(self, f, new_coefficient_ring=None):
+        r"""
+        Return the asymptotic expansion obtained by applying ``f`` to
+        each coefficient of this asymptotic expansion.
+
+        INPUT:
+
+        - ``f`` -- a callable. A coefficient `c` will be mapped to `f(c)`.
+
+        - ``new_coefficient_ring`` -- (default: ``None``) a ring.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: A.<n> = AsymptoticRing(growth_group='n^ZZ', coefficient_ring=ZZ)
+            sage: a = n^4 + 2*n^3 + 3*n^2 + O(n)
+            sage: a.map_coefficients(lambda c: c+1)
+            2*n^4 + 3*n^3 + 4*n^2 + O(n)
+            sage: a.map_coefficients(lambda c: c-2)
+            -n^4 + n^2 + O(n)
+
+        TESTS::
+
+            sage: a.map_coefficients(lambda c: 1/c, new_coefficient_ring=QQ)
+            n^4 + 1/2*n^3 + 1/3*n^2 + O(n)
+            sage: _.parent()
+            Asymptotic Ring <n^ZZ> over Rational Field
+            sage: a.map_coefficients(lambda c: 1/c)
+            Traceback (most recent call last):
+            ...
+            ValueError: ... is not a coefficient in
+            Exact Term Monoid n^ZZ with coefficients in Integer Ring.
+        """
+        def mapping(term):
+            T = term.parent().change_parameter(
+                coefficient_ring=new_coefficient_ring)
+            if hasattr(term, 'coefficient'):
+                c = f(term.coefficient)
+                if c == 0:
+                    return None
+                return T(term.growth, c)
+            else:
+                return T(term.growth)
+
+        P = self.parent().change_parameter(coefficient_ring=new_coefficient_ring)
+        S = self.summands.copy()
+        S.map(mapping)
+        return P(S, simplify=False, convert=False)
 
 
 class AsymptoticRing(Algebra, UniqueRepresentation):
@@ -2439,11 +2506,16 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A.change_parameter(coefficient_ring=ZZ) is A
             True
+            sage: A.change_parameter(coefficient_ring=None) is A
+            True
         """
         parameters = ('growth_group', 'coefficient_ring', 'default_prec')
         values = dict()
         for parameter in parameters:
-            values[parameter] = kwds.get(parameter, getattr(self, parameter))
+            default = getattr(self, parameter)
+            values[parameter] = kwds.get(parameter, default)
+            if values[parameter] is None:
+                values[parameter] = default
         values['category'] = self.category()
         if isinstance(values['growth_group'], str):
             from growth_group import GrowthGroup

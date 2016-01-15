@@ -1,4 +1,5 @@
 .. -*- coding: utf-8 -*-
+.. nodoctest
 
 .. _coding_theory:
 
@@ -30,7 +31,7 @@ class/method related to coding theory, one should check the documentation
 for this class/method.
 
 .. contents:: Table of contents
-   :depth: 2
+   :depth: 3
 
 I. Generic Linear codes and associated methods
 ==============================================
@@ -54,7 +55,7 @@ as illustrated in the following example::
     sage: G = matrix(GF(3), [[1, 0, 0, 0, 1, 2, 1],
     ....:                    [0, 1, 0, 0, 2, 1, 0],
     ....:                    [0, 0, 1, 2, 2, 2, 2],
-    ....:                    [1, 0, 1, 2, 0, 1, 0]) #r3 = r0 + r2
+    ....:                    [1, 0, 1, 2, 0, 1, 0]]) #r3 = r0 + r2
     sage: C = LinearCode(G)
     sage: C.generator_matrix()
     [1 0 0 0 1 2 1]
@@ -93,7 +94,7 @@ we won't describe any other methods.
 
 If one wants to get all methods that can be run on a linear code, one can:
 
-- either check the manual page of the file (LINK TO PAGE)
+- either check the manual page of the file :ref:`sage.coding.linear_code`
 - or type::
 
       C.<tab>
@@ -104,6 +105,15 @@ If one wants to get all methods that can be run on a linear code, one can:
       C.method?
 
   will show the manual page for ``method``.
+
+.. NOTE::
+
+    Some generic methods require the installation of the optional
+    package Guava for Gap. While some work is done to always propose
+    a default implementation which *does not* require an optional package,
+    there exist some methods which are not up to date - yet.
+    If you're receiving an error message related to Gap, please check the
+    documentation of the method to verify if Guava has to be installed.
 
 II. Structured code families and an overview of the encoding and decoding system
 ================================================================================
@@ -122,7 +132,7 @@ Sage can build.
 
 For the rest of this section, we will illustrate specific functionalities
 of these code families by manipulating
-class:`sage.coding.grs.GeneralizedReedSolomonCode`.
+:class:`sage.coding.grs.GeneralizedReedSolomonCode`.
 
 So, for starters, we want to create a Generalized Reed-Solomon (GRS) code.
 
@@ -133,7 +143,7 @@ By clicking on the link provided above, or typing::
 one can access the documentation page for GRS codes, find a definition
 of these and learn what is needed to build one in Sage.
 
-Here we choose to build the [12, 6] GRS code over :math:`\GF(13)`.
+Here we choose to build the [12, 6] GRS code over :math:`\GF{13}`.
 To do this, we need up to three elements:
 
 - The **list of evaluation points**,
@@ -181,6 +191,16 @@ of our code::
     sage: C
     [12, 4, 9] Generalized Reed-Solomon Code over Finite Field of size 13
 
+.. NOTE::
+
+    Writing proper classes for code families is a work in progress.
+    Some constructions under ``codes.<tab>`` might thus be functions which
+    build a generic linear code, and in that case are only able to use
+    generic algorithms.
+    Please refer to the documentation of a construction to check if it
+    is a function or a class.
+
+
 II.2 Encode and decode in Sage
 ------------------------------
 
@@ -200,10 +220,10 @@ There is two different ways to do that:
 
 - Alternatively, we can create a message and then encode it into a codeword::
 
-  sage: msg = random_vector(C.base_field(), C.dimension())
-  sage: c = C.encode(msg)
-  sage: c in C
-  True
+    sage: msg = random_vector(C.base_field(), C.dimension())
+    sage: c = C.encode(msg)
+    sage: c in C
+    True
 
 Either way, we obtained a codeword.
 So, we might want to put some errors in it, and try to correct these
@@ -468,7 +488,6 @@ The next two are (respectively) the number of errors
 and the number or erasures.
 Each of these can be tuples too, just as it was with
 :class:`sage.coding.channel_constructions.StaticErrorRateChannel`.
-
 As opposed to this channel though, the output of
 :class:`sage.coding.channel_constructions.ErrorErasureChannel`
 is not the same as its input space, i.e. the ambient space of C.
@@ -519,4 +538,5 @@ Despite all the hard work we put on it, there's always much to do!
 
 Maybe at some point you might want to create you own codes for Sage.
 If it's the case and if you don't know how to do that, don't panic!
-We also wrote a tutorial for this specific case, which you can find here: LINK
+We also wrote a tutorial for this specific case, which you can find here:
+:ref:`structures_in_coding_theory`.

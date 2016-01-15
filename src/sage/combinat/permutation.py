@@ -7511,7 +7511,6 @@ def permutohedron_lequal(p1, p2, side="right"):
 ############
 # Patterns #
 ############
-from itertools import imap
 
 def to_standard(p):
     r"""
@@ -7582,19 +7581,6 @@ def to_standard(p):
         std[j] = i+1
 
     return Permutations()(std)
-
-    s = [0]*len(p)
-    c = p[:]
-    biggest = max(p) + 1
-    i = 1
-    for _ in range(len(c)):
-        smallest = min(c)
-        smallest_index = c.index(smallest)
-        s[smallest_index] = i
-        i += 1
-        c[smallest_index] = biggest
-
-    return Permutations()(s)
 
 
 

@@ -141,12 +141,15 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: _.parent()
             Asymptotic Ring <(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ>
             over Rational Field
+            sage: asymptotic_expansions.Stirling('m', precision=4)
+            sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(1/2) +
+            O(e^(m*log(m))*(e^m)^(-1)*m^(-1/2))
         """
         log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
             var, precision=precision, skip_constant_summand=True)
 
         P = log_Stirling.parent().change_parameter(
-            growth_group='(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ')
+            growth_group='(e^({n}*log({n})))^QQ * (e^{n})^QQ * {n}^QQ * log({n})^QQ'.format(n=var))
         from sage.functions.log import exp
         result = exp(P(log_Stirling))
 
@@ -208,6 +211,10 @@ class AsymptoticExpansionGenerators(SageObject):
             1/1260*n^(-5) + O(n^(-7))
             sage: _.parent()
             Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'm', precision=7, skip_constant_summand=True)
+            m*log(m) - m + 1/2*log(m) + 1/12*m^(-1) - 1/360*m^(-3) +
+            1/1260*m^(-5) + O(m^(-7))
         """
         if not skip_constant_summand:
             from sage.symbolic.ring import SR

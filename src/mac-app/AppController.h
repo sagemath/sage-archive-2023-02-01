@@ -32,6 +32,7 @@
     NSTask *theTask;
     NSTask *launchTask;
     NSPipe *taskPipe;
+    NSTask *jupyterTask;
 
     int port;
     BOOL myIsInDock, haveStatusItem, useSystemBrowser, neverOpenedFileBrowser;
@@ -39,6 +40,8 @@
 }
 
 // Server control
+-(IBAction)startJupyter:(id)sender;
+-(IBAction)stopJupyter:(id)sender;
 -(IBAction)startServer:(id)sender;
 -(IBAction)stopServer:(id)sender;
 -(BOOL)serverIsRunning:(BOOL)wait;

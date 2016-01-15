@@ -7555,35 +7555,37 @@ def to_standard(p):
     if not p:
         return Permutations()([])
 
-    def merge(shelves, i=0):
+    def merge(p, i):
 
-        if len(shelves) == 0:
+        n = len(p)
+        if n == 0:
             return
-        if len(shelves) == 1:
-            yield (shelves[0], i)
+        if n == 1:
+            yield (p[0], i)
             return
 
-        n = len(shelves)
-        m = int(n / 2)
+        m = int(n // 2)
 
-        L, R = merge(shelves[:m], i), merge(shelves[m:], i+m)
+        L, R = merge(p[:m], i), merge(p[m:], i + m)
 
         aL, aR = L.next(), R.next()
-        j, k = 1, 1
+        j, k = 0, 0
 
         while True:
             if aL[0] <= aR[0]:
                 yield aL
                 j += 1
-                if j == m+1: break
-                else: aL = L.next()
+                if j == m:
+                    break
+                aL = L.next()
             else:
                 yield aR
                 k += 1
-                if k == n - m + 1: break
-                else: aR = R.next()
+                if k == n - m:
+                    break
+                aR = R.next()
 
-        if j == m+1:
+        if j == m:
             it = R
             yield aR
         else:
@@ -7593,7 +7595,7 @@ def to_standard(p):
             yield a
 
     std = [0]*len(p)
-    for i, (_, j) in enumerate(merge(p)):
+    for i, (_, j) in enumerate(merge(p, 0)):
         std[j] = i+1
 
     return Permutations()(std)

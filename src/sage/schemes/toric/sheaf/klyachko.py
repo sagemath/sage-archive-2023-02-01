@@ -32,10 +32,17 @@ EXAMPLES::
 REFERENCES:
 
 ..  [Klyachko]
-    Klyachko, Anton Alexander:
+    Klyachko, Aleksandr Anatolevich:
     Equivariant Bundles on Toral Varieties,
     Math USSR Izv. 35 (1990), 337-375.
     http://iopscience.iop.org/0025-5726/35/2/A04/pdf/0025-5726_35_2_A04.pdf
+
+..  [BirknerIltenPetersen]
+    Rene Birkner, Nathan Owen Ilten, and Lars Petersen:
+    Computations with equivariant toric vector bundles,
+    The Journal of Software for Algebra and Geometry: Macaulay2.
+    http://msp.org/jsag/2010/2-1/p03.xhtml
+    http://www.math.uiuc.edu/Macaulay2/doc/Macaulay2-1.8.2/share/doc/Macaulay2/ToricVectorBundles/html/
 """
 
 #*****************************************************************************

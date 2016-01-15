@@ -192,8 +192,43 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: Q = PP([0,1,1,1,1,1])
             sage: f(Q)
             (0 : 1 , 1 : 1 , 1 : 1)
+
+        ::
+
+            sage: PP.<t0,t1,t2,t3,t4>=ProductProjectiveSpaces([2,1], ZZ)
+            sage: Q = PP([1,1,1,2,1])
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2], ZZ)
+            sage: H = End(Z)
+            sage: f = H([a^3, b^3+a*b^2, x^2, y^2-z^2, z*y])
+            sage: f(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (1 : 1 : 1 , 2 : 1) fails to convert into the map's domain
+            Product of projective spaces P^1 x P^2 over Integer Ring, but a
+            `pushforward` method is not properly implemented
+            sage: f([1,1,1,2,1])
+            (1 : 2 , 1 : 3 : 2)
+
+        ::
+
+            sage: PP.<x,y,u,v> = ProductProjectiveSpaces(ZZ, [1,1])
+            sage: HP = End(PP)
+            sage: g = HP([x^2, y^2, u^2, v^2])
+            sage: g([0,0,0,0],check=False)
+            (0 : 0 , 0 : 0)
         """
+        from sage.schemes.product_projective.point import ProductProjectiveSpaces_point_ring
+        if check:
+            if not isinstance(P, ProductProjectiveSpaces_point_ring):
+                try:
+                    P = self.domain()(P)
+                except (TypeError, NotImplementedError):
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self.domain()))
+            elif self.domain()!= P.codomain():
+                raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self.domain()))
+
         A = self.codomain()
         Q = list(P)
         newP = [f(Q) for f in self.defining_polynomials()]
         return(A.point(newP, check))
+

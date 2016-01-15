@@ -2398,8 +2398,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.is_PGL_minimal()
             Traceback (most recent call last):
             ...
-            TypeError: Affine minimality is only considered for maps not of the form
-            f or 1/f for a polynomial f.
+            TypeError: affine minimality is only considered for maps not of the form
+            f or 1/f for a polynomial f
         """
         if self.base_ring() != QQ and self.base_ring() != ZZ:
             raise NotImplementedError("Minimal models only implemented over ZZ or QQ")

@@ -122,7 +122,7 @@ def scale(c,v,p):
     return [flag,c,v]
 
 
-def blift(LF, Li, p, S = None):
+def blift(LF, Li, p, S=None):
     r"""
     Search for a solution to the given list of inequalities.
 
@@ -182,7 +182,7 @@ def blift(LF, Li, p, S = None):
     return False,0
 
 
-def affine_minimal(vp, return_transformation = False, D = None, quick = False):
+def affine_minimal(vp, return_transformation=False, D=None, quick=False):
     r"""
     Determine if given map is affine minimal.
 

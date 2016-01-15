@@ -1,6 +1,6 @@
 from .types cimport *
 from sage.libs.gmp.types cimport *
-from sage.libs.flint.types cimport fmpz_mat_t
+from sage.libs.flint.types cimport fmpz_t, fmpz_mat_t
 from sage.structure.parent_base cimport ParentWithBase
 cimport cython
 
@@ -23,6 +23,7 @@ cdef class PariInstance(PariInstance_auto):
     cdef inline GEN _new_GEN_from_mpz_t(self, mpz_t value)
     cdef gen new_gen_from_mpq_t(self, mpq_t value)
     cdef inline GEN _new_GEN_from_mpq_t(self, mpq_t value)
+    cdef inline GEN _new_GEN_from_fmpz_t(self, fmpz_t value)
     cdef gen new_gen_from_int(self, int value)
     cdef gen new_t_POL_from_int_star(self, int *vals, int length, long varnum)
     cdef gen new_gen_from_padic(self, long ordp, long relprec, mpz_t prime, mpz_t p_pow, mpz_t unit)

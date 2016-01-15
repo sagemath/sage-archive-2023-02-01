@@ -4530,7 +4530,7 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``on_embedding`` (default: ``None``) - two kinds of input are allowed:
 
-           - a dictionnary representing a combinatorial embedding on which the
+           - a dictionary representing a combinatorial embedding on which the
              genus should be computed. Note that this must be a valid embedding
              for the graph. The dictionary structure is given by: ``vertex1:
              [neighbor1, neighbor2, neighbor3], vertex2: [neighbor]`` where

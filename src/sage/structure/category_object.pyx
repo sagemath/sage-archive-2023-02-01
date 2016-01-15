@@ -61,6 +61,7 @@ cimport generators
 cimport sage_object
 from sage.categories.category import Category
 from sage.structure.debug_options import debug
+from sage.misc.cachefunc import cached_method
 
 
 def guess_category(obj):
@@ -292,8 +293,8 @@ cdef class CategoryObject(sage_object.SageObject):
         r"""
         Return a dictionary whose entries are ``{name:variable,...}``,
         where ``name`` stands for the variable names of this
-        object (as strings) and ``variable`` stands for the corresponding
-        generators (as elements of this object).
+        object (as strings) and ``variable`` stands for the
+        corresponding defining generators (as elements of this object).
 
         EXAMPLES::
 
@@ -302,7 +303,7 @@ cdef class CategoryObject(sage_object.SageObject):
             {'a': a, 'b': b, 'c': c, 'd': d}
         """
         cdef dict v = {}
-        for x in self.gens():
+        for x in self._defining_names():
             v[str(x)] = x
         return v
 
@@ -312,8 +313,8 @@ cdef class CategoryObject(sage_object.SageObject):
 
         OUTPUT:
 
-        - a dictionary with string names of generators as keys and generators of
-          ``self`` and its base rings as values.
+        - a dictionary with string names of generators as keys and
+          generators of ``self`` and its base rings as values.
 
         EXAMPLES::
 
@@ -357,9 +358,71 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def _first_ngens(self, n):
         """
-        Used by the preparser for R.<x> = ...
+        Used by the preparser for ``R.<x> = ...``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: x
+            x
+            sage: parent(x)
+            Univariate Polynomial Ring in x over Rational Field
+
+        For orders, we correctly use the ring generator, see
+        :trac:`15348`::
+
+            sage: A.<i> = ZZ.extension(x^2 + 1)
+            sage: i
+            i
+            sage: parent(i)
+            Order in Number Field in i with defining polynomial x^2 + 1
+
+        ::
+
+            sage: B.<z> = EquationOrder(x^2 + 3)
+            sage: z.minpoly()
+            x^2 + 3
         """
-        return self.gens()[:n]
+        return self._defining_names()[:n]
+
+    @cached_method
+    def _defining_names(self):
+        """
+        The elements used to "define" this object.
+
+        What this means depends on the type of object: for rings, it
+        usually means generators as a ring. The result of this function
+        is not required to generate the object, but it should contain
+        all named elements if the object was constructed using a
+        ``names'' argument.
+
+        This function is used by the preparser to implement
+        ``R.<x> = ...`` and it is also used by :meth:`gens_dict`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: R._defining_names()
+            (x,)
+
+        For orders, we correctly use the ring generator, see
+        :trac:`15348`::
+
+            sage: B.<z> = EquationOrder(x^2 + 3)
+            sage: B._defining_names()
+            (z,)
+
+        For vector spaces and free modules, we get a basis (which can
+        be different from the given generators)::
+
+            sage: V = ZZ^3
+            sage: V._defining_names()
+            ((1, 0, 0), (0, 1, 0), (0, 0, 1))
+            sage: W = V.span([(0, 1, 0), (1/2, 1, 0)])
+            sage: W._defining_names()
+            ((1/2, 0, 0), (0, 1, 0))
+        """
+        return self.gens()
 
     #################################################################################################
     # Names and Printers

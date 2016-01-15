@@ -245,7 +245,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
                              (string, op, op))
         if not balanced:
             s = factors.pop() + (op if op else '') + s
-        balanced = is_balanced(s)  #s.count('(') == s.count(')')
+        balanced = is_balanced(s)
         factors.append(s)
 
     if not balanced:

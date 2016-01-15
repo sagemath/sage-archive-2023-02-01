@@ -32,6 +32,10 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19711)
+cp "$SAGE_ROOT"/config/config.* .
+
+
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = "xyes" ] ; then
     CFLAGS="$CFLAGS -m64 "
@@ -46,7 +50,6 @@ else
 fi
 
 export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-export LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 export CFLAGS
 
 # Old OS X systems need -DSQLITE_WITHOUT_ZONEMALLOC

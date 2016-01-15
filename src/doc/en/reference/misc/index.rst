@@ -48,6 +48,7 @@ Lists and Iteration, etc.
    :maxdepth: 1
 
    sage/misc/callable_dict
+   sage/misc/converting_dict
    sage/misc/flatten
    sage/misc/search
    sage/misc/sage_itertools

@@ -148,10 +148,10 @@ class Braid(FinitelyPresentedGroupElement):
         """
         latexrepr = ''
         for i in self.Tietze():
-            if i>0:
-                latexrepr = latexrepr+"\sigma_{%s}"%i
-            if i<0:
-                latexrepr = latexrepr+"\sigma_{%s}^{-1}"%(-i)
+            if i > 0:
+                latexrepr = latexrepr+"\sigma_{%s}" % i
+            if i < 0:
+                latexrepr = latexrepr+"\sigma_{%s}^{-1}" % (-i)
         return latexrepr
 
     def strands(self):
@@ -574,7 +574,7 @@ class Braid(FinitelyPresentedGroupElement):
 
     def LKB_matrix(self, variables='x,y'):
         """
-        Return the Lawence-Krammer-Bigelow representation matrix.
+        Return the Lawrence-Krammer-Bigelow representation matrix.
 
         The matrix is expressed in the basis $\{e_{i, j} \mid 1\\leq i
         < j \leq n\}$, where the indices are ordered
@@ -589,7 +589,7 @@ class Braid(FinitelyPresentedGroupElement):
 
         OUTPUT:
 
-        The matrix corresponding to the Lawence-Krammer-Bigelow representation of the braid.
+        The matrix corresponding to the Lawrence-Krammer-Bigelow representation of the braid.
 
         EXAMPLES::
 
@@ -988,7 +988,7 @@ class Braid(FinitelyPresentedGroupElement):
         n = self.strands()
         delta = Permutation([n-i for i in range(n)])
         P = self.parent()
-        return tuple( [P._permutation_braid(delta).__pow__(a)] +
+        return tuple( [P._permutation_braid(delta) ** a] +
                       [P._permutation_braid(i) for i in l] )
 
     def _left_normal_form_perm_(self):
@@ -1903,8 +1903,8 @@ def BraidGroup(n=None, names='s'):
         else:
             names = list(names)
             n = len(names)
-    from sage.structure.parent import normalize_names
-    names = tuple(normalize_names(n, names))
+    from sage.structure.category_object import normalize_names
+    names = normalize_names(n, names)
     return BraidGroup_class(names)
 
 

@@ -134,7 +134,7 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import normalize_names
+from sage.structure.category_object import normalize_names
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
@@ -190,7 +190,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         sage: R = PowerSeriesRing(QQ, 10)
         Traceback (most recent call last):
         ...
-        ValueError: first letter of variable name must be a letter: 10
+        ValueError: variable name '10' does not start with a letter
 
     ::
 
@@ -367,10 +367,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         default_prec = name
     if not names is None:
         name = names
-    try:
-        name = normalize_names(1, name)
-    except TypeError:
-        raise TypeError("illegal variable name")
+    name = normalize_names(1, name)
 
     if name is None:
         raise TypeError("You must specify the name of the indeterminate of the Power series ring.")
@@ -400,9 +397,6 @@ def _multi_variate(base_ring, num_gens=None, names=None,
                      order='negdeglex', default_prec=None, sparse=False):
     """
     Construct multivariate power series ring.
-
-    TESTS::
-
     """
     if names is None:
         raise TypeError("you must specify a variable name or names")
@@ -499,6 +493,15 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             sage: R.category()
             Category of complete discrete valuation rings
             sage: TestSuite(R).run()
+
+        It is checked that the default precision is non-negative
+        (see :trac:`19409`)::
+
+            sage: PowerSeriesRing(ZZ, 'x', default_prec=-5)
+            Traceback (most recent call last):
+            ...
+            ValueError: default_prec (= -5) must be non-negative
+
         """
         R = PolynomialRing(base_ring, name, sparse=sparse)
         self.__poly_ring = R
@@ -506,6 +509,9 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         if default_prec is None:
             from sage.misc.defaults import series_precision
             default_prec = series_precision()
+        elif default_prec < 0:
+            raise ValueError("default_prec (= %s) must be non-negative"
+                             % default_prec)
         self.__params = (base_ring, name, default_prec, sparse)
 
         if use_lazy_mpoly_ring and (is_MPolynomialRing(base_ring) or \
@@ -708,9 +714,21 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             sage: P(1/q)
             Traceback (most recent call last):
             ...
-            ArithmeticError: self is a not a power series
+            TypeError: self is not a power series
+
+        It is checked that the precision is non-negative
+        (see :trac:`19409`)::
+
+            sage: PowerSeriesRing(ZZ, 'x')(1, prec=-5)
+            Traceback (most recent call last):
+            ...
+            ValueError: prec (= -5) must be non-negative
 
         """
+        if prec is not infinity:
+            prec = integer.Integer(prec)
+            if prec < 0:
+                raise ValueError("prec (= %s) must be non-negative" % prec)
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
                 return f

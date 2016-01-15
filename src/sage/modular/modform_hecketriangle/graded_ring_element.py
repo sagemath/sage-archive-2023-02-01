@@ -21,6 +21,7 @@ from sage.functions.all import exp
 from sage.symbolic.all import pi, i
 from sage.structure.parent_gens import localvars
 from sage.modules.free_module_element import vector
+from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
@@ -713,6 +714,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             2 - 32*q + 736*q^2 - 896*q^3 + 6368*q^4 + O(q^5)
             sage: (MF.E4() + MF.f_i()^2).parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).Delta() + MF.E4()*MF.E6()
+            sage: el
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3 + 4096*E4^2*f_i)/4096
+            sage: el.parent()
+            ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
         return self.parent()(self._rat+other._rat)
@@ -763,6 +770,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             64*q - 512*q^2 + 1792*q^3 - 4096*q^4 + O(q^5)
             sage: (MF.E4() - MF.f_i()^2).parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).Delta() - MF.E4()
+            sage: el
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3 - 4096*E4)/4096
+            sage: el.parent()
+            ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
         #reduce at the end? See example "sage: ((E4+E6)-E6).parent()"
@@ -838,6 +851,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             q + 8*q^2 + 12*q^3 - 64*q^4 + O(q^5)
             sage: (MF.E4()*MF.f_inf()).parent()
             ModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).E2()*MF.E6()
+            sage: el
+            1 - 8*q - 272*q^2 - 1760*q^3 - 2560*q^4 + O(q^5)
+            sage: el.parent()
+            QuasiModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
         """
 
         res = self.parent().rat_field()(self._rat*other._rat)
@@ -918,6 +937,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             1/2 - 4*q - 236*q^2 - 2128*q^3 + 49428*q^4 + O(q^5)
             sage: (MF.f_i()/(MF.E4() + MF.f_i()^2)).parent()
             MeromorphicModularForms(n=+Infinity, k=-2, ep=-1) over Integer Ring
+
+            sage: el = ModularForms(n=3).E2()/MF.E2()
+            sage: el
+            1 + 8*q + 48*q^2 + 480*q^3 + 4448*q^4 + O(q^5)
+            sage: el.parent()
+            QuasiMeromorphicModularForms(n=+Infinity, k=0, ep=1) over Integer Ring
         """
 
         res = self.parent().rat_field()(self._rat/other._rat)
@@ -1207,6 +1232,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         Return the (overall) order of ``self`` at ``tau`` if easily possible:
         Namely if ``tau`` is ``infinity`` or congruent to ``i`` resp. ``rho``.
 
+        It is possible to determine the order of points from ``HyperbolicPlane()``.
+        In this case the coordinates of the upper half plane model are used.
+
         If ``self`` is homogeneous and modular then the rational function
         ``self.rat()`` is used. Otherwise only ``tau=infinity`` is supported
         by using the Fourier expansion with increasing precision
@@ -1281,7 +1309,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             3
             sage: (1/MR.f_inf()^2).order_at(-1)
             0
+
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: MR((x-y)^10).order_at(p)
+            10
+            sage: MR.zero().order_at(p)
+            +Infinity
         """
+
+        # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
+        if (tau in HyperbolicPlane()):
+            tau = tau.to_model('UHP').coordinates()
 
         if self.is_zero():
             return infinity
@@ -1779,6 +1817,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         (and fail) for certain (many) choices of
         (``base_ring``, ``tau.parent()``).
 
+        It is possible to evalutate at points of ``HyperbolicPlane()``.
+        In this case the coordinates of the upper half plane model are used.
+
         To obtain a precise and fast result the parameters
         ``prec`` and ``num_prec`` both have to be considered/balanced.
         A high ``prec`` value is usually quite costly.
@@ -2064,7 +2105,24 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
             sage: (f.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             -140.471170232432551196978... + 469.079369280804086032719...*I
+
+        It is possible to evaluate at points of ``HyperbolicPlane()``::
+
+            sage: p = HyperbolicPlane().PD().get_point(-I/2)
+            sage: bool(p.to_model('UHP').coordinates() == I/3)
+            True
+            sage: E4(p) == E4(I/3)
+            True
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: f_inf(p, check=True) == 0
+            True
+            sage: (1/(E2^2-E4))(p) == infinity
+            True
         """
+
+        # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
+        if (tau in HyperbolicPlane()):
+           tau = tau.to_model('UHP').coordinates()
 
         if (prec == None):
             prec = self.parent().default_prec()

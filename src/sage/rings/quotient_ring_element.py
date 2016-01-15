@@ -394,7 +394,7 @@ class QuotientRingElement(RingElement):
                 return L * R.inverse_mod(I)
             except NotImplementedError:
                 if R.is_unit():
-                    return L * R.__invert__()
+                    return L * ~R
                 else:
                     raise
 
@@ -428,7 +428,7 @@ class QuotientRingElement(RingElement):
           one for each `x` in ``self.parent().gens()``, that define
           a homomorphism `f` from ``self.parent()`` to ``codomain``
 
-        OUPUT:
+        OUTPUT:
 
         The image of ``self`` in ``codomain`` under the above
         homomorphism `f`.
@@ -589,6 +589,18 @@ class QuotientRingElement(RingElement):
             TypeError
         """
         return float(self.lift())
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<a,b> = R.quo(x^2 + y^2)
+            sage: hash(a)
+            15360174650385711  # 64-bit
+            1505322287         # 32-bit
+        """
+        return hash(self.__rep)
 
     def __cmp__(self, other):
         """

@@ -9,11 +9,6 @@ it easier to write, find and run tests.
 
 GNU LGPL
 
-== SPKG Maintainers ==
-
-John H. Palmieri <palmieri@math.washington.edu>
-Martin W.-Raum <martin@raum-brother.eu>
-
 == Upstream Contact ==
 
 Author: Jason Pellerin

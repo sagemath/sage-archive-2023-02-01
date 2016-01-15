@@ -5,8 +5,14 @@ Packaging Old-Style SPKGs
 =========================
 
 This chapter explains old-style spkgs; It applies only to legacy
-optional spkgs and experimental spkgs. See :ref:`chapter-packaging`
-for the modern way of packaging third-party software.
+optional spkgs and experimental spkgs.
+
+.. WARNING::
+
+    Old-style packages are **deprecated**, it is strongly
+    suggested that you make a new-style package instead.
+    See :ref:`chapter-packaging`
+    for the modern way of packaging third-party software.
 
 
 Creating an Old-Style SPKG

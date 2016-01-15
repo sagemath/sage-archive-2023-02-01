@@ -8,10 +8,6 @@ This is the
 
 GPL v3+
 
-== SPKG Maintainers ==
-
-* Volker Braun
-
 == Upstream Contact ==
 
 Volker Braun <vbraun.name@gmail.com>

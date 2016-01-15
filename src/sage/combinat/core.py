@@ -117,7 +117,7 @@ class Core(CombinatorialElement):
             False
         """
         if isinstance(other, Core):
-            return self._list.__eq__(other._list) and self.parent().k == other.parent().k
+            return self._list == other._list and self.parent().k == other.parent().k
         else:
             return False
 
@@ -150,8 +150,9 @@ class Core(CombinatorialElement):
 
     def _latex_(self):
         """
-        Outputs the LaTeX representation of this core as a partition. See the
-        ``_latex_()`` method of :class:`Partition`.
+        Output the LaTeX representation of this core as a partition.
+
+        See the ``_latex_`` method of :class:`Partition`.
 
         EXAMPLES::
 

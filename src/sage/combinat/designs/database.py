@@ -4588,7 +4588,7 @@ LIST_OF_BIBD = "\n".join("    - `\lambda={}`:\n       ".format(l) +
 # For the definition see the documentation of the class
 # EvenlyDistributedSetsBacktracker in the file evenly_distributed_sets.pyx
 #
-# EDS is a dictionnary of dictionnaries whose keys are the integers
+# EDS is a dictionary of dictionaries whose keys are the integers
 # 4, 5,..., 10. For each k in {4,...,10} the keys of EDS[k] are the prime powers
 # `q` so that `q = 1 modulo k(k-1)`.
 # The value at position EDS[k][q] is one of:

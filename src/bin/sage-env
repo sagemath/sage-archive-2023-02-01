@@ -279,13 +279,14 @@ if [ "$UNAME" = "Darwin" ]; then
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
     MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
-    MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
-    if [ $MACOSX_DEPLOYMENT_TARGET = '10.10' ]; then
-        # Workaround for the libtool version detection bug
-        # See http://trac.sagemath.org/ticket/17204
+    if [ $MACOSX_VERSION -ge 14 ]; then
+        # various packages have still have issues with
+        # two digit OS X versions
         MACOSX_DEPLOYMENT_TARGET=10.9
+    else
+        MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
     fi
-    export MACOSX_DEPLOYMENT_TARGET
+    export MACOSX_DEPLOYMENT_TARGET MACOSX_VERSION
 fi
 
 # Compile-time path for libraries.  This is the equivalent of
@@ -386,34 +387,8 @@ if [ -d "$SAGE_LOCAL/lib/python" ]; then
     export PYTHONNOUSERSITE
 fi
 
-if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
-    SAGE_ORIG_LD_LIBRARY_PATH=$LD_LIBRARY_PATH && export SAGE_ORIG_LD_LIBRARY_PATH
-    SAGE_ORIG_LD_LIBRARY_PATH_SET=True && export SAGE_ORIG_LD_LIBRARY_PATH_SET
-fi
-
-# Add some directories to $LD_LIBRARY_PATH:
-# * lib/openmpi is needed for openmpi.
-# * lib/R/lib is needed for R in case the Sage install is moved.
-# * lib32 and lib64 are needed for GCC, see #12405.
-for d in lib/openmpi lib/R/lib lib32 lib64 lib; do
-    libdir="$SAGE_LOCAL/$d"
-    # Add only existing directories
-    if [ -d "$libdir" ]; then
-        [ -z "$LD_LIBRARY_PATH" ] || LD_LIBRARY_PATH=":${LD_LIBRARY_PATH}"
-        LD_LIBRARY_PATH="${libdir}$LD_LIBRARY_PATH"
-    fi
-done
-export LD_LIBRARY_PATH
-
-# The following is needed for OS X (especially for the
-# Singular install).
-if [ "$UNAME" = "Darwin" ]; then
-    if [ -z "${SAGE_ORIG_DYLD_LIBRARY_PATH_SET}" ]; then
-        SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH && export SAGE_ORIG_DYLD_LIBRARY_PATH
-        SAGE_ORIG_DYLD_LIBRARY_PATH_SET=True && export SAGE_ORIG_DYLD_LIBRARY_PATH_SET
-    fi
-    DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$SAGE_LOCAL/lib/R/lib" && export DYLD_LIBRARY_PATH
-fi
+LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"
+export LDFLAGS
 
 # Use a matplotlib config directory specific to Sage and specific to
 # the version number of matplotlib, by setting the environment

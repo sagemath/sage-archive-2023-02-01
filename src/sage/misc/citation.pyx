@@ -22,7 +22,7 @@ systems['Octave'] = ['sage.interfaces.octave']
 systems['povray'] = ['sage.interfaces.povray']
 systems['qsieve'] = ['sage.interfaces.qsieve']
 systems['Macaulay2'] = ['sage.interfaces.macaulay2']
-systems['mwrank'] = ['sage.interfaces.mwrank', 'sage.libs.mwrank']
+systems['mwrank'] = ['sage.interfaces.mwrank', 'sage.libs.eclib']
 systems['matlab'] = ['sage.interfaces.matlab']
 systems['LiE'] = ['sage.interfaces.lie']
 systems['Tachyon'] = ['sage.interfaces.tachyon']
@@ -69,7 +69,7 @@ def get_systems(cmd):
 
         sage: a = var('a')
         sage: get_systems('((a+1)^2).expand()')
-        ['ginac', 'GMP']
+        ['ginac']
     """
     import cProfile, pstats, re
 

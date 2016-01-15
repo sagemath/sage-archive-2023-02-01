@@ -37,8 +37,6 @@ cdef class Element(SageObject):
     cdef Parent _parent
     cpdef _richcmp_(left, Element right, int op)
     cpdef int _cmp_(left, Element right) except -2
-    cdef _richcmp(self, right, int op)
-    cdef int _cmp(self, right) except -2
     cdef _set_parent_c(self, Parent parent)
     cpdef base_extend(self, R)
 
@@ -147,6 +145,8 @@ cdef class Matrix(ModuleElement):
 cdef class CoercionModel:
     cpdef canonical_coercion(self, x, y)
     cpdef bin_op(self, x, y, op)
+    cpdef richcmp(self, x, y, int op)
 
+cdef CoercionModel coercion_model
 
 cdef generic_power_c(a, nn, one)

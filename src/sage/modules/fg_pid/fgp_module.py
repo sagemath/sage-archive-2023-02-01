@@ -440,7 +440,7 @@ class FGP_Module_class(Module):
         I = str(self.invariants()).replace(',)',')')
         return "Finitely generated module V/W over %s with invariants %s"%(self.base_ring(), I)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Return the quotient self/other, where other must be a
         submodule of self.
@@ -521,7 +521,7 @@ class FGP_Module_class(Module):
             sage: Q1 != Q2
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # __le__ is a synonym for `is_submodule`: see below
 
@@ -541,7 +541,7 @@ class FGP_Module_class(Module):
             sage: A < A
             False
         """
-        return self.__le__(other) and not self.__eq__(other)
+        return self <= other and not self == other
 
     def __gt__(self, other):
         """
@@ -559,7 +559,7 @@ class FGP_Module_class(Module):
             sage: A > A
             False
         """
-        return self.__ge__(other) and not self.__eq__(other)
+        return self >= other and not self == other
 
     def __ge__(self, other):
         """
@@ -1237,7 +1237,7 @@ class FGP_Module_class(Module):
             the same as the Smith form generators, since this may not be true
             for a general derived class.
 
-        INPUTS:
+        INPUT:
 
         - ``im_gens`` -- a list of the images of ``self.gens()`` in some
           R-module
@@ -1396,7 +1396,7 @@ class FGP_Module_class(Module):
         Homomorphism defined by giving the images of the Smith-form generators
         of self in some fixed fg R-module.
 
-        INPUTS:
+        INPUT:
 
         - ``im_gens`` -- a Sequence object giving the images of the Smith-form
           generators of self, whose universe is some fixed fg R-module

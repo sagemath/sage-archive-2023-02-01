@@ -381,7 +381,7 @@ class Magmas(Category_singleton):
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 r"""
-                Implement the fact that a cartesian product of commutative
+                Implement the fact that a Cartesian product of commutative
                 additive magmas is still an commutative additive magmas.
 
                 EXAMPLES::
@@ -468,9 +468,11 @@ class Magmas(Category_singleton):
                 for x in tester.some_elements():
                     tester.assert_(x * one == x)
                     tester.assert_(one * x == x)
-                # Check that one is immutable by asking its hash;
-                tester.assertEqual(type(one.__hash__()), int)
-                tester.assertEqual(one.__hash__(), one.__hash__())
+                # Check that one is immutable if it looks like we can test this
+                if hasattr(one,"is_immutable"):
+                    tester.assertEqual(one.is_immutable(),True)
+                if hasattr(one,"is_mutable"):
+                    tester.assertEqual(one.is_mutable(),False)
 
             def is_empty(self):
                 r"""
@@ -533,7 +535,7 @@ class Magmas(Category_singleton):
             class CartesianProducts(CartesianProductsCategory):
                 def extra_super_categories(self):
                     """
-                    Implement the fact that a cartesian product of magmas with
+                    Implement the fact that a Cartesian product of magmas with
                     inverses is a magma with inverse.
 
                     EXAMPLES::
@@ -549,7 +551,7 @@ class Magmas(Category_singleton):
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 """
-                Implement the fact that a cartesian product of unital magmas is
+                Implement the fact that a Cartesian product of unital magmas is
                 a unital magma
 
                 EXAMPLES::
@@ -570,9 +572,9 @@ class Magmas(Category_singleton):
                 @cached_method
                 def one(self):
                     """
-                    Return the unit of this cartesian product.
+                    Return the unit of this Cartesian product.
 
-                    It is built from the units for the cartesian factors of ``self``.
+                    It is built from the units for the Cartesian factors of ``self``.
 
                     EXAMPLES::
 
@@ -588,10 +590,10 @@ class Magmas(Category_singleton):
                     Return the inverse of ``self``, if it exists.
 
                     The inverse is computed by inverting each
-                    cartesian factor and attempting to convert the
+                    Cartesian factor and attempting to convert the
                     result back to the original parent.
 
-                    For example, if one of the cartesian factor is an
+                    For example, if one of the Cartesian factor is an
                     element ``x`` of `\ZZ`, the result of ``~x`` is in
                     `\QQ`. So we need to convert it back to `\ZZ`. As
                     a side effect, this checks that ``x`` is indeed
@@ -767,7 +769,7 @@ class Magmas(Category_singleton):
               :meth:`~sage.matrix.operation_table.OperationTable.dict`
               method.
 
-            INPUTS:
+            INPUT:
 
             - ``names`` - the type of names used
 
@@ -1029,12 +1031,12 @@ class Magmas(Category_singleton):
 
         def example(self):
             """
-            Return an example of cartesian product of magmas.
+            Return an example of Cartesian product of magmas.
 
             EXAMPLES::
 
                 sage: C = Magmas().CartesianProducts().example(); C
-                The cartesian product of (Rational Field, Integer Ring, Integer Ring)
+                The Cartesian product of (Rational Field, Integer Ring, Integer Ring)
                 sage: C.category()
                 Category of Cartesian products of commutative rings
                 sage: sorted(C.category().axioms())
@@ -1056,7 +1058,7 @@ class Magmas(Category_singleton):
                 EXAMPLES::
 
                     sage: C = Magmas().CartesianProducts().example(); C
-                    The cartesian product of (Rational Field, Integer Ring, Integer Ring)
+                    The Cartesian product of (Rational Field, Integer Ring, Integer Ring)
                     sage: x = C.an_element(); x
                     (1/2, 1, 1)
                     sage: x * x

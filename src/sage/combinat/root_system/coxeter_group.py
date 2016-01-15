@@ -16,7 +16,6 @@ from sage.categories.finite_permutation_groups import FinitePermutationGroups
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 

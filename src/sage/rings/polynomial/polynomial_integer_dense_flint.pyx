@@ -11,7 +11,7 @@ AUTHORS:
 
 TESTS:
 
-We check that the buggy gcd is fixed (see trac:`17816`)::
+We check that the buggy gcd is fixed (see :trac:`17816`)::
 
     sage: R.<q> = ZZ[]
     sage: X = 3*q^12 - 8*q^11 - 24*q^10 - 48*q^9 - 84*q^8 - 92*q^7 - 92*q^6 - 70*q^5 - 50*q^4 - 27*q^3 - 13*q^2 - 4*q - 1
@@ -56,7 +56,7 @@ from sage.rings.arith import lcm
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
-from sage.libs.ntl.ntl_ZZX_decl cimport *
+from sage.libs.ntl.ZZX cimport *
 from sage.rings.integer cimport smallInteger
 
 
@@ -1033,6 +1033,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: p*q5
             -2*x^6 + 5*x^5 + 1
 
+            sage: (x-1).inverse_series_trunc(5)
+            -x^4 - x^3 - x^2 - x - 1
+
             sage: q100 = p.inverse_series_trunc(100)
             sage: (q100 * p).truncate(100)
             1
@@ -1059,7 +1062,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if fmpz_poly_degree(self.__poly) == -1:
             raise ValueError("constant term is zero")
         cdef fmpz_t c = fmpz_poly_get_coeff_ptr(self.__poly, 0)
-        if fmpz_cmp_ui(c, 1) and fmpz_cmp_ui(c, -1):
+        if fmpz_cmp_si(c, 1) and fmpz_cmp_si(c, -1):
             raise ValueError("constant term {} is not a unit".format(self[0]))
 
         cdef Polynomial_integer_dense_flint res = self._new()
@@ -1228,7 +1231,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         temp = ZZX_discriminant(&ntl_poly, proof)
         x = PY_NEW(Integer)
         ZZ_to_mpz(x.value, temp)
-        ZZ_delete(temp)
+        del temp
 
         return x
 
@@ -1309,7 +1312,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             fac = self._new()
             fmpz_poly_set_ZZX(fac.__poly, v[i][0])
             F.append( (fac,e[i]) )
-            ZZX_delete(v[i])
+            del v[i]
         sage_free(v)
         sage_free(e)
 

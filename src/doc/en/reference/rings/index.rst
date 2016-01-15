@@ -60,11 +60,7 @@ Utilities
 
    sage/rings/big_oh
    sage/rings/infinity
+   sage/rings/numbers_abc
    sage/rings/misc
-
-.. toctree::
-   :hidden:
-
-   asymptotic_expansions_index
 
 .. include:: ../footer.txt

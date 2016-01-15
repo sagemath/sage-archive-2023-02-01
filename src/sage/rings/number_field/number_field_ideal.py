@@ -214,7 +214,7 @@ class NumberFieldIdeal(Ideal_generic):
         except AttributeError:
             # At some point in the future (e.g., for relative extensions),
             # we'll likely have to consider other hashes.
-            self._hash = self.pari_hnf().__hash__()
+            self._hash = hash(self.pari_hnf())
         return self._hash
 
     def _latex_(self):
@@ -1715,7 +1715,7 @@ class NumberFieldIdeal(Ideal_generic):
             from sage.quadratic_forms.binary_qf import BinaryQF
             gens = self.gens_reduced()
             if len(gens) == 1:
-                u, v = K.ring_of_integers().gens()
+                u, v = K.ring_of_integers().basis()
                 alpha, beta = gens[0] * u, gens[0] * v
             else:
                 alpha, beta = gens

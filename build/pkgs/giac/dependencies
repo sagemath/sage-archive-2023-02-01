@@ -1,4 +1,4 @@
-$(INST)/$(READLINE) $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(MPFR) $(INST)/$(MPFI) $(INST)/$(NTL) $(INST)/$(GSL) $(INST)/$(PARI)
+$(INST)/$(READLINE) $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(MPFR) $(INST)/$(MPFI) $(INST)/$(NTL) $(INST)/$(GSL) $(INST)/$(PARI) | $(SAGERUNTIME)
 
 ----------
 All lines of this file are ignored except the first.

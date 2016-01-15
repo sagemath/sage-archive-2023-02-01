@@ -31,10 +31,6 @@ chosen version.
 
 GNU General Public License version 3 or later.
 
-== SPKG Maintainers ==
-
-* Jeroen Demeyer
-
 == Upstream Contact ==
 
 * http://www.gnu.org/software/texinfo/

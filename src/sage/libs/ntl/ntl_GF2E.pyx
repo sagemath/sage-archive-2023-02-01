@@ -14,6 +14,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import division
+
 include "sage/ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
@@ -44,12 +46,14 @@ def ntl_GF2E_random(ntl_GF2EContext_class ctx):
     Returns a random element from GF2E modulo the current modulus.
 
     INPUT:
-        ctx -- the GF2E context for which an random element should be created
 
-    EXAMPLES:
+    - ``ctx`` -- the GF2E context for which an random element should be created
+
+    EXAMPLES::
+
         sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
         sage: ntl.GF2E_random(ctx)
-        [1 0 1 0 1 0 0 1]
+        [1 1 0 0 1 0 1 1]
     """
     current_randstate().set_seed_ntl(False)
 
@@ -60,7 +64,7 @@ def ntl_GF2E_random(ntl_GF2EContext_class ctx):
     r.x = GF2E_random()
     return r
 
-cdef class ntl_GF2E:
+cdef class ntl_GF2E(object):
     r"""
     The \\class{GF2E} represents a finite extension field over GF(2)
     using NTL. Elements are represented as polynomials over GF(2)
@@ -139,14 +143,9 @@ cdef class ntl_GF2E:
         if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
-            GF2E_construct(&self.x)
         else:
             self.c = <ntl_GF2EContext_class>ntl_GF2EContext(modulus)
             self.c.restore_c()
-            GF2E_construct(&self.x)
-
-    def __dealloc__(self):
-        GF2E_destruct(&self.x)
 
     cdef ntl_GF2E _new(self):
         cdef ntl_GF2E r
@@ -257,7 +256,7 @@ cdef class ntl_GF2E:
         GF2E_add(r.x, self.x, (<ntl_GF2E>other).x)
         return r
 
-    def __div__(ntl_GF2E self, other):
+    def __truediv__(ntl_GF2E self, other):
         """
         EXAMPLES:
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
@@ -273,6 +272,9 @@ cdef class ntl_GF2E:
         r = self._new()
         GF2E_div(r.x, self.x, (<ntl_GF2E>other).x)
         return r
+
+    def __div__(self, other):
+        return self / other
 
     def __neg__(ntl_GF2E self):
         """
@@ -298,9 +300,12 @@ cdef class ntl_GF2E:
         GF2E_power(r.x, self.x, e)
         return r
 
-    def __richcmp__(ntl_GF2E self, other, op):
+    def __richcmp__(ntl_GF2E self, other, int op):
         r"""
-        EXAMPLES:
+        Compare self to other.
+
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx) ; y = ntl.GF2E([1,1,0,1,1], ctx)
             sage: x == x
@@ -315,18 +320,16 @@ cdef class ntl_GF2E:
         """
         self.c.restore_c()
 
-        if not isinstance(other, ntl_GF2E):
-            other = ntl_GF2E(other,self.c)
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("elements of GF(2^e) are not ordered")
 
-        if op != 2 and op != 3:
-            raise TypeError, "Elements in GF2E are not ordered."
+        cdef ntl_GF2E b
+        try:
+            b = <ntl_GF2E?>other
+        except TypeError:
+            b = ntl_GF2E(other, self.c)
 
-        cdef int t
-        t = GF2E_equal(self.x, (<ntl_GF2E>other).x)
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        return (op == Py_EQ) == (self.x == b.x)
 
     def IsZero(ntl_GF2E self):
         """

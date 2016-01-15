@@ -1,1 +1,1 @@
-Sage version 6.9.beta7, released 2015-09-17
+Sage version 7.0.rc1, released 2016-01-14

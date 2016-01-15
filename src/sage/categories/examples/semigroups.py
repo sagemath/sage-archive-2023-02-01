@@ -282,9 +282,6 @@ class FreeSemigroup(UniqueRepresentation, Parent):
             sage: bad in F
             True
 
-
-        TESTS::
-
             sage: S = Semigroups().Subquotients().example()
             sage: type(S._element_constructor_(17))
             <class 'sage.categories.examples.semigroups.QuotientOfLeftZeroSemigroup_with_category.element_class'>

@@ -331,44 +331,45 @@ def assert_strict_weak_order(a,b,c, cmp_func):
         sage: a, b, c = [ randint(-10,10) for i in range(0,3) ]
         sage: assert_strict_weak_order(a,b,c, lambda x,y: x<y)
 
-        sage: x = [SR(unsigned_infinity), SR(oo), -SR(oo)]
+        sage: x = [-SR(oo), SR(0), SR(oo)]
         sage: cmp = matrix(3,3)
-        sage: indices = list(CartesianProduct(range(0,3),range(0,3)))
-        sage: for i,j in CartesianProduct(range(0,3),range(0,3)):
-        ...       cmp[i,j] = x[i].__cmp__(x[j])
+        sage: for i in range(3):
+        ....:     for j in range(3):
+        ....:         cmp[i,j] = x[i].__cmp__(x[j])
         sage: cmp
         [ 0 -1 -1]
-        [ 1  0 -1]
-        [ 1  1  0]
+        [ 1  0  1]
+        [ 1 -1  0]
     """
     from sage.matrix.constructor import matrix
-    from sage.combinat.cartesian_product import CartesianProduct
     from sage.combinat.permutation import Permutations
     x = (a,b,c)
     cmp = matrix(3,3)
-    indices = list(CartesianProduct(range(0,3),range(0,3)))
-    for i,j in indices:
-        cmp[i,j] = (cmp_func(x[i], x[j]) == 1)   # or -1, doesn't matter
+    for i in range(3):
+        for j in range(3):
+            cmp[i,j] = (cmp_func(x[i], x[j]) == 1)   # or -1, doesn't matter
     msg = 'The binary relation failed to be a strict weak order on the elements\n'
     msg += ' a = '+str(a)+'\n'
     msg += ' b = '+str(b)+'\n'
     msg += ' c = '+str(c)+'\n'
     msg += str(cmp)
 
-    for i in range(0,3):   # irreflexivity
+    for i in range(3):
+        # irreflexivity
         if cmp[i,i]: raise ValueError(msg)
 
-    for i,j in indices:    # asymmetric
-        if i==j: continue
-        #if x[i] == x[j]: continue
-        if cmp[i,j] and cmp[j,i]: raise ValueError(msg)
-
-    for i,j,k in Permutations([0,1,2]):   # transitivity
-        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError(msg)
+        # asymmetric
+        for j in range(i):
+            if cmp[i,j] and cmp[j,i]: raise ValueError(msg)
 
     def incomparable(i,j):
-        return (not cmp[i,j]) and (not cmp[j,i])
-    for i,j,k in Permutations([0,1,2]):   # transitivity of equivalence
+        return not (cmp[i,j] or cmp[j,i])
+
+    for i,j,k in Permutations([0,1,2]):
+        # transitivity
+        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError(msg)
+
+        # transitivity of equivalence
         if incomparable(i,j) and incomparable(j,k) and not incomparable(i,k): raise ValueError(msg)
 
 def test_symbolic_expression_order(repetitions=100):

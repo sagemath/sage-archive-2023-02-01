@@ -61,8 +61,8 @@ We construct these examples in ``Sage``::
 
     sage: Suits = Set(["Hearts", "Diamonds", "Spades", "Clubs"])
     sage: Values = Set([2, 3, 4, 5, 6, 7, 8, 9, 10,
-    ...                 "Jack", "Queen", "King", "Ace"])
-    sage: Cards = CartesianProduct(Values, Suits)
+    ....:               "Jack", "Queen", "King", "Ace"])
+    sage: Cards = cartesian_product([Values, Suits])
 
 There are `4` suits and `13` possible values, and
 therefore `4\times 13=52` cards in the poker deck::
@@ -77,21 +77,7 @@ therefore `4\times 13=52` cards in the poker deck::
 Draw a card at random::
 
     sage: Cards.random_element()                      # random
-    [6, 'Clubs']
-
-A small technical digression is necessary here. The elements of a
-Cartesian product are returned in the form of lists::
-
-    sage: type(Cards.random_element())
-    <type 'list'>
-
-A ``Python`` list not being immutable, it cannot be an element of a set, which
-would cause us a problem later. We will therefore redefine our
-Cartesian product so that its elements are represented by tuples::
-
-    sage: Cards = CartesianProduct(Values, Suits).map(tuple)
-    sage: Cards.an_element()
-    ('King', 'Hearts')
+    (6, 'Clubs')
 
 Now we can define a set of cards::
 
@@ -136,7 +122,7 @@ among the thirteen possibilities, and the choice of one of four suits.
 We will construct the set of all flushes, so as to determine how many
 there are::
 
-    sage: Flushes = CartesianProduct(Subsets(Values, 5), Suits)
+    sage: Flushes = cartesian_product([Subsets(Values, 5), Suits])
     sage: Flushes.cardinality()
     5148
 
@@ -157,7 +143,7 @@ We will now attempt a little numerical simulation. The following
 function tests whether a given hand is a flush or not::
 
     sage: def is_flush(hand):
-    ...       return len(set(suit for (val, suit) in hand)) == 1
+    ....:     return len(set(suit for (val, suit) in hand)) == 1
 
 We now draw 10000 hands at random, and count the number of flushes
 obtained (this takes about 10 seconds)::
@@ -165,9 +151,9 @@ obtained (this takes about 10 seconds)::
     sage: n = 10000
     sage: nflush = 0
     sage: for i in range(n):                            # long time
-    ...      hand = Hands.random_element()
-    ...      if is_flush(hand):
-    ...          nflush += 1
+    ....:    hand = Hands.random_element()
+    ....:    if is_flush(hand):
+    ....:        nflush += 1
     sage: print n, nflush                               # random
     10000 18
 
@@ -433,8 +419,8 @@ In the present case, `P=y^2-y+x`. We formally differentiate this
 equation with respect to `z`::
 
     sage: x, y, z = var('x, y, z')
-    sage: P = function('P', x, y)
-    sage: C = function('C', z)
+    sage: P = function('P')(x, y)
+    sage: C = function('C')(z)
     sage: equation =  P(x=z, y=C) == 0
     sage: diff(equation, z)
     D[0](C)(z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
@@ -647,7 +633,7 @@ As a shortcut, in this setting, one can also use the notation::
     {2, 4}
 
 but this should be used with care because some sets have a
-natural indexing other than by `(0,\dots)`.
+natural indexing other than by `(0, 1, \dots)`.
 
 Conversely, one can calculate the position of an object in this order::
 
@@ -668,7 +654,7 @@ calculate its cardinality (`2^{2^{2^4}}`)::
 
 which is roughly `2\cdot 10^{19728}`::
 
-    sage: n.ndigits()                         # long time
+    sage: n.ndigits()
     19729
 
 or ask for its `237102124`-th element::
@@ -951,7 +937,7 @@ Set comprehension and iterators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We will now show some of the possibilities offered by ``Python`` for
-constructing (and interating through) sets, with a notation that is
+constructing (and iterating through) sets, with a notation that is
 flexible and close to usual mathematical usage, and in particular the
 benefits this yields in combinatorics.
 
@@ -1029,7 +1015,7 @@ the iterator is constructed by ``iter(L)``. In practice, the commands
 comprehensions provide a much pleasanter syntax::
 
     sage: for s in Subsets(3):
-    ...       print s
+    ....:     print s
     {}
     {1}
     {2}
@@ -1095,7 +1081,7 @@ that, for `p<1000`, if `2^p-1` is prime, then
 
     sage: def mersenne(p): return 2^p -1
     sage: [ is_prime(p)
-    ...     for p in range(1000) if is_prime(mersenne(p)) ]
+    ....:   for p in range(1000) if is_prime(mersenne(p)) ]
     [True, True, True, True, True, True, True, True, True, True,
      True, True, True, True]
 
@@ -1107,24 +1093,24 @@ Is the converse true?
     difference in the length of the calculations::
 
         sage: all(   is_prime(mersenne(p))
-        ...          for p in range(1000) if is_prime(p)  )
+        ....:        for p in range(1000) if is_prime(p)  )
         False
         sage: all( [ is_prime(mersenne(p))
-        ...          for p in range(1000) if is_prime(p)] )
+        ....:        for p in range(1000) if is_prime(p)] )
         False
 
 We now try to find the smallest counter-example. In order to do this, we
 use the ``Sage`` function ``exists``::
 
     sage: exists( (p for p in range(1000) if is_prime(p)),
-    ...           lambda p: not is_prime(mersenne(p)) )
+    ....:         lambda p: not is_prime(mersenne(p)) )
     (True, 11)
 
-Alternatively, we could construct an interator on the counter-examples::
+Alternatively, we could construct an iterator on the counter-examples::
 
     sage: counter_examples = \
-    ...     (p for p in range(1000)
-    ...        if is_prime(p) and not is_prime(mersenne(p)))
+    ....:   (p for p in range(1000)
+    ....:      if is_prime(p) and not is_prime(mersenne(p)))
     sage: next(counter_examples)
     11
     sage: next(counter_examples)
@@ -1138,10 +1124,10 @@ Alternatively, we could construct an interator on the counter-examples::
 
         sage: cubes = [t**3 for t in range(-999,1000)]
         sage: exists([(x,y) for x in cubes for y in cubes],  # long time (3s, 2012)
-        ...          lambda (x,y): x+y == 218)
+        ....:        lambda (x,y): x+y == 218)
         (True, (-125, 343))
         sage: exists(((x,y) for x in cubes for y in cubes),  # long time (2s, 2012)
-        ...          lambda (x,y): x+y == 218)
+        ....:        lambda (x,y): x+y == 218)
         (True, (-125, 343))
 
     Which of the last two is more economical in terms of time? In terms
@@ -1236,7 +1222,7 @@ Alternatively, we could construct an interator on the counter-examples::
     ::
 
         sage: counter_examples = (p for p in Primes()
-        ...                      if not is_prime(mersenne(p)))
+        ....:                    if not is_prime(mersenne(p)))
         sage: for p in counter_examples: print p   # not tested
         11
         23
@@ -1278,34 +1264,34 @@ select only the elements in positions 2, 3, and 4 (analogue of
 apply a function to all the elements::
 
     sage: list(itertools.imap(lambda z: z.cycle_type(),
-    ...                       Permutations(3)))
+    ....:                     Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 or select the elements satisfying a certain condition::
 
     sage: list(itertools.ifilter(lambda z: z.has_pattern([1,2]),
-    ...                          Permutations(3)))
+    ....:                        Permutations(3)))
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 
 In all these situations, ``attrcall`` can be an advantageous alternative
 to creating an anonymous function::
 
     sage: list(itertools.imap(lambda z: z.cycle_type(),
-    ...                       Permutations(3)))
+    ....:                     Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
     sage: list(itertools.imap(attrcall("cycle_type"),
-    ...                       Permutations(3)))
+    ....:                     Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
-Implementation of new interators
+Implementation of new iterators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is easy to construct new iterators, using the keyword ``yield``
 instead of ``return`` in a function::
 
     sage: def f(n):
-    ...      for i in range(n):
-    ...          yield i
+    ....:     for i in range(n):
+    ....:         yield i
 
 After the ``yield``, execution is not halted, but only suspended, ready
 to be continued from the same point. The result of the function is
@@ -1338,12 +1324,12 @@ combinatorics, especially when combined with recursion. Here is how to
 generate all words of a given length on a given alphabet::
 
     sage: def words(alphabet,l):
-    ...      if l == 0:
-    ...          yield []
-    ...      else:
-    ...          for word in words(alphabet, l-1):
-    ...              for l in alphabet:
-    ...                  yield word + [l]
+    ....:    if l == 0:
+    ....:        yield []
+    ....:    else:
+    ....:        for word in words(alphabet, l-1):
+    ....:            for l in alphabet:
+    ....:                yield word + [l]
     sage: [ w for w in words(['a','b'], 3) ]
     [['a', 'a', 'a'], ['a', 'a', 'b'], ['a', 'b', 'a'],
      ['a', 'b', 'b'], ['b', 'a', 'a'], ['b', 'a', 'b'],
@@ -1367,13 +1353,13 @@ Dyck word is either empty or of the form `(w_1)w_2` where
 `w_1` and `w_2` are Dyck words::
 
     sage: def dyck_words(l):
-    ...       if l==0:
-    ...           yield ''
-    ...       else:
-    ...           for k in range(l):
-    ...               for w1 in dyck_words(k):
-    ...                   for w2 in dyck_words(l-k-1):
-    ...                       yield '('+w1+')'+w2
+    ....:     if l==0:
+    ....:         yield ''
+    ....:     else:
+    ....:         for k in range(l):
+    ....:             for w1 in dyck_words(k):
+    ....:                 for w2 in dyck_words(l-k-1):
+    ....:                     yield '('+w1+')'+w2
 
 Here are all the Dyck words of length `4`::
 
@@ -1423,27 +1409,29 @@ previous section, and to construct the example of sets of cards in
 
 Consider a large Cartesian product::
 
-    sage: C = CartesianProduct(Compositions(8), Permutations(20)); C
-    Cartesian product of Compositions of 8, Standard permutations of 20
+    sage: C = cartesian_product([Compositions(8), Permutations(20)]); C
+    The Cartesian product of (Compositions of 8, Standard permutations of 20)
     sage: C.cardinality()
     311411457046609920000
 
-Clearly, it is impractical to construct the list of all the elements of
-this Cartesian product. For the moment, the contruction
-``CartesianProduct`` ignores the algebraic properties of its arguments.
-This is partially corrected in Sage 4.4.4, with the construction
-``cartesian_product``. Eventually, these two constructions will be merged
-and, in the following example, `H` will be equipped with the
-usual combinatorial operations and also its structure as a product
-group::
+Clearly, it is impractical to construct the list of all the elements of this
+Cartesian product! And, in the following example, `H` is equipped with the
+usual combinatorial operations and also its structure as a product group::
 
     sage: G = DihedralGroup(4)
     sage: H = cartesian_product([G,G])
+    sage: H in Groups()
+    True
+    sage: t = H.an_element()
+    sage: t
+    ((1,2,3,4), (1,2,3,4))
+    sage: t*t
+    ((1,3)(2,4), (1,3)(2,4))
 
 We now construct the union of two existing disjoint sets::
 
     sage: C = DisjointUnionEnumeratedSets(
-    ...         [ Compositions(4), Permutations(3)] )
+    ....:       [ Compositions(4), Permutations(3)] )
     sage: C
     Disjoint union of Family (Compositions of 4,
     Standard permutations of 3)
@@ -1482,7 +1470,7 @@ which doesn’t prohibit iteration through its elements, though it will be
 necessary to interrupt it at some point::
 
     sage: for p in U:                # not tested
-    ...       print p
+    ....:     print p
     []
     [1]
     [1, 2]
@@ -1539,21 +1527,21 @@ some examples. We start with the integer vectors with sum `10`
 and length `3`, with parts bounded below by `2`,
 `4` and `2` respectively::
 
-    sage: IntegerVectors(10, 3, min_part = 2, max_part = 5,
-    ...                  inner = [2, 4, 2]).list()
+    sage: IntegerVectors(10, 3, min_part=2, max_part=5,
+    ....:                inner=[2, 4, 2]).list()
     [[4, 4, 2], [3, 5, 2], [3, 4, 3], [2, 5, 3], [2, 4, 4]]
 
 The compositions of `5` with each part at most `3`, and
 with length `2` or `3`::
 
-    sage: Compositions(5, max_part = 3,
-    ...                min_length = 2, max_length = 3).list()
+    sage: Compositions(5, max_part=3,
+    ....:              min_length=2, max_length=3).list()
     [[3, 2], [3, 1, 1], [2, 3], [2, 2, 1], [2, 1, 2], [1, 3, 1],
      [1, 2, 2], [1, 1, 3]]
 
 The strictly decreasing partitions of `5`::
 
-    sage: Partitions(5, max_slope = -1).list()
+    sage: Partitions(5, max_slope=-1).list()
     [[5], [4, 1], [3, 2]]
 
 These sets share the same underlying algorithmic structure, implemented
@@ -1565,16 +1553,16 @@ the consecutive differences between the parts. Here are some more
 examples::
 
     sage: IntegerListsLex(10, length=3,
-    ...                   min_part = 2, max_part = 5,
-    ...                   floor = [2, 4, 2]).list()
+    ....:                 min_part=2, max_part=5,
+    ....:                 floor=[2, 4, 2]).list()
     [[4, 4, 2], [3, 5, 2], [3, 4, 3], [2, 5, 3], [2, 4, 4]]
 
-    sage: IntegerListsLex(5, min_part = 1, max_part = 3,
-    ...                   min_length = 2, max_length = 3).list()
+    sage: IntegerListsLex(5, min_part=1, max_part=3,
+    ....:                 min_length=2, max_length=3).list()
     [[3, 2], [3, 1, 1], [2, 3], [2, 2, 1], [2, 1, 2],
      [1, 3, 1], [1, 2, 2], [1, 1, 3]]
 
-    sage: IntegerListsLex(5, min_part = 1, max_slope = -1).list()
+    sage: IntegerListsLex(5, min_part=1, max_slope=-1).list()
     [[5], [4, 1], [3, 2]]
 
     sage: list(Compositions(5, max_length=2))
@@ -1842,7 +1830,7 @@ them, exactly the same algorithm can be used,
 selecting only the children which are planar::
 
     sage: [len(list(graphs(n, property = lambda G: G.is_planar())))
-    ...    for n in range(7)]
+    ....:  for n in range(7)]
     [1, 1, 2, 4, 11, 33, 142]
 
 In a similar fashion, one can generate any family of graphs closed

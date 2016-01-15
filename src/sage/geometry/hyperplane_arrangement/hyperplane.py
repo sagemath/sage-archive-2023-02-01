@@ -137,7 +137,7 @@ class Hyperplane(LinearExpression):
         Hyperplane x + y - 1
 
     For technical reasons, we must allow the degenerate cases of
-    an empty empty and full space::
+    an empty space and of a full space::
 
         sage: 0*x
         Hyperplane 0*x + 0*y + 0

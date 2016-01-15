@@ -106,7 +106,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``var`` -- a string for the variable name.
 
-        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+        - ``precision`` -- (default: ``None``) an integer `\ge 3`. If ``None``, then
           the default precision of the asymptotic ring is used.
 
         - ``skip_constant_factor`` -- (default: ``False``) a
@@ -144,7 +144,15 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: asymptotic_expansions.Stirling('m', precision=4)
             sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(1/2) +
             O(e^(m*log(m))*(e^m)^(-1)*m^(-1/2))
+            sage: asymptotic_expansions.Stirling('m', precision=3)
+            O(e^(m*log(m))*(e^m)^(-1)*m^(1/2))
+            sage: asymptotic_expansions.Stirling('m', precision=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: precision must be at least 3
         """
+        if precision <= 2:
+            raise ValueError("precision must be at least 3")
         log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
             var, precision=precision, skip_constant_summand=True)
 

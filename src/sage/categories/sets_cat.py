@@ -27,11 +27,10 @@ from sage.categories.quotients    import QuotientsCategory
 from sage.categories.subobjects   import SubobjectsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
-from sage.categories.cartesian_product import cartesian_product, CartesianProductsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory, CartesianProductFunctor
 from sage.categories.realizations import RealizationsCategory, Category_realization_of_parent
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom
-
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
 
 def print_compare(x, y):
@@ -67,8 +66,8 @@ class EmptySetError(ValueError):
     EXAMPLES::
 
         sage: def first_element(st):
-        ...    if not st: raise EmptySetError, "no elements"
-        ...    else: return st[0]
+        ....:  if not st: raise EmptySetError("no elements")
+        ....:  else: return st[0]
         sage: first_element(Set((1,2,3)))
         1
         sage: first_element(Set([]))
@@ -205,9 +204,17 @@ class Sets(Category_singleton):
         """
         return [SetsWithPartialMaps()]
 
-    def _call_(self, X, enumerated_set_if_possible = False):
+    def _call_(self, X, enumerated_set=False):
         r"""
-        Construct an object in this category from the data in ``X``.
+        Construct an object in this category from the data ``X``.
+
+        INPUT:
+
+        - ``X`` -- an object to be converted into a set
+
+        - ``enumerated_set`` -- if set to ``True`` and the input is either a
+          Python tuple or a Python list then the output will be a finite
+          enumerated set.
 
         EXAMPLES::
 
@@ -216,33 +223,24 @@ class Sets(Category_singleton):
             sage: Sets()([1, 2, 3])
             {1, 2, 3}
 
-        .. note::
+            sage: S = Sets()([1, 2, 3]); S.category()
+            Category of finite sets
+            sage: S = Sets()([1, 2, 3], enumerated_set=True); S.category()
+            Category of facade finite enumerated sets
 
-           Using ``Sets()(A)`` used to implement some sort of
-           forgetful functor into the ``Sets()`` category. This
-           feature has been removed, because it was not consistent
-           with the semantic of :meth:`Category.__call__`. Proper
-           forgetful functors will eventually be implemented, with
+        .. NOTE::
+
+           Using ``Sets()(A)`` used to implement some sort of forgetful functor
+           into the ``Sets()`` category. This feature has been removed, because
+           it was not consistent with the semantic of :meth:`Category.__call__`.
+           Proper forgetful functors will eventually be implemented, with
            another syntax.
-
-        - ``enumerated_set_if_possible`` -- an option to ask Sage to
-          try to build an ``EnumeratedSets()`` rather that a
-          ``Sets()`` if possible.  This is experimental an may change
-          in the future::
-
-              sage: S = Sets()([1, 2, 3]); S.category()
-              Category of sets
-              sage: S = Sets()([1, 2, 3], True); S.category()
-              Category of facade finite enumerated sets
         """
-        import sage.sets.all
-        if enumerated_set_if_possible:
+        if enumerated_set and type(X) in (tuple,list):
             from sage.categories.enumerated_sets import EnumeratedSets
-            try:
-                return EnumeratedSets()(X)
-            except NotImplementedError:
-                pass
-        return sage.sets.all.Set(X)
+            return EnumeratedSets()(X)
+        from sage.sets.set import Set
+        return Set(X)
 
     def example(self, choice = None):
         """
@@ -285,7 +283,7 @@ class Sets(Category_singleton):
         def CartesianProducts(self):
             r"""
             Return the full subcategory of the objects of ``self``
-            constructed as cartesian products.
+            constructed as Cartesian products.
 
             .. SEEALSO::
 
@@ -651,6 +649,30 @@ class Sets(Category_singleton):
             return IsomorphicObjectsCategory.category_of(self)
 
         @cached_method
+        def Topological(self):
+            """
+            Return the subcategory of the topological objects of ``self``.
+
+            TESTS::
+
+                sage: TestSuite(Sets().Topological()).run()
+            """
+            from sage.categories.topological_spaces import TopologicalSpacesCategory
+            return TopologicalSpacesCategory.category_of(self)
+
+        @cached_method
+        def Metric(self):
+            """
+            Return the subcategory of the metric objects of ``self``.
+
+            TESTS::
+
+                sage: TestSuite(Sets().Metric()).run()
+            """
+            from sage.categories.metric_spaces import MetricSpacesCategory
+            return MetricSpacesCategory.category_of(self)
+
+        @cached_method
         def Algebras(self, base_ring):
             """
             Return the category of objects constructed as algebras of
@@ -879,8 +901,6 @@ class Sets(Category_singleton):
                 ....:   def __init__(self):
                 ....:       Parent.__init__(self, category=(FiniteEnumeratedSets(),Monoids()), facade=True)
                 sage: a = A()
-
-            TESTS::
 
                 sage: Posets().Facade()
                 Category of facade posets
@@ -1188,13 +1208,8 @@ class Sets(Category_singleton):
             tester = self._tester(**options)
             S = list(tester.some_elements()) + [None, 0]
             n = tester._max_runs
-            from sage.combinat.cartesian_product import CartesianProduct
-            S = CartesianProduct(S,S)
-            if len(S) > n:
-                from random import sample
-                S = sample(S, n)
-
-            for x, y in S:
+            from sage.misc.misc import some_tuples
+            for x,y in some_tuples(S, 2, tester._max_runs):
                 tester.assertEqual(x==y, y==x,
                     LazyFormat("non symmetric equality: %s but %s")%(
                         print_compare(x, y), print_compare(y, x)))
@@ -1280,14 +1295,9 @@ class Sets(Category_singleton):
             """
             tester = self._tester(**options)
             S = list(tester.some_elements()) + [None, 0]
-            n = tester._max_runs
-            from sage.combinat.cartesian_product import CartesianProduct
-            S = CartesianProduct(S,S)
-            if len(S) > n:
-                from random import sample
-                S = sample(S, n)
 
-            for x,y in S:
+            from sage.misc.misc import some_tuples
+            for x,y in some_tuples(S, 2, tester._max_runs):
                 tester.assertNotEqual(x == y, x != y,
                     LazyFormat("__eq__ and __ne__ inconsistency:\n"
                         "  %s == %s returns %s  but  %s != %s returns %s")%(
@@ -1400,9 +1410,31 @@ class Sets(Category_singleton):
         # Functorial constructions
 
         CartesianProduct = CartesianProduct
-        def cartesian_product(*parents):
+        def cartesian_product(*parents, **kwargs):
             """
-            Return the cartesian product of the parents.
+            Return the Cartesian product of the parents.
+
+            INPUT:
+
+            - ``parents`` -- a list (or other iterable) of parents.
+
+            - ``category`` -- (default: ``None``) the category the
+              Cartesian product belongs to. If ``None`` is passed,
+              then
+              :meth:`~sage.categories.covariant_functorial_construction.CovariantFactorialConstruction.category_from_parents`
+              is used to determine the category.
+
+            - ``extra_category`` -- (default: ``None``) a category
+              that is added to the Cartesian product in addition
+              to the categories obtained from the parents.
+
+            - other keyword arguments will passed on to the class used
+              for this Cartesian product (see also
+              :class:`~sage.sets.cartesian_product.CartesianProduct`).
+
+            OUTPUT:
+
+            The Cartesian product.
 
             EXAMPLES::
 
@@ -1411,10 +1443,10 @@ class Sets(Category_singleton):
                 sage: A.cartesian_product(A,A)
                 A (+) A (+) A
                 sage: ZZ.cartesian_product(GF(2), FiniteEnumeratedSet([1,2,3]))
-                The cartesian product of (Integer Ring, Finite Field of size 2, {1, 2, 3})
+                The Cartesian product of (Integer Ring, Finite Field of size 2, {1, 2, 3})
 
                 sage: C = ZZ.cartesian_product(A); C
-                The cartesian product of (Integer Ring, A)
+                The Cartesian product of (Integer Ring, A)
 
             TESTS::
 
@@ -1423,10 +1455,31 @@ class Sets(Category_singleton):
                 sage: C.category()
                 Join of Category of rings and ...
                     and Category of Cartesian products of commutative additive groups
+
+            ::
+
+                sage: cartesian_product([ZZ, ZZ], category=Sets()).category()
+                Category of sets
+                sage: cartesian_product([ZZ, ZZ]).category()
+                Join of
+                Category of Cartesian products of commutative rings and
+                Category of Cartesian products of enumerated sets
+                sage: cartesian_product([ZZ, ZZ], extra_category=Posets()).category()
+                Join of
+                Category of Cartesian products of commutative rings and
+                Category of posets and
+                Category of Cartesian products of enumerated sets
             """
-            return parents[0].CartesianProduct(
-                parents,
-                category = cartesian_product.category_from_parents(parents))
+            category = kwargs.pop('category', None)
+            extra_category = kwargs.pop('extra_category', None)
+
+            category = category or cartesian_product.category_from_parents(parents)
+            if extra_category:
+                if isinstance(category, (list, tuple)):
+                    category = tuple(category) + (extra_category,)
+                else:
+                    category = category & extra_category
+            return parents[0].CartesianProduct(parents, category=category, **kwargs)
 
         def algebra(self, base_ring, category=None):
             """
@@ -1584,8 +1637,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
         def cartesian_product(*elements):
             """
-            Return the cartesian product of its arguments, as an element of
-            the cartesian product of the parents of those elements.
+            Return the Cartesian product of its arguments, as an element of
+            the Cartesian product of the parents of those elements.
 
             EXAMPLES::
 
@@ -1655,6 +1708,10 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
+    Topological = LazyImport('sage.categories.topological_spaces',
+                             'TopologicalSpaces', 'Topological', at_startup=True)
+    Metric = LazyImport('sage.categories.metric_spaces', 'MetricSpaces',
+                        'Mertic', at_startup=True)
 
     class Infinite(CategoryWithAxiom):
 
@@ -1942,7 +1999,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
             sage: C = Sets().CartesianProducts().example()
             sage: C
-            The cartesian product of (Set of prime numbers (basic implementation),
+            The Cartesian product of (Set of prime numbers (basic implementation),
              An example of an infinite enumerated set: the non negative integers,
              An example of a finite enumerated set: {1,2,3})
             sage: C.category()
@@ -1956,7 +2013,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
         def extra_super_categories(self):
             """
-            A cartesian product of sets is a set.
+            A Cartesian product of sets is a set.
 
             EXAMPLES::
 
@@ -1972,7 +2029,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             EXAMPLES::
 
                 sage: Sets().CartesianProducts().example()
-                The cartesian product of (Set of prime numbers (basic implementation),
+                The Cartesian product of (Set of prime numbers (basic implementation),
                  An example of an infinite enumerated set: the non negative integers,
                  An example of a finite enumerated set: {1,2,3})
             """
@@ -1986,6 +2043,105 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
 
         class ParentMethods:
+            def __iter__(self):
+                r"""
+                Return a lexicographic iterator for the elements of this Cartesian product.
+
+                EXAMPLES::
+
+                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]):
+                    ....:     print x,y
+                    1 a
+                    1 b
+                    2 a
+                    2 b
+
+                    sage: A = FiniteEnumeratedSets()(["a", "b"])
+                    sage: B = FiniteEnumeratedSets().example(); B
+                    An example of a finite enumerated set: {1,2,3}
+                    sage: C = cartesian_product([A, B, A]); C
+                    The Cartesian product of ({'a', 'b'}, An example of a finite enumerated set: {1,2,3}, {'a', 'b'})
+                    sage: C in FiniteEnumeratedSets()
+                    True
+                    sage: list(C)
+                    [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
+                     ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
+                    sage: C.__iter__.__module__
+                    'sage.categories.enumerated_sets'
+
+                    sage: F22 = GF(2).cartesian_product(GF(2))
+                    sage: list(F22)
+                    [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+                    sage: C = cartesian_product([Permutations(10)]*4)
+                    sage: it = iter(C)
+                    sage: next(it)
+                    ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+                    sage: next(it)
+                    ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 10, 9])
+
+                .. WARNING::
+
+                    The elements are returned in lexicographic order,
+                    which gives a valid enumeration only if all
+                    factors, but possibly the first one, are
+                    finite. So the following one is fine::
+
+                        sage: it = iter(cartesian_product([ZZ, GF(2)]))
+                        sage: [next(it) for _ in range(10)]
+                        [(0, 0), (0, 1), (1, 0), (1, 1),
+                         (-1, 0), (-1, 1), (2, 0), (2, 1),
+                         (-2, 0), (-2, 1)]
+
+                    But this one is not::
+
+                        sage: it = iter(cartesian_product([GF(2), ZZ]))
+                        sage: [next(it) for _ in range(10)]
+                        doctest:...: UserWarning: Sage is not able to determine
+                        whether the factors of this Cartesian product are
+                        finite. The lexicographic ordering might not go through
+                        all elements.
+                        [(0, 0), (0, 1), (0, -1), (0, 2), (0, -2),
+                         (0, 3), (0, -3), (0, 4), (0, -4), (0, 5)]
+
+                .. NOTE::
+
+                    Here it would be faster to use :func:`itertools.product` for sets
+                    of small size. But the latter expands all factor in memory!
+                    So we can not reasonably use it in general.
+
+                ALGORITHM:
+
+                Recipe 19.9 in the Python Cookbook by Alex Martelli
+                and David Ascher.
+                """
+                if any(f not in Sets().Finite() for f in self.cartesian_factors()[1:]):
+                    from warnings import warn
+                    warn("Sage is not able to determine whether the factors of "
+                         "this Cartesian product are finite. The lexicographic "
+                         "ordering might not go through all elements.")
+
+                # visualize an odometer, with "wheels" displaying "digits"...:
+                factors = list(self.cartesian_factors())
+                wheels = map(iter, factors)
+                digits = [next(it) for it in wheels]
+                while True:
+                    yield self._cartesian_product_of_elements(digits)
+                    for i in range(len(digits)-1, -1, -1):
+                        try:
+                            digits[i] = next(wheels[i])
+                            break
+                        except StopIteration:
+                            wheels[i] = iter(factors[i])
+                            digits[i] = next(wheels[i])
+                    else:
+                        break
 
             @cached_method
             def an_element(self):
@@ -1993,7 +2149,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 EXAMPLES::
 
                     sage: C = Sets().CartesianProducts().example(); C
-                    The cartesian product of (Set of prime numbers (basic implementation),
+                    The Cartesian product of (Set of prime numbers (basic implementation),
                      An example of an infinite enumerated set: the non negative integers,
                      An example of a finite enumerated set: {1,2,3})
                     sage: C.an_element()
@@ -2034,7 +2190,15 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     True
                 """
                 f = self.cartesian_factors()
-                return any(c.is_empty() for c in f) or all(c.is_finite() for c in f)
+                try:
+                    # Note: some parent might not implement "is_empty". So we
+                    # carefully isolate this test.
+                    test = any(c.is_empty() for c in f)
+                except (AttributeError, NotImplementedError):
+                    pass
+                else:
+                    if test: return test
+                return all(c.is_finite() for c in f)
 
             def cardinality(self):
                 r"""
@@ -2067,7 +2231,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     # Note: some parent might not implement "is_empty". So we
                     # carefully isolate this test.
                     is_empty = any(c.is_empty() for c in f)
-                except Exception:
+                except (AttributeError,NotImplementedError):
                     pass
                 else:
                     if is_empty:
@@ -2082,10 +2246,10 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
             def random_element(self, *args):
                 r"""
-                Return a random element of this cartesian product.
+                Return a random element of this Cartesian product.
 
                 The extra arguments are passed down to each of the
-                factors of the cartesian product.
+                factors of the Cartesian product.
 
                 EXAMPLES::
 
@@ -2113,7 +2277,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             @abstract_method
             def _sets_keys(self):
                 """
-                Return the indices of the cartesian factors of ``self``.
+                Return the indices of the Cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -2124,7 +2288,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             @abstract_method
             def cartesian_factors(self):
                 """
-                Return the cartesian factors of ``self``.
+                Return the Cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -2136,16 +2300,16 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             def cartesian_projection(self, i):
                 """
                 Return the natural projection onto the `i`-th
-                cartesian factor of ``self``.
+                Cartesian factor of ``self``.
 
                 INPUT:
 
-                - ``i`` -- the index of a cartesian factor of ``self``
+                - ``i`` -- the index of a Cartesian factor of ``self``
 
                 EXAMPLES::
 
                     sage: C = Sets().CartesianProducts().example(); C
-                    The cartesian product of (Set of prime numbers (basic implementation),
+                    The Cartesian product of (Set of prime numbers (basic implementation),
                      An example of an infinite enumerated set: the non negative integers,
                      An example of a finite enumerated set: {1,2,3})
                     sage: x = C.an_element(); x
@@ -2158,14 +2322,14 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             @abstract_method
             def _cartesian_product_of_elements(self, elements):
                 """
-                Return the cartesian product of the given ``elements``.
+                Return the Cartesian product of the given ``elements``.
 
                 This method should accept any iterable.
 
                 INPUT:
 
                 - ``elements`` -- an iterable (e.g. a tuple or a list) of
-                  elements of each cartesian factor of ``self``
+                  elements of each Cartesian factor of ``self``
 
                 EXAMPLES::
 
@@ -2184,11 +2348,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             def cartesian_projection(self, i):
                 """
                 Return the projection of ``self`` onto the `i`-th
-                factor of the cartesian product.
+                factor of the Cartesian product.
 
-                INPUTS:
+                INPUT:
 
-                - ``i`` -- the index of a factor of the cartesian product
+                - ``i`` -- the index of a factor of the Cartesian product
 
                 EXAMPLES::
 
@@ -2207,7 +2371,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
             def cartesian_factors(self):
                 """
-                Return the cartesian factors of ``self``.
+                Return the Cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -2580,3 +2744,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     The subset algebra of {1, 2, 3} over Rational Field in the realization Blah
                 """
                 return "{} in the realization {}".format(self.realization_of(), self._realization_name())
+
+# Moved from sage.categories.cartesian_product to avoid circular import errors
+cartesian_product = CartesianProductFunctor()

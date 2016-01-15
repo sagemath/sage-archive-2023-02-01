@@ -80,6 +80,23 @@ class FreeMonoidElement(MonoidElement):
             # TODO: should have some other checks here...
             raise TypeError("Argument x (= %s) is of the wrong type."%x)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: R.<x,y> = FreeMonoid(2)
+            sage: hash(x)
+            1914282862589934403  # 64-bit
+            139098947            # 32-bit
+            sage: hash(y)
+            2996819001369607946  # 64-bit
+            13025034             # 32-bit
+            sage: hash(x*y)
+            7114093379175463612  # 64-bit
+            2092317372           # 32-bit
+        """
+        return hash(tuple(self._element_list))
+
     def __iter__(self):
         """
         Returns an iterator which yields tuples of variable and exponent.

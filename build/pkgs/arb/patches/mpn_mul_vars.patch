@@ -1,0 +1,27 @@
+Use variable names which do not conflict with FLINT
+
+See https://github.com/fredrik-johansson/arb/pull/78
+
+diff --git a/arf.h b/arf.h
+index 6f67834..b8e1927 100644
+--- a/arf.h
++++ b/arf.h
+@@ -870,12 +870,12 @@ void arf_randtest_special(arf_t x, flint_rand_t state, slong bits, slong mag_bit
+         } \
+         else if ((_xn) == 2) \
+         { \
+-            mp_limb_t __x1, __x0, __y1, __y0; \
+-            __x0 = (_x)[0]; \
+-            __x1 = (_x)[1]; \
+-            __y0 = (_y)[0]; \
+-            __y1 = (_y)[1]; \
+-            nn_mul_2x2((_z)[3], (_z)[2], (_z)[1], (_z)[0], __x1, __x0, __y1, __y0); \
++            mp_limb_t __arb_x1, __arb_x0, __arb_y1, __arb_y0; \
++            __arb_x0 = (_x)[0]; \
++            __arb_x1 = (_x)[1]; \
++            __arb_y0 = (_y)[0]; \
++            __arb_y1 = (_y)[1]; \
++            nn_mul_2x2((_z)[3], (_z)[2], (_z)[1], (_z)[0], __arb_x1, __arb_x0, __arb_y1, __arb_y0); \
+         } \
+         else if ((_x) == (_y)) \
+         { \

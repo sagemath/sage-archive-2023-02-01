@@ -9,18 +9,20 @@ TESTS::
     sage: TestSuite(A).run()
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 include "sage/ext/python.pxi"
 
 import sage.modules.free_module
+from sage.structure.element cimport coercion_model
 
 
 cdef class Matrix(matrix0.Matrix):
@@ -601,6 +603,58 @@ cdef class Matrix(matrix0.Matrix):
             S = self._base_ring.cover_ring()
             if S is not self._base_ring:
                 return self.change_ring(S)
+        return self
+
+    def lift_centered(self):
+        """
+        Apply the lift_centered method to every entry of self.
+
+        OUTPUT:
+
+        If self is a matrix over the Integers mod `n`, this method returns the
+        unique matrix `m` such that `m` is congruent to self mod `n` and for
+        every entry `m[i,j]` we have `-n/2 < m[i,j] \\leq n/2`. If the
+        coefficient ring does not have a cover_ring method, return self.
+
+        EXAMPLES::
+
+            sage: M = Matrix(Integers(8), 2, 4, range(8)) ; M
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: L = M.lift_centered(); L
+            [ 0  1  2  3]
+            [ 4 -3 -2 -1]
+            sage: parent(L)
+            Full MatrixSpace of 2 by 4 dense matrices over Integer Ring
+
+        The returned matrix is congruent to M modulo 8.::
+
+            sage: L.mod(8)
+            [0 1 2 3]
+            [4 5 6 7]
+
+        The field QQ doesn't have a cover_ring method::
+
+            sage: hasattr(QQ, 'cover_ring')
+            False
+
+        So lifting a matrix over QQ gives back the same exact matrix.
+
+        ::
+
+            sage: B = matrix(QQ, 2, [1..4])
+            sage: B.lift_centered()
+            [1 2]
+            [3 4]
+            sage: B.lift_centered() is B
+            True
+        """
+        try:
+            S = self._base_ring.cover_ring()
+            if S is not self._base_ring:
+                return self.parent().change_ring(S)([v.lift_centered() for v in self])
+        except AttributeError:
+            pass
         return self
 
     #############################################################################################
@@ -1363,14 +1417,12 @@ cdef class Matrix(matrix0.Matrix):
         top_ring = self._base_ring
         bottom_ring = other._base_ring
         if top_ring is not bottom_ring:
-            from sage.structure.element import get_coercion_model
-            coercion_model = get_coercion_model()
             R = coercion_model.common_parent(top_ring, bottom_ring)
             if top_ring is not R:
                 self = self.change_ring(R)
             if bottom_ring is not R:
                 other = other.change_ring(R)
-        
+       
         if type(self) is not type(other):
             # If one of the matrices is sparse, return a sparse matrix
             if self.is_sparse_c() and not other.is_sparse_c():
@@ -1386,7 +1438,7 @@ cdef class Matrix(matrix0.Matrix):
     cdef _stack_impl(self, bottom):
         """
         Implementation of :meth:`stack`.
-        
+       
         Assume that ``self`` and ``other`` are compatible in the sense
         that they have the same base ring and that both are either
         dense or sparse.

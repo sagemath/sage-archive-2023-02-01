@@ -436,13 +436,13 @@ class CoxeterGroups(Category_singleton):
         @cached_method
         def rank(self):
             r"""
-                Return the rank of ``self``.
+            Return the rank of ``self``.
 
-                EXAMPLES::
+            EXAMPLES::
 
-                    sage: W = CoxeterGroups().example()
-                    sage: W.rank()
-                    3
+                sage: W = CoxeterGroups().example()
+                sage: W.rank()
+                3
             """
             return len(self.simple_reflections())
 
@@ -827,8 +827,6 @@ class CoxeterGroups(Category_singleton):
                 False
                 sage: w.has_right_descent(2)
                 True
-                sage: WeylGroup(['A',2]).long_element().has_right_descent(1)
-                True
             """
             return (~self).has_left_descent(i)
 
@@ -1131,6 +1129,11 @@ v            EXAMPLES::
 
             TESTS::
 
+                sage: p = Permutation([3,2,4,1])
+                sage: pp = WeylGroup(['A',3]).from_reduced_word(p.reduced_word())
+                sage: pp.reduced_word_graph()
+                Graph on 3 vertices
+
                 sage: w1 = W.one()
                 sage: G = w1.reduced_word_graph()
                 sage: G.num_verts()
@@ -1163,8 +1166,7 @@ v            EXAMPLES::
                     if i == len(x):
                         continue
                     a, b = x[i], y[i]
-                    I = P.index_set()
-                    m = P.coxeter_matrix()[I.index(a),I.index(b)]
+                    m = P.coxeter_matrix()[a,b]
                     subword = [a,b] * (m // 2)
                     subword2 = [b,a] * (m // 2)
                     if m % 2 != 0:
@@ -1175,7 +1177,7 @@ v            EXAMPLES::
                             or x[i+m:] != y[i+m:]):
                         continue
                     edges.append([x, y, m])
-            G = Graph(edges, immutable=True)
+            G = Graph(edges, immutable=True, format="list_of_edges")
             colors = {2: 'blue', 3: 'red', 4: 'green'}
             G.set_latex_options(edge_labels=True, color_by_label=lambda x: colors[x])
             return G

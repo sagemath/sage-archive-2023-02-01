@@ -6,12 +6,14 @@ embedding of any connected planar graph with at least three vertices.  Uses
 Walter Schnyder's Algorithm.
 
 AUTHORS:
-    -- Jonathan Bober, Emily Kirkman (2008-02-09):  initial version
+
+- Jonathan Bober, Emily Kirkman (2008-02-09) --  initial version
 
 REFERENCE:
-    [1] Schnyder, Walter. Embedding Planar Graphs on the Grid.
-        Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
-        San Francisco (1994), pp. 138-147.
+
+.. [1] Schnyder, Walter. Embedding Planar Graphs on the Grid.
+       Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
+       San Francisco (1994), pp. 138-147.
 """
 #*****************************************************************************
 #      Copyright (C) 2008 Jonathan Bober and Emily Kirkman
@@ -42,11 +44,13 @@ def _triangulate(g, comb_emb):
     method will work on one of these attempts.)
 
     INPUT:
-        g -- the graph to triangulate
-        comb_emb -- a planar combinatorial embedding of g
 
-    RETURNS:
-        A list of edges that are added to the graph (in place)
+    - g -- the graph to triangulate
+    - ``comb_emb`` -- a planar combinatorial embedding of g
+
+    OUTPUT:
+
+    A list of edges that are added to the graph (in place)
 
     EXAMPLES::
 
@@ -125,27 +129,33 @@ def _triangulate(g, comb_emb):
     return edges_added
 
 def _normal_label(g, comb_emb, external_face):
-    """
-    Helper function to schnyder method for computing coordinates in the plane to
-    plot a planar graph with no edge crossings.
+    r"""
+    Helper function to schnyder method for computing coordinates in
+    the plane to plot a planar graph with no edge crossings.
 
-    Constructs a normal labelling of a triangular graph g, given the planar
-    combinatorial embedding of g and a designated external face.  Returns labels
-    dictionary.  The normal label is constructed by first contracting the graph
-    down to its external face, then expanding the graph back to the original while
-    simultaneously adding angle labels.
+    Constructs a normal labelling of a triangular graph g, given the
+    planar combinatorial embedding of g and a designated external
+    face.  Returns labels dictionary.  The normal label is constructed
+    by first contracting the graph down to its external face, then
+    expanding the graph back to the original while simultaneously
+    adding angle labels.
 
     INPUT:
-        g -- the graph to find the normal labeling of (g must be triangulated)
-        comb_emb -- a planar combinatorial embedding of g
-        external_face -- the list of three edges in the external face of g
 
-    RETURNS:
-        x -- tuple with entries
-            x[0] = dict of dicts of normal labeling for each vertex of g and each
-                    adjacent neighbors u,v (u < v) of vertex:
-                    { vertex : { (u,v): angel_label } }
-            x[1] = (v1,v2,v3) tuple of the three vertices of the external face.
+    - g -- the graph to find the normal labeling of (g must be triangulated)
+    - ``comb_emb`` -- a planar combinatorial embedding of g
+    - ``external_face`` -- the list of three edges in the external face of g
+
+    OUTPUT:
+
+    x -- tuple with entries
+
+        x[0] = dict of dicts of normal labeling for each vertex of g and each
+        adjacent neighbors u,v (u < v) of vertex:
+
+        { vertex : { (u,v): angel_label } }
+
+        x[1] = (v1,v2,v3) tuple of the three vertices of the external face.
 
     EXAMPLES::
 
@@ -160,7 +170,6 @@ def _normal_label(g, comb_emb, external_face):
         sage: _realizer(g, tn)
         ({0: [<sage.graphs.schnyder.TreeNode instance at ...>]},
          (0, 1, 2))
-
     """
     contracted = []
     contractible = []
@@ -329,20 +338,27 @@ def _realizer(g, x, example=False):
     give a path to each of the three external vertices.
 
     INPUT:
-        g -- the graph to compute the realizer of
-        x -- tuple with entries
-             x[0] = dict of dicts representing a normal labeling of g.  For
-                    each vertex of g and each adjacent neighbors u,v (u < v) of
-                    vertex:  { vertex : { (u,v): angle_label } }
-             x[1] = (v1, v2, v3) tuple of the three external vertices (also
-                    the roots of each tree)
 
-    RETURNS:
-        x -- tuple with entries
-            x[0] = dict of lists of TreeNodes:
-                    { root_vertex : [ list of all TreeNodes under root_vertex ] }
-            x[0] = (v1,v2,v3) tuple of the three external vertices (also the
-                    roots of each tree)
+    - g -- the graph to compute the realizer of
+    - x -- tuple with entries
+
+        x[0] = dict of dicts representing a normal labeling of g.  For
+        each vertex of g and each adjacent neighbors u,v (u < v) of
+        vertex:  { vertex : { (u,v): angle_label } }
+
+        x[1] = (v1, v2, v3) tuple of the three external vertices (also
+        the roots of each tree)
+
+    OUTPUT:
+
+    - x -- tuple with entries
+
+        x[0] = dict of lists of TreeNodes:
+
+        { root_vertex : [ list of all TreeNodes under root_vertex ] }
+
+        x[1] = (v1,v2,v3) tuple of the three external vertices (also the
+        roots of each tree)
 
     EXAMPLES::
 
@@ -409,22 +425,26 @@ def _realizer(g, x, example=False):
     return tree_nodes, (v1,v2,v3)
 
 def _compute_coordinates(g, x):
-    """
+    r"""
     Given a triangulated graph g with a dict of trees given by the
     realizer and tuple of the external vertices, we compute the
     coordinates of a planar geometric embedding in the grid.
 
-    The coordinates will be set to the _pos attribute of g.
+    The coordinates will be set to the ``_pos`` attribute of g.
 
     INPUT:
-        g -- the graph to compute the coordinates of
-        x -- tuple with entries
-             x[0] = dict of tree nodes for the three trees with each external
-                    vertex as root
-                    { root_vertex : [ list of all TreeNodes under root_vertex ] }
 
-             x[1] = (v1, v2, v3) tuple of the three external vertices (also
-                    the roots of each tree)
+    - g -- the graph to compute the coordinates of
+    - x -- tuple with entries
+
+        x[0] = dict of tree nodes for the three trees with each external
+        vertex as root:
+
+        { root_vertex : [ list of all TreeNodes under root_vertex ] }
+
+        x[1] = (v1, v2, v3) tuple of the three external vertices (also
+        the roots of each tree)
+
     EXAMPLES::
 
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
@@ -505,16 +525,17 @@ def _compute_coordinates(g, x):
 
 class TreeNode():
     """
-    A class to represent each node in the trees used by _realizer() and
-    _compute_coordinates() when finding a planar geometric embedding in
+    A class to represent each node in the trees used by :func:`_realizer` and
+    :func:`_compute_coordinates` when finding a planar geometric embedding in
     the grid.
 
     Each tree node is doubly linked to its parent and children.
 
     INPUT:
-        parent -- the parent TreeNode of self
-        children -- a list of TreeNode children of self
-        label -- the associated realizer vertex label
+
+    - ``parent`` -- the parent TreeNode of ``self``
+    - ``children`` -- a list of TreeNode children of ``self``
+    - ``label`` -- the associated realizer vertex label
 
     EXAMPLES::
 
@@ -532,14 +553,14 @@ class TreeNode():
         sage: tn.compute_depth_of_self_and_children()
         sage: tn3.depth
         2
-
     """
     def __init__(self, parent = None, children = None, label = None):
         """
         INPUT:
-            parent -- the parent TreeNode of self
-            children -- a list of TreeNode children of self
-            label -- the associated realizer vertex label
+
+        - ``parent`` -- the parent TreeNode of ``self``
+        - ``children`` -- a list of TreeNode children of ``self``
+        - ``label`` -- the associated realizer vertex label
 
         EXAMPLE::
 
@@ -557,7 +578,6 @@ class TreeNode():
             sage: tn.compute_depth_of_self_and_children()
             sage: tn3.depth
             2
-
         """
         if children is None:
             children = []
@@ -566,10 +586,10 @@ class TreeNode():
         self.label = label
         self.number_of_descendants = 1
 
-
     def compute_number_of_descendants(self):
         """
         Computes the number of descendants of self and all descendants.
+
         For each TreeNode, sets result as attribute self.number_of_descendants
 
         EXAMPLES::
@@ -599,6 +619,7 @@ class TreeNode():
     def compute_depth_of_self_and_children(self):
         """
         Computes the depth of self and all descendants.
+
         For each TreeNode, sets result as attribute self.depth
 
         EXAMPLES::
@@ -617,7 +638,6 @@ class TreeNode():
             sage: tn.compute_depth_of_self_and_children()
             sage: tn3.depth
             2
-
         """
         if self.parent is None:
             self.depth = 1
@@ -646,7 +666,6 @@ class TreeNode():
             sage: tn.compute_depth_of_self_and_children()
             sage: tn3.depth
             2
-
         """
         if child in self.children:
             return

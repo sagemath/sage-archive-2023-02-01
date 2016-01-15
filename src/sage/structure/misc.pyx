@@ -148,7 +148,7 @@ dummy_attribute_error = AttributeError(dummy_error_message)
 
 def getattr_from_other_class(self, cls, str name):
     """
-    INPUT::
+    INPUT:
 
      - ``self``: some object
      - ``cls``: a class

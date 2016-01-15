@@ -143,24 +143,24 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             So the annihilator is the subspace spanned by `y`, `a`, and `b`::
 
                 sage: F.annihilator_basis([x])
-                [y, a, b]
+                (y, a, b)
 
             The same holds for `a` and `b`::
 
                 sage: x*a, y*a, a*a, b*a
                 (a, 0, 0, 0)
                 sage: F.annihilator_basis([a])
-                [y, a, b]
+                (y, a, b)
 
             On the other hand, `y` annihilates only `x`::
 
                 sage: F.annihilator_basis([y])
-                [x]
+                (x,)
 
             Here is a non trivial annihilator::
 
                 sage: F.annihilator_basis([a + 3*b + 2*y])
-                [-1/2*a - 3/2*b + x]
+                (-1/2*a - 3/2*b + x,)
 
             Let's check it::
 
@@ -171,15 +171,15 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             roles of `x` and `y`::
 
                 sage: F.annihilator_basis([y], side="left")
-                [x, a, b]
+                (x, a, b)
                 sage: F.annihilator_basis([a], side="left")
-                [x, a, b]
+                (x, a, b)
                 sage: F.annihilator_basis([b], side="left")
-                [x, a, b]
+                (x, a, b)
                 sage: F.annihilator_basis([x], side="left")
-                [y]
+                (y,)
                 sage: F.annihilator_basis([a+3*b+2*x], side="left")
-                [-1/2*a - 3/2*b + y]
+                (-1/2*a - 3/2*b + y,)
 
             By specifying an inner product, this method can be used to
             compute the orthogonal of a subspace::
@@ -187,19 +187,19 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x,y,a,b = F.basis()
                 sage: def scalar(u,v): return vector([sum(u[i]*v[i] for i in F.basis().keys())])
                 sage: F.annihilator_basis([x+y, a+b], scalar)
-                [x - y, a - b]
+                (x - y, a - b)
 
             By specifying the standard Lie bracket as action, one can
             compute the commutator of a subspace of `F`::
 
                 sage: F.annihilator_basis([a+b], action=F.bracket)
-                [x + y, a, b]
+                (x + y, a, b)
 
             In particular one can compute a basis of the center of the
             algebra. In our example, it is reduced to the identity::
 
                 sage: F.annihilator_basis(F.algebra_generators(), action=F.bracket)
-                [x + y]
+                (x + y,)
 
             But see also
             :meth:`FiniteDimensionalAlgebrasWithBasis.ParentMethods.center_basis`.
@@ -214,7 +214,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             for s in S:
                 mat = mat.augment(matrix(self.base_ring(),
                                          [action(s, b)._vector_() for b in self.basis()]))
-            return map(self.from_vector, mat.left_kernel().basis())
+            return tuple(map(self.from_vector, mat.left_kernel().basis()))
 
         def quotient_module(self, submodule, check=True, already_echelonized=False, category=None):
             r"""
@@ -265,7 +265,33 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return QuotientModuleWithBasis(submodule, category=category)
 
     class ElementMethods:
-        pass
+        def dense_coefficient_list(self, order=None):
+            """
+            Return a list of *all* coefficients of ``self``.
+
+            By default, this list is ordered in the same way as the
+            indexing set of the basis of the parent of ``self``.
+
+            INPUT:
+
+            - ``order`` -- (optional) an ordering of the basis indexing set
+
+            EXAMPLES::
+
+                sage: v = vector([0, -1, -3])
+                sage: v.dense_coefficient_list()
+                [0, -1, -3]
+                sage: v.dense_coefficient_list([2,1,0])
+                [-3, -1, 0]
+                sage: sorted(v.coefficients())
+                [-3, -1]
+            """
+            if order is None:
+                try:
+                    order = sorted(self.parent().basis().keys())
+                except AttributeError: # Not a family, assume it is list-like
+                    order = range(self.parent().dimension())
+            return [self[i] for i in order]
 
     class MorphismMethods:
         def matrix(self, base_ring=None, side="left"):
@@ -410,4 +436,65 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return self.codomain().module_morphism(
                 matrix=inv_mat,
                 codomain=self.domain(), category=self.category_for())
+
+        def kernel_basis(self):
+            """
+            Return a basis of the kernel of ``self`` in echelon form.
+
+            EXAMPLES::
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: f = SGA.module_morphism(lambda x: SGA(x**2), codomain=SGA)
+                sage: f.kernel_basis()
+                ([1, 2, 3] - [3, 2, 1], [1, 3, 2] - [3, 2, 1], [2, 1, 3] - [3, 2, 1])
+            """
+            return tuple(map( self.domain().from_vector,
+                              self.matrix().right_kernel_matrix().rows() ))
+
+        def kernel(self):
+            """
+            Return the kernel of ``self`` as a submodule of the domain.
+
+            EXAMPLES::
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: f = SGA.module_morphism(lambda x: SGA(x**2), codomain=SGA)
+                sage: K = f.kernel()
+                sage: K
+                Free module generated by {0, 1, 2} over Rational Field
+                sage: K.ambient()
+                Symmetric group algebra of order 3 over Rational Field
+            """
+            D = self.domain()
+            return D.submodule(self.kernel_basis(), already_echelonized=True,
+                               category=self.category_for())
+
+        def image_basis(self):
+            """
+            Return a basis for the image of ``self`` in echelon form.
+
+            EXAMPLES::
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: f = SGA.module_morphism(lambda x: SGA(x**2), codomain=SGA)
+                sage: f.image_basis()
+                ([1, 2, 3], [2, 3, 1], [3, 1, 2])
+            """
+            C = self.codomain()
+            return tuple(C.echelon_form( map(self, self.domain().basis()) ))
+
+        def image(self):
+            """
+            Return the image of ``self`` as a submodule of the codomain.
+
+            EXAMPLES::
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: f = SGA.module_morphism(lambda x: SGA(x**2), codomain=SGA)
+                sage: f.image()
+                Free module generated by {0, 1, 2} over Rational Field
+            """
+            C = self.codomain()
+            return C.submodule(self.image_basis(), already_echelonized=True,
+                               category=self.category_for())
 

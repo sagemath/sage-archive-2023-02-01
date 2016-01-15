@@ -73,6 +73,16 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
             if len(self._exponents) != n:
                 raise IndexError('argument length (= %s) must be %s.'%(len(exponents), n))
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: F = AbelianGroup(3,[7,8,9])
+            sage: hash(F.an_element()) # random
+            1024
+        """
+        return hash(self.parent()) ^ hash(self._exponents)
+
     def exponents(self):
         """
         The exponents of the generators defining the group element.

@@ -59,7 +59,7 @@ class SetPartitionsXkElement(SetPartition):
         """
         Check to make sure this is a set partition.
 
-        EXAMLPLES::
+        EXAMPLES::
 
             sage: A2p5 = SetPartitionsAk(2.5)
             sage: x = A2p5.first(); x # random

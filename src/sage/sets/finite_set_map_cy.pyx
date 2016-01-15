@@ -634,7 +634,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
         """
         Return the ``n``-th power of ``self``.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- a positive integer
         - ``dummy`` -- not used; must be set to ``None`` (for compatibility only).
@@ -692,7 +692,7 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
         """
         Return the ``n``-th power of self.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- a positive integer
         - ``dummy`` -- not used; must be set to None (for compatibility only).

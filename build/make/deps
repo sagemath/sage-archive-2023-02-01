@@ -65,7 +65,6 @@ toolchain-deps:
 	$(MAKE) $(INST)/$(SAGE_MP_LIBRARY)
 	$(MAKE) $(INST)/$(MPFR)
 	$(MAKE) $(INST)/$(MPC)
-	$(MAKE) $(INST)/$(PPL)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
@@ -100,7 +99,9 @@ base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, SAGE_MP_LIBRARY).
 sagelib: \
+		$(INST)/$(ARB) \
 		$(INST)/$(ATLAS) \
+		$(INST)/$(BRIAL) \
 		$(INST)/$(CEPHES) \
 		$(INST)/$(CLIQUER) \
 		$(INST)/$(CYTHON) \
@@ -115,6 +116,7 @@ sagelib: \
 		$(INST)/$(GSL) \
 		$(INST)/$(IML) \
 		$(INST)/$(JINJA2) \
+		$(INST)/$(JUPYTER_CORE) \
 		$(INST)/$(LCALC) \
 		$(INST)/$(LRCALC) \
 		$(INST)/$(LIBGAP) \
@@ -130,7 +132,6 @@ sagelib: \
 		$(INST)/$(NUMPY) \
 		$(INST)/$(PARI) \
 		$(INST)/$(PLANARITY) \
-		$(INST)/$(BRIAL) \
 		$(INST)/$(PPL) \
 		$(INST)/$(PYNAC) \
 		$(INST)/$(PYTHON) \
@@ -140,7 +141,8 @@ sagelib: \
 		$(INST)/$(SINGULAR) \
 		$(INST)/$(SIX) \
 		$(INST)/$(SYMMETRICA) \
-		$(INST)/$(ZN_POLY)
+		$(INST)/$(ZN_POLY) \
+		$(EXTCODE)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
 		sage-logger 'time $(MAKE) sage' '$(SAGE_LOGS)/sage-$(SAGE_VERSION).log'; \
@@ -185,7 +187,8 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 DOC_DEPENDENCIES = sagelib $(INST)/$(SPHINX) $(INST)/$(SAGENB) \
 	| $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(NETWORKX) \
 	$(INST)/$(SCIPY) $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) \
-	$(INST)/$(MATHJAX) $(INST)/$(IPYKERNEL) $(INST)/$(JUPYTER_CLIENT)
+	$(INST)/$(MATHJAX) $(INST)/$(IPYKERNEL) $(INST)/$(JUPYTER_CLIENT) \
+	$(INST)/$(CONWAY_POLYNOMIALS)
 
 doc: doc-html
 

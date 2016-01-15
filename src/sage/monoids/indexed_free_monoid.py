@@ -371,6 +371,19 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
         """
         IndexedMonoidElement.__init__(self, F, tuple(map(tuple, x)))
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: F = FreeMonoid(index_set=tuple('abcde'))
+            sage: hash(F ([(1,2),(0,1)]) )
+            2401565693828035651 # 64-bit
+            1164080195          # 32-bit
+            sage: hash(F ([(0,2),(1,1)]) )
+            -3359280905493236379 # 64-bit
+            -1890405019          # 32-bit
+        """
+        return hash(self._monomial)
 
     def _sorted_items(self):
         """
@@ -485,6 +498,20 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: F = FreeAbelianMonoid(index_set=ZZ)
+            sage: hash( F([(0,1), (2,2)]) )
+            8087055352805725849 # 64-bit
+            250091161           # 32-bit
+            sage: hash( F([(2,1)]) )
+            5118585357534560720 # 64-bit
+            1683816912          # 32-bit
+        """
+        return hash(frozenset(self._monomial.items()))
 
     def _mul_(self, other):
         """
@@ -755,6 +782,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             return ZZ.one()
         return infinity
 
+    @cached_method
     def monoid_generators(self):
         """
         Return the monoid generators of ``self``.

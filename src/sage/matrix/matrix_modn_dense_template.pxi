@@ -411,17 +411,17 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         """
         TESTS::
 
-        sage: import gc
-        sage: for i in range(10):
-        ...      A = random_matrix(GF(7),1000,1000)
-        ...      B = random_matrix(Integers(10),1000,1000)
-        ...      C = random_matrix(GF(16007),1000,1000)
-        ...      D = random_matrix(Integers(1000),1000,1000)
-        ...      del A
-        ...      del B
-        ...      del C
-        ...      del D
-        ...      _ = gc.collect()
+            sage: import gc
+            sage: for i in range(10):
+            ...      A = random_matrix(GF(7),1000,1000)
+            ...      B = random_matrix(Integers(10),1000,1000)
+            ...      C = random_matrix(GF(16007),1000,1000)
+            ...      D = random_matrix(Integers(1000),1000,1000)
+            ...      del A
+            ...      del B
+            ...      del C
+            ...      del D
+            ...      _ = gc.collect()
 
         """
         if self._entries == NULL:

@@ -580,16 +580,17 @@ class Rings(CategoryWithAxiom):
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
                 sage: from sage.rings.noncommutative_ideals import Ideal_nc
+                sage: from itertools import product
                 sage: class PowerIdeal(Ideal_nc):
-                ...    def __init__(self, R, n):
-                ...        self._power = n
-                ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
-                ...    def reduce(self,x):
-                ...        R = self.ring()
-                ...        return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
-                ...
+                ....:  def __init__(self, R, n):
+                ....:      self._power = n
+                ....:      Ideal_nc.__init__(self, R, [R.prod(m) for m in product(R.gens(), repeat=n)])
+                ....:  def reduce(self, x):
+                ....:      R = self.ring()
+                ....:      return add([c*R(m) for m,c in x if len(m) < self._power], R(0))
+                ....:
                 sage: I = PowerIdeal(F,3)
-                sage: Q = Rings().parent_class.quotient(F,I); Q
+                sage: Q = Rings().parent_class.quotient(F, I); Q
                 Quotient of Free Algebra on 3 generators (x, y, z) over Rational Field by the ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y, x*z^2, y*x^2, y*x*y, y*x*z, y^2*x, y^3, y^2*z, y*z*x, y*z*y, y*z^2, z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3)
                 sage: Q.0
                 xbar
@@ -687,7 +688,7 @@ class Rings(CategoryWithAxiom):
             """
             return self.quotient(I,names=names)
 
-        def __div__(self, I):
+        def __truediv__(self, I):
             """
             Since assigning generator names would not work properly,
             the construction of a quotient ring using division syntax
@@ -801,11 +802,11 @@ class Rings(CategoryWithAxiom):
                 sage: QQ['a,b','c']
                 Traceback (most recent call last):
                 ...
-                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                ValueError: variable name 'a,b' is not alphanumeric
                 sage: QQ[['a,b','c']]
                 Traceback (most recent call last):
                 ...
-                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                ValueError: variable name 'a,b' is not alphanumeric
 
                 sage: QQ[[['x']]]
                 Traceback (most recent call last):
@@ -918,7 +919,7 @@ def _gen_names(elts):
         'aa'
     """
     import re
-    from sage.structure.parent_gens import _certify_names
+    from sage.structure.category_object import certify_names
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     next(it) # skip empty word
@@ -928,7 +929,7 @@ def _gen_names(elts):
         if m:
             name = "sqrt%s" % m.groups()[0]
         try:
-            _certify_names([name])
+            certify_names([name])
         except ValueError:
             name = next(it).string_rep()
         yield name

@@ -8,8 +8,7 @@ from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         InfiniteAbstractCombinatorialClass, \
         tuples, number_of_tuples, \
         unordered_tuples, number_of_unordered_tuples, \
-        permutations, cyclic_permutations, \
-        cyclic_permutations_iterator, bell_polynomial, fibonacci_sequence, \
+        bell_polynomial, fibonacci_sequence, \
         fibonacci_xrange, bernoulli_polynomial
 
 from expnums import expnums
@@ -36,19 +35,19 @@ from yang_baxter_graph import YangBaxterGraph
 #Permutations
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
 from affine_permutation import AffinePermutationGroup
+lazy_import('sage.combinat.colored_permutations', ['ColoredPermutations',
+                                                   'SignedPermutations'])
 from derangements import Derangements
 lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
 #RSK
-from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\
-                RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
+from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse
 
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings
 
-# Integer lists lex
-
-from integer_list import IntegerListsLex as IntegerListsLex
+# Integer lists
+from integer_lists import IntegerListsLex
 
 #Compositions
 from composition import Composition, Compositions
@@ -58,8 +57,6 @@ from composition_signed import SignedCompositions
 from partition import Partition, Partitions, PartitionsInBox,\
      OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
      PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
-#Functions being deprecated from partition
-from partition import RestrictedPartitions
 
 from sage.combinat.partition_tuple import PartitionTuple, PartitionTuples
 from skew_partition import SkewPartition, SkewPartitions
@@ -141,18 +138,6 @@ from matrices.all import *
 # Posets
 from posets.all import *
 
-from sage.misc.superseded import deprecated_callable_import
-deprecated_callable_import(6637,
-                           'sage.combinat.backtrack',
-                           globals(),
-                           locals(),
-                           ["SearchForest",
-                            "TransitiveIdeal",
-                            "TransitiveIdealGraded"],
-                           ("This class soon will not be available in that "
-                            "way anymore. Use RecursivelyEnumeratedSet "
-                            "instead."))
-
 # Cluster Algebras and Quivers
 from cluster_algebra_quiver.all import *
 
@@ -197,6 +182,11 @@ from binary_recurrence_sequences import BinaryRecurrenceSequence
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 
+# sine-Gordon Y-systems
+lazy_import('sage.combinat.sine_gordon', 'SineGordonYsystem')
+
 # Fully Packed Loop
 lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedLoops'])
 
+# Subword complex
+lazy_import('sage.combinat.subword_complex', 'SubwordComplex')

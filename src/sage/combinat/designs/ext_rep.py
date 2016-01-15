@@ -46,8 +46,10 @@ import os.path
 import gzip
 import bz2
 from sage.misc.all import tmp_filename
-import urllib2
 import sys
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlopen
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
 DTRS_PROTOCOL   = '2.0'
@@ -559,7 +561,7 @@ def open_extrep_url(url):
         sage: s = ext_rep.designs_from_XML_url("http://designtheory.org/database/v-b-k/v3-b6-k2.icgsa.txt.bz2") # optional - internet
     """
 
-    f = urllib2.urlopen(url)
+    f = urlopen(url)
 
     root, ext = os.path.splitext(url)
     if ext == '.gz':
@@ -748,7 +750,7 @@ class XTree(object):
         try:
             child = self.xt_children[i]
         except IndexError:
-            raise IndexError('{} has no index {}'.format(self.__repr__(), i))
+            raise IndexError('{!r} has no index {}'.format(self, i))
         if isinstance(child, TupleType):
             name, attributes, children = child
             if len(attributes) > 0:

@@ -97,7 +97,7 @@ from sage.combinat.designs.orthogonal_arrays import transversal_design, incomple
 from sage.combinat.designs.difference_family import difference_family
 from difference_matrices import difference_matrix
 
-from sage.misc.superseded import deprecated_function_alias, deprecated_callable_import
+from sage.misc.superseded import deprecated_callable_import
 deprecated_callable_import(19096,
                            'sage.combinat.designs.incidence_structures',
                            globals(),
@@ -109,10 +109,6 @@ Hypergraph = BlockDesign = IncidenceStructure    # just an alias
 from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
 from sage.combinat.designs.resolvable_bibd import resolvable_balanced_incomplete_block_design, kirkman_triple_system
 from sage.combinat.designs.group_divisible_designs import group_divisible_design
-
-# deprecated in june 2014 (#16446)
-BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
-        balanced_incomplete_block_design)
 
 from orthogonal_arrays import OAMainFunctions as orthogonal_arrays
 
@@ -126,5 +122,4 @@ deprecated_callable_import(17034,
                            ("This function will soon be removed. Use the designs.orthogonal_arrays.* functions instead"))
 
 # We don't want this to appear in designs.<tab>
-del deprecated_function_alias
 del deprecated_callable_import

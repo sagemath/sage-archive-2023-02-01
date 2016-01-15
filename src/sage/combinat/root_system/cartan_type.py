@@ -279,9 +279,9 @@ Therefore, the Cartan types are considered as distinct::
 
 .. rubric:: Affine Cartan types
 
-For affine types, we use the usual conventions for affine Coxeter groups: each affine type
-is either untwisted (that is arise from the natural affinisation
-of a finite Cartan type)::
+For affine types, we use the usual conventions for affine Coxeter
+groups: each affine type is either untwisted (that is arise from the
+natural affinisation of a finite Cartan type)::
 
     sage: CartanType(["A", 4, 1]).dynkin_diagram()
     0
@@ -451,9 +451,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.decorators import rename_keyword
-from sage.misc.misc import union
 from __builtin__ import sorted
 
 # TODO:
@@ -605,6 +603,16 @@ class CartanTypeFactory(SageObject):
             True
             sage: CartanType('A2')
             ['A', 2]
+
+        Check that we can pass any Cartan type as a single element list::
+
+            sage: CT = CartanType(['A2', 'A2', 'A2'])
+            sage: CartanType([CT])
+            A2xA2xA2
+
+            sage: CT = CartanType('A2').relabel({1:-1, 2:-2})
+            sage: CartanType([CT])
+            ['A', 2] relabelled by {1: -1, 2: -2}
         """
         if len(args) == 1:
             t = args[0]
@@ -617,6 +625,10 @@ class CartanTypeFactory(SageObject):
 
         if len(t) == 1: # Fix for trac #13774
             t = t[0]
+
+        # We need to make another check
+        if isinstance(t, CartanType_abstract):
+            return t
 
         if isinstance(t, str):
             if "x" in t:
@@ -739,7 +751,6 @@ class CartanTypeFactory(SageObject):
         """
         return "CartanType"
 
-    @rename_keyword(deprecation=14673, crystalographic='crystallographic')
     def samples(self, finite=None, affine=None, crystallographic=None):
         """
         Return a sample of the available Cartan types.
@@ -796,10 +807,6 @@ class CartanTypeFactory(SageObject):
         TESTS::
 
             sage: for ct in CartanType.samples(): TestSuite(ct).run()
-            sage: CartanType.samples(crystalographic=False)
-            doctest:...: DeprecationWarning: use the option 'crystallographic' instead of 'crystalographic'
-            See http://trac.sagemath.org/14673 for details.
-            [['I', 5], ['H', 3], ['H', 4]]
         """
         result = self._samples()
         if crystallographic is not None:
@@ -1085,16 +1092,20 @@ class CartanType_abstract(object):
             [2 3 1 3]
             [2 2 3 1]
         """
-        from sage.matrix.constructor import matrix
-        from sage.rings.all import ZZ
-        index_set = self.index_set()
-        reverse = dict((index_set[i], i) for i in range(len(index_set)))
-        m = matrix(ZZ,len(index_set), lambda i,j: 1 if i==j else 2)
-        for (i,j,l) in self.coxeter_diagram().edge_iterator():
-            m[reverse[i], reverse[j]] = l
-            m[reverse[j], reverse[i]] = l
-        m.set_immutable()
-        return m
+        from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
+        return CoxeterMatrix(self)
+
+    def coxeter_type(self):
+        """
+        Return the Coxeter type for ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 4]).coxeter_type()
+            Coxeter type of ['A', 4]
+        """
+        from sage.combinat.root_system.coxeter_type import CoxeterType
+        return CoxeterType(self)
 
     def dual(self):
         """
@@ -1305,19 +1316,8 @@ class CartanType_abstract(object):
              [['E', 6], True], [['E', 7], True], [['E', 8], True],
              [['F', 4], True], [['G', 2], True],
              [['I', 5], False], [['H', 3], False], [['H', 4], False]]
-
-        TESTS::
-
-            sage: all(t.is_crystallographic() for t in CartanType.samples(affine=True))
-            True
-            sage: t = CartanType(['A',3]); t.is_crystalographic()
-            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
-            See http://trac.sagemath.org/14673 for details.
-            True
         """
         return False
-
-    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     def is_simply_laced(self):
         """
@@ -1597,17 +1597,8 @@ class CartanType_crystallographic(CartanType_abstract):
 
             sage: CartanType(['A', 3, 1]).is_crystallographic()
             True
-
-        TESTS::
-
-            sage: t = CartanType(['A',3]); t.is_crystalographic()
-            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
-            See http://trac.sagemath.org/14673 for details.
-            True
         """
         return True
-
-    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     @cached_method
     def symmetrizer(self):

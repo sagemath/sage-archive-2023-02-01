@@ -27,7 +27,6 @@ Comprehensive Module list
     sage/combinat/binary_tree
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
-    sage/combinat/choose_nk
     sage/combinat/cluster_algebra_quiver/__init__
     sage/combinat/cluster_algebra_quiver/all
     sage/combinat/cluster_algebra_quiver/cluster_seed
@@ -35,6 +34,7 @@ Comprehensive Module list
     sage/combinat/cluster_algebra_quiver/mutation_type
     sage/combinat/cluster_algebra_quiver/quiver
     sage/combinat/cluster_algebra_quiver/quiver_mutation_type
+    sage/combinat/colored_permutations 
     sage/combinat/combinat
     sage/combinat/combinat_cython
     sage/combinat/combination
@@ -117,7 +117,9 @@ Comprehensive Module list
     sage/combinat/graph_path
     sage/combinat/gray_codes
     sage/combinat/hall_polynomial
-    sage/combinat/integer_list
+    sage/combinat/integer_lists/base
+    sage/combinat/integer_lists/lists
+    sage/combinat/integer_lists/invlex
     sage/combinat/integer_matrices
     sage/combinat/integer_vector
     sage/combinat/integer_vector_weighted
@@ -159,14 +161,15 @@ Comprehensive Module list
     sage/combinat/perfect_matching
     sage/combinat/permutation
     sage/combinat/permutation_cython
-    sage/combinat/permutation_nk
     sage/combinat/posets/__init__
     sage/combinat/posets/all
+    sage/combinat/posets/cartesian_product
     sage/combinat/posets/elements
     sage/combinat/posets/hasse_diagram
     sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
     sage/combinat/posets/linear_extensions
+    sage/combinat/posets/moebius_algebra
     sage/combinat/posets/poset_examples
     sage/combinat/posets/posets
     sage/combinat/q_analogues
@@ -189,6 +192,7 @@ Comprehensive Module list
     sage/combinat/rigged_configurations/bij_type_C
     sage/combinat/rigged_configurations/bij_type_D
     sage/combinat/rigged_configurations/bij_type_D_twisted
+    sage/combinat/rigged_configurations/bij_type_D_tri
     sage/combinat/rigged_configurations/bijection
     sage/combinat/rigged_configurations/kleber_tree
     sage/combinat/rigged_configurations/kr_tableaux
@@ -208,6 +212,7 @@ Comprehensive Module list
     sage/combinat/root_system/cartan_type
     sage/combinat/root_system/coxeter_group
     sage/combinat/root_system/coxeter_matrix
+    sage/combinat/root_system/coxeter_type
     sage/combinat/root_system/dynkin_diagram
     sage/combinat/root_system/hecke_algebra_representation
     sage/combinat/root_system/integrable_representations
@@ -254,6 +259,7 @@ Comprehensive Module list
     sage/combinat/set_partition_ordered
     sage/combinat/sf/__init__
     sage/combinat/sf/all
+    sage/combinat/sf/character
     sage/combinat/sf/classical
     sage/combinat/sf/dual
     sage/combinat/sf/elementary
@@ -268,9 +274,11 @@ Comprehensive Module list
     sage/combinat/sf/multiplicative
     sage/combinat/sf/new_kschur
     sage/combinat/sf/ns_macdonald
+    sage/combinat/sf/orthogonal
     sage/combinat/sf/orthotriang
     sage/combinat/sf/powersum
     sage/combinat/sf/schur
+    sage/combinat/sf/symplectic
     sage/combinat/sf/sf
     sage/combinat/sf/sfa
     sage/combinat/sf/witt
@@ -278,6 +286,7 @@ Comprehensive Module list
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type
+    sage/combinat/sine_gordon
     sage/combinat/six_vertex_model
     sage/combinat/skew_partition
     sage/combinat/skew_tableau
@@ -306,11 +315,11 @@ Comprehensive Module list
     sage/combinat/species/structure
     sage/combinat/species/subset_species
     sage/combinat/species/sum_species
-    sage/combinat/split_nk
     sage/combinat/subset
     sage/combinat/subsets_hereditary
     sage/combinat/subsets_pairwise
     sage/combinat/subword
+    sage/combinat/subword_complex
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau

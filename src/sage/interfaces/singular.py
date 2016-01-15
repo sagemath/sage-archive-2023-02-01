@@ -334,6 +334,8 @@ import sage.rings.integer
 from sage.misc.misc import get_verbose
 from sage.misc.superseded import deprecation
 
+from six import reraise as raise_
+
 class SingularError(RuntimeError):
     """
     Raised if Singular printed an error message
@@ -361,7 +363,7 @@ class Singular(Expect):
 
     - David Joyner and William Stein
     """
-    def __init__(self, maxread=1000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None,
                  seed=None):
         """
@@ -378,7 +380,6 @@ class Singular(Expect):
                         # no tty, fine grained cputime()
                         # and do not display CTRL-C prompt
                         command = "Singular -t --ticks-per-sec 1000 --cntrlc=a",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -1261,7 +1262,7 @@ class SingularElement(ExpectElement):
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise TypeError, x, sys.exc_info()[2]
+                raise_(TypeError, x, sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise
@@ -1309,7 +1310,7 @@ class SingularElement(ExpectElement):
                 s = self.parent().get_using_file(self._name)
         except AttributeError:
             s = self.parent().get(self._name)
-        if s.__contains__(self._name):
+        if self._name in s:
             if hasattr(self, '__custom_name'):
                 s =  s.replace(self._name, self.__dict__['__custom_name'])
             elif self.type() == 'matrix':

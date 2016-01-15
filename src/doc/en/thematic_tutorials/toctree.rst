@@ -13,6 +13,7 @@ Thematic tutorial document tree
    linear_programming
    numtheory_rsa
    coding_theory
+   structures_in_coding_theory
    polytutorial
    polytope_tikz
    tutorial-programming-python

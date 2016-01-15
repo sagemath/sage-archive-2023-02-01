@@ -416,7 +416,7 @@ class RootedTrees(UniqueRepresentation, Parent):
 
     - ``size`` -- (optional) an integer
 
-    OUPUT:
+    OUTPUT:
 
     the set of all rooted trees (of the given size ``size`` if
     specified)

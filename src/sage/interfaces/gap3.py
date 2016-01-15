@@ -282,6 +282,8 @@ class Gap3(Gap_generic):
 
     - Franco Saliola (Feb 2010)
     """
+    _identical_function = "IsIdentical"
+
     def __init__(self, command=gap3_cmd):
         r"""
         Initialize the GAP3 interface and start a session.
@@ -316,7 +318,6 @@ class Gap3(Gap_generic):
              command=self.__gap3_command_string + " -p -y 500",
              server=None,
              ulimit=None,
-             maxread=100000,
              script_subdirectory=None,
              restart_on_ctrlc=True,
              verbose_start=False,

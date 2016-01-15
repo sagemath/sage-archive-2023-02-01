@@ -27,8 +27,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         Category of hopf algebras with basis over Rational Field
         sage: C.super_categories()
         [Category of hopf algebras over Rational Field,
-         Category of algebras with basis over Rational Field,
-         Category of coalgebras with basis over Rational Field]
+         Category of bialgebras with basis over Rational Field]
 
     We now show how to use a simple Hopf algebra, namely the group algebra of the dihedral group
     (see also AlgebrasWithBasis)::
@@ -147,6 +146,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_hopf_algebras_with_basis', 'FiniteDimensionalHopfAlgebrasWithBasis')
     Graded = LazyImport('sage.categories.graded_hopf_algebras_with_basis', 'GradedHopfAlgebrasWithBasis')
+    Super = LazyImport('sage.categories.super_hopf_algebras_with_basis',  'SuperHopfAlgebrasWithBasis')
 
     class ParentMethods:
 

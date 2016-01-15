@@ -490,14 +490,14 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-         - ``g`` -- dict for directed multigraph with edges weighted by
-           nonnegative integers (see NOTE), a Graph or DiGraph.
+        - ``g`` -- dict for directed multigraph with edges weighted by
+          nonnegative integers (see NOTE), a Graph or DiGraph.
 
-         - ``sink`` -- (optional) A sink vertex.  Any outgoing edges from the
-           designated sink are ignored for the purposes of stabilization.  It is
-           assumed that every vertex has a directed path into the sink.  If the
-           ``sink`` argument is omitted, the first vertex in the list of the
-           Sandpile's vertices is set as the sink.
+        - ``sink`` -- (optional) A sink vertex.  Any outgoing edges from the
+          designated sink are ignored for the purposes of stabilization.  It is
+          assumed that every vertex has a directed path into the sink.  If the
+          ``sink`` argument is omitted, the first vertex in the list of the
+          Sandpile's vertices is set as the sink.
 
         OUTPUT:
 
@@ -517,41 +517,37 @@ class Sandpile(DiGraph):
             sage: G = Sandpile(g,'d')
 
         Here is a square with unweighted edges.  In this example, the graph is
-        also undirected.
-
-        ::
+        also undirected. ::
 
             sage: g = {0:[1,2], 1:[0,3], 2:[0,3], 3:[1,2]}
             sage: G = Sandpile(g,3)
 
         In the following example, multiple edges and loops in the dictionary
-        become edge weights in the Sandpile.
+        become edge weights in the Sandpile. ::
 
-        ::
+            sage: s = Sandpile({0:[1,2,3], 1:[0,1,2,2,2], 2:[1,1,0,2,2,2,2]})
+            sage: s.laplacian()
+            [ 3 -1 -1 -1]
+            [-1  4 -3  0]
+            [-1 -2  3  0]
+            [ 0  0  0  0]
+            sage: s.dict()
+            {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
 
-        sage: s = Sandpile({0:[1,2,3], 1:[0,1,2,2,2], 2:[1,1,0,2,2,2,2]})
-        sage: s.laplacian()
-        [ 3 -1 -1 -1]
-        [-1  4 -3  0]
-        [-1 -2  3  0]
-        [ 0  0  0  0]
-        sage: s.dict()
-        {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
+        Sandpiles can be created from Graphs and DiGraphs. ::
 
-        Sandpiles can be created from Graphs and DiGraphs.
-
-        sage: g = DiGraph({0:{1:2,2:4}, 1:{1:3,2:1}, 2:{1:7}}, weighted=True)
-        sage: s = Sandpile(g)
-        sage: s.dict()
-        {0: {1: 2, 2: 4}, 1: {0: 0, 1: 3, 2: 1}, 2: {0: 0, 1: 7}}
-        sage: s.sink()
-        0
-        sage: s = sandpiles.Cycle(4)
-        sage: s.laplacian()
-        [ 2 -1  0 -1]
-        [-1  2 -1  0]
-        [ 0 -1  2 -1]
-        [-1  0 -1  2]
+            sage: g = DiGraph({0:{1:2,2:4}, 1:{1:3,2:1}, 2:{1:7}}, weighted=True)
+            sage: s = Sandpile(g)
+            sage: s.dict()
+            {0: {1: 2, 2: 4}, 1: {0: 0, 1: 3, 2: 1}, 2: {0: 0, 1: 7}}
+            sage: s.sink()
+            0
+            sage: s = sandpiles.Cycle(4)
+            sage: s.laplacian()
+            [ 2 -1  0 -1]
+            [-1  2 -1  0]
+            [ 0 -1  2 -1]
+            [-1  0 -1  2]
 
         .. NOTE::
 
@@ -616,7 +612,7 @@ class Sandpile(DiGraph):
         self._sink_ind = self.vertices().index(sink)
         self._nonsink_vertices = deepcopy(self.vertices())
         del self._nonsink_vertices[self._sink_ind]
-        # compute laplacians:
+        # compute Laplacians:
         self._laplacian = self.laplacian_matrix(indegree=False)
         temp = range(self.num_verts())
         del temp[self._sink_ind]
@@ -1943,7 +1939,7 @@ class Sandpile(DiGraph):
             [0 4 0 0]
             [0 0 4 0]
             [0 0 0 0]
-            sage: U*s.laplacian()*V == D  # laplacian symmetric => tranpose not necessary
+            sage: U*s.laplacian()*V == D  # Laplacian symmetric => tranpose not necessary
             True
         """
         return deepcopy(self._smith_form)
@@ -5172,7 +5168,7 @@ class SandpileDivisor(dict):
 
             sage: S = sandpiles.Cycle(3)
             sage: D = SandpileDivisor(S, [0,1,1])
-            sage: D._set_linear_system() # optional - 4ti2
+            sage: D._set_linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
 
         .. WARNING:
 
@@ -5275,7 +5271,7 @@ class SandpileDivisor(dict):
             ....:  5: {2: 1, 3: 1}}
             ....: )
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
-            sage: D.linear_system() # optional - 4ti2
+            sage: D.linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
             {'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]],
              'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]],
              'num_homog': 2,
@@ -5685,6 +5681,8 @@ class SandpileDivisor(dict):
             ....: )
             sage: D = SandpileDivisor(S, [0,0,0,0,0,4]) # optional - 4ti2
             sage: E = D.r_of_D(True) # optional - 4ti2
+            doctest:... DeprecationWarning: D.r_of_D() will be removed soon.  Please use ``D.rank()`` instead.
+            See http://trac.sagemath.org/18618 for details.
             sage: E # optional - 4ti2
             (1, {0: 0, 1: 1, 2: 0, 3: 1, 4: 0, 5: 0})
             sage: F = E[1] # optional - 4ti2

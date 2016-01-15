@@ -1027,7 +1027,7 @@ def _test_vectors_equal_inferior():
 
 cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
     r"""
-    Randomized backtracking for finding hamiltonian cycles and paths.
+    Randomized backtracking for finding Hamiltonian cycles and paths.
 
     ALGORITHM:
 
@@ -1036,8 +1036,8 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     is reversed. Every ``reset_bound`` iterations the path will be cleared
     and the procedure is restarted. Every ``backtrack_bound`` steps we discard
     the last five vertices and continue with the procedure. The total number
-    of steps in the algorithm is controlled by ``max_iter``. If a hamiltonian
-    cycle or hamiltonian path is found it is returned. If the number of steps reaches
+    of steps in the algorithm is controlled by ``max_iter``. If a Hamiltonian
+    cycle or Hamiltonian path is found it is returned. If the number of steps reaches
     ``max_iter`` then a longest path is returned. See OUTPUT for more details.
 
 
@@ -1053,8 +1053,8 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     - ``backtrack_bound`` - Number of iterations to elapse before
        discarding the last 5 vertices of the path.
 
-    - ``find_path`` - If set to ``True``, will search a hamiltonian
-       path. If ``False``, will search for a hamiltonian
+    - ``find_path`` - If set to ``True``, will search a Hamiltonian
+       path. If ``False``, will search for a Hamiltonian
        cycle. Default value is ``False``.
 
     OUTPUT:
@@ -1062,10 +1062,10 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     A pair ``(B,P)``, where ``B`` is a Boolean and ``P`` is a list of vertices.
 
         * If ``B`` is ``True`` and ``find_path`` is ``False``, ``P``
-          represents a hamiltonian cycle.
+          represents a Hamiltonian cycle.
 
         * If ``B`` is ``True`` and ``find_path`` is ``True``, ``P``
-          represents a hamiltonian path.
+          represents a Hamiltonian path.
 
         * If ``B`` is false, then ``P`` represents the longest path
           found during the execution of the algorithm.
@@ -1078,8 +1078,8 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     EXAMPLES:
 
     First we try the algorithm in the Dodecahedral graph, which is
-    hamiltonian, so we are able to find a hamiltonian cycle and a
-    hamiltonian path ::
+    Hamiltonian, so we are able to find a Hamiltonian cycle and a
+    Hamiltonian path ::
 
         sage: from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
         sage: G=graphs.DodecahedralGraph()
@@ -1089,8 +1089,8 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         (True, [8, 9, 10, 11, 18, 17, 4, 3, 19, 0, 1, 2, 6, 7, 14, 13, 12, 16, 15, 5])
 
     Another test, now in the Moebius-Kantor graph which is also
-    hamiltonian, as in our previous example, we are able to find a
-    hamiltonian cycle and path ::
+    Hamiltonian, as in our previous example, we are able to find a
+    Hamiltonian cycle and path ::
 
         sage: G=graphs.MoebiusKantorGraph()
         sage: fh(G)
@@ -1098,9 +1098,9 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (True, [4, 5, 6, 7, 15, 12, 9, 1, 0, 8, 13, 10, 2, 3, 11, 14])
 
-    Now, we try the algorithm on a non hamiltonian graph, the Petersen
+    Now, we try the algorithm on a non Hamiltonian graph, the Petersen
     graph.  This graph is known to be hypohamiltonian, so a
-    hamiltonian path can be found ::
+    Hamiltonian path can be found ::
 
         sage: G=graphs.PetersenGraph()
         sage: fh(G)
@@ -1117,7 +1117,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (True, [7, 18, 20, 9, 8, 19, 17, 6, 5, 16, 14, 3, 4, 15, 13, 11, 0, 10, 21, 12, 1, 2])
 
-    Finally, an example on a graph which does not have a hamiltonian
+    Finally, an example on a graph which does not have a Hamiltonian
     path ::
 
         sage: G=graphs.HyperStarGraph(5,2)

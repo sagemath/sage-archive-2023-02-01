@@ -376,6 +376,8 @@ class HasseDiagram(DiGraph):
             sage: p.is_chain()
             False
         """
+        if self.cardinality() == 0:
+            return True
         return (self.num_edges()+1 == self.num_verts() and # Hasse Diagram is a tree
                 all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
                 all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
@@ -1334,6 +1336,44 @@ class HasseDiagram(DiGraph):
                     c[x]=y
                     c[y]=x
         return c
+
+    def pseudocomplement(self, element):
+        """
+        Return the pseudocomplement of ``element``, if it exists.
+
+        The pseudocomplement is the greatest element whose
+        meet with given element is the bottom element. It may
+        not exist, and then the function returns ``None``.
+
+        INPUT:
+
+        - ``element`` -- an element of the lattice.
+
+        OUTPUT:
+
+        An element of the Hasse diagram, i.e. an integer, or
+        ``None`` if the pseudocomplement does not exist.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: H.pseudocomplement(2)
+            3
+
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.pseudocomplement(2) is None
+            True
+        """
+        e = self.order() - 1
+        while self._meet[e, element] != 0:
+            e -= 1
+        e1 = e
+        while e1 > 0:
+            if self._meet[e1, element] == 0 and not self.is_lequal(e1, e):
+                return None
+            e1 -= 1
+        return e
 
     def antichains_iterator(self):
         r"""

@@ -21,6 +21,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.global_options import GlobalOptions
@@ -32,7 +34,6 @@ from sage.rings.all import QQ
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement,
@@ -480,29 +481,15 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1], [1,1]])
-            sage: g = RC.__iter__()
-            sage: next(g)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            sage: next(g) # random
-            <BLANKLINE>
-            0[ ]0
-            <BLANKLINE>
-            0[ ]0
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
+            sage: L = [x for x in RC]
+            sage: len(L)
+            24
         """
         index_set = self._cartan_type.classical().index_set()
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         return RecursivelyEnumeratedSet(self.module_generators,
                     lambda x: [x.f(i) for i in index_set],
-                    structure=None).naive_search_iterator()
+                    structure='graded').breadth_first_search_iterator()
 
     @lazy_attribute
     def module_generators(self):
@@ -602,10 +589,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for curBlocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(curBlocks[:]),
@@ -1279,10 +1265,9 @@ class RCNonSimplyLaced(RiggedConfigurations):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for cur_blocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(cur_blocks[:]), vac_nums[:]]) )
@@ -1768,7 +1753,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
             # Special case for the final tableau
             partition = base[-1]
@@ -1799,10 +1784,9 @@ class RCTypeA2Dual(RCTypeA2Even):
                         L2.append(IterableFunctionCall(self._block_iterator_n_odd, block))
                     else:
                         L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for curBlocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(curBlocks[:]), vac_nums[:]]) )
@@ -1936,28 +1920,3 @@ class RCTypeA2Dual(RCTypeA2Even):
                                   rigging_list=riggings, vacancy_numbers_list=vac_nums)
 
     Element = KRRCTypeA2DualElement
-
-def HighestWeightRiggedConfigurations(cartan_type, B):
-    """
-    Deprecated in :trac:`13872`. Use instead the attribute
-    ``module_generators`` of :class:`RiggedConfigurations`.
-
-    EXAMPLES::
-
-        sage: HighestWeightRiggedConfigurations(['A',2,1], [[1,1]])
-        doctest:...: DeprecationWarning: this class is deprecated.
-         Use RiggedConfigurations(cartan_type, B).module_generators instead
-        See http://trac.sagemath.org/13872 for details.
-        (
-        <BLANKLINE>
-        (/)
-        <BLANKLINE>
-        (/)
-        <BLANKLINE>
-        )
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13872, 'this class is deprecated. Use RiggedConfigurations('
-                       'cartan_type, B).module_generators instead')
-    return RiggedConfigurations(cartan_type, B).module_generators
-

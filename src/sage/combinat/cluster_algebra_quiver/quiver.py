@@ -1,12 +1,27 @@
 r"""
 Quiver
 
-A *quiver* is an oriented graphs without loops, two-cycles, or multiple edges. The edges are labelled by pairs `(i,-j)`
-such that the matrix `M = (m_{ab})` with `m_{ab} = i, m_{ba} = -j` for an edge `(i,-j)` between vertices `a` and `b` is skew-symmetrizable.
+A *quiver* is an oriented graph without loops, two-cycles, or multiple
+edges. The edges are labelled by pairs `(i,-j)` (with `i` and `j` being
+positive integers) such that the matrix `M = (m_{ab})` with
+`m_{ab} = i, m_{ba} = -j` for an edge `(i,-j)` between vertices
+`a` and `b` is skew-symmetrizable.
 
-For the compendium on the cluster algebra and quiver package see
+.. WARNING:
 
-        http://arxiv.org/abs/1102.4844.
+    This is not the standard definition of a quiver. Normally, in
+    cluster algebra theory, a quiver is defined as an oriented graph
+    without loops and two-cycles but with multiple edges allowed; the
+    edges are unlabelled. This notion of quivers, however, can be seen
+    as a particular case of our notion of quivers. Namely, if we have
+    a quiver (in the regular sense of this word) with (precisely)
+    `i` edges from `a` to `b`, then we represent it by a quiver
+    (in our sense of this word) with an edge from `a` to `b` labelled
+    by the pair `(i,-i)`.
+
+For the compendium on the cluster algebra and quiver package see ::
+
+    http://arxiv.org/abs/1102.4844.
 
 AUTHORS:
 
@@ -31,7 +46,6 @@ from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMuta
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
 
-from sage.groups.perm_gps.permgroup import PermutationGroup
 
 class ClusterQuiver(SageObject):
     """
@@ -251,6 +265,7 @@ class ClusterQuiver(SageObject):
                 print 'The input data is a quiver, therefore the additional parameter frozen is ignored.'
 
             self._M = copy(data._M)
+            self._M.set_immutable()
             self._n = data._n
             self._m = data._m
             self._digraph = copy( data._digraph )
@@ -266,6 +281,7 @@ class ClusterQuiver(SageObject):
                 print 'The input data is a matrix, therefore the additional parameter frozen is ignored.'
 
             self._M = copy(data).sparse_matrix()
+            self._M.set_immutable()
             self._n = n = self._M.ncols()
             self._m = m = self._M.nrows() - self._n
             self._digraph = _matrix_to_digraph( self._M )
@@ -330,6 +346,7 @@ class ClusterQuiver(SageObject):
             self._digraph = dg
             self._vertex_dictionary = {}
             self._M = M
+            self._M.set_immutable()
             if n+m == 0:
                 self._description = 'Quiver without vertices'
             elif n+m == 1:
@@ -363,6 +380,18 @@ class ClusterQuiver(SageObject):
             True
         """
         return isinstance(other, ClusterQuiver) and self._M == other._M
+
+    def __hash__(self):
+        """
+        Return a hash of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5])
+            sage: hash(Q)  # indirect doctest
+            16
+        """
+        return hash(self._M)
 
     def _repr_(self):
         """
@@ -701,7 +730,7 @@ class ClusterQuiver(SageObject):
             [ 0  0  0  1]
             [ 0  0 -2  0]
         """
-        return copy( self._M )
+        return copy(self._M)
 
     def digraph(self):
         """
@@ -942,7 +971,8 @@ class ClusterQuiver(SageObject):
 
     def canonical_label( self, certify=False ):
         """
-        Returns the canonical labelling of ``self``, see sage.graphs.graph.GenericGraph.canonical_label.
+        Returns the canonical labelling of ``self``, see
+        :meth:`sage.graphs.graph.GenericGraph.canonical_label`.
 
         INPUT:
 
@@ -1277,6 +1307,7 @@ class ClusterQuiver(SageObject):
         M = _edge_list_to_matrix( dg.edge_iterator(), n, m )
         if inplace:
             self._M = M
+            self._M.set_immutable()
             self._digraph = dg
         else:
             Q = ClusterQuiver( M )
@@ -1387,6 +1418,7 @@ class ClusterQuiver(SageObject):
                     dg_new.add_edge( edge[1],edge[0],edge[2] )
             self._digraph = dg_new
             self._M = _edge_list_to_matrix( dg_new.edges(), self._n, self._m )
+            self._M.set_immutable()
             self._mutation_type = None
         elif all( type(edge) in [list,tuple] and len(edge)==2 for edge in data ):
             edges = self._digraph.edges(labels=False)
@@ -1396,6 +1428,7 @@ class ClusterQuiver(SageObject):
                     self._digraph.delete_edge(edge[1],edge[0])
                     self._digraph.add_edge(edge[0],edge[1],label)
             self._M = _edge_list_to_matrix( self._digraph.edges(), self._n, self._m )
+            self._M.set_immutable()
             self._mutation_type = None
         else:
             raise ValueError('The order is no total order on the vertices of the quiver or a list of edges to be oriented.')
@@ -1777,3 +1810,100 @@ class ClusterQuiver(SageObject):
         quiver._vertex_dictionary = relabelling
         return quiver
         
+    def d_vector_fan(self):
+        r"""
+        Return the d-vector fan associated with the quiver.
+
+        It is the fan whose maximal cones are generated by the
+        d-matrices of the clusters.
+
+        This is a complete simplicial fan (and even smooth when the
+        initial quiver is acyclic). It only makes sense for quivers of
+        finite type.
+
+        EXAMPLES::
+
+            sage: Fd = ClusterQuiver([[1,2]]).d_vector_fan(); Fd
+            Rational polyhedral fan in 2-d lattice N
+            sage: Fd.ngenerating_cones()
+            5
+
+            sage: Fd = ClusterQuiver([[1,2],[2,3]]).d_vector_fan(); Fd
+            Rational polyhedral fan in 3-d lattice N
+            sage: Fd.ngenerating_cones()
+            14
+            sage: Fd.is_smooth()
+            True
+
+            sage: Fd = ClusterQuiver([[1,2],[2,3],[3,1]]).d_vector_fan(); Fd
+            Rational polyhedral fan in 3-d lattice N
+            sage: Fd.ngenerating_cones()
+            14
+            sage: Fd.is_smooth()
+            False
+
+        TESTS::
+
+            sage: ClusterQuiver(['A',[2,2],1]).d_vector_fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: only makes sense for quivers of finite type
+        """
+        from cluster_seed import ClusterSeed
+        from sage.geometry.fan import Fan
+        from sage.geometry.cone import Cone
+
+        if not(self.is_finite()):
+            raise ValueError('only makes sense for quivers of finite type')
+        seed = ClusterSeed(self)
+        return Fan([Cone(s.d_matrix().columns())
+                    for s in seed.mutation_class()])
+
+    def g_vector_fan(self):
+        r"""
+        Return the g-vector fan associated with the quiver.
+
+        It is the fan whose maximal cones are generated by the
+        g-matrices of the clusters.
+
+        This is a complete simplicial fan. It is only supported for
+        quivers of finite type.
+
+        EXAMPLES::
+
+            sage: Fg = ClusterQuiver([[1,2]]).g_vector_fan(); Fg
+            Rational polyhedral fan in 2-d lattice N
+            sage: Fg.ngenerating_cones()
+            5
+
+            sage: Fg = ClusterQuiver([[1,2],[2,3]]).g_vector_fan(); Fg
+            Rational polyhedral fan in 3-d lattice N
+            sage: Fg.ngenerating_cones()
+            14
+            sage: Fg.is_smooth()
+            True
+
+            sage: Fg = ClusterQuiver([[1,2],[2,3],[3,1]]).g_vector_fan(); Fg
+            Rational polyhedral fan in 3-d lattice N
+            sage: Fg.ngenerating_cones()
+            14
+            sage: Fg.is_smooth()
+            True
+
+        TESTS::
+
+            sage: ClusterQuiver(['A',[2,2],1]).g_vector_fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: only supported for quivers of finite type
+        """
+        from cluster_seed import ClusterSeed
+        from sage.geometry.fan import Fan
+        from sage.geometry.cone import Cone
+
+        if not(self.is_finite()):
+            raise ValueError('only supported for quivers of finite type')
+        seed = ClusterSeed(self).principal_extension()
+        return Fan([Cone(s.g_matrix().columns())
+                    for s in seed.mutation_class()])
+

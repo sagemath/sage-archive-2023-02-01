@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Finite cubical complexes
 
@@ -245,7 +246,7 @@ class Cube(SageObject):
             sage: C[1]
             (5, 5)
         """
-        return self.__tuple.__getitem__(n)
+        return self.__tuple[n]
 
     def __iter__(self):
         """
@@ -258,7 +259,7 @@ class Cube(SageObject):
             sage: [x[0] for x in C]
             [1, 5, 6, -1]
         """
-        return self.__tuple.__iter__()
+        return iter(self.__tuple)
 
     def __add__(self, other):
         """
@@ -283,7 +284,7 @@ class Cube(SageObject):
             sage: D + C * C
             [4,4] x [0,1] x [1,2] x [3,3] x [1,2] x [3,3]
         """
-        return Cube(self.__tuple.__add__(other.__tuple))
+        return Cube(self.__tuple + other.__tuple)
 
     # the __add__ operation actually produces the product of the two cubes
     __mul__ = __add__
@@ -547,6 +548,67 @@ class Cube(SageObject):
                 simplices.append(S.join(Simplex((v,)), rename_vertices=False))
         return simplices
 
+    def alexander_whitney(self, dim):
+        r"""
+        Subdivide this cube into pairs of cubes.
+
+        This provides a cubical approximation for the diagonal map
+        `K \to K \times K`.
+
+        INPUT:
+
+        - ``dim`` -- integer between 0 and one more than the
+          dimension of this cube
+
+        OUTPUT:
+
+        - a list containing triples ``(coeff, left, right)``
+
+        This uses the algorithm described by Pilarczyk and Réal [PR]_
+        on p. 267; the formula is originally due to Serre.  Calling
+        this method ``alexander_whitney`` is an abuse of notation,
+        since the actual Alexander-Whitney map goes from `C(K \times
+        L) \to C(K) \otimes C(L)`, where `C(-)` denotes the associated
+        chain complex, but this subdivision of cubes is at the heart
+        of it.
+
+        EXAMPLES::
+
+            sage: from sage.homology.cubical_complex import Cube
+            sage: C1 = Cube([[0,1], [3,4]])
+            sage: C1.alexander_whitney(0)
+            [(1, [0,0] x [3,3], [0,1] x [3,4])]
+            sage: C1.alexander_whitney(1)
+            [(1, [0,1] x [3,3], [1,1] x [3,4]), (-1, [0,0] x [3,4], [0,1] x [4,4])]
+            sage: C1.alexander_whitney(2)
+            [(1, [0,1] x [3,4], [1,1] x [4,4])]
+        """
+        from sage.sets.set import Set
+        N = Set(self.nondegenerate_intervals())
+        result = []
+        for J in N.subsets(dim):
+            Jprime = N.difference(J)
+            nu = 0
+            for i in J:
+                for j in Jprime:
+                    if j<i:
+                        nu += 1
+            t = self.tuple()
+            left = []
+            right = []
+            for j in range(len(t)):
+                if j in Jprime:
+                    left.append((t[j][0], t[j][0]))
+                    right.append(t[j])
+                elif j in J:
+                    left.append(t[j])
+                    right.append((t[j][1], t[j][1]))
+                else:
+                    left.append(t[j])
+                    right.append(t[j])
+            result.append(((-1)**nu, Cube(left), Cube(right)))
+        return result
+
     def __cmp__(self, other):
         """
         Return True iff this cube is the same as ``other``: that is,
@@ -797,7 +859,7 @@ class CubicalComplex(GenericCellComplex):
         """
         return Set(self._facets)
 
-    def __cmp__(self,other):
+    def __eq__(self, other):
         r"""
         Return True if the set of maximal cells is the same for
         ``self`` and ``other``.
@@ -818,10 +880,29 @@ class CubicalComplex(GenericCellComplex):
             sage: I1.product(S1) == S1.product(I1)
             False
         """
-        if self.maximal_cells() == other.maximal_cells():
-            return 0
-        else:
-            return -1
+        return self.maximal_cells() == other.maximal_cells()
+
+    def __ne__(self, other):
+        r"""
+        Return True if ``self`` and ``other`` are not equal
+
+        :param other: another cubical complex
+        :return: True if the compexes are not equal
+        :rtype: bool
+
+        EXAMPLES::
+
+            sage: I1 = cubical_complexes.Cube(1)
+            sage: I2 = cubical_complexes.Cube(1)
+            sage: I1.product(I2) != I2.product(I1)
+            False
+            sage: I1.product(I2.product(I2)) != I2.product(I1.product(I1))
+            False
+            sage: S1 = cubical_complexes.Sphere(1)
+            sage: I1.product(S1) != S1.product(I1)
+            True
+        """
+        return not self.__eq__(other)
 
     def __hash__(self):
         r"""
@@ -1048,7 +1129,7 @@ class CubicalComplex(GenericCellComplex):
             empty_cell = 1  # number of (-1)-dimensional cubes
         else:
             empty_cell = 0
-        vertices = self.n_cubes(0, subcomplex=subcomplex)
+        vertices = self.n_cells(0, subcomplex=subcomplex)
         n = len(vertices)
         mat = matrix(base_ring, empty_cell, n, n*empty_cell*[1])
         if cochain:
@@ -1078,7 +1159,7 @@ class CubicalComplex(GenericCellComplex):
                 # dictionary seems to be faster than finding the index
                 # of an entry in a list.
                 old = dict(zip(current, range(len(current))))
-                current = list(self.n_cubes(dim, subcomplex=subcomplex))
+                current = list(self.n_cells(dim, subcomplex=subcomplex))
                 # construct matrix.  it is easiest to construct it as
                 # a sparse matrix, specifying which entries are
                 # nonzero via a dictionary.
@@ -1263,7 +1344,7 @@ class CubicalComplex(GenericCellComplex):
 
             sage: RP2 = cubical_complexes.RealProjectivePlane()
             sage: S1 = cubical_complexes.Sphere(1)
-            sage: RP2.product(S1).homology()[1]
+            sage: RP2.product(S1).homology()[1] # long time: 5 seconds
             Z x C2
         """
         facets = []

@@ -992,7 +992,7 @@ def p1NFlist(N):
     #N.residues() = iterator through the residues mod N
     L = L+[MSymbol(N, k(1), r, check=False) for r in N.residues()]
 
-    from sage.rings.arith import divisors
+    from sage.arith.all import divisors
     for D in divisors(N):
         if not D.is_trivial() and D!=N:
             #we find Dp ideal coprime to N, in inverse class to D

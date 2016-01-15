@@ -4867,7 +4867,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         known_bits = -self.relative_diameter().log2()
 
-        return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
+        return sage.arith.all.algdep(self.center(), n, known_bits=known_bits)
 
     def factorial(self):
         """

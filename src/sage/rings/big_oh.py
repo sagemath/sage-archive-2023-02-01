@@ -9,7 +9,7 @@ Big O for various types (power series, p-adics, etc.)
     - `polynomials <../../../polynomial_rings/index.html>`_
 """
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import laurent_series_ring_element
 import sage.rings.padics.factory as padics_factory
 import sage.rings.padics.padic_generic_element as padic_generic_element

@@ -35,7 +35,7 @@ from sage.rings.integer_ring   import ZZ
 from sage.rings.rational_field import QQ
 
 from sage.rings.integer cimport Integer
-from sage.rings.arith import previous_prime, CRT_basis
+from sage.arith.all import previous_prime, CRT_basis
 
 from sage.rings.real_mpfr import  is_RealField
 from sage.rings.real_mpfr cimport RealNumber

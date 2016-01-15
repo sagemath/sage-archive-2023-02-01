@@ -1651,7 +1651,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(3/2,SR(1/1))
             3/2
         """
-        return sage.rings.arith.binomial(n, k)
+        return sage.arith.all.binomial(n, k)
 
 binomial = Function_binomial()
 

@@ -517,10 +517,10 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
        See http://trac.sagemath.org/13109 for details.
        True
        sage: del is_prime
-       sage: deprecated_callable_import(13109, 'sage.rings.arith', globals(), locals(), ['is_prime'])
+       sage: deprecated_callable_import(13109, 'sage.arith.all', globals(), locals(), ['is_prime'])
        sage: is_prime(3)
        doctest:...: DeprecationWarning:
-       Using is_prime from here is deprecated.  If you need to use it, please import it directly from sage.rings.arith.
+       Using is_prime from here is deprecated.  If you need to use it, please import it directly from sage.arith.all.
        See http://trac.sagemath.org/13109 for details.
        True
     """

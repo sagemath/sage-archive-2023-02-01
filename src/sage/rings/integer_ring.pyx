@@ -76,8 +76,8 @@ cdef void late_import():
     # A hack to avoid circular imports.
     global arith
     if arith is None:
-        import sage.rings.arith
-        arith = sage.rings.arith
+        import sage.arith.all
+        arith = sage.arith.all
 
 cdef int number_of_integer_rings = 0
 

@@ -10046,7 +10046,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         """
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
-        from sage.rings.arith import falling_factorial
+        from sage.arith.all import falling_factorial
         from sage.rings.integer_ring import ZZ
         from sage.symbolic.ring import SR
 

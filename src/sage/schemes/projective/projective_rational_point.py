@@ -255,7 +255,7 @@ def enum_projective_finite_field(X):
 
     ALGORITHM:
 
-    Checks all points in projective space to see if they lie on X.
+    Checks all points in projective space to see if they lie on ``X``.
 
     .. WARNING::
 

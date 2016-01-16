@@ -460,7 +460,7 @@ def CRT_automorphisms(automorphisms, order_elts, degree, moduli):
     Given a list of automorphisms over various `Zmod(p^k)`, a list of the
     elements orders, an integer degree, and a list of the `p^k` values compute
     a maximal list of automorphisms over `Zmod(M)`, such that for every `j` in `len(moduli)`,
-    each element reduces mod ``moduli[j]`` to one of the elements in `automorphisms[j]` that
+    each element reduces mod ``moduli[j]`` to one of the elements in ``automorphisms[j]`` that
     has order = ``degree``
 
     INPUT:

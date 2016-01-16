@@ -41,7 +41,6 @@ Projective Schemes
    sage/schemes/projective/projective_space
    sage/schemes/projective/projective_point
    sage/schemes/projective/projective_morphism
-   sage/schemes/projective/projective_morphism_helper
    sage/schemes/projective/projective_rational_point
    sage/schemes/projective/projective_homset
    sage/schemes/projective/endPN_automorphism_group

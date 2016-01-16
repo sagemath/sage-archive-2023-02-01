@@ -67,7 +67,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
 
         INPUT:
 
-        - `B` - integer (optional, default=0). The bound for the
+        - ``B`` - integer (optional, default=0). The bound for the
           coordinates.
 
         - ``prec`` - he precision to use to compute the elements of bounded height for number fields
@@ -174,7 +174,7 @@ class SchemeHomset_points_projective_ring(SchemeHomset_points):
 
         INPUT:
 
-        - `B` -- integer (optional, default=0). The bound for the
+        - ``B`` -- integer (optional, default=0). The bound for the
           coordinates.
 
         EXAMPLES::

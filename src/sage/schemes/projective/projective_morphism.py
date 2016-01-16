@@ -495,7 +495,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def scale_by(self, t):
         """
-        Scales each coordinate by a factor of `t`.
+        Scales each coordinate by a factor of ``t``.
 
         A ``TypeError`` occurs if the point is not in the coordinate_ring
         of the parent after scaling.
@@ -901,7 +901,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def nth_iterate_map(self, n):
         r"""
-        Returns the nth iterate of this map as a new map.
+        Returns the ``n``-th iterate of this map as a new map.
 
         ALGORITHM:
 
@@ -991,7 +991,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def nth_iterate(self, P, n, **kwds):
         r"""
-        Returns the nth iterate of the point `P` by this map.
+        Returns the ``n``-th iterate of the point ``P`` by this map.
 
         If ``normalize`` is ``True``, then the coordinates are
         automatically normalized.
@@ -1236,10 +1236,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def orbit(self, P, N, **kwds):
         r"""
-        Return the orbit of the point `P` by this map.
+        Return the orbit of the point ``P`` by this map.
 
-        If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
-        If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`.
+        If ``N`` is an integer it returns `[P,self(P),\ldots,self^N(P)]`.
+        If ``N`` is a list or tuple `N=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`.
         Automatically normalize the points if ``normalize=True``. Perform the checks on point initialize if
         ``check=True``
 
@@ -1586,7 +1586,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         Conjugates this map by ``M``, i.e. `M^{-1} \circ f \circ M`.
 
         If possible the new map will be defined over the same space as
-        ``self``. Otherwise, will try to coerce to the base ring of
+        this map. Otherwise, will try to coerce to the base ring of
         ``M``.
 
         INPUT:
@@ -3236,7 +3236,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ALGORITHM:
             Use Hensel lifting to find a `p`-adic approximation for that rational point. The accuracy needed
-            is determined by the height bound `B`. Then apply the the LLL algorithm to determine if the lift
+            is determined by the height bound ``B``. Then apply the the LLL algorithm to determine if the lift
             corresponds to a rational point.
 
             If the point is a point of high multiplicity (multiplier 1) then procedure can be very slow.
@@ -4026,22 +4026,22 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         g = self._preperiodic_points_to_cyclegraph(preper)
         return(g)
 
-    def connected_rational_component(self,P,n=0):
+    def connected_rational_component(self, P, n=0):
         r"""
-        Computes the connected component of a rational preperiodic point `P` by this map.
+        Computes the connected component of a rational preperiodic point ``P`` by this map.
 
-        Will work for non-preperiodic points if `n` is positive.
+        Will work for non-preperiodic points if ``n`` is positive.
         Otherwise this will not terminate.
 
         INPUT:
 
-        - ``P`` - A rational preperiodic point of ``self``
+        - ``P`` - A rational preperiodic point of this map
 
-        - ``n`` - Maximum distance from `P` to branch out. A value of 0 indicates no bound. Default: 0
+        - ``n`` - Maximum distance from ``P`` to branch out. A value of 0 indicates no bound. Default: 0
 
         OUTPUT:
 
-        - a list of points connected to `P` up to the specified distance
+        - a list of points connected to ``P`` up to the specified distance
 
         Examples::
 
@@ -4295,7 +4295,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         REFERENCES:
 
         .. [Hutz_gr] B. Hutz. Good reduction of periodic points, Illinois Journal of
-        Mathematics 53 (Winter 2009), no. 4, 1109-1126.
+           Mathematics 53 (Winter 2009), no. 4, 1109-1126.
 
         ALGORITHM:
 
@@ -4338,7 +4338,6 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             - do not return duplicate points
 
             - improve hash to reduce memory of pointtable
-
         """
         return _fast_possible_periods(self,return_points)
 

@@ -752,10 +752,24 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         """
         Return an abbreviated field name as string
 
+        RAISES:
+
+        ``NotImplementedError``: The field does not have an
+        abbreviated name defined.
+
         EXAMPLES::
 
             sage: FilteredVectorSpace(2, base_ring=QQ)._repr_field_name()
             'QQ'
+        
+            sage: F.<a> = GF(9)
+            sage: FilteredVectorSpace(2, base_ring=F)._repr_field_name()
+            'GF(9)'
+
+            sage: FilteredVectorSpace(2, base_ring=AA)._repr_field_name()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         if self.base_ring() == QQ:
             return 'QQ'
@@ -763,8 +777,11 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             return 'RDF'
         elif self.base_ring() == RR:
             return 'RR'
+        from sage.categories.finite_fields import FiniteFields
+        if self.base_ring() in FiniteFields():
+            return 'GF({0})'.format(len(self.base_ring()))
         else:
-            return repr(self.base_ring())
+            raise NotImplementedError()
 
     def _repr_vector_space(self, dim):
         """
@@ -783,8 +800,19 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             sage: F = FilteredVectorSpace(3, base_ring=RDF)
             sage: F._repr_vector_space(1234)
             'RDF^1234'
+            sage: F3 = FilteredVectorSpace(3, base_ring=GF(3))
+            sage: F3._repr_vector_space(1234)
+            'GF(3)^1234'
+            sage: F3 = FilteredVectorSpace(3, base_ring=AA)
+            sage: F3._repr_vector_space(1234)
+            'Vector space of dimension 1234 over Algebraic Real Field'
         """
-        return self._repr_field_name() + '^' + str(dim) if dim > 0 else '0'
+        if dim == 0:
+            return '0'
+        try:
+            return self._repr_field_name() + '^' + str(dim)
+        except NotImplementedError:
+            return repr(VectorSpace(self.base_ring(), dim))
 
     def _repr_degrees(self, min_deg, max_deg):
         """
@@ -804,7 +832,6 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             sage: F._repr_degrees(-2, 4)
             ['QQ^2', 'QQ^2', 'QQ^2', 'QQ^1', 'QQ^1', '0', '0', '0']
         """
-        field_name = self._repr_field_name()
         degrees = range(min_deg, max_deg+1)
         dims = []
         for i in degrees + [infinity]:
@@ -831,6 +858,12 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             QQ^1 in QQ^2
             sage: FilteredVectorSpace(rays, {0:[3]})
             QQ^1 >= 0 in QQ^2
+            sage: FilteredVectorSpace({1:[(1,0), (-1,1)], 3:[(1,0)]}, base_ring=GF(3))
+            GF(3)^2 >= GF(3)^1 >= GF(3)^1 >= 0
+            sage: FilteredVectorSpace({1:[(1,0), (-1,1)], 3:[(1,0)]}, base_ring=AA)
+            Vector space of dimension 2 over Algebraic Real Field 
+            >= Vector space of dimension 1 over Algebraic Real Field 
+            >= Vector space of dimension 1 over Algebraic Real Field >= 0
         """
         finite_support = [d for d in self.support() if d != infinity]
         if len(finite_support) == 0:

@@ -653,9 +653,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         REFERENCES:
 
-        .. [Hutz] B. Hutz. Efficient determination of rational preperiodic
-           points for endomorphisms of projective space.
-           :arxiv:`1210.6246`, 2012.
+        .. [Hutz] B. Hutz. Determination of all rational preperiodic points
+           for morphisms of PN. Mathematics of Computation, 84:291 (2015), 289-308.
 
         .. [MoPa] P. Morton and P. Patel. The Galois theory of periodic points
            of polynomial maps. Proc. London Math. Soc., 68 (1994), 225-263.
@@ -1952,8 +1951,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         ALGORITHM:
 
             Uses a Nullstellensatz argument to compute the constant.
-            For details: B. Hutz, Efficient determination of rational preperiodic
-            points for endomorphisms of projective space, arxiv:1210.6246 (2012).
+            For details: see [Hutz].
 
         INPUT:
 
@@ -3443,7 +3441,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             of these possible periods and try to lift it to a rational point with a combination of
             `p`-adic approximation and the LLL basis reducion algorithm.
 
-            See B. Hutz, Determination of all rational preperiodic points for morphisms of Pn, submitted, 2012.
+            See [Hutz].
 
         INPUT:
 
@@ -4290,10 +4288,14 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         Returns the list of possible minimal periods of a periodic point
         over `\QQ` and (optionally) a point in each cycle.
 
+        REFERENCES:
+
+        .. [Hutz_gr] B. Hutz. Good reduction of periodic points, Illinois Journal of
+        Mathematics 53 (Winter 2009), no. 4, 1109-1126.
+
         ALGORITHM:
 
-        The list comes from: Hutz, Good reduction of periodic points, Illinois Journal of
-        Mathematics 53 (Winter 2009), no. 4, 1109-1126.
+        See [Hutz-gr].
 
         INPUT:
 

@@ -1229,4 +1229,4 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             generators = [v + epsilon * random_vector(R, self.rank())
                           for v in filt.echelonized_basis()]
             filtration[deg] = generators
-        return FilteredVectorSpace(filtration, check=True)
+        return FilteredVectorSpace(filtration, base_ring=R, check=True)

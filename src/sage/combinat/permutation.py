@@ -7511,9 +7511,11 @@ def permutohedron_lequal(p1, p2, side="right"):
 ############
 # Patterns #
 ############
-from collections import defaultdict
 
-def to_standard(p):
+from collections import defaultdict
+from sage.combinat.words.finite_word import evaluation_dict
+
+def to_standard(p, cmp=None):
     r"""
     Return a standard permutation corresponding to the list ``p``.
 
@@ -7553,17 +7555,18 @@ def to_standard(p):
         True
 
     """
-    d = defaultdict(list)
-    for i,l in enumerate(p):
-        d[l].append(i)
-
-    s = sorted(p)
-    c = [0]*len(s)
-
-    for i,l in enumerate(s):
-        c[d[s[i]].pop(0)] = i+1
-
-    return Permutations()(c)
+    ev_dict = evaluation_dict(p)
+    ordered_alphabet = sorted(ev_dict, cmp=cmp)
+    offset = 0
+    for k in ordered_alphabet:
+        temp = ev_dict[k]
+        ev_dict[k] = offset
+        offset += temp
+    result = []
+    for l in p:
+        ev_dict[l] += 1
+        result.append(ev_dict[l])
+    return Permutations()(result)
 
 
 

@@ -4,7 +4,7 @@ Klyachko Bundles and Sheaves.
 Klyachko bundles are torus-equivariant bundles on toric
 varieties. That is, the action of the maximal torus on the toric
 variety lifts to an action on the bundle. There is an equivalence of
-categories between Klyachko bundles and multiple filtrations (one for
+categories between [Klyachko]_ bundles and multiple filtrations (one for
 each ray of the fan) of a vector space. The multi-filtrations are
 implemented in :mod:`sage.modules.multi_filtered_vector_space`.
 

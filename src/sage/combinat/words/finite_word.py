@@ -4937,20 +4937,8 @@ class FiniteWord_class(Word_class):
             sage: Word(p.inverse().action(w))
             word: bbbaaa
         """
-        ev_dict = self.evaluation_dict()
-        ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
-        offset = 0
-        temp = 0
-        for k in ordered_alphabet:
-            temp = ev_dict[k]
-            ev_dict[k] = offset
-            offset += temp
-        result = []
-        for l in self:
-            ev_dict[l] += 1
-            result.append(ev_dict[l])
-        from sage.combinat.permutation import Permutation
-        return Permutation(result)
+        from sage.combinat.permutation import to_standard
+        return to_standard(self, cmp=self.parent().cmp_letters)
 
     def _s(self, i):
         r"""

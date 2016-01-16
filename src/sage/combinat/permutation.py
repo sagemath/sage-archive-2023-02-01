@@ -7511,13 +7511,13 @@ def permutohedron_lequal(p1, p2, side="right"):
 ############
 # Patterns #
 ############
-
-from collections import defaultdict
 from sage.combinat.words.finite_word import evaluation_dict
 
 def to_standard(p, cmp=None):
     r"""
-    Return a standard permutation corresponding to the list ``p``.
+    Return a standard permutation corresponding to the iterable ``p``.
+
+    :param cmp: the way to compare the two elements `x` and `y` of `p` (return an integer according to the outcome).
 
     EXAMPLES::
 
@@ -7528,6 +7528,10 @@ def to_standard(p, cmp=None):
         [1, 2, 3]
         sage: permutation.to_standard([])
         []
+        sage: permutation.to_standard([1,2,3], cmp=lambda x,y: int(-1)*cmp(x,y))
+        [3, 2, 1]
+        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: int(-1)*cmp(x,y))
+        [2, 1, 4, 3]
 
     TESTS:
 

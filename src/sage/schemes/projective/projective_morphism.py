@@ -1687,7 +1687,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ALGORITHM:
 
-        See Exercise 5.29 and Figure 5.6 of ``The Arithmetic of Dynamics Systems``, Joseph H. Silverman, Springer, GTM 241, 2007.
+        See Exercise 5.29 and Figure 5.6 of [Silverman_ADS].
+
+        REFERENCES:
+
+        .. [Silverman_ADS] Joseph H. Silverman. The Arithmetic of Dynamics Systems. Springer, GTM 241, 2007.
 
         INPUT:
 
@@ -2571,8 +2575,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         REFERENCES:
 
-        .. [FMV] Computing Conjugating Sets and Automorphism Groups of Rational Functions
-            by Xander Faber, Michelle Manes, and Bianca Viray
+        .. [FMV] Xander Faber, Michelle Manes, and Bianca Viray. Computing Conjugating Sets
+            and Automorphism Groups of Rational Functions. Journal of Algebra, 423 (2014), 1161-1190.
 
         EXAMPLES::
 

@@ -170,8 +170,14 @@ static ex zeta1_series(const ex& m, const relational& rel, int order, unsigned o
 	const numeric val = ex_to<numeric>(m.subs(rel, subs_options::no_pattern));
 	if (val != 1)
 		throw do_taylor();  // caught by function::series()
-	// at 1, use zeta's functional equation and develop the resulting expression
-	return (pow(2,m) * pow(Pi, m-1) * sin(Pi*m/2) * tgamma(1-m) * zeta(1-m)).series(rel, order, options);
+	// at 1, use the expansion with the stieltjes-constants
+	ex ser = 1/(m-1);
+	numeric fac = 1;
+	for (int n = 0; n <= order; ++n) {
+	  fac = fac.mul(n+1);
+	  ser += pow(-1, n) * stieltjes(n) * pow(m-1, n) * fac.inverse();
+	}
+	return ser.series(rel, order, options);
 }
 
 static ex zeta1_deriv(const ex& m, unsigned deriv_param)

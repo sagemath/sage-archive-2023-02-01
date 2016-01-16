@@ -210,7 +210,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
             sage: C = PrimeFieldConverter_class(F)  # optional: meataxe
-            sage: C.int_to_field(int(2))
+            sage: C.int_to_field(int(2))            # optional: meataxe
             2
             sage: F(2)
             2

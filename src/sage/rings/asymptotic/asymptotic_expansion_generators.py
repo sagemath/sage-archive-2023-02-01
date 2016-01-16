@@ -251,7 +251,7 @@ class AsymptoticExpansionGenerators(SageObject):
             coefficient_ring = QQ
 
         from asymptotic_ring import AsymptoticRing
-        A = AsymptoticRing(growth_group='%s^ZZ * log(%s)^ZZ' % ((var,)*2),
+        A = AsymptoticRing(growth_group='{n}^ZZ * log({n})^ZZ'.format(n=var),
                            coefficient_ring=coefficient_ring)
         n = A.gen()
 

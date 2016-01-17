@@ -21,9 +21,9 @@ would like to perform the following kind of operations :
 
 AUTHORS :
 
-- Florent Hivert -- code, documentation (2012-2015)
+- Florent Hivert -- code, documentation (2012-2016)
 
-- Jean Baptiste Priez -- prototype (2011, June)
+- Jean Baptiste Priez -- prototype, debugging help on MacOSX (2011-June, 2016)
 - Nathann Cohen -- Some doc (2012)
 
 Contents
@@ -51,10 +51,10 @@ How can I use all that stuff?
 -----------------------------
 
 First, you need the information necessary to describe a
-:class:`RecursivelyEnumeratedSet of forest type<sage.combinat.backtrack.SearchForest>`
-representing your set `S` (see :mod:`sage.sets.recursively_enumerated_set`).
-Then, you need to provide a Map function as well as a Reduce function. Here are some
-examples :
+:class:`RecursivelyEnumeratedSet of forest
+type<sage.combinat.backtrack.SearchForest>` representing your set `S` (see
+:mod:`sage.sets.recursively_enumerated_set`).  Then, you need to provide a Map
+function as well as a Reduce function. Here are some examples :
 
 * **Counting the number of elements**: In this situation, the map function
   can be set to ``lambda x : 1``, and the reduce function just adds the
@@ -304,6 +304,12 @@ warning message on the console.
     `Logging facility for Python <https://docs.python.org/2/library/logging.html>`_
     for more detail on logging and log system configuration.
 
+.. note::
+
+    Calls to logger which involve printing the node are commented out in the
+    code, because the printing (to a string) of the node can be very time
+    consuming depending on the node and it happens before the decision whether
+    the logger should record the string or drop it.
 
 
 .. _protocol-description:
@@ -978,8 +984,10 @@ class RESetMapReduce(object):
             ...
             AbortError
         """
-        #if self._active_tasks._semlock._is_zero():
-        #    raise AbortError
+        # The following test is not necessary but is allows active thieves to
+        # stop before receiving the poison pill.
+        if self._active_tasks._semlock._is_zero():
+            raise AbortError
         logger.debug("_signal_task_start called")
         self._active_tasks.release()
 
@@ -1014,6 +1022,23 @@ class RESetMapReduce(object):
             sage: del S._results, S._active_tasks, S._done, S._workers
         """
         logger.debug("_signal_task_done called")
+        # We tests if the semaphore counting the number of active tasks is
+        # becoming negative. This should not happen in normal
+        # computations. However, in case of abort, we artificially put the
+        # semaphore to 0 to stop the computation so that the following tests
+        # is needed.
+        ###########################
+        # The MacOSX Semaphore bug:
+        ###########################
+        # This raises a big problem on MacOSX since they do not correctly
+        # implement POSIX's semaphore semantic. Indeed, on this system,
+        # acquire may fail and return False not only because the semaphore is
+        # equal to zero but also BECAUSE SOMEONE ELSE IS TRYING TO ACQUIRE at
+        # the same time. This renders the usage of Semaphore impossible on
+        # MacOSX so that on this system we use a synchronized integer.
+        ##
+        ### Florent's NOTE:
+        # sys.platform == 'darwin'
         if not self._active_tasks.acquire(False):
             logger.debug("raising AbortError")
             raise AbortError
@@ -1312,10 +1337,10 @@ class RESetMapReduceWorker(Process):
                 self._stats[0] += 1
                 logger.debug("waiting from steal answer from %s"%(victim.name))
                 node = self._read_task.recv()
-                logger.debug("Request answer: %s"%(node,))
+                # logger.debug("Request answer: %s"%(node,))
                 if node is AbortError:
                     raise AbortError
-        logger.debug("Received a stolen node: %s"%(node,))
+        # logger.debug("Received a stolen node: %s"%(node,))
         self._stats[3] += 1
         return node
 
@@ -1481,7 +1506,7 @@ class RESetMapReduceWorker(Process):
         fun  = mapred.map_function
         reduc = mapred.reduce_function
 
-        logger.debug("Working on %s..."%(node,))
+        # logger.debug("Working on %s..."%(node,))
         while True:
             res = post_process(node)
             if res is not None:
@@ -1491,8 +1516,8 @@ class RESetMapReduceWorker(Process):
                 node = newnodes.next()
             except StopIteration:
                 return
-            for child in newnodes:
-                self._todo.append(child)
+            self._todo.extend(newnodes)
+
 
 class RESetMPExample(RESetMapReduce):
     r"""

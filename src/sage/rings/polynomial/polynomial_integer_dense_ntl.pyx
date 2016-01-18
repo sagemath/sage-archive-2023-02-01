@@ -269,7 +269,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: (x+1)._eval_mpfr_(RR(1.2))
             2.20000000000000
-            sage: (x**2)._eval_mpfr_(RR(2.2))
+            sage: (x^2)._eval_mpfr_(RR(2.2))
             4.84000000000000
             sage: R.zero()._eval_mpfr_(RR(2.1))
             0.000000000000000
@@ -279,7 +279,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: RRu = RealField(17, rnd='RNDU')
             sage: RRd = RealField(17, rnd='RNDD')
             sage: RRz = RealField(17, rnd='RNDZ')
-            sage: p = x**3 - 2*x**2 + x -1
+            sage: p = x^3 - 2*x^2 + x -1
             sage: p._eval_mpfr_(RRu(1.3))
             -0.8829
             sage: assert _.parent() is RRu
@@ -308,14 +308,14 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: (x+1)._eval_mpfi_(RIF(1.5))
             2.5000000000000000?
-            sage: (x**2)._eval_mpfi_(RIF(1.333,1.334))
+            sage: (x^2)._eval_mpfi_(RIF(1.333,1.334))
             1.78?
             sage: R.zero()._eval_mpfi_(RIF(2.1))
             0
             sage: R.one()._eval_mpfi_(RIF(2.1))
             1
 
-            sage: p = x**3 - x**2 - x - 1
+            sage: p = x^3 - x^2 - x - 1
             sage: r = p.roots(RIF, multiplicities=False)[0]
             sage: p._eval_mpfi_(r)
             0.?e-27

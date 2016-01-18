@@ -6257,9 +6257,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: A.category()
             Join of Category of coxeter group algebras over Rational Field
                 and Category of finite group algebras over Rational Field
+                and Category of finite dimensional cellular algebras with basis over Rational Field
             sage: A = P.algebra(QQ, category=Monoids())
             sage: A.category()
-            Category of finite dimensional monoid algebras over Rational Field
+            Category of finite dimensional cellular monoid algebras over Rational Field
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         return SymmetricGroupAlgebra(base_ring, self, category=category)

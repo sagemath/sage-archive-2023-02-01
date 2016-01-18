@@ -320,12 +320,16 @@ if __name__ == '__main__':
     if OLD_SAGE_ROOT != SAGE_ROOT or force_relocate:
         if OLD_SAGE_ROOT is None:
             print("This looks like the first time you are running Sage.")
+        elif OLD_SAGE_ROOT != SAGE_ROOT:
+            print(RELOCATION_ERROR.format(OLD_SAGE_ROOT=OLD_SAGE_ROOT, SAGE_ROOT=SAGE_ROOT))
+            sys.exit(1)
         elif force_relocate:
             print("Forcing sage-location, probably because a new package was installed.")
         else:
             print("The Sage installation tree has moved")
             print("from %s" % OLD_SAGE_ROOT)
             print("  to %s" % SAGE_ROOT)
+            assert(False)
         print("Updating various hardcoded paths...")
         print("(Please wait at most a few minutes.)")
         print("DO NOT INTERRUPT THIS.")

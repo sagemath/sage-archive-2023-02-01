@@ -420,13 +420,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
                 return z
 
-            if fmpz_poly_degree(self.__poly) < 10:
-                # NOTE: currently, the code in _eval_mpfr_ and _eval_mpfi_ uses a
-                # Horner scheme which might not be suitable for large degrees.
-                if isinstance(x0, RealNumber):
-                    return self._eval_mpfr_(<RealNumber> x0)
-                if isinstance(x0, RealIntervalFieldElement):
-                    return self._eval_mpfi_(<RealIntervalFieldElement> x0)
+            if isinstance(x0, RealNumber):
+                return self._eval_mpfr_(<RealNumber> x0)
+            if isinstance(x0, RealIntervalFieldElement):
+                return self._eval_mpfi_(<RealIntervalFieldElement> x0)
 
         return Polynomial.__call__(self, *x, **kwds)
 

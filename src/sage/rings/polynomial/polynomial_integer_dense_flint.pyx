@@ -58,7 +58,10 @@ from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_serie
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ZZX cimport *
 from sage.rings.integer cimport smallInteger
+from sage.rings.real_mpfr cimport RealNumber, RealField_class
+from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
+from sage.rings.polynomial.evaluation cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -280,6 +283,75 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 fmpz_poly_set_coeff_mpz(self.__poly, i, (<Integer>a).value)
                 sig_off()
 
+    def _eval_mpfr_(self, RealNumber a):
+        r"""
+        Evaluate this polynomial on the real number element ``a``.
+
+        This method uses Horner's rule and might not be appropriate for
+        polynomials of large degree.
+
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(ZZ, implementation='FLINT')
+            sage: (x+1)._eval_mpfr_(RR(1.2))
+            2.20000000000000
+            sage: (x**2)._eval_mpfr_(RR(2.2))
+            4.84000000000000
+            sage: R.zero()._eval_mpfr_(RR(2.1))
+            0.000000000000000
+            sage: R.one()._eval_mpfr_(RR(2.1))
+            1.00000000000000
+
+            sage: RRu = RealField(17, rnd='RNDU')
+            sage: RRd = RealField(17, rnd='RNDD')
+            sage: RRz = RealField(17, rnd='RNDZ')
+            sage: p = x**3 - 2*x**2 + x -1
+            sage: p._eval_mpfr_(RRu(1.3))
+            -0.8829
+            sage: assert _.parent() is RRu
+            sage: p._eval_mpfr_(RRd(1.3))
+            -0.8831
+            sage: assert _.parent() is RRd
+            sage: p._eval_mpfr_(RRz(1.3))
+            -0.8830
+            sage: assert _.parent() is RRz
+        """
+        cdef RealNumber res = a._new()
+        sig_on()
+        fmpz_poly_evaluation_mpfr(res.value, self.__poly, a.value)
+        sig_off()
+        return res
+
+    def _eval_mpfi_(self, RealIntervalFieldElement a):
+        r"""
+        Evaluate this polynomial on the real interval ``a``.
+
+        This method uses Horner's rule and might not be appropriate for
+        polynomials of large degree.
+
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(ZZ, implementation='FLINT')
+            sage: (x+1)._eval_mpfi_(RIF(1.5))
+            2.5000000000000000?
+            sage: (x**2)._eval_mpfi_(RIF(1.333,1.334))
+            1.78?
+            sage: R.zero()._eval_mpfi_(RIF(2.1))
+            0
+            sage: R.one()._eval_mpfi_(RIF(2.1))
+            1
+
+            sage: p = x**3 - x**2 - x - 1
+            sage: r = p.roots(RIF, multiplicities=False)[0]
+            sage: p._eval_mpfi_(r)
+            0.?e-27
+        """
+        cdef RealIntervalFieldElement res = a._new()
+        sig_on()
+        fmpz_poly_evaluation_mpfi(res.value, self.__poly, a.value)
+        sig_off()
+        return res
+
     def __call__(self, *x, **kwds):
         """
         Calls this polynomial with the given parameters, which can be
@@ -287,8 +359,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         method.
 
         If the argument is not simply an integer (``int``, ``long`` or
-        ``Integer``) or a polynomial (of the same type as ``self``),
-        the call is passed on to the generic implementation in the
+        ``Integer``) a real number (``RealNumber``) a real interval
+        (``RealIntervalFieldElement``) or a polynomial (of the same type as
+        ``self``), the call is passed on to the generic implementation in the
         ``Polynomial`` class.
 
         EXAMPLES:
@@ -346,6 +419,14 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 sig_off()
 
                 return z
+
+            if fmpz_poly_degree(self.__poly) < 10:
+                # NOTE: currently, the code in _eval_mpfr_ and _eval_mpfi_ uses a
+                # Horner scheme which might not be suitable for large degrees.
+                if isinstance(x0, RealNumber):
+                    return self._eval_mpfr_(<RealNumber> x0)
+                if isinstance(x0, RealIntervalFieldElement):
+                    return self._eval_mpfi_(<RealIntervalFieldElement> x0)
 
         return Polynomial.__call__(self, *x, **kwds)
 

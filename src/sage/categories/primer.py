@@ -462,16 +462,18 @@ together with their operations, and designing an appropriate hierarchy
 of classes for organizing the code. As we have seen above, the design
 of the class hierarchy is easy since it can be modelled upon the
 hierarchy of categories (bookshelves). Here is for example a piece of
-the hierarchy of classes for an element of a group of matrices::
+the hierarchy of classes for an element of a group of permutations::
 
-    sage: G = GL(2,ZZ)
-    sage: m = G.an_element()
+    sage: P = Permutations(4)
+    sage: m = P.an_element()
     sage: for cls in m.__class__.mro(): print cls
-    <class 'sage.groups.matrix_gps.group_element.LinearMatrixGroup_gap_with_category.element_class'>
-    <class 'sage.groups.matrix_gps.group_element.MatrixGroupElement_gap'>
+    <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
+    <class 'sage.combinat.permutation.StandardPermutations_n.Element'>
+    <class 'sage.combinat.permutation.Permutation'>
     ...
     <class 'sage.categories.groups.Groups.element_class'>
     <class 'sage.categories.monoids.Monoids.element_class'>
+    ...
     <class 'sage.categories.semigroups.Semigroups.element_class'>
     ...
 

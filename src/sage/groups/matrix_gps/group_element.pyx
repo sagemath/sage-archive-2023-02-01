@@ -184,7 +184,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             sage: loads(g.dumps()) == g
             True
         """
-        return (self.parent(), (self._matrix,))
+        return (_unpickle_generic_element, (self.parent(), self._matrix,))
 
     def _repr_(self):
         """
@@ -732,4 +732,20 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         result = Factorization(result)
         result._set_cr(True)
         return result
+
+def _unpickle_generic_element(G, mat):
+    """
+    Unpickle the element in ``G`` given by ``mat``.
+
+    EXAMPLES::
+
+        sage: m1 = matrix(SR, [[1,2],[3,4]])
+        sage: m2 = matrix(SR, [[1,3],[-1,0]])
+        sage: G = MatrixGroup(m1, m2)
+        sage: m = G.an_element()
+        sage: from sage.groups.matrix_gps.group_element import _unpickle_generic_element
+        sage: _unpickle_generic_element(G, m.matrix()) == m
+        True
+    """
+    return G.element_class(G, mat, False, False)
 

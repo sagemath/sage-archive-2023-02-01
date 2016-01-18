@@ -1372,7 +1372,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                         sage: S3 = SymmetricGroupAlgebra(QQ, 3)
                         sage: T = S2.tensor(S3)
                         sage: T.cell_module_indices(([1,1], [2,1]))
-                        The cartesian product of (Standard tableaux of shape [1, 1],
+                        The Cartesian product of (Standard tableaux of shape [1, 1],
                                                   Standard tableaux of shape [2, 1])
                     """
                     from sage.categories.cartesian_product import cartesian_product

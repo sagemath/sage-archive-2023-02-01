@@ -276,19 +276,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: R.one()._eval_mpfr_(RR(2.1))
             1.00000000000000
 
-            sage: RRu = RealField(17, rnd='RNDU')
-            sage: RRd = RealField(17, rnd='RNDD')
-            sage: RRz = RealField(17, rnd='RNDZ')
             sage: p = x^3 - 2*x^2 + x -1
-            sage: p._eval_mpfr_(RRu(1.3))
-            -0.8829
-            sage: assert _.parent() is RRu
-            sage: p._eval_mpfr_(RRd(1.3))
-            -0.8831
-            sage: assert _.parent() is RRd
-            sage: p._eval_mpfr_(RRz(1.3))
-            -0.8830
-            sage: assert _.parent() is RRz
+            sage: p._eval_mpfr_(RR(1.3))
+            -0.883000000000000
         """
         cdef RealNumber res = a._new()
         sig_on()

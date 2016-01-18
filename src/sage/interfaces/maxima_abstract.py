@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Abstract interface to Maxima
 
@@ -799,7 +800,7 @@ class MaximaAbstract(Interface):
             sage: _ = maxima.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")
             sage: maxima.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])  # not tested
 
-        Here is a Mobius strip::
+        Here is a Möbius strip::
 
             sage: x = "cos(u)*(3 + v*cos(u/2))"
             sage: y = "sin(u)*(3 + v*cos(u/2))"

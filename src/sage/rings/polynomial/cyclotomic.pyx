@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Fast calculation of cyclotomic polynomials
 
@@ -49,7 +50,7 @@ def cyclotomic_coeffs(nn, sparse=None):
 
         \\Phi_n(x) = \\prod_{d|n} (1-x^{n/d})^{\\mu(d)}
 
-    where `\\mu(d)` is the Moebius function that is 1 if d has an even
+    where `\\mu(d)` is the Möbius function that is 1 if d has an even
     number of distinct prime divisors, -1 if it has an odd number of
     distinct prime divisors, and 0 if d is not squarefree.
 
@@ -227,7 +228,7 @@ def cyclotomic_value(n, x):
 
         \Phi_n(x) = \prod_{d | n} (x^d - 1)^{\mu(n / d)},
 
-    where `\mu` is the Moebius function.
+    where `\mu` is the Möbius function.
 
     - Handles the case that x^d = 1 for some d, but not the case that
       x^d - 1 is non-invertible: in this case polynomial evaluation is

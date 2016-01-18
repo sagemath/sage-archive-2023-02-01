@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Boolean functions
 
@@ -108,7 +109,7 @@ cdef long yellow_code(unsigned long a):
 
 cdef reed_muller(mp_limb_t* f, int ldn):
     r"""
-    The Reed Muller transform (also known as binary Moebius transform)
+    The Reed Muller transform (also known as binary Möbius transform)
     is an orthogonal transform. For a function `f` defined by
 
     .. math:: f(x) = \bigoplus_{I\subset\{1,\ldots,n\}} \left(a_I \prod_{i\in I} x_i\right)

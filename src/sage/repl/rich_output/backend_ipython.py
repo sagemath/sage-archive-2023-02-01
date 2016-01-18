@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # -*- encoding: utf-8 -*-
 """
 IPython Backend for the Sage Rich Output System

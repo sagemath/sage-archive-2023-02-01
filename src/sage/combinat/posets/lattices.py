@@ -1320,20 +1320,20 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def moebius_algebra(self, R):
         """
-        Return the Mobius algebra of ``self`` over ``R``.
+        Return the Möbius algebra of ``self`` over ``R``.
 
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
             sage: L.moebius_algebra(QQ)
-            Moebius algebra of Finite lattice containing 16 elements over Rational Field
+            Möbius algebra of Finite lattice containing 16 elements over Rational Field
         """
         from sage.combinat.posets.moebius_algebra import MoebiusAlgebra
         return MoebiusAlgebra(R, self)
 
     def quantum_moebius_algebra(self, q=None):
         """
-        Return the quantum Mobius algebra of ``self`` with parameter ``q``.
+        Return the quantum Möbius algebra of ``self`` with parameter ``q``.
 
         INPUT:
 
@@ -1343,7 +1343,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: L = posets.BooleanLattice(4)
             sage: L.quantum_moebius_algebra()
-            Quantum Moebius algebra of Finite lattice containing 16 elements
+            Quantum Möbius algebra of Finite lattice containing 16 elements
              with q=q over Univariate Laurent Polynomial Ring in q over Integer Ring
         """
         from sage.combinat.posets.moebius_algebra import QuantumMoebiusAlgebra

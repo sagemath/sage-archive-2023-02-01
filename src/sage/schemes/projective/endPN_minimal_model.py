@@ -174,7 +174,7 @@ def blift(LF, Li, p, S=None):
         r_initial = QQ(r)
         newInput = P([r_initial, p])
         LG = [F(newInput) for F in LF]
-        lift,lifted = blift(LG,Li,p,S = S)
+        lift,lifted = blift(LG,Li,p,S=S)
         if lift:
             #Lift successful.
             return True,r_initial + p*lifted

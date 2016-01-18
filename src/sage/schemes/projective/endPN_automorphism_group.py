@@ -5,7 +5,7 @@ AUTHORS:
 
 - Xander Faber, Michelle Manes, Bianca Viray: algorithm and original code
   "Computing Conjugating Sets and Automorphism Groups of Rational Functions" by
-  Xander Faber, Michelle Manes, and Bianca Viray [FMV]
+  Xander Faber, Michelle Manes, and Bianca Viray [FMV]_
 
 - Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaption for inclusion in Sage
 
@@ -46,7 +46,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
 
     ALGORITHM:
 
-        See Algorithm 3 in Faber-Manes-Viray [FMV]
+        See Algorithm 3 in Faber-Manes-Viray [FMV]_
 
     INPUT:
 
@@ -290,7 +290,7 @@ def height_bound(polynomial):
     This function returns a bound on the height of `F`,
     when viewed as an element of `\mathbb{P}^3`
 
-    In [FMV] it is proven that `ht(F) <= 6^{[K:Q]}*M`, where `M` is the Mahler measure of `f`
+    In [FMV]_ it is proven that `ht(F) <= 6^{[K:Q]}*M`, where `M` is the Mahler measure of `f`
     M is bounded above by `H(f)`, so we return the floor of `6*H(f)`
     (since `ht(F)` is an integer)
 
@@ -629,9 +629,9 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli, integral_a
 def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_functions=True, iso_type=False):
     r"""
     Determines the complete group of rational automorphisms (under the conjugation action
-    of `PGL(2,QQ)`) for a rational function of one variable.
+    of `PGL(2,\QQ)`) for a rational function of one variable.
 
-    See [FMV] for details.
+    See [FMV]_ for details.
 
     INPUT:
 
@@ -837,7 +837,7 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
 
     ALGORITHM:
 
-    See Algorithm 4 in Faber-Manes-Viray [FMV]
+    See Algorithm 4 in Faber-Manes-Viray [FMV]_
 
     INPUT:
 
@@ -1096,7 +1096,7 @@ def rational_function_reduce(rational_function):
 def three_stable_points(rational_function, invariant_list):
     r"""
     Implementation of Algorithm 1 for automorphism groups from
-    Faber-Manes-Viray [FMV].
+    Faber-Manes-Viray [FMV]_.
 
     INPUT:
 
@@ -1171,7 +1171,7 @@ def three_stable_points(rational_function, invariant_list):
 def automorphism_group_FF_alg2(rational_function):
     r"""
     Implementation of algorithm for determining the absolute automorphism
-    group over a finite field, given an invariant set, see [FMV].
+    group over a finite field, given an invariant set, see [FMV]_.
 
     INPUT:
 
@@ -1287,7 +1287,7 @@ def order_p_automorphisms(rational_function, pre_image):
     r"""
     Determine the order-p automorphisms given the input data.
 
-    This is algorithm 4 in Faber-Manes-Viray [FMV].
+    This is algorithm 4 in Faber-Manes-Viray [FMV]_.
 
     INPUT:
 
@@ -1551,7 +1551,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
 
 def automorphism_group_FF_alg3(rational_function):
     r"""
-    Implementation of Algorithm 3 in the paper by Faber/Manes/Viray [FMV]
+    Implementation of Algorithm 3 in the paper by Faber/Manes/Viray [FMV]_
     for computing the automorphism group over a finite field.
 
     INPUT:

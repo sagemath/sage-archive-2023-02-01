@@ -874,7 +874,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def cartesian_product(self, other):
         r"""
-        Return the Cartesian product of this projective spaces and
+        Return the Cartesian product of this projective space and
         ``other``.
 
         INPUT:

@@ -1680,14 +1680,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         series or to within a given error bound.
 
         Must be over a number field or order of a number field. Note that this is
-        the absolute local greens function so is scaled by the degree of the base field.
+        the absolute local Green's function so is scaled by the degree of the base field.
 
         Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Non-archimedean
         places are prime ideals for number fields or primes over `\QQ`.
 
         ALGORITHM:
 
-        See Exercise 5.29 and Figure 5.6 of [Silverman_ADS].
+        See Exercise 5.29 and Figure 5.6 of [Silverman_ADS]_.
 
         REFERENCES:
 
@@ -1955,7 +1955,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         ALGORITHM:
 
             Uses a Nullstellensatz argument to compute the constant.
-            For details: see [Hutz].
+            For details: see [Hutz]_.
 
         INPUT:
 
@@ -2430,7 +2430,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         r"""
         Determine if this morphisms is minimal.
 
-        THis map must be defined over the projective line over the rationals.
+        This map must be defined over the projective line over the rationals.
         In particular, determine if this map is affine minimal, which is enough
         to decide if it is minimal or not. See Proposition 2.10 in [Bruin-Molnar].
 
@@ -2543,7 +2543,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def automorphism_group(self, **kwds):
         r"""
-        Calculates the subsgroup of `PGL2` that is the automorphism group of this map.
+        Calculates the subgroup of `PGL2` that is the automorphism group of this map.
 
         Dimension 1 only. The automorphism group is the set of `PGL(2)` elements that fix this map
         under conjugation.
@@ -2744,7 +2744,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def is_postcritically_finite(self, err=0.01):
         r"""
-        Determine if this map is post-critially finite.
+        Determine if this map is post-critically finite.
 
         Only for endomorphisms of `\mathbb{P}^1`. It checks if each critical point
         is preperiodic. The optional parameter ``err`` is passed into
@@ -3236,7 +3236,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ALGORITHM:
             Use Hensel lifting to find a `p`-adic approximation for that rational point. The accuracy needed
-            is determined by the height bound ``B``. Then apply the the LLL algorithm to determine if the lift
+            is determined by the height bound ``B``. Then apply the LLL algorithm to determine if the lift
             corresponds to a rational point.
 
             If the point is a point of high multiplicity (multiplier 1) then procedure can be very slow.
@@ -3445,7 +3445,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             of these possible periods and try to lift it to a rational point with a combination of
             `p`-adic approximation and the LLL basis reducion algorithm.
 
-            See [Hutz].
+            See [Hutz]_.
 
         INPUT:
 
@@ -4294,12 +4294,12 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         REFERENCES:
 
-        .. [Hutz_gr] B. Hutz. Good reduction of periodic points, Illinois Journal of
+        .. [Hutz-gr] B. Hutz. Good reduction of periodic points, Illinois Journal of
            Mathematics 53 (Winter 2009), no. 4, 1109-1126.
 
         ALGORITHM:
 
-        See [Hutz-gr].
+        See [Hutz-gr]_.
 
         INPUT:
 
@@ -4343,7 +4343,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
     def automorphism_group(self, **kwds):
         r"""
-        Return the subsgroup of `PGL2` that is the automorphism group of this map.
+        Return the subgroup of `PGL2` that is the automorphism group of this map.
 
         Only for dimension 1. The automorphism group is the set of `PGL2` elements that
         fixed the map under conjugation. See [FMV] for the algorithm.

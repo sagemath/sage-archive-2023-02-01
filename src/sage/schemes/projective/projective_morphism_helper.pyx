@@ -29,7 +29,7 @@ def _fast_possible_periods(self, return_points=False):
 
     ALGORITHM:
 
-    See [Hutz-gr]
+    See [Hutz-gr]_
 
     INPUT:
 

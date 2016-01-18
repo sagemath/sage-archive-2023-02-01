@@ -226,7 +226,7 @@ class SchemeHomset_points_projective_ring(SchemeHomset_points):
 #*******************************************************************
 class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_field):
     r"""
-    Set of rational points of an abelian variety.
+    Set of rational points of an Abelian variety.
 
     INPUT:
 
@@ -327,11 +327,11 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
             sage: Hom.base_extend(QQ)
             Traceback (most recent call last):
             ...
-            NotImplementedError: abelian variety point sets are not
+            NotImplementedError: Abelian variety point sets are not
             implemented as modules over rings other than ZZ
         """
         if R is not ZZ:
-            raise NotImplementedError('abelian variety point sets are not '
+            raise NotImplementedError('Abelian variety point sets are not '
                             'implemented as modules over rings other than ZZ')
         return self
 

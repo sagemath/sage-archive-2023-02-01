@@ -5585,23 +5585,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
         .. [BFSS] A. Bostan, P. Flajolet, B. Salvy and E. Schost,
            "Fast Computation of special resultants",
            Journal of Symbolic Computation 41 (2006), 1-29
-
         """
-
-        cdef int j
+        cdef long j
+        cdef long prec
 
         if op not in (operator.add, operator.sub, operator.mul, operator.div):
-            raise ValueError('`op` must be `operator.OP` where `OP=add, sub, mul` or `div`.')
+            raise ValueError("op` must be `operator.OP` where `OP=add, sub, mul` or `div`.")
 
-        d1 = p1.degree()
-        d2 = p2.degree()
+        cdef long d1 = p1.degree()
+        cdef long d2 = p2.degree()
         if d1 <= 0 or d2 <= 0:
             raise ValueError('the polynomials must have positive degree')
         K = p1.parent()
+        S = K.base_ring()
         if p2.parent() is not K:
             raise ValueError('p1 and p2 should have the same parent.')
-        if p1.parent().base_ring() is not QQ:
-                raise ValueError('implemented only for polynomials on the rational ring')
+        if S is not QQ:
+            raise ValueError('implemented only for polynomials on the rational ring')
 
         if op is operator.div and p2.valuation() > 0:
             raise ZeroDivisionError('p2 must have zero valuation.')
@@ -5633,17 +5633,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
             rp = p2(QQxy_y)
             q = lp.resultant(rp, QQxy_y).univariate_polynomial(K)
         elif algorithm == "BFSS":
-            from sage.rings.power_series_ring import PowerSeriesRing
-            if op == operator.sub:
+            if op is operator.sub:
                 p2 = p2(-K.gen())
             elif op is operator.div:
                 p2 = p2.reverse()
             prec = d1*d2 + 1
             S = K.base_ring()
-            R = PowerSeriesRing(S, K.variable_name(), default_prec=prec)
-            np1 = ((~R(p1.reverse()))*p1.derivative().reverse()).truncate(prec)
-            np2 = ((~R(p2.reverse()))*p2.derivative().reverse()).truncate(prec)
+            np1 = (p1.reverse().inverse_series_trunc(prec) * p1.derivative().reverse()).truncate(prec)
+            np2 = (p2.reverse().inverse_series_trunc(prec) * p2.derivative().reverse()).truncate(prec)
             if op in (operator.add, operator.sub):
+                # compute np1e and np2e obtained as "exponential transform" of
+                # np1 and np2 respectively. That is
+                #  a0 + a1 x + a2 x^2 + ...
+                #  ->
+                #  a0 + a1/1! x + a2/2! x^2 + ...
                 fj = S.one()
                 a1, a2 = [np1[0]], [np2[0]]
                 for j in range(1, prec):
@@ -5659,13 +5662,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     a3.append(np3e[j] * fj)
                     fj = fj*j
                 np = K(a3)
-                q = R(np)
+                q = np
             else:
-                np = K([-np1[i]*np2[i] for i in range(1, prec)])
-                q = R(np.integral())
+                np = K([-np1[j]*np2[j] for j in range(1, prec)])
+                q = np.integral()
 
-            q = q.exp()
-            q = q.polynomial().reverse()
+            q = q._exp_series(prec).reverse()
             dp = prec - q.degree() - 1
             if dp:
                 q = q*K.gen()**dp

@@ -1,10 +1,10 @@
 r"""
 Fast evaluation of polynomials (Horner's rule)
 
-This file provides fast evaluation of integer polynomials with a real
-or complex value. We consider flint and NTL polynomials and values mpfr_t and
-mpfi_t. If you intend to implement more it would be better to find a template
-strategy instead of duplicating the code.
+This file provides fast evaluation of integer polynomials with a real value. We
+consider flint and NTL polynomials and values mpfr_t and mpfi_t. If you intend
+to implement more it would be better to find a template strategy instead of
+duplicating the code.
 
 The code in this file is mostly Sage agnostic and only does library calls.
 

@@ -2488,6 +2488,13 @@ cdef class Expression(CommutativeRingElement):
             sage: f(x) = matrix()
             sage: bool(f(x) - f(x) == 0)
             True
+
+        Check that we catch exceptions from Pynac (:trac:`19904`)::
+
+            sage: bool(SR(QQbar(I)) == I)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s)...
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly

@@ -843,7 +843,7 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
 
     - ``permutation`` - a permutation
 
-    - ``lengths`` - a list or a dictionnary of lengths
+    - ``lengths`` - a list or a dictionary of lengths
 
     OUTPUT:
 

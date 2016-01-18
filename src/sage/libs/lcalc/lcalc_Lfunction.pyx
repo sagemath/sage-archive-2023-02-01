@@ -68,27 +68,27 @@ cdef class Lfunction:
         tmpi = Integer(period)
         cdef int Period = mpz_get_si(tmpi.value)
         tmpr = RRR(Q)
-        cdef double q=mpfr_get_d(tmpr.value,GMP_RNDN)
+        cdef double q=mpfr_get_d(tmpr.value, MPFR_RNDN)
         tmpc = CCC(OMEGA)
-        cdef c_Complex w=new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+        cdef c_Complex w=new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
 
         cdef int A=len(gamma)
         cdef double *g=new_doubles(A+1)
         cdef c_Complex *l=new_Complexes(A+1)
         for i from 0 <= i < A:
             tmpr = RRR(gamma[i])
-            g[i+1] = mpfr_get_d(tmpr.value,GMP_RNDN)
+            g[i+1] = mpfr_get_d(tmpr.value, MPFR_RNDN)
             tmpc = CCC(lambd[i])
-            l[i+1] = new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+            l[i+1] = new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
 
         cdef int n_poles = len(pole)
         cdef c_Complex *p = new_Complexes(n_poles +1)
         cdef c_Complex *r = new_Complexes(n_poles +1)
         for i from 0 <= i < n_poles:
             tmpc=CCC(pole[i])
-            p[i+1] = new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+            p[i+1] = new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
             tmpc=CCC(residue[i])
-            r[i+1] = new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+            r[i+1] = new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
 
         self.__init_fun(NAME, what_type, dirichlet_coefficient, Period, q,  w,  A, g, l, n_poles, p, r)
 
@@ -160,7 +160,7 @@ cdef class Lfunction:
             -0.450728958517... - 0.780511403019...*I
         """
         cdef ComplexNumber complexified_s = CCC(s)
-        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re,GMP_RNDN), mpfr_get_d(complexified_s.__im, GMP_RNDN))
+        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re, MPFR_RNDN), mpfr_get_d(complexified_s.__im, MPFR_RNDN))
         cdef c_Complex result = self.__value(z, derivative)
         return CCC(result.real(),result.imag())
 
@@ -198,7 +198,7 @@ cdef class Lfunction:
         """
         #This takes s -> .5 + I*s
         cdef ComplexNumber complexified_s = CCC(0.5)+ CCC(0,1)*CCC(s)
-        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re,GMP_RNDN), mpfr_get_d(complexified_s.__im, GMP_RNDN))
+        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re, MPFR_RNDN), mpfr_get_d(complexified_s.__im, MPFR_RNDN))
         cdef c_Complex result = self.__hardy_z_function(z)
         return CCC(result.real(),result.imag())
 
@@ -237,7 +237,7 @@ cdef class Lfunction:
             3.17043978326...
         """
         cdef RealNumber real_T=RRR(T)
-        cdef double double_T = mpfr_get_d(real_T.value, GMP_RNDN)
+        cdef double double_T = mpfr_get_d(real_T.value, MPFR_RNDN)
         cdef double res_d = self.__typedN(double_T)
         return RRR(res_d)
 
@@ -289,7 +289,7 @@ cdef class Lfunction:
         cdef RealNumber real_T2 = RRR(T2)
         cdef RealNumber real_stepsize = RRR(stepsize)
         sig_on()
-        self.__find_zeros_v( mpfr_get_d(real_T1.value, GMP_RNDN), mpfr_get_d(real_T2.value, GMP_RNDN), mpfr_get_d(real_stepsize.value, GMP_RNDN),&result)
+        self.__find_zeros_v( mpfr_get_d(real_T1.value, MPFR_RNDN), mpfr_get_d(real_T2.value, MPFR_RNDN), mpfr_get_d(real_stepsize.value, MPFR_RNDN),&result)
         sig_off()
         i=result.size()
         returnvalue = []
@@ -356,7 +356,7 @@ cdef class Lfunction:
         cdef Integer test_explicit_I = Integer(test_explicit_formula)
         cdef doublevec result
         sig_on()
-        self.__find_zeros_via_N_v(mpz_get_si(count_I.value), mpz_get_si(do_negative_I.value), mpfr_get_d(max_refine_R.value, GMP_RNDN), mpz_get_si(rank_I.value), mpz_get_si(test_explicit_I.value), &result)
+        self.__find_zeros_via_N_v(mpz_get_si(count_I.value), mpz_get_si(do_negative_I.value), mpfr_get_d(max_refine_R.value, MPFR_RNDN), mpz_get_si(rank_I.value), mpz_get_si(test_explicit_I.value), &result)
         sig_off()
         returnvalue = []
         for i in range(result.size()):
@@ -599,7 +599,7 @@ cdef class Lfunction_D(Lfunction):
         cdef double * coeffs = new_doubles(N+1)#lcalc ignores 0th position
         for i from 0 <= i< N by 1:
             tmpr=RRR(dirichlet_coeff[i])
-            coeffs[i+1] = mpfr_get_d(tmpr.value, GMP_RNDN)
+            coeffs[i+1] = mpfr_get_d(tmpr.value, MPFR_RNDN)
         self.thisptr=new_c_Lfunction_D(NAME, what_type,  N, coeffs, Period, q,  w,  A, g, l, n_poles, p, r)
         del_doubles(coeffs)
 
@@ -740,7 +740,7 @@ cdef class Lfunction_C:
         coeffs[0]=new_Complex(0,0)
         for i from 0 <= i< N by 1:
             tmpc=CCC(dirichlet_coeff[i])
-            coeffs[i+1] = new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+            coeffs[i+1] = new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
 
         self.thisptr = new_c_Lfunction_C(NAME, what_type,  N, coeffs, Period, q,  w,  A, g, l, n_poles, p, r)
 

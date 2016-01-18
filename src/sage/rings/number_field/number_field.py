@@ -6405,8 +6405,12 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal (2, a)
         """
         n = len(reslist)
+        try:
+            reslist = [self(x) for x in reslist]
+        except ValueError:
+            raise ValueError("solve_CRT requires a list of arguments in the field")
         if n==0:
-            return K.zero()
+            return self.zero()
         if n==1:
             return reslist[0]
         if n==2:
@@ -6420,7 +6424,7 @@ class NumberField_generic(number_field_base.NumberField):
                                [Ilist[0],prod(Ilist[1:])], check=check)
         if check and not all([x-xi in Ii for xi,Ii in zip(reslist, Ilist)]):
             raise RuntimeError("Error in number field solve_CRT()")
-        return x
+        return self(x)
 
 class NumberField_absolute(NumberField_generic):
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
@@ -7329,7 +7333,7 @@ class NumberField_absolute(NumberField_generic):
         polynomials are supported (:trac:`252`)::
 
             sage: K.<a> = NumberField(3*x^2 + 1)
-            sage: K.maximal_order().gens()
+            sage: K.maximal_order().basis()
             [3/2*a + 1/2, 3*a]
         """
         B = [self(b, check=False) for b in self._pari_integral_basis(v=v)]
@@ -7447,7 +7451,7 @@ class NumberField_absolute(NumberField_generic):
         if ret.ambient() is not self:
             return ret.ambient().order(gens, **kwds)
 
-        gens = ret.gens()
+        gens = ret.basis()
         if self._order.is_in_cache(gens):
             # different ways of specifying the same set of generators lead to
             # the same order - this is to make sure that orders are unique

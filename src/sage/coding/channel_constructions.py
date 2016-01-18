@@ -399,14 +399,23 @@ class StaticErrorRateChannel(Channel):
             sage: set_random_seed(10)
             sage: Chan.transmit_unsafe(msg)
             (4, 8, 4, 16, 23, 53)
+
+        This checks that trac #19863 is fixed::
+
+            sage: V = VectorSpace(GF(2), 1000)
+            sage: Chan = channels.StaticErrorRateChannel(V, 367)
+            sage: c = V.random_element()
+            sage: (c - Chan(c)).hamming_weight()
+            367
         """
         w = copy(message)
         number_errors = randint(*self.number_errors())
         V = self.input_space()
+        R = V.base_ring()
         for i in sample(xrange(V.dimension()), number_errors):
-            err = V.base_ring().random_element()
+            err = R.random_element()
             while (w[i] == err):
-                err = V.base_ring().random_element()
+                err = R.random_element()
             w[i] = err
         return w
 

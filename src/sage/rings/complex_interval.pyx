@@ -328,20 +328,20 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
         """
         cdef ComplexIntervalFieldElement a00 = self._new()
-        mpfr_set(&a00.__re.left, &self.__re.left, GMP_RNDN)
+        mpfr_set(&a00.__re.left, &self.__re.left, MPFR_RNDN)
         mpfi_mid(&a00.__re.right, self.__re)
-        mpfr_set(&a00.__im.left, &self.__im.left, GMP_RNDN)
+        mpfr_set(&a00.__im.left, &self.__im.left, MPFR_RNDN)
         mpfi_mid(&a00.__im.right, self.__im)
 
         cdef ComplexIntervalFieldElement a01 = self._new()
-        mpfr_set(&a01.__re.left, &a00.__re.right, GMP_RNDN)
-        mpfr_set(&a01.__re.right, &self.__re.right, GMP_RNDN)
+        mpfr_set(&a01.__re.left, &a00.__re.right, MPFR_RNDN)
+        mpfr_set(&a01.__re.right, &self.__re.right, MPFR_RNDN)
         mpfi_set(a01.__im, a00.__im)
 
         cdef ComplexIntervalFieldElement a10 = self._new()
         mpfi_set(a10.__re, a00.__re)
         mpfi_mid(&a10.__im.left, self.__im)
-        mpfr_set(&a10.__im.right, &self.__im.right, GMP_RNDN)
+        mpfr_set(&a10.__im.right, &self.__im.right, MPFR_RNDN)
 
         cdef ComplexIntervalFieldElement a11 = self._new()
         mpfi_set(a11.__re, a01.__re)
@@ -481,7 +481,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfr_init2(tmp, self.prec())
         mpfi_diam(diam.value, self.__re)
         mpfi_diam(tmp, self.__im)
-        mpfr_max(diam.value, diam.value, tmp, GMP_RNDU)
+        mpfr_max(diam.value, diam.value, tmp, MPFR_RNDU)
         mpfr_clear(tmp)
         return diam
 

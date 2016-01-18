@@ -789,7 +789,7 @@ class Tableau(ClonableList):
         from output import tex_from_array
         return tex_from_array(self)
 
-    def __div__(self, t):
+    def __truediv__(self, t):
         """
         Return the skew tableau ``self``/``t``, where ``t`` is a partition
         contained in the shape of ``self``.
@@ -824,6 +824,8 @@ class Tableau(ClonableList):
 
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st)
+
+    __div__ = __truediv__
 
     def __call__(self, *cell):
         r"""

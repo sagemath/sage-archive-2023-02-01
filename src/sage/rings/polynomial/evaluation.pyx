@@ -17,14 +17,22 @@ For appropriate testing see
     Integrate these functions into
     :mod:`~sage.rings.polynomial.polynomial_compiled`
 """
-
-include "sage/ext/interrupt.pxi"
+################################################################################
+#       Copyright (C) 2015 Vincent Delecroix <20100.delecroix@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+################################################################################
 
 from sage.libs.mpfr cimport *
 from sage.libs.mpfi cimport *
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.ntl.ZZ cimport *
 from sage.libs.ntl.ZZX cimport *
 
 cdef fmpz_poly_evaluation_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t a):
@@ -36,8 +44,9 @@ cdef fmpz_poly_evaluation_mpfr(mpfr_t res, const fmpz_poly_t poly, const mpfr_t 
 
     for i in range(fmpz_poly_degree(poly), -1, -1):
         mpfr_mul(res, res, a, MPFR_RNDN)
-        fmpz_poly_get_coeff_mpz(c, poly, i)
-        mpfr_add_z(res, res, c, MPFR_RNDN)
+        if not fmpz_is_zero(fmpz_poly_get_coeff_ptr(poly, i)):
+            fmpz_poly_get_coeff_mpz(c, poly, i)
+            mpfr_add_z(res, res, c, MPFR_RNDN)
 
     mpz_clear(c)
 
@@ -50,8 +59,9 @@ cdef fmpz_poly_evaluation_mpfi(mpfi_t res, const fmpz_poly_t poly, const mpfi_t 
 
     for i in range(fmpz_poly_degree(poly), -1, -1):
         mpfi_mul(res, res, a)
-        fmpz_poly_get_coeff_mpz(c, poly, i)
-        mpfi_add_z(res, res, c)
+        if not fmpz_is_zero(fmpz_poly_get_coeff_ptr(poly, i)):
+            fmpz_poly_get_coeff_mpz(c, poly, i)
+            mpfi_add_z(res, res, c)
 
     mpz_clear(c)
 
@@ -65,8 +75,9 @@ cdef ZZX_evaluation_mpfr(mpfr_t res, ZZX_c poly, const mpfr_t a):
 
     for i in range(ZZX_deg(poly), -1, -1):
         mpfr_mul(res, res, a, MPFR_RNDN)
-        ZZX_getitem_as_mpz(c, &poly, i)
-        mpfr_add_z(res, res, c, MPFR_RNDN)
+        if not ZZ_IsZero(ZZX_coeff(poly, i)):
+            ZZX_getitem_as_mpz(c, &poly, i)
+            mpfr_add_z(res, res, c, MPFR_RNDN)
 
     mpz_clear(c)
 
@@ -79,7 +90,8 @@ cdef ZZX_evaluation_mpfi(mpfi_t res, ZZX_c poly, const mpfi_t a):
 
     for i in range(ZZX_deg(poly), -1, -1):
         mpfi_mul(res, res, a)
-        ZZX_getitem_as_mpz(c, &poly, i)
-        mpfi_add_z(res, res, c)
+        if not ZZ_IsZero(ZZX_coeff(poly, i)):
+            ZZX_getitem_as_mpz(c, &poly, i)
+            mpfi_add_z(res, res, c)
 
     mpz_clear(c)

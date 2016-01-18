@@ -5512,12 +5512,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def composed_op(p1, p2, op, algorithm=None, monic=True):
         """
-        Return `\prod_{a:p1(a)=0,b:p2(b)=0}(x - (a op b))`
-        where ``op`` is `operator.OP` where `OP=add, sub, mul` or `div`.
+        Return the composed sum, difference, product or division of this
+        polynomial with another one.
+
+        The operation considered is the following. Given two polynomials `p_1`
+        and `p_2` with rational coefficents we define
+
+        .. MATH::
+
+            \prod_{a:p_1(a)=0,b:p_2(b)=0}(x - (a op b))
+
+        where ``op`` is either the addition, the difference, the product or the
+        division and the roots `a` and `b` are to be considered in the algebraic
+        closure of the rational field.
+
+        The composed operator can also be computed with resultant. Indeed for
+        the composed sum it would be `Res_y(p1(x-y), p2(y))`. However, the
+        method from [BFSS]_ using the power sums of roots of polynomials and
+        series expansions is asymptotically much faster with dense polynomials.
 
         INPUT:
 
-        - ``p1, p2`` -- polynomials on the same polynomial ring on rationals.
+        - ``p2`` -- polynomials on the same polynomial ring on rationals.
 
         - ``op`` -- `operator.OP` where `OP=add, sub, mul` or `div`.
 
@@ -5527,21 +5543,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - ``monic`` -- (default True) if True, return the monic form.
 
-        The composed sum (``op=operator.add``) can be computed as the resultant
-        `Res_y(p1(x-y), p2(y))`; in [BFSS] it has been shown that it can be
-        computed using the power sums of roots of polynomials and
-        series expansions; for polynomials with many nonzero coefficients
-        the latter method is faster. Similarly for `OP` is `sub, mul` or `div`.
+        .. TODO::
 
-
-        TODO:
-
-           The [BFSS] algorithm has been implemented here only in the case of
+           The [BFSS]_ algorithm has been implemented here only in the case of
            polynomials on the rational ring. To be implemented the case
            of other rings with zero characteristics, and the case
            of non-zero characteristics, also covered in the same paper.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: p1 = x^2 - 1

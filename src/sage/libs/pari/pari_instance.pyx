@@ -449,21 +449,13 @@ cdef class PariInstance(PariInstance_auto):
         # 2) the system should actually be able to handle a stack size
         #    as large as the complete virtual stack.
         # As a simple heuristic, we set the virtual stack to 1/4 of the
-        # maximum amount a memory that we can malloc().
+        # virtual memory.
 
-        cdef size_t maxalloc = (<size_t>1) << (sizeof(size_t)*8 - 1)
-        sig_block()
-        cdef void* x
-        while True:
-            x = libc.stdlib.malloc(maxalloc)
-            if x is not NULL:
-                libc.stdlib.free(x)
-                break
-            maxalloc //= 2
-        sig_unblock()
+        from sage.misc.memory_info import MemoryInfo
+        mem = MemoryInfo()
 
         pari_init_opts(size, maxprime, INIT_DFTm)
-        paristack_alloc(size, maxalloc // 4)
+        paristack_setsize(size, mem.virtual_memory_limit() // 4)
 
         # Disable PARI's stack overflow checking which is incompatible
         # with multi-threading.
@@ -535,7 +527,8 @@ cdef class PariInstance(PariInstance_auto):
         indirect doctest. See the discussion at :trac:`13741`.
 
         """
-        pari_close()
+        if avma:
+            pari_close()
 
     def __repr__(self):
         return "Interface to the PARI C library"

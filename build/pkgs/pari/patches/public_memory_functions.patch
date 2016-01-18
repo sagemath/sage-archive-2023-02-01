@@ -9,9 +9,9 @@ index 7067183..4ede6ed 100644
 +void *  pari_mainstack_malloc(size_t size);
 +void    pari_mainstack_mfree(void *s, size_t size);
 +void    pari_mainstack_free(struct pari_mainstack *st);
- void    paristack_alloc(size_t rsize, size_t vsize);
  void    paristack_newrsize(ulong newsize);
  void    paristack_resize(ulong newsize);
+ void    paristack_setsize(size_t rsize, size_t vsize);
 diff --git a/src/language/init.c b/src/language/init.c
 index 7b5922d..2a578d7 100644
 --- a/src/language/init.c

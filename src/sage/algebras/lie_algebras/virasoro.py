@@ -414,13 +414,13 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
             sage: d.bracket_on_basis('c', 2)
             0
             sage: d.bracket_on_basis(2, -2)
-            -4*d[0] - 1/2*c
+            -1/2*c - 4*d[0]
         """
         if i == 'c' or j == 'c':
             return self.zero()
         ret = self._from_dict({i + j: j-i})
         if i == -j:
-            ret += (j**3 - j) / 12 * self.c()
+            ret += (j ** 3 - j) / 12 * self.c()
         return ret
 
     def _an_element_(self):

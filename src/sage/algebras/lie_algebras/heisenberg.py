@@ -425,7 +425,7 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L.lie_algebra_generators()
-            Lazy family (generator map(i))_{i in The cartesian product of
+            Lazy family (generator map(i))_{i in The Cartesian product of
                                             (Positive integers, {'p', 'q'})}
 
         """
@@ -441,7 +441,7 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L.basis()
             Lazy family (basis map(i))_{i in Disjoint union of Family ({'z'},
-             The cartesian product of (Positive integers, {'p', 'q'}))}
+             The Cartesian product of (Positive integers, {'p', 'q'}))}
             sage: L.basis()['z']
             z
             sage: L.basis()[(12, 'p')]

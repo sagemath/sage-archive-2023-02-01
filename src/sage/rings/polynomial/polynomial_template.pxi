@@ -410,13 +410,21 @@ cdef class Polynomial_template(Polynomial):
 
     cpdef RingElement _floordiv_(self, RingElement right):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: x//(x + 1)
             1
             sage: (x + 1)//x
             1
+            sage: F = GF(47)
+            sage: R.<x> = F[]
+            sage: x // 1
+            x
+            sage: x // F(1)
+            x
+            sage: 1 // x
+            0
         """
         cdef Polynomial_template _right = <Polynomial_template>right
 

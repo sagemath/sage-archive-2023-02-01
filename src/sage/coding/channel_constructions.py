@@ -658,18 +658,31 @@ class ErrorErasureChannel(Channel):
 
 class QarySymmetricChannel(Channel):
     r"""
-    With error probability `\epsilon`, a q-ary symmetric channel (qSC) takes a q-ary symbol
-    as input and outputs either this symbol with probability `1 - \epsilon` or one of the other
-    `q - 1` symbols with probability `\frac{\epsilon}{q - 1}`.
+    The q-ary symmetric, memoryless communication channel.
 
-    The input space and the output space of this channel are the same.
+    Given an alphabet `\Sigma` with `|\Sigma| = q` and an error probability
+    `\epsilon`, a q-ary symmetric channel sends an element of `\Sigma` into the
+    same element with probability `1 - \epsilon`, and any one of the other `q -
+    1` elements with probability `\frac{\epsilon}{q - 1}`. This implementation
+    operates over vectors in `\Sigma^n`, and "transmits" each element of the
+    vector independently in the above manner.
 
-    The main purpose of communication channels is to transmit messages, which can be achieved with
-    two methods:
+    Though `\Sigma` is usually taken to be a finite field, this implementation
+    allows any structure for which Sage can represent `\Sigma^n` and for which
+    `\Sigma` has a `random_element()` method. However, beware that if `\Sigma`
+    is infinite, errors will not be uniformly distributed (since
+    `random_element()` does not draw uniformly at random).
 
-    - with the method :meth:`Channel.transmit`. Considering a channel ``Chan``
-      and a message ``msg``, transmitting
-      ``msg`` with ``Chan`` can be done this way::
+    The input space and the output space of this channel are the same:
+    `\Sigma^n`.
+
+    In Sage, Channels simulate error-prone transmission over communication
+    channels, and we borrow the nomenclature from communication theory, such as
+    "transmission" and "positions" as the elements of transmitted vectors.
+    Transmission can be achieved with two methods:
+
+    - :meth:`Channel.transmit`. Considering a channel ``Chan`` and a message
+      ``msg``, transmitting ``msg`` with ``Chan`` can be done this way::
 
         Chan.transmit(msg)
 
@@ -677,21 +690,26 @@ class QarySymmetricChannel(Channel):
 
         Chan(msg)
 
-    - with the method :meth:`transmit_unsafe`. It does the exact same thing as :meth:`transmit` except
-      that it does not check if ``msg`` belongs to the input space of ``Chan``::
+    - :meth:`transmit_unsafe`. This does the exact same thing as
+      :meth:`transmit` except that it does not check if ``msg`` belongs to the
+      input space of ``Chan``::
 
         Chan.transmit_unsafe(msg)
 
+      This is useful in e.g. an inner-loop of a long simulation as a
+      lighter-weight alternative to :meth:`Channel.transmit`.
+
     INPUT:
 
-    - ``space`` -- the input and output space
+    - ``space`` -- the input and output space of the channel. It has to be
+      `GF(q)^n` for some finite field `GF(q)`.
 
-    - ``epsilon`` -- the error probability
+    - ``epsilon`` -- the transmission error probability of the individual elements.
 
     EXAMPLES:
 
-    We construct a ErrorErasureChannel which adds 2 errors
-    and 2 erasures to any transmitted message::
+    We construct a QarySymmetricChannel which corrupts 30% of all transmitted
+    symbols::
 
         sage: epsilon = 0.3
         sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
@@ -752,7 +770,7 @@ class QarySymmetricChannel(Channel):
 
     def transmit_unsafe(self, message):
         r"""
-        Returns ``message`` with each of its symbols changed to another of the alphabet with
+        Returns ``message`` where each of the symbols has been changed to another from the alphabet with
         probability :meth:`error_probability`.
 
         This method does not check if ``message`` belongs to the input space of``self``.
@@ -778,14 +796,15 @@ class QarySymmetricChannel(Channel):
         for i in range(len(msg)):
             if random() <= epsilon:
                 a = F.random_element()
-                while a == i:
+                while a == msg[i]:
                     a = F.random_element()
                 msg[i] = a
         return V(msg)
 
     def error_probability(self):
         r"""
-        Returns the probability that ``self`` creates an error.
+        Returns the error probability of an single symbol transmission of
+        ``self``.
 
         EXAMPLES::
 

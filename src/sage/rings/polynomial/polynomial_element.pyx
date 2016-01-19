@@ -75,7 +75,7 @@ from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
 from sage.structure.element import generic_power
-from sage.structure.element cimport parent_c as parent
+from sage.structure.element cimport parent_c as parent, have_same_parent_c
 from sage.structure.element cimport (Element, RingElement,
         ModuleElement, MonoidElement, coercion_model)
 
@@ -2270,8 +2270,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise IndexError("polynomials are immutable")
 
-
-    def __floordiv__(self,right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Quotient of division of self by other. This is denoted //.
 
@@ -8036,18 +8035,25 @@ cdef class Polynomial_generic_dense(Polynomial):
 
         TESTS:
 
-        Check that #13048 has been fixed::
+        Check that :trac:`13048` and :trac:`2034` are fixed::
 
             sage: R.<x> = QQbar[]
-            sage: x//x
+            sage: x // x
             1
-            sage: x//1
+            sage: x // 1
             x
-
+            sage: x // int(1)
+            x
+            sage: x //= int(1); x
+            x
+            sage: int(1) // x  # check that this doesn't segfault
+            Traceback (most recent call last):
+            ...
+            AttributeError: type object 'int' has no attribute 'base_ring'
         """
-        P = (<Element>self)._parent
-        if right.parent() == P:
-            return Polynomial.__floordiv__(self, right)
+        if have_same_parent_c(self, right):
+            return (<Polynomial_generic_dense>self)._floordiv_(<Polynomial_generic_dense>right)
+        P = parent(self)
         d = P.base_ring()(right)
         cdef Polynomial_generic_dense res = (<Polynomial_generic_dense>self)._new_c([c // d for c in (<Polynomial_generic_dense>self).__coeffs], P)
         res.__normalize()

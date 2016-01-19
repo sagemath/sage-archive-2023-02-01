@@ -1423,13 +1423,13 @@ class StdOutContext:
         return self.interface
 
     def __exit__(self, typ, value, tb):
-        """
+        r"""
         EXAMPLE::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(gap):
             ....:     gap('1+1')
-            $sage...
+            \$sage...
         """
         if self.silent:
             return

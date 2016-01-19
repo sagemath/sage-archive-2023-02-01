@@ -514,6 +514,13 @@ class UniversalCyclotomicFieldElement(FieldElement):
             0.309016994374947 + 0.951056516295154*I
             sage: CC(CF(x))
             0.309016994374947 + 0.951056516295154*I
+
+        Test that the bug reported in #19912 has been fixed::
+
+            sage: a = 1+E(4); a
+            1 + E(4)
+            sage: a.to_cyclotomic_field()
+            zeta4 + 1
         """
         from sage.rings.number_field.number_field import CyclotomicField
         k = self._obj.Conductor().sage()
@@ -525,7 +532,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             return R(obj.sage())
         zeta = Rcan.gen()
         coeffs = obj.CoeffsCyc(k).sage()
-        return R(sum(coeffs[a] * zeta**a for a in range(1,k)))
+        return R(sum(coeffs[a] * zeta**a for a in range(k)))
 
     def __hash__(self):
         r"""

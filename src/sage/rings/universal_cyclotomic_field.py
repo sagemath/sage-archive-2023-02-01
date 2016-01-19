@@ -525,7 +525,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             return R(obj.sage())
         zeta = Rcan.gen()
         coeffs = obj.CoeffsCyc(k).sage()
-        return R(sum(coeffs[a] * zeta**a for a in range(1,k)))
+        return R(sum(coeffs[a] * zeta**a for a in range(k)))
 
     def __hash__(self):
         r"""

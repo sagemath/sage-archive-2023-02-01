@@ -17,6 +17,8 @@ AUTHORS:
 
     - Properly provide root systems for real reflection groups
     - Element class should be unique to be able to work with large groups without creating elements multiple times.
+    - is_shephard_group
+    - exponents & coexponents
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>
@@ -1085,7 +1087,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             for j in range(len(x)):
                 I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
             I[i] = I[i].replace("+*","+").replace("-*","-").replace("ER(5)","*(E(5)-E(5)**2-E(5)**3+E(5)**4)").lstrip("*")
-        I = [ eval(p) for p in I ]
+        # sage_eval is used since eval kills the rational entries!
+        I = [ sage_eval(p, locals={'x':x}) for p in I ]
         return I
 
         I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]

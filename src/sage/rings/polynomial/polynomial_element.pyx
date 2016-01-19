@@ -43,6 +43,7 @@ TESTS::
 cdef is_FractionField, is_RealField, is_ComplexField
 cdef ZZ, QQ, RR, CC, RDF, CDF
 
+cimport cython
 from cpython.number cimport PyNumber_TrueDivide
 
 import operator, copy, re
@@ -58,6 +59,7 @@ import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
+from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
 
@@ -942,6 +944,79 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self.degree() >= 0
 
     def __getitem__(self, n):
+        r"""
+        Return the `n`-th coefficient of ``self``.
+
+        .. WARNING::
+
+            If `P` is a polynomial of degree `d`, then ``P[i]``
+            returns `0` when `i < 0` or `i > d`.  This behaviour
+            intentionally differs from that of lists: if `L` is a list
+            of length `n`, then Python defines ``L[-i] = L[n - i]``
+            for `0 < i \le n``.  The definition used here is more
+            meaningful for polynomials, since it can be extended
+            immediately to Laurent series, for example.
+
+        EXAMPLES:
+
+        We illustrate the difference between polynomials and lists
+        when negative indices are involved::
+
+            sage: R.<x> = QQ[]
+            sage: f = x + 2
+            sage: f[-1]
+            0
+            sage: list(f)[-1]
+            1
+
+        Slices can be used to truncate polynomials::
+
+            sage: pol = R(range(8)); pol
+            7*x^7 + 6*x^6 + 5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
+            sage: pol[:6]
+            5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
+
+        Any other kind of slicing is deprecated or an error, see
+        :trac:`18940`::
+
+            sage: f[1:3]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
+            x
+            sage: f[1:3:2]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomial slicing with a step is not defined
+        """
+        cdef Py_ssize_t d = self.degree() + 1
+        if isinstance(n, slice):
+            start, stop, step = n.start, n.stop, n.step
+            if step is not None:
+                raise NotImplementedError("polynomial slicing with a step is not defined")
+            if start is None:
+                start = 0
+            else:
+                if start < 0:
+                    start = 0
+                from sage.misc.superseded import deprecation
+                deprecation(18940, "polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead")
+            if stop is None or stop > d:
+                stop = d
+            values = ([self.base_ring().zero()] * start
+                      + [self.get_unsafe(i) for i in xrange(start, stop)])
+            return self.parent()(values)
+
+        cdef long k = pyobject_to_long(n)
+        if k < 0 or k >= d:
+            return self.base_ring().zero()
+        return self.get_unsafe(k)
+
+    cdef get_unsafe(self, Py_ssize_t i):
+        """
+        Return the `i`-th coefficient of ``self``.
+
+        Used as building block for a generic :meth:`__getitem__`.
+        """
         raise NotImplementedError
 
     def __iter__(self):
@@ -7949,8 +8024,12 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __hash__(self):
         return self._hash_c()
 
-    def __getitem__(self, n):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef get_unsafe(self, Py_ssize_t n):
         """
+        Return the `n`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: R.<x> = RDF[]
@@ -7964,25 +8043,8 @@ cdef class Polynomial_generic_dense(Polynomial):
             0.0
             sage: f[:3]
             40.0*x^2 + 10.0*x + 1.0
-            sage: f[2:5]
-            80.0*x^4 + 80.0*x^3 + 40.0*x^2
-            sage: f[2:]
-            32.0*x^5 + 80.0*x^4 + 80.0*x^3 + 40.0*x^2
         """
-        if isinstance(n, slice):
-            start, stop = n.start, n.stop
-            if start <= 0:
-                start = 0
-                zeros = []
-            elif start > 0:
-                zeros = [self._parent.base_ring().zero()] * start
-            if stop is None:
-                stop = len(self.__coeffs)
-            return self._parent(zeros + self.__coeffs[start:stop])
-        else:
-            if n < 0 or n >= len(self.__coeffs):
-                return self.base_ring().zero()
-            return self.__coeffs[n]
+        return self.__coeffs[n]
 
     def _unsafe_mutate(self, n, value):
         """

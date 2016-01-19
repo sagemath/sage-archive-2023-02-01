@@ -1096,6 +1096,9 @@ def gp_console():
         compiled: Jul 21 2010, gcc-4.6.0 20100705 (experimental) (GCC)
         (readline v6.0 enabled, extended help enabled)
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gp magics instead.')
     os.system('gp')
 
 

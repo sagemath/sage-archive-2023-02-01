@@ -5639,8 +5639,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 p2 = p2.reverse()
             prec = d1*d2 + 1
             S = K.base_ring()
-            np1 = (p1.reverse().inverse_series_trunc(prec) * p1.derivative().reverse()).truncate(prec)
-            np2 = (p2.reverse().inverse_series_trunc(prec) * p2.derivative().reverse()).truncate(prec)
+            np1 = p1.reverse().inverse_series_trunc(prec)
+            np1 = np1._mul_trunc_(p1.derivative().reverse(), prec)
+            np2 = p2.reverse().inverse_series_trunc(prec)
+            np2 = np2._mul_trunc_(p2.derivative().reverse(), prec)
             if op in (operator.add, operator.sub):
                 # compute np1e and np2e obtained as "exponential transform" of
                 # np1 and np2 respectively. That is

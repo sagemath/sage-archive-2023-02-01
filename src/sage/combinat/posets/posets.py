@@ -3637,12 +3637,12 @@ class FinitePoset(UniqueRepresentation, Parent):
                 for cc in comps]
 
     def ordinal_components(self):
-        """
+        r"""
         Return the ordinal decomposition of the poset as subposets.
 
-        Ordinal decomposition of poset `P` is a list of non-empty subposets
-        `P_1, \ldots, P_n` so that their ordinal sum is `P` and none of
-        `P_i` can be expressed as a ordinal sum of smaller posets.
+        The ordinal decomposition of a poset `P` is the longest list of
+        non-empty subposets `P_1, \ldots, P_n` whose ordinal sum is `P`. This
+        decomposition is unique.
 
         .. SEEALSO::
 
@@ -3662,22 +3662,17 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         ALGORITHM:
 
-        Suppose that poset `P` is the ordinal sum of posets `L` and
-        `U`. Then `P` contains maximal antichains `l` and `u` such that
-        every element of `u` covers exactly every element of `l` and
-        every element of `l` is covered by exactly every element of `u`; they
-        correspond to maximal elements of `L` and minimal elements
-        of `U`.
+        Suppose that a poset `P` is the ordinal sum of posets `L` and `U`. Then
+        `P` contains maximal antichains `l` and `u` such that every element of
+        `u` covers every element of `l`; they correspond to maximal elements of
+        `L` and minimal elements of `U`.
 
-        We know that the Hasse diagram is a topologically sorted DAG,
-        starting numbering from zero. Hence, if `L` has `n` elements,
-        then `l` contains element `n-1` and `u` contains element
-        `n`.
+        We consider a linear extension `x_1,...x_n` of the poset's elements.
 
-        We keep track of the maximal elements of subposet induced
-        by elements `0..e` and minimal elements of subposet induced
-        by elements `e+1..n`, incrementing `e` one by one. Then we just
-        check if they can be `l` and `u` in previous description.
+        We keep track of the maximal elements of subposet induced by elements
+        `0...x_i` and minimal elements of subposet induced by elements
+        `x_{i+1}...x_n`, incrementing `i` one by one. We then check if `l` and
+        `u` fit the previous description.
 
         TESTS::
 
@@ -3687,19 +3682,22 @@ class FinitePoset(UniqueRepresentation, Parent):
             [Finite poset containing 1 elements]
         """
         n = self.cardinality()
-        if n == 0:
-            return [Poset()]
+        if n <= 0:
+            return [self]
 
         H = self._hasse_diagram
-        cut_points = []
+        cut_points = [-1]
         in_degrees = H.in_degree()
         lower = set([])
         upper = set(H.sources())
 
         for e in range(n):
+
+            # update 'lower' by adding 'e' to it
             lower.add(e)
-            for lc in H.neighbors_in(e):
-                lower.discard(lc)
+            lower.difference_update(H.neighbors_in(e))
+
+            # update 'upper' too
             upper.discard(e)
             up_covers = H.neighbors_out(e)
             for uc in up_covers:
@@ -3721,12 +3719,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         cut_points.append(n-1)
 
-        splits = [-1]+cut_points
         parts = []
-        for i in range(len(splits)-1):
+        for i,j in zip(cut_points,cut_points[1:]):
             parts.append(self.subposet([self._vertex_to_element(e)
-                                        for e in range(splits[i]+1,
-                                                       splits[i+1]+1)]))
+                                        for e in range(i+1,j+1)]))
         return parts
 
     def product(self, other):

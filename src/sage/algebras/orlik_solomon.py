@@ -39,11 +39,15 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
     `e_S := e_{j_1} \wedge e_{j_2} \wedge \cdots \wedge e_{j_t}` under the
     unique derivation `\partial` of `E` which sends all `e_x` to `1`.)
 
-    The *Orlik-Solomon algebra* `A(M)` is the quotient `E / J(M)`. Fix
+    The *Orlik-Solomon algebra* `A(M)` is the quotient `E / J(M)`. This is
+    a graded finite-dimensional skew-commutative `R`-algebra. Fix
     some ordering on `X`; then, the NBC sets of `M` (that is, the subsets
     of `X` containing no broken circuit of `M`) form a basis of `A(M)`.
     (Here, a *broken circuit* of `M` is defined to be the result of
     removing the smallest element from a circuit of `M`.)
+
+    In the current implementation, the basis of `A(M)` is indexed by the
+    NBC sets, which are implemented as frozensets.
 
     INPUT:
 
@@ -158,17 +162,16 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
             sage: M = matroids.Uniform(1, 2)
             sage: OS = M.orlik_solomon_algebra(QQ)
-            sage: OS.algebra_generators() # does not yet work
+            sage: OS.algebra_generators()
             Finite family {0: OS{0}, 1: OS{0}}
 
             sage: M = matroids.Uniform(1, 3)
             sage: OS = M.orlik_solomon_algebra(QQ)
-            sage: OS.algebra_generators() # does not yet work
+            sage: OS.algebra_generators()
             Finite family {0: OS{0}, 1: OS{0}, 2: OS{0}}
         """
         return Family(sorted(self._M.groundset()),
-                      lambda i: self.monomial(frozenset([i])))
-        # BUG: frozenset([i]) is not always an nbc-set (see doctests above).
+                      lambda i: self.subset_image(frozenset([i])))
 
     @cached_method
     def product_on_basis(self, a, b):
@@ -226,7 +229,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
                             multiplicand.append(j)
 
                     # reduce bc, and then return the product
-                    r = self._reduce_broken_circuit(bc)
+                    r = self.subset_image(bc)
                     return R(coeff) * r * self.monomial(frozenset(multiplicand))
 
             # if we got this far, return ns
@@ -244,39 +247,62 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         # now do the multiplication generator by generator
         G = self.algebra_generators()
         for i in sorted(a, key=lambda x: self._sorting[x]):
-            r = G[i] * r 
+            r = G[i] * r
 
         return r
 
     @cached_method
-    def _reduce_broken_circuit(self, bc):
+    def subset_image(self, S):
         """
-        Reduce the broken circuit ``bc`` to a sum of terms with
-        lower term order in ``self``.
+        Return the element `e_S` of `A(M)` (``== self``) corresponding to
+        a subset `S` of the ground set of `M`.
+
+        The set `S` is to be given as a frozenset.
 
         EXAMPLES::
 
             sage: M = matroids.Wheel(3)
             sage: OS = M.orlik_solomon_algebra(QQ)
             sage: BC = sorted(M.broken_circuits(), key=sorted)
-            sage: for bc in BC: (sorted(bc), OS._reduce_broken_circuit(bc))
+            sage: for bc in BC: (sorted(bc), OS.subset_image(bc))
             ([1, 3], OS{0, 3} - OS{0, 1})
-            ([1, 4, 5], OS{0, 1, 4} - OS{0, 1, 5} + OS{0, 4, 5})
-            ([2, 3, 4], OS{0, 2, 3} + OS{0, 3, 4} - OS{0, 2, 4})
-            ([2, 3, 5], OS{1, 3, 5} + OS{1, 2, 3} - OS{1, 2, 5})
+            ([1, 4, 5], OS{0, 1, 4} - OS{0, 3, 5} + OS{0, 3, 4} - OS{0, 1, 5})
+            ([2, 3, 4], -OS{0, 1, 4} + OS{0, 3, 4} + OS{0, 1, 2} + OS{0, 2, 3})
+            ([2, 3, 5], OS{0, 2, 3} + OS{0, 3, 5})
             ([2, 4], -OS{1, 2} + OS{1, 4})
             ([2, 5], OS{0, 5} - OS{0, 2})
             ([4, 5], -OS{3, 4} + OS{3, 5})
+            # TODO: Check this by hand.
+
+            sage: M4 = matroids.CompleteGraphic(4)
+            sage: OS = M4.orlik_solomon_algebra(QQ)
+            sage: OS.subset_image(frozenset({2,3,4}))
+            OS{0, 2, 3} + OS{0, 3, 4}
+
+        .. TODO::
+
+            Doctests with nonstandard ordering.
         """
-        r = self.zero()
-        i = self._broken_circuits[bc]
-        c = self.base_ring().one()
-        for j in sorted(bc, key=lambda x: self._sorting[x]):
-            r += self._from_dict({bc.symmetric_difference({i,j}): c},
-                                 # BUG: bc.symmetric_difference({i,j}) is not always an NBC-set, hence r might be malformed
-                                 remove_zeros=False)
-            c *= -1
-        return r
+        if not type(S) == frozenset:
+            raise ValueError("S needs to be a frozenset")
+        Ss = sorted(S, key=lambda x: self._sorting[x])
+        for bc in self._broken_circuits:
+            if bc.issubset(S):
+                i = self._broken_circuits[bc]
+                if i in S:
+                    # ``S`` contains not just a broken circuit, but an
+                    # actual circuit; then `e_S = 0`.
+                    return self.zero()
+                coeff = self.base_ring().one()
+                # Now, reduce ``S``, and build the result ``r``:
+                r = self.zero()
+                for j in Ss:
+                    if j in bc:
+                        r += coeff * self.subset_image(S.symmetric_difference({i,j}))
+                    coeff *= -1
+                return r
+        else: # So ``S`` is an NBC set.
+            return self.monomial(S)
 
     def degree_on_basis(self, m):
         """

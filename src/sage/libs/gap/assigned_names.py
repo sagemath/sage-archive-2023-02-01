@@ -28,6 +28,14 @@ from sage.libs.gap.libgap import libgap
 from sage.libs.gap.saved_workspace import workspace
 
 
+NamesGVars = libgap.function_factory('NamesGVars')
+Filtered =libgap.function_factory('Filtered')
+ValueGlobal = libgap.function_factory('ValueGlobal')
+IsBoundGlobal = libgap.function_factory('IsBoundGlobal')
+IsFunction = libgap.function_factory('IsFunction')
+IsDocumentedWord = libgap.function_factory('IsDocumentedWord')
+
+
 def load_or_compute(name, function):
     """
     Helper to load a cached value or compute it
@@ -71,10 +79,10 @@ def list_keywords():
 
     Tuple of strings.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.libs.gap.assigned_names import KEYWORDS
-        sage: 'fi' in KEYWORDS
+        sage: 'fi' in KEYWORDS   # indirect doctest
         True
     """
     keywords = libgap.get_global('GAPInfo')['Keywords'].sage()
@@ -92,14 +100,12 @@ def list_globals():
 
     Tuple of strings.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.libs.gap.assigned_names import GLOBALS
-        sage: 'ZassenhausIntersection' in GLOBALS
+        sage: 'ZassenhausIntersection' in GLOBALS   # indirect doctest
         True
     """
-    NamesGVars = libgap.function_factory('NamesGVars')
-    IsBoundGlobal = libgap.function_factory('IsBoundGlobal')
     gvars = set(
         name.sage() for name in NamesGVars()
         if IsBoundGlobal(name)
@@ -119,18 +125,16 @@ def list_functions():
 
     Tuple of strings.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.libs.gap.assigned_names import FUNCTIONS
         sage: 'IsBound' in FUNCTIONS    # is a keyword
         False
-        sage: 'SubdirectProduct' in FUNCTIONS
+        sage: 'SubdirectProduct' in FUNCTIONS    # indirect doctest
         True
     """
-    Filtered =libgap.function_factory('Filtered')
-    IsDocumentedWord = libgap.function_factory('IsDocumentedWord')
-    fnames = libgap.eval('GLOBAL_FUNCTION_NAMES')
-    documented = Filtered(fnames, IsDocumentedWord)
+    fnames = set(GLOBALS).difference(KEYWORDS)
+    documented = Filtered(list(fnames), IsDocumentedWord)
     return tuple(sorted(documented.sage()))
 
 

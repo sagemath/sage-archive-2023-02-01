@@ -543,7 +543,8 @@ cdef class lazy_list_generic(object):
             sage: l._info()
             cache length 0
             start        2
-            stop         9223372036854775807
+            stop         9223372036854775807    # 64-bit
+            stop         2147483647             # 32-bit
             step         3
             sage: l._fit(13)
             1
@@ -859,7 +860,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         sage: loads(dumps(m))
         lazy list [0, 1, 2, ...]
     """
-    def __init__(self, iterator, cache=None):
+    def __init__(self, iterator, cache=None, stop=None):
         r"""
         INPUT:
 
@@ -868,17 +869,24 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         - ``cache`` -- an optional list to be used as the cache. Be careful that
           there is no copy.
 
+        - ``stop`` -- an optional stop point
+
         TESTS::
 
             sage: from sage.misc.lazy_list import lazy_list_from_iterator
             sage: from itertools import count
             sage: lazy_list_from_iterator(count())
             lazy list [0, 1, 2, ...]
-            sage: lazy_list_from_iterator(count(), ['a'])
+            sage: lazy_list_from_iterator(count(), ['a'], 10)
             lazy list ['a', 0, 1, ...]
+            sage: _.info()
+            cache length 4
+            start        0
+            stop         10
+            step         1
         """
         self.iterator = iterator
-        lazy_list_generic.__init__(self, cache)
+        lazy_list_generic.__init__(self, cache, None, stop, None)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
@@ -911,7 +919,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
             sage: loads(dumps(lazy_list_from_iterator(count(), ['a'])))
             lazy list ['a', 0, 1, ...]
         """
-        return lazy_list_from_iterator, (self.iterator, self.cache)
+        return lazy_list_from_iterator, (self.iterator, self.cache, self.stop)
 
 cdef class lazy_list_from_function(lazy_list_generic):
     def __init__(self, function, cache=None, stop=None):

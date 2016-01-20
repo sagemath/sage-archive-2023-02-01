@@ -3667,12 +3667,13 @@ class FinitePoset(UniqueRepresentation, Parent):
         `u` covers every element of `l`; they correspond to maximal elements of
         `L` and minimal elements of `U`.
 
-        We consider a linear extension `x_1,...x_n` of the poset's elements.
+        We consider a linear extension `x_1,\ldots,x_n` of the poset's
+        elements.
 
         We keep track of the maximal elements of subposet induced by elements
-        `0...x_i` and minimal elements of subposet induced by elements
-        `x_{i+1}...x_n`, incrementing `i` one by one. We then check if `l` and
-        `u` fit the previous description.
+        `0,\ldots,x_i` and minimal elements of subposet induced by elements
+        `x_{i+1},\ldots,x_n`, incrementing `i` one by one. We then check if
+        `l` and `u` fit the previous description.
 
         TESTS::
 

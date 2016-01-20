@@ -318,7 +318,7 @@ class PseudoRiemannianMetric(TensorField):
         True
 
     """
-    DERIVED_OBJECTS = ('_connection', '_ricci_scalar', '_weyl',
+    _derived_objects = ('_connection', '_ricci_scalar', '_weyl',
                        '_schouten', '_cotton', '_cotton_york')
 
     def __init__(self, vector_field_module, name, signature=None,
@@ -450,7 +450,7 @@ class PseudoRiemannianMetric(TensorField):
         self._inverse = self._vmodule.tensor((2,0), name=inv_name,
                                              latex_name=inv_latex_name,
                                              sym=(0,1))
-        for attr in self.DERIVED_OBJECTS:
+        for attr in self._derived_objects:
             self.__setattr__(attr, None)
         self._determinants = {} # determinants in various frames
         self._sqrt_abs_dets = {} # sqrt(abs(det g)) in various frames
@@ -473,7 +473,7 @@ class PseudoRiemannianMetric(TensorField):
         self._del_inverse()
         # The connection, Ricci scalar and Weyl tensor are reset to None:
         # The Schouten, Cotton and Cotton-York tensors are reset to None:
-        for attr in self.DERIVED_OBJECTS:
+        for attr in self._derived_objects:
             self.__setattr__(attr, None)
         # The dictionary of determinants over the various frames is cleared:
         self._determinants.clear()
@@ -571,7 +571,7 @@ class PseudoRiemannianMetric(TensorField):
             resu._indic_signat = self._indic_signat
             # Restrictions of derived quantities:
             resu._inverse = self.inverse().restrict(subdomain)
-            for attr in self.DERIVED_OBJECTS:
+            for attr in self._derived_objects:
                 derived = self.__getattribute__(attr)
                 if derived is not None:
                     resu.__setattr__(attr, derived.restrict(subdomain))

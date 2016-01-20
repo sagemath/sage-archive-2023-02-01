@@ -32,6 +32,7 @@ from sage.modules.free_module_element import vector
 from sage.misc.abstract_method import abstract_method
 from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module import VectorSpace
+from sage.functions.other import binomial
 from copy import copy
 
 def random_error_vector(n, F, error_positions):
@@ -750,9 +751,9 @@ class QarySymmetricChannel(Channel):
             ...
             ValueError: Error probability must be between 0 and 1
         """
-        if not hasattr(V, "dimension"):
+        if not hasattr(space, "dimension"):
             raise ValueError("The input space has to be a vector space")
-        if not hasattr(V.base_field(), "random_element"):
+        if not hasattr(space.base_field(), "random_element"):
             raise ValueError("The base field of the input space must have random_element method")
         if epsilon >= 1 or epsilon <= 0:
             raise ValueError("Error probability must be between 0 and 1")
@@ -836,3 +837,44 @@ class QarySymmetricChannel(Channel):
             0.300000000000000
         """
         return self._epsilon
+
+    def probability_of_exactly_t_errors(self, t):
+        r"""
+        Returns the probability ``self`` has to return
+        exactly ``t`` errors.
+
+        INPUT:
+
+        - ``t`` -- an integer
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: Chan.probability_of_exactly_t_errors(15)
+            0.122346861835401
+        """
+        n = self.input_space().dimension()
+        epsilon = self.error_probability()
+        return binomial(n, t) * epsilon**t * (1-epsilon)**(n-t)
+
+    def probability_of_at_most_t_errors(self, t):
+        r"""
+        Returns the probability ``self`` has to return
+        at most ``t`` errors.
+
+        INPUT:
+
+        - ``t`` -- an integer
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: Chan.probability_of_at_most_t_errors(20)
+            0.915197401446172
+        """
+        n = self.input_space().dimension()
+        epsilon = self.error_probability()
+        return sum(binomial(n, i) * epsilon**i * (1-epsilon)**(n-i)
+                for i in range(t))

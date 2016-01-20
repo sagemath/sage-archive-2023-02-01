@@ -1987,15 +1987,6 @@ cdef class RingElement(ModuleElement):
         """
         Top-level floor division operator for ring elements.
         See extensive documentation at the top of element.pyx.
-        """
-        if have_same_parent_c(self, right):
-            return (<RingElement>self)._floordiv_(<RingElement>right)
-        return coercion_model.bin_op(self, right, floordiv)
-
-    cpdef RingElement _floordiv_(self, RingElement right):
-        """
-        Cython classes should override this function to implement floor
-        division. See extensive documentation at the top of element.pyx.
 
         EXAMPLES::
 
@@ -2012,12 +2003,33 @@ cdef class RingElement(ModuleElement):
             ...
             TypeError: unsupported operand parent(s) for '//': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
         """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._floordiv_(<RingElement>right)
+        return coercion_model.bin_op(self, right, floordiv)
+
+    cpdef RingElement _floordiv_(self, RingElement right):
+        """
+        Cython classes should override this function to implement floor
+        division. See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 23._floordiv_(5)
+            4
+        """
         raise TypeError(arith_error_message(self, right, floordiv))
 
     def __ifloordiv__(self, right):
         """
         Top-level in-place floor division operator for ring elements.
         See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: x = 23
+            sage: x //= 7
+            sage: x
+            3
         """
         if have_same_parent_c(self, right):
             return (<RingElement>self)._floordiv_(<RingElement>right)
@@ -3136,6 +3148,21 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
     cpdef RingElement _floordiv_(self, RingElement right):
         """
         Quotient of division of ``self`` by other.  This is denoted //.
+
+        This default implementation assumes that ``quo_rem`` has been
+        implemented.
+
+        EXAMPLES::
+
+            sage: cython('''
+            ....: from sage.structure.element cimport EuclideanDomainElement
+            ....: cdef class MyElt(EuclideanDomainElement):
+            ....:     def quo_rem(self, other):
+            ....:         return self._parent.var('quo,rem')
+            ....: ''')
+            sage: e = MyElt(SR)
+            sage: e // e
+            quo
         """
         Q, _ = self.quo_rem(right)
         return Q
@@ -3144,13 +3171,28 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         Remainder of division of ``self`` by other.
 
+        This default implementation assumes that ``quo_rem`` has been
+        implemented.
+
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: x % (x+1)
             -1
-            sage: (x**3 + x - 1) % (x**2 - 1)
+            sage: (x^3 + x - 1) % (x^2 - 1)
             2*x - 1
+
+        ::
+
+            sage: cython('''
+            ....: from sage.structure.element cimport EuclideanDomainElement
+            ....: cdef class MyElt(EuclideanDomainElement):
+            ....:     def quo_rem(self, other):
+            ....:         return self._parent.var('quo,rem')
+            ....: ''')
+            sage: e = MyElt(SR)
+            sage: e % e
+            rem
         """
         _, R = self.quo_rem(other)
         return R

@@ -732,9 +732,15 @@ class QarySymmetricChannel(Channel):
 
     def __init__(self, space, epsilon):
         r"""
-
-
         TESTS:
+
+        If ``space`` is not a vector space, an error is raised::
+
+            sage: epsilon = 0.42
+            sage: Chan = channels.QarySymmetricChannel(GF(59), epsilon)
+            Traceback (most recent call last):
+            ...
+            ValueError: The input space has to be a vector space
 
         If ``epsilon`` is not between 0 and 1, an error is raised::
 
@@ -744,6 +750,10 @@ class QarySymmetricChannel(Channel):
             ...
             ValueError: Error probability must be between 0 and 1
         """
+        if not hasattr(V, "dimension"):
+            raise ValueError("The input space has to be a vector space")
+        if not hasattr(V.base_field(), "random_element"):
+            raise ValueError("The base field of the input space must have random_element method")
         if epsilon >= 1 or epsilon <= 0:
             raise ValueError("Error probability must be between 0 and 1")
 
@@ -815,7 +825,7 @@ class QarySymmetricChannel(Channel):
 
     def error_probability(self):
         r"""
-        Returns the error probability of an single symbol transmission of
+        Returns the error probability of a single symbol transmission of
         ``self``.
 
         EXAMPLES::

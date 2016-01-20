@@ -30,13 +30,20 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     .. MATH::
 
-        \partial e_S = \sum_{i=1}^t (-1)^{i-1} e_{j_1} \wedge e_{j_2}
-        \wedge \cdots \wedge \widehat{e}_{j_i} \wedge \cdots \wedge e_{j_t},
+        \partial e_S := \sum_{i=1}^t (-1)^{i-1} e_{j_1} \wedge e_{j_2}
+        \wedge \cdots \wedge \widehat{e}_{j_i} \wedge \cdots \wedge e_{j_t}
 
-    where `t = |S|` and we omit `\widehat{e}_{j_i}`, for all `S \in C(M)`.
+    for all `S = \left\{ j_1 < j_2 < \cdots < j_t \right\} \in C(M)`,
+    where `\widehat{e}_{j_i}` means that the term `e_{j_i}` is being
+    omitted. (The notation `\partial e_S` is not a coincidence, as
+    `\partial e_S` is actually the image of `e_S` under the unique
+    derivation `\partial` of `E` which sends all `e_x` to `1`.)
 
     The *Orlik-Solomon algebra* `A(M)` is the quotient `E / J(M)`. Fix
-    some ordering on `X`, then the NBC sets of `M` form a basis of `A(M)`.
+    some ordering on `X`; then, the NBC sets of `M` (that is, the subsets
+    of `X` containing no broken circuit of `M`) form a basis of `A(M)`.
+    (Here, a *broken circuit* of `M` is defined to be the result of
+    removing the smallest element from a circuit of `M`.)
 
     INPUT:
 
@@ -62,7 +69,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
     REFERENCES:
 
     .. [CE01] Raul Cordovil and Gwihen Etienne.
-       *A note on Orlik-Solomon algebra*.
+       *A note on the Orlik-Solomon algebra*.
        Europ. J. Combinatorics. **22** (2001). pp. 165-170.
        http://www.math.ist.utl.pt/~rcordov/Ce.pdf
 

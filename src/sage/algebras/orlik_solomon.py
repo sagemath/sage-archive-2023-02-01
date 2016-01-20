@@ -34,13 +34,14 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     for all `S = \left\{ j_1 < j_2 < \cdots < j_t \right\} \in C(M)`,
     where `\widehat{e}_{j_i}` means that the term `e_{j_i}` is being
-    omitted. (The notation `\partial e_S` is not a coincidence, as
+    omitted. The notation `\partial e_S` is not a coincidence, as
     `\partial e_S` is actually the image of
     `e_S := e_{j_1} \wedge e_{j_2} \wedge \cdots \wedge e_{j_t}` under the
-    unique derivation `\partial` of `E` which sends all `e_x` to `1`.)
+    unique derivation `\partial` of `E` which sends all `e_x` to `1`.
 
     It is easy to see that `\partial e_S \in J(M)` not only for circuits
-    `S`, but also for any dependent set `S` of `M`.
+    `S`, but also for any dependent set `S` of `M`. Moreover, every
+    dependent set `S` of `M` satisfies `e_S \in J(M)`.
 
     The *Orlik-Solomon algebra* `A(M)` is the quotient `E / J(M)`. This is
     a graded finite-dimensional skew-commutative `R`-algebra. Fix
@@ -281,6 +282,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS = M4.orlik_solomon_algebra(QQ)
             sage: OS.subset_image(frozenset({2,3,4}))
             OS{0, 2, 3} + OS{0, 3, 4}
+            # Argh, this is isomorphic to M. Need a better example.
 
         .. TODO::
 

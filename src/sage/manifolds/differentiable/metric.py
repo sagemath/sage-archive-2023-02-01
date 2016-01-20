@@ -1199,7 +1199,7 @@ class PseudoRiemannianMetric(TensorField):
 
         .. MATH::
 
-            Sc(u, v) = \frac{1}{n-2}\left(Ricci(u, v) + \frac{s}{2(n-1)}g(u,v)
+            Sc(u, v) = \frac{1}{n-2}\left(Ric(u, v) + \frac{r}{2(n-1)}g(u,v)
             \right)
 
         for any vector fields `u` and `v`.

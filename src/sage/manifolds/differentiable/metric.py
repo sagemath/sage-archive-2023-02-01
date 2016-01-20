@@ -1258,7 +1258,7 @@ class PseudoRiemannianMetric(TensorField):
 
         .. MATH::
 
-            C_{ijk}=\left(\nabla_i S\right)_{jk}-\left(\nabla_j S\right)_{ik}
+            C_{ijk} = (n-2) \left(\nabla_k S_{ij} - \nabla_j S_{ik}\right)
 
         INPUT:
 
@@ -1302,7 +1302,7 @@ class PseudoRiemannianMetric(TensorField):
         if self._cotton is None:
             nabla = self.connection()
             s = self.schouten()
-            cot = nabla(s).antisymmetrize(0,2)
+            cot = 2*(n-2)*nabla(s).antisymmetrize(1,2)
             name = name or 'Cot(' + self._name + ')'
             latex_name = latex_name or r'\mathrm{Cot}(' + self._latex_name + ')'
             cot.set_name(name=name, latex_name=latex_name)

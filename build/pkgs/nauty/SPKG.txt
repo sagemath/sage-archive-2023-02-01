@@ -8,7 +8,7 @@ generating non-isomorphic graphs with certain properties, etc.
 == License ==
 
 In Oct 2015 Brendan McKay provided the following GPL-compatible licence for
-distrubting nauty with Sage.
+distributing nauty with Sage.
 
    Nauty is copyright (1984-2015) Brendan McKay.  All rights
    reserved.  Permission is hereby given for the use, distribution and
@@ -38,6 +38,9 @@ of the licence above.
 
 
 == Special Packaging Instruction ==
+
+The sources with the appropriate copyright modifications are in
+https://github.com/dimpase/nauty_sagemath
 
 Upstream distribute tarball named nauty${version}.tar.gz. We cannot
 deal with that so rename it nauty-${version}.tar.gz (notice the "-")

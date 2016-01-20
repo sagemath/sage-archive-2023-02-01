@@ -1,4 +1,4 @@
-r""" 
+r"""
 Orlik-Solomon Algebras
 """
 
@@ -38,6 +38,9 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
     `\partial e_S` is actually the image of
     `e_S := e_{j_1} \wedge e_{j_2} \wedge \cdots \wedge e_{j_t}` under the
     unique derivation `\partial` of `E` which sends all `e_x` to `1`.)
+
+    It is easy to see that `\partial e_S \in J(M)` not only for circuits
+    `S`, but also for any dependent set `S` of `M`.
 
     The *Orlik-Solomon algebra* `A(M)` is the quotient `E / J(M)`. This is
     a graded finite-dimensional skew-commutative `R`-algebra. Fix
@@ -204,7 +207,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             return self.basis()[b]
         if not b:
             return self.basis()[a]
-        
+
         if not a.isdisjoint(b):
             return self.zero()
 

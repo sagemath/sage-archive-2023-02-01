@@ -1,11 +1,11 @@
-commit b5b243fb46cfaf2e0bab44a32a249793fd14fba9
+commit 7cf2260b69d3711f9292a3abab4d3a35d0c74059
 Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
 Date:   Thu Jan 14 10:13:39 2016 +0100
 
     Use DEBUGMEM for stack size warnings
 
 diff --git a/src/language/init.c b/src/language/init.c
-index a673cbc..c4b559c 100644
+index fa5c167..5cd1a13 100644
 --- a/src/language/init.c
 +++ b/src/language/init.c
 @@ -722,7 +722,8 @@ parivstack_resize(ulong newsize)
@@ -38,3 +38,16 @@ index a673cbc..c4b559c 100644
  }
  
  void
+diff --git a/src/test/dotest b/src/test/dotest
+index 89c54c4..a101cfc 100755
+--- a/src/test/dotest
++++ b/src/test/dotest
+@@ -80,7 +80,7 @@ for testdata in $testlist; do
+     for suf in $SUF; do
+       file_diff=$testname-$suf.dif
+       gp=$execdir/gp-$suf
+-      (echo 'gettime();0;'; cat $file_in; echo 'print("Total time spent: ",gettime);') | $RUNTEST $gp -q --test  > $file_test 2>&1
++      (echo 'gettime();default(debugmem,1);'; cat $file_in; echo 'print("Total time spent: ",gettime);') | $RUNTEST $gp -q --test  > $file_test 2>&1
+       diff -c $file_out $file_test > $file_diff
+       pat=`grep "^[-+!] " $file_diff | grep -v "Total time"`
+       time=`${tail}1 $file_test | sed -n 's,.*Total time spent: \(.*\),\1,p'`

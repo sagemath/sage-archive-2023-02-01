@@ -216,6 +216,26 @@ class ComplexIntervalField_class(ring.Field):
         """
         return ComplexIntervalField, (self._prec, )
 
+    def _pushout_(self, other):
+        r"""
+        Implement a pushout with real interval fields
+
+        TESTS::
+
+            sage: c = ComplexIntervalField(128).an_element()
+            sage: r = RealIntervalField(64).an_element()
+            sage: c + r
+            1 + 1*I
+            sage: r + c
+            1 + 1*I
+            sage: parent(c+r)
+            Complex Interval Field with 64 bits of precision
+        """
+        from sage.rings.real_mpfi import RealIntervalField_class
+        if isinstance(other, RealIntervalField_class):
+            prec = min(self.prec(), other.prec())
+            return ComplexIntervalField(prec)
+
     def is_exact(self):
         """
         The complex interval field is not exact.

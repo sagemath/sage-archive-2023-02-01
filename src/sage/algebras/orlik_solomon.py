@@ -16,7 +16,6 @@ Orlik-Solomon Algebras
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
-from sage.rings.arith import binomial
 from sage.sets.family import Family
 
 class OrlikSolomonAlgebra(CombinatorialFreeModule):
@@ -36,8 +35,9 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
     for all `S = \left\{ j_1 < j_2 < \cdots < j_t \right\} \in C(M)`,
     where `\widehat{e}_{j_i}` means that the term `e_{j_i}` is being
     omitted. (The notation `\partial e_S` is not a coincidence, as
-    `\partial e_S` is actually the image of `e_S` under the unique
-    derivation `\partial` of `E` which sends all `e_x` to `1`.)
+    `\partial e_S` is actually the image of
+    `e_S := e_{j_1} \wedge e_{j_2} \wedge \cdots \wedge e_{j_t}` under the
+    unique derivation `\partial` of `E` which sends all `e_x` to `1`.)
 
     The *Orlik-Solomon algebra* `A(M)` is the quotient `E / J(M)`. Fix
     some ordering on `X`; then, the NBC sets of `M` (that is, the subsets
@@ -102,7 +102,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     def _repr_term(self, m):
         """
-        Return a string representation of the term indexed by `m`.
+        Return a string representation of the basis element indexed by `m`.
 
         EXAMPLES::
 
@@ -139,22 +139,36 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS.one_basis() == frozenset([])
             True
         """
-        return frozenset({}) 
+        return frozenset({})
 
     @cached_method
     def algebra_generators(self):
         """
         Return the algebra generators of ``self``.
 
+        These form a family indexed by the ground set `X` of `M`. For
+        each `x \in X`, the `x`-th element is `e_x`.
+
         EXAMPLES::
 
-            sage: M = matroids.Uniform(3, 2)
+            sage: M = matroids.Uniform(2, 2)
             sage: OS = M.orlik_solomon_algebra(QQ)
             sage: OS.algebra_generators()
             Finite family {0: OS{0}, 1: OS{1}}
+
+            sage: M = matroids.Uniform(1, 2)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS.algebra_generators() # does not yet work
+            Finite family {0: OS{0}, 1: OS{0}}
+
+            sage: M = matroids.Uniform(1, 3)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS.algebra_generators() # does not yet work
+            Finite family {0: OS{0}, 1: OS{0}, 2: OS{0}}
         """
         return Family(sorted(self._M.groundset()),
                       lambda i: self.monomial(frozenset([i])))
+        # BUG: frozenset([i]) is not always an nbc-set (see doctests above).
 
     @cached_method
     def product_on_basis(self, a, b):
@@ -221,7 +235,11 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         # r is the accumalator
         # we reverse a in the product, so add a sign
         # note that l>=2 here
-        r = self._from_dict({b: R((-1)**binomial(len(a),2))}, remove_zeros=False)
+        if len(a) % 4 < 2:
+            sign = R.one()
+        else:
+            sign = - R.one()
+        r = self._from_dict({b: sign}, remove_zeros=False)
 
         # now do the multiplication generator by generator
         G = self.algebra_generators()
@@ -255,6 +273,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         c = self.base_ring().one()
         for j in sorted(bc, key=lambda x: self._sorting[x]):
             r += self._from_dict({bc.symmetric_difference({i,j}): c},
+                                 # BUG: bc.symmetric_difference({i,j}) is not always an NBC-set, hence r might be malformed
                                  remove_zeros=False)
             c *= -1
         return r

@@ -2814,9 +2814,10 @@ cdef class Matroid(SageObject):
         r"""
         Return the list of broken circuits of ``self``.
 
-        A *broken circuit* `B` for is a subset of the ground set under
-        some total ordering `<` such that `B \cup \{ u \}` is a circuit
-        and `u < b` for all `b \in B`.
+        Let `M` be a matroid with ground set `E`, and let `<` be a total
+        ordering on `E`. A *broken circuit* for `M` means a subset `B` of
+        `E` such that there exists a `u \in E` for which `B \cup \{ u \}`
+        is a circuit of `M` and `u < b` for all `b \in B`.
 
         INPUT:
 

@@ -1,9 +1,9 @@
 r"""
-Points of topological manifolds
+Points of Topological Manifolds
 
-The class :class:`TopologicalManifoldPoint` implements points of a
+The class :class:`ManifoldPoint` implements points of a
 topological manifold.
-A :class:`TopologicalManifoldPoint` object can have coordinates in
+A :class:`ManifoldPoint` object can have coordinates in
 various charts defined on the manifold. Two points are declared equal if they
 have the same coordinates in the same chart.
 
@@ -33,7 +33,7 @@ Defining a point in `\RR^3` by its spherical coordinates::
     sage: p in U
     True
     sage: p.parent()
-    3-dimensional topological manifold R^3
+    Open subset U of the 3-dimensional topological manifold R^3
     sage: c_spher(p)
     (1, 1/2*pi, pi)
     sage: p.coord(c_spher) # equivalent to above
@@ -70,22 +70,22 @@ Points can be compared::
 
 from sage.structure.element import Element
 
-class TopologicalManifoldPoint(Element):
+class ManifoldPoint(Element):
     r"""
     Point of a topological manifold.
 
     This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.manifold.TopologicalManifold`.
+    :class:`~sage.manifolds.manifold.TopologicalManifold`
+    or :class:`~sage.manifolds.subset.ManifoldSubset`
 
     INPUT:
 
-    - ``subset`` -- the manifold subset to which the point belongs (can be
-      the entire manifold)
-    - ``coords`` -- (default: ``None``) the point coordinates (as a tuple or a
-      list) in the chart ``chart``
-    - ``chart`` -- (default: ``None``) chart in which the coordinates are given;
-      if  ``None``, the coordinates are assumed to refer to the subset's
-      default chart
+    - ``parent`` -- the manifold subset to which the point belongs
+    - ``coords`` -- (default: ``None``) the point coordinates (as a tuple
+      or a list) in the chart ``chart``
+    - ``chart`` -- (default: ``None``) chart in which the coordinates are
+      given; if  ``None``, the coordinates are assumed to refer to the
+      default chart of ``parent``
     - ``name`` -- (default: ``None``) name given to the point
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the point;
       if ``None``, the LaTeX symbol is set to ``name``
@@ -105,7 +105,7 @@ class TopologicalManifoldPoint(Element):
         sage: p.coord()  # coordinates of P in the subset's default chart
         (a, b)
 
-    Since points are Sage *elements*, the (facade) *parent* of which being the
+    Since points are Sage *elements*, the *parent* of which being the
     subset on which they are defined, it is equivalent to write::
 
         sage: p = M((a, b), name='P'); p
@@ -119,19 +119,12 @@ class TopologicalManifoldPoint(Element):
         2-dimensional topological manifold M
         sage: U = M.open_subset('U', coord_def={c_xy: x>0})
         sage: q = U.point((2,1), name='q')
+        sage: q.parent()
+        Open subset U of the 2-dimensional topological manifold M
         sage: q in U
         True
         sage: q in M
         True
-
-    Note that the parent of a point is always the manifold, not the subset
-    in which it has been defined (the latter being returned by the method
-    :meth:`containing_set`)::
-
-        sage: q.parent()
-        2-dimensional topological manifold M
-        sage: q.containing_set()
-        Open subset U of the 2-dimensional topological manifold M
 
     By default, the LaTeX symbol of the point is deduced from its name::
 
@@ -147,7 +140,7 @@ class TopologicalManifoldPoint(Element):
     Points can be drawn in 2D or 3D graphics thanks to the method :meth:`plot`.
 
     """
-    def __init__(self, subset, coords=None, chart=None, name=None,
+    def __init__(self, parent, coords=None, chart=None, name=None,
                  latex_name=None, check_coords=True):
         r"""
         Construct a manifold point.
@@ -165,21 +158,21 @@ class TopologicalManifoldPoint(Element):
             sage: TestSuite(q).run()
 
         """
-        Element.__init__(self, subset._manifold)
-        self._manifold = subset._manifold
-        self._subset = subset
+        Element.__init__(self, parent)
+        self._manifold = parent.manifold()  # a useful shortcut
         self._coordinates = {} # dictionary of the point coordinates in various
                                # charts, with the charts as keys
         if coords is not None:
-            if len(coords) != self._manifold._dim:
+            if len(coords) != parent.manifold().dimension():
                 raise ValueError("the number of coordinates must be equal " +
                                  "to the manifold's dimension")
+            from sage.manifolds.manifold import TopologicalManifold
             if chart is None:
-                chart = self._subset._def_chart
-            elif self._subset._is_open:
-                if chart not in self._subset._atlas:
+                chart = parent._def_chart
+            elif isinstance(parent, TopologicalManifold):
+                if chart not in parent._atlas:
                     raise ValueError("the {} has not been".format(chart) +
-                                     "defined on the {}".format(self._subset))
+                                     "defined on the {}".format(parent))
             if check_coords:
                 if not chart.valid_coordinates(*coords):
                     raise ValueError("the coordinates {}".format(coords) +
@@ -243,49 +236,8 @@ class TopologicalManifoldPoint(Element):
         """
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
-        else:
-           return self._latex_name
+        return self._latex_name
 
-    def containing_set(self):
-        r"""
-        Return a manifold subset that contains the point.
-
-        A priori, this method returns the manifold subset (possibly the
-        manifold itself) in which the point has been defined.
-
-        OUTPUT:
-
-        - an instance of
-          :class:`~sage.manifolds.subset.TopologicalManifoldSubset`
-
-        EXAMPLES:
-
-        Points on a 2-dimensional manifold::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: p = M.point((1,3), name='p'); p
-            Point p on the 2-dimensional topological manifold M
-            sage: p.containing_set()
-            2-dimensional topological manifold M
-            sage: U = M.open_subset('U', coord_def={X: x>0})
-            sage: q = U.point((2,1), name='q'); q
-            Point q on the 2-dimensional topological manifold M
-            sage: q.containing_set()
-            Open subset U of the 2-dimensional topological manifold M
-
-        Note that in the present case, the containing set is tighter than the
-        parent, which is always the manifold::
-
-            sage: q.parent()
-            2-dimensional topological manifold M
-            sage: q.containing_set().is_subset(q.parent())
-            True
-            sage: q.containing_set() != q.parent()
-            True
-
-        """
-        return self._subset
 
     def coord(self, chart=None, old_chart=None):
         r"""
@@ -303,10 +255,10 @@ class TopologicalManifoldPoint(Element):
         - ``chart`` -- (default: ``None``) chart in which the coordinates are
           given; if none is provided, the coordinates are assumed to refer to
           the subset's default chart
-        - ``old_chart`` -- (default: ``None``) chart from which the coordinates
-          in ``chart`` are to be computed. If ``None``, a chart in which the
-          point's coordinates are already known will be picked, privileging the
-          subset's default chart.
+        - ``old_chart`` -- (default: ``None``) chart from which the
+          coordinates in ``chart`` are to be computed; if ``None``, a chart
+          in which the point's coordinates are already known will be picked,
+          privileging the subset's default chart
 
         EXAMPLES:
 
@@ -375,7 +327,7 @@ class TopologicalManifoldPoint(Element):
 
         """
         if chart is None:
-            dom = self._subset
+            dom = self.parent()
             chart = dom._def_chart
             def_chart = chart
         else:
@@ -435,8 +387,7 @@ class TopologicalManifoldPoint(Element):
                           "by means of known changes of charts.")
             else:
                 chcoord = dom._coord_changes[(s_old_chart, s_chart)]
-                self._coordinates[chart] = \
-                                    chcoord(*self._coordinates[old_chart])
+                self._coordinates[chart] = chcoord(*self._coordinates[old_chart])
         return self._coordinates[chart]
 
     def set_coord(self, coords, chart=None):
@@ -538,15 +489,15 @@ class TopologicalManifoldPoint(Element):
             {Chart (M, (u, v)): (-1, 5)}
 
         """
-        if len(coords) != self._manifold._dim:
+        if len(coords) != self.parent().manifold()._dim:
             raise ValueError("the number of coordinates must be equal to " +
                              "the manifold's dimension.")
         if chart is None:
-            chart = self._subset._def_chart
+            chart = self.parent()._def_chart
         else:
-            if chart not in self._subset._atlas:
+            if chart not in self.parent()._atlas:
                 raise ValueError("the {}".format(chart) + " has not been " +
-                                 "defined on the {}".format(self._subset))
+                                 "defined on the {}".format(self.parent()))
         self._coordinates[chart] = coords
 
     def __eq__(self, other):
@@ -594,17 +545,18 @@ class TopologicalManifoldPoint(Element):
         """
         if other is self:
             return True
-        if not isinstance(other, TopologicalManifoldPoint):
+        if not isinstance(other, ManifoldPoint):
             return False
-        if other._manifold != self._manifold:
+        if other.parent().manifold() != self.parent().manifold():
             return False
         # Search for a common chart to compare the coordinates
         common_chart = None
         # the subset's default chart is privileged:
-        if hasattr(self._subset, '_def_chart'):  # self._subset is open
-            def_chart = self._subset._def_chart
+        # FIXME: Make this a better test
+        if hasattr(self.parent(), '_def_chart'):  # self.parent() is open
+            def_chart = self.parent()._def_chart
         else:
-            def_chart = self._manifold._def_chart
+            def_chart = self.parent().manifold()._def_chart
         if def_chart in self._coordinates and def_chart in other._coordinates:
             common_chart = def_chart
         else:
@@ -636,8 +588,7 @@ class TopologicalManifoldPoint(Element):
             #!# Another option would be:
             # raise ValueError("no common chart has been found to compare " +
             #                  "{} and {}".format(self, other))
-        return self._coordinates[common_chart] == \
-                                               other._coordinates[common_chart]
+        return self._coordinates[common_chart] == other._coordinates[common_chart]
 
     def __ne__(self, other):
         r"""
@@ -700,7 +651,8 @@ class TopologicalManifoldPoint(Element):
             True
 
         """
-        return hash(self._manifold)
+        return hash(self.parent().manifold())
+
 
     def plot(self, chart=None, ambient_coords=None, mapping=None, size=10,
              color='black', label=None, label_color=None, fontsize=10,
@@ -718,7 +670,7 @@ class TopologicalManifoldPoint(Element):
 
         - ``chart`` -- (default: ``None``) the ambient chart (see above); if
           ``None``, the ambient chart is set the default chart of
-          ``self.containing_set()``
+          ``self.parent()``
         - ``ambient_coords`` -- (default: ``None``) tuple containing the 2 or 3
           coordinates of the ambient chart in terms of which the plot is
           performed; if ``None``, all the coordinates of the ambient chart are
@@ -890,7 +842,7 @@ class TopologicalManifoldPoint(Element):
                                   'fields different from R is not implemented')
         # The ambient chart:
         if chart is None:
-            chart = self.containing_set().default_chart()
+            chart = self.parent().default_chart()
         elif not isinstance(chart, Chart):
             raise TypeError("the argument 'chart' must be a coordinate chart")
         # The effective point to be plotted:

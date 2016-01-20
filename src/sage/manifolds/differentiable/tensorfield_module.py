@@ -1,5 +1,5 @@
 r"""
-Tensor field modules
+Tensor Field Modules
 
 The set of tensor fields along a differentiable manifold `U` with values on
 a differentiable manifold `M` via a differentiable map `\Phi: U\rightarrow M`

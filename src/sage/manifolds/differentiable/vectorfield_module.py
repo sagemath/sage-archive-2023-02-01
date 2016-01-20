@@ -1,5 +1,5 @@
 r"""
-Vector field modules
+Vector Field Modules
 
 The set of vector fields along a differentiable manifold `U` with values on
 a differentiable manifold `M` via a differentiable map `\Phi: U\rightarrow M`
@@ -1174,7 +1174,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         else:
             name += "," + self._dest_map._name + ")"
             latex_name += "," + self._dest_map._latex_name + r"\right)"
-        manif = self._ambient_domain._manifold
+        manif = self._ambient_domain.manifold()
         FiniteRankFreeModule.__init__(self, domain.scalar_field_algebra(),
                                manif._dim, name=name, latex_name=latex_name,
                                start_index=manif._sindex,

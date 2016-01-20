@@ -1,5 +1,5 @@
 r"""
-Coordinate charts
+Coordinate Charts
 
 The class :class:`Chart` implements coordinate charts on a topological manifold
 over a topological field `K`. The subclass :class:`RealChart` is devoted
@@ -40,17 +40,16 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
-from sage.manifolds.manifold import TopologicalManifold
 from sage.manifolds.coord_func_symb import CoordFunctionSymb
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
     Chart on a topological manifold.
 
-    Given a topological manifold `M` of dimension `n` over a topological field
-    `K`, a *chart* on `M` is a pair `(U,\varphi)`, where `U` is an open subset
-    of `M` and `\varphi: U \rightarrow V \subset K^n` is a homeomorphism from
-    `U` to an open subset `V` of `K^n`.
+    Given a topological manifold `M` of dimension `n` over a topological
+    field `K`, a *chart* on `M` is a pair `(U,\varphi)`, where `U` is an
+    open subset of `M` and `\varphi: U \rightarrow V \subset K^n` is a
+    homeomorphism from `U` to an open subset `V` of `K^n`.
 
     The components `(x^1, \ldots, x^n)` of `\varphi`, defined by
     `\varphi(p) = (x^1(p), \ldots, x^n(p)) \in K^n` for any point
@@ -251,6 +250,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: TestSuite(X).run()
 
         """
+        from sage.manifolds.manifold import TopologicalManifold
         if not isinstance(domain, TopologicalManifold):
             raise TypeError("the first argument must be an open subset of " +
                             "a topological manifold")
@@ -2433,11 +2433,7 @@ class CoordChange(SageObject):
             Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
             sage: type(X_to_Y)
             <class 'sage.manifolds.chart.CoordChange'>
-            sage: TestSuite(X_to_Y).run(skip='_test_pickling')
-
-        .. TODO::
-
-            fix _test_pickling
+            sage: TestSuite(X_to_Y).run()
 
         """
         self._n1 = len(chart1._xx)
@@ -2496,6 +2492,55 @@ class CoordChange(SageObject):
 
         """
         return latex(self._chart1) + r' \rightarrow ' + latex(self._chart2)
+
+    def __eq__(self, other):
+        r"""
+        Equality operator.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y == X_to_Y
+            True
+            sage: X_to_Y1 = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y == X_to_Y1
+            True
+            sage: X_to_Y2 = X.transition_map(Y, [2*y, -x])
+            sage: X_to_Y == X_to_Y2
+            False
+            sage: Z.<w,z> = M.chart()
+            sage: X_to_Z = X.transition_map(Z, [x+y, x-y])
+            sage: X_to_Y == X_to_Z
+            False
+
+        """
+        if other is self:
+            return True
+        if not isinstance(other, CoordChange):
+            return False
+        return (self._chart1 == other._chart1) and \
+               (self._chart2 == other._chart2) and \
+               (self._transf == other._transf)
+
+    def __ne__(self, other):
+        r"""
+        Unequality operator.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y2 = X.transition_map(Y, [2*y, -x])
+            sage: X_to_Y != X_to_Y2
+            True
+
+        """
+        return not (self == other)
 
     def __call__(self, *coords):
         r"""
@@ -2833,4 +2878,3 @@ class CoordChange(SageObject):
         return FormattedExpansion(rtxt, rlatex)
 
     disp = display
-

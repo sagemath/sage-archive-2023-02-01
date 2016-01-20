@@ -1,4 +1,4 @@
-Differentiable manifolds
+Differentiable Manifolds
 ========================
 
 .. toctree::

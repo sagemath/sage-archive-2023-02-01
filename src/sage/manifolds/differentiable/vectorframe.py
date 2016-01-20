@@ -1,5 +1,5 @@
 r"""
-Vector frames
+Vector Frames
 
 The class :class:`VectorFrame` implements vector frames on differentiable
 manifolds.
@@ -299,7 +299,7 @@ class VectorFrame(FreeModuleBasis):
         self._ambient_domain = vector_field_module._ambient_domain
         self._dest_map = vector_field_module._dest_map
         self._from_frame = from_frame
-        self._manifold = self._domain._manifold
+        self._manifold = self._domain.manifold()
         if symbol is None:
             if from_frame is None:
                 raise TypeError("some frame symbol must be provided")
@@ -887,7 +887,7 @@ class VectorFrame(FreeModuleBasis):
         INPUT:
 
         - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` in
+          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in
           the domain `U` of the vector frame (denoted `e` hereafter)
 
         OUTPUT:
@@ -1136,7 +1136,7 @@ class CoordFrame(VectorFrame):
         # - force_free=True ensures that a free module is constructed in case
         #   it is the first call to the vector field module on chart._domain
         # - 'X' is a provisory symbol
-        n = self._manifold._dim
+        n = self._manifold.dimension()
         for i in range(n):
             self._vec[i]._name = "d/d" + str(self._chart._xx[i])
             self._vec[i]._latex_name = r"\frac{\partial}{\partial" + \
@@ -1343,7 +1343,7 @@ class CoFrame(FreeModuleCoBasis):
 
         """
         self._domain = frame._domain
-        self._manifold = self._domain._manifold
+        self._manifold = self._domain.manifold()
         FreeModuleCoBasis.__init__(self, frame, symbol,
                                    latex_symbol=latex_symbol)
         # Redefinition of the name and the LaTeX name:
@@ -1387,7 +1387,7 @@ class CoFrame(FreeModuleCoBasis):
         INPUT:
 
         - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` in
+          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in
           the domain `U` of the coframe (denoted `f` hereafter)
 
         OUTPUT:
@@ -1507,7 +1507,7 @@ class CoordCoFrame(CoFrame):
             raise TypeError("the first argument must be a coordinate frame")
         CoFrame.__init__(self, coord_frame, 'X') # 'X' = provisory symbol
         self._chart = coord_frame._chart
-        n = self._manifold._dim
+        n = self._manifold.dimension()
         for i in range(n):
             self._form[i]._name = "d" + str(self._chart._xx[i])
             self._form[i]._latex_name = r"\mathrm{d}" + \

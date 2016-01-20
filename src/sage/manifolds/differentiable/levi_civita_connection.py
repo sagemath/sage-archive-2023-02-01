@@ -1,5 +1,5 @@
 r"""
-Levi-Civita connections
+Levi-Civita Connections
 
 The class :class:`LeviCivitaConnection` implements the Levi-Civita
 connection associated with some pseudo-Riemannian metric on a smooth

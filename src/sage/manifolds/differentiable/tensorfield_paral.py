@@ -1,5 +1,5 @@
 r"""
-Tensor fields with values on a parallelizable manifold
+Tensor Fields with Values on a Parallelizable Manifold
 
 The class :class:`TensorFieldParal` implements tensor fields along a
 differentiable manifolds with values on a parallelizable differentiable
@@ -1700,7 +1700,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         INPUT:
 
         - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` in the
+          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in the
           domain of the tensor field (`U`)
 
         OUTPUT:

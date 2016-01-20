@@ -1,5 +1,5 @@
 r"""
-Coordinate charts on differentiable manifolds
+Coordinate Charts on Differentiable Manifolds
 
 The class :class:`DiffChart` implements coordinate charts on a differentiable
 manifold over a topological field `K` (in most applications, `K = \RR` or

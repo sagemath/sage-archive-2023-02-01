@@ -1,5 +1,5 @@
 r"""
-Tensor fields
+Tensor Fields
 
 The class :class:`TensorField` implements tensor fields on differentiable
 manifolds. The derived class
@@ -3001,7 +3001,7 @@ class TensorField(ModuleElement):
         INPUT:
 
         - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` in the
+          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in the
           domain of the tensor field (`U`)
 
         OUTPUT:

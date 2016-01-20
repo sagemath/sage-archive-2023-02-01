@@ -1,5 +1,5 @@
 r"""
-Sets of morphisms between topological manifolds
+Sets of Morphisms between Topological Manifolds
 
 The class :class:`TopologicalManifoldHomset` implements sets of morphisms between
 two topological manifolds over the same topological field `K`, a morphism

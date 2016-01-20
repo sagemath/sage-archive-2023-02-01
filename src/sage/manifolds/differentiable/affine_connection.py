@@ -1,5 +1,5 @@
 r"""
-Affine connections
+Affine Connections
 
 The class :class:`AffineConnection` implements affine connections on
 smooth manifolds.
@@ -1960,7 +1960,8 @@ class AffineConnection(SageObject):
             sage: check = []
             sage: for i in M.irange():
             ....:     for j in M.irange():
-            ....:         check.append( nab.connection_form(i,j) == sum( nab[[i,j,k]]*dx[k] for k in M.irange() ) )
+            ....:         check.append( nab.connection_form(i,j) == \
+            ....:               sum( nab[[i,j,k]]*dx[k] for k in M.irange() ) )
             ....:
             sage: check
             [True, True, True, True, True, True, True, True, True]
@@ -1976,18 +1977,21 @@ class AffineConnection(SageObject):
             sage: check
             [True, True, True, True, True, True, True, True, True]
 
-        Check of the formula `\nabla_v e_j = \langle \omega^i_{\ \, j}, v \rangle e_i`::
+        Check of the formula
+        `\nabla_v e_j = \langle \omega^i_{\ \, j}, v \rangle e_i`::
 
             sage: v = M.vector_field()
             sage: v[:] = (x*y, z^2-3*x, z+2*y)
             sage: b = M.default_frame()
             sage: for j in M.irange():  # check on M's default frame
-            ....:     nab(b[j]).contract(v) == sum( nab.connection_form(i,j)(v)*b[i] for i in M.irange())
+            ....:     nab(b[j]).contract(v) == \
+            ....:      sum( nab.connection_form(i,j)(v)*b[i] for i in M.irange())
             True
             True
             True
             sage: for j in M.irange():  # check on frame e
-            ....:     nab(e[j]).contract(v) == sum( nab.connection_form(i,j,e)(v)*e[i] for i in M.irange())
+            ....:     nab(e[j]).contract(v) == \
+            ....:      sum( nab.connection_form(i,j,e)(v)*e[i] for i in M.irange())
             True
             True
             True
@@ -2089,7 +2093,8 @@ class AffineConnection(SageObject):
         :meth:`connection_form`). Let us check it on the frame e::
 
             sage: for i in M.irange():  # long time
-            ....:     nab.torsion_form(i, e) == ef[i].exterior_der() + sum(nab.connection_form(i,k,e).wedge(ef[k]) for k in M.irange())
+            ....:     nab.torsion_form(i, e) == ef[i].exterior_der() + \
+            ....:      sum(nab.connection_form(i,j,e).wedge(ef[j]) for j in M.irange())
             ....:
             True
             True
@@ -2177,7 +2182,8 @@ class AffineConnection(SageObject):
             2-form curvature (1,1) of connection nabla w.r.t. Vector frame
              (M, (e_1,e_2,e_3)) on the 3-dimensional differentiable manifold M
             sage: nab.curvature_form(1,1,e).display(e)  # long time (if above is skipped)
-             curvature (1,1) of connection nabla w.r.t. Vector frame (M, (e_1,e_2,e_3)) =
+             curvature (1,1) of connection nabla w.r.t. Vector frame
+             (M, (e_1,e_2,e_3)) =
               (y^3*z^4 + 2*x*y*z + (x*y^4 - x*y)*z^2) e^1/\e^2
               + (x^4*y*z^2 - x^2*y^2) e^1/\e^3 + (x^5*y*z^3 - x*z^2) e^2/\e^3
 
@@ -2195,7 +2201,8 @@ class AffineConnection(SageObject):
             sage: check = []
             sage: for i in M.irange():  # long time
             ....:     for j in M.irange():
-            ....:         check.append( nab.curvature_form(i,j,e) == omega(i,j,e).exterior_der() + \
+            ....:         check.append( nab.curvature_form(i,j,e) == \
+            ....:                       omega(i,j,e).exterior_der() + \
             ....:         sum( omega(i,k,e).wedge(omega(k,j,e)) for k in M.irange()) )
             ....:
             sage: check  # long time

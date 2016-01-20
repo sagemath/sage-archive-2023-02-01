@@ -1,4 +1,4 @@
-Differentiable maps and curves
+Differentiable Maps and Curves
 ==============================
 
 .. toctree::

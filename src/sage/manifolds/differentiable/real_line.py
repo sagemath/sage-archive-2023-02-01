@@ -1,5 +1,5 @@
 r"""
-The real line and open intervals
+The Real Line and Open Intervals
 
 The class :class:`OpenInterval` implement open intervals as 1-dimensional
 differentiable manifolds over `\RR`. The derived class :class:`RealLine` is
@@ -29,6 +29,7 @@ from sage.misc.latex import latex
 from sage.rings.infinity import infinity, minus_infinity
 from sage.symbolic.ring import SR
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
+from sage.manifolds.structure import RealDifferentialStructure
 
 class OpenInterval(DifferentiableManifold):
     r"""
@@ -234,35 +235,37 @@ class OpenInterval(DifferentiableManifold):
         sage: K.list_of_subsets()
         [Real interval (1/2, 1)]
 
-    As any open subset of a manifold, open subintervals are created in the
-    category of facade manifolds (see
-    :meth:`~sage.categories.sets_cat.Sets.SubcategoryMethods.Facade`)::
+    As any open subset of a manifold, open subintervals are created in a
+    category of subobjects of smooth manifolds::
 
         sage: J.category()
-        Category of smooth facade manifolds over Real Field with 53 bits of
-         precision
+        Join of Category of subobjects of sets and Category of smooth manifolds
+         over Real Field with 53 bits of precision
         sage: K.category()
-        Category of smooth facade manifolds over Real Field with 53 bits of
-         precision
+        Join of Category of subobjects of sets and Category of smooth manifolds
+         over Real Field with 53 bits of precision
 
     On the contrary, ``I``, which has not been created as a subinterval, is
-    not in the category of facade smooth manifolds, but directly in that of
-    smooth manifolds (see :class:`~sage.categories.manifolds.Manifolds`)::
+    in the category of smooth manifolds (see
+    :class:`~sage.categories.manifolds.Manifolds`)::
 
         sage: I.category()
         Category of smooth manifolds over Real Field with 53 bits of precision
 
-    Since ``J`` and ``K`` are facade manifolds, the parent of their elements
-    is the whole interval from which they have been created (``I`` in the
-    present case)::
+    and we have::
+
+        sage: J.category() is I.category().Subobjects()
+        True
+
+    All intervals are parents::
 
         sage: x = J(1/2); x
         Point on the Real interval (0, pi)
-        sage: x.parent() is I
+        sage: x.parent() is J
         True
         sage: y = K(3/4); y
         Point on the Real interval (0, pi)
-        sage: y.parent() is I
+        sage: y.parent() is K
         True
 
     We have::
@@ -320,9 +323,12 @@ class OpenInterval(DifferentiableManifold):
                 raise TypeError("the argument subinterval_of must be an open "
                                 + "interval")
             ambient_manifold = subinterval_of.manifold()
-        DifferentiableManifold.__init__(self, 1, name, latex_name=latex_name,
-                              start_index=start_index,
-                              ambient_manifold=ambient_manifold)
+        field = 'real'
+        structure = RealDifferentialStructure()
+        DifferentiableManifold.__init__(self, 1, name, field, structure,
+                                        ambient=ambient_manifold,
+                                        latex_name=latex_name,
+                                        start_index=start_index)
         if subinterval_of is None:
             if coordinate is None:
                 if names is None:

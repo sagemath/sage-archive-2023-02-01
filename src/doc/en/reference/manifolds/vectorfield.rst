@@ -1,4 +1,4 @@
-Vector fields
+Vector Fields
 =============
 
 .. toctree::

@@ -1,5 +1,5 @@
 r"""
-Tangent spaces
+Tangent Spaces
 
 The class :class:`TangentSpace` implements tangent vector spaces to a
 differentiable manifold.
@@ -47,7 +47,7 @@ class TangentSpace(FiniteRankFreeModule):
     INPUT:
 
     - ``point`` -- (instance of
-      :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` at which the
+      :class:`~sage.manifolds.point.ManifoldPoint`) point `p` at which the
       tangent space is defined.
 
     EXAMPLES:
@@ -220,7 +220,7 @@ class TangentSpace(FiniteRankFreeModule):
         self._frame_bases = {} # dictionary of bases of the tangent vector
                                # derived from vector frames (keys: vector
                                # frames)
-        for frame in point._subset._top_frames:
+        for frame in point.parent()._top_frames:
             if point in frame._domain:
                 basis = self.basis(symbol=frame._symbol,
                                    latex_symbol=frame._latex_symbol)
@@ -253,12 +253,12 @@ class TangentSpace(FiniteRankFreeModule):
         # The basis induced by the default frame of the manifold subset
         # in which the point has been created is declared the default
         # basis of self:
-        def_frame = point._subset._def_frame
+        def_frame = point.parent()._def_frame
         if def_frame in self._frame_bases:
             self._def_basis = self._frame_bases[def_frame]
         # Initialization of the changes of bases from the existing changes of
         # frames around the point:
-        for frame_pair, automorph in point._subset._frame_changes.iteritems():
+        for frame_pair, automorph in point.parent()._frame_changes.iteritems():
             if point in automorph.domain():
                 frame1 = frame_pair[0] ; frame2 = frame_pair[1]
                 fr1, fr2 = None, None

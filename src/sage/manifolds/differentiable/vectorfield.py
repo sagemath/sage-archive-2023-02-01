@@ -1,5 +1,5 @@
 r"""
-Vector fields
+Vector Fields
 
 Given two differentiable manifolds `U` and `M` over the same topological field
 `K` and a differentiable map
@@ -34,6 +34,7 @@ is parallelizable or not, i.e. whether the bundle `TM` is trivial or not.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
+- Marco Mancini (2015): parallelization of vector field plots
 
 REFERENCES:
 
@@ -503,10 +504,29 @@ class VectorField(TensorField):
             g = v.plot(max_range=4, nb_values=5, scale=0.5)
             sphinx_plot(g)
 
+        Plot using parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: v.plot(scale=0.5,  nb_values=10, linestyle='--', width=1, arrowsize=6)
+            Graphics object consisting of 100 graphics primitives
+
+        .. PLOT::
+
+            M = Manifold(2, 'M')
+            X = M.chart('x y'); x, y = X[:]
+            v = M.vector_field(name='v'); v[:] = -y, x
+            g = v.plot(scale=0.5,  nb_values=10, linestyle='--', width=1, arrowsize=6)
+            sphinx_plot(g)
+
+        ::
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
         Plots along a line of fixed coordinate::
 
             sage: v.plot(fixed_coords={x: -2})
-            Graphics object consisting of 9 graphics primitives
+            Graphics object consisting of 8 graphics primitives
 
         .. PLOT::
 
@@ -559,7 +579,7 @@ class VectorField(TensorField):
         or, for a 2D plot::
 
             sage: v.plot(ambient_coords=(x, y), fixed_coords={t: 1, z: 0})
-            Graphics object consisting of 80 graphics primitives
+            Graphics object consisting of 64 graphics primitives
 
         .. PLOT::
 
@@ -611,6 +631,9 @@ class VectorField(TensorField):
         from sage.plot.graphics import Graphics
         from sage.manifolds.chart import RealChart
         from sage.manifolds.utilities import set_axes_labels
+        from sage.parallel.decorate import parallel
+        from sage.parallel.parallelism import Parallelism
+
         #
         # 1/ Treatment of input parameters
         #    -----------------------------
@@ -705,38 +728,110 @@ class VectorField(TensorField):
                 raise ValueError("bad number of fixed coordinates")
             for fc, val in fixed_coords.iteritems():
                 xx[chart_domain[:].index(fc)] = val
-        index_p = [chart_domain[:].index(cd) for cd in coords]
+
+
         resu = Graphics()
         ind = [0] * ncp
         ind_max = [0] * ncp
         ind_max[0] = nb_values[coords[0]]
         xmin = [ranges[cd][0] for cd in coords]
         step_tab = [steps[cd] for cd in coords]
-        while ind != ind_max:
-            for i in range(ncp):
-                xx[index_p[i]] = xmin[i] + ind[i]*step_tab[i]
-            if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
+
+        nproc = Parallelism().get('tensor')
+        if nproc != 1 and nca==2 :
+            # parallel plot construct : Only for 2D plot (at  moment) !
+
+            # creation of the list of parameters
+            list_xx = []
+
+            while ind != ind_max:
+                for i in  range(ncp):
+                    xx[i] = xmin[i] + ind[i]*step_tab[i]
+
+                if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
                                               parameters=parameters):
-                point = dom(xx, chart=chart_domain)
-                resu += vector.at(point).plot(chart=chart,
-                                              ambient_coords=ambient_coords,
-                                              mapping=mapping, scale=scale,
-                                              color=color, print_label=False,
-                                              parameters=parameters,
-                                              **extra_options)
-            # Next index:
-            ret = 1
-            for pos in range(ncp-1,-1,-1):
-                imax = nb_values[coords[pos]] - 1
-                if ind[pos] != imax:
-                    ind[pos] += ret
-                    ret = 0
-                elif ret == 1:
-                    if pos == 0:
-                        ind[pos] = imax + 1 # end point reached
+
+                    # needed a xx*1 to copy the list by value
+                    list_xx.append(xx*1)
+
+                # Next index:
+                ret = 1
+                for pos in range(ncp-1,-1,-1):
+                    imax = nb_values[coords[pos]] - 1
+                    if ind[pos] != imax:
+                        ind[pos] += ret
+                        ret = 0
+                    elif ret == 1:
+                        if pos == 0:
+                            ind[pos] = imax + 1 # end point reached
+                        else:
+                            ind[pos] = 0
+                            ret = 1
+
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+            ind_step = max(1,int(len(list_xx)/nproc/2))
+            local_list = lol(list_xx,ind_step)
+
+            # definition of the list of input parameters
+            listParalInput = [(vector,dom,ind_part,
+                               chart_domain,chart,
+                               ambient_coords,mapping,
+                               scale,color,parameters,
+                               extra_options) for ind_part in local_list]
+
+
+            # definition of the parallel function
+            @parallel(p_iter='multiprocessing',ncpus=nproc)
+            def add_point_plot(vector,dom,xx_list,chart_domain,chart,ambient_coords,mapping,scale,color,parameters,extra_options):
+                count = 0
+                for xx in xx_list:
+                    point = dom(xx, chart=chart_domain)
+                    part = vector.at(point).plot(chart=chart,
+                                                 ambient_coords=ambient_coords,
+                                                 mapping=mapping,scale=scale,
+                                                 color=color, print_label=False,
+                                                 parameters=parameters,
+                                                 **extra_options)
+                    if count == 0 :
+                        local_resu = part
                     else:
-                        ind[pos] = 0
-                        ret = 1
+                        local_resu += part
+                    count += 1
+                return local_resu
+
+            # parallel execution and recontruction of the plot
+            for ii, val in add_point_plot(listParalInput):
+                resu += val
+
+        else:
+            while ind != ind_max:
+                for i in  range(ncp):
+                    xx[i] = xmin[i] + ind[i]*step_tab[i]
+
+                if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
+                                                  parameters=parameters):
+                    point = dom(xx, chart=chart_domain)
+                    resu += vector.at(point).plot(chart=chart,
+                                                  ambient_coords=ambient_coords,
+                                                  mapping=mapping, scale=scale,
+                                                  color=color, print_label=False,
+                                                  parameters=parameters,
+                                                  **extra_options)
+
+                # Next index:
+                ret = 1
+                for pos in range(ncp-1,-1,-1):
+                    imax = nb_values[coords[pos]] - 1
+                    if ind[pos] != imax:
+                        ind[pos] += ret
+                        ret = 0
+                    elif ret == 1:
+                        if pos == 0:
+                            ind[pos] = imax + 1 # end point reached
+                        else:
+                            ind[pos] = 0
+                            ret = 1
+
         if label_axes:
             if nca==2:  # 2D graphic
                 # We update the dictionary _extra_kwds (options to be passed

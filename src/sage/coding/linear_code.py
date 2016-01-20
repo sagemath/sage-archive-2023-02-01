@@ -4012,6 +4012,83 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
         return self.code().generator_matrix()
 
 
+
+
+
+
+
+
+
+
+class LinearCodeParityCheckEncoder(Encoder):
+    r"""
+    Encoder based on :meth:`parity_check_matrix` for Linear codes.
+
+    It constructs the generator matrix through the parity check matrix.
+
+    INPUT:
+
+    - ``code`` -- The associated code of this encoder.
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            sage: E
+            Parity check matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeParityCheckEncoder, self).__init__(code)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            sage: E
+            Parity check matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Parity check matrix-based encoder for the %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            sage: latex(E)
+            \textnormal{Parity check matrix-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Parity check matrix-based encoder for the }%s" % self.code()._latex_()
+
+    @cached_method
+    def generator_matrix(self):
+        r"""
+        Returns a generator matrix of the associated code of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            sage: E.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
+        """
+        return self.code().parity_check_matrix().right_kernel_matrix()
+
 ####################### decoders ###############################
 class LinearCodeSyndromeDecoder(Decoder):
     r"""

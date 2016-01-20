@@ -61,7 +61,7 @@ AUTHORS:
 
 import sage.misc.prandom as random
 
-from sage.rings.arith import factor, primitive_root
+from sage.arith.all import factor, primitive_root, CRT_basis
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 import integer_mod
@@ -975,7 +975,6 @@ In the latter case, please inform the developers.""".format(self.order()))
                 vmod.append(w)
                 moduli.append(k)
             # Now combine in all possible ways using the CRT
-            from sage.rings.arith import CRT_basis
             basis = CRT_basis(moduli)
             from sage.misc.mrange import cartesian_product_iterator
             v = []

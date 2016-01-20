@@ -25,7 +25,7 @@ arith_int  = sage.rings.fast_arith.arith_int()
 
 ctypedef long long llong
 
-import sage.rings.arith
+import sage.arith.all
 
 from sage.libs.ntl import all as ntl
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
@@ -136,12 +136,12 @@ def bernoulli_mod_p(int p):
     if p <= 2:
         raise ValueError, "p (=%s) must be a prime >= 3"%p
 
-    if not sage.rings.arith.is_prime(p):
+    if not sage.arith.all.is_prime(p):
         raise ValueError, "p (=%s) must be a prime"%p
 
     cdef int g, gSqr, gInv, gInvSqr, isOdd
 
-    g = sage.rings.arith.primitive_root(p)
+    g = sage.arith.all.primitive_root(p)
     gInv = arith_int.c_inverse_mod_int(g, p)
     gSqr = ((<llong> g) * g) % p
     gInvSqr = ((<llong> gInv) * gInv) % p
@@ -305,7 +305,7 @@ def bernoulli_mod_p_single(long p, long k):
     if p <= 2:
         raise ValueError, "p (=%s) must be a prime >= 3"%p
 
-    if not sage.rings.arith.is_prime(p):
+    if not sage.arith.all.is_prime(p):
         raise ValueError, "p (=%s) must be a prime"%p
 
     R = Integers(p)

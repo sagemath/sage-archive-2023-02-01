@@ -50,7 +50,6 @@ else
 fi
 
 export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-export LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 export CFLAGS
 
 # Old OS X systems need -DSQLITE_WITHOUT_ZONEMALLOC

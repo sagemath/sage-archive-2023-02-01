@@ -1941,8 +1941,7 @@ class FreeModuleTensor(ModuleElement):
             result._components[basis] = other * self._components[basis]
         return result
 
-
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Division (by a scalar).
 
@@ -1969,6 +1968,7 @@ class FreeModuleTensor(ModuleElement):
             result._components[basis] = self._components[basis] / other
         return result
 
+    __div__ = __truediv__
 
     def __call__(self, *args):
         r"""

@@ -67,9 +67,16 @@ class SageSpawn(spawn):
         self.delaybeforesend = None
         self.delayafterread = None
 
-    def spawnpty(self, args, **kwds):
+    def _spawnpty(self, args, **kwds):
         """
         Create an instance of :class:`SagePtyProcess`.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.sagespawn import SageSpawn
+            sage: s = SageSpawn("sleep 1")
+            sage: s.ptyproc
+            SagePtyProcess.spawn(...)
         """
         ptyproc = SagePtyProcess.spawn(args, **kwds)
         ptyproc.quit_string = self.quit_string

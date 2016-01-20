@@ -57,14 +57,18 @@ AUTHORS:
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
 from sage.modular.dirichlet import DirichletGroup, trivial_character
-from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
+from sage.rings.all import ZZ, QQ, IntegerModRing, Qp, Infinity
+from sage.arith.all import divisors
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method

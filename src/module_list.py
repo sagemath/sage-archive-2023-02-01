@@ -192,6 +192,9 @@ ext_modules = [
 
     Extension('*', ['sage/combinat/**/*.pyx']),
 
+    Extension('sage.combinat.subword_complex_c',
+              sources=['sage/combinat/subword_complex_c.pyx']),
+
     ################################
     ##
     ## sage.crypto
@@ -571,18 +574,6 @@ ext_modules = [
     Extension('sage.libs.lrcalc.lrcalc',
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
-    Extension('sage.libs.mwrank.mwrank',
-              sources = ["sage/libs/mwrank/mwrank.pyx",
-                         "sage/libs/mwrank/wrap.cc"],
-              define_macros = [("NTL_ALL",None)],
-              depends = ["sage/libs/mwrank/wrap.h"] +
-                        [ SAGE_INC + "/eclib/" + h for h in
-                          ["curve.h","egr.h","descent.h","points.h","isogs.h",
-                            "marith.h","htconst.h","interface.h"]
-                        ],
-              libraries = ["ec", "pari",
-                           "ntl", "gmp", "gmpxx", "stdc++", "m"]),
-
     Extension('sage.libs.pari.closure',
               sources = ["sage/libs/pari/closure.pyx"],
               libraries = ['pari', 'gmp']),
@@ -665,6 +656,14 @@ ext_modules = [
     Extension('sage.libs.mpmath.ext_libmp',
               sources = ["sage/libs/mpmath/ext_libmp.pyx"]),
 
+    ###################################
+    ##
+    ## sage.libs.eclib
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/eclib/*.pyx"]),
+
     ################################
     ##
     ## sage.libs.gap
@@ -682,33 +681,6 @@ ext_modules = [
     Extension('sage.libs.gap.libgap',
               sources = ["sage/libs/gap/libgap.pyx"],
               libraries = ['gmp', 'gap', 'm']),
-
-    ###################################
-    ##
-    ## sage.libs.cremona
-    ##
-    ###################################
-
-    Extension('sage.libs.cremona.homspace',
-              sources = ["sage/libs/cremona/homspace.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)]),
-
-    Extension('sage.libs.cremona.mat',
-              sources = ["sage/libs/cremona/mat.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)]),
-
-    Extension('sage.libs.cremona.newforms',
-              sources = ["sage/libs/cremona/newforms.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)]),
 
     ###################################
     ##
@@ -1071,9 +1043,15 @@ ext_modules = [
               ["sage/numerical/linear_tensor_element.pyx"],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.sdp",
+              ["sage/numerical/sdp.pyx"]),
+
     Extension("sage.numerical.backends.generic_backend",
               ["sage/numerical/backends/generic_backend.pyx"],
               libraries=["stdc++"]),
+
+    Extension("sage.numerical.backends.generic_sdp_backend",
+              ["sage/numerical/backends/generic_sdp_backend.pyx"]),
 
     Extension("sage.numerical.backends.glpk_backend",
               ["sage/numerical/backends/glpk_backend.pyx"]),
@@ -1083,8 +1061,10 @@ ext_modules = [
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.cvxopt_backend",
-              ["sage/numerical/backends/cvxopt_backend.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/backends/cvxopt_backend.pyx"]),
+
+    Extension("sage.numerical.backends.cvxopt_sdp_backend",
+              ["sage/numerical/backends/cvxopt_sdp_backend.pyx"]),
 
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"]),

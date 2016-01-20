@@ -635,7 +635,7 @@ cdef class Ring(ParentWithGens):
         """
         return self.quotient(I, names=names)
 
-    def __div__(self, I):
+    def __truediv__(self, I):
         """
         Dividing one ring by another is not supported because there is no good
         way to specify generator names.
@@ -647,8 +647,7 @@ cdef class Ring(ParentWithGens):
             ...
             TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
         """
-        raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
-        #return self.quotient(I, names=None)
+        raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
     def quotient_ring(self, I, names=None):
         """

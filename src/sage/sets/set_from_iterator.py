@@ -81,7 +81,7 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``args`` -- tuple -- arguments to be sent to the function ``f``
 
-    - ``kwds`` -- dictionnary -- keywords to be sent to the function ``f``
+    - ``kwds`` -- dictionary -- keywords to be sent to the function ``f``
 
     - ``name`` -- an optional name for the set
 

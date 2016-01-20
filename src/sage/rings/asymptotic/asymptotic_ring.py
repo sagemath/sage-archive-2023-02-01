@@ -654,6 +654,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Asymptotic Ring <x^QQ> over Integer Ring
             > *previous* ValueError: 1/2 is not a coefficient in
             Exact Term Monoid x^QQ with coefficients in Integer Ring.
+
+        Check :trac:`19921`::
+
+            sage: CR.<Z> = QQ['Z']
+            sage: CR_mod = CR.quotient((Z^2 - 1)*CR)
+            sage: R.<x> = AsymptoticRing(growth_group='x^NN', coefficient_ring=CR)
+            sage: R_mod = R.change_parameter(coefficient_ring=CR_mod)
+            sage: e = 1 + x*(Z^2-1)
+            sage: R_mod(e)
+            1
         """
         super(AsymptoticExpansion, self).__init__(parent=parent)
 
@@ -664,11 +674,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         if convert:
             from misc import combine_exceptions
-            from term_monoid import TermMonoid
+            from term_monoid import TermMonoid, ZeroCoefficientError
             def convert_terms(element):
                 T = TermMonoid(term=element.parent(), asymptotic_ring=parent)
                 try:
                     return T(element)
+                except ZeroCoefficientError:
+                    return None
                 except (ValueError, TypeError) as e:
                     raise combine_exceptions(
                         ValueError('Cannot include %s with parent %s in %s' %

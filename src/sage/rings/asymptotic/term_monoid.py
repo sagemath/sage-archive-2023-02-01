@@ -222,6 +222,8 @@ Classes and Methods
 
 import sage
 
+class ZeroCoefficientError(ValueError):
+    pass
 
 def absorption(left, right):
     r"""
@@ -2570,7 +2572,7 @@ class TermWithCoefficient(GenericTerm):
             sage: t = CT_ZZ(x^42, 0)
             Traceback (most recent call last):
             ...
-            ValueError:  Zero coefficient 0 is not allowed in
+            ZeroCoefficientError:  Zero coefficient 0 is not allowed in
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
 
         The conversion of growth elements also works for the creation
@@ -2587,8 +2589,9 @@ class TermWithCoefficient(GenericTerm):
             raise ValueError('%s is not a coefficient in %s.' %
                              (coefficient, parent))
         if coefficient == 0:
-            raise ValueError('Zero coefficient %s is not allowed in %s.' %
-                             (coefficient, parent))
+            raise ZeroCoefficientError(
+                'Zero coefficient %s is not allowed in %s.' %
+                (coefficient, parent))
 
         self.coefficient = coefficient
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)

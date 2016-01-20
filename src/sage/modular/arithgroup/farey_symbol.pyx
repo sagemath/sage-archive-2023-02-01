@@ -24,7 +24,6 @@ include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 
 from .farey cimport *
-import sage.rings.arith
 from sage.rings.all import CC, RR
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity

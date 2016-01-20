@@ -1318,8 +1318,8 @@ class PseudoRiemannianMetric(TensorField):
 
         .. MATH::
 
-            CY_{ij} = \frac{1}{2}C_{kli} g_{jm} \frac{\epsilon^{klm}}{\sqrt{\det g}}
-            =g_{jm}\left(\nabla_k S \right)_{li}\frac{\epsilon^{klm}}{\sqrt{\det{g}}}
+            CY_{ij} = \frac{1}{2} \epsilon^{kl}_{\quad i} C_{jlk} 
+                    = \epsilon^{kl}_{\quad i} \nabla_k S_{lj}
 
         INPUT:
 
@@ -1343,29 +1343,26 @@ class PseudoRiemannianMetric(TensorField):
             sage: M = Manifold(3, 'RxS', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.riemannian_metric('g')
-            sage: _f = function('F')(y, z)
-            sage: f = X.domain().scalar_field(_f)
-            sage: g[1,1], g[2,2], g[3,3] = 1, f, f
+            sage: g[1,1], g[2,2], g[2,3], g[3,3] = 1, 1+x^2, -x, 1
             sage: g.display()
-            g = dx*dx + F(y, z) dy*dy + F(y, z) dz*dz
+            g = dx*dx + (x^2 + 1) dy*dy - x dy*dz - x dz*dy + dz*dz
             sage: CY = g.cotton_york() ; CY # long time
-            Tensor field of type (0,2) on the 3-dimensional differentiable
-             manifold RxS
+            Tensor field CY(g) of type (0,2) on the 3-dimensional differentiable manifold RxS
             sage: det(CY[:]) # long time
-            0
+            -1/4
 
         """
         n = self._ambient_domain.dimension()
-        if n < 3:
+        if n != 3:
             raise ValueError("the Cotton-York tensor is only defined for a " +
                              "manifold of dimension 3")
         if self._cotton_york is None:
             cot = self.cotton()
             eps = self.volume_form(2)
-            cy = -cot.contract(0,2,eps,0,1)
+            cy = eps.contract(0, 1, cot, 2, 1)/2
             name = name or 'CY(' + self._name + ')'
             latex_name = latex_name or r'\mathrm{CY}(' + self._latex_name + ')'
-            cot.set_name(name=name, latex_name=latex_name)
+            cy.set_name(name=name, latex_name=latex_name)
             self._cotton_york = cy
         return self._cotton_york
 

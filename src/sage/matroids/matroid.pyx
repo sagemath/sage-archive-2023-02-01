@@ -136,6 +136,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`chow_ring() <sage.matroids.matroid.Matroid.chow_ring>`
     - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
     - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
+    - :meth:`orlik_solomon_algebra() <sage.matroids.matroid.Matroid.orlik_solomon_algebra>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -2890,6 +2891,30 @@ cdef class Matroid(SageObject):
                 if add:
                     ret.append(I)
         return ret
+
+    def orlik_solomon_algebra(self, R, ordering=None):
+        """
+        Return the Orlik-Solomon algebra of ``self``.
+
+        INPUT:
+
+        - ``R`` -- the base ring
+        - ``ordering`` -- (optional) an ordering of the ground set
+
+        .. SEEALSO::
+
+            :class:`~sage.algebras.orlik_solomon.OrlikSolomonAlgebra`
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(3, 4)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            Orlik-Solomon algebra of U(3, 4): Matroid of rank 3 on 4 elements
+             with circuit-closures
+             {3: {{0, 1, 2, 3}}}
+        """
+        from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
+        return OrlikSolomonAlgebra(R, self, ordering)
 
     # polytopes
 

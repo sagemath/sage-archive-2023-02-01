@@ -5,6 +5,29 @@ Given an input space and an output space, a channel takes element from
 the input space (the message) and transforms it into an element of the output space
 (the transmitted message).
 
+In Sage, Channels simulate error-prone transmission over communication
+channels, and we borrow the nomenclature from communication theory, such as
+"transmission" and "positions" as the elements of transmitted vectors.
+Transmission can be achieved with two methods:
+
+- :meth:`Channel.transmit`. Considering a channel ``Chan`` and a message
+  ``msg``, transmitting ``msg`` with ``Chan`` can be done this way::
+
+    Chan.transmit(msg)
+
+  It can also be written in a more convenient way::
+
+    Chan(msg)
+
+- :meth:`transmit_unsafe`. This does the exact same thing as
+  :meth:`transmit` except that it does not check if ``msg`` belongs to the
+  input space of ``Chan``::
+
+    Chan.transmit_unsafe(msg)
+
+This is useful in e.g. an inner-loop of a long simulation as a
+lighter-weight alternative to :meth:`Channel.transmit`.
+
 This file contains the following elements:
 
     - :class:`Channel`, the abstract class for Channels
@@ -273,24 +296,6 @@ class StaticErrorRateChannel(Channel):
 
     The input space and the output space of this channel are the same.
 
-    The main purpose of communication channels is to transmit messages, which can be achieved with
-    two methods:
-
-    - with the method :meth:`Channel.transmit`. Considering a channel ``Chan``
-      and a message ``msg``, transmitting
-      ``msg`` with ``Chan`` can be done this way::
-
-        Chan.transmit(msg)
-
-      It can also be written in a more convenient way::
-
-        Chan(msg)
-
-    - with the method :meth:`transmit_unsafe`. It does the exact same thing as :meth:`transmit` except
-      that it does not check if ``msg`` belongs to the input space of ``Chan``::
-
-        Chan.transmit_unsafe(msg)
-
     INPUT:
 
     - ``space`` -- the space of both input and output
@@ -448,24 +453,6 @@ class ErrorErasureChannel(Channel):
 
     The output space of this channel is a Cartesian product
     between its input space and a VectorSpace of the same dimension over GF(2)
-
-    The main purpose of communication channels is to transmit messages, which can be achieved with
-    two methods:
-
-    - with the method :meth:`Channel.transmit`. Considering a channel ``Chan``
-      and a message ``msg``, transmitting
-      ``msg`` with ``Chan`` can be done this way::
-
-        Chan.transmit(msg)
-
-      It can also be written in a more convenient way::
-
-        Chan(msg)
-
-    - with the method :meth:`transmit_unsafe`. It does the exact same thing as :meth:`transmit` except
-      that it does not check if ``msg`` belongs to the input space of ``Chan``::
-
-        Chan.transmit_unsafe(msg)
 
     INPUT:
 
@@ -688,29 +675,6 @@ class QarySymmetricChannel(Channel):
 
     The input space and the output space of this channel are the same:
     `\Sigma^n`.
-
-    In Sage, Channels simulate error-prone transmission over communication
-    channels, and we borrow the nomenclature from communication theory, such as
-    "transmission" and "positions" as the elements of transmitted vectors.
-    Transmission can be achieved with two methods:
-
-    - :meth:`Channel.transmit`. Considering a channel ``Chan`` and a message
-      ``msg``, transmitting ``msg`` with ``Chan`` can be done this way::
-
-        Chan.transmit(msg)
-
-      It can also be written in a more convenient way::
-
-        Chan(msg)
-
-    - :meth:`transmit_unsafe`. This does the exact same thing as
-      :meth:`transmit` except that it does not check if ``msg`` belongs to the
-      input space of ``Chan``::
-
-        Chan.transmit_unsafe(msg)
-
-      This is useful in e.g. an inner-loop of a long simulation as a
-      lighter-weight alternative to :meth:`Channel.transmit`.
 
     INPUT:
 

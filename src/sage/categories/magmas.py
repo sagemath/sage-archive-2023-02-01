@@ -504,7 +504,7 @@ class Magmas(Category_singleton):
 
             def __div__(left, right):
                 """
-                Return the result of the division of ``left`` by ``right``, if it exists.
+                Return the result of the division of ``left`` by ``right``, if possible.
 
                 This top-level implementation delegates the work to
                 the ``_div_`` method if ``left`` and ``right`` have
@@ -525,7 +525,7 @@ class Magmas(Category_singleton):
                     sage: c1 / c2
                     (x0*x1^-1, x1*x0^-1)
 
-                Testing that division supports coercion::
+                Division supports coercion::
 
                     sage: C = cartesian_product([G,G])
                     sage: H = Hom(G, C)
@@ -535,6 +535,19 @@ class Magmas(Category_singleton):
                     (x1*x0^-1, 1)
                     sage: c1 / x1
                     (x0*x1^-1, 1)
+
+                Depending on how the division itself is implemented in
+                :meth:`_div_`, division may fail even when ``right``
+                actually divides ``left``::
+
+                    sage: x = cartesian_product([2,1])
+                    sage: y = cartesian_product([1,1])
+                    sage: x / y
+                    (2, 1)
+                    sage: x / x
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: no conversion of this rational to integer
 
                 TESTS::
 
@@ -562,6 +575,19 @@ class Magmas(Category_singleton):
                     sage: c2 = cartesian_product([x1,x0])
                     sage: c1._div_(c2)
                     (x0*x1^-1, x1*x0^-1)
+
+                With this implementation, division will fail as soon
+                as ``right`` is not invertible, even if ``right``
+                actually divides ``left``::
+
+                    sage: x = cartesian_product([2,1])
+                    sage: y = cartesian_product([1,1])
+                    sage: x / y
+                    (2, 1)
+                    sage: x / x
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: no conversion of this rational to integer
 
                 TESTS::
 

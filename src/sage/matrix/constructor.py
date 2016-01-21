@@ -806,10 +806,10 @@ def prepare(w):
         return Sequence([], rings.ZZ), rings.ZZ
     entries = Sequence(w)
     ring = entries.universe()
-    if not is_Ring(ring):
+    if isinstance(ring,type):
         ring = py_scalar_parent(ring)
-        if ring is None:
-            raise TypeError("unable to find a common ring for all elements")
+    if not is_Ring(ring):
+        raise TypeError("unable to find a common ring for all elements")
     return entries, ring
 
 def prepare_dict(w):

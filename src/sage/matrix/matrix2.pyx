@@ -1902,10 +1902,10 @@ cdef class Matrix(matrix1.Matrix):
             if R is None:
                 R = sage.structure.sequence.Sequence(values).universe()
 
-        if not is_Ring(R):
+        if isinstance(R, type):
             R = py_scalar_parent(R)
-            if R is None:
-                raise TypeError("unable to find a common ring for all elements")
+        if not is_Ring(R):
+            raise TypeError("unable to find a common ring for all elements")
 
         if sparse is None or sparse is self.is_sparse():
             M = self.parent().change_ring(R)

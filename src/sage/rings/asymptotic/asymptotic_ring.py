@@ -1350,8 +1350,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             0
         """
         from term_monoid import ExactTerm
-        return self.parent([term for term in self.summands.elements_topological()
-                            if isinstance(term, ExactTerm)])
+        exact_terms = self.summands.copy()
+        for term in self.summands.elements_topological():
+            if not isinstance(term, ExactTerm):
+                exact_terms.remove(term.growth)
+
+        return self.parent(exact_terms)
 
 
     def __pow__(self, exponent, precision=None):

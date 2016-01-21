@@ -836,9 +836,7 @@ class QarySymmetricChannel(Channel):
             sage: epsilon = 0.3
             sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
             sage: Chan.probability_of_at_most_t_errors(20)
-            0.915197401446172
+            0.952236164579467
         """
-        n = self.input_space().dimension()
-        epsilon = self.error_probability()
-        return sum(binomial(n, i) * epsilon**i * (1-epsilon)**(n-i)
-                for i in range(t))
+        return sum(self.probability_of_exactly_t_errors(i)
+                for i in range(t+1))

@@ -184,6 +184,7 @@ from sage.misc.all import verbose
 from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 # The Axiom commands ")what thing det" ")show Matrix" and ")display
 # op det" commands, gives a list of all identifiers that begin in
@@ -191,7 +192,7 @@ from sage.misc.multireplace import multiple_replace
 # axiom has a lot a lot of ways for getting documentation from the
 # system -- this could also be useful.
 
-class PanAxiom(Expect):
+class PanAxiom(ExtraTabCompletion, Expect):
     """
     Interface to a PanAxiom interpreter.
     """
@@ -317,14 +318,14 @@ class PanAxiom(Expect):
         return s
 
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         Returns a list of all the commands defined in Axiom and optionally
         (per default) store them to disk.
 
         EXAMPLES::
 
-            sage: c = axiom.trait_names(use_disk_cache=False, verbose=False) #optional - axiom
+            sage: c = axiom._tab_completion(use_disk_cache=False, verbose=False) #optional - axiom
             sage: len(c) > 100  #optional - axiom
             True
             sage: 'factor' in c  #optional - axiom
@@ -339,13 +340,13 @@ class PanAxiom(Expect):
             True
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(self._COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(self._COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose:
@@ -364,7 +365,7 @@ class PanAxiom(Expect):
             names += [x[:-1]+"_q" for x in v if x.endswith("?")]
             names += [x[:-1]+"_e" for x in v if x.endswith("!")]
 
-            self.__trait_names = names
+            self.__tab_completion = names
             if len(v) > 200:
                 # Axiom is actually installed.
                 sage.misc.persist.save(v, self._COMMANDS_CACHE)

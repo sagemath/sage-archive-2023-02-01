@@ -637,13 +637,23 @@ class Hyperplane(LinearExpression):
         EXAMPLES::
 
             sage: L.<x, y> = HyperplaneArrangements(QQ)
-            sage: h = -1/3*x + 1/2*y - 1
+            sage: h = -1/3*x + 1/2*y
             sage: h.to_symmetric_space()
             -1/3*x + 1/2*y
+
+            sage: hp = -1/3*x + 1/2*y - 1
+            sage: hp.to_symmetric_space()
+            Traceback (most recent call last):
+            ...
+            ValueError: the hyperplane must pass through the origin
         """
+        coeff = self.coefficients()
+        if coeff[0] != 0:
+            raise ValueError("the hyperplane must pass through the origin")
         S = self.parent().symmetric_space()
         G = S.gens()
-        return S.sum(G[i]*c for i,c in enumerate(self.coefficients()[1:]))
+        # We skip the first coefficient since it corresponds to the constant term
+        return S.sum(G[i]*c for i,c in enumerate(coeff[1:]))
 
 class AmbientVectorSpace(LinearExpressionModule):
     """

@@ -277,6 +277,15 @@ class CoxeterGroups(Category_singleton):
             roughly Constant Amortized Time and constant memory
             (taking the operations and size of the generated objects
             as constants).
+
+            TESTS:
+
+            We iterate over each level (i.e., breadth-first-search in the
+            search forest), see :trac:`19926`::
+
+                sage: W = CoxeterGroup(['A',2])
+                sage: [x.length() for x in W]
+                [0, 1, 1, 2, 2, 3]
             """
             from sage.combinat.backtrack import SearchForest
             def succ(u):
@@ -287,7 +296,8 @@ class CoxeterGroups(Category_singleton):
                 return
             from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
             default_category = FiniteEnumeratedSets() if self in FiniteCoxeterGroups() else EnumeratedSets()
-            return SearchForest((self.one(),), succ, category = default_category.or_subcategory(category))
+            return SearchForest((self.one(),), succ, algorithm='breadth',
+                                category = default_category.or_subcategory(category))
 
         def grassmannian_elements(self, side = "right"):
             """

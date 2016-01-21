@@ -9,7 +9,7 @@ We currently have the following models:
 * :class:`PolyhedralRealization <sage.combinat.crystals.polyhedral_realization.InfinityCrystalAsPolyhedralRealization>`
 * :class:`RiggedConfigurations
   <sage.combinat.rigged_configurations.rc_infinity.InfinityCrystalOfRiggedConfigurations>`
-* :class:`StarCrystal <sage.combinat.crystals.star_crystal.StarCrystal>`
+* :class:`Star <sage.combinat.crystals.star_crystal.StarCrystal>`
 * :class:`Tableaux <sage.combinat.crystals.infinity_crystals.InfinityCrystalOfTableaux>`
 """
 from generalized_young_walls import InfinityCrystalOfGeneralizedYoungWalls as GeneralizedYoungWalls

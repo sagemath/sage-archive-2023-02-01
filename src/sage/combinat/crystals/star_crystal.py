@@ -1,5 +1,5 @@
 r"""
-The star-crystal structure on `B(\infty)`
+Star-Crystal Structure On `B(\infty)`
 
 AUTHORS:
 
@@ -8,21 +8,16 @@ AUTHORS:
 - Travis Scrimshaw: Initial version
 """
 
-#*******************************************************************************
+#*****************************************************************************
 #       Copyright (C) 2016 Ben Salisbury <ben DOT salisbury AT cmich DOT edu>
 #                          Travis Scrimshaw <tscrimsh AT umn DOT edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*******************************************************************************
+#*****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -50,7 +45,7 @@ class StarCrystal(UniqueRepresentation, Parent):
         (q^h)^* = q^{-h},
 
     where `E_i` and `F_i` are the Chevalley generators of `U_q(\mathfrak{g})`
-    and `h` is an element of the Cartan.
+    and `h` is an element of the Cartan subalgebra.
 
     The induced operation on the crystal `B(\infty)` is called the
     *Kashiwara involution*.  Its implementation here is based on the

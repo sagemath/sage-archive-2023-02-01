@@ -7,8 +7,9 @@ The GUAVA wrappers are in guava.py.
 
 All codes available here can be accessed through the ``codes`` object::
 
-    sage: codes.HammingCode(3,GF(2))
-    Linear code of length 7, dimension 4 over Finite Field of size 2
+    sage: codes.HammingCode(GF(2), 3)
+    [7, 4] Hamming Code over Finite Field of size 2
+
 
 Let `F` be a finite field with `q` elements.
 Here's a constructive definition of a cyclic code of length
@@ -928,18 +929,22 @@ def LinearCodeFromCheckMatrix(H):
 
     EXAMPLES::
 
-        sage: C = codes.HammingCode(3,GF(2))
+        sage: C = codes.HammingCode(GF(2), 3)
         sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
-        sage: codes.LinearCodeFromCheckMatrix(H) == C
+        sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
+        sage: Gc = C.generator_matrix().echelon_form()
+        sage: Gh == Gc
         True
-        sage: C = codes.HammingCode(2,GF(3))
+        sage: C = codes.HammingCode(GF(3), 2)
         sage: H = C.parity_check_matrix(); H
         [1 0 1 1]
         [0 1 1 2]
-        sage: codes.LinearCodeFromCheckMatrix(H) == C
+        sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
+        sage: Gc = C.generator_matrix().echelon_form()
+        sage: Gh == Gc
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
         sage: H = C.parity_check_matrix()

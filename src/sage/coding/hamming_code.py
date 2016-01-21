@@ -66,7 +66,7 @@ class HammingCode(AbstractLinearCode):
         """
         if isinstance(base_field, (Integer, int)) and isinstance(order, Field):
             from sage.misc.superseded import deprecation
-            deprecation(42042, "codes.HammingCode(r, F) is now deprecated. Please use codes.HammingCode(F, r) instead.")
+            deprecation(19930, "codes.HammingCode(r, F) is now deprecated. Please use codes.HammingCode(F, r) instead.")
             tmp = copy(order)
             order = copy(base_field)
             base_field = copy(tmp)

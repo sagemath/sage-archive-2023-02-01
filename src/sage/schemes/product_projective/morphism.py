@@ -9,7 +9,7 @@ EXAMPLES::
     sage: H = End(P1xP1)
     sage: H([x^2*u, y^2*v, x*v^2, y*u^2])
     Scheme endomorphism of Product of projective spaces P^1 x P^1 over Rational Field
-      Defn: Defined by sending (x : y , u : v) to 
+      Defn: Defined by sending (x : y , u : v) to
             (x^2*u : y^2*v , x*v^2 : y*u^2).
 """
 #*****************************************************************************
@@ -36,11 +36,11 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         sage: H = T.Hom(T)
         sage: H([x^2,y^2,z^2,w^2,u^2])
         Scheme endomorphism of Product of projective spaces P^2 x P^1 over Rational Field
-          Defn: Defined by sending (x : y : z , w : u) to 
+          Defn: Defined by sending (x : y : z , w : u) to
                 (x^2 : y^2 : z^2 , w^2 : u^2).
     """
 
-    def __init__(self, parent, polys, check = True):
+    def __init__(self, parent, polys, check=True):
         r"""
         The Python constructor.
 
@@ -59,7 +59,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: H = T.Hom(T)
             sage: H([x^2*u,y^2*w,z^2*u,w^2,u^2])
             Scheme endomorphism of Product of projective spaces P^2 x P^1 over Rational Field
-              Defn: Defined by sending (x : y : z , w : u) to 
+              Defn: Defined by sending (x : y : z , w : u) to
                     (x^2*u : y^2*w : z^2*u , w^2 : u^2).
 
         ::
@@ -146,7 +146,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         Return a string representation of ``self``.
 
         OUTPUT:
-        
+
         String.
 
         EXAMPLES::
@@ -164,7 +164,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         s += '.'
         return s
 
-    def __call__(self, P, check = True):
+    def __call__(self, P, check=True):
         r"""
         Make morphisms of products of projective spaces callable.
 
@@ -198,7 +198,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         ::
 
-            sage: PP.<t0,t1,t2,t3,t4>=ProductProjectiveSpaces([2,1], ZZ)
+            sage: PP.<t0,t1,t2,t3,t4> = ProductProjectiveSpaces([2,1], ZZ)
             sage: Q = PP([1,1,1,2,1])
             sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2], ZZ)
             sage: H = End(Z)
@@ -266,7 +266,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: P.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
             sage: Q.<a,b,c,d,e> = ProductProjectiveSpaces([1,2],QQ)
             sage: H = Hom(P,Q)
-            sage: f = H([x^2,y^2,z^3,w^3,u^3])
+            sage: f = H([x^2,y^2,u^3,w^3,u^3])
             sage: f.is_morphism()
             False
         """
@@ -385,7 +385,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: f.nth_iterate_map(3)
             Scheme endomorphism of Product of projective spaces P^1 x P^2 over
             Rational Field
-              Defn: Defined by sending (a : b , x : y : z) to 
+              Defn: Defined by sending (a : b , x : y : z) to
                     (a^27 : b^27 , x^8 : y^8 : z^8).
         """
         if not self.is_endomorphism():

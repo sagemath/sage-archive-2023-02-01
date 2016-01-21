@@ -1326,7 +1326,7 @@ done from the right side.""")
         if not is_FreeModule(other):
             raise TypeError("other must be a free module")
         if other.base_ring() != self.base_ring():
-            raise TypeError("base rins of self and other must be the same")
+            raise TypeError("base rings of self and other must be the same")
         return self.basis_matrix().block_sum(other.basis_matrix()).row_module(self.base_ring())
 
     def coordinates(self, v, check=True):
@@ -5401,7 +5401,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if len(B) == 0:
             return 1
         d = B[0].denominator()
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         for x in B[1:]:
             d = lcm(d,x.denominator())
         return d

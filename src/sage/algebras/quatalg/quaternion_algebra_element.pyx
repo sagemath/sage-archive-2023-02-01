@@ -22,7 +22,6 @@ from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, 
 from sage.algebras.quatalg.quaternion_algebra_element cimport QuaternionAlgebraElement_abstract
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
-from sage.rings.arith import lcm
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.all import PolynomialRing

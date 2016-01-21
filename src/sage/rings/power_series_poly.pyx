@@ -8,7 +8,6 @@ The class ``PowerSeries_poly`` provides additional methods for univariate power 
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
-import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field

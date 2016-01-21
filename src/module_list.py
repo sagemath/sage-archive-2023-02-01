@@ -1043,9 +1043,15 @@ ext_modules = [
               ["sage/numerical/linear_tensor_element.pyx"],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.sdp",
+              ["sage/numerical/sdp.pyx"]),
+
     Extension("sage.numerical.backends.generic_backend",
               ["sage/numerical/backends/generic_backend.pyx"],
               libraries=["stdc++"]),
+
+    Extension("sage.numerical.backends.generic_sdp_backend",
+              ["sage/numerical/backends/generic_sdp_backend.pyx"]),
 
     Extension("sage.numerical.backends.glpk_backend",
               ["sage/numerical/backends/glpk_backend.pyx"]),
@@ -1055,8 +1061,10 @@ ext_modules = [
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.cvxopt_backend",
-              ["sage/numerical/backends/cvxopt_backend.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/backends/cvxopt_backend.pyx"]),
+
+    Extension("sage.numerical.backends.cvxopt_sdp_backend",
+              ["sage/numerical/backends/cvxopt_sdp_backend.pyx"]),
 
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"]),

@@ -959,7 +959,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
-class GapElement_generic(ExpectElement):
+class GapElement_generic(ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
 

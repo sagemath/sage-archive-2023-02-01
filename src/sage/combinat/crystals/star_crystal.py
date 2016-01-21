@@ -38,8 +38,9 @@ class StarCrystal(UniqueRepresentation, Parent):
     The star-crystal or `*`-crystal version of a highest weight crystal.
 
     The `*`-crystal structure on `B(\infty)` is the structure induced by
-    the algebra antiautomorphism `* : U_q(\mathfrak{g}) \to U_q(\mathfrak{g})`
-    that stabilizes the negative half `U_q^-(\mathfrak{g})`.  It is defined by
+    the algebra antiautomorphism `* \colon U_q(\mathfrak{g}) \longrightarrow
+    U_q(\mathfrak{g})` that stabilizes the negative half `U_q^-(\mathfrak{g})`.
+    It is defined by
 
     .. MATH::
 

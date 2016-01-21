@@ -3577,9 +3577,9 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     INPUT:
 
-    - ``term`` -- the kind of term that shall be created. Either a string
-      ``'exact'`` or ``'O'`` (capital letter ``O``),
-      or an existing instance of a term.
+    - ``term_monoid`` -- the kind of terms held in the new term monoid.
+      Either a string ``'exact'`` or ``'O'`` (capital letter ``O``),
+      or an existing instance of a term monoid.
 
     - ``growth_group`` -- a growth group.
 
@@ -3670,7 +3670,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         running ._test_prod() . . . pass
         running ._test_some_elements() . . . pass
     """
-    def create_key_and_extra_args(self, term,
+    def create_key_and_extra_args(self, term_monoid,
                                   growth_group=None, coefficient_ring=None,
                                   asymptotic_ring=None,
                                   **kwds):
@@ -3707,16 +3707,16 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: Integer Ring has to be an asymptotic growth group
         """
-        if isinstance(term, GenericTermMonoid):
+        if isinstance(term_monoid, GenericTermMonoid):
             from misc import underlying_class
-            term_class = underlying_class(term)
-        elif term == 'O':
+            term_class = underlying_class(term_monoid)
+        elif term_monoid == 'O':
             term_class = OTermMonoid
-        elif term == 'exact':
+        elif term_monoid == 'exact':
             term_class = ExactTermMonoid
         else:
             raise ValueError("Term specification '%s' has to be either 'exact' or 'O' "
-                             "or an instance of an existing term." % term)
+                             "or an instance of an existing term." % term_monoid)
 
         if asymptotic_ring is not None and \
                 (growth_group is not None or coefficient_ring is not None):
@@ -3735,7 +3735,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
         if coefficient_ring is None:
             raise ValueError("A coefficient ring has to be specified to "
-                             "create a term monoid of type '%s'" % (term,))
+                             "create a term monoid of type '%s'" % (term_monoid,))
 
         return (term_class, growth_group, coefficient_ring), kwds
 

@@ -666,7 +666,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             from misc import combine_exceptions
             from term_monoid import TermMonoid
             def convert_terms(element):
-                T = TermMonoid(term=element.parent(), asymptotic_ring=parent)
+                T = TermMonoid(term_monoid=element.parent(), asymptotic_ring=parent)
                 try:
                     return T(element)
                 except (ValueError, TypeError) as e:
@@ -1313,7 +1313,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             if convert_terms.count < precision:
                 convert_terms.count += 1
                 return element
-            T = TermMonoid(term='O', asymptotic_ring=self.parent())
+            T = TermMonoid(term_monoid='O', asymptotic_ring=self.parent())
             return T(element)
         convert_terms.count = 0
         summands.map(convert_terms, topological=True, reverse=True)

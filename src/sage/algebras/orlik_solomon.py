@@ -189,7 +189,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS = M.orlik_solomon_algebra(QQ)
             sage: G = OS.algebra_generators()
             sage: OS.product_on_basis(frozenset([2]), frozenset([3,4]))
-            OS{0, 2, 3} + OS{0, 3, 4} + OS{0, 1, 2} - OS{0, 1, 4}
+            -OS{0, 1, 4} + OS{0, 3, 4} + OS{0, 1, 2} + OS{0, 2, 3}
 
         ::
 
@@ -198,7 +198,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: G[2] * G[4]
             -OS{1, 2} + OS{1, 4}
             sage: G[3] * G[4] * G[2]
-            OS{0, 2, 3} + OS{0, 3, 4} + OS{0, 1, 2} - OS{0, 1, 4}
+            -OS{0, 1, 4} + OS{0, 3, 4} + OS{0, 1, 2} + OS{0, 2, 3}
             sage: G[2] * G[3] * G[4]
             OS{0, 2, 3} + OS{0, 3, 4} + OS{0, 1, 2} - OS{0, 1, 4}
             sage: G[3] * G[2] * G[4]
@@ -221,23 +221,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             ns_sorted = sorted(ns, key=lambda x: self._sorting[x])
             coeff = (-1)**ns_sorted.index(i)
 
-            # now look for a broken circuit to reduce
-            for bc in self._broken_circuits:
-                if bc.issubset(ns):
-                    multiplicand = []
-                    # express ns as a product of bc * multiplicand
-                    for j in ns_sorted:
-                        if j in bc:
-                            coeff *= (-1)**len(multiplicand)
-                        else:
-                            multiplicand.append(j)
-
-                    # reduce bc, and then return the product
-                    r = self.subset_image(bc)
-                    return R(coeff) * r * self.monomial(frozenset(multiplicand))
-
-            # if we got this far, return ns
-            return self._from_dict({ns: coeff}, remove_zeros=False)
+            return R(coeff) * self.subset_image(ns)
 
         # r is the accumalator
         # we reverse a in the product, so add a sign

@@ -266,6 +266,8 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                                            for j in range(n)},
                               coerce=True, copy=True)
                 for i in range(n)]
+        # Make the generators dense matrices for consistancy and speed
+        gens = [g.dense_matrix() for g in gens]
         category = CoxeterGroups()
         # Now we shall see if the group is finite, and, if so, refine
         # the category to ``category.Finite()``. Otherwise the group is

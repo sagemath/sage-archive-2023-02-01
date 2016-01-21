@@ -402,8 +402,10 @@ cdef class GapElement(RingElement):
         EXAMPLES::
 
             sage: G = libgap.DihedralGroup(4)
-            sage: 'GeneratorsOfGroup' in dir(G)
+            sage: 'GeneratorsOfMagmaWithInverses' in dir(G)
             True
+            sage: 'GeneratorsOfGroup' in dir(G)    # known bug
+            False
             sage: x = libgap(1)
             sage: len(dir(x)) > 100
             True

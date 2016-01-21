@@ -62,14 +62,45 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
 
     INPUT:
 
-    - ``n`` -- the number of generators
     - ``d`` -- the maximum power of `t`
+    - ``n`` -- the number of generators
     - ``q`` -- (optional) an invertible element in a commutative ring;
       the default is `q \in \QQ[q,q^{-1}]`
     - ``R`` -- (optional) a commutative ring containing ``q``; the
       default is the parent of `q`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    We construct `Y_{4,3}` and do some computations::
+
+        sage: Y = algebras.YokonumaHecke(4, 3)
+        sage: g1, g2, t1, t2, t3 = Y.algebra_generators()
+        sage: g1 * g2
+        g[1,2]
+        sage: t1 * g1
+        t1*g[1]
+        sage: g2 * t2
+        t3*g[2]
+        sage: g2 * t3
+        t2*g[2]
+        sage: (g2 + t1) * (g1 + t2*t3)
+        g[2,1] + t2*t3*g[2] + t1*g[1] + t1*t2*t3
+        sage: g1 * g1
+        1 - (1/4*q^-1-1/4*q)*g[1] - (1/4*q^-1-1/4*q)*t1*t2^3*g[1]
+         - (1/4*q^-1-1/4*q)*t1^2*t2^2*g[1] - (1/4*q^-1-1/4*q)*t1^3*t2*g[1]
+        sage: g2 * g1 * t1
+        t3*g[2,1]
+
+    We construct the elements `e_i` and show that they are idempotents::
+
+        sage: e1 = Y.e(1); e1
+        1/4 + 1/4*t1*t2^3 + 1/4*t1^2*t2^2 + 1/4*t1^3*t2
+        sage: e1 * e1 == e1
+        True
+        sage: e2 = Y.e(2); e2
+        1/4 + 1/4*t2*t3^3 + 1/4*t2^2*t3^2 + 1/4*t2^3*t3
+        sage: e2 * e2 == e2
+        True
 
     REFERENCES:
 
@@ -119,7 +150,8 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: Y = algebras.YokonumaHecke(5, 3)
-            sage: TestSuite(Y).run()
+            sage: elts = Y.some_elements() + list(Y.algebra_generators())
+            sage: TestSuite(Y).run(elements=elts)
         """
         self._d = d
         self._n = n
@@ -332,12 +364,20 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
             sage: 4 * Y.product_on_basis(m, m)
             -(q^-1-q)*t2^2*g[1] + 4*t1*t2 - (q^-1-q)*t1*t2*g[1]
              - (q^-1-q)*t1^2*g[1] - (q^-1-q)*t1^3*t2^3*g[1]
+
+        Check that we apply the permutation correctly on `t_i`::
+
+            sage: Y = algebras.YokonumaHecke(4, 3)
+            sage: g1, g2, t1, t2, t3 = Y.algebra_generators()
+            sage: g21 = g2 * g1
+            sage: g21 * t1
+            t3*g[2,1]
         """
         t1,g1 = m1
         t2,g2 = m2
         # Commmute g1 and t2, then multiply t1 and t2
         #ig1 = g1
-        t = [(t1[i] + t2[g1[i]-1]) % self._d for i in range(self._n)]
+        t = [(t1[i] + t2[g1.index(i+1)]) % self._d for i in range(self._n)]
         one = self._Pn.one()
         if g1 == one:
             return self.monomial((tuple(t), g2))

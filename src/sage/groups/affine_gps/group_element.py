@@ -40,9 +40,9 @@ AUTHORS:
 
 from sage.matrix.matrix import is_Matrix
 from sage.misc.cachefunc import cached_method
-from sage.groups.matrix_gps.group_element import MatrixGroupElement_base
+from sage.structure.element import MultiplicativeGroupElement
 
-class AffineGroupElement(MatrixGroupElement_base):
+class AffineGroupElement(MultiplicativeGroupElement):
     """
     An affine group element.
 
@@ -415,4 +415,27 @@ class AffineGroupElement(MatrixGroupElement_base):
         if (c != 0):
             return c
         return cmp(self._b, other._b)
+
+    def list(self):
+        """
+        Return list representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = AffineGroup(3, QQ)
+            sage: g = F([1,2,3,4,5,6,7,8,0], [10,11,12])
+            sage: g
+                  [1 2 3]     [10]
+            x |-> [4 5 6] x + [11]
+                  [7 8 0]     [12]
+            sage: g.matrix()
+            [ 1  2  3|10]
+            [ 4  5  6|11]
+            [ 7  8  0|12]
+            [--------+--]
+            [ 0  0  0| 1]
+            sage: g.list()
+            [[1, 2, 3, 10], [4, 5, 6, 11], [7, 8, 0, 12], [0, 0, 0, 1]]
+        """
+        return [r.list() for r in self.matrix().rows()]
 

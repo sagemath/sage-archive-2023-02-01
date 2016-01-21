@@ -3038,6 +3038,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         ::
 
+            sage: Z = R.change_parameter(coefficient_ring=Zmod(3))
+            sage: Z.create_summand('exact', data=42)
+            0
+
+        ::
+
             sage: R.create_summand('O', growth=42*x^2, coefficient=1)
             Traceback (most recent call last):
             ...
@@ -3053,7 +3059,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             TypeError: Cannot create exact term: only 'growth' but
             no 'coefficient' specified.
         """
-        from term_monoid import TermMonoid
+        from term_monoid import TermMonoid, ZeroCoefficientError
         TM = TermMonoid(type, asymptotic_ring=self)
 
         if data is None:
@@ -3065,11 +3071,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 raise TypeError("Cannot create exact term: only 'growth' "
                                 "but no 'coefficient' specified.")
 
-
-        if type == 'exact' and kwds.get('coefficient') == 0:
+        try:
+            return self(TM(data, **kwds), simplify=False, convert=False)
+        except ZeroCoefficientError:
             return self.zero()
-
-        return self(TM(data, **kwds), simplify=False, convert=False)
 
 
     def variable_names(self):

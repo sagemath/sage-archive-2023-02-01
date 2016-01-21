@@ -72,7 +72,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         sage: M.broken_circuits()
         frozenset({frozenset({1, 2, 3})})
         sage: G[1] * G[2] * G[3]
-        OS{0, 2, 3} + OS{0, 1, 2} - OS{0, 1, 3}
+        OS{0, 1, 2} - OS{0, 1, 3} + OS{0, 2, 3}
 
     REFERENCES:
 
@@ -83,6 +83,25 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     - :wikipedia:`Arrangement_of_hyperplanes#The_Orlik-Solomon_algebra`
     """
+    @staticmethod
+    def __classcall_private__(cls, R, M, ordering=None):
+        """
+        Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: M = matroids.Wheel(3)
+            sage: from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
+            sage: OS1 = OrlikSolomonAlgebra(QQ, M)
+            sage: OS2 = OrlikSolomonAlgebra(QQ, M, ordering=(0,1,2,3,4,5))
+            sage: OS3 = OrlikSolomonAlgebra(QQ, M, ordering=[0,1,2,3,4,5])
+            sage: OS1 is OS2 and OS2 is OS3
+            True
+        """
+        if ordering is None:
+            ordering = sorted(M.groundset())
+        return super(OrlikSolomonAlgebra, cls).__classcall__(cls, R, M, tuple(ordering))
+
     def __init__(self, R, M, ordering=None):
         """
         Initialize ``self``.
@@ -92,9 +111,16 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: M = matroids.Wheel(3)
             sage: OS = M.orlik_solomon_algebra(QQ)
             sage: TestSuite(OS).run()
+
+        We check on the matroid associated to the graph with 3 vertices and
+        2 edges between each vertex::
+
+            sage: G = Graph([[1,2],[1,2],[2,3],[2,3],[1,3],[1,3]], multiedges=True)
+            sage: M = Matroid(G)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: elts = OS.some_elements() + list(OS.algebra_generators())
+            sage: TestSuite(OS).run(elements=elts)
         """
-        if ordering is None:
-            ordering = sorted(M.groundset())
         self._M = M
         self._sorting = {x:i for i,x in enumerate(ordering)}
 
@@ -106,7 +132,29 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
         cat = Algebras(R).FiniteDimensional().WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, M.no_broken_circuits_sets(ordering),
-                                         prefix='OS', bracket='{', category=cat)
+                                         prefix='OS', bracket='{',
+                                         generator_cmp=self._cmp_term,
+                                         category=cat)
+
+    def _cmp_term(self, x, y):
+        """
+        Compare the terms indexed by ``x`` and ``y``.
+
+        EXAMPLES::
+
+            sage: M = matroids.Wheel(3)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS._cmp_term(frozenset({1, 2}), frozenset({1, 4}))
+            -1
+            sage: OS._cmp_term(frozenset({0, 1, 2}), frozenset({1, 4}))
+            -1
+            sage: OS._cmp_term(frozenset({}), frozenset({1, 4}))
+            1
+        """
+        c = cmp(len(x), len(y))
+        if c != 0:
+            return -c
+        return cmp(sorted(x), sorted(y))
 
     def _repr_term(self, m):
         """
@@ -187,22 +235,22 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
             sage: M = matroids.Wheel(3)
             sage: OS = M.orlik_solomon_algebra(QQ)
-            sage: G = OS.algebra_generators()
             sage: OS.product_on_basis(frozenset([2]), frozenset([3,4]))
-            -OS{0, 1, 4} + OS{0, 3, 4} + OS{0, 1, 2} + OS{0, 2, 3}
+            OS{0, 1, 2} - OS{0, 1, 4} + OS{0, 2, 3} + OS{0, 3, 4}
 
         ::
 
+            sage: G = OS.algebra_generators()
             sage: prod(G)
             0
             sage: G[2] * G[4]
             -OS{1, 2} + OS{1, 4}
             sage: G[3] * G[4] * G[2]
-            -OS{0, 1, 4} + OS{0, 3, 4} + OS{0, 1, 2} + OS{0, 2, 3}
+            OS{0, 1, 2} - OS{0, 1, 4} + OS{0, 2, 3} + OS{0, 3, 4}
             sage: G[2] * G[3] * G[4]
-            OS{0, 2, 3} + OS{0, 3, 4} + OS{0, 1, 2} - OS{0, 1, 4}
+            OS{0, 1, 2} - OS{0, 1, 4} + OS{0, 2, 3} + OS{0, 3, 4}
             sage: G[3] * G[2] * G[4]
-            -OS{0, 2, 3} - OS{0, 3, 4} - OS{0, 1, 2} + OS{0, 1, 4}
+            -OS{0, 1, 2} + OS{0, 1, 4} - OS{0, 2, 3} - OS{0, 3, 4}
         """
         if not a:
             return self.basis()[b]
@@ -253,26 +301,37 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS = M.orlik_solomon_algebra(QQ)
             sage: BC = sorted(M.broken_circuits(), key=sorted)
             sage: for bc in BC: (sorted(bc), OS.subset_image(bc))
-            ([1, 3], OS{0, 3} - OS{0, 1})
-            ([1, 4, 5], OS{0, 1, 4} - OS{0, 3, 5} + OS{0, 3, 4} - OS{0, 1, 5})
-            ([2, 3, 4], -OS{0, 1, 4} + OS{0, 3, 4} + OS{0, 1, 2} + OS{0, 2, 3})
+            ([1, 3], -OS{0, 1} + OS{0, 3})
+            ([1, 4, 5], OS{0, 1, 4} - OS{0, 1, 5} - OS{0, 3, 4} + OS{0, 3, 5})
+            ([2, 3, 4], OS{0, 1, 2} - OS{0, 1, 4} + OS{0, 2, 3} + OS{0, 3, 4})
             ([2, 3, 5], OS{0, 2, 3} + OS{0, 3, 5})
             ([2, 4], -OS{1, 2} + OS{1, 4})
-            ([2, 5], OS{0, 5} - OS{0, 2})
+            ([2, 5], -OS{0, 2} + OS{0, 5})
             ([4, 5], -OS{3, 4} + OS{3, 5})
-            # TODO: Check this by hand.
 
             sage: M4 = matroids.CompleteGraphic(4)
             sage: OS = M4.orlik_solomon_algebra(QQ)
             sage: OS.subset_image(frozenset({2,3,4}))
             OS{0, 2, 3} + OS{0, 3, 4}
-            # Argh, this is isomorphic to M. Need a better example.
 
-        .. TODO::
+        TESTS:
 
-            Doctests with nonstandard ordering.
+        We check on a non-standard ordering::
+
+            sage: M = matroids.Wheel(3)
+            sage: o = [5,4,3,2,1,0]
+            sage: OS = M.orlik_solomon_algebra(QQ, ordering=o)
+            sage: BC = sorted(M.broken_circuits(ordering=o), key=sorted)
+            sage: for bc in BC: (sorted(bc), OS.subset_image(bc))
+            ([0, 1], OS{0, 3} - OS{1, 3})
+            ([0, 1, 4], OS{0, 3, 5} - OS{0, 4, 5} - OS{1, 3, 5} + OS{1, 4, 5})
+            ([0, 2], OS{0, 5} - OS{2, 5})
+            ([0, 2, 3], -OS{0, 3, 5} + OS{2, 3, 5})
+            ([1, 2], OS{1, 4} - OS{2, 4})
+            ([1, 2, 3], -OS{1, 3, 5} + OS{1, 4, 5} + OS{2, 3, 5} - OS{2, 4, 5})
+            ([3, 4], OS{3, 5} - OS{4, 5})
         """
-        if not type(S) == frozenset:
+        if not isinstance(S, frozenset):
             raise ValueError("S needs to be a frozenset")
         for bc in self._broken_circuits:
             if bc.issubset(S):

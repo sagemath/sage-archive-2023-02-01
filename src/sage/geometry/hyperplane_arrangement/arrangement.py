@@ -331,7 +331,6 @@ REFERENCES:
 
 # Possible extensions for hyperplane_arrangement.py:
 # - the big face lattice
-# - Orlik-Solomon algebras
 # - create ties with the Sage matroid methods
 # - hyperplane arrangements over other fields
 
@@ -1966,12 +1965,14 @@ class HyperplaneArrangementElement(Element):
         from sage.matroids.constructor import Matroid
         return Matroid(matrix=matrix(norms).transpose())
 
-    def orlik_solomon_algebra(self, ordering=None):
+    def orlik_solomon_algebra(self, base_ring=None, ordering=None):
         """
         Return the Orlik-Solomon algebra of ``self``.
 
         INPUT:
 
+        - ``base_ring`` -- (default: the base field of ``self``) the ring
+          over which the Orlik-Solomon algebra will be defined
         - ``ordering`` -- (optional) an ordering of the ground set
 
         EXAMPLES::
@@ -1981,8 +1982,13 @@ class HyperplaneArrangementElement(Element):
             sage: A.orlik_solomon_algebra()
             Orlik-Solomon algebra of Linear matroid of rank 3 on 7 elements
              represented over the Rational Field
+            sage: A.orlik_solomon_algebra(base_ring=ZZ)
+            Orlik-Solomon algebra of Linear matroid of rank 3 on 7 elements
+             represented over the Rational Field
         """
-        return self.matroid().orlik_solomon_algebra(self.base_ring(), ordering)
+        if base_ring is None:
+            base_ring = self.base_ring()
+        return self.matroid().orlik_solomon_algebra(base_ring, ordering)
 
     @cached_method
     def minimal_generated_number(self):

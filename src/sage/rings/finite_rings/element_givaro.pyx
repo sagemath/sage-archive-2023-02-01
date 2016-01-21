@@ -70,8 +70,6 @@ from sage.libs.pari.all import pari
 from sage.libs.pari.gen cimport gen
 
 from sage.structure.parent cimport Parent
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.superseded import deprecated_function_alias
 

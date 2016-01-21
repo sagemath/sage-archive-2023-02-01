@@ -3038,8 +3038,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         Returns a homspace whose morphisms have this vector space as domain.
 
         This is called by the general methods such as
-        :meth:`sage.structure.parent.Parent.Hom` and
-        :meth:`sage.structure.parent_base.ParentWithBase.Hom`.
+        :meth:`sage.structure.parent.Parent.Hom`.
 
         INPUT:
 

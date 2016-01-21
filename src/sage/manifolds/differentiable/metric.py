@@ -1337,10 +1337,10 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES:
 
-        Checking that the Cotton-York tensor has determinant zero for a product
-        if :math:`\mathbb{R}` with a surface::
+        Compute the determinant of the Cotton-York tensor for the Heisenberg
+        group with the left invariant metric::
 
-            sage: M = Manifold(3, 'RxS', start_index=1)
+            sage: M = Manifold(3, 'Nil', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.riemannian_metric('g')
             sage: g[1,1], g[2,2], g[2,3], g[3,3] = 1, 1+x^2, -x, 1

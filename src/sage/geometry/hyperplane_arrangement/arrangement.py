@@ -343,6 +343,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc import uniq
 from sage.matrix.constructor import matrix, vector
 from sage.modules.free_module import VectorSpace
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
 
@@ -2039,6 +2040,147 @@ class HyperplaneArrangementElement(Element):
             False
         """
         return self.minimal_generated_number() <= 3
+
+    def defining_polynomial(self):
+        r"""
+        Return the defining polynomial of ``A``.
+
+        Let `A = (H_i)_i` be a hyperplane arrangement in a vector space `V`
+        corresponding to the null spaces of `\alpha_{H_i} \in V^*`. Then
+        the *defining polynomial* of `A` is given by
+
+        .. MATH::
+
+            Q(A) = \prod_i \alpha_{H_i} \in S(V^*).
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([2*x + y - z, -x - 2*y + z])
+            sage: p = A.defining_polynomial(); p
+            -2*x^2 - 5*x*y - 2*y^2 + 3*x*z + 3*y*z - z^2
+            sage: p.factor()
+            (-1) * (x + 2*y - z) * (2*x + y - z)
+        """
+        S = self.parent().ambient_space().symmetric_space()
+        return S.prod(H.to_symmetric_space() for H in self)
+
+    @cached_method
+    def derivation_module_free_chain(self):
+        r"""
+        Return a free chain for the derivation module if one
+        exists, otherwise return ``None``.
+
+        .. SEEALSO::
+
+            :meth:`is_free`
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',3], prefix='s')
+            sage: A = W.long_element().inversion_arrangement()
+            sage: for M in A.derivation_module_free_chain(): print("%s\n"%M)
+            [ 1  0  0]
+            [ 0  1  0]
+            [ 0  0 a3]
+            <BLANKLINE>
+            [ 1  0  0]
+            [ 0  0  1]
+            [ 0 a2  0]
+            <BLANKLINE>
+            [  1   0   0]
+            [  0  -1  -1]
+            [  0  a2 -a3]
+            <BLANKLINE>
+            [ 0  1  0]
+            [ 0  0  1]
+            [a1  0  0]
+            <BLANKLINE>
+            [ 1  0 -1]
+            [a3 -1  0]
+            [a1  0 a2]
+            <BLANKLINE>
+            [       1        0        0]
+            [      a3       -1       -1]
+            [       0       a1 -a2 - a3]
+            <BLANKLINE>
+        """
+        from sage.geometry.hyperplane_arrangement.check_free import construct_free_chain
+        from sage.combinat.permutation import Permutations
+        S = self.parent().ambient_space().symmetric_space()
+        for p in Permutations(list(self)):
+            C = construct_free_chain(S, p)
+            if C is not None:
+                return C
+        return None
+
+    def is_free(self):
+        """
+        Return if ``self`` is free.
+
+        A hyperplane arrangement `A` is free if the module
+        of derivations `\operatorname{Der}(A)` is a free `S`-module,
+        where `S` is the corresponding symmetric space.
+
+        ALGORITHM:
+
+        We follow [BC12]_ by constructing a chain of free modules
+
+        .. MATH::
+
+            D(A) = D(A_n) < D(A_{n-1}) < \cdots < D(A_1) < D(A_0)
+
+        corresponding to some ordering of the arrangements `A_0 \subset
+        A_1 \subset \cdots \subset A_{n-1} \subset A_n = A`.
+
+        EXAMPLES:
+
+        For type `A` arrangements, chordality is equivalent to free.
+        We verify that in type `A_3`::
+
+            sage: W = WeylGroup(['A',3], prefix='s')
+            sage: A = W.long_element().inversion_arrangement()
+            sage: for x in W:
+            ....:    A = x.inversion_arrangement()
+            ....:    assert A.matroid().is_chordal() == A.is_free()
+
+        REFERENCES:
+
+        .. [BC12] Mohamed Barakat and Michael Cuntz.
+           *Coxeter and crystallographic arrangements are inductively free*.
+           Adv. in Math. **229** Issue 1 (2012). pp. 691-709.
+           :doi:`10.1016/j.aim.2011.09.011`, :arxiv:`1011.4228`.
+        """
+        return self.derivation_module_free_chain() is not None
+
+    def derivation_module_basis(self):
+        """
+        Return a basis for the derivation module of ``self`` if
+        one exists, otherwise return ``None``.
+
+        .. SEEALSO::
+
+            :meth:`is_free`
+
+        OUTPUT:
+
+        A basis for the derivation module (over `S`, the
+        :meth:`symmetric space
+        <sage.geometry.hyperplane_arrangement.hyperplane.AmbientVectorSpace.symmetric_space>`)
+        as vectors of a free module over `S`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',2], prefix='s')
+            sage: A = W.long_element().inversion_arrangement()
+            sage: A.derivation_module_basis()
+            [(-a1, -a2), (-a1*a2, a1*a2)]
+        """
+        C = self.derivation_module_free_chain()
+        if C is not None:
+            from sage.misc.misc_c import prod
+            return prod(reversed(C)).rows()
+        return None
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):
     """

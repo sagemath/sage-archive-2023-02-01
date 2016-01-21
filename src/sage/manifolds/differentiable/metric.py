@@ -318,7 +318,7 @@ class PseudoRiemannianMetric(TensorField):
         True
 
     """
-    DERIVED_OBJECTS = ('_connection', '_ricci_scalar', '_weyl',
+    _derived_objects = ('_connection', '_ricci_scalar', '_weyl',
                        '_schouten', '_cotton', '_cotton_york')
 
     def __init__(self, vector_field_module, name, signature=None,
@@ -450,7 +450,7 @@ class PseudoRiemannianMetric(TensorField):
         self._inverse = self._vmodule.tensor((2,0), name=inv_name,
                                              latex_name=inv_latex_name,
                                              sym=(0,1))
-        for attr in self.DERIVED_OBJECTS:
+        for attr in self._derived_objects:
             self.__setattr__(attr, None)
         self._determinants = {} # determinants in various frames
         self._sqrt_abs_dets = {} # sqrt(abs(det g)) in various frames
@@ -473,7 +473,7 @@ class PseudoRiemannianMetric(TensorField):
         self._del_inverse()
         # The connection, Ricci scalar and Weyl tensor are reset to None:
         # The Schouten, Cotton and Cotton-York tensors are reset to None:
-        for attr in self.DERIVED_OBJECTS:
+        for attr in self._derived_objects:
             self.__setattr__(attr, None)
         # The dictionary of determinants over the various frames is cleared:
         self._determinants.clear()
@@ -571,7 +571,7 @@ class PseudoRiemannianMetric(TensorField):
             resu._indic_signat = self._indic_signat
             # Restrictions of derived quantities:
             resu._inverse = self.inverse().restrict(subdomain)
-            for attr in self.DERIVED_OBJECTS:
+            for attr in self._derived_objects:
                 derived = self.__getattribute__(attr)
                 if derived is not None:
                     resu.__setattr__(attr, derived.restrict(subdomain))
@@ -1199,7 +1199,7 @@ class PseudoRiemannianMetric(TensorField):
 
         .. MATH::
 
-            Sc(u, v) = \frac{1}{n-2}\left(Ricci(u, v) + \frac{s}{2(n-1)}g(u,v)
+            Sc(u, v) = \frac{1}{n-2}\left(Ric(u, v) + \frac{r}{2(n-1)}g(u,v)
             \right)
 
         for any vector fields `u` and `v`.
@@ -1258,7 +1258,7 @@ class PseudoRiemannianMetric(TensorField):
 
         .. MATH::
 
-            C_{ijk}=\left(\nabla_i S\right)_{jk}-\left(\nabla_j S\right)_{ik}
+            C_{ijk} = (n-2) \left(\nabla_k S_{ij} - \nabla_j S_{ik}\right)
 
         INPUT:
 
@@ -1302,7 +1302,7 @@ class PseudoRiemannianMetric(TensorField):
         if self._cotton is None:
             nabla = self.connection()
             s = self.schouten()
-            cot = nabla(s).antisymmetrize(0,2)
+            cot = 2*(n-2)*nabla(s).antisymmetrize(1,2)
             name = name or 'Cot(' + self._name + ')'
             latex_name = latex_name or r'\mathrm{Cot}(' + self._latex_name + ')'
             cot.set_name(name=name, latex_name=latex_name)
@@ -1318,8 +1318,8 @@ class PseudoRiemannianMetric(TensorField):
 
         .. MATH::
 
-            CY_{ij} = \frac{1}{2}C_{kli} g_{jm} \frac{\epsilon^{klm}}{\sqrt{\det g}}
-            =g_{jm}\left(\nabla_k S \right)_{li}\frac{\epsilon^{klm}}{\sqrt{\det{g}}}
+            CY_{ij} = \frac{1}{2} \epsilon^{kl}_{\quad i} C_{jlk} 
+                    = \epsilon^{kl}_{\quad i} \nabla_k S_{lj}
 
         INPUT:
 
@@ -1343,29 +1343,26 @@ class PseudoRiemannianMetric(TensorField):
             sage: M = Manifold(3, 'RxS', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.riemannian_metric('g')
-            sage: _f = function('F')(y, z)
-            sage: f = X.domain().scalar_field(_f)
-            sage: g[1,1], g[2,2], g[3,3] = 1, f, f
+            sage: g[1,1], g[2,2], g[2,3], g[3,3] = 1, 1+x^2, -x, 1
             sage: g.display()
-            g = dx*dx + F(y, z) dy*dy + F(y, z) dz*dz
+            g = dx*dx + (x^2 + 1) dy*dy - x dy*dz - x dz*dy + dz*dz
             sage: CY = g.cotton_york() ; CY # long time
-            Tensor field of type (0,2) on the 3-dimensional differentiable
-             manifold RxS
+            Tensor field CY(g) of type (0,2) on the 3-dimensional differentiable manifold RxS
             sage: det(CY[:]) # long time
-            0
+            -1/4
 
         """
         n = self._ambient_domain.dimension()
-        if n < 3:
+        if n != 3:
             raise ValueError("the Cotton-York tensor is only defined for a " +
                              "manifold of dimension 3")
         if self._cotton_york is None:
             cot = self.cotton()
             eps = self.volume_form(2)
-            cy = -cot.contract(0,2,eps,0,1)
+            cy = eps.contract(0, 1, cot, 2, 1)/2
             name = name or 'CY(' + self._name + ')'
             latex_name = latex_name or r'\mathrm{CY}(' + self._latex_name + ')'
-            cot.set_name(name=name, latex_name=latex_name)
+            cy.set_name(name=name, latex_name=latex_name)
             self._cotton_york = cy
         return self._cotton_york
 

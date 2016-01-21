@@ -210,7 +210,7 @@ class CoxeterGroups(Category_singleton):
                 [ 0  1  0]
                 [ 0  0  1]
                 sage: next(g)
-                [ 0 -1  2]
+                [ 1  0  0]
                 [ 1 -1  1]
                 [ 0  0  1]
             """
@@ -235,7 +235,7 @@ class CoxeterGroups(Category_singleton):
                 sage: I.cardinality()
                 7
                 sage: list(I)
-                [(), (1,), (1, 2), (1, 2, 1), (2,), (2, 1), (2, 1, 2)]
+                [(), (1,), (2,), (1, 2), (2, 1), (1, 2, 1), (2, 1, 2)]
 
             We now consider an infinite Coxeter group::
 
@@ -243,7 +243,7 @@ class CoxeterGroups(Category_singleton):
                 sage: I = W.weak_order_ideal(predicate = lambda w: w.length() <= 2)
                 sage: list(iter(I))
                 [
-                [1 0]  [-1  2]  [ 3 -2]  [ 1  0]  [-1  2]
+                [1 0]  [-1  2]  [ 1  0]  [ 3 -2]  [-1  2]
                 [0 1], [ 0  1], [ 2 -1], [ 2 -1], [-2  3]
                 ]
 
@@ -262,7 +262,7 @@ class CoxeterGroups(Category_singleton):
                 5
                 sage: list(I)
                 [
-                [1 0]  [-1  2]  [ 3 -2]  [ 1  0]  [-1  2]
+                [1 0]  [-1  2]  [ 1  0]  [ 3 -2]  [-1  2]
                 [0 1], [ 0  1], [ 2 -1], [ 2 -1], [-2  3]
                 ]
 
@@ -299,13 +299,14 @@ class CoxeterGroups(Category_singleton):
             return SearchForest((self.one(),), succ, algorithm='breadth',
                                 category = default_category.or_subcategory(category))
 
-        def grassmannian_elements(self, side = "right"):
+        def grassmannian_elements(self, side="right"):
             """
+            Return the left or right grassmanian elements of ``self``
+            as an enumerated set.
+
             INPUT:
 
-            - ``side``: "left" or "right" (default: "right")
-
-            Returns the left or right grassmanian elements of self, as an enumerated set
+            - ``side`` -- (default: ``"right"``) ``"left"`` or ``"right"``
 
             EXAMPLES::
 
@@ -314,7 +315,9 @@ class CoxeterGroups(Category_singleton):
                 sage: G.cardinality()
                 12
                 sage: G.list()
-                [(0, 1, 2, 3), (1, 0, 2, 3), (2, 0, 1, 3), (3, 0, 1, 2), (0, 2, 1, 3), (1, 2, 0, 3), (0, 3, 1, 2), (1, 3, 0, 2), (2, 3, 0, 1), (0, 1, 3, 2), (0, 2, 3, 1), (1, 2, 3, 0)]
+                [(0, 1, 2, 3), (1, 0, 2, 3), (0, 2, 1, 3), (0, 1, 3, 2),
+                 (2, 0, 1, 3), (1, 2, 0, 3), (0, 3, 1, 2), (0, 2, 3, 1),
+                 (3, 0, 1, 2), (1, 3, 0, 2), (1, 2, 3, 0), (2, 3, 0, 1)]
                 sage: sorted(tuple(w.descents()) for w in G)
                 [(), (0,), (0,), (0,), (1,), (1,), (1,), (1,), (1,), (2,), (2,), (2,)]
                 sage: G = S.grassmannian_elements(side = "left")
@@ -324,7 +327,8 @@ class CoxeterGroups(Category_singleton):
                 [(), (0,), (0,), (0,), (1,), (1,), (1,), (1,), (1,), (2,), (2,), (2,)]
             """
             order_side = "left" if side == "right" else "right"
-            return self.weak_order_ideal(attrcall("is_grassmannian", side = side), side = order_side)
+            return self.weak_order_ideal(attrcall("is_grassmannian", side=side),
+                                         side=order_side)
 
         def from_reduced_word(self, word):
             r"""

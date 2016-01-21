@@ -68,7 +68,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: W.some_elements()
             [(1,), (2,), (), (1, 2)]
             sage: list(W)
-            [(), (1,), (1, 2), (1, 2, 1), (2,), (2, 1)]
+            [(), (1,), (2,), (1, 2), (2, 1), (1, 2, 1)]
         """
         some_elements = CoxeterGroups.ParentMethods.__dict__["some_elements"]
         __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]

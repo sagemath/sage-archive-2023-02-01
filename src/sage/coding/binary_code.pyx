@@ -4183,7 +4183,7 @@ cdef class BinaryCodeClassifier:
 #                    print 'm:'
 #                    print m
                     m_aut_gp_gens, m_labeling, m_size, m_base = self._aut_gp_and_can_label(m)
-                    from sage.rings.arith import factorial
+                    from sage.arith.all import factorial
                     if True:#size*factorial(n-B.ncols) == m_size:
 #                        print 'in if'
 #                        print 'm_aut_gp_gens:', m_aut_gp_gens

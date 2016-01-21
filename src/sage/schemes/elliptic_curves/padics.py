@@ -24,7 +24,7 @@ crowding in that file.
 
 import sage.rings.all as rings
 import padic_lseries as plseries
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.rings.all import (
     Qp, Zp,
     Integers,

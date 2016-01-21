@@ -850,7 +850,7 @@ class AlgebraicConverter(Converter):
 
             sage: from sage.symbolic.expression_conversions import AlgebraicConverter
             sage: a = AlgebraicConverter(QQbar)
-            sage: a.composition(exp(I*pi/3), exp)
+            sage: a.composition(exp(I*pi/3, hold=True), exp)
             0.500000000000000? + 0.866025403784439?*I
             sage: a.composition(sin(pi/7), sin)
             0.4338837391175581? + 0.?e-18*I
@@ -940,7 +940,7 @@ def algebraic(ex, field):
         sage: QQbar((2*I)^(1/2))
         1 + 1*I
         sage: QQbar(e^(pi*I/3))
-        0.500000000000000? + 0.866025403784439?*I
+        0.50000000000000000? + 0.866025403784439?*I
 
         sage: AA(x*sin(0))
         0

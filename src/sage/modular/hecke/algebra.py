@@ -30,14 +30,14 @@ the full Hecke algebra, only with the anemic algebra.
 
 import weakref
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.infinity
 import sage.misc.latex as latex
 import module
 import hecke_operator
 import sage.rings.commutative_algebra
 from sage.matrix.constructor import matrix
-from sage.rings.arith import lcm
+from sage.arith.all import lcm
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ, QQ
 from sage.structure.element import Element

@@ -63,7 +63,7 @@ from sage.combinat.words.word import FiniteWord_list
 from sage.combinat.words.finite_word import FiniteWord_class, Factorization
 from sage.combinat.words.words import Words, FiniteWords, InfiniteWords
 from sage.combinat.words.morphism import WordMorphism
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.misc.decorators import rename_keyword
 
 def _build_tab(sym, tab, W):

@@ -14,7 +14,7 @@ from sage.plot.graphics import Graphics
 from sage.matrix.constructor import matrix
 from sage.plot.line import line
 from sage.combinat.perfect_matching import PerfectMatching
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.lazy_attribute import lazy_attribute

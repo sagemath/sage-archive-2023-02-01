@@ -3625,7 +3625,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if self.is_zero():
             raise ArithmeticError, "Support of 0 not defined."
-        return sage.rings.arith.prime_factors(self)
+        return sage.arith.all.prime_factors(self)
 
     def coprime_integers(self, m):
         """

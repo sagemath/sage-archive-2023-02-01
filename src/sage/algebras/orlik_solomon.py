@@ -274,7 +274,6 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         """
         if not type(S) == frozenset:
             raise ValueError("S needs to be a frozenset")
-        Ss = sorted(S, key=lambda x: self._sorting[x])
         for bc in self._broken_circuits:
             if bc.issubset(S):
                 i = self._broken_circuits[bc]
@@ -285,10 +284,16 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
                 coeff = self.base_ring().one()
                 # Now, reduce ``S``, and build the result ``r``:
                 r = self.zero()
+                switch = False
+                Si = S.union({i})
+                Ss = sorted(Si, key=lambda x: self._sorting[x])
                 for j in Ss:
                     if j in bc:
-                        r += coeff * self.subset_image(S.symmetric_difference({i,j}))
-                    coeff *= -1
+                        r += coeff * self.subset_image(Si.difference({j}))
+                    if switch:
+                        coeff *= -1
+                    if j == i:
+                        switch = True
                 return r
         else: # So ``S`` is an NBC set.
             return self.monomial(S)

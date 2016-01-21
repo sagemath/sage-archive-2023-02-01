@@ -1320,6 +1320,40 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return self.parent()(summands, simplify=True, convert=False)
 
 
+    def exact_part(self):
+        r"""
+        Return the expansion consisting of all exact terms of this
+        expansion.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^QQ * log(x)^QQ', QQ)
+            sage: (x^2 + O(x)).exact_part()
+            x^2
+            sage: (x + log(x)/2 + O(log(x)/x)).exact_part()
+            x + 1/2*log(x)
+
+        TESTS::
+
+            sage: R.<x, y> = AsymptoticRing('x^QQ * y^QQ', QQ)
+            sage: (x + y + O(1/(x*y))).exact_part()
+            x + y
+            sage: O(x).exact_part()
+            0
+        """
+        from term_monoid import ExactTerm
+        return self.parent([term for term in self.summands.elements_topological()
+                            if isinstance(term, ExactTerm)])
+
+
     def __pow__(self, exponent, precision=None):
         r"""
         Calculate the power of this asymptotic expansion to the given ``exponent``.

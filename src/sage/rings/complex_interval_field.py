@@ -216,11 +216,23 @@ class ComplexIntervalField_class(ring.Field):
         """
         return ComplexIntervalField, (self._prec, )
 
-    def _pushout_(self, other):
-        r"""
-        Implement a pushout with real interval fields
+    def construction(self):
+        """
+        Returns the functorial construction of this complex interval field,
+        namely as the algebraic closure of the real interval field with
+        the same precision.
 
-        TESTS::
+        EXAMPLES::
+
+            sage: c, S = CIF.construction(); c, S
+            (AlgebraicClosureFunctor,
+             Real Interval Field with 53 bits of precision)
+            sage: CIF == c(S)
+            True
+
+        TESTS:
+
+        Test that :trac:`19922` is fixed::
 
             sage: c = ComplexIntervalField(128).an_element()
             sage: r = RealIntervalField(64).an_element()
@@ -230,11 +242,12 @@ class ComplexIntervalField_class(ring.Field):
             1 + 1*I
             sage: parent(c+r)
             Complex Interval Field with 64 bits of precision
+            sage: R = ComplexIntervalField(128)['x']
+            sage: (R.gen() * RIF.one()).parent()
+            Univariate Polynomial Ring in x over Complex Interval Field with 53 bits of precision
         """
-        from sage.rings.real_mpfi import RealIntervalField_class
-        if isinstance(other, RealIntervalField_class):
-            prec = min(self.prec(), other.prec())
-            return ComplexIntervalField(prec)
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self._real_field())
 
     def is_exact(self):
         """

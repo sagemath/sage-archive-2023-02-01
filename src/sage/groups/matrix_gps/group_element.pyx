@@ -76,6 +76,7 @@ from sage.matrix.matrix import is_Matrix
 from sage.structure.factorization import Factorization
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import have_same_parent
+from sage.rings.all import ZZ
 
 
 cpdef is_MatrixGroupElement(x):
@@ -345,9 +346,25 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             True
             sage: ~g * g == W.one()
             True
+
+            sage: W = CoxeterGroup(['B',3])
+            sage: W.base_ring()
+            Universal Cyclotomic Field
+            sage: g = W.an_element()
+            sage: ~g
+            [            -1              1              0]
+            [            -1              0  E(8) - E(8)^3]
+            [-E(8) + E(8)^3              0              1]
         """
         cdef Parent parent = self.parent()
-        cdef Matrix M = ~self._matrix
+        cdef Matrix M = self._matrix
+        # We have a special method for dense matrices over ZZ
+        if M.base_ring() is ZZ and M.is_dense():
+            M = M._invert_unit()
+        else:
+            M = ~M
+            if M.base_ring() is not parent.base_ring():
+                M = M.change_ring(parent.base_ring())
         # Make it immutable so the constructor doesn't make a copy
         M.set_immutable()
         return parent.element_class(parent, M, check=False, convert=False)

@@ -1458,6 +1458,52 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         return self._coefficient_ring_
 
 
+    def change_parameter(self, growth_group=None, coefficient_ring=None):
+        r"""
+        Return a term monoid with a change in one or more of the
+        given parameters.
+
+        INPUT:
+
+        - ``growth_group`` -- (default: ``None``) the new growth group.
+
+        - ``coefficient_ring`` -- (default: ``None``) the new coefficient ring.
+
+        OUTPUT:
+
+        A term monoid.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: E = TermMonoid('exact', GrowthGroup('n^ZZ'), ZZ)
+            sage: E.change_parameter(coefficient_ring=QQ)
+            Exact Term Monoid n^ZZ with coefficients in Rational Field
+            sage: E.change_parameter(growth_group=GrowthGroup('n^QQ'))
+            Exact Term Monoid n^QQ with coefficients in Integer Ring
+
+        TESTS::
+
+            sage: E.change_parameter() is E
+            True
+            sage: E.change_parameter(growth_group=None) is E
+            True
+            sage: E.change_parameter(coefficient_ring=None) is E
+            True
+            sage: E.change_parameter(growth_group=None, coefficient_ring=None) is E
+            True
+        """
+        if growth_group is None:
+            growth_group = self.growth_group
+        if coefficient_ring is None:
+            coefficient_ring = self.coefficient_ring
+        if self.growth_group is growth_group and \
+                self.coefficient_ring is coefficient_ring:
+            return self
+        return TermMonoid(self, growth_group, coefficient_ring)
+
+
     def _repr_(self):
         r"""
         A representation string for this generic term monoid.

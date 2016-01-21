@@ -61,3 +61,6 @@ lazy_import('sage.combinat.crystals.infinity_crystals',
             'InfinityCrystalOfTableaux',
             deprecation=(15882, "this is being removed from the global namespace. Use crystals.infinity.Tableaux instead"))
 
+lazy_import('sage.combinat.crystals.star_crystal',
+            'StarCrystal',
+            deprecation=(15882, "this is being removed from the global namespace. Use crystals.infinity.Star instead"))

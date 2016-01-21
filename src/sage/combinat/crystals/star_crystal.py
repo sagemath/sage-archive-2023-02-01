@@ -1,47 +1,6 @@
 r"""
 The star-crystal structure on `B(\infty)`
 
-The `*`-crystal structure on `B(\infty)` is the structure induced by the algebra
-antiautomorphism `*\colon U_q(\mathfrak{g}) \longrightarrow U_q(\mathfrak{g})`
-which stabilizes the negative half `U_q^-(\mathfrak{g})`.  It is defined by
-
-.. MATH::
-
-    E_i^* = E_i , \ \ \
-    F_i^* = F_i , \ \ \
-    q^* = q, \ \ \
-    (q^h)^* = q^{-h},
-
-where `E_i` and `F_i` are the Chevalley generators of `U_q(\mathfrak{g})` and
-`h` is an element of the Cartan.
-
-The induced operation on the crystal `B(\infty)` is called the *Kashiwara
-involution*.  Its implementation here is based on the recursive algorithm from
-Theorem 2.2.1 of [Kash95]_, which states that for any `i \in I` there is a
-unique strict crystal embedding
-
-.. MATH::
-
-    \Psi_i\colon B(\infty) \longrightarrow B_i \otimes B(\infty)
-
-such that
-
-- `u_\infty \mapsto b_i(0) \otimes u_\infty`, where `u_\infty` is the highest weight vector in `B(\infty)`;
-
-- if `\Psi_i(b) = f_i^mb_i(0) \otimes b_0`, then `\Psi_i(f_i^*b) =f_i^{m+1}b_i(0) \otimes b_0` and `\varepsilon_i(b^*) = m`;
-
-- the image of `\Psi_i` is `\{f_i^mb_i(0)\otimes b : \varepsilon_i(b^*) =0,\ m\ge 0\}`.
-
-Here, `B_i` is the `i`-th elementary crystal.  See
-:class:`~sage.combinat.crystals.elementary_crystals.ElementaryCrystal`
-for more information.
-
-REFERENCES:
-
-.. [Kash95] M. Kashiwara.
-   The crystal base and Littelmann's refined Demazure character formula.
-   Duke Math. J. **71** (1993), no. 3, 839-858.
-
 AUTHORS:
 
 - Ben Salisbury: Initial version
@@ -66,6 +25,7 @@ AUTHORS:
 #*******************************************************************************
 
 from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.combinat.root_system.cartan_type import CartanType
@@ -73,15 +33,70 @@ from sage.combinat.crystals.elementary_crystals import ElementaryCrystal
 from sage.combinat.crystals.tensor_product import TensorProductOfCrystals
 
 
-class StarCrystal(Parent):
+class StarCrystal(UniqueRepresentation, Parent):
     r"""
-    Return the star-crystal version of ``self``.
+    The star-crystal or `*`-crystal version of a highest weight crystal.
+
+    The `*`-crystal structure on `B(\infty)` is the structure induced by
+    the algebra antiautomorphism `* : U_q(\mathfrak{g}) \to U_q(\mathfrak{g})`
+    that stabilizes the negative half `U_q^-(\mathfrak{g})`.  It is defined by
+
+    .. MATH::
+
+        E_i^* = E_i , \ \ \
+        F_i^* = F_i , \ \ \
+        q^* = q, \ \ \
+        (q^h)^* = q^{-h},
+
+    where `E_i` and `F_i` are the Chevalley generators of `U_q(\mathfrak{g})`
+    and `h` is an element of the Cartan.
+
+    The induced operation on the crystal `B(\infty)` is called the
+    *Kashiwara involution*.  Its implementation here is based on the
+    recursive algorithm from Theorem 2.2.1 of [Kash95]_, which states
+    that for any `i \in I` there is a unique strict crystal embedding
+
+    .. MATH::
+
+        \Psi_i\colon B(\infty) \longrightarrow B_i \otimes B(\infty)
+
+    such that
+
+    - `u_{\infty} \mapsto b_i(0) \otimes u_{\infty}`, where `u_{\infty}`
+      is the highest weight vector in `B(\infty)`;
+
+    - if `\Psi_i(b) = f_i^mb_i(0) \otimes b_0`, then
+      `\Psi_i(f_i^*b) =f_i^{m+1}b_i(0) \otimes b_0`
+      and `\varepsilon_i(b^*) = m`;
+
+    - the image of `\Psi_i` is `\{f_i^mb_i(0)\otimes b :
+      \varepsilon_i(b^*) = 0, \ m\ge 0\}`.
+
+    Here, `B_i` is the `i`-th elementary crystal.  See
+    :class:`~sage.combinat.crystals.elementary_crystals.ElementaryCrystal`
+    for more information.
 
     INPUT:
 
-    - ``Binf`` -- A crystal from :class:`~sage.combinat.crystals.catalog_infinity_crystals`
-    """
+    - ``Binf`` -- a crystal from
+      :class:`~sage.combinat.crystals.catalog_infinity_crystals`
 
+    EXAMPLES::
+
+        sage: B = crystals.infinity.Tableaux(['A',2])
+        sage: Bstar = crystals.infinity.Star(B)
+        sage: mg = Bstar.highest_weight_vector()
+        sage: mg
+        [[1, 1], [2]]
+        sage: mg.f_string([1,2,1,2,2])
+        [[1, 1, 1, 1, 1, 2, 2], [2, 3, 3, 3]]
+
+    REFERENCES:
+
+    .. [Kash95] M. Kashiwara.
+       The crystal base and Littelmann's refined Demazure character formula.
+       Duke Math. J. **71** (1993), no. 3, 839-858.
+    """
     def __init__(self, Binf):
         r"""
         Initialize ``self``.
@@ -90,11 +105,12 @@ class StarCrystal(Parent):
 
             sage: B = crystals.infinity.Tableaux(['A',2])
             sage: Bstar = crystals.infinity.Star(B)
-            sage: TestSuite(Bstar).run() # long time
+            sage: TestSuite(Bstar).run(max_runs=40)
+            sage: TestSuite(Bstar).run(max_runs=1000) # long time
         """
         self._Binf = Binf
         self._cartan_type = Binf.cartan_type()
-        Parent.__init__(self, category=HighestWeightCrystals())
+        Parent.__init__(self, category=HighestWeightCrystals().Infinite())
         self.module_generators = (self(self._Binf.module_generators[0]),)
         t0 = Binf.highest_weight_vector()
         B = {i: ElementaryCrystal(Binf.cartan_type(),i) for i in self.index_set()}
@@ -124,7 +140,7 @@ class StarCrystal(Parent):
 
             INPUT:
 
-            - ``i`` -- An element of the index set
+            - ``i`` -- an element of the index set
 
             EXAMPLES::
 
@@ -152,7 +168,7 @@ class StarCrystal(Parent):
 
             INPUT:
 
-            - ``i`` -- An element of the index set
+            - ``i`` -- an element of the index set
 
             EXAMPLES::
 
@@ -182,7 +198,8 @@ class StarCrystal(Parent):
                 sage: RCstar = crystals.infinity.Star(RC)
                 sage: nuJ = RCstar.module_generators[0].f_string([0,4,6,1,2])
                 sage: nuJ.weight()
-                -Lambda[0] - 2*Lambda[1] + 2*Lambda[3] - Lambda[4] + 2*Lambda[5] - 2*Lambda[6] - delta
+                -Lambda[0] - 2*Lambda[1] + 2*Lambda[3] - Lambda[4]
+                 + 2*Lambda[5] - 2*Lambda[6] - delta
             """
             return self.value.weight()
 
@@ -192,7 +209,7 @@ class StarCrystal(Parent):
 
             INPUT:
 
-            - ``i`` -- An element of the index set
+            - ``i`` -- an element of the index set
 
             EXAMPLES::
 
@@ -229,7 +246,7 @@ class StarCrystal(Parent):
 
             INPUT:
 
-            - ``i`` -- An element of the index set
+            - ``i`` -- an element of the index set
 
             EXAMPLES::
 
@@ -264,17 +281,21 @@ class StarCrystal(Parent):
 
             INPUT:
 
-            - ``i`` -- An element of the index set
+            - ``i`` -- an element of the index set
 
             EXAMPLES::
 
                 sage: RC = crystals.infinity.RiggedConfigurations("D4")
                 sage: RCstar = crystals.infinity.Star(RC)
                 sage: nu0star = RCstar.module_generators[0]
-                sage: nustar = nu0star.f_string([2,1,3,4,2,2,1,3,2])
+                sage: nustar = nu0star.f_string([2,1,3,4,2])
                 sage: [nustar.jump(i) for i in RC.index_set()]
+                [0, 1, 0, 0]
+                sage: nustar = nu0star.f_string([2,1,3,4,2,2,1,3,2]) # long time
+                sage: [nustar.jump(i) for i in RC.index_set()] # long time
                 [1, 0, 1, 2]
             """
             P = self.parent().weight_lattice_realization()
             ac = P.simple_coroot(i)
-            return P(self.weight()).scalar(ac) + self.epsilon(i) + self.value.epsilon(i)
+            return P(self.value.weight()).scalar(ac) + self.epsilon(i) + self.value.epsilon(i)
+

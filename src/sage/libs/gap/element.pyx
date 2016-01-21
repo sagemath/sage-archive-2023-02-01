@@ -2602,7 +2602,7 @@ cdef class GapElement_RecordIterator(object):
 
     def __next__(self):
         r"""
-        The next elemnt in the record.
+        Return the next element in the record.
 
         OUTPUT:
 

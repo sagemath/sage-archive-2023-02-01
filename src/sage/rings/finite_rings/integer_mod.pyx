@@ -1998,10 +1998,11 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         return long(self.lift())
 
     def __mod__(self, right):
-        if self.modulus() % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
         import integer_mod_ring
-        return IntegerMod(integer_mod_ring.IntegerModRing(right), self)
+        R = integer_mod_ring.IntegerModRing(right)
+        if self.order() % R.order():
+            raise ZeroDivisionError(f"reduction modulo {right!r} not defined")
+        return R(self)
 
     def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
@@ -2413,11 +2414,11 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return self.ivalue
 
     def __mod__(IntegerMod_int self, right):
-        right = int(right)
-        if self.__modulus.int32 % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
         import integer_mod_ring
-        return integer_mod_ring.IntegerModRing(right)(self)
+        R = integer_mod_ring.IntegerModRing(right)
+        if self.__modulus.int32 % R.order():
+            raise ZeroDivisionError(f"reduction modulo {right!r} not defined")
+        return R(self)
 
     def __lshift__(IntegerMod_int self, k):
         r"""
@@ -3234,11 +3235,11 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return self.ivalue
 
     def __mod__(IntegerMod_int64 self, right):
-        right = int(right)
-        if self.__modulus.int64 % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
         import integer_mod_ring
-        return integer_mod_ring.IntegerModRing(right)(self)
+        R = integer_mod_ring.IntegerModRing(right)
+        if self.__modulus.int64 % R.order():
+            raise ZeroDivisionError(f"reduction modulo {right!r} not defined")
+        return R(self)
 
     def __lshift__(IntegerMod_int64 self, k):
         r"""

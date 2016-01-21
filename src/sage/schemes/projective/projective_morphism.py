@@ -4747,7 +4747,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         """
         if self._is_prime_finite_field:
             p = self.base_ring().characteristic()
-            P = [f(*x) % p for f in self._fastpolys]
+            P = [Integer(f(*x)) % p for f in self._fastpolys]
         else:
             P = [f(*x) for f in self._fastpolys]
         return P

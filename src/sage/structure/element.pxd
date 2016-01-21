@@ -42,6 +42,9 @@ cdef class Element(SageObject):
     cpdef _act_on_(self, x, bint self_on_left)
     cpdef _acted_upon_(self, x, bint self_on_left)
 
+    cpdef _mod_(self, right)
+
+
 cdef class ElementWithCachedMethod(Element):
     cdef public dict __cached_methods
 

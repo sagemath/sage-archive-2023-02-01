@@ -2887,23 +2887,29 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __mod__(x, y):
         r"""
-         Returns x modulo y.
+        Return x modulo y.
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: z = 43
-             sage: z % 2
-             1
-             sage: z % 0
-             Traceback (most recent call last):
-             ...
-             ZeroDivisionError: Integer modulo by zero
-             sage: -5 % 7
-             2
-             sage: -5 % -7
-             -5
-             sage: 5 % -7
-             -2
+            sage: z = 43
+            sage: z % 2
+            1
+            sage: z % 0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Integer modulo by zero
+            sage: -5 % 7
+            2
+            sage: -5 % -7
+            -5
+            sage: 5 % -7
+            -2
+            sage: 5 % int(-7)
+            -2
+            sage: int(5) % -7
+            -2
+            sage: int(5) % int(-7)
+            -2
 
         TESTS::
 
@@ -2921,15 +2927,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a = next_prime(2**31)
             sage: b = Integers(a)(100)
             sage: a % b
-            59
-         """
-        cdef Integer z = PY_NEW(Integer)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: reduction modulo 100 not defined
+        """
+        cdef Integer z
         cdef long yy, res
 
-        # first case: Integer % Integer
+        # First case: Integer % Integer
         if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError("Integer modulo by zero")
+            z = PY_NEW(Integer)
             if mpz_size((<Integer>x).value) > 100000:
                 sig_on()
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
@@ -2938,30 +2947,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
             return z
 
-        # next: Integer % python int
-        elif type(y) is int:
+        # Next: Integer % python int
+        elif isinstance(y, int):
             yy = PyInt_AS_LONG(y)
+            if not yy:
+                raise ZeroDivisionError("Integer modulo by zero")
+            z = PY_NEW(Integer)
             if yy > 0:
                 mpz_fdiv_r_ui(z.value, (<Integer>x).value, yy)
-            elif yy == 0:
-                raise ZeroDivisionError("Integer modulo by zero")
             else:
                 res = mpz_fdiv_r_ui(z.value, (<Integer>x).value, -yy)
                 if res:
                     mpz_sub_ui(z.value, z.value, -yy)
             return z
 
-        # all other cases
-        else:
-            try:
-                # we explicitly try coercing both to ZZ here to
-                # avoid infinite loops in some cases (such as
-                # Integers and Integers(n)), see trac #6083
-                x = integer(x)
-                y = integer(y)
-                return x % y
-            except ValueError:
-                return bin_op(x, y, operator.mod)
+        # Use the coercion model
+        return bin_op(x, y, operator.mod)
 
     def quo_rem(Integer self, other):
         """

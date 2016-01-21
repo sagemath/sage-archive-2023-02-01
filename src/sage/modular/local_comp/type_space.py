@@ -22,7 +22,7 @@ from sage.modular.modform.constructor import ModularForms
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.fast_arith import prime_range
-from sage.rings.arith import crt
+from sage.arith.all import crt
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method, cached_function

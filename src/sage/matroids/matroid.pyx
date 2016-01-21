@@ -3644,7 +3644,18 @@ cdef class Matroid(SageObject):
             sage: M.contract(1) == M / 1  # indirect doctest
             True
         """
-        # Shorthand: M / X
+        return self.contract(X)
+
+    def __truediv__(self, X):
+        r"""
+        Shorthand for ``self.contract(X)``.
+
+        EXAMPLES::
+
+            sage: M = matroids.CompleteGraphic(4)
+            sage: M.contract(1) == M.__truediv__(1)
+            True
+        """
         return self.contract(X)
 
     cpdef delete(self, X):

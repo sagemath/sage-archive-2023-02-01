@@ -1151,7 +1151,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: r = B.random_element(terms=(n/2)**2)
         """
         from sage.rings.integer import Integer
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         if not vars_set:
             vars_set=range(self.ngens())

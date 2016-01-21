@@ -69,7 +69,7 @@ from sage.rings.number_field.number_field import QuadraticField
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.constructor import GF
 from sage.rings.integer import Integer
-from sage.rings.arith import gcd, lcm, next_prime, is_prime, next_prime_power, legendre_symbol
+from sage.arith.all import gcd, lcm, next_prime, is_prime, next_prime_power, legendre_symbol
 from sage.functions.log import log
 from sage.functions.other import sqrt
 

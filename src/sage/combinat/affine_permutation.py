@@ -22,7 +22,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.composition import Composition

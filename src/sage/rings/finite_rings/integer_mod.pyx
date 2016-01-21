@@ -85,7 +85,6 @@ import operator
 cdef bint use_32bit_type(int_fast64_t modulus):
     return modulus <= INTEGER_MOD_INT32_LIMIT
 
-## import arith
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
 import sage.rings.integer_ring as integer_ring
@@ -1071,7 +1070,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                     vmod.append(w)
                     moduli.append(k)
                 # Now combine in all possible ways using the CRT
-                from sage.rings.arith import CRT_basis
+                from sage.arith.all import CRT_basis
                 basis = CRT_basis(moduli)
                 from sage.misc.mrange import cartesian_product_iterator
                 v = []

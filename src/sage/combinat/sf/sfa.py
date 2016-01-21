@@ -961,7 +961,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
-                from sage.rings.arith import Moebius, squarefree_divisors
+                from sage.arith.all import Moebius, squarefree_divisors
                 mu = Moebius()
                 def component(i, g): # == h_g[L_i]
                     L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
@@ -4138,7 +4138,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         parent = self.parent()
         if parent.has_coerce_map_from(QQ):
             from sage.combinat.partition import Partition
-            from sage.rings.arith import gcd, lcm
+            from sage.arith.all import gcd, lcm
             from itertools import product, repeat, chain
             p = parent.realization_of().power()
             def f(lam, mu):

@@ -592,7 +592,7 @@ class ContinuedFraction_base(SageObject):
 
             sage: fields = []
             sage: for prec in [17, 24, 53, 128, 256]:
-            ....:     for rnd in ['RNDN', 'RNDD', 'RNDU', 'RNDZ']:
+            ....:     for rnd in ['RNDN', 'RNDD', 'RNDU', 'RNDZ', 'RNDA']:
             ....:         fields.append(RealField(prec=prec, rnd=rnd))
             sage: for n in range(3000):  # long time
             ....:     a = QQ.random_element(num_bound=2^(n%100))

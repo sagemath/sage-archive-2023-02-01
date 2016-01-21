@@ -32,7 +32,7 @@ from libc.string cimport memset
 
 from sage.structure.element cimport parent_c
 
-from sage.rings.arith import factor
+from sage.arith.all import factor
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.misc.all import prod, subsets

@@ -97,6 +97,7 @@ except ImportError:
 
 from sage.structure.all  import *
 from sage.rings.all      import *
+from sage.arith.all      import *
 from sage.matrix.all     import *
 
 # This must come before Calculus -- it initializes the Pynac library.

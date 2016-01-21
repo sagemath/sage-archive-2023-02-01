@@ -101,7 +101,7 @@ def row_reduced_form(M,transformation=False):
 
     # calculate least-common denominator of matrix entries and clear
     # denominators. The result lies in R
-    from sage.rings.arith import lcm
+    from sage.arith.all import lcm
     from sage.matrix.constructor import matrix
     from sage.misc.functional import numerator
     if R0 in _Fields:

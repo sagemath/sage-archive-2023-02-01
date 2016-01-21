@@ -2146,7 +2146,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 coefficient_ring=new_coefficient_ring)
             if hasattr(term, 'coefficient'):
                 c = f(term.coefficient)
-                if c == 0:
+                if c.is_zero():
                     return None
                 return T(term.growth, c)
             else:

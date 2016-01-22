@@ -179,7 +179,7 @@ from operator import mul
 from itertools import chain, product
 from sage.misc.all import prod
 from sage.functions.all import factorial
-from sage.rings.arith import moebius
+from sage.arith.all import moebius, divisors
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element, parent
 from sage.structure.parent import Parent
@@ -187,7 +187,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partitions, Partition
-from sage.rings.all import ZZ, QQ, FractionField, divisors
+from sage.rings.all import ZZ, QQ, FractionField
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
 from sage.combinat.misc import IterableFunctionCall
 from functools import reduce

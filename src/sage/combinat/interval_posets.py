@@ -2654,7 +2654,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
             sage: [TamariIntervalPosets(i).cardinality() for i in range(6)]
             [1, 1, 3, 13, 68, 399]
         """
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         n = self._size
         if n == 0:
             return Integer(1)

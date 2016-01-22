@@ -184,7 +184,7 @@ def hap_decorator(f):
         if not is_package_installed('gap_packages'):
             raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
-        from sage.rings.arith import is_prime
+        from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
             raise ValueError("p must be 0 or prime")
 
@@ -4001,7 +4001,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         if not is_package_installed('gap_packages'):
             raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
-        from sage.rings.arith import is_prime
+        from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
             raise ValueError("p must be 0 or prime")
 

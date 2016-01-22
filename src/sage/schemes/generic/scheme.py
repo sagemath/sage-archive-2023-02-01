@@ -1020,7 +1020,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             Point on Spectrum of Integer Ring defined by the Principal ideal (811) of Integer Ring
         """
         if self.coordinate_ring() is ZZ:
-            from sage.rings.arith import random_prime
+            from sage.arith.all import random_prime
             return self(ZZ.ideal(random_prime(1000)))
         return self(self.coordinate_ring().zero_ideal())
 

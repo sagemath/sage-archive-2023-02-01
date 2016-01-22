@@ -75,7 +75,7 @@ include 'sage/data_structures/bitset.pxi'
 from matroid cimport Matroid
 from basis_exchange_matroid cimport BasisExchangeMatroid
 from itertools import permutations
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from set_system cimport SetSystem
 from itertools import combinations
 

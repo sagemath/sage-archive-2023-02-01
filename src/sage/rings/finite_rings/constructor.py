@@ -420,7 +420,7 @@ class FiniteFieldFactory(UniqueFactory):
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
         """
-        import sage.rings.arith
+        import sage.arith.all
         from sage.structure.proof.all import WithProof, arithmetic
         if proof is None:
             proof = arithmetic()

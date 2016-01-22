@@ -629,7 +629,7 @@ def _sa_coefficients_e_(K, alpha):
          1/24*(3*a - 1)*(a - 1)*(a - 2)*a,
          1/48*(a - 1)^2*(a - 2)*(a - 3)*a^2)
     """
-    from sage.rings.arith import falling_factorial
+    from sage.arith.all import falling_factorial
     from sage.misc.misc import srange
     from sage.rings.integer_ring import ZZ
 

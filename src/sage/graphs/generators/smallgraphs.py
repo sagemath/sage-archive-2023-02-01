@@ -1413,7 +1413,7 @@ def BrouwerHaemersGraph():
         sage: set(g.spectrum()) == {20,2,-7}
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.matrix.constructor import identity_matrix
@@ -1949,7 +1949,7 @@ def DejterGraph():
     """
     from sage.graphs.generators.families import CubeGraph
     from sage.coding.code_constructions import HammingCode
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     from string import join
     g = CubeGraph(7)
@@ -4859,7 +4859,7 @@ def JankoKharaghaniGraph(v):
        http://journals.cambridge.org/article_S1446788700033929
 
     """
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     from sage.matrix.constructor import matrix
 
     # The notations of [JK02] are rather tricky, and so this code attempts to

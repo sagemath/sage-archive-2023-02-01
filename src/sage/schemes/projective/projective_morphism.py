@@ -54,7 +54,7 @@ from sage.rings.all                import Integer, CIF
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.rings.complex_field      import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
-from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
+from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement

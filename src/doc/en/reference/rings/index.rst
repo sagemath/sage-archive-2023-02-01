@@ -14,6 +14,7 @@ Base Classes for Rings, Algebras and Fields
    sage/rings/euclidean_domain
    sage/rings/integral_domain
    sage/rings/principal_ideal_domain
+   sage/rings/finite_field_constructor
 
 Ideals
 ------

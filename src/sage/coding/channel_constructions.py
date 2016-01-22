@@ -26,7 +26,7 @@ This file contains the following elements:
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.prandom import randint, random, sample
 from sage.modules.free_module_element import vector
 from sage.misc.abstract_method import abstract_method

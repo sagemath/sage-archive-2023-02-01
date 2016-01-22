@@ -73,10 +73,11 @@ static ex exp_eval(const ex & x)
 	// exp(-oo) -> 0
 	// exp(UnsignedInfinity) -> error
 	if (x.info(info_flags::infinity)) {
-		if (x.is_equal(Infinity))
-			return Infinity;
-		if (x.is_equal(NegInfinity))
-			return _ex0;
+	        infinity xinf = ex_to<infinity>(x);
+		if (xinf.is_plus_infinity())
+		  return Infinity;
+		if (xinf.is_minus_infinity())
+		  return _ex0;
 		// x is UnsignedInfinity
 		throw (std::runtime_error("exp_eval(): exp^(unsigned_infinity) encountered"));
 	}

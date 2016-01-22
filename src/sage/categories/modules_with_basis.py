@@ -741,7 +741,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S3A = S3.algebra(QQ)
                 sage: basis = S3A.annihilator_basis(S3A.algebra_generators(), S3A.bracket)
                 sage: basis
-                [(), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2)]
+                ((), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2))
                 sage: center = S3A.submodule(basis,
                 ....:                        category=AlgebrasWithBasis(QQ).Subobjects(),
                 ....:                        already_echelonized=True)
@@ -1098,7 +1098,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             TESTS:
 
-            We check that we make a copy of the coefficient dictonary::
+            We check that we make a copy of the coefficient dictionary::
 
                 sage: F = CombinatorialFreeModule(ZZ, ['a','b','c'])
                 sage: B = F.basis()
@@ -1973,7 +1973,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of modules with basis constructed by cartesian products
+        The category of modules with basis constructed by Cartesian products
         of modules with basis.
         """
         @cached_method

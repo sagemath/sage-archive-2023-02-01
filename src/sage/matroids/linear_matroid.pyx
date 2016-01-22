@@ -2262,7 +2262,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 M._forget()
                 comp_chains[comp] = M._linear_extension_chains(FM, fundamentals)
 
-            chains = [{}]             # make cartesian product of component chains
+            chains = [{}]             # make Cartesian product of component chains
             for comp in comp_chains:
                 new_chains = []
                 for c in chains:

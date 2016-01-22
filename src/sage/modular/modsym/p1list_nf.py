@@ -992,7 +992,7 @@ def p1NFlist(N):
     #N.residues() = iterator through the residues mod N
     L = L+[MSymbol(N, k(1), r, check=False) for r in N.residues()]
 
-    from sage.rings.arith import divisors
+    from sage.arith.all import divisors
     for D in divisors(N):
         if not D.is_trivial() and D!=N:
             #we find Dp ideal coprime to N, in inverse class to D
@@ -1039,7 +1039,7 @@ def lift_to_sl2_Ok(N, c, d):
 
         sage: from sage.modular.modsym.p1list_nf import lift_to_sl2_Ok
         sage: k.<a> = NumberField(x^2 + 23)
-        sage: Ok = k.ring_of_integers(k)
+        sage: Ok = k.ring_of_integers()
         sage: N = k.ideal(3)
         sage: M = Matrix(Ok, 2, lift_to_sl2_Ok(N, 1, a))
         sage: det(M)
@@ -1057,7 +1057,7 @@ def lift_to_sl2_Ok(N, c, d):
     ::
 
         sage: k.<a> = NumberField(x^3 + 11)
-        sage: Ok = k.ring_of_integers(k)
+        sage: Ok = k.ring_of_integers()
         sage: N = k.ideal(3, a - 1)
         sage: M = Matrix(Ok, 2, lift_to_sl2_Ok(N, 2*a, 0))
         sage: det(M)
@@ -1073,7 +1073,7 @@ def lift_to_sl2_Ok(N, c, d):
     ::
 
         sage: k.<a> = NumberField(x^4 - x^3 -21*x^2 + 17*x + 133)
-        sage: Ok = k.ring_of_integers(k)
+        sage: Ok = k.ring_of_integers()
         sage: N = k.ideal(7, a)
         sage: M = Matrix(Ok, 2, lift_to_sl2_Ok(N, 0, a^2 - 1))
         sage: det(M)

@@ -25,7 +25,7 @@ AUTHORS:
 
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from combinat import CombinatorialClass
 from integer_vector import IntegerVectors
 from sage.misc.misc import uniq

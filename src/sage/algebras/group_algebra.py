@@ -686,7 +686,7 @@ class GroupAlgebra(CombinatorialFreeModule):
             Traceback (most recent call last):
             ...
             TypeError: Attempt to coerce non-integral RealNumber to Integer
-            sage: OG(OG.base_ring().gens()[1])
+            sage: OG(OG.base_ring().basis()[1])
             sqrt5*[1 0]
             [0 1]
         """

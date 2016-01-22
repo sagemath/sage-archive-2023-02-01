@@ -1422,7 +1422,7 @@ cdef class Expression(CommutativeRingElement):
             sage: QQbar((2*I)^(1/2))
             1 + 1*I
             sage: QQbar(e^(pi*I/3))
-            0.500000000000000? + 0.866025403784439?*I
+            0.50000000000000000? + 0.866025403784439?*I
 
             sage: QQbar(sqrt(2))
             1.414213562373095?
@@ -1455,12 +1455,15 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(SR(19.23))
             -1458111714  # 32-bit
             2836855582   # 64-bit
-            sage: hash(19.23)
-            -1458111714  # 32-bit
-            2836855582   # 64-bit
             sage: hash(SR(3/1))
             3
-            sage: hash(SR(19/23)) == hash(19/23)  # known bug #19310
+            sage: hash(SR(19/23)) == hash(19/23)
+            True
+            sage: hash(SR(2^32)) == hash(2^32)
+            True
+            sage: hash(SR(2^64-1)) == hash(2^64-1)
+            True
+            sage: hash(SR(1e100)) == hash(1e100)
             True
 
         The hash for symbolic expressions are unfortunately random. Here we
@@ -2617,7 +2620,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t1, t2 = var(','.join([s+'1',s+'2']))
             sage: (t1 == t2).test_relation()
             False
-            sage: (cot(pi + x) == 0).test_relation()
+            sage: (cot(-x) == -cot(x)).test_relation()
             NotImplemented
 
         Check that :trac:`18896` is fixed::
@@ -3016,15 +3019,13 @@ cdef class Expression(CommutativeRingElement):
             e^(-x)
             sage: exp(x)/exp(y)
             e^(x - y)
-            sage: A = exp(I*pi/5)
-            sage: t = A*A*A*A; t
-            e^(4/5*I*pi)
-            sage: t*A
+            sage: A = exp(I*pi/5, hold=True)
+            sage: t = A*A; t
+            1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4
+            sage: A^5
             -1
             sage: b = -x*A; c = b*b; c
-            x^2*e^(2/5*I*pi)
-            sage: u = -t*A; u
-            1
+            1/4*x^2*(sqrt(5) + I*sqrt(2*sqrt(5) + 10) - 1)
 
         Products of non integer powers of exp are not simplified::
 
@@ -5214,42 +5215,41 @@ cdef class Expression(CommutativeRingElement):
             ...
             ValueError: expressions containing only a numeric coefficient, constant or symbol have no operands
         """
-        if is_a_symbol(self._gobj) or is_a_constant(self._gobj) or \
-                is_a_numeric(self._gobj):
-                    raise ValueError("expressions containing only a numeric coefficient, constant or symbol have no operands")
+        if (is_a_symbol(self._gobj) or is_a_constant(self._gobj) or
+            is_a_numeric(self._gobj)):
+                raise ValueError("expressions containing only a numeric coefficient, constant or symbol have no operands")
         return new_ExpIter_from_Expression(self)
 
-    property op:
-        def __get__(self):
-            """
-            Provide access to the operands of an expression through a property.
+    @property
+    def op(self):
+        """
+        Provide access to the operands of an expression through a property.
 
+        EXAMPLES::
 
-            EXAMPLES::
+            sage: t = 1+x+x^2
+            sage: t.op
+            Operands of x^2 + x + 1
+            sage: x.op
+            Traceback (most recent call last):
+            ...
+            TypeError: expressions containing only a numeric coefficient, constant or symbol have no operands
+            sage: t.op[0]
+            x^2
 
-                sage: t = 1+x+x^2
-                sage: t.op
-                Operands of x^2 + x + 1
-                sage: x.op
-                Traceback (most recent call last):
-                ...
-                TypeError: expressions containing only a numeric coefficient, constant or symbol have no operands
-                sage: t.op[0]
-                x^2
+        Indexing directly with ``t[1]`` causes problems with numpy types.
 
-            Indexing directly with ``t[1]`` causes problems with numpy types.
-
-                sage: t[1]
-                Traceback (most recent call last):
-                ...
-                TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
-            """
-            if is_a_symbol(self._gobj) or is_a_constant(self._gobj) or \
-                is_a_numeric(self._gobj):
-                    raise TypeError("expressions containing only a numeric coefficient, constant or symbol have no operands")
-            cdef OperandsWrapper res = OperandsWrapper.__new__(OperandsWrapper)
-            res._expr = self
-            return res
+            sage: t[1]
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
+        """
+        if (is_a_symbol(self._gobj) or is_a_constant(self._gobj) or
+            is_a_numeric(self._gobj)):
+                raise TypeError("expressions containing only a numeric coefficient, constant or symbol have no operands")
+        cdef OperandsWrapper res = OperandsWrapper.__new__(OperandsWrapper)
+        res._expr = self
+        return res
 
     def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
@@ -9488,10 +9488,10 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a,b = var('a b', domain='real')
             sage: A = abs((a+I*b))^2
-            sage: A.canonicalize_radical()
-            a^2 + b^2
             sage: imag(A)
             0
+            sage: A.canonicalize_radical() # not implemented
+            a^2 + b^2
             sage: imag(A.canonicalize_radical())
             0
 
@@ -10258,7 +10258,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: z = var('z')
             sage: (z^5 - 1).solve(z)
-            [z == e^(2/5*I*pi), z == e^(4/5*I*pi), z == e^(-4/5*I*pi), z == e^(-2/5*I*pi), z == 1]
+            [z == 1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, z == -1/4*sqrt(5) + 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, z == -1/4*sqrt(5) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, z == 1/4*sqrt(5) - 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, z == 1]
 
             sage: solve((z^3-1)^3, z, multiplicities=True)
             ([z == 1/2*I*sqrt(3) - 1/2, z == -1/2*I*sqrt(3) - 1/2, z == 1], [3, 3, 3])
@@ -11095,15 +11095,23 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x = var('x', domain='real')
             sage: s = abs((1+I*x)^4); s
-            (I*x + 1)^2*(-I*x + 1)^2
-            sage: s._plot_fast_callable(x)
+            abs(I*x + 1)^4
+            sage: f = s._plot_fast_callable(x); f
             <sage.ext.interpreters.wrapper_py.Wrapper_py object at ...>
-            sage: s._plot_fast_callable(x)(10)
+            sage: f(10)
             10201
             sage: abs((I*10+1)^4)
             10201
             sage: plot(s)
             Graphics object consisting of 1 graphics primitive
+
+        Check that :trac:`19797` is fixed::
+
+            sage: b = f(10.0)
+            sage: b
+            10201.0000000000
+            sage: parent(b)
+            Real Field with 53 bits of precision
 
         Check that :trac:`15030` is fixed::
 

@@ -2,11 +2,6 @@
 #include <sstream>
 using namespace std;
 
-#include "wrap.h"
-
-#include "eclib/htconst.h"
-#include "eclib/interface.h"
-
 /**************** Miscellaneous functions ****************/
 
 long mwrank_get_precision()
@@ -70,19 +65,6 @@ char* bigint_to_str(bigint* x)
 
 
 //////// Curvedata //////////
-
-struct Curvedata* Curvedata_new(const struct bigint* a1, const struct bigint* a2,
-                                const struct bigint* a3, const struct bigint* a4,
-                                const struct bigint* a6, int min_on_init)
-{
-  return new Curvedata(*a1, *a2, *a3, *a4, *a6, min_on_init);
-}
-
-void Curvedata_del(struct Curvedata* curve)
-{
-  delete curve;
-}
-
 
 char* Curvedata_repr(struct Curvedata* curve)
 {
@@ -149,16 +131,6 @@ char* Curvedata_isogeny_class(struct Curvedata* E, int verbose)
 
 //////// mw //////////
 
-
-struct mw* mw_new(struct Curvedata* curve, int verb, int pp, int maxr)
-{
-  return new mw(curve, verb, pp, maxr);
-}
-
-void mw_del(struct mw* m)
-{
-  delete m;
-}
 
 int mw_process(struct Curvedata* curve, struct mw* m,
                       const struct bigint* x, const struct bigint* y,
@@ -245,19 +217,6 @@ void mw_search(struct mw* m, char* h_lim, int moduli_option, int verb)
 
 
 //////// two_descent //////////
-
-struct two_descent* two_descent_new(struct Curvedata* curve,
-                                    int verb, int sel,
-                                    long firstlim, long secondlim,
-                                    long n_aux, int second_descent)
-{
-  return new two_descent(curve, verb, sel, firstlim, secondlim, n_aux, second_descent);
-}
-
-void two_descent_del(struct two_descent* t)
-{
-  delete t;
-}
 
 long two_descent_get_rank(struct two_descent* t)
 {

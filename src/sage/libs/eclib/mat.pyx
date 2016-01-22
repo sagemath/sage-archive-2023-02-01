@@ -1,4 +1,8 @@
-"Cremona matrices"
+"""
+Cremona matrices
+"""
+
+from ..eclib cimport scalar, addscalar
 
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import ZZ
@@ -17,23 +21,17 @@ cdef class Matrix:
         sage: M = CremonaModularSymbols(225)
         sage: t = M.hecke_matrix(2)
         sage: type(t)
-        <type 'sage.libs.cremona.mat.Matrix'>
+        <type 'sage.libs.eclib.mat.Matrix'>
         sage: t
         61 x 61 Cremona matrix over Rational Field
+
+    TESTS::
+
+        sage: t = CremonaModularSymbols(11).hecke_matrix(2); t
+        3 x 3 Cremona matrix over Rational Field
+        sage: type(t)
+        <type 'sage.libs.eclib.mat.Matrix'>
     """
-    def __init__(self):
-        """
-        Called when the matrix is being created.
-
-        EXAMPLES::
-
-            sage: t = CremonaModularSymbols(11).hecke_matrix(2); t
-            3 x 3 Cremona matrix over Rational Field
-            sage: type(t)
-            <type 'sage.libs.cremona.mat.Matrix'>
-        """
-        self.M = NULL
-
     def __repr__(self):
         """
         String representation of this matrix.  Use print self.str() to
@@ -66,14 +64,8 @@ cdef class Matrix:
         """
         return self.sage_matrix_over_ZZ(sparse=False).str()
 
-    cdef set(self, mat*  M):
-        if self.M:
-            raise RuntimeError, "self.M is already set."
-        self.M = M
-
     def __dealloc__(self):
-        if self.M:
-            delete_mat(self.M)
+        del self.M
 
     def __getitem__(self, ij):
         """
@@ -245,6 +237,7 @@ cdef class Matrix:
                     k += 1
             return Td
 
+
 cdef class MatrixFactory:
     cdef new_matrix(self, mat M):
         return new_Matrix(M)
@@ -252,5 +245,5 @@ cdef class MatrixFactory:
 
 cdef Matrix new_Matrix(mat M):
     cdef Matrix A = Matrix()
-    A.set(new_mat(M))
+    A.M = new mat(M)
     return A

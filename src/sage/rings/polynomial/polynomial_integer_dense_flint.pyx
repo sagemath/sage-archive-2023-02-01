@@ -51,7 +51,7 @@ from sage.libs.all import pari, pari_gen
 from sage.structure.factorization import Factorization
 
 from sage.rings.fraction_field_element import FractionFieldElement
-from sage.rings.arith import lcm
+from sage.arith.all import lcm
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series

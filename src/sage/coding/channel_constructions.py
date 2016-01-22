@@ -399,12 +399,24 @@ class StaticErrorRateChannel(Channel):
             sage: set_random_seed(10)
             sage: Chan.transmit_unsafe(msg)
             (4, 8, 4, 16, 23, 53)
+
+        This checks that trac #19863 is fixed::
+
+            sage: V = VectorSpace(GF(2), 1000)
+            sage: Chan = channels.StaticErrorRateChannel(V, 367)
+            sage: c = V.random_element()
+            sage: (c - Chan(c)).hamming_weight()
+            367
         """
         w = copy(message)
         number_errors = randint(*self.number_errors())
         V = self.input_space()
+        R = V.base_ring()
         for i in sample(xrange(V.dimension()), number_errors):
-            w[i] = V.base_ring().random_element()
+            err = R.random_element()
+            while (w[i] == err):
+                err = R.random_element()
+            w[i] = err
         return w
 
     def number_errors(self):
@@ -433,7 +445,7 @@ class ErrorErasureChannel(Channel):
     r"""
     Channel which adds errors and erases several positions in any message it transmits.
 
-    The output space of this channel is a cartesian product
+    The output space of this channel is a Cartesian product
     between its input space and a VectorSpace of the same dimension over GF(2)
 
     The main purpose of communication channels is to transmit messages, which can be achieved with
@@ -478,7 +490,7 @@ class ErrorErasureChannel(Channel):
         sage: Chan
         Error-and-erasure channel creating 2 errors and 2 erasures
         of input space Vector space of dimension 40 over Finite Field of size 59
-        and output space The cartesian product of (Vector space of dimension 40
+        and output space The Cartesian product of (Vector space of dimension 40
         over Finite Field of size 59, Vector space of dimension 40 over Finite Field of size 2)
 
     We can also pass the number of errors and erasures as a couple of integers::
@@ -488,7 +500,7 @@ class ErrorErasureChannel(Channel):
         sage: Chan
         Error-and-erasure channel creating between 1 and 10 errors and
         between 1 and 10 erasures of input space Vector space of dimension 40
-        over Finite Field of size 59 and output space The cartesian product of
+        over Finite Field of size 59 and output space The Cartesian product of
         (Vector space of dimension 40 over Finite Field of size 59,
         Vector space of dimension 40 over Finite Field of size 2)
     """
@@ -537,7 +549,7 @@ class ErrorErasureChannel(Channel):
             sage: Chan
             Error-and-erasure channel creating 21 errors and 21 erasures
             of input space Vector space of dimension 50 over Finite Field of size 59
-            and output space The cartesian product of (Vector space of dimension 50
+            and output space The Cartesian product of (Vector space of dimension 50
             over Finite Field of size 59, Vector space of dimension 50 over Finite Field of size 2)
         """
         no_err = self.number_errors()
@@ -556,7 +568,7 @@ class ErrorErasureChannel(Channel):
             sage: latex(Chan)
             \textnormal{Error-and-erasure channel creating 21 errors and 21 erasures
             of input space Vector space of dimension 50 over Finite Field of size 59
-            and output space The cartesian product of (Vector space of dimension 50
+            and output space The Cartesian product of (Vector space of dimension 50
             over Finite Field of size 59, Vector space of dimension 50 over Finite Field of size 2)}
         """
         no_err = self.number_errors()

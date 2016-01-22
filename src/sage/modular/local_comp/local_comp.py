@@ -262,7 +262,7 @@ class LocalComponentBase(SageObject):
             sage: LocalComponent(Newforms(DirichletGroup(24)([1, -1,-1]), 3, names='a')[0], 2).central_character()
             Character of Q_2*, of level 3, mapping 7 |--> 1, 5 |--> -1, 2 |--> -2
         """
-        from sage.rings.arith import crt
+        from sage.arith.all import crt
         chi = self.newform().character()
         f = self.prime() ** self.conductor()
         N = self.newform().level() // f

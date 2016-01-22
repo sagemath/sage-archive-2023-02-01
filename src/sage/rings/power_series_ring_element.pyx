@@ -102,7 +102,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
-import arith
+import sage.arith.all as arith
 import sage.misc.latex
 import rational_field, integer_ring
 from integer import Integer
@@ -1634,7 +1634,8 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Return log of this power series to the indicated precision.
 
-        This works only if the constant term of the power series is 1.
+        This works only if the constant term of the power series is 1
+        or the base ring can take the logarithm of the constant coefficient.
 
         INPUT:
 
@@ -1662,17 +1663,26 @@ cdef class PowerSeries(AlgebraElement):
             sage: (-1 + t + O(t^10)).log()
             Traceback (most recent call last):
             ...
-            ArithmeticError: constant term of power series is not 1
+            AttributeError: 'sage.rings.rational.Rational' object has no attribute 'log'
+
+            sage: R.<t> = PowerSeriesRing(RR)
+            sage: (2+t).log().exp()
+            2.00000000000000 + 1.00000000000000*t + O(t^20)
         """
         if prec is None:
             prec = self._parent.default_prec()
 
-        if not self[0].is_one():
-            raise ArithmeticError("constant term of power series is not 1")
-
         zero = self.parent().zero()
+        const_off = zero
+
+        if not self[0].is_one():
+            if self.base_ring() in _Fields:
+                const_off = self[0].log()
+            else:
+                raise ArithmeticError("constant term of power series is not 1")
+
         t = zero.solve_linear_de(prec,b=self.derivative()/self,f0=0)
-        return t
+        return t + const_off
 
     def V(self, n):
         r"""

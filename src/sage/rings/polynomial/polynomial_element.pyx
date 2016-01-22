@@ -43,12 +43,13 @@ TESTS::
 cdef is_FractionField, is_RealField, is_ComplexField
 cdef ZZ, QQ, RR, CC, RDF, CDF
 
+from cpython.number cimport PyNumber_TrueDivide
+
 import operator, copy, re
 
 import sage.rings.rational
 import sage.rings.integer
 import polynomial_ring
-import sage.rings.arith
 import sage.rings.integer_ring
 import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
@@ -89,7 +90,8 @@ from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.derivative import multi_derivative
 
-from sage.rings.arith import sort_complex_numbers_for_display
+from sage.arith.all import (sort_complex_numbers_for_display,
+        power_mod, lcm, is_prime)
 
 import polynomial_fateman
 
@@ -959,16 +961,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
             sage: f._cache_key()
-            (..., (0, 1 + O(2^20)))
-
+            (Univariate Polynomial Ring in x over Unramified Extension of 2-adic Field with capped relative precision 20 in u defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20)),
+             0,
+             1 + O(2^20))
             sage: @cached_function
             ....: def foo(t): return t
             ....:
             sage: foo(x)
             (1 + O(2^20))*x
-
         """
-        return (self.parent(), tuple(self))
+        return (self._parent,) + tuple(self)
 
     def __hash__(self):
         return self._hash_c()
@@ -1835,7 +1837,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.roots(ring=ring, multiplicities=False)[0]
 
 
-    def __div__(self, right):
+    def __truediv__(self, right):
         """
         EXAMPLES::
 
@@ -1910,6 +1912,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pass
         return RingElement.__div__(self, right)
 
+    def __div__(self, other):
+        return PyNumber_TrueDivide(self, other)
 
     def __pow__(self, right, modulus):
         """
@@ -1992,7 +1996,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if right < 0:
             return (~self)**(-right)
         if modulus:
-            from sage.rings.arith import power_mod
             return power_mod(self, right, modulus)
         if (<Polynomial>self).is_gen():   # special case x**n should be faster!
             P = self.parent()
@@ -3683,7 +3686,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         G = None
         ch = R.characteristic()
-        if not (ch == 0 or sage.rings.arith.is_prime(ch)):
+        if not (ch == 0 or is_prime(ch)):
             raise NotImplementedError("factorization of polynomials over rings with composite characteristic is not implemented")
 
         from sage.rings.number_field.number_field_base import is_NumberField
@@ -4000,7 +4003,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             from sage.rings.number_field.splitting_field import splitting_field
             return splitting_field(f, name, map, **kwds)
         elif is_FiniteField(F):
-            degree = sage.rings.arith.lcm([f.degree() for f, _ in self.factor()])
+            degree = lcm([f.degree() for f, _ in self.factor()])
             return F.extension(degree, name, map=map, **kwds)
 
         raise NotImplementedError("splitting_field() is only implemented over number fields and finite fields")

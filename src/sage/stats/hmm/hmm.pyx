@@ -196,7 +196,7 @@ cdef class HiddenMarkovModel:
 
 
     #########################################################
-    # Some internal funcitons used for various general
+    # Some internal functions used for various general
     # HMM algorithms.
     #########################################################
     cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):

@@ -670,7 +670,7 @@ class Modules(Category_module):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of modules constructed as cartesian products of modules
+        The category of modules constructed as Cartesian products of modules
 
         This construction gives the direct product of modules. The
         implementation is based on the following resources:
@@ -680,7 +680,7 @@ class Modules(Category_module):
         """
         def extra_super_categories(self):
             """
-            A cartesian product of modules is endowed with a natural
+            A Cartesian product of modules is endowed with a natural
             module structure.
 
             EXAMPLES::
@@ -696,7 +696,7 @@ class Modules(Category_module):
         class ParentMethods:
             def base_ring(self):
                 """
-                Return the base ring of this cartesian product.
+                Return the base ring of this Cartesian product.
 
                 EXAMPLES::
 

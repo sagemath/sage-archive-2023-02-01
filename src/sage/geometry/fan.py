@@ -3289,7 +3289,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         boundaries = {self:FormalSum(generating_cones)}
 
         # The orientation of each facet is arbitrary, but the
-        # partititon of the boundary in positively and negatively
+        # partition of the boundary in positively and negatively
         # oriented facets is not.
         for d in range(dim, -1, -1):
             for c in self(d):

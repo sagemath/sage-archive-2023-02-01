@@ -505,9 +505,9 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', alpha=S.var('a'),
             ....:     precision=4).map_coefficients(lambda c: c.factor())
             1/gamma(a)*n^(a - 1)
-            + 1/2*(a - 1)*a/gamma(a)*n^(a - 2)
-            + 1/24*(3*a - 1)*(a - 1)*(a - 2)*a/gamma(a)*n^(a - 3)
-            + 1/48*(a - 1)^2*(a - 2)*(a - 3)*a^2/gamma(a)*n^(a - 4)
+            + (1/2*(a - 1)*a/gamma(a))*n^(a - 2)
+            + (1/24*(3*a - 1)*(a - 1)*(a - 2)*a/gamma(a))*n^(a - 3)
+            + (1/48*(a - 1)^2*(a - 2)*(a - 3)*a^2/gamma(a))*n^(a - 4)
             + O(n^(a - 5))
             sage: _.parent()
             Asymptotic Ring <n^(Symbolic Subring rejecting the variable n)>

@@ -4194,7 +4194,10 @@ class LinearCodeSyndromeDecoder(Decoder):
                         s.set_immutable()
                         try:
                             e_cur = lookup[s]
-                            if not e_cur < e:
+                            if (e.hamming_weight() == e_cur.hamming_weight()
+                                    and e < e_cur):
+                                lookup[s] = copy(e)
+                            elif e.hamming_weight() < e_cur.hamming_weight():
                                 lookup[s] = copy(e)
                         except KeyError:
                             lookup[s] = copy(e)

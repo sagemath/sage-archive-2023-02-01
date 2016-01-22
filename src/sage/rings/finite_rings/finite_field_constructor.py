@@ -45,12 +45,13 @@ of `C_n` we have that
 contains a database of Conway polynomials which also can be queried
 independently of finite field construction.
 
-A pseduo-Conway polynomial satisfies all of the conditions required
+A pseudo-Conway polynomial satisfies all of the conditions required
 of a Conway polynomial except the condition that it is lexicographically
 first.  They are therefore not unique.  If no variable name is
 specified for an extension field, Sage will fit the finite field
-into a compatible lattice of field extensions defined by pseduo-Conway
-polynomials.  This lattice is stored in an AlgebraicClosureFiniteField
+into a compatible lattice of field extensions defined by pseudo-Conway
+polynomials. This lattice is stored in an
+:class:`~sage.rings.algebraic_closure_finite_field.AlgebraicClosureFiniteField`
 object; different algebraic closure objects can be created by using
 a different ``prefix`` keyword to the finite field constructor.
 

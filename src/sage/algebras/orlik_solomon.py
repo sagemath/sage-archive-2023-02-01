@@ -312,7 +312,9 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         Return the element `e_S` of `A(M)` (``== self``) corresponding to
         a subset `S` of the ground set of `M`.
 
-        The set `S` is to be given as a frozenset.
+        INPUT:
+
+        - ``S`` -- a frozenset which is a subset of the ground set of `M`
 
         EXAMPLES::
 
@@ -332,6 +334,8 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS = M4.orlik_solomon_algebra(QQ)
             sage: OS.subset_image(frozenset({2,3,4}))
             OS{0, 2, 3} + OS{0, 3, 4}
+
+        TESTS::
 
             sage: G = Graph([[1,2],[1,2],[2,3],[2,3],[1,3],[1,3]], multiedges=True)
             sage: M = Matroid(G)
@@ -372,7 +376,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS.subset_image(frozenset([1, 3, 4]))
             -OS{0, 2, 3} + OS{0, 2, 4}
 
-        An example of a custom ordering:
+        An example of a custom ordering::
 
             sage: G = Graph([[3, 4], [4, 1], [1, 2], [2, 3], [3, 5], [5, 6], [6, 3]])
             sage: M = Matroid(G)

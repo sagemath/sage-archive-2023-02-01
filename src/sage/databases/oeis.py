@@ -27,11 +27,11 @@ What about a sequence starting with `3, 7, 15, 1` ?
     sage: search = oeis([3, 7, 15, 1], max_results=4) ; search  # optional -- internet
     0: A001203: Continued fraction expansion of Pi.
     1: A082495: a(n) = (2^n - 1) mod n.
-    2: A246674: Run Length Transform of A000225.
-    3: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
+    2: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
+    3: A246674: Run Length Transform of A000225.
 
     sage: [u.id() for u in search]                      # optional -- internet
-    ['A001203', 'A082495', 'A246674', 'A165416']
+    ['A001203', 'A082495', 'A165416', 'A246674']
     sage: c = search[0] ; c                             # optional -- internet
     A001203: Continued fraction expansion of Pi.
 
@@ -841,7 +841,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.keywords()                          # optional -- internet
-            ('core', 'nonn', 'nice', 'easy', 'hear', 'changed')
+            ('core', 'nonn', 'nice', 'easy', 'hear')
 
         TESTS::
 

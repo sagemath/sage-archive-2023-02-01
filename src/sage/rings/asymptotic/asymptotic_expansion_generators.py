@@ -383,7 +383,7 @@ class AsymptoticExpansionGenerators(SageObject):
             result += 1 / (2 * n)
 
         from sage.misc.misc import srange
-        from sage.rings.arith import bernoulli
+        from sage.arith.all import bernoulli
         for k in srange(2, 2*precision - 4, 2):
             result += -bernoulli(k) / k / n**k
 

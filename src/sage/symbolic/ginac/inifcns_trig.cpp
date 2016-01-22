@@ -843,10 +843,11 @@ static ex atan_eval(const ex & x)
 	// arctan(-oo) -> -Pi/2
 	// arctan(UnsignedInfinity) -> error
 	if (x.info(info_flags::infinity)) {
-		if (x.is_equal(Infinity))
-			return _ex1_2*Pi;
-		if (x.is_equal(NegInfinity))
-			return _ex_1_2*Pi;
+	        infinity xinf = ex_to<infinity>(x);
+		if (xinf.is_plus_infinity())
+		        return _ex1_2*Pi;
+		if (xinf.is_minus_infinity())
+		        return _ex_1_2*Pi;
 		// x is UnsignedInfinity
 		throw (std::runtime_error("arctan_eval(): arctan(unsigned_infinity) encountered"));
 	}

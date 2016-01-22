@@ -335,47 +335,6 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS.subset_image(frozenset({2,3,4}))
             OS{0, 2, 3} + OS{0, 3, 4}
 
-        TESTS::
-
-            sage: G = Graph([[1,2],[1,2],[2,3],[2,3],[1,3],[1,3]], multiedges=True)
-            sage: M = Matroid(G)
-            sage: sorted([sorted(c) for c in M.circuits()])
-            [[0, 1],
-             [0, 2, 4],
-             [0, 2, 5],
-             [0, 3, 4],
-             [0, 3, 5],
-             [1, 2, 4],
-             [1, 2, 5],
-             [1, 3, 4],
-             [1, 3, 5],
-             [2, 3],
-             [4, 5]]
-            sage: OS = M.orlik_solomon_algebra(QQ)
-            sage: OS.subset_image(frozenset([]))
-            OS{}
-            sage: OS.subset_image(frozenset([1, 2, 3]))
-            0
-            sage: OS.subset_image(frozenset([1, 3, 5]))
-            0
-            sage: OS.subset_image(frozenset([1, 2]))
-            OS{0, 2}
-            sage: OS.subset_image(frozenset([3, 4]))
-            -OS{0, 2} + OS{0, 4}
-            sage: OS.subset_image(frozenset([1, 5]))
-            OS{0, 4}
-
-            sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
-            sage: M = Matroid(G)
-            sage: sorted([sorted(c) for c in M.circuits()])
-            [[0, 1],
-             [2, 3, 4]]
-            sage: OS = M.orlik_solomon_algebra(QQ)
-            sage: OS.subset_image(frozenset([]))
-            OS{}
-            sage: OS.subset_image(frozenset([1, 3, 4]))
-            -OS{0, 2, 3} + OS{0, 2, 4}
-
         An example of a custom ordering::
 
             sage: G = Graph([[3, 4], [4, 1], [1, 2], [2, 3], [3, 5], [5, 6], [6, 3]])
@@ -403,7 +362,37 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
              - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 5)}
              - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 6)}
 
-        TESTS:
+        TESTS::
+
+            sage: G = Graph([[1,2],[1,2],[2,3],[2,3],[1,3],[1,3]], multiedges=True)
+            sage: M = Matroid(G)
+            sage: sorted([sorted(c) for c in M.circuits()])
+            [[0, 1], [0, 2, 4], [0, 2, 5], [0, 3, 4],
+             [0, 3, 5], [1, 2, 4], [1, 2, 5], [1, 3, 4],
+             [1, 3, 5], [2, 3], [4, 5]]
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS.subset_image(frozenset([]))
+            OS{}
+            sage: OS.subset_image(frozenset([1, 2, 3]))
+            0
+            sage: OS.subset_image(frozenset([1, 3, 5]))
+            0
+            sage: OS.subset_image(frozenset([1, 2]))
+            OS{0, 2}
+            sage: OS.subset_image(frozenset([3, 4]))
+            -OS{0, 2} + OS{0, 4}
+            sage: OS.subset_image(frozenset([1, 5]))
+            OS{0, 4}
+
+            sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
+            sage: M = Matroid(G)
+            sage: sorted([sorted(c) for c in M.circuits()])
+            [[0, 1], [2, 3, 4]]
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS.subset_image(frozenset([]))
+            OS{}
+            sage: OS.subset_image(frozenset([1, 3, 4]))
+            -OS{0, 2, 3} + OS{0, 2, 4}
 
         We check on a non-standard ordering::
 

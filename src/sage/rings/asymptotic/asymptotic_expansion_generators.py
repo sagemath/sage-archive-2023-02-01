@@ -521,6 +521,17 @@ class AsymptoticExpansionGenerators(SageObject):
             Asymptotic Ring <n^(Symbolic Subring rejecting the variable n)>
             over Symbolic Subring rejecting the variable n
 
+        ALGORITHM:
+
+        See [FS2009]_ together with the
+        `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
+
+        REFERENCES:
+
+        .. [FS2009] Philippe Flajolet and Robert Sedgewick,
+           `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
+           Cambridge University Press, Cambridge, 2009.
+
         TESTS::
 
             sage: asymptotic_expansions.SingularityAnalysis(

@@ -12200,7 +12200,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Determines if a real or symmetric matrix is positive definite.
 
-        A square matrix `A` is postive definite if it is
+        A square matrix `A` is positive definite if it is
         symmetric with real entries or Hermitan with complex entries,
         and for every non-zero vector `\vec{x}`
 
@@ -12239,7 +12239,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         A real symmetric matrix that is positive definite,
         as evidenced by the positive entries for the diagonal
-        matrix of the indefinite factorization and the postive
+        matrix of the indefinite factorization and the positive
         determinants of the leading principal submatrices. ::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],

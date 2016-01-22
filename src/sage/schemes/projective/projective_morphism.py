@@ -3396,7 +3396,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         Must be defined over `\QQ`.
 
         The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
-        trouble getting a partiuclar map to finish, try first computing the possible periods, then
+        trouble getting a particular map to finish, try first computing the possible periods, then
         try various different ``lifting_prime``.
 
         ALGORITHM:

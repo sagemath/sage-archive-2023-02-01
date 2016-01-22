@@ -130,7 +130,7 @@ JPEGLIB=
 # Uncomment the following lines to disable PNG support
 USEPNG= -DUSEPNG
 PNGINC= -I$(SAGE_LOCAL)/include
-PNGLIB= -L$(SAGE_LOCAL)/lib -lpng12 -lz
+PNGLIB= -L$(SAGE_LOCAL)/lib -lpng12 -lz $(LDFLAGS)
 
 
 

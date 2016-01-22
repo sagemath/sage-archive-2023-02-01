@@ -21,23 +21,25 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.tensor import TensorProductsCategory
+from sage.combinat.subset import Subsets
+from sage.graphs.dot2tex_utils import have_dot2tex
 
 class RegularCrystals(Category_singleton):
     r"""
     The category of regular crystals.
 
-    A crystal is called *regular* if:
+    A crystal is called *regular* if every vertex `b` satisfies
 
     .. MATH::
 
-        \epsilon_i(b) = \max\{ k \mid e_i^k(b) \neq 0 \} \quad \text{and}
-        \quad \phi_i(b) = \max\{ k \mid f_i^k(b) \neq 0 \}.
+        \varepsilon_i(b) = \max\{ k \mid e_i^k(b) \neq 0 \} \quad \text{and}
+        \quad \varphi_i(b) = \max\{ k \mid f_i^k(b) \neq 0 \}.
 
     .. NOTE::
 
         Regular crystals are sometimes referred to as *normal*. When only one
-        of the conditions (on either `\phi_i` or `epsilon_i`) holds, these
-        crystals are sometimes called *seminormal* or *semiregular*.
+        of the conditions (on either `\varphi_i` or `\varepsilon_i`) holds,
+        these crystals are sometimes called *seminormal* or *semiregular*.
 
     EXAMPLES::
 
@@ -55,6 +57,7 @@ class RegularCrystals(Category_singleton):
         sage: B = RegularCrystals().example()
         sage: TestSuite(B).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -120,6 +123,38 @@ class RegularCrystals(Category_singleton):
         """
         return None
 
+    class MorphismMethods:
+        def is_isomorphism(self):
+            """
+            Check if ``self`` is a crystal isomorphism, which is true
+            if and only if this is a strict embedding with the same number
+            of connected components.
+
+            EXAMPLES::
+
+                sage: La = RootSystem(['A',2,1]).weight_space(extended=True).fundamental_weights()
+                sage: B = crystals.LSPaths(La[0])
+                sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
+                sage: C = crystals.GeneralizedYoungWalls(2, La[0])
+                sage: H = Hom(B, C)
+                sage: from sage.categories.highest_weight_crystals import HighestWeightCrystalMorphism
+                sage: class Psi(HighestWeightCrystalMorphism):
+                ....:     def is_strict(self):
+                ....:         return True
+                sage: psi = Psi(H, C.module_generators)
+                sage: psi
+                ['A', 2, 1] Crystal morphism:
+                  From: The crystal of LS paths of type ['A', 2, 1] and weight Lambda[0]
+                  To:   Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1]
+                         and highest weight Lambda[0]
+                  Defn: (Lambda[0],) |--> []
+                sage: psi.is_isomorphism()
+                True
+            """
+            return (self.is_strict()
+                    and self.domain().number_of_connected_components() ==
+                        self.codomain().number_of_connected_components())
+
     class ParentMethods:
 
         # TODO: this could be a method in Crystals.Algebras.ElementMethods, so that
@@ -174,6 +209,64 @@ class RegularCrystals(Category_singleton):
                                                for c, coeff in element)
             return element
 
+        def demazure_subcrystal(self, element, reduced_word, only_support=True):
+            r"""
+            Return the subcrystal corresponding to the application of
+            Demazure operators `D_i` for `i` from ``reduced_word`` on
+            ``element``.
+
+            INPUT:
+
+            - ``element`` -- an element of a free module indexed by the
+              underlying crystal
+            - ``reduced_word`` -- a reduced word of the Weyl group of the
+              same type as the underlying crystal
+            - ``only_support`` -- (default: ``True``) only include arrows
+              corresponding the the support of ``reduced_word``
+
+            OUTPUT:
+
+            - the Demazure subcrystal 
+
+            EXAMPLES::
+
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: t = T.highest_weight_vector()
+                sage: S = T.demazure_subcrystal(t, [1,2])
+                sage: list(S)
+                [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
+                 [[1, 2], [3]], [[2, 2], [3]]]
+                sage: S = T.demazure_subcrystal(t, [2,1])
+                sage: list(S)
+                [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
+                 [[1, 3], [2]], [[1, 3], [3]]]
+
+            We construct an example where we don't only want the arrows
+            indicated by the support of the reduced word::
+
+                sage: K = crystals.KirillovReshetikhin(['A',1,1], 1, 2)
+                sage: mg = K.module_generator()
+                sage: S = K.demazure_subcrystal(mg, [1])
+                sage: S.digraph().edges()
+                [([[1, 1]], [[1, 2]], 1), ([[1, 2]], [[2, 2]], 1)]
+                sage: S = K.demazure_subcrystal(mg, [1], only_support=False)
+                sage: S.digraph().edges()
+                [([[1, 1]], [[1, 2]], 1),
+                 ([[1, 2]], [[1, 1]], 0),
+                 ([[1, 2]], [[2, 2]], 1),
+                 ([[2, 2]], [[1, 2]], 0)]
+            """
+            from sage.combinat.free_module import CombinatorialFreeModule
+            from sage.rings.all import QQ
+            C = CombinatorialFreeModule(QQ, self)
+            D = self.demazure_operator(C(element), reduced_word)
+            if only_support:
+                index_set = tuple(frozenset(reduced_word))
+            else:
+                index_set = self.cartan_type().index_set()
+            return self.subcrystal(contained=D.support(), generators=[element],
+                                   index_set=index_set)
+
         def _test_stembridge_local_axioms(self, index_set=None, verbose=False, complete=False, **options):
             r"""
             This implements tests for the Stembridge local characterization
@@ -222,6 +315,149 @@ class RegularCrystals(Category_singleton):
                     return
             tester.assertTrue(goodness)
             return goodness
+
+        def dual_equivalence_graph(self, X=None, index_set=None, directed=True):
+            r"""
+            Return the dual equivalence graph indexed by ``index_set``
+            on the subset ``X`` of ``self``.
+
+            Let `b \in B` be an element of weight `0`, so `\varepsilon_j(b)
+            = \varphi_j(b)` for all `j \in I`, where `I` is the indexing
+            set. We say `b'` is an `i`-elementary dual equivalence
+            transformation of `b` (where `i \in I`) if
+
+            * `\varepsilon_i(b) = 1` and `\varepsilon_{i-1}(b) = 0`, and
+            * `b' = f_{i-1} f_i e_{i-1} e_i b`.
+
+            We can do the inverse procedure by interchanging `i` and `i-1`
+            above.
+
+            .. NOTE::
+
+                If the index set is not an ordered interval, we let
+                `i - 1` mean the index appearing before `i` in `I`.
+
+            This definition comes from [Assaf08]_ Section 4 (where our
+            `\varphi_j(b)` and `\varepsilon_j(b)` are denoted by
+            `\epsilon(b, j)` and `-\delta(b, j)`, respectively).
+
+            The dual equivalence graph of `B` is defined to be the
+            colored graph whose vertices are the elements of `B` of
+            weight `0`, and whose edges of color `i` (for `i \in I`)
+            connect pairs `\{ b, b' \}` such that `b'` is an
+            `i`-elementary dual equivalence transformation of `b`.
+
+            .. NOTE::
+
+                This dual equivalence graph is a generalization of
+                `\mathcal{G}\left(\mathcal{X}\right)` in [Assaf08]_
+                Section 4 except we do not require
+                `\varepsilon_i(b) = 0, 1` for all `i`.
+
+            This definition can be generalized by choosing a subset `X`
+            of the set of all vertices of `B` of weight `0`, and
+            restricting the dual equivalence graph to the vertex set
+            `X`.
+
+            INPUT:
+
+            - ``X`` -- (optional) the vertex set `X` (default:
+              the whole set of vertices of ``self`` of weight `0`)
+            - ``index_set`` -- (optional) the index set `I`
+              (default: the whole index set of ``self``); this has
+              to be a subset of the index set of ``self`` (as a list
+              or tuple)
+            - ``directed`` -- (default: ``True``) whether to have the
+              dual equivalence graph be directed, where the head of
+              an edge `b - b'` is `b` and the tail is
+              `b' = f_{i-1} f_i e_{i-1} e_i b`)
+
+            .. SEEALSO::
+
+                :meth:`sage.combinat.partition.Partition.dual_equivalence_graph`
+
+            REFERENCES:
+
+            .. [Assaf08] Sami Assaf. *A combinatorial realization of Schur-Weyl
+               duality via crystal graphs and dual equivalence graphs*.
+               FPSAC 2008, 141-152, Discrete Math. Theor. Comput. Sci. Proc.,
+               AJ, Assoc. Discrete Math. Theor. Comput. Sci., (2008).
+               :arxiv:`0804.1587v1`
+
+            EXAMPLES::
+
+                sage: T = crystals.Tableaux(['A',3], shape=[2,2])
+                sage: G = T.dual_equivalence_graph()
+                sage: sorted(G.edges())
+                [([[1, 3], [2, 4]], [[1, 2], [3, 4]], 2),
+                 ([[1, 2], [3, 4]], [[1, 3], [2, 4]], 3)]
+                sage: T = crystals.Tableaux(['A',4], shape=[3,2])
+                sage: G = T.dual_equivalence_graph()
+                sage: sorted(G.edges())
+                [([[1, 3, 5], [2, 4]], [[1, 3, 4], [2, 5]], 4),
+                 ([[1, 3, 5], [2, 4]], [[1, 2, 5], [3, 4]], 2),
+                 ([[1, 3, 4], [2, 5]], [[1, 2, 4], [3, 5]], 2),
+                 ([[1, 2, 5], [3, 4]], [[1, 3, 5], [2, 4]], 3),
+                 ([[1, 2, 4], [3, 5]], [[1, 2, 3], [4, 5]], 3),
+                 ([[1, 2, 3], [4, 5]], [[1, 2, 4], [3, 5]], 4)]
+
+                sage: T = crystals.Tableaux(['A',4], shape=[3,1])
+                sage: G = T.dual_equivalence_graph(index_set=[1,2,3])
+                sage: G.vertices()
+                [[[1, 3, 4], [2]], [[1, 2, 4], [3]], [[1, 2, 3], [4]]]
+                sage: G.edges()
+                [([[1, 3, 4], [2]], [[1, 2, 4], [3]], 2),
+                 ([[1, 2, 4], [3]], [[1, 2, 3], [4]], 3)]
+
+            TESTS::
+
+                sage: T = crystals.Tableaux(['A',4], shape=[3,1])
+                sage: G = T.dual_equivalence_graph(index_set=[2,3])
+                sage: sorted(G.edges())
+                [([[1, 2, 4], [3]], [[1, 2, 3], [4]], 3),
+                 ([[2, 4, 5], [3]], [[2, 3, 5], [4]], 3)]
+                sage: sorted(G.vertices())
+                [[[1, 3, 4], [2]],
+                 [[1, 2, 4], [3]],
+                 [[2, 4, 5], [3]],
+                 [[1, 2, 3], [4]],
+                 [[2, 3, 5], [4]],
+                 [[1, 1, 1], [5]],
+                 [[1, 1, 5], [5]],
+                 [[1, 5, 5], [5]],
+                 [[2, 3, 4], [5]]]
+            """
+            if index_set is None:
+                index_set = self.index_set()
+
+            def wt_zero(x):
+                for i in index_set:
+                    if x.epsilon(i) != x.phi(i):
+                        return False
+                return True
+
+            if X is None:
+                X = [x for x in self if wt_zero(x)]
+                checker = lambda x: True
+            elif any(not wt_zero(x) for x in X):
+                raise ValueError("the elements are not all weight 0")
+            else:
+                checker = lambda x: x in X
+
+            edges = []
+            for x in X:
+                for k, i in enumerate(index_set[1:]):
+                    im = index_set[k]
+                    if x.epsilon(i) == 1 and x.epsilon(im) == 0:
+                        y = x.e(i).e(im).f(i).f(im)
+                        if checker(y):
+                            edges.append([x, y, i])
+            from sage.graphs.all import DiGraph
+            G = DiGraph([X, edges], format="vertices_and_edges", immutable=True)
+            if have_dot2tex():
+                G.set_latex_options(format="dot2tex", edge_labels=True,
+                                    color_by_label=self.cartan_type()._index_set_coloring)
+            return G
 
     class ElementMethods:
 
@@ -323,7 +559,7 @@ class RegularCrystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['A',2,1],2,1)
                 sage: t = K(rows=[[3],[2]])
                 sage: t.demazure_operator_simple(0)
-                B[[[2, 3]]] + B[[[1, 2]]]
+                B[[[1, 2]]] + B[[[2, 3]]]
 
             TESTS::
 
@@ -497,7 +733,7 @@ class RegularCrystals(Category_singleton):
 
             Running with ``verbose=True`` will print warnings when a test fails.
 
-            REFERENCES::
+            REFERENCES:
 
             .. [S2003] John R. Stembridge, A local characterization of
                simply-laced crystals,
@@ -515,7 +751,6 @@ class RegularCrystals(Category_singleton):
                 sage: t._test_stembridge_local_axioms(verbose=True)
                 True
             """
-            from sage.combinat.subset import Subsets
             tester = self._tester(**options)
             goodness=True
             if index_set is None: index_set=self.index_set()
@@ -552,6 +787,98 @@ class RegularCrystals(Category_singleton):
                                 tester.fail()
             tester.assertTrue(goodness)
             return goodness
+
+        def dual_equivalence_class(self, index_set=None):
+            r"""
+            Return the dual equivalence class indexed by ``index_set``
+            of ``self``.
+
+            The dual equivalence class of an element `b \in B`
+            is the set of all elements of `B` reachable from
+            `b` via sequences of `i`-elementary dual equivalence
+            relations (i.e., `i`-elementary dual equivalence
+            transformations and their inverses) for `i` in the index
+            set of `B`.
+
+            For this to be well-defined, the element `b` has to be
+            of weight `0` with respect to `I`; that is, we need to have
+            `\varepsilon_j(b) = \varphi_j(b)` for all `j \in I`.
+
+            See [Assaf08]_. See also :meth:`dual_equivalence_graph` for
+            a definition of `i`-elementary dual equivalence
+            transformations.
+
+            INPUT:
+
+            - ``index_set`` -- (optional) the index set `I`
+              (default: the whole index set of the crystal); this has
+              to be a subset of the index set of the crystal (as a list
+              or tuple)
+
+            OUTPUT:
+
+            The dual equivalence class of ``self`` indexed by the
+            subset ``index_set``. This class is returned as an
+            undirected edge-colored multigraph. The color of an edge
+            is the index `i` of the dual equivalence relation it
+            encodes.
+
+            .. SEEALSO::
+
+                - :meth:`~sage.categories.regular_crystals.RegularCrystals.ParentMethods.dual_equivalence_graph`
+                - :meth:`sage.combinat.partition.Partition.dual_equivalence_graph`
+
+            EXAMPLES::
+
+                sage: T = crystals.Tableaux(['A',3], shape=[2,2])
+                sage: G = T(2,1,4,3).dual_equivalence_class()
+                sage: sorted(G.edges())
+                [([[1, 3], [2, 4]], [[1, 2], [3, 4]], 2),
+                 ([[1, 3], [2, 4]], [[1, 2], [3, 4]], 3)]
+                sage: T = crystals.Tableaux(['A',4], shape=[3,2])
+                sage: G = T(2,1,4,3,5).dual_equivalence_class()
+                sage: sorted(G.edges())
+                [([[1, 3, 5], [2, 4]], [[1, 3, 4], [2, 5]], 4),
+                 ([[1, 3, 5], [2, 4]], [[1, 2, 5], [3, 4]], 2),
+                 ([[1, 3, 5], [2, 4]], [[1, 2, 5], [3, 4]], 3),
+                 ([[1, 3, 4], [2, 5]], [[1, 2, 4], [3, 5]], 2),
+                 ([[1, 2, 4], [3, 5]], [[1, 2, 3], [4, 5]], 3),
+                 ([[1, 2, 4], [3, 5]], [[1, 2, 3], [4, 5]], 4)]
+            """
+            if index_set is None:
+                index_set = self.index_set()
+
+            for i in index_set:
+                if self.epsilon(i) != self.phi(i):
+                    raise ValueError("the element is not weight 0")
+
+            visited = set([])
+            todo = set([self])
+            edges = []
+            while todo:
+                x = todo.pop()
+                visited.add(x)
+                for k, i in enumerate(index_set[1:]):
+                    im = index_set[k]
+                    if x.epsilon(i) == 1 and x.epsilon(im) == 0:
+                        y = x.e(i).e(im).f(i).f(im)
+                        if [y, x, i] not in edges:
+                            edges.append([x, y, i])
+                        if y not in visited:
+                            todo.add(y)
+                    if x.epsilon(i) == 0 and x.epsilon(im) == 1:
+                        y = x.e(im).e(i).f(im).f(i)
+                        if [y, x, i] not in edges:
+                            edges.append([x, y, i])
+                        if y not in visited:
+                            todo.add(y)
+            from sage.graphs.graph import Graph
+            G = Graph([visited, edges], format="vertices_and_edges",
+                      immutable=True, multiedges=True)
+            if have_dot2tex():
+                G.set_latex_options(format="dot2tex", edge_labels=True,
+                                    color_by_label=self.cartan_type()._index_set_coloring)
+            return G
 
     class TensorProducts(TensorProductsCategory):
         """

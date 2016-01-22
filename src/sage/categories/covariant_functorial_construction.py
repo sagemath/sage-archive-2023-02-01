@@ -21,7 +21,7 @@ The goal of this module is to provide generic support for covariant
 functorial constructions. In particular, given some parents `A`, `B`,
 ..., in respective categories `Cat_A`, `Cat_B`, ..., it provides tools
 for calculating the best known category for the parent
-`F(A,B,...)`. For examples, knowing that cartesian products of
+`F(A,B,...)`. For examples, knowing that Cartesian products of
 semigroups (resp. monoids, groups) have a semigroup (resp. monoid,
 group) structure, and given a group `B` and two monoids `A` and `C` it
 can calculate that `A \times B \times C` is naturally endowed with a
@@ -42,13 +42,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from sage.misc.cachefunc import cached_function, cached_method
+from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category import Category
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.dynamic_class import DynamicMetaclass
 
 class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
     r"""
-    An abstract class for construction functors `F` (eg `F` = cartesian
+    An abstract class for construction functors `F` (eg `F` = Cartesian
     product, tensor product, `\QQ`-algebra, ...) such that:
 
      - Each category `Cat` (eg `Cat=` ``Groups()``) can provide a category
@@ -198,7 +201,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         """
         return "The %s functorial construction"%self._functor_name
 
-    def __call__(self, args):
+    def __call__(self, args, **kwargs):
         """
         Functorial construction application
 
@@ -217,7 +220,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
         assert(all( hasattr(arg, self._functor_name) for arg in args))
         assert(len(args) > 0)
-        return getattr(args[0], self._functor_name)(*args[1:])
+        return getattr(args[0], self._functor_name)(*args[1:], **kwargs)
 
 class FunctorialConstructionCategory(Category): # Should this be CategoryWithBase?
     """
@@ -225,26 +228,145 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
     functorial construction
     """
 
+    @lazy_class_attribute
+    def _base_category_class(cls):
+        """
+        Recover the class of the base category.
+
+        OUTPUT:
+
+        A *tuple* whose single entry is the base category class.
+
+        .. WARNING::
+
+            This is only used for functorial construction categories
+            that are not implemented as nested classes, and won't work
+            otherwise.
+
+        .. SEEALSO:: :meth:`__classcall__`
+
+        EXAMPLES::
+
+            sage: GradedModules._base_category_class
+            (<class 'sage.categories.modules.Modules'>,)
+            sage: GradedAlgebrasWithBasis._base_category_class
+            (<class 'sage.categories.algebras_with_basis.AlgebrasWithBasis'>,)
+
+        The reason for wrapping the base category class in a tuple is
+        that, often, the base category class implements a
+        :meth:`__classget__` method which would get in the way upon
+        attribute access::
+
+            sage: F = GradedAlgebrasWithBasis
+            sage: F._foo = F._base_category_class[0]
+            sage: F._foo
+            Traceback (most recent call last):
+            ...
+            ValueError: could not infer axiom for the nested class
+            <...AlgebrasWithBasis'> of <...GradedAlgebrasWithBasis'>
+
+        .. TODO::
+
+            The logic is very similar to that implemented in
+            :class:`CategoryWithAxiom._base_category_class`. Find a
+            way to refactor this to avoid the duplication.
+        """
+        module_name = cls.__module__.replace(cls._functor_category.lower() + "_","")
+        import sys
+        name   = cls.__name__.replace(cls._functor_category, "")
+        __import__(module_name)
+        module = sys.modules[module_name]
+        return (module.__dict__[name],)
+
     @staticmethod
-    def __classget__(cls, category, owner):
+    def __classcall__(cls, category=None, *args):
+        """
+        Make ``XXXCat(**)`` a shorthand for ``Cat(**).XXX()``.
+
+        EXAMPLES::
+
+            sage: GradedModules(ZZ)   # indirect doctest
+            Category of graded modules over Integer Ring
+            sage: Modules(ZZ).Graded()
+            Category of graded modules over Integer Ring
+            sage: Modules.Graded(ZZ)
+            Category of graded modules over Integer Ring
+            sage: GradedModules(ZZ) is Modules(ZZ).Graded()
+            True
+
+        .. SEEALSO:: :meth:`_base_category_class`
+
+        .. TODO::
+
+            The logic is very similar to that implemented in
+            :class:`CategoryWithAxiom.__classcall__`. Find a way to
+            refactor this to avoid the duplication.
+        """
+        base_category_class = cls._base_category_class[0]
+        if isinstance(category, base_category_class):
+            return super(FunctorialConstructionCategory, cls).__classcall__(cls, category, *args)
+        else:
+            return cls.category_of(base_category_class(category, *args))
+
+    @staticmethod
+    def __classget__(cls, base_category, base_category_class):
         r"""
-        Special binding for covariant constructions
+        Special binding for covariant constructions.
 
         This implements a hack allowing e.g. ``category.Subquotients``
         to recover the default ``Subquotients`` method defined in
         ``Category``, even if it has been overriden by a
         ``Subquotients`` class.
 
-        TESTS::
+        EXAMPLES::
 
             sage: Sets.Subquotients
             <class 'sage.categories.sets_cat.Sets.Subquotients'>
             sage: Sets().Subquotients
             Cached version of <function Subquotients at ...>
+
+        This method also initializes the attribute
+        ``_base_category_class`` if not already set::
+
+            sage: Sets.Subquotients._base_category_class
+            (<class 'sage.categories.sets_cat.Sets'>,)
+
+        It also forces the resolution of lazy imports (see :trac:`15648`)::
+
+            sage: type(Algebras.__dict__["Graded"])
+            <type 'sage.misc.lazy_import.LazyImport'>
+            sage: Algebras.Graded
+            <class 'sage.categories.graded_algebras.GradedAlgebras'>
+            sage: type(Algebras.__dict__["Graded"])
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+
+        .. TODO::
+
+            The logic is very similar to that implemented in
+            :class:`CategoryWithAxiom.__classget__`. Find a way to
+            refactor this to avoid the duplication.
         """
-        if category is None:
+        if base_category is not None:
+            assert base_category.__class__ is base_category_class
+            assert isinstance(base_category_class, DynamicMetaclass)
+        if isinstance(base_category_class, DynamicMetaclass):
+            base_category_class = base_category_class.__base__
+        if "_base_category_class" not in cls.__dict__:
+            cls._base_category_class = (base_category_class,)
+        else:
+            assert cls._base_category_class[0] is base_category_class, \
+                "base category class for {} mismatch; expected {}, got {}".format(
+                 cls, cls._base_category_class[0], base_category_class)
+
+        # Workaround #15648: if Sets.Subquotients is a LazyImport object,
+        # this forces the substitution of the object back into Sets
+        # to avoid resolving the lazy import over and over
+        if isinstance(base_category_class.__dict__[cls._functor_category], LazyImport):
+            setattr(base_category_class, cls._functor_category, cls)
+        if base_category is None:
             return cls
-        return getattr(super(category.__class__.__base__, category), cls._functor_category)
+        return getattr(super(base_category.__class__.__base__, base_category),
+                       cls._functor_category)
 
     @classmethod
     @cached_function
@@ -286,7 +408,8 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
 
             sage: from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
             sage: class FooBars(CovariantConstructionCategory):
-            ...       _functor_category = "FooBars"
+            ....:     _functor_category = "FooBars"
+            ....:     _base_category_class = (Category,)
             sage: Category.FooBars = lambda self: FooBars.category_of(self)
             sage: C = FooBars(ModulesWithBasis(ZZ))
             sage: C

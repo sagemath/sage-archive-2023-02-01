@@ -20,7 +20,7 @@ As always, elements are immutable once constructed.
 
 from sage.structure.element import MultiplicativeGroupElement
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import GCD, LCM
+from sage.arith.all import GCD, LCM
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
@@ -72,6 +72,16 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
             self._exponents = tuple( ZZ(e) for e in exponents )
             if len(self._exponents) != n:
                 raise IndexError('argument length (= %s) must be %s.'%(len(exponents), n))
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: F = AbelianGroup(3,[7,8,9])
+            sage: hash(F.an_element()) # random
+            1024
+        """
+        return hash(self.parent()) ^ hash(self._exponents)
 
     def exponents(self):
         """

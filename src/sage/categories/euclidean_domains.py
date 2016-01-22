@@ -87,8 +87,8 @@ class EuclideanDomains(Category_singleton):
                 tester.assertGreaterEqual(a.euclidean_degree(), min_degree)
                 tester.assertEqual(a.euclidean_degree() == min_degree, a.is_unit())
 
-            from sage.combinat.cartesian_product import CartesianProduct
-            for a,b in tester.some_elements(CartesianProduct(S,S)):
+            from sage.misc.misc import some_tuples
+            for a,b in some_tuples(S, 2, tester._max_runs):
                 p = a * b
                 # For rings which are not exact, we might get something that
                 #   acts like a zero divisor.
@@ -114,9 +114,8 @@ class EuclideanDomains(Category_singleton):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-
-            from sage.combinat.cartesian_product import CartesianProduct
-            for a,b in tester.some_elements(CartesianProduct(S,S)):
+            from sage.misc.misc import some_tuples
+            for a,b in some_tuples(S, 2, tester._max_runs):
                 if b.is_zero():
                     tester.assertRaises(ZeroDivisionError, lambda: a.quo_rem(b))
                 else:

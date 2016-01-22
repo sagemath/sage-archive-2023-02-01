@@ -26,8 +26,9 @@ AUTHOR:
 
 """
 
-from sage.structure.sage_object cimport SageObject
+from libc.string cimport memcpy
 
+from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.constructor import GF
@@ -959,10 +960,10 @@ cdef class BooleanFunction(SageObject):
         s = vector(self.truth_table()).support()
 
         from sage.combinat.combination import Combinations
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
 
         from sage.matrix.constructor import Matrix
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
 
         for i in xrange(1,d+1):
@@ -1060,7 +1061,7 @@ cdef class BooleanFunction(SageObject):
             sage: [ int(B[i]) for i in range(len(B)) ]
             [0, 1, 1, 1]
         """
-        return self.__call__(i)
+        return self(i)
 
     def _clear_cache(self):
         """
@@ -1149,7 +1150,7 @@ cdef class BooleanFunctionIterator:
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(1)
             sage: I = B.__iter__()
-            sage: I.next()
+            sage: next(I)
             False
         """
         if self.index == self.last:

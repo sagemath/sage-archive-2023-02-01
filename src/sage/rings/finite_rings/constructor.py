@@ -154,7 +154,7 @@ AUTHORS:
 import random
 
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 
 from sage.rings.integer import Integer
 
@@ -305,7 +305,7 @@ class FiniteFieldFactory(UniqueFactory):
         sage: K.<a> = GF(13^2, modulus=sin(x))
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=sin(x)) to an integer
+        TypeError: unable to convert sin(x) to an integer
 
     If you wish to live dangerously, you can tell the constructor not
     to test irreducibility using ``check_irreducible=False``, but this
@@ -420,7 +420,7 @@ class FiniteFieldFactory(UniqueFactory):
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
         """
-        import sage.rings.arith
+        import sage.arith.all
         from sage.structure.proof.all import WithProof, arithmetic
         if proof is None:
             proof = arithmetic()
@@ -437,11 +437,11 @@ class FiniteFieldFactory(UniqueFactory):
                 name = ('x',)  # Ignore name
                 # Every polynomial of degree 1 is irreducible
                 check_irreducible = False
-            # This check should be replaced by order.is_prime_power()
-            # if Trac #16878 is fixed.
-            elif sage.rings.arith.is_prime_power(order):
-                if not names is None: name = names
-                name = normalize_names(1,name)
+            elif order.is_prime_power():
+                if names is not None:
+                    name = names
+                if name is not None:
+                    name = normalize_names(1, name)
 
                 p, n = order.factor()[0]
 

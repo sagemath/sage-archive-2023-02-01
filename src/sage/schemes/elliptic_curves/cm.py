@@ -149,7 +149,7 @@ def hilbert_class_polynomial(D, algorithm=None):
         tau = (b+Dsqrt)/(a<<1)
         pol *=  (t - elliptic_j(tau))
 
-    coeffs = [cof.real().round() for cof in pol.coeffs()]
+    coeffs = [cof.real().round() for cof in pol.coefficients(sparse=False)]
     return IntegerRing()['x'](coeffs)
 
 

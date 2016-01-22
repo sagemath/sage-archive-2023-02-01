@@ -64,7 +64,10 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         sage: ((a0 + 1) / g).is_integral()
         True
 
-    TESTS: one test fails, because ideals aren't fully integrated into the categories framework yet::
+    TESTS:
+
+    One test fails, because ideals aren't fully integrated into the
+    categories framework yet::
 
         sage: TestSuite(i).run()
         Failure in _test_category:
@@ -215,8 +218,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: J.absolute_norm()
             22584817
             sage: J.absolute_ideal()
-            Fractional ideal (22584817, -4417/2438733*a^5 - 2867/1625822*a^4 - 1307249/4877466*a^3 - 112151/443406*a^2 - 22904674/2438733*a - 13720435234111/2438733)  # 32-bit
-            Fractional ideal (22584817, -1473/812911*a^5 + 8695/4877466*a^4 - 1308209/4877466*a^3 + 117415/443406*a^2 - 22963264/2438733*a - 13721081784272/2438733)   # 64-bit
+            Fractional ideal (22584817, -1473/812911*a^5 + 8695/4877466*a^4 - 1308209/4877466*a^3 + 117415/443406*a^2 - 22963264/2438733*a - 13721081784272/2438733)
             sage: J.absolute_ideal().norm()
             22584817
 
@@ -226,7 +228,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         L = self.number_field()
         K = L.absolute_field('a')
         to_L = K.structure()[0]
-        return L.ideal(map(to_L, id.gens()))
+        return L.ideal([to_L(_) for _ in id.gens()])
 
     def free_module(self):
         r"""
@@ -259,6 +261,17 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: I = K.ideal((a + 1)*b/2 + 1)
             sage: I.gens_reduced()
             (1/2*b*a + 1/2*b + 1,)
+
+        TESTS:
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: K.<a> = NumberField(2*x^2 - 1/3)
+            sage: L.<b> = K.extension(5*x^2 + 1)
+            sage: P = L.primes_above(2)[0]
+            sage: P.gens_reduced()
+            (2, 15*a*b + 3*a + 1)
         """
         try:
             ## Compute the single generator, if it exists
@@ -266,12 +279,10 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             return self.__reduced_generators
         except AttributeError:
             L = self.number_field()
-            K = L.base_field()
-            R = L.relative_polynomial().parent()
             gens = L.pari_rnf().rnfidealtwoelt(self.pari_rhnf())
-            gens = [ L(R(x.lift().lift())) for x in gens ]
+            gens = [L(x, check=False) for x in gens]
 
-            # pari always returns two elements, even if only one is needed!
+            # PARI always returns two elements, even if only one is needed!
             if gens[1] in L.ideal(gens[0]):
                 gens = gens[:1]
             elif gens[0] in L.ideal(gens[1]):
@@ -294,7 +305,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         """
         if self.is_zero():
             raise ZeroDivisionError
-        return self._from_absolute_ideal( self.absolute_ideal().__invert__() )
+        return self._from_absolute_ideal(~self.absolute_ideal())
 
     def is_principal(self, proof=None):
         """
@@ -381,13 +392,22 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             815730721
             sage: K.ideal(13).absolute_norm()
             815730721
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: K.<a> = NumberField(2*x^2 - 1/3)
+            sage: L.<b> = K.extension(5*x^2 + 1)
+            sage: P = L.primes_above(2)[0]
+            sage: P.relative_norm()
+            Fractional ideal (-6*a + 2)
         """
         L = self.number_field()
         K = L.base_field()
         K_abs = K.absolute_field('a')
         to_K = K_abs.structure()[0]
         hnf = L.pari_rnf().rnfidealnormrel(self.pari_rhnf())
-        return K.ideal(map(to_K, map(K_abs, K.pari_zk() * hnf)))
+        return K.ideal([to_K(K_abs(x, check=False)) for x in K.pari_zk() * hnf])
 
     def norm(self):
         """
@@ -436,7 +456,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K0
             Number Field in a0 with defining polynomial x^2 - 6*x + 24
             sage: L = K.relativize(K0_into_K, 'c'); L
-            Number Field in c0 with defining polynomial x^2 + a0 over its base field
+            Number Field in c with defining polynomial x^2 + a0 over its base field
             sage: L.base_field() is K0
             True
             sage: L.ideal(7)
@@ -488,13 +508,22 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             Fractional ideal (b)
             sage: J.number_field() == F
             True
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: K.<a> = NumberField(2*x^2 - 1/3)
+            sage: L.<b> = K.extension(5*x^2 + 1)
+            sage: P = L.primes_above(2)[0]
+            sage: P.ideal_below()
+            Fractional ideal (-6*a + 2)
         """
         L = self.number_field()
         K = L.base_field()
         K_abs = K.absolute_field('a')
         to_K = K_abs.structure()[0]
         hnf = L.pari_rnf().rnfidealdown(self.pari_rhnf())
-        return K.ideal(map(to_K, map(K_abs, K.pari_zk() * hnf)))
+        return K.ideal([to_K(K_abs(x, check=False)) for x in K.pari_zk() * hnf])
 
     def factor(self):
         """
@@ -505,12 +534,12 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
 
             sage: K.<a, b> = QQ.extension([x^2 + 11, x^2 - 5])
             sage: K.factor(5)
-            (Fractional ideal (5, 1/2*a - 1/2*b - 1))^2 * (Fractional ideal (5, 1/2*a - 1/2*b + 1))^2
+            (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4))^2 * (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4))^2
             sage: K.ideal(5).factor()
-            (Fractional ideal (5, 1/2*a - 1/2*b - 1))^2 * (Fractional ideal (5, 1/2*a - 1/2*b + 1))^2
+            (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4))^2 * (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4))^2
             sage: K.ideal(5).prime_factors()
-            [Fractional ideal (5, 1/2*a - 1/2*b - 1),
-             Fractional ideal (5, 1/2*a - 1/2*b + 1)]
+            [Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4),
+             Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4)]
 
             sage: PQ.<X> = QQ[]
             sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])
@@ -529,7 +558,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         F = self.number_field()
         abs_ideal = self.absolute_ideal()
         to_F = abs_ideal.number_field().structure()[0]
-        factor_list = [(F.ideal(map(to_F, p.gens())), e) for p, e in abs_ideal.factor()]
+        factor_list = [(F.ideal([to_F(_) for _ in p.gens()]), e) for p, e in abs_ideal.factor()]
         # sorting and simplification will already have been done
         return Factorization(factor_list, sort=False, simplify=False)
 

@@ -6,7 +6,7 @@ AUTHORS:
 
 - Jayant Apte (2014-06-06): initial version
 
-    .. NOTE::
+.. NOTE::
 
     This file provides functions that are called by ``show()`` and ``plot()``
     methods of abstract matroids class. The basic idea is to first decide
@@ -21,29 +21,31 @@ AUTHORS:
     ``createline`` function to produce sequence of ``100`` points on a smooth
     curve containing the points in the specified line which inturn uses
     ``scipy.interpolate.splprep`` and ``scipy.interpolate.splev``.  Then one
-    can use sage's graphics primitives ``line``,``point``, ``text`` and
+    can use sage's graphics primitives ``line``, ``point``, ``text`` and
     ``points`` to produce graphics object containg points (ground set
     elements) and lines (for a rank 3 matroid, these are flats of rank 2 of
     size greater than equal to 3) of the geometric representation of the
     matroid. Loops and parallel elements are added as per conventions in
     [Oxley] using function ``addlp``. The priority order for point placement
     methods used inside plot() and show() is as follows:
-    1) User Specified points dictionary and lineorders
-    2) cached point placement dictionary and line orders (a list of ordered
-    lists) in M._cached_info (a dictionary)
-    3) Internal point placement and orders deciding heuristics
-    If a custom point placement and/or line orders is desired, then user can
-    simply specify the custom points dictionary as ``M.cached info =
-    {'plot_positions':<dictionary_of _points>,
-     'plot_lineorders':<list of lists>}``
+
+    1. User Specified points dictionary and lineorders
+    2. cached point placement dictionary and line orders (a list of ordered
+       lists) in M._cached_info (a dictionary)
+    3. Internal point placement and orders deciding heuristics
+       If a custom point placement and/or line orders is desired, then user
+       can simply specify the custom points dictionary as::
+
+            M.cached info = {'plot_positions':<dictionary_of _points>,
+                             'plot_lineorders':<list of lists>}
 
 
 
 REFERENCES
 ==========
 
-..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University
-    Press, 2011.
+[Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University
+Press, 2011.
 
 EXAMPLES::
 
@@ -51,7 +53,7 @@ EXAMPLES::
     sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],
     ....: [0, 1, 0, 1, 0, 1, 1,0,0,1,0], [0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
     sage: pos_dict= {0: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),
-    ....: 4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666),
+    ....: 4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.666666666666667),
     ....: 7: (3,3), 8: (4,0), 9: (-1,1), 10: (-2,-2)}
     sage: M1._cached_info={'plot_positions': pos_dict, 'plot_lineorders': None}
     sage: matroids_plot_helpers.geomrep(M1, sp=True)
@@ -185,7 +187,7 @@ def trigrid(tripts):
     INPUT:
 
     - ``tripts`` -- A list of 3 lists of the form [x,y] where x and y are the
-      cartesian co-ordinates of a point.
+      Cartesian co-ordinates of a point.
 
     OUTPUT:
 
@@ -744,16 +746,16 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
 
     - ``M1`` -- A matroid.
     - ``B1`` -- (optional) A list of elements in ``M1.groundset()`` that
-    correspond to a basis of ``M1`` and will be placed as vertices of the
-    triangle in the geometric representation of ``M1``.
+      correspond to a basis of ``M1`` and will be placed as vertices of the
+      triangle in the geometric representation of ``M1``.
     - ``lineorders1`` -- (optional) A list of ordered lists of elements of
-    ``M1.grondset()`` such that if a line in geometric representation is
-    setwise same as any of these then points contained will be traversed in
-    that order thus overriding internal order deciding heuristic.
+      ``M1.grondset()`` such that if a line in geometric representation is
+      setwise same as any of these then points contained will be traversed in
+      that order thus overriding internal order deciding heuristic.
     - ``pd`` - (optional) A dictionary mapping ground set elements to their
-    (x,y) positions.
+      (x,y) positions.
     - ``sp`` -- (optional) If True, a positioning dictionary and line orders
-    will be placed in ``M._cached_info``.
+      will be placed in ``M._cached_info``.
 
     OUTPUT:
 

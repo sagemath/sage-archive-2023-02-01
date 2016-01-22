@@ -26,9 +26,9 @@ abstract base class.
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
-import sage.misc.misc as misc
+import sage.misc.all as misc
 import sage.modular.hecke.all as hecke
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, infinity, Zmod
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -36,6 +36,7 @@ from   sage.structure.all import Sequence, SageObject
 import sage.modular.modsym.ambient
 
 from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound given a character
+from sage.modular.modsym.element import ModularSymbolsElement
 
 import hecke_operator
 
@@ -59,7 +60,10 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     r"""
     Base class for spaces of modular symbols.
     """
-    def __init__(self, group, weight, character, sign, base_ring):
+
+    Element = ModularSymbolsElement
+
+    def __init__(self, group, weight, character, sign, base_ring, category=None):
         """
         Create a space of modular symbols.
 
@@ -73,7 +77,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         self.__group = group
         self.__character = character
         self.__sign = sign
-        hecke.HeckeModule_free_module.__init__(self, base_ring, group.level(), weight)
+        hecke.HeckeModule_free_module.__init__(self, base_ring, group.level(), weight, category=category)
 
     def __cmp__(self, other):
         """
@@ -178,7 +182,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         TESTS:
 
-        Verify that Trac #12772 is fixed::
+        Verify that :trac:`12772` is fixed::
 
             sage: M = ModularSymbols(1,12,sign=1).cuspidal_subspace().new_subspace()
             sage: A = M.decomposition()[0]
@@ -1124,15 +1128,15 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         choice of `q`-eigenform attached to this simple cuspidal
         modular symbols space.
 
-        INPUT::
+        INPUT:
 
-            - ``names` -- string, name of the variable.
+        - ``names`` -- string, name of the variable.
 
         OUTPUT:
 
-            - a Dirichlet character taking values in the Hecke eigenvalue
-              field, where the indeterminant of that field is determined
-              by the given variable name.
+        - a Dirichlet character taking values in the Hecke eigenvalue
+          field, where the indeterminate of that field is determined
+          by the given variable name.
 
         EXAMPLES::
 
@@ -2314,15 +2318,16 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         INPUT:
 
-            - `t` -- integer
-            - `P` -- list of cusps
+        - `t` -- integer
 
-        EXAMPLES::
+        - `P` -- list of cusps
+
+        EXAMPLES:
 
         We compute the matrix of the element of the Galois group
         associated to 5 and 31 for level 32.  In the first case the
         Galois action is trivial, and in the second it is
-        nontrivial.::
+        nontrivial. ::
 
             sage: M = ModularSymbols(32)
             sage: P = [c for c in Gamma0(32).cusps() if not c.is_infinity()]

@@ -11,7 +11,7 @@ polytopes in 4 dimensions.
 
     For general lattice polyhedra you should use
     :func:`~sage.geometry.polyhedon.constructor.Polyhedron` with
-    `base_ring=ZZ`.
+    ``base_ring=ZZ``.
 
 The class derives from the PPL :class:`sage.libs.ppl.C_Polyhedron`
 class, so you can work with the underlying generator and constraint
@@ -38,7 +38,7 @@ sub-polytopes and give rise to fibrations of toric varieties for
 suitable fan refinements. We can compute them using
 :meth:`~LatticePolytope_PPL.fibration_generator` ::
 
-    sage: F = P.fibration_generator(2).next()
+    sage: F = next(P.fibration_generator(2))
     sage: F.vertices()
     ((1, 0, 0, 0), (0, 1, 0, 0), (-3, -2, 0, 0))
 
@@ -182,7 +182,7 @@ def LatticePolytope_PPL(*args):
         else:
             gs.insert(point(Linear_Expression(v, 0)))
     if not gs.empty():
-        dim = Generator_System_iterator(gs).next().space_dimension()
+        dim = next(Generator_System_iterator(gs)).space_dimension()
         polytope_class = _class_for_LatticePolytope(dim)
     return polytope_class(gs)
 
@@ -193,7 +193,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
     """
     The lattice polytope class.
 
-    You should use :func:LatticePolytope_PPL` to construct instances.
+    You should use :func:`LatticePolytope_PPL` to construct instances.
 
     EXAMPLES::
 
@@ -392,10 +392,10 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         Finally, the 3-d reflexive polytope number 4078::
 
             sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
-            ...        (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
+            ....:      (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
             sage: P = LatticePolytope_PPL(*v)
             sage: pts1 = P.integral_points()                     # Sage's own code
-            sage: pts2 = LatticePolytope(v).points_pc()          # PALP
+            sage: pts2 = LatticePolytope(v).points()          # PALP
             sage: for p in pts1: p.set_immutable()
             sage: set(pts1) == set(pts2)
             True
@@ -523,7 +523,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: p = LatticePolytope_PPL((0,0),(0,1),(1,0))
-            sage: ieq = iter(p.constraints()).next();  ieq
+            sage: ieq = next(iter(p.constraints()));  ieq
             x0>=0
             sage: p.vertices_saturating(ieq)
             ((0, 0), (0, 1))
@@ -656,10 +656,10 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             (frozenset({(0, -1), (0, 1)}), frozenset({(-1, -1), (1, 1)}))
 
             sage: cell24 = LatticePolytope_PPL(
-            ...   (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
-            ...   (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
-            ...   (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
-            ...   (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
+            ....: (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
+            ....: (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
+            ....: (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
+            ....: (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
             sage: fibers = [ f.vertices() for f in cell24.fibration_generator(2) ]
             sage: cell24.pointsets_mod_automorphism(fibers)   # long time
             (frozenset({(-1, 0, 1, 0), (0, -1, -1, 1), (0, 1, 1, -1), (1, 0, -1, 0)}),
@@ -813,7 +813,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             vertices = [ V.coordinates(v-v0) for v in self.vertices() ]
         return LatticePolytope_PPL(*vertices)
 
-    @cached_method
     def base_projection(self, fiber):
         """
         The projection that maps the sub-polytope ``fiber`` to a
@@ -828,13 +827,12 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: poly = LatticePolytope_PPL((-9,-6,-1,-1),(0,0,0,1),(0,0,1,0),(0,1,0,0),(1,0,0,0))
-            sage: fiber = poly.fibration_generator(2).next()
+            sage: fiber = next(poly.fibration_generator(2))
             sage: poly.base_projection(fiber)
             Finitely generated module V/W over Integer Ring with invariants (0, 0)
         """
         return self.ambient_space().quotient(fiber.affine_space())
 
-    @cached_method
     def base_projection_matrix(self, fiber):
         """
         The projection that maps the sub-polytope ``fiber`` to a
@@ -855,7 +853,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: poly = LatticePolytope_PPL((-9,-6,-1,-1),(0,0,0,1),(0,0,1,0),(0,1,0,0),(1,0,0,0))
-            sage: fiber = poly.fibration_generator(2).next()
+            sage: fiber = next(poly.fibration_generator(2))
             sage: poly.base_projection_matrix(fiber)
             [0 0 1 0]
             [0 0 0 1]
@@ -892,7 +890,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: poly = LatticePolytope_PPL((-9,-6,-1,-1),(0,0,0,1),(0,0,1,0),(0,1,0,0),(1,0,0,0))
-            sage: fiber = poly.fibration_generator(2).next()
+            sage: fiber = next(poly.fibration_generator(2))
             sage: poly.base_rays(fiber, poly.integral_points_not_interior_to_facets())
             ((-1, -1), (0, 1), (1, 0))
 
@@ -902,18 +900,19 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ((1),)
         """
         quo = self.base_projection(fiber)
-        vertices = []
+        vertices = set()
         for p in points:
-            v = vector(ZZ,quo(p))
+            v = quo(p).vector()
             if v.is_zero():
                 continue
-            d =  GCD_list(v.list())
-            if d>1:
-                for i in range(0,v.degree()):
+            d = GCD_list(v.list())
+            if d > 1:
+                v = v.__copy__()
+                for i in range(v.degree()):
                     v[i] /= d
-            v.set_immutable()
-            vertices.append(v)
-        return tuple(uniq(vertices))
+                v.set_immutable()
+            vertices.add(v)
+        return tuple(sorted(vertices))
 
     @cached_method
     def has_IP_property(self):
@@ -974,10 +973,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         REFERENCES:
 
-        ..  [BSS]
-            David Bremner, Mathieu Dutour Sikiric, Achill Schuermann:
-            Polyhedral representation conversion up to symmetries.
-            http://arxiv.org/abs/math/0702239
+        [BSS]_
 
         EXAMPLES::
 
@@ -994,10 +990,10 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ((0, 0), (1, 2), (3, 3), (2, 1))
 
             sage: cell24 = LatticePolytope_PPL(
-            ...   (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
-            ...   (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
-            ...   (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
-            ...   (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
+            ....: (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
+            ....: (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
+            ....: (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
+            ....: (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
             sage: cell24.restricted_automorphism_group().cardinality()
             1152
         """
@@ -1072,7 +1068,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             Permutation Group with generators [(), (3,4), (1,6)(2,5), (1,6)(2,5)(3,4)]
 
         Point labels also work for lattice polytopes that are not
-        full-dimensional, see trac:`16669`::
+        full-dimensional, see :trac:`16669`::
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: lp = LatticePolytope_PPL((1,0,0),(0,1,0),(-1,-1,0))
@@ -1088,7 +1084,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         if point_labels is None:
             point_labels = tuple(points)
         points = [ vector(ZZ, [1]+v.list()) for v in points ]
-        map(lambda x:x.set_immutable(), points)
+        for p in points:
+            p.set_immutable()
 
         vertices = [ vector(ZZ, [1]+v.list()) for v in self.vertices() ]
         pivots = matrix(ZZ, vertices).pivot_rows()
@@ -1205,8 +1202,9 @@ class LatticePolytope_PPL_class(C_Polyhedron):
           ``self`` (up to a lattice linear transformation) is
           returned. That is, the domain of the ``output='hom'`` map is
           returned. If the affine span of ``self`` is less or equal
-          2-dimnsional, the output is one of the following three
-          possibilities::
+          2-dimensional, the output is one of the following three
+          possibilities:
+
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P2_polytope`,
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P1xP1_polytope`,
           or

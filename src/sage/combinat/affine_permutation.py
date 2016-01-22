@@ -22,7 +22,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.composition import Composition
@@ -405,15 +405,15 @@ class AffinePermutationTypeA(AffinePermutation):
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
             sage: p
             Type A affine permutation with window [3, -1, 0, 6, 5, 4, 10, 9]
-            sage: q=A([1,2,3])
+            sage: q=A([1,2,3])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Length of list must be k+1=8.
-            sage: q=A([1,2,3,4,5,6,7,0])
+            sage: q=A([1,2,3,4,5,6,7,0])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Window does not sum to 36.
-            sage: q=A([1,1,3,4,5,6,7,9])
+            sage: q=A([1,1,3,4,5,6,7,9])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Entries must have distinct residues.
@@ -778,16 +778,18 @@ class AffinePermutationTypeA(AffinePermutation):
 
         EXAMPLES::
 
+            sage: import itertools
             sage: A=AffinePermutationGroup(['A',7,1])
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
-            sage: CP=CartesianProduct( ('increasing','decreasing'),('left','right') )
-            sage: for a in CP:
-            ....:   p.to_lehmer_code(a[0],a[1])
+            sage: orders = ('increasing','decreasing')
+            sage: sides = ('left','right')
+            sage: for o,s in itertools.product(orders, sides):
+            ....:   p.to_lehmer_code(o,s)
             [2, 3, 2, 0, 1, 2, 0, 0]
             [2, 2, 0, 0, 2, 1, 0, 3]
             [3, 1, 0, 0, 2, 1, 0, 3]
             [0, 3, 3, 0, 1, 2, 0, 1]
-            sage: for a in CP:
+            sage: for a in itertools.product(orders, sides):
             ....:   A.from_lehmer_code(p.to_lehmer_code(a[0],a[1]), a[0],a[1])==p
             True
             True
@@ -1992,8 +1994,8 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: A=AffinePermutationGroup(['A',7,1])
-            sage: A._test_coxeter_relations(3)
+            sage: A = AffinePermutationGroup(['A',7,1])
+            sage: A._test_enumeration(3)
         """
         n1=len(list(self.elements_of_length(n)))
         W=self.weyl_group()
@@ -2082,7 +2084,7 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         r"""
         EXAMPLES::
 
-            sage: AffinePermutationGroup(['A',7,1]).index_set()
+            sage: AffinePermutationGroup(['A',7,1]).reflection_index_set()
             (0, 1, 2, 3, 4, 5, 6, 7)
         """
         return self.cartan_type().index_set()
@@ -2198,15 +2200,17 @@ class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
 
         EXAMPLES::
 
+            sage: import itertools
             sage: A=AffinePermutationGroup(['A',7,1])
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
             sage: p.to_lehmer_code()
             [0, 3, 3, 0, 1, 2, 0, 1]
             sage: A.from_lehmer_code(p.to_lehmer_code())==p
             True
-            sage: CP=CartesianProduct( ('increasing','decreasing'),('left','right') )
-            sage: for a in CP:
-            ....:   A.from_lehmer_code(p.to_lehmer_code(a[0],a[1]),a[0],a[1])==p
+            sage: orders = ('increasing','decreasing')
+            sage: sides = ('left','right')
+            sage: for o,s in itertools.product(orders,sides):
+            ....:   A.from_lehmer_code(p.to_lehmer_code(o,s),o,s)==p
             True
             True
             True

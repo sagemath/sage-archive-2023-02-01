@@ -425,8 +425,7 @@ class FunctionField_polymod(FunctionField):
             sage: M('x')
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert string
-
+            TypeError: unable to evaluate 'x' in Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
@@ -472,12 +471,15 @@ class FunctionField_polymod(FunctionField):
         """
         Return hash of this function field.
 
+        The hash value is equal to the hash of the defining polynomial.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L = K.extension(y^5 - x^3 - 3*x + x*y); hash(L)
-            3183366741743088279             # 64-bit
-            2003022487                      # 32-bit
+            sage: L = K.extension(y^5 - x^3 - 3*x + x*y)
+            sage: hash(L) == hash(L.polynomial())
+            True
+
         """
         return self._hash
 
@@ -554,7 +556,7 @@ class FunctionField_polymod(FunctionField):
             f = f / c
 
         # find lcm of denominators
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         # would be good to replace this by minimal...
         d = lcm([b.denominator() for b in f.list() if b])
         if d != 1:
@@ -1139,12 +1141,14 @@ class RationalFunctionField(FunctionField):
         """
         Return hash of this function field.
 
+        The hash is formed from the constant field and the variable names.
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
-            sage: hash(K)
-            502145503910697533              # 64-bit
-            -500688323                      # 32-bit
+            sage: hash(K) == hash((K.constant_base_field(), K.variable_names()))
+            True
+
         """
         return self._hash
 
@@ -1207,7 +1211,7 @@ class RationalFunctionField(FunctionField):
             return FunctionFieldElement_rational(self, self._field(x._x))
         try:
             x = self._field(x)
-        except TypeError, Err:
+        except TypeError as Err:
             try:
                 if x.parent() is self.polynomial_ring():
                     return x[0]
@@ -1238,7 +1242,7 @@ class RationalFunctionField(FunctionField):
             (X^7*t^2 - X^4*t^5 - X^3 + t^3, t^3)
         """
         v = f.list()
-        from sage.rings.arith import LCM
+        from sage.arith.all import LCM
         denom = LCM([a.denominator() for a in v])
         S = denom.parent()
         x,t = S.base_ring()['%s,%s'%(f.parent().variable_name(),self.variable_name())].gens()

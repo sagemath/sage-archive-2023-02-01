@@ -29,7 +29,7 @@ from sage.categories.all import AlgebrasWithBasis, FiniteDimensionalAlgebrasWith
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polydict import ETuple
-from sage.rings.arith import is_square
+from sage.arith.all import is_square
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
@@ -496,7 +496,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         # The following is used by the bar involution = self._bar_on_coefficients
         try:
-            self._inverse_base_ring_generators = { g: self.base_ring()(g).__pow__(-1)
+            self._inverse_base_ring_generators = { g: self.base_ring()(g) ** -1
                     for g in self.base_ring().variable_names()}
         except TypeError:
             self._inverse_base_ring_generators = {}
@@ -1262,8 +1262,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 # This currently works better than ~(self._q1) if
                 # self.base_ring() is a Laurent polynomial ring since it
                 # avoids accidental coercion into a field of fractions.
-                i1 = normalized_laurent_polynomial(A._base, A._q1.__pow__(-1))
-                i2 = normalized_laurent_polynomial(A._base, A._q2.__pow__(-1))
+                i1 = normalized_laurent_polynomial(A._base, A._q1 ** -1)
+                i2 = normalized_laurent_polynomial(A._base, A._q2 ** -1)
             except Exception:
                 raise ValueError("%s and %s must be invertible."%(A._q1, A._q2))
             return (-i1*i2)*self.algebra_generator(i)+(i1+i2)
@@ -2270,23 +2270,6 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             # \tau is the Hecke involution.
             return (-1)**w.length()*self.realization_of().Cp().to_T_basis(w).hash_involution()
 
-def IwahoriHeckeAlgebraT(W, q1, q2=-1, base_ring=None, prefix="T"):
-    """
-    TESTS::
-
-        sage: H = IwahoriHeckeAlgebraT("A2", 1)
-        doctest:...: DeprecationWarning: this class is deprecated. Use IwahoriHeckeAlgebra().T instead
-        See http://trac.sagemath.org/14261 for details.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14261,'this class is deprecated. Use IwahoriHeckeAlgebra().T instead')
-    if W not in CoxeterGroups():
-        W = WeylGroup(W)
-    if base_ring is None:
-        base_ring = q1.parent()
-    q2 = base_ring(q2)
-    return IwahoriHeckeAlgebra(W, q1=q1, q2=q2, base_ring=base_ring).T(prefix=prefix)
-
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
-                           'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebraT)
+                           'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra)

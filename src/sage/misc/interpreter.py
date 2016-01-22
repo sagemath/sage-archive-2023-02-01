@@ -1,2 +1,3 @@
-# to support sagenb
-from sage.repl.interpreter import _do_preparse as do_preparse
+from sage.misc.lazy_import import lazy_import
+
+lazy_import('sage.repl.interpreter', '_do_preparse', 'do_preparse', deprecation=17460)

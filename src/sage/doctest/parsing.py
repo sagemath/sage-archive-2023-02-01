@@ -27,7 +27,7 @@ AUTHORS:
 import re, sys
 import doctest
 import collections
-from sage.misc.preparser import preparse, strip_string_literals
+from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
@@ -458,13 +458,13 @@ class SageDocTestParser(doctest.DocTestParser):
         r"""
         A Sage specialization of :class:`doctest.DocTestParser`.
 
-        INPUTS:
+        INPUT:
 
         - ``string`` -- the string to parse.
         - ``name`` -- optional string giving the name indentifying string,
           to be used in error messages.
 
-        OUTPUTS:
+        OUTPUT:
 
         - A list consisting of strings and :class:`doctest.Example`
           instances.  There will be at least one string between

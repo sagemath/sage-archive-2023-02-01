@@ -14,7 +14,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
 from sage.libs.gmp.types cimport __mpz_struct
 from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
@@ -36,9 +35,6 @@ from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
-
-from sage.misc.misc_c import is_64_bit
 
 
 # mapping str --> SINGULAR representation
@@ -159,16 +155,16 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         else:
             raise TypeError, "Characteristic p must be <= 2147483647."
 
-    elif PY_TYPE_CHECK(base_ring, RationalField):
+    elif isinstance(base_ring, RationalField):
         characteristic = 0
 
-    elif PY_TYPE_CHECK(base_ring, IntegerRing_class):
+    elif isinstance(base_ring, IntegerRing_class):
         ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
         mpz_init_set_ui(ringflaga, 0)
         characteristic = 0
         ringtype = 4 # integer ring
 
-    elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
+    elif isinstance(base_ring, FiniteField_generic):
         if base_ring.characteristic() <= 2147483647:
             characteristic = -base_ring.characteristic() # note the negative characteristic
         else:
@@ -181,7 +177,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         minpoly = base_ring.polynomial()(k.gen())
         is_extension = True
 
-    elif PY_TYPE_CHECK(base_ring, NumberField) and base_ring.is_absolute():
+    elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
         characteristic = 1
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
@@ -194,14 +190,12 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         ch = base_ring.characteristic()
         if ch.is_power_of(2):
             exponent = ch.nbits() -1
-            if is_64_bit:
-                # it seems Singular uses ints somewhere
-                # internally, cf. #6051 (Sage) and #138 (Singular)
-                if exponent <= 30: ringtype = 1
-                else: ringtype = 3
+            # it seems Singular uses ints somewhere
+            # internally, cf. #6051 (Sage) and #138 (Singular)
+            if exponent <= 30:
+                ringtype = 1
             else:
-                if exponent <= 30: ringtype = 1
-                else: ringtype = 3
+                ringtype = 3
             characteristic = exponent
             ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
             mpz_init_set_ui(ringflaga, 2)
@@ -452,12 +446,14 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
 
     INPUT:
 
-    - ``existing_ring`` -- an existing Singular ring.
+    - ``existing_ring`` -- a Singular ring.
 
     OUTPUT:
 
-    The same ring with its refcount increased. After calling this
-    function `n` times, you need to call :func:`singular_ring_delete`
+    The same ring with its refcount increased. If ``existing_ring``
+    has not been refcounted yet, it will be after calling this function.
+    If initially ``existing_ring`` was refcounted once, then after
+    calling this function `n` times, you need to call :func:`singular_ring_delete`
     `n+1` times to actually deallocate the ring.
 
     EXAMPLE::
@@ -493,8 +489,7 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
     if existing_ring==NULL:
         raise ValueError('singular_ring_reference(ring*) called with NULL pointer.')
     cdef object r = wrap_ring(existing_ring)
-    refcount = ring_refcount_dict.pop(r)
-    ring_refcount_dict[r] = refcount+1
+    ring_refcount_dict[r] = ring_refcount_dict.get(r,0)+1
     return existing_ring
 
 

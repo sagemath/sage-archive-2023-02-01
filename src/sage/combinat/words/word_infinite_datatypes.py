@@ -69,7 +69,7 @@ class WordDatatype_callable(WordDatatype):
 
             sage: w = Word(lambda x : x % 2)
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
         TESTS::
@@ -78,7 +78,7 @@ class WordDatatype_callable(WordDatatype):
             sage: s = WordDatatype_callable(Words(), lambda n:n%3+10, length=10); s
             <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
             sage: it = iter(s)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [10, 11, 12, 10, 11, 12, 10, 11, 12, 10]
         """
         if self._len is Infinity:
@@ -223,7 +223,7 @@ class WordDatatype_callable(WordDatatype):
             ...
             ValueError: for infinite words, start and stop values cannot be negative
 
-        Out of range index (#8673)::
+        Out of range index (:trac:`8673`)::
 
             sage: w = Word(lambda n:n^2, length=23)
             sage: w[100]
@@ -233,14 +233,14 @@ class WordDatatype_callable(WordDatatype):
         """
         if isinstance(key, slice):
             # Infinite words
-            if self._len is Infinity:
+            if self._len is Infinity or self._len is None:
                 if not(key.start is None) and key.start < 0 or \
                         not(key.stop is None) and key.stop < 0:
                     raise ValueError("for infinite words, start and stop values cannot be negative")
                 step = 1 if key.step is None else key.step
                 if step > 0:
                     start = 0 if key.start is None else key.start
-                    length = None if key.stop is None else \
+                    length = self._len if key.stop is None else \
                                 int(max(0,ceil((key.stop-start)/float(step))))
                 else:
                     if key.start is None or key.start < 0:
@@ -249,7 +249,12 @@ class WordDatatype_callable(WordDatatype):
                     stop = 0 if key.stop is None else key.stop
                     length = int(max(0,ceil((key.stop-start)/float(step))))
                 fcn = lambda x: self._func(start + x*step)
-                return self._parent(fcn, length=length)
+                if length is None:
+                    return self._parent(fcn, length=length)
+                elif length is Infinity:
+                    return self._parent.shift()(fcn)
+                else:
+                    return self._parent.factors()(fcn, length=length)
             # Finite words
             else:
                 ## For testing: expand as a list and slice it
@@ -281,25 +286,29 @@ class WordDatatype_callable(WordDatatype):
 
             sage: w = Word(lambda n : n%3+10, caching=False)
             sage: w.__reduce__()
-            (Words, ("csage.misc.fpickle...<lambda>...", +Infinity, 'pickled_function', False))
+            (Infinite words over Set of Python objects of type 'object',
+             ("csage.misc.fpickle...<lambda>...", 'pickled_function', False))
 
         ::
 
             sage: w = Word(lambda n : n%3+10, caching=False, length=8)
             sage: w.__reduce__()
-            (Words, ("csage.misc.fpickle...<lambda>...", 8, 'pickled_function', False))
+            (Finite words over Set of Python objects of type 'object',
+             ("csage.misc.fpickle...<lambda>...", 8, 'pickled_function', False))
         """
         from sage.misc.fpickle import pickle_function
         try:
             s = pickle_function(self._func)
         except Exception:
-            from sage.combinat.words.word import FiniteWord_class
-            if isinstance(self, FiniteWord_class):
+            if self.is_finite():
                 return self._parent, (list(self),)
             else:
-                return self._parent, (self._func, self._len, 'callable', False)
+                return self._parent, (self._func, 'callable', False)
         else:
-            return self._parent, (s, self._len, 'pickled_function', False)
+            if self.is_finite():
+                return self._parent, (s, self._len, 'pickled_function', False)
+            else:
+                return self._parent, (s, 'pickled_function', False)
 
 class WordDatatype_callable_with_caching(WordDatatype_callable):
     r"""
@@ -346,7 +355,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
 
             sage: w = Word(lambda x : x % 2)
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
         """
         if self._len is Infinity:
@@ -370,7 +379,8 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w.length()
             12
 
-        Test getitems with indexes.
+        Test getitems with indexes::
+
             sage: w[0]
             'a'
             sage: w[4]
@@ -382,41 +392,48 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: [w[i] for i in range(12)]
             ['a', 'b', 'b', 'a', 'b', 'a', 'a', 'b', 'b', 'a', 'a', 'b']
 
-        Slicing.
+        Slicing::
+
             sage: w[:]
             word: abbabaabbaab
 
-        Prefixes.
+        Prefixes::
+
             sage: w[0:]
             word: abbabaabbaab
 
             sage: w[1:]
             word: bbabaabbaab
 
-        Suffixes.
+        Suffixes::
+
             sage: w[:0]
             word:
 
             sage: w[:5]
             word: abbab
 
-        With positive steps.
+        With positive steps::
+
             sage: w[::2]
             word: abbaba
 
-        With a negative start position.
+        With a negative start position::
+
             sage: w[-2:]
             word: ab
             sage: w[-20:]
             word: abbabaabbaab
 
-        With a negative stop position.
+        With a negative stop position::
+
             sage: w[:-1]
             word: abbabaabbaa
             sage: w[:-10]
             word: ab
 
-        With a negative step.
+        With a negative step::
+
             sage: w[::-2]
             word: babaab
 
@@ -427,9 +444,10 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w[:1:-3]
             word: bbab
 
-        TESTS::
+        TESTS:
 
-        For infinite words
+        For infinite words::
+
             sage: f = lambda n : add(Integer(n).digits(2)) % 2
             sage: tm = Word(f); tm
             word: 0110100110010110100101100110100110010110...
@@ -437,7 +455,8 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: tm.length()
             +Infinity
 
-        Test getitems with indexes.
+        Test getitems with indexes::
+
             sage: tm[0]
             0
             sage: tm[4]
@@ -449,29 +468,34 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             ...
             IndexError: cannot use a negative index with an infinite word
 
-        Slicing.
+        Slicing::
+
             sage: tm[:]
             word: 0110100110010110100101100110100110010110...
 
-        Prefixes.
+        Prefixes::
+
             sage: tm[:0]
             word:
 
             sage: tm[:5]
             word: 01101
 
-        Suffixes.
+        Suffixes::
+
             sage: tm[0:]
             word: 0110100110010110100101100110100110010110...
 
             sage: tm[1:]
             word: 1101001100101101001011001101001100101100...
 
-        With positive steps.
+        With positive steps::
+
             sage: tm[::2]
             word: 0110100110010110100101100110100110010110...
 
-        With a negative step.
+        With a negative step::
+
             sage: tm[20:1:-3]
             word: 0011101
             sage: tm[10:1:-2]
@@ -501,41 +525,46 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
 
             sage: w = Word(lambda n : n%3+10, caching=True)
             sage: w.__reduce__()
-            (Words, ("csage.misc.fpickle...<lambda>...", +Infinity, 'pickled_function', True))
+            (Infinite words over Set of Python objects of type 'object',
+             ("csage.misc.fpickle...<lambda>...", 'pickled_function', True))
 
         ::
 
             sage: w = Word(lambda n : n%3+10, caching=True, length=8)
             sage: w.__reduce__()
-            (Words, ("csage.misc.fpickle...<lambda>...", 8, 'pickled_function', True))
+            (Finite words over Set of Python objects of type 'object',
+             ("csage.misc.fpickle...<lambda>...", 8, 'pickled_function', True))
 
         Because ``pickle_function`` fails on CallableFromListOfWords,
         then concatenation of words are expanded as a list::
 
             sage: w = Word(range(5)) + Word('abcde')
             sage: w.__reduce__()
-            (Words, ([0, 1, 2, 3, 4, 'a', 'b', 'c', 'd', 'e'],))
+            (Finite words over Set of Python objects of type 'object', ([0, 1, 2, 3, 4, 'a', 'b', 'c', 'd', 'e'],))
 
         """
         from sage.misc.fpickle import pickle_function
         try:
             s = pickle_function(self._func)
         except Exception:
-            from sage.combinat.words.word import FiniteWord_class
-            if isinstance(self, FiniteWord_class):
+            if self.is_finite():
                 return self._parent, (list(self),)
             else:
-                return self._parent, (self._func, self._len, 'callable', True)
+                return self._parent, (self._func, 'callable', True)
         else:
-            return self._parent, (s, self._len, 'pickled_function', True)
+            if self.is_finite():
+                return self._parent, (s, self._len, 'pickled_function', True)
+            else:
+                return self._parent, (s, 'pickled_function', True)
 
     def flush(self):
         r"""
         Empty the associated cache of letters.
 
-        EXAMPLES::
+        EXAMPLES:
 
-        The first 40 (by default) values are always cached.
+        The first 40 (by default) values are always cached::
+
             sage: w = words.ThueMorseWord()
             sage: w._letter_cache
             {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0, 10: 0, 11: 1, 12: 0, 13: 1, 14: 1, 15: 0, 16: 1, 17: 0, 18: 0, 19: 1, 20: 0, 21: 1, 22: 1, 23: 0, 24: 0, 25: 1, 26: 1, 27: 0, 28: 1, 29: 0, 30: 0, 31: 1, 32: 1, 33: 0, 34: 0, 35: 1, 36: 0, 37: 1, 38: 1, 39: 0}
@@ -590,10 +619,10 @@ class WordDatatype_iter(WordDatatype):
             sage: w.length()
             8
         """
-        if length is None or length is Infinity:
+        if length is Infinity:
             self._len = Infinity
             self._data = iter
-        elif length == 'unknown' or length == 'finite':
+        elif length is None or length == 'unknown' or length == 'finite':
             self._len = None
             self._data = iter
         else:
@@ -619,8 +648,11 @@ class WordDatatype_iter(WordDatatype):
             yield a
         # If we reach this point, then we know the length of the word,
         # and that the word is finite.
-        self._len = counter
-        self.__class__ = self.parent()._element_classes['FiniteWord_iter']
+        if self._len is None:
+            self._len = counter
+            parent = self.parent().factors()
+            self.__class__ = parent._element_classes['iter']
+            self._parent = parent
 
     def __getitem__(self, key):
         r"""
@@ -726,11 +758,11 @@ class WordDatatype_iter(WordDatatype):
             sage: c[-1]
             Traceback (most recent call last):
             ...
-            IndexError: cannot use negative indices with infinite words
+            IndexError: cannot use negative indices with words of unknown length
             sage: c[-2]
             Traceback (most recent call last):
             ...
-            IndexError: cannot use negative indices with infinite words
+            IndexError: cannot use negative indices with words of unknown length
 
         Slicing::
 
@@ -793,7 +825,7 @@ class WordDatatype_iter(WordDatatype):
             ValueError: Step for islice() must be a positive integer or None.
         """
         if isinstance(key, slice):
-            if self._len is Infinity:
+            if self._len is Infinity or self._len is None:
                 if not(key.start is None) and key.start < 0 or \
                         not(key.stop is None) and key.stop < 0:
                     raise ValueError("for infinite words, start and stop values cannot be negative")
@@ -805,7 +837,6 @@ class WordDatatype_iter(WordDatatype):
                     else: # key.stop > 0
                         length = int(max(0,ceil((key.stop-start)/float(step))))
                     data = itertools.islice(self, start, key.stop, step)
-                    return self._parent(data, length=length)
                 else:
                     if key.start is None or key.start < 0:
                         raise ValueError("start value must be nonnegative for negative step values")
@@ -813,7 +844,11 @@ class WordDatatype_iter(WordDatatype):
                     stop = 0 if key.stop is None else key.stop
                     length = int(max(0,ceil((key.stop-start)/float(step))))
                     data = list(itertools.islice(self, start+1))[key]
-                    return self._parent(data, length=length)
+
+                if length is None or length is Infinity:
+                    return self._parent(data)
+                else:
+                    return self._parent.factors()(data, length=length)
             else:
                 start = 0 if key.start is None else key.start
                 stop = self._len if key.stop is None else key.stop
@@ -833,7 +868,8 @@ class WordDatatype_iter(WordDatatype):
                 else: # start >= 0, step >= 1, stop >= 0 or None
                     data = itertools.islice(self, key.start, key.stop, key.step)
                     length = "unknown" if stop is None else int(max(0,((stop-start)/float(step))))
-                return self._parent(data, length=length)
+
+                return self._parent.factors()(data, length=length)
         else:
             if key < 0:
                 if self._len is Infinity:
@@ -843,11 +879,11 @@ class WordDatatype_iter(WordDatatype):
                 else:
                     key = self.length() + key
             it = iter(self)
-            a = it.next()
+            a = next(it)
             counter = 0
             while counter < key:
                 try:
-                    a = it.next()
+                    a = next(it)
                     counter += 1
                 except StopIteration:
                     raise IndexError("word index out of range")
@@ -861,19 +897,18 @@ class WordDatatype_iter(WordDatatype):
 
             sage: w = Word(iter('ab'), caching=False, length='unknown')
             sage: w.__reduce__()
-            (Words, (['a', 'b'],))
+            (Finite words over Set of Python objects of type 'object', (['a', 'b'],))
 
         ::
 
             sage: w = Word(iter('ab'*10000), caching=False, length='unknown')
             sage: w.__reduce__()
-            (Words, (<generator object __iter__ at ...>, None, 'iter', False))
+            (Finite and infinite words over Set of Python objects of type 'object', (<generator object __iter__ at ...>, 'iter', False))
         """
-        from sage.combinat.words.word import FiniteWord_class
-        if isinstance(self, FiniteWord_class):
+        if self.is_finite():
             return self._parent, (list(self),)
         else:
-            return self._parent, (iter(self), self._len, 'iter', False)
+            return self._parent, (iter(self), 'iter', False)
 
 class WordDatatype_iter_with_caching(WordDatatype_iter):
     def __init__(self, parent, iter, length=None):
@@ -920,7 +955,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
 
             sage: w = Word(iter([0,1,0,0,1,0,1,0,0,1,0,1,0]))
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 0, 1, 0, 1, 0, 0, 1]
         """
         # first iterator through the cached values
@@ -933,8 +968,11 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             yield a
         # If we reach this point, then we know the length of the word,
         # and that the word is finite.
-        self._len = len(self._list)
-        self.__class__ = self.parent()._element_classes['FiniteWord_iter_with_caching']
+        if self._len is None:
+            self._len = len(self._list)
+            parent = self.parent().factors()
+            self.__class__ = parent._element_classes['iter_with_caching']
+            self._parent = parent
 
     def __getitem__(self, key):
         r"""
@@ -1048,11 +1086,11 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             sage: c[-1]
             Traceback (most recent call last):
             ...
-            IndexError: cannot use negative indices with infinite words
+            IndexError: cannot use negative indices with words of unknown length
             sage: c[-2]
             Traceback (most recent call last):
             ...
-            IndexError: cannot use negative indices with infinite words
+            IndexError: cannot use negative indices with words of unknown length
 
         Slicing::
 
@@ -1122,7 +1160,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             else:
                 while self._last_index < key:
                     try:
-                        self._list.append(self._gen.next())
+                        self._list.append(next(self._gen))
                         self._last_index += 1
                     except StopIteration:
                         raise IndexError("word index out of range")
@@ -1136,20 +1174,19 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
 
             sage: w = Word(iter('ab'), caching=True, length='unknown')
             sage: w.__reduce__()
-            (Words, (['a', 'b'],))
+            (Finite words over Set of Python objects of type 'object', (['a', 'b'],))
 
         ::
 
             sage: w = Word(iter('ab'*10000), caching=True, length='unknown')
             sage: w.__reduce__()
-            (Words, (<generator object __iter__ at ...>, None, 'iter', True))
-
+            (Finite and infinite words over Set of Python objects of type 'object',
+             (<generator object __iter__ at ...>, 'iter', True))
         """
-        from sage.combinat.words.word import Word, FiniteWord_class
-        if isinstance(self, FiniteWord_class):
+        if self.is_finite():
             return self._parent, (list(self),)
         else:
-            return self._parent, (iter(self), self._len, 'iter', True)
+            return self._parent, (iter(self), 'iter', True)
 
     def flush(self):
         r"""

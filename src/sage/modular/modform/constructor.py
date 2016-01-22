@@ -243,12 +243,12 @@ def ModularForms(group  = 1,
         sage: m.T(2).charpoly('x')
         x^4 - 917*x^2 - 42284
 
-    This came up in a subtle bug (trac #5923)::
+    This came up in a subtle bug (:trac:`5923`)::
 
         sage: ModularForms(gp(1), gap(12))
         Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
 
-    This came up in another bug (related to trac #8630)::
+    This came up in another bug (related to :trac:`8630`)::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: ModularForms(chi, 2, base_ring = CyclotomicField(15))
@@ -437,11 +437,19 @@ def Newforms(group, weight=2, base_ring=None, names=None):
         sage: sorted([N[0][2], N[1][2]]) == sorted([1/2*c - 5/2*i - 5/2, -1/2*c - 5/2*i - 5/2])
         True
 
+    TESTS:
+
     We test that :trac:`8630` is fixed::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: CuspForms(chi, 2, base_ring = CyclotomicField(9))
         Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
+
+    Check that :trac:`15486` is fixed (this used to take over a day)::
+
+        sage: N = Newforms(719, names='a'); len(N)  # long time (3 s)
+        3
+
     """
     return CuspForms(group, weight, base_ring).newforms(names)
 

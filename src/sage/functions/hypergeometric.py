@@ -126,13 +126,15 @@ Arbitrary level of nesting for conversions::
     sage: nest(lambda y: hypergeometric([y], [], x), 3, 1)._mathematica_init_()
     'HypergeometricPFQ[{HypergeometricPFQ[{HypergeometricPFQ[{1},{},x]},...
 """
+
 #*****************************************************************************
 #       Copyright (C) 2010 Fredrik Johansson <fredrik.johansson@gmail.com>
 #       Copyright (C) 2013 Eviatar Bach <eviatarbach@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -140,7 +142,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
-from sage.rings.arith import (binomial, rising_factorial, factorial)
+from sage.arith.all import binomial, rising_factorial, factorial
 from sage.functions.other import sqrt, gamma, real_part
 from sage.functions.log import exp, log
 from sage.functions.trig import cos, sin
@@ -148,7 +150,7 @@ from sage.functions.hyperbolic import cosh, sinh
 from sage.functions.other import erf
 from sage.symbolic.constants import pi
 from sage.symbolic.all import I
-from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.ring import SR
 from sage.structure.element import get_coercion_model
 from sage.misc.latex import latex
@@ -156,6 +158,7 @@ from sage.misc.misc_c import prod
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.symbolic.expression import Expression
 from sage.calculus.functional import derivative
+from functools import reduce
 
 
 def rational_param_as_tuple(x):
@@ -205,7 +208,7 @@ class Hypergeometric(BuiltinFunction):
         Initialize class.
         
         EXAMPLES::
-        
+
             sage: maxima(hypergeometric)
             hypergeometric
         """
@@ -226,7 +229,7 @@ class Hypergeometric(BuiltinFunction):
         - ``z`` -- a number or symbolic expression
     
         EXAMPLES::
-    
+
             sage: hypergeometric([], [], 1)
             hypergeometric((), (), 1)
             sage: hypergeometric([], [1], 1)
@@ -264,21 +267,47 @@ class Hypergeometric(BuiltinFunction):
     def _eval_(self, a, b, z, **kwargs):
         """
         EXAMPLES::
-        
+
             sage: hypergeometric([], [], 0)
             1
         """
         if not isinstance(a,tuple) or not isinstance(b,tuple):
-            raise ValueError('First two parameters must be of type list.')
-        coercion_model = get_coercion_model()
-        co = reduce(lambda x, y: coercion_model.canonical_coercion(x, y)[0],
-                    a + b + (z,))
-        if is_inexact(co) and not isinstance(co, Expression):
-            from sage.structure.coerce import parent
-            return self._evalf_(a, b, z, parent=parent(co))
+            raise TypeError("The first two parameters must be of type list")
         if not isinstance(z, Expression) and z == 0:  # Expression is excluded
             return Integer(1)                         # to avoid call to Maxima
-        return
+
+    def _evalf_try_(self, a, b, z):
+        """
+        Call :meth:`_evalf_` if one of the arguments is numerical and none
+        of the arguments are symbolic.
+
+        OUTPUT:
+
+        - ``None`` if we didn't succeed to call :meth:`_evalf_` or if
+          the input wasn't suitable for it.
+
+        - otherwise, a numerical value for the function.
+
+        EXAMPLES::
+
+            sage: hypergeometric._evalf_try_((1.0,), (2.0,), 3.0)
+            6.36184564106256
+            sage: hypergeometric._evalf_try_((1.0, 1), (), 3.0)
+            -0.0377593153441588 + 0.750349833788561*I
+            sage: hypergeometric._evalf_try_((1, 1), (), 3)    # exact input
+            sage: hypergeometric._evalf_try_((x,), (), 1.0)    # symbolic
+            sage: hypergeometric._evalf_try_(1.0, 2.0, 3.0)    # not tuples
+        """
+        # We need to override this for hypergeometric functions since
+        # the first 2 arguments are tuples and the generic _evalf_try_
+        # cannot handle that.
+        if not isinstance(a,tuple) or not isinstance(b,tuple):
+            return None
+        args = list(a) + list(b) + [z]
+        if any(self._is_numerical(x) for x in args):
+            if not any(isinstance(x, Expression) for x in args):
+                p = get_coercion_model().common_parent(*args)
+                return self._evalf_(a, b, z, parent=p)
 
     def _evalf_(self, a, b, z, parent, algorithm=None):
         """
@@ -291,7 +320,7 @@ class Hypergeometric(BuiltinFunction):
 
         """
         if not isinstance(a,tuple) or not isinstance(b,tuple):
-            raise ValueError('First two parameters must be of type list.')
+            raise TypeError("The first two parameters must be of type list")
         from mpmath import hyper
         aa = [rational_param_as_tuple(c) for c in a]
         bb = [rational_param_as_tuple(c) for c in b]

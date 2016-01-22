@@ -1,8 +1,8 @@
 diff --git a/setup.py b/setup.py
-index 20670f7..62e82c5 100644
+index 031ad53..b243eac 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -7,26 +7,38 @@ from glob import glob
+@@ -6,26 +6,38 @@ from glob import glob
  import os
  
  # Modifiy this if BLAS and LAPACK libraries are not in /usr/lib.
@@ -46,12 +46,12 @@ index 20670f7..62e82c5 100644
  
  # Set to 1 if you are installing the fftw module.
  BUILD_FFTW = 0 
-@@ -38,13 +50,13 @@ FFTW_LIB_DIR = '/usr/lib'
+@@ -37,13 +49,13 @@ FFTW_LIB_DIR = '/usr/lib'
  FFTW_INC_DIR = '/usr/include'
  
  # Set to 1 if you are installing the glpk module.
 -BUILD_GLPK = 0 
-+BUILD_GLPK = 1 
++BUILD_GLPK = 1
  
  # Directory containing libglpk (used only when BUILD_GLPK = 1).
 -GLPK_LIB_DIR = '/usr/lib'
@@ -63,7 +63,7 @@ index 20670f7..62e82c5 100644
  
  # Set to 1 if you are installing the DSDP module.
  BUILD_DSDP = 0
-@@ -103,7 +115,7 @@ if BUILD_FFTW:
+@@ -114,7 +126,7 @@ if BUILD_FFTW:
      extmods += [fftw];
  
  if BUILD_GLPK:
@@ -72,3 +72,12 @@ index 20670f7..62e82c5 100644
          include_dirs = [ GLPK_INC_DIR ],
          library_dirs = [ GLPK_LIB_DIR ],
          sources = ['src/C/glpk.c'] )
+@@ -213,7 +225,7 @@ else:
+     amd = Extension('amd',
+         include_dirs = [ 'src/C/SuiteSparse/AMD/Include',
+             'src/C/SuiteSparse/SuiteSparse_config' ],
+-        define_macros = MACROS,
++        define_macros = MACROS  + [('NTIMER', '1')],  # this will be in upstream at some point
+         sources = [ 'src/C/amd.c', 'src/C/SuiteSparse/SuiteSparse_config/SuiteSparse_config.c'] +
+         glob('src/C/SuiteSparse/AMD/Source/*.c') )
+ 

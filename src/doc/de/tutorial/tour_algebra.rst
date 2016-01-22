@@ -153,7 +153,7 @@ berechnen. Die Gleichung :math:`x'+x-1=0` berechnen Sie wie folgt:
 ::
 
     sage: t = var('t')    # definiere die Variable t
-    sage: x = function('x',t)   # definiere x als Funktion dieser Variablen
+    sage: x = function('x')(t)   # definiere x als Funktion dieser Variablen
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
     (_C + e^t)*e^(-t)
@@ -270,8 +270,8 @@ Die kann folgenderweise parametrisiert geplottet werden:
 ::
 
     sage: t = var('t')
-    sage: P = parametric_plot((cos(2*t) + 2*cos(t), 4*cos(t) - cos(2*t) ),\
-    ...   (t, 0, 2*pi), rgbcolor=hue(0.9))
+    sage: P = parametric_plot((cos(2*t) + 2*cos(t), 4*cos(t) - cos(2*t) ),
+    ....:     (t, 0, 2*pi), rgbcolor=hue(0.9))
     sage: show(P)
 
 Die einzelnen Komponenten können so geplottet werden:

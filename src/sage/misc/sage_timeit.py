@@ -17,7 +17,7 @@ AUTHOR:
 """
 
 
-class SageTimeitResult():
+class SageTimeitResult(object):
     r"""
     Represent the statistics of a timeit() command.
 
@@ -91,7 +91,7 @@ class SageTimeitResult():
         return "%d loops, best of %d: %.*g %s per loop" % self.stats
 
 def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, precision=3, seconds=False):
-    """
+    """nodetex
     Accurately measure the wall time required to execute ``stmt``.
 
     INPUT:
@@ -195,7 +195,8 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     import time, math
     import timeit as timeit_
 
-    import preparser, sage.repl.interpreter as interpreter
+    import sage.repl.interpreter as interpreter
+    import sage.repl.preparse as preparser
 
     number=int(number)
     repeat=int(repeat)

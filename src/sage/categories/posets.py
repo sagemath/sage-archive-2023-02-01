@@ -132,7 +132,7 @@ class Posets(Category):
 
             sage: P = Posets()
             sage: it = iter(P)
-            sage: for _ in range(10): print it.next();
+            sage: for _ in range(10): print next(it);
             Finite poset containing 0 elements
             Finite poset containing 1 elements
             Finite poset containing 2 elements
@@ -682,6 +682,9 @@ class Posets(Category):
                 False
             """
             return all(not self.lt(x,y) for x in o for y in o)
+
+        CartesianProduct = LazyImport(
+            'sage.combinat.posets.cartesian_product', 'CartesianProductPoset')
 
     class ElementMethods:
         pass

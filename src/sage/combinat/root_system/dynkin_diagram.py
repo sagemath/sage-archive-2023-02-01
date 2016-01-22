@@ -32,7 +32,6 @@ from sage.matrix.matrix import is_Matrix
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
-from sage.misc.superseded import deprecated_function_alias
 
 def DynkinDiagram(*args, **kwds):
     r"""
@@ -56,10 +55,10 @@ def DynkinDiagram(*args, **kwds):
     in Bourbaki and Wikipedia's Dynkin diagram (:wikipedia:`Dynkin_diagram`).
     That is for `i \neq j`::
 
-       i <--k-- j <==> a_ij = -k
-                  <==> -scalar(coroot[i], root[j]) = k
-                  <==> multiple arrows point from the longer root
-                       to the shorter one
+        i <--k-- j <==> a_ij = -k
+                   <==> -scalar(coroot[i], root[j]) = k
+                   <==> multiple arrows point from the longer root
+                        to the shorter one
 
     For example, in type `C_2`, we have::
 
@@ -288,7 +287,30 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             return result+"Dynkin diagram of rank %s"%self.rank()
         else:
             return result+"%s"%ct._repr_(compact=True)
-            #return result+"Dynkin diagram of type %s"%self.cartan_type()._repr_(compact = True)
+
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        Override rich output because :meth:`_repr_` outputs ascii
+        art. The proper fix will be in :trac:`18328`.
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: E8 = WeylCharacterRing('E8')
+            sage: E8.dynkin_diagram()._rich_repr_(dm)
+            OutputAsciiArt container
+        """
+        OutputAsciiArt = display_manager.types.OutputAsciiArt
+        OutputPlainText = display_manager.types.OutputPlainText
+        if OutputAsciiArt in display_manager.supported_output():
+            return OutputAsciiArt(self._repr_())
+        else:
+            return OutputPlainText(self._repr_())
 
     def _latex_(self, scale=0.5):
         r"""
@@ -527,6 +549,24 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             G._cartan_type = self._cartan_type.relabel(relabelling)
         return G
 
+    def subtype(self, index_set):
+        """
+        Return a subtype of ``self`` given by ``index_set``.
+
+        A subtype can be considered the Dynkin diagram induced from
+        the Dynkin diagram of ``self`` by ``index_set``.
+
+        EXAMPLES::
+
+            sage: D = DynkinDiagram(['A',6,2]); D
+            O=<=O---O=<=O
+            0   1   2   3
+            BC3~
+            sage: D.subtype([1,2,3])
+            Dynkin diagram of rank 3
+        """
+        return self.cartan_matrix().subtype(index_set).dynkin_diagram()
+
     def is_finite(self):
         """
         Check if ``self`` corresponds to a finite root system.
@@ -583,14 +623,10 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
         TESTS::
 
-            sage: CartanType(['G',2]).dynkin_diagram().is_crystalographic()
-            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
-            See http://trac.sagemath.org/14673 for details.
+            sage: CartanType(['G',2]).dynkin_diagram().is_crystallographic()
             True
         """
         return True
-
-    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     def symmetrizer(self):
         """
@@ -625,13 +661,13 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
     def __getitem__(self, i):
         r"""
         With a tuple (i,j) as argument, returns the scalar product
-        `\langle
-                \alpha^\vee_i, \alpha_j\rangle`.
+        `\langle \alpha^\vee_i, \alpha_j\rangle`.
 
-        Otherwise, behaves as the usual DiGraph.__getitem__
+        Otherwise, behaves as the usual ``DiGraph.__getitem__``
 
-        EXAMPLES: We use the `C_4` Dynkin diagram as a cartan
-        matrix::
+        EXAMPLES:
+
+        We use the `C_4` Dynkin diagram as a cartan matrix::
 
             sage: g = DynkinDiagram(['C',4])
             sage: matrix([[g[i,j] for j in range(1,5)] for i in range(1,5)])

@@ -28,10 +28,9 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/stdsage.pxi'
 include 'sage/data_structures/bitset.pxi'
 from basis_matroid cimport BasisMatroid
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 
 cdef class CutNode:
     """

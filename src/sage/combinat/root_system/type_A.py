@@ -110,7 +110,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def highest_root(self):
         """
-        EXAMPLE:
+        EXAMPLES::
+
            sage: e = RootSystem(['A',3]).ambient_lattice()
            sage: e.highest_root()
            (1, 0, 0, -1)

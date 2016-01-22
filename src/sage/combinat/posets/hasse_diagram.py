@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
 r"""
 Hasse diagrams of posets
+
+{INDEX_OF_FUNCTIONS}
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -49,6 +53,7 @@ class HasseDiagram(DiGraph):
     def _repr_(self):
         r"""
         TESTS::
+
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
             sage: H._repr_()
@@ -58,6 +63,8 @@ class HasseDiagram(DiGraph):
 
     def linear_extension(self):
         r"""
+        Return a linear extension
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -70,6 +77,8 @@ class HasseDiagram(DiGraph):
 
     def linear_extensions(self):
         r"""
+        Return all linear extensions
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -81,6 +90,8 @@ class HasseDiagram(DiGraph):
 
     def is_linear_extension(self,lin_ext=None):
         r"""
+        Test if an ordering is a linear extension.
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -101,74 +112,10 @@ class HasseDiagram(DiGraph):
                     return False
             return True
 
-    # Could this be achieved by adding some options to
-    # GenericGraph.plot, and just overriding graphics_array_defaults?
-
-    def plot(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black', layout = "acyclic", **kwds):
-        """
-        Returns a Graphics object corresponding to the Hasse diagram.
-
-        EXAMPLES::
-
-            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
-            sage: elm_lbls = Permutations(3).list()
-            sage: P = Poset(uc,elm_lbls)
-            sage: H = P._hasse_diagram
-            sage: levels = H.level_sets()
-            sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
-            sage: type(H.plot(label_elements=True))
-            <class 'sage.plot.graphics.Graphics'>
-
-        ::
-
-            sage: P = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
-            sage: P._hasse_diagram.plot()
-            Graphics object consisting of 42 graphics primitives
-        """
-        # Set element_labels to default to the vertex set.
-        if element_labels is None:
-            element_labels = range(self.num_verts())
-
-        # Create the underlying graph.
-        graph = DiGraph(self)
-        graph.relabel(element_labels)
-
-        return graph.plot(layout = layout, **kwds)
-
-    def show(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black',
-            vertex_size=300, vertex_colors=None,**kwds):
-        """
-        Shows the Graphics object corresponding to the Hasse diagram.
-        Optionally, it is labelled.
-
-        INPUT:
-
-
-        -  ``label_elements`` - whether to display element
-           labels
-
-        -  ``element_labels`` - a dictionary of element
-           labels
-
-
-        EXAMPLES::
-
-            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
-            sage: elm_lbls = Permutations(3).list()
-            sage: P = Poset(uc,elm_lbls)
-            sage: H = P._hasse_diagram
-            sage: levels = H.level_sets()
-            sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
-            sage: H.show(label_elements=True)
-        """
-        self.plot(label_elements=label_elements, element_labels=element_labels,
-            label_font_size=label_font_size,label_font_color=label_font_color,
-            vertex_size=vertex_size, vertex_colors=vertex_colors).show(**kwds)
-
     def cover_relations_iterator(self):
         r"""
+        Iterate over cover relations.
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -181,6 +128,8 @@ class HasseDiagram(DiGraph):
 
     def cover_relations(self):
         r"""
+        Return the list of cover relations.
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -188,7 +137,7 @@ class HasseDiagram(DiGraph):
             sage: H.cover_relations()
             [(0, 2), (0, 3), (1, 3), (1, 4), (2, 5), (3, 5), (4, 5)]
         """
-        return [c for c in self.cover_relations_iterator()]
+        return list(self.cover_relations_iterator())
 
     def is_lequal(self, i, j):
         """
@@ -427,6 +376,8 @@ class HasseDiagram(DiGraph):
             sage: p.is_chain()
             False
         """
+        if self.cardinality() == 0:
+            return True
         return (self.num_edges()+1 == self.num_verts() and # Hasse Diagram is a tree
                 all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
                 all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
@@ -477,8 +428,8 @@ class HasseDiagram(DiGraph):
             sage: I == set(H.interval(2,7))
             True
         """
-        return [z for z in range(self.order())[x:y+1] if
-                self.is_lequal(x,z) and self.is_lequal(z,y)]
+        return [z for z in range(x, y+1) if
+                self.is_lequal(x, z) and self.is_lequal(z, y)]
 
     closed_interval = interval
 
@@ -741,8 +692,8 @@ class HasseDiagram(DiGraph):
 
         For a time, this function was named ``size()``, which
         would override the same-named method of the underlying
-        digraph.  Trac #8735 renamed this method to ``cardinality()``
-        with a deprecation warning.  Trac #11214 removed the warning
+        digraph. :trac:`8735` renamed this method to ``cardinality()``
+        with a deprecation warning. :trac:`11214` removed the warning
         since code for graphs was raising the warning inadvertently.
         This tests that ``size()`` for a Hasse diagram returns the
         number of edges in the digraph. ::
@@ -758,7 +709,7 @@ class HasseDiagram(DiGraph):
 
     def mobius_function(self,i,j): # dumb algorithm
         r"""
-        Returns the value of the M\"obius function of the poset
+        Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
 
         EXAMPLES::
@@ -792,10 +743,10 @@ class HasseDiagram(DiGraph):
 
     def mobius_function_matrix(self):
         r"""
-        Returns the matrix of the Mobius function of this poset
+        Returns the matrix of the Möbius function of this poset
 
         This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
-        is the value of the M\"obius function of ``self`` evaluated on
+        is the value of the Möbius function of ``self`` evaluated on
         ``x`` and ``y``, and redefines :meth:`mobius_function` to use
         it.
 
@@ -836,7 +787,7 @@ class HasseDiagram(DiGraph):
     # Redefine self.mobius_function
     def _mobius_function_from_matrix(self, i,j):
         r"""
-        Returns the value of the M\"obius function of the poset
+        Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
 
         EXAMPLES::
@@ -878,9 +829,9 @@ class HasseDiagram(DiGraph):
         """
         return - self.lequal_matrix()*self.mobius_function_matrix().transpose()
 
-    def order_filter(self,elements):
+    def order_filter(self, elements):
         """
-        Returns the order filter generated by a list of elements.
+        Return the order filter generated by a list of elements.
 
         `I` is an order filter if, for any `x` in `I` and `y` such that
         `y \ge x`, then `y` is in `I`.
@@ -891,11 +842,7 @@ class HasseDiagram(DiGraph):
             sage: H.order_filter([3,8])
             [3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         """
-        of = []
-        for i in elements:
-            for j in self.breadth_first_search(i):
-                of.append(j)
-        return uniq(of)
+        return sorted(list(self.depth_first_search(elements)))
 
     def principal_order_filter(self, i):
         """
@@ -909,9 +856,9 @@ class HasseDiagram(DiGraph):
         """
         return self.order_filter([i])
 
-    def order_ideal(self,elements):
+    def order_ideal(self, elements):
         """
-        Returns the order ideal generated by a list of elements.
+        Return the order ideal generated by a list of elements.
 
         `I` is an order ideal if, for any `x` in `I` and `y` such that
         `y \le x`, then `y` is in `I`.
@@ -922,12 +869,8 @@ class HasseDiagram(DiGraph):
             sage: H.order_ideal([7,10])
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
         """
-        H = copy(self).reverse()
-        oi = []
-        for i in elements:
-            for j in H.breadth_first_search(i):
-                oi.append(j)
-        return uniq(oi)
+        return sorted(list(
+            self.depth_first_search(elements, neighbors=self.neighbors_in)))
 
     def principal_order_ideal(self, i):
         """
@@ -1348,33 +1291,34 @@ class HasseDiagram(DiGraph):
 
     def is_complemented_lattice(self):
         r"""
-        Returns ``True`` if ``self`` is the Hasse diagram of a
+        Return ``True`` if ``self`` is the Hasse diagram of a
         complemented lattice, and ``False`` otherwise.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
             sage: H.is_complemented_lattice()
             True
 
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[3], 3:[4]})
             sage: H.is_complemented_lattice()
             False
         """
+        from itertools import izip
         try:
-            jn = self.join_matrix()
             mt = self.meet_matrix()
+            jn = self.join_matrix()
         except ValueError:
             return False
-        n = self.cardinality()
-        c = [-1 for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return all([c[x]!=-1 for x in range(n)])
+        n = self.cardinality() - 1
+        for row1, row2 in izip(mt, jn):
+            for c1, c2 in izip(row1, row2):
+                if c1 == 0 and c2 == n:
+                    break
+            else:
+                return False
+        return True
 
     def complements(self):
         r"""
@@ -1392,6 +1336,44 @@ class HasseDiagram(DiGraph):
                     c[x]=y
                     c[y]=x
         return c
+
+    def pseudocomplement(self, element):
+        """
+        Return the pseudocomplement of ``element``, if it exists.
+
+        The pseudocomplement is the greatest element whose
+        meet with given element is the bottom element. It may
+        not exist, and then the function returns ``None``.
+
+        INPUT:
+
+        - ``element`` -- an element of the lattice.
+
+        OUTPUT:
+
+        An element of the Hasse diagram, i.e. an integer, or
+        ``None`` if the pseudocomplement does not exist.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: H.pseudocomplement(2)
+            3
+
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.pseudocomplement(2) is None
+            True
+        """
+        e = self.order() - 1
+        while self._meet[e, element] != 0:
+            e -= 1
+        e1 = e
+        while e1 > 0:
+            if self._meet[e1, element] == 0 and not self.is_lequal(e1, e):
+                return None
+            e1 -= 1
+        return e
 
     def antichains_iterator(self):
         r"""
@@ -1591,3 +1573,130 @@ class HasseDiagram(DiGraph):
         return PairwiseCompatibleSubsets(vertices,
                                          self.are_comparable,
                                          element_class = element_class)
+
+    def maximal_sublattices(self):
+        """
+        Return maximal sublattices of the lattice.
+
+        EXAMPLES::
+
+            sage: L = Posets.PentagonPoset()
+            sage: ms = L._hasse_diagram.maximal_sublattices()
+            sage: sorted(ms, key=sorted)
+            [{0, 1, 2, 4}, {0, 1, 3, 4}, {0, 2, 3, 4}]
+        """
+        jn = self.join_matrix()
+        mt = self.meet_matrix()
+
+        def sublattice(elms, e):
+            """
+            Helper function to get sublattice generated by list
+            of elements.
+            """
+            gens_remaining = set([e])
+            current_set = set(elms)
+
+            while gens_remaining:
+                g = gens_remaining.pop()
+                if g in current_set:
+                    continue
+                for x in current_set:
+                    gens_remaining.add(jn[x, g])
+                    gens_remaining.add(mt[x, g])
+                current_set.add(g)
+
+            return current_set
+
+        N = self.cardinality()
+        elms = [0]
+        sublats = [set([0])]
+        result = []
+        skip = -1
+
+        while True:
+            # First try to append an element
+            found_element_to_append = False
+            e = elms[-1]
+            while e != skip:
+                e += 1
+                if e == N:
+                    maybe_found = sublats[-1]
+                    if not any(maybe_found.issubset(x) for x in result):
+                        result.append(sublats[-1])
+                    break
+                if e in sublats[-1]:
+                    continue
+                # Let's try to add 'e' and see what happens.
+                sl = sublattice(sublats[-1], e)
+                if len(sl) < N:
+                    # Skip this, if it generated a back-reference.
+                    new_elms = sl.difference(sublats[-1])
+                    if not any(x < e for x in new_elms):
+                        found_element_to_append = True
+                        break
+                # Now sl is whole lattice, so we continue and try
+                # appending another element.
+
+            if found_element_to_append:
+                elms.append(e)
+                sublats.append(sl)
+                continue
+
+            # Can not append. Try to increment last element.
+            e = elms.pop()
+            sublats.pop()
+
+            last_element_increment = True
+            while True:
+                e += 1
+                if e == N:
+                    last_element_increment = False
+                    break
+                if e in sublats[-1]:
+                    continue
+                sl = sublattice(sublats[-1], e)
+                if len(sl) == N:
+                    continue
+
+                new_elms = sl.difference(set(sublats[-1]))
+                if any(x < e for x in new_elms):
+                    continue
+
+                elms.append(e)
+                sublats.append(sl)
+                break
+
+            if not last_element_increment:
+                # Can not append nor increment. "Backtracking".
+                skip = elms[-1]
+                if skip == 0:
+                    break
+
+        # Special case to handle at last.
+        if len(self.neighbors_out(0)) == 1:
+            result.append(set(range(1, N)))
+
+        return result
+
+    def frattini_sublattice(self):
+        """
+        Return the list of elements of the Frattini sublattice of the lattice.
+
+        EXAMPLES::
+
+            sage: H = Posets.PentagonPoset()._hasse_diagram
+            sage: H.frattini_sublattice()
+            [0, 4]
+        """
+        # Just a direct computation, no optimization at all.
+        n = self.cardinality()
+        if n == 0 or n == 2: return []
+        if n == 1: return [0]
+        max_sublats = self.maximal_sublattices()
+        return [e for e in range(self.cardinality()) if
+                all(e in ms for ms in max_sublats)]
+
+from sage.misc.rest_index_of_methods import gen_rest_table_index
+import sys
+__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))
+

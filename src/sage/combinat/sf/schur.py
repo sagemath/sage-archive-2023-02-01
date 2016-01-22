@@ -18,6 +18,7 @@ Schur symmetric functions
 #*****************************************************************************
 import classical
 import sage.libs.symmetrica.all as symmetrica
+import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.rings.all import ZZ, QQ, Integer
 
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
@@ -76,7 +77,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         - ``self`` -- a Schur symmetric function basis
         - ``left``, ``right`` -- partitions
 
-        OUPUT:
+        OUTPUT:
 
         - an element of the Schur basis, the product of ``left`` and ``right``
 
@@ -111,7 +112,6 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: 0*s([2,1])
             0
         """
-        import sage.libs.lrcalc.lrcalc as lrcalc
         return lrcalc.mult(left,right)
 
     def coproduct_on_basis(self, mu):
@@ -138,9 +138,28 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: s.coproduct_on_basis([2])
             s[] # s[2] + s[1] # s[1] + s[2] # s[]
         """
-        import sage.libs.lrcalc.lrcalc as lrcalc
         T = self.tensor_square()
         return T._from_dict( lrcalc.coprod(mu, all=1) )
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        TESTS::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s([[2,1],[1]])
+            s[1, 1] + s[2]
+            sage: s([[],[]])
+            s[]
+        """
+        ###################
+        # Skew Partitions #
+        ###################
+        try:
+            return self.skew_schur(x)
+        except ValueError:
+            return super(SymmetricFunctionAlgebra_schur, self)._element_constructor_(x)
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def __pow__(self, n):
@@ -160,7 +179,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             EXAMPLES::
 
-                sage: s = SymmetricFunctions(QQ[x]).s()
+                sage: s = SymmetricFunctions(QQ['x']).s()
                 sage: len(s([2,1])^8) # long time (~ 4 s)
                 1485
                 sage: len(s([2,1])^9) # long time (~10 s)
@@ -180,10 +199,10 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             With polynomial coefficients, this is actually much *slower*
             (although this should be profiled further; there seems to
             be an unreasonable number of polynomial multiplication involved,
-            besides the fact that 1 * QQ[x].one() currently involves a
+            besides the fact that 1 * QQ['x'].one() currently involves a
             polynomial multiplication)
 
-            #    sage: sage: s = SymmetricFunctions(QQ[x]).s()
+            #    sage: sage: s = SymmetricFunctions(QQ['x']).s()
             #    sage: y = s([2,1])
             #    sage: %timeit y**7
             #    10 loops, best of 3: 18.9 s per loop

@@ -43,27 +43,22 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006--2009 William Stein and Jon Hanke
+#       Copyright (C) 2006-2009 William Stein and Jon Hanke
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.libs.pari.all import pari
-from sage.rings.all import is_fundamental_discriminant, ZZ, gcd
+from sage.rings.all import ZZ, is_fundamental_discriminant
+from sage.arith.all import divisors, gcd, integer_ceil, integer_floor
 from sage.structure.sage_object import SageObject
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import integer_ceil, integer_floor
 
 class BinaryQF(SageObject):
     r"""
@@ -284,6 +279,19 @@ class BinaryQF(SageObject):
             args = args[0]
         x, y = args
         return (self._a * x + self._b * y) * x + self._c * y**2
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(BinaryQF([2,2,3]))
+            802
+            sage: hash(BinaryQF([2,3,2]))
+            562
+            sage: hash(BinaryQF([3,2,2]))
+            547
+        """
+        return hash(self._a) ^ (hash(self._b) << 4) ^ (hash(self._c) << 8)
 
     def __cmp__(self, right):
         """
@@ -1010,8 +1018,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix `M` on ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
-        cx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
+        bx+dy)`.
 
         EXAMPLES::
 
@@ -1033,8 +1041,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix `M` on ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
-        bx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
+        cx+dy)`.
 
         EXAMPLES::
 
@@ -1080,8 +1088,7 @@ class BinaryQF(SageObject):
         B = 10
         while True:
             llist = list(Set([self(x,y) for x in srange(-B,B) for y in srange(B)]))
-            llist = [l for l in llist if l.is_prime()]
-            llist.sort()
+            llist = sorted([l for l in llist if l.is_prime()])
             if llist:
                 return llist[0]
             if B >= Bmax:

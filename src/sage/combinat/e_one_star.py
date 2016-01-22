@@ -275,7 +275,7 @@ class Face(SageObject):
 
         TEST:
 
-        We test that types can be given by an int (see #10699)::
+        We test that types can be given by an int (see :trac:`10699`)::
 
             sage: f = Face((0,2,0), int(1))
         """
@@ -360,7 +360,7 @@ class Face(SageObject):
         elif v1 > v2:
             return 1
         else:
-            return t1.__cmp__(t2)
+            return cmp(t1, t2)
 
     def __hash__(self):
         r"""
@@ -591,7 +591,8 @@ class Patch(SageObject):
 
         TEST:
 
-        We test that colors are not anymore mixed up between Patches (see #11255)::
+        We test that colors are not anymore mixed up between
+        Patches (see :trac:`11255`)::
 
             sage: P = Patch([Face([0,0,0],2)])
             sage: Q = Patch(P)
@@ -616,9 +617,9 @@ class Patch(SageObject):
 
         else:
             self._face_contour = {
-                    1: map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)]),
-                    2: map(vector, [(0,0,0),(0,0,1),(1,0,1),(1,0,0)]),
-                    3: map(vector, [(0,0,0),(1,0,0),(1,1,0),(0,1,0)])
+                    1: [vector(_) for _ in [(0,0,0),(0,1,0),(0,1,1),(0,0,1)]],
+                    2: [vector(_) for _ in [(0,0,0),(0,0,1),(1,0,1),(1,0,0)]],
+                    3: [vector(_) for _ in [(0,0,0),(1,0,0),(1,1,0),(0,1,0)]]
             }
 
     def __eq__(self, other):
@@ -667,7 +668,7 @@ class Patch(SageObject):
 
         TEST:
 
-        We test that two equal patches have the same hash (see #11255)::
+        We test that two equal patches have the same hash (see :trac:`11255`)::
 
             sage: P = Patch([Face([0,0,0],1), Face([0,0,0],2)])
             sage: Q = Patch([Face([0,0,0],2), Face([0,0,0],1)])
@@ -691,7 +692,7 @@ class Patch(SageObject):
         r"""
         Returns the number of faces contained in the patch.
 
-        OUPUT:
+        OUTPUT:
 
             integer
 
@@ -719,13 +720,13 @@ class Patch(SageObject):
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
             sage: it = iter(P)
-            sage: type(it.next())
+            sage: type(next(it))
             <class 'sage.combinat.e_one_star.Face'>
-            sage: type(it.next())
+            sage: type(next(it))
             <class 'sage.combinat.e_one_star.Face'>
-            sage: type(it.next())
+            sage: type(next(it))
             <class 'sage.combinat.e_one_star.Face'>
-            sage: type(it.next())
+            sage: type(next(it))
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1409,7 +1410,7 @@ class E1Star(SageObject):
             raise ValueError("The substitution (%s) must be defined on positive integers."%sigma)
 
         self._sigma = WordMorphism(sigma)
-        self._d = self._sigma.domain().size_of_alphabet()
+        self._d = self._sigma.domain().alphabet().cardinality()
 
         # self._base_iter is a base for the iteration of the application of self on set
         # of faces. (Exploits the linearity of `E_1^*(\sigma)` to optimize computation.)
@@ -1481,7 +1482,7 @@ class E1Star(SageObject):
 
         TEST:
 
-        We test that iterations=0 works (see #10699)::
+        We test that iterations=0 works (see :trac:`10699`)::
 
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})

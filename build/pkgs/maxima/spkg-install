@@ -24,7 +24,6 @@ exec </dev/null
 # We don't have to set up CFLAGS etc., since these are taken from ECL
 # (i.e., ECL uses the ones that were specified when ECL was built).
 
-export MAKE="$MAKE -j1"  # force sequential build (1 job)
 
 # workaround for configure braindamage, see Trac #15546
 export EMACS=no
@@ -41,6 +40,8 @@ for patch in ../patches/*.patch; do
     check_error "Patch '$patch' failed to apply."
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19734)
+cp "$SAGE_ROOT"/config/config.* .
 
 # Note that maxima configure checks for git and, if it finds it, uses
 # versions information from the repo. See #15529. We disable this with
@@ -50,16 +51,6 @@ echo
 echo "Now configuring Maxima..."
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-ecl git_found=false
 check_error "Failed to configure Maxima."
-
-
-# Touching html and info files to avoid to regenerate them.
-# This must be done after configuration since the timestamps need
-# to be later than include-maxima.texi which is generated at
-# configuration time:
-echo
-echo "Now touching documentation files..."
-touch `find doc/info -name \*.info\* -o -name \*.html`
-check_error "Failed to touch documentation files."
 
 
 echo

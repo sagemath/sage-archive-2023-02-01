@@ -11,6 +11,9 @@ you need to list the graph's edge, or those incident to a vertex, but an
 adjacency test can be much longer than in a dense data structure (i.e. like in
 :mod:`sage.graphs.base.static_dense_graph`)
 
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
+
 Two classes
 -----------
 
@@ -37,11 +40,11 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    has_edge,
                                                    free_short_digraph,
                                                    edge_label)
-from c_graph import CGraphBackend
+from c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 include 'sage/data_structures/bitset.pxi'
-from libc.stdlib cimport calloc,free
+include "sage/ext/stdsage.pxi"
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -64,10 +67,10 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
         """
         cdef int i, j, tmp
-        has_labels = any(not l is None for _,_,l in G.edge_iterator())
+        has_labels = any(l is not None for _,_,l in G.edge_iterator())
         self._directed = G.is_directed()
 
-        init_short_digraph(self.g, G, edge_labelled = has_labels)
+        init_short_digraph(self.g, G, edge_labelled=has_labels)
         if self._directed:
             init_reverse(self.g_rev,self.g)
 
@@ -75,10 +78,11 @@ cdef class StaticSparseCGraph(CGraph):
         elif not G.has_loops():
             self.number_of_loops = NULL
         else:
-            self.number_of_loops = <int *> calloc(sizeof(int), self.g.n)
-            if self.number_of_loops == NULL:
+            try:
+                self.number_of_loops = <int *>check_calloc(self.g.n, sizeof(int))
+            except MemoryError:
                 free_short_digraph(self.g)
-                raise MemoryError
+                raise
             for i in range(self.g.n):
                 for tmp in range(out_degree(self.g,i)):
                     j = self.g.neighbors[i][tmp]
@@ -102,7 +106,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         bitset_free(self.active_vertices)
         free_short_digraph(self.g)
-        free(self.number_of_loops)
+        sage_free(self.number_of_loops)
         if self.g_rev != NULL:
             free_short_digraph(self.g_rev)
 
@@ -323,7 +327,7 @@ cdef class StaticSparseCGraph(CGraph):
         else:
             return self.g_rev.neighbors[u+1] - self.g_rev.neighbors[u]
 
-class StaticSparseBackend(CGraphBackend):
+cdef class StaticSparseBackend(CGraphBackend):
 
     def __init__(self, G, loops = False, multiedges=False):
         """
@@ -426,60 +430,7 @@ class StaticSparseBackend(CGraphBackend):
         # vertex_labels (which is a dictionary)
         self.vertex_ints = self._vertex_to_int
         self.vertex_labels = {i:v for i,v in enumerate(vertices)}
-
-    def __reduce__(self):
-        """
-        Return a tuple used for pickling this graph.
-
-        TESTS:
-
-        Pickling of the static graph backend makes pickling of immutable
-        graphs and digraphs work::
-
-            sage: G = Graph(graphs.PetersenGraph(), immutable=True)
-            sage: G == loads(dumps(G))
-            True
-            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
-            sage: D = DiGraph(dict([[i,uc[i]] for i in range(len(uc))]), immutable=True)
-            sage: loads(dumps(D)) == D
-            True
-
-        No problems with loops and multiple edges, with Labels::
-
-            sage: g = Graph(multiedges = True, loops = True)
-            sage: g.add_edges(2*graphs.PetersenGraph().edges())
-            sage: g.add_edge(0,0)
-            sage: g.add_edge(1,1, "a label")
-            sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
-            sage: g.add_vertex("isolated vertex")
-            sage: gi = g.copy(immutable=True)
-            sage: loads(dumps(gi)) == gi
-            True
-
-        Similar, with a directed graph::
-
-            sage: g = DiGraph(multiedges = True, loops = True)
-            sage: H = 2*(digraphs.Circuit(15)+DiGraph(graphs.PetersenGraph()))
-            sage: g.add_edges(H.edges())
-            sage: g.add_edge(0,0)
-            sage: g.add_edge(1,1, "a label")
-            sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
-            sage: g.add_vertex("isolated vertex")
-            sage: gi = g.copy(immutable=True)
-            sage: loads(dumps(gi)) == gi
-            True
-        """
-        if self._directed:
-            from sage.graphs.digraph import DiGraph
-            G = DiGraph(loops=self._loops, multiedges=self._multiedges)
-            G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),True)))
-        else:
-            from sage.graphs.graph import Graph
-            G = Graph(loops=self._loops, multiedges=self._multiedges)
-            G.add_edges(list(self.iterator_edges(self.iterator_verts(None),True)))
-
-        G.add_vertices(self.iterator_verts(None))
-        return (StaticSparseBackend, (G, self._loops, self._multiedges))
+        self._multiple_edges = self._multiedges
 
     def has_vertex(self, v):
         r"""
@@ -1079,6 +1030,42 @@ class StaticSparseBackend(CGraphBackend):
             for i in range(out_degree(cg.g,v)):
                 yield self._vertex_to_labels[cg.g.neighbors[v][i]]
 
+    def add_vertex(self,v):
+        r"""
+        Addition of vertices is not available on an immutable graph.
+
+        EXAMPLE::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
+            sage: g.add_vertex(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not add a vertex to an immutable graph
+            sage: g.add_vertices([1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not add a vertex to an immutable graph
+        """
+        (<StaticSparseCGraph> self._cg).add_vertex(v)
+
+    def del_vertex(self,v):
+        r"""
+        Removal of vertices is not available on an immutable graph.
+
+        EXAMPLE::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
+            sage: g.delete_vertex(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not remove a vertex from an immutable graph
+            sage: g.delete_vertices([1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not remove a vertex from an immutable graph
+        """
+        (<StaticSparseCGraph> self._cg).del_vertex(v)
+
 def _run_it_on_static_instead(f):
     r"""
     A decorator function to force the (Di)Graph functions to compute from a
@@ -1100,9 +1087,9 @@ def _run_it_on_static_instead(f):
         sage: Graph.new_graph_method = new_graph_method
         sage: g = Graph(5)
         sage: print "My backend is of type", g._backend
-        My backend is of type <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+        My backend is of type <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
         sage: g.new_graph_method()
-        My backend is of type <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+        My backend is of type <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
     """
     def same_function_on_static_version(*kwd,**kwds):
         if not isinstance(kwd[0]._backend,StaticSparseBackend):

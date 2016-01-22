@@ -54,11 +54,11 @@ AUTHORS:
 import random
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, parent
 
 class Lisp(Expect):
     def __init__(self,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  logfile=None,
                  server=None,
                  server_tmpdir=None):
@@ -81,7 +81,6 @@ class Lisp(Expect):
                         # This is the command that starts up your program
                         command = "ecl",
 
-                        maxread = maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -323,15 +322,6 @@ class Lisp(Expect):
         """
         return LispElement
 
-    def _function_class(self):
-        """
-        EXAMPLES::
-
-            sage: lisp._function_class()
-            <class 'sage.interfaces.lisp.LispFunction'>
-        """
-        return LispFunction
-
     def _function_element_class(self):
         """
         EXAMPLES::
@@ -423,7 +413,7 @@ class LispElement(ExpectElement):
 
         """
         P = self._check_valid()
-        if not hasattr(other, 'parent') or P is not other.parent():
+        if parent(other) is not P:
             other = P(other)
 
         if P.eval('(= %s %s)'%(self.name(), other.name())) == P._true_symbol():

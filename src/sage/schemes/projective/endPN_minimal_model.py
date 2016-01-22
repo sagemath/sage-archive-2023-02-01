@@ -4,45 +4,47 @@ under the conjugation action of `PGL_2(QQ)`.
 
 AUTHORS:
 
- - Alex Molnar (May 22, 2012)
+- Alex Molnar (May 22, 2012)
 
-- Brian Stout, Ben Hutz (Nov 2013): Modified code to use projective morphism functionality
-  so that it can be included in Sage.
+- Brian Stout, Ben Hutz (Nov 2013): Modified code to use projective
+  morphism functionality so that it can be included in Sage.
 
 REFERENCES:
 
-.. [Bruin-Molnar] N. Bruin and A. Molnar, Minimal models for rational
-   functions in a dynamical setting
+.. [Bruin-Molnar] N. Bruin and A. Molnar, *Minimal models for rational
+   functions in a dynamical setting*, 
    LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
 
-.. [Molnar] A. Molnar, Fractional Linear Minimal Models of Rational Functions,
+.. [Molnar] A. Molnar, *Fractional Linear Minimal Models of Rational Functions*,
    M.Sc. Thesis.
 """
 
 #*****************************************************************************
 #       Copyright (C) 2012 Alexander Molnar
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.categories.homset                            import End
 from copy                                              import copy
 from sage.matrix.constructor                           import matrix
-from sage.rings.arith                                  import gcd
 from sage.rings.finite_rings.integer_mod_ring          import Zmod
 from sage.rings.integer_ring                           import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field                         import QQ
 from sage.schemes.affine.affine_space                  import AffineSpace
+from sage.arith.all import gcd
 
-def bCheck(c,v,p,b):
+
+def bCheck(c, v, p, b):
     r"""
     Compute a lower bound on the value of ``b`` needed, for a transformation
     `A(z) = z*p^k + b` to satisfy `ord_p(Res(\phi^A)) < ord_p(Res(\phi))` for a
-    rational map `\phi`. See Theorem 3.3.5 in [Molnar, M.Sc. thesis].
+    rational map `\phi`. See Theorem 3.3.5 in [Molnar]_.
 
     INPUT:
 
@@ -68,7 +70,7 @@ def bCheck(c,v,p,b):
     """
     val = (v+1).floor()
     deg = c.degree()
-    coeffs = c.coeffs()
+    coeffs = c.coefficients(sparse=False)
     lcoeff = coeffs[deg]; coeffs.remove(lcoeff)
     check1 = [(coeffs[i].valuation(p) - lcoeff.valuation(p))/(deg - i) for i in range(0,len(coeffs)) if coeffs[i] != 0]
     check2 = (val - lcoeff.valuation(p))/deg
@@ -120,7 +122,7 @@ def scale(c,v,p):
 def blift(LF,Li,p,S=None):
     r"""
     Search for a solution to the given list of inequalities. If found, lift the solution to
-    an appropriate valuation. See Lemma 3.3.6 in [Molnar, M.Sc. thesis]
+    an appropriate valuation. See Lemma 3.3.6 in [Molnar]_
 
     INPUT:
 
@@ -180,7 +182,7 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
     Given vp a scheme morphisms on the projective line over the rationals,
     this procedure determines if `\phi` is minimal. In particular, it determines
     if the map is affine minimal, which is enough to decide if it is minimal
-    or not. See Proposition 2.10 in [Bruin-Molnar].
+    or not. See Proposition 2.10 in [Bruin-Molnar]_.
 
     INPUT:
 
@@ -190,13 +192,12 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
                at those specific primes.
 
     - ``return_transformation`` -- a boolean value, default value True. This
-                                signals a return of the ``PGL_2`` transformation
-                                to conjugate ``vp`` to the calculated minimal
-                                model. default: False
+      signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
+      the calculated minimal model. default: False
 
     - ``quick`` -- a boolean value. If true the algorithm terminates once
-                   algorithm determines F/G is not minimal, otherwise algorithm
-                   only terminates once a minimal model has been found.
+      algorithm determines F/G is not minimal, otherwise algorithm only
+      terminates once a minimal model has been found.
 
     OUTPUT:
 
@@ -205,6 +206,7 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
     - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``
 
     EXAMPLES::
+
         sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
         sage: H = Hom(PS,PS)
         sage: vp = H([X^2+9*Y^2,X*Y])
@@ -298,11 +300,13 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
         return vp, conj
     return vp
 
-def Min(Fun,p,ubRes,conj):
+
+def Min(Fun, p, ubRes, conj):
     r"""
     Local loop for Affine_minimal, where we check minimality at the prime p.
-    First we bound the possible k in our transformations A = zp^k + b. See Theorems
-    3.3.2 and 3.3.3 in [Molnar, M.Sc. thesis].
+
+    First we bound the possible k in our transformations A = zp^k + b.
+    See Theorems 3.3.2 and 3.3.3 in [Molnar]_.
 
     INPUT:
 
@@ -310,13 +314,13 @@ def Min(Fun,p,ubRes,conj):
 
     - ``p`` - a prime.
 
-    - ``ubRes`` -- integer -- The upper bound needed for Theorem 3.3.3 in [Molnar, M.Sc. thesis].
+    - ``ubRes`` -- integer, the upper bound needed for Th. 3.3.3 in [Molnar]_.
 
     - ``conj`` -- a 2x2 matrix keeping track of the conjugation
 
     OUTPUT:
 
-    - Boolean -- True if Fun is minimal at ``p``, False otherwise
+    - Boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise
 
     - a projective morphism minimal at ``p``
 
@@ -368,8 +372,8 @@ def Min(Fun,p,ubRes,conj):
             A = (p**k)*z + b
             Ft = Q(F(A) - b*G(A))
             Gt = Q((p**k)*G(A))
-            Fcoeffs = Ft.coeffs()
-            Gcoeffs = Gt.coeffs()
+            Fcoeffs = Ft.coefficients(sparse=False)
+            Gcoeffs = Gt.coefficients(sparse=False)
             coeffs = Fcoeffs + Gcoeffs
             RHS = (d + 1)*k/2
             #If there is some b such that Res(phi^A) < Res(phi), we must have ord_p(c) >

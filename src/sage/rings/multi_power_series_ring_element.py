@@ -1,5 +1,5 @@
 r"""
-Multivariate Power Series.
+Multivariate Power Series
 
 Construct and manipulate multivariate power series (in finitely many
 variables) over a given commutative ring. Multivariate power series
@@ -208,7 +208,7 @@ class MPowerSeries(PowerSeries):
     #
     # change_ring : works just fine
     #
-    # _cmp_c_impl : don't understand this
+    # _cmp_ : don't understand this
     #
     # __copy__ : works just fine
     #
@@ -654,12 +654,12 @@ class MPowerSeries(PowerSeries):
             - 2*a^2*c - 5*a*b^2 - 4*a*b*c - b^3 - 2*b^2*c + O(a, b, c)^4
         """
         if self.valuation() == 0:
-            return self.parent(self._bg_value.__invert__())
+            return self.parent(~self._bg_value)
         else:
             raise NotImplementedError("Multiplicative inverse of multivariate power series currently implemented only if constant coefficient is a unit.")
 
     ## comparisons
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare ``self`` to ``other``.
 
@@ -1024,7 +1024,7 @@ class MPowerSeries(PowerSeries):
             True
         """
         if denom_r.is_unit(): # faster if denom_r is a unit
-            return self.parent(self._bg_value * denom_r._bg_value.__invert__())
+            return self.parent(self._bg_value * ~denom_r._bg_value)
         quo, rem = self.quo_rem(denom_r)
         if rem:
             raise ValueError("not divisible")

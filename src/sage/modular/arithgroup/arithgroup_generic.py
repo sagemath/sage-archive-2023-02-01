@@ -17,7 +17,7 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 
 import sage.groups.old as group
 from sage.rings.all import ZZ
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
 from sage.modular.modsym.p1list import lift_to_sl2z
@@ -159,7 +159,7 @@ class ArithmeticSubgroup(group.Group):
         """
         # Do not override this function! Derived classes should override
         # _contains_sl2.
-        if isinstance(x, type([])) and len(x) == 4:
+        if isinstance(x, list) and len(x) == 4:
             if not (x[0] in ZZ and x[1] in ZZ and x[2] in ZZ and x[3] in ZZ):
                 return False
             a,b,c,d = map(ZZ, x)
@@ -679,7 +679,7 @@ class ArithmeticSubgroup(group.Group):
         representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
         These should be returned in a reduced form where this makes sense.
 
-        INPUTS:
+        INPUT:
 
         - ``algorithm`` -- which algorithm to use to compute the cusps of self.
           ``'default'`` finds representatives for a known complete set of
@@ -1315,6 +1315,7 @@ class ArithmeticSubgroup(group.Group):
         -  ``weight`` - an integer `\geq 2` (default: 2)
 
         EXAMPLES::
+
             sage: Gamma0(11).sturm_bound(2)
             2
             sage: Gamma0(389).sturm_bound(2)

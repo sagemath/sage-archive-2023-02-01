@@ -31,7 +31,6 @@ EXAMPLES:
 
 We can create boolean formulas in different ways::
 
-    sage: import sage.logic.propcalc as propcalc
     sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
     sage: g = propcalc.formula("boolean<->algebra")
     sage: (f&~g).ifthen(f)
@@ -164,7 +163,6 @@ def formula(s):
 
     This example illustrates ways to create a boolean formula::
 
-        sage: import sage.logic.propcalc as propcalc
         sage: f = propcalc.formula("a&~b|c")
         sage: g = propcalc.formula("a^c<->b")
         sage: f&g|f
@@ -284,7 +282,6 @@ def consistent(*formulas):
 
     ::
 
-        sage: import sage.logic.propcalc
         sage: f, g, h, i = propcalc.get_formulas("a<->b", "~b->~c", "d|g", "c&a")
         sage: propcalc.consistent(f, g, h, i)
         True
@@ -338,7 +335,6 @@ def valid_consequence(consequence, *formulas):
     This example illustrates determining if a formula is a valid
     consequence of a set of other formulas::
 
-        sage: import sage.logic.propcalc as propcalc
         sage: f, g, h, i = propcalc.get_formulas("a&~b", "c->b", "c|e", "e&a")
         sage: propcalc.valid_consequence(i, f, g, h)
         True

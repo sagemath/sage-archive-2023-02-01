@@ -1,5 +1,16 @@
 r"""
-Interface to R
+Interfaces to R
+
+This is the reference to the Sagemath R interface, usable from any
+Sage program.
+
+The %r interface creating an R cell in the sage
+notebook is decribed in the Notebook manual.
+
+The %R and %%R interface creating an R line or an R cell in the
+Jupyter notebook are briefly decribed at the end of this page. This
+documentation will be expanded and placed in the Jupyter notebook
+manual when this manual exists.  
 
 The following examples try to follow "An Introduction to R" which can
 be found at http://cran.r-project.org/doc/manuals/R-intro.html .
@@ -191,12 +202,54 @@ It is also possible to access the plotting capabilities of R
 through Sage.  For more information see the documentation of
 r.plot() or r.png().
 
+THE JUPYTER NOTEBOOK INTERFACE (work in progress).
+
+The %r interface described in the Sage notebook manual is not useful
+in the Jupyter notebook : it creates a inferior R interpreter which
+cannot be escaped.
+
+The RPy2 library allows the creation of an R cell in the Jupyter
+notebook analogous to the %r escape in command line or %r cell in a
+Sage notebook.
+
+The interface is loaded by a cell containing the sole code :
+
+"%load_ext rpy2.ipython"
+
+After executon of this code, the %R and %%R magics are available :
+
+- %R allows the execution of a single line of R code. Data exchange is
+   possible via the -i and -o options. Do "%R?" in a standalone cell
+   to get the documentation.
+
+- %%R alows the execution in R of the whole text of a cell, with
+    similar options (do "%%R?" in a standalone cell for
+    documentation).
+
+A few important points must be noted :
+
+- The R interpreter launched by this interface IS (currently)
+  DIFFERENT from the R interpreter used br other r... functions.
+
+- Data exchanged via the -i and -o options have a format DIFFERENT
+  from the format used by the r... functions (RPy2 mostly uses arrays,
+  and bugs the user to use the pandas Python package).
+
+- R graphics are (beautifully) displayed in output cells, but are not
+  directly importable. You have to save them as .png, .pdf or .svg
+  files and import them in Sage for further use. 
+
+In its current incarnation, this interface is mostly useful to
+statisticians needing Sage for a few symbolic computations but mostly
+using R for applied work.
+
 AUTHORS:
 
 - Mike Hansen (2007-11-01)
 - William Stein (2008-04-19)
 - Harald Schilly (2008-03-20)
 - Mike Hansen (2008-04-19)
+- Emmanuel Charpentier (2015-12-12, RPy2 interface)
 """
 
 ##########################################################################
@@ -212,9 +265,11 @@ AUTHORS:
 ##########################################################################
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import DOT_SAGE
+from sage.env import DOT_SAGE
 import re
+import six
 import sage.rings.integer
+from sage.structure.element import parent
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 PROMPT = '__SAGE__R__PROMPT__> '
@@ -230,11 +285,12 @@ RBaseCommands = ['c', "NULL", "NA", "True", "False", "Inf", "NaN"]
 
 class R(Expect):
     def __init__(self,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  server_tmpdir = None,
                  logfile=None,
                  server=None,
-                 init_list_length=1024):
+                 init_list_length=1024,
+                 seed=None):
         """
         An interface to the R interpreter.
 
@@ -272,8 +328,6 @@ class R(Expect):
                   # This is the command that starts up your program
                   command = "R --vanilla --quiet",
 
-                  maxread = maxread,
-
                   server=server,
                   server_tmpdir=server_tmpdir,
 
@@ -298,6 +352,26 @@ class R(Expect):
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
         self._prompt_wait = [self._prompt]
+        self._seed = seed
+
+    def set_seed(self, seed=None):
+        """
+        Sets the seed for R interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: r = R()
+            sage: r.set_seed(1)
+            1
+            sage: r.sample("1:10", 5)
+            [1] 3 4 5 7 2
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval('set.seed(%d)' % seed)
+        self._seed = seed
+        return seed
 
     def _start(self):
         """
@@ -324,6 +398,9 @@ class R(Expect):
         # don't abort on errors, just raise them!
         # necessary for non-interactive execution
         self.eval('options(error = expression(NULL))')
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def png(self, *args, **kwds):
         """
@@ -615,7 +692,7 @@ class R(Expect):
         EXAMPLES::
 
             sage: ap = r.available_packages()   # optional - internet
-            sage: len(ap) > 20                  #optional
+            sage: len(ap) > 20                  # optional - internet
             True
         """
         p = self.new('available.packages("%s/src/contrib")'%RRepositoryURL)
@@ -1160,7 +1237,7 @@ class R(Expect):
 
         ::
 
-            sage: os.path.realpath(tmpdir) == sageobj(r.getwd())  # known bug (:trac:`9970`)
+            sage: os.path.realpath(tmpdir) == sageobj(r.getwd())  # known bug (trac #9970)
             True
         """
         self.execute('setwd(%r)' % dir)
@@ -1174,17 +1251,6 @@ rel_re_terms = re.compile('terms\s*=\s*(.*?),')
 rel_re_call = re.compile('call\s*=\s*(.*?)\),')
 
 class RElement(ExpectElement):
-    def __reduce__(self):
-        """
-        EXAMPLES::
-
-            sage: a = r([1,2,3])
-            sage: dumps(a)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: pickling of R elements is not yet supported
-        """
-        raise NotImplementedError("pickling of R elements is not yet supported")
 
     def trait_names(self):
         """
@@ -1217,9 +1283,9 @@ class RElement(ExpectElement):
             sage: d['DATA']['coefficients']['DATA'][1]
             2
         """
-        parent = self.parent()
-        rx = parent(x)
-        return parent.new("%s ~ %s"%(self.name(), rx.name()))
+        par = self.parent()
+        rx = par(x)
+        return par.new("%s ~ %s" % (self.name(), rx.name()))
 
     stat_model = tilde
 
@@ -1306,17 +1372,17 @@ class RElement(ExpectElement):
             [1] 1 3
         """
         P = self._check_valid()
-        if isinstance(n, basestring):
+        if isinstance(n, six.string_types):
             n = n.replace('self', self._name)
             return P.new('%s[%s]'%(self._name, n))
-        elif (hasattr(n,'parent') and n.parent() is P): # the key is RElement itself
+        elif parent(n) is P:  # the key is RElement itself
             return P.new('%s[%s]'%(self._name, n.name()))
         elif not isinstance(n,tuple):
             return P.new('%s[%s]'%(self._name, n))
         else:
             L = []
             for i in xrange(len(n)):
-                if (hasattr(n[i],'parent') and n[i].parent() is P):
+                if parent(n[i]) is P:
                     L.append(n[i].name())
                 else:
                     L.append(str(n[i]))
@@ -1834,7 +1900,7 @@ class RElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: latex(r(2))  # optional - Hmisc R package
+            sage: latex(r(2))  # optional - Hmisc (R package)
             2
         """
         from sage.misc.latex import LatexExpr
@@ -2070,5 +2136,5 @@ class HelpExpression(str):
             is
             R!
         """
-        return self.__str__()
+        return str(self)
 

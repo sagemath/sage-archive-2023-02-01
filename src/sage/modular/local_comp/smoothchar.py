@@ -42,7 +42,7 @@ Characters are themselves group elements, and basic arithmetic on them works::
 """
 
 import operator
-from sage.structure.element     import MultiplicativeGroupElement
+from sage.structure.element import MultiplicativeGroupElement, parent
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.sequence    import Sequence
 from sage.rings.all             import QQ, ZZ, Zmod, NumberField
@@ -54,7 +54,6 @@ from sage.categories.groups     import Groups
 from sage.functions.other       import ceil
 from sage.misc.mrange           import xmrange
 
-from sage.structure.element import FieldElement
 
 class SmoothCharacterGeneric(MultiplicativeGroupElement):
     r"""
@@ -143,7 +142,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: G.character(0, [1]).multiplicative_order()
             1
         """
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         from sage.rings.infinity import Infinity
         if self._values_on_gens[-1].multiplicative_order() == Infinity:
             return Infinity
@@ -364,9 +363,9 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         """
         if x == 1:
             return self.character(0, [1])
-        if hasattr(x, 'parent') \
-          and isinstance(x.parent(), SmoothCharacterGroupGeneric) \
-          and x.parent().number_field().has_coerce_map_from(self.number_field()):
+        P = parent(x)
+        if (isinstance(P, SmoothCharacterGroupGeneric)
+                and P.number_field().has_coerce_map_from(self.number_field())):
             return self.character(x.level(), [x(v) for v in self.unit_gens(x.level())])
         else:
             raise TypeError

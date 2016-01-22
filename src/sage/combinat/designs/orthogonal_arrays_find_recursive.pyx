@@ -47,7 +47,7 @@ Functions
 from sage.misc.cachefunc import cached_function
 from orthogonal_arrays import orthogonal_array
 from sage.rings.integer cimport Integer, smallInteger
-from sage.rings.arith import prime_powers
+from sage.arith.all import prime_powers
 
 @cached_function
 def find_recursive_construction(k, n):
@@ -67,7 +67,6 @@ def find_recursive_construction(k, n):
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.thwart_lemma_4_1`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.three_factor_product`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`
-    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.find_brouwer_van_rees_with_one_truncated_column`
 
     INPUT:
 

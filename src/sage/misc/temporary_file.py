@@ -6,7 +6,7 @@ AUTHORS:
 - Volker Braun, Jeroen Demeyer (2012-10-18): move these functions here
   from sage/misc/misc.py and make them secure, see :trac:`13579`.
 
-- Jeroen Demeyer (2013-03-17): add class:`atomic_write`,
+- Jeroen Demeyer (2013-03-17): add :class:`atomic_write`,
   see :trac:`14292`.
 """
 
@@ -149,6 +149,10 @@ def tmp_filename(name="tmp_", ext=""):
 
 def graphics_filename(ext='.png'):
     """
+    Deprecated SageNB graphics filename
+    
+    You should just use :meth:`tmp_filename`.
+
     When run from the Sage notebook, return the next available canonical
     filename for a plot/graphics file in the current working directory.
     Otherwise, return a temporary file inside ``SAGE_TMP``.
@@ -191,11 +195,11 @@ def graphics_filename(ext='.png'):
         sage: fn.endswith('.jpeg')
         True
     """
+    import sage.plot.plot
+    from sage.misc.superseded import deprecation
     if ext[0] not in '.-':
-        from sage.misc.superseded import deprecation
         deprecation(16640, "extension must now include the dot")
         ext = '.' + ext
-    import sage.plot.plot
     if sage.plot.plot.EMBEDDED_MODE:
         # Don't use this unsafe function except in the notebook, #15515
         i = 0
@@ -204,6 +208,7 @@ def graphics_filename(ext='.png'):
         filename = 'sage%d%s'%(i,ext)
         return filename
     else:
+        deprecation(17234,'use tmp_filename instead')
         return tmp_filename(ext=ext)
 
 
@@ -233,6 +238,11 @@ class atomic_write:
       contents of ``target_filename`` to the temporary file when
       entering the ``with`` statement. Otherwise, the temporary file is
       initially empty.
+
+    - ``mode`` -- (default: ``0o666``) mode bits for the file. The
+      temporary file is created with mode ``mode & ~umask`` and the
+      resulting file will also have these permissions (unless the
+      mode bits of the file were changed manually).
 
     EXAMPLES::
 
@@ -298,6 +308,21 @@ class atomic_write:
         sage: open(target_file, "r").read()
         'Newest contents'
 
+    We check the permission bits of the new file. Note that the old
+    permissions do not matter::
+
+        sage: os.chmod(target_file, 0o600)
+        sage: _ = os.umask(0o022)
+        sage: with atomic_write(target_file) as f:
+        ....:     pass
+        sage: oct(os.stat(target_file).st_mode & 0o777)
+        '644'
+        sage: _ = os.umask(0o077)
+        sage: with atomic_write(target_file, mode=0o777) as f:
+        ....:     pass
+        sage: oct(os.stat(target_file).st_mode & 0o777)
+        '700'
+
     Test writing twice to the same target file. The outermost ``with``
     "wins"::
 
@@ -309,7 +334,7 @@ class atomic_write:
         sage: open(target_file, "r").read()
         '>>> AAA'
     """
-    def __init__(self, target_filename, append=False):
+    def __init__(self, target_filename, append=False, mode=0o666):
         """
         TESTS::
 
@@ -325,6 +350,9 @@ class atomic_write:
         self.target = os.path.realpath(target_filename)
         self.tmpdir = os.path.dirname(self.target)
         self.append = append
+        # Remove umask bits from mode
+        umask = os.umask(0); os.umask(umask)
+        self.mode = mode & (~umask)
 
     def __enter__(self):
         """
@@ -346,6 +374,7 @@ class atomic_write:
         """
         self.tempfile = tempfile.NamedTemporaryFile(dir=self.tmpdir, delete=False)
         self.tempname = self.tempfile.name
+        os.chmod(self.tempname, self.mode)
         if self.append:
             try:
                 r = open(self.target).read()
@@ -375,9 +404,12 @@ class atomic_write:
             sage: os.path.exists(tempname)
             False
         """
-        # Close the file (Python allows closing a closed file, so it's
-        # okay if the user already closed it).
-        self.tempfile.close()
+        # Flush the file contents to disk (to be safe even if the
+        # system crashes) and close the file.
+        if not self.tempfile.closed:
+            self.tempfile.flush()
+            os.fsync(self.tempfile.fileno())
+            self.tempfile.close()
 
         if exc_type is None:
             # Success: move temporary file to target file

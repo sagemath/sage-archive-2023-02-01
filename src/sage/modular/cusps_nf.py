@@ -86,6 +86,7 @@ List representatives for Gamma_0(N) - equivalence classes of cusps:
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 
 _nfcusps_cache = {}
 
@@ -353,7 +354,7 @@ class NFCuspsSpace(ParentWithBase):
         return NFCusp(self.number_field(), x, parent=self)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero cusp.
 
@@ -367,11 +368,13 @@ class NFCuspsSpace(ParentWithBase):
 
              sage: k.<a> = NumberField(x^2 + 5)
              sage: kCusps = NFCusps(k)
-             sage: kCusps.zero_element()
+             sage: kCusps.zero()
              Cusp [0: 1] of Number Field in a with defining polynomial x^2 + 5
 
         """
         return self(0)
+
+    zero_element = deprecated_function_alias(17694, zero)
 
     def number_field(self):
         """
@@ -635,6 +638,7 @@ class NFCusp(Element):
         String representation of this cusp.
 
         EXAMPLES::
+
             sage: k.<a> = NumberField(x^2 + 1)
             sage: c = NFCusp(k, a, 2); c
             Cusp [a: 2] of Number Field in a with defining polynomial x^2 + 1
@@ -796,9 +800,8 @@ class NFCusp(Element):
             sage: k.<a> = NumberField(x^3 + x + 1)
             sage: kCusps = NFCusps(k)
 
-        Comparing with infinity:
+        Comparing with infinity::
 
-        ::
             sage: c = kCusps((a,2))
             sage: d = kCusps(oo)
             sage: c < d
@@ -806,9 +809,7 @@ class NFCusp(Element):
             sage: kCusps(oo) < d
             False
 
-        Comparison as elements of the number field:
-
-        ::
+        Comparison as elements of the number field::
 
             sage: kCusps(2/3) < kCusps(5/2)
             False
@@ -1151,7 +1152,7 @@ def Gamma0_NFCusps(N):
             g = (A*B).gens_reduced()[0]
 
         #for every divisor of N we have to find cusps
-        from sage.rings.arith import divisors
+        from sage.arith.all import divisors
         for d in divisors(N):
             #find delta prime coprime to B in inverse class of d*A
             #by searching in our list of auxiliary prime ideals
@@ -1206,7 +1207,7 @@ def number_of_Gamma0_NFCusps(N):
     """
     k = N.number_field()
     # The number of Gamma0(N)-sub-orbits for each Gamma-orbit:
-    from sage.rings.arith import divisors
+    from sage.arith.all import divisors
     s = sum([len(list((d+N/d).invertible_residues_mod(k.unit_group().gens()))) \
                                                 for d in divisors(N)])
     # There are h Gamma-orbits, with h class number of underlying number field.
@@ -1265,7 +1266,7 @@ def NFCusps_ideal_reps_for_levelN(N, nlists=1):
         if not I.is_principal():
             Iinv = (I.ideal())**(-1)
             while check<nlists:
-                J = it.next()
+                J = next(it)
                 if (J*Iinv).is_principal() and J.is_coprime(N):
                     L[check].append(J)
                     check = check + 1
@@ -1327,6 +1328,6 @@ def units_mod_ideal(I):
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
     from sage.misc.mrange import xmrange
-    from sage.misc.misc import prod
+    from sage.misc.all import prod
 
     return [prod([u**e for u,e in zip(ulist,ei)],k(1)) for ei in xmrange(elist)]

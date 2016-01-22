@@ -6,11 +6,11 @@ AUTHORS:
 - Yoora Yi Tenen (2012-11-16): Add documentation for :meth:`log()` (:trac:`12113`)
 
 """
-from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
 
 from sage.libs.mpmath import utils as mpmath_utils
-from sage.structure.coerce import parent as sage_structure_coerce_parent
+from sage.structure.all import parent as s_parent
 from sage.symbolic.expression import Expression
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
@@ -374,7 +374,7 @@ class Function_polylog(GinacFunction):
 
         TESTS:
 
-        Check if #8459 is fixed::
+        Check if :trac:`8459` is fixed::
 
             sage: t = maxima(polylog(5,x)).sage(); t
             polylog(5, x)
@@ -565,8 +565,10 @@ class Function_lambert_w(BuiltinFunction):
             0.567143290409784
         """
         BuiltinFunction.__init__(self, "lambert_w", nargs=2,
-                                 conversions={'mathematica':'ProductLog',
-                                              'maple':'LambertW'})
+                                 conversions={'mathematica': 'ProductLog',
+                                              'maple': 'LambertW',
+                                              'matlab': 'lambertw',
+                                              'maxima': 'generalized_lambert_w'})
 
     def __call__(self, *args, **kwds):
         r"""
@@ -626,21 +628,18 @@ class Function_lambert_w(BuiltinFunction):
             sage: parent(lambert_w(Integer(0)))
             Integer Ring
             sage: parent(lambert_w(e))
-            Integer Ring
+            Symbolic Ring
         """
         if not isinstance(z, Expression):
-            if is_inexact(z):
-                return self._evalf_(n, z, parent=sage_structure_coerce_parent(z))
-            elif n == 0 and z == 0:
-                return sage_structure_coerce_parent(z)(Integer(0))
+            if n == 0 and z == 0:
+                return s_parent(z)(0)
         elif n == 0:
             if z.is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(0))
+                return s_parent(z)(Integer(0))
             elif (z-const_e).is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(1))
+                return s_parent(z)(Integer(1))
             elif (z+1/const_e).is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(-1))
-        return None
+                return s_parent(z)(Integer(-1))
 
     def _evalf_(self, n, z, parent=None, algorithm=None):
         """
@@ -655,11 +654,31 @@ class Function_lambert_w(BuiltinFunction):
 
             sage: lambert_w(RDF(1))
             0.5671432904097838
+            sage: lambert_w(float(1))
+            0.5671432904097838
+            sage: lambert_w(CDF(1))
+            0.5671432904097838
+            sage: lambert_w(complex(1))
+            (0.5671432904097838+0j)
+            sage: lambert_w(RDF(-1))  # abs tol 2e-16
+            -0.31813150520476413 + 1.3372357014306895*I
+            sage: lambert_w(float(-1))  # abs tol 2e-16
+            (-0.31813150520476413+1.3372357014306895j)
         """
-        R = parent or sage_structure_coerce_parent(z)
-        if R is float or R is complex or R is RDF or R is CDF:
-            import scipy.special
-            return scipy.special.lambertw(z, n)
+        R = parent or s_parent(z)
+        if R is float or R is RDF:
+            from scipy.special import lambertw
+            res = lambertw(z, n)
+            # SciPy always returns a complex value, make it real if possible
+            if not res.imag:
+                return R(res.real)
+            elif R is float:
+                return complex(res)
+            else:
+                return CDF(res)
+        elif R is complex or R is CDF:
+            from scipy.special import lambertw
+            return R(lambertw(z, n))
         else:
             import mpmath
             return mpmath_utils.call(mpmath.lambertw, z, n, parent=R)
@@ -701,21 +720,25 @@ class Function_lambert_w(BuiltinFunction):
             sage: lambert_w(0, x)._maxima_()
             lambert_w(_SAGE_VAR_x)
             sage: lambert_w(1, x)._maxima_()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Non-principal branch lambert_w[1](x) is not implemented in Maxima
+            generalized_lambert_w(1,_SAGE_VAR_x)
+
+        TESTS::
+
+            sage: lambert_w(x)._maxima_()._sage_()
+            lambert_w(x)
+            sage: lambert_w(2, x)._maxima_()._sage_()
+            lambert_w(2, x)
         """
+        if isinstance(z, str):
+            maxima_z = z
+        elif hasattr(z, '_maxima_init_'):
+            maxima_z = z._maxima_init_()
+        else:
+            maxima_z = str(z)
         if n == 0:
-            if isinstance(z,str):
-                maxima_z=z
-            elif hasattr(z,'_maxima_init_'):
-                maxima_z=z._maxima_init_()
-            else:
-                maxima_z=str(z)
             return "lambert_w(%s)" % maxima_z
         else:
-            raise NotImplementedError("Non-principal branch lambert_w[%s](%s) is not implemented in Maxima" % (n, z))
-
+            return "generalized_lambert_w(%s,%s)" % (n, maxima_z)
 
     def _print_(self, n, z):
         """
@@ -742,15 +765,17 @@ class Function_lambert_w(BuiltinFunction):
         EXAMPLES::
 
             sage: latex(lambert_w(1))
-            \operatorname{W_0}(1)
+            \operatorname{W}({1})
             sage: latex(lambert_w(0,x))
-            \operatorname{W_0}(x)
+            \operatorname{W}({x})
             sage: latex(lambert_w(1,x))
-            \operatorname{W_{1}}(x)
+            \operatorname{W_{1}}({x})
+            sage: latex(lambert_w(1,x+exp(x)))
+            \operatorname{W_{1}}({x + e^{x}})
         """
         if n == 0:
-            return r"\operatorname{W_0}(%s)" % z
+            return r"\operatorname{W}({%s})" % z._latex_()
         else:
-            return r"\operatorname{W_{%s}}(%s)" % (n, z)
+            return r"\operatorname{W_{%s}}({%s})" % (n, z._latex_())
 
 lambert_w = Function_lambert_w()

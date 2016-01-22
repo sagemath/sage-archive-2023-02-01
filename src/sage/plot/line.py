@@ -99,7 +99,7 @@ class Line(GraphicPrimitive_xydata):
             Line defined by 4 points
             sage: m=l.plot3d(z=2)
             sage: m.texture.opacity
-            0.500000000000000
+            0.5
             sage: m.thickness
             10
             sage: L = line([(1,1), (1,2), (2,2), (2,1)], linestyle=":")

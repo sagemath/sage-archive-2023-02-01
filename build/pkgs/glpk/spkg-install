@@ -19,25 +19,29 @@ for patch in ../patches/*.patch; do
         exit 1
     fi
 done
+
+# Use newer version of config.guess and config.sub (see Trac #19713)
+cp "$SAGE_ROOT"/config/config.* .
+
 # The following prevents autotools to regenerate its files.
 touch aclocal.m4 configure Makefile.in config.h.in
 
-# Note: The following doesn't work with spaces in `$SAGE_LOCAL`, but we don't 
-#       support that anyway, since many upstream packages don't. 
-#       On the other hand, the only packages GLPK uses that Sage provides are 
-#       GMP/MPIR and zlib, so we should just use `--with-gmp="$SAGE_LOCAL"` and 
-#       `--with-zlib="$SAGE_LOCAL"` below (which is safe), and omit the fol- 
-#       lowing two lines. (TODO) 
-# 
-#       Turns out that (as of version 4.55) 
-#       1) GLPK unconditionally uses its own copy of zlib (cf. `SPKG.txt`), 
-#          and the `configure` option `--with-zlib` is no longer valid; 
-#       2) `configure` doesn't support specifying the location of the GMP 
-#          library to use; only `--with-gmp[=yes]` or `--with-gmp=no` 
-#          are valid options.  So we *have to* add Sage's include and 
-#          library directories to `CPPFLAGS` and `LDFLAGS`, respectively: 
+# Note: The following doesn't work with spaces in `$SAGE_LOCAL`, but we don't
+#       support that anyway, since many upstream packages don't.
+#       On the other hand, the only packages GLPK uses that Sage provides are
+#       GMP/MPIR and zlib, so we should just use `--with-gmp="$SAGE_LOCAL"` and
+#       `--with-zlib="$SAGE_LOCAL"` below (which is safe), and omit the fol-
+#       lowing two lines. (TODO)
+#
+#       Turns out that (as of version 4.55)
+#       1) GLPK unconditionally uses its own copy of zlib (cf. `SPKG.txt`),
+#          and the `configure` option `--with-zlib` is no longer valid;
+#       2) `configure` doesn't support specifying the location of the GMP
+#          library to use; only `--with-gmp[=yes]` or `--with-gmp=no`
+#          are valid options.  So we *have to* add Sage's include and
+#          library directories to `CPPFLAGS` (done here) and `LDFLAGS`
+#          (already the default):
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 
 # Let the user set an environment variable CFLAG64 to indicate the flag
 # for the C compiler to build 64-bit code. If not set, asssume it is -m64

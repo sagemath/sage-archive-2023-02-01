@@ -59,7 +59,7 @@ viewer::
 To solve the puzzle where the pentamino numbered 12 is put aside::
 
     sage: from sage.games.quantumino import QuantuminoSolver
-    sage: s = QuantuminoSolver(12).solve().next()         # long time (10 s)
+    sage: s = next(QuantuminoSolver(12).solve())          # long time (10 s)
     sage: s                                               # long time (<1s)
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (2, 1, 1)], Color: blue
@@ -72,7 +72,7 @@ To remove the frame::
 
 To solve the puzzle where the pentamino numbered 7 is put aside::
 
-    sage: s = QuantuminoSolver(7).solve().next()          # long time (10 s)
+    sage: s = next(QuantuminoSolver(7).solve())           # long time (10 s)
     sage: s                                               # long time (<1s)
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
@@ -105,29 +105,29 @@ method. Note that finding the first solution is the most time consuming
 because it needs to create the complete data to describe the problem::
 
     sage: it = QuantuminoSolver(7).solve()
-    sage: it.next()                                     # not tested (10s)
+    sage: next(it)                                     # not tested (10s)
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
-    sage: it.next()                                     # not tested (0.001s)
+    sage: next(it)                                     # not tested (0.001s)
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
-    sage: it.next()                                     # not tested (0.001s)
+    sage: next(it)                                     # not tested (0.001s)
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
 
 To get the solution inside other boxes::
 
-    sage: s = QuantuminoSolver(7, box=(4,4,5)).solve().next()       # not tested (2s)
+    sage: s = next(QuantuminoSolver(7, box=(4,4,5)).solve())        # not tested (2s)
     sage: s.show3d()                                                # not tested (<1s)
 
 ::
 
-    sage: s = QuantuminoSolver(7, box=(2,2,20)).solve().next()      # not tested (1s)
+    sage: s = next(QuantuminoSolver(7, box=(2,2,20)).solve())       # not tested (1s)
     sage: s.show3d()                                                # not tested (<1s)
 
 If there are no solution, a StopIteration error is raised::
 
-    sage: QuantuminoSolver(7, box=(3,3,3)).solve().next()
+    sage: next(QuantuminoSolver(7, box=(3,3,3)).solve())
     Traceback (most recent call last):
     ...
     StopIteration
@@ -150,7 +150,15 @@ solver to play with it::
     5484
     sage: x = T.dlx_solver()                         # long time (10 s)
     sage: x                                          # long time (fast)
-    <sage.combinat.matrices.dancing_links.dancing_linksWrapper object at ...>
+    Dancing links solver for 96 columns and 5484 rows
+
+TESTS:
+
+We check that all pentaminos are equal to their canonical translate::
+
+    sage: from sage.games.quantumino import pentaminos
+    sage: all(p == p.canonical() for p in pentaminos)
+    True
 
 REFERENCES:
 
@@ -181,10 +189,10 @@ from sage.combinat.tiling import Polyomino, TilingSolver
 ################################################
 pentaminos = []
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,2,0), (1,1,1)], color='deeppink'))
-pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (-1,0,0), (0,0,1)], color='deeppink'))
+pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,0,1), (2,0,0), (2,1,0)], color='deeppink'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,2,0), (0,0,1)], color='green'))
 pentaminos.append(Polyomino([(0,0,0), (0,1,0), (0,2,0), (1,0,0), (1,0,1)], color='green'))
-pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,0,1), (1,-1,1)], color='red'))
+pentaminos.append(Polyomino([(0,1,0), (1,0,1), (1,1,0), (1,1,1), (1,2,0)], color='red'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,0,1), (2,0,1)], color='red'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,2,0), (1,2,1)], color='orange'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (0,1,0), (0,2,0), (0,2,1)], color='orange'))
@@ -196,7 +204,7 @@ pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,1,1), (2,1,1)], color
 pentaminos.append(Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1), (1,2,1)], color='blue'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (2,1,0), (2,1,1)], color='purple'))
 pentaminos.append(Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,2,0), (1,2,1)], color='purple'))
-pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,0,1), (1,-1,0)], color='gray'))
+pentaminos.append(Polyomino([(0,1,0), (1,0,0), (1,1,0), (1,1,1), (1,2,0)], color='gray'))
 
 def show_pentaminos(box=(5,8,2)):
     r"""
@@ -252,6 +260,8 @@ class QuantuminoState(SageObject):
     - ``pentos`` - list of 16 3d pentamino representing the (partial)
       solution
     - ``aside`` - 3d polyomino, the unused 3D pentamino
+    - ``box`` - tuple of size three (optional, default: ``(5,8,2)``),
+      size of the box
 
     EXAMPLES::
 
@@ -267,11 +277,11 @@ class QuantuminoState(SageObject):
     ::
 
         sage: from sage.games.quantumino import QuantuminoSolver
-        sage: QuantuminoSolver(3).solve().next()      # not tested (1.5s)
+        sage: next(QuantuminoSolver(3).solve())      # not tested (1.5s)
         Quantumino state where the following pentamino is put aside :
         Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (1, 0, 0), (1, 0, 1)], Color: green
     """
-    def __init__(self, pentos, aside):
+    def __init__(self, pentos, aside, box=(5,8,2)):
         r"""
         EXAMPLES::
 
@@ -286,6 +296,7 @@ class QuantuminoState(SageObject):
         assert isinstance(aside, Polyomino), "aside must be a Polyomino"
         self._pentos = pentos
         self._aside = aside
+        self._box = box
 
     def __repr__(self):
         r"""
@@ -345,7 +356,7 @@ class QuantuminoState(SageObject):
         EXAMPLES::
 
             sage: from sage.games.quantumino import QuantuminoSolver
-            sage: s = QuantuminoSolver(0).solve().next()    # not tested (1.5s)
+            sage: s = next(QuantuminoSolver(0).solve())    # not tested (1.5s)
             sage: G = s.show3d()                            # not tested (<1s)
             sage: type(G)                                   # not tested
             <class 'sage.plot.plot3d.base.Graphics3dGroup'>
@@ -363,6 +374,12 @@ class QuantuminoState(SageObject):
             G += p.show3d(size=size)
         aside_pento = self._aside.canonical() + (2.5*size/0.75,-4*size/0.75,0)
         G += aside_pento.show3d(size=size)
+
+        # the box to fill
+        half_box = tuple(a/2 for a in self._box)
+        b = cube(color='gray',opacity=0.2).scale(self._box).translate(half_box)
+        b = b.translate((0, -.5, -.5))
+        G += b
 
         # hack to set the aspect ratio to 1
         a,b = G.bounding_box()
@@ -477,7 +494,7 @@ class QuantuminoSolver(SageObject):
         Get one solution::
 
             sage: from sage.games.quantumino import QuantuminoSolver
-            sage: s = QuantuminoSolver(8).solve().next()         # long time (9s)
+            sage: s = next(QuantuminoSolver(8).solve())          # long time (9s)
             sage: s                                              # long time (fast)
             Quantumino state where the following pentamino is put aside :
             Polyomino: [(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0), (1, 1, 0)], Color: yellow
@@ -507,10 +524,10 @@ class QuantuminoSolver(SageObject):
         Enumerate the solutions::
 
             sage: it = QuantuminoSolver(0).solve()
-            sage: it.next()                                          # not tested
+            sage: next(it)                                          # not tested
             Quantumino state where the following pentamino is put aside :
             Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink
-            sage: it.next()                                          # not tested
+            sage: next(it)                                          # not tested
             Quantumino state where the following pentamino is put aside :
             Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink
 
@@ -518,32 +535,32 @@ class QuantuminoSolver(SageObject):
         between consecutive solutions (an animation would be better)::
 
             sage: it = QuantuminoSolver(0).solve(partial='common')
-            sage: it.next().show3d()               # not tested (2s)
-            sage: it.next().show3d()               # not tested (< 1s)
-            sage: it.next().show3d()               # not tested (< 1s)
+            sage: next(it).show3d()               # not tested (2s)
+            sage: next(it).show3d()               # not tested (< 1s)
+            sage: next(it).show3d()               # not tested (< 1s)
 
         Generalizations of the game inside different boxes::
 
-            sage: QuantuminoSolver(7, (4,4,5)).solve().next()       # long time (2s)
+            sage: next(QuantuminoSolver(7, (4,4,5)).solve())       # long time (2s)
             Quantumino state where the following pentamino is put aside :
             Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
-            sage: QuantuminoSolver(7, (2,2,20)).solve().next()      # long time (1s)
+            sage: next(QuantuminoSolver(7, (2,2,20)).solve())      # long time (1s)
             Quantumino state where the following pentamino is put aside :
             Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
-            sage: QuantuminoSolver(3, (2,2,20)).solve().next()      # long time (1s)
+            sage: next(QuantuminoSolver(3, (2,2,20)).solve())      # long time (1s)
             Quantumino state where the following pentamino is put aside :
             Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (1, 0, 0), (1, 0, 1)], Color: green
 
         If the volume of the box is not 80, there is no solution::
 
-            sage: QuantuminoSolver(7, box=(3,3,9)).solve().next()
+            sage: next(QuantuminoSolver(7, box=(3,3,9)).solve())
             Traceback (most recent call last):
             ...
             StopIteration
 
         If the box is too small, there is no solution::
 
-            sage: QuantuminoSolver(4, box=(40,2,1)).solve().next()
+            sage: next(QuantuminoSolver(4, box=(40,2,1)).solve())
             Traceback (most recent call last):
             ...
             StopIteration
@@ -551,7 +568,7 @@ class QuantuminoSolver(SageObject):
         T = self.tiling_solver()
         aside = pentaminos[self._aside]
         for pentos in T.solve(partial=partial):
-            yield QuantuminoState(pentos, aside)
+            yield QuantuminoState(pentos, aside, self._box)
 
     def number_of_solutions(self):
         r"""

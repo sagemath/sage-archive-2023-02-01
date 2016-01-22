@@ -452,7 +452,7 @@ class Hyperplane(LinearExpression):
             sage: h = x + y + z - 1
             sage: h.intersection(x - y)
             A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line
-            sage: h.intersection(polytopes.n_cube(3))
+            sage: h.intersection(polytopes.cube())
             A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices
         """
         from sage.geometry.polyhedron.base import is_Polyhedron
@@ -544,7 +544,7 @@ class Hyperplane(LinearExpression):
             sage: (4*x - y - 8).primitive(signed=False)
             Hyperplane -4*x + y + 8
         """
-        from sage.rings.all import lcm, gcd
+        from sage.arith.all import lcm, gcd
         coeffs = self.coefficients()
         try:
             d = lcm([x.denom() for x in coeffs])

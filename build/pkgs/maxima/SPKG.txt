@@ -21,10 +21,6 @@ Maxima is distributed under the GNU General Public License, with some
 export restrictions from the U.S. Department of Energy. See the file
 COPYING.
 
-== SPKG Maintainers ==
-
- * TBD
-
 == Upstream Contact ==
 
  * The Maxima mailing list - see http://maxima.sourceforge.net/maximalist.html
@@ -36,25 +32,15 @@ COPYING.
 == Special Update/Build Instructions ==
 
 1. Go to http://sourceforge.net/projects/maxima/files/Maxima-source/
-   and download the source tarball maxima-x.y.z.tar.gz.
+   and download the source tarball maxima-x.y.z.tar.gz; place it in
+   the upstream/ directory.
 
-2. Extract the tarball.
+2. Update package-version.txt and run sage-fix-pkg-checksums.
 
-3. In the directory maxima-x.y.z, run the spkg-src script.
-
-4. Compress the directory into a new file maxima-x.y.z.tar.bz2 and
-   place it in the upstream/ directory.
-
-5. Make sure the patches still apply cleanly, and update them if
+3. Make sure the patches still apply cleanly, and update them if
    necessary.
 
-6. Test the resulting package.
-
-Here's what spkg-src does:
-
- * Removes the unneeded PDF figures from the documentation.
-
- * Removes the foreign language versions of the info files.
+4. Test the resulting package.
 
 All patch files in the patches/ directory are applied.  Descriptions
 of these patches are either in the patch files themselves or below.

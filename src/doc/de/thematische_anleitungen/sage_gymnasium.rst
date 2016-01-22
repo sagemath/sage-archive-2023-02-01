@@ -386,15 +386,21 @@ wir dies mit der ``simplify_full()`` Funktion::
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
 
-Dabei werden auch Additionstheoreme für trigonometrische Funktionen und manche
-Logarithmengesetze eingesetzt::
+Dabei werden auch Additionstheoreme für trigonometrische Funktionen eingesetzt::
 
     sage: var('x, y, z')
     (x, y, z)
-    sage: (sin(x + y)/(log(x) + log(y))).simplify_full()
-    (cos(y)*sin(x) + cos(x)*sin(y))/log(x*y)
+    sage: sin(x + y).simplify_full()
+    cos(y)*sin(x) + cos(x)*sin(y)
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
+
+Mit der verwandten Funktion ``simplify_real()`` werden auch Additionstheoreme
+bei Logarithmen angewandt, die nur mit reellen Werten erlaubt sind::
+
+    sage: x, y = var('x, y')
+    sage: (log(x) + log(y)).simplify_real()
+    log(x*y)
 
 Faktorisieren und ausmultiplizieren
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -586,7 +592,7 @@ einer rationalen Funktion zu finden. Diese Zerlegung kann auch mit Sage gemacht 
 
 betrachten, kann diese als Summe von zwei Brüchen geschrieben werden:
 
-.. math:: f(x) = \frac{1}{x^2 - 1} = \frac{\frac{1}{2}}{x^2-1} - \frac{\frac{1}{2}}{x^2+1}
+.. math:: f(x) = \frac{1}{x^2 - 1} = \frac{\frac{1}{2}}{x-1} - \frac{\frac{1}{2}}{x+1}
 
 Diese Zerlegung findet ``partial_fraction()`` in Sage für uns::
 
@@ -910,7 +916,7 @@ Die Addition von Vektoren könnte also zum Beispiel wie folgt veranschaulicht we
     sage: v1 = arrow((0,0), (3,4))
     sage: v2 = arrow((3,4), (6,1))
     sage: sum_v1_v2 = arrow((0,0), (6,1), color='red')
-    sage: plot(v1 + v2 + sum_v1_v2)
+    sage: v1 + v2 + sum_v1_v2
     Graphics object consisting of 3 graphics primitives
 
 Falls die Vektorpfeile zu dick oder zu dünn sind, kann mit der ``width`` Option die Strichbreite angepasst werden.
@@ -920,8 +926,8 @@ in der Grafik erwünscht sind::
     sage: v1 = arrow((0,0), (3,4), width=5)
     sage: v2 = arrow((3,4), (6,1), width=5)
     sage: sum_v1_v2 = arrow((0,0), (6,1), color='red', width=6)
-    sage: plot(v1 + v2 + sum_v1_v2, gridlines=true)
-    Graphics object consisting of 3 graphics primitives
+    sage: G = v1 + v2 + sum_v1_v2
+    sage: G.show(gridlines=true)
 
 Analysis
 ========

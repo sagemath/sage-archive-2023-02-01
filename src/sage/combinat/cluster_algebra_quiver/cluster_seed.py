@@ -4043,7 +4043,7 @@ def _bino(n, k):
         0
     """
     if n >= 0:
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return binomial(n, k)
     else:
         return 0

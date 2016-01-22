@@ -98,7 +98,7 @@ from sage.rings.commutative_ring import CommutativeRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.laurent_series_ring import LaurentSeriesRing

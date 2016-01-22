@@ -52,7 +52,7 @@ from sage.rings.function_field.function_field import is_RationalFunctionField
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.integer_ring import ZZ
 
-import sage.rings.arith
+import sage.arith.all
 import sage.rings.finite_rings.constructor
 
 
@@ -245,14 +245,14 @@ class PolynomialRing_singular_repr:
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
+            digits = sage.arith.all.integer_ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order, check=False)
 
         elif is_ComplexField(base_ring):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
+            digits = sage.arith.all.integer_ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order, check=False)
 
         elif is_RealDoubleField(base_ring):

@@ -222,7 +222,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
-from sage.rings.arith import GCD, rising_factorial, binomial
+from sage.arith.all import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
 from sage.misc.functional import log, is_even

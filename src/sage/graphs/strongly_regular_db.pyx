@@ -31,8 +31,7 @@ Functions
 """
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from sage.rings.arith import is_square
-from sage.rings.arith import is_prime_power
+from sage.arith.all import is_square, is_prime_power, divisors
 from sage.misc.cachefunc import cached_function
 from sage.combinat.designs.orthogonal_arrays import orthogonal_array
 from sage.combinat.designs.bibd import balanced_incomplete_block_design
@@ -318,7 +317,6 @@ def is_affine_polar(int v,int k,int l,int mu):
 
         sage: t = is_affine_polar(5,5,5,5); t
     """
-    from sage.rings.arith import divisors
     # Using notations from http://www.win.tue.nl/~aeb/graphs/VO.html
     #
     # VO+(2e,q) has parameters: v = q^(2e), k = (q^(e−1) + 1)(q^e − 1), λ =
@@ -386,7 +384,6 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
         (<function OrthogonalPolarGraph at ...>, 6, 3, '+')
 
     """
-    from sage.rings.arith import divisors
     r,s = eigenvalues(v,k,l,mu)
     if r is None:
         return

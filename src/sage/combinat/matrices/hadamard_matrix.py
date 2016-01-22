@@ -45,12 +45,20 @@ REFERENCES:
 .. [Hora] K. J. Horadam, Hadamard Matrices and Their Applications,
    Princeton University Press, 2006.
 """
-from sage.rings.arith import kronecker_symbol
+
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
 from urllib import urlopen
-from sage.rings.arith import is_prime, is_square, is_prime_power, divisors
+from sage.arith.all import is_prime, is_square, is_prime_power, divisors, kronecker_symbol
 from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J

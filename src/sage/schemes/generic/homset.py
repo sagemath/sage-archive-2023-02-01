@@ -40,7 +40,8 @@ AUTHORS:
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
 
-from sage.rings.all import ( gcd, ZZ, QQ )
+from sage.rings.all import ZZ, QQ
+from sage.arith.all import gcd
 
 from sage.rings.morphism import is_RingHomomorphism
 from sage.rings.rational_field import is_RationalField

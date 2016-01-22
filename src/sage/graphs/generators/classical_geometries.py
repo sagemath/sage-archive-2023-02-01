@@ -21,7 +21,7 @@ from copy import copy
 from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
-from sage.rings.arith import is_prime_power
+from sage.arith.all import is_prime_power
 from sage.rings.finite_rings.constructor import FiniteField
 
 def SymplecticPolarGraph(d, q, algorithm=None):

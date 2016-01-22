@@ -14215,7 +14215,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         - Rob Beezer (2011-06-09)
         """
-        from sage.rings.arith import gcd   # remove if translated to object-oriented calls
+        from sage.arith.all import gcd
         import sage.rings.polynomial.polynomial_ring_constructor
         import sage.matrix.constructor
 

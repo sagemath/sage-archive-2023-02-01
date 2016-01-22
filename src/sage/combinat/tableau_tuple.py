@@ -221,7 +221,7 @@ from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.misc.prandom import random
 from sage.misc.sage_unittest import TestSuite
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
 from sage.rings.all import NN

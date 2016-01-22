@@ -26,7 +26,7 @@ from sage.libs.ntl.ntl_mat_ZZ cimport ntl_mat_ZZ
 from sage.libs.ntl.all import ZZ, ZZX
 from sage.matrix.all import Matrix
 from sage.rings.all import Qp, O as big_oh
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 
 include "sage/libs/ntl/decl.pxi"
 include "sage/ext/interrupt.pxi"

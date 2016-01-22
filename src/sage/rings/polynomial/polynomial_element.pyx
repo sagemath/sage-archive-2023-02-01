@@ -50,7 +50,6 @@ import operator, copy, re
 import sage.rings.rational
 import sage.rings.integer
 import polynomial_ring
-import sage.rings.arith
 import sage.rings.integer_ring
 import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
@@ -91,7 +90,8 @@ from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.derivative import multi_derivative
 
-from sage.rings.arith import sort_complex_numbers_for_display
+from sage.arith.all import (sort_complex_numbers_for_display,
+        power_mod, lcm, is_prime)
 
 import polynomial_fateman
 
@@ -1996,7 +1996,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if right < 0:
             return (~self)**(-right)
         if modulus:
-            from sage.rings.arith import power_mod
             return power_mod(self, right, modulus)
         if (<Polynomial>self).is_gen():   # special case x**n should be faster!
             P = self.parent()
@@ -3687,7 +3686,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         G = None
         ch = R.characteristic()
-        if not (ch == 0 or sage.rings.arith.is_prime(ch)):
+        if not (ch == 0 or is_prime(ch)):
             raise NotImplementedError("factorization of polynomials over rings with composite characteristic is not implemented")
 
         from sage.rings.number_field.number_field_base import is_NumberField
@@ -4004,7 +4003,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             from sage.rings.number_field.splitting_field import splitting_field
             return splitting_field(f, name, map, **kwds)
         elif is_FiniteField(F):
-            degree = sage.rings.arith.lcm([f.degree() for f, _ in self.factor()])
+            degree = lcm([f.degree() for f, _ in self.factor()])
             return F.extension(degree, name, map=map, **kwds)
 
         raise NotImplementedError("splitting_field() is only implemented over number fields and finite fields")

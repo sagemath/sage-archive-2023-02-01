@@ -27,24 +27,17 @@ AUTHORS:
   the description contained in [MenezesEtAl1996]_.
 """
 
-###########################################################################
-# Copyright (c) 2009, 2010
-# Mike Hogan
-# David Joyner <wdjoyner@gmail.com>
-# Minh Van Nguyen <nguyenminh2@gmail.com>
+#*****************************************************************************
+#       Copyright (c) 2009, 2010 Mike Hogan
+#       Copyright (c) 2009, 2010 David Joyner <wdjoyner@gmail.com>
+#       Copyright (c) 2009, 2010 Minh Van Nguyen <nguyenminh2@gmail.com>
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# http://www.gnu.org/licenses/
-###########################################################################
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from operator import xor
 
@@ -55,9 +48,7 @@ from sage.crypto.util import random_blum_prime
 from sage.functions.log import log
 from sage.functions.other import Function_floor
 from sage.monoids.string_monoid import BinaryStrings
-from sage.rings.arith import gcd
-from sage.rings.arith import power_mod
-from sage.rings.arith import xgcd
+from sage.arith.all import gcd, power_mod, xgcd
 from sage.rings.finite_rings.integer_mod import Mod as mod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModFactory
 
@@ -198,10 +189,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg1 == bg2
             True
         """
-        if self.__repr__() == other.__repr__():
-            return True
-        else:
-            return False
+        return repr(self) == repr(other)
 
     def __repr__(self):
         """

@@ -106,7 +106,7 @@ class Mupad(Expect):
     """
     Interface to the MuPAD interpreter.
     """
-    def __init__(self, maxread=1000, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
+    def __init__(self, maxread=None, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the MuPAD interpreter.
 
@@ -120,7 +120,6 @@ class Mupad(Expect):
                         prompt = PROMPT,
                         # the -U SAGE=TRUE allows for MuPAD programs to test whether they are run from Sage
                         command = "mupkern -P e -U SAGE=TRUE",
-                        maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         server = server,
                         server_tmpdir = server_tmpdir,

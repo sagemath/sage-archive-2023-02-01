@@ -60,6 +60,7 @@ Utilities
 
    sage/rings/big_oh
    sage/rings/infinity
+   sage/rings/numbers_abc
    sage/rings/misc
 
 .. include:: ../footer.txt

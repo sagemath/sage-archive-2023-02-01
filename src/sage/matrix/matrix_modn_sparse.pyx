@@ -62,7 +62,8 @@ EXAMPLES::
     sage: a.rank()
     3
 
-TESTS:
+TESTS::
+
     sage: matrix(Integers(37),0,0,sparse=True).inverse()
     []
 """
@@ -90,7 +91,7 @@ from sage.misc.misc import verbose, get_verbose
 import sage.rings.all as rings
 
 from sage.matrix.matrix2 import Matrix as Matrix2
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 
 from sage.structure.element import is_Vector
 

@@ -741,7 +741,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
             sage: bt = BinaryTree([[None, [[], None]], None])
             sage: ip = bt.tamari_interval(BinaryTree([None, [[None, []], None]])); ip
-            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
             sage: ip.lower_binary_tree()
             [[., [[., .], .]], .]
             sage: ip.upper_binary_tree()
@@ -767,7 +767,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
             sage: ip = bt.tamari_interval(bt)
             sage: ip
-            The tamari interval of size 4 induced by relations [(1, 4), (2, 3), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(1, 4), (2, 3), (3, 4), (3, 1), (2, 1)]
             sage: list(ip.binary_trees())
             [[[., [[., .], .]], .]]
 
@@ -776,7 +776,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt = BinaryTree()
             sage: ip = bt.tamari_interval(bt)
             sage: ip
-            The tamari interval of size 0 induced by relations []
+            The Tamari interval of size 0 induced by relations []
             sage: list(ip.binary_trees())
             [.]
         """
@@ -2485,6 +2485,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return B([self[0], self[1].over(bt)])
 
     __div__ = over
+    __truediv__ = over
 
     @combinatorial_map(name="Under operation on Binary Trees")
     def under(self, bt):
@@ -2945,7 +2946,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
 
     - ``size`` -- (optional) an integer
 
-    OUPUT:
+    OUTPUT:
 
     - the set of all binary trees (of the given ``size`` if specified)
 

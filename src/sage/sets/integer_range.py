@@ -360,7 +360,7 @@ class IntegerRangeFinite(IntegerRange):
                 elt = x
             except (ValueError, TypeError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+        if abs(self._step).divides(Integer(elt)-self._begin):
             return (self._begin <= elt < self._end and self._step > 0) or \
                    (self._begin >= elt > self._end and self._step < 0)
         return False
@@ -577,7 +577,7 @@ class IntegerRangeInfinite(IntegerRange):
                 elt = Integer(elt)
             except (TypeError, ValueError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+        if abs(self._step).divides(Integer(elt)-self._begin):
             return (self._step > 0 and elt >= self._begin) or \
                    (self._step < 0 and elt <= self._begin)
         return False
@@ -737,7 +737,7 @@ class IntegerRangeFromMiddle(IntegerRange):
                 elt = Integer(elt)
             except (TypeError, ValueError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._middle_point):
+        if abs(self._step).divides(Integer(elt)-self._middle_point):
             return (self._begin <= elt and elt < self._end) or \
                    (self._begin >= elt and elt > self._end)
         return False

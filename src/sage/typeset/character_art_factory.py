@@ -248,7 +248,7 @@ class CharacterArtFactory(SageObject):
 
     def build_dict(self, d):
         r"""
-        Return an character art output of a dictionnary.
+        Return an character art output of a dictionary.
 
         TESTS::
 

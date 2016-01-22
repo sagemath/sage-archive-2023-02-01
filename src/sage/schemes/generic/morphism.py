@@ -92,7 +92,6 @@ from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme
 
-from sage.rings.arith            import gcd, lcm
 from sage.categories.gcd_domains import GcdDomains
 from sage.rings.qqbar            import QQbar
 from sage.rings.quotient_ring    import QuotientRing_generic
@@ -1050,12 +1049,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: H=Hom(X,X)
             sage: f=H([x^2,y^2,z^2]);
             sage: f(P([4,4,1]))
-            Traceback (most recent call last):
-            ...
-            TypeError: (4 : 4 : 1) fails to convert into the map's domain
-            Closed subscheme of Projective Space of dimension 2 over Integer
-            Ring defined by:
-              x^2 - y^2, but a `pushforward` method is not properly implemented
+            (16 : 16 : 1)
         """
         # Checks were done in __call__
         P = [f(x._coords) for f in self.defining_polynomials()]
@@ -1134,16 +1128,16 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2]);
-            sage: f(P([4,4,1]))
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: P2.<u,v,w,t> = ProjectiveSpace(ZZ, 3)
+            sage: X = P.subscheme(x^2-y^2);
+            sage: H = Hom(X, X)
+            sage: f = H([x^2, y^2, z^2]);
+            sage: f(P2([4,4,1,1]))
             Traceback (most recent call last):
             ...
-            TypeError: (4 : 4 : 1) fails to convert into the map's domain
-            Closed subscheme of Projective Space of dimension 2 over
-            Integer Ring defined by:
+            TypeError: (4 : 4 : 1 : 1) fails to convert into the map's domain Closed subscheme of
+            Projective Space of dimension 2 over Integer Ring defined by:
               x^2 - y^2, but a `pushforward` method is not properly implemented
         """
         if args:
@@ -1339,7 +1333,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
 
-            Check that :trac:'16834' is fixed::
+        Check that :trac:`16834` is fixed::
 
             sage: A.<x,y,z> = AffineSpace(RR,3)
             sage: h = Hom(A,A)

@@ -28,7 +28,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
-from sage.rings.arith import binomial, gcd
+from sage.arith.all import binomial, gcd
 from sage.rings.rational_field import RationalField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField

@@ -22,16 +22,20 @@ do::
     Univariate Polynomial Ring in x over Integer Ring (using NTL)
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
+
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
@@ -54,30 +58,15 @@ from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
 
 from sage.rings.fraction_field_element import FractionFieldElement
-from sage.rings.arith import lcm
+from sage.arith.all import lcm
 import sage.rings.polynomial.polynomial_ring
 
-from sage.libs.ntl.ntl_ZZX_decl cimport *
+from sage.libs.ntl.ZZX cimport *
 
 cdef class Polynomial_integer_dense_ntl(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via NTL.
     """
-
-    def __cinit__(self):
-        r"""
-        This calls the underlying NTL constructor.
-        """
-        ZZX_construct(&self.__poly)
-
-
-    def __dealloc__(self):
-        r"""
-        This calls the underlying NTL destructor.
-        """
-        ZZX_destruct(&self.__poly)
-
-
     cdef Polynomial_integer_dense_ntl _new(self):
         r"""
         Quickly creates a new initialized Polynomial_integer_dense_ntl
@@ -511,19 +500,19 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             ZZX_quo_rem(&self.__poly, &_right.__poly, &r, &q)
             ZZX_swap(qq.__poly, q[0])
             ZZX_swap(rr.__poly, r[0])
-            ZZX_delete(q)
-            ZZX_delete(r)
+            del q
+            del r
         else:
             # Non-monic divisor. Check whether it divides exactly.
             q = ZZX_div(&self.__poly, &_right.__poly, &divisible)
             if divisible:
                 # exactly divisible
                 ZZX_swap(q[0], qq.__poly)
-                ZZX_delete(q)
+                del q
             else:
                 # division failed: clean up and raise exception
-                ZZX_delete(q)
-                raise ArithmeticError, "division not exact in Z[x] (consider coercing to Q[x] first)"
+                del q
+                raise ArithmeticError("division not exact in Z[x] (consider coercing to Q[x] first)")
 
         return qq, rr
 
@@ -547,7 +536,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef Polynomial_integer_dense_ntl x = self._new()
         cdef ZZX_c* temp = ZZX_gcd(&self.__poly, &(<Polynomial_integer_dense_ntl>right).__poly)
         x.__poly = temp[0]
-        ZZX_delete(temp)
+        del temp
         return x
 
 
@@ -616,9 +605,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef Polynomial_integer_dense_ntl tt = self._new()
         ss.__poly = s[0]
         tt.__poly = t[0]
-        ZZ_delete(r)
-        ZZX_delete(s)
-        ZZX_delete(t)
+        del r
+        del s
+        del t
 
         if rr == 0:
             f = self.base_extend(QQ)
@@ -805,7 +794,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef ZZ_c* temp = ZZX_discriminant(&self.__poly, proof)
         cdef Integer x = PY_NEW(Integer)
         ZZ_to_mpz(x.value, temp)
-        ZZ_delete(temp)
+        del temp
         return x
 
 
@@ -863,7 +852,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             z = self._new()
             z.__poly = v[i][0]
             F.append((z, e[i]))
-            ZZX_delete(v[i])
+            del v[i]
         sage_free(v)
         sage_free(e)
         return Factorization(F, unit=c, sort=False)
@@ -1089,5 +1078,5 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef ZZ_c* temp = ZZX_resultant(&self.__poly, &_other.__poly, proof)
         cdef Integer x = PY_NEW(Integer)
         ZZ_to_mpz(x.value, temp)
-        ZZ_delete(temp)
+        del temp
         return x

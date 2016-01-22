@@ -66,23 +66,21 @@ REFERENCES:
 .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
    "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
+
 #*****************************************************************************
-#       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from series import LazyPowerSeriesRing, LazyPowerSeries
 from stream import Stream, _integers_from
-from sage.rings.all import Integer, moebius, lcm, divisors, RationalField
+from sage.rings.all import Integer, RationalField
+from sage.arith.all import moebius, gcd, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -108,7 +106,9 @@ def OrdinaryGeneratingSeriesRing(R):
         sage: R([1]).counts(4)
         [1, 1, 1, 1]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -181,7 +181,9 @@ def ExponentialGeneratingSeriesRing(R):
         sage: R([1]).counts(4)
         [1, 1, 2, 6]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -347,7 +349,9 @@ def CycleIndexSeriesRing(R):
         ....:                        # meaningful.
         [1, 1, 1, 1]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -753,7 +757,6 @@ class CycleIndexSeries(LazyPowerSeries):
            :arXiv:`math/0503436v2`.
 
         """
-        from sage.rings.arith import gcd, lcm, divisors
         from itertools import product, repeat, chain
 
         p = self.base_ring()

@@ -13,6 +13,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import division
+
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "decl.pxi"
@@ -33,7 +35,7 @@ cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
-    ZZ_delete(x)
+    del x
     return y
 
 # You must do sig_on() before calling this function
@@ -47,7 +49,7 @@ cdef inline ntl_ZZX make_ZZX(ZZX_c* x):
     cdef ntl_ZZX y
     y = ntl_ZZX()
     y.x = x[0]
-    ZZX_delete(x)
+    del x
     return y
 
 # You must do sig_on() before calling this function
@@ -67,7 +69,7 @@ cdef proof_flag(t):
 ##############################################################################
 
 
-cdef class ntl_ZZX:
+cdef class ntl_ZZX(object):
     r"""
     The class \class{ZZX} implements polynomials in $\Z[X]$, i.e.,
     univariate polynomials with integer coefficients.
@@ -138,12 +140,6 @@ cdef class ntl_ZZX:
         True
         """
         return unpickle_class_value, (ntl_ZZX, self.list())
-
-    def __cinit__(self):
-        ZZX_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZX_destruct(&self.x)
 
     def __repr__(self):
         """
@@ -321,7 +317,7 @@ cdef class ntl_ZZX:
         sig_off()
         return r
 
-    def __div__(ntl_ZZX self, ntl_ZZX other):
+    def __truediv__(ntl_ZZX self, ntl_ZZX other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -345,11 +341,14 @@ cdef class ntl_ZZX:
         cdef ZZX_c* q
         q = ZZX_div(&self.x, &other.x, &divisible)
         if not divisible:
-            ZZX_delete(q)
+            del q
             sig_off()
-            raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
+            raise ArithmeticError("self (=%s) is not divisible by other (=%s)"%(self, other))
         result = make_ZZX_sig_off(q)
         return result
+
+    def __div__(self, other):
+        return self / other
 
     def __mod__(ntl_ZZX self, ntl_ZZX other):
         """
@@ -426,11 +425,12 @@ cdef class ntl_ZZX:
         from copy import copy
         return generic.power(self, n, copy(one_ZZX))
 
-    def __cmp__(ntl_ZZX self, ntl_ZZX other):
+    def __richcmp__(ntl_ZZX self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.ZZX([1,2,3])
             sage: g = ntl.ZZX([1,2,3,0])
             sage: f == g
@@ -438,10 +438,19 @@ cdef class ntl_ZZX:
             sage: g = ntl.ZZX([0,1,2,3])
             sage: f == g
             False
+            sage: f == ntl.ZZ(0)
+            False
         """
-        if ZZX_equal(self.x, other.x):
-            return 0
-        return -1
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("polynomials are not ordered")
+
+        cdef ntl_ZZX b
+        try:
+            b = <ntl_ZZX?>other
+        except TypeError:
+            b = ntl_ZZX(other)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def is_zero(self):
         """

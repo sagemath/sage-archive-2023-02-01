@@ -45,7 +45,7 @@ import sage.misc.latex as latex
 
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.rings.finite_rings.constructor import FiniteField
 
@@ -214,7 +214,7 @@ class NumberFieldIdeal(Ideal_generic):
         except AttributeError:
             # At some point in the future (e.g., for relative extensions),
             # we'll likely have to consider other hashes.
-            self._hash = self.pari_hnf().__hash__()
+            self._hash = hash(self.pari_hnf())
         return self._hash
 
     def _latex_(self):
@@ -1621,7 +1621,7 @@ class NumberFieldIdeal(Ideal_generic):
             ValueError: The residue symbol to that power is not defined for the number field
 
         """
-        from sage.rings.arith import kronecker_symbol
+        from sage.arith.all import kronecker_symbol
 
         K = self.ring()
         if m == 2 and K.absolute_degree() == 1:
@@ -1715,7 +1715,7 @@ class NumberFieldIdeal(Ideal_generic):
             from sage.quadratic_forms.binary_qf import BinaryQF
             gens = self.gens_reduced()
             if len(gens) == 1:
-                u, v = K.ring_of_integers().gens()
+                u, v = K.ring_of_integers().basis()
                 alpha, beta = gens[0] * u, gens[0] * v
             else:
                 alpha, beta = gens

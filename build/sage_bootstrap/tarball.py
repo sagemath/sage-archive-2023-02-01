@@ -120,7 +120,11 @@ class Tarball(object):
 
     def _compute_md5(self):
         import hashlib
-        return self._compute_md5(hashlib.md5())
+        return self._compute_hash(hashlib.md5())
+    
+    def _compute_cksum(self):
+        from sage_bootstrap.cksum import CksumAlgorithm
+        return self._compute_hash(CksumAlgorithm())
     
     def checksum_verifies(self):
         """

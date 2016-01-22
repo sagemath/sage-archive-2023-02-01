@@ -222,13 +222,10 @@ def split_str_by_op(string, op, strip_parentheses=True):
             if l == '(':
                 open += 1
             elif l == ')':
-                open += -1
+                open -= 1
             if open < 0:
                 return False
-        else:
-            if open != 0:
-                return False
-        return True
+        return bool(open == 0)
 
     factors = list()
     balanced = True

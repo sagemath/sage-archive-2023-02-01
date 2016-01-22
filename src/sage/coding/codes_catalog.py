@@ -28,9 +28,13 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ReedSolomonCode, TernaryGolayCode,
                                 ToricCode, TrivialCode, WalshCode)
 
+from grs import GeneralizedReedSolomonCode
+
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
 
+import decoders_catalog as decoders
 import encoders_catalog as encoders
+import bounds_catalog as bounds
 from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index
 import sys as _sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=_gen_rest_table_index(_sys.modules[__name__], only_local_functions=False))

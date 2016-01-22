@@ -251,6 +251,25 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             OS{0, 1, 2} - OS{0, 1, 4} + OS{0, 2, 3} + OS{0, 3, 4}
             sage: G[3] * G[2] * G[4]
             -OS{0, 1, 2} + OS{0, 1, 4} - OS{0, 2, 3} - OS{0, 3, 4}
+
+        TESTS:
+
+        Let us check that `e_{s_1} e_{s_2} \cdots e_{s_k} = e_S` for any
+        subset `S = \{ s_1 < s_2 < \cdots < s_k \}` of the ground set::
+
+            sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
+            sage: M = Matroid(G)
+            sage: E = M.groundset_list()
+            sage: OS = M.orlik_solomon_algebra(ZZ)
+            sage: G = OS.algebra_generators()
+            sage: import itertools
+            sage: def test_prod(F):
+            ....:     LHS = OS.subset_image(frozenset(F))
+            ....:     RHS = OS.prod([G[i] for i in sorted(F)])
+            ....:     return LHS == RHS
+            sage: all( test_prod(F) for k in range(len(E)+1)
+            ....:                   for F in itertools.combinations(E, k) )
+            True
         """
         if not a:
             return self.basis()[b]
@@ -313,6 +332,72 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS = M4.orlik_solomon_algebra(QQ)
             sage: OS.subset_image(frozenset({2,3,4}))
             OS{0, 2, 3} + OS{0, 3, 4}
+
+            sage: G = Graph([[1,2],[1,2],[2,3],[2,3],[1,3],[1,3]], multiedges=True)
+            sage: M = Matroid(G)
+            sage: sorted([sorted(c) for c in M.circuits()])
+            [[0, 1],
+             [0, 2, 4],
+             [0, 2, 5],
+             [0, 3, 4],
+             [0, 3, 5],
+             [1, 2, 4],
+             [1, 2, 5],
+             [1, 3, 4],
+             [1, 3, 5],
+             [2, 3],
+             [4, 5]]
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS.subset_image(frozenset([]))
+            OS{}
+            sage: OS.subset_image(frozenset([1, 2, 3]))
+            0
+            sage: OS.subset_image(frozenset([1, 3, 5]))
+            0
+            sage: OS.subset_image(frozenset([1, 2]))
+            OS{0, 2}
+            sage: OS.subset_image(frozenset([3, 4]))
+            -OS{0, 2} + OS{0, 4}
+            sage: OS.subset_image(frozenset([1, 5]))
+            OS{0, 4}
+
+            sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
+            sage: M = Matroid(G)
+            sage: sorted([sorted(c) for c in M.circuits()])
+            [[0, 1],
+             [2, 3, 4]]
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS.subset_image(frozenset([]))
+            OS{}
+            sage: OS.subset_image(frozenset([1, 3, 4]))
+            -OS{0, 2, 3} + OS{0, 2, 4}
+
+        An example of a custom ordering:
+
+            sage: G = Graph([[3, 4], [4, 1], [1, 2], [2, 3], [3, 5], [5, 6], [6, 3]])
+            sage: M = Matroid(G)
+            sage: s = [(5, 6), (1, 2), (3, 5), (2, 3), (1, 4), (3, 6), (3, 4)]
+            sage: sorted([sorted(c) for c in M.circuits()])
+            [[(1, 2), (1, 4), (2, 3), (3, 4)],
+             [(3, 5), (3, 6), (5, 6)]]
+            sage: OS = M.orlik_solomon_algebra(QQ, ordering=s)
+            sage: OS.subset_image(frozenset([]))
+            OS{}
+            sage: OS.subset_image(frozenset([(1,2),(3,4),(1,4),(2,3)]))
+            0
+            sage: OS.subset_image(frozenset([(2,3),(1,2),(3,4)]))
+            OS{(1, 2), (3, 4), (2, 3)}
+            sage: OS.subset_image(frozenset([(1,4),(3,4),(2,3),(3,6),(5,6)]))
+            -OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 6)}
+             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 6)}
+             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 6)}
+            sage: OS.subset_image(frozenset([(1,4),(3,4),(2,3),(3,6),(3,5)]))
+            OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 5)}
+             - OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 6)}
+             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 5)}
+             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 6)}
+             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 5)}
+             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 6)}
 
         TESTS:
 

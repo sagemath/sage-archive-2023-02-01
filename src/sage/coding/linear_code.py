@@ -1680,14 +1680,14 @@ class AbstractLinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
             sage: C.decode_to_message(word)
-            (1, 1, 1, 0)
+            (0, 1, 1, 0)
 
         It is possible to manually choose the decoder amongst the list of the available ones::
 
             sage: C.decoders_available()
             ['Syndrome', 'NearestNeighbor']
             sage: C.decode_to_message(word, 'NearestNeighbor')
-            (1, 1, 1, 0)
+            (0, 1, 1, 0)
         """
         return self.unencode(self.decode_to_code(word, decoder_name, **kwargs), **kwargs)
 
@@ -4177,8 +4177,11 @@ class LinearCodeSyndromeDecoder(Decoder):
         Ierrors = iter(range(1,t+1))
         values = self._list_all_error_values()
         value_index = 0
-        while(True):
+        stop = False
+        while not stop:
+            print "Enter"
             try:
+                stop = True
                 patterns = Subsets(range(n), Ierrors.next())
                 errors = values[value_index]
                 basic = vector(F, n)
@@ -4196,10 +4199,13 @@ class LinearCodeSyndromeDecoder(Decoder):
                             e_cur = lookup[s]
                             if (e.hamming_weight() == e_cur.hamming_weight()
                                     and e < e_cur):
+                                stop = False
                                 lookup[s] = copy(e)
                             elif e.hamming_weight() < e_cur.hamming_weight():
+                                stop = False
                                 lookup[s] = copy(e)
                         except KeyError:
+                            stop = False
                             lookup[s] = copy(e)
                 value_index += 1
             except StopIteration:
@@ -4236,6 +4242,8 @@ class LinearCodeSyndromeDecoder(Decoder):
         lookup_table = self._build_lookup_table()
         s = self.code().parity_check_matrix() * r
         s.set_immutable()
+        if s.is_zero():
+            return r
         err = lookup_table[s]
         for i in range(self.code().length()):
             r[i] = r[i] - err[i]

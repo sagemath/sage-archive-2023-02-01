@@ -440,7 +440,9 @@ class AsymptoticExpansionGenerators(SageObject):
         .. MATH::
 
             [z^n] \left(\frac{1}{1-z}\right)^\alpha
-            \left(\frac{1}{z} \log \frac{1}{1-z}\right)^\beta.
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)^\beta
+            \left(\frac{1}{z} \log
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta.
 
         INPUT:
 
@@ -451,8 +453,10 @@ class AsymptoticExpansionGenerators(SageObject):
         - ``alpha`` -- (default: `0`) the pole order of the singularty.
 
         - ``beta`` -- (default: `0`) the order of the logarithmic singularity.
+          Not yet implemented for ``beta != 0``.
 
         - ``delta`` -- (default: `0`) the order of the log-log singularity.
+          Not yet implemented for ``delta != 0``.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.

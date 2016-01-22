@@ -58,6 +58,9 @@ examples.
    * - :meth:`~AsymptoticExpansionGenerators.Binomial_kn_over_n`
      - an asymptotic expansion of the binomial coefficient
 
+   * - :meth:`~AsymptoticExpansionGenerators.SingularityAnalysis`
+     - an asymptotic expansion obtained by singularity analysis
+
 
 AUTHORS:
 
@@ -99,6 +102,7 @@ class AsymptoticExpansionGenerators(SageObject):
     - :meth:`~Stirling`
     - :meth:`~log_Stirling`
     - :meth:`~Binomial_kn_over_n`
+    - :meth:`~SingularityAnalysis`
     """
 
     @staticmethod

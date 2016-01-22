@@ -246,7 +246,7 @@ class Cube(SageObject):
             sage: C[1]
             (5, 5)
         """
-        return self.__tuple.__getitem__(n)
+        return self.__tuple[n]
 
     def __iter__(self):
         """
@@ -259,7 +259,7 @@ class Cube(SageObject):
             sage: [x[0] for x in C]
             [1, 5, 6, -1]
         """
-        return self.__tuple.__iter__()
+        return iter(self.__tuple)
 
     def __add__(self, other):
         """
@@ -284,7 +284,7 @@ class Cube(SageObject):
             sage: D + C * C
             [4,4] x [0,1] x [1,2] x [3,3] x [1,2] x [3,3]
         """
-        return Cube(self.__tuple.__add__(other.__tuple))
+        return Cube(self.__tuple + other.__tuple)
 
     # the __add__ operation actually produces the product of the two cubes
     __mul__ = __add__
@@ -859,7 +859,7 @@ class CubicalComplex(GenericCellComplex):
         """
         return Set(self._facets)
 
-    def __cmp__(self,other):
+    def __eq__(self, other):
         r"""
         Return True if the set of maximal cells is the same for
         ``self`` and ``other``.
@@ -880,10 +880,29 @@ class CubicalComplex(GenericCellComplex):
             sage: I1.product(S1) == S1.product(I1)
             False
         """
-        if self.maximal_cells() == other.maximal_cells():
-            return 0
-        else:
-            return -1
+        return self.maximal_cells() == other.maximal_cells()
+
+    def __ne__(self, other):
+        r"""
+        Return True if ``self`` and ``other`` are not equal
+
+        :param other: another cubical complex
+        :return: True if the compexes are not equal
+        :rtype: bool
+
+        EXAMPLES::
+
+            sage: I1 = cubical_complexes.Cube(1)
+            sage: I2 = cubical_complexes.Cube(1)
+            sage: I1.product(I2) != I2.product(I1)
+            False
+            sage: I1.product(I2.product(I2)) != I2.product(I1.product(I1))
+            False
+            sage: S1 = cubical_complexes.Sphere(1)
+            sage: I1.product(S1) != S1.product(I1)
+            True
+        """
+        return not self.__eq__(other)
 
     def __hash__(self):
         r"""

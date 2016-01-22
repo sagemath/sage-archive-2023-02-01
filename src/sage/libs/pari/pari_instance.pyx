@@ -188,7 +188,7 @@ from sage.ext.memory cimport sage_malloc, sage_free
 from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
 from sage.libs.gmp.all cimport *
-from sage.libs.flint.fmpz cimport fmpz_get_mpz
+from sage.libs.flint.fmpz cimport fmpz_get_mpz, COEFF_IS_MPZ, COEFF_TO_PTR
 from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
@@ -707,6 +707,18 @@ cdef class PariInstance(PariInstance_auto):
 
         return z
 
+    cdef inline GEN _new_GEN_from_fmpz_t(self, fmpz_t value):
+        r"""
+        Create a new PARI ``t_INT`` from a ``fmpz_t``.
+
+        For internal use only; this directly uses the PARI stack.
+        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
+        """
+        if COEFF_IS_MPZ(value[0]):
+            return self._new_GEN_from_mpz_t(COEFF_TO_PTR(value[0]))
+        else:
+            return stoi(value[0])
+
     cdef gen new_gen_from_int(self, int value):
         pari_catch_sig_on()
         return self.new_gen(stoi(value))
@@ -919,12 +931,9 @@ cdef class PariInstance(PariInstance_auto):
         cdef GEN x
         cdef GEN A = zeromatcopy(nr, nc)
         cdef Py_ssize_t i, j
-        cdef mpz_t tmp
-        mpz_init(tmp)
         for i in range(nr):
             for j in range(nc):
-                fmpz_get_mpz(tmp,fmpz_mat_entry(B,i,j))
-                x = self._new_GEN_from_mpz_t(tmp)
+                x = self._new_GEN_from_fmpz_t(fmpz_mat_entry(B,i,j))
                 set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
         return A
 
@@ -942,12 +951,9 @@ cdef class PariInstance(PariInstance_auto):
         cdef GEN x
         cdef GEN A = zeromatcopy(nc, nr)
         cdef Py_ssize_t i, j
-        cdef mpz_t tmp
-        mpz_init(tmp)
         for i in range(nr):
             for j in range(nc):
-                fmpz_get_mpz(tmp,fmpz_mat_entry(B,i,nc-j-1))
-                x = self._new_GEN_from_mpz_t(tmp)
+                x = self._new_GEN_from_fmpz_t(fmpz_mat_entry(B,i,nc-j-1))
                 set_gcoeff(A, j+1, i+1, x)  # A[j+1, i+1] = x (using 1-based indexing)
         return A
 
@@ -1036,10 +1042,61 @@ cdef class PariInstance(PariInstance_auto):
 
     cdef long get_var(self, v):
         """
-        Convert a Python string into a PARI variable number.
+        Convert ``v`` into a PARI variable number.
+
+        If ``v`` is a PARI object, return the variable number of
+        ``variable(v)``. If ``v`` is ``None`` or ``-1``, return -1.
+        Otherwise, treat ``v`` as a string and return the number of
+        the variable named ``v``.
+
+        OUTPUT: a PARI variable number (varn) or -1 if there is no
+        variable number.
+
+        .. WARNING::
+
+            You can easily create variables with garbage names using
+            this function. This can actually be used as a feature, if
+            you want variable names which cannot be confused with
+            ordinary user variables.
+
+        EXAMPLES:
+
+        We test this function using ``Pol()`` which calls this function::
+
+            sage: pari("[1,0]").Pol()
+            x
+            sage: pari("[2,0]").Pol('x')
+            2*x
+            sage: pari("[Pi,0]").Pol('!@#$%^&')
+            3.14159265358979*!@#$%^&
+
+        We can use ``varhigher()`` and ``varlower()`` to create
+        temporary variables without a name. The ``"xx"`` below is just a
+        string to display the variable, it doesn't create a variable
+        ``"xx"``::
+
+            sage: xx = pari.varhigher("xx")
+            sage: pari("[x,0]").Pol(xx)
+            x*xx
+
+        Indeed, this is not the same as::
+
+            sage: pari("[x,0]").Pol("xx")
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect priority in gtopoly: variable x <= xx
         """
         if v is None:
             return -1
+        cdef long varno
+        if isinstance(v, gen):
+            pari_catch_sig_on()
+            varno = gvar((<gen>v).g)
+            pari_catch_sig_off()
+            if varno < 0:
+                return -1
+            else:
+                return varno
         if v == -1:
             return -1
         cdef bytes s = bytes(v)

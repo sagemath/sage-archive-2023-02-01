@@ -1,4 +1,4 @@
-$(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(READLINE) $(INST)/$(BOEHM_GC)
+$(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(READLINE) $(INST)/$(GC)
 
 ----------
 All lines of this file are ignored except the first.

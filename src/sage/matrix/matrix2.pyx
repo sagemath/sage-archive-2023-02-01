@@ -1434,7 +1434,7 @@ cdef class Matrix(matrix1.Matrix):
                 d = R(self._pari_().matdet())
             else:
                 # Lift to ZZ and compute there.
-                d = R(self.apply_map(lambda x : x.centerlift()).det())
+                d = R(self.apply_map(lambda x : x.lift_centered()).det())
             self.cache('det', d)
             return d
 
@@ -3063,7 +3063,7 @@ cdef class Matrix(matrix1.Matrix):
         - ``basis`` - default: 'echelon' - a keyword that describes
           the format of the basis returned.  Allowable values are:
 
-          - 'echelon': the basis matrix is in echelon form
+          - 'echelon': the basis matrix is returned in echelon form
           - 'pivot' : each basis vector is computed from the reduced
             row-echelon form of ``self`` by placing a single one in a
             non-pivot column and zeros in the remaining non-pivot columns.
@@ -3704,10 +3704,10 @@ cdef class Matrix(matrix1.Matrix):
           - 'pluq' - PLUQ matrix factorization for matrices mod 2
 
         - ``basis`` - default: 'echelon' - a keyword that describes the
-          format of the basis used to construct the left kernel.
+          format of the basis used to construct the right kernel.
           Allowable values are:
 
-          - 'echelon': the basis matrix is in echelon form
+          - 'echelon': the basis matrix is returned in echelon form
           - 'pivot' : each basis vector is computed from the reduced
             row-echelon form of ``self`` by placing a single one in a
             non-pivot column and zeros in the remaining non-pivot columns.
@@ -3718,8 +3718,8 @@ cdef class Matrix(matrix1.Matrix):
         OUTPUT:
 
         A vector space or free module whose degree equals the number
-        of columns in ``self`` and contains all the vectors ``x`` such
-        that ``self*x = 0``.
+        of columns in ``self`` and which contains all the vectors ``x``
+        such that ``self*x = 0``.
 
         If ``self`` has 0 columns, the kernel has dimension 0, while if
         ``self`` has 0 rows the kernel is the entire ambient vector space.
@@ -4051,7 +4051,7 @@ cdef class Matrix(matrix1.Matrix):
           the format of the basis used to construct the left kernel.
           Allowable values are:
 
-          - 'echelon': the basis matrix is in echelon form
+          - 'echelon': the basis matrix is returned in echelon form
           - 'pivot' : each basis vector is computed from the reduced
             row-echelon form of ``self`` by placing a single one in a
             non-pivot column and zeros in the remaining non-pivot columns.
@@ -4062,14 +4062,14 @@ cdef class Matrix(matrix1.Matrix):
         OUTPUT:
 
         A vector space or free module whose degree equals the number
-        of rows in ``self`` and contains all the vectors ``x`` such
+        of rows in ``self`` and which contains all the vectors ``x`` such
         that ``x*self = 0``.
 
         If ``self`` has 0 rows, the kernel has dimension 0, while if ``self``
         has 0 columns the kernel is the entire ambient vector space.
 
         The result is cached.  Requesting the left kernel a second time,
-        but with a different basis format will return the cached result
+        but with a different basis format, will return the cached result
         with the format from the first computation.
 
         .. note::
@@ -6805,140 +6805,198 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, ascend=True):
-        from sage.misc.superseded import deprecation
-        deprecation(16888, 'You can just call row_reduced_form() instead')
-        return self.row_reduced_form(ascend)
-
-    def row_reduced_form(self, ascend=True):
+    def weak_popov_form(self, transformation=None, ascend=None, old_call=True):
         """
-        This function computes a row reduced form of a matrix over a rational
-        function field `k(x)`, for `k` a field.
+        Returns a matrix in weak Popov form which is row space-equivalent to
+        the input matrix, if the input is over `k[x]` or `k(x)`.
+
+        A matrix is in weak Popov form if the (row-wise) leading positions of
+        the non-zero rows are all different. The leading position of a row is
+        the right-most position whose entry has maximal degree of the entries in
+        that row.
+
+        .. WARNING::
+
+            This function currently does **not** compute the weak Popov form of a
+            matrix, but rather a row reduced form (which is a slightly weaker
+            requirement). See :meth:`row_reduced_form`.
 
         INPUT:
 
-         - `ascend` - if True, rows of output matrix `W` are sorted so
-           degree (= the maximum of the degrees of the elements in
-           the row) increases monotonically, and otherwise degrees decrease.
+        - `transformation` - A boolean (default: `True`). If this is set to
+          ``True``, the transformation matrix `U` will be returned as well: this
+          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
+          where `W` is the output matrix.
+
+          Warning: the default of `transformation` will soon be set to ``False``,
+          see Ticket #16896. Until then, this function will print a deprecation
+          warning as long as `transformation` was not explicitly set to ``True``
+          or ``False``.
+
+        - `ascend` - Deprecated and has no effect.
+
+        - `old_call` - For backwards compatibility until the old calling
+          convention will be deprecated (default: `True`). If `True`, then
+          return `(W,U,d)`, where `U` is as when `transformation = True`, and
+          `d` is a list of the degrees of the rows of `W`.
+        """
+        from sage.misc.superseded import deprecation
+        depr_message = \
+"""This function currently does *not* compute a weak Popov form, but rather a \
+row reduced form. This function will soon be fixed (see Ticket #16742)."""
+        deprecation(16888, depr_message)
+
+        return self.row_reduced_form(transformation=transformation,
+                ascend=ascend, old_call=old_call)
+
+
+    def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
+        r"""
+        This function computes a row reduced form of a matrix over a rational
+        function field `k(x)`, where `k` is a field.
+
+        A matrix `M` over `k(x)` is row reduced if the (row-wise) leading term
+        matrix of `dM` has the same rank as `M`, where `d \in k[x]` is a minimal
+        degree polynomial such that `dM` is in `k[x]`. The (row-wise) leading
+        term matrix of a polynomial matrix `M_0` is matrix over `k` whose
+        `(i,j)`'th entry is the `x^{d_i}` coefficient of `M_0[i,j]`, where `d_i`
+        is the greatest degree among polynomials in the `i`'th row of `M_0`.
+
+        INPUT:
+
+        - `transformation` - A boolean (default: ``False``). If this is set to
+          ``True``, the transformation matrix `U` will be returned as well: this
+          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
+          where `W` is the output matrix.
+
+        - `ascend` - Deprecated and has no effect.
+
+        - `old_call` - For backwards compatibility until the old calling
+          convention will be deprecated (default: `True`). If `True`, then
+          return `(W,U,d)`, where `U` is as when `transformation = True`, and
+          `d` is a list of the degrees of the rows of `W`.
 
         OUTPUT:
 
-        A 3-tuple `(W,N,d)` consisting of:
-
-        1. `W` - a matrix over `k(x)` giving a row reduced form of `self`
-        2. `N` - a matrix over `k[x]` representing row operations used to
-            transform `self` to `W`
-        3. `d` - degree of respective columns of W; the degree of a column is
-           the maximum of the degree of its elements
-
-        `N` is invertible over `k(x)`. These matrices satisfy the relation
-        `N*self = W`.
+        - `W` - a matrix over the same ring as `self` (i.e. either `k(x)` or
+          `k[x]` for a field `k`) giving a row reduced form of ``self``.
 
         EXAMPLES:
 
-        The routine expects matrices over the rational function field, but
-        other examples below show how one can provide matrices over the ring
-        of polynomials (whose quotient field is the rational function field).
+        The routine expects matrices over the rational function field. One can
+        also provide matrices over the ring of polynomials (whose quotient field
+        is the rational function field).
 
         ::
 
             sage: R.<t> = GF(3)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.row_reduced_form()
-            (
-            [          0]  [      t 2*t + 1]
-            [(2*t + 1)/t], [      1       2], [-Infinity, 0]
-            )
+            sage: M.row_reduced_form(transformation=False, old_call=False)
+            [(2*t + 1)/t]
+            [          0]
 
-        If `self` is an `n x 1` matrix with at least one non-zero entry, `W` has
-        a single non-zero entry and that entry is a scalar multiple of the
-        greatest-common-divisor of the entries of `self`.
+        If ``self`` is an `n \times 1` matrix with at least one non-zero entry,
+        `W` has a single non-zero entry and that entry is a scalar multiple of
+        the greatest-common-divisor of the entries of ``self``.
 
         ::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.row_reduced_form()
+            sage: output1 = M1.row_reduced_form(transformation=False, old_call=False)
             sage: output1
-            (
-            [0]  [        1         0 2*t^2 + 1]
-            [0]  [        0         1 2*t^2 + 1]
-            [t], [        0         0         1], [-Infinity, -Infinity, 1]
-            )
+            [0]
+            [0]
+            [t]
 
         We check that the output is the same for a matrix `M` if its entries are
-        rational functions intead of polynomials. We also check that the type of
+        rational functions instead of polynomials. We also check that the type of
         the output follows the documentation. See #9063
 
         ::
 
             sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.row_reduced_form()
+            sage: output2 = M2.row_reduced_form(transformation=False, old_call=False)
             sage: output1 == output2
             True
-            sage: output1[0].base_ring() is K
+            sage: output1.base_ring() is R
             True
-            sage: output2[0].base_ring() is K
-            True
-            sage: output1[1].base_ring() is R
-            True
-            sage: output2[1].base_ring() is R
+            sage: output2.base_ring() is K
             True
 
         The following is the first half of example 5 in [H] *except* that we
-        have transposed `self`; [H] uses column operations and we use row.
+        have transposed ``self``; [H] uses column operations and we use row.
 
         ::
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.row_reduced_form()
-            (
-            [      t    -t^2]  [ 1 -t]
-            [t^2 - 2       t], [ 0  1], [2, 2]
-            )
+            sage: M.row_reduced_form(transformation=False, old_call=False)
+            [      t    -t^2]
+            [t^2 - 2       t]
 
-        The next example demonstrates what happens when `self` is a zero matrix.
+        The next example demonstrates what happens when ``self`` is a zero matrix.
 
         ::
 
             sage: R.<t> = GF(5)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.row_reduced_form()
-            (
-            [0 0]  [1 0]
-            [0 0], [0 1], [-Infinity, -Infinity]
-            )
+            sage: M.row_reduced_form(transformation=False, old_call=False)
+            [0 0]
+            [0 0]
 
-        In the following example, `self` has more rows than columns.
+        In the following example, ``self`` has more rows than columns. Note also
+        that the output is row reduced but not in weak Popov form (see
+        :meth:`weak_popov_form`).
 
         ::
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
-            sage: M.row_reduced_form()
-            (
-            [t t t]  [1 0]
-            [0 0 t], [0 1], [1, 1]
-            )
+            sage: M.row_reduced_form(transformation=False, old_call=False)
+            [t t t]
+            [0 0 t]
 
-        The next example shows that M must be a matrix with
-        coefficients in a rational function field `k(t)`.
+        The next example shows that `M` must be a matrix with coefficients in
+        `k(t)` or in `k[t]` for some field `k`.
 
         ::
 
             sage: M = matrix([[1,0],[1,1]])
-            sage: M.row_reduced_form()
+            sage: M.row_reduced_form(transformation=False, old_call=False)
             Traceback (most recent call last):
             ...
-            TypeError: the coefficients of M must lie in a univariate
-            polynomial ring
+            TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
 
+            sage: PZ.<y> = ZZ[]
+            sage: M = matrix([[y,0],[1,y]])
+            sage: M.row_reduced_form(transformation=False, old_call=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
+
+        The last example shows the usage of the transformation parameter.
+
+        ::
+
+            sage: Fq.<a> = GF(2^3)
+            sage: Fx.<x> = Fq[]
+            sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
+            sage: W,U = A.row_reduced_form(transformation=True,old_call=False);
+            sage: W,U
+            (
+            [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
+            [                    x^3                   a*x^4], [      0                 1]
+            )
+            sage: U*W == A
+            True
+            sage: U.is_invertible()
+            True
 
         NOTES:
 
-         - For consistency with LLL and other algorithms in sage, we have opted
+         - For consistency with LLL and other algorithms in Sage, we have opted
            for row operations; however, references such as [H] transpose and use
            column operations.
 
@@ -6950,10 +7008,53 @@ cdef class Matrix(matrix1.Matrix):
 
         .. [K] T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
 
-
         """
-        import sage.matrix.matrix_misc
-        return sage.matrix.matrix_misc.row_reduced_form(self)
+        from sage.matrix.matrix_misc import row_reduced_form
+
+        from sage.misc.superseded import deprecation
+        if ascend is not None:
+            ascend_message = \
+"""row_reduced_form: The `ascend` argument is deprecated and has no effect (see \
+Ticket #16742)."""
+            deprecation(16888, ascend_message)
+        if old_call == True:
+            oldcall_message = \
+"""row_reduced_form: The old calling convention is deprecated. In the future, \
+only the matrix in row reduced form will be returned. Set `old_call = False` for \
+that behaviour now, and to avoid this message (see Ticket #16742)."""
+            deprecation(16888, oldcall_message)
+
+        get_transformation = False
+        if transformation is None:
+            transformation_message = \
+"""row_reduced_form: The `transformation` argument will soon change to have\
+default value to `False` from the current default value `True`. For now, \
+explicitly setting the argument to `True` or `False` will avoid this message."""
+            deprecation(16888, transformation_message)
+            get_transformation = True
+        elif old_call == True or transformation == True:
+            get_transformation = True
+
+        W_maybe_U = sage.matrix.matrix_misc.row_reduced_form(self,get_transformation)
+
+        if old_call == False:
+            return W_maybe_U
+        else:
+            W,U = W_maybe_U
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if is_PolynomialRing(W.base_ring()):
+                row_deg = lambda r: max([e.degree() for e in r])
+            else:
+                row_deg = lambda r: max([e.numerator().degree() - e.denominator().degree() for e in r])
+            d = []
+            from sage.rings.all import infinity
+            for r in W.rows():
+                d.append(row_deg(r))
+                if d[-1] < 0:
+                    d[-1] = -infinity
+            return (W,U,d)
+
+
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #
@@ -7875,22 +7976,26 @@ cdef class Matrix(matrix1.Matrix):
 
     def randomize(self, density=1, nonzero=False, *args, **kwds):
         """
-        Randomize density proportion of the entries of this matrix, leaving
-        the rest unchanged.
+        Replace a proportion of the entries of a matrix by random elements,
+        leaving the remaining entries unchanged.
 
         .. note::
 
-           We actually choose at random ``density`` proportion of entries of
-           the matrix and set them to random elements. It's possible that the
-           same position can be chosen multiple times, especially for a very
-           small matrix.
+           The locations of the entries of the matrix to change are
+           determined randomly, with the total number of locations
+           determined by the ``density`` keyword. These locations
+           are not guaranteed to be distinct.  So it is possible
+           that the same position can be chosen multiple times,
+           especially for a very small matrix.  The exception is
+           when ``density = 1``, in which case every entry of the
+           matrix will be changed.
 
         INPUT:
 
-        -  ``density`` - ``float`` (default: 1); rough measure of the
-           proportion of nonzero entries in the random matrix
-        -  ``nonzero`` - Bool (default: ``False``); whether the new entries
-           have to be non-zero
+        -  ``density`` - ``float`` (default: ``1``); upper bound for the
+           proportion of entries that are changed
+        -  ``nonzero`` - Bool (default: ``False``); if ``True``, then new
+           entries will be nonzero
         -  ``*args, **kwds`` - Remaining parameters may be passed to the
            ``random_element`` function of the base ring
 
@@ -7927,9 +8032,9 @@ cdef class Matrix(matrix1.Matrix):
             [0 0]
             [0 0]
 
-        Then we randomize it; the x and y parameters, which determine the
-        size of the random elements, are passed onto the ZZ random_element
-        method.
+        Then we randomize it; the ``x`` and ``y`` keywords, which determine the
+        size of the random elements, are passed on to the ``random_element``
+        method for ``ZZ``.
 
         ::
 
@@ -8495,8 +8600,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: matrix().inverse()
             []
-       """
-        return self.__invert__()
+        """
+        return ~self
 
     def adjoint(self):
         """
@@ -9809,8 +9914,6 @@ cdef class Matrix(matrix1.Matrix):
             [---+-]  [x21   0   0]
             [0 0|0], [  0   1   0]
             )
-
-        TESTS:
 
         The base ring for the matrix needs to have a fraction field
         and it needs to be implemented.  ::
@@ -12874,8 +12977,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: OE = EquationOrder(x^2 - x + 2, 'w')
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^2 - x + 2)
             sage: m = Matrix([ [1, w],[w,7]])
             sage: m.elementary_divisors()
             [1, -w + 9]
@@ -12924,8 +13026,7 @@ cdef class Matrix(matrix1.Matrix):
         An example over the ring of integers of a number field (of class
         number 1)::
 
-            sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^2 - x + 2)
             sage: m = Matrix([ [1, w],[w,7]])
             sage: d, u, v = m.smith_form()
             sage: (d, u, v)
@@ -12960,8 +13061,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Some examples over non-PID's work anyway::
 
-            sage: R = EquationOrder(x^2 + 5, 's') # class number 2
-            sage: s = R.ring_generators()[0]
+            sage: R.<s> = EquationOrder(x^2 + 5) # class number 2
             sage: A = matrix(R, 2, 2, [s-1,-s,-s,2*s+1])
             sage: D, U, V = A.smith_form()
             sage: D, U, V
@@ -14115,7 +14215,7 @@ cdef class Matrix(matrix1.Matrix):
 
         - Rob Beezer (2011-06-09)
         """
-        from sage.rings.arith import gcd   # remove if translated to object-oriented calls
+        from sage.arith.all import gcd
         import sage.rings.polynomial.polynomial_ring_constructor
         import sage.matrix.constructor
 
@@ -14182,7 +14282,8 @@ cdef class Matrix(matrix1.Matrix):
             return sage.matrix.constructor.block_diagonal_matrix(companions, subdivide=subdivide)
 
     # A limited number of access-only properties are provided for matrices
-    property T:
+    @property
+    def T(self):
         r"""
         Returns the transpose of a matrix.
 
@@ -14196,10 +14297,10 @@ cdef class Matrix(matrix1.Matrix):
             [ 3  8 13 18 23]
             [ 4  9 14 19 24]
         """
-        def __get__(self):
-            return self.transpose()
+        return self.transpose()
 
-    property C:
+    @property
+    def C(self):
         r"""
         Returns the conjugate matrix.
 
@@ -14214,10 +14315,10 @@ cdef class Matrix(matrix1.Matrix):
             [ 3 - 3*I -3 - 6*I  5 - 1*I]
 
         """
-        def __get__(self):
-            return self.conjugate()
+        return self.conjugate()
 
-    property H:
+    @property
+    def H(self):
         r"""
         Returns the conjugate-transpose (Hermitian) matrix.
 
@@ -14231,10 +14332,10 @@ cdef class Matrix(matrix1.Matrix):
             [ 5 + 3*I -1 - 6*I -3 - 6*I]
             [ 7 + 4*I  3 - 5*I  5 - 1*I]
         """
-        def __get__(self):
-            return self.conjugate().transpose()
+        return self.conjugate().transpose()
 
-    property I:
+    @property
+    def I(self):
         r"""
         Returns the inverse of the matrix, if it exists.
 
@@ -14259,10 +14360,8 @@ cdef class Matrix(matrix1.Matrix):
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
-        def __get__(self):
-            return self.inverse()
+        return ~self
 
-    # end of Matrix class methods
 
 def _smith_diag(d):
     r"""
@@ -14456,8 +14555,7 @@ def _smith_onestep(m):
     EXAMPLE::
 
         sage: from sage.matrix.matrix2 import _smith_onestep
-        sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
-        sage: w = OE.ring_generators()[0]
+        sage: OE.<w> = EquationOrder(x^2 - x + 2)
         sage: m = matrix(OE, 3,3,[1,0,7,2,w, w+17, 13+8*w, 0, 6])
         sage: a,b,c = _smith_onestep(m); b
         [         1          0          0]
@@ -14684,4 +14782,4 @@ def _jordan_form_vector_in_difference(V, W):
     for v in V:
         if v not in W_space:
             return v
-    return None
+    return None 

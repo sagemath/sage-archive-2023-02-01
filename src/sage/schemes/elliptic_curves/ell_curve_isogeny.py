@@ -1224,11 +1224,11 @@ class EllipticCurveIsogeny(Morphism):
         this_hash = 0
 
         for a in ker_poly_list:
-            this_hash = this_hash.__xor__(hash(a))
+            this_hash ^= hash(a)
 
-        this_hash = this_hash.__xor__(hash(self.__E1))
-        this_hash = this_hash.__xor__(hash(self.__E2))
-        this_hash = this_hash.__xor__(hash(self.__base_field))
+        this_hash ^= hash(self.__E1)
+        this_hash ^= hash(self.__E2)
+        this_hash ^= hash(self.__base_field)
 
         self.__this_hash = this_hash
 
@@ -1355,9 +1355,8 @@ class EllipticCurveIsogeny(Morphism):
             'Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y = x^3 + x + 9 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - 59*x + 165 over Rational Field'
 
         """
-        return 'Isogeny of degree ' + self.__degree.__repr__() + ' from ' + \
-                 self.__E1.__repr__() + ' to ' + self.__E2.__repr__()
-
+        return 'Isogeny of degree %r from %r to %r' % (
+                self.__degree, self.__E1, self.__E2)
 
     def _latex_(self):
         r"""
@@ -2603,7 +2602,7 @@ class EllipticCurveIsogeny(Morphism):
         # thesis are wrong, the correct formulas
         # are coded below
 
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         for j  in xrange(0,n-1):
             psi_prpr = psi_prpr + \

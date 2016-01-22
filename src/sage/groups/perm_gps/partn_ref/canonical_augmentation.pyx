@@ -146,13 +146,14 @@ NOTE:
     iterate over augmentations in such a way that all children of the same degree
     are given in the same segment of iteration.
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.canonical_augmentation
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Isomorph-free exhaustive generation. J Algorithms,
-        Vol. 26 (1998), pp. 306-324.
+- [1] McKay, Brendan D. Isomorph-free exhaustive generation. J Algorithms,
+  Vol. 26 (1998), pp. 306-324.
 
 """
 

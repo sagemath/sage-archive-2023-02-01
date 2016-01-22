@@ -60,7 +60,7 @@ def assert_success(rc, good=None, bad=None):
     traceback.print_stack(file=sys.stdout)
     print('-'*60)
     if bad is not None:
-        print('Error: ', bad)
+        print('Error:', bad)
     sys.exit(rc)
 
 
@@ -247,13 +247,18 @@ def configure(arch=None, isa_ext=None):
     - ``arch`` -- ``None`` or one of ``ATLAS_MACHTYPE``
 
     - ``isa_ext`` -- ``None`` or a sublist of ``ATLAS_ISAEXT``
+
+    OUTPUT: 0 if ``configure`` was successful, 1 if it failed.
     """
-    if arch is None:
-        arch, isa_ext, thread_limit = configure_options_from_environment()
-    if arch=='fast':
-        arch, isa_ext, thread_limit = configure_fast()
-    if arch=='generic' or arch=='base':
-        arch, isa_ext, thread_limit = configure_base()
+    try:
+        if arch is None:
+            arch, isa_ext, thread_limit = configure_options_from_environment()
+        if arch == 'fast':
+            arch, isa_ext, thread_limit = configure_fast()
+        if arch == 'generic' or arch == 'base':
+            arch, isa_ext, thread_limit = configure_base()
+    except NotImplementedError:
+        return 1
 
     print('Running configure with arch = '+str(arch)+ \
         ', isa extensions '+str(isa_ext), ' thread limit '+str(thread_limit))
@@ -292,8 +297,9 @@ def configure(arch=None, isa_ext=None):
     ## typically adds 3-4 hours of install time
     cmd += ' -Si latune 0'
 
-    # -Fa alg -fPIC: set flags so we can build dynamic libraries
-    cmd += ' -Fa alg -fPIC'
+    # Set flags for all compilers so we can build dynamic libraries
+    ALLFLAGS = "-fPIC " + os.environ["LDFLAGS"]
+    cmd += ' -Fa alg "{}"'.format(ALLFLAGS)
 
     # set number of threads limit: 0 = off, -1 = unlimited
     if thread_limit is not None:
@@ -339,6 +345,10 @@ def configure(arch=None, isa_ext=None):
     if isa_ext is not None:
         isa_extension = sum(1 << ATLAS_ISAEXT.index(x) for x in isa_ext)
         cmd += ' -V '+str(isa_extension)
+
+    # Custom configure options
+    if conf['user']:
+        cmd += " " + conf['user']
 
     rc = system_with_flush(cmd)
     make_check_enums()
@@ -452,7 +462,10 @@ def build(arch=None, isa_ext=None):
     Return ``0`` if successfull.
     """
     rc = configure(arch, isa_ext)
-    assert_success(rc, bad='Configure failed.', good='Finished configuring ATLAS.')
+    if rc:
+        print("Configure failed.")
+        return rc
+    print("Finished configuring ATLAS.")
     return make_atlas()
 
 def build_tuning():

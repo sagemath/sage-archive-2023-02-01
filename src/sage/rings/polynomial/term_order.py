@@ -1879,7 +1879,7 @@ class TermOrder(SageObject):
             sage: T1 != T2
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __add__(self, other):
         """

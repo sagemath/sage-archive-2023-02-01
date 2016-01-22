@@ -319,7 +319,9 @@ the state of Sage, so that the examples below work!
 See http://matplotlib.sourceforge.net for complete documentation
 about how to use Matplotlib.
 
-TESTS: We test dumping and loading a plot.
+TESTS:
+
+We test dumping and loading a plot.
 
 ::
 
@@ -912,6 +914,13 @@ def plot(funcs, *args, **kwds):
         sage: p1 + p2
         Graphics object consisting of 2 graphics primitives
 
+    Prior to :trac:`19485`, legends by default had a shadowless gray
+    background. This behavior can be recovered by setting the legend
+    options on your plot object::
+
+        sage: p = plot(sin(x), legend_label='$\sin(x)$')
+        sage: p.set_legend_options(back_color=(0.9,0.9,0.9), shadow=False)
+
     Note that the independent variable may be omitted if there is no
     ambiguity::
 
@@ -1270,6 +1279,13 @@ def plot(funcs, *args, **kwds):
         Graphics object consisting of 3 graphics primitives
 
         sage: set_verbose(0)
+
+    Legends can contain variables with long names, :trac:`13543`::
+
+        sage: hello = var('hello')
+        sage: label = '$' + latex(hello) + '$'
+        sage: plot(x, x, 0, 1, legend_label=label)
+        Graphics object consisting of 1 graphics primitive
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
@@ -2075,7 +2091,7 @@ def plot_loglog(funcs, *args, **kwds):
     Plot graphics in 'loglog' scale, that is, both the horizontal and the
     vertical axes will be in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1. The base can be also given as a list or tuple
@@ -2110,7 +2126,7 @@ def plot_semilogx(funcs, *args, **kwds):
     Plot graphics in 'semilogx' scale, that is, the horizontal axis will be
     in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1.
@@ -2138,7 +2154,7 @@ def plot_semilogy(funcs, *args, **kwds):
     Plot graphics in 'semilogy' scale, that is, the vertical axis will be
     in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1.
@@ -2166,7 +2182,7 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
     Plot the ``data`` in 'loglog' scale, that is, both the horizontal and the
     vertical axes will be in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1. The base can be also given as a list or tuple
@@ -2219,7 +2235,7 @@ def list_plot_semilogx(data, plotjoined=False, **kwds):
     Plot ``data`` in 'semilogx' scale, that is, the horizontal axis will be
     in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1.
@@ -2263,7 +2279,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
     Plot ``data`` in 'semilogy' scale, that is, the vertical axis will be
     in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1.

@@ -110,7 +110,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``var`` -- a string for the variable name.
 
-        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+        - ``precision`` -- (default: ``None``) an integer `\ge 3`. If ``None``, then
           the default precision of the asymptotic ring is used.
 
         - ``skip_constant_factor`` -- (default: ``False``) a
@@ -145,12 +145,23 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: _.parent()
             Asymptotic Ring <(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ>
             over Rational Field
+            sage: asymptotic_expansions.Stirling('m', precision=4)
+            sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(1/2) +
+            O(e^(m*log(m))*(e^m)^(-1)*m^(-1/2))
+            sage: asymptotic_expansions.Stirling('m', precision=3)
+            O(e^(m*log(m))*(e^m)^(-1)*m^(1/2))
+            sage: asymptotic_expansions.Stirling('m', precision=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: precision must be at least 3
         """
+        if precision < 3:
+            raise ValueError("precision must be at least 3")
         log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
             var, precision=precision, skip_constant_summand=True)
 
         P = log_Stirling.parent().change_parameter(
-            growth_group='(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ')
+            growth_group='(e^({n}*log({n})))^QQ * (e^{n})^QQ * {n}^QQ * log({n})^QQ'.format(n=var))
         from sage.functions.log import exp
         result = exp(P(log_Stirling))
 
@@ -212,6 +223,29 @@ class AsymptoticExpansionGenerators(SageObject):
             1/1260*n^(-5) + O(n^(-7))
             sage: _.parent()
             Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=0)
+            O(n*log(n))
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=1)
+            n*log(n) + O(n)
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=2)
+            n*log(n) - n + O(log(n))
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=3)
+            n*log(n) - n + 1/2*log(n) + O(1)
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=4)
+            n*log(n) - n + 1/2*log(n) + 1/2*log(2*pi) + O(n^(-1))
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=5)
+            n*log(n) - n + 1/2*log(n) + 1/2*log(2*pi) + 1/12*n^(-1)
+            + O(n^(-3))
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'm', precision=7, skip_constant_summand=True)
+            m*log(m) - m + 1/2*log(m) + 1/12*m^(-1) - 1/360*m^(-3) +
+            1/1260*m^(-5) + O(m^(-7))
         """
         if not skip_constant_summand:
             from sage.symbolic.ring import SR
@@ -221,7 +255,7 @@ class AsymptoticExpansionGenerators(SageObject):
             coefficient_ring = QQ
 
         from asymptotic_ring import AsymptoticRing
-        A = AsymptoticRing(growth_group='%s^ZZ * log(%s)^ZZ' % ((var,)*2),
+        A = AsymptoticRing(growth_group='{n}^ZZ * log({n})^ZZ'.format(n=var),
                            coefficient_ring=coefficient_ring)
         n = A.gen()
 
@@ -240,11 +274,21 @@ class AsymptoticExpansionGenerators(SageObject):
             result += log(2*coefficient_ring('pi')) / 2
 
         from sage.misc.misc import srange
-        from sage.rings.arith import bernoulli
+        from sage.arith.all import bernoulli
         for k in srange(2, 2*precision - 6, 2):
             result += bernoulli(k) / k / (k-1) / n**(k-1)
 
-        result += (1 / n**(2*precision - 7)).O()
+        if precision < 1:
+            result += (n * log(n)).O()
+        elif precision == 1:
+            result += n.O()
+        elif precision == 2:
+            result += log(n).O()
+        elif precision == 3:
+            result += A(1).O()
+        else:
+            result += (1 / n**(2*precision - 7)).O()
+
         return result
 
 

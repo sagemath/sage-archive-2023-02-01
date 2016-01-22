@@ -22,21 +22,17 @@ REFERENCES:
 
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
+from __future__ import division
 
 import numpy as np
 cimport numpy as np
@@ -75,7 +71,6 @@ cdef class PeriodicRegion:
         """
         if data.dtype is not np.int8:
             data = data.astype(np.int8)
-        full = int(full)
         self.w1 = w1
         self.w2 = w2
         self.data = data
@@ -244,9 +239,9 @@ cdef class PeriodicRegion:
             dw2 /= 2
             for i in range(2*m):
                 for j in range(2*n):
-                    if less[i/2, j/2]:
+                    if less[i//2, j//2]:
                         new_data[i,j] = True
-                    elif fuzz[i/2, j/2]:
+                    elif fuzz[i//2, j//2]:
                         new_data[i,j] = condition(dw1*(i+.5) + dw2*(j+.5))
         return PeriodicRegion(self.w1, self.w2, new_data, self.full).refine(condition, times-1)
 
@@ -370,7 +365,7 @@ cdef class PeriodicRegion:
         m, n = self.data.shape
         return self.data[int(m * i), int(n * j)]
 
-    def __div__(self, unsigned int n):
+    def __truediv__(self, unsigned int n):
         """
         Returns a new region of the same resolution that is the image
         of this region under the map z -> z/n.
@@ -445,6 +440,9 @@ cdef class PeriodicRegion:
                         for b in range(n):
                             new_data[(a*rows+i)//n, (b*cols+j)//n] = data[i,j]
         return PeriodicRegion(self.w1, self.w2, new_data)
+
+    def __div__(self, other):
+        return self / other
 
     def __invert__(self):
         """

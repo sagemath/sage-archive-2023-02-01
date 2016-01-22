@@ -1099,7 +1099,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         If there exists a homomorphism `\phi` from a group `G` to the
         automorphism group of a group `H`, then we can define the semidirect
-        product of `G` with `H` via `\phi` as the cartesian product of `G`
+        product of `G` with `H` via `\phi` as the Cartesian product of `G`
         and `H` with the operation
 
         .. MATH::
@@ -1352,7 +1352,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
               From: Finitely presented group < x | x >
               To:   Finitely presented group <  |  >
 
-        ALGORITM:
+        ALGORITHM:
 
         Uses GAP.
         """

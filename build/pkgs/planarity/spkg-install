@@ -17,4 +17,7 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19723)
+cp "$SAGE_ROOT"/config/config.* .
+
 ./configure --prefix="$SAGE_LOCAL" && $MAKE install

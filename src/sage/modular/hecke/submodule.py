@@ -19,7 +19,7 @@ Submodules of Hecke modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method
 

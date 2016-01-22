@@ -218,7 +218,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.number_field.number_field_base cimport NumberField
 
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
@@ -492,7 +492,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         Construct a new element in this polynomial ring by converting
         ``element`` into ``self`` if possible.
 
-        INPUT::
+        INPUT:
 
         - ``element`` -- several types are supported, see below
 
@@ -1371,14 +1371,14 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
+            digits = sage.arith.all.ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order)
 
         elif is_ComplexField(base_ring):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
+            digits = sage.arith.all.ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
 
         elif base_ring.is_prime_field():
@@ -3305,6 +3305,20 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ....: except OverflowError:
             ....:   print "overflow"
             overflow
+
+        Check that there is no more segmentation fault if the polynomial gets 0
+        in the middle of a substitution (:trac:`17785`)::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: for vx in [0,x,y,z]:
+            ....:     for vy in [0,x,y,z]:
+            ....:         for vz in [0,x,y,z]:
+            ....:             d = {x:vx, y:vy, z:vz}
+            ....:             ds = {'x': vx, 'y': vy, 'z': vz}
+            ....:             assert x.subs(d) == x.subs(**ds) == vx
+            ....:             assert y.subs(d) == y.subs(**ds) == vy
+            ....:             assert z.subs(d) == z.subs(**ds) == vz
+            ....:             assert (x+y).subs(d) == (x+y).subs(**ds) == vx+vy
         """
         cdef int mi, i, need_map, try_symbolic
 
@@ -3323,8 +3337,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         need_map = 0
         try_symbolic = 0
 
-        if self.is_zero():
-            # there is nothing to do except to change the ring
+        if _p == NULL:
+            # the polynomial is 0. There is nothing to do except to change the
+            # ring
             try_symbolic = 1
 
         if not try_symbolic and fixed is not None:
@@ -3361,6 +3376,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                         raise OverflowError("Exponent overflow (%d)."%(degree))
                     to_id.m[mi-1] = p_Copy(_f, _ring)
 
+                if _p == NULL:
+                    # polynomial becomes 0 after some substitution
+                    try_symbolic = 1
+                    break
+
+        cdef dict gd
+
         if not try_symbolic:
             gd = parent.gens_dict()
             for m,v in kw.iteritems():
@@ -3392,6 +3414,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                         raise OverflowError("Exponent overflow (%d)."%(degree))
                     need_map = 1
 
+                if _p == NULL:
+                    # the polynomial is 0
+                    try_symbolic = 1
+                    break
+
             if need_map:
                 for mi from 0 <= mi < _ring.N:
                     if to_id.m[mi] == NULL:
@@ -3417,9 +3444,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if not try_symbolic:
             return new_MP(parent,_p)
 
-        # now as everything else failed, try to do it symbolically as in call
+        # now as everything else failed, try to do it symbolically with call
 
-        g = list(parent.gens())
+        cdef list g = list(parent.gens())
 
         if fixed is not None:
             for m,v in fixed.iteritems():
@@ -3431,9 +3458,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                             mi = i
                             break
                     if i > _ring.N:
-                        raise TypeError, "key does not match"
+                        raise TypeError("key does not match")
                 else:
-                    raise TypeError, "keys do not match self's parent"
+                    raise TypeError("keys do not match self's parent")
 
                 g[mi-1] = v
 
@@ -3445,7 +3472,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     mi = i
                     break
             if i > _ring.N:
-                raise TypeError, "key does not match"
+                raise TypeError("key does not match")
 
             g[mi-1] = v
 

@@ -31,7 +31,7 @@ from sage.matrix.matrix import is_Matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
 from sage.misc.functional import denominator, is_even, is_field
-from sage.rings.arith import GCD, LCM
+from sage.arith.all import GCD, LCM
 from sage.rings.principal_ideal_domain import is_PrincipalIdealDomain
 from sage.rings.all import Ideal
 from sage.rings.ring import is_Ring
@@ -375,6 +375,10 @@ class QuadraticForm(SageObject):
             is_locally_equivalent_to, \
             has_equivalent_Jordan_decomposition_at_prime, \
             is_rationally_isometric
+
+    ## Routines for solving equations of the form Q(x) = c.
+    from sage.quadratic_forms.qfsolve import solve
+        
 
     def __init__(self, R, n=None, entries=None, unsafe_initialization=False, number_of_automorphisms=None, determinant=None):
         """

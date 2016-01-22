@@ -4,4 +4,4 @@
 # needs to have the mathjax_url set to wherever your distribution
 # installs mathjax.
 
-c.NotebookApp.mathjax_url = '../nbextensions/mathjax/MathJax.js'
+c.NotebookApp.mathjax_url = 'nbextensions/mathjax/MathJax.js'

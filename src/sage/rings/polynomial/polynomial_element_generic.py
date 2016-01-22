@@ -842,7 +842,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
 
         if algorithm is None:
             if self.base_ring() == ZZ:

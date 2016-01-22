@@ -142,7 +142,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: G.character(0, [1]).multiplicative_order()
             1
         """
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         from sage.rings.infinity import Infinity
         if self._values_on_gens[-1].multiplicative_order() == Infinity:
             return Infinity

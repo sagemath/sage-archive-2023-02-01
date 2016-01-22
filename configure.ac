@@ -324,21 +324,6 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
-# To build Python on multi-arch Debian-based systems, we need
-# dpkg-architecture. Since we need dpkg-architecture to determine
-# whether we're on a multi-arch system and require dpkg-architecture,
-# we simply require it always on Debian-based systems.
-AC_CHECK_PROG(found_dpkg, dpkg, yes, no)
-AC_CHECK_PROG(found_dpkg_arch, dpkg-architecture, yes, no)
-if test x$found_dpkg = xyes && test x$found_dpkg_arch = xno
-then
-    AC_MSG_NOTICE([You do not have 'dpkg-architecture', which is required to build])
-    AC_MSG_NOTICE([Python on multi-arch Debian-based systems. This includes all recent])
-    AC_MSG_NOTICE([Debian and Ubuntu systems. You can install this with:])
-    AC_MSG_NOTICE([  sudo apt-get install dpkg-dev])
-    AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on Debian])
-fi
-
 
 ###############################################################################
 # Check C/C++/Fortran compilers
@@ -433,6 +418,11 @@ AC_CHECK_HEADER([complex.h],[],[
 # Check compiler characteristics
 ###############################################################################
 
+AX_CXX_COMPILE_STDCXX_11([], optional)
+if test $HAVE_CXX11 != 1; then
+    SAGE_MUST_INSTALL_GCC([your C++ compiler does not support C++11])
+fi
+
 AC_LANG(C)
 if test -z "$CC"; then
     SAGE_MUST_INSTALL_GCC([a C compiler is missing])
@@ -489,37 +479,9 @@ else
     # Add the .0 because Debian/Ubuntu gives version numbers like
     # 4.6 instead of 4.6.4 (Trac #18885)
     case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-3]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.4.
-            # * gcc-4.2.4 compiles a slow IML:
-            # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/Ux3t0dW2FSI
-            # * gcc-4.3 might have trouble building ATLAS:
-            # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/KCeFqQ_w2FE
+        [[0-3]].*|4.[[0-7]].*)
+            # Install our own GCC if the system-provided one is older than gcc-4.8.
             SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
-        4.4.*|4.5.*)
-            # GCC 4.4.x and GCC 4.5.x fail to compile PARI/GP on ia64:
-            # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46044
-            if test x`uname -m` = xia64; then
-                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION on ia64])
-                AC_MSG_NOTICE([gcc <= 4.5 fails to compile PARI/GP on ia64])
-            fi;;
-        4.6.*)
-            # Also install GCC if we have version 4.6.* which is
-            # known to give trouble within Sage:
-            # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
-            # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
-            # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52061
-            # * https://groups.google.com/d/msg/sage-release/xgmJ3nAcUOY/jH8OZjftYRsJ
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION])
-            AC_MSG_NOTICE([g++-4.6.* has known bugs affecting Sage]);;
-        4.7.0)
-            # GCC 4.7.0 is very broken on ia64, see
-            # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
-            # This is fixed in GCC 4.7.1.
-            if test x`uname -m` = xia64; then
-                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION on ia64])
-                AC_MSG_NOTICE([g++-4.7.0 has a serious bug on ia64])
-            fi;;
     esac
 
     # The following tests check that the version of the compilers
@@ -760,8 +722,9 @@ filtered_packages_list() {
            [ "$PKG_TYPE" != "standard" ] && \
            [ "$PKG_TYPE" != "optional" ] && \
            [ "$PKG_TYPE" != "experimental" ] && \
+           [ "$PKG_TYPE" != "script" ] && \
            [ "$PKG_TYPE" != "pip" ]; then
-            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental' or 'pip'"
+            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'"
             return 1
         fi
 
@@ -890,6 +853,8 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
         DEPS=" $(head -n 1 $DEP_FILE)"
     elif [ "$TYPE" = optional ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
+    elif [ "$TYPE" = script ]; then
+        DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
     elif [ "$TYPE" = pip ]; then
         DEPS=' | $(INST)/$(PIP)'
     else
@@ -905,6 +870,20 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
         # Add a target to remove the "installed" file for "sage -f"
         echo >&7 "$PKG_NAME-clean:"
         echo >&7 "	-sage --pip uninstall -y $PKG_NAME"
+        echo >&7
+    elif [ "$TYPE" = script ]; then
+        # Just run the spkg-install script
+        echo >&7 "$PKG_NAME:$DEPS"
+        echo >&7 "	cd '$SAGE_ROOT' && \\"
+        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
+        echo >&7 "	    sage-logger '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7
+
+        # Just run the spkg-uninstall script if it exists
+        echo >&7 "$PKG_NAME-clean:"
+        echo >&7 "	-cd '$SAGE_ROOT' && \\"
+        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
+        echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
         echo >&7
     else
         # Normal Sage packages
@@ -946,6 +925,16 @@ AC_CONFIG_COMMANDS(mkdirs,
                 AC_MSG_NOTICE([creating directory $d])
                 mkdir -p "$d" || AC_MSG_ERROR(could not create $d)
         done
+
+        if test -d "$SAGE_LOCAL/lib64"; then
+            if test ! -L "$SAGE_LOCAL/lib64"; then
+                AC_MSG_NOTICE([[$SAGE_LOCAL/lib64 is not a symlink, see Trac #19782]])
+                AC_MSG_ERROR([[Cannot perform incremental update, run "make distclean && make"]])
+            fi
+        else
+            AC_MSG_NOTICE([[creating symbolic link lib64 -> lib]])
+            ln -s lib "$SAGE_LOCAL/lib64"
+        fi
     ])
 
 AC_OUTPUT()

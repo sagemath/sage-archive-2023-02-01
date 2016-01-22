@@ -226,7 +226,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
             r"""
             Implements :meth:`CoxeterGroups.ElementMethods.apply_simple_reflection`.
 
-            EXEMPLES::
+            EXAMPLES::
 
                 sage: D5 = FiniteCoxeterGroups().example(5)
                 sage: [i^2 for i in D5]

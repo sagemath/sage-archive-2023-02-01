@@ -64,7 +64,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
-from sage.rings.arith import binomial, integer_ceil as ceil
+from sage.arith.all import binomial, integer_ceil as ceil
 from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 

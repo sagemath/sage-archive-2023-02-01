@@ -820,7 +820,7 @@ cdef class SymbolicRing(CommutativeRing):
         Note that you make get unexpected results when calling
         symbolic expressions and not explicitly giving the variables::
 
-            sage: f = function('Gamma', var('z'), var('w')); f
+            sage: f = function('Gamma')(var('z'), var('w')); f
             Gamma(z, w)
             sage: f(2)
             Gamma(z, 2)
@@ -970,7 +970,7 @@ cdef unsigned sage_domain_to_ginac_domain(object domain) except -1:
     else:
         raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 
-cdef send_sage_domain_to_maxima(Expression v, object domain) except +:
+cdef void send_sage_domain_to_maxima(Expression v, object domain) except +:
     from sage.symbolic.assumptions import assume
     # convert the domain argument to something easy to parse
     if domain is RR or domain == 'real':

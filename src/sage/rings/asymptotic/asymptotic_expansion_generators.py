@@ -458,7 +458,7 @@ class AsymptoticExpansionGenerators(SageObject):
           the default precision of the asymptotic ring is used.
 
         - ``skip_constant_factor`` -- (default: ``False``) a
-          boolean. If set, then the constant summand is left out.
+          boolean. If set, then the constant factor is left out.
           As a consequence, the coefficient ring of the output changes
           from ``Symbolic Constants Subring`` (if ``False``) to
           ``Rational Field`` (if ``True``).
@@ -646,7 +646,7 @@ def _sa_coefficients_e_(K, alpha):
 
 def _sa_coefficients_lambda_(K):
     r"""
-    Return the coefficient `e_k` used in singularity analysis.
+    Return the coefficients `\lambda_{k, \ell}` used in singularity analysis.
 
     INPUT:
 

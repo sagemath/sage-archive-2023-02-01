@@ -1549,7 +1549,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         if self.parent().zeta.is_in_cache():
             return self.element().additive_order()
-        return arith.lcm([z.multiplicative_order() for z in self.values_on_gens()])
+        return lcm([z.multiplicative_order() for z in self.values_on_gens()])
 
     def primitive_character(self):
         """
@@ -2153,7 +2153,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         if is_ComplexField(R):
             for i in range(1, zeta_order):
                 a = a * zeta
-                a._set_multiplicative_order(zeta_order/arith.gcd(zeta_order, i))
+                a._set_multiplicative_order(zeta_order/gcd(zeta_order, i))
                 w.append(a)
         else:
             for i in range(1, zeta_order):

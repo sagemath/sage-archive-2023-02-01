@@ -49,7 +49,7 @@ examples.
    :widths: 4 12
    :header-rows: 0
 
-   * - :meth:`~AsymptoticExpansionGenerators.harmonic_number`
+   * - :meth:`~AsymptoticExpansionGenerators.HarmonicNumber`
      - harmonic numbers
 
    * - :meth:`~AsymptoticExpansionGenerators.Stirling`
@@ -101,7 +101,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     The asymptotic expansions currently in this class include:
 
-    - :meth:`~harmonic_number`
+    - :meth:`~HarmonicNumber`
     - :meth:`~Stirling`
     - :meth:`~log_Stirling`
     - :meth:`~Binomial_kn_over_n`
@@ -299,7 +299,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
 
     @staticmethod
-    def harmonic_number(var, precision=None, skip_constant_summand=False):
+    def HarmonicNumber(var, precision=None, skip_constant_summand=False):
         r"""
         Return the asymptotic expansion of a harmonic number.
 
@@ -322,12 +322,12 @@ class AsymptoticExpansionGenerators(SageObject):
 
         EXAMPLES::
 
-            sage: asymptotic_expansions.harmonic_number('n', precision=5)
+            sage: asymptotic_expansions.HarmonicNumber('n', precision=5)
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4) + O(n^(-6))
 
         TESTS::
 
-            sage: asymptotic_expansions.harmonic_number('n')
+            sage: asymptotic_expansions.HarmonicNumber('n')
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             - 1/252*n^(-6) + 1/240*n^(-8) - 1/132*n^(-10)
             + 691/32760*n^(-12) - 1/12*n^(-14) + 3617/8160*n^(-16)
@@ -341,20 +341,20 @@ class AsymptoticExpansionGenerators(SageObject):
 
         ::
 
-            sage: asymptotic_expansions.harmonic_number(
+            sage: asymptotic_expansions.HarmonicNumber(
             ....:     'n', precision=5, skip_constant_summand=True)
             log(n) + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4) + O(n^(-6))
             sage: _.parent()
             Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
             sage: for p in range(5):
-            ....:     print asymptotic_expansions.harmonic_number(
+            ....:     print asymptotic_expansions.HarmonicNumber(
             ....:         'n', precision=p)
             O(log(n))
             log(n) + O(1)
             log(n) + euler_gamma + O(n^(-1))
             log(n) + euler_gamma + 1/2*n^(-1) + O(n^(-2))
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + O(n^(-4))
-            sage: asymptotic_expansions.harmonic_number('m', precision=5)
+            sage: asymptotic_expansions.HarmonicNumber('m', precision=5)
             log(m) + euler_gamma + 1/2*m^(-1) - 1/12*m^(-2) + 1/120*m^(-4) + O(m^(-6))
         """
         if not skip_constant_summand:

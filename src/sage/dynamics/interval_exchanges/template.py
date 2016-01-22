@@ -251,7 +251,7 @@ class Permutation(SageObject):
     r"""
     Template for all permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -790,7 +790,7 @@ class PermutationIET(Permutation):
     """
     Template for permutation from Interval Exchange Transformation.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1560,7 +1560,7 @@ class PermutationIET(Permutation):
 
     def to_permutation(self):
         r"""
-        Returns the permutation as an element of the symetric group.
+        Returns the permutation as an element of the symmetric group.
 
         EXAMPLES::
 
@@ -1582,7 +1582,7 @@ class PermutationLI(Permutation):
     r"""
     Template for quadratic permutation.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1857,7 +1857,7 @@ class FlippedPermutation(Permutation):
     r"""
     Template for flipped generalized permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1916,7 +1916,7 @@ class FlippedPermutationIET(FlippedPermutation, PermutationIET):
     r"""
     Template for flipped Abelian permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1945,7 +1945,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
     r"""
     Template for flipped quadratic permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1981,7 +1981,7 @@ class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
 
-    .. warning:
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -2600,27 +2600,30 @@ class RauzyDiagram(SageObject):
                  top_bottom_inversion=False,
                  symmetric=False):
         r"""
-        self._succ contains successors
-        self._pred contains predecessors
+        - ``self._succ`` contains successors
 
-        self._element_class is the class of elements of self
-        self._element is an instance of this class (hence contains the alphabet,
-        the representation mode, ...). It is used to store data about property
-        of permutations and also as a fast iterator.
+        - ``self._pred`` contains predecessors
 
-         INPUT:
+        - ``self._element_class`` is the class of elements of ``self``
 
-         - ``right_induction`` - boolean or 'top' or 'bottom': consider the
-         right induction
+        - ``self._element`` is an instance of this class (hence
+          contains the alphabet, the representation mode, ...). It is
+          used to store data about property of permutations and also as
+          a fast iterator.
 
-         - ``left_induction`` - boolean or 'top' or 'bottom': consider the
-         left induction
+        INPUT:
 
-         - ``left_right_inversion`` - consider the left right inversion
+        - ``right_induction`` - boolean or 'top' or 'bottom': consider the
+          right induction
 
-         - ``top_bottom_inversion`` - consider the top bottom inversion
+        - ``left_induction`` - boolean or 'top' or 'bottom': consider the
+          left induction
 
-         - ``symmetric`` - consider the symmetric
+        - ``left_right_inversion`` - consider the left right inversion
+
+        - ``top_bottom_inversion`` - consider the top bottom inversion
+
+        - ``symmetric`` - consider the symmetric
 
         TESTS::
 
@@ -3529,7 +3532,7 @@ class FlippedRauzyDiagram(RauzyDiagram):
     r"""
     Template for flipped Rauzy diagrams.
 
-    .. warning:
+    .. WARNING::
 
         Internal class! Do not use directly!
 

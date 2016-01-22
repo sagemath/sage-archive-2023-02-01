@@ -19,6 +19,7 @@ from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.topological_spaces import TopologicalSpacesCategory
 
 class Groups(CategoryWithAxiom):
     """
@@ -480,6 +481,7 @@ class Groups(CategoryWithAxiom):
             return self.parent().conjugacy_class(self)
 
     Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
+    Lie = LazyImport('sage.categories.lie_groups', 'LieGroups', 'Lie')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
     class Commutative(CategoryWithAxiom):
@@ -841,7 +843,7 @@ class Groups(CategoryWithAxiom):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of groups constructed as cartesian products of groups.
+        The category of groups constructed as Cartesian products of groups.
 
         This construction gives the direct product of groups. See
         :wikipedia:`Direct_product` and :wikipedia:`Direct_product_of_groups`
@@ -849,7 +851,7 @@ class Groups(CategoryWithAxiom):
         """
         def extra_super_categories(self):
             """
-            A cartesian product of groups is endowed with a natural
+            A Cartesian product of groups is endowed with a natural
             group structure.
 
             EXAMPLES::
@@ -894,7 +896,7 @@ class Groups(CategoryWithAxiom):
                     sage: H = Groups.free(ZZ)
                     sage: C = cartesian_product([G, H])
                     sage: C.monoid_generators()
-                    Lazy family (gen(i))_{i in The cartesian product of (...)}
+                    Lazy family (gen(i))_{i in The Cartesian product of (...)}
                 """
                 F = self.cartesian_factors()
                 ids = tuple(G.one() for G in F)
@@ -914,6 +916,7 @@ class Groups(CategoryWithAxiom):
                 # Infinitely generated
                 # This does not return a good output, but it is "correct"
                 # TODO: Figure out a better way to do things
+                from sage.categories.cartesian_product import cartesian_product
                 gens_prod = cartesian_product([Family(G.group_generators(),
                                                       lambda g: (i, g))
                                                for i,G in enumerate(F)])
@@ -942,3 +945,15 @@ class Groups(CategoryWithAxiom):
                 """
                 from sage.misc.misc_c import prod
                 return prod(c.cardinality() for c in self.cartesian_factors())
+
+    class Topological(TopologicalSpacesCategory):
+        """
+        Category of topological groups.
+
+        A topological group `G` is a group which has a topology such that
+        multiplication and taking inverses are continuous functions.
+
+        REFERENCES:
+
+        - :wikipedia:`Topological_group`
+        """

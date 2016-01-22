@@ -14,6 +14,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import itertools
+
 from sage.structure.list_clone import ClonableArray, ClonableList
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -453,7 +456,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     @combinatorial_map(name="To poset")
     def to_poset(self, root_to_leaf=False):
         r"""
-        Return the poset obtained by interpreting the tree as a hasse
+        Return the poset obtained by interpreting the tree as a Hasse
         diagram. The default orientation is from leaves to root but you can
         pass ``root_to_leaf=True`` to obtain the inverse orientation.
 
@@ -782,7 +785,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
 
     - ``size`` -- (optional) an integer
 
-    OUPUT:
+    OUTPUT:
 
     - the set of all ordered trees (of the given ``size`` if specified)
 
@@ -940,7 +943,6 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.composition import Compositions
-from sage.combinat.cartesian_product import CartesianProduct
 #################################################################
 # Enumerated set of binary trees of a given size
 #################################################################
@@ -1073,7 +1075,7 @@ class OrderedTrees_size(OrderedTrees):
             return
         else:
             for c in Compositions(self._size - 1):
-                for lst in CartesianProduct(*[self.__class__(_) for _ in c]):
+                for lst in itertools.product(*[self.__class__(_) for _ in c]):
                     yield self._element_constructor_(lst)
 
     @lazy_attribute

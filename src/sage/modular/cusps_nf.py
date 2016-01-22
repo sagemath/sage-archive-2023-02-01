@@ -638,6 +638,7 @@ class NFCusp(Element):
         String representation of this cusp.
 
         EXAMPLES::
+
             sage: k.<a> = NumberField(x^2 + 1)
             sage: c = NFCusp(k, a, 2); c
             Cusp [a: 2] of Number Field in a with defining polynomial x^2 + 1
@@ -799,9 +800,8 @@ class NFCusp(Element):
             sage: k.<a> = NumberField(x^3 + x + 1)
             sage: kCusps = NFCusps(k)
 
-        Comparing with infinity:
+        Comparing with infinity::
 
-        ::
             sage: c = kCusps((a,2))
             sage: d = kCusps(oo)
             sage: c < d
@@ -809,9 +809,7 @@ class NFCusp(Element):
             sage: kCusps(oo) < d
             False
 
-        Comparison as elements of the number field:
-
-        ::
+        Comparison as elements of the number field::
 
             sage: kCusps(2/3) < kCusps(5/2)
             False
@@ -1154,7 +1152,7 @@ def Gamma0_NFCusps(N):
             g = (A*B).gens_reduced()[0]
 
         #for every divisor of N we have to find cusps
-        from sage.rings.arith import divisors
+        from sage.arith.all import divisors
         for d in divisors(N):
             #find delta prime coprime to B in inverse class of d*A
             #by searching in our list of auxiliary prime ideals
@@ -1209,7 +1207,7 @@ def number_of_Gamma0_NFCusps(N):
     """
     k = N.number_field()
     # The number of Gamma0(N)-sub-orbits for each Gamma-orbit:
-    from sage.rings.arith import divisors
+    from sage.arith.all import divisors
     s = sum([len(list((d+N/d).invertible_residues_mod(k.unit_group().gens()))) \
                                                 for d in divisors(N)])
     # There are h Gamma-orbits, with h class number of underlying number field.

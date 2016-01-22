@@ -138,7 +138,7 @@ variables. For example::
 
     sage: mip.<a,b> = MixedIntegerLinearProgram()
     sage: a
-    MIPVariable of dimension 1.
+    MIPVariable of dimension 1
     sage: 5 + a[1] + 2*b[3]
     5 + x_0 + 2*x_1
 
@@ -174,10 +174,13 @@ also implements the :class:`MIPSolverException` exception, as well as the
 
     :meth:`~MixedIntegerLinearProgram.add_constraint`            | Adds a constraint to the ``MixedIntegerLinearProgram``
     :meth:`~MixedIntegerLinearProgram.base_ring`                 | Return the base ring
+    :meth:`~MixedIntegerLinearProgram.best_known_objective_bound`| Return the value of the currently best known bound
     :meth:`~MixedIntegerLinearProgram.constraints`               | Returns a list of constraints, as 3-tuples
     :meth:`~MixedIntegerLinearProgram.get_backend`               | Returns the backend instance used
     :meth:`~MixedIntegerLinearProgram.get_max`                   | Returns the maximum value of a variable
     :meth:`~MixedIntegerLinearProgram.get_min`                   | Returns the minimum value of a variable
+    :meth:`~MixedIntegerLinearProgram.get_objective_value`       | Return the value of the objective function
+    :meth:`~MixedIntegerLinearProgram.get_relative_objective_gap`| Return the relative objective gap of the best known solution
     :meth:`~MixedIntegerLinearProgram.get_values`                | Return values found by the previous call to ``solve()``
     :meth:`~MixedIntegerLinearProgram.is_binary`                 | Tests whether the variable ``e`` is binary
     :meth:`~MixedIntegerLinearProgram.is_integer`                | Tests whether the variable is an integer
@@ -402,10 +405,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: del p
             sage: def just_create_variables():
-            ...       p = MixedIntegerLinearProgram()
-            ...       b = p.new_variable(nonnegative=True)
-            ...       p.add_constraint(b[3]+b[6] <= 2)
-            ...       p.solve()
+            ....:     p = MixedIntegerLinearProgram()
+            ....:     b = p.new_variable(nonnegative=True)
+            ....:     p.add_constraint(b[3]+b[6] <= 2)
+            ....:     p.solve()
             sage: C = sage.numerical.mip.MixedIntegerLinearProgram
             sage: import gc
             sage: _ = gc.collect()  # avoid side effects of other doc tests
@@ -422,17 +425,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: sum([1 for x in gc.get_objects() if isinstance(x,C)])
             0
             sage: gc.enable()
-
-        Right now the ``nonnegative`` argument is mandatory when a variable is
-        created, but later the default will change from nonnegative variables to
-        unbounded variables::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(real=True)
-            doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
-            See http://trac.sagemath.org/15521 for details.
-            sage: p.get_min(v[0])
-            0.0
         """
         self.__BINARY = 0
         self.__REAL = -1
@@ -627,7 +619,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         self._backend.problem_name(name)
 
-    def new_variable(self, real=False, binary=False, integer=False, nonnegative=None, name=""):
+    def new_variable(self, real=False, binary=False, integer=False, nonnegative=False, name=""):
         r"""
         Return a new MIPVariable
 
@@ -654,8 +646,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
           arguments to ``True`` to ensure that the variable gets the
           corresponding type.
 
-        - ``nonnegative`` -- boolean. Whether the variable should be assumed to
-          be nonnegative. Rather useless for the binary type.
+        - ``nonnegative`` -- boolean, default ``False``. Whether the
+          variable should be assumed to be nonnegative. Rather useless
+          for the binary type.
 
         - ``name`` -- string. Associates a name to the variable. This
           is only useful when exporting the linear program to a file
@@ -667,9 +660,20 @@ cdef class MixedIntegerLinearProgram(SageObject):
         A new instance of :class:`MIPVariable` associated to the
         current :class:`MixedIntegerLinearProgram`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
+            sage: x = p.new_variable(); x
+            MIPVariable of dimension 1
+            sage: x0 = x[0]; x0
+            x_0
+
+        By default, variables are unbounded::
+
+            sage: print p.get_min(x0)
+            None
+            sage: print p.get_max(x0)
+            None
 
          To define two dictionaries of variables, the first being
          of real type, and the second of integer type ::
@@ -692,8 +696,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Unbounded variables::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: x = p.new_variable(real=True, nonnegative=False)
-            sage: y = p.new_variable(integer=True, nonnegative=False)
+            sage: x = p.new_variable(real=True)
+            sage: y = p.new_variable(integer=True)
             sage: p.add_constraint(x[0]+x[3] <= 8)
             sage: p.add_constraint(y[0] >= y[1])
             sage: p.show()
@@ -709,8 +713,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
               x_3 is an integer variable (min=-oo, max=+oo)
 
         On the Sage command line, generator syntax is accepted as a
-        shorthand for generating new variables with default
-        (``nonnegative=False``) settings::
+        shorthand for generating new variables with default settings::
 
             sage: mip.<x, y, z> = MixedIntegerLinearProgram()
             sage: mip.add_constraint(x[0] + y[1] + z[2] <= 10) 
@@ -723,24 +726,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
               x[0] = x_0 is a continuous variable (min=-oo, max=+oo)
               y[1] = x_1 is a continuous variable (min=-oo, max=+oo)
               z[2] = x_2 is a continuous variable (min=-oo, max=+oo)
-
-        TESTS:
-
-        Default behaviour (:trac:`15521`)::
-
-            sage: x = p.new_variable(nonnegative=True)
-            sage: p.get_min(x[0])
-            0.0
         """
         if sum([real, binary, integer]) > 1:
             raise ValueError("Exactly one of the available types has to be True")
-
-        if nonnegative is None:
-            if not binary:
-                deprecation(15521, "The default value of 'nonnegative' will change, to "+
-                                   "False instead of True. You should add the explicit "+
-                                   "'nonnegative=True'.")
-            nonnegative=True
 
         if binary:
             vtype = self.__BINARY
@@ -787,7 +775,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
               a[0] = x_0 is a continuous variable (min=-oo, max=+oo)
               b[2] = x_1 is a continuous variable (min=-oo, max=+oo)
         """
-        return tuple(self.new_variable(nonnegative=False) for i in range(n))
+        return tuple(self.new_variable() for i in range(n))
 
     def gen(self, i):
         """
@@ -986,26 +974,27 @@ cdef class MixedIntegerLinearProgram(SageObject):
         A LP on two variables::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: p.add_constraint(2*p['x'] + p['y'] <= 1)
-            sage: p.add_constraint(3*p['y'] + p['x'] <= 2)
+            sage: p.add_constraint(0 <= 2*p['x'] + p['y'] <= 1)
+            sage: p.add_constraint(0 <= 3*p['y'] + p['x'] <= 2)
             sage: P = p.polyhedron(); P
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
 
         3-D Polyhedron::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: p.add_constraint(2*p['x'] + p['y'] + 3*p['z'] <= 1)
-            sage: p.add_constraint(2*p['y'] + p['z'] + 3*p['x'] <= 1)
-            sage: p.add_constraint(2*p['z'] + p['x'] + 3*p['y'] <= 1)
+            sage: p.add_constraint(0 <= 2*p['x'] + p['y'] + 3*p['z'] <= 1)
+            sage: p.add_constraint(0 <= 2*p['y'] + p['z'] + 3*p['x'] <= 1)
+            sage: p.add_constraint(0 <= 2*p['z'] + p['x'] + 3*p['y'] <= 1)
             sage: P = p.polyhedron(); P
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
 
         An empty polyhedron::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: p.add_constraint(2*p['x'] + p['y'] + 3*p['z'] <= 1)
-            sage: p.add_constraint(2*p['y'] + p['z'] + 3*p['x'] <= 1)
-            sage: p.add_constraint(2*p['z'] + p['x'] + 3*p['y'] >= 2)
+            sage: v = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(2*v['x'] + v['y'] + 3*v['z'] <= 1)
+            sage: p.add_constraint(2*v['y'] + v['z'] + 3*v['x'] <= 1)
+            sage: p.add_constraint(2*v['z'] + v['x'] + 3*v['y'] >= 2)
             sage: P = p.polyhedron(); P
             The empty polyhedron in QQ^3
 
@@ -1014,21 +1003,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram()
             sage: p.add_constraint(2*p['x'] + p['y'] - p['z'] <= 1)
             sage: P = p.polyhedron(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 3 rays
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
 
         A square (see :trac:`14395`) ::
 
             sage: p = MixedIntegerLinearProgram()
             sage: x,y = p['x'], p['y']
-            sage: p.set_min(x,None)
-            sage: p.set_min(y,None)
             sage: p.add_constraint( x <= 1 )
             sage: p.add_constraint( x >= -1 )
             sage: p.add_constraint( y <= 1 )
             sage: p.add_constraint( y >= -1 )
             sage: p.polyhedron()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
-
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         cdef GenericBackend b = self._backend
@@ -1104,8 +1090,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Constraints:
               Constraint_1: -3.0 Hey[1] + 2.0 Hey[2] <= 2.0
             Variables:
-              Hey[1] = x_0 is a continuous variable (min=0.0, max=+oo)
-              Hey[2] = x_1 is a continuous variable (min=0.0, max=+oo)
+              Hey[1] = x_0 is a continuous variable (min=-oo, max=+oo)
+              Hey[2] = x_1 is a continuous variable (min=-oo, max=+oo)
 
         Without any names ::
 
@@ -1573,8 +1559,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Constraints:
               1.0 <= x_0 - x_1
             Variables:
-              x_0 is a continuous variable (min=0.0, max=+oo)
-              x_1 is a continuous variable (min=0.0, max=+oo)
+              x_0 is a continuous variable (min=-oo, max=+oo)
+              x_1 is a continuous variable (min=-oo, max=+oo)
 
         We check for constant multiples of constraints as well::
 
@@ -1585,8 +1571,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Constraints:
               1.0 <= x_0 - x_1
             Variables:
-              x_0 is a continuous variable (min=0.0, max=+oo)
-              x_1 is a continuous variable (min=0.0, max=+oo)
+              x_0 is a continuous variable (min=-oo, max=+oo)
+              x_1 is a continuous variable (min=-oo, max=+oo)
 
         But if the constant multiple is negative, we should add it anyway (once)::
 
@@ -1598,10 +1584,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 1.0 <= x_0 - x_1
                 -2.0 <= -2.0 x_0 + 2.0 x_1 
               Variables:
-                x_0 is a continuous variable (min=0.0, max=+oo)
-                x_1 is a continuous variable (min=0.0, max=+oo)
-
-        TESTS:
+                x_0 is a continuous variable (min=-oo, max=+oo)
+                x_1 is a continuous variable (min=-oo, max=+oo)
 
         Catch ``True`` / ``False`` as INPUT (:trac:`13646`)::
 
@@ -2128,7 +2112,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         With a :class:`MIPVariable` as an argument::
 
-            sage: vv = p.new_variable(real=True, nonnegative=False)
+            sage: vv = p.new_variable(real=True)
             sage: p.get_min(vv)
             sage: p.get_min(vv[0])
             sage: p.set_min(vv,5)
@@ -2165,7 +2149,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         With a :class:`MIPVariable` as an argument::
 
-            sage: vv = p.new_variable(real=True, nonnegative=False)
+            sage: vv = p.new_variable(real=True)
             sage: p.get_max(vv)
             sage: p.get_max(vv[0])
             sage: p.set_max(vv,5)
@@ -2242,25 +2226,39 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return or define a solver parameter
 
-        The solver parameters are by essence solver-specific, which
-        means their meaning heavily depends on the solver used.
+        The solver parameters are by essence solver-specific, which means their
+        meaning heavily depends on the solver used.
 
-        (If you do not know which solver you are using, then you
-        use GLPK).
+        (If you do not know which solver you are using, then you use GLPK).
 
         Aliases:
 
-        Very common parameters have aliases making them
-        solver-independent. For example, the following::
+        Very common parameters have aliases making them solver-independent. For
+        example, the following::
 
             sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: p.solver_parameter("timelimit", 60)
 
-        Sets the solver to stop its computations after 60 seconds, and
-        works with GLPK, CPLEX and Gurobi.
+        Sets the solver to stop its computations after 60 seconds, and works
+        with GLPK, CPLEX and Gurobi.
 
             - ``"timelimit"`` -- defines the maximum time spent on a
               computation. Measured in seconds.
+
+        Another example is the ``"logfile"`` parameter, which is used to specify
+        the file in which computation logs are recorded. By default, the logs
+        are not recorded, and we can disable this feature providing an empty
+        filename. This is currently working with CPLEX and Gurobi::
+
+            sage: p = MixedIntegerLinearProgram(solver = "CPLEX") # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            ''
+            sage: p.solver_parameter("logfile", "/dev/null")      # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            '/dev/null'
+            sage: p.solver_parameter("logfile", '')               # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            ''
 
         Solver-specific parameters:
 
@@ -2369,6 +2367,102 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend
 
+    def get_objective_value(self):
+        """
+        Return the value of the objective function.
+
+        .. NOTE::
+
+           Behaviour is undefined unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: x, y = p[0], p[1]
+            sage: p.add_constraint(2*x + 3*y, max = 6)
+            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.set_objective(x + y + 7)
+            sage: p.solve()  # rel tol 1e-5
+            9.4
+            sage: p.get_objective_value()  # rel tol 1e-5
+            9.4
+        """
+        return self._backend.get_objective_value()
+
+    def best_known_objective_bound(self):
+        r"""
+        Return the value of the currently best known bound.
+
+        This method returns the current best upper (resp. lower) bound on the
+        optimal value of the objective function in a maximization
+        (resp. minimization) problem. It is equal to the output of
+        :meth:get_objective_value if the MILP found an optimal solution, but it
+        can differ if it was interrupted manually or after a time limit (cf
+        :meth:solver_parameter).
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1.0
+            sage: p.best_known_objective_bound() # random
+            48.0
+        """
+        return self._backend.best_known_objective_bound()
+
+    def get_relative_objective_gap(self):
+        r"""
+        Return the relative objective gap of the best known solution.
+
+        For a minimization problem, this value is computed by
+        `(\texttt{bestinteger} - \texttt{bestobjective}) / (1e-10 +
+        |\texttt{bestobjective}|)`, where ``bestinteger`` is the value returned
+        by :meth:`~MixedIntegerLinearProgram.get_objective_value` and
+        ``bestobjective`` is the value returned by
+        :meth:`~MixedIntegerLinearProgram.best_known_objective_bound`. For a
+        maximization problem, the value is computed by `(\texttt{bestobjective}
+        - \texttt{bestinteger}) / (1e-10 + |\texttt{bestobjective}|)`.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1.0
+            sage: p.get_relative_objective_gap() # random
+            46.99999999999999
+
+        TESTS:
+
+        Just make sure that the variable *has* been defined, and is not just
+        undefined::
+
+            sage: p.get_relative_objective_gap() > 1
+            True
+        """
+        return self._backend.get_relative_objective_gap()
+
 
 class MIPSolverException(RuntimeError):
     r"""
@@ -2402,7 +2496,7 @@ class MIPSolverException(RuntimeError):
             sage: p.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : There is no feasible integer solution to this Linear Program'
+            MIPSolverException: 'GLPK : Problem has no feasible solution'
 
         No integer solution::
 
@@ -2418,7 +2512,7 @@ class MIPSolverException(RuntimeError):
             sage: p.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : There is no feasible integer solution to this Linear Program'
+            MIPSolverException: 'GLPK : Problem has no feasible solution'
         """
         self.value = value
 
@@ -2475,7 +2569,7 @@ cdef class MIPVariable(Element):
 
             sage: p = MixedIntegerLinearProgram()
             sage: p.new_variable(nonnegative=True)
-            MIPVariable of dimension 1.
+            MIPVariable of dimension 1
         """
         super(MIPVariable, self).__init__(parent)
         self._dict = {}
@@ -2579,9 +2673,9 @@ cdef class MIPVariable(Element):
             sage: p=MixedIntegerLinearProgram()
             sage: v=p.new_variable()
             sage: v
-            MIPVariable of dimension 1.
+            MIPVariable of dimension 1
         """
-        return "MIPVariable of dimension 1."
+        return "MIPVariable of dimension 1"
 
     def keys(self):
         r"""
@@ -2738,7 +2832,7 @@ cdef class MIPVariableParent(Parent):
 
             sage: mip = MixedIntegerLinearProgram()
             sage: mip.new_variable()    # indirect doctest
-            MIPVariable of dimension 1.
+            MIPVariable of dimension 1
         """
         return self.element_class(self, mip, vtype, name, lower_bound, upper_bound)
 

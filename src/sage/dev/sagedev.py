@@ -28,8 +28,11 @@ AUTHORS:
 #*****************************************************************************
 
 import os
-import urllib, urlparse
 import re
+
+# import compatible with py2 and py3
+from six.moves.urllib.parse import urljoin
+from six.moves.urllib.request import pathname2url
 
 from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
@@ -259,7 +262,7 @@ class SageDev(MercurialPatchMixin):
         except TracConnectionError as e:
             self._UI.error("A network error ocurred, ticket creation aborted.")
             raise
-        ticket_url = urlparse.urljoin(self.trac._config.get('server', TRAC_SERVER_URI), str(ticket))
+        ticket_url = urljoin(self.trac._config.get('server', TRAC_SERVER_URI), str(ticket))
         self._UI.show("Created ticket #{0} at {1}.".format(ticket, ticket_url))
         self._UI.info(['',
                        '(use "{0}" to create a new local branch)'
@@ -1147,10 +1150,8 @@ class SageDev(MercurialPatchMixin):
             Automatic merge failed, there are conflicting commits.
             <BLANKLINE>
             Auto-merging alices_file
-            CONFLICT (add/add): Merge conflict in alices_file
-            <BLANKLINE>
-            Please edit the affected files to resolve the conflicts. When you are finished,
-            your resolution will be commited.
+            CONFLICT (add/add): Merge conflict in alices_file...
+            Please edit the affected files to resolve the conflicts...
             Finished? [ok/Abort] abort
 
         Undo the latest commit by alice, so we can pull again::
@@ -3132,8 +3133,7 @@ class SageDev(MercurialPatchMixin):
             Automatic merge failed, there are conflicting commits.
             <BLANKLINE>
             Auto-merging alice2
-            CONFLICT (add/add): Merge conflict in alice2
-            <BLANKLINE>
+            CONFLICT (add/add): Merge conflict in alice2...
             Please edit the affected files to resolve the conflicts. When you are finished,
             your resolution will be commited.
             Finished? [ok/Abort] abort
@@ -4098,7 +4098,7 @@ class SageDev(MercurialPatchMixin):
         except OperationCancelledError:
             server = self.config.get('server', TRAC_SERVER_URI)
 
-            url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('prefs', 'sshkeys')))
+            url = urljoin(server, pathname2url(os.path.join('prefs', 'sshkeys')))
             self._UI.info(['',
                            'Use "{0}" to upload a public key. Or set your key manually at {1}.'
                            .format(self._format_command("upload_ssh_key"), url)])

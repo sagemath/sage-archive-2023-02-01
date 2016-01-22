@@ -30,19 +30,18 @@ dimension_modular_forms and so on of the corresponding congruence subgroup
 classes.
 """
 
-##########################################################################
-#       Copyright (C) 2004,2005,2006,2007,2008 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##########################################################################
+#*****************************************************************************
 
-
-from sage.rings.arith import (factor, is_prime,
-                              valuation, kronecker_symbol, gcd, euler_phi, lcm)
+from sage.arith.all import (factor, is_prime, valuation, kronecker_symbol,
+        gcd, euler_phi, lcm)
 
 from sage.misc.all import prod as mul
 from sage.rings.all import Mod, Integer, IntegerModRing, ZZ
@@ -300,7 +299,7 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         sage: dimension_new_cusp_forms(Gamma1(30),3)
         12
 
-    Check that Trac #12640 is fixed::
+    Check that :trac:`12640` is fixed::
 
         sage: dimension_new_cusp_forms(DirichletGroup(1)(1), 12)
         1
@@ -314,7 +313,7 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         if N <= 2:
             return Gamma0(N).dimension_new_cusp_forms(k,p=p)
         else:
-            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See Trac #12640.
+            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See trac #12640.
             return Gamma1(N).dimension_new_cusp_forms(k,eps=X,p=p)
     elif isinstance(X, (int,long,Integer)):
         return Gamma0(X).dimension_new_cusp_forms(k,p=p)
@@ -413,7 +412,7 @@ def dimension_cusp_forms(X, k=2):
         sage: dimension_cusp_forms(e^2,2)
         1
 
-    Check that Trac #12640 is fixed::
+    Check that :trac:`12640` is fixed::
 
         sage: dimension_cusp_forms(DirichletGroup(1)(1), 12)
         1

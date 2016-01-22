@@ -11,7 +11,6 @@ fi
 
 CFLAGS="$CFLAGS `testcflags.sh -g $OPTIMIZATION_FLAGS -fPIC -KPIC -Wall`"
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 
 # Compile for 64-bit if SAGE64 is set to 'yes'.
 # On 64-bit hardware, we don't need to set this variable to true. A
@@ -24,7 +23,6 @@ fi
 
 # Flags for building a dynamically linked shared object.
 if [ "$UNAME" = "Darwin" ]; then
-    export MACOSX_DEPLOYMENT_TARGET="10.3"
     SAGESOFLAGS="-dynamiclib -single_module -flat_namespace -undefined dynamic_lookup"
 elif [ "$UNAME" = "SunOS" ]; then
     SAGESOFLAGS="-shared -Wl,-h,libcliquer.so -Wl,-ztext"
@@ -63,6 +61,7 @@ cp *.h "$SAGE_LOCAL/include/cliquer/"
 
 if [ "$UNAME" = "Darwin" ]; then
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dylib"
+    install_name_tool -id "${SAGE_LOCAL}"/lib/libcliquer.dylib "${SAGE_LOCAL}"/lib/libcliquer.dylib
 elif [ "$UNAME" = "CYGWIN" ]; then
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dll"
 fi

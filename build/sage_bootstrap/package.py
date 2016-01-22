@@ -19,7 +19,7 @@ import os
 import logging
 log = logging.getLogger()
 
-from sage_bootstrap.env import SAGE_ROOT
+from sage_bootstrap.env import SAGE_ROOT, SAGE_DISTFILES
 
 
 
@@ -182,7 +182,7 @@ class Package(object):
         base = os.path.join(SAGE_ROOT, 'build', 'pkgs')
         for subdir in os.listdir(base):
             path = os.path.join(base, subdir) 
-            if not os.path.isdir(path):
+            if not os.path.isfile(os.path.join(path, "checksums.ini")):
                 continue
             yield cls(subdir)
 

@@ -21,7 +21,7 @@ def pyprocessing(processes=0):
     Return a parallel iterator using a given number of processes
     implemented using pyprocessing.
 
-    INPUTS:
+    INPUT:
 
     - ``processes`` -- integer (default: 0); if 0, set to the number
       of processors on the computer.

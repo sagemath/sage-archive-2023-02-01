@@ -198,12 +198,12 @@ class ComplexField_class(ring.Field):
 
             sage: C = ComplexField(200)
             sage: C.category()
-            Category of fields
+            Join of Category of fields and Category of complete metric spaces
             sage: TestSuite(C).run()
         """
         self._prec = int(prec)
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields())
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Metric().Complete())
 #        self._populate_coercion_lists_()
         self._populate_coercion_lists_(coerce_list=[complex_number.RRtoCC(self._real_field(), self)])
 
@@ -744,3 +744,4 @@ class ComplexField_class(ring.Field):
 
         from sage.structure.factorization import Factorization
         return Factorization([(R(g).monic(),e) for g,e in zip(*F)], f.leading_coefficient())
+

@@ -50,26 +50,18 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 import sage.misc.prandom as random
 
-from sage.rings.arith import factor, primitive_root
+from sage.arith.all import factor, primitive_root, CRT_basis
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 import integer_mod
@@ -169,7 +161,7 @@ class IntegerModFactory(UniqueFactory):
 
     EXAMPLES::
 
-        sage: R = IntegerModRing(15, is_field=True)
+        sage: R = IntegerModRing(33, is_field=True)
         sage: R in Fields()
         True
         sage: R.is_field()
@@ -182,7 +174,7 @@ class IntegerModFactory(UniqueFactory):
         Traceback (most recent call last):
         ...
         ValueError: THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
-        The order 15 is not prime, but this ring has been put
+        The order 33 is not prime, but this ring has been put
         into the category of fields. This may already have consequences
         in other parts of Sage. Either it was a mistake of the user,
         or a probabilitstic primality test has failed.
@@ -983,7 +975,6 @@ In the latter case, please inform the developers.""".format(self.order()))
                 vmod.append(w)
                 moduli.append(k)
             # Now combine in all possible ways using the CRT
-            from sage.rings.arith import CRT_basis
             basis = CRT_basis(moduli)
             from sage.misc.mrange import cartesian_product_iterator
             v = []
@@ -1567,17 +1558,6 @@ Integers = IntegerModRing
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.rings.integer_mod_ring', 'IntegerModRing_generic', IntegerModRing_generic)
-
-## def GF(p):
-##     """
-##     EXAMPLES:
-##         sage: F = GF(11)
-##         sage: F
-##         Finite field of size 11
-##     """
-##     if not arith.is_prime(p):
-##         raise NotImplementedError("only prime fields currently implemented")
-##     return IntegerModRing(p)
 
 def crt(v):
     """

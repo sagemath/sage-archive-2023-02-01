@@ -42,13 +42,16 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.misc.all import cached_method
 from sage.rings.all import ZZ
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.integer import Integer
 from sage.combinat.posets.lattices import LatticePoset
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatternsTopRow
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
+from sage.combinat.six_vertex_model import SquareIceModel
+
+from sage.misc.decorators import rename_keyword
 
 class AlternatingSignMatrix(Element):
     r"""
@@ -103,6 +106,17 @@ class AlternatingSignMatrix(Element):
         self._matrix = asm
         Element.__init__(self, parent)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: elt = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: hash(elt)
+            12
+        """
+        return hash(self._matrix)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -147,7 +161,7 @@ class AlternatingSignMatrix(Element):
             sage: M != A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __le__(self, other):
         """
@@ -307,7 +321,7 @@ class AlternatingSignMatrix(Element):
         number of the permutation.
 
         This definition is equivalent to the one given in [MiRoRu]_.
-        
+
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
@@ -457,10 +471,93 @@ class AlternatingSignMatrix(Element):
         n = asm.nrows() + 1
         return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
 
+    def to_six_vertex_model(self):
+        r"""
+        Return the six vertex model configuration from ``self``.
+        This method calls :meth:`sage.combinat.six_vertex_model.from_alternating_sign_matrix`.
+
+        EXAMPLES::
+
+            sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_six_vertex_model()
+                ^    ^    ^
+                |    |    |
+            --> # -> # <- # <--
+                ^    |    ^
+                |    V    |
+            --> # <- # -> # <--
+                |    ^    |
+                V    |    V
+            --> # -> # <- # <--
+                |    |    |
+                V    V    V
+
+        TESTS::
+
+            sage: ASM = AlternatingSignMatrices(5)
+            sage: all((x.to_six_vertex_model()).to_alternating_sign_matrix() == x
+            ....:     for x in ASM)
+            True
+        """
+
+        asm = self.to_matrix()
+        n = asm.nrows()
+        M = SquareIceModel(n)
+        return M.from_alternating_sign_matrix(self)
+
+    def to_fully_packed_loop(self):
+        r"""
+        Return the fully packed loop configuration from ``self``.
+
+        .. SEEALSO::
+
+            :class:FullyPackedLoop
+
+        EXAMPLES::
+
+            sage: asm = AlternatingSignMatrix([[1,0,0],[0,1,0],[0,0,1]])
+            sage: fpl = asm.to_fully_packed_loop()
+            sage: fpl
+                |         |
+                |         |
+                +    + -- +
+                |    |
+                |    |
+             -- +    +    + --
+                     |    |
+                     |    |
+                + -- +    +
+                |         |
+                |         |
+
+        """
+        from sage.combinat.fully_packed_loop import FullyPackedLoop
+        return FullyPackedLoop(self)
+
+    def link_pattern(self):
+        """
+        Return the link pattern corresponding to the fully packed loop 
+        corresponding to self.
+
+        EXAMPLES:
+
+        We can extract the underlying link pattern (a non-crossing
+        partition) from a fully packed loop::
+
+            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: A.link_pattern()
+            [(1, 2), (3, 6), (4, 5)]
+
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: B.link_pattern()
+            [(1, 6), (2, 5), (3, 4)]
+        """
+        return self.to_fully_packed_loop().link_pattern()
+
     @combinatorial_map(name='gyration')
     def gyration(self):
         r"""
-        Return the alternating sign matrix obtained by applying the gyration
+        Return the alternating sign matrix obtained by applying gyration
         to the height function in bijection with ``self``.
 
         Gyration acts on height functions as follows. Go through the entries of
@@ -469,11 +566,6 @@ class AlternatingSignMatrix(Element):
         the squares by 2 wherever possible such that the resulting matrix is
         still a height function. Gyration was first defined in [Wieland00]_ as
         an action on fully-packed loops.
-
-        REFERENCES:
-
-        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of
-           alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
         EXAMPLES::
 
@@ -492,7 +584,6 @@ class AlternatingSignMatrix(Element):
             [0 1 0]
             [0 0 1]
             [1 0 0]
-
             sage: A = AlternatingSignMatrices(3)
             sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).gyration().gyration()
             [ 0  1  0]
@@ -724,25 +815,71 @@ class AlternatingSignMatrix(Element):
         return(output)
 
     @combinatorial_map(name='to Dyck word')
-    def to_dyck_word(self):
+    @rename_keyword(deprecation=19572, method='algorithm')
+    def to_dyck_word(self, algorithm):
         r"""
-        Return the Dyck word determined by the last diagonal of
-        the monotone triangle corresponding to ``self``.
+        Return a Dyck word determined by the specified algorithm.
+ 
+        The algorithm 'last_diagonal' uses the last diagonal of the monotone 
+        triangle corresponding to ``self``. The algorithm 'link_pattern' returns 
+        the Dyck word in bijection with the link pattern of the fully packed 
+        loop.
+
+        Note that these two algorithms in general yield different Dyck words for a
+        given alternating sign matrix.
+
+        INPUT:
+
+        - ``algorithm``  - 
+
+          - ``'last_diagonal'`` 
+          - ``'link_pattern'`` 
 
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
-            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word()
+            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word(algorithm = 'last_diagonal')
             [1, 1, 0, 0, 1, 0]
-            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(); d
+            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(algorithm = 'last_diagonal'); d
             [1, 1, 0, 1, 0, 0]
             sage: parent(d)
             Complete Dyck words
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
+            [1, 0, 1, 0, 1, 0]
+            sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
+            [1, 0, 1, 1, 0, 0]
+            sage: A = AlternatingSignMatrices(4)
+            sage: asm = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
+            [1, 1, 1, 0, 1, 0, 0, 0]
+            sage: asm.to_dyck_word()
+            Traceback (most recent call last):
+            ...
+            TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
+            sage: asm.to_dyck_word(algorithm = 'notamethod')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'notamethod'
         """
-        MT = self.to_monotone_triangle()
-        nplus = self._matrix.nrows() + 1
-        parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
-        return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
+        if algorithm == 'last_diagonal':
+            MT = self.to_monotone_triangle()
+            nplus = self._matrix.nrows() + 1
+            parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
+            return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
+        
+        elif algorithm == 'link_pattern':
+            from sage.combinat.perfect_matching import PerfectMatching        
+            from sage.combinat.dyck_word import DyckWords        
+            p = PerfectMatching(self.link_pattern()).to_non_crossing_set_partition()
+            asm = self.to_matrix()
+            n = asm.nrows()
+            d = DyckWords(n)
+            return d.from_noncrossing_partition(p)
+
+        raise ValueError("unknown algorithm '%s'" % algorithm)
 
     def number_negative_ones(self):
         """
@@ -826,6 +963,8 @@ class AlternatingSignMatrix(Element):
                 ssyt[i][j] = mt[j][-(i+1)]
         return SemistandardTableau(ssyt)
 
+
+
     def left_key(self):
         r"""
         Return the left key of the alternating sign matrix ``self``.
@@ -890,7 +1029,7 @@ class AlternatingSignMatrix(Element):
         """
         return self.left_key().to_permutation()
 
-class AlternatingSignMatrices(Parent, UniqueRepresentation):
+class AlternatingSignMatrices(UniqueRepresentation, Parent):
     r"""
     Class of all `n \times n` alternating sign matrices.
 
@@ -1036,7 +1175,9 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             raise ValueError("Cannot convert between alternating sign matrices of different sizes")
         if asm in MonotoneTriangles(self._n):
             return self.from_monotone_triangle(asm)
-        return self.element_class(self, self._matrix_space(asm))
+        m = self._matrix_space(asm)
+        m.set_immutable()
+        return self.element_class(self, m)
 
     Element = AlternatingSignMatrix
 
@@ -1082,7 +1223,9 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             asm.append(row)
             prev = v
 
-        return self.element_class(self, self._matrix_space(asm))
+        m = self._matrix_space(asm)
+        m.set_immutable()
+        return self.element_class(self, m)
 
     def from_corner_sum(self, corner):
         r"""

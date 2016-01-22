@@ -73,8 +73,8 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-            from sage.combinat.cartesian_product import CartesianProduct
-            for x,y,z in tester.some_elements(CartesianProduct(S,S,S)):
+            from sage.misc.misc import some_tuples
+            for x,y,z in some_tuples(tester.some_elements(), 3, tester._max_runs):
                 # left distributivity
                 tester.assert_(x * (y + z) == (x * y) + (x * z))
                 # right distributivity
@@ -83,7 +83,7 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             """
-            Implement the fact that a cartesian product of magmas distributing
+            Implement the fact that a Cartesian product of magmas distributing
             over additive magmas is a magma distributing over an
             additive magma.
 

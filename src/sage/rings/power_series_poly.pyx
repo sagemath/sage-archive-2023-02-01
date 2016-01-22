@@ -8,7 +8,6 @@ The class ``PowerSeries_poly`` provides additional methods for univariate power 
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
-import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
@@ -88,24 +87,6 @@ cdef class PowerSeries_poly(PowerSeries):
             True
         """
         return self.__class__, (self._parent, self.__f, self._prec, self.__is_gen)
-
-    def __richcmp__(left, right, int op):
-       """
-       Used for comparing power series.
-
-       EXAMPLES::
-
-           sage: R.<t> = ZZ[[]]
-           sage: f = 1 + t + t^7 - 5*t^10
-           sage: g = 1 + t + t^7 - 5*t^10 + O(t^15)
-           sage: f == f
-           True
-           sage: f < g
-           False
-           sage: f == g
-           True
-       """
-       return (<Element>left)._richcmp(right, op)
 
     def polynomial(self):
         """
@@ -672,6 +653,102 @@ cdef class PowerSeries_poly(PowerSeries):
             return PowerSeries_poly(self._parent, self.__f >> n, max(0,self._prec - n))
         else:
             return self
+
+    def __invert__(self):
+        """
+        Return the inverse of the power series (i.e., a series `Y` such
+        that `XY = 1`).
+
+        The first nonzero coefficient must be a unit in
+        the coefficient ring. If the valuation of the series is positive,
+        this function will return a :doc:`laurent_series_ring_element`.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[[]]
+            sage: 1/(1+q + O(q**2))
+            1 - q + O(q^2)
+            sage: 1/(1+q)
+            1 - q + q^2 - q^3 + q^4 - q^5 + q^6 - q^7 + q^8 - q^9 + q^10 - q^11 + q^12 - q^13 + q^14 - q^15 + q^16 - q^17 + q^18 - q^19 + O(q^20)
+            sage: prec = R.default_prec(); prec
+            20
+            sage: R.set_default_prec(5)
+            sage: 1/(1+q)
+            1 - q + q^2 - q^3 + q^4 + O(q^5)
+
+        ::
+
+            sage: 1/(q + q^2)
+            q^-1 - 1 + q - q^2 + q^3 + O(q^4)
+            sage: g = 1/(q + q^2 + O(q^5))
+            sage: g; g.parent()
+            q^-1 - 1 + q - q^2 + O(q^3)
+            Laurent Series Ring in q over Rational Field
+
+        ::
+
+            sage: 1/g
+            q + q^2 + O(q^5)
+            sage: (1/g).parent()
+            Laurent Series Ring in q over Rational Field
+
+        ::
+
+            sage: 1/(2 + q)
+            1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
+
+        ::
+
+            sage: R.<q> = QQ[['q']]
+            sage: R.set_default_prec(5)
+            sage: f = 1 + q + q^2 + O(q^50)
+            sage: f/10
+            1/10 + 1/10*q + 1/10*q^2 + O(q^50)
+            sage: f/(10+q)
+            1/10 + 9/100*q + 91/1000*q^2 - 91/10000*q^3 + 91/100000*q^4 + O(q^5)
+
+        ::
+
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: u = 17 + 3*t^2 + 19*t^10 + O(t^12)
+            sage: v = ~u; v
+            1/17 - 3/289*t^2 + 9/4913*t^4 - 27/83521*t^6 + 81/1419857*t^8 - 1587142/24137569*t^10 + O(t^12)
+            sage: u*v
+            1 + O(t^12)
+
+        We try a non-zero, non-unit leading coefficient::
+
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: ~R(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term is not a unit
+            sage: ~R(-1)
+            -1
+        """
+        if self.is_one():
+            return self
+        prec = self.prec()
+        if prec is infinity:
+            if self.degree() > 0:
+                prec = self._parent.default_prec()
+            else:
+                # constant series
+                a = self[0]
+                if not a.is_unit():
+                    raise ValueError("constant term is not a unit")
+                try:
+                    a = a.inverse_unit()
+                except (AttributeError, NotImplementedError):
+                    a = self._parent.base_ring()(~a)
+                return self._parent(a, prec=infinity)
+
+        if self.valuation() > 0:
+            u = ~self.valuation_zero_part()    # inverse of unit part
+            R = self._parent.laurent_series_ring()
+            return R(u, -self.valuation())
+
+        return self._parent(self.truncate().inverse_series_trunc(prec), prec=prec)
 
     def truncate(self, prec=infinity):
         """

@@ -10,7 +10,7 @@ fi
 PRIME_SIZE=7
 
 CCFLAGS_NO_SSE="-I$SAGE_LOCAL/include -Wall -O2 -fPIC -DRATPOINTS_MAX_BITS_IN_PRIME=$PRIME_SIZE"
-CCFLAGS2="-L$SAGE_LOCAL/lib -lgmp -lm"
+CCFLAGS2="-L$SAGE_LOCAL/lib -lgmp -lm $LDFLAGS"
 CCFLAGS3="-L. -lratpoints"
 
 if [[ "$UNAME" = "Darwin" ]]; then

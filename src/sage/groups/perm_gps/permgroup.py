@@ -184,7 +184,7 @@ def hap_decorator(f):
         if not is_package_installed('gap_packages'):
             raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
-        from sage.rings.arith import is_prime
+        from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
             raise ValueError("p must be 0 or prime")
 
@@ -721,7 +721,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.list()
             [(), ('a','b')]
         """
-        return list(self.__iter__())
+        return [x for x in self]
 
     def __contains__(self, item):
         """
@@ -1057,6 +1057,42 @@ class PermutationGroup_generic(group.FiniteGroup):
             'a'
         """
         return self._domain_from_gap[Integer(self._gap_().SmallestMovedPoint())]
+
+    def representative_action(self,x,y):
+        r"""
+        Return an element of self that maps `x` to `y` if it exists.
+
+        This method wraps the gap function ``RepresentativeAction``, which can
+        also return elements that map a given set of points on another set of
+        points.
+
+        INPUT:
+
+        - ``x,y`` -- two elements of the domain.
+
+        EXAMPLE::
+
+            sage: G = groups.permutation.Cyclic(14)
+            sage: g = G.representative_action(1,10)
+            sage: all(g(x) == 1+((x+9-1)%14) for x in G.domain())
+            True
+
+        TESTS::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.relabel(list("abcdefghik"))
+            sage: g.vertices()
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k']
+            sage: ag = g.automorphism_group()
+            sage: a = ag.representative_action('a','b')
+            sage: g == g.relabel(a,inplace=False)
+            True
+            sage: a('a') == 'b'
+            True
+        """
+        ans = self._gap_().RepresentativeAction(self._domain_to_gap[x],
+                                                self._domain_to_gap[y])
+        return self._element_class()(ans, self, check=False)
 
     @cached_method
     def orbits(self):
@@ -1402,13 +1438,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         - A list of lists of permutations from the group, which form a strong
           generating system.
 
-        TESTS::
-
-            sage: G = SymmetricGroup(10)
-            sage: H = PermutationGroup([G.random_element() for i in range(randrange(1,3,1))])
-            sage: prod(map(lambda x : len(x), H.strong_generating_system()),1) == H.cardinality()
-            True
-
         EXAMPLES::
 
             sage: G = PermutationGroup([[(7,8)],[(3,4)],[(4,5)]])
@@ -1431,6 +1460,14 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = TransitiveGroup(12,17)                # optional - database_gap
             sage: G.strong_generating_system()              # optional - database_gap
             [[(), (1,4,11,2)(3,6,5,8)(7,10,9,12), (1,8,3,2)(4,11,10,9)(5,12,7,6), (1,7)(2,8)(3,9)(4,10)(5,11)(6,12), (1,12,7,2)(3,10,9,8)(4,11,6,5), (1,11)(2,8)(3,5)(4,10)(6,12)(7,9), (1,10,11,8)(2,3,12,5)(4,9,6,7), (1,3)(2,8)(4,10)(5,7)(6,12)(9,11), (1,2,3,8)(4,9,10,11)(5,6,7,12), (1,6,7,8)(2,3,4,9)(5,10,11,12), (1,5,9)(3,11,7), (1,9,5)(3,7,11)], [(), (2,6,10)(4,12,8), (2,10,6)(4,8,12)], [()], [()], [()], [()], [()], [()], [()], [()], [()], [()]]
+
+        TESTS::
+
+            sage: G = SymmetricGroup(10)
+            sage: H = PermutationGroup([G.random_element() for i in range(randrange(1,3,1))])
+            sage: prod(map(lambda x : len(x), H.strong_generating_system()),1) == H.cardinality()
+            True
+
         """
         sgs = []
         stab = self
@@ -3237,7 +3274,9 @@ class PermutationGroup_generic(group.FiniteGroup):
               parameter := 5,
               series := "Z" )
 
-        TESTS: This shows that the issue at trac ticket 7360 is fixed::
+        TESTS:
+
+        This shows that the issue at trac ticket 7360 is fixed::
 
             sage: G = KleinFourGroup()
             sage: G.is_simple()
@@ -3962,7 +4001,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         if not is_package_installed('gap_packages'):
             raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
-        from sage.rings.arith import is_prime
+        from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
             raise ValueError("p must be 0 or prime")
 
@@ -4045,7 +4084,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         Initialization method for the
         ``PermutationGroup_subgroup`` class.
 
-        INPUTS:
+        INPUT:
 
         - ``ambient`` - the ambient group from which to construct this
           subgroup

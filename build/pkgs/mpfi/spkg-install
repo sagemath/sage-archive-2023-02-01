@@ -6,9 +6,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# unset RM which messes with libtool and was set by previous versions of Sage
-unset RM
-
 if [ "$SAGE64" = "yes" ]; then
     if [ -z "$CFLAG64" ]; then
         CFLAG64=-m64
@@ -22,6 +19,9 @@ else
 fi
 
 cd src
+
+# Use newer version of config.guess and config.sub (see Trac #19716)
+cp "$SAGE_ROOT"/config/config.* .
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-mpfr="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL"
 

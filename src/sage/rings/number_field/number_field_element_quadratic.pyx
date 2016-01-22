@@ -17,30 +17,31 @@ AUTHORS:
     The ``_new()`` method should be overridden in this class to copy the ``D``
     and ``standard_embedding`` attributes
 """
+
 #*****************************************************************************
-#     Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
+from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
-from sage.structure.element cimport Element
+from sage.structure.parent_base cimport ParentWithBase
+from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.sage_object cimport rich_to_bool_sgn
 
+from sage.rings.rational cimport Rational
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -658,24 +659,15 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return test
         return -test
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element _right, int op):
         r"""
-        Note: we may implement a more direct way of comparison for integer,
-        float and quadratic numbers input (ie avoiding coercion).
+        Rich comparison of elements.
 
         TESTS::
 
             sage: K.<i> = QuadraticField(-1)
             sage: sorted([5*i+1, 2, 3*i+1, 2-i])
             [3*i + 1, 5*i + 1, -i + 2, 2]
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element _right, int op):
-        r"""
-        C implementation of comparison.
-
-        TESTS:
 
         Make some random tests to check that the order is compatible with the
         ones of the real field (RR) and complex field (CC)::
@@ -796,8 +788,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_clear(j)
         return rich_to_bool_sgn(op, test)
 
-    def __cmp__(left, right):
-        r"""
+    cpdef int _cmp_(left, Element _right) except -2:
+        """
         Comparisons of elements.
 
         When there is a real embedding defined, the comparisons uses comparison
@@ -868,12 +860,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             [-3.0 + 1.0*I, -2.0, -2.0 + 2.0*I, -1.0 + 1.0*I, 5.0*I, 1.0 - 3.0*I, 1.0, 2.0 + 2.0*I]
             sage: map(CDF, l) == sorted(map(CDF, l))
             True
-        """
-        return (<Element>left)._cmp(right)
-
-    cpdef int _cmp_(left, Element _right) except -2:
-        """
-        C implementation of comparison.
         """
         cdef NumberFieldElement_quadratic right = <NumberFieldElement_quadratic> _right
         cdef int test
@@ -1313,32 +1299,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: L.<a> = QuadraticField(-7)
             sage: hash(a)
             42082631
-
             sage: hash(L(1))
             1
             sage: hash(L(-3))
             -3
-
-            sage: hash(L(-32/118))
-            -53
-            sage: hash(-32/118)
-            -53
+            sage: hash(L(-32/118)) == hash(-32/118)
+            True
         """
         # 1. compute the hash of a/denom as if it was a rational
         # (see the corresponding code in sage/rings/rational.pyx)
-        cdef long a_hash = mpz_pythonhash(self.a)
-        cdef long d_hash = mpz_pythonhash(self.denom)
-        if d_hash != 1:
-            a_hash ^= d_hash
-            if a_hash == -1:
-                a_hash == -2
+        cdef Py_hash_t n = mpz_pythonhash(self.a)
+        cdef Py_hash_t d = mpz_pythonhash(self.denom)
+        cdef Py_hash_t h = n + (d - 1) * <Py_hash_t>(7461864723258187525)
 
-        # 2. mix them together with b
-        a_hash += 42082631 * mpz_pythonhash(self.b)
-        if a_hash == -1:
-            return -2
-        return a_hash
-
+        # 2. mix the hash together with b
+        h += 42082631 * mpz_pythonhash(self.b)
+        return h
 
     def __nonzero__(self):
         """
@@ -2182,8 +2158,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
 
         EXAMPLES::
 
-            sage: OE = QuadraticField(-7, 's').ring_of_integers()
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^2 - x + 2)
             sage: w.inverse_mod(13) == 6*w - 6
             True
             sage: w*(6*w - 6) - 1
@@ -2193,7 +2168,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
             sage: w.inverse_mod(2*OE)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: 1/2*s + 1/2 is not invertible modulo Fractional ideal (2)
+            ZeroDivisionError: w is not invertible modulo Fractional ideal (2)
         """
         R = self.parent()
         return R(_inverse_mod_generic(self, I))

@@ -70,6 +70,7 @@ math_substitutes = [
     (r'\\mapsto', ' |--> '),
     (r'\\lvert', '|'),
     (r'\\rvert', '|'),
+    (r'\\mid', '|'),
 ]
 nonmath_substitutes = [
     ('\\_','_'),
@@ -224,6 +225,111 @@ def detex(s, embedded=False):
             s = re.sub(a+'([^a-zA-Z])', b+'\\1', s)
         s = s.replace('\\','')        # nuke backslashes
     return s
+
+def skip_TESTS_block(docstring):
+    r"""
+    Remove blocks labeled "TESTS:" from ``docstring``.
+
+    INPUT:
+
+    - ``docstring``, a string
+
+    A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
+    the same with two colons), on a line on its own, and ending with
+    an unindented line (that is, the same level of indentation as
+    "TESTS") matching one of the following:
+
+    - a line which starts with whitespace and then a Sphinx directive
+      of the form ".. foo:", optionally followed by other text.
+
+    - a line which starts with whitespace and then text of the form
+      "UPPERCASE:", optionally followed by other text.
+
+    - lines which look like a ReST header: one line containing
+      anything, followed by a line consisting only of whitespace,
+      followed by a string of hyphens, equal signs, or other
+      characters which are valid markers for ReST headers: 
+      ``- = ` : ' " ~ _ ^ * + # < >``.
+
+    Return the string obtained from ``docstring`` by removing these
+    blocks.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import skip_TESTS_block
+        sage: start = ' Docstring\n\n'
+        sage: test = ' TEST: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
+        sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
+        sage: refs = ' REFERENCES: \n text text \n'
+        sage: directive = ' .. todo:: \n     do some stuff \n'
+
+        sage: skip_TESTS_block(start + test + refs).rstrip() == (start + refs).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + test2 + refs).rstrip() == (start + refs).rstrip()
+        True 
+        sage: skip_TESTS_block(start + test + refs + test2).rstrip() == (start + refs).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
+        True
+
+        sage: header = 'Header:\n~~~~~~~~'
+        sage: fake_header = 'Header:\n-=-=-=-=-='
+        sage: skip_TESTS_block(start + test + header) == start + header
+        True
+        sage: skip_TESTS_block(start + test + fake_header).rstrip() == start.rstrip()
+        True
+
+    Not a header because it's indented compared to 'TEST' in the
+    string ``test``::
+
+        sage: another_fake = '\n    blah\n    ----'
+        sage: skip_TESTS_block(start + test + another_fake).rstrip() == start.rstrip()
+        True
+   """
+    # tests_block: match a line starting with whitespace, then
+    # "TEST" or "TESTS" followed by ":" or "::", then possibly
+    # more whitespace, then the end of the line.
+    tests_block = re.compile('([ ]*)TEST[S]?:[:]?[ ]*$')
+    # end_of_block: match a line starting with whitespace, then Sphinx
+    # directives of the form ".. foo:". This will match directive
+    # names "foo" containing letters of either case, hyphens,
+    # underscores.
+    # Also match uppercase text followed by a colon, like
+    # "REFERENCES:" or "ALGORITHM:".
+    end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
+    # header: match a string of hyphens, or other characters which are
+    # valid markers for ReST headers: - = ` : ' " ~ _ ^ * + # < >
+    header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
+    s = ''
+    skip = False
+    previous = ''
+    # indentation: amount of indentation at the start of 'TESTS:'.
+    indentation = ''
+    for l in docstring.split('\n'):
+        if not skip:
+            m = tests_block.match(l)
+            if m:
+                skip = True
+                indentation = m.group(1)
+            else:
+                s += "\n"
+                s += l
+        else:
+            if end_of_block.match(l) and not tests_block.match(l):
+                skip = False
+                s += "\n"
+                s += l
+            elif header.match(l):
+                if l.find(indentation) == 0:
+                    continue
+                skip = False
+                if previous:
+                    s += "\n"
+                    s += previous
+                s += "\n"
+                s += l
+        previous = l
+    return s[1:] # Remove empty line from the beginning. 
 
 def process_dollars(s):
     r"""nodetex
@@ -551,6 +657,7 @@ def format(s, embedded=False):
 
     if 'nodetex' not in directives:
         s = process_dollars(s)
+        s = skip_TESTS_block(s)
         if not embedded:
             s = process_mathtt(s)
         s = process_extlinks(s, embedded=embedded)
@@ -673,7 +780,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     if 'ignore_case' in kwds:
         ignore_case = kwds['ignore_case']
     else:
-        ignore_case = False
+        ignore_case = True
     if 'multiline' in kwds:
         multiline = kwds['multiline']
     else:
@@ -822,7 +929,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
                extra5='', **kwds):
     r"""
     Search Sage library source code for lines containing ``string``.
-    The search is case-sensitive.
+    The search is case-insensitive by default.
 
     INPUT:
 
@@ -837,8 +944,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
       regular expression, and it might have unexpected results if used
       with regular expressions.
 
-    - ``ignore_case`` (optional, default False) - if True, perform a
-      case-insensitive search
+    - ``ignore_case`` (optional, default True) - if False, perform a
+      case-sensitive search
 
     - ``multiline`` (optional, default False) - if True, search more
       than one line at a time.  In this case, print any matching file
@@ -872,8 +979,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
 
     The ``string`` and ``extraN`` arguments are treated as regular
     expressions, as is ``path_re``, and errors will be raised if they
-    are invalid. The matches will be case-sensitive unless
-    ``ignore_case`` is True.
+    are invalid. The matches will be case-insensitive unless
+    ``ignore_case`` is False.
 
     .. note::
 
@@ -924,17 +1031,17 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         sage: print search_src(" fetch\(", "def", "pyx", interact=False) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
 
-    As noted above, the search is case-sensitive, but you can make it
-    case-insensitive with the 'ignore_case' key word::
+    As noted above, the search is case-insensitive, but you can make it
+    case-sensitive with the 'ignore_case' key word::
 
         sage: s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
         True
 
         sage: s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
-        False
-
-        sage: s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
         True
+
+        sage: s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=False); s.find('x') > 0
+        False
 
     Searches are by default restricted to single lines, but this can
     be changed by setting ``multiline`` to be True.  In the following,
@@ -964,7 +1071,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         misc/sagedoc.py:... print search_src(" fetch\(", "def", "pyx", interact=False) # random # long time
         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
-        misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
+        misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=False); s.find('x') > 0
         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 40
         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 70
         misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
@@ -997,7 +1104,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
                extra5='', **kwds):
     """
     Search Sage HTML documentation for lines containing ``string``. The
-    search is case-sensitive.
+    search is case-insensitive by default.
 
     The file paths in the output are relative to
     ``$SAGE_DOC/output``.
@@ -1035,7 +1142,7 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='',
                extra5='', **kwds):
     r"""
     Search Sage library source code for function definitions containing
-    ``name``. The search is case sensitive.
+    ``name``. The search is case-insensitive by default.
 
     INPUT: same as for :func:`search_src`.
 

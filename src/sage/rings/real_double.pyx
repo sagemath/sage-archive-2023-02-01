@@ -1843,9 +1843,9 @@ cdef class RealDoubleElement(FieldElement):
             if GSL_IS_EVEN(n):
                 return self._complex_double_(sage.rings.complex_double.CDF).nth_root(n)
             else:
-                return - ( (-self).__pow__(float(1)/n) )
+                return - ( (-self) ** (float(1)/n) )
         else:
-            return self.__pow__(float(1)/n)
+            return self ** (float(1)/n)
 
     cdef RealDoubleElement __pow_float(self, double exponent):
         """
@@ -2533,7 +2533,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.algebraic_dependency(5)
             x^2 - 2
         """
-        return sage.rings.arith.algdep(self,n)
+        return sage.arith.all.algdep(self,n)
 
     algdep = algebraic_dependency
 

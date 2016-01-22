@@ -7,6 +7,7 @@ quadratic forms over the rationals.
 
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein and Jonathan Hanke
+#       Copyright (C) 2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +27,7 @@ from copy import deepcopy
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
-from sage.rings.arith import prime_divisors, hilbert_symbol
+from sage.arith.all import prime_divisors, hilbert_symbol
 from sage.functions.all import sgn
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.cachefunc import cached_method
@@ -62,8 +63,8 @@ def rational_diagonal_form(self, return_matrix=False):
         [ * -1 ]
         sage: Q.rational_diagonal_form()
         Quadratic form in 2 variables over Rational Field with coefficients:
-        [ -2 0 ]
-        [ * 1/8 ]
+        [ 1/4 0 ]
+        [ * -1 ]
 
     If we start with a diagonal form, we get back the same form defined
     over the fraction field::
@@ -83,23 +84,23 @@ def rational_diagonal_form(self, return_matrix=False):
         sage: D, T = Q.rational_diagonal_form(return_matrix=True)
         sage: D
         Quadratic form in 4 variables over Rational Field with coefficients:
-        [ 5 0 0 0 ]
-        [ * -1/20 0 0 ]
+        [ -1/16 0 0 0 ]
+        [ * 4 0 0 ]
         [ * * 13 0 ]
         [ * * * 563/52 ]
         sage: T
-        [     1  -9/10     11 149/26]
-        [     1   1/10     -2 -10/13]
+        [     1      0     11 149/26]
+        [  -1/8      1     -2 -10/13]
         [     0      0      1 -29/26]
         [     0      0      0      1]
         sage: T.transpose() * Q.matrix() * T
-        [    10      0      0      0]
-        [     0  -1/10      0      0]
+        [  -1/8      0      0      0]
+        [     0      8      0      0]
         [     0      0     26      0]
         [     0      0      0 563/26]
         sage: D.matrix()
-        [    10      0      0      0]
-        [     0  -1/10      0      0]
+        [  -1/8      0      0      0]
+        [     0      8      0      0]
         [     0      0     26      0]
         [     0      0      0 563/26]
 
@@ -126,6 +127,28 @@ def rational_diagonal_form(self, return_matrix=False):
         [   0    0    0    1]
         )
 
+    PARI returns a singular transformation matrix for this case::
+
+        sage: Q = QuadraticForm(QQ, 2, [1/2, 1, 1/2])
+        sage: Q.rational_diagonal_form()
+        Quadratic form in 2 variables over Rational Field with coefficients:
+        [ 1/2 0 ]
+        [ * 0 ]
+
+    This example cannot be computed by PARI::
+
+        sage: Q = QuadraticForm(RIF, 4, range(10))
+        sage: Q._pari_()
+        Traceback (most recent call last):
+        ...
+        TypeError
+        sage: Q.rational_diagonal_form()
+        Quadratic form in 4 variables over Real Interval Field with 53 bits of precision with coefficients:
+        [ 5 0.?e-14 0.?e-13 0.?e-13 ]
+        [ * -0.05000000000000? 0.?e-12 0.?e-12 ]
+        [ * * 13.00000000000? 0.?e-10 ]
+        [ * * * 10.8269230769? ]
+
     TESTS:
 
     Changing the output quadratic form does not affect the caching::
@@ -147,9 +170,10 @@ def rational_diagonal_form(self, return_matrix=False):
         ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
     """
     Q, T = self._rational_diagonal_form_and_transformation()
+    T.set_immutable()
 
     # Quadratic forms do not support immutability, so we need to make
-    # a copy to be safe. The matrix T is already immutable.
+    # a copy to be safe.
     Q = deepcopy(Q)
 
     if return_matrix:
@@ -202,6 +226,32 @@ def _rational_diagonal_form_and_transformation(self):
     K = self.base_ring().fraction_field()
     Q = self.base_change_to(K)
     MS = MatrixSpace(K, n, n)
+
+    try:
+        # Try PARI if the type is supported
+        pariself = self._pari_()
+        # Check that conversion back works
+        MS(pariself.sage())
+    except Exception:
+        pass
+    else:
+        R = pariself.qfgaussred()
+        # Diagonal matrix
+        D = MS()
+        for i in range(n):
+            D[i,i] = R[i,i]
+        Q = Q.parent()(D)
+        # Transformation matrix (inverted)
+        T = MS(R.sage())
+        for i in range(n):
+            T[i,i] = K.one()
+        try:
+            return Q, ~T
+        except ZeroDivisionError:
+            # Singular case is not fully supported by PARI
+            pass
+
+    # General case if conversion to/from PARI failed
     T = MS(1)
 
     ## Clear the entries one row at a time.
@@ -233,7 +283,6 @@ def _rational_diagonal_form_and_transformation(self):
         Q = Q(temp)
         T = T * temp
 
-    T.set_immutable()
     return Q, T
 
 

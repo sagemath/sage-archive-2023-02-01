@@ -33,9 +33,8 @@ Pickling test::
 #*****************************************************************************
 
 
-from sage.rings.arith import (GCD,
-                              hilbert_conductor_inverse, hilbert_conductor,
-                              factor, gcd, lcm, kronecker_symbol, valuation)
+from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
+        factor, gcd, lcm, kronecker_symbol, valuation)
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
@@ -46,7 +45,8 @@ from sage.rings.ideal import Ideal_fractional
 from sage.rings.rational_field import is_RationalField, QQ
 from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import is_NumberField
-from sage.structure.parent_gens import ParentWithGens, normalize_names
+from sage.structure.category_object import normalize_names
+from sage.structure.parent_gens import ParentWithGens
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence

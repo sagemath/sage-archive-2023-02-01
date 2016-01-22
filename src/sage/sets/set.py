@@ -304,7 +304,7 @@ class Set_object(Set_generic):
             sage: next(I)
             2
         """
-        return self.__object.__iter__()
+        return iter(self.__object)
 
     an_element = EnumeratedSets.ParentMethods.__dict__['_an_element_from_iterator']
 
@@ -623,7 +623,7 @@ class Set_object(Set_generic):
             sage: Set(QQ).is_empty()
             False
         """
-        return not self.__nonzero__()
+        return not self
 
     def is_finite(self):
         """

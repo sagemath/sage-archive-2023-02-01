@@ -285,7 +285,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: W.one() != 1
             False
         """
-        return not self.__eq__(rhs)
+        return not self == rhs
 
     def __neg__(self):
         """
@@ -487,7 +487,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
     # This is essentially copied from
     #   sage.combinat.free_module.CombinatorialFreeModuleElement
-    def __div__(self, x, self_on_left=False):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 
@@ -506,14 +506,14 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         if F.base_ring().is_field():
             x = F.base_ring()( x )
             x_inv = x**-1
-            if self_on_left:
-                D = dict_linear_combination( [ ( D, x_inv ) ], factor_on_left=False )
-            else:
-                D = dict_linear_combination( [ ( D, x_inv ) ] )
+            D = dict_linear_combination( [ ( D, x_inv ) ] )
 
             return self.__class__(F, D)
 
         return self.__class__(F, {t: _divide_if_possible(D[t], x) for t in D})
+
+    __div__ = __truediv__
+
 
 class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
     r"""

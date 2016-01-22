@@ -9,7 +9,7 @@
     the doctree, thus avoiding duplication between docstrings and documentation
     for those who like elaborate docstrings.
 
-    :copyright: Copyright 2007-2009 by the Sphinx team, see AUTHORS.
+    :copyright: Copyright 2007-2014 by the Sphinx team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 
     AUTHORS:
@@ -24,28 +24,26 @@
 import re
 import sys
 import inspect
-from types import FunctionType, BuiltinFunctionType, MethodType, ClassType
+import traceback
+from types import FunctionType, BuiltinFunctionType, MethodType
 
 from docutils import nodes
 from docutils.utils import assemble_option_dict
 from docutils.statemachine import ViewList
 
-from sphinx.util import rpartition, nested_parse_with_titles, force_decode
+from sphinx.util import rpartition, force_decode
 from sphinx.locale import _
 from sphinx.pycode import ModuleAnalyzer, PycodeError
 from sphinx.application import ExtensionError
+from sphinx.util.nodes import nested_parse_with_titles
 from sphinx.util.compat import Directive
-from sphinx.util.inspect import isdescriptor, safe_getmembers, safe_getattr
+from sphinx.util.inspect import getargspec, isdescriptor, safe_getmembers, \
+     safe_getattr, safe_repr, is_builtin_class_method
+from sphinx.util.pycompat import base_exception, class_types
 from sphinx.util.docstrings import prepare_docstring
 
 from sage.misc.sageinspect import sage_getdoc_original, sage_getargspec, isclassinstance
 from sage.misc.lazy_import import LazyImport
-
-try:
-    base_exception = BaseException
-except NameError:
-    base_exception = Exception
-
 
 #: extended signature RE: with explicit module name separated by ::
 py_ext_sig_re = re.compile(
@@ -117,7 +115,7 @@ class AutodocReporter(object):
         return getattr(self.reporter, name)
 
     def system_message(self, level, message, *children, **kwargs):
-        if 'line' in kwargs:
+        if 'line' in kwargs and 'source' not in kwargs:
             try:
                 source, line = self.viewlist.items[kwargs['line']]
             except IndexError:
@@ -148,8 +146,7 @@ class AutodocReporter(object):
 # Some useful event listener factories for autodoc-process-docstring.
 
 def cut_lines(pre, post=0, what=None):
-    """
-    Return a listener that removes the first *pre* and last *post*
+    """Return a listener that removes the first *pre* and last *post*
     lines of every docstring.  If *what* is a sequence of strings,
     only docstrings of a type in *what* will be processed.
 
@@ -174,11 +171,11 @@ def cut_lines(pre, post=0, what=None):
             lines.append('')
     return process
 
-def between(marker, what=None, keepempty=False):
-    """
-    Return a listener that only keeps lines between lines that match the
-    *marker* regular expression.  If no line matches, the resulting docstring
-    would be empty, so no change will be made unless *keepempty* is true.
+def between(marker, what=None, keepempty=False, exclude=False):
+    """Return a listener that either keeps, or if *exclude* is True excludes,
+    lines between lines that match the *marker* regular expression.  If no line
+    matches, the resulting docstring would be empty, so no change will be made
+    unless *keepempty* is true.
 
     If *what* is a sequence of strings, only docstrings of a type in *what* will
     be processed.
@@ -188,7 +185,7 @@ def between(marker, what=None, keepempty=False):
         if what and what_ not in what:
             return
         deleted = 0
-        delete = True
+        delete = not exclude
         orig_lines = lines[:]
         for i, line in enumerate(orig_lines):
             if delete:
@@ -205,6 +202,7 @@ def between(marker, what=None, keepempty=False):
         if lines and lines[-1]:
             lines.append('')
     return process
+
 
 class Documenter(object):
     """
@@ -272,8 +270,7 @@ class Documenter(object):
         self.directive.result.append(self.indent + line, source, *lineno)
 
     def resolve_name(self, modname, parents, path, base):
-        """
-        Resolve the module and name of the object to document given by the
+        """Resolve the module and name of the object to document given by the
         arguments and the current module/class.
 
         Must return a pair of the module name and a chain of attributes; for
@@ -283,8 +280,7 @@ class Documenter(object):
         raise NotImplementedError('must be implemented in subclasses')
 
     def parse_name(self):
-        """
-        Determine what module to import and what attribute to document.
+        """Determine what module to import and what attribute to document.
 
         Returns True and sets *self.modname*, *self.objpath*, *self.fullname*,
         *self.args* and *self.retann* if parsing and resolving was successful.
@@ -321,8 +317,7 @@ class Documenter(object):
         return True
 
     def import_object(self):
-        """
-        Import the object given by *self.modname* and *self.objpath* and sets
+        """Import the object given by *self.modname* and *self.objpath* and set
         it as *self.object*.
 
         Returns True if successful, False if an error occurred.
@@ -342,9 +337,10 @@ class Documenter(object):
             return False
 
     def get_real_modname(self):
-        """
-        Get the real module name of an object to document.  (It can differ
-        from the name of the module through which the object was imported.)
+        """Get the real module name of an object to document.
+
+        It can differ from the name of the module through which the object was
+        imported.
         """
         return self.get_attr(self.object, '__module__', None) or self.modname
 
@@ -359,15 +355,26 @@ class Documenter(object):
         return True
 
     def format_args(self):
-        """
-        Format the argument signature of *self.object*.  Should return None if
-        the object does not have a signature.
+        """Format the argument signature of *self.object*.
+
+        Should return None if the object does not have a signature.
         """
         return None
 
-    def format_signature(self):
+    def format_name(self):
+        """Format the name of *self.object*.
+
+        This normally should be something that can be parsed by the generated
+        directive, but doesn't need to be (Sphinx will display it unparsed
+        then).
         """
-        Format the signature (arguments and return annotation) of the object.
+        # normally the name doesn't contain the module (except for module
+        # directives of course)
+        return '.'.join(self.objpath) or self.modname
+
+    def format_signature(self):
+        """Format the signature (arguments and return annotation) of the object.
+
         Let the user process it via the ``autodoc-process-signature`` event.
         """
         if self.args is not None:
@@ -431,8 +438,11 @@ class Documenter(object):
         # set sourcename and add content from attribute documentation
         if self.analyzer:
             # prevent encoding errors when the file name is non-ASCII
-            filename = unicode(self.analyzer.srcname,
-                               sys.getfilesystemencoding(), 'replace')
+            if not isinstance(self.analyzer.srcname, unicode):
+                filename = unicode(self.analyzer.srcname,
+                                   sys.getfilesystemencoding(), 'replace')
+            else:
+                filename = self.analyzer.srcname
             sourcename = u'%s:docstring of %s' % (filename, self.fullname)
 
             attr_docs = self.analyzer.find_attr_docs()
@@ -450,6 +460,11 @@ class Documenter(object):
         if not no_docstring:
             encoding = self.analyzer and self.analyzer.encoding
             docstrings = self.get_doc(encoding)
+            if not docstrings:
+                # append at least a dummy docstring, so that the event
+                # autodoc-process-docstring is fired and can add some
+                # content if desired
+                docstrings.append([])
             for i, line in enumerate(self.process_doc(docstrings)):
                 self.add_line(line, sourcename, i)
 
@@ -459,8 +474,7 @@ class Documenter(object):
                 self.add_line(line, src[0], src[1])
 
     def get_object_members(self, want_all):
-        """
-        Return `(members_check_module, members)` where `members` is a
+        """Return `(members_check_module, members)` where `members` is a
         list of `(membername, member)` pairs of the members of *self.object*.
 
         If *want_all* is True, return all members.  Else, only return those
@@ -552,9 +566,10 @@ class Documenter(object):
         return ret
 
     def document_members(self, all_members=False):
-        """
-        Generate reST for member documentation.  If *all_members* is True,
-        do all members, else those given by *self.options.members*.
+        """Generate reST for member documentation.
+
+        If *all_members* is True, do all members, else those given by
+        *self.options.members*.
         """
         # set current namespace for finding members
         self.env.autodoc_current_module = self.modname
@@ -605,8 +620,8 @@ class Documenter(object):
 
     def generate(self, more_content=None, real_modname=None,
                  check_module=False, all_members=False):
-        """
-        Generate reST for the object given by *self.name*, and possibly members.
+        """Generate reST for the object given by *self.name*, and possibly for
+        its members.
 
         If *more_content* is given, include that content. If *real_modname* is
         given, use that module name to find attribute docs. If *check_module* is
@@ -639,7 +654,8 @@ class Documenter(object):
             # parse right now, to get PycodeErrors on parsing (results will
             # be cached anyway)
             self.analyzer.find_attr_docs()
-        except PycodeError as err:
+        except PycodeError, err:
+            self.env.app.debug('[autodoc] module analyzer failed: %s', err)
             # no source file -- e.g. for builtin and C modules
             self.analyzer = None
             # at least add the module.__file__ as a dependency
@@ -656,7 +672,7 @@ class Documenter(object):
         # make sure that the result starts with an empty line.  This is
         # necessary for some situations where another directive preprocesses
         # reST and no starting newline is present
-        self.add_line(u'', '')
+        self.add_line(u'', '<autodoc>')
 
         # format the object's signature, if any
         try:
@@ -821,33 +837,39 @@ class FunctionDocumenter(ModuleLevelDocumenter):
                 or (isclassinstance(member)
                     and sage_getdoc_original(member) != sage_getdoc_original(member.__class__)))
 
-    #SAGE TRAC 9976: This function has been rewritten to support the
-    #_sage_argspec_ attribute which makes it possible to get argument
-    #specification of decorated callables in documentation correct. See e.g.
-    #sage.misc.decorators.sage_wraps
+    # Sage Trac #9976: This function has been rewritten to support the
+    # _sage_argspec_ attribute which makes it possible to get argument
+    # specification of decorated callables in documentation correct.
+    # See e.g. sage.misc.decorators.sage_wraps
+    def args_on_obj(self, obj):
+        if hasattr(obj, "_sage_argspec_"):
+            return obj._sage_argspec_()
+        if inspect.isbuiltin(obj) or \
+               inspect.ismethoddescriptor(obj):
+            # cannot introspect arguments of a C function or method
+            # unless a function to do so is supplied
+            if self.env.config.autodoc_builtin_argspec:
+                argspec = self.env.config.autodoc_builtin_argspec(obj)
+                return argspec
+            else:
+                return None
+        argspec = sage_getargspec(obj)
+        if isclassinstance(obj) or inspect.isclass(obj):
+            # if a class should be documented as function, we try
+            # to use the constructor signature as function
+            # signature without the first argument.
+            if argspec is not None and argspec[0]:
+                del argspec[0][0]
+        return argspec
+
     def format_args(self):
-        def args_on_obj(obj):
-            if hasattr(obj, "_sage_argspec_"):
-                return obj._sage_argspec_()
-            if inspect.isbuiltin(obj) or \
-                   inspect.ismethoddescriptor(obj):
-                # can never get arguments of a C function or method unless
-                # a function to do so is supplied
-                if self.env.config.autodoc_builtin_argspec:
-                    argspec = self.env.config.autodoc_builtin_argspec(obj)
-                    return argspec
-                else:
-                    return None
-            argspec = sage_getargspec(obj) #inspect.getargspec(obj)
-            if isclassinstance(obj) or inspect.isclass(obj):
-                # if a class should be documented as function, we try
-                # to use the constructor signature as function
-                # signature without the first argument.
-                if argspec is not None and argspec[0]:
-                    del argspec[0][0]
-            return argspec
-        argspec = args_on_obj(self.object)
-        return inspect.formatargspec(*argspec) if argspec is not None else None
+        argspec = self.args_on_obj(self.object)
+        if argspec is None:
+            return None
+        args = inspect.formatargspec(*argspec)
+        # escape backslashes for reST
+        args = args.replace('\\', '\\\\')
+        return args
 
     def document_members(self, all_members=False):
         pass
@@ -868,11 +890,11 @@ class ClassDocumenter(ModuleLevelDocumenter):
 
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
-        return isinstance(member, (type, ClassType))
+        return isinstance(member, class_types)
 
     def import_object(self):
         ret = ModuleLevelDocumenter.import_object(self)
-        # If the class is already documented under another name, document it
+        # if the class is documented under another name, document it
         # as data/attribute
         #
         # Notes from Florent Hivert (2010-02-18) Sage trac #7448:
@@ -925,7 +947,6 @@ class ClassDocumenter(ModuleLevelDocumenter):
         return ret
 
     def format_args(self):
-        args = None
         # for classes, the relevant signature is the __init__ method's
         initmeth = self.get_attr(self.object, '__init__', None)
         # classes without __init__ method, default __init__ or
@@ -933,7 +954,7 @@ class ClassDocumenter(ModuleLevelDocumenter):
         if initmeth is None or initmeth is object.__init__ or not \
                (inspect.ismethod(initmeth) or inspect.isfunction(initmeth)):
             return None
-        argspec = sage_getargspec(initmeth) #inspect.getargspec(initmeth)
+        argspec = sage_getargspec(initmeth)
         if argspec[0] and argspec[0][0] in ('cls', 'self'):
             del argspec[0][0]
         return inspect.formatargspec(*argspec)
@@ -951,7 +972,7 @@ class ClassDocumenter(ModuleLevelDocumenter):
         # add inheritance info, if wanted
         if not self.doc_as_attr and self.options.show_inheritance:
             self.add_line(u'', '<autodoc>')
-            if len(self.object.__bases__):
+            if hasattr(self.object, '__bases__') and len(self.object.__bases__):
                 bases = [b.__module__ == '__builtin__' and
                          u':class:`%s`' % b.__name__ or
                          u':class:`%s.%s`' % (b.__module__, b.__name__)
@@ -963,9 +984,9 @@ class ClassDocumenter(ModuleLevelDocumenter):
         content = self.env.config.autoclass_content
 
         docstrings = []
-        docstring = sage_getdoc_original(self.object)
-        if docstring:
-            docstrings.append(docstring)
+        attrdocstring = sage_getdoc_original(self.object)
+        if attrdocstring:
+            docstrings.append(attrdocstring)
 
         # for classes, what the "docstring" is can be controlled via a
         # config value; the default is only the class docstring
@@ -980,9 +1001,12 @@ class ClassDocumenter(ModuleLevelDocumenter):
                     docstrings = [initdocstring]
                 else:
                     docstrings.append(initdocstring)
-
-        return [prepare_docstring(force_decode(docstring, encoding))
-                for docstring in docstrings]
+        doc = []
+        for docstring in docstrings:
+            if not isinstance(docstring, unicode):
+                docstring = force_decode(docstring, encoding)
+            doc.append(prepare_docstring(docstring))
+        return doc
 
     def add_content(self, more_content, no_docstring=False):
         if self.doc_as_attr:
@@ -1013,7 +1037,7 @@ class ExceptionDocumenter(ClassDocumenter):
 
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
-        return isinstance(member, (type, ClassType)) and \
+        return isinstance(member, class_types) and \
                issubclass(member, base_exception)
 
 
@@ -1041,7 +1065,6 @@ class MethodDocumenter(ClassLevelDocumenter):
 
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
-        # other attributes are recognized via the module analyzer
         return inspect.isroutine(member) and \
                not isinstance(parent, ModuleDocumenter)
 
@@ -1064,32 +1087,33 @@ class MethodDocumenter(ClassLevelDocumenter):
         return ret
 
 
-    #SAGE TRAC 9976: This function has been rewritten to support the
-    #_sage_argspec_ attribute which makes it possible to get argument
-    #specification of decorated callables in documentation correct. See e.g.
-    #sage.misc.decorators.sage_wraps
-    #Note, however, that sage.misc.sageinspect.sage_getargspec already
-    #uses a method _sage_argspec_, that only works on objects, not on classes, though.
-    def format_args(self):
-        def args_on_obj(obj):
-            if hasattr(obj, "_sage_argspec_"):
-                argspec = obj._sage_argspec_()
-            elif inspect.isbuiltin(obj) or inspect.ismethoddescriptor(obj):
-                # can never get arguments of a C function or method unless
-                # a function to do so is supplied
-                if self.env.config.autodoc_builtin_argspec:
-                    argspec = self.env.config.autodoc_builtin_argspec(obj)
-                else:
-                    return None
+    # Sage Trac #9976: This function has been rewritten to support the
+    # _sage_argspec_ attribute which makes it possible to get argument
+    # specification of decorated callables in documentation correct.
+    # See e.g. sage.misc.decorators.sage_wraps
+    #
+    # Note, however, that sage.misc.sageinspect.sage_getargspec already
+    # uses a method _sage_argspec_, that only works on objects, not on classes, though.
+    def args_on_obj(self, obj):
+        if hasattr(obj, "_sage_argspec_"):
+            argspec = obj._sage_argspec_()
+        elif inspect.isbuiltin(obj) or inspect.ismethoddescriptor(obj):
+            # can never get arguments of a C function or method unless
+            # a function to do so is supplied
+            if self.env.config.autodoc_builtin_argspec:
+                argspec = self.env.config.autodoc_builtin_argspec(obj)
             else:
-                # The check above misses ordinary Python methods in Cython
-                # files.
-                argspec = sage_getargspec(obj) #inspect.getargspec(obj)
-            #if isclassinstance(obj) or inspect.isclass(obj):
-            if argspec is not None and argspec[0] and argspec[0][0] in ('cls', 'self'):
-                del argspec[0][0]
-            return argspec
-        argspec = args_on_obj(self.object)
+                return None
+        else:
+            # The check above misses ordinary Python methods in Cython
+            # files.
+            argspec = sage_getargspec(obj)
+        if argspec is not None and argspec[0] and argspec[0][0] in ('cls', 'self'):
+            del argspec[0][0]
+        return argspec
+
+    def format_args(self):
+        argspec = self.args_on_obj(self.object)
         return inspect.formatargspec(*argspec) if argspec is not None else None
 
     def document_members(self, all_members=False):
@@ -1169,6 +1193,8 @@ class AutoDirective(Directive):
         if not self.result:
             return self.warnings
 
+        self.env.app.debug2('[autodoc] output:\n%s', '\n'.join(self.result))
+
         # record all filenames as dependencies -- this will at least
         # partially make automatic invalidation possible
         for fn in self.filename_set:
@@ -1232,3 +1258,13 @@ def setup(app):
     app.add_event('autodoc-process-docstring')
     app.add_event('autodoc-process-signature')
     app.add_event('autodoc-skip-member')
+
+
+class testcls:
+    """test doc string"""
+
+    def __getattr__(self, x):
+        return x
+
+    def __setattr__(self, x, y):
+        """Attr setter."""

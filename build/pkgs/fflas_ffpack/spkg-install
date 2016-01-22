@@ -19,6 +19,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19757)
+cp "$SAGE_ROOT"/config/config.* build-aux
+
 
 export CFLAGS="-g -O2 -fPIC $CFLAGS"
 export CXXFLAGS="-g -O2 -fPIC $CXXFLAGS"
@@ -28,7 +31,7 @@ if [ "$SAGE64" = "yes" ]; then
    CFLAGS="-m64 $CFLAGS "; export CFLAGS
    CXXFLAGS="-m64 $CXXFLAGS "; export CXXFLAGS
    CPPFLAGS="-m64 $CPPFLAGS "; export CPPFLAGS
-   LDFLAGS="-m64"; export LDFLAGS
+   LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
 fi
 
 
@@ -83,27 +86,25 @@ else
 fi
 
 echo "*************************************************"
-echo " Using LINBOX_BLAS=$LINBOX_BLAS"
+echo " Using --with-blas=$LINBOX_BLAS"
 echo "*************************************************"
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
     --with-blas="$LINBOX_BLAS" \
     --enable-optimization --disable-static
-
 if [ $? -ne 0 ]; then
-    echo "Error configuring linbox"
+    echo "Error configuring fflas-ffpack"
     exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building linbox"
+    echo "Error building fflas-ffpack"
 fi
 
 $MAKE install
 if [ $? -ne 0 ]; then
-    echo "Error installing linbox"
+    echo "Error installing fflas-ffpack"
     exit 1
 fi
-

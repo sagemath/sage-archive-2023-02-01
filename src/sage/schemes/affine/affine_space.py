@@ -25,7 +25,7 @@ _Fields = Fields()
 from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import latex
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 
 from sage.schemes.generic.scheme import AffineScheme
 from sage.schemes.generic.ambient_space import AmbientSpace
@@ -299,7 +299,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
@@ -326,7 +326,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
@@ -348,7 +348,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
@@ -457,7 +457,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def __pow__(self, m):
         """
-        Return the cartesian power of self.
+        Return the Cartesian power of self.
 
         INPUT:
 

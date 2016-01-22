@@ -63,6 +63,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     gel(GEN, long)
     GEN     gcoeff(GEN, long, long)
     long    coeff(GEN, long, long)
+    char*   GSTR(GEN)
 
     # paricom.h
 
@@ -1191,7 +1192,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     int algisinv(GEN al, GEN x, GEN* ptix)
     GEN algleftordermodp(GEN al, GEN Ip, GEN p)
     GEN algmul(GEN al, GEN x, GEN y)
-    GEN algmultable(GEN al, GEN x)
+    GEN algmultable(GEN al)
+    GEN algleftmultable(GEN al, GEN x)
     GEN algneg(GEN al, GEN x)
     GEN algnorm(GEN al, GEN x)
     GEN algpoleval(GEN al, GEN pol, GEN x)

@@ -39,6 +39,7 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 
 from sage.categories.commutative_algebras import CommutativeAlgebras
 
+from sage.structure.category_object import normalize_names
 from sage.structure.parent_gens import ParentWithGens
 
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
@@ -167,7 +168,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     if names is None:
         names = tuple([x + 'bar' for x in ring.variable_names()])
     else:
-        names = sage.structure.parent_gens.normalize_names(ring.ngens(), names)
+        names = normalize_names(ring.ngens(), names)
     R = ring.base_ring()
     if isinstance(R, sage.rings.integral_domain.IntegralDomain):
         try:
@@ -1107,7 +1108,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                 for ideal_gen in clgp_gen.gens():
                     rel_ideal_gen = back_to_rel(phi(ideal_gen))
                     prod_ideal_gen = [0]*i + [rel_ideal_gen.lift()] + [0]*(n - i - 1)
-                    poly_ideal_gen = self(sage.rings.arith.crt(prod_ideal_gen, moduli))
+                    poly_ideal_gen = self(sage.arith.all.crt(prod_ideal_gen, moduli))
                     ideal_gens.append(poly_ideal_gen)
                 clgp_gens.append((tuple(ideal_gens), gen_order))
 
@@ -1276,7 +1277,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                 mul_order = unit.multiplicative_order()
                 rel_unit = back_to_rel(phi(unit))
                 prod_unit = [1]*i + [rel_unit.lift()] + [1]*(n - i - 1)
-                poly_unit = self(sage.rings.arith.crt(prod_unit, moduli))
+                poly_unit = self(sage.arith.all.crt(prod_unit, moduli))
                 units.append((poly_unit, mul_order))
 
         return units
@@ -1402,7 +1403,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             for gen in component_selmer_groups[isos[i][1]]:
                 rel_gen = back_to_rel(phi(gen))
                 prod_gen = [1]*i + [rel_gen.lift()] + [1]*(n - i - 1)
-                poly_gen = self(sage.rings.arith.crt(prod_gen, moduli))
+                poly_gen = self(sage.arith.all.crt(prod_gen, moduli))
                 gens.append(poly_gen)
 
         return gens

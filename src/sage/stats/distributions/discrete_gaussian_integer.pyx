@@ -111,7 +111,7 @@ REFERENCES:
 include '../../ext/interrupt.pxi'
 
 from sage.rings.real_mpfr cimport RealNumber, RealField
-from sage.libs.mpfr cimport mpfr_set, GMP_RNDN
+from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -334,7 +334,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             sig_off()
             self._gen_dp = NULL
             self.sigma = sigma.parent()(0)
-            mpfr_set(self.sigma.value, self._gen_mp.sigma, GMP_RNDN)
+            mpfr_set(self.sigma.value, self._gen_mp.sigma, MPFR_RNDN)
             self.c = c
         elif precision == "dp":
             RR = RealField()

@@ -4050,16 +4050,24 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     def __init__(self, code, number_errors=None):
         r"""
-        EXAMPLES::
+        TESTS:
+
+        If ``number_errors`` is greater or equal than ``code``'s length, an
+        error is raised::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
-            sage: D
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 correcting up to 7 errors
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, 42)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of errors has to be lower or equal to code's length
         """
         if number_errors == None:
             self._number_errors = code.length()
+        elif not isinstance(number_errors, (Integer, int)):
+            raise ValueError("number of errors has to be a Sage integer or a Python int")
+        elif number_errors > code.length():
+            raise ValueError("number of errors has to be lower or equal to code's length")
         else:
             self._number_errors = number_errors
         super(LinearCodeSyndromeDecoder, self).__init__(code, code.ambient_space(),\
@@ -4179,7 +4187,6 @@ class LinearCodeSyndromeDecoder(Decoder):
         value_index = 0
         stop = False
         while not stop:
-            print "Enter"
             try:
                 stop = True
                 patterns = Subsets(range(n), Ierrors.next())

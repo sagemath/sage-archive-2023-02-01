@@ -1,5 +1,5 @@
 r"""
-Set of homomorphisms between two affine schemes
+Set of homomorphisms between two affine schemes.
 
 For schemes `X` and `Y`, this module implements the set of morphisms
 `Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
@@ -56,7 +56,7 @@ class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic)
 
         sage: from sage.schemes.affine.affine_homset import SchemeHomset_points_spec
         sage: SchemeHomset_points_spec(Spec(QQ), Spec(QQ))
-        Set of rational points of Spectrum of Rational Field
+        Set of rational points of Spectrum of Rational Field.
     """
 
     def _element_constructor_(self, *args, **kwds):
@@ -86,7 +86,7 @@ class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic)
 
     def _repr_(self):
         """
-        Return a string representation of ``self``.
+        Return a string representation of a homset.
 
         OUTPUT:
 
@@ -140,7 +140,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
 
         EXAMPLES: The bug reported at #11526 is fixed::
 
-            sage: A2 = AffineSpace(ZZ,2)
+            sage: A2 = AffineSpace(ZZ, 2)
             sage: F = GF(3)
             sage: A2(F).points()
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
@@ -148,7 +148,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: R = ZZ
             sage: A.<x,y> = R[]
             sage: I = A.ideal(x^2-y^2-1)
-            sage: V = AffineSpace(R,2)
+            sage: V = AffineSpace(R, 2)
             sage: X = V.subscheme(I)
             sage: M = X(R)
             sage: M.points(1)
@@ -158,13 +158,13 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
 
             sage: u = QQ['u'].0
             sage: K.<v> = NumberField(u^2 + 3)
-            sage: A.<x,y> = AffineSpace(K,2)
+            sage: A.<x,y> = AffineSpace(K, 2)
             sage: len(A(K).points(9))
             361
 
         ::
 
-            sage: A.<x,y> = AffineSpace(QQ,2)
+            sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: E = A.subscheme([x^2 + y^2 - 1, y^2 - x^3 + x^2 + x - 1])
             sage: E(A.base_ring()).points()
             [(-1, 0), (0, -1), (0, 1), (1, 0)]
@@ -180,7 +180,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             if dim_ideal == 0: # if X zero-dimensional
                 N = len(X.ambient_space().gens())
                 S = X.defining_polynomials()[0].parent()
-                R = PolynomialRing(S.base_ring(),'s',N,order='lex')
+                R = PolynomialRing(S.base_ring(), 's', N, order='lex')
                 phi = S.hom(R.gens(),R)
                 J = R.ideal([phi(t) for t in X.defining_polynomials()])
                 D = J.variety()
@@ -193,16 +193,16 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:
             if not B > 0:
-                raise TypeError("A positive bound B (= %s) must be specified."%B)
+                raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.affine.affine_rational_point import enum_affine_rational_field
             return enum_affine_rational_field(self,B)
         if R in NumberFields():
             if not B > 0:
-                raise TypeError("A positive bound B (= %s) must be specified."%B)
+                raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.affine.affine_rational_point import enum_affine_number_field
             return enum_affine_number_field(self,B)
         elif is_FiniteField(R):
             from sage.schemes.affine.affine_rational_point import enum_affine_finite_field
             return enum_affine_finite_field(self)
         else:
-            raise TypeError("Unable to enumerate points over %s."%R)
+            raise TypeError("unable to enumerate points over %s"%R)

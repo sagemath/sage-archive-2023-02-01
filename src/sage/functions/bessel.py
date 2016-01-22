@@ -20,7 +20,7 @@ The main objects which are exported from this module are:
    Daniel Bernoulli and named after Friedrich Bessel, are canonical
    solutions y(x) of Bessel's differential equation:
 
-   .. math::
+   .. MATH::
 
          x^2 \frac{d^2 y}{dx^2} + x \frac{dy}{dx} + \left(x^2 - \nu^2\right)y =
          0,
@@ -32,7 +32,7 @@ The main objects which are exported from this module are:
    Function of the First Kind. This function also arises as a special case
    of the hypergeometric function `{}_0F_1`:
 
-   .. math::
+   .. MATH::
 
         J_\nu(x) = \frac{x^n}{2^\nu \Gamma(\nu + 1)} {}_0F_1(\nu +
         1, -\frac{x^2}{4}).
@@ -41,7 +41,7 @@ The main objects which are exported from this module are:
    singular at `x=0`) is denoted by `Y_\nu` and is called the Bessel
    Function of the Second Kind:
 
-   .. math::
+   .. MATH::
 
         Y_\nu(x) = \frac{ J_\nu(x) \cos(\pi \nu) -
         J_{-\nu}(x)}{\sin(\pi \nu)}.
@@ -50,14 +50,14 @@ The main objects which are exported from this module are:
    Functions. The Bessel I Function, or the Modified Bessel Function of the
    First Kind, is defined by:
 
-   .. math::
+   .. MATH::
 
        I_\nu(x) = i^{-\nu} J_\nu(ix).
 
    The Bessel K Function, or the Modified Bessel Function of the Second Kind,
    is defined by:
 
-   .. math::
+   .. MATH::
 
        K_\nu(x) = \frac{\pi}{2} \cdot \frac{I_{-\nu}(x) -
        I_n(x)}{\sin(\pi \nu)}.
@@ -68,7 +68,7 @@ The main objects which are exported from this module are:
 -  It follows from Bessel's differential equation that the derivative of
    `J_n(x)` with respect to `x` is:
 
-   .. math::
+   .. MATH::
 
        \frac{d}{dx} J_n(x) = \frac{1}{x^n} \left(x^n J_{n-1}(x) - n x^{n-1}
        J_n(z) \right)
@@ -78,11 +78,11 @@ The main objects which are exported from this module are:
    `H_\nu^{(1)}(x)` and `H_\nu^{(2)}(x)`,
    defined by:
 
-   .. math::
+   .. MATH::
 
          H_\nu^{(1)}(x) = J_\nu(x) + i Y_\nu(x)
 
-   .. math::
+   .. MATH::
 
          H_\nu^{(2)}(x) = J_\nu(x) - i Y_\nu(x)
 
@@ -207,7 +207,7 @@ class Function_Bessel_J(BuiltinFunction):
     The Bessel J Function, denoted by bessel_J(`\nu`, x) or `J_\nu(x)`.
     As a Taylor series about `x=0` it is equal to:
 
-    .. math::
+    .. MATH::
 
         J_\nu(x) = \sum_{k=0}^\infty \frac{(-1)^k}{k! \Gamma(k+\nu+1)}
         \left(\frac{x}{2}\right)^{2k+\nu}
@@ -220,14 +220,14 @@ class Function_Bessel_J(BuiltinFunction):
 
     For integer orders `\nu = n` there is an integral representation:
 
-    .. math::
+    .. MATH::
 
         J_n(x) = \frac{1}{\pi} \int_0^\pi \cos(n t - x \sin(t)) \; dt
 
     This function also arises as a special case of the hypergeometric
     function `{}_0F_1`:
 
-    .. math::
+    .. MATH::
 
         J_\nu(x) = \frac{x^n}{2^\nu \Gamma(\nu + 1)} {}_0F_1\left(\nu +
         1, -\frac{x^2}{4}\right).
@@ -384,14 +384,14 @@ class Function_Bessel_Y(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         Y_n(z) = \frac{J_\nu(z) \cos(\nu z) -
         J_{-\nu}(z)}{\sin(\nu z)}
 
     Its derivative with respect to `z` is:
 
-    .. math::
+    .. MATH::
 
         \frac{d}{dz} Y_n(z) = \frac{1}{z^n} \left(z^n Y_{n-1}(z) - n z^{n-1}
         Y_n(z) \right)
@@ -550,7 +550,7 @@ class Function_Bessel_I(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         I_\nu(x) = i^{-\nu} J_\nu(ix)
 
@@ -712,7 +712,7 @@ class Function_Bessel_K(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         K_\nu(x) = \frac{\pi}{2} \frac{I_{-\nu}(x)-I_\nu(x)}{\sin(\nu \pi)}
 
@@ -1050,11 +1050,11 @@ class Function_Struve_H(BuiltinFunction):
     r"""
     The Struve functions, solutions to the non-homogeneous Bessel differential equation:
 
-    .. math::
+    .. MATH::
 
         x^2\frac{d^2y}{dx^2}+x\frac{dy}{dx}+(x^2-\alpha^2)y=\frac{4\bigl(\frac{x}{2}\bigr)^{\alpha+1}}{\sqrt\pi\Gamma(\alpha+\tfrac12)},
 
-    .. math::
+    .. MATH::
 
         \mathrm{H}_\alpha(x) = y(x)
 
@@ -1076,7 +1076,7 @@ class Function_Struve_H(BuiltinFunction):
     """
     def __init__(self):
         r"""
-    ^    EXAMPLES::
+        EXAMPLES::
 
             sage: n = var('n')
             sage: maxima("struve_h(n,x);").sage()
@@ -1165,7 +1165,7 @@ class Function_Struve_L(BuiltinFunction):
     r"""
     The modified Struve functions.
 
-    .. math::
+    .. MATH::
 
         \mathrm{L}_\alpha(x) = -i\cdot e^{-\frac{i\alpha\pi}{2}}\cdot\mathrm{H}_\alpha(ix)
 
@@ -1187,7 +1187,7 @@ class Function_Struve_L(BuiltinFunction):
     """
     def __init__(self):
         r"""
-    ^    EXAMPLES::
+        EXAMPLES::
 
             sage: n = var('n')
             sage: maxima("struve_l(n,x);").sage()

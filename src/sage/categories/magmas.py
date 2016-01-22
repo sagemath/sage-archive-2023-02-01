@@ -502,7 +502,7 @@ class Magmas(Category_singleton):
 
         class ElementMethods:
 
-            def __div__(left, right):
+            def __truediv__(left, right):
                 """
                 Return the result of the division of ``left`` by ``right``, if possible.
 
@@ -560,6 +560,7 @@ class Magmas(Category_singleton):
                 from sage.structure.element import get_coercion_model
                 import operator
                 return get_coercion_model().bin_op(left, right, operator.div)
+            __div__ = __truediv__ # For Python2/3 compatibility; see e.g. #18578
 
             def _div_(left, right):
                 r"""

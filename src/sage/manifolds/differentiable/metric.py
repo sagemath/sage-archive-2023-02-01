@@ -1258,7 +1258,8 @@ class PseudoRiemannianMetric(TensorField):
 
         .. MATH::
 
-            C_{ijk} = (n-2) \left(\nabla_k S_{ij} - \nabla_j S_{ik}\right)
+            C_{ijk} = (n-2) \left(\left(\nabla_k S\right)_{ij} 
+            - \left(\nabla_j S\right)_{ik}\right)
 
         INPUT:
 

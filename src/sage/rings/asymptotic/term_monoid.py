@@ -3034,6 +3034,16 @@ class ExactTerm(TermWithCoefficient):
             -x^2
             sage: ET(x^0, 42)
             42
+
+        Check that :trac:`19576` is fixed::
+
+            sage: C.<c> = AsymptoticRing('c^ZZ', SR)
+            sage: (1+pi)*c
+            (pi + 1)*c
+            sage: R.<a> = QQ[]
+            sage: S.<n> = AsymptoticRing('n^QQ', R)
+            sage: (1+a)/n
+            (a + 1)*n^(-1)
         """
         g = repr(self.growth)
         c = repr(self.coefficient)
@@ -3043,8 +3053,12 @@ class ExactTerm(TermWithCoefficient):
             return '%s' % (g,)
         elif c == '-1':
             return '-%s' % (g,)
-        else:
+        elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
+            # note that -pi/2 is not atomic, but -5 is. As subtractions are handeled
+            # in the asymptotic ring, we ignore such non-atomicity.
             return '%s*%s' % (c, g)
+        else:
+            return '(%s)*%s' % (c, g)
 
 
     def __invert__(self):

@@ -143,7 +143,7 @@ AUTHOR:
 """
 
 from sage.misc.misc import get_verbose
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.structure.sequence import Sequence
 
 #some aliases that conform to Becker and Weispfenning's notation:

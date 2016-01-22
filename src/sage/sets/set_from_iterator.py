@@ -81,7 +81,7 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``args`` -- tuple -- arguments to be sent to the function ``f``
 
-    - ``kwds`` -- dictionnary -- keywords to be sent to the function ``f``
+    - ``kwds`` -- dictionary -- keywords to be sent to the function ``f``
 
     - ``name`` -- an optional name for the set
 
@@ -354,7 +354,7 @@ class EnumeratedSetFromIterator(Parent):
             sage: E5 != E5
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __iter__(self):
         r"""

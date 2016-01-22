@@ -126,6 +126,8 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             if self.counit_on_basis is not NotImplemented:
                 return self.module_morphism(self.counit_on_basis,codomain=self.base_ring())
+            elif hasattr(self, "counit_by_coercion"):
+                return self.counit_by_coercion
 
     class ElementMethods:
         def coproduct_iterated(self, n=1):

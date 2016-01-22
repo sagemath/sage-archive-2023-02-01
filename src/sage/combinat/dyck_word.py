@@ -74,7 +74,6 @@ from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
 from sage.misc.latex import latex
-from sage.misc.superseded import deprecated_function_alias
 
 
 DyckWordOptions = GlobalOptions(name='Dyck words',
@@ -582,19 +581,6 @@ class DyckWord(CombinatorialElement):
         else:
             raise ValueError("The given type (=\s) is not valid." % type)
 
-    @staticmethod
-    def set_ascii_art(rep="path"):
-        r"""
-        TESTS::
-
-            sage: DyckWord.set_ascii_art("path")
-            doctest:...: DeprecationWarning: set_ascii_art is deprecated. Use DyckWords.global_options instead.
-            See http://trac.sagemath.org/14875 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'set_ascii_art is deprecated. Use DyckWords.global_options instead.')
-        DyckWords.global_options(ascii_art=rep)
-
     def _ascii_art_(self):
         r"""
         Return an ASCII art representation of ``self``.
@@ -1085,42 +1071,6 @@ class DyckWord(CombinatorialElement):
             heights[i + 1] = height
         return tuple(heights)
 
-    @classmethod
-    def from_heights(cls, heights):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :class:`DyckWords_all().from_heights()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord
-            sage: DyckWord.from_heights((0,))
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords(complete=False).from_heights instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords(complete=False).from_heights instead.')
-        return DyckWords_all().from_heights(heights)
-
-    @classmethod
-    def min_from_heights(cls, heights):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :class:`DyckWords_all.min_from_heights()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord
-            sage: DyckWord.min_from_heights((0,))
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords(complete=False).from_min_heights instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords(complete=False).from_min_heights instead.')
-        return DyckWords_all().from_heights(heights)
-
     def associated_parenthesis(self, pos):
         r"""
         Report the position for the parenthesis in ``self`` that matches the
@@ -1185,7 +1135,7 @@ class DyckWord(CombinatorialElement):
         r"""
         Return the length of the initial run of ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - a non--negative integer indicating the length of the initial rise
 
@@ -1635,7 +1585,7 @@ class DyckWord(CombinatorialElement):
 
             sage: dw = DyckWord([1, 1, 0, 1, 0, 0, 1, 0])
             sage: ip = dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 1, 0, 0])); ip
-            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
             sage: ip.lower_dyck_word()
             [1, 1, 0, 1, 0, 0, 1, 0]
             sage: ip.upper_dyck_word()
@@ -1812,7 +1762,7 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord(area_sequence=[0,0,0]).number_of_parking_functions()
             6
         """
-        from sage.rings.arith import multinomial
+        from sage.arith.all import multinomial
         return multinomial(list(self.rise_composition()))
 
     def list_parking_functions(self):
@@ -2310,42 +2260,6 @@ class DyckWord_complete(DyckWord):
         res.append(returns.index(cut-1))
         return res
 
-    @classmethod
-    def from_Catalan_code(cls, code):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_Catalan_code()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_Catalan_code([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_Catalan_code instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_Catalan_code instead.')
-        return CompleteDyckWords_all().from_Catalan_code(code)
-
-    @classmethod
-    def from_area_sequence(cls, code):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_area_sequence()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_area_sequence([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_area_sequence instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_area_sequence instead.')
-        return CompleteDyckWords_all().from_area_sequence(code)
-
     @combinatorial_map(name="To Ordered tree")
     def to_ordered_tree(self):
         r"""
@@ -2507,24 +2421,6 @@ class DyckWord_complete(DyckWord):
         """
         from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
         return NonDecreasingParkingFunction.from_dyck_word(self)
-
-    @classmethod
-    def from_non_decreasing_parking_function(cls, pf):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_non_decreasing_parking_function()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_non_decreasing_parking_function([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_non_decreasing_parking_function instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_non_decreasing_parking_function instead.')
-        return CompleteDyckWords_all().from_area_sequence([i - pf[i] + 1 for i in range(len(pf))])
 
     def major_index(self):
         r"""
@@ -3615,7 +3511,7 @@ class DyckWords_size(DyckWords):
             ....:      for p in range(7))
             True
         """
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return (self.k1 - self.k2 + 1) * binomial(self.k1 + self.k2, self.k2) // (self.k1 + 1)
 
 ################################################################
@@ -4117,25 +4013,6 @@ def is_a(obj, k1=None, k2=None):
             return False
 
     return (k1 is None and k2 is None) or (n_opens == k1 and n_closes == k2)
-
-is_a_prefix = deprecated_function_alias(14875, is_a)
-
-
-def from_noncrossing_partition(ncp):
-    r"""
-    This is deprecated in :trac:`14875`. Instead use
-    :meth:`CompleteDyckWords.from_noncrossing_partition()`.
-
-    TESTS::
-
-        sage: sage.combinat.dyck_word.from_noncrossing_partition([[1,2]])
-        doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_noncrossing_partition instead.
-        See http://trac.sagemath.org/14875 for details.
-        [1, 1, 0, 0]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14875, 'this method is deprecated. Use DyckWords().from_noncrossing_partition instead.')
-    return CompleteDyckWords_all().from_noncrossing_partition(ncp)
 
 
 def from_ordered_tree(tree):

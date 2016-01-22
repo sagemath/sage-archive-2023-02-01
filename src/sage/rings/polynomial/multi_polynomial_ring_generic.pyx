@@ -18,7 +18,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default
 from sage.misc.misc_c import prod
 from sage.combinat.integer_vector import IntegerVectors
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 
 def is_MPolynomialRing(x):
     return isinstance(x, MPolynomialRing_generic)
@@ -607,7 +607,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             3
 
         """
-        from sage.rings.arith import binomial
         C = [1]  #d = 0
         for dbar in xrange(1, d+1):
             C.append(binomial(n+dbar-1, dbar))
@@ -640,8 +639,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             We do not check if the provided index/rank is within the allowed
             range. If it is not an infinite loop will occur.
         """
-        from sage.combinat import choose_nk
-        comb = choose_nk.from_rank(i, n+d-1, n-1)
+        from sage.combinat import combination
+        comb = combination.from_rank(i, n+d-1, n-1)
         if comb == []:
             return (d,)
         monomial = [ comb[0] ]
@@ -672,7 +671,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             (0, 0, 0, 3, 0)
             """
         # bug: doesn't handle n=1
-        from sage.rings.arith import binomial
         #Select random degree
         d = ZZ.random_element(0,degree+1)
         total = binomial(n+d-1, d)
@@ -825,7 +823,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
 
         from sage.combinat.integer_vector import IntegerVectors
-        from sage.rings.arith import binomial
 
         #total is 0. Just return
         if total == 0:

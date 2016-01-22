@@ -19,13 +19,15 @@ AUTHORS:
 
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
-
+#*****************************************************************************
 
 cdef class GenericBackend:
 
@@ -36,8 +38,8 @@ cdef class GenericBackend:
     cpdef zero(self):
         return self.base_ring()(0)
 
-    cpdef int add_variable(self, lower_bound=None, upper_bound=None, 
-                           binary=False, continuous=True, integer=False, 
+    cpdef int add_variable(self, lower_bound=None, upper_bound=None,
+                           binary=False, continuous=True, integer=False,
                            obj=None, name=None) except -1:
         """
         Add a variable.
@@ -262,7 +264,7 @@ cdef class GenericBackend:
         r"""
         Remove a constraint.
 
-        INPUT::
+        INPUT:
 
         - ``i`` -- index of the constraint to remove.
 

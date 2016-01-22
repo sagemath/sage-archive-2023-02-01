@@ -333,10 +333,6 @@ class SageCustomizations(object):
         self.auto_magics = SageMagics(shell)
         self.shell.register_magics(self.auto_magics)
 
-        import sage.repl.display.formatter as formatter
-        self.shell.display_formatter.formatters['text/plain'] = (
-                formatter.SagePlainTextFormatter(config=shell.config))
-
         import sage.misc.edit_module as edit_module
         self.shell.set_hook('editor', edit_module.edit_devel)
 

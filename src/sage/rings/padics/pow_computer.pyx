@@ -571,4 +571,3 @@ def PowComputer(m, cache_limit, prec_cap, in_field = False):
     if not isinstance(prec_cap, Integer):
         prec_cap = Integer(prec_cap)
     return PowComputer_c(m, cache_limit, prec_cap, in_field)
-

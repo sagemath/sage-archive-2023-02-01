@@ -60,7 +60,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
-from sage.rings.arith import previous_prime
+from sage.arith.all import previous_prime
 from sage.structure.element cimport Element, generic_power_c
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
@@ -1709,7 +1709,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: U*A == H
             True
 
-        TESTS: Make sure the zero matrices are handled correctly::
+        TESTS:
+
+        Make sure the zero matrices are handled correctly::
 
             sage: m = matrix(ZZ,3,3,[0]*9)
             sage: m.echelon_form()
@@ -2681,7 +2683,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           ``block_size`` should be between 2 and the number of rows
           of ``self``.
 
-        NLT SPECIFIC INPUTS:
+        NLT SPECIFIC INPUT:
 
         - ``prune`` -- (default: ``0``) The optional parameter ``prune`` can
           be set to any positive number to invoke the Volume Heuristic from
@@ -2697,7 +2699,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           orthogonalization strategy. For a nice description of this, see
           Chapter 5 of [GL96]_.
 
-        fpLLL SPECIFIC INPUTS:
+        fpLLL SPECIFIC INPUT:
 
         - ``precision`` -- (default: ``0`` for automatic choice) bit
           precision to use if ``fp='rr'`` is set
@@ -3086,7 +3088,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A = FP_LLL(self)
             method = algorithm.replace("fpLLL:","")
             A.LLL(delta=delta, eta=eta,
-                  method=method,
+                  algorithm=method,
                   float_type=fp,
                   precision=prec,
                   verbose=verb,
@@ -3952,7 +3954,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 2 -3]
             [ 3  0]
 
-        TESTS: We create a random 100x100 matrix and solve the
+        TESTS:
+
+        We create a random 100x100 matrix and solve the
         corresponding system, then verify that the result is correct.
         (Note that this test is very risky without having a seeded
         random number generator!)

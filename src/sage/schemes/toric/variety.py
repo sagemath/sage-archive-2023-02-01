@@ -311,15 +311,15 @@ please consider reporting them to the Sage Development Team or even
 implementing them on your own as a patch for inclusion!
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -328,16 +328,16 @@ import sys
 from sage.functions.all import factorial
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
-from sage.matrix.all import matrix
-from sage.misc.all import latex, prod, uniq, cached_method
+from sage.misc.all import latex, prod, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import Infinity, PolynomialRing, ZZ, QQ
+from sage.rings.all import PolynomialRing, ZZ, QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.toric.homset import SchemeHomset_points_toric_field
+from sage.structure.category_object import certify_names
 from sage.categories.fields import Fields
 from sage.misc.cachefunc import ClearCacheOnPickle
 _Fields = Fields()
@@ -727,7 +727,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         - same as for
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         -
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
@@ -792,7 +792,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         - same as for
           :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
@@ -2968,7 +2968,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
     Let's now use all parameters at once::
 
         sage: normalize_names("x, y, s+", 4, prefix="t",
-        ...       indices=range(1,5), return_prefix=True)
+        ....:     indices=range(1,5), return_prefix=True)
         ['x', 'y', 's3', 's4', 's']
 
     Note that you still need to give indices for all names, even if some of
@@ -2986,14 +2986,14 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
         sage: normalize_names("123")
         Traceback (most recent call last):
         ...
-        ValueError: name must start with a letter! Got 123
+        ValueError: variable name '123' does not start with a letter
 
     A more subtle one::
 
         sage: normalize_names("x1", 4, prefix="x")
         Traceback (most recent call last):
         ...
-        ValueError: names must be distinct! Got: ['x1', 'x1', 'x2', 'x3']
+        ValueError: variable name 'x1' appears more than once
     """
     if names is None:
         names = []
@@ -3030,60 +3030,6 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
     if return_prefix:
         names.append(prefix)
     return names
-
-
-def certify_names(names):
-    r"""
-    Make sure that ``names`` are valid in Python.
-
-    INPUT:
-
-    - ``names`` -- list of strings.
-
-    OUTPUT:
-
-    - none, but a ``ValueError`` exception is raised if ``names`` are invalid.
-
-    Each name must satisfy the following requirements:
-
-    * Be non-empty.
-    * Contain only (Latin) letters, digits, and underscores ("_").
-    * Start with a letter.
-
-    In addition, all names must be distinct.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.toric.variety import certify_names
-        sage: certify_names([])
-        sage: certify_names(["a", "x0", "x_45"])
-        sage: certify_names(["", "x0", "x_45"])
-        Traceback (most recent call last):
-        ...
-        ValueError: name must be nonempty!
-        sage: certify_names(["a", "0", "x_45"])
-        Traceback (most recent call last):
-        ...
-        ValueError: name must start with a letter! Got 0
-        sage: certify_names(["a", "x0", "@_45"])
-        Traceback (most recent call last):
-        ...
-        ValueError: name must be alphanumeric! Got @_45
-        sage: certify_names(["a", "x0", "x0"])
-        Traceback (most recent call last):
-        ...
-        ValueError: names must be distinct! Got: ['a', 'x0', 'x0']
-    """
-    for name in names:
-        if not name:
-            raise ValueError("name must be nonempty!")
-        if not name.isalnum() and not name.replace("_","").isalnum():
-            # Must be alphanumeric except for non-leading '_'
-            raise ValueError("name must be alphanumeric! Got %s" % name)
-        if not name[0].isalpha():
-            raise ValueError("name must start with a letter! Got %s" % name)
-    if len(set(names)) != len(names):
-        raise ValueError("names must be distinct! Got: %s" % names)
 
 
 #*****************************************************************
@@ -3140,7 +3086,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: P2.cohomology_ring()
             Rational cohomology ring of a 2-d CPR-Fano toric variety covered by 3 affine patches
 
-        TESTS::
+        ::
 
             sage: cone1 = Cone([(1,0)]);  cone2 = Cone([(1,0)])
             sage: cone1 is cone2

@@ -46,7 +46,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A.base_ring()
         Rational Field
         sage: A.basis().keys()
-        Finite Words over {'a', 'b', 'c'}
+        Finite words over {'a', 'b', 'c'}
 
         sage: (a,b,c) = A.algebra_generators()
         sage: a^3, b^2
@@ -242,7 +242,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras with basis, constructed as cartesian
+        The category of algebras with basis, constructed as Cartesian
         products of algebras with basis.
 
         Note: this construction give the direct products of algebras with basis.
@@ -252,7 +252,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def extra_super_categories(self):
             """
-            A cartesian product of algebras with basis is endowed with
+            A Cartesian product of algebras with basis is endowed with
             a natural algebra with basis structure.
 
             EXAMPLES::
@@ -270,9 +270,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             @cached_method
             def one_from_cartesian_product_of_one_basis(self):
                 """
-                Returns the one of this cartesian product of algebras, as per ``Monoids.ParentMethods.one``
+                Returns the one of this Cartesian product of algebras, as per ``Monoids.ParentMethods.one``
 
-                It is constructed as the cartesian product of the ones of the
+                It is constructed as the Cartesian product of the ones of the
                 summands, using their :meth:`~AlgebrasWithBasis.ParentMethods.one_basis` methods.
 
                 This implementation does not require multiplication by

@@ -453,11 +453,23 @@ fi
 # Handle --info
 ##################################################################
 
+# Usage: zip_to_tar $PKG_FILE_NAME
+# Outputs (to stdout) a .tar version of a .zip archive
+zip_to_tar()
+{
+    tmpdir="$(mktemp -d)"       &&
+	tmpfile="$(mktemp).tar" &&
+	cd "$tmpdir"            &&
+	sage-unzip "$1"         &&
+	tar -cf "$tmpfile" *    &&
+	cat "$tmpfile"
+}
+
 # Usage: uncompress_spkg $PKG_FILE_NAME
 # Uncompresses a spkg to stdout.
 uncompress_spkg()
 {
-    lbzip2 -d -c "$1" 2>/dev/null || bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || cat "$1"
+    lbzip2 -d -c "$1" 2>/dev/null || bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || zip_to_tar "$1" || cat "$1"
 }
 
 if [ $INFO -ne 0 -a -z "$USE_LOCAL_SCRIPTS" ]; then
@@ -543,7 +555,16 @@ fi
 
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     shopt -s nocaseglob      # see trac:16415
-    mv "${PKG_NAME_UPSTREAM%.tar*}"* src
+    # Strip file extension from the archive file and hope (as per
+    # automake standards) that this is the same as the directory name
+    # inside; move the directory to "src".  (This goes wrong for
+    # upstream package archives that have been renamed to appease some
+    # other Sage script, such as "latte-int", whose archive is renamed
+    # to "latte_int".)
+    mv "$(echo "$PKG_NAME_UPSTREAM" | sed 's/\.zip$//g;s/\.tgz$//g;s/\.tar\.gz$//g;s/\.tar\.xz$//g;s/\.tar\.lz$//g;s/\.tar\.bz2$//g;s/\.tar$//g')"* src
+    # Do not check for errors here; the "mv" fails in the situation
+    # mentioned above, and the package-specific script needs to do
+    # this work itself.
     shopt -u nocaseglob
     echo "Finished set up"
 else
@@ -637,8 +658,8 @@ if [ ! -x spkg-install ]; then
     echo >&2 "WARNING: spkg-install is not executable, making it executable"
     chmod +x spkg-install
 fi
-time ./spkg-install
 
+time ./spkg-install
 if [ $? -ne 0 ]; then
     error_msg "Error installing package $PKG_NAME" "make"
     exit 1
@@ -663,6 +684,12 @@ if [ "$SAGE_CHECK" = "yes" ]; then
         echo "Package $PKG_NAME has no test suite."
         TEST_SUITE_RESULT="not available"
     fi
+fi
+
+rm -f "$SAGE_LOCAL"/lib/*.la
+if [ $? -ne 0 ]; then
+    error_msg "Error deleting unnecessary libtool archive files"
+    exit 1
 fi
 
 # Mark that the new package has been installed (and tested, if

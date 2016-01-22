@@ -16,6 +16,10 @@ for patch in ../patches/*.patch; do
         exit 1
     fi
 done
+
+# Use newer version of config.guess and config.sub (see Trac #19714)
+cp "$SAGE_ROOT"/config/config.* config
+
 # The following prevents autotools to regenerate its files.
 touch aclocal.m4 configure Makefile.in config.h.in
 touch src/platform.hpp.in

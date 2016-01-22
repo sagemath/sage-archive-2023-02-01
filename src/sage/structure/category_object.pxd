@@ -21,3 +21,6 @@ cdef class CategoryObject(SageObject):
     cdef public _factory_data
     cdef object __weakref__
     cdef long _hash_value
+
+cpdef normalize_names(Py_ssize_t ngens, names)
+cpdef bint certify_names(names) except -1

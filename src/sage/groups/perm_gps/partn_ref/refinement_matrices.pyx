@@ -1,17 +1,18 @@
 """
 Partition backtrack functions for matrices
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_matrices
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 
@@ -317,7 +318,7 @@ def random_tests(n=10, nrows_max=50, ncols_max=50, nsymbols_max=10, perms_per_ma
     from sage.combinat.permutation import Permutations
     from sage.matrix.constructor import random_matrix, matrix
     from sage.rings.finite_rings.constructor import FiniteField as GF
-    from sage.rings.arith import next_prime
+    from sage.arith.all import next_prime
     cdef int h, i, j, nrows, k, num_tests = 0, num_matrices = 0
     cdef MatrixStruct M, N
     for m in range(n):

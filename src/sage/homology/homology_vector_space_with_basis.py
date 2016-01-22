@@ -81,8 +81,8 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         Cohomology ring of Cubical complex with 21 vertices and 81 cubes
          over Finite Field of size 2
         sage: simplicial_complexes.Torus().homology_with_basis(QQ)
-        Homology module of Simplicial complex with vertex set
-         (0, 1, 2, 3, 4, 5, 6) and 14 facets over Rational Field
+        Homology module of Minimal triangulation of the torus
+         over Rational Field
 
     To access a basis element, use its degree and index (0 or 1 in the 1st
     cohomology group of a torus)::
@@ -269,7 +269,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
             sage: H = simplicial_complexes.Simplex(2).homology_with_basis(QQ)
             sage: H.complex()
-            Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
+            The 2-simplex
         """
         return self._complex
 
@@ -278,8 +278,8 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: simplicial_complexes.Torus().homology_with_basis(QQ)
-            Homology module of Simplicial complex with vertex set
-             (0, 1, 2, 3, 4, 5, 6) and 14 facets over Rational Field
+            Homology module of Minimal triangulation of the torus
+             over Rational Field
         """
         if self._cohomology:
             base = "Cohomology"
@@ -443,8 +443,8 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
         EXAMPLES::
 
             sage: simplicial_complexes.Torus().cohomology_ring(QQ)
-            Cohomology ring of Simplicial complex with vertex set
-             (0, 1, 2, 3, 4, 5, 6) and 14 facets over Rational Field
+            Cohomology ring of Minimal triangulation of the torus
+             over Rational Field
         """
         return "Cohomology ring of {} over {}".format(self._complex, self.base_ring())
 

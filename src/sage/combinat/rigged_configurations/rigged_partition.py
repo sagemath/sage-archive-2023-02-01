@@ -258,7 +258,7 @@ class RiggedPartition(CombinatorialObject):
             False
         """
         if isinstance(rhs, RiggedPartition):
-            return(self._list.__eq__(rhs._list) and self.rigging.__eq__(rhs.rigging))
+            return self._list == rhs._list and self.rigging == rhs.rigging
 
         return False
 

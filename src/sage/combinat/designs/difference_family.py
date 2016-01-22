@@ -43,7 +43,7 @@ Functions
 #*****************************************************************************
 
 from sage.categories.sets_cat import EmptySetError
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.misc.unknown import Unknown
 from sage.rings.integer import Integer
 
@@ -923,7 +923,7 @@ def twin_prime_powers_difference_set(p, check=True):
     r"""
     Return a difference set on `GF(p) \times GF(p+2)`.
 
-    The difference set is built from the following element of the cartesian
+    The difference set is built from the following element of the Cartesian
     product of finite fields `GF(p) \times GF(p+2)`:
 
     - `(x,0)` with any `x`
@@ -943,7 +943,7 @@ def twin_prime_powers_difference_set(p, check=True):
         sage: from sage.combinat.designs.difference_family import twin_prime_powers_difference_set
         sage: G,D = twin_prime_powers_difference_set(3)
         sage: G
-        The cartesian product of (Finite Field of size 3, Finite Field of size 5)
+        The Cartesian product of (Finite Field of size 3, Finite Field of size 5)
         sage: D
         [[(1, 1), (1, 4), (2, 2), (2, 3), (0, 0), (1, 0), (2, 0)]]
     """
@@ -1033,7 +1033,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
         sage: G,D = designs.difference_family(15,7,3)
         sage: G
-        The cartesian product of (Finite Field of size 3, Finite Field of size 5)
+        The Cartesian product of (Finite Field of size 3, Finite Field of size 5)
         sage: D
         [[(1, 1), (1, 4), (2, 2), (2, 3), (0, 0), (1, 0), (2, 0)]]
         sage: print designs.difference_family(15,7,3,explain_construction=True)

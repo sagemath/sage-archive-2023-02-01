@@ -936,11 +936,17 @@ cdef class Converter(SageObject):
         Check that negative integers come through unscathed::
 
             sage: P.<x,y,z> = QQ[]
-            sage: C= Curve((x-y)*(y-z)*(z-x)); 
+            sage: C = Curve((x-y)*(y-z)*(z-x))
+            sage: I = C.defining_ideal()
             sage: import sage.libs.singular.function_factory
-            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus
-            sage: I=C.defining_ideal()
-            sage: sing_genus(I)
+            sage: freerank = sage.libs.singular.function_factory.ff.poly__lib.freerank
+            sage: freerank(I, true)
+            [-1, [x^2*y - x*y^2 - x^2*z + y^2*z + x*z^2 - y*z^2]]
+
+        Singular's genus function is prone to crashing, see :trac:`12851` and :trac:`19750` ::
+
+            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus  # known bug
+            sage: sing_genus(I)  # known bug
             -2
         """
         #FIXME

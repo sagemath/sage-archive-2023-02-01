@@ -47,7 +47,7 @@ def JohnsonGraph(n, k):
         True
 
     The complement of the Johnson graph `J(n,2)` is isomorphic to the Kneser
-    Graph `K(n,2)`.  In paritcular the complement of `J(5,2)` is isomorphic to
+    Graph `K(n,2)`.  In particular the complement of `J(5,2)` is isomorphic to
     the Petersen graph.  ::
 
         sage: g = graphs.JohnsonGraph(5,2)

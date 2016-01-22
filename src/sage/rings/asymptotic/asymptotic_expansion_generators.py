@@ -542,6 +542,29 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=-2)
             0
+
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'm', alpha=-1/2, precision=3)
+            -1/2/sqrt(pi)*m^(-3/2)
+            - 3/16/sqrt(pi)*m^(-5/2)
+            - 25/256/sqrt(pi)*m^(-7/2)
+            + O(m^(-9/2))
+            sage: _.parent()
+            Asymptotic Ring <m^QQ> over Symbolic Constants Subring
+
+        Skip constant factor::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'm', alpha=-1/2, precision=3,
+            ....:     skip_constant_factor=True)
+            m^(-3/2)
+            + 3/8*m^(-5/2)
+            + 25/128*m^(-7/2)
+            + O(m^(-9/2))
+            sage: _.parent()
+            Asymptotic Ring <m^QQ> over Rational Field
         """
         from asymptotic_ring import AsymptoticRing
         from sage.functions.other import gamma

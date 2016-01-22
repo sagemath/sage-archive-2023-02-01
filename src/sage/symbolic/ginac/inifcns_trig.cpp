@@ -842,7 +842,7 @@ static ex atan_eval(const ex & x)
 	// arctan(oo) -> Pi/2
 	// arctan(-oo) -> -Pi/2
 	// arctan(UnsignedInfinity) -> error
-	if (x.info(info_flags::infinity)) {
+	if (is_exactly_a<infinity>(x)) {
 	        infinity xinf = ex_to<infinity>(x);
 		if (xinf.is_plus_infinity())
 		        return _ex1_2*Pi;

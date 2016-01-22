@@ -72,7 +72,7 @@ static ex exp_eval(const ex & x)
 	// exp(oo) -> oo
 	// exp(-oo) -> 0
 	// exp(UnsignedInfinity) -> error
-	if (x.info(info_flags::infinity)) {
+	if (is_exactly_a<infinity>(x)) {
 	        infinity xinf = ex_to<infinity>(x);
 		if (xinf.is_plus_infinity())
 			return Infinity;

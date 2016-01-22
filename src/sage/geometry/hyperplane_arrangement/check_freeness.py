@@ -30,7 +30,7 @@ def less_generators(X):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperplane_arrangement.check_free import less_generators
+        sage: from sage.geometry.hyperplane_arrangement.check_freeness import less_generators
         sage: R.<x,y,z> = QQ[]
         sage: m = matrix([[1, 0, 0], [0, z, -1], [0, 0, 0], [0, y, 1]])
         sage: less_generators(m)
@@ -73,7 +73,7 @@ def construct_free_chain(S, A):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperplane_arrangement.check_free import construct_free_chain
+        sage: from sage.geometry.hyperplane_arrangement.check_freeness import construct_free_chain
         sage: H.<x,y,z> = HyperplaneArrangements(QQ)
         sage: A = H(z, y+z, x+y+z)
         sage: S = H.ambient_space().symmetric_space()

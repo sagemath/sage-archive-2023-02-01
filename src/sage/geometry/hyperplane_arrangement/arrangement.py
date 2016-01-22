@@ -2105,7 +2105,7 @@ class HyperplaneArrangementElement(Element):
             [       0       a1 -a2 - a3]
             <BLANKLINE>
         """
-        from sage.geometry.hyperplane_arrangement.check_free import construct_free_chain
+        from sage.geometry.hyperplane_arrangement.check_freeness import construct_free_chain
         from sage.combinat.permutation import Permutations
         S = self.parent().ambient_space().symmetric_space()
         for p in Permutations(list(self)):

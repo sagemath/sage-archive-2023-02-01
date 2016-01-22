@@ -177,7 +177,7 @@ List of Poset methods
     :meth:`~FinitePoset.cover_relations_graph` | Return the (undirected) graph of cover relations.
     :meth:`~FinitePoset.comparability_graph` | Return the comparability graph of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Return the incomparability graph of the poset.
-    :meth:`~FinitePoset.linear_extensions_graph` |Return the linear extensions graph of the poset.
+    :meth:`~FinitePoset.linear_extensions_graph` | Return the linear extensions graph of the poset.
 
 **Other & not yet classified**
 

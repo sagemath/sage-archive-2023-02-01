@@ -758,8 +758,7 @@ class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
         elif type(self) == type(other):
             return type(self)(self.vars & other.vars)
         elif isinstance(other, SymbolicSubringRejectingVarsFunctor):
-            if not (self.vars & other.vars):
-                return self
+            return type(self)(self.vars - other.vars)
 
 
     def _apply_functor(self, R):
@@ -965,8 +964,7 @@ class SymbolicSubringRejectingVarsFunctor(GenericSymbolicSubringFunctor):
         elif type(self) == type(other):
             return type(self)(self.vars | other.vars)
         elif isinstance(other, SymbolicSubringAcceptingVarsFunctor):
-            if not (self.vars & other.vars):
-                return other
+            return type(other)(other.vars - self.vars)
 
 
     def _apply_functor(self, R):

@@ -311,7 +311,7 @@ class AsymptoticExpansionGenerators(SageObject):
           the default precision of the asymptotic ring is used.
 
         - ``skip_constant_summand`` -- (default: ``False``) a
-          boolean. If set, then the constant summand is left out.
+          boolean. If set, then the constant summand ``euler_gamma`` is left out.
           As a consequence, the coefficient ring of the output changes
           from ``Symbolic Constants Subring`` (if ``False``) to
           ``Rational Field`` (if ``True``).

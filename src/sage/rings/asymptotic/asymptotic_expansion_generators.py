@@ -448,7 +448,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``var`` -- a string for the variable name.
 
-        - ``zeta`` -- the location of the singularity.
+        - ``zeta`` -- (default: `1`) the location of the singularity.
 
         - ``alpha`` -- (default: `0`) the pole order of the singularty.
 
@@ -580,6 +580,22 @@ class AsymptoticExpansionGenerators(SageObject):
             + O(m^(-9/2))
             sage: _.parent()
             Asymptotic Ring <m^QQ> over Rational Field
+
+        Location of the singularity::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=1, zeta=2, precision=3)
+            (1/2)^n
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=4, zeta=2, precision=3)
+            1/6*(1/2)^n*n^3 + (1/2)^n*n^2 + 11/6*(1/2)^n*n + O((1/2)^n)
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=-1, zeta=2, precision=3)
+            0
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=1/2, zeta=2, precision=3)
+            1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
+            + 1/128/sqrt(pi)*(1/2)^n*n^(-5/2) + O((1/2)^n*n^(-7/2))
         """
         from asymptotic_ring import AsymptoticRing
         from sage.functions.other import gamma
@@ -618,11 +634,31 @@ class AsymptoticExpansionGenerators(SageObject):
                     except TypeError:
                         pass
 
-            from growth_group import MonomialGrowthGroup
+            from growth_group import ExponentialGrowthGroup, \
+                MonomialGrowthGroup
+
+            if zeta == 1:
+                group = MonomialGrowthGroup(alpha.parent(), var)
+            else:
+                from sage.categories.cartesian_product \
+                    import cartesian_product
+                group = cartesian_product(
+                    [ExponentialGrowthGroup((1/zeta).parent(), var),
+                     MonomialGrowthGroup(alpha.parent(), var)])
+
             A = AsymptoticRing(
-                    growth_group=MonomialGrowthGroup(alpha.parent(), var),
-                    coefficient_ring=iga.parent())
+                growth_group=group,
+                coefficient_ring=iga.parent())
             n = A.gen()
+
+            if zeta == 1:
+                exponential_factor = 1
+            else:
+                # due to trac 19946, we have to construct zeta^n
+                # in an auxiliary ring.
+                A_helper = A.change_parameter(coefficient_ring=ZZ)
+                n_helper = A_helper.gen()
+                exponential_factor = A(~(zeta ** n_helper))
 
             e = _sa_coefficients_e_(precision, alpha)
             result = sum(n**(alpha-1-k) * iga * e[k]
@@ -631,11 +667,12 @@ class AsymptoticExpansionGenerators(SageObject):
             if alpha in ZZ:
                 a = ZZ(alpha)
                 if a > 0 and a <= precision:
-                    return result
+                    return exponential_factor * result
                 elif a < 0:
-                    return result
+                    assert result.is_zero()
+                    return A(0)
 
-            return result + (n**(alpha-1-precision)).O()
+            return exponential_factor * (result + (n**(alpha-1-precision)).O())
 
         else:
             return AsymptoticRing(growth_group='%s^ZZ' % (var,),

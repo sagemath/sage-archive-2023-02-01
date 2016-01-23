@@ -520,20 +520,22 @@ class Posets(object):
         Return the partially ordered set on ``2n`` elements with
         dimension ``n``.
 
+        Let `P` be the poset on `\{0, 1, 2, \ldots, 2n-1\}` whose defining
+        relations are that `i < j` for every `0 \leq i < n \leq j < 2n`
+        except when `i + n = j`. The poset `P` is the so-called
+        *standard example* of a poset with dimension `n`.
+
         INPUT:
 
-        - ``n`` - An integer `\ge 2`, dimension of the constructed poset.
+        - ``n`` -- an integer `\ge 2`, dimension of the constructed poset
         - ``facade`` (boolean) -- whether to make the returned poset a
-          facade poset (see :mod:`sage.categories.facade_sets`). The
+          facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor).
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         OUTPUT:
 
-        A poset on `\{0,1,2,\ldots, 2n-1\}` whose defining relations are that
-        every `0\leq i < n` is less than every `n\leq j <2n`, except when
-        `i+n=j`. This is the so-called "standard example" of a poset with
-        dimension `n`.
+        The standard example of a poset of dimension `n`.
 
         EXAMPLES::
 
@@ -559,7 +561,9 @@ class Posets(object):
             raise TypeError("dimension must be an integer, not {0}".format(n))
         if n < 2:
             raise ValueError("dimension must be at least 2, not {0}".format(n))
-        return Poset( (range(2*n), [[i, j+n] for i in range(n) for j in range(n) if i != j]), facade = facade )
+        return Poset((range(2*n), [[i, j+n] for i in range(n)
+                                   for j in range(n) if i != j]),
+                     facade=facade)
 
     @staticmethod
     def SymmetricGroupBruhatOrderPoset(n):

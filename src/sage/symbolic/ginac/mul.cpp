@@ -839,7 +839,8 @@ ex mul::eval_infinity(epvector::const_iterator infinity_iter) const
 {
 	GINAC_ASSERT(is_exactly_a<infinity>(infinity_iter->rest));
 	GINAC_ASSERT(infinity_iter->coeff.is_equal(_ex1));
-	infinity result(ex_to<numeric>(infinity_iter->coeff));
+	infinity result(ex_to<numeric>(
+                ex_to<infinity>(infinity_iter->rest).get_direction()));
         result *= overall_coeff;
 
 	for (auto i = seq.begin(); i != seq.end(); i++) {

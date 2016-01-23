@@ -587,6 +587,13 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', alpha=1, zeta=2, precision=3)
             (1/2)^n
             sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=1, zeta=1/2, precision=3)
+            2^n
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=1, zeta=CyclotomicField(3).gen(),
+            ....:      precision=3)
+            (-zeta3 - 1)^n
+            sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=4, zeta=2, precision=3)
             1/6*(1/2)^n*n^3 + (1/2)^n*n^2 + 11/6*(1/2)^n*n + O((1/2)^n)
             sage: asymptotic_expansions.SingularityAnalysis(
@@ -656,9 +663,11 @@ class AsymptoticExpansionGenerators(SageObject):
             else:
                 # due to trac 19946, we have to construct zeta^n
                 # in an auxiliary ring.
-                A_helper = A.change_parameter(coefficient_ring=ZZ)
+                # due to trac 19945, the coefficient ring has to
+                # contain 1/zeta.
+                A_helper = A.change_parameter(coefficient_ring=(1/zeta).parent())
                 n_helper = A_helper.gen()
-                exponential_factor = A(~(zeta ** n_helper))
+                exponential_factor = (1/zeta) ** n_helper
 
             e = _sa_coefficients_e_(precision, alpha)
             result = sum(n**(alpha-1-k) * iga * e[k]

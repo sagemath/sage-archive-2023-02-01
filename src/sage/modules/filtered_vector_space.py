@@ -79,6 +79,24 @@ degree::
 
     sage: FilteredVectorSpace([r1, r2, r3], {0:[0,1], oo:[1]})
     QQ^2 >= QQ^1 in QQ^3
+
+Any field can be used as the vector space base. For example a finite
+field::
+
+    sage: F.<a> = GF(5^3)
+    sage: r1 = (a, 0, F(5));  r1
+    (a, 0, 0)
+    sage: FilteredVectorSpace([r1, r2, r3], {0:[0,1], oo:[1]}, base_ring=F)
+    GF(125)^2 >= GF(125)^1 in GF(125)^3
+
+Or the algebraic field::
+
+    sage: r1 = (1, 0, 1+QQbar(I));  r1
+    (1, 0, I + 1)
+    sage: FilteredVectorSpace([r1, r2, r3], {0:[0,1], oo:[1]}, base_ring=QQbar)
+    Vector space of dimension 2 over Algebraic Field 
+    >= Vector space of dimension 1 over Algebraic Field 
+    in Vector space of dimension 3 over Algebraic Field
 """
 
 #*****************************************************************************
@@ -874,7 +892,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             dims = self._repr_degrees(min_deg, max_deg)
         s = ' >= '.join(dims)
         if not self.is_exhaustive():
-            s += ' in ' + self._repr_field_name() + '^' + str(self.degree())
+            s += ' in ' + self._repr_vector_space(self.degree())
         return s
 
     def __cmp__(self, other):

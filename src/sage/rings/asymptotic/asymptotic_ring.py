@@ -3094,7 +3094,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                           MonomialGrowthGroup):
             raise NotImplementedError('Only implemented for Monomial Growth Groups')
 
-        return sum(expand_summand(s) for s in singular_expansion.summand)
+        return sum(expand_summand(s) for s in singular_expansion.summands)
 
 
 

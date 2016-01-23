@@ -301,7 +301,7 @@ class GenericSymbolicSubring(SymbolicRing):
         return s + ', '.join(str(v) for v in sorted(self._vars_, key=str))
 
 
-    def is_variable_valid(self, variable):
+    def has_valid_variable(self, variable):
         r"""
         Return whether the given ``variable`` is valid in this subring.
 
@@ -316,7 +316,7 @@ class GenericSymbolicSubring(SymbolicRing):
         EXAMPLES::
 
             sage: from sage.symbolic.subring import GenericSymbolicSubring
-            sage: GenericSymbolicSubring(vars=tuple()).is_variable_valid(x)
+            sage: GenericSymbolicSubring(vars=tuple()).has_valid_variable(x)
             Traceback (most recent call last):
             ...
             NotImplementedError: Not implemented in this abstract base class
@@ -351,7 +351,7 @@ class GenericSymbolicSubring(SymbolicRing):
         """
         expression = super(GenericSymbolicSubring, self)._element_constructor_(x)
         assert(expression.parent() is self)
-        if not all(self.is_variable_valid(var)
+        if not all(self.has_valid_variable(var)
                    for var in expression.variables()):
             raise TypeError('%s is not contained in %s' % (x, self))
         return expression
@@ -626,7 +626,7 @@ class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
             (self._repr_variables_())
 
 
-    def is_variable_valid(self, variable):
+    def has_valid_variable(self, variable):
         r"""
         Return whether the given ``variable`` is valid in this subring.
 
@@ -642,11 +642,11 @@ class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
 
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: S = SymbolicSubring(accepting_variables=('a',))
-            sage: S.is_variable_valid('a')
+            sage: S.has_valid_variable('a')
             True
-            sage: S.is_variable_valid('r')
+            sage: S.has_valid_variable('r')
             False
-            sage: S.is_variable_valid('x')
+            sage: S.has_valid_variable('x')
             False
         """
         return SR(variable) in self._vars_
@@ -811,7 +811,7 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
             (self._repr_variables_())
 
 
-    def is_variable_valid(self, variable):
+    def has_valid_variable(self, variable):
         r"""
         Return whether the given ``variable`` is valid in this subring.
 
@@ -827,11 +827,11 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
 
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: S = SymbolicSubring(rejecting_variables=('r',))
-            sage: S.is_variable_valid('a')
+            sage: S.has_valid_variable('a')
             True
-            sage: S.is_variable_valid('r')
+            sage: S.has_valid_variable('r')
             False
-            sage: S.is_variable_valid('x')
+            sage: S.has_valid_variable('x')
             True
         """
         return SR(variable) not in self._vars_
@@ -918,7 +918,7 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
             Symbolic Subring rejecting the variables some_some_variable, some_variable
         """
         v = SR.an_element()
-        while not self.is_variable_valid(v):
+        while not self.has_valid_variable(v):
             v = SR('some_' + str(v))
         return self(v)
 
@@ -1016,7 +1016,7 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
         return 'Symbolic Constants Subring'
 
 
-    def is_variable_valid(self, variable):
+    def has_valid_variable(self, variable):
         r"""
         Return whether the given ``variable`` is valid in this subring.
 
@@ -1032,11 +1032,11 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
 
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: S = SymbolicSubring(no_variables=True)
-            sage: S.is_variable_valid('a')
+            sage: S.has_valid_variable('a')
             False
-            sage: S.is_variable_valid('r')
+            sage: S.has_valid_variable('r')
             False
-            sage: S.is_variable_valid('x')
+            sage: S.has_valid_variable('x')
             False
         """
         return False

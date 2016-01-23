@@ -155,7 +155,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_vertex_transitive` | Return whether the automorphism group of self is transitive within the partition provided
     :meth:`~GenericGraph.is_isomorphic` | Test for isomorphism between self and other.
     :meth:`~GenericGraph.canonical_label` | Return the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which 1) is isomorphic to self 2) is invariant in the isomorphism class.
-    :meth:`~GenericGraph.is_cayley` | Check whether self is a Cayley graph.
+    :meth:`~GenericGraph.is_cayley` | Check whether the graph is a Cayley graph.
 
 **Graph properties:**
 
@@ -20791,7 +20791,7 @@ class GenericGraph(GenericGraph_pyx):
     def is_cayley(self, return_group = False, mapping = False,
                   generators = False):
         r"""
-        Check whether self is a Cayley graph.
+        Check whether the graph is a Cayley graph.
 
         If none of the parameters are ``True``, return a boolean indicating
         whether the graph is a Cayley graph. Otherwise, return a tuple
@@ -20838,6 +20838,22 @@ class GenericGraph(GenericGraph_pyx):
             sage: d.is_cayley()
             True
 
+        Graphs with loops and multiedges will have identity and repeated
+        elements, respectively, among the generators::
+
+            sage: g = Graph(graphs.PaleyGraph(9), loops=True, multiedges=True)
+            sage: g.add_edges([(u, u) for u in g.vertex_iterator()])
+            sage: g.add_edges([(u, u+1) for u in g.vertex_iterator()])
+            sage: _, S = g.is_cayley(generators=True)
+            sage: S # random
+            [(),
+             (0,2,1)(a,a + 2,a + 1)(2*a,2*a + 2,2*a + 1),
+             (0,2,1)(a,a + 2,a + 1)(2*a,2*a + 2,2*a + 1),
+             (0,1,2)(a,a + 1,a + 2)(2*a,2*a + 1,2*a + 2),
+             (0,1,2)(a,a + 1,a + 2)(2*a,2*a + 1,2*a + 2),
+             (0,2*a + 2,a + 1)(1,2*a,a + 2)(2,2*a + 1,a),
+             (0,a + 1,2*a + 2)(1,a + 2,2*a)(2,a,2*a + 1)]
+
         TESTS:
 
         Cayley graphs can be reconstructed from the group and generating set::
@@ -20857,32 +20873,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: all(set(d[u] for u in h.neighbors(v)) == set(d[v]*x for x in S) for v in h.vertex_iterator())
             True
 
-        Graphs with loops and multiedges will have identity and repeated
-        elements, respectively, among the generators::
-
-            sage: g = Graph(graphs.PaleyGraph(9), loops=True, multiedges=True)
-            sage: g.add_edges([(u, u) for u in g.vertex_iterator()])
-            sage: g.add_edges([(u, u+1) for u in g.vertex_iterator()])
-            sage: _, S = g.is_cayley(generators=True)
-            sage: S
-            [(),
-             (0,2,1)(a,a + 2,a + 1)(2*a,2*a + 2,2*a + 1),
-             (0,2,1)(a,a + 2,a + 1)(2*a,2*a + 2,2*a + 1),
-             (0,1,2)(a,a + 1,a + 2)(2*a,2*a + 1,2*a + 2),
-             (0,1,2)(a,a + 1,a + 2)(2*a,2*a + 1,2*a + 2),
-             (0,2*a + 2,a + 1)(1,2*a,a + 2)(2,2*a + 1,a),
-             (0,a + 1,2*a + 2)(1,a + 2,2*a)(2,a,2*a + 1)]
-
         """
-        map = mapping or generators
-        certificate = return_group or map
-        c, G, d, S = False, None, None, None
+        compute_map = mapping or generators
+        certificate = return_group or compute_map
+        c, G, map, genset = False, None, None, None
         if not self.is_connected():
             if self.is_vertex_transitive():
                 C = self.connected_components_subgraphs()
-                t = C[0].is_cayley(return_group=certificate)
                 if certificate:
-                    c, CG = t
+                    c, CG = C[0].is_cayley(return_group = True)
                     if c:
                         from sage.groups.perm_gps.permgroup import PermutationGroup
                         I = [C[0].is_isomorphic(g, certify=True)[1] for g in C]
@@ -20894,31 +20893,31 @@ class GenericGraph(GenericGraph_pyx):
                                  for v in C[0].vertices()]]
                         G = PermutationGroup(gens, domain = self.vertices())
                 else:
-                    c = t
+                    c = C[0].is_cayley(return_group = False)
         else:
             A = self.automorphism_group()
             if certificate:
-                G = A.regular_subgroup()
+                G = A.has_regular_subgroup(return_group = True)
                 c = G is not None
             else:
-                c = A.regular_subgroup(return_group = False)
-        if c and map:
+                c = A.has_regular_subgroup(return_group = False)
+        if c and compute_map:
             v = next(self.vertex_iterator())
-            d = {(f**-1)(v): f for f in G}
+            map = {(f**-1)(v): f for f in G}
             if generators:
                 # self.(out_)neighbors ignores multiedges,
                 # so we use edge_iterator instead
                 adj = [y if v == x else x
                        for x, y, z in self.edge_iterator(v)]
-                S = [d[u] for u in adj]
+                genset = [map[u] for u in adj]
         if certificate:
             out = [c]
             if return_group:
                 out.append(G)
             if mapping:
-                out.append(d)
+                out.append(map)
             if generators:
-                out.append(S)
+                out.append(genset)
             return tuple(out)
         else:
             return c

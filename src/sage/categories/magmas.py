@@ -518,8 +518,8 @@ class Magmas(Category_singleton):
 
                     sage: G = FreeGroup(2)
                     sage: x0, x1 = G.group_generators()
-                    sage: c1 = cartesian_product([x0,x1])
-                    sage: c2 = cartesian_product([x1,x0])
+                    sage: c1 = cartesian_product([x0, x1])
+                    sage: c2 = cartesian_product([x1, x0])
                     sage: c1.__div__(c2)
                     (x0*x1^-1, x1*x0^-1)
                     sage: c1 / c2
@@ -527,7 +527,7 @@ class Magmas(Category_singleton):
 
                 Division supports coercion::
 
-                    sage: C = cartesian_product([G,G])
+                    sage: C = cartesian_product([G, G])
                     sage: H = Hom(G, C)
                     sage: phi = H(lambda g: cartesian_product([g, g]))
                     sage: phi.register_as_coercion()
@@ -540,8 +540,8 @@ class Magmas(Category_singleton):
                 :meth:`_div_`, division may fail even when ``right``
                 actually divides ``left``::
 
-                    sage: x = cartesian_product([2,1])
-                    sage: y = cartesian_product([1,1])
+                    sage: x = cartesian_product([2, 1])
+                    sage: y = cartesian_product([1, 1])
                     sage: x / y
                     (2, 1)
                     sage: x / x
@@ -564,7 +564,11 @@ class Magmas(Category_singleton):
 
             def _div_(left, right):
                 r"""
-                Default implementation of division by multiplication (on the right) by the inverse.
+                Default implementation of division, multiplying (on the right) by the inverse.
+
+                INPUT:
+
+                - ``left``, ``right`` -- two elements of the same unital magma
 
                 .. SEEALSO:: :meth:`__div__`
 
@@ -572,8 +576,8 @@ class Magmas(Category_singleton):
 
                     sage: G = FreeGroup(2)
                     sage: x0, x1 = G.group_generators()
-                    sage: c1 = cartesian_product([x0,x1])
-                    sage: c2 = cartesian_product([x1,x0])
+                    sage: c1 = cartesian_product([x0, x1])
+                    sage: c2 = cartesian_product([x1, x0])
                     sage: c1._div_(c2)
                     (x0*x1^-1, x1*x0^-1)
 
@@ -581,8 +585,8 @@ class Magmas(Category_singleton):
                 as ``right`` is not invertible, even if ``right``
                 actually divides ``left``::
 
-                    sage: x = cartesian_product([2,1])
-                    sage: y = cartesian_product([1,1])
+                    sage: x = cartesian_product([2, 1])
+                    sage: y = cartesian_product([1, 1])
                     sage: x / y
                     (2, 1)
                     sage: x / x

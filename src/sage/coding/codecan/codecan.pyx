@@ -455,7 +455,7 @@ cdef class InnerGroup:
         cols = iter(mat.columns())
         for i in range(mat.ncols()):
             # there should be no zero columns by assumption!
-            m = OP_find(self.row_partition, cols.next().nonzero_positions()[0])
+            m = OP_find(self.row_partition, next(cols).nonzero_positions()[0])
             r[m].append(i)
         return [ x for x in r if len(x) > 0 ]
 
@@ -753,7 +753,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         while True:  # compute an invariant set of (normalized) codewords which span the subspace
             try:
-                cw = iter.next()
+                cw = next(iter)
             except StopIteration:
                 break
             w = cw.hamming_weight()
@@ -803,7 +803,6 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         self._hyp_refine_vals_scratch = <long *> sage_malloc(
                             self._hyp_part.degree * sizeof(long))
         if self._hyp_refine_vals_scratch is NULL:
-            self.__dealloc__()
             raise MemoryError('allocating PartitionRefinementLinearCode')
 
         self._hyp_refine_vals = _BestValStore(self._hyp_part.degree)
@@ -922,8 +921,8 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         upper = iter(self._matrix[ self._inner_group.rank :  ].columns())
 
         for i in range(self._n):
-            l = lower.next()
-            u = upper.next()
+            l = next(lower)
+            u = next(upper)
 
             if u.is_zero() and not i in self._fixed_minimized:
                 # minimize by self._inner_group as in _inner_min:

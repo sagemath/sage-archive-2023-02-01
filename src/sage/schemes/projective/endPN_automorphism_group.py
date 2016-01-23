@@ -4,8 +4,8 @@ Automorphism groups of endomorphisms of the projective line
 AUTHORS:
 
 - Xander Faber, Michelle Manes, Bianca Viray: algorithm and original code
-    "Computing Conjugating Sets and Automorphism Groups of Rational Functions"
-    by Xander Faber, Michelle Manes, and Bianca Viray [FMV]
+  "Computing Conjugating Sets and Automorphism Groups of Rational Functions" by
+  Xander Faber, Michelle Manes, and Bianca Viray [FMV]
 
 - Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaption for inclusion in Sage
 
@@ -28,13 +28,12 @@ from sage.matrix.constructor       import matrix
 from sage.matrix.matrix            import is_Matrix
 from sage.misc.functional          import squarefree_part
 from sage.misc.misc_c              import prod
-from sage.rings.arith              import is_square, divisors
 from sage.rings.finite_rings.constructor import GF
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ
 from sage.rings.number_field.number_field import NumberField
-from sage.rings.arith              import gcd, lcm, CRT
+from sage.arith.all import gcd, lcm, CRT, is_square, divisors
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field     import QQ
 from sage.sets.primes              import Primes
@@ -1732,7 +1731,7 @@ def which_group(list_of_elements):
 
     # invalid input
     if n == 0:
-        raise(ValueError, "Group must have at least one element")
+        raise ValueError("Group must have at least one element")
 
     # define ground field and ambient function field
     rational_function = G[-1]

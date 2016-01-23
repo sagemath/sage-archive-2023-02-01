@@ -78,21 +78,24 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset, Hom, End
-from sage.rings.all           import Integer
+from sage.categories.number_fields import NumberFields
+from sage.rings.all           import Integer, CIF
 from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
+from sage.rings.number_field.order import is_NumberFieldOrder
 from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme
 
-from sage.rings.arith            import gcd, lcm
 from sage.categories.gcd_domains import GcdDomains
+from sage.rings.qqbar            import QQbar
 from sage.rings.quotient_ring    import QuotientRing_generic
+from sage.rings.rational_field   import QQ
 from sage.categories.map         import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism    import SetMorphism
@@ -245,9 +248,9 @@ class SchemeMorphism(Element):
                     try:
                         x = D(x)
                     except (TypeError, NotImplementedError):
-                        raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                        raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
                 elif self.domain()!=x.codomain():
-                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
         else:
             x = converter(x)
         if not args and not kwds:
@@ -378,9 +381,9 @@ class SchemeMorphism(Element):
               Defn: Structure map) codomain
         """
         if not isinstance(right, SchemeMorphism):
-            raise TypeError, "right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self)
+            raise TypeError("right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self))
         if right.codomain() != self.domain():
-            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(self, right)
+            raise TypeError("self (=%s) domain must equal right (=%s) codomain"%(self, right))
         if isinstance(self, SchemeMorphism_id):
             return right
         if isinstance(right, SchemeMorphism_id):
@@ -412,7 +415,7 @@ class SchemeMorphism(Element):
               Defn: Identity map
         """
         if not self.is_endomorphism():
-            raise TypeError, "self must be an endomorphism."
+            raise TypeError("self must be an endomorphism.")
         if n==0:
             return self.domain().identity_morphism()
         return generic_power(self, n)
@@ -1046,12 +1049,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: H=Hom(X,X)
             sage: f=H([x^2,y^2,z^2]);
             sage: f(P([4,4,1]))
-            Traceback (most recent call last):
-            ...
-            TypeError: (4 : 4 : 1) fails to convert into the map's domain
-            Closed subscheme of Projective Space of dimension 2 over Integer
-            Ring defined by:
-              x^2 - y^2, but a `pushforward` method is not properly implemented
+            (16 : 16 : 1)
         """
         # Checks were done in __call__
         P = [f(x._coords) for f in self.defining_polynomials()]
@@ -1130,16 +1128,16 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2]);
-            sage: f(P([4,4,1]))
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: P2.<u,v,w,t> = ProjectiveSpace(ZZ, 3)
+            sage: X = P.subscheme(x^2-y^2);
+            sage: H = Hom(X, X)
+            sage: f = H([x^2, y^2, z^2]);
+            sage: f(P2([4,4,1,1]))
             Traceback (most recent call last):
             ...
-            TypeError: (4 : 4 : 1) fails to convert into the map's domain
-            Closed subscheme of Projective Space of dimension 2 over
-            Integer Ring defined by:
+            TypeError: (4 : 4 : 1 : 1) fails to convert into the map's domain Closed subscheme of
+            Projective Space of dimension 2 over Integer Ring defined by:
               x^2 - y^2, but a `pushforward` method is not properly implemented
         """
         if args:
@@ -1177,11 +1175,11 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         """
         returns the ith poly with self[i]
 
-        INPUT::
+        INPUT:
 
-        - ``i``- integer
+        - ``i``-- integer
 
-        OTUPUT::
+        OUTPUT:
 
         - element of the coordinate ring of the domain
 
@@ -1335,7 +1333,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
 
-            Check that :trac:'16834' is fixed::
+        Check that :trac:`16834` is fixed::
 
             sage: A.<x,y,z> = AffineSpace(RR,3)
             sage: h = Hom(A,A)
@@ -1388,24 +1386,48 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                Defn: Defined on coordinates by sending (x : y) to
                      (x^2 + (0.6623589786223730? - 0.5622795120623013?*I)*x*y +
             (0.1225611668766537? - 0.744861766619745?*I)*y^2 : y^2)
+
+        ::
+
+            sage: K.<v> = QuadraticField(2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2+v*y^2,y^2])
+            sage: f.change_ring(QQbar)
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic
+            Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + (-1.414213562373095?)*y^2 : y^2)
         """
         check = kwds.get('check', True)
         emb =  kwds.get('embedding', None)
+        K = self.codomain().base_ring()
         T = self.domain().change_ring(R)
-
         if self.is_endomorphism():
-            H=End(T)
+            H = End(T)
         else:
-            S=self.codomain().change_ring(R)
-            H=Hom(T,S)
+            S = self.codomain().change_ring(R)
+            H = Hom(T,S)
 
         if emb is None:
-            G = []
-            for f in self._polys:
-                if isinstance(f,FractionFieldElement):
-                    G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
-                else:
-                    G.append(f.change_ring(R))
+            if is_NumberFieldOrder(K):
+                K = FractionField(K)
+            if R == QQbar and K in NumberFields() and K != QQ:
+                #if we are embedding a number field into QQbar and the emb is not
+                #specified we need to construct one
+                abspoly = K.absolute_polynomial()
+                phi = K.hom(QQbar.polynomial_root(abspoly,abspoly.any_root(CIF)),QQbar)
+                Kx = self.coordinate_ring()
+                QQbarx = QQbar[Kx.variable_names()]
+                phix = Kx.hom(phi,QQbarx)
+                G = [phix(t) for t in self]
+            else:
+                G = []
+                for f in self._polys:
+                    if isinstance(f,FractionFieldElement):
+                        G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
+                    else:
+                        G.append(f.change_ring(R))
         else:
             if emb.domain() == self.base_ring():
                 emb = self.coordinate_ring().hom(emb, T.coordinate_ring())
@@ -1646,12 +1668,30 @@ class SchemeMorphism_point(SchemeMorphism):
             (1.5000000000000000? - 0.866025403784439?*I : 1)
             sage: Q.change_ring(QQbar, embedding = emb[1])
             (1.5000000000000000? + 0.866025403784439?*I : 1)
+
+        ::
+
+            sage: K.<v> = QuadraticField(2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: Q = P([v,1])
+            sage: Q.change_ring(QQbar)
+            (-1.414213562373095? : 1)
         """
         check = kwds.get('check', True)
-        emb =  kwds.get('embedding', None)
-        S=self._codomain.change_ring(R)
+        emb = kwds.get('embedding', None)
+        K = self.codomain().base_ring()
+        S = self._codomain.change_ring(R)
         if emb is None:
-            Q = [R(t) for t in self]
+            if is_NumberFieldOrder(K):
+                K = FractionField(K)
+            if R == QQbar and K in NumberFields() and K != QQ:
+                #if we are embedding a number field into QQbar and the emb is not
+                #specified we need to construct one
+                abspoly = K.absolute_polynomial()
+                phi = K.hom(QQbar.polynomial_root(abspoly,abspoly.any_root(CIF)),QQbar)
+                Q = [phi(t) for t in self]
+            else:
+                Q = [R(t) for t in self]
         else:
             Q = [emb(t) for t in self]
         return(S.point(Q, check=check))

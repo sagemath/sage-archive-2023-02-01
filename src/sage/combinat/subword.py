@@ -64,7 +64,7 @@ from sage.structure.parent import Parent
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.prandom as prandom
 from sage.rings.integer import Integer
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
@@ -195,7 +195,7 @@ class Subwords_w(Parent):
             sage: Subwords([1,2,3]) != Subwords([1,3,2])
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __reduce__(self):
         r"""

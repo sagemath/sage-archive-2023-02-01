@@ -552,19 +552,6 @@ cdef class GapElement(RingElement):
         if not self._compare_by_id:
             raise ValueError('requires a libGAP objects whose comparison is by "id"')
 
-
-    def __richcmp__(left, right, int op):
-        """
-        Boilerplate for Cython class comparison.
-
-        EXAMPLES::
-
-            sage: a = libgap(123)
-            sage: a == a
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     def __hash__(self):
         """
         Make hashable.
@@ -594,6 +581,8 @@ cdef class GapElement(RingElement):
         EXAMPLES::
 
             sage: a = libgap(123)
+            sage: a == a
+            True
             sage: b = libgap('string')
             sage: a._richcmp_(b, 0)
             1
@@ -1872,15 +1861,18 @@ cdef class GapElement_String(GapElement):
         sage: s = libgap('string')
         sage: type(s)
         <type 'sage.libs.gap.element.GapElement_String'>
+        sage: s
+        "string"
+        sage: print s
+        string
     """
-
-    def sage(self):
+    def __str__(self):
         r"""
-        Return the Sage equivalent of the :class:`GapElement`
+        Convert this :class:`GapElement_String` to a Python string.
 
         OUTPUT:
 
-        A Python list.
+        A Python string.
 
         EXAMPLES::
 
@@ -1888,6 +1880,8 @@ cdef class GapElement_String(GapElement):
             "string"
             sage: type(_)
             <type 'sage.libs.gap.element.GapElement_String'>
+            sage: str(s)
+            'string'
             sage: s.sage()
             'string'
             sage: type(_)
@@ -1898,7 +1892,7 @@ cdef class GapElement_String(GapElement):
         libgap_exit()
         return s
 
-    __str__ = sage
+    sage = __str__
 
 ############################################################################
 ### GapElement_Function ####################################################
@@ -2621,7 +2615,7 @@ cdef class GapElement_RecordIterator(object):
             sage: iter = rec.__iter__()
             sage: iter.__next__()
             ('a', 123)
-            sage: iter.next()
+            sage: next(iter)
             ('b', 456)
         """
         cdef libGAP_UInt i = self.i

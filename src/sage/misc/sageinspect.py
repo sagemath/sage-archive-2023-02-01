@@ -836,7 +836,7 @@ def _split_syntactical_unit(s):
         ...
         SyntaxError: Syntactical group starting with '(' did not end with ')'
 
-    Numbers are not recognised:::
+    Numbers are not recognised::
 
         sage: _split_syntactical_unit('123')
         ('1', '23')
@@ -1439,11 +1439,11 @@ def sage_getargspec(obj):
     argspec = _extract_embedded_signature(docstring, name)[1]
     if argspec is not None:
         return argspec
-    if hasattr(obj, 'func_code'):
+    if hasattr(obj, '__code__'):
         # Note that this may give a wrong result for the constants!
         try:
-            args, varargs, varkw = inspect.getargs(obj.func_code)
-            return inspect.ArgSpec(args, varargs, varkw, obj.func_defaults)
+            args, varargs, varkw = inspect.getargs(obj.__code__)
+            return inspect.ArgSpec(args, varargs, varkw, obj.__defaults__)
         except (TypeError, AttributeError):
             pass
     if isclassinstance(obj):
@@ -1602,6 +1602,22 @@ def _sage_getdoc_unformatted(obj):
         sage: _sage_getdoc_unformatted(isinstance.__class__)
         ''
 
+    Construct an object raising an exception when accessing the
+    ``_sage_doc_`` attribute. This should not give an error in
+    ``_sage_getdoc_unformatted``, see :trac:`19671`::
+
+        sage: class NoSageDoc(object):
+        ....:     @property
+        ....:     def _sage_doc_(self):
+        ....:         raise Exception("no doc here")
+        sage: obj = NoSageDoc()
+        sage: obj._sage_doc_
+        Traceback (most recent call last):
+        ...
+        Exception: no doc here
+        sage: _sage_getdoc_unformatted(obj)
+        ''
+
     AUTHORS:
 
     - William Stein
@@ -1610,9 +1626,14 @@ def _sage_getdoc_unformatted(obj):
     if obj is None:
         return ''
     try:
-        r = obj._sage_doc_()
-    except (AttributeError, TypeError): # the TypeError occurs if obj is a class
+        getdoc = obj._sage_doc_
+    except Exception:
         r = obj.__doc__
+    else:
+        try:
+            r = getdoc()
+        except TypeError:  # This can occur if obj is a class
+            r = obj.__doc__
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.

@@ -58,7 +58,7 @@ from sage.modules.free_module import VectorSpace
 from sage.rings.finite_rings.constructor import GF
 from sage.rings.integer import Integer
 from sage.misc.functional import cyclotomic_polynomial
-from sage.rings.arith import legendre_symbol
+from sage.arith.all import legendre_symbol
 from sage.sets.set import Set
 
 class GaloisRepresentation(SageObject):
@@ -135,7 +135,7 @@ class GaloisRepresentation(SageObject):
             sage: rho1 == 42
             False
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return False
         return self.E.is_isomorphic(other.E)
 
@@ -447,7 +447,8 @@ def _maybe_borels(E, L, patience=100):
         sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, [7, 11])
         [7]
 
-    This curve does posess a 7-isogeny modulo every prime of good reduction, but has no rational 7-isogeny::
+    This curve does possess a 7-isogeny modulo every prime of good
+    reduction, but has no rational 7-isogeny::
 
         sage: E.isogenies_prime_degree(7)
         []
@@ -467,8 +468,7 @@ def _maybe_borels(E, L, patience=100):
     E = _over_numberfield(E)
     K = E.base_field()
 
-    L = list(set(L)) # Remove duplicates from L and makes a copy for output
-    L.sort()
+    L = sorted(set(L)) # Remove duplicates from L and makes a copy for output
 
     include_2 = False
     if 2 in L: # c.f. Section 5.3(a) of [Serre72].
@@ -803,7 +803,7 @@ def _semistable_reducible_primes(E):
 
         # Next, we turn K into relative number field over F.
 
-        K = K.relativize(F.embeddings(K)[0], 'b')
+        K = K.relativize(F.embeddings(K)[0], K.variable_name()+'0')
         E = E.change_ring(K.structure()[1])
 
         ## We try to find a nontrivial divisibility condition. ##

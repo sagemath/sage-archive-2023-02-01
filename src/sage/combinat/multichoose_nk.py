@@ -16,7 +16,7 @@ Low-level multichoose
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from combinat import CombinatorialClass
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 import sage.misc.prandom as rnd
 
 class MultichooseNK(CombinatorialClass):

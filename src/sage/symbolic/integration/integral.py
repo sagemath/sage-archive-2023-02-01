@@ -2,15 +2,16 @@
 Symbolic Integration
 """
 
-##############################################################################
-#
+#*****************************************************************************
 #       Copyright (C) 2009 Golam Mortuza Hossain <gmhossain@gmail.com>
 #       Copyright (C) 2010 Burcin Erocal <burcin@erocal.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL v2+)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##############################################################################
+#*****************************************************************************`
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction, Function
@@ -192,7 +193,7 @@ class DefiniteIntegral(BuiltinFunction):
 
         TESTS:
 
-        Check if #3863 is fixed::
+        Check if :trac:`3863` is fixed::
 
             sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
             0.154572952320790
@@ -268,7 +269,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
 
     It is also possible to pass last three parameters in ``v`` as a triple.
 
-    OUPUT:
+    OUTPUT:
 
     - a tuple of ``f``, ``v``, ``a``, and ``b``.
 
@@ -598,7 +599,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         Is 50015104*y^2-50015103 positive, negative or zero?
         sage: assume(y>1)
         sage: res = integral(f,x,0.0001414, 1.); res
-        -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.9993959999999997e-08) - 1.9997172
+        2*y*arctan(1.0/y) - 2*y*arctan(0.0001414/y) + 1.0*log(1.0*y^2 + 1.0) - 0.0001414*log(1.0*y^2 + 1.9993959999999997e-08) - 1.9997172
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
         (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()
@@ -715,7 +716,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     Check that :trac:`11737` is fixed::
 
-        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity), prec=54)
+        0.285736646322853
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))  # known bug (non-zero imag part)
         0.285736646322853
 
     Check that :trac:`14209` is fixed::

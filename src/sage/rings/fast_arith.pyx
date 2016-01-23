@@ -1,5 +1,5 @@
 """
-Basic arithmetic with c-integers.
+Basic arithmetic with C integers
 """
 
 #*****************************************************************************
@@ -42,11 +42,9 @@ Basic arithmetic with c-integers.
 # The int definitions
 
 from sage.ext.stdsage cimport PY_NEW
-include "sage/libs/pari/decl.pxi"
+include "sage/ext/cdefs.pxi"
 
-cdef extern from "pari/pari.h":
-    cdef long NEXT_PRIME_VIADIFF(long, byteptr)
-
+from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
@@ -168,7 +166,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
             NEXT_PRIME_VIADIFF(p, pari_prime_ptr)
 
     elif algorithm == "pari_isprime":
-        from sage.rings.arith import primes
+        from sage.arith.all import primes
         res = list(primes(start, stop))
     else:
         raise ValueError("algorithm argument must be either ``pari_primes`` or ``pari_isprime``")

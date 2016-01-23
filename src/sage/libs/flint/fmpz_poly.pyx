@@ -20,6 +20,8 @@ AUTHORS:
 
 include 'sage/ext/stdsage.pxi'
 
+from sage.misc.long cimport pyobject_to_long
+
 from cpython.sequence cimport *
 
 from sage.structure.sage_object cimport SageObject
@@ -247,8 +249,13 @@ cdef class Fmpz_poly(SageObject):
             1  1427247692705959881058285969449495136382746624
             sage: 2^150
             1427247692705959881058285969449495136382746624
+
+            sage: f**(3/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: rational is not an integer
         """
-        cdef long nn = n
+        cdef long nn = pyobject_to_long(n)
         if not isinstance(self, Fmpz_poly):
             raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)

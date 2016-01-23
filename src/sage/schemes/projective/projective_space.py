@@ -66,7 +66,7 @@ AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
 
-- Ben Hutz (9/2014): added support for cartesian products
+- Ben Hutz (9/2014): added support for Cartesian products
 """
 
 #*****************************************************************************
@@ -95,9 +95,8 @@ from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import (latex,
                            prod)
-from sage.structure.parent_gens import normalize_names
-from sage.rings.arith import (gcd,
-                              binomial)
+from sage.structure.category_object import normalize_names
+from sage.arith.all import gcd, binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.tuple import Tuples
 from sage.matrix.constructor import matrix
@@ -860,7 +859,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def cartesian_product(self, other):
         r"""
-        Return the cartesian product of the projective spaces ``self`` and
+        Return the Cartesian product of the projective spaces ``self`` and
         ``other``.
 
         INPUT:
@@ -869,7 +868,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         OUTPUT:
 
-        - A cartesian product of projective spaces
+        - A Cartesian product of projective spaces
 
         EXAMPLES::
 
@@ -989,11 +988,11 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                 iters = [ R.range_by_height(bound) for _ in range(i) ]
             else: # if number field
                 iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     yield self(P)
                     j = 0
                 except StopIteration:
@@ -1001,7 +1000,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                         iters[j] = R.range_by_height(bound) # reset
                     else: # if number field
                         iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1

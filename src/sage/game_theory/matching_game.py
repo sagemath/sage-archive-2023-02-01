@@ -689,7 +689,7 @@ class MatchingGame(SageObject):
         r"""
         Add a suitor to the game.
 
-        INPUTS:
+        INPUT:
 
         - ``name`` -- can be a string or a number; if left blank will
           automatically generate an integer
@@ -760,7 +760,7 @@ class MatchingGame(SageObject):
         r"""
         Add a reviewer to the game.
 
-        INPUTS:
+        INPUT:
 
         - ``name`` -- can be a string or number; if left blank will
           automatically generate an integer

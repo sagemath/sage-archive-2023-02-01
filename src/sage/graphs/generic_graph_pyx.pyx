@@ -2,9 +2,10 @@
 GenericGraph Cython functions
 
 AUTHORS:
-    -- Robert L. Miller   (2007-02-13): initial version
-    -- Robert W. Bradshaw (2007-03-31): fast spring layout algorithms
-    -- Nathann Cohen                  : exhaustive search
+
+- Robert L. Miller   (2007-02-13): initial version
+- Robert W. Bradshaw (2007-03-31): fast spring layout algorithms
+- Nathann Cohen                  : exhaustive search
 """
 
 #*****************************************************************************
@@ -38,12 +39,13 @@ def spring_layout_fast_split(G, **options):
     other without bound, resulting in very tight clumps for each
     component.
 
-    NOTE:
+    .. NOTE::
+
         If the axis are scaled to fit the plot in a square, the
         horizontal distance may end up being "squished" due to
         the several adjacent components.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
@@ -52,7 +54,8 @@ def spring_layout_fast_split(G, **options):
         {0: [0.452..., 0.247...], ..., 502: [25.7..., 0.505...]}
 
     AUTHOR:
-        Robert Bradshaw
+
+    Robert Bradshaw
     """
     Gs = G.connected_components_subgraphs()
     pos = {}
@@ -83,7 +86,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
 
     INPUT:
 
-     - ``by_component`` - a boolean
+    - ``by_component`` -- a boolean
 
     EXAMPLES::
 
@@ -99,11 +102,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     and further from each other without bound, resulting in very tight
     clumps for each component.
 
-    NOTE:
-
-        If the axis are scaled to fit the plot in a square, the
-        horizontal distance may end up being "squished" due to
-        the several adjacent components.
+    If the axis are scaled to fit the plot in a square, the
+    horizontal distance may end up being "squished" due to
+    the several adjacent components. ::
 
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
@@ -216,6 +217,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     TODO: Are the hard-coded constants here optimal?
 
     INPUT:
+
         iterations -- number of steps to take
         dim        -- number of dimensions of freedom
         pos        -- already initialized initial positions
@@ -230,12 +232,13 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
         height     -- if True, do not update the last coordinate ever
 
     OUTPUT:
-        Modifies contents of pos.
+
+    Modifies contents of pos.
 
     AUTHOR:
-        Robert Bradshaw
-    """
 
+    Robert Bradshaw
+    """
     cdef int cur_iter, cur_edge
     cdef int i, j, x
 
@@ -315,7 +318,8 @@ def int_to_binary_string(n):
 
     - ``n`` (integer)
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: sage.graphs.generic_graph_pyx.int_to_binary_string(389)
         '110000101'
         sage: Integer(389).binary()
@@ -342,12 +346,13 @@ def binary_string_to_graph6(x):
 
     - ``x`` -- a binary string.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.generic_graph_pyx import binary_string_to_graph6
         sage: binary_string_to_graph6('110111010110110010111000001100000001000000001')
         'vUqwK@?G'
 
-    REFERENCES::
+    REFERENCES:
 
     .. [McK] McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
        http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
@@ -463,7 +468,8 @@ def binary_string_from_dig6(s, n):
 
     - ``n`` -- the length of the binary string encoded by ``s``.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.generic_graph_pyx import binary_string_from_dig6
         sage: binary_string_from_dig6('?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?', 63)
         '0000000000000000000000000000001000000000010000000001000010000000000000000000110000000000000000010100000010000000000001000000000010000000000...10000000000000000000000000000000010000000001011011000000100000000001001110000000000000000000000000001000010010000001100000001000000001000000000100000000'
@@ -486,7 +492,7 @@ def binary_string_from_dig6(s, n):
 
 cdef class SubgraphSearch:
     r"""
-    This class implements methods to exhaustively search for labelled
+    This class implements methods to exhaustively search for
     copies of a graph `H` in a larger graph `G`.
 
     It is possible to look for induced subgraphs instead, and to
@@ -503,6 +509,11 @@ cdef class SubgraphSearch:
     This way, most of the time we need to test far less than `k!
     \binom{|V(G)|}{k}` subsets, and hope this brute-force technique
     can sometimes be useful.
+
+    .. NOTE::
+
+        This algorithm does not take vertex/edge labels into account.
+
     """
     def __init__(self, G, H, induced = False):
         r"""
@@ -1016,7 +1027,7 @@ def _test_vectors_equal_inferior():
 
 cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
     r"""
-    Randomized backtracking for finding hamiltonian cycles and paths.
+    Randomized backtracking for finding Hamiltonian cycles and paths.
 
     ALGORITHM:
 
@@ -1025,8 +1036,8 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     is reversed. Every ``reset_bound`` iterations the path will be cleared
     and the procedure is restarted. Every ``backtrack_bound`` steps we discard
     the last five vertices and continue with the procedure. The total number
-    of steps in the algorithm is controlled by ``max_iter``. If a hamiltonian
-    cycle or hamiltonian path is found it is returned. If the number of steps reaches
+    of steps in the algorithm is controlled by ``max_iter``. If a Hamiltonian
+    cycle or Hamiltonian path is found it is returned. If the number of steps reaches
     ``max_iter`` then a longest path is returned. See OUTPUT for more details.
 
 
@@ -1042,8 +1053,8 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     - ``backtrack_bound`` - Number of iterations to elapse before
        discarding the last 5 vertices of the path.
 
-    - ``find_path`` - If set to ``True``, will search a hamiltonian
-       path. If ``False``, will search for a hamiltonian
+    - ``find_path`` - If set to ``True``, will search a Hamiltonian
+       path. If ``False``, will search for a Hamiltonian
        cycle. Default value is ``False``.
 
     OUTPUT:
@@ -1051,10 +1062,10 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     A pair ``(B,P)``, where ``B`` is a Boolean and ``P`` is a list of vertices.
 
         * If ``B`` is ``True`` and ``find_path`` is ``False``, ``P``
-          represents a hamiltonian cycle.
+          represents a Hamiltonian cycle.
 
         * If ``B`` is ``True`` and ``find_path`` is ``True``, ``P``
-          represents a hamiltonian path.
+          represents a Hamiltonian path.
 
         * If ``B`` is false, then ``P`` represents the longest path
           found during the execution of the algorithm.
@@ -1067,8 +1078,8 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     EXAMPLES:
 
     First we try the algorithm in the Dodecahedral graph, which is
-    hamiltonian, so we are able to find a hamiltonian cycle and a
-    hamiltonian path ::
+    Hamiltonian, so we are able to find a Hamiltonian cycle and a
+    Hamiltonian path ::
 
         sage: from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
         sage: G=graphs.DodecahedralGraph()
@@ -1078,8 +1089,8 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         (True, [8, 9, 10, 11, 18, 17, 4, 3, 19, 0, 1, 2, 6, 7, 14, 13, 12, 16, 15, 5])
 
     Another test, now in the Moebius-Kantor graph which is also
-    hamiltonian, as in our previous example, we are able to find a
-    hamiltonian cycle and path ::
+    Hamiltonian, as in our previous example, we are able to find a
+    Hamiltonian cycle and path ::
 
         sage: G=graphs.MoebiusKantorGraph()
         sage: fh(G)
@@ -1087,9 +1098,9 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (True, [4, 5, 6, 7, 15, 12, 9, 1, 0, 8, 13, 10, 2, 3, 11, 14])
 
-    Now, we try the algorithm on a non hamiltonian graph, the Petersen
+    Now, we try the algorithm on a non Hamiltonian graph, the Petersen
     graph.  This graph is known to be hypohamiltonian, so a
-    hamiltonian path can be found ::
+    Hamiltonian path can be found ::
 
         sage: G=graphs.PetersenGraph()
         sage: fh(G)
@@ -1106,7 +1117,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (True, [7, 18, 20, 9, 8, 19, 17, 6, 5, 16, 14, 3, 4, 15, 13, 11, 0, 10, 21, 12, 1, 2])
 
-    Finally, an example on a graph which does not have a hamiltonian
+    Finally, an example on a graph which does not have a Hamiltonian
     path ::
 
         sage: G=graphs.HyperStarGraph(5,2)

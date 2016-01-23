@@ -134,6 +134,28 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         return self._matrix
 
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary whose keys are indices of basis elements in
+        the support of ``self`` and whose values are the corresponding
+        coefficients.
+
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
+
+        EXAMPLES::
+
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
+            sage: elt = B(Matrix([[1,1], [-1,1]]))
+            sage: elt.monomial_coefficients()
+            {0: 1, 1: 1}
+        """
+        return self._vector.dict(copy)
+
     def left_matrix(self):
         """
         Return the matrix for multiplication by ``self`` from the left.
@@ -229,7 +251,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: B(1) != 0
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __gt__(self, other):
         """
@@ -331,18 +353,21 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         if not (A._assume_associative or A.is_associative()):
             raise TypeError("algebra is not associative")
         if n > 0:
-            return self.__class__(A, self.vector() * self._matrix.__pow__(n - 1))
+            return self.__class__(A, self.vector() * self._matrix ** (n - 1))
         if not A.is_unitary():
             raise TypeError("algebra is not unitary")
         if n == 0:
             return A.one()
         a = self.inverse()
-        return self.__class__(A, a.vector() * a.matrix().__pow__(-n - 1))
+        return self.__class__(A, a.vector() * a.matrix() ** (-n - 1))
 
     def is_invertible(self):
         """
         Return ``True`` if ``self`` has a two-sided multiplicative
         inverse.
+
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
 
         .. NOTE::
 
@@ -365,6 +390,9 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         The two-sided inverse of ``self``, if it exists; otherwise this
         is ``None``.
+
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
 
         EXAMPLES::
 
@@ -391,11 +419,14 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         Return the two-sided multiplicative inverse of ``self``, if it
         exists.
 
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
+
         .. NOTE::
 
-            If an element of a unitary finite-dimensional algebra over a field
-            admits a left inverse, then this is the unique left
-            inverse, and it is also a right inverse.
+            If an element of a finite-dimensional unitary associative
+            algebra over a field admits a left inverse, then this is the
+            unique left inverse, and it is also a right inverse.
 
         EXAMPLES::
 
@@ -444,7 +475,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         A = self.parent()
         if not (A._assume_associative or A.is_associative()):
             raise TypeError("algebra is not associative")
-        return self.matrix().__pow__(A.degree()) == 0
+        return self.matrix() ** A.degree() == 0
 
     def minimal_polynomial(self):
         """

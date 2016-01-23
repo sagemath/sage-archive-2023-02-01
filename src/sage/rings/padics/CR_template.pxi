@@ -9,7 +9,6 @@ See the documentation of mpz_linkage.pxi for the functions needed.
 
 The gluing file does the following:
 
-- includes "sage/ext/cdefs.pxi"
 - ctypedef's celement to be the appropriate type (e.g. mpz_t)
 - includes the linkage file
 - includes this template
@@ -181,7 +180,7 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef type t = self.__class__
+        cdef type t = type(self)
         cdef CRElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
@@ -270,22 +269,6 @@ cdef class CRElement(pAdicTemplateElement):
             True
         """
         return unpickle_cre_v2, (self.__class__, self.parent(), cpickle(self.unit, self.prime_pow), self.ordp, self.relprec)
-
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: R = Zp(5)
-            sage: a = R(17)
-            sage: b = R(21)
-            sage: a == b
-            False
-            sage: a < b   # indirect doctest
-            True
-        """
-        return (<Element>self)._richcmp(right, op)
 
     cpdef ModuleElement _neg_(self):
         """
@@ -1175,7 +1158,7 @@ cdef class CRElement(pAdicTemplateElement):
         self in terms of `\pi`.  If self is a field element, they start at
         `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
 
-        For each lift mode, this funciton returns a list of `a_i` so
+        For each lift mode, this function returns a list of `a_i` so
         that this element can be expressed as
 
         .. MATH::

@@ -16,18 +16,15 @@ AUTHORS:
   for affine/projective
 """
 
-# Historical note: in trac #11599, V.B. renamed
-# * _point_morphism_class -> _morphism
-# * _homset_class -> _point_homset
-
 #*****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -37,8 +34,8 @@ from sage.categories.homset        import Hom
 from sage.matrix.constructor       import matrix, identity_matrix
 from sage.misc.cachefunc           import cached_method
 from sage.misc.all                import prod
-from sage.rings.all                import Integer, moebius
-from sage.rings.arith              import lcm, gcd
+from sage.rings.all                import Integer
+from sage.arith.all import lcm, gcd
 from sage.rings.complex_field      import ComplexField
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.fraction_field     import FractionField
@@ -175,9 +172,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                 try:
                     x = self.domain()(x)
                 except (TypeError, NotImplementedError):
-                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
             elif self.domain()!=x.codomain():
-                raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
 
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords)

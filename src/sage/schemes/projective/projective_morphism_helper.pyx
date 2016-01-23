@@ -1,4 +1,6 @@
 r"""
+Morphisms on projective varieties (Cython helper)
+
 This is the helper file providing functionality for projective_morphism.py.
 
 AUTHORS:
@@ -10,12 +12,14 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2014 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith              import lcm
+from sage.arith.all import lcm
 from sage.rings.finite_rings.constructor import GF
 from sage.sets.all                 import Set
 from sage.misc.misc                import subsets
@@ -119,7 +123,7 @@ def _fast_possible_periods(self,return_points=False):
                     if eig:
                         lorders.add(eig.multiplicative_order())
                 S = subsets(lorders)
-                S.next()   # get rid of the empty set
+                next(S)   # get rid of the empty set
                 rvalues=set()
                 for s in S:
                     rvalues.add(lcm(s))

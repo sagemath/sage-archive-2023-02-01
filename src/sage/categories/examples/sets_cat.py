@@ -13,7 +13,7 @@ from sage.structure.element import Element
 from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer, IntegerWrapper
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 from sage.structure.unique_representation import UniqueRepresentation
 
 
@@ -58,6 +58,7 @@ class PrimeNumbers(UniqueRepresentation, Parent):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -340,6 +341,7 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -622,6 +624,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
 
         sage: TestSuite(P).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()

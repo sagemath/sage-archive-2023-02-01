@@ -122,9 +122,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         from sage.misc.latex import latex
         return "{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n(), self._weight, self._ep, latex(self._base_ring))
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, el):
         r"""
-        Return ``x`` coerced into this forms space.
+        Return ``el`` coerced into this forms space.
 
         EXAMPLES::
 
@@ -141,6 +141,14 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF(Delta).parent() == MF
             True
 
+            sage: E2 = MF.E2()
+            sage: e2 = QuasiWeakModularForms(n=infinity, k=2, ep=-1)(E2)
+            sage: e2
+            1 - 24*q^2 - 72*q^4 + O(q^5)
+            sage: e2.parent()
+            QuasiWeakModularForms(n=+Infinity, k=2, ep=-1) over Integer Ring
+            sage: e2.as_ring_element()
+            (-f_i + 3*E2)/2
             sage: MF(x^3)
             1 + 720*q + 179280*q^2 + 16954560*q^3 + 396974160*q^4 + O(q^5)
             sage: MF(x^3).parent() == MF
@@ -226,35 +234,49 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         from graded_ring_element import FormsRingElement
-        if isinstance(x, FormsRingElement):
-            return self.element_class(self, x._rat)
+        if isinstance(el, FormsRingElement):
+            if (self.hecke_n() == infinity and el.hecke_n() == ZZ(3)):
+                el_f = el._reduce_d()._rat
+                (x,y,z,d) = self.pol_ring().gens()
+
+                num_sub = el_f.numerator().subs(   x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                denom_sub = el_f.denominator().subs( x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                new_num = num_sub.numerator()*denom_sub.denominator()
+                new_denom = denom_sub.numerator()*num_sub.denominator()
+
+                el = self._rat_field(new_num) / self._rat_field(new_denom)
+            elif self.group() == el.group():
+                el = el._rat
+            else:
+                raise ValueError("{} has group {} != {}".format(el, el.group(), self.group()))
+            return self.element_class(self, el)
         # This assumes that the series corresponds to a _weakly
         # holomorphic_ (quasi) form. It also assumes that the form is
         # holomorphic at -1 for n=infinity (this assumption however
         # can be changed in construct_form
         # resp. construct_quasi_form))
-        P = parent(x)
+        P = parent(el)
         if is_LaurentSeriesRing(P) or is_PowerSeriesRing(P):
             if (self.is_modular()):
-                return self.construct_form(x)
+                return self.construct_form(el)
             else:
-                return self.construct_quasi_form(x)
-        if is_FreeModuleElement(x) and (self.module() is P or self.ambient_module() is P):
-            return self.element_from_ambient_coordinates(x)
-        if (not self.is_ambient()) and (isinstance(x, list) or isinstance(x, tuple) or is_FreeModuleElement(x)) and len(x) == self.rank():
+                return self.construct_quasi_form(el)
+        if is_FreeModuleElement(el) and (self.module() is P or self.ambient_module() is P):
+            return self.element_from_ambient_coordinates(el)
+        if (not self.is_ambient()) and (isinstance(el, list) or isinstance(el, tuple) or is_FreeModuleElement(el)) and len(el) == self.rank():
             try:
-                return self.element_from_coordinates(x)
+                return self.element_from_coordinates(el)
             except (ArithmeticError, TypeError):
                 pass
         if self.ambient_module() and self.ambient_module().has_coerce_map_from(P):
-            return self.element_from_ambient_coordinates(self.ambient_module()(x))
-        if (isinstance(x,list) or isinstance(x, tuple)) and len(x) == self.degree():
+            return self.element_from_ambient_coordinates(self.ambient_module()(el))
+        if (isinstance(el,list) or isinstance(el, tuple)) and len(el) == self.degree():
             try:
-                return self.element_from_ambient_coordinates(x)
+                return self.element_from_ambient_coordinates(el)
             except (ArithmeticError, TypeError):
                 pass
 
-        return self.element_class(self, x)
+        return self.element_class(self, el)
 
     def _coerce_map_from_(self, S):
         r"""
@@ -268,6 +290,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF3 = ModularForms(n=4, k=24, ep=-1)
             sage: MF4 = CuspForms(n=4, k=0, ep=1)
             sage: MF5 = ZeroForm(n=4, k=10, ep=-1)
+            sage: MF6 = QuasiWeakModularForms(n=3, k=24, ep=1)
+            sage: MF7 = QuasiWeakModularForms(n=infinity, k=24, ep=1)
             sage: subspace1 = MF3.subspace([MF3.gen(0), MF3.gen(1)])
             sage: subspace2 = MF3.subspace([MF3.gen(2)])
             sage: subspace3 = MF3.subspace([MF3.gen(0), MF3.gen(0)+MF3.gen(2)])
@@ -282,6 +306,10 @@ class FormsSpace_abstract(FormsRing_abstract):
             False
             sage: MF1.has_coerce_map_from(ZZ)
             True
+            sage: MF7.has_coerce_map_from(MF6)
+            True
+            sage: MF7.has_coerce_map_from(MF2)
+            False
             sage: MF3.has_coerce_map_from(subspace1)
             True
             sage: subspace1.has_coerce_map_from(MF3)
@@ -941,7 +969,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.Faber_pol(-1, order_1=2)
             1/d^2*q^2 - 3/(4*d^2)*q + 81/(1024*d^2)
             sage: (MF.Faber_pol(-1, order_1=2)(MF.J_inv())*MF.F_simple(order_1=2)).q_expansion(prec=MF._l1 + 1)
-            q^-1 + (9075/(-8388608*d^4))*q^3 + O(q^4)
+            q^-1 - 9075/(8388608*d^4)*q^3 + O(q^4)
         """
 
         m = ZZ(m)
@@ -1083,7 +1111,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.faber_pol(-1, order_1=2)
             q^2 - 3/(4*d)*q + 81/(1024*d^2)
             sage: (MF.faber_pol(-1, order_1=2)(MF.j_inv())*MF.F_simple(order_1=2)).q_expansion(prec=MF._l1 + 1)
-            q^-1 + (9075/(-8388608*d^4))*q^3 + O(q^4)
+            q^-1 - 9075/(8388608*d^4)*q^3 + O(q^4)
         """
 
         m = ZZ(m)

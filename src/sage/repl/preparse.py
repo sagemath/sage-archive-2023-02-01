@@ -220,6 +220,7 @@ Behind the scenes what happens is the following::
 
 import os
 import re
+import six
 
 from sage.repl.load import load_wrap
 
@@ -522,9 +523,9 @@ def parse_ellipsis(code, preparse_step=True):
         sage: [1.0..2.0]
         [1.00000000000000, 2.00000000000000]
 
-        TESTS:
+    TESTS:
 
-        Check that nested ellipsis is processed correctly (:trac:`17378`)::
+    Check that nested ellipsis is processed correctly (:trac:`17378`)::
 
         sage: preparse('[1,..,2,..,len([1..3])]')
         '(ellipsis_range(Integer(1),Ellipsis,Integer(2),Ellipsis,len((ellipsis_range(Integer(1),Ellipsis,Integer(3))))))'
@@ -1225,7 +1226,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         _sage_const_100 = Integer(100)
         type(100 ), type(_sage_const_100 )
     """
-    if not isinstance(contents, basestring):
+    if not isinstance(contents, six.string_types):
         raise TypeError("contents must be a string")
 
     if globals is None:
@@ -1459,24 +1460,24 @@ def handle_encoding_declaration(contents, out):
         '#!/usr/local/bin/python\nimport os, sys'
 
 
-    NOTES::
+    NOTES:
 
-        PEP 263: http://www.python.org/dev/peps/pep-0263/
+    - PEP 263: http://www.python.org/dev/peps/pep-0263/
 
-        PEP 263 says that Python will interpret a UTF-8 byte order mark
-        as a declaration of UTF-8 encoding, but I don't think we do
-        that; this function only sees a Python string so it can't
-        account for a BOM.
+    - PEP 263 says that Python will interpret a UTF-8 byte order mark
+      as a declaration of UTF-8 encoding, but I don't think we do
+      that; this function only sees a Python string so it can't
+      account for a BOM.
 
-        We default to UTF-8 encoding even though PEP 263 says that
-        Python files should default to ASCII.
+    - We default to UTF-8 encoding even though PEP 263 says that
+      Python files should default to ASCII.
 
-        Also see http://docs.python.org/ref/encodings.html.
+    - Also see http://docs.python.org/ref/encodings.html.
 
-    AUTHORS::
+    AUTHORS:
 
-        - Lars Fischer
-        - Dan Drake (2010-12-08, rewrite for ticket #10440)
+    - Lars Fischer
+    - Dan Drake (2010-12-08, rewrite for ticket #10440)
     """
     lines = contents.splitlines()
     for num, line in enumerate(lines[:2]):

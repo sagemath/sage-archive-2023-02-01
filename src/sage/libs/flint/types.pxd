@@ -17,6 +17,9 @@ from sage.libs.gmp.types cimport *
 cdef extern from "flint/flint.h":
     ctypedef mp_limb_t ulong
     ctypedef mp_limb_signed_t slong
+    ctypedef void* flint_rand_t
+    cdef long FLINT_BITS
+    cdef long FLINT_D_BITS
 
 cdef extern from "flint/fmpq.h":
     ctypedef struct fmpq:
@@ -34,6 +37,9 @@ cdef extern from "flint/fmpz.h":
     ctypedef slong fmpz
     ctypedef fmpz fmpz_t[1]
 
+    bint COEFF_IS_MPZ(fmpz)
+    mpz_ptr COEFF_TO_PTR(fmpz)
+
     ctypedef struct fmpz_preinvn_struct:
         mp_ptr dinv
         long n
@@ -47,9 +53,17 @@ cdef extern from "flint/fmpz_mat.h":
 
     ctypedef fmpz_mat_struct fmpz_mat_t[1]
 
+cdef extern from "flint/fmpz_mod_poly.h":
+    ctypedef struct fmpz_mod_poly_struct:
+        pass
+
+    ctypedef fmpz_mod_poly_struct fmpz_mod_poly_t[1]
+
 cdef extern from "flint/fmpz_poly.h":
     ctypedef struct fmpz_poly_struct:
-        pass
+        fmpz* coeffs
+        long alloc
+        long length
 
     ctypedef fmpz_poly_struct fmpz_poly_t[1]
 
@@ -75,8 +89,55 @@ cdef extern from "flint/nmod_poly.h":
 
     ctypedef nmod_poly_factor_struct nmod_poly_factor_t[1]
 
+cdef extern from "flint/fq.h":
+    ctypedef struct fq_ctx_struct:
+        fmpz_mod_poly_t modulus
+
+    ctypedef fq_ctx_struct fq_ctx_t[1]
+
+    ctypedef fmpz_poly_struct fq_struct
+    ctypedef fmpz_poly_t fq_t
+
+cdef extern from "flint/fq_nmod.h":
+    ctypedef struct fq_nmod_ctx_struct:
+        nmod_poly_t modulus
+
+    ctypedef fq_nmod_ctx_struct fq_nmod_ctx_t[1]
+
+    ctypedef nmod_poly_struct fq_nmod_struct
+    ctypedef nmod_poly_t fq_nmod_t
+
 cdef extern from "flint/ulong_extras.h":
     ctypedef struct n_factor_t:
         int num
         unsigned long exp[15]
         unsigned long p[15]
+
+cdef extern from "flint/padic.h":
+    ctypedef struct padic_struct:
+        fmpz u
+        long v
+
+    ctypedef void* padic_t
+
+    cdef enum padic_print_mode:
+        PADIC_TERSE
+        PADIC_SERIES
+        PADIC_VAL_UNIT
+
+    ctypedef struct padic_ctx_struct:
+        fmpz_t p
+        long N
+        double pinv
+        fmpz* pow
+        long min
+        long max
+
+    ctypedef void * padic_ctx_t
+
+    ctypedef struct padic_inv_struct:
+        long n
+        fmpz *pow
+        fmpz *u
+
+    ctypedef void * padic_inv_t

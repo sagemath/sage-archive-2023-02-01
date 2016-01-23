@@ -5,7 +5,7 @@ Local Density Interfaces
 ## #include "../max-min.h"
 
 
-from sage.rings.arith import valuation
+from sage.arith.all import valuation
 from sage.rings.rational_field import QQ
 
 
@@ -21,10 +21,12 @@ def local_density(self, p, m):
     routines performing the computations!
 
     INPUT:
+
         `p` -- a prime number > 0
         `m` -- an integer
 
     OUTPUT:
+
         a rational number
 
     EXAMPLES::
@@ -79,10 +81,12 @@ def local_primitive_density(self, p, m):
     the routines performing the computations!
 
     INPUT:
+
         `p` -- a prime number > 0
         `m` -- an integer
 
     OUTPUT:
+
         a rational number
 
     EXAMPLES::

@@ -19,7 +19,7 @@ List of coset representatives for `\Gamma_1(N)` in `{\rm SL}_2(\ZZ)`
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 class G1list:
     r"""

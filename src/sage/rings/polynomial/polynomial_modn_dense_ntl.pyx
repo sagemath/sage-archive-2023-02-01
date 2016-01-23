@@ -17,13 +17,15 @@ AUTHORS:
 - Robert Bradshaw: Major rewrite to use NTL directly (2007-09)
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial_generic_dense
 
@@ -45,16 +47,16 @@ from sage.interfaces.all import singular as singular_default
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
 from sage.structure.element cimport have_same_parent_c
 
-from sage.libs.ntl.ntl_ZZ_p_decl cimport *
-from sage.libs.ntl.ntl_lzz_p_decl cimport *
-from sage.libs.ntl.ntl_lzz_pX_decl cimport *
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
+from sage.libs.ntl.types cimport NTL_SP_BOUND
+from sage.libs.ntl.ZZ_p cimport *
+from sage.libs.ntl.lzz_p cimport *
+from sage.libs.ntl.lzz_pX cimport *
+from sage.libs.ntl.ZZ_pX cimport *
 
 def make_element(parent, args):
     return parent(*args)
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 
 zz_p_max = NTL_SP_BOUND
 
@@ -584,7 +586,16 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     return [root for root in roots if N.gcd(ZZ(self(root))) >= Nbeta]
 
 cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
+    r"""
+    Polynomial on `\ZZ/n\ZZ` implemented via NTL.
 
+    .. automethod:: _add_
+    .. automethod:: _sub_
+    .. automethod:: _lmul_
+    .. automethod:: _rmul_
+    .. automethod:: _mul_
+    .. automethod:: _mul_trunc_
+    """
     def __init__(self, parent, v=None, check=True, is_gen=False, construct=False):
         r"""
         EXAMPLES::
@@ -611,7 +622,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
     def __dealloc__(self):
         if <object>self.c is not None:
             self.c.restore_c()
-        zz_pX_destruct(&self.x)
 
     def ntl_set_directly(self, v):
         # TODO: Get rid of this
@@ -740,10 +750,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef Polynomial_dense_modn_ntl_zz _mul_trunc(self, Polynomial_dense_modn_ntl_zz right, long n):
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
         r"""
         Return the product of ``self`` and ``right`` truncated to the
-        given length `n`, only return terms of degree less than `n`.
+        given length `n`
 
         EXAMPLES::
 
@@ -752,28 +762,29 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: g = x^2 - 8*x + 16
             sage: f*g
             x^3 + 90*x^2 + 32*x + 68
-            sage: f._mul_trunc(g, 42)
+            sage: f._mul_trunc_(g, 42)
             x^3 + 90*x^2 + 32*x + 68
-            sage: f._mul_trunc(g, 3)
+            sage: f._mul_trunc_(g, 3)
             90*x^2 + 32*x + 68
-            sage: f._mul_trunc(g, 2)
+            sage: f._mul_trunc_(g, 2)
             32*x + 68
-            sage: f._mul_trunc(g, 1)
+            sage: f._mul_trunc_(g, 1)
             68
-            sage: f._mul_trunc(g, 0)
+            sage: f._mul_trunc_(g, 0)
             0
             sage: f = x^2 - 8*x + 16
-            sage: f._mul_trunc(f, 2)
+            sage: f._mul_trunc_(f, 2)
             44*x + 56
         """
+        cdef Polynomial_dense_modn_ntl_zz op2 = <Polynomial_dense_modn_ntl_zz> right
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
-        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(right.x) > 10000
+        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(op2.x) > 10000
         if do_sig: sig_on()
         self.c.restore_c()
-        if self is right:
+        if self is op2:
             zz_pX_SqrTrunc(r.x, self.x, n)
         else:
-            zz_pX_MulTrunc(r.x, self.x, right.x, n)
+            zz_pX_MulTrunc(r.x, self.x, op2.x, n)
         if do_sig: sig_off()
         return r
 
@@ -864,14 +875,12 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         else:
             if not isinstance(modulus, Polynomial_dense_modn_ntl_zz):
                 modulus = self.parent()._coerce_(modulus)
-            zz_pX_Modulus_construct(mod)
             zz_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_zz>modulus).x)
 
             do_sig = zz_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: sig_on()
             zz_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
             if do_sig: sig_off()
-            zz_pX_Modulus_destruct(mod)
 
         if recip:
             return ~r
@@ -1198,8 +1207,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
     def __dealloc__(self):
         if <object>self.c is not None:
             self.c.restore_c()
-        ZZ_pX_destruct(&self.x)
-
 
     cdef Polynomial_dense_modn_ntl_ZZ _new(self):
         cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>Polynomial_dense_modn_ntl_ZZ.__new__(Polynomial_dense_modn_ntl_ZZ)
@@ -1316,7 +1323,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef Polynomial_dense_modn_ntl_ZZ _mul_trunc(self, Polynomial_dense_modn_ntl_ZZ right, long n):
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
         """
         Return the product of ``self`` and ``right`` truncated to the
         given length `n`, only return terms of degree less than `n`.
@@ -1328,28 +1335,29 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: g = x^2 - 8*x + 16
             sage: f*g
             x^3 + 999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
-            sage: f._mul_trunc(g, 42)
+            sage: f._mul_trunc_(g, 42)
             x^3 + 999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
-            sage: f._mul_trunc(g, 3)
+            sage: f._mul_trunc_(g, 3)
             999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
-            sage: f._mul_trunc(g, 2)
+            sage: f._mul_trunc_(g, 2)
             32*x + 999999999999999999999999999968
-            sage: f._mul_trunc(g, 1)
+            sage: f._mul_trunc_(g, 1)
             999999999999999999999999999968
-            sage: f._mul_trunc(g, 0)
+            sage: f._mul_trunc_(g, 0)
             0
             sage: f = x^2 - 8*x + 16
-            sage: f._mul_trunc(f, 2)
+            sage: f._mul_trunc_(f, 2)
             999999999999999999999999999744*x + 256
         """
+        cdef Polynomial_dense_modn_ntl_ZZ op2 = <Polynomial_dense_modn_ntl_ZZ> right
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        cdef bint do_sig = (ZZ_pX_deg(self.x) + ZZ_pX_deg(right.x)) * self.c.p_bits > 1e5
+        cdef bint do_sig = (ZZ_pX_deg(self.x) + ZZ_pX_deg(op2.x)) * self.c.p_bits > 1e5
         if do_sig: sig_on()
         self.c.restore_c()
-        if self is right:
+        if self is op2:
             ZZ_pX_SqrTrunc(r.x, self.x, n)
         else:
-            ZZ_pX_MulTrunc(r.x, self.x, right.x, n)
+            ZZ_pX_MulTrunc(r.x, self.x, op2.x, n)
         if do_sig: sig_off()
         return r
 
@@ -1426,14 +1434,12 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         else:
             if not isinstance(modulus, Polynomial_dense_modn_ntl_ZZ):
                 modulus = self.parent()._coerce_(modulus)
-            ZZ_pX_Modulus_construct(mod)
             ZZ_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_ZZ>modulus).x)
 
             do_sig = ZZ_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: sig_on()
             ZZ_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
             if do_sig: sig_off()
-            ZZ_pX_Modulus_destruct(mod)
         if recip:
             return ~r
         else:

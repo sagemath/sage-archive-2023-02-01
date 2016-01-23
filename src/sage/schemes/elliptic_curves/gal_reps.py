@@ -126,7 +126,7 @@ AUTHORS:
 ######################################################################
 
 from sage.structure.sage_object import SageObject
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.all as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
@@ -240,7 +240,7 @@ class GaloisRepresentation(SageObject):
         # isomorphism between rho and rho' unless E
         # is isomorphic to E'
         # Note that rho can not depend on the Weierstrass model
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return False
         return self._E.is_isomorphic(other._E)
 

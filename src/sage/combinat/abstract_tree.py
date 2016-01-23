@@ -66,8 +66,6 @@ incoherent with the data structure.
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
-from functools import reduce
-
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
 # inherit from SageObject to be able to inherit from Element or a subclass
@@ -951,10 +949,10 @@ class AbstractTree(object):
         node_to_str = lambda t: str(t.label()) if hasattr(t, "label") else "o"
 
         if self.is_empty():
-            from sage.misc.ascii_art import empty_ascii_art
+            from sage.typeset.ascii_art import empty_ascii_art
             return empty_ascii_art
 
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         if len(self) == 0:
             t_repr = AsciiArt( [node_to_str(self)] )
             t_repr._root = 1
@@ -1163,12 +1161,7 @@ class AbstractTree(object):
                   . the matrix
                   . and the edges
                 """
-                name = reduce(
-                    lambda x, y: x + y,
-                    map(
-                        lambda x: chr(ord(x) + 49),
-                        list(str(num[0]))),
-                    "")
+                name = "".join((chr(ord(x) + 49) for x in str(num[0])))
                 node = cmd + name
                 nodes.append((name,
                     (str(self.label()) if hasattr(self, "label") else ""))
@@ -1917,7 +1910,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def shape(self):
         """
-        Returns the unlabelled tree associated to ``self``
+        Return the unlabelled tree associated to ``self``.
 
         EXAMPLES::
 
@@ -1926,6 +1919,11 @@ class AbstractLabelledTree(AbstractTree):
 
             sage: LabelledBinaryTree([[],[[],[]]], label = 25).shape()
             [[., .], [[., .], [., .]]]
+
+            sage: LRT = LabelledRootedTree
+            sage: tb = LRT([],label='b')
+            sage: LRT([tb, tb], label='a').shape()
+            [[], []]
 
         TESTS::
 
@@ -1965,7 +1963,7 @@ class AbstractLabelledTree(AbstractTree):
         from sage.graphs.digraph import DiGraph
         resu = dict([[self.label(),
                     [t.label() for t in self if not t.is_empty()]]])
-        resu = DiGraph(resu)
+        resu = DiGraph(resu, format="dict_of_lists")
         for t in self:
             if not t.is_empty():
                 resu = resu.union(t.as_digraph())
@@ -1989,7 +1987,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         INPUT: ``label`` -- any Sage object
 
-        OUPUT: ``None``, ``self`` is modified in place
+        OUTPUT: ``None``, ``self`` is modified in place
 
         .. NOTE::
 
@@ -2050,7 +2048,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         - ``label`` -- any sage object
 
-        OUPUT: Nothing, ``self`` is modified in place
+        OUTPUT: Nothing, ``self`` is modified in place
 
         .. NOTE::
 

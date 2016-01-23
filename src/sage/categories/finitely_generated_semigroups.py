@@ -99,9 +99,9 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
             where the product is taken on the left, right, or both
             sides.
 
-            INPUT::
+            INPUT:
 
-             - ``side``: "left", "right", or "twosided"
+            - ``side``: "left", "right", or "twosided"
 
             FIXME: find a better name for this method
             FIXME: should we return a set? a family?
@@ -139,7 +139,7 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
                 ['y', 'x', 'xy', 'yx']
             """
             from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(self.succ_generators(side = "right"), self.semigroup_generators()).__iter__()
+            return iter(TransitiveIdeal(self.succ_generators(side="right"), self.semigroup_generators()))
 
         def ideal(self, gens, side="twosided"):
             r"""
@@ -151,10 +151,10 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
 
             .. SEEALSO:: :meth:`semigroup_generators`
 
-            INPUT::
+            INPUT:
 
-             - ``gens``: a list (or iterable) of elements of ``self``
-             - ``side``: [default: "twosided"] "left", "right" or "twosided"
+            - ``gens`` -- a list (or iterable) of elements of ``self``
+            - ``side`` -- [default: "twosided"] "left", "right" or "twosided"
 
             EXAMPLES::
 

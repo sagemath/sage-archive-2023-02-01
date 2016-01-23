@@ -37,7 +37,6 @@ test.spyx
 --root
 --rst2txt
 --rst2sws
---scons
 --sh
 --singular
 --sqlite3
@@ -199,10 +198,24 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-    Test ``sage --info [packages]``, unless this is a binary (bdist)
-    distribution which doesn't ship spkgs::
+    Test ``sage --info [packages]`` and the equivalent
+    ``sage -p --info --info [packages]`` (the doubling of ``--info``
+    is intentional, that option should be idempotent)::
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
+        sage: print out
+        Found local metadata for sqlite-...
+        = SQLite =
+        ...
+        SQLite is a software library that implements a self-contained,
+        serverless, zero-configuration, transactional SQL database engine.
+        ...
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
         sage: print out
         Found local metadata for sqlite-...
         = SQLite =
@@ -477,17 +490,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ....:         return True
         ....:     except OSError:
         ....:         return False 
-        sage: (out, err, ret) = test_executable(["sage", "--dev", "help"]) if has_tty() else ('usage: sage-dev', '', 0)
-        sage: ret, err
-        (0, '')
-        sage: print out    # random output
-        usage: sage-dev [-h] subcommand ...
-        <BLANKLINE>
-        The developer interface for sage.
-        ...
-        sage: ('usage: sage-dev' in out) or ('Developer interface disabled' in out)
-        True
-
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True
@@ -579,14 +581,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
         sage: (out, err, ret) = test_executable(["sage", "--R", "--version"])
         sage: out.find("R version ") >= 0
-        True
-        sage: err
-        ''
-        sage: ret
-        0
-
-        sage: (out, err, ret) = test_executable(["sage", "--scons", "--version"])
-        sage: out.find("SCons") >= 0
         True
         sage: err
         ''

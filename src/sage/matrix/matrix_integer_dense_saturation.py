@@ -2,8 +2,8 @@
 Saturation over ZZ
 """
 
-from sage.rings.all import ZZ, gcd, GF
-from sage.rings.arith import binomial
+from sage.rings.all import ZZ, GF
+from sage.arith.all import binomial, gcd
 from sage.matrix.constructor import identity_matrix, random_matrix
 from sage.misc.misc import verbose
 from sage.misc.randstate import current_randstate
@@ -282,7 +282,7 @@ def index_in_saturation(A, proof=True):
     r"""
     The index of A in its saturation.
 
-    INPUT::
+    INPUT:
 
     - ``A`` -- matrix over `\ZZ`
 

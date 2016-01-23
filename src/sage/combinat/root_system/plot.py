@@ -416,7 +416,7 @@ We conclude with a rank `3 + 1` alcove walk::
     ::
 
         sage: L = RootSystem(["A",3,1]).ambient_space()
-        sage: alcoves = CartesianProduct([0,1],[0,1],[0,1])
+        sage: alcoves = cartesian_product([[0,1],[0,1],[0,1]])
         sage: color = lambda i: "black" if i==0 else None
         sage: L.plot_alcoves(alcoves=alcoves, color=color, bounding_box=10,wireframe=True).show(frame=False) # long time
 
@@ -561,6 +561,7 @@ Enjoy and please post your best pictures on the
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
@@ -670,7 +671,7 @@ class PlotOptions:
         # Bounding box
         from sage.rings.real_mpfr import RR
         from sage.geometry.polyhedron.all import Polyhedron
-        from sage.combinat.cartesian_product import CartesianProduct
+        from itertools import product
         if bounding_box in RR:
             bounding_box = [[-bounding_box,bounding_box]] * self.dimension
         else:
@@ -678,7 +679,7 @@ class PlotOptions:
                 raise TypeError("bounding_box argument doesn't match with the plot dimension")
             elif not all(len(b)==2 for b in bounding_box):
                 raise TypeError("Invalid bounding box %s"%bounding_box)
-        self.bounding_box = Polyhedron(vertices=CartesianProduct(*bounding_box))
+        self.bounding_box = Polyhedron(vertices=product(*bounding_box))
 
     @cached_method
     def in_bounding_box(self, x):
@@ -741,13 +742,13 @@ class PlotOptions:
         """
         if self.labels:
             if self.dimension <= 2:
-                if not isinstance(label, basestring):
+                if not isinstance(label, six.string_types):
                     label = "$"+str(latex(label))+"$"
                 from sage.plot.text import text
                 return text(label, position, fontsize=15, rgbcolor=rgbcolor)
             elif self.dimension == 3:
                 # LaTeX labels not yet supported in 3D
-                if isinstance(label, basestring):
+                if isinstance(label, six.string_types):
                     label = label.replace("{","").replace("}","").replace("$","").replace("_","")
                 else:
                     label = str(label)

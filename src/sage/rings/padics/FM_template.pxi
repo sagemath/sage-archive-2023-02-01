@@ -11,7 +11,6 @@ for the functions needed.
 
 The gluing file does the following:
 
-- includes "sage/ext/cdefs.pxi"
 - ctypedef's celement to be the appropriate type (e.g. mpz_t)
 - includes the linkage file
 - includes this template
@@ -94,7 +93,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2 + O(5^20)
         """
-        cdef type t = self.__class__
+        cdef type t = type(self)
         cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
@@ -155,22 +154,6 @@ cdef class FMElement(pAdicTemplateElement):
             True
         """
         return unpickle_fme_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow))
-
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: R = ZpFM(5)
-            sage: a = R(17)
-            sage: b = R(21)
-            sage: a == b
-            False
-            sage: a < b
-            True
-        """
-        return (<Element>self)._richcmp(right, op)
 
     cpdef ModuleElement _neg_(self):
         r"""

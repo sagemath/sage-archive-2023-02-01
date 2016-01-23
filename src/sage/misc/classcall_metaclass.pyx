@@ -18,6 +18,7 @@ AUTHORS:
 
 include 'sage/ext/python.pxi'
 from cpython.object cimport *
+from cpython.type cimport type as pytype
 
 __all__ = ['ClasscallMetaclass', 'typecall', 'timeCall']
 
@@ -456,7 +457,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
             return x in object
 
 
-def typecall(type cls, *args, **kwds):
+def typecall(pytype cls, *args, **kwds):
     r"""
     Object construction
 

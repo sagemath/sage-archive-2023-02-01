@@ -51,7 +51,7 @@ cdef class NumberField(Field):
             sage: K.ring_of_integers()
             Maximal Order in Number Field in a with defining polynomial x^2 + 1
         """
-        return self.maximal_order()
+        return self.maximal_order(*args, **kwds)
 
     def OK(self, *args, **kwds):
         r"""
@@ -265,4 +265,88 @@ cdef class NumberField(Field):
             from sage.rings.integer import Integer
             return Integer(1)
         return ans
+
+
+    # Approximate embeddings for comparisons with respect to the order of RR or
+    # CC
+
+    def _init_embedding_approx(self):
+        r"""
+        Initialize the approximation of embeddings.
+
+        This should be called only once.
+
+        TESTS::
+
+            sage: K.<a> = NumberField(x^3 - x^2 - x - 1, embedding=1)
+            sage: K._get_embedding_approx(0)   # indirect doctest
+            1.839286755214161?
+        """
+
+        if self._gen_approx is not None or self._embedding is None:
+            return
+
+        from sage.rings.qqbar import AA
+        from sage.rings.real_lazy import RLF
+        codomain = self._embedding.codomain()
+        if codomain is AA or codomain is RLF:
+            self._gen_approx = []
+            self._embedded_real = 1
+
+    cpdef _get_embedding_approx(self, size_t i):
+        r"""
+        Return an interval approximation of the generator of this number field.
+
+        OUTPUT:
+
+        A real interval element with precision `53 \times 2^i`.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p = x^5 - 3*x + 1
+            sage: a_AA = AA.polynomial_root(p, RIF(0,1))
+            sage: K.<a> = NumberField(p, embedding=a_AA)
+            sage: K._get_embedding_approx(2)
+            0.3347341419433526870750989624732833071257517550374285560578335863?
+            sage: K._get_embedding_approx(1)
+            0.33473414194335268707509896247329?
+            sage: K._get_embedding_approx(1).str(style='brackets')
+            '[0.334734141943352687075098962473280 .. 0.334734141943352687075098962473287]'
+
+
+            sage: K._get_embedding_approx(2).prec()
+            212
+            sage: K._get_embedding_approx(1).prec()
+            106
+            sage: K._get_embedding_approx(0).prec()
+            53
+
+        If a real embedding is not specified, this method will result in an error::
+
+            sage: N.<g> = NumberField(x^3+2)
+            sage: N._get_embedding_approx(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding set. You need to specify a a real embedding.
+
+
+        .. SEEALSO::
+
+            :class:` RealIntervalField_class <sage.rings.real_mpfi.RealIntervalField_class>`
+        """
+        if self._embedded_real and i < len(self._gen_approx):
+            return self._gen_approx[i]
+
+        cdef size_t j
+        if self._embedded_real:
+            j = len(self._gen_approx)
+            from sage.rings.real_mpfi import RealIntervalField
+            gen = self._embedding.gen_image()
+            while j <= i:
+                self._gen_approx.append(RealIntervalField(53 << j)(gen))
+                j += 1
+            return self._gen_approx[i]
+        else:
+            raise ValueError("No embedding set. You need to specify a a real embedding.")
 

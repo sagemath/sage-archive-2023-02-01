@@ -856,6 +856,7 @@ def nrows_from_dict(d):
     Here the answer is 301 not 300, since there is a 0-th row.
 
     ::
+
         sage: sage.matrix.constructor.nrows_from_dict({(300,4):10})
         301
     """
@@ -1000,8 +1001,8 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
        the matrix will have.  See examples below for possible additional
        arguments.
 
-       -  ``randomize`` - randomize the elements of the matrix, possibly
-          controlling the density of non-zero entries.
+       -  ``randomize`` - create a matrix of random elements from the
+          base ring, possibly controlling the density of non-zero entries.
 
        -  ``echelon_form`` - creates a matrix in echelon form
 
@@ -1043,15 +1044,12 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         additional properties (i.e. when ``algorithm='randomize'``),
         most of the randomness is controlled by the ``random_element``
         method for elements of the base ring of the matrix, so the
-        documentation of that method may be relevant or useful.  Also,
-        the default is to not create zero entries, unless the
-        ``density`` keyword is set to something strictly less than
-        one.
+        documentation of that method may be relevant or useful.
 
     EXAMPLES:
 
     Random integer matrices.  With no arguments, the majority of the entries
-    are -1 and 1, never zero, and rarely "large." ::
+    are zero, -1, and 1, and rarely "large." ::
 
         sage: random_matrix(ZZ, 5, 5)
         [ -8   2   0   0   1]
@@ -1061,7 +1059,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         [  4  -4  -6   5   0]
 
     The ``distribution`` keyword  set to ``uniform`` will limit values
-    between -2 and 2, and never zero. ::
+    between -2 and 2. ::
 
         sage: random_matrix(ZZ, 5, 5, distribution='uniform')
         [ 1  0 -2  1  1]
@@ -1071,8 +1069,8 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         [ 0 -2 -1  0  0]
 
     The ``x`` and ``y`` keywords can be used to distribute entries uniformly.
-    When both are used ``x`` is the minimum and ``y`` is one greater than the the maximum.
-    But still entries are never zero, even if the range contains zero. ::
+    When both are used ``x`` is the minimum and ``y`` is one greater than
+    the maximum. ::
 
         sage: random_matrix(ZZ, 4, 8, x=70, y=100)
         [81 82 70 81 78 71 79 94]
@@ -1085,7 +1083,8 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         [ 3  3  0  3 -5 -2  1]
         [ 0 -2 -2  2 -3 -4 -2]
 
-    If only ``x`` is given, then it is used as the upper bound of a range starting at 0. ::
+    If only ``x`` is given, then it is used as the upper bound of a range
+    starting at 0. ::
 
         sage: random_matrix(ZZ, 5, 5, x=25)
         [20 16  8  3  8]
@@ -1094,10 +1093,12 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         [19 16 17 15  7]
         [ 0 24  3 17 24]
 
-    To allow, and control, zero entries use the ``density`` keyword at a value
-    strictly below the default of 1.0, even if distributing entries across an
-    interval that does not contain zero already.  Note that for a square matrix it
-    is only necessary to set a single dimension. ::
+    To control the number of nonzero entries, use the ``density`` keyword
+    at a value strictly below the default of 1.0.  The ``density`` keyword
+    is used to compute the number of entries that will be nonzero, but the
+    same entry may be selected more than once.  So the value provided will
+    be an upper bound for the density of the created matrix.  Note that for
+    a square matrix it is only necessary to set a single dimension. ::
 
         sage: random_matrix(ZZ, 5, x=-10, y=10, density=0.75)
         [-6  1  0  0  0]
@@ -1113,8 +1114,8 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         [ 0 28 22  0  0]
         [ 0  0  0 26 24]
 
-    It is possible to construct sparse matrices, where it may now be advisable
-    (but not required) to control the density of nonzero entries. ::
+    For a matrix with low density it may be advisable to insist on a sparse
+    representation, as this representation is not selected automatically. ::
 
         sage: A=random_matrix(ZZ, 5, 5)
         sage: A.is_sparse()
@@ -1140,10 +1141,9 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     generation of random elements, by specifying limits on the absolute value of
     numerators and denominators (respectively).  Entries will be positive and
     negative (map the absolute value function through the entries to get all
-    positive values), and zeros are avoided unless the density is set.  If either
-    the numerator or denominator bound (or both) is not used, then the values
-    default to the distribution for `ZZ` described above that is most frequently
-    positive or negative one. ::
+    positive values).  If either the numerator or denominator bound (or both)
+    is not used, then the values default to the distribution for ``ZZ``
+    described above. ::
 
         sage: random_matrix(QQ, 2, 8, num_bound=20, den_bound=4)
         [ -1/2     6    13   -12  -2/3  -1/4     5     5]
@@ -1635,7 +1635,7 @@ def identity_matrix(ring, n=0, sparse=False):
 
 
 @matrix_method
-def zero_matrix(ring, nrows, ncols=None, sparse=False):
+def zero_matrix(ring, nrows=None, ncols=None, sparse=False):
     r"""
     Return the `nrows \times ncols` zero matrix over the given
     ring.
@@ -1664,12 +1664,18 @@ def zero_matrix(ring, nrows, ncols=None, sparse=False):
         Full MatrixSpace of 3 by 1 sparse matrices over Integer Ring
         sage: M.is_mutable()
         True
+        sage: matrix.zero(5)
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+
     """
     if isinstance(ring, (int, long, rings.Integer)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
-
 
 @matrix_method
 def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
@@ -2156,6 +2162,59 @@ def elementary_matrix(arg0, arg1=None, **kwds):
         return elem
     else:
         return elem.transpose()
+
+@matrix_method
+def circulant(v, sparse=None):
+    r"""
+    Return the circulant matrix specified by its 1st row `v`
+
+    A circulant `n \times n` matrix specified by the 1st row `v=(v_0...v_{n-1})` is
+    the matrix $(c_{ij})_{0 \leq i,j\leq n-1}$, where $c_{ij}=v_{j-i \mod b}$.
+
+    INPUT:
+
+    - ``v`` -- a list or a vector of values
+
+    - ``sparse`` -- ``None`` by default; if ``sparse`` is set to ``True``, the output
+      will be sparse.  Respectively, setting it to ``False`` produces dense output.
+      If ``sparse`` is not set, and if ``v`` is a vector, the output sparsity is determined
+      by the sparsity of ``v``; else, the output will be dense.
+
+    EXAMPLES::
+
+        sage: v=[1,2,3,4,8]
+        sage: matrix.circulant(v)
+        [1 2 3 4 8]
+        [8 1 2 3 4]
+        [4 8 1 2 3]
+        [3 4 8 1 2]
+        [2 3 4 8 1]
+        sage: m = matrix.circulant(vector(GF(3),[0,1,-1],sparse=True)); m
+        [0 1 2]
+        [2 0 1]
+        [1 2 0]
+        sage: m.is_sparse()
+        True
+
+    TESTS::
+
+        sage: m = matrix.circulant(vector(GF(3),[0,1,-1],sparse=False))
+        sage: m.is_sparse()
+        False
+        sage: matrix.circulant([0,1,-1]).is_sparse()
+        False
+        sage: matrix.circulant([0,1,-1], sparse=True).is_sparse()
+        True
+    """
+    from exceptions import AttributeError
+    if sparse==None:
+        try:
+            sparse = v.is_sparse()
+        except AttributeError:
+            sparse = False
+    n = len(v)
+    return matrix(n, n, lambda i, j: v[(j-i)%n], sparse=sparse)
+
 
 def _determine_block_matrix_grid(sub_matrices):
     r"""
@@ -3364,7 +3423,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
         else:
             if rank==1:  # would be better just to have a special generator...
                tries = 0
-               while max(map(abs,matrix.list()))>=upper_bound:
+               while max(map(abs,matrix.list())) >= upper_bound:
                   matrix = random_rref_matrix(parent, rank)
                   tries += 1
                   if tries > max_tries: # to prevent endless attempts
@@ -3386,7 +3445,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
                         matrix_copy=matrix.with_added_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
                         tries += 1
                         # Range for scalar multiples determined experimentally.
-                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                    if max(map(abs,matrix_copy.list())) < upper_bound:
                     # Continue if the the largest entry after a row operation is within the bound.
                         matrix=matrix_copy
                         row_index+=1
@@ -3399,7 +3458,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
             if rows>1:
                 while row1<1:
                     matrix_copy=matrix.with_added_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
-                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                    if max(map(abs,matrix_copy.list())) < upper_bound:
                         matrix=matrix_copy
                         row1+=1
     # If the matrix generated over a different ring, random elements from the designated ring are used as and
@@ -3912,7 +3971,7 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     size_check=0
     for check in range(len(dimensions)):
         size_check=size_check+dimensions[check]
-    if not map(lambda x: x in ZZ, eigenvalues)==[True]*len(eigenvalues):
+    if not [x in ZZ for x in eigenvalues]==[True]*len(eigenvalues):
         raise TypeError("eigenvalues must be integers.")
     if size!=size_check:
         raise ValueError("the size of the matrix must equal the sum of the dimensions.")
@@ -4158,6 +4217,3 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
         entries[(k, k)] = 1
     entries.update({(j,j):aa, (j,i):bb, (i,j):-bb, (i,i):aa})
     return matrix(entries, nrows=dim, ring=ring)
-
-
-

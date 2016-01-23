@@ -1,32 +1,16 @@
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from 'gmpxx.h':
-    cdef cppclass mpz_class:
-        mpz_class()
-        mpz_class(int i)
-        mpz_class(mpz_t z)
-        mpz_class(mpz_class)
-        mpz_t get_mpz_t()
-        mpz_class operator%(mpz_class, mpz_class)
-    cdef cppclass mpq_class:
-        mpq_class()
-        mpz_t get_num_mpz_t()
-        mpz_t get_den_mpz_t()
+from sage.libs.gmpxx cimport *
 
-cdef extern from 'sl2z.hpp':
+cdef extern from "sage/modular/arithgroup/sl2z.hpp":
     cppclass cpp_SL2Z "SL2Z":
         mpz_class a, b, c, d
         cpp_SL2Z(int, int, int, int)
@@ -36,7 +20,7 @@ cdef extern from 'sl2z.hpp':
         mpz_class c()
         mpz_class d()
 
-cdef extern from 'farey.hpp':
+cdef extern from "sage/modular/arithgroup/farey.hpp":
     cppclass is_element_Gamma0:
         is_element_Gamma0(int)
     cppclass is_element_Gamma1:
@@ -58,6 +42,7 @@ cdef extern from 'farey.hpp':
         size_t nu2()
         size_t nu3()
         object is_element(mpz_t, mpz_t, mpz_t, mpz_t)
+        object word_problem(mpz_t, mpz_t, mpz_t, mpz_t, cpp_SL2Z *)
         size_t get_cusp_class(mpz_t, mpz_t)
         object get_cusps()
         object get_cusp_widths()

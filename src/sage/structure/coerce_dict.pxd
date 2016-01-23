@@ -1,7 +1,9 @@
+cimport cython
 from cpython cimport PyObject
 
 cdef struct mono_cell
 
+@cython.final
 cdef class MonoDict:
     cdef __weakref__
     cdef size_t mask
@@ -17,6 +19,7 @@ cdef class MonoDict:
 
 cdef struct triple_cell
 
+@cython.final
 cdef class TripleDict:
     cdef __weakref__
     cdef size_t mask

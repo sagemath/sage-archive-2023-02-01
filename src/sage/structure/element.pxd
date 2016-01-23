@@ -1,6 +1,7 @@
 from sage_object cimport SageObject
 from parent cimport Parent
 from cpython.number cimport PyNumber_Check
+from sage.misc.inherit_comparison cimport InheritComparisonMetaclass
 
 cdef inline parent_c(x):
     if isinstance(x, Element):
@@ -36,8 +37,6 @@ cdef class Element(SageObject):
     cdef Parent _parent
     cpdef _richcmp_(left, Element right, int op)
     cpdef int _cmp_(left, Element right) except -2
-    cdef _richcmp(self, right, int op)
-    cdef _cmp(self, right)
     cdef _set_parent_c(self, Parent parent)
     cpdef base_extend(self, R)
 
@@ -63,11 +62,6 @@ cdef class ModuleElement(Element):
 
     cdef ModuleElement _mul_long(self, long n)
 
-    # Inplace operations, override, do *NOT* call directly
-    cpdef ModuleElement _iadd_(self, ModuleElement right)
-    cpdef ModuleElement _isub_(self, ModuleElement right)
-    cpdef ModuleElement _ilmul_(self, RingElement right)
-
     # Coerce x to the base ring of self and return the result.
     cdef RingElement coerce_to_base_ring(self, x)
 
@@ -84,10 +78,6 @@ cdef class AdditiveGroupElement(ModuleElement):
 cdef class RingElement(ModuleElement):
     cpdef RingElement _mul_(self, RingElement right)
     cpdef RingElement _div_(self, RingElement right)
-
-    # Inplace operations, override, do *NOT* call directly
-    cpdef RingElement _imul_(self, RingElement right)
-    cpdef RingElement _idiv_(self, RingElement right)
 
     cdef RingElement _add_long(self, long n)
 
@@ -155,6 +145,8 @@ cdef class Matrix(ModuleElement):
 cdef class CoercionModel:
     cpdef canonical_coercion(self, x, y)
     cpdef bin_op(self, x, y, op)
+    cpdef richcmp(self, x, y, int op)
 
+cdef CoercionModel coercion_model
 
 cdef generic_power_c(a, nn, one)

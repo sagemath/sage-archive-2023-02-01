@@ -56,8 +56,8 @@ A polynomial over a symbolic base ring::
 
 A big product.  Notice that simplifying simplifies the product further::
 
-    sage: A = exp(I*pi/5)
-    sage: b = A*A*A*A*A*A*A*A*A*A
+    sage: A = exp(I*pi/7)
+    sage: b = A^14
     sage: b
     1
 
@@ -139,7 +139,7 @@ Todo - Mathematica can do this and gets `\pi^2/15`.
 
 ::
 
-    sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)  # not tested
+    sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)
     Traceback (most recent call last):
     ...
     ValueError: Integral is divergent.

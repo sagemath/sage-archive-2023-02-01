@@ -81,7 +81,7 @@ def pari(x):
         sage: pari(float(pi))
         3.14159265358979
         sage: pari(complex(exp(pi*I/4)))
-        0.707106781186548 + 0.707106781186547*I
+        0.707106781186548 + 0.707106781186548*I
         sage: pari(False)
         0
         sage: pari(True)

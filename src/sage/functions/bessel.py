@@ -132,7 +132,7 @@ EXAMPLES:
     Symbolically solve a second order differential equation with initial
     conditions `y(1) = a` and `y'(1) = b` in terms of Bessel functions::
 
-        sage: y = function('y', x)
+        sage: y = function('y')(x)
         sage: a, b = var('a, b')
         sage: diffeq = x^2*diff(y,x,x) + x*diff(y,x) + x^2*y == 0
         sage: f = desolve(diffeq, y, [1, a, b]); f
@@ -616,7 +616,7 @@ class Function_Bessel_I(BuiltinFunction):
         handled by a combination of Maxima and Sage (Ginac/Pynac).
 
     TESTS::
-    
+
         sage: N(bessel_I(1,1),500)
         0.565159103992485027207696027609863307328899621621092009480294489479255640964371134092664997766814410064677886055526302676857637684917179812041131208121
 
@@ -958,7 +958,7 @@ def Bessel(*args, **kwds):
     satisfies `y(1) = 1` and `y'(1) = 1`, then verify the initial conditions
     and plot it::
 
-        sage: y = function('y', x)
+        sage: y = function('y')(x)
         sage: diffeq = x^2*diff(y,x,x) + x*diff(y,x) + x^2*y == 0
         sage: f = desolve(diffeq, y, [1, 1, 1]); f
         (bessel_Y(1, 1) + bessel_Y(0, 1))*bessel_J(0, x)/(bessel_J(0,

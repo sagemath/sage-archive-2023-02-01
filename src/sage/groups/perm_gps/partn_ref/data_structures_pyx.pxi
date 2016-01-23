@@ -19,16 +19,19 @@ REFERENCES:
 #*****************************************************************************
 #      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from libc.math cimport log, ceil
+from libc.string cimport memcpy, memset
 
 include 'sage/data_structures/bitset.pxi'
 
-cdef extern from "math.h":
-    float log(float x)
-    float ceil(float x)
-
+from sage.libs.gmp.mpz cimport *
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.rings.integer cimport Integer
 from sage.groups.perm_gps.partn_ref2.refinement_generic cimport PartitionRefinement_generic
@@ -1783,7 +1786,7 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
         if SC_is_giant(n, len(L), perm, 0.9, giant_support):
             giant = True
             m = bitset_len(giant_support)
-            from sage.rings.arith import factorial
+            from sage.arith.all import factorial
             if not (order == factorial(m) or order == factorial(m)/2):
                 print "SC_is_giant failed: %s %s"%(str(L), order)
                 raise AssertionError
@@ -1902,7 +1905,7 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
                     perm[n*j + i] = Lperm[i]
                 j += 1
             if SC_is_giant(n, len(L), perm, 0.9, giant_support):
-                from sage.rings.arith import factorial
+                from sage.arith.all import factorial
                 m = bitset_len(giant_support)
                 if order != factorial(m) and order != factorial(m)/2:
                     print "SC_is_giant failed: %s %s"%(str(L), order)

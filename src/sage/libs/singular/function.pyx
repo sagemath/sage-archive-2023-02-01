@@ -63,13 +63,19 @@ TESTS::
     sage: loads(dumps(std)) == std
     True
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 Michael Brickenstein <brickenstein@mfo.de>
 #       Copyright (C) 2009,2010 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from libc.string cimport memcpy
 
 include "sage/ext/interrupt.pxi"
 
@@ -930,11 +936,17 @@ cdef class Converter(SageObject):
         Check that negative integers come through unscathed::
 
             sage: P.<x,y,z> = QQ[]
-            sage: C= Curve((x-y)*(y-z)*(z-x)); 
+            sage: C = Curve((x-y)*(y-z)*(z-x))
+            sage: I = C.defining_ideal()
             sage: import sage.libs.singular.function_factory
-            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus
-            sage: I=C.defining_ideal()
-            sage: sing_genus(I)
+            sage: freerank = sage.libs.singular.function_factory.ff.poly__lib.freerank
+            sage: freerank(I, true)
+            [-1, [x^2*y - x*y^2 - x^2*z + y^2*z + x*z^2 - y*z^2]]
+
+        Singular's genus function is prone to crashing, see :trac:`12851` and :trac:`19750` ::
+
+            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus  # known bug
+            sage: sing_genus(I)  # known bug
             -2
         """
         #FIXME
@@ -1350,7 +1362,10 @@ The Singular documentation for '%s' is given below.
 """%(self._name,self._name)
         # Trac ticket #11268: Include the Singular documentation as a block of code
         singular_doc = get_docstring(self._name).split('\n')
-        return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
+        if len(singular_doc) > 1:
+            return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
+        else:
+            return prefix + "\n::\n\n"+"    Singular documentation not found"
 
     cdef common_ring(self, tuple args, ring=None):
         """

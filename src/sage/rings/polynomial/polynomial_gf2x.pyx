@@ -14,6 +14,7 @@ cdef inline cparent get_cparent(parent):
     return 0
 
 # first we include the definitions
+include "sage/libs/ntl/decl.pxi"
 include "sage/libs/ntl/ntl_GF2X_linkage.pxi"
 
 # and then the interface
@@ -89,7 +90,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
             x = (<Polynomial_template>self)._parent.gen()
             v = [self[t] for t from start <= t < stop]
 
-            t = self.__class__
+            t = type(self)
             r = <Polynomial_template>t.__new__(t)
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start

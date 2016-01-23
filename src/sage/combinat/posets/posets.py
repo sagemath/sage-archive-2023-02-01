@@ -173,6 +173,11 @@ List of Poset methods
 
 **Graphs**
 
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
     :meth:`~FinitePoset.hasse_diagram` | Return the Hasse diagram of the poset as a directed graph.
     :meth:`~FinitePoset.cover_relations_graph` | Return the (undirected) graph of cover relations.
     :meth:`~FinitePoset.comparability_graph` | Return the comparability graph of the poset.

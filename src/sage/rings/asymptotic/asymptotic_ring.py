@@ -3046,15 +3046,19 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return len(self.growth_group.gens_monomial())
 
 
-    def singularity_analysis(self, singular_expansion):
+    def singularity_analysis(self, singular_expansion, precision=None):
         r"""
         Return the asymptotic growth of the coefficients of some
         singular expansion by means of Singularity Analysis.
 
         INPUT:
 
-        - ``singular_expansion``: an asymptotic expansion, possibly
+        - ``singular_expansion`` -- an asymptotic expansion, possibly
           from another ring.
+
+        - ``precision`` -- (default: "None") an integer. If "None", then
+          the default precision of the asymptotic ring is used.
+
 
         OUTPUT:
 
@@ -3070,21 +3074,22 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: A.<z> = AsymptoticRing('z^QQ', QQ)
             sage: sing_exp = (1 - z^(-1/2))/2
             sage: B.<n> = AsymptoticRing('n^QQ', QQ)
-            sage: B.singularity_analysis(sing_exp).truncate(precision=4)
+            sage: B.singularity_analysis(sing_exp, precision=4)
             1/4/sqrt(pi)*n^(-3/2) + 3/32/sqrt(pi)*n^(-5/2) + ... + O(n^(-11/2))
         """
         from term_monoid import ExactTerm, OTerm
         from growth_group import MonomialGrowthGroup
         from asymptotic_expansion_generators import asymptotic_expansions
 
-        def expand_summand(summand):
+        def expand_summand(summand, precision=precision):
             # helper function: takes a single summand from the singular
             # expansion and determines the asymptotic growth of the
             # coefficients.
             alpha = summand.growth.exponent
             if isinstance(summand, ExactTerm):
                 expansion = asymptotic_expansions.\
-                    SingularityAnalysis('Z', alpha=alpha).subs(Z=self.gen())
+                    SingularityAnalysis('Z', alpha=alpha,
+                                        precision=precision).subs(Z=self.gen())
                 return summand.coefficient * expansion
             elif isinstance(summand, OTerm):
                 return (self.gen() ** (alpha - 1)).O()

@@ -657,19 +657,23 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             raise ValueError("exponent must be an integer")
         return LaurentPolynomial_univariate(self._parent, self.__u**right, self.__n*right)
 
-    def __floordiv__(LaurentPolynomial_univariate self, RingElement rhs):
+    cpdef RingElement _floordiv_(self, RingElement rhs):
         """
         Perform division with remainder and return the quotient.
 
         EXAMPLES::
 
             sage: L.<x> = LaurentPolynomialRing(QQ)
-            sage: f = x**3 + x^-3
+            sage: f = x^3 + x^-3
             sage: g = x^-1 + x
             sage: f // g
             x^-2 - 1 + x^2
             sage: g * (f // g) == f
             True
+            sage: f // 1
+            x^-3 + x^3
+            sage: 1 // f
+            0
         """
         cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> rhs
         return LaurentPolynomial_univariate(self._parent,
@@ -2045,23 +2049,27 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly * (<LaurentPolynomial_mpair>right)._poly
         return ans
 
-    def __floordiv__(LaurentPolynomial_mpair self, RingElement right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Perform division with remainder and return the quotient.
 
         EXAMPLES::
 
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
-            sage: f = x**3 + y^-3
+            sage: f = x^3 + y^-3
             sage: g = y + x
             sage: f // g
             x^5*y^-3 - x^4*y^-2 + x^3*y^-1
 
-            sage: h = x + y**(-1)
+            sage: h = x + y^(-1)
             sage: f // h
             x^2 - x*y^-1 + y^-2
             sage: h * (f // h) == f
             True
+            sage: f // 1
+            x^3 + y^-3
+            sage: 1 // f
+            0
 
         TESTS:
 

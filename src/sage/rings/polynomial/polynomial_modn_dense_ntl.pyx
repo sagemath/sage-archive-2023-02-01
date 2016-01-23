@@ -886,7 +886,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         sig_off()
         return q, r
 
-    def __floordiv__(self, right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Returns the whole part of self/right, without remainder.
 
@@ -901,9 +901,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f - q*g
             x + 1
         """
-        if not have_same_parent_c(self, right):
-            self, right = canonical_coercion(self, right)
-            return self // right
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
         cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
         cdef Polynomial_dense_modn_ntl_zz q = numer._new()
@@ -1425,7 +1422,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         sig_off()
         return q, r
 
-    def __floordiv__(self, right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Returns the whole part of self/right, without remainder.
 
@@ -1440,9 +1437,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f - q*g
             x + 1
         """
-        if not have_same_parent_c(self, right):
-            self, right = canonical_coercion(self, right)
-            return self // right
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
         cdef Polynomial_dense_modn_ntl_ZZ denom = <Polynomial_dense_modn_ntl_ZZ>right
         cdef Polynomial_dense_modn_ntl_ZZ q = numer._new()

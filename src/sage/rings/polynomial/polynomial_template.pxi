@@ -408,7 +408,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(t._parent(tp) == t)
         return r,s,t
 
-    def __floordiv__(self, right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         EXAMPLE::
 
@@ -418,11 +418,6 @@ cdef class Polynomial_template(Polynomial):
             sage: (x + 1)//x
             1
         """
-        # We can't use @coerce_binop for operators in cython classes,
-        # so we use sage.structure.element.bin_op to handle coercion.
-        if type(self) is not type(right) or \
-                (<Polynomial_template>self)._parent is not (<Polynomial_template>right)._parent:
-            return bin_op(self, right, operator.mod)
         cdef Polynomial_template _right = <Polynomial_template>right
 
         if celement_is_zero(&_right.x, (<Polynomial_template>self)._cparent):

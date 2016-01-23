@@ -58,6 +58,23 @@ class Representation(CombinatorialFreeModule):
         sage: (c * s) * x
         2*B['v']
 
+    This extends naturally to the corresponding group algebra::
+
+        sage: A = G.algebra(QQ)
+        sage: s,c = A.algebra_generators()
+        sage: c,s
+        ((1,2,3,4), (1,2))
+        sage: c * x
+        -2*B['v']
+        sage: s * x
+        -2*B['v']
+        sage: c * s * x
+        2*B['v']
+        sage: (c * s) * x
+        2*B['v']
+        sage: (c + s) * x
+        -4*B['v']
+
     REFERENCES:
 
     - :wikipedia:`Group_representation`
@@ -188,6 +205,25 @@ class Representation(CombinatorialFreeModule):
                 2*B[s2*s1*s2*s1] + 3*B[s1*s2] + B[s1] + B[s2]
                 sage: s2 * x
                 B[s2*s1*s2] + 2*B[s1*s2] + B[s2] + 3*B[1]
+
+                sage: A = G.algebra(ZZ)
+                sage: s1,s2 = A.algebra_generators()
+                sage: s1 * x
+                2*B[s2*s1*s2*s1] + 3*B[s1*s2] + B[s1] + B[s2]
+                sage: s2 * x
+                B[s2*s1*s2] + 2*B[s1*s2] + B[s2] + 3*B[1]
+                sage: R.base_ring()
+                Integer Ring
+
+                sage: A = G.algebra(QQ)
+                sage: s1,s2 = A.algebra_generators()
+                sage: a = 1/2 * s1
+                sage: a * x
+                Traceback (most recent call last):
+                ...
+                TypeError: unsupported operand parent(s) for '*':
+                 'Group algebra of Weyl Group of type ['B', 2] ... over Rational Field'
+                 and 'Left Regular Representation of Weyl Group of type ['B', 2] ... over Integer Ring'
             """
             if isinstance(scalar, Element):
                 P = self.parent()
@@ -196,15 +232,16 @@ class Representation(CombinatorialFreeModule):
                         scalar = ~scalar
                     return P.linear_combination(((P._on_basis(scalar, m), c)
                                                  for m,c in self), not self_on_left)
-                R = self.base_ring()
+                #R = self.base_ring()
                 if scalar.parent() is P._semigroup_algebra:
-                    ret = self
+                    ret = P.zero()
                     for ms,cs in scalar:
                         if self_on_left == P._left_repr:
                             ms = ~ms
-                        return P.linear_combination(((P._on_basis(ms, m), cs)
-                                                     for m,c in self), not self_on_left)
-            return CombinatorialFreeModule.Element._acted_upon_(scalar, self_on_left)
+                        ret += P.linear_combination(((P._on_basis(ms, m), cs*c)
+                                                    for m,c in self), not self_on_left)
+                    return ret
+            return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         _rmul_ = _lmul_ = _acted_upon_
 

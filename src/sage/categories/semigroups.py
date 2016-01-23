@@ -674,7 +674,12 @@ class Semigroups(CategoryWithAxiom):
 
             def regular_representation(self, left=True):
                 """
-                Return the regular representation of ``self``
+                Return the regular representation of ``self``.
+
+                INPUT:
+
+                - ``left`` -- (default: ``True``) whether this is the
+                  left or right regular representation
 
                 EXAMPLES::
 

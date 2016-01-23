@@ -3057,7 +3057,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         - ``singularities`` -- list of dominant singularities of the function
 
-        - ``precision`` -- (default: "None") an integer. If "None", then
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
 
 
@@ -3099,7 +3099,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 return (self.gen() ** (alpha - 1)).O()
 
         def handle_singularity(function, singularity):
-            A = AsymptoticRing('T^QQ', coefficient_ring=SR)
+            A = AsymptoticRing('T^QQ', coefficient_ring=SR, default_prec=precision)
             T = A.gen()
             singular_expansion = A(function((1-1/T)*singularity))
             if not isinstance(singular_expansion.parent().growth_group,

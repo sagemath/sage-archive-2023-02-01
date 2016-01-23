@@ -107,7 +107,7 @@ class SymbolicSubringFactory(UniqueFactory):
 
     INPUT:
 
-    Choose one of the following keywords to create a subring.
+    Specify one of the following keywords to create a subring.
 
     - ``accepting_variables`` (default: ``None``) -- a tuple or other
       iterable of variables. If specified, then a symbolic subring of
@@ -179,7 +179,7 @@ class SymbolicSubringFactory(UniqueFactory):
             sage: SymbolicSubring.create_key_and_extra_args()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot create a symbolic subring since nothing specified.
+            ValueError: Cannot create a symbolic subring since nothing is specified.
             sage: SymbolicSubring.create_key_and_extra_args(
             ....:     accepting_variables=('a',), rejecting_variables=('r',))
             Traceback (most recent call last):
@@ -572,7 +572,7 @@ class GenericSymbolicSubringFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         r"""
-        Return if this functor is equal to ``other``.
+        Return whether this functor is equal to ``other``.
 
         INPUT:
 
@@ -594,7 +594,7 @@ class GenericSymbolicSubringFunctor(ConstructionFunctor):
 
     def __ne__(self, other):
         r"""
-        Return if this functor is not equal to ``other``.
+        Return whether this functor is not equal to ``other``.
 
         INPUT:
 

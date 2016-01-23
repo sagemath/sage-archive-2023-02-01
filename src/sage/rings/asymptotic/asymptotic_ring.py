@@ -3064,6 +3064,14 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             Make this method more intelligent by implementing the
             processing of symbolic expressions.
+
+        EXAMPLES::
+
+            sage: A.<z> = AsymptoticRing('z^QQ', QQ)
+            sage: sing_exp = (1 - z^(-1/2))/2
+            sage: B.<n> = AsymptoticRing('n^QQ', QQ)
+            sage: B.singularity_analysis(sing_exp).truncate(precision=4)
+            1/4/sqrt(pi)*n^(-3/2) + 3/32/sqrt(pi)*n^(-5/2) + ... + O(n^(-11/2))
         """
         from term_monoid import ExactTerm, OTerm
         from growth_group import MonomialGrowthGroup

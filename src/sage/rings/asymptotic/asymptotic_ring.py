@@ -3046,15 +3046,16 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return len(self.growth_group.gens_monomial())
 
 
-    def singularity_analysis(self, singular_expansion, precision=None):
+    def singularity_analysis(self, function, singularities, precision=None):
         r"""
         Return the asymptotic growth of the coefficients of some
-        singular expansion by means of Singularity Analysis.
+        generating function by means of Singularity Analysis.
 
         INPUT:
 
-        - ``singular_expansion`` -- an asymptotic expansion, possibly
-          from another ring.
+        - ``function`` -- a function.
+
+        - ``singularities`` -- list of dominant singularities of the function
 
         - ``precision`` -- (default: "None") an integer. If "None", then
           the default precision of the asymptotic ring is used.
@@ -3064,42 +3065,52 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         An asymptotic expansion from this ring.
 
-        .. TODO:
+        .. TODO::
 
-            Make this method more intelligent by implementing the
+            Make this method more usable by implementing the
             processing of symbolic expressions.
 
         EXAMPLES::
 
-            sage: A.<z> = AsymptoticRing('z^QQ', QQ)
-            sage: sing_exp = (1 - z^(-1/2))/2
-            sage: B.<n> = AsymptoticRing('n^QQ', QQ)
-            sage: B.singularity_analysis(sing_exp, precision=4)
-            1/4/sqrt(pi)*n^(-3/2) + 3/32/sqrt(pi)*n^(-5/2) + ... + O(n^(-11/2))
+            sage: def catalan(z):
+            ....:     return (1-(1-4*z)^(1/2))/(2*z)
+            sage: B.<n> = AsymptoticRing('QQ^n*n^QQ', QQ)
+            sage: B.singularity_analysis(catalan, (1/4,), precision=3)
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
+            + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-9/2))
         """
+        from sage.symbolic.ring import SR
         from term_monoid import ExactTerm, OTerm
         from growth_group import MonomialGrowthGroup
         from asymptotic_expansion_generators import asymptotic_expansions
 
-        def expand_summand(summand, precision=precision):
+
+        def expand_summand(summand, singularity, precision=precision):
             # helper function: takes a single summand from the singular
             # expansion and determines the asymptotic growth of the
             # coefficients.
             alpha = summand.growth.exponent
             if isinstance(summand, ExactTerm):
                 expansion = asymptotic_expansions.\
-                    SingularityAnalysis('Z', alpha=alpha,
+                    SingularityAnalysis('Z', alpha=alpha, zeta=singularity,
                                         precision=precision).subs(Z=self.gen())
                 return summand.coefficient * expansion
             elif isinstance(summand, OTerm):
                 return (self.gen() ** (alpha - 1)).O()
 
+        def handle_singularity(function, singularity):
+            A = AsymptoticRing('T^QQ', coefficient_ring=SR)
+            T = A.gen()
+            singular_expansion = A(function((1-1/T)*singularity))
+            if not isinstance(singular_expansion.parent().growth_group,
+                              MonomialGrowthGroup):
+                raise NotImplementedError('Only implemented for Monomial Growth Groups')
 
-        if not isinstance(singular_expansion.parent().growth_group,
-                          MonomialGrowthGroup):
-            raise NotImplementedError('Only implemented for Monomial Growth Groups')
+            return sum(expand_summand(s, singularity)
+                       for s in singular_expansion.summands)
 
-        return sum(expand_summand(s) for s in singular_expansion.summands)
+        return sum(handle_singularity(function, singularity)
+                   for singularity in singularities)
 
 
 

@@ -750,15 +750,16 @@ class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
             sage: G = SymbolicSubring(rejecting_variables=('r',)).construction()[0]
             sage: F.merge(F) is F
             True
-            sage: F.merge(G) is F
+            sage: F.merge(G) is G
             True
         """
         if self == other:
             return self
         elif type(self) == type(other):
-            return type(self)(self.vars & other.vars)
+            return type(self)(self.vars | other.vars)
         elif isinstance(other, SymbolicSubringRejectingVarsFunctor):
-            return type(self)(self.vars - other.vars)
+            if not (self.vars & other.vars):
+                return other
 
 
     def _apply_functor(self, R):
@@ -956,15 +957,16 @@ class SymbolicSubringRejectingVarsFunctor(GenericSymbolicSubringFunctor):
             sage: G = SymbolicSubring(rejecting_variables=('r',)).construction()[0]
             sage: G.merge(G) is G
             True
-            sage: G.merge(F) is F
+            sage: G.merge(F) is G
             True
         """
         if self == other:
             return self
         elif type(self) == type(other):
-            return type(self)(self.vars | other.vars)
+            return type(self)(self.vars & other.vars)
         elif isinstance(other, SymbolicSubringAcceptingVarsFunctor):
-            return type(other)(other.vars - self.vars)
+            if not (self.vars & other.vars):
+                return self
 
 
     def _apply_functor(self, R):

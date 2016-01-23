@@ -47,7 +47,7 @@ References:
 Functions
 ---------
 """
-from sage.rings.arith import is_prime_power
+from sage.arith.all import is_prime_power
 from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
 from sage.categories.sets_cat import EmptySetError
 from bibd import balanced_incomplete_block_design

@@ -216,7 +216,7 @@ class AffineGroup(UniqueRepresentation, Group):
 
         This is called from the group element constructor and can be
         overridden for subgroups of the affine group. It is guaranteed
-        that ``A``, ``b`` are in the correct matrix/vetor space.
+        that ``A``, ``b`` are in the correct matrix/vector space.
 
         INPUT:
 

@@ -565,8 +565,10 @@ class Function_lambert_w(BuiltinFunction):
             0.567143290409784
         """
         BuiltinFunction.__init__(self, "lambert_w", nargs=2,
-                                 conversions={'mathematica':'ProductLog',
-                                              'maple':'LambertW'})
+                                 conversions={'mathematica': 'ProductLog',
+                                              'maple': 'LambertW',
+                                              'matlab': 'lambertw',
+                                              'maxima': 'generalized_lambert_w'})
 
     def __call__(self, *args, **kwds):
         r"""
@@ -718,21 +720,25 @@ class Function_lambert_w(BuiltinFunction):
             sage: lambert_w(0, x)._maxima_()
             lambert_w(_SAGE_VAR_x)
             sage: lambert_w(1, x)._maxima_()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Non-principal branch lambert_w[1](x) is not implemented in Maxima
+            generalized_lambert_w(1,_SAGE_VAR_x)
+
+        TESTS::
+
+            sage: lambert_w(x)._maxima_()._sage_()
+            lambert_w(x)
+            sage: lambert_w(2, x)._maxima_()._sage_()
+            lambert_w(2, x)
         """
+        if isinstance(z, str):
+            maxima_z = z
+        elif hasattr(z, '_maxima_init_'):
+            maxima_z = z._maxima_init_()
+        else:
+            maxima_z = str(z)
         if n == 0:
-            if isinstance(z,str):
-                maxima_z=z
-            elif hasattr(z,'_maxima_init_'):
-                maxima_z=z._maxima_init_()
-            else:
-                maxima_z=str(z)
             return "lambert_w(%s)" % maxima_z
         else:
-            raise NotImplementedError("Non-principal branch lambert_w[%s](%s) is not implemented in Maxima" % (n, z))
-
+            return "generalized_lambert_w(%s,%s)" % (n, maxima_z)
 
     def _print_(self, n, z):
         """
@@ -759,15 +765,17 @@ class Function_lambert_w(BuiltinFunction):
         EXAMPLES::
 
             sage: latex(lambert_w(1))
-            \operatorname{W_0}(1)
+            \operatorname{W}({1})
             sage: latex(lambert_w(0,x))
-            \operatorname{W_0}(x)
+            \operatorname{W}({x})
             sage: latex(lambert_w(1,x))
-            \operatorname{W_{1}}(x)
+            \operatorname{W_{1}}({x})
+            sage: latex(lambert_w(1,x+exp(x)))
+            \operatorname{W_{1}}({x + e^{x}})
         """
         if n == 0:
-            return r"\operatorname{W_0}(%s)" % z
+            return r"\operatorname{W}({%s})" % z._latex_()
         else:
-            return r"\operatorname{W_{%s}}(%s)" % (n, z)
+            return r"\operatorname{W_{%s}}({%s})" % (n, z._latex_())
 
 lambert_w = Function_lambert_w()

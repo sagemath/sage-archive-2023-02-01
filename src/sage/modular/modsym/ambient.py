@@ -88,7 +88,7 @@ import sage.modular.hecke.all as hecke
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.all as rings
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
@@ -366,7 +366,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         Coerce `x` into this modular symbols space. The result is
         either an element of self or a subspace of self.
 
-        INPUTS:
+        INPUT:
 
         The allowed input types for `x` are as follows:
 
@@ -531,7 +531,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         INPUT:
 
-        ``g`` (list) -- `g=[a,b,c,d]` where `a,b,c,d` are integers
+        `g` (list) -- `g=[a,b,c,d]` where `a,b,c,d` are integers
         defining a `2\times2` integer matrix.
 
         OUTPUT:
@@ -539,10 +539,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         (matrix) The matrix of the action of `g` on this Modular
         Symbol space, with respect to the standard basis.
 
-        .. note::
+        .. NOTE::
 
-           Use _matrix_of_operator_on_modular_symbols for more general
-        operators.
+            Use ``_matrix_of_operator_on_modular_symbols`` for more general
+            operators.
 
         EXAMPLES::
 
@@ -810,7 +810,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         The sum `\sum_{i=0}^{k-2} a_i [ i, \alpha, \beta ]` as an
         element of this modular symbol space.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = ModularSymbols(11,4)
             sage: R.<X,Y>=QQ[]
@@ -2122,7 +2122,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         m = eps.modulus()
         s = self(0)
 
-        for a in ([ x for x in range(1,m) if rings.gcd(x,m) == 1 ]):
+        for a in ([ x for x in range(1,m) if arith.gcd(x,m) == 1 ]):
             s += eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a/m)])
 
         return s
@@ -2787,7 +2787,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         r"""
         Return the dimension of the new cuspidal subspace, via the formula.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = ModularSymbols(100,2)
             sage: M._cuspidal_new_submodule_dimension_formula()
@@ -2898,19 +2898,15 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
     def _hecke_image_of_ith_basis_vector(self, n, i):
         """
         Return `T_n(e_i)`, where `e_i` is the
-        `i`th basis vector of this ambient space.
+        `i` th basis vector of this ambient space.
 
         INPUT:
 
-
-        -  ``n`` - an integer which should be prime.
-
+        - ``n`` -- an integer which should be prime.
 
         OUTPUT:
 
-
-        -  ``modular symbol`` - element of this ambient space
-
+        - ``modular symbol`` -- element of this ambient space
 
         EXAMPLES::
 
@@ -3100,7 +3096,7 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         r"""
         Return the dimension of the new cuspidal subspace, via the formula.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = ModularSymbols(Gamma1(22),2)
             sage: M._cuspidal_new_submodule_dimension_formula()
@@ -3807,16 +3803,13 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         INPUT:
 
+        - ``i`` -- nonnegative integer
 
-        -  ``i`` - nonnegative integer
-
-        -  ``v`` - a list of positive integer
-
+        - ``v`` -- a list of positive integer
 
         OUTPUT:
 
-
-        -  ``matrix`` - whose rows are the Hecke images
+        - ``matrix`` -- whose rows are the Hecke images
 
         EXAMPLES::
 
@@ -3829,8 +3822,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             [ 0  0  0  0  0  0  0  1  0  0  0  0  1  0  0]
             [ 0  1  0  2  0 -1  1  1  0  0  0  0  0  0  0]
             [ 0  1  1 -1 -1  0 -1  1  1  0  1  2  0 -2  2]
-
-
         """
         if self.weight() != 2:
             raise NotImplementedError("hecke images only implemented when the weight is 2")

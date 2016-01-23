@@ -20,6 +20,7 @@ This is a catalog of crystals that are currently implemented in Sage:
 * :class:`GeneralizedYoungWalls
   <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
+* :class:`Induced <sage.combinat.crystals.induced_structure.InducedCrystal>`
 * :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
 * :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
@@ -65,6 +66,8 @@ from monomial_crystals import CrystalOfNakajimaMonomials as NakajimaMonomials
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal as KirillovReshetikhin
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
+
+from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
 
 from tensor_product import TensorProductOfCrystals as TensorProduct
 from direct_sum import DirectSumOfCrystals as DirectSum

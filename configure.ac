@@ -1,6 +1,14 @@
-dnl Very loosely based on configure.ac in prereq-0.3 written by William Stein.
-dnl Version 0.7 written by David Kirkby, released under the GPL version 2.
-dnl in January 2010
+#*****************************************************************************
+#       Copyright (C) 2005-2007 William Stein
+#       Copyright (C) 2009-2011 David Kirkby
+#       Copyright (C) 2012-2015 Jeroen Demeyer
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 dnl If you are going to update this, please stick the recommended layout
 dnl in the autoconf manual - i.e.
@@ -14,9 +22,8 @@ dnl Next check compiler characteristics
 dnl Next check for library functions
 dnl Next check for system services
 
-dnl Older versions give "undefined macro: _m4_divert_diversion", see
-dnl http://trac.sagemath.org/ticket/15606#comment:19
-AC_PREREQ([2.64])
+dnl Older versions do not support $GFC
+AC_PREREQ([2.69])
 
 AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
 AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
@@ -35,8 +42,6 @@ AM_MAINTAINER_MODE([enable])
 dnl Make sure the path to our own m4 macros is always properly set 
 dnl and doesn't depend on how autoconf is called.
 AC_CONFIG_MACRO_DIR([m4])
-
-AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to a unpriviledged user])], [])
 
 #---------------------------------------------------------
 # We need to run this configure script with bash
@@ -63,6 +68,64 @@ then
 fi
 
 #---------------------------------------------------------
+#
+# This is essentially the configure part of the old "install" file.
+# Over time, this should be changed to proper autoconf style with
+# configure options.
+#
+
+[
+########################################################################
+# Set various environment variables
+########################################################################
+
+# Assume current directory is SAGE_ROOT
+SAGE_ROOT=`pwd -P`
+SAGE_SRC="$SAGE_ROOT/src"
+SAGE_LOCAL="$SAGE_ROOT/local"
+SAGE_SHARE="$SAGE_LOCAL/share"
+SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
+SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+
+###############################################################################
+# Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
+###############################################################################
+
+mkdir -p "$SAGE_SHARE"
+if [ -z "$SAGE_MP_LIBRARY" ]; then
+    # Automatic detection of installed MP library.
+    if [ ! -f "$SAGE_SHARE/mp_config" ]; then
+        echo "MPIR" > "$SAGE_SHARE/mp_config"
+    fi
+    SAGE_MP_LIBRARY=`cat "$SAGE_SHARE/mp_config"`
+else
+    if [ -f "$SAGE_SHARE/mp_config" -a "$SAGE_MP_LIBRARY" != `cat "$SAGE_SHARE/mp_config"` ]; then
+        echo "SAGE_MP_LIBRARY differs from the value stored in"
+        echo "\"$SAGE_SHARE/mp_config\"."
+        echo "This is not supported; you should rebuild Sage from scratch"
+        echo "using the new SAGE_MP_LIBRARY value."
+        exit 1
+    fi
+
+    case "$SAGE_MP_LIBRARY" in
+        MPIR|GMP)
+            echo "Using $SAGE_MP_LIBRARY as default MP library."
+            echo $SAGE_MP_LIBRARY > "$SAGE_SHARE/mp_config"
+            ;;
+        *)
+            echo "Allowed values for SAGE_MP_LIBRARY are \"MPIR\" and \"GMP\"."
+            echo "If you did not set this variable, check the content of"
+            echo "\"$SAGE_SHARE/mp_config\"."
+            exit 1
+            ;;
+    esac
+fi
+]
+
+
+#---------------------------------------------------------
+AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unpriviledged user])], [])
+
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
 AC_CANONICAL_HOST()
@@ -154,23 +217,10 @@ The Sage community would also appreciate any patches you submit]]);;
 esac
 
 
-dnl Check compiler versions
-buggy_gcc_version1="4.0.0"
-minimum_gcc_version_for_no_hassle="4.0.1"
-minimum_gcc_version_for_debugging_purposes="3.4.0"
+###############################################################################
+# Check general programs
+###############################################################################
 
-#---------------------------------------------------------
-#   Process options and environment variables
-
-# Check --enable-compiler-checks (yes by default)
-AC_ARG_ENABLE([compiler-checks], [Check versions and presence of C, C++ and Fortran compilers (default: yes)],
-    [enable_compiler_checks=$enableval], [enable_compiler_checks=yes])
-
-# Import environment variables.
-source src/bin/sage-env || AC_MSG_ERROR([failed to source sage-env])
-
-#---------------------------------------------------------
-# Check some programs needed actually exist.
 AC_CHECK_PROG(found_ar, ar, yes, no)
 if test x$found_ar != xyes
 then
@@ -274,25 +324,62 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
-# To build Python on multi-arch Debian-based systems, we need
-# dpkg-architecture. Since we need dpkg-architecture to determine
-# whether we're on a multi-arch system and require dpkg-architecture,
-# we simply require it always on Debian-based systems.
-AC_CHECK_PROG(found_dpkg, dpkg, yes, no)
-AC_CHECK_PROG(found_dpkg_arch, dpkg-architecture, yes, no)
-if test x$found_dpkg = xyes && test x$found_dpkg_arch = xno
-then
-    AC_MSG_NOTICE([You do not have 'dpkg-architecture', which is required to build])
-    AC_MSG_NOTICE([Python on multi-arch Debian-based systems. This includes all recent])
-    AC_MSG_NOTICE([Debian and Ubuntu systems. You can install this with:])
-    AC_MSG_NOTICE([  sudo apt-get install dpkg-dev])
-    AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on Debian])
+
+###############################################################################
+# Check C/C++/Fortran compilers
+###############################################################################
+
+dnl Usage: SAGE_SHOULD_INSTALL_GCC(reason)
+dnl
+dnl Use this macro to indicate that we SHOULD install GCC.
+dnl In this case, GCC will be installed unless SAGE_INSTALL_GCC=no.
+dnl In the latter case, a warning is given.
+AC_DEFUN([SAGE_SHOULD_INSTALL_GCC], [
+    if test x$SAGE_INSTALL_GCC = xexists; then
+        true  # Do nothing if already installed
+    elif test x$SAGE_INSTALL_GCC = xno; then
+        AC_MSG_WARN([$1])
+    else
+        AC_MSG_NOTICE([Installing GCC because $1])
+        need_to_install_gcc=yes
+    fi
+])
+
+dnl Usage: SAGE_MUST_INSTALL_GCC(reason)
+dnl
+dnl Use this macro to indicate that we MUST install GCC.
+dnl In this case, it is an error if SAGE_INSTALL_GCC=no.
+AC_DEFUN([SAGE_MUST_INSTALL_GCC], [
+    if test x$SAGE_INSTALL_GCC = xexists; then
+        true  # Do nothing if already installed
+    elif test x$SAGE_INSTALL_GCC = xno; then
+        AC_MSG_ERROR([SAGE_INSTALL_GCC is set to 'no', but $1])
+    else
+        AC_MSG_NOTICE([Installing GCC because $1])
+        need_to_install_gcc=yes
+    fi
+])
+
+
+# By default, do not install GCC
+need_to_install_gcc=no
+
+if test -f "$SAGE_LOCAL/bin/gcc"; then
+    # Special value for SAGE_INSTALL_GCC if GCC is already installed
+    SAGE_INSTALL_GCC=exists
+elif test -n "$SAGE_INSTALL_GCC"; then
+    # Check the value of the environment variable SAGE_INSTALL_GCC
+    case "$SAGE_INSTALL_GCC" in
+        yes)
+            SAGE_MUST_INSTALL_GCC([SAGE_INSTALL_GCC is set to 'yes']);;
+        no)
+            true;;
+        *)
+            AC_MSG_ERROR([SAGE_INSTALL_GCC should be set to 'yes' or 'no'. You can also leave it unset to install GCC when needed]);;
+    esac
 fi
 
-#---------------------------------------------------------
-#       C/C++/Fortran compilers
 
-# First check for programs we need.
 AC_LANG(C)
 AC_PROG_CC()
 AC_PROG_CPP()
@@ -305,44 +392,46 @@ AC_PROG_FC()
 
 if test "x$CXX" = x
 then
-    AC_MSG_ERROR([Exiting, since a C++ compiler was not found.])
+    AC_MSG_ERROR([a C++ compiler is missing])
 fi
 
-if test $enable_compiler_checks = yes
-then
-    if test "x$CC" = x
-    then
-        AC_MSG_ERROR([Exiting, since a C compiler was not found.])
-    fi
-    if test "x$FC" = x
-    then
-        AC_MSG_ERROR([Exiting, since a Fortran compiler was not found.])
-    fi
-fi
 
-# Next one should check for header files.
+###############################################################################
+# Check header files
+###############################################################################
+
 # complex.h is one that might not exist on older systems.
 AC_LANG(C++)
 AC_CHECK_HEADER([complex.h],[],[
     AC_MSG_ERROR([Exiting, since you do not have the 'complex.h' header file.])
 ])
 
-# Next one should check for types.
+
+###############################################################################
+# Check types/structures
+###############################################################################
+
 # None needed
 
-# Next one should check for structures.
-# None needed
 
-# Next one should check for compiler characterists.
+###############################################################################
+# Check compiler characteristics
+###############################################################################
 
-# Check that we can compile C99 code
+AX_CXX_COMPILE_STDCXX_11([], optional)
+if test $HAVE_CXX11 != 1; then
+    SAGE_MUST_INSTALL_GCC([your C++ compiler does not support C++11])
+fi
+
 AC_LANG(C)
-AC_PROG_CC_C99()
-if test $enable_compiler_checks = yes
-then
+if test -z "$CC"; then
+    SAGE_MUST_INSTALL_GCC([a C compiler is missing])
+else
+    # Check that we can compile C99 code
+    AC_PROG_CC_C99()
     if test "x$ac_cv_prog_cc_c99" = xno
     then
-        AC_MSG_ERROR([Exiting, as your C compiler cannot compile C99 code])
+        SAGE_MUST_INSTALL_GCC([your C compiler cannot compile C99 code])
     fi
 fi
 
@@ -352,62 +441,54 @@ fi
 # sets FC to /usr/bin/ls, we will at least know it's
 # not a working Fortran compiler.
 AC_LANG(Fortran)
-if test $enable_compiler_checks = yes
-then
+if test -z "$FC"; then
+    SAGE_MUST_INSTALL_GCC([a Fortran compiler is missing])
+else
    # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
    AC_FC_FREEFORM([],
    [
    AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
    AC_MSG_NOTICE([which means the compiler is either seriously broken, or])
    AC_MSG_NOTICE([is too old to build Sage.])
-   AC_MSG_ERROR([Exiting, as the Fortran compiler is not suitable])
+   SAGE_MUST_INSTALL_GCC([the Fortran compiler is not suitable])
    ])
 fi
 
-if test $enable_compiler_checks = yes
-then
-    # Check that all compilers (C, C++, Fortan) are either all GNU
-    # compiler or all non-GNU compilers.  If not, there is a problem, as
-    # mixing GNU and non-GNU compilers is likely to cause problems.
-    if test x$GCC = xyes && test x$GXX != xyes
-    then
-        AC_MSG_NOTICE([You are trying to use gcc but not g++])
-        AC_MSG_ERROR([The mixing of GNU and non-GNU compilers is not permitted])
-    fi
-    if test x$GXX = xyes && test x$ac_cv_fc_compiler_gnu != xyes
-    then
-        AC_MSG_NOTICE([You are trying to use g++ but not gfortran])
-        AC_MSG_ERROR([The mixing of GNU and non-GNU compilers is not permitted])
-    fi
-    if test x$ac_cv_fc_compiler_gnu = xyes && test x$GCC != xyes
-    then
-        AC_MSG_NOTICE([You are trying to use gfortran but not gcc])
-        AC_MSG_ERROR([The mixing of GNU and non-GNU compilers is not permitted])
-    fi
-fi
 
-# The following tests check the version of the compilers (if GNU)
-# are all the same. If non-GNU compilers are used, then no such
-# checks are performed.
-if test $enable_compiler_checks = yes
-then
-if test x$GCC = xyes
-then
-    # Thank you to Andrew W. Nosenko andrew.w.nosenko@gmail.com
-    # who answered my query about testing of gcc versions on
-    # the autoconf@gnu.org mailing list.
-    # AS_VERSION_COMPARE(ver-1, ver-2, [action-if-less], [action-if-eq], [action-if-greater])
-    AX_GCC_VERSION
-    AX_GXX_VERSION
-    AS_VERSION_COMPARE([$GCC_VERSION], [$GXX_VERSION],
-    [
-    AC_MSG_NOTICE([gcc ($GCC_VERSION) and g++ ($GXX_VERSION) are not the same version])
-    AC_MSG_NOTICE([which they must be. Check your setting of CC and CXX])
-    AC_MSG_ERROR([Exiting, since the C and C++ compilers have different versions])
-    ],[],[
-    AC_MSG_NOTICE([gcc ($GCC_VERSION) and g++ ($GXX_VERSION) are not the same version])
-    AC_MSG_NOTICE([which they must be. Check your setting of CC and CXX])
-    AC_MSG_ERROR([Exiting, since the C and C++ compilers have different versions])])
+# Check compiler versions
+
+if test x$GXX != xyes; then
+    SAGE_SHOULD_INSTALL_GCC([your C++ compiler isn't GCC (GNU C++)])
+elif test $need_to_install_gcc = yes; then
+    # If we're installing GCC anyway, skip the rest of these version
+    # checks.
+    true
+elif test x$GCC != xyes; then
+    SAGE_SHOULD_INSTALL_GCC([your C compiler isn't GCC (GNU C)])
+elif test x$GFC != xyes; then
+    SAGE_SHOULD_INSTALL_GCC([your Fortran compiler isn't GCC (GNU Fortran)])
+else
+    # Since need_to_install_gcc is "no", we know that
+    # at least C, C++ and Fortran compilers are available.
+    # We also know that all compilers are GCC.
+
+    # Find out the compiler versions:
+    AX_GCC_VERSION()
+    AX_GXX_VERSION()
+
+    # Add the .0 because Debian/Ubuntu gives version numbers like
+    # 4.6 instead of 4.6.4 (Trac #18885)
+    case "$GXX_VERSION.0" in
+        [[0-3]].*|4.[[0-7]].*)
+            # Install our own GCC if the system-provided one is older than gcc-4.8.
+            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+    esac
+
+    # The following tests check that the version of the compilers
+    # are all the same.
+    if test "$GCC_VERSION" != "$GXX_VERSION"; then
+        SAGE_SHOULD_INSTALL_GCC([$CC ($GCC_VERSION) and $CXX ($GXX_VERSION) are not the same version])
+    fi
 
     # In the paragraph below, 'gfortran' is used to indicate the GNU Fortran
     # compiler, though it might be called something else.
@@ -444,90 +525,41 @@ then
 
     if test "x$fortran_version_string" = x
     then
-        AC_MSG_NOTICE([Although gcc and g++ are both version $GCC_VERSION])
-        AC_MSG_NOTICE([the Fortran compiler $FC is some other version.])
-        AC_MSG_NOTICE([The output from $FC --version is below.])
-        echo ""
-        $FC --version 2>&1
-        echo ""
-        AC_MSG_ERROR([Exiting, since the Fortran compiler is not the same version as the C and C++ compilers])
-    else
-        AC_MSG_NOTICE([Excellent, the C, C++ and Fortran compilers are all GCC $GCC_VERSION])
+        SAGE_SHOULD_INSTALL_GCC([the Fortran compiler is not the same version as the C compiler])
     fi
-
-    # Exit if the version of GCC is known to be too old, and so old
-    # we have no intension whatsoever of trying to make Sage work with it.
-    AS_VERSION_COMPARE([$GCC_VERSION], [$minimum_gcc_version_for_debugging_purposes],[
-        AC_MSG_NOTICE([GCC $GCC_VERSION is too old and can not build AC_PACKAGE_NAME. ])
-        AC_MSG_NOTICE([Please use a GCC of at least $minimum_gcc_version_for_no_hassle ])
-        AC_MSG_NOTICE([There are no plans whatsoever to support GCC $GCC_VERSION])
-        AC_MSG_ERROR([Exiting, due to the use of a version of GCC that is too old])
-    ], [],[])
-
-    # Exit if Sage is *precisely* version $buggy_gcc_version1, as that is very buggy.
-    # If any later versions of GCC are found to be buggy (which would never surprise me)
-    # We can easily add a buggy_gcc_version2 and repeat the next 5 lines.
-    # At the time of writing (28th September 2009) that is version 4.0.0,
-    # but rather than hard-code that, it is set as a variable.
-    AS_VERSION_COMPARE([$GCC_VERSION], [$buggy_gcc_version1],[],[
-        AC_MSG_NOTICE([GCC $buggy_gcc_version1  is very buggy and can not build AC_PACKAGE_NAME.])
-        AC_MSG_NOTICE([Please use a gcc of at least $minimum_gcc_version_for_no_hassle.])
-        AC_MSG_ERROR([Exiting, due to the use of a version of GCC that is too buggy])
-     ],[])
-
-    # Issue a warning if gcc is too old to work with all packages, but
-    # someone wants to try getting one or more packages work with
-    # an earlier gcc. At the time of writing, (28th Sept 2009), ratpoints
-    # has such an issue, requiring version 4.0.1, but we would like to
-    # get it to work with version 3.4.x
-    AS_VERSION_COMPARE([$GCC_VERSION], [$minimum_gcc_version_for_no_hassle],[
-        AC_MSG_NOTICE([******************************************************])
-        AC_MSG_NOTICE([******************************************************])
-        AC_MSG_NOTICE([******************************************************])
-        AC_MSG_NOTICE([GCC $GCC_VERSION is too old and can not build AC_PACKAGE_NAME.])
-        AC_MSG_NOTICE([Please use a gcc of at least $minimum_gcc_version_for_no_hassle])
-        AC_MSG_NOTICE([if you just want AC_PACKAGE_NAME to build without problems.])
-        AC_MSG_NOTICE([])
-        if test "${SAGE_USE_OLD_GCC+set}" = set; then
-           AC_MSG_NOTICE([Since the variable SAGE_USE_OLD_GCC was set, the])
-           AC_MSG_NOTICE([build will continue, but it will fail without changes])
-           AC_MSG_NOTICE([to the Sage source code. You can be 100% sure of that.])
-        else
-           AC_MSG_NOTICE([If you want to try building Sage with a GCC 3.4.x     ])
-           AC_MSG_NOTICE([with a view to debugging the problems which stop it   ])
-           AC_MSG_NOTICE([working on a gcc 3.4 series compiler, set the         ])
-           AC_MSG_NOTICE([environment variable SAGE_USE_OLD_GCC to something non])
-           AC_MSG_NOTICE([empty. But if you just want Sage to work, upgrade GCC ])
-           AC_MSG_NOTICE([******************************************************])
-           AC_MSG_NOTICE([******************************************************])
-           AC_MSG_ERROR([Exiting, due to the use of a version of GCC that is too old])
-        fi
-    ],
-[
-AC_MSG_NOTICE([Good, gcc and g++ are are just new enough as GCC $minimum_gcc_version_for_no_hassle])
-AC_MSG_NOTICE([is the minimum version needed needed to build AC_PACKAGE_NAME])
-]
-,
-[
-AC_MSG_NOTICE([Excellent, GCC $GCC_VERSION is later than the minimum])
-AC_MSG_NOTICE([needed to build AC_PACKAGE_NAME, which is GCC version $minimum_gcc_version_for_no_hassle])
-])
-
-    # AS_VERSION_COMPARE(ver-1, ver-2, [action-if-less], [action-if-eq], [action-if-greater])
-else
-    AC_MSG_WARN([You have a non-GNU compiler, but AC_PACKAGE_NAME has never been built])
-    AC_MSG_WARN([successfully with any compiler other than GCC, despite])
-    AC_MSG_WARN([some attempts made on Solaris to use Sun's compiler, which])
-    AC_MSG_WARN([produces faster code than GCC. However, the AC_PACKAGE_NAME developers])
-    AC_MSG_WARN([want AC_PACKAGE_NAME to work with other compilers, so please try.])
-    AC_MSG_WARN([The AC_PACKAGE_NAME developers would welcome any feedback you can give.])
-    AC_MSG_WARN([Please visit http://groups.google.com/group/sage-devel])
-    AC_MSG_WARN([If you just want to use AC_PACKAGE_NAME, we suggest the use of])
-    AC_MSG_WARN([GCC of at least version $minimum_gcc_version_for_no_hassle])
 fi
-fi  # test $enable_compiler_checks = yes
 
-# Testing for library functions
+
+# Check that the assembler and linker used by $CXX match $AS and $LD.
+# See http://trac.sagemath.org/sage_trac/ticket/14296
+if test -n "$AS"; then
+    CXX_as=`$CXX -print-file-name=as 2>/dev/null`
+    CXX_as=`command -v $CXX_as 2>/dev/null`
+    cmd_AS=`command -v $AS`
+
+    if test "$CXX_as" != "" -a "$CXX_as" != "$cmd_AS"; then
+        SAGE_SHOULD_INSTALL_GCC([there is a mismatch of assemblers])
+        AC_MSG_NOTICE([  $CXX uses $CXX_as])
+        AC_MSG_NOTICE([  \$AS equal to $AS])
+    fi
+fi
+if test -n "$LD"; then
+    CXX_ld=`$CXX -print-file-name=ld 2>/dev/null`
+    CXX_ld=`command -v $CXX_ld 2>/dev/null`
+    cmd_LD=`command -v $LD`
+
+    if test "$CXX_ld" != "" -a "$CXX_ld" != "$cmd_LD"; then
+        SAGE_SHOULD_INSTALL_GCC([there is a mismatch of linkers])
+        AC_MSG_NOTICE([  $CXX uses $CXX_ld])
+        AC_MSG_NOTICE([  \$LD equal to $LD])
+    fi
+fi
+
+
+###############################################################################
+# Check libraries
+###############################################################################
+
 # First check for something that should be in any maths library (sqrt).
 AC_LANG(C++)
 AC_CHECK_LIB(m,sqrt,[],[
@@ -619,9 +651,291 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
 fi
 
 
+###############################################################################
+# Create $SAGE_ROOT/build/make/Makefile starting from build/make/deps
+###############################################################################
+
+# Use file descriptor 7 since make uses 3 and 4 and configure uses 5 and 6
+exec 7>build/make/Makefile
+
+cat >&7 <<EOF
+#==============================================================================
+# This file has been automatically generated by
+#   $SAGE_ROOT/configure
+# You should not edit it by hand
+#==============================================================================
+
+EOF
+
+# Use bash as shell for the Makefile (bash obviously exists, since
+# this build/make/install script runs under bash).
+echo >&7 "SHELL = `command -v bash`"
+echo >&7
+
+AC_MSG_CHECKING([package versions])
+AC_MSG_RESULT([])
+
+# Usage: newest_version $pkg
+# Print version number of latest standard package $pkg
+newest_version() {
+    PKG=$1
+    if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
+        AS_ECHO_N(["$PKG-"])
+        cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
+    else
+        echo "$PKG"
+    fi
+}
+
+# Outputs the list of packages, filtered by 'type', e.g.:
+#
+#     filtered_packages_list base
+#     filtered_packages_list standard
+#     filtered_packages_list optional
+#     filtered_packages_list experimental
+#
+# Or, if you want all packages:
+#
+#     filtered_packages_list all
+#
+# The output consists of triples
+# PKG_NAME PKG_VERSION PKG_VAR
+#
+
+[
+filtered_packages_list() {
+    # for each package in pkgs/
+    for DIR in $SAGE_ROOT/build/pkgs/*; do
+        test -d "$DIR" || continue
+
+        PKG_TYPE_FILE="$DIR/type"
+        if [ -f "$PKG_TYPE_FILE" ]; then
+            PKG_TYPE=`cat $PKG_TYPE_FILE`
+        else
+            echo >&2 "\"$PKG_TYPE_FILE\" is missing. Create it, and set its content"
+            echo >&2 "to 'base', 'standard', 'optional' or 'experimental'."
+            return 1
+        fi
+
+        # Check consistency of 'DIR/type' file
+        if [ "$PKG_TYPE" != "base" ] && \
+           [ "$PKG_TYPE" != "standard" ] && \
+           [ "$PKG_TYPE" != "optional" ] && \
+           [ "$PKG_TYPE" != "experimental" ] && \
+           [ "$PKG_TYPE" != "script" ] && \
+           [ "$PKG_TYPE" != "pip" ]; then
+            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'"
+            return 1
+        fi
+
+        # Filter
+        if [ "$1" = "$PKG_TYPE" -o "$1" = all ]; then
+            PKG_NAME=$(basename $DIR)
+            PKG_VAR="$(echo $PKG_NAME | sed 's/^4/FOUR/' | tr '[:lower:]' '[:upper:]')"
+            PKG_VERSION=$(newest_version $PKG_NAME)
+            echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
+        fi
+    done
+}
+
+# Check that all packages define a (valid) 'type' file, or exit
+filtered_packages_list none || exit $?
+
+echo >&7 "# All Sage packages"
+
+filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    if test "$PKG_NAME" != "$PKG_VERSION"; then
+        echo >&7 "$PKG_VAR = $PKG_VERSION"
+        ]AC_MSG_RESULT([    $PKG_VAR=$PKG_VERSION])[
+    fi
+done
+
+cat >&7 <<EOF
+
+# Directory to keep track of which packages are installed
+INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+
+# Aliases for optional packages selected at build time
+EOF
+
+
+# Python version
+if [ "$SAGE_PYTHON3" = yes ]; then
+    echo >&7 'PYTHON = $(PYTHON3)'
+else
+    echo >&7 'PYTHON = $(PYTHON2)'
+fi
+]
+
+# Sage MP library
+echo >&7 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
+
+# $(TOOLCHAIN) variable containing prerequisites for the build
+AS_ECHO_N(>&7 ['TOOLCHAIN ='])
+if test "$SAGE_INSTALL_CCACHE" = yes ; then
+    AS_ECHO_N(>&7 [' $(INST)/$(CCACHE)'])
+fi
+if test "$need_to_install_gcc" = yes ; then
+    AS_ECHO_N(>&7 [' $(INST)/$(GCC)'])
+fi
+echo >&7
+echo >&7
+
+[
+echo >&7 '# All standard packages'
+echo >&7 'STANDARD_PACKAGES = \'
+filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    echo >&7 "    \$(INST)/\$($PKG_VAR) \\"
+done
+echo >&7
+echo >&7
+
+echo >&7 '# All optional installed packages (triggers the auto-update)'
+echo >&7 'OPTIONAL_INSTALLED_PACKAGES = \'
+filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    if [ "$PKG_NAME" = "gcc" ]; then
+        continue
+    fi
+    if [ -f $SAGE_SPKG_INST/$PKG_NAME-* ]; then
+        echo >&7 "    \$(INST)/\$($PKG_VAR) \\"
+    fi;
+done
+echo >&7
+echo >&7
+
+echo >&7 'SCRIPT_SOURCES = \'
+for file in "$SAGE_SRC/bin/"*; do
+    echo >&7 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+done
+echo >&7
+echo >&7 'SCRIPTS = \'
+for file in "$SAGE_SRC/bin/"*; do
+    echo >&7 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
+done
+echo >&7
+echo >&7 'EXTCODE_SOURCES = \'
+for file in `find "$SAGE_SRC"/ext -type f`; do
+    echo >&7 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+done
+echo >&7
+echo >&7 'EXTCODE = \'
+for file in `find "$SAGE_SRC"/ext -type f`; do
+    echo >&7 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
+done
+echo >&7
+
+# Copy build/make/deps
+cat >&7 <<EOF
+
+#==============================================================================
+# What follows now is a copy of
+#   $SAGE_ROOT/build/make/deps
+#==============================================================================
+
+EOF
+
+cat "$SAGE_ROOT/build/make/deps" >&7
+# Copy build/make/deps
+
+cat >&7 <<EOF
+
+#==============================================================================
+# Rules generated from pkgs/<package>/dependencies files
+#==============================================================================
+
+EOF
+
+# Add a Makefile target corresponding to a given package
+filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
+    TYPE=`cat "$SAGE_ROOT/build/pkgs/$PKG_NAME/type"`
+    if [ -f "$DEP_FILE" ]; then
+        DEPS=" $(head -n 1 $DEP_FILE)"
+    elif [ "$TYPE" = optional ]; then
+        DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
+    elif [ "$TYPE" = script ]; then
+        DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
+    elif [ "$TYPE" = pip ]; then
+        DEPS=' | $(INST)/$(PIP)'
+    else
+        DEPS=""
+    fi
+
+    if [ "$TYPE" = pip ]; then
+        # Special rules using PIP
+        echo >&7 "$PKG_NAME:$DEPS"
+        echo >&7 "	sage-logger 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7
+
+        # Add a target to remove the "installed" file for "sage -f"
+        echo >&7 "$PKG_NAME-clean:"
+        echo >&7 "	-sage --pip uninstall -y $PKG_NAME"
+        echo >&7
+    elif [ "$TYPE" = script ]; then
+        # Just run the spkg-install script
+        echo >&7 "$PKG_NAME:$DEPS"
+        echo >&7 "	cd '$SAGE_ROOT' && \\"
+        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
+        echo >&7 "	    sage-logger '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7
+
+        # Just run the spkg-uninstall script if it exists
+        echo >&7 "$PKG_NAME-clean:"
+        echo >&7 "	-cd '$SAGE_ROOT' && \\"
+        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
+        echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
+        echo >&7
+    else
+        # Normal Sage packages
+        echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
+        echo >&7 "	+sage-logger '\$(SAGE_SPKG) \$($PKG_VAR)' '\$(SAGE_LOGS)/\$($PKG_VAR).log'"
+        echo >&7
+
+        # Add a target with just the bare package name for "sage -i"
+        echo >&7 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+        echo >&7
+
+        # Add a target to remove the "installed" file for "sage -f"
+        echo >&7 "$PKG_NAME-clean:"
+        echo >&7 "	rm -f \$(INST)/\$($PKG_VAR)"
+        echo >&7
+    fi
+done
+
+# Close the Makefile
+exec 7>&-
+]
+
+
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto])
 AC_CONFIG_MACRO_DIR([m4])
+
+dnl Create basic directories needed for Sage
+AC_CONFIG_COMMANDS(mkdirs,
+    [
+        SAGE_LOGS=${ac_abs_top_builddir}/logs/pkgs
+        SAGE_LOCAL=${ac_abs_top_builddir}/local
+        SAGE_SHARE=${ac_abs_top_builddir}/local/share
+        SAGE_INST=${ac_abs_top_builddir}/local/var/lib/sage/installed
+        for d in "$SAGE_LOGS" "$SAGE_LOCAL" \
+            "$SAGE_LOCAL/bin" "$SAGE_LOCAL/etc" \
+            "$SAGE_LOCAL/include" "$SAGE_LOCAL/lib" \
+            "$SAGE_SHARE" "$SAGE_INST"; do
+                AC_MSG_NOTICE([creating directory $d])
+                mkdir -p "$d" || AC_MSG_ERROR(could not create $d)
+        done
+
+        if test -d "$SAGE_LOCAL/lib64"; then
+            if test ! -L "$SAGE_LOCAL/lib64"; then
+                AC_MSG_NOTICE([[$SAGE_LOCAL/lib64 is not a symlink, see Trac #19782]])
+                AC_MSG_ERROR([[Cannot perform incremental update, run "make distclean && make"]])
+            fi
+        else
+            AC_MSG_NOTICE([[creating symbolic link lib64 -> lib]])
+            ln -s lib "$SAGE_LOCAL/lib64"
+        fi
+    ])
 
 AC_OUTPUT()
 

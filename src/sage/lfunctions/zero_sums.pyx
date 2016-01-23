@@ -8,27 +8,22 @@ AUTHORS:
 
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2014 Simon Spicer <mlungu@uw.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import prime_powers
+from sage.arith.all import prime_powers, next_prime
 from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
@@ -56,7 +51,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
     """
     cdef _pi            # Pi to 64 bits
     cdef _euler_gamma   # Euler-Mascheroni constant = 0.5772...
-    cdef _N             # The level of the form attached to self
+    cdef _level         # The level of the form attached to self
     cdef _k             # The weight of the form attached to self
     cdef _C1            # = log(N)/2 - log(2*pi)
     cdef _C0            # = C1 - euler_gamma
@@ -119,7 +114,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             389
 
         """
-        return self._N
+        return self._level
 
     def weight(self):
         r"""
@@ -941,9 +936,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         self._k = ZZ(2)
         self._E = E
         if N is not None:
-            self._N = N
+            self._level = N
         else:
-            self._N = E.conductor()
+            self._level = E.conductor()
         # PARI minicurve for computing a_p coefficients
         self._e = E.pari_mincurve()
 
@@ -951,7 +946,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         self._euler_gamma = RDF(euler_gamma)
 
         # These constants feature in most (all?) sums over the L-function's zeros
-        self._C1 = log(RDF(self._N))/2 - log(self._pi*2)
+        self._C1 = log(RDF(self._level))/2 - log(self._pi*2)
         self._C0 = self._C1 - self._euler_gamma
 
         # Number of CPUs to use for computations
@@ -1059,7 +1054,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             p,e = n.perfect_power()
             ap = self._E.ap(p)
             logp = log(RDF(p))
-            if p.divides(self._N):
+            if p.divides(self._level):
                 return - ap**e*logp/n_float
             a,b = ap,2
             # Coefficients for higher powers obey recursion relation
@@ -1181,7 +1176,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         cdef int ap, aq
 
         cdef unsigned long n
-        cdef double N_double = self._N
+        cdef double N_double = self._level
 
         t = twopi*Delta
         expt = c_exp(t)
@@ -1193,7 +1188,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # Do bad primes first. Add correct contributions and subtract
         # incorrect contribution, since we'll add them back later on.
         if bad_primes is None:
-            bad_primes = self._N.prime_divisors()
+            bad_primes = self._level.prime_divisors()
         bad_primes = [prime for prime in bad_primes if prime<expt]
         for prime in bad_primes:
             n = prime
@@ -1318,7 +1313,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # General case for n > 480
         else:
             from sage.rings.finite_rings.integer_mod import mod
-            from sage.rings.arith import next_prime
 
             modulus,p = 2,2
             small_primes,residue_list = [2],[1]
@@ -1460,7 +1454,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         cdef double npi = self._pi
         cdef double twopi = npi*2
         cdef double eg = self._euler_gamma
-        cdef double N_double = self._N
+        cdef double N_double = self._level
 
         cdef double t, u, w, y, z, expt, bound1, logp, logq
         cdef double thetap, thetaq, sqrtp, sqrtq, p, q
@@ -1479,7 +1473,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # Do bad primes first. Add correct contributions and subtract
         # incorrect contribution; the latter are added back later on.
         if bad_primes is None:
-            bad_primes = self._N.prime_divisors()
+            bad_primes = self._level.prime_divisors()
         bad_primes = [prime for prime in bad_primes if prime<expt]
         for prime in bad_primes:
             n = prime
@@ -1552,7 +1546,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         specified by max_Delta. This computation can be run on curves with
         very large conductor (so long as the conductor is known or quickly
         computable) when Delta is not too large (see below).
-        Uses Bober's rank bounding method as described in [Bob-13].
+
+        Uses Bober's rank bounding method as described in [Bob-13]_.
 
         INPUT:
 
@@ -1793,7 +1788,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             verbose("Computing maximum Delta value")
             pi, eg = self._pi, self._euler_gamma
             #1000 is arbitrary - increases Delta for small N
-            max_Delta = (log(RDF(self._N+1000))/2-log(2*pi)-eg)/pi
+            max_Delta = (log(RDF(self._level+1000))/2-log(2*pi)-eg)/pi
             if max_Delta > 2.5:
                 max_Delta = 2.5
                 verbose("Computed max Delta value too big; setting to 2.5")

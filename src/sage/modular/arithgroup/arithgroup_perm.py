@@ -131,7 +131,7 @@ from arithgroup_generic import ArithmeticSubgroup
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
@@ -1350,9 +1350,9 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         generalized level (if `G` is odd). Then:
 
         - if `N` is odd, `G` is congruence if and only if the relation
-        
+
           .. math::
-        
+
             (L R^{-1} L)^2 = (R^2 L^{1/2})^3
 
           holds, where `1/2` is understood as the multiplicative inverse of 2
@@ -1782,7 +1782,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
 
         INPUT:
 
-        ``exp`` - boolean (default: False) - if True, return a dictionnary with
+        ``exp`` - boolean (default: False) - if True, return a dictionary with
         keys the possible widths and with values the number of cusp with that
         width.
 

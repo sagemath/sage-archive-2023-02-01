@@ -5,18 +5,22 @@ Cython helper methods to compute integral points in polyhedra.
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
-from sage.rings.all import QQ, RR, ZZ, gcd, lcm
-from sage.rings.integer cimport Integer
-from sage.combinat.permutation import Permutation
-from sage.combinat.cartesian_product import CartesianProduct
-from sage.misc.all import prod, uniq
 import copy
+import itertools
+
+from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
+from sage.rings.all import QQ, RR, ZZ
+from sage.rings.integer cimport Integer
+from sage.arith.all import gcd, lcm
+from sage.combinat.permutation import Permutation
+from sage.misc.all import prod, uniq
 
 ##############################################################################
 # The basic idea to enumerate the lattice points in the parallelotope
@@ -209,7 +213,7 @@ cpdef loop_over_parallelotope_points(e, d, VDinv, R, lattice, A=None, b=None):
     s = ZZ.zero()  # summation variable
     gen = lattice(0)
     q_times_d = vector(ZZ, dim)
-    for base in CartesianProduct(*[ range(0,i) for i in e ]):
+    for base in itertools.product(*[ range(0,i) for i in e ]):
         for i in range(0, dim):
             s = ZZ.zero()
             for j in range(0, dim):
@@ -1011,7 +1015,7 @@ cdef class InequalityCollection:
 
         A pair ``(A,b)``.
 
-        EXAXMPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.integral_points import InequalityCollection
             sage: line = Polyhedron(eqns=[(2,3,7)])

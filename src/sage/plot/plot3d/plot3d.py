@@ -92,7 +92,7 @@ class _Coordinates(object):
     This abstract class encapsulates a new coordinate system for plotting.
     Sub-classes must implement the :meth:`transform` method which, given
     symbolic variables to use, generates a 3-tuple of functions in terms of
-    those variables that can be used to find the cartesian (X, Y, and Z)
+    those variables that can be used to find the Cartesian (X, Y, and Z)
     coordinates for any point in this space.
     """
     def __init__(self, dep_var, indep_vars):
@@ -157,7 +157,7 @@ class _Coordinates(object):
     def to_cartesian(self, func, params=None):
         """
         Returns a 3-tuple of functions, parameterized over ``params``, that
-        represents the cartesian coordinates of the value of ``func``.
+        represents the Cartesian coordinates of the value of ``func``.
 
         INPUT:
 
@@ -681,7 +681,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
     - ``transformation`` - (default: None) a transformation to
       apply. May be a 3 or 4-tuple (x_func, y_func, z_func,
       independent_vars) where the first 3 items indicate a
-      transformation to cartesian coordinates (from your coordinate
+      transformation to Cartesian coordinates (from your coordinate
       system) in terms of u, v, and the function variable fvar (for
       which the value of f will be substituted). If a 3-tuple is
       specified, the independent variables are chosen from the range

@@ -257,7 +257,7 @@ class Maple(Expect):
     object, and ``maple.eval(...)`` to run a string using
     Maple (and get the result back as a string).
     """
-    def __init__(self, maxread=100, script_subdirectory=None, server=None,
+    def __init__(self, maxread=None, script_subdirectory=None, server=None,
             server_tmpdir=None, logfile=None, ulimit=None):
         """
         Create an instance of the Maple interpreter.
@@ -286,7 +286,6 @@ class Maple(Expect):
                         server = server,
                         server_tmpdir = server_tmpdir,
                         ulimit = ulimit,
-                        maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
@@ -577,7 +576,7 @@ connection to a server running Maple; for hints, type
     def _eval_line_using_file(self, line, *args, **kwargs):
         """
         EXAMPLES::
-        
+
             sage: maple._eval_line_using_file('2+2')  # optional - maple
             '4'
         """

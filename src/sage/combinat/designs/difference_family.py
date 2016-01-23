@@ -9,19 +9,7 @@ difference family (or check that it can be built) with :func:`difference_family`
 
 It defines the following functions:
 
-.. csv-table::
-    :class: contentstable
-    :widths: 30, 70
-    :delim: |
-
-    :func:`is_difference_family` | Check if the input is a (``k``, ``l``)-difference family.
-    :func:`difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
-    :func:`radical_difference_family` | Return a radical difference family.
-    :func:`radical_difference_set` | Return a radical difference set.
-    :func:`singer_difference_set` | Return a difference set associated to hyperplanes in a projective space.
-    :func:`df_q_6_1` | Return a difference family with parameter `k=6` on a finite field.
-    :func:`one_radical_difference_family` | Return a radical difference family using an exhaustive search.
-    :func:`twin_prime_powers_difference_set` | Return a twin prime powers difference family.
+{INDEX_OF_FUNCTIONS}
 
 REFERENCES:
 
@@ -55,7 +43,7 @@ Functions
 #*****************************************************************************
 
 from sage.categories.sets_cat import EmptySetError
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.misc.unknown import Unknown
 from sage.rings.integer import Integer
 
@@ -935,7 +923,7 @@ def twin_prime_powers_difference_set(p, check=True):
     r"""
     Return a difference set on `GF(p) \times GF(p+2)`.
 
-    The difference set is built from the following element of the cartesian
+    The difference set is built from the following element of the Cartesian
     product of finite fields `GF(p) \times GF(p+2)`:
 
     - `(x,0)` with any `x`
@@ -955,7 +943,7 @@ def twin_prime_powers_difference_set(p, check=True):
         sage: from sage.combinat.designs.difference_family import twin_prime_powers_difference_set
         sage: G,D = twin_prime_powers_difference_set(3)
         sage: G
-        The cartesian product of (Finite Field of size 3, Finite Field of size 5)
+        The Cartesian product of (Finite Field of size 3, Finite Field of size 5)
         sage: D
         [[(1, 1), (1, 4), (2, 2), (2, 3), (0, 0), (1, 0), (2, 0)]]
     """
@@ -1045,7 +1033,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
         sage: G,D = designs.difference_family(15,7,3)
         sage: G
-        The cartesian product of (Finite Field of size 3, Finite Field of size 5)
+        The Cartesian product of (Finite Field of size 3, Finite Field of size 5)
         sage: D
         [[(1, 1), (1, 4), (2, 2), (2, 3), (0, 0), (1, 0), (2, 0)]]
         sage: print designs.difference_family(15,7,3,explain_construction=True)
@@ -1151,7 +1139,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         83: (2,1)
         85: (4,1), (7,2), (7,3), (8,2)
         89: (2,1), (4,3), (8,7)
-        91: (6,1)
+        91: (6,1), (7,1)
         97: (2,1), (3,1), (3,2), (4,1), (4,3), (6,5), (8,7), (9,3)
 
     TESTS:
@@ -1338,3 +1326,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
                 "Please contact sage-devel@googlegroups.com".format(G,v,k,l,D))
 
     return G, D
+
+from sage.misc.rest_index_of_methods import gen_rest_table_index
+import sys
+__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__]))

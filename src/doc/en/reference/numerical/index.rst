@@ -6,6 +6,7 @@ Numerical Optimization
 
    sage/numerical/knapsack
    sage/numerical/mip
+   sage/numerical/sdp
    sage/numerical/linear_functions
    sage/numerical/linear_tensor
    sage/numerical/linear_tensor_element
@@ -13,8 +14,8 @@ Numerical Optimization
    sage/numerical/optimize
    sage/numerical/interactive_simplex_method
 
-LP Solver backends
-------------------
+Linear Optimization (LP) Solver backends
+----------------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -35,5 +36,14 @@ how to use them in Sage, please refer to the `Thematic Tutorial on Linear
 Programming
 <http://www.sagemath.org/doc/thematic_tutorials/linear_programming.html>`_.
 
+Semidefinite Optimization (SDP) Solver backends
+-----------------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/numerical/backends/cvxopt_sdp_backend
+
+For more details on CVXOPT, see `CVXOPT documentation <http://cvxopt.org/documentation/index.html>`_.
 
 .. include:: ../footer.txt

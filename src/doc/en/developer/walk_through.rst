@@ -29,7 +29,7 @@ Configuring Git
 One way or another, ``git`` is what Sage uses for tracking changes.
 So first, open a shell (for instance, Terminal on Mac) and check that
 ``git`` works::
-    
+
     [user@localhost]$ git
     usage: git [--version] [--help] [-C <path>] [-c name=value]
     ...
@@ -37,7 +37,7 @@ So first, open a shell (for instance, Terminal on Mac) and check that
        add        Add file contents to the index
     ...
        tag        Create, list, delete or verify a tag object signed with GPG
-    
+
     'git help -a' and 'git help -g' lists available subcommands and some
     concept guides. See 'git help <command>' or 'git help <concept>'
     to read about a specific subcommand or concept.
@@ -70,16 +70,24 @@ local installation of Sage, or (to start without Sage) download it
 from github which is a public read-only mirror (=faster) of our
 internal git repository::
 
-    [user@localhost]$ git clone git://github.com/sagemath/sage.git
+    [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     Cloning into 'sage'...
     [...]
     Checking connectivity... done.
-    
+
 This creates a directory named ``sage`` containing the sources for the
-current stable and development releases of Sage.  You will need to
-`compile Sage <http://www.sagemath.org/doc/installation/source.html>`_
-in order to use it (if you cloned, you will need to remain on the internet
-for it to download various packages of Sage).
+current stable and development releases of Sage. You next need to switch
+to the develop branch (latest development release)::
+
+    [user@localhost ~]$ cd sage
+    [user@localhost sage]$ git checkout develop
+
+You will then need to `compile Sage
+<http://www.sagemath.org/doc/installation/source.html>`_ in order to use it (if
+you cloned, you will need to remain on the internet for it to download various
+packages of Sage).
+
+    [user@localhost sage]$ make
 
 (For the experts, note that the repository at
 `git.sagemath.org <http://git.sagemath.org>`_ is where development
@@ -127,7 +135,7 @@ you have to use ``git checkout``::
 
 Note that, unless you explicitly upload ("push") a branch to remote
 git repository, the local branch will only be on your computer and not
-visible to anyone else. 
+visible to anyone else.
 
 To avoid typing the new branch name twice you can use the shortcut
 ``git checkout -b my_new_branch`` to create and switch to the new
@@ -177,15 +185,15 @@ changes::
     Changes not staged for commit:
       (use "git add <file>..." to update what will be committed)
       (use "git checkout -- <file>..." to discard changes in working directory)
-    
+
         modified:   some_file.py
         modified:   src/sage/primes/all.py
-    
+
     Untracked files:
       (use "git add <file>..." to include in what will be committed)
-    
+
         src/sage/primes/last_pair.py
-    
+
     no changes added to commit (use "git add" and/or "git commit -a")
 
 To dig deeper into what was changed in the files you can use::
@@ -209,15 +217,16 @@ have to run::
     [user@localhost sage]$ ./sage -br
 
 to rebuild the Sage library and then start Sage. This should be quite
-fast. If you made changes to third-party packages then you have to
-run::
+fast. If you made changes to
+:ref:`third-party packages <chapter-packaging>`, then you have to run ::
 
     [user@localhost sage]$ make
 
 as if you were `installing Sage from scratch
 <http://www.sagemath.org/doc/installation/source.html>`_.
-However, simply running ``make`` will only recompile packages
-that were changed, so it shoud be much faster than compiling Sage
+However, this time only packages which were changed (or which depend
+on a changed package) will be recompiled,
+so it shoud be much faster than compiling Sage
 the first time. Rarely there are conflicts with other packages,
 or with the already-installed older version of the package that you
 changed, in that case you do have to recompile everything using::

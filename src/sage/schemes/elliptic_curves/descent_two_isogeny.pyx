@@ -13,7 +13,7 @@ from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_ring import polygen
 cdef object x_ZZ = polygen(ZZ)
 from sage.rings.polynomial.real_roots import real_roots
-from sage.rings.arith import prime_divisors
+from sage.arith.all import prime_divisors
 from sage.all import ntl
 
 include "sage/ext/stdsage.pxi"

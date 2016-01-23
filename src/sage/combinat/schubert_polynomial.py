@@ -79,7 +79,9 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             sage: map(lambda x: x.expand(), [X(p) for p in Permutations(3)])
             [1, x0 + x1, x0, x0*x1, x0^2, x0^2*x1]
 
-        TESTS: Calling .expand() should always return an element of an
+        TESTS:
+
+        Calling .expand() should always return an element of an
         MPolynomialRing
 
         ::

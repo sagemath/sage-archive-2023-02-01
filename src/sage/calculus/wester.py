@@ -364,9 +364,9 @@ explicit calls to Maxima or other systems.
     sage: a = tan(z); a
     tan(z)
     sage: a.real()
-    tan(real_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
+    sin(2*real_part(z))/(cos(2*real_part(z)) + cosh(2*imag_part(z)))
     sage: a.imag()
-    tanh(imag_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
+    sinh(2*imag_part(z))/(cos(2*real_part(z)) + cosh(2*imag_part(z)))
 
 
 ::
@@ -617,9 +617,8 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Convert the above to Horner's form.
     sage: #      Verify(Horner(p, x), ((((a[5]*x+a[4])*x
     sage: #        +a[3])*x+a[2])*x+a[1])*x);
-    sage: # We use the trick of evaluating the algebraic poly at a symbolic variable:
     sage: restore('x')
-    sage: p(x)
+    sage: SR(p).horner(x)
     ((((a4*x + a3)*x + a2)*x + a1)*x + a0)*x
 
 ::

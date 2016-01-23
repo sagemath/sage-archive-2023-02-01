@@ -2,17 +2,13 @@ r"""
 Congruence Subgroup `\Gamma_0(N)`
 """
 
-################################################################################
-#
-#       Copyright (C) 2009, The Sage Group -- http://www.sagemath.org/
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-################################################################################
+#*****************************************************************************
 
 from congroup_gammaH import GammaH_class
 from congroup_gamma1 import is_Gamma1
@@ -21,10 +17,11 @@ from congroup_generic import CongruenceSubgroup
 
 from sage.modular.cusps import Cusp
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import (IntegerModRing, kronecker_symbol, ZZ)
+from sage.rings.all import IntegerModRing, ZZ
+from sage.arith.all import kronecker_symbol
 from sage.misc.all import prod
 import sage.modular.modsym.p1list
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 
 def is_Gamma0(x):
@@ -224,7 +221,7 @@ class Gamma0_class(GammaH_class):
         Return the subgroups of SL2Z of the form Gamma0(M) that contain this subgroup,
         i.e. those for M a divisor of N.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(24).divisor_subgroups()
             [Modular Group SL(2,Z),
@@ -542,19 +539,19 @@ class Gamma0_class(GammaH_class):
 
     def index(self):
         r"""
-        Return the index of self in the full modular group. This is given by
+        Return the index of self in the full modular group.
+
+        This is given by
 
         .. math::
 
             N \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(1 + \frac{1}{p}\right).
 
-        EXAMPLE::
+        EXAMPLES::
+
             sage: [Gamma0(n).index() for n in [1..19]]
             [1, 3, 4, 6, 6, 12, 8, 12, 12, 18, 12, 24, 14, 24, 24, 24, 18, 36, 20]
             sage: Gamma0(32041).index()
             32220
         """
         return prod([p**e + p**(e-1) for (p,e) in self.level().factor()])
-
-
-

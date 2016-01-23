@@ -31,6 +31,8 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
 from cpython cimport PyObject
+from libc.limits cimport LONG_MAX
+
 
 cdef extern from "graph.hh" namespace "bliss":
 
@@ -116,7 +118,7 @@ cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
     - ``partition`` -- a partition of the vertex set.
 
     - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
-      dicitionary are later set to record the labeling of our graph. They are
+      dictionary are later set to record the labeling of our graph. They are
       taken as arguments to avoid technicalities of returning Python objects in
       Cython functions.
     """
@@ -149,7 +151,7 @@ cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
     - ``partition`` -- a partition of the vertex set.
 
     - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
-      dicitionary are later set to record the labeling of our graph. They are
+      dictionary are later set to record the labeling of our graph. They are
       taken as arguments to avoid technicalities of returning Python objects in
       Cython functions.
     """
@@ -271,29 +273,36 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
         sage: g2 == g2                                                      # optional - bliss
         True
     """
-    cdef const unsigned int *aut
-    cdef Graph   *g = NULL
-    cdef Digraph *d = NULL
+    # We need this to convert the numbers from <unsigned int> to
+    # <long>. This assertion should be true simply for memory reasons.
+    assert <unsigned long>(G.order()) <= <unsigned long>LONG_MAX
+
+    cdef const unsigned int* aut
+    cdef Graph* g
+    cdef Digraph* d
     cdef Stats s
     cdef dict relabel
+
+    cdef list edges = []
+    cdef long e, f
 
     vert2int = {}
 
     if G.is_directed():
         d = bliss_digraph(G, partition, vert2int, {})
         aut = d.canonical_form(s, empty_hook, NULL)
-        edges = [(aut[ vert2int[x] ], aut[ vert2int[y] ])
-                 for x,y in G.edges(labels=False)]
-        relabel = {v:aut[vert2int[v]] for v in G}
+        for x,y in G.edges(labels=False):
+            e,f = aut[ vert2int[x] ], aut[ vert2int[y] ]
+            edges.append( (e,f) )
+        relabel = {v: <long>aut[vert2int[v]] for v in G}
         del d
     else:
         g = bliss_graph(G, partition, vert2int, {})
         aut = g.canonical_form(s, empty_hook, NULL)
-        edges = []
         for x,y in G.edges(labels=False):
             e,f = aut[ vert2int[x] ], aut[ vert2int[y] ]
             edges.append( (e,f) if e > f else (f,e))
-        relabel = {v:aut[vert2int[v]] for v in G}
+        relabel = {v: <long>aut[vert2int[v]] for v in G}
         del g
 
     if return_graph:
@@ -311,3 +320,4 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
         return sorted(edges),relabel
 
     return sorted(edges)
+

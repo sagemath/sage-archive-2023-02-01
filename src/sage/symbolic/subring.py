@@ -269,9 +269,20 @@ class GenericSymbolicSubring(SymbolicRing):
             Symbolic Constants Subring
             sage: SymbolicSubring(rejecting_variables=tuple())  # indirect doctest
             Symbolic Ring
+
+        ::
+
+            sage: SR.subring(accepting_variables=(0, pi, sqrt(2), 'zzz', I))
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid variables: 0, I, pi, sqrt(2)
         """
         super(GenericSymbolicSubring, self).__init__()
         self._vars_ = set(vars)
+        if not all(v.is_symbol() for v in self._vars_):
+            raise ValueError('Invalid variables: {}'.format(
+                ', '.join(str(v) for v in sorted(self._vars_, key=str)
+                          if not v.is_symbol())))
 
 
     def _repr_variables_(self):

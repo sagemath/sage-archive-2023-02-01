@@ -198,15 +198,12 @@ class SymbolicSubringFactory(UniqueFactory):
         """
         if accepting_variables is None and \
            rejecting_variables is None and \
-           no_variables == False:
+           not no_variables:
             raise ValueError('Cannot create a symbolic subring '
-                             'since nothing specified.')
-        if accepting_variables is not None and \
-           rejecting_variables is not None or \
-           rejecting_variables is not None and \
-           no_variables == True or \
-           no_variables == True and \
-           accepting_variables is not None:
+                             'since nothing is specified.')
+        if accepting_variables is not None and rejecting_variables is not None or \
+           rejecting_variables is not None and no_variables or \
+           no_variables and accepting_variables is not None:
             raise ValueError('Cannot create a symbolic subring '
                              'since input is ambiguous.')
 
@@ -427,8 +424,8 @@ class GenericSymbolicSubring(SymbolicRing):
              QQbar.has_coerce_map_from(P):
             return True
 
-        elif (P is InfinityRing
-              or is_RealIntervalField(P) or is_ComplexIntervalField(P)):
+        elif (P is InfinityRing or
+              is_RealIntervalField(P) or is_ComplexIntervalField(P)):
             return True
 
         elif ComplexField(mpfr_prec_min()).has_coerce_map_from(P):

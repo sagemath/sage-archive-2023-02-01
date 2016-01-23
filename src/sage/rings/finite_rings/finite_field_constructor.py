@@ -430,6 +430,19 @@ class FiniteFieldFactory(UniqueFactory):
         sage: GF(3^40).gen().minimal_polynomial()(k.gen()^((3^120-1)/(3^40-1))) # long time because of previous line
         0
 
+    Before :trac:`17569`, the boolean keyword argument ``conway``
+    was required when creating finite fields without a variable
+    name.  This keyword argument is now silently ignored.  You
+    can still pass in ``prefix`` as an argument, which has the
+    effect of changing the variable name of the algebraic closure::
+
+        sage: K = GF(3^10, conway=True, prefix='w'); L = GF(3^10); K is L
+        False
+        sage: K.variable_name(), L.variable_name()
+        ('w10', 'z10')
+        sage: list(K.polynomial()) == list(L.polynomial())
+        True
+
     Check that :trac:`16934` has been fixed::
 
         sage: k1.<a> = GF(17^14, impl="pari_ffelt")

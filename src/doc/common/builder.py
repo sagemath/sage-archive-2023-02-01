@@ -1138,6 +1138,11 @@ latex_documents = [
    u'unknown', 'manual'),
 ]
 """ % (self.dir, module_name, module_name, latex_name)
+        if 'SAGE_DOC_UNDERSCORE' in os.environ:
+            conf +="""
+def setup(app):
+    app.connect('autodoc-skip-member', skip_member)
+"""
         conffile = open(os.path.join(self.dir, 'conf.py'), 'w')
         conffile.write(conf)
         conffile.close()

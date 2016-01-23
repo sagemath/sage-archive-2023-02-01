@@ -67,3 +67,4 @@ class RealTopologicalStructure(Singleton):
 
         """
         return cat
+

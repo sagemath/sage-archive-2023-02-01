@@ -1,9 +1,10 @@
 r"""
 Coordinate Charts
 
-The class :class:`Chart` implements coordinate charts on a topological manifold
-over a topological field `K`. The subclass :class:`RealChart` is devoted
-to the case `K=\RR`, for which the concept of coordinate range is meaningful.
+The class :class:`Chart` implements coordinate charts on a topological
+manifold over a topological field `K`. The subclass :class:`RealChart`
+is devoted to the case `K=\RR`, for which the concept of coordinate
+range is meaningful.
 
 Transition maps between charts are implemented via the class
 :class:`CoordChange`.
@@ -56,24 +57,26 @@ class Chart(UniqueRepresentation, SageObject):
 
     - ``domain`` -- open subset `U` on which the chart is defined (must be
       an instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
-    - ``coordinates`` -- (default: ``''`` (empty string)) single string
-      defining the coordinate symbols, with ``' '`` (whitespace) as a
-      separator; each item has at most two fields, separated by ``:``:
-
-      1. The coordinate symbol (a letter or a few letters)
-      2. (optional) The LaTeX spelling of the coordinate; if not provided the
-         coordinate symbol given in the first field will be used.
-
-      If it contains any LaTeX expression, the string ``coordinates`` must be
-      declared with the prefix 'r' (for "raw") to allow for a proper treatment
-      of LaTeX's backslash character (see examples below).
-      If no LaTeX spelling is to be set for any coordinate, the argument
-      ``coordinates`` can be omitted when the shortcut operator ``<,>`` is
-      used via Sage preparser (see examples below).
+    - ``coordinates`` -- (default: ``''`` (empty string)) the string
+      defining the coordinate symbols, see below
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
+
+    The coordiniate string has the space ``' '`` as a separator and each
+    item has at most two fields, separated by ``:``:
+
+    1. the coordinate symbol (a letter or a few letters);
+    2. (optional) the LaTeX spelling of the coordinate, if not provided the
+       coordinate symbol given in the first field will be used.
+
+    If it contains any LaTeX expression, the string ``coordinates`` must be
+    declared with the prefix 'r' (for "raw") to allow for a proper treatment
+    of LaTeX's backslash character (see examples below).
+    If no LaTeX spelling is to be set for any coordinate, the argument
+    ``coordinates`` can be omitted when the shortcut operator ``<,>`` is
+    used via Sage preparser (see examples below).
 
     EXAMPLES:
 
@@ -407,8 +410,8 @@ class Chart(UniqueRepresentation, SageObject):
 
         OUTPUT:
 
-        - the coordinate of index ``i`` or all the coordinates (as a tuple) if
-          ``i`` is the slice ``[:]``
+        - the coordinate of index ``i`` or all the coordinates (as a tuple)
+          if ``i`` is the slice ``[:]``
 
         EXAMPLES::
 
@@ -518,16 +521,21 @@ class Chart(UniqueRepresentation, SageObject):
 
         - ``restrictions`` -- list of restrictions on the
           coordinates, in addition to the ranges declared by the intervals
-          specified in the chart constructor.
-          A restriction can be any symbolic equality or inequality involving the
-          coordinates, such as x>y or x^2+y^2 != 0. The items of the list
-          ``restrictions`` are combined with the ``and`` operator; if some
-          restrictions are to be combined with the ``or`` operator instead, they
-          have to be passed as a tuple in some single item of the list
-          ``restrictions``. For example, ``restrictions`` = [x>y, (x!=0, y!=0),
-          z^2<x] means (x>y) and ((x!=0) or (y!=0)) and (z^2<x). If the list
-          ``restrictions`` contains only one item, this item can be passed as
-          such, i.e. writing x>y instead of the single element list [x>y].
+          specified in the chart constructor
+
+        A restriction can be any symbolic equality or inequality involving
+        the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+        of the list ``restrictions`` are combined with the ``and`` operator;
+        if some restrictions are to be combined with the ``or`` operator
+        instead, they have to be passed as a tuple in some single item
+        of the list ``restrictions``. For example::
+
+          restrictions = [x > y, (x != 0, y != 0), z^2 < x]
+
+        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
+        (``z^2 < x``). If the list ``restrictions`` contains only one
+        item, this item can be passed as such, i.e. writing ``x > y``
+        instead of the single element list ``[x > y]``.
 
         EXAMPLES::
 
@@ -562,19 +570,21 @@ class Chart(UniqueRepresentation, SageObject):
         - ``subset`` -- open subset `V` of the chart domain `U` (must be an
           instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
         - ``restrictions`` -- (default: ``None``) list of coordinate
-          restrictions defining the subset `V`.
-          A restriction can be any symbolic equality or
-          inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
-          The items of the list ``restrictions`` are combined with the ``and``
-          operator; if some restrictions are to be combined with the ``or``
-          operator instead, they have to be passed as a tuple in some single
-          item of the list ``restrictions``. For example, ``restrictions``
-          being [x>y, (x!=0, y!=0), z^2<x] means (x>y) and ((x!=0) or (y!=0))
-          and (z^2<x). If the list ``restrictions`` contains only one item,
-          this item can be passed as such, i.e. writing x>y instead of the
-          single element list [x>y]. Note that the argument ``restrictions``
-          can be omitted if the subchart has been already initialized by a
-          previous call.
+          restrictions defining the subset `V`
+
+        A restriction can be any symbolic equality or inequality involving
+        the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+        of the list ``restrictions`` are combined with the ``and`` operator;
+        if some restrictions are to be combined with the ``or`` operator
+        instead, they have to be passed as a tuple in some single item
+        of the list ``restrictions``. For example::
+
+          restrictions = [x > y, (x != 0, y != 0), z^2 < x]
+
+        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
+        (``z^2 < x``). If the list ``restrictions`` contains only one
+        item, this item can be passed as such, i.e. writing ``x > y``
+        instead of the single element list ``[x > y]``.
 
         OUTPUT:
 
@@ -631,8 +641,8 @@ class Chart(UniqueRepresentation, SageObject):
 
         OUTPUT:
 
-        - ``True`` if the coordinate values are admissible in the chart image,
-          ``False`` otherwise.
+        - ``True`` if the coordinate values are admissible in the chart
+          image, ``False`` otherwise
 
         EXAMPLE::
 
@@ -716,21 +726,25 @@ class Chart(UniqueRepresentation, SageObject):
         - ``intersection_name`` -- (default: ``None``) name to be given to the
           subset `U \cap V` if the latter differs from `U` or `V`
         - ``restrictions1`` -- (default: ``None``) list of conditions on the
-          coordinates of the current chart that define `U\cap V` if the
-          latter differs from `U`. ``restrictions1`` must be a list of
-          of symbolic equalities or inequalities involving the
-          coordinates, such as x>y or x^2+y^2 != 0. The items of the list
-          ``restrictions1`` are combined with the ``and`` operator; if some
-          restrictions are to be combined with the ``or`` operator instead,
-          they have to be passed as a tuple in some single item of the list
-          ``restrictions1``. For example, ``restrictions1`` = [x>y,
-          (x!=0, y!=0), z^2<x] means (x>y) and ((x!=0) or (y!=0)) and (z^2<x).
-          If the list ``restrictions1`` contains only one item, this item can
-          be passed as such, i.e. writing x>y instead of the single-element
-          list [x>y].
+          coordinates of the current chart that define `U \cap V` if the
+          latter differs from `U`
         - ``restrictions2`` -- (default: ``None``) list of conditions on the
-          coordinates of the chart `(V,\psi)` that define `U\cap V` if the
-          latter differs from `V` (see ``restrictions1`` for the syntax)
+          coordinates of the chart `(V,\psi)` that define `U \cap V` if the
+          latter differs from `V`
+
+        A restriction can be any symbolic equality or inequality involving
+        the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+        of the list ``restrictions`` are combined with the ``and`` operator;
+        if some restrictions are to be combined with the ``or`` operator
+        instead, they have to be passed as a tuple in some single item
+        of the list ``restrictions``. For example::
+
+          restrictions = [x > y, (x != 0, y != 0), z^2 < x]
+
+        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
+        (``z^2 < x``). If the list ``restrictions`` contains only one
+        item, this item can be passed as such, i.e. writing ``x > y``
+        instead of the single element list ``[x > y]``.
 
         OUTPUT:
 
@@ -828,34 +842,35 @@ class RealChart(Chart):
     INPUT:
 
     - ``domain`` -- open subset `U` on which the chart is defined
-    - ``coordinates`` -- (default: '' (empty string)) single string defining
-      the coordinate symbols and ranges, with ' ' (whitespace) as a separator;
-      each item has at most three fields, separated by ':':
-
-        1. The coordinate symbol (a letter or a few letters)
-        2. (optional) The interval `I` defining the coordinate range: if not
-           provided, the coordinate is assumed to span all `\RR`; otherwise
-           `I` must be provided in the form ``(a,b)`` (or equivalently
-           ``]a,b[``). The bounds ``a`` and ``b`` can be ``+/-Infinity``,
-           ``Inf``, ``infinity``, ``inf`` or ``oo``.
-           For *singular* coordinates, non-open intervals such as ``[a,b]`` and
-           ``(a,b]`` (or equivalently ``]a,b]``) are allowed.
-           Note that the interval declaration must not contain any whitespace.
-        3. (optional) The LaTeX spelling of the coordinate; if not provided the
-           coordinate symbol given in the first field will be used.
-
-      The order of the fields 2 and 3 does not matter and each of them can be
-      omitted.
-      If it contains any LaTeX expression, the string ``coordinates`` must be
-      declared with the prefix 'r' (for "raw") to allow for a proper treatment
-      of LaTeX backslash characters (see examples below).
-      If no interval range and no LaTeX spelling is to be set for any
-      coordinate, the argument ``coordinates`` can be omitted when the
-      shortcut operator ``<,>`` is used via Sage preparser (see examples below)
+    - ``coordinates`` -- (default: ``''`` (empty string)) string defining
+      the coordinate symbols and ranges, see below
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
-      ``<,>`` is used).
+      ``<,>`` is used)
+
+    The coordinates are a string, with ``' '`` (whitespace) as a separator.
+    Each item has at most three fields, separated by ``':'``:
+
+    1. The coordinate symbol (a letter or a few letters).
+    2. (optional) The interval `I` defining the coordinate range: if not
+       provided, the coordinate is assumed to span all `\RR`; otherwise
+       `I` must be provided in the form ``(a,b)`` (or equivalently
+       ``]a,b[``). The bounds ``a`` and ``b`` can be ``+/-Infinity``,
+       ``Inf``, ``infinity``, ``inf`` or ``oo``.
+       For *singular* coordinates, non-open intervals such as ``[a,b]`` and
+       ``(a,b]`` (or equivalently ``]a,b]``) are allowed.
+       Note that the interval declaration must not contain any whitespace.
+    3. (optional) The LaTeX spelling of the coordinate; if not provided the
+       coordinate symbol given in the first field will be used.
+
+    The order of the fields 2 and 3 does not matter and each of them can be
+    omitted. If it contains any LaTeX expression, the string ``coordinates``
+    must be declared with the prefix 'r' (for "raw") to allow for a proper
+    treatment of LaTeX backslash characters (see examples below). If no
+    interval range and no LaTeX spelling is to be set for any coordinate,
+    the argument ``coordinates`` can be omitted when the shortcut
+    operator ``<,>`` is used via Sage preparser (see examples below).
 
     EXAMPLES:
 
@@ -967,7 +982,8 @@ class RealChart(Chart):
         sage: simplify(abs(x)) # no positive range has been declared for x
         abs(x)
 
-    Each constructed chart is automatically added to the manifold's user atlas::
+    Each constructed chart is automatically added to the manifold's
+    user atlas::
 
         sage: M.atlas()
         [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph))]
@@ -977,8 +993,8 @@ class RealChart(Chart):
         sage: U.atlas()
         [Chart (U, (r, th, ph))]
 
-    Manifold subsets have a *default chart*, which, unless changed via the
-    method
+    Manifold subsets have a *default chart*, which, unless changed
+    via the method
     :meth:`~sage.manifolds.manifold.TopologicalManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
@@ -1017,8 +1033,7 @@ class RealChart(Chart):
     Accordingly, we set::
 
         sage: c_cartU.<x,y,z> = U.chart()
-        sage: c_cartU.add_restrictions((y!=0, x<0)) # the tuple (y!=0, x<0) means y!=0 or x<0
-        sage: # c_cartU.add_restrictions([y!=0, x<0]) would have meant y!=0 AND x<0
+        sage: c_cartU.add_restrictions((y!=0, x<0))
         sage: U.atlas()
         [Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
         sage: M.atlas()
@@ -1030,6 +1045,10 @@ class RealChart(Chart):
         sage: c_cart.valid_coordinates(1,0,2)
         True
 
+    Note that, as an example, the following would have meant `y \neq 0`
+    *and* `x < 0`::
+
+        c_cartU.add_restrictions([y!=0, x<0])
     """
     def __init__(self, domain, coordinates='', names=None):
         r"""
@@ -1062,8 +1081,8 @@ class RealChart(Chart):
 
         - ``coord_list`` -- list of coordinate fields, which items in each
           field separated by ":"; there are at most 3 items per field:
-          the coordinate name, the coordinate LaTeX symbol and the coordinate
-          range
+          the coordinate name, the coordinate LaTeX symbol and the
+          coordinate range
 
         TESTS::
 
@@ -1288,20 +1307,25 @@ class RealChart(Chart):
 
         - ``restrictions`` -- list of restrictions on the
           coordinates, in addition to the ranges declared by the intervals
-          specified in the chart constructor.
-          A restriction can be any symbolic equality or inequality involving the
-          coordinates, such as x>y or x^2+y^2 != 0. The items of the list
-          ``restrictions`` are combined with the ``and`` operator; if some
-          restrictions are to be combined with the ``or`` operator instead, they
-          have to be passed as a tuple in some single item of the list
-          ``restrictions``. For example, ``restrictions`` = [x>y, (x!=0, y!=0),
-          z^2<x] means (x>y) and ((x!=0) or (y!=0)) and (z^2<x). If the list
-          ``restrictions`` contains only one item, this item can be passed as
-          such, i.e. writing x>y instead of the single element list [x>y].
+          specified in the chart constructor
+
+        A restriction can be any symbolic equality or inequality involving
+        the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+        of the list ``restrictions`` are combined with the ``and`` operator;
+        if some restrictions are to be combined with the ``or`` operator
+        instead, they have to be passed as a tuple in some single item
+        of the list ``restrictions``. For example::
+
+          restrictions = [x > y, (x != 0, y != 0), z^2 < x]
+
+        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
+        (``z^2 < x``). If the list ``restrictions`` contains only one
+        item, this item can be passed as such, i.e. writing ``x > y``
+        instead of the single element list ``[x > y]``.
 
         EXAMPLES:
 
-        Cartesian coordinates on the open unit disc in $\RR^2$::
+        Cartesian coordinates on the open unit disc in `\RR^2`::
 
             sage: M = Manifold(2, 'M', structure='topological') # the open unit disc
             sage: X.<x,y> = M.chart()
@@ -1404,19 +1428,21 @@ class RealChart(Chart):
         - ``subset`` -- open subset `V` of the chart domain `U` (must be an
           instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
         - ``restrictions`` -- (default: ``None``) list of coordinate
-          restrictions defining the subset `V`.
-          A restriction can be any symbolic equality or
-          inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
-          The items of the list ``restrictions`` are combined with the ``and``
-          operator; if some restrictions are to be combined with the ``or``
-          operator instead, they have to be passed as a tuple in some single
-          item of the list ``restrictions``. For example, ``restrictions``
-          being [x>y, (x!=0, y!=0), z^2<x] means (x>y) and ((x!=0) or (y!=0))
-          and (z^2<x). If the list ``restrictions`` contains only one item,
-          this item can be passed as such, i.e. writing x>y instead of the
-          single element list [x>y]. Note that the argument ``restrictions``
-          can be omitted if the subchart has been already initialized by a
-          previous call.
+          restrictions defining the subset `V`
+
+        A restriction can be any symbolic equality or inequality involving
+        the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+        of the list ``restrictions`` are combined with the ``and`` operator;
+        if some restrictions are to be combined with the ``or`` operator
+        instead, they have to be passed as a tuple in some single item
+        of the list ``restrictions``. For example::
+
+          restrictions = [x > y, (x != 0, y != 0), z^2 < x]
+
+        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
+        (``z^2 < x``). If the list ``restrictions`` contains only one
+        item, this item can be passed as such, i.e. writing ``x > y``
+        instead of the single element list ``[x > y]``.
 
         OUTPUT:
 
@@ -1438,7 +1464,7 @@ class RealChart(Chart):
             sage: q in D
             False
 
-        Cartesian coordinates on the annulus `1<\sqrt{x^2+y^2}<2`::
+        Cartesian coordinates on the annulus `1 < \sqrt{x^2+y^2} < 2`::
 
             sage: A = M.open_subset('A')
             sage: c_cart_A = c_cart.restrict(A, [x^2+y^2>1, x^2+y^2<4])
@@ -1491,7 +1517,8 @@ class RealChart(Chart):
 
         OUTPUT:
 
-        - True if the coordinate values are admissible in the chart range.
+        - ``True`` if the coordinate values are admissible in the chart range
+          and ``False`` otherwise
 
         EXAMPLES:
 
@@ -1578,27 +1605,27 @@ class CoordChange(SageObject):
     r"""
     Transition map between two charts of a topological manifold.
 
-    Giving two coordinate charts `(U,\varphi)` and `(V,\psi)` on a topological
-    manifold `M` of dimension `n` over a topological field `K`, the
-    *transition map from* `(U,\varphi)` *to* `(V,\psi)` is the map
+    Giving two coordinate charts `(U, \varphi)` and `(V, \psi)` on a
+    topological manifold `M` of dimension `n` over a topological field `K`,
+    the *transition map from* `(U,\varphi)` *to* `(V,\psi)` is the map
 
     .. MATH::
 
         \psi\circ\varphi^{-1}: \varphi(U\cap V) \subset K^n
-        \rightarrow \psi(U\cap V) \subset K^n,
+        \rightarrow \psi(U\cap V) \subset K^n.
 
-    In other words, the transition map `\psi\circ\varphi^{-1}` expresses the
-    coordinates `(y^1,\ldots,y^n)` of `(V,\psi)` in terms of the coordinates
-    `(x^1,\ldots,x^n)` of `(U,\varphi)` on the open subset where the two
-    charts intersect, i.e. on `U\cap V`.
+    In other words, the transition map `\psi \circ \varphi^{-1}` expresses
+    the coordinates `(y^1, \ldots, y^n)` of `(V, \psi)` in terms of the
+    coordinates `(x^1, \ldots, x^n)` of `(U, \varphi)` on the open subset
+    where the two charts intersect, i.e. on `U \cap V`.
 
     INPUT:
 
-    - ``chart1`` -- chart `(U,\varphi)`
-    - ``chart2`` -- chart `(V,\psi)`
-    - ``transformations`` -- tuple (or list) `(Y_1,\ldots,Y_2)`, where
+    - ``chart1`` -- chart `(U, \varphi)`
+    - ``chart2`` -- chart `(V, \psi)`
+    - ``transformations`` -- tuple (or list) `(Y_1, \ldots, Y_2)`, where
       `Y_i` is the symbolic expression of the coordinate `y^i` in terms
-      of the coordinates `(x^1,\ldots,x^n)`
+      of the coordinates `(x^1, \ldots, x^n)`
 
     EXAMPLES:
 
@@ -1778,12 +1805,12 @@ class CoordChange(SageObject):
         OUTPUT:
 
         - an instance of :class:`CoordChange` representing the inverse of
-          the current coordinate transformation.
+          the current coordinate transformation
 
         EXAMPLES:
 
-        Inverse of a coordinate transformation corresponding to a pi/3-rotation
-        in the plane::
+        Inverse of a coordinate transformation corresponding to a
+        `\pi/3`-rotation in the plane::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
@@ -1868,7 +1895,6 @@ class CoordChange(SageObject):
         self._inverse = type(self)(self._chart2, self._chart1, *x2_to_x1)
         return self._inverse
 
-
     def set_inverse(self, *transformations, **kwds):
         r"""
         Sets the inverse of the coordinate transformation.
@@ -1881,10 +1907,10 @@ class CoordChange(SageObject):
         - ``transformations`` -- the inverse transformations expressed as a
           list of the expressions of the "old" coordinates in terms of the
           "new" ones
-        - ``kwds`` -- keyword arguments: only ``check=True`` (default) or
-          ``check=False`` are meaningful; it determines whether the provided
+        - ``kwds`` -- keyword arguments: only ``verbose=True`` (default) or
+          ``verbose=False`` are meaningful; it determines whether the provided
           transformations are checked to be indeed the inverse coordinate
-          transformations.
+          transformations
 
         EXAMPLES:
 
@@ -1919,25 +1945,22 @@ class CoordChange(SageObject):
                y == sqrt(x^3 + y^2)*y/sqrt(x^2 + y^2)
 
         """
-        if 'check' in kwds:
-            check = kwds['check']
-        else:
-            check = True
+        verbose = kwds.get('verbose', True)
         self._inverse = type(self)(self._chart2, self._chart1,
                                        *transformations)
-        if check:
-            print "Check of the inverse coordinate transformation:"
+        if verbose:
+            print("Check of the inverse coordinate transformation:")
             x1 = self._chart1._xx
             x2 = self._chart2._xx
             n1 = len(x1)
             for i in range(n1):
-                print "  ", x1[i], '==' , self._inverse(*(self(*x1)))[i]
+                print("  {} == {}".format(x1[i], self._inverse(*(self(*x1)))[i]))
             for i in range(n1):
-                print "  ", x2[i], '==', self(*(self._inverse(*x2)))[i]
+                print("  {} == {}".format(x2[i], self(*(self._inverse(*x2)))[i]))
 
     def __mul__(self, other):
         r"""
-        Composition with another change of coordinates
+        Composition with another change of coordinates.
 
         INPUT:
 
@@ -1946,8 +1969,8 @@ class CoordChange(SageObject):
 
         OUTPUT:
 
-        - the change of coordinates X_1 --> X_3, where X_1 is the initial
-          chart of ``other`` and X_3 is the final chart of ``self``
+        - the change of coordinates `X_1 \to X_3`, where `X_1` is the initial
+          chart of ``other`` and `X_3` is the final chart of ``self``
 
         EXAMPLE::
 
@@ -2078,3 +2101,4 @@ class CoordChange(SageObject):
         return FormattedExpansion(rtxt, rlatex)
 
     disp = display
+

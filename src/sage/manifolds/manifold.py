@@ -1371,37 +1371,37 @@ class TopologicalManifold(ManifoldSubset):
 
         INPUT:
 
-        - ``coordinates`` --  (default: '' (empty string)) single string
-          defining the coordinate symbols and ranges: the coordinates are
-          separated by ' ' (space) and each coordinate has at most three fields,
-          separated by ':':
-
-          1. The coordinate symbol (a letter or a few letters)
-          2. (optional, only for manifolds over `\RR`) The interval `I`
-             defining the coordinate range: if not
-             provided, the coordinate is assumed to span all `\RR`; otherwise
-             `I` must be provided in the form (a,b) (or equivalently ]a,b[)
-             The bounds a and b can be +/-Infinity, Inf, infinity, inf or oo.
-             For *singular* coordinates, non-open intervals such as [a,b] and
-             (a,b] (or equivalently ]a,b]) are allowed.
-             Note that the interval declaration must not contain any space
-             character.
-          3. (optional) The LaTeX spelling of the coordinate; if not provided
-             the coordinate symbol given in the first field will be used.
-
-          The order of the fields 2 and 3 does not matter and each of them can
-          be omitted.
-          If it contains any LaTeX expression, the string ``coordinates`` must
-          be declared with the prefix 'r' (for "raw") to allow for a proper
-          treatment of the backslash character (see examples below).
-          If no interval range and no LaTeX spelling is to be provided for any
-          coordinate, the argument ``coordinates`` can be omitted when the
-          shortcut operator ``<,>`` is used via Sage preparser (see examples
-          below)
+        - ``coordinates`` --  (default: ``'``' (empty string)) string
+          defining the coordinate symbols and ranges, see below
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
           the coordinate symbols (this is guaranteed if the shortcut operator
-          ``<,>`` is used).
+          ``<,>`` is used)
+
+        The coordinates are separated by ``' '`` (space) and each
+        coordinate has at most three fields, separated by ``':'``:
+
+        1. The coordinate symbol (a letter or a few letters).
+        2. (optional, only for manifolds over `\RR`) The interval `I`
+           defining the coordinate range: if not provided, the coordinate
+           is assumed to span all `\RR`; otherwise `I` must be provided
+           in the form ``(a,b)`` (or equivalently ``]a,b[``)
+           The bounds ``a`` and ``b`` can be ``+/-Infinity``, ``Inf``,
+           ``infinity``, ``inf`` or ``oo``. For *singular* coordinates,
+           non-open intervals such as ``[a,b]`` and
+           ``(a,b]`` (or equivalently ``]a,b]``) are allowed. Note that
+           the interval declaration must not contain any space character.
+        3. (optional) The LaTeX spelling of the coordinate; if not provided
+           the coordinate symbol given in the first field will be used.
+
+        The order of the fields 2 and 3 does not matter and each of them can
+        be omitted. If it contains any LaTeX expression, the string
+        ``coordinates`` must be declared with the prefix 'r' (for "raw") to
+        allow for a proper treatment of the backslash character (see
+        examples below). If no interval range and no LaTeX spelling is to
+        be provided for any coordinate, the argument ``coordinates`` can be
+        omitted when the shortcut operator ``<,>`` is used via Sage
+        preparser (see examples below).
 
         OUTPUT:
 

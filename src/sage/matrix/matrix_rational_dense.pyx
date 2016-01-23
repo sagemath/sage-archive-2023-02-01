@@ -75,7 +75,7 @@ from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
@@ -2580,7 +2580,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1,2,2,4])._invert_pari()
             Traceback (most recent call last):
             ...
-            PariError: impossible inverse in ginv: 0
+            PariError: impossible inverse in ginv: [1, 2; 2, 4]
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")

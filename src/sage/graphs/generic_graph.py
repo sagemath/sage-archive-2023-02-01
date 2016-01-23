@@ -113,7 +113,7 @@ can be applied on both. Here is what it can do:
     :delim: |
 
     :meth:`~GenericGraph.eulerian_orientation` | Return a DiGraph which is an Eulerian orientation of the current graph.
-    :meth:`~GenericGraph.eulerian_circuit` | Return a list of edges forming an eulerian circuit if one exists.
+    :meth:`~GenericGraph.eulerian_circuit` | Return a list of edges forming an Eulerian circuit if one exists.
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
@@ -966,8 +966,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: copy(H) is H
             False
 
-        TESTS:
-
         Bad input::
 
             sage: G.copy(data_structure="sparse", sparse=False)
@@ -983,7 +981,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: There is no dense immutable backend at the moment.
 
-        Which backend ?::
+        Which backend? ::
 
             sage: G.copy(data_structure="sparse")._backend
             <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
@@ -3075,16 +3073,16 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``path`` -- by default this function finds if the graph contains a closed
-          tour visiting each edge once, i.e. an eulerian cycle. If you want to test
-          the existence of an eulerian path, set this argument to ``True``. Graphs
-          with this property are sometimes called semi-eulerian.
+          tour visiting each edge once, i.e. an Eulerian cycle. If you want to test
+          the existence of an Eulerian path, set this argument to ``True``. Graphs
+          with this property are sometimes called semi-Eulerian.
 
         OUTPUT:
 
         ``True`` or ``False`` for the closed tour case. For an open tour search
         (``path``=``True``) the function returns ``False`` if the graph is not
-        semi-eulerian, or a tuple (u, v) in the other case. This tuple defines the
-        edge that would make the graph eulerian, i.e. close an existing open tour.
+        semi-Eulerian, or a tuple (u, v) in the other case. This tuple defines the
+        edge that would make the graph Eulerian, i.e. close an existing open tour.
         This edge may or may not be already present in the graph.
 
         EXAMPLES::
@@ -3130,7 +3128,7 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
 
-        # unconnected graph can still be eulerian if all components
+        # unconnected graph can still be Eulerian if all components
         # up to one doesn't contain any edge
         nontrivial_components = 0
         for cc in self.connected_components():
@@ -3151,7 +3149,7 @@ class GenericGraph(GenericGraph_pyx):
                         else:
                             # if there was another vertex with the same sign of difference...
                             if uv[(diff+1)//2] is not None:
-                                return False # ... the graph is not semi-eulerian
+                                return False # ... the graph is not semi-Eulerian
                             else:
                                 uv[(diff+1)//2] = v
                     else:
@@ -3303,7 +3301,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def eulerian_circuit(self, return_vertices=False, labels=True, path=False):
         r"""
-        Return a list of edges forming an eulerian circuit if one exists.
+        Return a list of edges forming an Eulerian circuit if one exists.
         Otherwise return False.
 
         This is implemented using Hierholzer's algorithm.
@@ -3316,7 +3314,7 @@ class GenericGraph(GenericGraph_pyx):
         -  ``labels`` -- (default: ``True``) whether to return edges with labels
            (3-tuples)
 
-        -  ``path`` -- (default: ``False``) find an eulerian path instead
+        -  ``path`` -- (default: ``False``) find an Eulerian path instead
 
         OUTPUT:
 
@@ -3342,7 +3340,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.CompleteGraph(4).eulerian_circuit()
             False
 
-        A disconnected graph can be eulerian::
+        A disconnected graph can be Eulerian::
 
             sage: g = Graph({0: [], 1: [2], 2: [3], 3: [1], 4: []})
             sage: g.eulerian_circuit(labels=False)
@@ -3373,7 +3371,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() == 0:
             return ([], []) if return_vertices else []
 
-        # check if the graph has proper properties to be eulerian
+        # check if the graph has proper properties to be Eulerian
         edge = self.is_eulerian(path=path)
         if not edge:
             return False
@@ -4533,7 +4531,7 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``on_embedding`` (default: ``None``) - two kinds of input are allowed:
 
-           - a dictionnary representing a combinatorial embedding on which the
+           - a dictionary representing a combinatorial embedding on which the
              genus should be computed. Note that this must be a valid embedding
              for the graph. The dictionary structure is given by: ``vertex1:
              [neighbor1, neighbor2, neighbor3], vertex2: [neighbor]`` where
@@ -6869,7 +6867,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: tsp = g.traveling_salesman_problem()
             Traceback (most recent call last):
             ...
-            EmptySetError: The given graph is not hamiltonian
+            EmptySetError: The given graph is not Hamiltonian
 
         One easy way to change it is obviously to add to this graph the edges
         corresponding to a Hamiltonian cycle. If we do this by setting the cost
@@ -7042,7 +7040,7 @@ class GenericGraph(GenericGraph_pyx):
                     answer.name("TSP from "+self.name())
                     return answer
 
-            raise EmptySetError("The given graph is not hamiltonian")
+            raise EmptySetError("The given graph is not Hamiltonian")
 
         ################################
         # Quick checks of connectivity #
@@ -7055,12 +7053,12 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             if not self.is_strongly_connected():
-                raise EmptySetError("The given graph is not hamiltonian")
+                raise EmptySetError("The given graph is not Hamiltonian")
 
         else:
             # Checks whether the graph is 2-connected
             if not self.strong_orientation().is_strongly_connected():
-                raise EmptySetError("The given graph is not hamiltonian")
+                raise EmptySetError("The given graph is not Hamiltonian")
 
         ############################
         # Deal with multiple edges #
@@ -7139,7 +7137,7 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     p.solve(log = verbose)
                 except MIPSolverException:
-                    raise EmptySetError("The given graph is not hamiltonian")
+                    raise EmptySetError("The given graph is not Hamiltonian")
 
                 while True:
                     # We build the DiGraph representing the current solution
@@ -7165,7 +7163,7 @@ class GenericGraph(GenericGraph_pyx):
                     try:
                         p.solve(log = verbose)
                     except MIPSolverException:
-                        raise EmptySetError("The given graph is not hamiltonian")
+                        raise EmptySetError("The given graph is not Hamiltonian")
 
             # Undirected Case #
             ###################
@@ -7190,7 +7188,7 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     p.solve(log = verbose)
                 except MIPSolverException:
-                    raise EmptySetError("The given graph is not hamiltonian")
+                    raise EmptySetError("The given graph is not Hamiltonian")
 
                 while True:
                     # We build the DiGraph representing the current solution
@@ -7215,7 +7213,7 @@ class GenericGraph(GenericGraph_pyx):
                     try:
                         p.solve(log = verbose)
                     except MIPSolverException:
-                        raise EmptySetError("The given graph is not hamiltonian")
+                        raise EmptySetError("The given graph is not Hamiltonian")
 
             # We can now return the TSP !
             answer = self.subgraph(edges = h.edges())
@@ -7373,7 +7371,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_cycle()
             Traceback (most recent call last):
             ...
-            EmptySetError: The given graph is not hamiltonian
+            EmptySetError: The given graph is not Hamiltonian
 
         Now, using the backtrack algorithm in the Heawood graph ::
 
@@ -7676,7 +7674,7 @@ class GenericGraph(GenericGraph_pyx):
             constraint that the flow going through an edge has to be an
             integer.
 
-        - ``use_edge_labels`` -- boolean (default: ``False``)
+        - ``use_edge_labels`` -- boolean (default: ``True``)
 
           - When set to ``True``, computes a maximum flow
             where each edge has a capacity defined by its label. (If
@@ -11235,7 +11233,9 @@ class GenericGraph(GenericGraph_pyx):
 
 
 
-        TESTS: The appropriate properties are preserved.
+        TESTS:
+
+        The appropriate properties are preserved.
 
         ::
 
@@ -11366,7 +11366,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: S.edges()
             [('00', '01', None), ('10', '11', None)]
 
-        TESTS: Properties of the graph are preserved.
+        TESTS:
+
+        Properties of the graph are preserved.
 
         ::
 
@@ -11518,7 +11520,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: S.edges()
             [('00', '01', None), ('10', '11', None)]
 
-        TESTS: Properties of the graph are preserved.
+        TESTS:
+
+        Properties of the graph are preserved.
 
         ::
 
@@ -12019,6 +12023,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: for g in graphs(5):
             ....:     _ = g.is_chordal()
 
+        :trac:`11735`::
+
+           sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
+           sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
+           False
+           sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
+           True
+
         REFERENCES:
 
         .. [Rose75] Rose, D.J. and Tarjan, R.E.,
@@ -12030,16 +12042,6 @@ class GenericGraph(GenericGraph_pyx):
           Incidence matrices and interval graphs
           Pacific J. Math 1965
           Vol. 15, number 3, pages 835--855
-
-        TESTS:
-
-        See :trac:`11735`::
-
-           sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
-           sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
-           False
-           sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
-           True
         """
         self._scream_if_not_simple()
 
@@ -13250,7 +13252,7 @@ class GenericGraph(GenericGraph_pyx):
                 if with_labels:
                     return dict(zip(self.vertices(), eccentricity(self)))
                 else:
-                    return eccentricity(self, method='standard' if self.is_directed() else 'bounds')
+                    return eccentricity(self, algorithm='standard' if self.is_directed() else 'bounds')
             if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
                                                          weight_function,
@@ -13480,7 +13482,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("Algorithm '" + algorithm + "' does not work" +
                                  " on weighted graphs.")
             from distances_all_pairs import diameter
-            return diameter(self, method=algorithm)
+            return diameter(self, algorithm=algorithm)
 
         return max(self.eccentricity(by_weight=by_weight,
                                      weight_function=weight_function,
@@ -16629,7 +16631,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`~sage.graphs.graph_decompositions.graph_products.is_cartesian_product`
-              -- factorization of graphs according to the cartesian product
+              -- factorization of graphs according to the Cartesian product
 
             - :mod:`~sage.graphs.graph_decompositions.graph_products`
               -- a module on graph products.
@@ -20801,19 +20803,19 @@ class GenericGraph(GenericGraph_pyx):
         .. NOTE::
 
             For this routine to work on all graphs, the optional packages
-            gap_packages and database_gap need to be installed: to do so,
-            it is enough to run ``sage -i gap_packages database_gap``.
+            ``gap_packages`` and ``database_gap`` need to be installed: to do
+            so, it is enough to run ``sage -i gap_packages database_gap``.
 
         INPUT:
 
-        - ``return_group`` (boolean) -- If True, return a group for which the
-          graph is a Cayley graph.
+        - ``return_group`` (boolean; ``False``) -- If True, return a group for
+          which the graph is a Cayley graph.
 
-        - ``mapping`` (boolean) -- If True, return a mapping from vertices to
-          group elements.
+        - ``mapping`` (boolean; ``False``) -- If True, return a mapping from
+          vertices to group elements.
 
-        - ``generators`` (boolean) -- If True, return the generating set of
-          the Cayley graph.
+        - ``generators`` (boolean; ``False``) -- If True, return the generating
+          set of the Cayley graph.
 
         ALGORITHM:
 
@@ -20843,8 +20845,8 @@ class GenericGraph(GenericGraph_pyx):
         elements, respectively, among the generators::
 
             sage: g = Graph(graphs.PaleyGraph(9), loops=True, multiedges=True)
-            sage: g.add_edges([(u, u) for u in g.vertex_iterator()])
-            sage: g.add_edges([(u, u+1) for u in g.vertex_iterator()])
+            sage: g.add_edges([(u, u) for u in g])
+            sage: g.add_edges([(u, u+1) for u in g])
             sage: _, S = g.is_cayley(generators=True)
             sage: S # random
             [(),
@@ -20871,7 +20873,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = h.disjoint_union(h)
             sage: h = h.disjoint_union(g)
             sage: _, G, d, S = h.is_cayley(return_group=True, mapping=True, generators=True)
-            sage: all(set(d[u] for u in h.neighbors(v)) == set(d[v]*x for x in S) for v in h.vertex_iterator())
+            sage: all(set(d[u] for u in h.neighbors(v)) == set(d[v]*x for x in S) for v in h)
             True
 
         The method also works efficiently with dense simple graphs::

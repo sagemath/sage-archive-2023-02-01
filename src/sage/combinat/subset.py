@@ -38,7 +38,7 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 
 from sage.sets.set import Set, Set_object_enumerated
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 import combination
@@ -287,7 +287,7 @@ class Subsets_s(Parent):
             sage: Subsets([0,1,2]) != Subsets([0,1,2],2)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def _repr_(self):
         """
@@ -612,7 +612,7 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(4,2) != Subsets(5,2) and Subsets(4,2) != Subsets(4,3)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def cardinality(self):
         """
@@ -827,7 +827,7 @@ def dict_to_list(d):
 
 def list_to_dict(l):
     r"""
-    Return a dictionnary whose keys are the elements of l and values are the
+    Return a dictionary whose keys are the elements of l and values are the
     multiplicity they appear in l.
 
     EXAMPLES::
@@ -922,7 +922,7 @@ class SubMultiset_s(Parent):
             sage: Subsets([1,2,2,3], submultiset=True) != Subsets([1,2,3,3], submultiset=True)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __contains__(self, s):
         """

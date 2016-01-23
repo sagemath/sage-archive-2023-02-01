@@ -66,7 +66,7 @@ def ChessboardGraphGenerator(dim_list,
     - ``relabel`` -- (default: ``False``) a boolean set to ``True`` if vertices
       must be relabeled as integers.
 
-    OUTPUTS:
+    OUTPUT:
 
     - A Graph build on a `d`-dimensional chessboard with prescribed dimensions,
       and with edges according given parameters.
@@ -82,7 +82,7 @@ def ChessboardGraphGenerator(dim_list,
         sage: G.is_isomorphic( graphs.CompleteGraph(4) )
         True
 
-    A Rook's Graph in 2 dimensions is isomporphic to the cartesian product of 2
+    A Rook's Graph in 2 dimensions is isomporphic to the Cartesian product of 2
     complete graphs::
 
         sage: G, _ = graphs.ChessboardGraphGenerator( [3,4], rook=True, rook_radius=None, bishop=False, knight=False )
@@ -457,7 +457,7 @@ def RookGraph(dim_list, radius=None, relabel=False):
 
     EXAMPLES:
 
-    The `(n,m)`-Rook's Graph is isomorphic to the cartesian product of two
+    The `(n,m)`-Rook's Graph is isomorphic to the Cartesian product of two
     complete graphs::
 
         sage: G = graphs.RookGraph( [3, 4] )

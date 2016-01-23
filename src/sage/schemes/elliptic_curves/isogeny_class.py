@@ -678,10 +678,10 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             [1 2]
             [2 1]
             sage: [E.ainvs() for E in C]
-            [(0, 0, 0, -25762110*c^2 - 67447215, -154360009760*c^2 - 404119737340),
-            (0, 0, 0, 130763490*c^2 + 342343485, 1391590873420*c^3 + 3643232206680*c)]
+            [(0, 0, 0, 83490*c^2 - 147015, -64739840*c^2 - 84465260),
+            (0, 0, 0, -161535*c^2 + 70785, -62264180*c^3 + 6229080*c)]
             sage: C.isogenies()[0][1]
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-25762110*c^2-67447215)*x + (-154360009760*c^2-404119737340) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (130763490*c^2+342343485)*x + (1391590873420*c^3+3643232206680*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (83490*c^2-147015)*x + (-64739840*c^2-84465260) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-161535*c^2+70785)*x + (-62264180*c^3+6229080*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
         TESTS::
 
@@ -1186,7 +1186,7 @@ def possible_isogeny_degrees(E, verbose=False):
 
         from sage.libs.pari.all import pari
         from sage.sets.all import Set
-        from sage.rings.arith import kronecker_symbol
+        from sage.arith.all import kronecker_symbol
 
         n = E.base_field().absolute_degree()
         if not E.has_rational_cm():

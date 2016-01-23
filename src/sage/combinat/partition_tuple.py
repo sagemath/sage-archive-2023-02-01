@@ -527,10 +527,6 @@ class PartitionTuple(CombinatorialElement):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.global_options.reset()
         """
-        if compact is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16933, 'compact argument is deprecated.')
-
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _repr_diagram(self):

@@ -161,7 +161,6 @@ Comprehensive Module list
     sage/combinat/perfect_matching
     sage/combinat/permutation
     sage/combinat/permutation_cython
-    sage/combinat/permutation_nk
     sage/combinat/posets/__init__
     sage/combinat/posets/all
     sage/combinat/posets/cartesian_product
@@ -287,6 +286,7 @@ Comprehensive Module list
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type
+    sage/combinat/sine_gordon
     sage/combinat/six_vertex_model
     sage/combinat/skew_partition
     sage/combinat/skew_tableau
@@ -319,6 +319,7 @@ Comprehensive Module list
     sage/combinat/subsets_hereditary
     sage/combinat/subsets_pairwise
     sage/combinat/subword
+    sage/combinat/subword_complex
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau

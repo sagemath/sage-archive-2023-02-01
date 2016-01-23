@@ -143,6 +143,25 @@ cdef class Cache_ntl_gf2e(SageObject):
     but includes many functions that were previously included in
     the parent (see :trac:`12062`).
     """
+    def __cinit__(self, parent, Py_ssize_t k, modulus):
+        """
+        Construction.
+
+        TESTS::
+
+            sage: from sage.rings.finite_rings.element_ntl_gf2e import Cache_ntl_gf2e
+            sage: Cache_ntl_gf2e.__new__(Cache_ntl_gf2e, None, 2, [1,1,1])
+            <type 'sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e'>
+        """
+        cdef GF2X_c ntl_m
+        cdef GF2_c c
+        cdef Py_ssize_t i
+
+        for i in range(k + 1):
+            GF2_conv_long(c, modulus[i])
+            GF2X_SetCoeff(ntl_m, i, c)
+        self.F = GF2EContext_c(ntl_m)
+
     def __init__(self, parent, Py_ssize_t k, modulus):
         """
         Initialization.
@@ -151,16 +170,6 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             sage: k.<a> = GF(2^8, impl="ntl")
         """
-        cdef GF2X_c ntl_m, ntl_tmp
-        cdef GF2_c c
-        cdef Py_ssize_t i
-
-        late_import()
-        for i in range(k + 1):
-            GF2_conv_long(c, modulus[i])
-            GF2X_SetCoeff(ntl_m, i, c)
-        GF2EContext_construct_GF2X(&self.F, &ntl_m)
-
         self._parent = <FiniteField?>parent
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
@@ -174,8 +183,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         else:
             self._gen = self._zero_element
 
-    def __dealloc__(self):
-        GF2EContext_destruct(&self.F)
+        late_import()
 
     def _doctest_for_5340(self):
         r"""
@@ -521,10 +529,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         if isinstance(parent, FiniteField_ntl_gf2e):
             self._parent = parent
             (<Cache_ntl_gf2e>self._parent._cache).F.restore()
-            GF2E_construct(&self.x)
-
-    def __dealloc__(FiniteField_ntl_gf2eElement self):
-        GF2E_destruct(&self.x)
 
     cdef FiniteField_ntl_gf2eElement _new(FiniteField_ntl_gf2eElement self):
         cdef FiniteField_ntl_gf2eElement y
@@ -606,7 +610,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         """
         (<Cache_ntl_gf2e>self._parent._cache).F.restore()
-        return bool(GF2E_equal(self.x,self._cache._one_element.x))
+        return self.x == self._cache._one_element.x
 
     def is_unit(FiniteField_ntl_gf2eElement self):
         """
@@ -844,7 +848,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             True
         """
         (<Cache_ntl_gf2e>left._parent._cache).F.restore()
-        c = GF2E_equal((<FiniteField_ntl_gf2eElement>left).x, (<FiniteField_ntl_gf2eElement>right).x)
+        cdef int c = (<FiniteField_ntl_gf2eElement>left).x == (<FiniteField_ntl_gf2eElement>right).x
         if c == 1:
             return 0
         else:

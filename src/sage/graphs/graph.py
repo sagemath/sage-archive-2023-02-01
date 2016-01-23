@@ -214,11 +214,10 @@ examples are covered here.
 Generators
 ----------
 
-If you wish to iterate through all the isomorphism types of graphs,
-type, for example::
+Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
 
     sage: for g in graphs(4):
-    ...     print g.spectrum()
+    ....:     print g.spectrum()
     [0, 0, 0, 0]
     [1, 0, 0, -1]
     [1.4142135623..., 0, 0, -1.4142135623...]
@@ -230,6 +229,16 @@ type, for example::
     [2, 0, 0, -2]
     [2.5615528128..., 0, -1, -1.5615528128...]
     [3, -1, -1, -1]
+
+Similarly ``graphs()`` will iterate through all graphs. The complete
+graph of 4 vertices is of course the smallest graph with chromatic number
+bigger than three::
+
+    sage: for g in graphs():
+    ....:     if g.chromatic_number() > 3:
+    ....:         break
+    sage: g.is_isomorphic(graphs.CompleteGraph(4))
+    True
 
 For some commonly used graphs to play with, type
 
@@ -349,7 +358,7 @@ Show each graph as you iterate through the results:
 ::
 
     sage: for g in Q:
-    ...     show(g)
+    ....:     show(g)
 
 Visualization
 -------------
@@ -500,7 +509,7 @@ class Graph(GenericGraph):
          :meth:`sparse6_string`).
 
       #. ``Graph(a_seidel_matrix, format='seidel_adjacency_matrix')`` -- return
-         a graph with a given seidel adjacency matrix (see documentation of
+         a graph with a given Seidel adjacency matrix (see documentation of
          :meth:`seidel_adjacency_matrix`).
 
       #. ``Graph(another_graph)`` -- return a graph from a Sage (di)graph,
@@ -2262,7 +2271,7 @@ class Graph(GenericGraph):
         return left == right
 
     @doc_index("Algorithmically hard stuff")
-    def treewidth(self,k=None,certificate=False):
+    def treewidth(self,k=None,certificate=False,algorithm=None):
         r"""
         Computes the tree-width of `G` (and provides a decomposition)
 
@@ -2274,6 +2283,11 @@ class Graph(GenericGraph):
           tree-width.
 
         - ``certificate`` -- whether to return the tree-decomposition itself.
+
+        - ``algorithm`` -- whether to use ``"sage"`` or ``"tdlib"`` (requires
+          the installation of the 'tdlib' package). The default behaviour is to
+          use 'tdlib' if it is available, and Sage's own algorithm when it is
+          not.
 
         OUTPUT:
 
@@ -2314,7 +2328,7 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth()
             4
             sage: graphs.PetersenGraph().treewidth(certificate=True)
-            Graph on 6 vertices
+            Tree decomposition: Graph on 6 vertices
 
         The treewidth of a 2d grid is its smallest side::
 
@@ -2332,15 +2346,15 @@ class Graph(GenericGraph):
             sage: g.treewidth()
             1
             sage: g.treewidth(certificate=True)
-            Graph on 4 vertices
+            Tree decomposition: Graph on 4 vertices
             sage: g.treewidth(2)
             True
             sage: g.treewidth(1)
             True
             sage: Graph(1).treewidth()
-            1
-            sage: Graph(0).treewidth()
             0
+            sage: Graph(0).treewidth()
+            -1
             sage: graphs.PetersenGraph().treewidth(k=2)
             False
             sage: graphs.PetersenGraph().treewidth(k=6)
@@ -2350,9 +2364,7 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
             False
             sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
-            Graph on 6 vertices
-
-        TESTS:
+            Tree decomposition: Graph on 6 vertices
 
         All edges do appear (:trac:`17893`)::
 
@@ -2372,16 +2384,66 @@ class Graph(GenericGraph):
             ....:         g.add_path([i,(i,j),(i+1)%3])
             sage: g.treewidth()
             2
+
+        Trivially true::
+
+            sage: graphs.PetersenGraph().treewidth(k=35)
+            True
+            sage: graphs.PetersenGraph().treewidth(k=35,certificate=True)
+            Tree decomposition: Graph on 1 vertex
+
+        Bad input:
+
+            sage: graphs.PetersenGraph().treewidth(k=-3)
+            Traceback (most recent call last):
+            ...
+            ValueError: k(=-3) must be a nonnegative integer
         """
-        from sage.misc.cachefunc import cached_function
-        from sage.sets.set import Set
         g = self
+
+        # Check Input
+        if algorithm is None:
+            try:
+                import sage.graphs.graph_decompositions.tdlib as tdlib
+                algorithm = "tdlib"
+            except ImportError:
+                algorithm = "sage"
+        elif (algorithm != "sage"   and
+              algorithm != "tdlib"):
+            raise ValueError("'algorithm' must be equal to 'tdlib', 'sage', or None")
+
+        if k is not None and k<0:
+            raise ValueError("k(={}) must be a nonnegative integer".format(k))
 
         # Stupid cases
         if g.order() == 0:
             if certificate: return Graph()
-            elif k is None: return 0
+            elif k is None: return -1
             else:           return True
+
+        if k is not None and k >= g.order()-1:
+            if certificate:
+                return Graph({sage.sets.set.Set(g.vertices()):[]},
+                             name="Tree decomposition")
+            return True
+
+        # TDLIB
+        if algorithm == 'tdlib':
+            try:
+                import sage.graphs.graph_decompositions.tdlib as tdlib
+            except ImportError:
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("tdlib")
+
+            T = tdlib.treedecomposition_exact(g, -1 if k is None else k)
+            width = tdlib.get_width(T)
+
+            if certificate:
+                return T if (k is None or width <= k) else False
+            elif k is None:
+                return width
+            else:
+                return (width <= k)
 
         # Disconnected cases
         if not g.is_connected():
@@ -2392,11 +2454,12 @@ class Graph(GenericGraph):
                     return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
             else:
                 return Graph(sum([cc.treewidth(certificate=True).edges(labels=False)
-                                  for cc in g.connected_components_subgraphs()],[]))
+                                  for cc in g.connected_components_subgraphs()],[]),
+                             name="Tree decomposition")
 
         # Forcing k to be defined
         if k is None:
-            for i in range(max(1,g.clique_number()-1,min(g.degree())),
+            for i in range(max(0,g.clique_number()-1,min(g.degree())),
                            g.order()+1):
                 ans = g.treewidth(k=i, certificate=certificate)
                 if ans:
@@ -2409,6 +2472,7 @@ class Graph(GenericGraph):
         # It returns either a boolean or the corresponding tree-decomposition, as a
         # list of edges between vertex cuts (as it is done for the complete
         # tree-decomposition at the end of the main function.
+        from sage.misc.cachefunc import cached_function
         @cached_function
         def rec(cut,cc):
             # Easy cases
@@ -2466,7 +2530,8 @@ class Graph(GenericGraph):
         # Building the Tree-Decomposition graph. Its vertices are cuts of the
         # decomposition, and there is an edge from a cut C1 to a cut C2 if C2 is an
         # immediate subcall of C1
-        G = Graph()
+        from sage.sets.set import Set
+        G = Graph(name="Tree decomposition")
         G.add_edges([(Set(x),Set(y)) for x,y in TD])
 
         # The Tree-Decomposition contains a lot of useless nodes.
@@ -3276,7 +3341,7 @@ class Graph(GenericGraph):
         b = {}
 
 
-        # Checking the input type. We make a dictionay out of it
+        # Checking the input type. We make a dictionary out of it
         if isinstance(bound, dict):
             b = bound
         else:
@@ -3922,7 +3987,7 @@ class Graph(GenericGraph):
         OUTPUT:
 
         This method returns ``False`` when the homomorphism does not exist, and
-        returns the homomorphism otherwise as a dictionnary associating a vertex
+        returns the homomorphism otherwise as a dictionary associating a vertex
         of `H` to a vertex of `G`.
 
         EXAMPLE:
@@ -6448,7 +6513,7 @@ class Graph(GenericGraph):
             return g
 
         # Take any two vertices (u,v)
-        it = vertices.__iter__()
+        it = iter(vertices)
         u,v = next(it),next(it)
 
         # Compute a uv min-edge-cut.

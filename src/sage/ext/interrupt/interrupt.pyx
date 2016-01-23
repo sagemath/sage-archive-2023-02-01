@@ -1,5 +1,3 @@
-# Needed for PARI_SIGINT_block in implementation.c:
-# distutils: libraries = pari gmp
 r"""
 Interrupt and signal handling
 
@@ -24,6 +22,9 @@ AUTHORS:
 from libc.signal cimport *
 from libc.stdio cimport freopen, stdin
 from cpython.exc cimport PyErr_Occurred
+
+# Needed for PARI_SIGINT_block in implementation.c:
+cimport sage.libs.pari.paridecl
 
 cdef extern from "interrupt/implementation.c":
     sage_signals_t _signals "_signals"

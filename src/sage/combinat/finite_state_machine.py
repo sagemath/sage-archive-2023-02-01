@@ -386,7 +386,7 @@ which gives additionally the state in which we arrived.
 We can also let an automaton act on a :doc:`word <words/words>`::
 
     sage: W = Words([-1, 0, 1]); W
-    Words over {-1, 0, 1}
+    Finite and infinite words over {-1, 0, 1}
     sage: w = W([1, 0, 1, 0, -1]); w
     word: 1,0,1,0,-1
     sage: NAF(w)
@@ -532,7 +532,7 @@ Sage's :doc:`words <words/words>`.
 ::
 
     sage: W = Words([0, 1]); W
-    Words over {0, 1}
+    Finite and infinite words over {0, 1}
 
 Let us take the inverter from the previous section and feed some
 finite word into it::
@@ -689,11 +689,11 @@ with our intention to forget the first letter.
     ValueError: Invalid input sequence.
 
 The transducer computing the Gray code is then constructed as a
-:meth:`cartesian product <Transducer.cartesian_product>` between the
+:meth:`Cartesian product <Transducer.cartesian_product>` between the
 shifted version and the original input (represented here by the
 ``shift_right_transducer`` and the :meth:`identity transducer
 <sage.combinat.finite_state_machine_generators.TransducerGenerators.Identity>`,
-respectively). This cartesian product is then fed into the
+respectively). This Cartesian product is then fed into the
 ``xor_transducer`` as a :meth:`composition
 <FiniteStateMachine.composition>` of transducers.
 
@@ -1920,7 +1920,7 @@ class FSMState(sage.structure.sage_object.SageObject):
             True
         """
         color = not compare_color or left.color == right.color
-        return (left.__eq__(right) and
+        return (left == right and
                 left.is_initial == right.is_initial and
                 left.is_final == right.is_final and
                 left.final_word_out == right.final_word_out and
@@ -3650,7 +3650,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         We can also let them act on :doc:`words <words/words>`::
 
             sage: W = Words([0, 1]); W
-            Words over {0, 1}
+            Finite and infinite words over {0, 1}
             sage: binary_inverter(W([0, 1, 1, 0, 1, 1]))
             word: 100100
 
@@ -10046,7 +10046,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         """
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
-        from sage.rings.arith import falling_factorial
+        from sage.arith.all import falling_factorial
         from sage.rings.integer_ring import ZZ
         from sage.symbolic.ring import SR
 
@@ -11231,7 +11231,7 @@ class Automaton(FiniteStateMachine):
         A new automaton which computes the intersection
         (see below) of the languages of ``self`` and ``other``.
 
-        The set of states of the new automaton is the cartesian product of the
+        The set of states of the new automaton is the Cartesian product of the
         set of states of both given automata. There is a transition `((A, B),
         (C, D), a)` in the new automaton if there are transitions `(A, C, a)`
         and `(B, D, a)` in the old automata.
@@ -12444,7 +12444,7 @@ class Transducer(FiniteStateMachine):
         A new transducer which computes the intersection
         (see below) of the languages of ``self`` and ``other``.
 
-        The set of states of the transducer is the cartesian product of the
+        The set of states of the transducer is the Cartesian product of the
         set of states of both given transducer. There is a transition `((A,
         B), (C, D), a, b)` in the new transducer if there are
         transitions `(A, C, a, b)` and `(B, D, a, b)` in the old transducers.
@@ -12568,7 +12568,7 @@ class Transducer(FiniteStateMachine):
         A transducer which can simultaneously process an input with ``self``
         and the machine(s) in ``other``.
 
-        The set of states of the new transducer is the cartesian product of
+        The set of states of the new transducer is the Cartesian product of
         the set of states of ``self`` and ``other``.
 
         Let `(A_j, B_j, a_j, b_j)` for `j\in\{1, \ldots, d\}` be
@@ -12642,7 +12642,7 @@ class Transducer(FiniteStateMachine):
         For example, if the transducer transforms the standard
         binary expansion into the non-adjacent form and the automaton
         recognizes the binary expansion without adjacent ones, then the
-        cartesian product of these two is a transducer which does not change
+        Cartesian product of these two is a transducer which does not change
         the input (except for changing ``a`` to ``(a, None)`` and ignoring a
         leading `0`).
 
@@ -12679,7 +12679,7 @@ class Transducer(FiniteStateMachine):
             ...
             TypeError: Only an automaton can be intersected with an automaton.
 
-        The cartesian product of more than two finite state machines can also
+        The Cartesian product of more than two finite state machines can also
         be computed::
 
             sage: T0 = transducers.CountSubblockOccurrences([0, 0], [0, 1, 2])
@@ -12985,7 +12985,7 @@ class Transducer(FiniteStateMachine):
         This can also be used with words as input::
 
             sage: W = Words([0, 1]); W
-            Words over {0, 1}
+            Finite and infinite words over {0, 1}
             sage: w = W([0, 1, 0, 0, 1, 1]); w
             word: 010011
             sage: binary_inverter(w)

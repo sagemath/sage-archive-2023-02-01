@@ -65,7 +65,6 @@ toolchain-deps:
 	$(MAKE) $(INST)/$(SAGE_MP_LIBRARY)
 	$(MAKE) $(INST)/$(MPFR)
 	$(MAKE) $(INST)/$(MPC)
-	$(MAKE) $(INST)/$(PPL)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
@@ -188,7 +187,8 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 DOC_DEPENDENCIES = sagelib $(INST)/$(SPHINX) $(INST)/$(SAGENB) \
 	| $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(NETWORKX) \
 	$(INST)/$(SCIPY) $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) \
-	$(INST)/$(MATHJAX) $(INST)/$(IPYKERNEL) $(INST)/$(JUPYTER_CLIENT)
+	$(INST)/$(MATHJAX) $(INST)/$(IPYKERNEL) $(INST)/$(JUPYTER_CLIENT) \
+	$(INST)/$(CONWAY_POLYNOMIALS)
 
 doc: doc-html
 

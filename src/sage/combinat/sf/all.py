@@ -7,9 +7,6 @@ from sage.misc.lazy_import import lazy_import
 # Nothing else will be exported
 from sf import SymmetricFunctions
 
-# This is deprecated:
-lazy_import('sage.combinat.sf.sfa', ['SymmetricFunctionAlgebra'])
-
 # Advanced stuff:
 
 lazy_import('sage.combinat.sf.kfpoly', 'KostkaFoulkesPolynomial')

@@ -30,7 +30,6 @@ from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative, coerce_AA
 
-
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
     Hecke triangle group (2, n, infinity).
@@ -959,7 +958,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         from sage.combinat.partition import OrderedPartitions
         from sage.combinat.combinat import tuples
-        from sage.rings.arith import divisors
+        from sage.arith.all import divisors
 
         if not D is None:
             max_block_length = max(coerce_AA(0), coerce_AA((D + 4)/(self.lam()**2))).sqrt().floor()
@@ -1215,7 +1214,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         - ``primitive``  -- If ``True`` (default) then only primitive
                             elements are considered.
 
-        OUPUT:
+        OUTPUT:
 
         ``True`` if ``D`` is a primitive discriminant (a discriminant of
         a primitive element) and ``False`` otherwise.
@@ -1270,7 +1269,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                             discriminants which were gathered so far are listed
                             (however there might be missing discriminants inbetween).
 
-        OUPUT:
+        OUTPUT:
 
         A list of discriminants less than or equal to ``D``.
 

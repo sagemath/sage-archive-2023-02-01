@@ -17,7 +17,7 @@ include "sage/ext/stdsage.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import random_prime
+from sage.arith.all import random_prime
 from types import GeneratorType
 
 # should I have mod_int versions of these functions?
@@ -835,7 +835,7 @@ cdef class MultiModularBasis_base:
             [10007, 10009]
 
         """
-        return self.list().__iter__()
+        return iter(self.list())
 
     def __getitem__(self, ix):
         """

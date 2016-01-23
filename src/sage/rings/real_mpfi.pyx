@@ -562,7 +562,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         elif rnd == "RNDU":
             return self._upper_field()
         else:
-            return RealField(self.__prec, self.sci_not, "RNDZ")
+            return RealField(self.__prec, self.sci_not, rnd)
 
     def _repr_(self):
         """
@@ -1867,7 +1867,7 @@ cdef class RealIntervalFieldElement(RingElement):
             self_exp = mpfr_get_exp(&self.value.left)
             if mpfr_zero_p(&self.value.left) or self_exp <= prec or self_exp <= 20:
                 mpz_init(self_zz)
-                mpfr_get_z(self_zz, &self.value.left, GMP_RNDN)
+                mpfr_get_z(self_zz, &self.value.left, MPFR_RNDN)
                 zz_str_maxlen = mpz_sizeinbase(self_zz, base) + 2
                 zz_str = <char *>PyMem_Malloc(zz_str_maxlen)
                 if zz_str == NULL:
@@ -1900,9 +1900,9 @@ cdef class RealIntervalFieldElement(RingElement):
 
         sig_on()
         lower_s = mpfr_get_str(<char*>0, &lower_expo, base, 0,
-                                &self.value.left, GMP_RNDD)
+                                &self.value.left, MPFR_RNDD)
         upper_s = mpfr_get_str(<char*>0, &upper_expo, base, 0,
-                                &self.value.right, GMP_RNDU)
+                                &self.value.right, MPFR_RNDU)
         sig_off()
 
         if lower_s == <char*> 0:
@@ -2168,12 +2168,8 @@ cdef class RealIntervalFieldElement(RingElement):
 
         INPUT:
 
-        - ``rnd`` -- (string) the rounding mode
-
-          - ``'RNDN'`` -- round to nearest
-          - ``'RNDD'`` -- (default) round towards minus infinity
-          - ``'RNDZ'`` -- round towards zero
-          - ``'RNDU'`` -- round towards plus infinity
+        - ``rnd`` -- the rounding mode (default: towards minus infinity,
+          see :class:`sage.rings.real_mpfr.RealField` for possible values)
 
         The rounding mode does not affect the value returned as a
         floating-point number, but it does control which variety of
@@ -2198,10 +2194,14 @@ cdef class RealIntervalFieldElement(RingElement):
             1.20
             sage: x.lower('RNDZ')
             1.19
+            sage: x.lower('RNDA')
+            1.20
             sage: x.lower().parent()
             Real Field with 13 bits of precision and rounding RNDD
             sage: x.lower('RNDU').parent()
             Real Field with 13 bits of precision and rounding RNDU
+            sage: x.lower('RNDA').parent()
+            Real Field with 13 bits of precision and rounding RNDA
             sage: x.lower() == x.lower('RNDU')
             True
         """
@@ -2219,12 +2219,8 @@ cdef class RealIntervalFieldElement(RingElement):
 
         INPUT:
 
-        - ``rnd`` -- (string) the rounding mode
-
-          - ``'RNDN'`` -- round to nearest
-          - ``'RNDD'`` -- (default) round towards minus infinity
-          - ``'RNDZ'`` -- round towards zero
-          - ``'RNDU'`` -- round towards plus infinity
+        - ``rnd`` -- the rounding mode (default: towards plus infinity,
+          see :class:`sage.rings.real_mpfr.RealField` for possible values)
 
         The rounding mode does not affect the value returned as a
         floating-point number, but it does control which variety of
@@ -2252,6 +2248,8 @@ cdef class RealIntervalFieldElement(RingElement):
             1.30
             sage: x.upper('RNDZ')
             1.30
+            sage: x.upper('RNDA')
+            1.31
             sage: x.upper().parent()
             Real Field with 13 bits of precision and rounding RNDU
             sage: x.upper('RNDD').parent()
@@ -2269,7 +2267,15 @@ cdef class RealIntervalFieldElement(RingElement):
 
     def endpoints(self, rnd=None):
         """
-        Return the lower and upper endpoints of ``self``.
+        Return the lower and upper endpoints of this interval.
+
+        OUTPUT: a 2-tuple of real numbers
+        (lower endpoint, upper endpoint)
+
+        .. SEEALSO::
+
+            :meth:`edges` which returns the endpoints as exact
+            intervals instead of real numbers.
 
         EXAMPLES::
 
@@ -2287,6 +2293,38 @@ cdef class RealIntervalFieldElement(RingElement):
             Real Field with 53 bits of precision and rounding RNDD
         """
         return self.lower(rnd), self.upper(rnd)
+
+    def edges(self):
+        """
+        Return the lower and upper endpoints of this interval as
+        intervals.
+
+        OUTPUT: a 2-tuple of real intervals
+        (lower endpoint, upper endpoint)
+        each containing just one point.
+
+        .. SEEALSO::
+
+            :meth:`endpoints` which returns the endpoints as real
+            numbers instead of intervals.
+
+        EXAMPLES::
+
+            sage: RIF(1,2).edges()
+            (1, 2)
+            sage: RIF(pi).edges()
+            (3.1415926535897932?, 3.1415926535897936?)
+        """
+        cdef RealIntervalFieldElement left = self._new()
+        cdef RealIntervalFieldElement right = self._new()
+        cdef mpfr_t x
+        mpfr_init2(x, self.prec())
+        mpfi_get_left(x, self.value)
+        mpfi_set_fr(left.value, x)
+        mpfi_get_right(x, self.value)
+        mpfi_set_fr(right.value, x)
+        mpfr_clear(x)
+        return (left, right)
 
     def absolute_diameter(self):
         """
@@ -2484,7 +2522,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         cdef RealIntervalFieldElement left = self._new()
         cdef RealIntervalFieldElement right = self._new()
-        mpfr_set(&left.value.left, &self.value.left, GMP_RNDN)
+        mpfr_set(&left.value.left, &self.value.left, MPFR_RNDN)
         mpfi_mid(&left.value.right, self.value)
         mpfi_interv_fr(right.value, &left.value.right, &self.value.right)
         return left, right
@@ -3941,11 +3979,11 @@ cdef class RealIntervalFieldElement(RingElement):
                 mpfr_min(&constructed.value.left,
                          &result.value.left,
                          &other.value.left,
-                         GMP_RNDD)
+                         MPFR_RNDD)
                 mpfr_min(&constructed.value.right,
                          &result.value.right,
                          &other.value.right,
-                         GMP_RNDU)
+                         MPFR_RNDU)
                 result = constructed
 
         return result
@@ -4046,11 +4084,11 @@ cdef class RealIntervalFieldElement(RingElement):
                 mpfr_max(&constructed.value.left,
                          &result.value.left,
                          &other.value.left,
-                         GMP_RNDD)
+                         MPFR_RNDD)
                 mpfr_max(&constructed.value.right,
                          &result.value.right,
                          &other.value.right,
-                         GMP_RNDU)
+                         MPFR_RNDU)
                 result = constructed
 
         return result
@@ -4132,66 +4170,6 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_sqrt(x.value, self.value)
         sig_off()
         return x
-
-# MPFI does not have cbrt.
-#     def cube_root(self):
-#         """
-#         Return the cubic root (defined over the real numbers) of self.
-
-#         EXAMPLES:
-#             sage: r = 125.0; r.cube_root()
-#             5.00000000000000
-#             sage: r = -119.0
-#             sage: r.cube_root()^3 - r       # illustrates precision loss
-#             -0.0000000000000142108547152020
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         sig_on()
-#         mpfr_cbrt(x.value, self.value, (<RealIntervalField>self._parent).rnd)
-#         sig_off()
-#         return x
-
-# MPFI does not have pow.
-#     def __pow(self, RealIntervalFieldElement exponent):
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         sig_on()
-#         mpfr_pow(x.value, self.value, exponent.value, (<RealIntervalField>self._parent).rnd)
-#         sig_off()
-#         if mpfr_nan_p(x.value):
-#             return self._complex_number_()**exponent._complex_number_()
-#         return x
-
-#     def __pow__(self, exponent, modulus):
-#         """
-#         Compute self raised to the power of exponent, rounded in
-#         the direction specified by the parent of self.
-
-#         If the result is not a real number, self and the exponent are
-#         both coerced to complex numbers (with sufficient precision),
-#         then the exponentiation is computed in the complex numbers.
-#         Thus this function can return either a real or complex number.
-
-#         EXAMPLES:
-#             sage: R = RealIntervalField(30)
-#             sage: a = R('1.23456')
-#             sage: a^20
-#             67.646297
-#             sage: a^a
-#             1.2971114
-#             sage: b = R(-1)
-#             sage: b^(1/2)
-#             1.0000000*I                   # 32-bit
-#             -0.00000000000000000010842021 + 0.99999999*I   # 64-bit
-#         """
-#         cdef RealIntervalFieldElement x
-#         if not isinstance(self, RealIntervalFieldElement):
-#             return self.__pow__(float(exponent))
-#         if not isinstance(exponent, RealIntervalFieldElement):
-#             x = self
-#             exponent = x._parent(exponent)
-#         return self.__pow(exponent)
 
     def __pow__(self, exponent, modulus):
         """
@@ -4889,7 +4867,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         known_bits = -self.relative_diameter().log2()
 
-        return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
+        return sage.arith.all.algdep(self.center(), n, known_bits=known_bits)
 
     def factorial(self):
         """
@@ -4965,8 +4943,8 @@ cdef class RealIntervalFieldElement(RingElement):
         cdef RealIntervalFieldElement x = self._new()
         if self > 1.462:
             # increasing
-            mpfr_gamma(&x.value.left, &self.value.left, GMP_RNDD)
-            mpfr_gamma(&x.value.right, &self.value.right, GMP_RNDU)
+            mpfr_gamma(&x.value.left, &self.value.left, MPFR_RNDD)
+            mpfr_gamma(&x.value.right, &self.value.right, MPFR_RNDU)
             return x
         elif self < 0:
             # Gamma(s) Gamma(1-s) = pi/sin(pi s)
@@ -4977,8 +4955,8 @@ cdef class RealIntervalFieldElement(RingElement):
             return ~self
         elif self < 1.461:
             # 0 < self as well, so decreasing
-            mpfr_gamma(&x.value.left, &self.value.right, GMP_RNDD)
-            mpfr_gamma(&x.value.right, &self.value.left, GMP_RNDU)
+            mpfr_gamma(&x.value.left, &self.value.right, MPFR_RNDD)
+            mpfr_gamma(&x.value.right, &self.value.left, MPFR_RNDU)
             return x
         else:
             # Worst case, this will recurse twice, as self is positive.

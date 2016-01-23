@@ -331,7 +331,7 @@ class AbstractPartitionDiagram(SetPartition):
             sage: pd1 != ((-2,-1),(2,1))
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def base_diagram(self):
         r"""

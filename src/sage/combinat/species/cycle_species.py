@@ -1,25 +1,23 @@
 """
 Cycle Species
 """
+
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from species import GenericCombinatorialSpecies
 from structure import GenericSpeciesStructure
 from generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ, divisors, euler_phi
+from sage.rings.all import ZZ
+from sage.arith.all import divisors, euler_phi
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
 
@@ -134,7 +132,9 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
              (1, 4, 2, 3),
              (1, 4, 3, 2)]
 
-        TESTS: We check to verify that the caching of species is actually
+        TESTS:
+
+        We check to verify that the caching of species is actually
         working.
 
         ::

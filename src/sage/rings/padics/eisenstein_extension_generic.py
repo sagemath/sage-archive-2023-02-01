@@ -69,7 +69,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The ramification index of the extension self/K
 
@@ -102,7 +102,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The degree of the induced extensions of residue fields.
 

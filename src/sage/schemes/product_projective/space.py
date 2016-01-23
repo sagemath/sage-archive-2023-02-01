@@ -72,7 +72,7 @@ def is_ProductProjectiveSpaces(x):
 
 def ProductProjectiveSpaces(n, R=None, names='x'):
     r"""
-    Returns the cartesian product of projective spaces. Can input either a list of projective spaces
+    Returns the Cartesian product of projective spaces. Can input either a list of projective spaces
     over the same base ring or the list of dimensions, the base ring, and the variable names.
 
     INPUT:
@@ -133,7 +133,7 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
             raise ValueError("Need list or tuple of dimensions")
         if not is_CommutativeRing(R):
             raise ValueError("Must be a commutative ring")
-        from sage.structure.parent_gens import normalize_names
+        from sage.structure.category_object import normalize_names
         n_vars=sum(d+1 for d in n)
         if isinstance(names, six.string_types):
             names = normalize_names(n_vars, names)

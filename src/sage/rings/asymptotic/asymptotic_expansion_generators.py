@@ -355,10 +355,9 @@ class AsymptoticExpansionGenerators(SageObject):
 
             sage: asymptotic_expansions.Binomial_kn_over_n(
             ....:     'n', k=5, precision=5, skip_constant_factor=True)
-            1/2*(e^n)^(5*log(5)
-            - 4*log(4))*n^(-1/2)
-            - 7/160*(e^n)^(5*log(5) - 4*log(4))*n^(-3/2)
-            + 49/25600*(e^n)^(5*log(5) - 4*log(4))*n^(-5/2)
+            (e^n)^(5*log(5) - 4*log(4))*n^(-1/2)
+            - 7/80*(e^n)^(5*log(5) - 4*log(4))*n^(-3/2)
+            + 49/12800*(e^n)^(5*log(5) - 4*log(4))*n^(-5/2)
             + O((e^n)^(5*log(5) - 4*log(4))*n^(-7/2))
             sage: _.parent()
             Asymptotic Ring <(e^(n*log(n)))^(Symbolic Constants Subring)
@@ -366,6 +365,10 @@ class AsymptoticExpansionGenerators(SageObject):
             * n^(Symbolic Constants Subring)
             * log(n)^(Symbolic Constants Subring)>
             over Rational Field
+            sage: asymptotic_expansions.Binomial_kn_over_n(
+            ....:     'n', k=4, precision=4, skip_constant_factor=True)
+            (e^n)^(4*log(4) - 3*log(3))*n^(-1/2)
+            + O((e^n)^(4*log(4) - 3*log(3))*n^(-3/2))
             sage: all(  # long time
             ....:     asymptotic_expansions.Binomial_kn_over_n('n', k=k,
             ....:         precision=5, algorithm='direct').has_same_summands(
@@ -420,7 +423,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if skip_constant_factor:
             from sage.rings.rational_field import QQ
             result = result.parent().change_parameter(
-                coefficient_ring=QQ)(result / SCR(k.sqrt()))
+                coefficient_ring=QQ)(result * SCR((k-1).sqrt()) / SCR(k.sqrt()))
         return result
 
 # Easy access to the asymptotic expansions generators from the command line:

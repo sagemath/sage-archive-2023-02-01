@@ -3046,6 +3046,50 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return len(self.growth_group.gens_monomial())
 
 
+    def singularity_analysis(self, singular_expansion):
+        r"""
+        Return the asymptotic growth of the coefficients of some
+        singular expansion by means of Singularity Analysis.
+
+        INPUT:
+
+        - ``singular_expansion``: an asymptotic expansion, possibly
+          from another ring.
+
+        OUTPUT:
+
+        An asymptotic expansion from this ring.
+
+        .. TODO:
+
+            Make this method more intelligent by implementing the
+            processing of symbolic expressions.
+        """
+        from term_monoid import ExactTerm, OTerm
+        from growth_group import MonomialGrowthGroup
+        from asymptotic_expansion_generators import asymptotic_expansions
+
+        def expand_summand(summand):
+            # helper function: takes a single summand from the singular
+            # expansion and determines the asymptotic growth of the
+            # coefficients.
+            alpha = summand.growth.exponent
+            if isinstance(summand, ExactTerm):
+                expansion = asymptotic_expansions.\
+                    SingularityAnalysis('Z', alpha=alpha).subs(Z=self.gen())
+                return summand.coefficient * expansion
+            elif isinstance(summand, OTerm):
+                return (self.gen() ** (alpha - 1)).O()
+
+
+        if not isinstance(singular_expansion.parent().growth_group,
+                          MonomialGrowthGroup):
+            raise NotImplementedError('Only implemented for Monomial Growth Groups')
+
+        return sum(expand_summand(s) for s in singular_expansion.summand)
+
+
+
     def create_summand(self, type, data=None, **kwds):
         r"""
         Create a simple asymptotic expansion consisting of a single

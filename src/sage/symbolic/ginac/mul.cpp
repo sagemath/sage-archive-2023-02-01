@@ -839,8 +839,8 @@ ex mul::eval_infinity(epvector::const_iterator infinity_iter) const
 {
 	GINAC_ASSERT(is_exactly_a<infinity>(infinity_iter->rest));
 	GINAC_ASSERT(infinity_iter->coeff.is_equal(_ex1));
-	infinity result = ex_to<infinity>(recombine_pair_to_ex(*infinity_iter));
-	result *= overall_coeff;
+	infinity result(ex_to<numeric>(infinity_iter->coeff));
+        result *= overall_coeff;
 
 	for (auto i = seq.begin(); i != seq.end(); i++) {
 		if (i == infinity_iter) continue;
@@ -1284,6 +1284,8 @@ expair mul::combine_pair_with_coeff_to_pair(const expair & p,
 	
 ex mul::recombine_pair_to_ex(const expair & p) const
 {
+        if (unlikely(is_exactly_a<infinity>(p.rest)))
+                return (new infinity(ex_to<numeric>(p.coeff)))->setflag(status_flags::evaluated|status_flags::dynallocated);
 	if (p.coeff.is_integer_one()) 
 		return p.rest;
 	else

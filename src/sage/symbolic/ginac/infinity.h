@@ -65,7 +65,7 @@ public:
 protected:
 	ex derivative(const symbol & s) const override;
 	bool is_equal_same_type(const basic & other) const override;
-	long calchash() const override;
+	long calchash() const override { return hashvalue; }
 	
 	// non-virtual functions in this class
 protected:

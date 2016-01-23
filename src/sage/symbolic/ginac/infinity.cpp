@@ -42,6 +42,17 @@ GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(infinity, basic,
   print_func<print_tree>(&infinity::do_print_tree).
   print_func<print_python_repr>(&infinity::do_print_python_repr))
 
+static long hash_from_dir(const ex& direction)
+{
+        if (direction.is_integer_one())
+                return LONG_MAX;
+        if (ex_to<numeric>(direction).is_zero())
+                return LONG_MAX-1;
+        if (direction.is_equal(_ex_1))
+                return LONG_MIN;
+        return 0L;
+}
+
 //////////
 // default constructor
 //////////
@@ -51,6 +62,7 @@ GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(infinity, basic,
 infinity::infinity() 
 : basic(&infinity::tinfo_static), direction(+1)
 {
+        hashvalue = hash_from_dir(direction);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -66,6 +78,7 @@ infinity::infinity(const numeric & _direction)
 	// Note: we cannot accept an arbirtary ex as argument 
 	// or we would take precedence over the copy constructor.
 	set_direction(_direction);
+        hashvalue = hash_from_dir(direction);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -74,7 +87,8 @@ infinity infinity::from_direction(const ex & _direction)
 	GINAC_ASSERT(!is_a<infinity>(_direction));
 	infinity result;
 	result.set_direction(_direction);
-	return result;
+	result.hashvalue = hash_from_dir(result.direction);
+        return result;
 }
 
 infinity infinity::from_sign(int sgn)
@@ -82,6 +96,7 @@ infinity infinity::from_sign(int sgn)
 	GINAC_ASSERT(sgn>=-1 and sgn<=1);
 	infinity result;
 	result.direction = sgn;
+	result.hashvalue = hash_from_dir(result.direction);
 	return result;
 }
 
@@ -137,8 +152,10 @@ void infinity::do_print_tree(const print_tree & c, unsigned level) const
 	c.s << " (" << class_name() << ")" << " @" << this
 	    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 	    << std::endl;
-	if (!is_unsigned_infinity())
+	if (!is_unsigned_infinity()) {
+                c.s << "with direction: ";
 		direction.print(c, level+4);
+        }
 }
 
 void infinity::do_print_latex(const print_latex & c, unsigned level) const
@@ -255,13 +272,6 @@ bool infinity::compare_other_type(const ex & other,
                 return is_plus_infinity();
 }
 
-long infinity::calchash() const
-{
-	hashvalue = golden_ratio_hash((p_int)tinfo() ^ direction.gethash());
-	setflag(status_flags::hash_calculated);
-	return hashvalue;
-}
-
 //////////
 // new virtual functions which can be overridden by derived classes
 //////////
@@ -298,6 +308,7 @@ void infinity::set_direction(const ex & new_direction)
 		ex normalization = GiNaC::pow(GiNaC::abs(new_direction),-1);
 		direction = mul(new_direction, normalization);
 	}
+        hashvalue = hash_from_dir(direction);
 }
 
 const infinity & infinity::operator *= (const ex & rhs)
@@ -313,7 +324,7 @@ const infinity & infinity::operator *= (const ex & rhs)
 	else if (rhs.info(info_flags::positive)) {
 		return *this;
 	} else if (rhs.info(info_flags::negative)) {
-		direction = mul(-1, direction);
+		set_direction(mul(-1, direction));
 		return *this;
 	} else if (rhs.nsymbols()==0) {
 		set_direction(mul(direction, rhs));

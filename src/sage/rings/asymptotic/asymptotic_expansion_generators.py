@@ -114,7 +114,7 @@ class AsymptoticExpansionGenerators(SageObject):
           the default precision of the asymptotic ring is used.
 
         - ``skip_constant_factor`` -- (default: ``False``) a
-          boolean. If set, then the constant factor is left out.
+          boolean. If set, then the constant factor `\sqrt{2\pi}` is left out.
           As a consequence, the coefficient ring of the output changes
           from ``Symbolic Constants Subring`` (if ``False``) to
           ``Rational Field`` (if ``True``).
@@ -187,7 +187,7 @@ class AsymptoticExpansionGenerators(SageObject):
           the default precision of the asymptotic ring is used.
 
         - ``skip_constant_summand`` -- (default: ``False``) a
-          boolean. If set, then the constant summand is left out.
+          boolean. If set, then the constant summand `\log(2\pi)/2` is left out.
           As a consequence, the coefficient ring of the output changes
           from ``Symbolic Constants Subring`` (if ``False``) to
           ``Rational Field`` (if ``True``).
@@ -309,7 +309,8 @@ class AsymptoticExpansionGenerators(SageObject):
           the default precision of the asymptotic ring is used.
 
         - ``skip_constant_factor`` -- (default: ``False``) a
-          boolean. If set, then the constant summand is left out.
+          boolean. If set, then the constant factor `\sqrt{k/(2\pi(k-1))}`
+          is left out.
           As a consequence, the coefficient ring of the output changes
           from ``Symbolic Constants Subring`` (if ``False``) to
           ``Rational Field`` (if ``True``).

@@ -20820,7 +20820,8 @@ class GenericGraph(GenericGraph_pyx):
         For connected graphs, find a regular subgroup of the automorphism
         group. For disconnected graphs, check that the graph is
         vertex-transitive and perform the check on one of its connected
-        components.
+        components. If a simple graph has density over 1/2, perform the check
+        on its complement as its disconnectedness may increase performance.
 
         EXAMPLES:
 
@@ -20873,6 +20874,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: all(set(d[u] for u in h.neighbors(v)) == set(d[v]*x for x in S) for v in h.vertex_iterator())
             True
 
+        The method also works efficiently with dense simple graphs::
+
+            sage: graphs.CompleteBipartiteGraph(50, 50).is_cayley()
+            True
+
         """
         compute_map = mapping or generators
         certificate = return_group or compute_map
@@ -20894,6 +20900,12 @@ class GenericGraph(GenericGraph_pyx):
                         G = PermutationGroup(gens, domain = self.vertices())
                 else:
                     c = C[0].is_cayley(return_group = False)
+        elif not self.allows_loops() and not self.allows_multiple_edges() and \
+                self.density() > Rational(1)/Rational(2):
+            if certificate:
+                c, G = self.complement().is_cayley(return_group = True)
+            else:
+                c = self.complement().is_cayley(return_group = False)
         else:
             A = self.automorphism_group()
             if certificate:

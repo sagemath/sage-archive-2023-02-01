@@ -20803,19 +20803,19 @@ class GenericGraph(GenericGraph_pyx):
         .. NOTE::
 
             For this routine to work on all graphs, the optional packages
-            gap_packages and database_gap need to be installed: to do so,
-            it is enough to run ``sage -i gap_packages database_gap``.
+            ``gap_packages`` and ``database_gap`` need to be installed: to do
+            so, it is enough to run ``sage -i gap_packages database_gap``.
 
         INPUT:
 
-        - ``return_group`` (boolean) -- If True, return a group for which the
-          graph is a Cayley graph.
+        - ``return_group`` (boolean; ``False``) -- If True, return a group for
+          which the graph is a Cayley graph.
 
-        - ``mapping`` (boolean) -- If True, return a mapping from vertices to
-          group elements.
+        - ``mapping`` (boolean; ``False``) -- If True, return a mapping from
+          vertices to group elements.
 
-        - ``generators`` (boolean) -- If True, return the generating set of
-          the Cayley graph.
+        - ``generators`` (boolean; ``False``) -- If True, return the generating
+          set of the Cayley graph.
 
         ALGORITHM:
 
@@ -20844,8 +20844,8 @@ class GenericGraph(GenericGraph_pyx):
         elements, respectively, among the generators::
 
             sage: g = Graph(graphs.PaleyGraph(9), loops=True, multiedges=True)
-            sage: g.add_edges([(u, u) for u in g.vertex_iterator()])
-            sage: g.add_edges([(u, u+1) for u in g.vertex_iterator()])
+            sage: g.add_edges([(u, u) for u in g])
+            sage: g.add_edges([(u, u+1) for u in g])
             sage: _, S = g.is_cayley(generators=True)
             sage: S # random
             [(),
@@ -20872,7 +20872,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = h.disjoint_union(h)
             sage: h = h.disjoint_union(g)
             sage: _, G, d, S = h.is_cayley(return_group=True, mapping=True, generators=True)
-            sage: all(set(d[u] for u in h.neighbors(v)) == set(d[v]*x for x in S) for v in h.vertex_iterator())
+            sage: all(set(d[u] for u in h.neighbors(v)) == set(d[v]*x for x in S) for v in h)
             True
 
         """

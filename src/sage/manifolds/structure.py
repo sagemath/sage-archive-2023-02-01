@@ -36,7 +36,7 @@ class TopologicalStructure(Singleton):
         Return the subcategory of ``cat`` corresponding to the structure
         of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.manifolds.structure import TopologicalStructure
             sage: from sage.categories.manifolds import Manifolds
@@ -58,7 +58,7 @@ class RealTopologicalStructure(Singleton):
         Return the subcategory of ``cat`` corresponding to the structure
         of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.manifolds.structure import RealTopologicalStructure
             sage: from sage.categories.manifolds import Manifolds

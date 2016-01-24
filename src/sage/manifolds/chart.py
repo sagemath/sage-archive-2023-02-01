@@ -45,8 +45,8 @@ class Chart(UniqueRepresentation, SageObject):
     Chart on a topological manifold.
 
     Given a topological manifold `M` of dimension `n` over a topological
-    field `K`, a *chart* on `M` is a pair `(U,\varphi)`, where `U` is an
-    open subset of `M` and `\varphi: U \rightarrow V \subset K^n` is a
+    field `K`, a *chart* on `M` is a pair `(U, \varphi)`, where `U` is an
+    open subset of `M` and `\varphi : U \rightarrow V \subset K^n` is a
     homeomorphism from `U` to an open subset `V` of `K^n`.
 
     The components `(x^1, \ldots, x^n)` of `\varphi`, defined by
@@ -644,7 +644,7 @@ class Chart(UniqueRepresentation, SageObject):
         - ``True`` if the coordinate values are admissible in the chart
           image, ``False`` otherwise
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', field='complex', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -832,12 +832,12 @@ class RealChart(Chart):
 
     Given a topological manifold `M` of dimension `n` over `\RR`, a *chart*
     on `M` is a pair `(U,\varphi)`, where `U` is an open subset of `M` and
-    `\varphi: U \rightarrow V \subset \RR^n` is a homeomorphism from `U` to
+    `\varphi : U \to V \subset \RR^n` is a homeomorphism from `U` to
     an open subset `V` of `\RR^n`.
 
     The components `(x^1, \ldots, x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p), \ldots, x^n(p))\in \RR^n` for any point `p \in U`,
-    are called the *coordinates* of the chart `(U, \varphi)`.
+    `\varphi(p) = (x^1(p), \ldots, x^n(p))\in \RR^n` for any point
+    `p \in U`, are called the *coordinates* of the chart `(U, \varphi)`.
 
     INPUT:
 
@@ -1607,7 +1607,7 @@ class CoordChange(SageObject):
 
     Giving two coordinate charts `(U, \varphi)` and `(V, \psi)` on a
     topological manifold `M` of dimension `n` over a topological field `K`,
-    the *transition map from* `(U,\varphi)` *to* `(V,\psi)` is the map
+    the *transition map from* `(U, \varphi)` *to* `(V, \psi)` is the map
 
     .. MATH::
 
@@ -1747,9 +1747,9 @@ class CoordChange(SageObject):
             return True
         if not isinstance(other, CoordChange):
             return False
-        return (self._chart1 == other._chart1) and \
-               (self._chart2 == other._chart2) and \
-               (self._transf == other._transf)
+        return ((self._chart1 == other._chart1)
+                and (self._chart2 == other._chart2)
+                and (self._transf == other._transf))
 
     def __ne__(self, other):
         r"""
@@ -1780,7 +1780,7 @@ class CoordChange(SageObject):
 
         - tuple of values of coordinates of ``chart2``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -1793,10 +1793,9 @@ class CoordChange(SageObject):
         #*# When MultiCoordFunction is implemented (trac #18640):
         # return self._transf(*coords)
         #*# for now:
-        substitutions = dict([(self._chart1._xx[j], coords[j]) for j in
-                                                              range(self._n1)])
-        return tuple(self._transf[i].subs(substitutions).simplify_full()
-                                                      for i in range(self._n2))
+        substitutions = {self._chart1._xx[j]: coords[j] for j in range(self._n1)}
+        return tuple([self._transf[i].subs(substitutions).simplify_full()
+                      for i in range(self._n2)])
 
     def inverse(self):
         r"""
@@ -1856,12 +1855,12 @@ class CoordChange(SageObject):
             if x2[i].is_positive():
                 coord_domain[i] = 'positive'
         xp2 = [ SR.var('xxxx' + str(i), domain=coord_domain[i])
-                                                           for i in range(n2) ]
+                for i in range(n2) ]
         #*# when MultiCoordFunction will be implemented (trac #18640):
         # xx2 = self._transf.expr()
         #*# for now:
         xx2 = self._transf
-        equations = [ xp2[i] == xx2[i] for i in range(n2) ]
+        equations = [xp2[i] == xx2[i] for i in range(n2)]
         try:
             solutions = solve(equations, *x1, solution_dict=True)
         except RuntimeError:
@@ -1972,7 +1971,7 @@ class CoordChange(SageObject):
         - the change of coordinates `X_1 \to X_3`, where `X_1` is the initial
           chart of ``other`` and `X_3` is the final chart of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -2014,7 +2013,7 @@ class CoordChange(SageObject):
         - the transition map between the charts restricted to the
           specified subsets
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -2053,7 +2052,7 @@ class CoordChange(SageObject):
         The output is either text-formatted (console mode) or LaTeX-formatted
         (notebook mode).
 
-        EXAMPLE:
+        EXAMPLES:
 
         From spherical coordinates to Cartesian ones in the plane::
 

@@ -3,9 +3,10 @@ Points of Topological Manifolds
 
 The class :class:`ManifoldPoint` implements points of a
 topological manifold.
+
 A :class:`ManifoldPoint` object can have coordinates in
-various charts defined on the manifold. Two points are declared equal if they
-have the same coordinates in the same chart.
+various charts defined on the manifold. Two points are declared
+equal if they have the same coordinates in the same chart.
 
 AUTHORS:
 
@@ -25,7 +26,11 @@ Defining a point in `\RR^3` by its spherical coordinates::
     sage: M = Manifold(3, 'R^3', structure='topological')
     sage: U = M.open_subset('U')  # the complement of the half-plane (y=0, x>=0)
     sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
-    sage: p = U((1, pi/2, pi), name='P') # coordinates in U's default chart (c_spher)
+
+We construct the point in the coordinates in the default chart of ``U``
+(``c_spher``)::
+
+    sage: p = U((1, pi/2, pi), name='P')
     sage: p
     Point P on the 3-dimensional topological manifold R^3
     sage: latex(p)
@@ -39,7 +44,7 @@ Defining a point in `\RR^3` by its spherical coordinates::
     sage: p.coord(c_spher) # equivalent to above
     (1, 1/2*pi, pi)
 
-Computing the point's coordinates in a new chart::
+Computing the coordinates of ``p`` in a new chart::
 
     sage: c_cart.<x,y,z> = U.chart() # Cartesian coordinates on U
     sage: spher_to_cart = c_spher.transition_map(c_cart,
@@ -74,9 +79,9 @@ class ManifoldPoint(Element):
     r"""
     Point of a topological manifold.
 
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.manifold.TopologicalManifold`
-    or :class:`~sage.manifolds.subset.ManifoldSubset`
+    This is a Sage *element* class, the corresponding *parent* class
+    being :class:`~sage.manifolds.manifold.TopologicalManifold`
+    or :class:`~sage.manifolds.subset.ManifoldSubset`.
 
     INPUT:
 
@@ -89,9 +94,9 @@ class ManifoldPoint(Element):
     - ``name`` -- (default: ``None``) name given to the point
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the point;
       if ``None``, the LaTeX symbol is set to ``name``
-    - ``check_coords`` -- (default: ``True``) determines whether ``coords`` are
-      valid coordinates for the chart ``chart``; for symbolic coordinates, it
-      is recommended to set ``check_coords`` to ``False``
+    - ``check_coords`` -- (default: ``True``) determines whether ``coords``
+      are valid coordinates for the chart ``chart``; for symbolic
+      coordinates, it is recommended to set ``check_coords`` to ``False``
 
     EXAMPLES:
 
@@ -111,7 +116,8 @@ class ManifoldPoint(Element):
         sage: p = M((a, b), name='P'); p
         Point P on the 2-dimensional topological manifold M
 
-    A point is an element of the manifold subset in which it has been defined::
+    A point is an element of the manifold subset in which it has
+    been defined::
 
         sage: p in M
         True
@@ -137,8 +143,8 @@ class ManifoldPoint(Element):
         sage: latex(p)
         \mathcal{P}
 
-    Points can be drawn in 2D or 3D graphics thanks to the method :meth:`plot`.
-
+    Points can be drawn in 2D or 3D graphics thanks to the
+    method :meth:`plot`.
     """
     def __init__(self, parent, coords=None, chart=None, name=None,
                  latex_name=None, check_coords=True):
@@ -238,7 +244,6 @@ class ManifoldPoint(Element):
             return r'\mbox{' + str(self) + r'}'
         return self._latex_name
 
-
     def coord(self, chart=None, old_chart=None):
         r"""
         Return the point coordinates in the specified chart.
@@ -252,9 +257,9 @@ class ManifoldPoint(Element):
 
         INPUT:
 
-        - ``chart`` -- (default: ``None``) chart in which the coordinates are
-          given; if none is provided, the coordinates are assumed to refer to
-          the subset's default chart
+        - ``chart`` -- (default: ``None``) chart in which the coordinates
+          are given; if none are provided, the coordinates are assumed to
+          refer to the subset's default chart
         - ``old_chart`` -- (default: ``None``) chart from which the
           coordinates in ``chart`` are to be computed; if ``None``, a chart
           in which the point's coordinates are already known will be picked,
@@ -264,12 +269,17 @@ class ManifoldPoint(Element):
 
         Spherical coordinates of a point on `\RR^3`::
 
-            sage: M = Manifold(3, 'M', structure='topological') # the part of R^3 covered by spherical coordinates
+            sage: M = Manifold(3, 'M', structure='topological')
             sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coordinates
             sage: p = M.point((1, pi/2, pi))
             sage: p.coord()    # coordinates on the manifold's default chart
             (1, 1/2*pi, pi)
-            sage: p.coord(c_spher) # with the chart c_spher specified (same result as above since this is the default chart)
+
+        We now give ``p`` in the coordinates of the chart ``c_spher``
+        explicitly specified. However this is same result as above
+        since this is the default chart)::
+
+            sage: p.coord(c_spher)
             (1, 1/2*pi, pi)
 
         An alternative way to get the coordinates is to let the chart act
@@ -284,7 +294,11 @@ class ManifoldPoint(Element):
             sage: c_spher.transition_map(c_cart, [r*sin(th)*cos(ph),
             ....:                                 r*sin(th)*sin(ph), r*cos(th)])
             Change of coordinates from Chart (M, (r, th, ph)) to Chart (M, (x, y, z))
-            sage: p.coord(c_cart)  # the computation is performed by means of the above change of coordinates
+
+        The computation is performed by means of the above change
+        of coordinates::
+
+            sage: p.coord(c_cart)
             (-1, 0, 0)
             sage: p.coord(c_cart) == c_cart(p)
             True
@@ -294,18 +308,21 @@ class ManifoldPoint(Element):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: (a, b) = var('a b') # generic coordinates for the point
-            sage: p = M.point((a, b), name='P')
-            sage: p.coord()  # coordinates of P in the manifold's default chart
+            sage: P = M.point((a, b), name='P')
+
+        Coordinates of ``P`` in the manifold's default chart::
+
+            sage: P.coord()
             (a, b)
 
-        Coordinates of P in a new chart::
+        Coordinates of ``P`` in a new chart::
 
             sage: c_uv.<u,v> = M.chart()
             sage: ch_xy_uv = c_xy.transition_map(c_uv, [x-y, x+y])
-            sage: p.coord(c_uv)
+            sage: P.coord(c_uv)
             (a - b, a + b)
 
-        Coordinates of P in a third chart::
+        Coordinates of ``P`` in a third chart::
 
             sage: c_wz.<w,z> = M.chart()
             sage: ch_uv_wz = c_uv.transition_map(c_wz, [u^3, v^3])
@@ -313,14 +330,15 @@ class ManifoldPoint(Element):
             (a^3 - 3*a^2*b + 3*a*b^2 - b^3, a^3 + 3*a^2*b + 3*a*b^2 + b^3)
 
         Actually, in the present case, it is not necessary to specify
-        old_chart='uv'::
+        ``old_chart='uv'``. Note that the first command erases all
+        the coordinates except those in the chart ``c_uv``::
 
-            sage: p.set_coord((a-b, a+b), c_uv) # erases all the coordinates except those in the chart c_uv
-            sage: p._coordinates
+            sage: P.set_coord((a-b, a+b), c_uv)
+            sage: P._coordinates
             {Chart (M, (u, v)): (a - b, a + b)}
-            sage: p.coord(c_wz)
+            sage: P.coord(c_wz)
             (a^3 - 3*a^2*b + 3*a*b^2 - b^3, a^3 + 3*a^2*b + 3*a*b^2 + b^3)
-            sage: p._coordinates  # random (dictionary output)
+            sage: P._coordinates  # random (dictionary output)
             {Chart (M, (u, v)): (a - b, a + b),
              Chart (M, (w, z)): (a^3 - 3*a^2*b + 3*a*b^2 - b^3,
                                  a^3 + 3*a^2*b + 3*a*b^2 + b^3)}
@@ -351,8 +369,8 @@ class ManifoldPoint(Element):
             else:
                 # A chart must be found as a starting point of the computation
                 # The domain's default chart is privileged:
-                if def_chart in self._coordinates \
-                        and (def_chart, chart) in dom._coord_changes:
+                if (def_chart in self._coordinates
+                        and (def_chart, chart) in dom._coord_changes):
                     old_chart = def_chart
                     s_old_chart = def_chart
                     s_chart = chart
@@ -401,9 +419,9 @@ class ManifoldPoint(Element):
         INPUT:
 
         - ``coords`` -- the point coordinates (as a tuple or a list)
-        - ``chart`` -- (default: ``None``) chart in which the coordinates are
-          given; if none is provided, the coordinates are assumed to refer to
-          the subset's default chart
+        - ``chart`` -- (default: ``None``) chart in which the coordinates
+          are given; if none are provided, the coordinates are assumed to
+          refer to the subset's default chart
 
         EXAMPLES:
 
@@ -412,7 +430,10 @@ class ManifoldPoint(Element):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point()
-            sage: p.set_coord((2,-3)) # coordinates on the manifold's default chart
+
+        We set the coordinates on the manifold's default chart::
+
+            sage: p.set_coord((2,-3))
             sage: p.coord()
             (2, -3)
             sage: X(p)
@@ -423,8 +444,8 @@ class ManifoldPoint(Element):
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
 
-        If we set the coordinates of p in the chart Y, those in the chart X
-        are lost::
+        If we set the coordinates of ``p`` in the chart ``Y``, those
+        in the chart ``X`` are lost::
 
             sage: Y(p)
             (-1, 5)
@@ -446,9 +467,9 @@ class ManifoldPoint(Element):
         INPUT:
 
         - ``coords`` -- the point coordinates (as a tuple or a list)
-        - ``chart`` -- (default: ``None``) chart in which the coordinates are
-          given; if none is provided, the coordinates are assumed to refer to
-          the subset's default chart
+        - ``chart`` -- (default: ``None``) chart in which the coordinates
+          are given; if none are provided, the coordinates are assumed to
+          refer to the subset's default chart
 
         .. WARNING::
 
@@ -463,7 +484,10 @@ class ManifoldPoint(Element):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point()
-            sage: p.add_coord((2,-3)) # coordinates on the manifold's default chart
+
+        We give the point the coordinates on the manifold's default chart::
+
+            sage: p.add_coord((2,-3))
             sage: p.coord()
             (2, -3)
             sage: X(p)
@@ -608,47 +632,30 @@ class ManifoldPoint(Element):
         """
         return not (self == other)
 
-    def __cmp__(self, other):
-        r"""
-        Old-style (Python 2) comparison operator.
-
-        This is provisory, until migration to Python 3 is achieved.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: p = M((2,-3), chart=X)
-            sage: q = M((2,-3), chart=X)
-            sage: p.__cmp__(q)
-            0
-            sage: q = M((0,1), chart=X)
-            sage: p.__cmp__(q)
-            -1
-
-        """
-        if self == other:
-            return 0
-        else:
-            return -1
-
     def __hash__(self):
         r"""
+        Return the hash of ``self``.
+
         This hash function is set to constant on a given manifold, to fulfill
-        Python's credo:
-        p == q  ==>  hash(p) == hash(q)
-        This is necessary since p and q may be created in different coordinate
-        systems and nevertheless be equal
+        Python's credo::
+
+            p == q  ==>  hash(p) == hash(q)
+
+        This is necessary since ``p`` and ``q`` may be created in
+        different coordinate systems and nevertheless be equal.
+
+        .. TODO::
+
+            Find a better hash function.
 
         TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,-3), chart=X)
-            sage: hash(p)  # random
-            8791657334475
             sage: hash(p) == hash(M)
             True
 
         """
         return hash(self.parent().manifold())
+

@@ -173,6 +173,8 @@ class ClusterQuiver(SageObject):
         Traceback (most recent call last):
         ...
         ValueError: The input data was not recognized.
+        
+        
     """
     def __init__( self, data, frozen=None, user_labels = None ):
         """
@@ -812,6 +814,9 @@ class ClusterQuiver(SageObject):
 
             sage: ClusterQuiver(QuiverMutationType([['A',2],['B',2]])).digraph().edges()
             [(0, 1, (1, -1)), (2, 3, (1, -2))]
+            
+            sage: ClusterQuiver(['C',4],user_labels = ['x','y','z','w']).digraph().edges()
+            [('x', 'y', (1, -1)), ('z', 'w', (2, -1)), ('z', 'y', (1, -1))]
         """
         return copy( self._digraph )
 
@@ -855,6 +860,10 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver([(0,1),(1,2),(2,3),(3,4)])
             sage: Q.mutation_type()
             ['A', 5]
+            
+            sage: Q = ClusterQuiver(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]), frozen = ['c'])
+            sage: Q.mutation_type()
+            [ ['A', 2], ['A', 2] ]
 
         affine types::
 

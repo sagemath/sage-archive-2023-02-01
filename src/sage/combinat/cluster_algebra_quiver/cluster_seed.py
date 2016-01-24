@@ -118,6 +118,9 @@ class ClusterSeed(SageObject):
 
         sage: S = ClusterSeed(['A',4]); S.use_fpolys(False); S._use_fpolys
         False
+        
+        sage: S = ClusterSeed(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]),frozen = ['c']); S
+        A seed for a cluster algebra of rank 4 with 1 frozen variable
 
     """
     def __init__(self, data, frozen=None, is_principal=False, user_labels=None, user_labels_prefix='x'):
@@ -3880,6 +3883,10 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed([(0,1),(1,2),(2,3),(3,4)])
             sage: S.mutation_type()
             ['A', 5]
+
+            sage: S = ClusterSeed(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]), frozen = ['c'])
+            sage: S.mutation_type()
+            [ ['A', 2], ['A', 2] ]
 
         - affine types::
 

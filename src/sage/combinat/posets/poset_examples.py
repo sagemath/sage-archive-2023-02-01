@@ -29,7 +29,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
     :meth:`~Posets.ShardPoset` | Return the shard intersection order.
     :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
-    :meth:`~Posets.StandardExample` | Return the standard example of a poset with dimension 'n'.
+    :meth:`~Posets.StandardExample` | Return the standard example of a poset with dimension `n`.
     :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
@@ -543,6 +543,14 @@ class Posets(object):
             Finite poset containing 6 elements
             sage: A.dimension()
             3
+
+        REFERENCES:
+
+        .. [Rosen] K. Rosen *Handbook of Discrete and Combinatorial
+           Mathematics* (1999), Chapman and Hall.
+
+        .. [Garg] V. Garg *Introduction to Lattice Theory with Computer
+           Science Applications* (2015), Wiley.
 
         TESTS::
 

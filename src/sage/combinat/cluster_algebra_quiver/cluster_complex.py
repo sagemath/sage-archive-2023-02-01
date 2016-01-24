@@ -84,7 +84,7 @@ class ClusterComplex(SubwordComplex):
             sage: ClusterComplex(['A', 2])
             Cluster complex of type ['A', 2] with 5 vertices and 5 facets
             sage: ClusterComplex(['A', 2], k=2)
-            Multi-cluster complex of type ['A', 2] with ? vertices and ? facets
+            Multi-cluster complex of type ['A', 2] with 7 vertices and 14 facets
         """
         if not k in NN:
             raise ValueError("The additional parameter must be a "
@@ -96,9 +96,9 @@ class ClusterComplex(SubwordComplex):
             raise ValueError("The Coxeter group must be finite.")
 
         if coxeter_element is None:
-            c = W.a_coxeter_element()
+            c = W.from_reduced_word(W.index_set())
         else:
-            c = W.from_word(coxeter_element)
+            c = W.from_reduced_word(coxeter_element)
         w = W.w0
         Q = c.reduced_word() * k + w.coxeter_sorting_word(c)
         SubwordComplex.__init__(self, Q, w, algorithm=algorithm)
@@ -116,7 +116,7 @@ class ClusterComplex(SubwordComplex):
 
             sage: C = ClusterComplex(['A', 2])
             sage: C((0, 1))
-            ?
+            (0, 1)
         """
         return ClusterComplexFacet(self, F, facet_test=facet_test)
 
@@ -127,11 +127,11 @@ class ClusterComplex(SubwordComplex):
         EXAMPLES::
 
             sage: ClusterComplex(['A', 2])._repr_()
-            Cluster complex of type ['A', 2] with 5 vertices and 5 facets
+            "Cluster complex of type ['A', 2] with 5 vertices and 5 facets"
         """
         name = self.__custom_name
         name += ' of type %s with %s vertices and %s facets' \
-                % (self._W.cartan_type(), self.vertices().dimension() + 1,
+                % (self.cartan_type(), self.vertices().dimension() + 1,
                    len(self._facets))
         return name
 
@@ -164,6 +164,7 @@ class ClusterComplex(SubwordComplex):
         EXAMPLES::
 
             sage: ClusterComplex(['A', 2]).cyclic_action()
+            <function act at ...>
         """
         W = self._W
         w = self._w0
@@ -187,7 +188,7 @@ class ClusterComplexFacet(SubwordComplexFacet):
             sage: C = ClusterComplex(['A', 2])
             sage: F = C((0, 1))
             sage: F.cluster()
-            ?
+            [(-1, 0), (0, -1)]
         """
         if self.parent().k() != 1:
             raise NotImplementedError("only working for k=1")
@@ -202,7 +203,7 @@ class ClusterComplexFacet(SubwordComplexFacet):
             sage: C = ClusterComplex(['A', 2])
             sage: F = C((0, 1))
             sage: F.upper_cluster()
-            ?
+            []
         """
         conf = self._root_configuration_indices()
         W = self.parent().group()
@@ -217,7 +218,7 @@ class ClusterComplexFacet(SubwordComplexFacet):
             sage: C = ClusterComplex(['A', 2])
             sage: F = C((0, 1))
             sage: F.modified_upper_cluster()
-            ?
+            []
         """
         W = self.parent().group()
         Upp = self.upper_cluster()
@@ -232,7 +233,8 @@ class ClusterComplexFacet(SubwordComplexFacet):
             sage: C = ClusterComplex(['A', 2])
             sage: F = C((0, 1))
             sage: F.product_of_upper_cluster()
-            ?
+            [1 0]
+            [0 1]
         """
         W = self.parent().group()
         return W.prod(W.root_to_reflection(beta)

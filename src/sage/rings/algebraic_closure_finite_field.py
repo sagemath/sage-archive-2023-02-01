@@ -98,6 +98,62 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         self._level = n
         FieldElement.__init__(self, parent)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: F = GF(2).algebraic_closure()
+            sage: hash(F.zero())
+            0
+            sage: hash(F.one())
+            1
+            sage: z1 = F.gen(1)
+            sage: z2 = F.gen(2)
+            sage: z3 = F.gen(3)
+            sage: z4 = F.gen(4)
+
+            sage: hash(z2) == hash(z3+z2-z3)
+            True
+            sage: hash(F.zero()) == hash(z3+z2-z3-z2)
+            True
+
+            sage: X = [z4**i for i in range(2**4-1)]
+            sage: X.append(F2.zero())
+            sage: X.extend([z3, z3**2, z3*z4])
+            sage: assert len(X) == len(set(hash(x) for x in X))
+
+            sage: F = GF(3).algebraic_closure()
+            sage: z1 = F.gen(1)
+            sage: z2 = F.gen(2)
+            sage: z3 = F.gen(3)
+            sage: z4 = F.gen(4)
+
+            sage: hash(z2) == hash(z3+z2-z3)
+            True
+
+            sage: X = [z4**i for i in range(3**4-1)]
+            sage: X.append(F.zero())
+            sage: X.extend([z3, z3**2, z3*z4])
+            sage: assert len(X) == len(set(hash(x) for x in X))
+
+        Check that :trac:`19956` is fixed::
+
+            sage: R.<x,y> = GF(2).algebraic_closure()[]
+            sage: x.resultant(y)
+            -y
+        """
+        if self._level.is_one():
+            return int(self._value)
+        else:
+            #TODO: this is *very* slow
+            #NOTE: the hash of generator is always the characterisitc! In
+            # particular it is not compatible with sections.
+            F,x,_ = self.as_finite_field_element(minimal=True)
+            if F.degree() == 1:
+                return hash(x)
+            else:
+                return hash(hash(x) << 4) ^ (1009 * F.degree())
+
     def _repr_(self):
         """
         Return a string representation of ``self``.

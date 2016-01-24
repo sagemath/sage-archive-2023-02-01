@@ -321,14 +321,6 @@ cdef class Element(SageObject):
         """
         self._parent = parent
 
-    cdef _set_parent_c(self, Parent parent):
-        self._parent = parent
-
-    def _make_new_with_parent_c(self, Parent parent):
-        self._parent = parent
-        return self
-
-
     def __getattr__(self, str name):
         """
         Lookup a method or attribute from the category abstract classes.

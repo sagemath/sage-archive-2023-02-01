@@ -2190,13 +2190,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
 
-    def _make_new_with_parent_c(self, parent):
-        cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
-        x._parent = parent
-        x.__modulus = parent._pyx_order
-        x.ivalue = self.ivalue
-        return x
-
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
         if self.__modulus.table is not None:
             return self.__modulus.lookup(value)

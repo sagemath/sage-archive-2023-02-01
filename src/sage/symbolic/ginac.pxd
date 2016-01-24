@@ -367,6 +367,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     GEx g_H "GiNaC::H" (GEx m, GEx x)                   except + # harmonic polylogarithm
     GEx g_zeta "GiNaC::zeta" (GEx m)                    except + # Riemann's zeta function as well as multiple zeta value
     GEx g_zeta2 "GiNaC::zeta" (GEx m, GEx s)            except + # alternating Euler sum
+    GEx g_stieltjes "GiNaC::stieltjes" (GEx m)          except + # Stieltjes constants
     GEx g_zetaderiv "GiNaC::zetaderiv" (GEx n, GEx x)   except + # derivatives of Riemann's zeta function
     GEx g_tgamma "GiNaC::tgamma" (GEx x)                except + # gamma function
     GEx g_lgamma "GiNaC::lgamma" (GEx x)                except + # logarithm of gamma function
@@ -473,6 +474,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     unsigned H_serial "GiNaC::H_SERIAL::serial" # harmonic polylogarithm
     unsigned zeta1_serial "GiNaC::zeta1_SERIAL::serial" # Riemann's zeta function as well as multiple zeta value
     unsigned zeta2_serial "GiNaC::zeta2_SERIAL::serial" # alternating Euler sum
+    unsigned stieltjes1_serial "GiNaC::stieltjes1_SERIAL::serial" # Stieltjes constants
     unsigned zetaderiv_serial "GiNaC::zetaderiv_SERIAL::serial" # derivatives of Riemann's zeta function
     unsigned tgamma_serial "GiNaC::tgamma_SERIAL::serial" # gamma function
     unsigned lgamma_serial "GiNaC::lgamma_SERIAL::serial" # logarithm of gamma function
@@ -527,6 +529,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
         object (*py_bernoulli)(object x) except +
         object (*py_sin)(object x) except +
         object (*py_cos)(object x) except +
+        object (*py_stieltjes)(object x) except +
         object (*py_zeta)(object x) except +
         object (*py_exp)(object x) except +
         object (*py_log)(object x) except +

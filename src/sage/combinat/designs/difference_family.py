@@ -1091,7 +1091,7 @@ def mcfarland_1973_construction(q, s):
         sage: G,D = mcfarland_1973_construction(2, 2)
         sage: assert is_difference_family(G, D, 64, 28, 12)
     """
-    from sage.rings.finite_rings.constructor import GF
+    from sage.rings.finite_rings.finite_field_constructor import GF
     from sage.modules.free_module import VectorSpace
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     from sage.categories.cartesian_product import cartesian_product

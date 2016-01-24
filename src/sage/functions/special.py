@@ -384,7 +384,7 @@ class MaximaFunction(BuiltinFunction):
         except TypeError:
             return None
 
-        if self.name() in s.__repr__():  # Avoid infinite recursion
+        if self.name() in repr(s):  # Avoid infinite recursion
             return None
         else:
             return s.sage()

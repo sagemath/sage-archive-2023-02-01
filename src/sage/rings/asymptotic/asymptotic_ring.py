@@ -3306,4 +3306,4 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: F_X != F_Y
             True
         """
-        return not self.__eq__(other)
+        return not self == other

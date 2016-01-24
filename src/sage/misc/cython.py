@@ -288,7 +288,7 @@ def cython(filename, verbose=False, compile_message=False,
     and then compiles that. The .c file and the .so file are
     created in a temporary directory.
 
-    INPUTS:
+    INPUT:
 
     - ``filename`` - the name of the file to be compiled. Should end with
       'pyx'.

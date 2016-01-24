@@ -150,9 +150,6 @@ On Redhat-derived systems not all perl components are installed by
 default and you might have to install the **perl-ExtUtils-MakeMaker**
 package.
 
-On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
-`multiarch <http://wiki.debian.org/Multiarch>`_ support.
-
 On Cygwin, the **lapack** and **liblapack-devel** packages are required to
 provide ATLAS support as the Sage package for ATLAS is not built by default.
 
@@ -995,7 +992,10 @@ Here are some of the more commonly used variables affecting the build process:
   argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
   you run ``make``, ``make doc``, or ``make doc-pdf``.
   For example, you can add ``--no-plot`` to this variable to avoid building
-  the graphics coming from the ``.. PLOT`` directive within the documentation.
+  the graphics coming from the ``.. PLOT`` directive within the documentation,
+  or you can add ``--no-tests`` to omit all "TESTS" blocks in the
+  reference manual. Run ``sage --docbuild help`` to see the full list
+  of options.
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for

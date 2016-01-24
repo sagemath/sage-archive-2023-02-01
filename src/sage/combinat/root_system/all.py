@@ -2,7 +2,6 @@ r"""
 Root system features that are imported by default in the interpreter namespace
 """
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.combinat.root_system.associahedron', 'Associahedron')
 
 from cartan_type import CartanType
 from dynkin_diagram import DynkinDiagram

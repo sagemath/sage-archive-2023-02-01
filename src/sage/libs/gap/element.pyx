@@ -1861,15 +1861,18 @@ cdef class GapElement_String(GapElement):
         sage: s = libgap('string')
         sage: type(s)
         <type 'sage.libs.gap.element.GapElement_String'>
+        sage: s
+        "string"
+        sage: print s
+        string
     """
-
-    def sage(self):
+    def __str__(self):
         r"""
-        Return the Sage equivalent of the :class:`GapElement`
+        Convert this :class:`GapElement_String` to a Python string.
 
         OUTPUT:
 
-        A Python list.
+        A Python string.
 
         EXAMPLES::
 
@@ -1877,6 +1880,8 @@ cdef class GapElement_String(GapElement):
             "string"
             sage: type(_)
             <type 'sage.libs.gap.element.GapElement_String'>
+            sage: str(s)
+            'string'
             sage: s.sage()
             'string'
             sage: type(_)
@@ -1887,7 +1892,7 @@ cdef class GapElement_String(GapElement):
         libgap_exit()
         return s
 
-    __str__ = sage
+    sage = __str__
 
 ############################################################################
 ### GapElement_Function ####################################################

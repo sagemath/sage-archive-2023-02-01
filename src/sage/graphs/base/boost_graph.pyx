@@ -166,6 +166,13 @@ cpdef edge_connectivity(g):
         sage: edge_connectivity(g)
         [4, [(0, 1), (0, 2), (0, 3), (0, 4)]]
 
+    Vertex-labeled graphs::
+
+        sage: from sage.graphs.base.boost_graph import edge_connectivity
+        sage: g = graphs.GridGraph([2,2])
+        sage: edge_connectivity(g)
+        [2, [((0, 0), (0, 1)), ((0, 0), (1, 0))]]
+
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
@@ -173,11 +180,12 @@ cpdef edge_connectivity(g):
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
+    cdef list int_to_vertex = g.vertices()
 
     if isinstance(g, Graph):
         boost_graph_from_sage_graph(&g_boost_und, g)
         sig_check()
-        return boost_edge_connectivity(&g_boost_und)
+        ec, edges = boost_edge_connectivity(&g_boost_und)
 
     elif isinstance(g, DiGraph):
         from sage.misc.stopgap import stopgap
@@ -186,10 +194,12 @@ cpdef edge_connectivity(g):
 
         boost_graph_from_sage_graph(&g_boost_dir, g)
         sig_check()
-        return boost_edge_connectivity(&g_boost_dir)
+        ec, edges = boost_edge_connectivity(&g_boost_dir)
 
     else:
         raise ValueError("The input must be a Sage graph.")
+
+    return [ec, [(int_to_vertex[u], int_to_vertex[v]) for (u,v) in edges]]
 
 cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
     r"""
@@ -394,7 +404,7 @@ cpdef dominator_tree(g, root, return_dict = False):
     cdef BoostVecDiGraph g_boost_dir
     cdef vector[v_index] result
     cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+    cdef list int_to_vertex = g.vertices()
 
     if isinstance(g, Graph):
         boost_graph_from_sage_graph(&g_boost_und, g)
@@ -411,7 +421,7 @@ cpdef dominator_tree(g, root, return_dict = False):
     if return_dict:
         return {v:(None if result[vertex_to_int[v]] == no_parent else int_to_vertex[<int> result[vertex_to_int[v]]]) for v in g.vertices()};
 
-    edges = [[int_to_vertex[result[vertex_to_int[v]]], v] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
+    edges = [[int_to_vertex[<int> result[vertex_to_int[v]]], v] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
 
     if g.is_directed():
         if len(edges) == 0:
@@ -520,17 +530,17 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
     cdef BoostVecGraph g_boost
     cdef vector[v_index] result
     cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+    cdef list int_to_vertex = g.vertices()
 
     boost_graph_from_sage_graph(&g_boost, g)
     result = <vector[v_index]> g_boost.bandwidth_ordering(algorithm=='cuthill_mckee')
 
     cdef int n = g.num_verts()
-    cdef dict pos = {int_to_vertex[result[i]]:i for i in range(n)}
+    cdef dict pos = {int_to_vertex[<int> result[i]]:i for i in range(n)}
     cdef int bandwidth = max([abs(pos[u]-pos[v]) for u,v in g.edges(labels=False)])
 
     sig_off()
-    return (bandwidth, [int_to_vertex[result[i]] for i in range(n)])
+    return (bandwidth, [int_to_vertex[<int> result[i]] for i in range(n)])
 
 cpdef min_spanning_tree(g,
                         weight_function=None,
@@ -628,7 +638,7 @@ cpdef min_spanning_tree(g,
     cdef BoostVecWeightedGraph g_boost
     cdef vector[v_index] result
     cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+    cdef list int_to_vertex = g.vertices()
 
     try:
         boost_weighted_graph_from_sage_graph(&g_boost, g, weight_function)
@@ -647,7 +657,7 @@ cpdef min_spanning_tree(g,
     if result.size() != 2 * (n - 1):
         return []
     else:
-        edges = [(int_to_vertex[result[2*i]], int_to_vertex[result[2*i+1]]) for i in range(n-1)]
+        edges = [(int_to_vertex[<int> result[2*i]], int_to_vertex[<int> result[2*i+1]]) for i in range(n-1)]
         return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])
 
 

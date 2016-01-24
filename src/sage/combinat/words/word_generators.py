@@ -61,9 +61,9 @@ from sage.rings.infinity import Infinity
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.word import FiniteWord_list
 from sage.combinat.words.finite_word import FiniteWord_class, Factorization
-from sage.combinat.words.words import Words
+from sage.combinat.words.words import Words, FiniteWords, InfiniteWords
 from sage.combinat.words.morphism import WordMorphism
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.misc.decorators import rename_keyword
 
 def _build_tab(sym, tab, W):
@@ -84,19 +84,20 @@ def _build_tab(sym, tab, W):
         sage: _build_tab(1, [2, 2], Words([1, 2]))
         [1, 1, 2]
     """
+    c = W.alphabet().cardinality()
     res = [sym]
     if len(tab) == 0:
         return res
     if sym == 1:
         res += tab
-        res[1] = (res[1] % W.size_of_alphabet()) + 1
+        res[1] = (res[1] % c) + 1
         return res
     w = W([sym]).delta_inv(W, tab[0])
     w = w[1:]
-    res.append((w[-1] % W.size_of_alphabet()) + 1)
+    res.append((w[-1] % c) + 1)
     for i in xrange(1, len(tab)):
         w = w.delta_inv(W, tab[i])
-        res.append((w[-1] % W.size_of_alphabet()) + 1)
+        res.append((w[-1] % c) + 1)
     return res
 
 class LowerChristoffelWord(FiniteWord_list):
@@ -217,7 +218,7 @@ class LowerChristoffelWord(FiniteWord_list):
                 w = u + v
         else:
             raise ValueError('Unknown algorithm (=%s)'%algorithm)
-        super(LowerChristoffelWord, self).__init__(Words(alphabet), w)
+        super(LowerChristoffelWord, self).__init__(FiniteWords(alphabet), w)
         self.__p = p
         self.__q = q
 
@@ -412,15 +413,14 @@ class WordGenerator(object):
         .. [MH38] Morse, M., et G. A. Hedlund. 1938. «Symbolic dynamics»,
            *American Journal of Mathematics*, vol. 60, p. 815--866.
         """
+        W = InfiniteWords(alphabet)
+        alphabet = W.alphabet()
+        m = alphabet.cardinality()
+        if base < 2 or m < 2 :
+            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2"%(base, m))
         from functools import partial
         f = partial(self._ThueMorseWord_nth_digit, alphabet=alphabet, base=base)
-        w = Words(alphabet)(f, datatype='callable', length=Infinity)
-
-        alphabet = w.parent().alphabet()
-        m = w.parent().size_of_alphabet()
-        if base < 2 or m < 2 :
-            raise ValueError("base (=%s) and size of alphabet (=%s) must be at least 2"%(base, m))
-        return w
+        return W(f, datatype='callable')
 
     def _ThueMorseWord_nth_digit(self, n, alphabet=(0,1), base=2):
         r"""
@@ -552,13 +552,11 @@ class WordGenerator(object):
             ...
             TypeError: alphabet does not contain two distinct elements
         """
-        from sage.combinat.words.alphabet import build_alphabet
-        alphabet = build_alphabet(alphabet)
+        W = InfiniteWords(alphabet)
+        alphabet = W.alphabet()
         if alphabet.cardinality() != 2:
             raise TypeError("alphabet does not contain two distinct elements")
-
         a,b = alphabet
-        W = Words(alphabet)
 
         if construction_method == "recursive":
             w = W(self._FibonacciWord_RecursiveConstructionIterator(alphabet),
@@ -684,7 +682,7 @@ class WordGenerator(object):
             raise TypeError("alphabet does not contain two distinct elements")
         from functools import partial
         f = partial(self._CodingOfRotationWord_function,alpha=alpha,beta=beta,x=x,alphabet=alphabet)
-        w = Words(alphabet)(f, datatype='callable')
+        w = InfiniteWords(alphabet)(f, datatype='callable')
         return w
 
     def _CodingOfRotationWord_function(self, n, alpha, beta, x=0, alphabet=(0,1)):
@@ -866,6 +864,8 @@ class WordGenerator(object):
             sage: a, b = 207, 232
             sage: u = words.ChristoffelWord(a, b)
             sage: v = words.CharacteristicSturmianWord(a/(a+b))
+            sage: v.length()
+            439
             sage: u[1:-1] == v[:-2]
             True
         """
@@ -883,19 +883,18 @@ class WordGenerator(object):
             from sage.rings.continued_fraction import continued_fraction
             cf = continued_fraction(slope)
             if cf.length() == Infinity:
-                length = Infinity
+                parent = InfiniteWords(alphabet)
             else:
-                length = 'finite'
+                parent = FiniteWords(alphabet)
             cf = iter(cf)
         elif hasattr(slope, '__iter__'):
             cf = iter(slope)
-            length = Infinity
+            parent = InfiniteWords(alphabet)
         else:
             raise TypeError("slope (=%s) must be a real number"%slope +
                             "or an iterable.")
-        w = Words(alphabet)(
-                self._CharacteristicSturmianWord_LetterIterator(cf,alphabet),
-                datatype='iter', length=length)
+        w = parent(self._CharacteristicSturmianWord_LetterIterator(cf,alphabet),
+                   datatype='iter')
         return w
 
     def _CharacteristicSturmianWord_LetterIterator(self, cf, alphabet=(0,1)):
@@ -1030,7 +1029,7 @@ class WordGenerator(object):
         if a not in ZZ or a <= 0 or b not in ZZ or b <= 0 or a == b:
             msg = 'The alphabet (=%s) must consist of two distinct positive integers'%(alphabet,)
             raise ValueError(msg)
-        return Words(alphabet)(self._KolakoskiWord_iterator(a, b), datatype = 'iter')
+        return InfiniteWords(alphabet)(self._KolakoskiWord_iterator(a, b), datatype = 'iter')
 
     def _KolakoskiWord_iterator(self, a=1, b=2):
         r"""
@@ -1132,7 +1131,7 @@ class WordGenerator(object):
         Check that this returns a word in an alphabet (:trac:`10054`)::
 
             sage: words.UpperMechanicalWord(1/golden_ratio^2).parent()
-            Words over {0, 1}
+            Infinite words over {0, 1}
         """
         if not 0 <= alpha <= 1:
             raise ValueError("Parameter alpha (=%s) must be in [0,1]."%alpha)
@@ -1148,7 +1147,7 @@ class WordGenerator(object):
             if card != 2:
                 raise TypeError("size of alphabet (=%s) must be two"%card)
             s = lambda n: alphabet[floor(alpha*(n+1) + rho) - floor(alpha*n + rho)]
-        return Words(alphabet)(s)
+        return InfiniteWords(alphabet)(s)
 
     def UpperMechanicalWord(self, alpha, rho=0, alphabet=None):
         r"""
@@ -1192,7 +1191,7 @@ class WordGenerator(object):
         Check that this returns a word in an alphabet (:trac:`10054`)::
 
             sage: words.UpperMechanicalWord(1/golden_ratio^2).parent()
-            Words over {0, 1}
+            Infinite words over {0, 1}
         """
         if not 0 <= alpha <= 1:
             raise ValueError("Parameter alpha (=%s) must be in [0,1]."%alpha)
@@ -1208,7 +1207,7 @@ class WordGenerator(object):
             if card != 2:
                 raise TypeError("size of alphabet (=%s) must be two"%card)
             s = lambda n: alphabet[ceil(alpha*(n+1) + rho) - ceil(alpha*n + rho)]
-        return Words(alphabet)(s)
+        return InfiniteWords(alphabet)(s)
 
     def StandardEpisturmianWord(self, directive_word):
         r"""
@@ -1341,7 +1340,7 @@ class WordGenerator(object):
            33--49.
         """
         tab = []
-        W = Words([1, 2])
+        W = FiniteWords([1, 2])
         suff1 = W([1, 2, 2]).phi_inv()
         suff2 = W([2, 2]).phi_inv()
         w = [1]
@@ -1394,7 +1393,7 @@ class WordGenerator(object):
             alphabet = range(m)
         if len(set(alphabet)) != m:
             raise TypeError("alphabet does not contain %s distinct elements" % m)
-        return Words(alphabet)([alphabet[randint(0,m-1)] for i in xrange(n)])
+        return FiniteWords(alphabet)([alphabet[randint(0,m-1)] for i in xrange(n)])
 
     LowerChristoffelWord = LowerChristoffelWord
 
@@ -1492,8 +1491,8 @@ class WordGenerator(object):
 
         [BmBGL09]_
         """
-        from sage.combinat.words.all import Words, WordMorphism
-        W = Words([0,1,2,3])
+        from sage.combinat.words.all import WordMorphism
+        W = FiniteWords([0,1,2,3])
         bar = WordMorphism({0:0,1:3,3:1,2:2},codomain=W)
         if n==0:
             a = [] if q_0 is None else [q_0]
@@ -1844,7 +1843,7 @@ class WordGenerator(object):
             sage: w.length()
             32400
             sage: w.parent()
-            Words over {'a', 'b'}
+            Finite words over {'a', 'b'}
             sage: type(w)
             <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
 
@@ -1906,11 +1905,10 @@ class WordGenerator(object):
 
         kwds = {}
         kwds['data'] = self._s_adic_iterator(seq,letters)
-        kwds['length'] = None
         kwds['datatype'] = 'iter'
         kwds['caching'] = True
         #kwds['check'] = False
-        return W(**kwds)
+        return W.shift()(**kwds)
 
     def PalindromicDefectWord(self, k=1, alphabet='ab'):
         r"""
@@ -1972,6 +1970,6 @@ class WordGenerator(object):
         if not (isinstance(a, str) and isinstance(b, str)):
             a, b = (a,), (b,)
         w = a + b*k + a + b*kk + a + a + b*kk + a + b*k + a
-        return Words(alphabet)(w)
+        return FiniteWords(alphabet)(w)
 
 words = WordGenerator()

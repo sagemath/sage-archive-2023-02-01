@@ -8,6 +8,7 @@ Parallel Computing
    sage/parallel/reference
    sage/parallel/use_fork
    sage/parallel/multiprocessing_sage
+   sage/parallel/parallelism
    sage/parallel/ncpus
 
 .. SEEALSO::

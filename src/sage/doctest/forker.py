@@ -134,7 +134,7 @@ def warning_function(file):
 
     - ``file`` -- an open file handle.
 
-    OUPUT:
+    OUTPUT:
 
     - a function that prings warnings to the given file.
 
@@ -2073,7 +2073,7 @@ class DocTestTask(object):
         - ``result_queue`` -- an instance of :class:`multiprocessing.Queue`
           to store the doctest result. For testing, this can also be None.
 
-        OUPUT:
+        OUTPUT:
 
         - ``(doctests, result_dict)`` where ``doctests`` is the number of
           doctests and and ``result_dict`` is a dictionary annotated with

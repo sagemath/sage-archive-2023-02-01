@@ -44,7 +44,7 @@ class IntegerList(ClonableArray):
             sage: C([5]).check()
             False
         """
-        return self.parent().__contains__(self)
+        return self in self.parent()
 
 
 class IntegerLists(Parent):

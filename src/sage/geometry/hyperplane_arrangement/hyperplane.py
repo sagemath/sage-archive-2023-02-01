@@ -544,7 +544,7 @@ class Hyperplane(LinearExpression):
             sage: (4*x - y - 8).primitive(signed=False)
             Hyperplane -4*x + y + 8
         """
-        from sage.rings.all import lcm, gcd
+        from sage.arith.all import lcm, gcd
         coeffs = self.coefficients()
         try:
             d = lcm([x.denom() for x in coeffs])

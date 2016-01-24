@@ -57,7 +57,7 @@ class BasisAbstract(CombinatorialFreeModule, BindableClass):
 
 class MoebiusAlgebra(Parent, UniqueRepresentation):
     r"""
-    The möbius algebra of a lattice.
+    The Möbius algebra of a lattice.
 
     Let `L` be a lattice. The *Möbius algebra* `M_L` was originally
     constructed by Solomon and has a natural basis

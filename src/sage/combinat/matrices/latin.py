@@ -139,7 +139,7 @@ from sage.interfaces.gap import GapElement
 from sage.combinat.permutation import Permutation
 from sage.interfaces.gap import gap
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 from sage.rings.finite_rings.constructor import FiniteField
 from sage.misc.misc import uniq
 from sage.misc.flatten import flatten
@@ -217,7 +217,7 @@ class LatinSquare:
             [0 1]
             [2 3]
         """
-        return self.square.__str__()
+        return str(self.square)
 
     def __repr__(self):
         """
@@ -230,8 +230,7 @@ class LatinSquare:
             [0 1]
             [2 3]
         """
-        return self.square.__str__()
-        return self.square.__repr__()
+        return repr(self.square)
 
     def __getitem__(self, rc):
         """
@@ -296,8 +295,7 @@ class LatinSquare:
             sage: L.__hash__()
             12
         """
-
-        return self.square.__hash__()
+        return hash(self.square)
 
     def __eq__(self, Q):
         """

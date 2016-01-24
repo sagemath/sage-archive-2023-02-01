@@ -896,7 +896,7 @@ class AlgebraicClosureFiniteField_generic(Field):
             ....:         assert p(r).is_zero(), "r={} is not a root of p={}".format(r,p)
 
         """
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         # first build a polynomial over some finite field

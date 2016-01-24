@@ -557,9 +557,10 @@ def skip_member(app, what, name, obj, skip, options):
     if getattr(obj, '__module__', None) == '__builtin__':
         return True
 
-    if (hasattr(obj, '__name__') and obj.__name__.find('.') != -1 and
-        obj.__name__.split('.')[-1] != name):
-        return True
+    objname = getattr(obj, "__name__", None)
+    if objname is not None:
+        if objname.find('.') != -1 and objname.split('.')[-1] != name:
+            return True
 
     if name.find("userchild_download_worksheets.zip") != -1:
         return True
@@ -737,6 +738,20 @@ def nitpick_patch_config(app):
     app.config.values['nitpicky'] = (False, 'sage')
     app.config.values['nitpick_ignore'] = ([], 'sage')
 
+def skip_TESTS_block(app, what, name, obj, options, docstringlines):
+    """
+    Skip blocks labeled "TESTS:".
+
+    See sage.misc.sagedoc.skip_TESTS_block for more information.
+    """
+    from sage.misc.sagedoc import skip_TESTS_block as sagedoc_skip_TESTS
+    s = sagedoc_skip_TESTS("\n".join(docstringlines))
+    lines = s.split("\n")
+    for i in range(len(lines)):
+        docstringlines[i] = lines[i]
+    while len(docstringlines) > len(lines):
+        del docstringlines[len(lines)]
+
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
@@ -746,6 +761,8 @@ def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_module_title)
     app.connect('autodoc-process-docstring', process_dollars)
     app.connect('autodoc-process-docstring', process_inherited)
+    if os.environ.get('SAGE_SKIP_TESTS_BLOCKS', False):
+        app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC +

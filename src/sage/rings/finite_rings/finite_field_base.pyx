@@ -77,7 +77,7 @@ cdef class FiniteFieldIterator:
 
     def __iter__(self):
         """
-        Return ``self`` since this is an interator class.
+        Return ``self`` since this is an iterator class.
 
         EXAMPLES::
 
@@ -603,7 +603,7 @@ cdef class FiniteField(Field):
             m = z.multiplicative_order()
             if m % n != 0:
                 raise ValueError, "No %sth root of unity in self"%n
-            return z**(m.__floordiv__(n))
+            return z**(m // n)
 
     def multiplicative_generator(self):
         """
@@ -639,7 +639,7 @@ cdef class FiniteField(Field):
             sage: K.multiplicative_generator()
             a + 12
         """
-        from sage.rings.arith import primitive_root
+        from sage.arith.all import primitive_root
 
         if self.__multiplicative_generator is not None:
             return self.__multiplicative_generator
@@ -710,7 +710,7 @@ cdef class FiniteField(Field):
         return self.characteristic()**self.degree()
 
     # cached because constructing the Factorization is slow;
-    # see :trac:`11628`.
+    # see trac #11628.
     @cached_method
     def factored_order(self):
         """

@@ -657,7 +657,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> rhs
         return LaurentPolynomial_univariate(self._parent,
-                                            self.__u.__floordiv__(right.__u),
+                                            self.__u // right.__u,
                                             self.__n - right.__n)
 
     def shift(self, k):
@@ -775,7 +775,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             ArithmeticError: element is not a unit
         """
         if self.is_unit():
-            return self.__invert__()
+            return ~self
         raise ArithmeticError("element is not a unit")
 
     def _fraction_pair(self):
@@ -2058,7 +2058,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         self._normalize()
         right._normalize()
         ans._mon = self._mon.esub((<LaurentPolynomial_mpair>right)._mon)
-        ans._poly = self._poly.__floordiv__((<LaurentPolynomial_mpair>right)._poly)
+        ans._poly = self._poly // (<LaurentPolynomial_mpair>right)._poly
         return ans
 
     cpdef int _cmp_(self, Element right) except -2:

@@ -19,7 +19,7 @@ Hecke modules
 
 import sage.rings.all
 from sage.rings.commutative_ring import is_CommutativeRing
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 import sage.modules.module
 from sage.structure.all import Sequence

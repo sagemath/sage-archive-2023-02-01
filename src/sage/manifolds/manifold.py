@@ -1376,15 +1376,16 @@ class TopologicalManifold(ManifoldSubset):
 
         INPUT:
 
-        - ``coordinates`` --  (default: ``'``' (empty string)) string
+        - ``coordinates`` --  (default: ``''`` (empty string)) string
           defining the coordinate symbols and ranges, see below
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
           the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used)
 
-        The coordinates are separated by ``' '`` (space) and each
-        coordinate has at most three fields, separated by ``':'``:
+        The coordinates declared in the string ``coordinates`` are
+        separated by ``' '`` (whitespace) and each coordinate has at most three
+        fields, separated by a colon (``':'``):
 
         1. The coordinate symbol (a letter or a few letters).
         2. (optional, only for manifolds over `\RR`) The interval `I`

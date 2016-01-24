@@ -65,8 +65,8 @@ class Chart(UniqueRepresentation, SageObject):
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
 
-    The coordiniate string has the space ``' '`` as a separator and each
-    item has at most two fields, separated by ``:``:
+    The string ``coordinates`` has the space ``' '`` as a separator and each
+    item has at most two fields, separated by a colon (``:``):
 
     1. the coordinate symbol (a letter or a few letters);
     2. (optional) the LaTeX spelling of the coordinate, if not provided the
@@ -850,8 +850,8 @@ class RealChart(Chart):
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
 
-    The coordinates are a string, with ``' '`` (whitespace) as a separator.
-    Each item has at most three fields, separated by ``':'``:
+    The string ``coordinates`` has the space ``' '`` as a separator and each
+    item has at most three fields, separated by a colon (``:``):
 
     1. The coordinate symbol (a letter or a few letters).
     2. (optional) The interval `I` defining the coordinate range: if not
@@ -1907,10 +1907,10 @@ class CoordChange(SageObject):
         - ``transformations`` -- the inverse transformations expressed as a
           list of the expressions of the "old" coordinates in terms of the
           "new" ones
-        - ``kwds`` -- keyword arguments: only ``verbose=True`` (default) or
-          ``verbose=False`` are meaningful; it determines whether the provided
-          transformations are checked to be indeed the inverse coordinate
-          transformations
+        - ``kwds`` -- keyword arguments: only ``verbose=True`` or
+          ``verbose=False`` (default) are meaningful; it determines whether
+          the provided transformations are checked to be indeed the inverse
+          coordinate transformations
 
         EXAMPLES:
 
@@ -1922,22 +1922,21 @@ class CoordChange(SageObject):
             sage: c_spher.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi')
             sage: spher_to_cart = c_spher.transition_map(c_cart, [r*cos(ph), r*sin(ph)])
             sage: spher_to_cart.set_inverse(sqrt(x^2+y^2), atan2(y,x))
-            Check of the inverse coordinate transformation:
-               r == r
-               ph == arctan2(r*sin(ph), r*cos(ph))
-               x == x
-               y == y
             sage: spher_to_cart.inverse()
             Change of coordinates from Chart (U, (x, y)) to Chart (U, (r, ph))
+            sage: spher_to_cart.inverse().display()
+            r = sqrt(x^2 + y^2)
+            ph = arctan2(y, x)
             sage: M.coord_changes()  # random (dictionary output)
             {(Chart (U, (r, ph)),
               Chart (U, (x, y))): Change of coordinates from Chart (U, (r, ph)) to Chart (U, (x, y)),
              (Chart (U, (x, y)),
               Chart (U, (r, ph))): Change of coordinates from Chart (U, (x, y)) to Chart (U, (r, ph))}
 
-        Introducing a wrong inverse transformation is revealed by the check::
+        Introducing a wrong inverse transformation (note the ``x^3`` typo) is
+        revealed by setting ``verbose`` to ``True``::
 
-            sage: spher_to_cart.set_inverse(sqrt(x^3+y^2), atan2(y,x)) # note the x^3 typo
+            sage: spher_to_cart.set_inverse(sqrt(x^3+y^2), atan2(y,x), verbose=True)
             Check of the inverse coordinate transformation:
                r == sqrt(r^3*cos(ph)^3 + r^2*sin(ph)^2)
                ph == arctan2(r*sin(ph), r*cos(ph))
@@ -1945,7 +1944,7 @@ class CoordChange(SageObject):
                y == sqrt(x^3 + y^2)*y/sqrt(x^2 + y^2)
 
         """
-        verbose = kwds.get('verbose', True)
+        verbose = kwds.get('verbose', False)
         self._inverse = type(self)(self._chart2, self._chart1,
                                    *transformations)
         if verbose:

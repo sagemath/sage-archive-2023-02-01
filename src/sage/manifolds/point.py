@@ -41,7 +41,7 @@ We construct the point in the coordinates in the default chart of ``U``
     Open subset U of the 3-dimensional topological manifold R^3
     sage: c_spher(p)
     (1, 1/2*pi, pi)
-    sage: p.coord(c_spher) # equivalent to above
+    sage: p.coordinates(c_spher) # equivalent to above
     (1, 1/2*pi, pi)
 
 Computing the coordinates of ``p`` in a new chart::
@@ -108,7 +108,7 @@ class ManifoldPoint(Element):
         sage: (a, b) = var('a b') # generic coordinates for the point
         sage: p = M.point((a, b), name='P'); p
         Point P on the 2-dimensional topological manifold M
-        sage: p.coord()  # coordinates of P in the subset's default chart
+        sage: p.coordinates()  # coordinates of P in the subset's default chart
         (a, b)
 
     Since points are Sage *elements*, the *parent* of which being the
@@ -245,7 +245,7 @@ class ManifoldPoint(Element):
             return r'\mbox{' + str(self) + r'}'
         return self._latex_name
 
-    def coord(self, chart=None, old_chart=None):
+    def coordinates(self, chart=None, old_chart=None):
         r"""
         Return the point coordinates in the specified chart.
 
@@ -253,8 +253,8 @@ class ManifoldPoint(Element):
         known ones by means of change-of-chart formulas.
 
         An equivalent way to get the coordinates of a point is to let the
-        chart acting of the point, i.e. if ``X`` is a chart and ``p`` a
-        point, one has ``p.coord(chart=X) == X(p)``.
+        chart acting on the point, i.e. if ``X`` is a chart and ``p`` a
+        point, one has ``p.coordinates(chart=X) == X(p)``.
 
         INPUT:
 
@@ -273,20 +273,24 @@ class ManifoldPoint(Element):
             sage: M = Manifold(3, 'M', structure='topological')
             sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coordinates
             sage: p = M.point((1, pi/2, pi))
-            sage: p.coord()    # coordinates on the manifold's default chart
+            sage: p.coordinates()  # coordinates in the manifold's default chart
             (1, 1/2*pi, pi)
 
-        We now give ``p`` in the coordinates of the chart ``c_spher``
-        explicitly specified. However this is same result as above
-        since this is the default chart)::
+        Since the default chart of ``M`` is ``c_spher``, it is equivalent to
+        write::
 
-            sage: p.coord(c_spher)
+            sage: p.coordinates(c_spher)
             (1, 1/2*pi, pi)
 
         An alternative way to get the coordinates is to let the chart act
         on the point (from the very definition of a chart)::
 
             sage: c_spher(p)
+            (1, 1/2*pi, pi)
+
+        A shortcut for ``coordinates`` is ``coord``::
+
+            sage: p.coord()
             (1, 1/2*pi, pi)
 
         Computing the Cartesian coordinates from the spherical ones::
@@ -327,7 +331,7 @@ class ManifoldPoint(Element):
 
             sage: c_wz.<w,z> = M.chart()
             sage: ch_uv_wz = c_uv.transition_map(c_wz, [u^3, v^3])
-            sage: p.coord(c_wz, old_chart=c_uv)
+            sage: P.coord(c_wz, old_chart=c_uv)
             (a^3 - 3*a^2*b + 3*a*b^2 - b^3, a^3 + 3*a^2*b + 3*a*b^2 + b^3)
 
         Actually, in the present case, it is not necessary to specify
@@ -409,7 +413,9 @@ class ManifoldPoint(Element):
                 self._coordinates[chart] = chcoord(*self._coordinates[old_chart])
         return self._coordinates[chart]
 
-    def set_coord(self, coords, chart=None):
+    coord = coordinates
+
+    def set_coordinates(self, coords, chart=None):
         r"""
         Sets the point coordinates in the specified chart.
 
@@ -432,12 +438,18 @@ class ManifoldPoint(Element):
             sage: X.<x,y> = M.chart()
             sage: p = M.point()
 
-        We set the coordinates on the manifold's default chart::
+        We set the coordinates in the manifold's default chart::
+
+            sage: p.set_coordinates((2,-3))
+            sage: p.coordinates()
+            (2, -3)
+            sage: X(p)
+            (2, -3)
+
+        A shortcut for ``set_coordinates`` is ``set_coord``::
 
             sage: p.set_coord((2,-3))
             sage: p.coord()
-            (2, -3)
-            sage: X(p)
             (2, -3)
 
         Let us introduce a second chart on the manifold::
@@ -445,8 +457,8 @@ class ManifoldPoint(Element):
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
 
-        If we set the coordinates of ``p`` in the chart ``Y``, those
-        in the chart ``X`` are lost::
+        If we set the coordinates of ``p`` in chart ``Y``, those in chart ``X``
+        are lost::
 
             sage: Y(p)
             (-1, 5)
@@ -458,7 +470,9 @@ class ManifoldPoint(Element):
         self._coordinates.clear()
         self.add_coord(coords, chart)
 
-    def add_coord(self, coords, chart=None):
+    set_coord = set_coordinates
+
+    def add_coordinates(self, coords, chart=None):
         r"""
         Adds some coordinates in the specified chart.
 
@@ -486,12 +500,18 @@ class ManifoldPoint(Element):
             sage: X.<x,y> = M.chart()
             sage: p = M.point()
 
-        We give the point the coordinates on the manifold's default chart::
+        We give the point some coordinates in the manifold's default chart::
+
+            sage: p.add_coordinates((2,-3))
+            sage: p.coordinates()
+            (2, -3)
+            sage: X(p)
+            (2, -3)
+
+        A shortcut for ``add_coordinates`` is ``add_coord``::
 
             sage: p.add_coord((2,-3))
             sage: p.coord()
-            (2, -3)
-            sage: X(p)
             (2, -3)
 
         Let us introduce a second chart on the manifold::
@@ -499,17 +519,17 @@ class ManifoldPoint(Element):
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
 
-        If we add the coordinates of p in the chart Y, those in the chart X
+        If we add coordinates for ``p`` in chart ``Y``, those in chart ``X``
         are kept::
 
-            sage: p.add_coord((-1,5), chart=Y)
+            sage: p.add_coordinates((-1,5), chart=Y)
             sage: p._coordinates  # random (dictionary output)
             {Chart (M, (u, v)): (-1, 5), Chart (M, (x, y)): (2, -3)}
 
-        On the contrary, with the method :meth:`set_coord`, the coordinates
-        in charts different from Y would be lost::
+        On the contrary, with the method :meth:`set_coordinates`, the
+        coordinates in charts different from ``Y`` would be lost::
 
-            sage: p.set_coord((-1,5), chart=Y)
+            sage: p.set_coordinates((-1,5), chart=Y)
             sage: p._coordinates
             {Chart (M, (u, v)): (-1, 5)}
 
@@ -524,6 +544,8 @@ class ManifoldPoint(Element):
                 raise ValueError("the {}".format(chart) + " has not been " +
                                  "defined on the {}".format(self.parent()))
         self._coordinates[chart] = coords
+
+    add_coord = add_coordinates
 
     def __eq__(self, other):
         r"""
@@ -594,7 +616,7 @@ class ManifoldPoint(Element):
             # transformation:
             for chart in self._coordinates:
                 try:
-                    other.coord(chart)
+                    other.coordinates(chart)
                     common_chart = chart
                     break
                 except ValueError:
@@ -603,7 +625,7 @@ class ManifoldPoint(Element):
                 # Attempt a coordinate transformation in the reverse way:
                 for chart in other._coordinates:
                     try:
-                        self.coord(chart)
+                        self.coordinates(chart)
                         common_chart = chart
                         break
                     except ValueError:

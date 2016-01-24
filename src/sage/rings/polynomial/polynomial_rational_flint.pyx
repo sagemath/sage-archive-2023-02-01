@@ -2090,7 +2090,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
         p = Integer(p)
         if not p.is_prime():

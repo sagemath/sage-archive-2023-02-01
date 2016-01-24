@@ -194,7 +194,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal

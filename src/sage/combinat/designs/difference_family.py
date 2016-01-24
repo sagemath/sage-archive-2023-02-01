@@ -369,7 +369,7 @@ def singer_difference_set(q,d):
     assert q.is_prime_power()
     assert d >= 2
 
-    from sage.rings.finite_rings.constructor import GF
+    from sage.rings.finite_rings.finite_field_constructor import GF
     from sage.rings.finite_rings.conway_polynomials import conway_polynomial
     from sage.rings.finite_rings.integer_mod_ring import Zmod
 
@@ -948,7 +948,7 @@ def twin_prime_powers_difference_set(p, check=True):
         sage: D
         [[(1, 1), (1, 4), (2, 2), (2, 3), (0, 0), (1, 0), (2, 0)]]
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
     from itertools import product
     Fp = FiniteField(p,'x')
@@ -1372,7 +1372,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         elif explain_construction:
             return "The database contains a ({},{})-evenly distributed set".format(v,k)
 
-        from sage.rings.finite_rings.constructor import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         poly,B = EDS[k][v]
         if poly is None:  # q is prime
             K = G = GF(v)
@@ -1404,7 +1404,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
     factorization = arith.factor(v)
     if len(factorization) == 1:
-        from sage.rings.finite_rings.constructor import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         K = GF(v,'z')
 
     if are_mcfarland_1973_parameters(v,k,l):

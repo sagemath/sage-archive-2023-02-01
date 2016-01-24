@@ -446,7 +446,7 @@ cdef class ntl_GF2E(object):
         e = GF2E_degree()
 
         if k is None:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             f = self.c.m._sage_()
             k = FiniteField(2**e, name='a', modulus=f)
 

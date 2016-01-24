@@ -301,7 +301,8 @@ track of the computation steps used to produce that number::
     sage: n = (rt2 + rt3)^5; n
     308.3018001722975?
     sage: sage_input(n)
-    v1 = sqrt(AA(2)) + sqrt(AA(3))
+    R.<x> = AA[]
+    v1 = AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951))) + AA.polynomial_root(AA.common_polynomial(x^2 - 3), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))
     v2 = v1*v1
     v2*v2*v1
 
@@ -323,7 +324,8 @@ the computation tree::
     sage: z4_4 = QQbar.zeta(4) * 4
     sage: z5_5 = QQbar.zeta(5) * 5
     sage: sage_input(z3_3 * z4_4 * z5_5)
-    -60*QQbar.zeta(60)^17
+    R.<x> = AA[]
+    3*QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871))))*QQbar(4*I)*(5*QQbar.polynomial_root(AA.common_polynomial(x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364)))))
 
 Note that the ``verify=True`` argument to ``sage_input`` will always trigger
 exact computation, so running ``sage_input`` twice in a row on the same number
@@ -335,7 +337,8 @@ fact that the third output is different than the first::
     sage: n = rt2^2
     sage: sage_input(n, verify=True)
     # Verified
-    v = sqrt(AA(2))
+    R.<x> = AA[]
+    v = AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
     v*v
     sage: sage_input(n, verify=True)
     # Verified
@@ -358,22 +361,23 @@ algorithms in :trac:`10255`::
     1.000000000000000?
     sage: sage_input(one, verify=True)
     # Verified
-    R.<x> = QQbar[]
-    v1 = AA(2)
-    v2 = QQbar(sqrt(v1))
-    v3 = QQbar(3)
-    v4 = sqrt(v3)
-    v5 = -v2 - v4
-    v6 = QQbar(sqrt(v1))
-    v7 = sqrt(v3)
-    cp = AA.common_polynomial(x^2 + (-v6 + v7)*x - v6*v7)
-    v8 = QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v9 = v5 - v8
-    v10 = -1 - v4 - QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v11 = v2*v4
-    v12 = v11 - v5*v8
-    si = v11*v8
-    AA.polynomial_root(AA.common_polynomial(x^4 + (v9 + v10)*x^3 + (v12 + v9*v10)*x^2 + (-si + v12*v10)*x - si*v10), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    R1 = QQbar['x']
+    x1 = R1.gen()
+    R2 = AA['x']
+    x2 = R2.gen()
+    cp1 = AA.common_polynomial(x2^2 - 2)
+    v1 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
+    v2 = QQbar.polynomial_root(AA.common_polynomial(x1^2 - 3), CIF(RIF(RR(1.7320508075688772), RR(1.7320508075688774)), RIF(RR(0))))
+    v3 = -v1 - v2
+    v4 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
+    cp2 = AA.common_polynomial(x1^2 + (-v4 + v2)*x1 - v4*v2)
+    v5 = QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v6 = v3 - v5
+    v7 = -1 - v2 - QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v8 = v1*v2
+    v9 = v8 - v3*v5
+    si = v8*v5
+    AA.polynomial_root(AA.common_polynomial(x1^4 + (v6 + v7)*x1^3 + (v9 + v6*v7)*x1^2 + (-si + v9*v7)*x1 - si*v7), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 
@@ -3112,15 +3116,19 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: sage_input(22/7*QQbar.zeta(4))
             QQbar(22/7*I)
             sage: sage_input(QQbar.zeta(5)^3)
-            -QQbar.zeta(10)
+            R.<x> = AA[]
+            QQbar.polynomial_root(AA.common_polynomial(x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364))))^3
             sage: sage_input((AA(3)^(1/2))^(1/3))
-            sqrt(AA(3)).nth_root(3)
+            R.<x> = AA[]
+            AA.polynomial_root(AA.common_polynomial(x^3 - AA.polynomial_root(AA.common_polynomial(x^2 - 3), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))), RIF(RR(1.2009369551760025), RR(1.2009369551760027)))
             sage: sage_input(QQbar(3+4*I))
             QQbar(3 + 4*I)
             sage: sage_input(-sqrt(AA(2)))
-            -sqrt(AA(2))
+            R.<x> = AA[]
+            -AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             sage: sage_input(2 + sqrt(AA(2)))
-            2 + sqrt(AA(2))
+            R.<x> = AA[]
+            2 + AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
 
         And a nice big example::
 
@@ -3138,7 +3146,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sqrt(QQbar(7))._sage_input_(sib, False)
-            {call: {atomic:sqrt}({call: {atomic:QQbar}({atomic:7})})}
+            {call: {getattr: {atomic:QQbar}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:QQbar}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}} {atomic:7}})}, {call: {atomic:CIF}({call: {atomic:RIF}({call: {atomic:RR}({atomic:2.6457513110645903})}, {call: {atomic:RR}({atomic:2.6457513110645907})})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:0})})})})}
         """
         (v, complicated) = \
             self._descr.handle_sage_input(sib, coerce, self.parent() is QQbar)
@@ -5655,12 +5663,12 @@ class AlgebraicPolynomialTracker(SageObject):
             sage: cp = AA.common_polynomial(p)
             sage: sage_input((cp, cp))
             R.<x> = AA[]
-            cp = AA.common_polynomial(sqrt(AA(2))*x^2 - sqrt(AA(3)))
+            cp = AA.common_polynomial(AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))*x^2 - AA.polynomial_root(AA.common_polynomial(x^2 - 3), RIF(RR(1.7320508075688772), RR(1.7320508075688774))))
             (cp, cp)
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: cp._sage_input_(sib, False)
-            {call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:* {call: {atomic:sqrt}({call: {atomic:AA}({atomic:2})})} {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}}} {call: {atomic:sqrt}({call: {atomic:AA}({atomic:3})})}})}
+            {call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:* {call: {getattr: {atomic:AA}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.4142135623730949})}, {call: {atomic:RR}({atomic:1.4142135623730951})})})} {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}}} {call: {getattr: {atomic:AA}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}} {atomic:3}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.7320508075688772})}, {call: {atomic:RR}({atomic:1.7320508075688774})})})}})}
         """
         # XXX It would be nicer to skip the "AA.common_polynomial()"
         # wrapper if the polynomial is not actually shared. But
@@ -5874,15 +5882,28 @@ class ANRoot(ANDescr):
 
             sage: sage_input((AA(3)^(1/2))^(1/3), verify=True)
             # Verified
-            sqrt(AA(3)).nth_root(3)
+            R.<x> = AA[]
+            AA.polynomial_root(AA.common_polynomial(x^3 - AA.polynomial_root(AA.common_polynomial(x^2 - 3), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))), RIF(RR(1.2009369551760025), RR(1.2009369551760027)))
 
         These two examples are too big to verify quickly. (Verification
         would create a field of degree 28.)::
 
             sage: sage_input((sqrt(AA(3))^(5/7))^(9/4))
-            (sqrt(AA(3))^(5/7))^(9/4)
+            R.<x> = AA[]
+            v1 = AA.polynomial_root(AA.common_polynomial(x^2 - 3), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))
+            v2 = v1*v1
+            v3 = AA.polynomial_root(AA.common_polynomial(x^7 - v2*v2*v1), RIF(RR(1.4804728524798112), RR(1.4804728524798114)))
+            v4 = v3*v3
+            v5 = v4*v4
+            AA.polynomial_root(AA.common_polynomial(x^4 - v5*v5*v3), RIF(RR(2.4176921938267877), RR(2.4176921938267881)))
             sage: sage_input((sqrt(QQbar(-7))^(5/7))^(9/4))
-            (sqrt(QQbar(-7))^(5/7))^(9/4)
+            R.<x> = QQbar[]
+            v1 = QQbar.polynomial_root(AA.common_polynomial(x^2 + 7), CIF(RIF(RR(0)), RIF(RR(2.6457513110645903), RR(2.6457513110645907))))
+            v2 = v1*v1
+            v3 = QQbar.polynomial_root(AA.common_polynomial(x^7 - v2*v2*v1), CIF(RIF(RR(0.8693488875796217), RR(0.86934888757962181)), RIF(RR(1.8052215661454434), RR(1.8052215661454436))))
+            v4 = v3*v3
+            v5 = v4*v4
+            QQbar.polynomial_root(AA.common_polynomial(x^4 - v5*v5*v3), CIF(RIF(-RR(3.8954086044650791), -RR(3.8954086044650786)), RIF(RR(2.7639398015408925), RR(2.7639398015408929))))
             sage: x = polygen(QQ)
             sage: sage_input(AA.polynomial_root(x^2-x-1, RIF(1, 2)), verify=True)
             # Verified
@@ -6586,10 +6607,12 @@ class ANExtensionElement(ANDescr):
             True
             sage: sage_input(vector(QQbar, (4-3*I, QQbar.zeta(7))), verify=True)
             # Verified
-            vector(QQbar, [4 - 3*I, QQbar.zeta(7)])
+            R.<x> = AA[]
+            vector(QQbar, [4 - 3*I, QQbar.polynomial_root(AA.common_polynomial(x^6 + x^5 + x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.62348980185873348), RR(0.62348980185873359)), RIF(RR(0.7818314824680298), RR(0.78183148246802991))))])
             sage: sage_input(v, verify=True)
             # Verified
-            v = QQbar.zeta(15)
+            R.<x> = AA[]
+            v = QQbar.polynomial_root(AA.common_polynomial(x^8 - x^7 + x^5 - x^4 + x^3 - x + 1), CIF(RIF(RR(0.91354545764260087), RR(0.91354545764260098)), RIF(RR(0.40673664307580015), RR(0.40673664307580021))))
             v^5 + v^3
             sage: v = QQbar(sqrt(AA(2)))
             sage: v.exactify()
@@ -7057,36 +7080,46 @@ class ANUnaryExpr(ANDescr):
 
             sage: sage_input(-sqrt(AA(2)), verify=True)
             # Verified
-            -sqrt(AA(2))
+            R.<x> = AA[]
+            -AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             sage: sage_input(~sqrt(AA(2)), verify=True)
             # Verified
-            ~sqrt(AA(2))
+            R.<x> = AA[]
+            ~AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             sage: sage_input(sqrt(QQbar(-3)).conjugate(), verify=True)
             # Verified
-            sqrt(QQbar(-3)).conjugate()
+            R.<x> = QQbar[]
+            QQbar.polynomial_root(AA.common_polynomial(x^2 + 3), CIF(RIF(RR(0)), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))).conjugate()
             sage: sage_input(QQbar.zeta(3).real(), verify=True)
             # Verified
-            QQbar.zeta(3).real()
+            R.<x> = AA[]
+            QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real()
             sage: sage_input(QQbar.zeta(3).imag(), verify=True)
             # Verified
-            QQbar.zeta(3).imag()
+            R.<x> = AA[]
+            QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).imag()
             sage: sage_input(abs(sqrt(QQbar(-3))), verify=True)
             # Verified
-            abs(sqrt(QQbar(-3)))
+            R.<x> = QQbar[]
+            abs(QQbar.polynomial_root(AA.common_polynomial(x^2 + 3), CIF(RIF(RR(0)), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))))
             sage: sage_input(sqrt(QQbar(-3)).norm(), verify=True)
             # Verified
-            sqrt(QQbar(-3)).norm()
+            R.<x> = QQbar[]
+            QQbar.polynomial_root(AA.common_polynomial(x^2 + 3), CIF(RIF(RR(0)), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))).norm()
             sage: sage_input(QQbar(QQbar.zeta(3).real()), verify=True)
             # Verified
-            QQbar(QQbar.zeta(3).real())
+            R.<x> = AA[]
+            QQbar(QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real())
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: unexp = ANUnaryExpr(sqrt(AA(2)), '~')
             sage: unexp.handle_sage_input(sib, False, False)
-            ({unop:~ {call: {atomic:sqrt}({call: {atomic:AA}({atomic:2})})}}, True)
+            ({unop:~ {call: {getattr: {atomic:AA}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.4142135623730949})}, {call: {atomic:RR}({atomic:1.4142135623730951})})})}},
+             True)
             sage: unexp.handle_sage_input(sib, False, True)
-            ({call: {atomic:QQbar}({unop:~ {call: {atomic:sqrt}({call: {atomic:AA}({atomic:2})})}})}, True)
+            ({call: {atomic:QQbar}({unop:~ {call: {getattr: {atomic:AA}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.4142135623730949})}, {call: {atomic:RR}({atomic:1.4142135623730951})})})}})},
+             True)
         """
         arg_is_qqbar = self._arg.parent() is QQbar
         v = sib(self._arg)
@@ -7317,27 +7350,34 @@ class ANBinaryExpr(ANDescr):
 
             sage: sage_input(2 + sqrt(AA(2)), verify=True)
             # Verified
-            2 + sqrt(AA(2))
+            R.<x> = AA[]
+            2 + AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             sage: sage_input(sqrt(AA(2)) + 2, verify=True)
             # Verified
-            sqrt(AA(2)) + 2
+            R.<x> = AA[]
+            AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951))) + 2
             sage: sage_input(2 - sqrt(AA(2)), verify=True)
             # Verified
-            2 - sqrt(AA(2))
+            R.<x> = AA[]
+            2 - AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             sage: sage_input(2 / sqrt(AA(2)), verify=True)
             # Verified
-            2/sqrt(AA(2))
+            R.<x> = AA[]
+            2/AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             sage: sage_input(2 + (-1*sqrt(AA(2))), verify=True)
             # Verified
-            2 - sqrt(AA(2))
+            R.<x> = AA[]
+            2 - AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             sage: sage_input(2*sqrt(AA(2)), verify=True)
             # Verified
-            2*sqrt(AA(2))
+            R.<x> = AA[]
+            2*AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             sage: rt2 = sqrt(AA(2))
             sage: one = rt2/rt2
             sage: n = one+3
             sage: sage_input(n)
-            v = sqrt(AA(2))
+            R.<x> = AA[]
+            v = AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
             v/v + 3
             sage: one == 1
             True
@@ -7349,7 +7389,8 @@ class ANBinaryExpr(ANDescr):
             sage: one == 1
             True
             sage: sage_input(n)
-            QQbar(sqrt(AA(2))) + 1
+            R.<x> = AA[]
+            QQbar.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951))) + 1
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()

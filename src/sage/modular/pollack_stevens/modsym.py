@@ -712,7 +712,7 @@ class PSModularSymbolElement(ModuleElement):
 
         ## Test that the symbol adds to 0 around the boundary of the
         ## fundamental domain
-        t = self.parent().coefficient_module().zero_element()
+        t = self.parent().coefficient_module().zero()
         for g in MR.gens()[1:]:
             if not(g in MR.reps_with_two_torsion()
                    or g in MR.reps_with_three_torsion()):
@@ -1272,7 +1272,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 # no two or three torsion
                 D[g] = self._map[g].lift(p, M, new_base_ring)
 
-        t = self.parent().coefficient_module().lift(p, M, new_base_ring).zero_element()
+        t = self.parent().coefficient_module().lift(p, M, new_base_ring).zero()
         ## This loops adds up around the boundary of fundamental
         ## domain except the two vertical lines
         for g in manin.gens()[1:]:

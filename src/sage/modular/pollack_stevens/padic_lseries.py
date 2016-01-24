@@ -14,7 +14,7 @@ from sage.rings.padics.all import pAdicField
 from sage.rings.all import ZZ, QQ
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.big_oh import O
-from sage.rings.arith import binomial, gcd, kronecker
+from sage.arith.all import binomial, gcd, kronecker
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.structure.sage_object import SageObject
@@ -388,7 +388,7 @@ class pAdicLseries(SageObject):
         Dists = symb.parent().coefficient_module()
         M = Dists.precision_cap()
         p = Dists.prime()
-        twisted_dist = Dists.zero_element()
+        twisted_dist = Dists.zero()
         m_map = symb._map
         D = self._quadratic_twist
         for b in range(1, abs(D) + 1):

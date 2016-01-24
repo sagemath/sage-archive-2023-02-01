@@ -14,7 +14,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.finite_rings.integer_mod_ring import Zmod
-from sage.rings.arith import binomial, bernoulli
+from sage.arith.all import binomial, bernoulli
 from sage.modules.free_module_element import vector, zero_vector
 from sage.matrix.matrix cimport Matrix
 from sage.matrix.matrix_space import MatrixSpace
@@ -635,7 +635,7 @@ cdef class Dist(ModuleElement):
         V = self.parent().specialize(new_base_ring)
         new_base_ring = V.base_ring()
         if self.precision_relative() == 0:
-            return V.zero_element()
+            return V.zero()
         return V([new_base_ring.coerce(self.moment(j)) for j in range(k + 1)])
 
     def lift(self, p=None, M=None, new_base_ring=None):

@@ -8307,7 +8307,7 @@ cdef class gen(gen_auto):
         Now it takes much less than a second::
 
             sage: pari.allocatemem(200000)
-            PARI stack size set to 200000 bytes
+            PARI stack size set to 200000 bytes, maximum size set to ...
             sage: x = polygen(ZpFM(3,10))
             sage: pol = ((x-1)^50 + x)
             sage: pari(pol).poldisc()

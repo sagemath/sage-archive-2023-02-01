@@ -461,6 +461,39 @@ Here are examples of all of these conversions::
     sage: convert_test_all(QQ)
     [42, 22/7, None, -13, 89/55, None, None]
 
+Compute the exact coordinates of a 34-gon (the formulas used are from
+Weisstein, Eric W. "Trigonometry Angles--Pi/17." and can be found at
+http://mathworld.wolfram.com/TrigonometryAnglesPi17.html)::
+
+    sage: rt17 = AA(17).sqrt()
+    sage: rt2 = AA(2).sqrt()
+    sage: eps = (17 + rt17).sqrt()
+    sage: epss = (17 - rt17).sqrt()
+    sage: delta = rt17 - 1
+    sage: alpha = (34 + 6*rt17 + rt2*delta*epss - 8*rt2*eps).sqrt()
+    sage: beta = 2*(17 + 3*rt17 - 2*rt2*eps - rt2*epss).sqrt()
+    sage: x = rt2*(15 + rt17 + rt2*(alpha + epss)).sqrt()/8
+    sage: y = rt2*(epss**2 - rt2*(alpha + epss)).sqrt()/8
+
+    sage: cx, cy = 1, 0
+    sage: for i in range(34):
+    ....:    cx, cy = x*cx-y*cy, x*cy+y*cx
+    sage: cx
+    1.000000000000000?
+    sage: cy
+    0.?e-15
+
+    sage: ax = polygen(AA)
+    sage: x2 = AA.polynomial_root(256*ax**8 - 128*ax**7 - 448*ax**6 + 192*ax**5 + 240*ax**4 - 80*ax**3 - 40*ax**2 + 8*ax + 1, RIF(0.9829, 0.983))
+    sage: y2 = (1-x2**2).sqrt()
+    sage: x - x2
+    0.?e-18
+    sage: y - y2
+    0.?e-17
+
+Ideally, in the above example we should be able to test ``x == x2`` and ``y ==
+y2`` but this is currently infinitely long.
+
 TESTS:
 
 Verify that :trac:`10981` is fixed::
@@ -7560,55 +7593,6 @@ class ANBinaryExpr(ANDescr):
         finally:
             sys.setrecursionlimit(old_recursion_limit)
 
-#ax = QQbarPoly.gen()
-# def heptadecagon():
-#     # Compute the exact (x,y) coordinates of the vertices of a 34-gon.
-#     # (Take every other coordinate to get the vertices of a
-#     # heptadecagon.)
-#     # Formulas from:
-#     # Weisstein, Eric W. "Trigonometry Angles--Pi/17." From
-#     # MathWorld--A Wolfram Web Resource.
-#     # http://mathworld.wolfram.com/TrigonometryAnglesPi17.html
-
-#     rt17 = AA(17).sqrt()
-#     rt2 = AA(2).sqrt()
-#     eps = (17 + rt17).sqrt()
-#     epss = (17 - rt17).sqrt()
-#     delta = rt17 - 1
-#     alpha = (34 + 6*rt17 + rt2*delta*epss - 8*rt2*eps).sqrt()
-#     beta = 2*(17 + 3*rt17 - 2*rt2*eps - rt2*epss).sqrt()
-#     x = rt2*(15 + rt17 + rt2*(alpha + epss)).sqrt()/8
-#     y = rt2*(epss**2 - rt2*(alpha + epss)).sqrt()/8
-
-#     cx, cy = 1, 0
-#     for i in range(34):
-#         cx, cy = x*cx-y*cy, x*cy+y*cx
-#     print cx, cy
-#     print cx.sign(), cy.sign()
-#     print "Yo!"
-#     print (cx-1).sign()
-#     print "OK"
-# # heptadecagon()
-
-# def heptadecagon2():
-#     # Compute the exact (x,y) coordinates of the vertices of a 34-gon.
-#     # (Take every other coordinate to get the vertices of a
-#     # heptadecagon.)
-#     # Formulas from:
-#     # Weisstein, Eric W. "Heptadecagon." From MathWorld--A Wolfram
-#     # Web Resource. http://mathworld.wolfram.com/Heptadecagon.html
-
-#     x = AA.polynomial_root(256*ax**8 - 128*ax**7 - 448*ax**6 + 192*ax**5 + 240*ax**4 - 80*ax**3 - 40*ax**2 + 8*ax + 1, RIF(0.9829, 0.983))
-#     y = (1-x**2).sqrt()
-
-#     cx, cy = 1, 0
-#     for i in range(34):
-#         cx, cy = x*cx-y*cy, x*cy+y*cx
-#     print cx, cy
-#     print cx.sign(), cy.sign()
-#     print (cx-1).sign()
-#     return x, y
-# # heptadecagon2()
 
 def _init_qqbar():
     """

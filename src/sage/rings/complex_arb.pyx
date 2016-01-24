@@ -31,6 +31,13 @@ conveniently by splitting into ball operations on the real and imaginary parts.
 It also allows tracking when complex numbers have an exact (for example exactly
 zero) real part and an inexact imaginary part, or vice versa.
 
+The parents of complex balls are instances of :class:`ComplexBallField`.
+The name ``CBF`` is bound to the complex ball field with the default precision
+of 53 bits::
+
+    sage: CBF is ComplexBallField() is ComplexBallField(53)
+    True
+
 Comparison
 ==========
 
@@ -199,7 +206,6 @@ class ComplexBallField(UniqueRepresentation, Field):
 
     EXAMPLES::
 
-        sage: CBF = ComplexBallField() # indirect doctest
         sage: CBF(1)
         1.000000000000000
 
@@ -238,7 +244,6 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: CBF = ComplexBallField()
             sage: CBF(1)
             1.000000000000000
 
@@ -941,7 +946,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-           sage: CBF = ComplexBallField()
            sage: a = CBF(1/3, 1/5)
            sage: a.real()
            [0.3333333333333333 +/- 7.04e-17]
@@ -960,7 +964,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-           sage: CBF = ComplexBallField()
            sage: a = CBF(1/3, 1/5)
            sage: a.imag()
            [0.2000000000000000 +/- 4.45e-17]
@@ -1285,7 +1288,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: CBF = ComplexBallField()
             sage: CBF(0).is_zero()
             True
             sage: CBF(RIF(-0.5, 0.5)).is_zero()
@@ -1311,7 +1313,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: CBF = ComplexBallField()
             sage: CBF(pi, 1/3).is_nonzero()
             True
             sage: CBF(RIF(-0.5, 0.5), 1/3).is_nonzero()
@@ -1357,7 +1358,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: CBF = ComplexBallField()
             sage: CBF(1).is_exact()
             True
             sage: CBF(1/3, 1/3).is_exact()
@@ -1388,7 +1388,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: CBF = ComplexBallField()
             sage: a = CBF(1)
             sage: b = CBF(1)
             sage: a is b

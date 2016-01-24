@@ -4205,7 +4205,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         target = ComplexIntervalField(prec)(target_real,
                                             target_arg.sin() * target_abs)
 
-        return AlgebraicNumber(ANRoot(poly, target, is_pow=(self, e, True)))
+        return AlgebraicNumber(ANRoot(poly, target))
 
     def _mpfr_(self, field):
         r"""
@@ -4731,7 +4731,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         else:
             result_min = min(range.lower(), -1)
         result_max = max(range.upper(), 1)
-        return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max), is_pow=(self, e, False)))
+        return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max)))
 
     def _integer_(self, Z=None):
         """
@@ -5819,7 +5819,7 @@ class ANRoot(ANDescr):
     root of a polynomial with algebraic coefficients.
     This class is private, and should not be used directly.
     """
-    def __init__(self, poly, interval, multiplicity=1, is_pow=None):
+    def __init__(self, poly, interval, multiplicity=1):
         r"""
         Initialize this ``ANRoot`` object.
 
@@ -5836,7 +5836,6 @@ class ANRoot(ANDescr):
         self._complex = is_ComplexIntervalFieldElement(interval)
         self._complex_poly = poly.is_complex()
         self._interval = self.refine_interval(interval, 64)
-        self._is_pow = is_pow
 
     def __reduce__(self):
         """
@@ -5900,22 +5899,6 @@ class ANRoot(ANDescr):
             sage: rt.handle_sage_input(sib, False, True)
             ({call: {getattr: {atomic:QQbar}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:3}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.259921049894873})}, {call: {atomic:RR}({atomic:1.2599210498948732})})})}, True)
         """
-        if self._is_pow is not None:
-            (base, expt, result_is_qqbar) = self._is_pow
-            n = expt.numerator()
-            d = expt.denominator()
-            base = sib(base)
-            if n == 1:
-                if d == 2:
-                    v = sib.name('sqrt')(base)
-                else:
-                    v = base.nth_root(sib.int(d))
-            else:
-                v = base ** sib(expt, True)
-            if result_is_qqbar != is_qqbar:
-                v = sib.name('QQbar' if is_qqbar else 'AA')(v)
-            return (v, True)
-
         parent = sib.name('QQbar' if is_qqbar else 'AA')
         poly = sib(self._poly)
         intv = self._interval

@@ -125,6 +125,19 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         x, y = self.parent()._to_common_subfield(self, right)
         return cmp(x, y)
 
+    def __pow__(self, exp):
+        r"""
+        TESTS::
+
+            sage: F2 = GF(2).algebraic_closure()
+            sage: z12 = F2.gen(3*4)
+            sage: z12**3
+            z12^3
+            sage: z12**13
+            z12^8 + z12^7 + z12^6 + z12^4 + z12^2 + z12
+        """
+        return self.__class__(self.parent(), self._value ** exp)
+
     def _add_(self, right):
         """
         Return ``self`` + ``right``.

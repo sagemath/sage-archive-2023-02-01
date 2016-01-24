@@ -1957,7 +1957,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: nfI^2
         -1
         sage: sum = nfrt2 + nfrt3 + nfI + nfz3; sum
-        -a^5 + a^4 + a^3 - 2*a^2 + a - 1
+        2*a^6 + a^5 - a^4 - a^3 - 2*a^2 - a
         sage: hom(sum)
         2.646264369941973? + 1.866025403784439?*I
         sage: hom(sum) == rt2 + rt3 + qqI + z3
@@ -1973,10 +1973,10 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
             To:   Algebraic Real Field
             Defn: a |--> 1.732050807568878?)
         sage: number_field_elements_from_algebraics((rt2,qqI))
-        (Number Field in a with defining polynomial y^4 + 1, [a^3 - a, -a^2], Ring morphism:
+        (Number Field in a with defining polynomial y^4 + 1, [-a^3 + a, a^2], Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 1
             To:   Algebraic Field
-            Defn: a |--> -0.7071067811865475? + 0.7071067811865475?*I)
+            Defn: a |--> 0.7071067811865475? + 0.7071067811865475?*I)
 
     Note that for the first example, where \sage doesn't realize that
     the number is real, we get a homomorphism to ``QQbar``; but with
@@ -3559,7 +3559,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: c = QQbar(-1)**(1/3) - QQbar(3)**(1/2)/2*QQbar.gen()
             sage: c._value
-            0.500000000000000? + 0.?e-19*I
+            0.5000000000000000000? + 0.?e-19*I
             sage: c.exactify()   # indirect doctest
             sage: c._value
             0.500000000000000000000?
@@ -4454,7 +4454,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: a.complex_number(CC)
             0.309016994374947 + 0.951056516295154*I
             sage: (a + a.conjugate()).complex_number(CC)
-            0.618033988749895 + 2.71050543121376e-20*I
+            0.618033988749895
         """
         v = self.interval(ComplexIntervalField(field.prec()))
         return field(v)

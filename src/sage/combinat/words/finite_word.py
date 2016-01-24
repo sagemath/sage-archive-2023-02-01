@@ -201,32 +201,6 @@ from sage.rings.all import Integer, Infinity, ZZ
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
 
-def evaluation_dict(w):
-        r"""
-        Returns a dictionary keyed by the letters occurring in `w` with
-        values the number of occurrences of the letter.
-
-        TESTS::
-
-            sage: from sage.combinat.words.finite_word import evaluation_dict
-            sage: evaluation_dict([2,1,4,2,3,4,2])
-            {1: 1, 2: 3, 3: 1, 4: 2}
-            sage: evaluation_dict('badbcdb')
-            {'a': 1, 'b': 3, 'c': 1, 'd': 2}
-            sage: evaluation_dict([])
-            {}
-
-        ::
-
-            sage: evaluation_dict('1213121') # keys appear in random order
-            {'1': 4, '2': 2, '3': 1}
-
-        """
-        d = defaultdict(int)
-        for a in w:
-            d[a] += 1
-        return dict(d)
-
 class FiniteWord_class(Word_class):
     def __str__(self):
         r"""
@@ -6977,4 +6951,36 @@ class Factorization(list):
             (ab, ba)
         """
         return '(%s)' % ', '.join(w.string_rep() for w in self)
+
+#######################################################################
+
+def evaluation_dict(w):
+    r"""
+    Return a dictionary keyed by the letters occurring in ``w`` with
+    values the number of occurrences of the letter.
+
+    INPUT:
+
+    - ``w`` -- a word
+
+    TESTS::
+
+        sage: from sage.combinat.words.finite_word import evaluation_dict
+        sage: evaluation_dict([2,1,4,2,3,4,2])
+        {1: 1, 2: 3, 3: 1, 4: 2}
+        sage: evaluation_dict('badbcdb')
+        {'a': 1, 'b': 3, 'c': 1, 'd': 2}
+        sage: evaluation_dict([])
+        {}
+
+    ::
+
+        sage: evaluation_dict('1213121') # keys appear in random order
+        {'1': 4, '2': 2, '3': 1}
+
+    """
+    d = defaultdict(int)
+    for a in w:
+        d[a] += 1
+    return dict(d)
 

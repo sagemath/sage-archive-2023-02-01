@@ -7517,7 +7517,11 @@ def to_standard(p, cmp=None):
     r"""
     Return a standard permutation corresponding to the iterable ``p``.
 
-    :param cmp: the way to compare the two elements `x` and `y` of `p` (return an integer according to the outcome).
+    INPUT:
+
+    - ``p`` -- an iterable
+    - ``cmp`` -- (optional) a comparison function for the two elements
+      ``x`` and ``y`` of ``p`` (return an integer according to the outcome)
 
     EXAMPLES::
 
@@ -7542,6 +7546,9 @@ def to_standard(p, cmp=None):
         [1, 2, 3]
         sage: a
         [1, 2, 4]
+
+    We check against the naive method::
+
         sage: def std(p):
         ....:     s = [0]*len(p)
         ....:     c = p[:]
@@ -7570,8 +7577,7 @@ def to_standard(p, cmp=None):
     for l in p:
         ev_dict[l] += 1
         result.append(ev_dict[l])
-    return Permutations()(result)
-
+    return Permutations(len(result))(result)
 
 
 ##########################################################

@@ -5509,50 +5509,64 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
 
-
-    def composed_op(p1, p2, op, algorithm=None, monic=True):
+    def composed_op(p1, p2, op, algorithm=None, monic=False):
         """
         Return the composed sum, difference, product or division of this
         polynomial with another one.
 
-        The operation considered is the following. Given two polynomials `p_1`
-        and `p_2` with rational coefficents we define
+        The operation considered is the following. Given two monic polynomials `p_1`
+        and `p_2` on an integral domain we define
 
         .. MATH::
 
-            \prod_{a:p_1(a)=0,b:p_2(b)=0}(x - (a op b))
+            \prod_{p_1(a)=p_2(b)=0}(x - (a op b))
 
-        where ``op`` is either the addition, the difference, the product or the
+        where `op` is either the addition, the difference, the product or the
         division and the roots `a` and `b` are to be considered in the algebraic
-        closure of the rational field.
+        closure of the fraction field of the coefficients. If the polynomials
+        are not monic this quantity is multiplied by `\\alpha_1^{deg(p_2)}
+        \\alpha_2^{deg(p_1)}` where `\\alpha_1` and `\\alpha_2` are the leading
+        coefficients of `p_1` and `p_2` respectively.
 
-        The composed operator can also be computed with resultant. Indeed for
-        the composed sum it would be `Res_y(p1(x-y), p2(y))`. However, the
-        method from [BFSS]_ using the power sums of roots of polynomials and
-        series expansions is asymptotically much faster with dense polynomials.
+        Such computation is straightforward using resultants. Indeed for the
+        composed sum it would be `Res_y(p1(x-y), p2(y))`. However, the method
+        from [BFSS]_ using series expansions is asymptotically much faster.
+
+        Note that the algorithm `BFSS` with polynomials with coefficients in
+        `\ZZ` needs to perform operations over `\QQ`.
 
         INPUT:
 
-        - ``p2`` -- polynomials on the same polynomial ring on rationals.
+        - ``p2`` -- univariate polynomial over the same polynomial ring as this
+          polynomial
 
-        - ``op`` -- `operator.OP` where `OP=add, sub, mul` or `div`.
+        - ``op`` -- ``operator.OP`` where ``OP=add`` or ``sub`` or ``mul`` or
+          ``div``.
 
         - ``algorithm`` -- can be "resultant" or "BFSS";
-          by default the former is used when the polynomials have few
-          nonzero coefficients and small degrees, otherwise the latter is used.
+          by default the former is used when the polynomials have few nonzero
+          coefficients and small degrees or if the base ring is not `\ZZ` or
+          `\QQ`. Otherwise the latter is used.
 
-        - ``monic`` -- (default True) if True, return the monic form.
+        - ``monic`` -- whether to return a monic polynomial. If ``True`` the
+          coefficients of the result belong to the fraction field of the
+          coefficients.
 
         .. TODO::
 
-           The [BFSS]_ algorithm has been implemented here only in the case of
-           polynomials on the rational ring. To be implemented the case
-           of other rings with zero characteristics, and the case
-           of non-zero characteristics, also covered in the same paper.
+           - The [BFSS]_ algorithm has been implemented here only in the case of
+             polynomials over rationals. For other rings of zero characteristic
+             (or if the characteristic is larger than the product of the degrees),
+             one needs to implement a generic method ``_exp_series``. In the
+             general case of non-zero characteristic there is an alternative
+             algorithm in the same paper.
+
+           - The Newton series computation can be done much more efficiently!
+             See [BFSS]_.
 
         EXAMPLES::
 
-            sage: R.<x> = QQ[]
+            sage: x = polygen(ZZ)
             sage: p1 = x^2 - 1
             sage: p2 = x^4 - 1
             sage: p1.composed_op(p2, operator.add)
@@ -5562,23 +5576,60 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p1.composed_op(p2, operator.div)
             x^8 - 2*x^4 + 1
 
+        This function works over any fields. However for base ring different
+        from `\ZZ` or `\QQ` only the resultant algorithm is available::
+
+            sage: x = polygen(QQbar)
+            sage: p1 = x**2 - AA(2).sqrt()
+            sage: p2 = x**3 - AA(3).sqrt()
+            sage: r1 = p1.roots(multiplicities=False)
+            sage: r2 = p2.roots(multiplicities=False)
+            sage: p = p1.composed_op(p2, operator.add)
+            sage: p
+            1.000000000000000?*x^6 - 4.242640687119285?*x^4 -
+            3.464101615137755?*x^3 + 6.000000000000000?*x^2 -
+            14.69693845669907?*x + 0.1715728752538099?
+            sage: [p(x+y) for x in r1 for y in r2]
+            [0.?e-16,
+             0.?e-13 + 0.?e-13*I,
+             0.?e-13 + 0.?e-13*I,
+             0.?e-13,
+             0.?e-14 + 0.?e-14*I,
+             0.?e-14 + 0.?e-14*I]
+
+            sage: x = polygen(GF(2))
+            sage: p1 = x**2 + x - 1
+            sage: p2 = x**3 + x - 1
+            sage: p_add = p1.composed_op(p2, operator.add)
+            sage: p_add
+            x^6 + x^5 + x^3 + x^2 + 1
+            sage: p_mul = p1.composed_op(p2, operator.mul)
+            sage: p_mul
+            x^6 + x^4 + x^2 + x + 1
+            sage: p_div = p1.composed_op(p2, operator.div)
+            sage: p_div
+            x^6 + x^5 + x^4 + x^2 + 1
+
+            sage: K = GF(2**6, 'a')
+            sage: r1 = p1.roots(K, multiplicities=False)
+            sage: r2 = p2.roots(K, multiplicities=False)
+            sage: all(p_add(x1+x2).is_zero() for x1 in r1 for x2 in r2)
+            True
+            sage: all(p_mul(x1*x2).is_zero() for x1 in r1 for x2 in r2)
+            True
+            sage: all(p_div(x1/x2).is_zero() for x1 in r1 for x2 in r2)
+            True
+
         TESTS::
 
-            sage: R.<y> = QQ[]
-            sage: p1 = y^2 - 2
-            sage: p2 = y^2 - 3
-            sage: p1.composed_op(p2, operator.add, "resultant")
-            y^4 - 10*y^2 + 1
-            sage: p1.composed_op(p2, operator.add, "BFSS")
-            y^4 - 10*y^2 + 1
-            sage: p1.composed_op(p2, operator.mul, "resultant")
-            y^4 - 12*y^2 + 36
-            sage: p1.composed_op(p2, operator.mul, "BFSS")
-            y^4 - 12*y^2 + 36
-            sage: p1.composed_op(p2, operator.div, "resultant")
-            y^4 - 4/3*y^2 + 4/9
-            sage: p1.composed_op(p2, operator.div, "BFSS")
-            y^4 - 4/3*y^2 + 4/9
+            sage: y = polygen(ZZ)
+            sage: for p1 in [2*y^3 - y + 3, -y^5 - 2, 4*y - 3]:
+            ....:   for p2 in [5*y^2 - 7, -3*y - 1]:
+            ....:     for monic in [True,False]:
+            ....:       for op in [operator.add, operator.sub, operator.mul, operator.div]:
+            ....:         pr = p1.composed_op(p2, operator.add, "resultant", monic=monic)
+            ....:         pb = p1.composed_op(p2, operator.add, "BFSS", monic=monic)
+            ....:         assert pr == pb and parent(pr) is parent(pb)
 
         REFERENCES:
 
@@ -5592,24 +5643,35 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if op not in (operator.add, operator.sub, operator.mul, operator.div):
             raise ValueError("op` must be `operator.OP` where `OP=add, sub, mul` or `div`.")
 
+        K = p1.parent()
+        S = K.base_ring()
+        if p2.parent() is not K:
+            K2 = p2.parent()
+            if not is_PolynomialRing(K2):
+                raise TypeError("p2 must be a polynomial")
+            from sage.structure.element import get_coercion_model
+            cm = sage.structure.element.get_coercion_model()
+            K = cm.common_parent(K, p2.parent())
+            if not is_PolynomialRing(K):
+                raise ValueError("not able to build a common polynomial ring from the input")
+            S = K.base_ring()
+            p1 = p1.change_ring(S)
+            p2 = p2.change_ring(S)
+
         cdef long d1 = p1.degree()
         cdef long d2 = p2.degree()
         if d1 <= 0 or d2 <= 0:
             raise ValueError('the polynomials must have positive degree')
-        K = p1.parent()
-        S = K.base_ring()
-        if p2.parent() is not K:
-            raise ValueError('p1 and p2 should have the same parent.')
-        if S is not QQ:
-            raise ValueError('implemented only for polynomials on the rational ring')
+
+        Sf = S.fraction_field()
 
         if op is operator.div and p2.valuation() > 0:
             raise ZeroDivisionError('p2 must have zero valuation.')
-        if not algorithm:
+        if algorithm is None:
             # choose the algorithm observing that the "resultant" one
             # is fast when there are few terms and the degrees are not high
             N = 7
-            if d1 <= N and d2 <= N:
+            if Sf is not QQ or (d1 <= N and d2 <= N):
                 algorithm = "resultant"
             else:
                 c = d1*sum(bool(p1[i]) for i in range(d1 + 1))*\
@@ -5620,36 +5682,45 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     algorithm = "BFSS"
 
         if algorithm == "resultant":
-            QQxy = QQ['x', 'y']
-            QQxy_x, QQxy_y = QQxy.gen(0), QQxy.gen(1)
+            R = K['x', 'y']
+            x = R.gen(0)
+            y = R.gen(1)
             if op is operator.add:
-                lp = p1(QQxy_x - QQxy_y)
+                lp = p1(x - y)
             elif op is operator.sub:
-                lp = p1(QQxy_x + QQxy_y)
+                lp = p1(x + y)
             elif op is operator.mul:
-                lp = p1(QQxy_x).homogenize(QQxy_y)
+                lp = p1(x).homogenize(y)
             else:
-                lp = p1(QQxy_x * QQxy_y)
-            rp = p2(QQxy_y)
-            q = lp.resultant(rp, QQxy_y).univariate_polynomial(K)
+                lp = p1(x * y)
+            q = p2(y).resultant(lp, y).univariate_polynomial(K)
+            return q.monic() if monic else q
+
         elif algorithm == "BFSS":
+            if Sf is not QQ:
+                raise ValueError("BFSS algorithm is available only for the base ring ZZ or QQ")
             if op is operator.sub:
                 p2 = p2(-K.gen())
             elif op is operator.div:
                 p2 = p2.reverse()
+            # the computation below needs must be done in the fraction field
+            # even though the result would have the same ring
+            if Sf is not S:
+                K = K.change_ring(Sf)
+                p1 = p1.change_ring(Sf)
+                p2 = p2.change_ring(Sf)
             prec = d1*d2 + 1
-            S = K.base_ring()
             np1 = p1.reverse().inverse_series_trunc(prec)
             np1 = np1._mul_trunc_(p1.derivative().reverse(), prec)
             np2 = p2.reverse().inverse_series_trunc(prec)
             np2 = np2._mul_trunc_(p2.derivative().reverse(), prec)
             if op in (operator.add, operator.sub):
-                # compute np1e and np2e obtained as "exponential transform" of
-                # np1 and np2 respectively. That is
+                # compute np1e and np2e, the Hadamard products of respectively
+                # np1 and np2 with the exponential series. That is
                 #  a0 + a1 x + a2 x^2 + ...
                 #  ->
                 #  a0 + a1/1! x + a2/2! x^2 + ...
-                fj = S.one()
+                fj = Sf.one()
                 a1, a2 = [np1[0]], [np2[0]]
                 for j in range(1, prec):
                     fj = fj*j
@@ -5657,9 +5728,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     a2.append(np2[j] / fj)
                 np1e = K(a1)
                 np2e = K(a2)
+
+                # recover the polynomial from its Newton series
                 np3e = np1e*np2e
-                fj = -S.one()
-                a3 = [S.zero()]
+                fj = -Sf.one()
+                a3 = [Sf.zero()]
                 for j in range(1, prec):
                     a3.append(np3e[j] * fj)
                     fj = fj*j
@@ -5670,15 +5743,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 q = np.integral()
 
             q = q._exp_series(prec).reverse()
-            dp = prec - q.degree() - 1
-            if dp:
-                q = q*K.gen()**dp
+            q = q.shift(prec - q.degree() - 1)
+            if monic:
+                return q
+            else:
+                return (p1.leading_coefficient()**p2.degree() *
+                        p2.leading_coefficient()**p1.degree() * q).change_ring(S)
+
         else:
             raise ValueError('algorithm must be "resultant" or "BFSS".')
-        if monic:
-            return q.monic()
-        else:
-            return q
 
     def discriminant(self):
         r"""

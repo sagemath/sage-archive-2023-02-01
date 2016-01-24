@@ -1481,8 +1481,8 @@ def RandomTwoSphere(n):
     (b). For this, it is necessary to find inside the final contour
     one of the two subsequences ``lf,in,lf``.
 
-    At every step of the algorithm, newly created edges are recorded
-    in a graph, which will be returned at the end.
+    At every step of the algorithm, newly created triangles are recorded
+    in a simplicial complex, which will be returned at the end.
 
     .. SEEALSO::
 

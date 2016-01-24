@@ -16,12 +16,15 @@ EXAMPLES::
     True
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 import six
 import sage.rings.number_field.all
@@ -40,11 +43,10 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 from sage.categories.commutative_algebras import CommutativeAlgebras
 
 from sage.structure.category_object import normalize_names
-from sage.structure.parent_gens import ParentWithGens
 
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
 from sage.all import sage_eval, parent
-from sage.structure.element import Element
+
 
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""

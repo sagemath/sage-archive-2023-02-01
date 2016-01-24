@@ -68,7 +68,6 @@ import integer_mod
 import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
 import sage.rings.quotient_ring as quotient_ring
-from sage.structure.parent_gens import ParentWithGens
 
 from sage.libs.pari.all import pari, PariError
 

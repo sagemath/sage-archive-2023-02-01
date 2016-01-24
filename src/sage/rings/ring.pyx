@@ -69,7 +69,6 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.element cimport coercion_model
-from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
 from sage.misc.prandom import randint

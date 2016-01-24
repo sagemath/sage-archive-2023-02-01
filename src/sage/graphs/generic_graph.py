@@ -20791,7 +20791,7 @@ class GenericGraph(GenericGraph_pyx):
             return H
 
     def is_cayley(self, return_group = False, mapping = False,
-                  generators = False):
+                  generators = False, allow_disconnected = False):
         r"""
         Check whether the graph is a Cayley graph.
 
@@ -20816,6 +20816,10 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``generators`` (boolean; ``False``) -- If True, return the generating
           set of the Cayley graph.
+
+        - ``allow_disconnected`` (boolean; ``False``) -- If True, disconnected
+          graphs are considered Cayley if they can be obtained from the Cayley
+          construction with a generating set that does not generate the group.
 
         ALGORITHM:
 
@@ -20872,7 +20876,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = g.disjoint_union(g)
             sage: h = h.disjoint_union(h)
             sage: h = h.disjoint_union(g)
-            sage: _, G, d, S = h.is_cayley(return_group=True, mapping=True, generators=True)
+            sage: _, G, d, S = h.is_cayley(return_group=True, mapping=True, generators=True, allow_disconnected=True)
             sage: all(set(d[u] for u in h.neighbors(v)) == set(d[v]*x for x in S) for v in h)
             True
 
@@ -20886,7 +20890,7 @@ class GenericGraph(GenericGraph_pyx):
         certificate = return_group or compute_map
         c, G, map, genset = False, None, None, None
         if not self.is_connected():
-            if self.is_vertex_transitive():
+            if allow_disconnected and self.is_vertex_transitive():
                 C = self.connected_components_subgraphs()
                 if certificate:
                     c, CG = C[0].is_cayley(return_group = True)
@@ -20905,9 +20909,11 @@ class GenericGraph(GenericGraph_pyx):
         elif not self.allows_loops() and not self.allows_multiple_edges() and \
                 self.density() > Rational(1)/Rational(2):
             if certificate:
-                c, G = self.complement().is_cayley(return_group = True)
+                c, G = self.complement().is_cayley(return_group = True,
+                                                   allow_disconnected = True)
             else:
-                c = self.complement().is_cayley(return_group = False)
+                c = self.complement().is_cayley(return_group = False,
+                                                allow_disconnected = True)
         else:
             A = self.automorphism_group()
             if certificate:

@@ -169,6 +169,27 @@ Similarly::
     sage: stereoN(S)
     (0, 0)
 
+A continuous map `S^2\rightarrow \RR` (scalar field)::
+
+    sage: f = M.scalar_field({stereoN: atan(x^2+y^2), stereoS: pi/2-atan(u^2+v^2)},
+    ....:                    name='f')
+    sage: f
+    Scalar field f on the 2-dimensional topological manifold S^2
+    sage: f.display()
+    f: S^2 --> R
+    on U: (x, y) |--> arctan(x^2 + y^2)
+    on V: (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
+    sage: f(p)
+    arctan(5)
+    sage: f(N)
+    1/2*pi
+    sage: f(S)
+    0
+    sage: f.parent()
+    Algebra of scalar fields on the 2-dimensional topological manifold S^2
+    sage: f.parent().category()
+    Category of commutative algebras over Symbolic Ring
+
 
 .. RUBRIC:: Example 2: the Riemann sphere as a topological manifold of
   dimension 1 over `\CC`
@@ -256,6 +277,25 @@ The following subsets and charts have been defined::
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 
+A constant map `\CC^* \rightarrow \CC`::
+
+    sage: f = M.constant_scalar_field(3+2*I, name='f'); f
+    Scalar field f on the Complex 1-dimensional topological manifold C*
+    sage: f.display()
+    f: C* --> C
+    on U: z |--> 2*I + 3
+    on V: w |--> 2*I + 3
+    sage: f(O)
+    2*I + 3
+    sage: f(i)
+    2*I + 3
+    sage: f(inf)
+    2*I + 3
+    sage: f.parent()
+    Algebra of scalar fields on the Complex 1-dimensional topological
+     manifold C*
+    sage: f.parent().category()
+    Category of commutative algebras over Symbolic Ring
 
 AUTHORS:
 
@@ -536,6 +576,12 @@ class TopologicalManifold(ManifoldSubset):
         # List of charts that individually cover self, i.e. whose
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
+        # Algebra of scalar fields defined on self:
+        self._scalar_field_algebra = self._structure.scalar_field_algebra(self)
+        # The zero scalar field:
+        self._zero_scalar_field = self._scalar_field_algebra.zero()
+        # The unit scalar field:
+        self._one_scalar_field = self._scalar_field_algebra.one()
 
     def _repr_(self):
         r"""
@@ -1487,6 +1533,242 @@ class TopologicalManifold(ManifoldSubset):
 
         """
         return True
+
+    def scalar_field_algebra(self):
+        r"""
+        Return the algebra of scalar fields defined the manifold.
+
+        See :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
+        for a complete documentation.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
+          representing the algebra `C^0(U)` of all scalar fields defined
+          on `U` = ``self``.
+
+        EXAMPLE:
+
+        Scalar algebra of a 3-dimensional open subset::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: CU = U.scalar_field_algebra() ; CU
+            Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
+            sage: CU.category()
+            Category of commutative algebras over Symbolic Ring
+            sage: CU.zero()
+            Scalar field zero on the Open subset U of the 3-dimensional topological manifold M
+
+        The output is cached::
+
+            sage: U.scalar_field_algebra() is CU
+            True
+
+        """
+        return self._scalar_field_algebra
+
+    def scalar_field(self, coord_expression=None, chart=None, name=None,
+                     latex_name=None):
+        r"""
+        Define a scalar field on the manifold.
+
+        See :class:`~sage.manifolds.scalarfield.ScalarField` for a complete
+        documentation.
+
+        INPUT:
+
+        - ``coord_expression`` -- (default: ``None``) coordinate expression(s)
+          of the scalar field; this can be either
+
+          - a single coordinate expression; if the argument ``chart`` is
+            ``'all'``, this expression is set to all the charts defined
+            on the open set; otherwise, the expression is set in the
+            specific chart provided by the argument ``chart``
+          - a dictionary of coordinate expressions, with the charts as keys.
+
+          If ``coord_expression`` is ``None`` or does not fully specified the
+          scalar field, other coordinate expressions can be added subsequently
+          by means of the methods
+          :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr`,
+          :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr_by_continuation`,
+          or :meth:`~sage.manifolds.scalarfield.ScalarField.set_expr`
+        - ``chart`` -- (default: ``None``) chart defining the coordinates used
+          in ``coord_expression`` when the latter is a single coordinate
+          expression; if none is provided (default), the default chart of the
+          open set is assumed. If ``chart=='all'``, ``coord_expression`` is
+          assumed to be independent of the chart (constant scalar field).
+        - ``name`` -- (default: ``None``) name given to the scalar field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the scalar
+          field; if none is provided, the LaTeX symbol is set to ``name``
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the defined scalar field.
+
+        EXAMPLES:
+
+        A scalar field defined by its coordinate expression in the open
+        set's default chart::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: c_xyz.<x,y,z> = U.chart()
+            sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
+            Scalar field F on the Open subset U of the 3-dimensional topological manifold M
+            sage: f.display()
+            F: U --> R
+               (x, y, z) |--> cos(y)*sin(x) + z
+            sage: f.parent()
+            Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
+            sage: f in U.scalar_field_algebra()
+            True
+
+        Equivalent definition with the chart specified::
+
+            sage: f = U.scalar_field(sin(x)*cos(y) + z, chart=c_xyz, name='F')
+            sage: f.display()
+            F: U --> R
+               (x, y, z) |--> cos(y)*sin(x) + z
+
+        Equivalent definition with a dictionary of coordinate expression(s)::
+
+            sage: f = U.scalar_field({c_xyz: sin(x)*cos(y) + z}, name='F')
+            sage: f.display()
+            F: U --> R
+               (x, y, z) |--> cos(y)*sin(x) + z
+
+        See the documentation of class
+        :class:`~sage.manifolds.scalarfield.ScalarField` for more
+        examples.
+
+        .. SEEALSO::
+
+            :meth:`constant_scalar_field`, :meth:`zero_scalar_field`,
+            :meth:`one_scalar_field`
+
+        """
+        if isinstance(coord_expression, dict):
+            # check validity of entry
+            for chart in coord_expression:
+                if not chart._domain.is_subset(self):
+                    raise ValueError("the {} is not defined ".format(chart) +
+                                     "on some subset of the " + str(self))
+        alg = self.scalar_field_algebra()
+        return alg.element_class(alg, coord_expression=coord_expression,
+                                 name=name, latex_name=latex_name, chart=chart)
+
+    def constant_scalar_field(self, value, name=None, latex_name=None):
+        r"""
+        Define a constant scalar field on the manifold.
+
+        INPUT:
+
+        - ``value`` -- constant value of the scalar field, either a numerical
+          value or a symbolic expression not involving any chart coordinates
+        - ``name`` -- (default: ``None``) name given to the scalar field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          scalar field; if none is provided, the LaTeX symbol is set to ``name``
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the scalar field whose constant value is ``value``
+
+        EXAMPLES:
+
+        A constant scalar field on the 2-sphere::
+
+            sage: M = Manifold(2, 'M', structure='topological') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W',
+            ....:                                restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: f = M.constant_scalar_field(-1) ; f
+            Scalar field on the 2-dimensional topological manifold M
+            sage: f.display()
+            M --> R
+            on U: (x, y) |--> -1
+            on V: (u, v) |--> -1
+
+        We have::
+
+            sage: f.restrict(U) == U.constant_scalar_field(-1)
+            True
+            sage: M.constant_scalar_field(0) is M.zero_scalar_field()
+            True
+
+        .. SEEALSO::
+
+            :meth:`zero_scalar_field`, :meth:`one_scalar_field`
+        """
+        if value == 0:
+            return self.zero_scalar_field()
+        alg = self.scalar_field_algebra()
+        return alg.element_class(alg, coord_expression=value, name=name,
+                                 latex_name=latex_name, chart='all')
+
+    def zero_scalar_field(self):
+        r"""
+        Return the zero scalar field defined on the manifold.
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the constant scalar field with value 0.
+
+        EXAMPLE::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.zero_scalar_field() ; f
+            Scalar field zero on the 2-dimensional topological manifold M
+            sage: f.display()
+            zero: M --> R
+               (x, y) |--> 0
+            sage: f.parent()
+            Algebra of scalar fields on the 2-dimensional topological manifold M
+            sage: f is M.scalar_field_algebra().zero()
+            True
+
+        """
+        return self._zero_scalar_field
+
+    def one_scalar_field(self):
+        r"""
+        Return the constant scalar field with value the unit element of the
+        manifold's base field.
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the constant scalar field with value the unit element
+          of the manifold's base field.
+
+        EXAMPLE::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.one_scalar_field(); f
+            Scalar field 1 on the 2-dimensional topological manifold M
+            sage: f.display()
+            1: M --> R
+               (x, y) |--> 1
+            sage: f.parent()
+            Algebra of scalar fields on the 2-dimensional topological manifold M
+            sage: f is M.scalar_field_algebra().one()
+            True
+
+        """
+        return self._one_scalar_field
 
 ##############################################################################
 ## Constructor function

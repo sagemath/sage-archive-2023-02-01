@@ -604,6 +604,13 @@ class Function_arctan(GinacFunction):
 
             sage: arctan(x).operator()
             arctan
+
+        Check that :trac:`19918` is fixed::
+
+            sage: arctan(-x).subs(x=oo)
+            -1/2*pi
+            sage: arctan(-x).subs(x=-oo)
+            1/2*pi
         """
         GinacFunction.__init__(self, "arctan", latex_name=r'\arctan',
                 conversions=dict(maxima='atan', sympy='atan'))

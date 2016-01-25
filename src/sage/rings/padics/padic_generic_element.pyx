@@ -269,7 +269,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (a // b) * b + a % b
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^16)
 
-            The alternative definition:
+        The alternative definition::
 
             sage: a
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)

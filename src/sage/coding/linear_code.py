@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Linear Codes
+Linear code
 
 VERSION: 1.2
 

@@ -299,7 +299,7 @@ cpdef long prec_bits_to_words(unsigned long prec_in_bits):
     # This equals ceil(prec_in_bits/wordsize) + 2
     return (prec_in_bits - 1)//wordsize + 3
 
-def prec_words_to_bits(long prec_in_words):
+cpdef long prec_words_to_bits(long prec_in_words):
     r"""
     Convert from pari real precision expressed in words to precision
     expressed in bits. Note: this adjusts for the two codewords of a

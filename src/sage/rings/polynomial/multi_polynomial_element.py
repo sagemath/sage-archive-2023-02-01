@@ -1443,7 +1443,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return self._MPolynomial_element__element.dict()!={}
 
-    def __floordiv__(self,right):
+    def _floordiv_(self, right):
         r"""
         Quotient of division of self by other. This is denoted //.
 
@@ -1464,9 +1464,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: type(0//y)
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
-        if type(self) is not type(right) or self.parent() is not right.parent():
-            self, right = canonical_coercion(self, right)
-            return self // right  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         # handle division by monomials without using Singular
         if len(right.dict()) == 1:
             P = self.parent()

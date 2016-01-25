@@ -2129,9 +2129,33 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
             sage: e.compare_with_values(n, catalan, srange(20, 30))
             Graphics object consisting of 1 graphics primitive
+            sage: e.compare_with_values(n, catalan, srange(20, 30), color='red')
+            Graphics object consisting of 1 graphics primitive
+
+        TESTS::
+
+            sage: A.<x, y> = AsymptoticRing('x^ZZ*y^ZZ', QQ)
+            sage: e = x^2 + O(x) + O(y)
+            sage: e.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: exactly one error term required
+            sage: e = x^2
+            sage: e.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: exactly one error term required
+            sage: e = x^2 + O(x)
+            sage: e.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NameError: name 'x' is not defined
+            sage: e.compare_with_values(x, lambda z: z^2, srange(20, 30))
+            Graphics object consisting of 1 graphics primitive
         """
         from term_monoid import OTerm
         from sage.plot.plot import list_plot
+        from sage.rings.integer_ring import ZZ
 
         main = self.exact_part()
         error = self - main
@@ -2142,8 +2166,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             raise NotImplementedError("{} is not an O term".format(error))
         error_growth = error_terms[0].growth
 
-        points = list([k, (main.subs({variable: k})
-                           - function(k))/error_growth._substitute_({str(variable): k})]
+        points = list([k, (main.subs({variable: k}) - function(k)) / \
+                           error_growth._substitute_({str(variable): k,
+                                                      '_one_': ZZ(1)})]
                       for k in values)
         return list_plot(points, **kwargs)
 

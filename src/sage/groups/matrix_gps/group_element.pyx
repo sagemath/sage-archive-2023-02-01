@@ -53,7 +53,7 @@ AUTHORS:
 
 - Volker Braun (2013-1) port to new Parent, libGAP.
 
-- Travis Scrimshaw (2015-01): reworks class hierarchy in order
+- Travis Scrimshaw (2016-01): reworks class hierarchy in order
   to cythonize
 """
 
@@ -62,8 +62,10 @@ AUTHORS:
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh at umn.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -75,7 +77,6 @@ from sage.groups.libgap_wrapper cimport ElementLibGAP
 from sage.matrix.matrix import is_Matrix
 from sage.structure.factorization import Factorization
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import have_same_parent
 from sage.rings.all import ZZ
 
 
@@ -160,8 +161,6 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         else:
             self._matrix = M.__copy__()
             self._matrix.set_immutable()
-
-    cdef Matrix _matrix
 
     def __hash__(self):
         r"""
@@ -258,8 +257,6 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         cdef MatrixGroupElement_generic y = <MatrixGroupElement_generic>other
         return cmp(x._matrix, y._matrix)
 
-    __cmp__ = _cmp_
-
     cpdef list list(self):
         """
         Return list representation of this matrix.
@@ -277,7 +274,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         return [r.list() for r in self._matrix.rows()]
 
-    cpdef matrix(self):
+    def matrix(self):
         """
         Obtain the usual matrix (as an element of a matrix space)
         associated to this matrix group element.
@@ -523,8 +520,6 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             False
         """
         return cmp(self.matrix(), other.matrix())
-
-    __cmp__ = _cmp_
 
     @cached_method
     def matrix(self):

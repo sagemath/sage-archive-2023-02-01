@@ -2088,8 +2088,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def compare_with_values(self, variable, function, values, **kwargs):
         """
-        Plot rescaled difference between this asymptotic expansion and
-        the given values.
+        Compute the (rescaled) difference between this asymptotic
+        expansion and the given values.
 
         INPUT:
 
@@ -2100,19 +2100,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``values`` -- a list or iterable of values where the comparison
           shall be carried out.
 
-        Other paramters are passed on to :func:`plot`.
 
         OUTPUT:
 
-        A graphics object.
+        A list of tuples containing comparison points and (rescaled)
+        difference values.
 
-        The difference between asymptotic expansion and comparison
-        values is divided by the error term of the asymptotic expansion;
-        so the output should be bounded.
 
-        This method is mainly meant to have an easily usable
-        plausibility check for asymptotic expansions created in some
-        way.
 
         EXAMPLES:
 
@@ -2127,10 +2121,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: e = 4^n1*(1/sqrt(pi)*n^(-3/2)
             ....:     - 9/8/sqrt(pi)*n^(-5/2)
             ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
-            sage: e.compare_with_values(n, catalan, srange(20, 30))
-            Graphics object consisting of 1 graphics primitive
-            sage: e.compare_with_values(n, catalan, srange(20, 30), color='red')
-            Graphics object consisting of 1 graphics primitive
+            sage: e.compare_with_values(n, catalan, srange(5, 10))
+            [(5, 2625/512*sqrt(5)*(4*sqrt(5)/sqrt(pi) - 5)),
+             (6, 1/128*sqrt(6)*(3889*sqrt(6)/sqrt(pi) - 5346)),
+             (7, 3/16384*sqrt(7)*(230784*sqrt(7)/sqrt(pi) - 343343)),
+             (8, 5/32*sqrt(2)*(1437*sqrt(2)/sqrt(pi) - 1144)),
+             (9, 82953/128/sqrt(pi) - 47849373/131072)]
+            sage: e.compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
+            [(5, 168/5*sqrt(5)/sqrt(pi) - 42),
+             (10, 1178112/125*sqrt(10)/sqrt(pi) - 16796),
+             (20, 650486218752/125*sqrt(5)/sqrt(pi) - 6564120420)]
 
         TESTS::
 
@@ -2151,10 +2151,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....
             NameError: name 'x' is not defined
             sage: e.compare_with_values(x, lambda z: z^2, srange(20, 30))
-            Graphics object consisting of 1 graphics primitive
+            [(20, 0), (21, 0), ..., (29, 0)]
         """
         from term_monoid import OTerm
-        from sage.plot.plot import list_plot
         from sage.rings.integer_ring import ZZ
 
         main = self.exact_part()
@@ -2170,7 +2169,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                            error_growth._substitute_({str(variable): k,
                                                       '_one_': ZZ(1)})]
                       for k in values)
-        return list_plot(points, **kwargs)
+        return points
 
 
     def symbolic_expression(self, R=None):

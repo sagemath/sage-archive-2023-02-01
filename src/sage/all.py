@@ -174,6 +174,8 @@ from sage.matroids.all   import *
 
 from sage.game_theory.all import *
 
+from sage.manifolds.all import *
+
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')

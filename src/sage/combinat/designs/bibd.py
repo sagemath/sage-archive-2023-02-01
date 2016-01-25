@@ -54,7 +54,7 @@ from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from design_catalog import transversal_design
 from block_design import BlockDesign
-from sage.rings.arith import binomial, is_prime_power
+from sage.arith.all import binomial, is_prime_power
 from group_divisible_designs import GroupDivisibleDesign
 from designs_pyx import is_pairwise_balanced_design
 

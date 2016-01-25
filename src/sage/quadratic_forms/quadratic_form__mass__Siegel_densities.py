@@ -18,7 +18,7 @@ from sage.functions.all import floor
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.rational_field import QQ
-from sage.rings.arith import legendre_symbol, kronecker, prime_divisors
+from sage.arith.all import legendre_symbol, kronecker, prime_divisors
 from sage.functions.all import sgn
 from sage.quadratic_forms.special_values import gamma__exact, zeta__exact, quadratic_L_function__exact
 from sage.misc.functional import squarefree_part

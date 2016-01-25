@@ -10,7 +10,7 @@
 #*****************************************************************************
 
 from sage.misc.all import prod
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField

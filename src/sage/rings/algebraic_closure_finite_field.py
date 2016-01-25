@@ -147,7 +147,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         # characterisitc! In particular its hash value is not compatible with
         # sections.
         F,x,_ = self.as_finite_field_element(minimal=True)
-        return hash(hash(x) + 1500007*(F.degree()-1))
+        return hash(x) + 1500007*(F.degree()-1)
 
     def _repr_(self):
         """

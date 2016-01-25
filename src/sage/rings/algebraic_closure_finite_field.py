@@ -118,7 +118,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             True
 
             sage: X = [z4**i for i in range(2**4-1)]
-            sage: X.append(F2.zero())
+            sage: X.append(F.zero())
             sage: X.extend([z3, z3**2, z3*z4])
             sage: assert len(X) == len(set(hash(x) for x in X))
 
@@ -142,17 +142,12 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: x.resultant(y)
             -y
         """
-        if self._level.is_one():
-            return int(self._value)
-        else:
-            #TODO: this is *very* slow
-            #NOTE: the hash of generator is always the characterisitc! In
-            # particular it is not compatible with sections.
-            F,x,_ = self.as_finite_field_element(minimal=True)
-            if F.degree() == 1:
-                return hash(x)
-            else:
-                return hash(hash(x) << 4) ^ (1009 * F.degree())
+        #TODO: this is *very* slow
+        #NOTE: the hash of a generator (e.g. z2, z3, ...) is always the
+        # characterisitc! In particular its hash value is not compatible with
+        # sections.
+        F,x,_ = self.as_finite_field_element(minimal=True)
+        return hash(hash(x) + 1500007*(F.degree()-1))
 
     def _repr_(self):
         """

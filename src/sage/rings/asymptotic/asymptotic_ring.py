@@ -2086,6 +2086,68 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
+    def compare_with_values(self, variable, function, values, **kwargs):
+        """
+        Plot rescaled difference between this asymptotic expansion and
+        the given values.
+
+        INPUT:
+
+        - ``variable`` -- an asymptotic expansion or a string.
+
+        - ``function`` -- a callable giving the comparison values.
+
+        - ``values`` -- a list or iterable of values where the comparison
+          shall be carried out.
+
+        Other paramters are passed on to :func:`plot`.
+
+        OUTPUT:
+
+        A graphics object.
+
+        The difference between asymptotic expansion and comparison
+        values is divided by the error term of the asymptotic expansion;
+        so the output should be bounded.
+
+        This method is mainly meant to have an easily usable
+        plausibility check for asymptotic expansions created in some
+        way.
+
+        EXAMPLES:
+
+        In the following example, due to :trac:`19946`, we cannot
+        construct ``4^n`` directly, but need a work-around. ::
+
+            sage: A.<n> = AsymptoticRing("QQ^n*n^ZZ", SR)
+            sage: A1 = A.change_parameter(coefficient_ring=QQ)
+            sage: n1 = A1.gen()
+            sage: def catalan(n):
+            ....:     return binomial(2*n, n)/(n+1)
+            sage: e = 4^n1*(1/sqrt(pi)*n^(-3/2)
+            ....:     - 9/8/sqrt(pi)*n^(-5/2)
+            ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
+            sage: e.compare_with_values(n, catalan, srange(20, 30))
+            Graphics object consisting of 1 graphics primitive
+        """
+        from term_monoid import OTerm
+        from sage.plot.plot import list_plot
+
+        main = self.exact_part()
+        error = self - main
+        error_terms = list(error.summands)
+        if len(error_terms) != 1:
+            raise NotImplementedError("exactly one error term required")
+        if not isinstance(error_terms[0], OTerm):
+            raise NotImplementedError("{} is not an O term".format(error))
+        error_growth = error_terms[0].growth
+
+        points = list([k, (main.subs({variable: k})
+                           - function(k))/error_growth._substitute_({str(variable): k})]
+                      for k in values)
+        return list_plot(points, **kwargs)
+
+
     def symbolic_expression(self, R=None):
         r"""
         Return this asymptotic expansion as a symbolic expression.

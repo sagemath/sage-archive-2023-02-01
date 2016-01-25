@@ -4177,40 +4177,27 @@ class LinearCodeSyndromeDecoder(Decoder):
         H = C.parity_check_matrix()
         F = C.base_ring()
         lookup = {}
-        Ierrors = iter(range(1,t+1))
-        values = self._list_all_error_values()
-        value_index = 0
-        stop = False
-        while not stop:
-            try:
-                stop = True
-                patterns = Subsets(range(n), Ierrors.next())
-                errors = values[value_index]
-                basic = vector(F, n)
-                for p in patterns:
-                    for j in range(len(errors)):
-                        error = errors[j]
-                        ind = 0
-                        e = copy(basic)
-                        for i in p:
-                            e[i] = error[ind]
-                            ind += 1
-                        s = H * e
-                        s.set_immutable()
-                        try:
-                            e_cur = lookup[s]
-                            if (e.hamming_weight() == e_cur.hamming_weight()
-                                    and e < e_cur):
-                                stop = False
-                                lookup[s] = copy(e)
-                            elif e.hamming_weight() < e_cur.hamming_weight():
-                                stop = False
-                                lookup[s] = copy(e)
-                        except KeyError:
-                            stop = False
-                            lookup[s] = copy(e)
-                value_index += 1
-            except StopIteration:
+        for i in range(1, t+1):
+            stop = True
+            patterns = Subsets(range(n), i)
+            errors = self._list_all_error_values(i)
+            basic = vector(F, n)
+            for p in patterns:
+                for j in range(len(errors)):
+                    error = errors[j]
+                    ind = 0
+                    e = copy(basic)
+                    for i in p:
+                        e[i] = error[ind]
+                        ind += 1
+                    s = H * e
+                    s.set_immutable()
+                    try:
+                        e_cur = lookup[s]
+                    except KeyError:
+                        stop = False
+                        lookup[s] = copy(e)
+            if stop:
                 break
         return lookup
 

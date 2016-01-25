@@ -1318,7 +1318,7 @@ cdef class Parent(category_object.CategoryObject):
                     # comparisons.
                     return True
                 return False
-        except (TypeError, ValueError, ZeroDivisionError):
+        except (TypeError, ValueError, ZeroDivisionError, ArithmeticError):
             return False
 
     cpdef coerce(self, x):

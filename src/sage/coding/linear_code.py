@@ -4234,9 +4234,10 @@ class LinearCodeSyndromeDecoder(Decoder):
         if s.is_zero():
             return r
         err = lookup_table[s]
+        r_corr = copy(r)
         for i in range(self.code().length()):
-            r[i] = r[i] - err[i]
-        return r
+            r_corr[i] = r[i] - err[i]
+        return r_corr
 
     def maximum_error_weight(self):
         r"""

@@ -11,7 +11,7 @@ AUTHORS:
 """
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 import sage.databases.conway
 
 def conway_polynomial(p, n):

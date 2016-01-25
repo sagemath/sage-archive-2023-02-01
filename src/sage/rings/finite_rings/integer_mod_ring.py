@@ -123,7 +123,7 @@ class IntegerModFactory(UniqueFactory):
         Testing whether a quotient ring `\ZZ / n\ZZ` is a field can of
         course be very costly. By default, it is not tested whether `n`
         is prime or not, in contrast to
-        :func:`~sage.rings.finite_rings.constructor.GF`. If the user
+        :func:`~sage.rings.finite_rings.finite_field_constructor.GF`. If the user
         is sure that the modulus is prime and wants to avoid a primality
         test, (s)he can provide ``category=Fields()`` when constructing
         the quotient ring, and then the result will behave like a field.
@@ -780,8 +780,8 @@ In the latter case, please inform the developers.""".format(self.order()))
         except AttributeError:
             if not self.is_field():
                 raise ValueError("self must be a field")
-            import constructor
-            k = constructor.FiniteField(self.order())
+            import finite_field_constructor
+            k = finite_field_constructor.FiniteField(self.order())
             self.__field = k
             return k
 

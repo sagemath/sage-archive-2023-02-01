@@ -2178,7 +2178,7 @@ cdef class Field(PrincipalIdealDomain):
             import sage.rings.rational_field
             return sage.rings.rational_field.RationalField()
         else:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             return GF(self.characteristic())
 
     def algebraic_closure(self):

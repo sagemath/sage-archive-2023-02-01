@@ -538,7 +538,7 @@ cdef class ntl_mat_GF2(object):
             [0 0 0 1 1 1]
             [0 0 1 1 1 1]
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.matrix.constructor import Matrix
         m =  Matrix(FiniteField(2),self.x.NumRows(),self.x.NumCols())
 

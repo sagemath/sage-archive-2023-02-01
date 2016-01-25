@@ -79,7 +79,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import RationalField
 QQ = RationalField()
 infinity = Infinity
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 GF = FiniteField
 from sage.calculus.calculus import SR
 #SR = SymbolicRing()

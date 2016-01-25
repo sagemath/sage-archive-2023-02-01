@@ -63,7 +63,7 @@ from element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from sage.structure.sage_object cimport SageObject
 import operator
 import sage.arith.all
-import constructor as finite_field
+import finite_field_constructor as finite_field
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
@@ -110,7 +110,7 @@ cdef void late_import():
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
-    import sage.rings.finite_rings.constructor
+    import sage.rings.finite_rings.finite_field_constructor
     conway_polynomial = sage.rings.finite_rings.conway_polynomials.conway_polynomial
 
     import sage.rings.polynomial.multi_polynomial_element

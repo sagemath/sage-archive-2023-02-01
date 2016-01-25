@@ -135,7 +135,7 @@ def hadamard_matrix_paleyI(n, normalize=True):
     if not(is_prime_power(p) and (p % 4 == 3)):
         raise ValueError("The order %s is not covered by the Paley type I construction." % n)
 
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     K = FiniteField(p,'x')
     K_list = list(K)
     K_list.insert(0,K.zero())
@@ -198,7 +198,7 @@ def hadamard_matrix_paleyII(n):
     if not(n%2==0 and is_prime_power(q) and (q % 4 == 1)):
         raise ValueError("The order %s is not covered by the Paley type II construction." % n)
 
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     K = FiniteField(q,'x')
     K_list = list(K)
     K_list.insert(0,K.zero())
@@ -782,7 +782,7 @@ def _helper_payley_matrix(n, zero_position=True):
         [ 1  1 -1 -1  1 -1 -1  1  1  0 -1]
         [ 1 -1  1 -1 -1 -1  1  1 -1  1  0]
     """
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     K = GF(n,conway=True,prefix='x')
 
     # Order the elements of K in K_list

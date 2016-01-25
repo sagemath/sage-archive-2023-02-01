@@ -3765,7 +3765,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.rings.number_field.number_field_base import is_NumberField
         from sage.rings.number_field.number_field_rel import is_RelativeNumberField
         from sage.rings.number_field.all import NumberField
-        from sage.rings.finite_rings.constructor import is_FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.integer_ring import is_IntegerRing
 

@@ -4118,32 +4118,6 @@ class LinearCodeSyndromeDecoder(Decoder):
         """
         return "\\textnormal{Syndrome decoder for %s handling errors of weight up to %s}" % (self.code()._latex_(), self.maximum_error_weight())
 
-    def _list_all_error_values(self, weight):
-        r"""
-        Builds a list of all error patterns of weight ``weight``.
-
-        INPUT:
-
-        - ``weight`` -- the weight of error patterns to produce
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(3),[
-            ....:   [1, 0, 0, 0, 2, 2, 1, 1],
-            ....:   [0, 1, 0, 0, 0, 0, 1, 1],
-            ....:   [0, 0, 1, 0, 2, 0, 0, 2],
-            ....:   [0, 0, 0, 1, 0, 2, 0, 1]])
-            sage: C = LinearCode(G)
-            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight = 2)
-            sage: D._list_all_error_values(2)
-            [(1, 1), (1, 2), (2, 1), (2, 2)]
-        """
-        F = self.code().base_ring()
-        l = F.list()
-        if F.zero() in l:
-            l.remove(F.zero())
-        return cartesian_product([l] * weight).list()
-
     @cached_method
     def _build_lookup_table(self):
         r"""
@@ -4181,19 +4155,24 @@ class LinearCodeSyndromeDecoder(Decoder):
         n = C.length()
         H = C.parity_check_matrix()
         F = C.base_ring()
+        l = F.list()
+        zero = F.zero()
+        #Building the table of all error positions
+        if zero in l:
+            l.remove(zero)
+        error_position_tables = [cartesian_product([l]*i) for i in range(1, t+1)]
         lookup = {}
+        #Filling the lookup table
         for i in range(1, t+1):
             stop = True
             patterns = Subsets(range(n), i)
-            errors = self._list_all_error_values(i)
             basic = vector(F, n)
             for p in patterns:
-                for j in range(len(errors)):
-                    error = errors[j]
+                for error in error_position_tables[i-1]:
                     ind = 0
                     e = copy(basic)
-                    for i in p:
-                        e[i] = error[ind]
+                    for pos in p:
+                        e[pos] = error[ind]
                         ind += 1
                     s = H * e
                     s.set_immutable()
@@ -4202,6 +4181,7 @@ class LinearCodeSyndromeDecoder(Decoder):
                     except KeyError:
                         stop = False
                         lookup[s] = copy(e)
+            #if no new error was added to the table, we can stop early
             if stop:
                 break
         return lookup

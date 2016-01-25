@@ -2189,6 +2189,71 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return points
 
 
+    def plot_comparison(self, variable, function, values, rescaled=True,
+                        **kwargs):
+        r"""
+        Plot the (rescaled) difference between this asymptotic
+        expansion and the given values.
+
+        INPUT:
+
+        - ``variable`` -- an asymptotic expansion or a string.
+
+        - ``function`` -- a callable or symbolic expression giving the
+          comparison values.
+
+        - ``values`` -- a list or iterable of values where the comparison
+          shall be carried out.
+
+        - ``rescaled`` -- (default: ``True``) determines, whether
+          the difference is divided by the error term of the asymptotic
+          expansion.
+
+        Other keywords are passed to :func:`list_plot`.
+
+        OUTPUT:
+
+        A graphics object.
+
+        .. NOTE::
+
+            If rescaled (i.e. divided by the error term), the output
+            should be bounded.
+
+            This method is mainly meant to have an easily usable
+            plausability check for asymptotic expansion created in
+            some way.
+
+        .. SEEALSO::
+
+            :meth:`compare_with_values`
+
+        EXAMPLES:
+
+        We want to check the quality of the asymptotic expansion of
+        the harmonic numbers::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ * log(n)^ZZ', SR)
+            sage: def H(n):
+            ....:     return sum([1/k for k in srange(1, n+1)])
+            sage: H_expansion = (log(n) + euler_gamma + 1/(2*n)
+            ....:                - 1/(12*n^2) + O(n^-4))
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30))
+            Graphics object consisting of 1 graphics primitive
+
+        Alternatively, the unscaled (absolute) difference can be
+        plotted as well::
+
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30),
+            ....:                             rescaled=False)
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.plot import list_plot
+        points = self.compare_with_values(variable, function,
+                                          values, rescaled=rescaled)
+        return list_plot(points, *kwargs)
+
+
     def symbolic_expression(self, R=None):
         r"""
         Return this asymptotic expansion as a symbolic expression.

@@ -2117,12 +2117,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         In the following example, due to :trac:`19946`, we cannot
         construct ``4^n`` directly, but need a work-around. ::
 
-            sage: A.<n> = AsymptoticRing("QQ^n*n^ZZ", SR)
-            sage: A1 = A.change_parameter(coefficient_ring=QQ)
-            sage: n1 = A1.gen()
-            sage: def catalan(n):
-            ....:     return binomial(2*n, n)/(n+1)
-            sage: e = 4^n1*(1/sqrt(pi)*n^(-3/2)
+            sage: A.<n> = AsymptoticRing('QQ^n * n^ZZ', SR)
+            sage: catalan = binomial(2*x, x)/(x+1)
+            sage: e = n.rpow(4)*(1/sqrt(pi)*n^(-3/2)
             ....:     - 9/8/sqrt(pi)*n^(-5/2)
             ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
             sage: e.compare_with_values(n, catalan, srange(5, 10))

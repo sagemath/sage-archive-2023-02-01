@@ -2086,7 +2086,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
-    def compare_with_values(self, variable, function, values, **kwargs):
+    def compare_with_values(self, variable, function, values, rescaled=True):
         """
         Compute the (rescaled) difference between this asymptotic
         expansion and the given values.
@@ -2100,6 +2100,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``values`` -- a list or iterable of values where the comparison
           shall be carried out.
 
+        - ``rescaled`` -- (default: ``True``) determines, whether
+          the difference is divided by the error term of the asymptotic
+          expansion.
 
         OUTPUT:
 
@@ -2165,10 +2168,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             raise NotImplementedError("{} is not an O term".format(error))
         error_growth = error_terms[0].growth
 
-        points = list([k, (main.subs({variable: k}) - function(k)) / \
-                           error_growth._substitute_({str(variable): k,
-                                                      '_one_': ZZ(1)})]
-                      for k in values)
+        if rescaled:
+            points = list(tuple([k, (main.subs({variable: k}) - function(k)) /
+                                 error_growth._substitute_({str(variable): k,
+                                                            '_one_': ZZ(1)})])
+                          for k in values)
+        else:
+            points = list(tuple([k, (main.subs({variable: k}) - function(k))])
+                          for k in values)
         return points
 
 

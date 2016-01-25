@@ -2095,7 +2095,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         - ``variable`` -- an asymptotic expansion or a string.
 
-        - ``function`` -- a callable giving the comparison values.
+        - ``function`` -- a callable or symbolic expression giving the
+          comparison values.
 
         - ``values`` -- a list or iterable of values where the comparison
           shall be carried out.
@@ -2167,6 +2168,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if not isinstance(error_terms[0], OTerm):
             raise NotImplementedError("{} is not an O term".format(error))
         error_growth = error_terms[0].growth
+
+        if hasattr(function, 'variables'):
+            expr = function
+            if len(expr.variables()) > 1:
+                raise NotImplementedError("expression has more than one "
+                                          "variable")
+            elif len(expr.variables()) == 1:
+                def function(arg):
+                    return expr.subs({expr.variables()[0]: arg})
+            else:
+                def function(arg):
+                    return expr
 
         if rescaled:
             points = list(tuple([k, (main.subs({variable: k}) - function(k)) /

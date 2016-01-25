@@ -4087,7 +4087,8 @@ class LinearCodeSyndromeDecoder(Decoder):
             True
         """
         return isinstance(other, LinearCodeSyndromeDecoder)\
-                and self.code() == other.code()
+                and self.code() == other.code()\
+                and self.maximum_error_weight() == other.maximum_error_weight()
 
     def _repr_(self):
         r"""

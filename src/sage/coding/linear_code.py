@@ -1718,7 +1718,7 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.decoder()
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors with a weight up to 7
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 7
 
 
         If the name of a decoder which is not known by ``self`` is passed,
@@ -4040,13 +4040,13 @@ class LinearCodeSyndromeDecoder(Decoder):
         sage: C = LinearCode(G)
         sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
         sage: D
-        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors with a weight up to 7
+        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 7
 
         If one wants to correct up to a specific number of errors, one can do as follows::
 
         sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight=2)
         sage: D
-        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors with a weight up to 2
+        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
     """
 
     def __init__(self, code, maximum_error_weight=None):
@@ -4099,9 +4099,9 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors with a weight up to 7
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 7
         """
-        return "Syndrome decoder for %s handling errors with a weight up to %s" % (self.code(), self.maximum_error_weight())
+        return "Syndrome decoder for %s handling errors of weight up to %s" % (self.code(), self.maximum_error_weight())
 
     def _latex_(self):
         r"""
@@ -4113,13 +4113,17 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: latex(D)
-            \textnormal{Syndrome decoder for [7, 4]\textnormal{ Linear code over }\Bold{F}_{2} handling errors with a weight up to 7}
+            \textnormal{Syndrome decoder for [7, 4]\textnormal{ Linear code over }\Bold{F}_{2} handling errors of weight up to 7}
         """
-        return "\\textnormal{Syndrome decoder for %s handling errors with a weight up to %s}" % (self.code()._latex_(), self.maximum_error_weight())
+        return "\\textnormal{Syndrome decoder for %s handling errors of weight up to %s}" % (self.code()._latex_(), self.maximum_error_weight())
 
     def _list_all_error_values(self, weight):
         r"""
-        Builds a list of all error patterns of weight ``length``.
+        Builds a list of all error patterns of weight ``weight``.
+
+        INPUT:
+
+        - ``weight`` -- the weight of error patterns to produce
 
         EXAMPLES::
 
@@ -4402,6 +4406,6 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
 LinearCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
+LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
 LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}

@@ -107,7 +107,7 @@ implemented.
     sage: F = GF(2); a = F.gen()
     sage: v = vector([a,a,F(0),a,a,F(0),a])
     sage: c = C.decode_to_code(v, "Syndrome"); c
-    (0, 1, 0, 0, 1, 0, 1)
+    (1, 1, 0, 1, 0, 0, 1)
     sage: c in C
     True
 
@@ -303,3 +303,4 @@ The idea is that a cryptosystem is a map
 plaintext (or message) space, and ciphertext space, respectively.
 :math:`E` is presumed to be injective, so ``e.key()`` returns the
 pre-image key.
+

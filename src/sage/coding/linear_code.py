@@ -241,7 +241,7 @@ from sage.misc.superseded import deprecated_function_alias
 from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
-from sage.combinat.permutation import Permutations
+from sage.categories.cartesian_product import cartesian_product
 # import compatible with py2 and py3
 from six.moves.urllib.request import urlopen
 
@@ -4117,10 +4117,9 @@ class LinearCodeSyndromeDecoder(Decoder):
         """
         return "\\textnormal{Syndrome decoder for %s handling errors with a weight up to %s}" % (self.code()._latex_(), self.maximum_error_weight())
 
-    def _list_all_error_values(self):
+    def _list_all_error_values(self, weight):
         r"""
-        Builds a list of all possible combination of values to create the error
-        pattern while building the lookup table.
+        Builds a list of all error patterns of weight ``length``.
 
         EXAMPLES::
 
@@ -4131,19 +4130,14 @@ class LinearCodeSyndromeDecoder(Decoder):
             ....:   [0, 0, 0, 1, 0, 2, 0, 1]])
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight = 2)
-            sage: D._list_all_error_values()
-            [[[1], [2]], [[1, 1], [1, 2], [2, 1], [2, 2]]]
+            sage: D._list_all_error_values(2)
+            [(1, 1), (1, 2), (2, 1), (2, 2)]
         """
         F = self.code().base_ring()
-        t = self.maximum_error_weight()
         l = F.list()
         if F.zero() in l:
             l.remove(F.zero())
-        l = l * t
-        final = []
-        for i in range(1,t+1):
-            final.append(Permutations(l, i).list())
-        return final
+        return cartesian_product([l] * weight).list()
 
     @cached_method
     def _build_lookup_table(self):

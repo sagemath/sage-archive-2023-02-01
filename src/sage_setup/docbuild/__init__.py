@@ -143,7 +143,7 @@ class DocBuilder(object):
             sage: from sage_setup.docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._output_dir('html')
-            '.../doc/output/html/en/tutorial'
+            '.../html/en/tutorial'
         """
         d = os.path.join(SAGE_DOC_OUTPUT, type, self.lang, self.name)
         sage_makedirs(d)
@@ -160,7 +160,7 @@ class DocBuilder(object):
             sage: from sage_setup.docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._doctrees_dir()
-            '.../doc/output/doctrees/en/tutorial'
+            '.../doctrees/en/tutorial'
         """
         d = os.path.join(SAGE_DOC_OUTPUT, 'doctrees', self.lang, self.name)
         sage_makedirs(d)
@@ -466,7 +466,7 @@ class ReferenceBuilder(AllBuilder):
             sage: from sage_setup.docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: b._output_dir('html')
-            '.../doc/output/html/en/reference'
+            '.../html/en/reference'
         """
         d = os.path.join(SAGE_DOC_OUTPUT, type, lang, self.name)
         sage_makedirs(d)

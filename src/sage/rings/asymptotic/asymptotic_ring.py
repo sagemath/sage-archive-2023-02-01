@@ -2127,12 +2127,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:     - 9/8/sqrt(pi)*n^(-5/2)
             ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
             sage: e.compare_with_values(n, catalan, srange(5, 10))
-            [(5, 2625/512*sqrt(5)*(4*sqrt(5)/sqrt(pi) - 5)),
-             (6, 1/128*sqrt(6)*(3889*sqrt(6)/sqrt(pi) - 5346)),
-             (7, 3/16384*sqrt(7)*(230784*sqrt(7)/sqrt(pi) - 343343)),
-             (8, 5/32*sqrt(2)*(1437*sqrt(2)/sqrt(pi) - 1144)),
-             (9, 82953/128/sqrt(pi) - 47849373/131072)]
+            [(5, 0.5303924444775?),
+             (6, 0.5455279498787?),
+             (7, 0.556880411050?),
+             (8, 0.565710587724?),
+             (9, 0.572775029098?)]
             sage: e.compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
+            [(5, 0.3886263699387?), (10, 19.1842458318?), (20, 931314.63637?)]
+            sage: e.compare_with_values(n, catalan, [5, 10, 20], rescaled=False, ring=SR)
             [(5, 168/5*sqrt(5)/sqrt(pi) - 42),
              (10, 1178112/125*sqrt(10)/sqrt(pi) - 16796),
              (20, 650486218752/125*sqrt(5)/sqrt(pi) - 6564120420)]

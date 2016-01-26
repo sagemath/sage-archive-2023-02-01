@@ -2139,6 +2139,21 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
              (10, 1178112/125*sqrt(10)/sqrt(pi) - 16796),
              (20, 650486218752/125*sqrt(5)/sqrt(pi) - 6564120420)]
 
+        Instead of a symbolic expression, a callable function can
+        be specified as well::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ * log(n)^ZZ', SR)
+            sage: def H(n):
+            ....:     return sum(1/k for k in srange(1, n+1))
+            sage: H_expansion = (log(n) + euler_gamma + 1/(2*n)
+            ....:                - 1/(12*n^2) + O(n^-4))
+            sage: H_expansion.compare_with_values(n, H, srange(25, 30)) # rel tol 1e-6
+            [(25, -0.008326995?),
+             (26, -0.008327472?),
+             (27, -0.008327898?),
+             (28, -0.00832828?),
+             (29, -0.00832862?)]
+
         TESTS::
 
             sage: A.<x, y> = AsymptoticRing('x^ZZ*y^ZZ', QQ)

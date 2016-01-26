@@ -3152,6 +3152,16 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-7/2)),
             singular_expansions={1/4: 2 - 2*T^(-1/2)
             + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
+
+        TESTS::
+
+            sage: def f(z):
+            ....:     return z/(1-z)
+            sage: B.singularity_analysis(f, (1,), precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term is O(0) which means
+            0 for sufficiently large n
         """
         from sage.symbolic.ring import SR
         from sage.rings.integer_ring import ZZ

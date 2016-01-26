@@ -3116,17 +3116,23 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
         """
         from sage.symbolic.ring import SR
+        from sage.rings.integer_ring import ZZ
         from term_monoid import ExactTerm, OTerm
         from growth_group import MonomialGrowthGroup
         from asymptotic_expansion_generators import asymptotic_expansions
 
         singular_expansions = {}
+        # workaround: access from inner scope otherwise not possible
+        flags = {'OZeroEncountered': False}
 
         def expand_summand(summand, singularity, precision=precision):
             # helper function: takes a single summand from the singular
             # expansion and determines the asymptotic growth of the
             # coefficients.
             alpha = summand.growth.exponent
+            if alpha in ZZ and alpha <= 0:
+                flags['OZeroEncountered'] = True
+                return self(0)
             if isinstance(summand, ExactTerm):
                 expansion = asymptotic_expansions.\
                     SingularityAnalysis('Z', alpha=alpha, zeta=singularity,
@@ -3149,6 +3155,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         result = sum(handle_singularity(function, singularity)
                      for singularity in singularities)
+
+        if flags['OZeroEncountered'] and result.exact_part() == result:
+            from asymptotic_expansion_generators import NotImplementedOZero
+            raise NotImplementedOZero('The error term is O(0) which means 0 '
+                                      'for sufficiently large {}'.format(self.gen()))
 
         if return_singular_expansions:
             from collections import namedtuple

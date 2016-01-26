@@ -1508,7 +1508,7 @@ def setup_logger(verbose=1, color=True):
             format_debug += " "
 
     # Documentation:  http://docs.python.org/library/logging.html
-    logger = logging.getLogger('doc.builder')
+    logger = logging.getLogger('docbuild')
 
     # Note: There's also Handler.setLevel().  The argument is the
     # lowest severity message that the respective logger or handler

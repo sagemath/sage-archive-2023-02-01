@@ -1531,6 +1531,16 @@ cdef class Expression(CommutativeRingElement):
             ...               print "deriv: %s, hash:%s"%(deriv,h)
             ...           else:
             ...               hashes.add(n)
+
+        Check whether `oo` keeps its hash in `SR` (:trac:`19918`)::
+
+            sage: hash(oo) == hash(SR(oo))
+            True
+            sage: hash(oo) == hash((-x).subs(x=-oo))
+            True
+            sage: hash(-oo) == hash(SR(-oo))
+            True
+            sage: hash(-oo) == hash((-x).subs(x=oo))
         """
         return self._gobj.gethash()
 

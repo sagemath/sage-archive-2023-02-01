@@ -1357,15 +1357,15 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: f_seq = [1,4,2,6,4,2,3,1,5,5]
                 sage: x = mg.f_string(f_seq)
                 sage: x.weight()
-                3*Lambda[1] + 2*Lambda[2] - 2*Lambda[3] - Lambda[4] + Lambda[5]
+                -3*Lambda[1] - 2*Lambda[2] + 2*Lambda[3] + Lambda[4] - Lambda[5]
 
                 sage: al = B.cartan_type().root_system().weight_space().simple_roots()
-                sage: x.weight() == sum(al[i] for i in f_seq)
+                sage: x.weight() == -sum(al[i] for i in f_seq)
                 True
             """
             WLR = self.parent().weight_lattice_realization()
             alpha = WLR.simple_roots()
-            return WLR.sum(alpha[i] for i in self.to_highest_weight()[1])
+            return -WLR.sum(alpha[i] for i in self.to_highest_weight()[1])
 
         def phi(self,i):
             r"""
@@ -1391,7 +1391,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: mg = B.highest_weight_vector()
                 sage: x = mg.f_string([1,3,4,2,4,3,2,1,4])
                 sage: [x.phi(i) for i in B.index_set()]
-                [3, -2, 2, 5]
+                [-1, 4, -2, -3]
             """
             WLR = self.parent().weight_lattice_realization()
             h = WLR.simple_coroots()

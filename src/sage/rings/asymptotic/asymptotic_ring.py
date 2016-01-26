@@ -2290,8 +2290,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         from sage.rings.real_mpfi import RealIntervalField_class
         if isinstance(ring, RealIntervalField_class):
-            if not all(points[k][1].relative_diameter() <= 0.01
-                       for k in range(len(points))):
+            if not all(p[1].relative_diameter() <= 0.025 for p in points):
                 raise ValueError('Numerical noise is too high, the '
                                  'comparison is inaccurate')
 

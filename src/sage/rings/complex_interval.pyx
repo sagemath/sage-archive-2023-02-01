@@ -804,7 +804,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: CIF(2,-3).__rdiv__(CIF(1,-2))
-            0.6153846153846154? - 0.0769230769230769?*I
+            0.6153846153846154? - 0.0769230769230770?*I
         """
         return ComplexIntervalFieldElement(self._parent, left)/self
 
@@ -1116,7 +1116,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: I = CIF.0
             sage: a = ~(5+I) # indirect doctest
             sage: a * (5+I)
-            1.000000000000000? + 0.?e-16*I
+            1.000000000000000? + -1.?e-16*I
             sage: a = CIF((1, 2), (3, 4))
             sage: c = a.__invert__()
             sage: c.endpoints()
@@ -1943,7 +1943,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(1,1).tan()
             0.27175258531952? + 1.08392332733870?*I
             sage: CIF(2).tan()
-            -2.18503986326152?
+            -2.185039863261519?
             sage: CIF(0,2).tan()
             0.964027580075817?*I
         """
@@ -2032,7 +2032,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(2).tanh()
             0.964027580075817?
             sage: CIF(0,2).tanh()
-            -2.18503986326152?*I
+            -2.185039863261519?*I
         """
         return self.sinh() / self.cosh()
 

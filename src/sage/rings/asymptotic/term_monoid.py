@@ -3308,6 +3308,26 @@ class ExactTerm(TermWithCoefficient):
             Growth Group QQ^x * x^ZZ * log(x)^ZZ
             > *previous* TypeError: unsupported operand parent(s) for '*':
             'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
+
+        ::
+
+            sage: T = TermMonoid('exact', GrowthGroup('QQ^n * n^QQ'), SR)
+            sage: n = T('n')
+            sage: n.rpow(2)
+            2^n
+            sage: _.parent()
+            Exact Term Monoid QQ^n * n^SR with coefficients in Symbolic Ring
+
+        Above, we get ``QQ^n * n^SR`` since
+        ::
+
+            sage: (n^SR(1)).parent()
+            Exact Term Monoid QQ^n * n^SR with coefficients in Symbolic Ring
+
+        and that is because of
+
+            sage: (QQ(2)^SR(1)).parent(), (QQ(1)*SR(1)).parent()
+            (Rational Field, Symbolic Ring)
         """
         P = self.parent()
 

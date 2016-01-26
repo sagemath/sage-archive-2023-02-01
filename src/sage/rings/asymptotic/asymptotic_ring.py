@@ -1412,10 +1412,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         Check that :trac:`19946` is fixed::
 
             sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
-            sage: 2^n
+            sage: e = 2^n; e
             2^n
-            sage: _.parent()
+            sage: e.parent()
             Asymptotic Ring <SR^n * n^SR> over Symbolic Ring
+            sage: e = A(e); e
+            2^n
+            sage: e.parent()
+            Asymptotic Ring <QQ^n * n^QQ> over Symbolic Ring
         """
         if not self.summands:
             if exponent == 0:

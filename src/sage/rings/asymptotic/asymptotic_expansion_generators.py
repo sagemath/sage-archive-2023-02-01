@@ -674,13 +674,7 @@ class AsymptoticExpansionGenerators(SageObject):
             if zeta == 1:
                 exponential_factor = 1
             else:
-                # due to trac 19946, we have to construct zeta^n
-                # in an auxiliary ring.
-                # due to trac 19945, the coefficient ring has to
-                # contain 1/zeta.
-                A_helper = A.change_parameter(coefficient_ring=(1/zeta).parent())
-                n_helper = A_helper.gen()
-                exponential_factor = (1/zeta) ** n_helper
+                exponential_factor = n.rpow(1/zeta)
 
             e = _sa_coefficients_e_(precision, alpha)
             result = sum(n**(alpha-1-k) * iga * e[k]

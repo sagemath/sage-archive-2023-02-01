@@ -2115,6 +2115,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         A list of tuples containing comparison points and (rescaled)
         difference values.
 
+        .. SEEALSO::
+
+            :meth:`plot_comparison`
 
         EXAMPLES:
 

@@ -1416,6 +1416,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ValueError: Cannot take s + t to the exponent s.
             > *previous* ValueError: log(s + t) cannot be constructed since
             there are several maximal elements s, t.
+
+        Check that :trac:`19946` is fixed::
+
+            sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
+            sage: e = 2^n; e
+            2^n
+            sage: e.parent()
+            Asymptotic Ring <SR^n * n^SR> over Symbolic Ring
+            sage: e = A(e); e
+            2^n
+            sage: e.parent()
+            Asymptotic Ring <QQ^n * n^QQ> over Symbolic Ring
         """
         if not self.summands:
             if exponent == 0:
@@ -1674,6 +1686,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
             > *previous* TypeError: unsupported operand parent(s) for '*':
             'Growth Group x^ZZ' and 'Growth Group SR^x'
+
+        Check that :trac:`19946` is fixed::
+
+            sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
+            sage: n.rpow(2)
+            2^n
+            sage: _.parent()
+            Asymptotic Ring <QQ^n * n^SR> over Symbolic Ring
         """
         if isinstance(base, AsymptoticExpansion):
             return base.__pow__(self, precision=precision)

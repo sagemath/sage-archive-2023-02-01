@@ -2101,7 +2101,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``values`` -- a list or iterable of values where the comparison
           shall be carried out.
 
-        - ``rescaled`` -- (default: ``True``) determines, whether
+        - ``rescaled`` -- (default: ``True``) determines whether
           the difference is divided by the error term of the asymptotic
           expansion.
 
@@ -2109,7 +2109,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         A list of tuples containing comparison points and (rescaled)
         difference values.
-
 
 
         EXAMPLES:
@@ -2205,7 +2204,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``values`` -- a list or iterable of values where the comparison
           shall be carried out.
 
-        - ``rescaled`` -- (default: ``True``) determines, whether
+        - ``rescaled`` -- (default: ``True``) determines whether
           the difference is divided by the error term of the asymptotic
           expansion.
 
@@ -2235,7 +2234,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<n> = AsymptoticRing('n^ZZ * log(n)^ZZ', SR)
             sage: def H(n):
-            ....:     return sum([1/k for k in srange(1, n+1)])
+            ....:     return sum(1/k for k in srange(1, n+1))
             sage: H_expansion = (log(n) + euler_gamma + 1/(2*n)
             ....:                - 1/(12*n^2) + O(n^-4))
             sage: H_expansion.plot_comparison(n, H, srange(1, 30))

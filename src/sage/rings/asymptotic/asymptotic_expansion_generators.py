@@ -273,10 +273,8 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision >= 4 and not skip_constant_summand:
             result += log(2*coefficient_ring('pi')) / 2
 
-        from sage.misc.misc import srange
-        from sage.arith.all import bernoulli
-        for k in srange(2, 2*precision - 6, 2):
-            result += bernoulli(k) / k / (k-1) / n**(k-1)
+        result += AsymptoticExpansionGenerators._log_StirlingNegativePowers_(
+            var, precision - 4)
 
         if precision < 1:
             result += (n * log(n)).O()
@@ -286,10 +284,58 @@ class AsymptoticExpansionGenerators(SageObject):
             result += log(n).O()
         elif precision == 3:
             result += A(1).O()
-        else:
-            result += (1 / n**(2*precision - 7)).O()
 
         return result
+
+
+    @staticmethod
+    def _log_StirlingNegativePowers_(var, precision):
+        r"""
+        Helper function to calculate the logarithm of Stirling's approximation
+        formula from the negative powers of ``var`` on, i.e., it skips the
+        summands `n \log n - n + (\log n)/2 + \log(2\pi)/2`.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``precision`` -- an integer specifying the number of exact summands.
+          If this is negative, then the result is `0`.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        TESTS::
+
+            sage: asymptotic_expansions._log_StirlingNegativePowers_(
+            ....:     'm', precision=-1)
+            0
+            sage: asymptotic_expansions._log_StirlingNegativePowers_(
+            ....:     'm', precision=0)
+            O(m^(-1))
+            sage: asymptotic_expansions._log_StirlingNegativePowers_(
+            ....:     'm', precision=3)
+            1/12*m^(-1) - 1/360*m^(-3) + 1/1260*m^(-5) + O(m^(-7))
+            sage: _.parent()
+            Asymptotic Ring <m^ZZ> over Rational Field
+        """
+        from asymptotic_ring import AsymptoticRing
+        from sage.rings.rational_field import QQ
+
+        A = AsymptoticRing(growth_group='{n}^ZZ'.format(n=var),
+                           coefficient_ring=QQ)
+        if precision < 0:
+            return A.zero()
+        n = A.gen()
+
+        from sage.arith.all import bernoulli
+        from sage.misc.misc import srange
+
+        result = sum((bernoulli(k) / k / (k-1) / n**(k-1)
+                      for k in srange(2, 2*precision + 2, 2)),
+                     A.zero())
+        return result + (1 / n**(2*precision + 1)).O()
 
 
     @staticmethod

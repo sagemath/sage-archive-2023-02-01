@@ -780,38 +780,22 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             sage: CIF(2,-3)._div_(CIF(1,-2))
             1.600000000000000? + 0.200000000000000?*I
+            sage: a = CIF((1, 2), (3, 4))
+            sage: b = CIF(-1, (2, 3))    
+            sage: c = a/b      
+            sage: c.endpoints()
+            (0.500000000000000 - 1.60000000000000*I,
+            1.50000000000000 - 0.600000000000000*I,
+            0.500000000000000 - 0.600000000000000*I,
+            1.50000000000000 - 1.60000000000000*I)
+            sage: c = b/a
+            sage: c.endpoints()
+            (0.246153846153846 + 0.317647058823529*I,
+            0.841176470588236 + 0.761538461538462*I,
+            0.246153846153846 + 0.761538461538462*I,
+            0.841176470588236 + 0.317647058823529*I)
         """
-        cdef ComplexIntervalFieldElement x
-        x = self._new()
-        cdef mpfi_t a, b, t0, t1, right_nm
-        mpfi_init2(t0, self._prec)
-        mpfi_init2(t1, self._prec)
-        mpfi_init2(a, self._prec)
-        mpfi_init2(b, self._prec)
-        mpfi_init2(right_nm, self._prec)
-
-        mpfi_sqr(t0, (<ComplexIntervalFieldElement>right).__re)
-        mpfi_sqr(t1, (<ComplexIntervalFieldElement>right).__im)
-        mpfi_add(right_nm, t0, t1)
-
-        mpfi_div(a, (<ComplexIntervalFieldElement>right).__re, right_nm)
-        mpfi_div(b, (<ComplexIntervalFieldElement>right).__im, right_nm)
-
-        ## Do this: x.__re =  a * self.__re + b * self.__im
-        mpfi_mul(t0, a, self.__re)
-        mpfi_mul(t1, b, self.__im)
-        mpfi_add(x.__re, t0, t1)
-
-        ## Do this: x.__im =  a * self.__im - b * self.__re
-        mpfi_mul(t0, a, self.__im)
-        mpfi_mul(t1, b, self.__re)
-        mpfi_sub(x.__im, t0, t1)
-        mpfi_clear(t0)
-        mpfi_clear(t1)
-        mpfi_clear(a)
-        mpfi_clear(b)
-        mpfi_clear(right_nm)
-        return x
+        return self * right.__invert__()
 
     def __rdiv__(self, left):
         """
@@ -1133,6 +1117,13 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: a = ~(5+I) # indirect doctest
             sage: a * (5+I)
             1.000000000000000? + 0.?e-16*I
+            sage: a = CIF((1, 2), (3, 4))
+            sage: c = a.__invert__()
+            sage: c.endpoints()
+            (0.0588235294117647 - 0.300000000000000*I,
+            0.153846153846154 - 0.200000000000000*I,
+            0.0588235294117647 - 0.200000000000000*I,
+            0.153846153846154 - 0.300000000000000*I)
 
 
         REFERENCES:

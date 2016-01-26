@@ -306,7 +306,7 @@ and arbitrary objects for entries, one can make that association::
     sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), \
           2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
     sage: d[2]
-    Moebius-Kantor Graph: Graph on 16 vertices
+    Möbius-Kantor Graph: Graph on 16 vertices
     sage: T = graphs.TetrahedralGraph()
     sage: T.vertices()
     [0, 1, 2, 3]

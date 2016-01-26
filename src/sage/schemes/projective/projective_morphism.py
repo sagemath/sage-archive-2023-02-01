@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Morphisms on projective varieties
 
@@ -640,7 +641,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             \Phi^{\ast}_n(f)(x,y) = \sum_{d \mid n} (yF_d(x,y) - xG_d(x,y))^{\mu(n/d)}
 
-        where `\mu` is the Moebius function.
+        where `\mu` is the Möbius function.
 
         For a pair `[m,n]`, let `f^m = [F_m,G_m]`. Compute
 

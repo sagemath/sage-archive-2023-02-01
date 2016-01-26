@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Functions that compute some of the sequences in Sloane's tables
 
@@ -6451,7 +6452,7 @@ class A001157(SloaneSequence):
 class A008683(SloaneSequence):
     def __init__(self):
         r"""
-        Moebius function `\mu(n)`.
+        Möbius function `\mu(n)`.
 
         INPUT:
 
@@ -6468,7 +6469,7 @@ class A008683(SloaneSequence):
         EXAMPLES::
 
             sage: a = sloane.A008683;a
-            Moebius function mu(n).
+            Möbius function mu(n).
             sage: a(0)
             Traceback (most recent call last):
             ...
@@ -6490,10 +6491,10 @@ class A008683(SloaneSequence):
         """
         EXAMPLES::
 
-            sage: sloane.A008683._repr_()
-            'Moebius function mu(n).'
+            sage: print(sloane.A008683._repr_())
+            Möbius function mu(n).
         """
-        return "Moebius function mu(n)."
+        return "Möbius function mu(n)."
 
     def _eval(self, n):
         """

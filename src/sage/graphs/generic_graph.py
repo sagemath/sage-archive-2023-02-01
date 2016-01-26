@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Generic graphs (common to directed/undirected)
 
@@ -9457,7 +9458,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
             sage: d[2]
-            Moebius-Kantor Graph: Graph on 16 vertices
+            Möbius-Kantor Graph: Graph on 16 vertices
             sage: T = graphs.TetrahedralGraph()
             sage: T.vertices()
             [0, 1, 2, 3]
@@ -9510,7 +9511,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
             sage: d[2]
-            Moebius-Kantor Graph: Graph on 16 vertices
+            Möbius-Kantor Graph: Graph on 16 vertices
             sage: T = graphs.TetrahedralGraph()
             sage: T.vertices()
             [0, 1, 2, 3]
@@ -9540,7 +9541,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.set_vertices(d)
             sage: T.get_vertices([1,2])
             {1: Flower Snark: Graph on 20 vertices,
-             2: Moebius-Kantor Graph: Graph on 16 vertices}
+             2: Möbius-Kantor Graph: Graph on 16 vertices}
         """
         if verts is None:
             verts = self.vertices()

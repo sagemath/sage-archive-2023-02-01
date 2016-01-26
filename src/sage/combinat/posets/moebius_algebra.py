@@ -112,9 +112,9 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
 
             sage: L = posets.BooleanLattice(4)
             sage: L.moebius_algebra(QQ)
-            Moebius algebra of Finite lattice containing 16 elements over Rational Field
+            Möbius algebra of Finite lattice containing 16 elements over Rational Field
         """
-        return "Moebius algebra of {} over {}".format(self._lattice, self.base_ring())
+        return "Möbius algebra of {} over {}".format(self._lattice, self.base_ring())
 
     def a_realization(self):
         r"""
@@ -125,7 +125,7 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             sage: L = posets.BooleanLattice(4)
             sage: M = L.moebius_algebra(QQ)
             sage: M.a_realization()
-            Moebius algebra of Finite lattice containing 16 elements
+            Möbius algebra of Finite lattice containing 16 elements
              over Rational Field in the natural basis
         """
         return self.E()
@@ -269,8 +269,8 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             """
             M = self.realization_of()
             N = M.natural()
-            mobius = M._lattice.mobius_function
-            return N.sum_of_terms((y, mobius(y,x)) for y in M._lattice.order_ideal([x]))
+            moebius = M._lattice.moebius_function
+            return N.sum_of_terms((y, moebius(y,x)) for y in M._lattice.order_ideal([x]))
 
         def product_on_basis(self, x, y):
             """
@@ -373,10 +373,10 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
 
             sage: L = posets.BooleanLattice(4)
             sage: L.quantum_moebius_algebra()
-            Quantum Moebius algebra of Finite lattice containing 16 elements
+            Quantum Möbius algebra of Finite lattice containing 16 elements
              with q=q over Univariate Laurent Polynomial Ring in q over Integer Ring
         """
-        return "Quantum Moebius algebra of {} with q={} over {}".format(
+        return "Quantum Möbius algebra of {} with q={} over {}".format(
                             self._lattice, self._q, self.base_ring())
 
     def a_realization(self):
@@ -388,7 +388,7 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             sage: L = posets.BooleanLattice(4)
             sage: M = L.quantum_moebius_algebra()
             sage: M.a_realization()
-            Quantum Moebius algebra of Finite lattice containing 16 elements
+            Quantum Möbius algebra of Finite lattice containing 16 elements
              with q=q over Univariate Laurent Polynomial Ring in q
              over Integer Ring in the natural basis
         """
@@ -456,11 +456,11 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             """
             L = self.realization_of()._lattice
             q = self.realization_of()._q
-            mobius = L.mobius_function
+            moebius = L.moebius_function
             rank = L.rank_function()
             R = L.rank()
             j = L.join(x,y)
-            return self.sum_of_terms(( z, mobius(a,z) * q**(R - rank(a)) )
+            return self.sum_of_terms(( z, moebius(a,z) * q**(R - rank(a)) )
                                      for z in L.order_filter([j])
                                      for a in L.closed_interval(j, z))
 
@@ -478,10 +478,10 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             """
             L = self.realization_of()._lattice
             q = self.realization_of()._q
-            mobius = L.mobius_function
+            moebius = L.moebius_function
             rank = L.rank_function()
             R = L.rank()
-            return self.sum_of_terms((x, mobius(y,x) * q**(rank(y) - R))
+            return self.sum_of_terms((x, moebius(y,x) * q**(rank(y) - R))
                                      for x in L for y in L.order_ideal([x]))
 
     natural = E
@@ -658,7 +658,7 @@ class MoebiusAlgebraBases(Category_realization_of_parent):
             sage: from sage.combinat.posets.moebius_algebra import MoebiusAlgebraBases
             sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
             sage: MoebiusAlgebraBases(M)
-            Category of bases of Moebius algebra of Finite lattice
+            Category of bases of Möbius algebra of Finite lattice
              containing 16 elements over Rational Field
         """
         return "Category of bases of {}".format(self.base())
@@ -674,7 +674,7 @@ class MoebiusAlgebraBases(Category_realization_of_parent):
             sage: bases = MoebiusAlgebraBases(M)
             sage: bases.super_categories()
             [Category of finite dimensional commutative algebras with basis over Rational Field,
-             Category of realizations of Moebius algebra of Finite lattice
+             Category of realizations of Möbius algebra of Finite lattice
                 containing 16 elements over Rational Field]
         """
         return [self.base()._category, Realizations(self.base())]
@@ -688,10 +688,10 @@ class MoebiusAlgebraBases(Category_realization_of_parent):
 
                 sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
                 sage: M.E()
-                Moebius algebra of Finite lattice containing 16 elements
+                Möbius algebra of Finite lattice containing 16 elements
                  over Rational Field in the natural basis
                 sage: M.I()
-                Moebius algebra of Finite lattice containing 16 elements
+                Möbius algebra of Finite lattice containing 16 elements
                  over Rational Field in the idempotent basis
             """
             return "{} in the {} basis".format(self.realization_of(), self._basis_name)

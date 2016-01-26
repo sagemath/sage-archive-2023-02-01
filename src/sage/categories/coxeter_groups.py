@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Coxeter Groups
 """
@@ -1842,7 +1843,7 @@ v            EXAMPLES::
             The implementation uses the equivalent condition that any
             reduced word for ``other`` contains a reduced word for
             ``self`` as subword. See Stembridge, A short derivation of
-            the Mobius function for the Bruhat order. J. Algebraic
+            the Möbius function for the Bruhat order. J. Algebraic
             Combin. 25 (2007), no. 2, 141--148, Proposition 1.1.
 
             Complexity: `O(l * c)`, where `l` is the minimum of the

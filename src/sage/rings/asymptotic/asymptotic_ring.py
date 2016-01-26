@@ -307,7 +307,7 @@ Arbitrary powers work as well; for example, we have
 
     instead. (See also the examples in
     :meth:`ExactTerm.rpow() <sage.rings.asymptotic.term_monoid.ExactTerm.rpow>`
-    for a detailed explaination.)
+    for a detailed explanation.)
     Another way is to use a larger coefficent ring::
 
         sage: M_QQ.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ', coefficient_ring=QQ)

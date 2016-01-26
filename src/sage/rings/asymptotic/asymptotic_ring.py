@@ -2273,6 +2273,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: H_expansion.plot_comparison(n, H, srange(1, 30),
             ....:                             rescaled=False)
             Graphics object consisting of 1 graphics primitive
+
+        Additional keywords are passed to :meth:`list_plot`::
+
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30),
+            ....:                             plotjoined=True, marker='o',
+            ....:                             color='green')
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.plot.plot import list_plot
         points = self.compare_with_values(variable, function,

@@ -89,6 +89,16 @@ Classes and Methods
 
 from sage.structure.sage_object import SageObject
 
+
+class NotImplementedOZero(NotImplementedError):
+    r"""
+    A special :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`
+    which is raised when the result is O(0) which means 0
+    for sufficiently large values of the variable.
+    """
+    pass
+
+
 class AsymptoticExpansionGenerators(SageObject):
     r"""
     A collection of constructors for several common asymptotic expansions.
@@ -553,10 +563,10 @@ class AsymptoticExpansionGenerators(SageObject):
             Asymptotic Ring <n^ZZ> over Rational Field
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=-1)
-            0
-            sage: asymptotic_expansions.SingularityAnalysis(
-            ....:     'n', alpha=-2)
-            0
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The result is O(0) which means 0
+            for sufficiently large n
 
         ::
 
@@ -598,7 +608,10 @@ class AsymptoticExpansionGenerators(SageObject):
             1/6*(1/2)^n*n^3 + (1/2)^n*n^2 + 11/6*(1/2)^n*n + O((1/2)^n)
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=-1, zeta=2, precision=3)
-            0
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The result is O(0) which means 0
+            for sufficiently large n
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=1/2, zeta=2, precision=3)
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
@@ -661,13 +674,7 @@ class AsymptoticExpansionGenerators(SageObject):
             if zeta == 1:
                 exponential_factor = 1
             else:
-                # due to trac 19946, we have to construct zeta^n
-                # in an auxiliary ring.
-                # due to trac 19945, the coefficient ring has to
-                # contain 1/zeta.
-                A_helper = A.change_parameter(coefficient_ring=(1/zeta).parent())
-                n_helper = A_helper.gen()
-                exponential_factor = (1/zeta) ** n_helper
+                exponential_factor = n.rpow(1/zeta)
 
             e = _sa_coefficients_e_(precision, alpha)
             result = sum(n**(alpha-1-k) * iga * e[k]
@@ -679,7 +686,9 @@ class AsymptoticExpansionGenerators(SageObject):
                     return exponential_factor * result
                 elif a < 0:
                     assert result.is_zero()
-                    return A(0)
+                    raise NotImplementedOZero(
+                        'The result is O(0) which means 0 for sufficiently '
+                        'large {}'.format(var))
 
             return exponential_factor * (result + (n**(alpha-1-precision)).O())
 

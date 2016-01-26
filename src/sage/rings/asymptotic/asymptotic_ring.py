@@ -441,6 +441,7 @@ from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.superseded import experimental
+from sage.rings.all import RIF
 
 class AsymptoticExpansion(CommutativeAlgebraElement):
     r"""
@@ -2086,7 +2087,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
-    def compare_with_values(self, variable, function, values, rescaled=True):
+    def compare_with_values(self, variable, function, values,
+                            rescaled=True, ring=RIF):
         """
         Compute the (rescaled) difference between this asymptotic
         expansion and the given values.
@@ -2104,6 +2106,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``rescaled`` -- (default: ``True``) determines whether
           the difference is divided by the error term of the asymptotic
           expansion.
+
+        - ``ring`` -- (default: ``RIF``) the parent into which the
+          difference is converted.
 
         OUTPUT:
 
@@ -2178,12 +2183,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                     return expr
 
         if rescaled:
-            points = list(tuple([k, (main.subs({variable: k}) - function(k)) /
-                                 error_growth._substitute_({str(variable): k,
-                                                            '_one_': ZZ(1)})])
+            points = list(tuple([k,
+                      ring((main.subs({variable: k}) - function(k)) /
+                           error_growth._substitute_({str(variable): k,
+                                                      '_one_': ZZ(1)}))])
                           for k in values)
         else:
-            points = list(tuple([k, (main.subs({variable: k}) - function(k))])
+            points = list(tuple([k, ring(main.subs({variable: k}) -
+                                         function(k))])
                           for k in values)
         return points
 

@@ -2216,7 +2216,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
 
     def plot_comparison(self, variable, function, values, rescaled=True,
-                        **kwargs):
+                        ring=RIF, **kwargs):
         r"""
         Plot the (rescaled) difference between this asymptotic
         expansion and the given values.
@@ -2234,6 +2234,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``rescaled`` -- (default: ``True``) determines whether
           the difference is divided by the error term of the asymptotic
           expansion.
+
+        - ``ring`` -- (default: ``RIF``) the parent into which the
+          difference is converted.
 
         Other keywords are passed to :func:`list_plot`.
 
@@ -2283,8 +2286,20 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         from sage.plot.plot import list_plot
         points = self.compare_with_values(variable, function,
-                                          values, rescaled=rescaled)
-        return list_plot(points, *kwargs)
+                                          values, rescaled=rescaled, ring=ring)
+
+        from sage.rings.real_mpfi import RealIntervalField_class
+        if isinstance(ring, RealIntervalField_class):
+            if not all(points[k][1].relative_diameter() <= 0.01
+                       for k in range(len(points))):
+                raise ValueError('Numerical noise is too high, the '
+                                 'comparison is inaccurate')
+
+            # RIFs cannot be plotted, they need to be converted to RR
+            # (see #15011).
+            points = [(p[0], p[1].center()) for p in points]
+
+        return list_plot(points, **kwargs)
 
 
     def symbolic_expression(self, R=None):

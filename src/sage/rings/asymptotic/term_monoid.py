@@ -3324,7 +3324,7 @@ class ExactTerm(TermWithCoefficient):
             sage: (n^SR(1)).parent()
             Exact Term Monoid QQ^n * n^SR with coefficients in Symbolic Ring
 
-        and that is because of
+        and that is because of ::
 
             sage: (QQ(2)^SR(1)).parent(), (QQ(1)*SR(1)).parent()
             (Rational Field, Symbolic Ring)

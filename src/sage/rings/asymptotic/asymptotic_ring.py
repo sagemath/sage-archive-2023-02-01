@@ -2283,6 +2283,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:                             plotjoined=True, marker='o',
             ....:                             color='green')
             Graphics object consisting of 1 graphics primitive
+
+        TESTS::
+
+            sage: H_expansion.plot_comparison(n, H, [600])
+            Traceback (most recent call last):
+            ...
+            ValueError: Numerical noise is too high, the comparison is inaccurate
         """
         from sage.plot.plot import list_plot
         points = self.compare_with_values(variable, function,

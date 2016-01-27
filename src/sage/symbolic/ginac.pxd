@@ -163,7 +163,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
 
     bint is_negative(GEx x)                  except +
     bint is_a_relational "is_a<relational>" (GEx e)
-    unsigned decide_relational(GEx e)
+    unsigned decide_relational(GEx e) except +
     operators relational_operator(GEx e)
     operators switch_operator(operators op)
     GEx relational(GEx lhs, GEx rhs, operators o)

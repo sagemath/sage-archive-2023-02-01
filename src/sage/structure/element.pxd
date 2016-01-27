@@ -78,6 +78,7 @@ cdef class AdditiveGroupElement(ModuleElement):
 cdef class RingElement(ModuleElement):
     cpdef RingElement _mul_(self, RingElement right)
     cpdef RingElement _div_(self, RingElement right)
+    cpdef RingElement _floordiv_(self, RingElement right)
 
     cdef RingElement _add_long(self, long n)
 

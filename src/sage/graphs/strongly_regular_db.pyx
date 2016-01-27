@@ -1135,7 +1135,9 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
       guys), you may want to disable it whenever you want speed. Set to ``True``
       by default.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    some graphs ::
 
         sage: from sage.graphs.strongly_regular_db import SRG_from_RSHCD
         sage: SRG_from_RSHCD(784, 0, 14, 38, existence=True)
@@ -1144,6 +1146,16 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
         True
         sage: SRG_from_RSHCD(144, 65, 28, 30)
         Graph on 144 vertices
+
+    an example with vertex-transitive automorphism group, found during the
+    implementation of the case `v=324` ::
+
+        sage: G=SRG_from_RSHCD(324,152,70,72)  # long time
+        sage: a=G.automorphism_group()         # long time
+        sage: a.order()                        # long time
+        2592
+        sage: len(a.orbits())                  # long time
+        1
 
     TESTS::
 

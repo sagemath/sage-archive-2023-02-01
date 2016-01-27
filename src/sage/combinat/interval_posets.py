@@ -416,9 +416,98 @@ class TamariIntervalPoset(Element):
             d["vspace"] = self.parent().global_options["latex_vspace"]
         return d
 
+    def _find_node_positions(self, hspace=1, vspace=1):
+        """
+        Compute a nice embedding.
+
+        If `x` precedes `y`, then `y` will always be placed on top of `x`
+        and/or to the right of `x`.
+        Decreasing relations tend to be drawn vertically and increasing
+        relations horizontally.
+        The algorithm tries to avoid superposition but on big
+        interval-posets, it might happen.
+
+        OUTPUT:
+
+        a dictionary {vertex: (x,y)}
+
+        EXAMPLES::
+
+            sage: ti = TamariIntervalPosets(4)[2]
+            sage: ti._find_node_positions().values()
+            [[0, 0], [0, -1], [0, -2], [1, -2]]
+        """
+        node_positions = {}
+
+        to_draw = [(1, 0)]
+        current_parent = [self.increasing_parent(1)]
+        parenty = [0]
+        x = 0
+        y = 0
+        for i in xrange(2, self.size() + 1):
+            decreasing_parent = self.decreasing_parent(i)
+            increasing_parent = self.increasing_parent(i)
+            while to_draw and (decreasing_parent is None or
+                               decreasing_parent < to_draw[-1][0]):
+                n = to_draw.pop()
+                node_positions[n[0]] = [x, n[1]]
+            if i != current_parent[-1]:
+                if (not self.le(i, i - 1) and decreasing_parent is not None):
+                    x += hspace
+                    if current_parent[-1] is not None:
+                        y -= vspace
+                else:
+                    y -= vspace
+                if increasing_parent != current_parent[-1]:
+                    current_parent.append(increasing_parent)
+                    parenty.append(y)
+                nodey = y
+            else:
+                current_parent.pop()
+                x += hspace
+                nodey = parenty.pop()
+                if not current_parent or increasing_parent != current_parent[-1]:
+                    current_parent.append(increasing_parent)
+                    parenty.append(nodey)
+            to_draw.append((i, nodey))
+
+        for n in to_draw:
+            node_positions[n[0]] = [x, n[1]]
+        return node_positions
+
+    def plot(self, **kwds):
+        """
+        Return a picture.
+
+        The picture represents the Hasse diagram, where the covers are
+        colored in blue if they are increasing and in red if they are
+        decreasing.
+
+        This uses the same coordinates as the latex view.
+
+        EXAMPLES::
+
+            sage: ti = TamariIntervalPosets(4)[2]
+            sage: ti.plot()
+            Graphics object consisting of 6 graphics primitives
+        """
+        c0 = 'blue'   # self.latex_options()["color_increasing"]
+        c1 = 'red'    # self.latex_options()["color_decreasing"]
+        G = self.poset().hasse_diagram()
+        G.set_pos(self._find_node_positions())
+        for a, b, c in G.edges():
+            if a < b:
+                G.set_edge_label(a, b, 0)
+            else:
+                G.set_edge_label(a, b, 1)
+        return G.plot(color_by_label={0: c0, 1: c1}, **kwds)
+
     def _latex_(self):
         r"""
         A latex representation of ``self`` using the tikzpicture package.
+
+        This picture shows the union of the Hasse diagrams of the
+        initial and final forests.
 
         If `x` precedes `y`, then `y` will always be placed on top of `x`
         and/or to the right of `x`.
@@ -435,20 +524,22 @@ class TamariIntervalPoset(Element):
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
             sage: print ip._latex_()
             \begin{tikzpicture}[scale=1]
+            \node(T1) at (1,0) {1};
             \node(T2) at (0,-1) {2};
             \node(T3) at (1,-2) {3};
-            \node(T1) at (1,0) {1};
             \node(T4) at (2,-1) {4};
-            \draw[line width = 0.5, color=blue] (T2) -- (T4);
-            \draw[line width = 0.5, color=red] (T2) -- (T1);
-            \draw[line width = 0.5, color=blue] (T3) -- (T4);
             \draw[line width = 0.5, color=red] (T3) -- (T1);
+            \draw[line width = 0.5, color=red] (T2) -- (T1);
+            \draw[line width = 0.5, color=blue] (T2) -- (T4);
+            \draw[line width = 0.5, color=blue] (T3) -- (T4);
             \end{tikzpicture}
         """
         latex.add_package_to_preamble_if_available("tikz")
         latex_options = self.latex_options()
         start = "\\begin{tikzpicture}[scale=" + str(latex_options['tikz_scale']) + "]\n"
         end = "\\end{tikzpicture}"
+        vspace = latex_options["vspace"]
+        hspace = latex_options["hspace"]
 
         def draw_node(j, x, y):
             r"""
@@ -467,65 +558,21 @@ class TamariIntervalPoset(Element):
             Internal method to draw decreasing relations
             """
             return "\\draw[line width = " + str(latex_options["line_width"]) + ", color=" + latex_options["color_decreasing"] + "] (T" + str(i) + ") -- (T" + str(j) + ");\n"
+
         if self.size() == 0:
             nodes = "\\node(T0) at (0,0){$\emptyset$};"
             relations = ""
         else:
-            nodes = ""  # latex for node decraltions
+            positions = self._find_node_positions(hspace, vspace)
+            nodes = ""  # latex for node declarations
             relations = ""  # latex for drawing relations
-            to_draw = []
-            to_draw.append((1, 0))  # a pilo of nodes to be drawn with their y position
-
-            current_parent = [self.increasing_parent(1)]  # a pilo for the current increasing parents
-            parenty = [0]  # a pilo for the current parent y positions
-            if current_parent[-1] is not None:
-                relations += draw_increasing(1, current_parent[-1])
-            vspace = latex_options["vspace"]
-            hspace = latex_options["hspace"]
-            x = 0
-            y = 0
-
-            # the idea is that we draw the nodes from left to right and save their y position
-            for i in xrange(2, self.size() + 1):
-                # at each, we draw all possible nodes and add the current node to the to_draw pilo
-                decreasing_parent = self.decreasing_parent(i)
-                increasing_parent = self.increasing_parent(i)
-                while len(to_draw) > 0 and (decreasing_parent is None or decreasing_parent < to_draw[-1][0]):
-                    # we draw all the nodes which can be placed at x
-                    # we know these nodes won't have any more decreasing children (so their horizontal position is fixed)
-                    n = to_draw.pop()
-                    nodes += draw_node(n[0], x, n[1])
-                if i != current_parent[-1]:
-                    #i is not the current increasing parent
-                    if (not self.le(i, i - 1) and decreasing_parent is not None):
-                        # there is no decreasing relation between i and i-1
-                        #they share a decreasing parent and are placed alongside horizontally
-                        x += hspace
-                        if current_parent[-1] is not None:
-                            y -= vspace
-                    else:
-                        #otherwise, they are placed alongside vertically
-                        y -= vspace
-                    if increasing_parent != current_parent[-1]:
-                        current_parent.append(increasing_parent)
-                        parenty.append(y)
-                    nodey = y
-                else:
-                    # i is the current increasing parent so it takes the current vertical position
-                    current_parent.pop()
-                    x += hspace
-                    nodey = parenty.pop()
-                    if len(current_parent) == 0 or increasing_parent != current_parent[-1]:
-                        current_parent.append(increasing_parent)
-                        parenty.append(nodey)
-                to_draw.append((i, nodey))
-                if increasing_parent is not None:
-                    relations += draw_increasing(i, increasing_parent)
-                if decreasing_parent is not None:
-                    relations += draw_decreasing(i, decreasing_parent)
-            for n in to_draw:
-                # we draw all remaining nodes
-                nodes += draw_node(n[0], x, n[1])
+            for i in range(1, self.size() + 1):
+                nodes += draw_node(i, *positions[i])
+            for i, j in self.decreasing_cover_relations():
+                relations += draw_decreasing(i, j)
+            for i, j in self.increasing_cover_relations():
+                relations += draw_increasing(i, j)
+            
         return start + nodes + relations + end
 
     def poset(self):
@@ -556,10 +603,11 @@ class TamariIntervalPoset(Element):
 
         EXAMPLES::
 
-            sage: hash(TamariIntervalPosets(4)[0])
-            3527539
+            sage: len(set([hash(u) for u in TamariIntervalPosets(4)]))
+            68
         """
-        return hash(self._cover_relations)
+        pair = (self.size(), tuple(tuple(e) for e in self._cover_relations))
+        return hash(pair)
 
     @cached_method
     def increasing_cover_relations(self):

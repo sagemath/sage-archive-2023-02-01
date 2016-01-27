@@ -58,15 +58,6 @@ diff -ru rpy2-2.7.4.orig/rpy/rinterface/_rinterface.c rpy2-2.7.4/rpy/rinterface/
  void win32CallBack()
  {
     /* called during i/o, eval, graphics in ProcessEvents */
-@@ -1489,7 +1489,7 @@
-   } else {
-     rtruefalse = FALSE;
-   }
--#if defined(Win32) || defined(Win64)
-+#if defined(Win32) || defined(Win64) || defined(__CYGWIN__)
-   Rp->R_Interactive = rtruefalse;
- #else
-   R_Interactive = rtruefalse;
 @@ -3749,7 +3749,7 @@
    }
  
@@ -103,3 +94,15 @@ diff -ru rpy2-2.7.4.orig/rpy/rinterface/_rinterface.c rpy2-2.7.4/rpy/rinterface/
    NAComplex_Type.tp_base=&PyComplex_Type;
  #endif
    if (PyType_Ready(&NAComplex_Type) < 0) {
+diff -ru rpy2-2.7.4.orig/setup rpy2-2.7.4/setup.py
+--- rpy2-2.7.4.orig/setup.py       2016-01-15 01:45:48.447894400 -0800
++++ rpy2-2.7.4/setup.py    2016-01-15 01:48:55.222874000 -0800
+@@ -160,7 +160,7 @@
+     extra_link_args = []
+     extra_compile_args = []
+     include_dirs = []
+-    libraries = []
++    libraries = ['readline']
+     library_dirs = []
+
+     #FIXME: crude way (will break in many cases)

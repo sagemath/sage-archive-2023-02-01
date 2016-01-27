@@ -935,13 +935,16 @@ def _sa_coefficients_e_(K, alpha):
                  for k in srange(K))
 
 
-def _sa_coefficients_lambda_(K):
+def _sa_coefficients_lambda_(K, beta=0):
     r"""
-    Return the coefficients `\lambda_{k, \ell}` used in singularity analysis.
+    Return the coefficients `\lambda_{k, \ell}(\beta)` used in singularity analysis.
 
     INPUT:
 
     - ``K`` -- an integer.
+
+    - ``beta`` -- (default: `0`) the order of the logarithmic
+      singularity.
 
     OUTPUT:
 
@@ -965,6 +968,16 @@ def _sa_coefficients_lambda_(K):
          (3, 3): -1,
          (3, 4): 13/12,
          (4, 4): 1}
+        sage: _sa_coefficients_lambda_(3, beta=1)
+        {(0, 0): 1,
+         (1, 1): -2,
+         (1, 2): 1/2,
+         (2, 2): 3,
+         (2, 3): -4/3,
+         (2, 4): 1/8,
+         (3, 3): -4,
+         (3, 4): 29/12,
+         (4, 4): 5}
     """
     from sage.rings.laurent_series_ring import LaurentSeriesRing
     from sage.rings.power_series_ring import PowerSeriesRing
@@ -975,7 +988,7 @@ def _sa_coefficients_lambda_(K):
     T = PowerSeriesRing(V, names='t', default_prec=2*K-1)
     t = T.gen()
 
-    S = (t - (1+1/v) * (1+v*t).log()).exp()
+    S = (t - (1 +1/v+beta) * (1+v*t).log()).exp()
     return dict(((k + L.valuation(), ell), c)
                 for ell, L in enumerate(S.list())
                 for k, c in enumerate(L.list()))

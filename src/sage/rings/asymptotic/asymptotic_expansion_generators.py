@@ -797,7 +797,48 @@ class AsymptoticExpansionGenerators(SageObject):
             raise NotImplementedError
 
         elif beta != 0:
-            raise NotImplementedError
+            if skip_constant_factor:
+                raise NotImplementedError('Cannot skip constant factor '
+                                          'when logarithmic terms occur')
+            from growth_group import ExponentialGrowthGroup, \
+                MonomialGrowthGroup
+            from sage.categories.cartesian_product import cartesian_product
+
+            if zeta == 1:
+                group = cartesian_product(
+                    [MonomialGrowthGroup(alpha.parent(), var),
+                     MonomialGrowthGroup(beta.parent(), 'log({})'.format(var))])
+            else:
+                group = cartesian_product(
+                    [ExponentialGrowthGroup((1/zeta).parent(), var),
+                     MonomialGrowthGroup(alpha.parent(), var),
+                     MonomialGrowthGroup(beta.parent(), 'log({})'.format(var))])
+
+            A = AsymptoticRing(growth_group=group, coefficient_ring=SR)
+            n = A.gen()
+
+            if zeta == 1:
+                exponential_factor = 1
+            else:
+                exponential_factor = n.rpow(1/zeta)
+
+            if beta in ZZ and beta > 0:
+                # product of iterators needed
+                from itertools import product, islice
+                L = _sa_coefficients_lambda_(precision, beta=beta)
+                summands = iter()
+            else:
+                from itertools import count, islice
+                from sage.functions.other import binomial
+                from sage.calculus.calculus import limit
+                s = SR('s')
+                summands = iter(binomial(beta, k) *
+                                limit((1/gamma(s)).diff(s, k), s=alpha) *
+                                n.log() ** (-k) for k in count())
+
+                return exponential_factor * n**(alpha - 1) * n.log()**beta * \
+                            (sum(islice(summands, precision)) +
+                             (n.log()**(-precision)).O())
 
         elif alpha != 0:
 

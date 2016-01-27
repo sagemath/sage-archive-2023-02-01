@@ -2058,6 +2058,158 @@ class MPowerSeries(PowerSeries):
             R = R.change_ring(self.base_ring().fraction_field())
         return R(result_bg, prec=prec)
 
+    def sin(self, prec=infinity):
+        r"""
+        Apply sin to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new multivariate power series.
+
+        EXAMPLES::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: sin(f)
+            a + b + a*b + O(a, b)^3
+            sage: f.sin()
+            a + b + a*b + O(a, b)^3
+            sage: f.sin(prec=2)
+            a + b + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: sin(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: Can only apply sin to formal power series with zero constant term.
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: sin(a)
+            a - 1/6*a^3 + 1/120*a^5 - 1/5040*a^7 + 1/362880*a^9 - 1/39916800*a^11 + O(a, b)^12
+            sage: a.sin(prec=5)
+            a - 1/6*a^3 + O(a, b)^5
+            sage: sin(a + T.O(5))
+            a - 1/6*a^3 + O(a, b)^5
+
+        TESTS::
+
+            sage: sin(a^2 + T.O(5))
+            a^2 + O(a, b)^5
+        """
+        R = self.parent()
+        Rbg = R._bg_power_series_ring
+
+        c = self.constant_coefficient()
+        if not c.is_zero():
+            raise ValueError('Can only apply sin to formal power series with zero constant term.')
+        x = self._bg_value
+        val = x.valuation()
+        assert(val >= 1)
+
+        prec = min(prec, self.prec())
+        if is_Infinite(prec):
+            prec = R.default_prec()
+        n_inv_factorial = R.base_ring().one()
+        x_pow_n = x
+        x2 = x ** 2
+        sin_x = x.add_bigoh(prec)
+        for n in range(3, prec//val+1, 2):
+            x_pow_n = (x_pow_n * x2).add_bigoh(prec)
+            n_inv_factorial /= - n * (n - 1)
+            sin_x += x_pow_n * n_inv_factorial
+        result_bg = sin_x
+
+        if result_bg.base_ring() is not self.base_ring():
+            R = R.change_ring(self.base_ring().fraction_field())
+        return R(result_bg, prec=prec)
+
+    def cos(self, prec=infinity):
+        r"""
+        Apply cos to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new multivariate power series.
+
+        EXAMPLES::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: cos(f)
+            1 - 1/2*a^2 - a*b - 1/2*b^2 + O(a, b)^3
+            sage: f.cos()
+            1 - 1/2*a^2 - a*b - 1/2*b^2 + O(a, b)^3
+            sage: f.cos(prec=2)
+            1 + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: cos(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: Can only apply cos to formal power series with zero constant term.
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: cos(a)
+            1 - 1/2*a^2 + 1/24*a^4 - 1/720*a^6 + 1/40320*a^8 - 1/3628800*a^10 + O(a, b)^12
+            sage: a.cos(prec=5)
+            1 - 1/2*a^2 + 1/24*a^4 + O(a, b)^5
+            sage: cos(a + T.O(5))
+            1 - 1/2*a^2 + 1/24*a^4 + O(a, b)^5
+
+        TESTS::
+
+            sage: cos(a^2 + T.O(5))
+            1 - 1/2*a^4 + O(a, b)^5
+        """
+        R = self.parent()
+        Rbg = R._bg_power_series_ring
+
+        c = self.constant_coefficient()
+        if not c.is_zero():
+            raise ValueError('Can only apply cos to formal power series with zero constant term.')
+        x = self._bg_value
+        val = x.valuation()
+        assert(val >= 1)
+
+        prec = min(prec, self.prec())
+        if is_Infinite(prec):
+            prec = R.default_prec()
+        n_inv_factorial = R.base_ring().one()
+        x_pow_n = Rbg.one()
+        x2 = x ** 2
+        cos_x = Rbg.one().add_bigoh(prec)
+        for n in range(2, prec//val+1, 2):
+            x_pow_n = (x_pow_n * x2).add_bigoh(prec)
+            n_inv_factorial /= - n * (n - 1)
+            cos_x += x_pow_n * n_inv_factorial
+        result_bg = cos_x
+
+        if result_bg.base_ring() is not self.base_ring():
+            R = R.change_ring(self.base_ring().fraction_field())
+        return R(result_bg, prec=prec)
+
     def laurent_series(self):
         """
         Not implemented for multivariate power series.

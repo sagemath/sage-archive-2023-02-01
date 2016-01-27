@@ -2775,28 +2775,6 @@ def time_alloc_list(n):
 
     return l
 
-def time_alloc(n):
-    """
-    Allocate ``n`` :class:`RealDoubleElement` instances.
-
-    EXAMPLES:
-
-    Since this does not store anything in a python object, the created
-    elements will not be sent to the garbage collector. Therefore they
-    remain in the pool::
-
-        sage: from sage.rings.real_double import time_alloc, pool_stats
-        sage: pool_stats()
-        Used pool 0 / 0 times
-        Pool contains 7 / 50 items
-        sage: time_alloc(25)
-        sage: pool_stats()
-        Used pool 0 / 0 times
-        Pool contains 7 / 50 items
-    """
-    cdef int i
-    for i from 0 <= i < n:
-        z = PY_NEW(RealDoubleElement)
 
 def pool_stats():
     """

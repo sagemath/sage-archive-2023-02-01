@@ -21,7 +21,7 @@ for patch in ../patches/*.patch; do
 done
 
 echo "Configuring..."
-./configure --prefix="$SAGE_LOCAL" --disable-static
+./configure --prefix="$SAGE_LOCAL" --disable-static --libdir="$SAGE_LOCAL/lib"
 if [ $? -ne 0 ]; then
    echo >&2 "Error configuring cliquer"
    exit 1

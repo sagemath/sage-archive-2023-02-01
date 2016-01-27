@@ -2115,10 +2115,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         A list of pairs containing comparison points and (rescaled)
         difference values.
 
-        .. SEEALSO::
-
-            :meth:`plot_comparison`
-
         EXAMPLES:
 
         In the following example, due to :trac:`19946`, we cannot
@@ -2156,6 +2152,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
              (27, -0.008327898?),
              (28, -0.00832828?),
              (29, -0.00832862?)]
+
+        .. SEEALSO::
+
+            :meth:`plot_comparison`
 
         TESTS::
 
@@ -2260,10 +2260,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             plausability check for asymptotic expansion created in
             some way.
 
-        .. SEEALSO::
-
-            :meth:`compare_with_values`
-
         EXAMPLES:
 
         We want to check the quality of the asymptotic expansion of
@@ -2290,6 +2286,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:                             plotjoined=True, marker='o',
             ....:                             color='green')
             Graphics object consisting of 1 graphics primitive
+
+        .. SEEALSO::
+
+            :meth:`compare_with_values`
 
         TESTS::
 

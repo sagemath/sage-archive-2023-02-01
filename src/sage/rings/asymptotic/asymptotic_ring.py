@@ -3161,7 +3161,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             NotImplementedOZero: The error term is O(0) which means
-            0 for sufficiently large n
+            0 for sufficiently large n.
         """
         from sage.symbolic.ring import SR
         from sage.rings.integer_ring import ZZ
@@ -3180,7 +3180,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             alpha = summand.growth.exponent
             if alpha in ZZ and alpha <= 0:
                 flags['OZeroEncountered'] = True
-                return self(0)
+                return self.zero()
             if isinstance(summand, ExactTerm):
                 expansion = asymptotic_expansions.\
                     SingularityAnalysis('Z', alpha=alpha, zeta=singularity,
@@ -3196,7 +3196,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             singular_expansions[singularity] = singular_expansion
             if not isinstance(singular_expansion.parent().growth_group,
                               MonomialGrowthGroup):
-                raise NotImplementedError('Only implemented for Monomial Growth Groups')
+                raise NotImplementedError('only implemented for monomial growth groups')
 
             return sum(expand_summand(s, singularity)
                        for s in singular_expansion.summands)
@@ -3207,7 +3207,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if flags['OZeroEncountered'] and result.exact_part() == result:
             from asymptotic_expansion_generators import NotImplementedOZero
             raise NotImplementedOZero('The error term is O(0) which means 0 '
-                                      'for sufficiently large {}'.format(self.gen()))
+                                      'for sufficiently large {}.'.format(self.gen()))
 
         if return_singular_expansions:
             from collections import namedtuple

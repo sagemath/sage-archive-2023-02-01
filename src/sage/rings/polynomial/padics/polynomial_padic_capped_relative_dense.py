@@ -203,14 +203,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
 
             sage: K = Qp(13,7)
             sage: R.<t> = K[]
-            sage: a = t[0:1]
+            sage: a = t[:1]
             sage: a._comp_list()
             sage: a
             0
         """
         if self.degree() == -1 and self._valbase == infinity:
             self._list = []
-            return self._list
         polylist = self._poly.list()
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
@@ -380,8 +379,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
 
     def __getitem__(self, n):
         """
-        Returns the coefficient of x^n if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         EXAMPLES::
 
@@ -390,40 +388,53 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: a = 13^7*t^3 + K(169,4)*t - 13^4
             sage: a[1]
             13^2 + O(13^4)
-            sage: a[1:2]
+
+        Slices can be used to truncate polynomials::
+
+            sage: a[:2]
+            (13^2 + O(13^4))*t + (12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + 12*13^10 + O(13^11))
+
+        Any other kind of slicing is deprecated or an error, see
+        :trac:`18940`::
+
+            sage: a[1:3]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
             (13^2 + O(13^4))*t
+            sage: a[1:3:2]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomial slicing with a step is not defined
         """
+        d = len(self._relprecs)  # = degree + 1
         if isinstance(n, slice):
-            start, stop = n.start, n.stop
+            start, stop, step = n.start, n.stop, n.step
+            if step is not None:
+                raise NotImplementedError("polynomial slicing with a step is not defined")
             if start is None:
                 start = 0
-            elif start < 0:
-                start = len(self._relprecs) + start
-                if start < 0:
-                    raise IndexError("list index out of range")
-            if stop > len(self._relprecs) or stop is None:
-                stop = len(self._relprecs)
-            elif stop < 0:
-                stop = len(self._relprecs) + stop
-                if stop < 0:
-                    raise IndexError("list index out of range")
-            if start >= stop:
-                return Polynomial_padic_capped_relative_dense(self.parent(), [])
             else:
-                return Polynomial_padic_capped_relative_dense(self.parent(),
-                    (self._poly[start:stop], self._valbase,
-                    [infinity]*start + self._relprecs[start:stop], False,
-                    None if self._valaddeds is None else [infinity]*start
-                    + self._valaddeds[start:stop],
-                    None if self._list is None else [self.base_ring()(0)]
-                    * start + self._list[start:stop]), construct = True)
-        else:
-            if n >= len(self._relprecs):
-                return self.base_ring()(0)
-            if not self._list is None:
-                return self._list[n]
-            return self.base_ring()(self.base_ring().prime_pow(self._valbase)
-                * self._poly[n], absprec = self._valbase + self._relprecs[n])
+                if start < 0:
+                    start = 0
+                from sage.misc.superseded import deprecation
+                deprecation(18940, "polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead")
+            if stop is None or stop > d:
+                stop = d
+            values = ([self.base_ring().zero()] * start
+                      + [self[i] for i in xrange(start, stop)])
+            return self.parent()(values)
+
+        try:
+            n = n.__index__()
+        except AttributeError:
+            raise TypeError("list indices must be integers, not {0}".format(type(n).__name__))
+
+        if n < 0 or n >= d:
+            return self.base_ring().zero()
+        if self._list is not None:
+            return self._list[n]
+        return self.base_ring()(self.base_ring().prime_pow(self._valbase)
+            * self._poly[n], absprec = self._valbase + self._relprecs[n])
 
     def _add_(self, right):
         """

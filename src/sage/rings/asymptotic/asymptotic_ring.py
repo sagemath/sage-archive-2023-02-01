@@ -2270,7 +2270,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
 
     def plot_comparison(self, variable, function, values, rescaled=True,
-                        ring=RIF, **kwargs):
+                        ring=RIF, relative_tolerance=0.025, **kwargs):
         r"""
         Plot the (rescaled) difference between this asymptotic
         expansion and the given values.
@@ -2291,6 +2291,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         - ``ring`` -- (default: ``RIF``) the parent into which the
           difference is converted.
+
+        - ``relative_tolerance`` -- (default: ``0.025``). Raise error
+          when relative error exceeds this tolerance.
 
         Other keyword arguments are passed to :func:`list_plot`.
 
@@ -2344,6 +2347,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Numerical noise is too high, the comparison is inaccurate
+            sage: H_expansion.plot_comparison(n, H, [600], relative_tolerance=2)
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.plot.plot import list_plot
         points = self.compare_with_values(variable, function,
@@ -2351,7 +2356,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         from sage.rings.real_mpfi import RealIntervalField_class
         if isinstance(ring, RealIntervalField_class):
-            if not all(p[1].relative_diameter() <= 0.025 for p in points):
+            if not all(p[1].relative_diameter() <= relative_tolerance for p in points):
                 raise ValueError('Numerical noise is too high, the '
                                  'comparison is inaccurate')
 

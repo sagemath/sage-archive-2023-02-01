@@ -21,7 +21,7 @@ from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElem
 from sage.combinat.set_partition import SetPartition, SetPartitions, SetPartitions_set
 from sage.sets.set import Set, is_Set
 from sage.graphs.graph import Graph
-from sage.rings.arith import factorial, binomial
+from sage.arith.all import factorial, binomial
 from permutation import Permutations
 from sage.rings.all import Integer
 from sage.rings.real_mpfr import is_RealNumber

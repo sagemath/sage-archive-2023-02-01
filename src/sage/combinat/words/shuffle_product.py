@@ -23,7 +23,7 @@ Shuffle product of words
 #*****************************************************************************
 from sage.combinat.words.word import Word_class
 from sage.combinat.combinat import CombinatorialClass
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.subset import Subsets
 from sage.combinat.composition import Compositions_n, Compositions

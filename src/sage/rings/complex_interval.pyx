@@ -328,20 +328,20 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
         """
         cdef ComplexIntervalFieldElement a00 = self._new()
-        mpfr_set(&a00.__re.left, &self.__re.left, GMP_RNDN)
+        mpfr_set(&a00.__re.left, &self.__re.left, MPFR_RNDN)
         mpfi_mid(&a00.__re.right, self.__re)
-        mpfr_set(&a00.__im.left, &self.__im.left, GMP_RNDN)
+        mpfr_set(&a00.__im.left, &self.__im.left, MPFR_RNDN)
         mpfi_mid(&a00.__im.right, self.__im)
 
         cdef ComplexIntervalFieldElement a01 = self._new()
-        mpfr_set(&a01.__re.left, &a00.__re.right, GMP_RNDN)
-        mpfr_set(&a01.__re.right, &self.__re.right, GMP_RNDN)
+        mpfr_set(&a01.__re.left, &a00.__re.right, MPFR_RNDN)
+        mpfr_set(&a01.__re.right, &self.__re.right, MPFR_RNDN)
         mpfi_set(a01.__im, a00.__im)
 
         cdef ComplexIntervalFieldElement a10 = self._new()
         mpfi_set(a10.__re, a00.__re)
         mpfi_mid(&a10.__im.left, self.__im)
-        mpfr_set(&a10.__im.right, &self.__im.right, GMP_RNDN)
+        mpfr_set(&a10.__im.right, &self.__im.right, MPFR_RNDN)
 
         cdef ComplexIntervalFieldElement a11 = self._new()
         mpfi_set(a11.__re, a01.__re)
@@ -481,7 +481,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfr_init2(tmp, self.prec())
         mpfi_diam(diam.value, self.__re)
         mpfi_diam(tmp, self.__im)
-        mpfr_max(diam.value, diam.value, tmp, GMP_RNDU)
+        mpfr_max(diam.value, diam.value, tmp, MPFR_RNDU)
         mpfr_clear(tmp)
         return diam
 
@@ -1673,36 +1673,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
         """
         return True
-
-#     def algdep(self, n, **kwds):
-#         """
-#         Returns a polynomial of degree at most $n$ which is approximately
-#         satisfied by this complex number.  Note that the returned polynomial
-#         need not be irreducible, and indeed usually won't be if $z$ is a good
-#         approximation to an algebraic number of degree less than $n$.
-
-#         ALGORITHM: Uses the PARI C-library algdep command.
-
-#         INPUT: Type algdep? at the top level prompt. All additional
-#         parameters are passed onto the top-level algdep command.
-
-#         EXAMPLES::
-#
-#             sage: C = ComplexIntervalField()
-#             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
-#             0.500000000000000 + 0.866025403784439*I
-#             sage: p = z.algdep(5); p
-#             x^5 + x^2
-#             sage: p.factor()
-#             (x + 1) * x^2 * (x^2 - x + 1)
-#             sage: z^2 - z + 1
-#             0.000000000000000111022302462516
-#         """
-#         import sage.rings.arith
-#         return sage.rings.arith.algdep(self,n, **kwds)
-
-#     def algebraic_dependancy( self, n ):
-#         return self.algdep( n )
 
     def cos(self):
         r"""

@@ -355,14 +355,18 @@ REFERENCES:
     http://arxiv.org/abs/1004.4924
 """
 
-
 #*****************************************************************************
-#  Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
-#  Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 # For now, the scheme morphism base class cannot derive from Morphism
 # since this would clash with elliptic curves. So we derive only on
@@ -370,8 +374,9 @@ REFERENCES:
 # https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
 from sage.categories.morphism import Morphism
 
-from sage.structure.sequence  import Sequence
-from sage.rings.all import ZZ, gcd
+from sage.structure.sequence import Sequence
+from sage.rings.all import ZZ
+from sage.arith.all import gcd
 from sage.misc.all import cached_method
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector

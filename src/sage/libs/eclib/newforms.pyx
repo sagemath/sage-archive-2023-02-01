@@ -14,11 +14,13 @@ Modular symbols using eclib newforms
 
 include "sage/ext/interrupt.pxi"
 
+from ..eclib cimport *
 from sage.libs.gmp.mpq cimport mpq_numref
 from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.rational cimport Rational
 from sage.modular.all import Cusp
+
 
 cdef class ECModularSymbol:
     """
@@ -27,7 +29,7 @@ cdef class ECModularSymbol:
 
     EXAMPLES::
 
-        sage: from sage.libs.cremona.newforms import ECModularSymbol
+        sage: from sage.libs.eclib.newforms import ECModularSymbol
         sage: E = EllipticCurve('11a')
         sage: M = ECModularSymbol(E,1); M
         Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
@@ -46,7 +48,7 @@ cdef class ECModularSymbol:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
             sage: E = EllipticCurve('37a')
@@ -58,7 +60,7 @@ cdef class ECModularSymbol:
 
         This one is from :trac:`8042`::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('858k2')
             sage: ECModularSymbol(E)
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + x*y = x^3 + 16353089*x - 335543012233 over Rational Field
@@ -99,15 +101,15 @@ cdef class ECModularSymbol:
         mpz_to_ZZ(&a6, mpq_numref((<Rational>(E.a6())).value))
 
         sig_on()
-        C = new_Curve(a1,a2,a3,a4,a6)
-        CD = new_Curvedata(C[0],0)
-        CR = new_CurveRed(CD[0])
+        C = new Curve(a1,a2,a3,a4,a6)
+        CD = new Curvedata(C[0],0)
+        CR = new CurveRed(CD[0])
         N = getconductor(CR[0])
         n = I2int(N)
         self.n = n
         self.sign = sign
 
-        self.nfs = new_newforms(n,0)
+        self.nfs = new newforms(n,0)
         self.nfs.createfromcurve(sign,CR[0])
         sig_off()
 
@@ -115,7 +117,7 @@ cdef class ECModularSymbol:
         """
         TESTS::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E); M
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
@@ -134,7 +136,7 @@ cdef class ECModularSymbol:
 
         EXAMPLES::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
@@ -150,7 +152,7 @@ cdef class ECModularSymbol:
 
         TESTS (see :trac:`11211`)::
 
-            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: from sage.libs.eclib.newforms import ECModularSymbol
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
             sage: M(oo)
@@ -174,7 +176,7 @@ cdef class ECModularSymbol:
         if d != 0:
             n = n % d
         sig_on()
-        _r = new_rational(n,d)
+        _r = rational(n,d)
         _s = self.nfs.plus_modular_symbol(_r)
         sig_off()
         return Rational((rational_num(_s), rational_den(_s)))

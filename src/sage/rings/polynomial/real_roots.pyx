@@ -136,7 +136,7 @@ from random import Random
 import time
 
 from sage.rings.all import ZZ, QQ, RR, AA, RealField, RealIntervalField, RIF, RDF, infinity
-from sage.rings.arith import binomial, factorial
+from sage.arith.all import binomial, factorial
 from sage.modules.all import vector, FreeModule
 from sage.matrix.all import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

@@ -14,6 +14,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import division
+
 include "sage/ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
@@ -189,7 +191,7 @@ cdef class ntl_GF2X(object):
         GF2X_mul(r.x, self.x, (<ntl_GF2X>other).x)
         return r
 
-    def __div__(ntl_GF2X self, b):
+    def __truediv__(ntl_GF2X self, b):
         """
         EXAMPLES:
             sage: a = ntl.GF2X(4)
@@ -210,6 +212,9 @@ cdef class ntl_GF2X(object):
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by b (=%s)"%(self, b)
         return q
+
+    def __div__(self, other):
+        return self / other
 
     def DivRem(ntl_GF2X self, b):
         """

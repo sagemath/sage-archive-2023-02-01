@@ -1,5 +1,5 @@
 r"""
-Generalized Reed-Solomon Code
+Generalized Reed-Solomon code
 
 Given `n` different evaluation points `\alpha_1, \dots, \alpha_n` from some
 finite field `F`, and `n` column multipliers `\beta_1, \dots, \beta_n`, the
@@ -178,7 +178,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
         super(GeneralizedReedSolomonCode, self).__init__(F, \
                 len(self._evaluation_points), "EvaluationVector", "Syndrome")
-            
+
         if dimension not in ZZ or dimension > self._length or dimension < 1:
             raise ValueError("The dimension must be a positive integer at most the length of the code.")
         self._dimension = dimension
@@ -207,21 +207,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
                 and self.dimension() == other.dimension() \
                 and self.evaluation_points() == other.evaluation_points() \
                 and self.column_multipliers() == other.column_multipliers()
-
-    def __ne__(self, other):
-        r"""
-        Tests inequality of Generalized Reed-Solomon Code objects.
-
-        EXAMPLES::
-
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k + 1)
-            sage: C1.__ne__(C2)
-            True
-        """
-        return not self.__eq__(other)
 
     def _repr_(self):
         r"""
@@ -308,7 +293,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         This is a simple Cramer's rule-like expression on the evaluation points
         of ``self``. Recall that the column multipliers of the dual GRS code is
         also the column multipliers of the parity check matrix of ``self``.
-        
+
         EXAMPLES::
 
             sage: F = GF(11)
@@ -480,7 +465,7 @@ class GRSEvaluationVectorEncoder(Encoder):
         Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
 
     Actually, we can construct the encoder from ``C`` directly::
-    
+
         sage: E = C.encoder("EvaluationVector")
         sage: E
         Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
@@ -518,23 +503,6 @@ class GRSEvaluationVectorEncoder(Encoder):
         """
         return isinstance(other, GRSEvaluationVectorEncoder) \
                 and self.code() == other.code()
-
-    def __ne__(self, other):
-        r"""
-        Tests difference between GRSEvaluationVectorEncoder objects.
-
-        EXAMPLES::
-
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k + 1)
-            sage: D1 = codes.encoders.GRSEvaluationVectorEncoder(C1)
-            sage: D2 = codes.encoders.GRSEvaluationVectorEncoder(C2)
-            sage: D1.__ne__(D2)
-            True
-        """
-        return not self.__eq__(other)
 
     def _repr_(self):
         r"""
@@ -617,7 +585,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         Univariate Polynomial Ring in x over Finite Field of size 59
 
     Actually, we can construct the encoder from ``C`` directly::
-    
+
         sage: E = C.encoder("EvaluationPolynomial")
         sage: E
         Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
@@ -655,23 +623,6 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         """
         return isinstance(other, GRSEvaluationPolynomialEncoder) \
                 and self.code() == other.code()
-
-    def __ne__(self, other):
-        r"""
-        Tests difference between GRSEvaluationPolynomialEncoder objects.
-
-        EXAMPLES::
-
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k + 1)
-            sage: D1 = codes.encoders.GRSEvaluationPolynomialEncoder(C1)
-            sage: D2 = codes.encoders.GRSEvaluationPolynomialEncoder(C2)
-            sage: D1.__ne__(D2)
-            True
-        """
-        return not self.__eq__(other)
 
     def _repr_(self):
         r"""
@@ -736,7 +687,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             Traceback (most recent call last):
             ...
             ValueError: The polynomial to encode must have degree at most 4
-        
+
         If ``p`` is not an element of the proper polynomial ring, an error is raised::
 
             sage: Qy.<y> = QQ[]
@@ -797,7 +748,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             6*x^4 + 6*x^3 + 2*x^2
             sage: E.encode(p) == c
             False
-        
+
         """
         C = self.code()
         alphas    = C.evaluation_points()

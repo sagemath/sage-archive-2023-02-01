@@ -298,8 +298,8 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.rings.all import QQ, ZZ, NN, gcd
-from sage.rings.arith import factorial
+from sage.rings.all import QQ, ZZ, NN
+from sage.arith.all import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
@@ -1071,7 +1071,7 @@ class Partition(CombinatorialElement):
         """
         print self.ferrers_diagram()
 
-    def __div__(self, p):
+    def __truediv__(self, p):
         """
         Returns the skew partition ``self / p``.
 
@@ -1093,6 +1093,8 @@ class Partition(CombinatorialElement):
             raise ValueError("To form a skew partition p/q, q must be contained in p.")
 
         return SkewPartition([self[:], p])
+
+    __div__ = __truediv__
 
     def power(self, k):
         r"""

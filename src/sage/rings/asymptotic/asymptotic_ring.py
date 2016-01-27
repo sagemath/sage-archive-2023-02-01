@@ -2169,18 +2169,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<n> = AsymptoticRing('QQ^n * n^ZZ', SR)
             sage: catalan = binomial(2*x, x)/(x+1)
-            sage: e = 4^n*(1/sqrt(pi)*n^(-3/2)
+            sage: expansion = 4^n*(1/sqrt(pi)*n^(-3/2)
             ....:     - 9/8/sqrt(pi)*n^(-5/2)
             ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
-            sage: e.compare_with_values(n, catalan, srange(5, 10))
+            sage: expansion.compare_with_values(n, catalan, srange(5, 10))
             [(5, 0.5303924444775?),
              (6, 0.5455279498787?),
              (7, 0.556880411050?),
              (8, 0.565710587724?),
              (9, 0.572775029098?)]
-            sage: e.compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
+            sage: expansion.compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
             [(5, 0.3886263699387?), (10, 19.1842458318?), (20, 931314.63637?)]
-            sage: e.compare_with_values(n, catalan, [5, 10, 20], rescaled=False, ring=SR)
+            sage: expansion.compare_with_values(n, catalan, [5, 10, 20], rescaled=False, ring=SR)
             [(5, 168/5*sqrt(5)/sqrt(pi) - 42),
              (10, 1178112/125*sqrt(10)/sqrt(pi) - 16796),
              (20, 650486218752/125*sqrt(5)/sqrt(pi) - 6564120420)]
@@ -2207,24 +2207,24 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: A.<x, y> = AsymptoticRing('x^ZZ*y^ZZ', QQ)
-            sage: e = x^2 + O(x) + O(y)
-            sage: e.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            sage: expansion = x^2 + O(x) + O(y)
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
             Traceback (most recent call last):
             ....
             NotImplementedError: exactly one error term required
-            sage: e = x^2
-            sage: e.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            sage: expansion = x^2
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
             Traceback (most recent call last):
             ....
             NotImplementedError: exactly one error term required
-            sage: e = x^2 + O(x)
-            sage: e.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            sage: expansion = x^2 + O(x)
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
             Traceback (most recent call last):
             ....
             NameError: name 'x' is not defined
-            sage: e.compare_with_values(x, lambda z: z^2, srange(20, 30))
+            sage: expansion.compare_with_values(x, lambda z: z^2, srange(20, 30))
             [(20, 0), (21, 0), ..., (29, 0)]
-            sage: e.compare_with_values(x, SR('x*y'), srange(20, 30))
+            sage: expansion.compare_with_values(x, SR('x*y'), srange(20, 30))
             Traceback (most recent call last):
             ....
             NotImplementedError: expression x*y has more than one variable

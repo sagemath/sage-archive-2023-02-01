@@ -6,6 +6,9 @@ the `[n, k, d]` code with length `n=\frac{q^{r}-1}{q-1}`,
 dimension `k=\frac{q^{r}-1}{q-1} - r` and minimum distance
 `d=3` is called the Hamming Code of order `r`.
 
+REFERENCES:
+
+    .. [R] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
 """
 
 #*****************************************************************************
@@ -126,6 +129,13 @@ class HammingCode(AbstractLinearCode):
     def parity_check_matrix(self):
         r"""
         Returns a parity check matrix of ``self``.
+
+        The construction of the parity check matrix in case ``self``
+        is not a binary code is not really well documented.
+        Regarding the choice of projective geometry, one might check:
+
+        - the note over section 2.3 in [R]_, pages 47-48
+        - the dedicated paragraph in [HP]_, page 30
 
         EXAMPLES::
 

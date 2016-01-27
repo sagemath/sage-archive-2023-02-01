@@ -218,7 +218,7 @@ doc-src-clean:
 	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
 
 doc-output-clean:
-    rm -rf "$(SAGE_SHARE)/doc/sage"
+	rm -rf "$(SAGE_SHARE)/doc/sage"
 
 
 ###############################################################################

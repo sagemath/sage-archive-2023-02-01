@@ -5,7 +5,9 @@ AUTHORS:
 
 - Mark Shimozono, Anne Schilling (2012): Initial version
 - Anne Schilling (2013): Implemented
-  :class:`~sage.combinat.crystals.littlemann_path.CrystalOfProjectedLevelZeroLSPaths`
+  :class:`~sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths`
+- Travis Scrimshaw (2016): Implemented
+  :class:`~sage.combinat.crystals.littelmann_path.InfinityCrystalOfLSPaths`
 """
 #****************************************************************************
 #       Copyright (C) 2012 Mark Shimozono
@@ -124,7 +126,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         Classcall to mend the input.
 
         Internally, the
-        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfLSPaths` code
+        :class:`~sage.combinat.crystals.littelmann_path.CrystalOfLSPaths` code
         works with a ``starting_weight`` that is in the weight space associated
         to the crystal. The user can, however, also input a ``cartan_type``
         and the coefficients of the fundamental weights as
@@ -629,7 +631,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
     When ``weight`` is just a single fundamental weight `\Lambda_r`, this crystal is
     isomorphic to a Kirillov-Reshetikhin (KR) crystal, see also
-    :meth:`sage.combinat.crystals.kirillov_reshetikhin.crystals.KirillovReshetikhinFromLSPaths`.
+    :meth:`sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinFromLSPaths`.
     For general weights, it is isomorphic to a tensor product of single-column KR crystals.
 
     EXAMPLES::
@@ -670,9 +672,9 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         Classcall to mend the input.
 
         Internally, the
-        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfProjectedLevelZeroLSPaths`
+        :class:`~sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths`
         uses a level zero weight, which is passed on to
-        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfLSPaths`.
+        :class:`~sage.combinat.crystals.littelmann_path.CrystalOfLSPaths`.
         ``weight`` is first coerced to a level zero weight.
 
         TESTS::
@@ -1119,21 +1121,24 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
     r"""
     LS path model for `\mathcal{B}(\infty)`.
 
-    This model is constructed by considering every element
-    `b \in B(k \rho)` for some sufficiently large `k` and noting that
-    the embeddings `B(k \rho) \to B(m \rho)` for `k \leq m` given by
-    appending `(m - k) \rho` to every path in `B(k \rho)`.
+    Elements of `\mathcal{B}(\infty)` are equivalence classes of paths `[\pi]`
+    in `\mathcal{B}(k\rho)` for `k\gg 0`, where `\rho` is the Weyl vector.  A
+    canonical representative for an element of `\mathcal{B}(\infty)` is chosen
+    by taking `k` to be minimal such that the endpoint of `\pi` is strictly
+    dominant but its representative in `\mathcal{B}((k-1)\rho)` is on the wall
+    of the dominant chamber.
 
-    We obtain a canonical representative by taking `k` to be minimal
-    such that the endpoint of `b` is strictly dominant, but it's
-    representative in `k - 1` is on the dominant chamber wall. This
-    guarantees that `f_i b \neq 0` for all `i \in I`.
+    .. NOTE::
+
+        This model implemented here has only been proven to be a model for
+        `\mathcal{B}(\infty)` in finite types.  It is open question from
+        [LZ11]_ to show that the model is also valid outside of finite type.
 
     REFERENCES:
 
     .. [LZ11] Bin Li and Hechun Zhang.
        *Path realization of crystal* `B(\infty)`.
-       Front. Math. China, **6**(4), (2011) pp. 689--706.
+       Front. Math. China, 6(4), (2011) pp. 689--706.
        :doi:`10.1007/s11464-010-0073-x`
     """
     @staticmethod
@@ -1181,11 +1186,11 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
 
     @cached_method
     def module_generator(self):
-        """
+        r"""
         Return the module generator (or highest weight element) of ``self``.
 
-        The module generator is the unique tableau of shape `(n, n-1, \ldots,
-        2, 1)` with weight `0`.
+        The module generator is the unique path
+        `\pi_\infty\colon t \mapsto t\rho`, for `t \in [0,\infty)`.
 
         EXAMPLES::
 
@@ -1213,6 +1218,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
         return self._cartan_type.root_system().weight_space()
 
     class Element(CrystalOfLSPaths.Element):
+
         def e(self, i, power=1, length_only=False):
             r"""
             Return the `i`-th crystal raising operator on ``self``.
@@ -1371,19 +1377,19 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
             r"""
             Return `\varphi_i` of ``self``.
 
-            Let `T \in \mathcal{B}(\infty)`. Define
+            Let `\pi \in \mathcal{B}(\infty)`. Define
 
             .. MATH::
 
-                \varphi_i(T) := \varepsilon_i(T) + \langle h_i,
-                \mathrm{wt}(T) \rangle,
+                \varphi_i(\pi) := \varepsilon_i(\pi) + \langle h_i,
+                \mathrm{wt}(\pi) \rangle,
 
-            where `h_i` is the `i`-th simple coroot and `\mathrm{wt}(T)`
-            is the :meth:`weight` of `T`.
+            where `h_i` is the `i`-th simple coroot and `\mathrm{wt}(\pi)`
+            is the :meth:`weight` of `\pi`.
 
             INPUT:
 
-            - ``i`` -- an element of the index set
+            - ``i`` -- element of the index set
 
             EXAMPLES::
 

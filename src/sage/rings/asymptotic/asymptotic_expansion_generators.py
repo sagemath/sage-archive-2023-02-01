@@ -49,6 +49,9 @@ examples.
    :widths: 4 12
    :header-rows: 0
 
+   * - :meth:`~AsymptoticExpansionGenerators.HarmonicNumber`
+     - harmonic numbers
+
    * - :meth:`~AsymptoticExpansionGenerators.Stirling`
      - Stirling's approximation formula for factorials
 
@@ -65,6 +68,7 @@ examples.
 AUTHORS:
 
 - Daniel Krenn (2015)
+- Clemens Heuberger (2016)
 
 
 ACKNOWLEDGEMENT:
@@ -79,6 +83,7 @@ Classes and Methods
 
 #*****************************************************************************
 # Copyright (C) 2015 Daniel Krenn <dev@danielkrenn.at>
+# Copyright (C) 2016 Clemens Heuberger <clemens.heuberger@aau.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -109,6 +114,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     The asymptotic expansions currently in this class include:
 
+    - :meth:`~HarmonicNumber`
     - :meth:`~Stirling`
     - :meth:`~log_Stirling`
     - :meth:`~Binomial_kn_over_n`
@@ -350,6 +356,107 @@ class AsymptoticExpansionGenerators(SageObject):
                       for k in srange(2, 2*precision + 2, 2)),
                      A.zero())
         return result + (1 / n**(2*precision + 1)).O()
+
+
+    @staticmethod
+    def HarmonicNumber(var, precision=None, skip_constant_summand=False):
+        r"""
+        Return the asymptotic expansion of a harmonic number.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+        - ``skip_constant_summand`` -- (default: ``False``) a
+          boolean. If set, then the constant summand ``euler_gamma`` is left out.
+          As a consequence, the coefficient ring of the output changes
+          from ``Symbolic Constants Subring`` (if ``False``) to
+          ``Rational Field`` (if ``True``).
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: asymptotic_expansions.HarmonicNumber('n', precision=5)
+            log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4) + O(n^(-6))
+
+        TESTS::
+
+            sage: asymptotic_expansions.HarmonicNumber('n')
+            log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
+            - 1/252*n^(-6) + 1/240*n^(-8) - 1/132*n^(-10)
+            + 691/32760*n^(-12) - 1/12*n^(-14) + 3617/8160*n^(-16)
+            - 43867/14364*n^(-18) + 174611/6600*n^(-20) - 77683/276*n^(-22)
+            + 236364091/65520*n^(-24) - 657931/12*n^(-26)
+            + 3392780147/3480*n^(-28) - 1723168255201/85932*n^(-30)
+            + 7709321041217/16320*n^(-32)
+            - 151628697551/12*n^(-34) + O(n^(-36))
+            sage: _.parent()
+            Asymptotic Ring <n^ZZ * log(n)^ZZ> over Symbolic Constants Subring
+
+        ::
+
+            sage: asymptotic_expansions.HarmonicNumber(
+            ....:     'n', precision=5, skip_constant_summand=True)
+            log(n) + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4) + O(n^(-6))
+            sage: _.parent()
+            Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
+            sage: for p in range(5):
+            ....:     print asymptotic_expansions.HarmonicNumber(
+            ....:         'n', precision=p)
+            O(log(n))
+            log(n) + O(1)
+            log(n) + euler_gamma + O(n^(-1))
+            log(n) + euler_gamma + 1/2*n^(-1) + O(n^(-2))
+            log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + O(n^(-4))
+            sage: asymptotic_expansions.HarmonicNumber('m', precision=5)
+            log(m) + euler_gamma + 1/2*m^(-1) - 1/12*m^(-2) + 1/120*m^(-4) + O(m^(-6))
+        """
+        if not skip_constant_summand:
+            from sage.symbolic.ring import SR
+            coefficient_ring = SR.subring(no_variables=True)
+        else:
+            from sage.rings.rational_field import QQ
+            coefficient_ring = QQ
+
+        from asymptotic_ring import AsymptoticRing
+        A = AsymptoticRing(growth_group='{n}^ZZ * log({n})^ZZ'.format(n=var),
+                           coefficient_ring=coefficient_ring)
+        n = A.gen()
+
+        if precision is None:
+            precision = A.default_prec
+
+        from sage.functions.log import log
+        result = A.zero()
+        if precision >= 1:
+            result += log(n)
+        if precision >= 2 and not skip_constant_summand:
+            from sage.symbolic.constants import euler_gamma
+            result += coefficient_ring(euler_gamma)
+        if precision >= 3:
+            result += 1 / (2 * n)
+
+        from sage.misc.misc import srange
+        from sage.arith.all import bernoulli
+        for k in srange(2, 2*precision - 4, 2):
+            result += -bernoulli(k) / k / n**k
+
+        if precision < 1:
+            result += (log(n)).O()
+        elif precision == 1:
+            result += A(1).O()
+        elif precision == 2:
+            result += (1 / n).O()
+        else:
+            result += (1 / n**(2*precision - 4)).O()
+
+        return result
 
 
     @staticmethod

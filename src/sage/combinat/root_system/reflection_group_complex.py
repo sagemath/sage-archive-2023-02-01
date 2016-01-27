@@ -1042,6 +1042,15 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             v.set_immutable()
         return roots
 
+    def reflection_to_positive_root(self,r):
+        r"""
+        Return a root that is an eigenvector of self.
+        """
+        Phi = self.roots()
+        for i,beta in enumerate(Phi):
+            if Phi[r(i+1)-1] == E(r.order())*Phi[i]:
+                return Phi[i]
+
     @cached_method
     def braid_relations(self):
         r"""
@@ -1077,6 +1086,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.fundamental_invariants()
             [x0^3 + x1^3, x0^3*x1^3]
         """
+        import re
         from sage.rings.polynomial.all import PolynomialRing
 
         I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]
@@ -1084,21 +1094,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         x = P.gens()
         for i in range(len(I)):
             I[i] = I[i].replace('^','**')
+            I[i] = re.compile('E(\d\d*)').sub(r'E(\1)', I[i])
+            I[i] = re.compile('(\d)E\(').sub(r'\1*E(', I[i])
             for j in range(len(x)):
                 I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
             I[i] = I[i].replace("+*","+").replace("-*","-").replace("ER(5)","*(E(5)-E(5)**2-E(5)**3+E(5)**4)").lstrip("*")
         # sage_eval is used since eval kills the rational entries!
         I = [ sage_eval(p, locals={'x':x}) for p in I ]
-        return I
-
-        I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]
-        P = PolynomialRing(QQ,['x%s'%i for i in range(0,self.rank())])
-        x = P.gens()
-        for i in range(len(I)):
-            I[i] = I[i].replace('^','**')
-            for j in range(len(x)):
-                I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
-        I = [ sage_eval(p) for p in I ]
         return I
 
     def cartan_matrix(self):

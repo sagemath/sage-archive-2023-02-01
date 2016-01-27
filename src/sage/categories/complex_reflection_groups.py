@@ -1111,11 +1111,6 @@ class ComplexReflectionGroups(Category_singleton):
                 Return the list of all reflecting hyperplanes of
                 ``self``.
 
-                .. NOTE::
-
-                    The method does not yet work for
-                    non-crystallographic types.
-
                 EXAMPLES::
 
                     sage: W = ReflectionGroup((1,1,3))
@@ -1150,7 +1145,7 @@ class ComplexReflectionGroups(Category_singleton):
                 for r in self.distinguished_reflections():
                     mat = r.as_matrix()
                     mat = mat - identity_matrix(mat.base_ring(),self.rank())
-                    Hs.append( mat.right_kernel() )
+                    Hs.append( mat.left_kernel() )
                 return Hs
 
         class ElementMethods:

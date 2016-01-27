@@ -909,7 +909,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        A model for this elliptic curve, optimally scaled with repect
+        A model for this elliptic curve, optimally scaled with respect
         to scaling by units, with respect to the logarithmic embedding
         of |c4|^(1/4)+|c6|^(1/6).  No scaling by roots of unity is
         carried out, so there is no change when the unit rank is 0.

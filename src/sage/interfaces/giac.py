@@ -1134,7 +1134,10 @@ def giac_console():
         -------------------------------------------------
         Press CTRL and D simultaneously to finish session
         Type ?commandname for help
-        """
+    """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%giac magics instead.')
     os.system('giac')
 
 

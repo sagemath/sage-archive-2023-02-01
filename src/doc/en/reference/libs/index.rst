@@ -50,7 +50,6 @@ to be aware of the modules described in this chapter.
    sage/libs/libecm
    sage/libs/lrcalc/lrcalc
    sage/libs/pari/handle_error
-   sage/libs/pari/gen_py
    sage/libs/pari/gen
    sage/libs/pari/pari_instance
    sage/libs/pari/closure

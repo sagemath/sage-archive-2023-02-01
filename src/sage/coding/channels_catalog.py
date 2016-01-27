@@ -1,5 +1,5 @@
 r"""
-Index of Channels
+Index of channels
 
 The ``channels`` object may be used to access the codes that Sage can build.
 

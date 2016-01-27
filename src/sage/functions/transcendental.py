@@ -63,6 +63,10 @@ class Function_zeta(GinacFunction):
             zeta(I)
             sage: zeta(I).n()
             0.00330022368532410 - 0.418155449141322*I
+            sage: zeta(sqrt(2))
+            zeta(sqrt(2))
+            sage: zeta(sqrt(2)).n()  # rel tol 1e-10
+            3.02073767948603
 
         It is possible to use the ``hold`` argument to prevent
         automatic evaluation::
@@ -95,6 +99,13 @@ class Function_zeta(GinacFunction):
             Infinity
             sage: zeta(x).subs(x=1)
             Infinity
+
+        Check that :trac:`19799` is resolved::
+
+            sage: zeta(pi)
+            zeta(pi)
+            sage: zeta(pi).n()  # rel tol 1e-10
+            1.17624173838258
         """
         GinacFunction.__init__(self, "zeta")
 

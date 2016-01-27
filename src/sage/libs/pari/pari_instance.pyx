@@ -188,7 +188,7 @@ from sage.ext.memory cimport sage_malloc, sage_free
 from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
 from sage.libs.gmp.all cimport *
-from sage.libs.flint.fmpz cimport fmpz_get_mpz
+from sage.libs.flint.fmpz cimport fmpz_get_mpz, COEFF_IS_MPZ, COEFF_TO_PTR
 from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
@@ -299,7 +299,7 @@ cpdef long prec_bits_to_words(unsigned long prec_in_bits):
     # This equals ceil(prec_in_bits/wordsize) + 2
     return (prec_in_bits - 1)//wordsize + 3
 
-def prec_words_to_bits(long prec_in_words):
+cpdef long prec_words_to_bits(long prec_in_words):
     r"""
     Convert from pari real precision expressed in words to precision
     expressed in bits. Note: this adjusts for the two codewords of a
@@ -707,6 +707,18 @@ cdef class PariInstance(PariInstance_auto):
 
         return z
 
+    cdef inline GEN _new_GEN_from_fmpz_t(self, fmpz_t value):
+        r"""
+        Create a new PARI ``t_INT`` from a ``fmpz_t``.
+
+        For internal use only; this directly uses the PARI stack.
+        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
+        """
+        if COEFF_IS_MPZ(value[0]):
+            return self._new_GEN_from_mpz_t(COEFF_TO_PTR(value[0]))
+        else:
+            return stoi(value[0])
+
     cdef gen new_gen_from_int(self, int value):
         pari_catch_sig_on()
         return self.new_gen(stoi(value))
@@ -919,12 +931,9 @@ cdef class PariInstance(PariInstance_auto):
         cdef GEN x
         cdef GEN A = zeromatcopy(nr, nc)
         cdef Py_ssize_t i, j
-        cdef mpz_t tmp
-        mpz_init(tmp)
         for i in range(nr):
             for j in range(nc):
-                fmpz_get_mpz(tmp,fmpz_mat_entry(B,i,j))
-                x = self._new_GEN_from_mpz_t(tmp)
+                x = self._new_GEN_from_fmpz_t(fmpz_mat_entry(B,i,j))
                 set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
         return A
 
@@ -942,12 +951,9 @@ cdef class PariInstance(PariInstance_auto):
         cdef GEN x
         cdef GEN A = zeromatcopy(nc, nr)
         cdef Py_ssize_t i, j
-        cdef mpz_t tmp
-        mpz_init(tmp)
         for i in range(nr):
             for j in range(nc):
-                fmpz_get_mpz(tmp,fmpz_mat_entry(B,i,nc-j-1))
-                x = self._new_GEN_from_mpz_t(tmp)
+                x = self._new_GEN_from_fmpz_t(fmpz_mat_entry(B,i,nc-j-1))
                 set_gcoeff(A, j+1, i+1, x)  # A[j+1, i+1] = x (using 1-based indexing)
         return A
 

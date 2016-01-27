@@ -195,36 +195,27 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 
 """
 
-################################################################################
-#       Sage: Open Source Mathematical Software
-#
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 
 # imports
-from sage.misc.all     import prod, verbose
-from sage.rings.all    import (Integer, ZZ, QQ, prime_divisors,
-                               kronecker, PolynomialRing, GF, next_prime,
-                               lcm, gcd)
+from sage.misc.all import prod, verbose
+from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF
 
 from sage.rings.commutative_ring import is_CommutativeRing
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions
 
-from sage.rings.arith import gcd, factor, kronecker_symbol
+from sage.arith.all import gcd, factor, prime_divisors, kronecker, next_prime, lcm
 from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeModuleElement)
 from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
@@ -1458,7 +1449,7 @@ def quaternion_order_with_given_level(A, level):
             x = sum([int(v[i]+a)*B[i] for i in range(4)])
             D = x.reduced_trace()**2 - 4 * x.reduced_norm()
             #x = O.random_element((-p/2).floor(), (p/2).ceil())
-            if kronecker_symbol(D, p) == 1: break
+            if kronecker(D, p) == 1: break
         X = PolynomialRing(GF(p), 'x').gen()
         a = ZZ((X**2 - ZZ(x.reduced_trace()) * X + ZZ(x.reduced_norm())).roots()[0][0])
         I = basis_for_left_ideal(O,  [p**r, (x-a)**r] )

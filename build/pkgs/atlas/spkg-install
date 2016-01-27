@@ -346,6 +346,10 @@ def configure(arch=None, isa_ext=None):
         isa_extension = sum(1 << ATLAS_ISAEXT.index(x) for x in isa_ext)
         cmd += ' -V '+str(isa_extension)
 
+    # Custom configure options
+    if conf['user']:
+        cmd += " " + conf['user']
+
     rc = system_with_flush(cmd)
     make_check_enums()
     return rc

@@ -39,7 +39,7 @@ from con_number_field import ProjectiveConic_number_field
 
 from sage.structure.element import is_InfinityElement
 
-from sage.rings.arith import (lcm, hilbert_symbol)
+from sage.arith.all import lcm, hilbert_symbol
 
 class ProjectiveConic_rational_field(ProjectiveConic_number_field):
     r"""

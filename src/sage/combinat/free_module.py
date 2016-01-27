@@ -708,7 +708,7 @@ class CombinatorialFreeModuleElement(Element):
     _lmul_ = _acted_upon_
     _rmul_ = _acted_upon_
 
-    def __div__(self, x, self_on_left=False ):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 
@@ -734,12 +734,12 @@ class CombinatorialFreeModuleElement(Element):
         x = self.base_ring()( x )
         x_inv = x**-1
         D = self._monomial_coefficients
-        if self_on_left:
-            D = dict_linear_combination( [ ( D, x_inv ) ], factor_on_left=False )
-        else:
-            D = dict_linear_combination( [ ( D, x_inv ) ] )
+        D = dict_linear_combination( [ ( D, x_inv ) ] )
 
         return F._from_dict( D, remove_zeros=False )
+
+    __div__ = __truediv__
+
 
 def _divide_if_possible(x, y):
     """

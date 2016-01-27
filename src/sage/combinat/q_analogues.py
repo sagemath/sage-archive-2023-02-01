@@ -313,13 +313,13 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         else:
             num = prod(one - q**i for i in range(n-k+1, n+1))
             try:
-                return num//denom
-            except TypeError:
                 try:
-                    return num/denom
-                except (TypeError,ZeroDivisionError):
-                    #try a substitution
-                    return q_binomial(n,k)(q)
+                    return num // denom
+                except TypeError:
+                    return num / denom
+            except (TypeError, ZeroDivisionError):
+                # use substitution instead
+                return q_binomial(n,k)(q)
     elif algorithm == 'cyclo_generic':
         from sage.rings.polynomial.cyclotomic import cyclotomic_value
         return prod(cyclotomic_value(d,q)

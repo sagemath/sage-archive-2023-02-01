@@ -29,7 +29,7 @@ import sage.rings.all
 
 import sage.misc.misc as misc
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 import sage.matrix.matrix_space as matrix_space
 from   sage.matrix.constructor import matrix

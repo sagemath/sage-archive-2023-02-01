@@ -779,7 +779,7 @@ cdef class Matrix(matrix1.Matrix):
             36.0000000000000
 
         The permanent above is directed to the Sloane's sequence :oeis:`A079908`
-        ("The Dancing School Problems") for which the third term is 36: 
+        ("The Dancing School Problems") for which the third term is 36:
 
         ::
 
@@ -3352,8 +3352,6 @@ cdef class Matrix(matrix1.Matrix):
             verbose ...
             verbose 1 (<module>) computing right kernel matrix over an arbitrary field for 3x4 matrix
             ...
-            verbose 1 (<module>) done computing right kernel matrix over an arbitrary field for 3x4 matrix
-            ...
             Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
             Basis matrix:
             [      1       0 3*a + 4 2*a + 2]
@@ -3800,13 +3798,25 @@ cdef class Matrix(matrix1.Matrix):
             [      0       1     2*a 3*a + 3]
             sage: A*K.basis_matrix().transpose() == zero_matrix(F, 3, 2)
             True
-            sage: B = copy(A)
+
+        In the following test, we have to force usage of
+        :class:`~sage.matrix.matrix_generic_dense.Matrix_generic_dense`,
+        since the option ``basis = 'pivot'`` would simply yield the same
+        result as the previous test, if the optional meataxe package is
+        installed. ::
+
+            sage: from sage.matrix.matrix_generic_dense import Matrix_generic_dense
+            sage: B = Matrix_generic_dense(A.parent(), A.list(), False, False)
             sage: P = B.right_kernel(basis = 'pivot'); P
             Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
             User basis matrix:
             [      4       4       1       0]
             [  a + 2 3*a + 3       0       1]
-            sage: B*P.basis_matrix().transpose() == zero_matrix(F, 3, 2)
+
+        If the optional meataxe package is installed, we again have to make sure
+        to work with a copy of B that has the same type as ``P.basis_matrix()``::
+
+            sage: B.parent()(B.list())*P.basis_matrix().transpose() == zero_matrix(F, 3, 2)
             True
             sage: K == P
             True
@@ -8479,7 +8489,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: filename = tmp_filename(ext='.png')
             sage: img.save(filename)
-            sage: open(filename).read().startswith('\x89PNG') 
+            sage: open(filename).read().startswith('\x89PNG')
             True
         """
         cdef int x, y, _x, _y, v, bi, bisq
@@ -12977,8 +12987,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: OE = EquationOrder(x^2 - x + 2, 'w')
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^2 - x + 2)
             sage: m = Matrix([ [1, w],[w,7]])
             sage: m.elementary_divisors()
             [1, -w + 9]
@@ -13027,8 +13036,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         An example over the ring of integers of a number field (of class
         number 1)::
 
-            sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^2 - x + 2)
             sage: m = Matrix([ [1, w],[w,7]])
             sage: d, u, v = m.smith_form()
             sage: (d, u, v)
@@ -13063,8 +13071,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Some examples over non-PID's work anyway::
 
-            sage: R = EquationOrder(x^2 + 5, 's') # class number 2
-            sage: s = R.ring_generators()[0]
+            sage: R.<s> = EquationOrder(x^2 + 5) # class number 2
             sage: A = matrix(R, 2, 2, [s-1,-s,-s,2*s+1])
             sage: D, U, V = A.smith_form()
             sage: D, U, V
@@ -14218,7 +14225,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         - Rob Beezer (2011-06-09)
         """
-        from sage.rings.arith import gcd   # remove if translated to object-oriented calls
+        from sage.arith.all import gcd
         import sage.rings.polynomial.polynomial_ring_constructor
         import sage.matrix.constructor
 
@@ -14558,8 +14565,7 @@ def _smith_onestep(m):
     EXAMPLE::
 
         sage: from sage.matrix.matrix2 import _smith_onestep
-        sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
-        sage: w = OE.ring_generators()[0]
+        sage: OE.<w> = EquationOrder(x^2 - x + 2)
         sage: m = matrix(OE, 3,3,[1,0,7,2,w, w+17, 13+8*w, 0, 6])
         sage: a,b,c = _smith_onestep(m); b
         [         1          0          0]

@@ -3295,7 +3295,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             M = self.realization_of().M()
             if l <= n:
                 from sage.misc.cachefunc import cached_function
-                from sage.rings.arith import gcd
+                from sage.arith.all import gcd
                 @cached_function
                 def monolambda(I):
                     # expansion of self[I] in monomial basis,

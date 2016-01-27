@@ -22,21 +22,22 @@ REFERENCES:
 #*****************************************************************************
 #       Copyright (C) 2012 Alexander Molnar
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.categories.homset                            import End
 from copy                                              import copy
 from sage.matrix.constructor                           import matrix
-from sage.rings.arith                                  import gcd
 from sage.rings.finite_rings.integer_mod_ring          import Zmod
 from sage.rings.integer_ring                           import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field                         import QQ
 from sage.schemes.affine.affine_space                  import AffineSpace
+from sage.arith.all import gcd
 
 
 def bCheck(c, v, p, b):

@@ -873,6 +873,14 @@ def _rpow_(self, base):
         sage: x = G('x')
         sage: (x * log(x)).rpow(2)  # indirect doctest
         2^(x*log(x))
+
+    ::
+
+        sage: n = GrowthGroup('QQ^n * n^QQ')('n')
+        sage: n.rpow(2)
+        2^n
+        sage: _.parent()
+        Growth Group QQ^n * n^QQ
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '

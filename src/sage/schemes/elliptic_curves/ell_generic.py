@@ -35,19 +35,15 @@ AUTHORS:
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
-#                     2014 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import math
 
@@ -58,7 +54,7 @@ import sage.groups.generic as generic
 import sage.plot.all as plot
 from sage.plot.plot import generate_plot_points
 
-import sage.rings.arith as arith
+from sage.arith.all import lcm
 import sage.rings.all as rings
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.misc.all import prod as mul
@@ -76,10 +72,8 @@ import formal_group
 import weierstrass_morphism as wm
 
 
-factor = arith.factor
 sqrt = math.sqrt
 exp = math.exp
-next_prime = arith.next_prime
 
 oo = rings.infinity       # infinity
 O = rings.O         # big oh
@@ -603,7 +597,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         if R.is_zero():
             return R.curve().change_ring(rings.GF(p))(0)
         x, y = R.xy()
-        d = arith.LCM(x.denominator(), y.denominator())
+        d = lcm(x.denominator(), y.denominator())
         return R.curve().change_ring(rings.GF(p))([x*d, y*d, d])
 
     def is_x_coord(self, x):

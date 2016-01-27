@@ -1,5 +1,5 @@
 r"""
-Guava error-correcting code constructions.
+Guava error-correcting code constructions
 
 This module only contains Guava wrappers (Guava is an optional GAP package).
 

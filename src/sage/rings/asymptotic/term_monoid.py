@@ -312,7 +312,7 @@ def can_absorb(left, right):
     return left.can_absorb(right) or right.can_absorb(left)
 
 
-class GenericTerm(sage.structure.element.MonoidElement):
+class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
     r"""
     Base class for asymptotic terms. Mainly the structure and
     several properties of asymptotic terms are handled here.
@@ -410,83 +410,6 @@ class GenericTerm(sage.structure.element.MonoidElement):
         """
         return self.parent()(self.growth * other.growth)
 
-
-    def __div__(self, other):
-        r"""
-        Division of this term by another.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term.
-
-        OUTPUT:
-
-        A :class:`GenericTerm`.
-
-        .. NOTE::
-
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_div_`.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: T = GenericTermMonoid(G, QQ)
-            sage: t1 = T(x); t2 = T(x^2)
-            sage: t1 / t2  # indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Inversion of Generic Term with growth x^2
-            not implemented (in this abstract method).
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._div_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-        return get_coercion_model().bin_op(self, other, operator.div)
-
-
-    def _div_(self, other):
-        r"""
-        Division of this term by another.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term.
-
-        OUTPUT:
-
-        A :class:`GenericTerm`.
-
-        .. NOTE::
-
-            This method is called by the coercion framework, thus,
-            it can be assumed that this element, as well as ``other``
-            are from a common parent.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: T = GenericTermMonoid(G, QQ)
-            sage: t1 = T(x); t2 = T(x^2)
-            sage: t1 / t2  # indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Inversion of Generic Term with growth x^2
-            not implemented (in this abstract method).
-        """
-        return self * ~other
-
-
     def __invert__(self):
         r"""
         Invert this term.
@@ -505,6 +428,15 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: Inversion of Generic Term with growth x
+            not implemented (in this abstract method).
+
+        ::
+
+            sage: t1 = T(x); t2 = T(x^2)
+            sage: t1 / t2
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Inversion of Generic Term with growth x^2
             not implemented (in this abstract method).
         """
         raise NotImplementedError('Inversion of %s not implemented '
@@ -1454,6 +1386,52 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             Integer Ring
         """
         return self._coefficient_ring_
+
+
+    def change_parameter(self, growth_group=None, coefficient_ring=None):
+        r"""
+        Return a term monoid with a change in one or more of the
+        given parameters.
+
+        INPUT:
+
+        - ``growth_group`` -- (default: ``None``) the new growth group.
+
+        - ``coefficient_ring`` -- (default: ``None``) the new coefficient ring.
+
+        OUTPUT:
+
+        A term monoid.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: E = TermMonoid('exact', GrowthGroup('n^ZZ'), ZZ)
+            sage: E.change_parameter(coefficient_ring=QQ)
+            Exact Term Monoid n^ZZ with coefficients in Rational Field
+            sage: E.change_parameter(growth_group=GrowthGroup('n^QQ'))
+            Exact Term Monoid n^QQ with coefficients in Integer Ring
+
+        TESTS::
+
+            sage: E.change_parameter() is E
+            True
+            sage: E.change_parameter(growth_group=None) is E
+            True
+            sage: E.change_parameter(coefficient_ring=None) is E
+            True
+            sage: E.change_parameter(growth_group=None, coefficient_ring=None) is E
+            True
+        """
+        if growth_group is None:
+            growth_group = self.growth_group
+        if coefficient_ring is None:
+            coefficient_ring = self.coefficient_ring
+        if self.growth_group is growth_group and \
+                self.coefficient_ring is coefficient_ring:
+            return self
+        return TermMonoid(self, growth_group, coefficient_ring)
 
 
     def _repr_(self):
@@ -3056,6 +3034,16 @@ class ExactTerm(TermWithCoefficient):
             -x^2
             sage: ET(x^0, 42)
             42
+
+        Check that :trac:`19576` is fixed::
+
+            sage: C.<c> = AsymptoticRing('c^ZZ', SR)
+            sage: (1+pi)*c
+            (pi + 1)*c
+            sage: R.<a> = QQ[]
+            sage: S.<n> = AsymptoticRing('n^QQ', R)
+            sage: (1+a)/n
+            (a + 1)*n^(-1)
         """
         g = repr(self.growth)
         c = repr(self.coefficient)
@@ -3065,8 +3053,12 @@ class ExactTerm(TermWithCoefficient):
             return '%s' % (g,)
         elif c == '-1':
             return '-%s' % (g,)
-        else:
+        elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
+            # note that -pi/2 is not atomic, but -5 is. As subtractions are handeled
+            # in the asymptotic ring, we ignore such non-atomicity.
             return '%s*%s' % (c, g)
+        else:
+            return '(%s)*%s' % (c, g)
 
 
     def __invert__(self):
@@ -3531,9 +3523,9 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     INPUT:
 
-    - ``term`` -- the kind of term that shall be created. Either a string
-      ``'exact'`` or ``'O'`` (capital letter ``O``),
-      or an existing instance of a term.
+    - ``term_monoid`` -- the kind of terms held in the new term monoid.
+      Either a string ``'exact'`` or ``'O'`` (capital letter ``O``),
+      or an existing instance of a term monoid.
 
     - ``growth_group`` -- a growth group.
 
@@ -3624,7 +3616,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         running ._test_prod() . . . pass
         running ._test_some_elements() . . . pass
     """
-    def create_key_and_extra_args(self, term,
+    def create_key_and_extra_args(self, term_monoid,
                                   growth_group=None, coefficient_ring=None,
                                   asymptotic_ring=None,
                                   **kwds):
@@ -3661,16 +3653,16 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: Integer Ring has to be an asymptotic growth group
         """
-        if isinstance(term, GenericTermMonoid):
+        if isinstance(term_monoid, GenericTermMonoid):
             from misc import underlying_class
-            term_class = underlying_class(term)
-        elif term == 'O':
+            term_class = underlying_class(term_monoid)
+        elif term_monoid == 'O':
             term_class = OTermMonoid
-        elif term == 'exact':
+        elif term_monoid == 'exact':
             term_class = ExactTermMonoid
         else:
             raise ValueError("Term specification '%s' has to be either 'exact' or 'O' "
-                             "or an instance of an existing term." % term)
+                             "or an instance of an existing term." % term_monoid)
 
         if asymptotic_ring is not None and \
                 (growth_group is not None or coefficient_ring is not None):
@@ -3689,7 +3681,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
         if coefficient_ring is None:
             raise ValueError("A coefficient ring has to be specified to "
-                             "create a term monoid of type '%s'" % (term,))
+                             "create a term monoid of type '%s'" % (term_monoid,))
 
         return (term_class, growth_group, coefficient_ring), kwds
 

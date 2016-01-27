@@ -2097,6 +2097,9 @@ def r_console():
             ISBN 3-900051-07-0
             ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%r magics instead.')
     # This will only spawn local processes
     os.system('R --vanilla')
 

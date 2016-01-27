@@ -3,7 +3,7 @@ Cython interface to Cremona's ``eclib`` library (also known as ``mwrank``)
 
 EXAMPLES::
 
-    sage: from sage.libs.mwrank.mwrank import _Curvedata, _mw
+    sage: from sage.libs.eclib.mwrank import _Curvedata, _mw
     sage: c = _Curvedata(1,2,3,4,5)
 
     sage: print c
@@ -22,34 +22,22 @@ EXAMPLES::
 import os
 import sys
 
+from sage.libs.eclib cimport bigint, Curvedata, mw, two_descent
+
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
 
-# Need to permit tabs in order to doctest verbose output.
-"""
-SAGE_DOCTEST_ALLOW_TABS
-"""
-
-cdef extern from "wrap.h":
+cdef extern from "wrap.cpp":
     ### misc functions ###
     long mwrank_get_precision()
     void mwrank_set_precision(long n)
     void mwrank_initprimes(char* pfilename, int verb)
 
-
     ### bigint ###
-    struct bigint
-    bigint* new_bigint()
-    void del_bigint(bigint* x)
     bigint* str_to_bigint(char* s)
     char* bigint_to_str(bigint* x)
 
     ### Curvedata ###
-    struct Curvedata
-    Curvedata* Curvedata_new(bigint* a1, bigint* a2,
-                             bigint* a3, bigint* a4,
-                             bigint* a6, int min_on_init)
-    void Curvedata_del(Curvedata* curve)
     char* Curvedata_repr(Curvedata* curve)
     double Curvedata_silverman_bound(Curvedata* curve)
     double Curvedata_cps_bound(Curvedata* curve)
@@ -59,9 +47,6 @@ cdef extern from "wrap.h":
     char* Curvedata_isogeny_class(Curvedata* E, int verbose)
 
     ## mw ##
-    struct mw
-    mw* mw_new(Curvedata* curve, int verb, int pp, int maxr)
-    void mw_del(mw* m)
     int mw_process(Curvedata* curve, mw* m,
                    bigint* x, bigint* y,
                    bigint* z, int sat)
@@ -73,13 +58,6 @@ cdef extern from "wrap.h":
     void mw_search(mw* m, char* h_lim, int moduli_option, int verb)
 
     ### two_descent ###
-    struct two_descent
-    two_descent* two_descent_new(Curvedata* curve,
-                                 int verb, int sel,
-                                 long firstlim, long secondlim,
-                                 long n_aux, int second_descent)
-
-    void two_descent_del(two_descent* t)
     int two_descent_ok(two_descent* t)
     long two_descent_get_certain(two_descent* t)
     char* two_descent_get_basis(two_descent* t)
@@ -90,7 +68,6 @@ cdef extern from "wrap.h":
     void two_descent_saturate(two_descent* t, long sat_bd)
 
 
-
 cdef object string_sigoff(char* s):
     sig_off()
     # Makes a python string and deletes what is pointed to by s.
@@ -98,10 +75,6 @@ cdef object string_sigoff(char* s):
     sage_free(s)
     return t
 
-class __init:
-    pass
-
-_INIT = __init()
 # set the default
 mwrank_set_precision(50)
 
@@ -115,7 +88,7 @@ def get_precision():
 
     EXAMPLE::
 
-        sage: from sage.libs.mwrank.mwrank import get_precision
+        sage: from sage.libs.eclib.mwrank import get_precision
         sage: get_precision()
         50
     """
@@ -135,7 +108,7 @@ def set_precision(n):
 
     EXAMPLE::
 
-        sage: from sage.libs.mwrank.mwrank import set_precision
+        sage: from sage.libs.eclib.mwrank import set_precision
         sage: set_precision(50)
 
     """
@@ -197,26 +170,25 @@ cdef class _bigint:
 
         EXAMPLES::
 
-           sage: from sage.libs.mwrank.mwrank import _bigint
+           sage: from sage.libs.eclib.mwrank import _bigint
            sage: _bigint(123)
            123
            sage: _bigint('123')
            123
            sage: type(_bigint(123))
-           <type 'sage.libs.mwrank.mwrank._bigint'>
+           <type 'sage.libs.eclib.mwrank._bigint'>
         """
-        if not (x is _INIT):
-            s = str(x)
-            if s.isdigit() or s[0] == "-" and s[1:].isdigit():
-                self.x = str_to_bigint(s)
-            else:
-                raise ValueError, "invalid _bigint: %s"%x
+        s = str(x)
+        if s.isdigit() or s[0] == "-" and s[1:].isdigit():
+            self.x = str_to_bigint(s)
+        else:
+            raise ValueError("invalid _bigint: %r"%x)
 
     def __dealloc__(self):
         """
         Destructor for bigint class (releases memory).
         """
-        del_bigint(self.x)
+        del self.x
 
     def __repr__(self):
         """
@@ -228,7 +200,7 @@ cdef class _bigint:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _bigint
+            sage: from sage.libs.eclib.mwrank import _bigint
             sage: a = _bigint('123')
             sage: a.__repr__()
             '123'
@@ -243,7 +215,7 @@ cdef class _bigint:
 cdef make_bigint(bigint* x):
     cdef _bigint y
     sig_off()
-    y = _bigint(_INIT)
+    y = _bigint.__new__(_bigint)
     y.x = x
     return y
 
@@ -269,28 +241,28 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: _Curvedata(1,2,3,4,5)
             [1,2,3,4,5]
-            b2 = 9	 b4 = 11	 b6 = 29	 b8 = 35
-            c4 = -183		c6 = -3429
-            disc = -10351	(# real components = 1)
+            b2 = 9       b4 = 11         b6 = 29         b8 = 35
+            c4 = -183           c6 = -3429
+            disc = -10351       (# real components = 1)
             #torsion not yet computed
 
         A non-minimal example::
 
             sage: _Curvedata(0,0,0,0,64)
             [0,0,0,0,64]
-            b2 = 0	 b4 = 0	 b6 = 256	 b8 = 0
-            c4 = 0		c6 = -55296
-            disc = -1769472	(# real components = 1)
+            b2 = 0       b4 = 0  b6 = 256        b8 = 0
+            c4 = 0              c6 = -55296
+            disc = -1769472     (# real components = 1)
             #torsion not yet computed
 
             sage: _Curvedata(0,0,0,0,64,min_on_init=1)
             [0,0,0,0,1] (reduced minimal model)
-            b2 = 0	 b4 = 0	 b6 = 4	 b8 = 0
-            c4 = 0		c6 = -864
-            disc = -432	(# real components = 1)
+            b2 = 0       b4 = 0  b6 = 4  b8 = 0
+            c4 = 0              c6 = -864
+            disc = -432 (# real components = 1)
             #torsion not yet computed
         """
         cdef _bigint _a1, _a2, _a3, _a4, _a6
@@ -299,7 +271,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         _a3 = _bigint(a3)
         _a4 = _bigint(a4)
         _a6 = _bigint(a6)
-        self.x = Curvedata_new(_a1.x, _a2.x, _a3.x, _a4.x, _a6.x, min_on_init)
+        self.x = new Curvedata(_a1.x[0], _a2.x[0], _a3.x[0], _a4.x[0], _a6.x[0], min_on_init)
         if self.discriminant() == 0:
             raise ArithmeticError, "Invariants (= %s) do not describe an elliptic curve."%([a1,a2,a3,a4,a6])
 
@@ -307,7 +279,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         """
         Destructor for Curvedata class.
         """
-        Curvedata_del(self.x)
+        del self.x
 
     def __repr__(self):
         """
@@ -319,15 +291,15 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.__repr__()
             '[1,2,3,4,5]\nb2 = 9\t b4 = 11\t b6 = 29\t b8 = 35\nc4 = -183\t\tc6 = -3429\ndisc = -10351\t(# real components = 1)\n#torsion not yet computed'
             sage: E
             [1,2,3,4,5]
-            b2 = 9	 b4 = 11	 b6 = 29	 b8 = 35
-            c4 = -183		c6 = -3429
-            disc = -10351	(# real components = 1)
+            b2 = 9       b4 = 11         b6 = 29         b8 = 35
+            c4 = -183           c6 = -3429
+            disc = -10351       (# real components = 1)
             #torsion not yet computed
             """
         sig_on()
@@ -351,7 +323,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.silverman_bound()
             6.52226179519101...
@@ -378,7 +350,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.cps_bound()
             0.11912451909250982
@@ -415,7 +387,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.height_constant()
             0.11912451909250982
@@ -432,7 +404,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.discriminant()
             -10351
@@ -457,7 +429,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.discriminant()
             -10351
@@ -487,7 +459,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,0,1,4,-6)
             sage: E.conductor()
             14
@@ -537,14 +509,14 @@ cdef class _mw:
 
         EXAMPLE::
 
-            sage: from sage.libs.mwrank.mwrank import _mw
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,0,1,4,-6)
             sage: EQ = _mw(E)
             sage: EQ
             []
             sage: type(EQ)
-            <type 'sage.libs.mwrank.mwrank._mw'>
+            <type 'sage.libs.eclib.mwrank._mw'>
 
             sage: E = _Curvedata(0,0,1,-7,6)
             sage: EQ = _mw(E)
@@ -554,22 +526,22 @@ cdef class _mw:
 
         Example to illustrate the verbose parameter::
 
-            sage: from sage.libs.mwrank.mwrank import _mw
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(0,0,1,-7,6)
             sage: EQ = _mw(E, verb=False)
             sage: EQ.search(1)
             sage: EQ = _mw(E, verb=True)
             sage: EQ.search(1)
-            P1 = [0:1:0]	 is torsion point, order 1
-            P1 = [-3:0:1]	  is generator number 1
+            P1 = [0:1:0]         is torsion point, order 1
+            P1 = [-3:0:1]         is generator number 1
             ...
-            P4 = [12:35:27]	 = 1*P1 + -1*P2 + -1*P3 (mod torsion)
+            P4 = [12:35:27]      = 1*P1 + -1*P2 + -1*P3 (mod torsion)
 
         The previous command produces the following output::
 
-            P1 = [0:1:0]	 is torsion point, order 1
-            P1 = [-3:0:1]	  is generator number 1
+            P1 = [0:1:0]         is torsion point, order 1
+            P1 = [-3:0:1]         is generator number 1
             saturating up to 20...Checking 2-saturation
             Points have successfully been 2-saturated (max q used = 7)
             Checking 3-saturation
@@ -587,7 +559,7 @@ cdef class _mw:
             Checking 19-saturation
             Points have successfully been 19-saturated (max q used = 37)
             done
-            P2 = [-2:3:1]	  is generator number 2
+            P2 = [-2:3:1]         is generator number 2
             saturating up to 20...Checking 2-saturation
             possible kernel vector = [1,1]
             This point may be in 2E(Q): [14:-52:1]
@@ -611,7 +583,7 @@ cdef class _mw:
             Points have successfully been 19-saturated (max q used = 47)
             done (index = 2).
             Gained index 2, new generators = [ [1:-1:1] [-2:3:1] ]
-            P3 = [-14:25:8]	  is generator number 3
+            P3 = [-14:25:8]       is generator number 3
             saturating up to 20...Checking 2-saturation
             Points have successfully been 2-saturated (max q used = 11)
             Checking 3-saturation
@@ -629,24 +601,24 @@ cdef class _mw:
             Checking 19-saturation
             Points have successfully been 19-saturated (max q used = 179)
             done (index = 1).
-            P4 = [-1:3:1]	 = -1*P1 + -1*P2 + -1*P3 (mod torsion)
-            P4 = [0:2:1]	 = 2*P1 + 0*P2 + 1*P3 (mod torsion)
-            P4 = [2:13:8]	 = -3*P1 + 1*P2 + -1*P3 (mod torsion)
-            P4 = [1:0:1]	 = -1*P1 + 0*P2 + 0*P3 (mod torsion)
-            P4 = [2:0:1]	 = -1*P1 + 1*P2 + 0*P3 (mod torsion)
-            P4 = [18:7:8]	 = -2*P1 + -1*P2 + -1*P3 (mod torsion)
-            P4 = [3:3:1]	 = 1*P1 + 0*P2 + 1*P3 (mod torsion)
-            P4 = [4:6:1]	 = 0*P1 + -1*P2 + -1*P3 (mod torsion)
-            P4 = [36:69:64]	 = 1*P1 + -2*P2 + 0*P3 (mod torsion)
-            P4 = [68:-25:64]	 = -2*P1 + -1*P2 + -2*P3 (mod torsion)
-            P4 = [12:35:27]	 = 1*P1 + -1*P2 + -1*P3 (mod torsion)
+            P4 = [-1:3:1]        = -1*P1 + -1*P2 + -1*P3 (mod torsion)
+            P4 = [0:2:1]         = 2*P1 + 0*P2 + 1*P3 (mod torsion)
+            P4 = [2:13:8]        = -3*P1 + 1*P2 + -1*P3 (mod torsion)
+            P4 = [1:0:1]         = -1*P1 + 0*P2 + 0*P3 (mod torsion)
+            P4 = [2:0:1]         = -1*P1 + 1*P2 + 0*P3 (mod torsion)
+            P4 = [18:7:8]        = -2*P1 + -1*P2 + -1*P3 (mod torsion)
+            P4 = [3:3:1]         = 1*P1 + 0*P2 + 1*P3 (mod torsion)
+            P4 = [4:6:1]         = 0*P1 + -1*P2 + -1*P3 (mod torsion)
+            P4 = [36:69:64]      = 1*P1 + -2*P2 + 0*P3 (mod torsion)
+            P4 = [68:-25:64]     = -2*P1 + -1*P2 + -2*P3 (mod torsion)
+            P4 = [12:35:27]      = 1*P1 + -1*P2 + -1*P3 (mod torsion)
             sage: EQ
             [[1:-1:1], [-2:3:1], [-14:25:8]]
 
         Example to illustrate the process points ``pp`` parameter::
 
-            sage: from sage.libs.mwrank.mwrank import _mw
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(0,0,1,-7,6)
             sage: EQ = _mw(E, pp=1)
             sage: EQ.search(1); EQ
@@ -657,14 +629,14 @@ cdef class _mw:
 
         """
         self.curve = curve.x
-        self.x = mw_new(curve.x, verb, pp, maxr)
+        self.x = new mw(curve.x, verb, pp, maxr)
         self.verb = verb
 
     def __dealloc__(self):
         """
         Destructor for mw class.
         """
-        mw_del(self.x)
+        del self.x
 
     def __repr__(self):
         """
@@ -676,8 +648,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
-            sage: from sage.libs.mwrank.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,0,1,-7,6)
             sage: EQ = _mw(E)
             sage: EQ # indirect doctest
@@ -714,8 +686,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
-            sage: from sage.libs.mwrank.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
 
@@ -765,8 +737,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
-            sage: from sage.libs.mwrank.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
             sage: EQ.search(3)
@@ -794,8 +766,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
-            sage: from sage.libs.mwrank.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
             sage: EQ.search(3)
@@ -821,8 +793,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
-            sage: from sage.libs.mwrank.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
             sage: EQ.search(3)
@@ -863,8 +835,8 @@ cdef class _mw:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
-            sage: from sage.libs.mwrank.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,1,1,-2,0)
             sage: EQ = _mw(E)
             sage: EQ.process([494, -5720, 6859]) # 3 times another point
@@ -939,8 +911,8 @@ cdef class _mw:
 
         EXAMPLE::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
-            sage: from sage.libs.mwrank.mwrank import _mw
+            sage: from sage.libs.eclib.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _mw
             sage: E = _Curvedata(0,0,1,-19569,-4064513) # 873c1
             sage: EQ = _mw(E)
             sage: EQ = _mw(E)
@@ -983,7 +955,7 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
         """
         self.x = <two_descent*> 0
@@ -992,8 +964,7 @@ cdef class _two_descent:
         """
         Destructor for two_descent class.
         """
-        if self.x:
-            two_descent_del(self.x)
+        del self.x
 
     def do_descent(self, _Curvedata curve,
                  int verb = 1,
@@ -1046,9 +1017,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1068,7 +1039,7 @@ cdef class _two_descent:
             1
         """
         sig_on()
-        self.x = two_descent_new(curve.x, verb, sel, firstlim, secondlim, n_aux, second_descent)
+        self.x = new two_descent(curve.x, verb, sel, firstlim, secondlim, n_aux, second_descent)
         if verb:
             sys.stdout.flush()
             sys.stderr.flush()
@@ -1084,9 +1055,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1118,9 +1089,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1152,9 +1123,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1185,9 +1156,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1214,9 +1185,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1243,9 +1214,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1290,9 +1261,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800
@@ -1327,9 +1298,9 @@ cdef class _two_descent:
 
         EXAMPLES::
 
-            sage: from sage.libs.mwrank.mwrank import _Curvedata
+            sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: CD = _Curvedata(0,0,1,-7,6)
-            sage: from sage.libs.mwrank.mwrank import _two_descent
+            sage: from sage.libs.eclib.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
             Basic pair: I=336, J=-10800

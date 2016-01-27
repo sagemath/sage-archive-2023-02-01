@@ -509,7 +509,7 @@ class Graph(GenericGraph):
          :meth:`sparse6_string`).
 
       #. ``Graph(a_seidel_matrix, format='seidel_adjacency_matrix')`` -- return
-         a graph with a given seidel adjacency matrix (see documentation of
+         a graph with a given Seidel adjacency matrix (see documentation of
          :meth:`seidel_adjacency_matrix`).
 
       #. ``Graph(another_graph)`` -- return a graph from a Sage (di)graph,
@@ -3341,7 +3341,7 @@ class Graph(GenericGraph):
         b = {}
 
 
-        # Checking the input type. We make a dictionay out of it
+        # Checking the input type. We make a dictionary out of it
         if isinstance(bound, dict):
             b = bound
         else:
@@ -3987,7 +3987,7 @@ class Graph(GenericGraph):
         OUTPUT:
 
         This method returns ``False`` when the homomorphism does not exist, and
-        returns the homomorphism otherwise as a dictionnary associating a vertex
+        returns the homomorphism otherwise as a dictionary associating a vertex
         of `H` to a vertex of `G`.
 
         EXAMPLE:

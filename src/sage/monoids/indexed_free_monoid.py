@@ -782,6 +782,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             return ZZ.one()
         return infinity
 
+    @cached_method
     def monoid_generators(self):
         """
         Return the monoid generators of ``self``.

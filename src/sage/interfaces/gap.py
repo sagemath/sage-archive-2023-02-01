@@ -308,6 +308,7 @@ class Gap_generic(Expect):
       code
 
     """
+    _identical_function = "IsIdenticalObj"
 
     def _synchronize(self, timeout=0.5, cmd='%s;'):
         """
@@ -918,7 +919,7 @@ class Gap_generic(Expect):
         else:
             self.eval(marker)
             res = self.eval(cmd)
-        if self.eval('IsIdenticalObj(last,__SAGE_LAST__)') != 'true':
+        if self.eval(self._identical_function + '(last,__SAGE_LAST__)') != 'true':
             return self.new('last2;')
         else:
             if res.strip():
@@ -1883,7 +1884,10 @@ def gap_console():
         True
         sage: 'sorry' not in gap_startup
         True
-     """
+    """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gap magics instead.')
     cmd, _ = gap_command(use_workspace_cache=False)
     cmd += ' ' + os.path.join(SAGE_EXTCODE,'gap','console.g')
     os.system(cmd)

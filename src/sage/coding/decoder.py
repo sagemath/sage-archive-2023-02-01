@@ -115,6 +115,26 @@ class Decoder(SageObject):
         Str = str(C)
         return hash((C, Str)) ^ hash(Str) ^ hash(C)
 
+    def __ne__(self, other):
+        r"""
+        Tests inequality of ``self`` and ``other``.
+
+        This is a generic implementation, which returns the inverse of ``__eq__`` for self.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: D1 = LinearCode(G).decoder()
+            sage: D2 = LinearCode(G).decoder()
+            sage: D1 != D2
+            False
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
+            sage: D2 = LinearCode(G).decoder()
+            sage: D1 != D2
+            True
+        """
+        return not self == other
+
     def decoder_type(self):
         r"""
         Returns the set of types of ``self``. These types describe the nature of ``self``

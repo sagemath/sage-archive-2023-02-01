@@ -76,17 +76,12 @@ REFERENCE:
 
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
-#                          William Stein   <wstein@gmail.com>
+#                          William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -94,7 +89,7 @@ from ell_field import EllipticCurve_field
 import ell_point
 import sage.matrix.all as matrix
 from sage.rings.ring import Ring
-from sage.rings.arith import gcd, prime_divisors
+from sage.arith.all import gcd, prime_divisors, valuation
 from sage.misc.all import prod
 import ell_torsion
 from ell_generic import is_EllipticCurve
@@ -105,7 +100,6 @@ from sage.rings.all import PolynomialRing, ZZ, QQ, RealField
 import sage.misc.misc
 from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
-from sage.rings.arith import valuation
 
 import gal_reps_number_field
 
@@ -915,15 +909,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        A model for this elliptic curve, optimally scaled with repect
-        to scaling by units when the base field is real quadratic;
-        unchanged otherwise.
+        A model for this elliptic curve, optimally scaled with respect
+        to scaling by units, with respect to the logarithmic embedding
+        of |c4|^(1/4)+|c6|^(1/6).  No scaling by roots of unity is
+        carried out, so there is no change when the unit rank is 0.
 
-        .. note::
-
-           This is currently only implemented for real quadratic fields.
-
-        EXAMPLE::
+        EXAMPLES::
 
            sage: K.<a> = NumberField(x^2-10)
            sage: u = K.units()[0]
@@ -937,32 +928,48 @@ class EllipticCurve_number_field(EllipticCurve_field):
            -77225139016967233228487820912*a - 244207331916752959911655344864)
            sage: E1._scale_by_units().ainvs()
            (0, 0, 0, 4536*a + 14148, -163728*a - 474336)
+
+        A totally real cubic example::
+
+           sage: K.<a> = NumberField(x^3-x^2-6*x+5)
+           sage: E = EllipticCurve([a + 1, a^2 + a - 1, a + 1, 44*a^2 + a - 258, -215*a^2 + 53*a + 1340])
+           sage: u1, u2 = K.units()
+           sage: u = u1^2/u2^3
+           sage: E1 = E.scale_curve(u)
+           sage: E1._scale_by_units().ainvs() == E.ainvs()
+           True
+
+        A complex quartic example::
+
+           sage: K.<a> = CyclotomicField(5)
+           sage: E = EllipticCurve([a + 1, a^2 + a - 1, a + 1, 44*a^2 + a - 258, -215*a^2 + 53*a + 1340])
+           sage: u = K.units()[0]
+           sage: E1 = E.scale_curve(u^5)
+           sage: E1._scale_by_units().ainvs() == E.ainvs()
+           True
         """
         K = self.base_field()
-        if not K.signature()==(2,0):
+        r1, r2 = K.signature()
+        if r1+r2==1: # unit rank is 0
             return self
 
-        R = RealField(1000)  # lower precision works badly!
-        embs = K.embeddings(R)
-        u = K.units()[0]
-        uv = [e(u).abs().log() for e in embs]
+        prec = 1000  # lower precision works badly!
+        embs = K.places(prec=prec)
+        degs = [1]*r1 + [2]*r2
+        fu = K.units()
+        from sage.matrix.all import Matrix
+        U = Matrix([[e(u).abs().log()*d for d,e in zip(degs,embs)] for u in fu])
+        A = U*U.transpose()
+        Ainv = A.inverse()
 
         c4, c6 = self.c_invariants()
         c4s = [e(c4) for e in embs]
         c6s = [e(c6) for e in embs]
-        v = [(x4.abs()**(R.one()/4)+x6.abs()**(R.one()/6)).log() for x4,x6 in zip(c4s,c6s)]
-        kr = -(v[0]*uv[0]+v[1]*uv[1])/(uv[0]**2+uv[1]**2)
-        k1 = kr.floor()
-        k2 = kr.ceil()
-        nv1 = (v[0] + k1*uv[0])**2 + (v[1] + k1*uv[1])**2
-        nv2 = (v[0] + k2*uv[0])**2 + (v[1] + k2*uv[1])**2
-        if nv1 < nv2:
-            k=k1
-        else:
-            k=k2
-        return self.scale_curve(u**k)
-
-
+        from sage.modules.all import vector
+        v = vector([(x4.abs().nth_root(4)+x6.abs().nth_root(6)).log()*d for x4,x6,d in zip(c4s,c6s,degs)])
+        es = [e.round() for e in -Ainv*U*v]
+        u = prod([uj**ej for uj,ej in zip(fu,es)])
+        return self.scale_curve(u)
 
     def local_data(self, P=None, proof=None, algorithm="pari", globally=False):
         r"""
@@ -1890,7 +1897,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K2.<v> = K1.extension(m^2-w+1)
             sage: E = EllipticCurve([0*v,-432])
             sage: E.global_minimal_model()
-            Elliptic Curve defined by y^2 + (v+w+1)*y = x^3 + ((6*w-10)*v+16*w+20) over Number Field in v with defining polynomial x^2 - w + 1 over its base field
+            Elliptic Curve defined by y^2 + y = x^3 over Number Field in v with defining polynomial x^2 - w + 1 over its base field
 
         See :trac:`18662`: for fields of class number greater than 1,
         even when global minimal models did exist, their computation
@@ -2707,10 +2714,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [1 2]
             [2 1]
             sage: [E.ainvs() for E in C]
-            [(0, 0, 0, -25762110*c^2 - 67447215, -154360009760*c^2 - 404119737340),
-            (0, 0, 0, 130763490*c^2 + 342343485, 1391590873420*c^3 + 3643232206680*c)]
+            [(0, 0, 0, 83490*c^2 - 147015, -64739840*c^2 - 84465260),
+            (0, 0, 0, -161535*c^2 + 70785, -62264180*c^3 + 6229080*c)]
             sage: C.isogenies()[0][1]
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-25762110*c^2-67447215)*x + (-154360009760*c^2-404119737340) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (130763490*c^2+342343485)*x + (1391590873420*c^3+3643232206680*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (83490*c^2-147015)*x + (-64739840*c^2-84465260) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-161535*c^2+70785)*x + (-62264180*c^3+6229080*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
         An example with CM by `\sqrt{-23}` (class number `3`)::
 
@@ -2746,11 +2753,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [-92, -23, -23]
 
             sage: C.matrix()
-            [1 2 2 2 4 4]
-            [2 1 2 4 2 4]
+            [1 2 2 4 2 4]
+            [2 1 2 2 4 4]
             [2 2 1 4 4 2]
-            [2 4 4 1 3 3]
-            [4 2 4 3 1 3]
+            [4 2 4 1 3 3]
+            [2 4 4 3 1 3]
             [4 4 2 3 3 1]
 
         The graph of this isogeny class has a shape which does not
@@ -2778,11 +2785,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: G = C.graph()
             sage: G.adjacency_matrix()
-            [0 1 1 1 0 0]
-            [1 0 1 0 1 0]
+            [0 1 1 0 1 0]
+            [1 0 1 1 0 0]
             [1 1 0 0 0 1]
-            [1 0 0 0 1 1]
-            [0 1 0 1 0 1]
+            [0 1 0 0 1 1]
+            [1 0 0 1 0 1]
             [0 0 1 1 1 0]
 
         To display the graph without any edge labels::
@@ -2838,10 +2845,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: C = E.isogeny_class(); len(C) # long time (~11s)
             4
             sage: C.matrix()                    # long time
-            [ 1  2 13 26]
-            [ 2  1 26 13]
-            [13 26  1  2]
-            [26 13  2  1]
+            [ 1 13  2 26]
+            [13  1 26  2]
+            [ 2 26  1 13]
+            [26  2 13  1]
             sage: len(Set([EE.j_invariant() for EE in C.curves]))  # long time
             2
 
@@ -2864,20 +2871,20 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: CL.matrix() # long time
             [1 2 3 3 5 5]
             [2 1 5 5 3 3]
-            [3 5 1 3 5 2]
-            [3 5 3 1 2 5]
-            [5 3 5 2 1 3]
-            [5 3 2 5 3 1]
+            [3 5 1 3 2 5]
+            [3 5 3 1 5 2]
+            [5 3 2 5 1 3]
+            [5 3 5 2 3 1]
 
         To see the array of binary quadratic forms::
 
             sage: CL.qf_matrix()  # long time
             [[[1], [2, 0, 13], [3, -2, 9], [3, -2, 9], [5, -4, 6], [5, -4, 6]],
-            [[2, 0, 13], [1], [5, -4, 6], [5, -4, 6], [3, -2, 9], [3, -2, 9]],
-            [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [5, -4, 6], [2, 0, 13]],
-            [[3, -2, 9], [5, -4, 6], [3, -2, 9], [1], [2, 0, 13], [5, -4, 6]],
-            [[5, -4, 6], [3, -2, 9], [5, -4, 6], [2, 0, 13], [1], [3, -2, 9]],
-            [[5, -4, 6], [3, -2, 9], [2, 0, 13], [5, -4, 6], [3, -2, 9], [1]]]
+             [[2, 0, 13], [1], [5, -4, 6], [5, -4, 6], [3, -2, 9], [3, -2, 9]],
+             [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [2, 0, 13], [5, -4, 6]],
+             [[3, -2, 9], [5, -4, 6], [3, -2, 9], [1], [5, -4, 6], [2, 0, 13]],
+             [[5, -4, 6], [3, -2, 9], [2, 0, 13], [5, -4, 6], [1], [3, -2, 9]],
+             [[5, -4, 6], [3, -2, 9], [5, -4, 6], [2, 0, 13], [3, -2, 9], [1]]]
 
         As in the non-CM case, the isogeny class may be visualized by
         obtaining its graph and plotting it.  Since there are more

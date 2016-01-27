@@ -7029,6 +7029,8 @@ class GenericGraph(GenericGraph_pyx):
                     answer = self.subgraph(edges = edges, immutable = False)
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
+                    if self.is_immutable():
+                        answer = answer.copy(immutable = True)
                     return answer
             else:
                 if self.has_multiple_edges() and len(self.edge_label(u,v)) > 1:
@@ -7037,6 +7039,8 @@ class GenericGraph(GenericGraph_pyx):
                     answer = self.subgraph(edges = edges[:2], immutable = False)
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
+                    if self.is_immutable():
+                        answer = answer.copy(immutable = True)
                     return answer
 
             raise EmptySetError("The given graph is not Hamiltonian")
@@ -7218,6 +7222,8 @@ class GenericGraph(GenericGraph_pyx):
             answer = self.subgraph(edges = h.edges(), immutable = False)
             answer.set_pos(self.get_pos())
             answer.name("TSP from "+g.name())
+            if self.is_immutable():
+                answer = answer.copy(immutable = True)
             return answer
 
         #################################################

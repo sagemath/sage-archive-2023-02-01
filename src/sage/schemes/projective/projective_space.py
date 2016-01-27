@@ -359,11 +359,11 @@ class ProjectiveSpace_ring(AmbientSpace):
         INPUT:
 
         - ``polynomials`` -- tuple of polynomials in the coordinate ring of
-            self
+            this space.
 
         OUTPUT:
 
-        - tuple of polynomials in the coordinate ring of self
+        - tuple of polynomials in the coordinate ring of this space.
 
         EXAMPLES::
 
@@ -438,12 +438,12 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        -  ``d`` -- a nonnegative integer
+        -  ``d`` -- a nonnegative integer.
 
         -  ``pt`` -- a point of self (possibly represented by a list with at \
-                     least one component equal to 1)
+                     least one component equal to 1).
 
-        -  ``m`` -- a nonnegative integer
+        -  ``m`` -- a nonnegative integer.
 
         OUTPUT:
 
@@ -667,11 +667,11 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        - ``R`` -- commutative ring
+        - ``R`` -- commutative ring.
 
         OUTPUT:
 
-        - projective space over ``R``
+        - projective space over ``R``.
 
         .. NOTE::
 
@@ -707,7 +707,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        -  ``X`` - a list or tuple of equations
+        -  ``X`` - a list or tuple of equations.
 
         EXAMPLES::
 
@@ -845,9 +845,9 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        - ``E`` -- an elliptic curve
+        - ``E`` -- an elliptic curve.
 
-        - ``m`` -- an integer
+        - ``m`` -- an integer.
 
         OUTPUT: an endomorphism of this projective space.
 
@@ -879,11 +879,11 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        - ``other`` - A projective space with the same base ring as this space
+        - ``other`` - A projective space with the same base ring as this space.
 
         OUTPUT:
 
-        - A Cartesian product of projective spaces
+        - A Cartesian product of projective spaces.
 
         EXAMPLES::
 
@@ -954,13 +954,13 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         INPUT:
 
-        - ``bound`` - a real number
+        - ``bound`` - a real number.
 
-        - ``prec`` - the precision to use to compute the elements of bounded height for number fields
+        - ``prec`` - the precision to use to compute the elements of bounded height for number fields.
 
         OUTPUT:
 
-        - an iterator of points in this space
+        - an iterator of points in this space.
 
         .. WARNING::
 
@@ -1208,7 +1208,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
 
         INPUT:
 
-        -  ``bound`` - integer
+        -  ``bound`` - integer.
 
         EXAMPLES::
 

@@ -44,8 +44,8 @@ def _fast_possible_periods(self, return_points=False):
             sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
             sage: P.<x,y> = ProjectiveSpace(GF(23),1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2-2*y^2,y^2])
-            sage: _fast_possible_periods(f,False)
+            sage: f = H([x^2-2*y^2, y^2])
+            sage: _fast_possible_periods(f, False)
             [1, 5, 11, 22, 110]
 
         ::
@@ -53,8 +53,8 @@ def _fast_possible_periods(self, return_points=False):
             sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
             sage: P.<x,y> = ProjectiveSpace(GF(13),1)
             sage: H = End(P)
-            sage: f = H([x^2-y^2,y^2])
-            sage: sorted(_fast_possible_periods(f,True))
+            sage: f = H([x^2-y^2, y^2])
+            sage: sorted(_fast_possible_periods(f, True))
             [[(0 : 1), 2], [(1 : 0), 1], [(3 : 1), 3], [(3 : 1), 36]]
 
         ::
@@ -63,7 +63,7 @@ def _fast_possible_periods(self, return_points=False):
             sage: PS.<x,y,z> = ProjectiveSpace(2,GF(7))
             sage: H = End(PS)
             sage: f = H([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
-            sage: _fast_possible_periods(f,False)
+            sage: _fast_possible_periods(f, False)
             [1, 2, 4, 6, 12, 14, 28, 42, 84]
 
         .. TODO::
@@ -107,8 +107,8 @@ def _fast_possible_periods(self, return_points=False):
                 P_proj = PS(P)
                 period = index-point_table[hash_p][1]
                 periods.add(period)
-                points_periods.append([P_proj,period])
-                l = P_proj.multiplier(self,period,False)
+                points_periods.append([P_proj, period])
+                l = P_proj.multiplier(self, period, False)
                 lorders = set()
                 for poly,_ in l.charpoly().factor():
                     if poly.degree() == 1:
@@ -192,7 +192,7 @@ def _hash(list Point, int prime):
     hash_q = 0
 
     for coefficient in Point:
-        hash_q = hash_q * prime + coefficient
+        hash_q = hash_q*prime + coefficient
 
     Point.reverse()
 

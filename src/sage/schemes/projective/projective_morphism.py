@@ -222,9 +222,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``x`` - a point or subscheme in domain of ``self``
+        - ``x`` - a point or subscheme in domain of this map.
 
-        - ``check`` - Boolean - if `False` assume that ``x`` is a point
+        - ``check`` - Boolean - if `False` assume that ``x`` is a point.
 
         EXAMPLES::
 
@@ -325,7 +325,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     @lazy_attribute
     def _fastpolys(self):
         """
-        Lazy attribute for fast_callable polynomials for ``self``.
+        Lazy attribute for fast_callable polynomials for this map.
 
         EXAMPLES::
 
@@ -411,7 +411,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``right`` - a map on projective space
+        - ``right`` - a map on projective space.
 
         OUTPUT:
 
@@ -459,7 +459,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``right`` -- a map on projective space
+        - ``right`` -- a map on projective space.
 
         OUTPUT:
 
@@ -502,7 +502,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``t`` -- a ring element
+        - ``t`` -- a ring element.
 
         OUTPUT:
 
@@ -570,7 +570,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
-            sage: f = H([5/4*x^3,5*x*y^2])
+            sage: f = H([5/4*x^3, 5*x*y^2])
             sage: f.normalize_coordinates(); f
             Scheme endomorphism of Projective Space of dimension 1 over Rational
             Field
@@ -582,7 +582,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z> = ProjectiveSpace(GF(7),2)
             sage: X = P.subscheme(x^2-y^2)
             sage: H = Hom(X,X)
-            sage: f = H([x^3+x*y^2,x*y^2,x*z^2])
+            sage: f = H([x^3+x*y^2, x*y^2, x*z^2])
             sage: f.normalize_coordinates(); f
             Scheme endomorphism of Closed subscheme of Projective Space of dimension
             2 over Finite Field of size 7 defined by:
@@ -630,7 +630,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         The dynatomic polynomial is the analog of the cyclotomic
         polynomial and its roots are the points of formal period `period`. If possible the division is
-        done in the coordinate ring of ``self`` and a polynomial is returned. In rings where that is not possible,
+        done in the coordinate ring of this map and a polynomial is returned. In rings where that is not possible,
         a FractionField element will be returned. In certain cases, when the conversion back to a polynomial
         fails, a SymbolRing element will be returned.
 
@@ -661,12 +661,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``period`` -- a positive integer or a list/tuple `[m,n]` where `m` is the preperiod and `n` is the period
+        - ``period`` -- a positive integer or a list/tuple `[m,n]` where
+          `m` is the preperiod and `n` is the period.
 
         OUTPUT:
 
-        - If possible, a two variable polynomial in the coordinate ring of ``self``.
-          Otherwise a fraction field element of the coordinate ring of ``self``. Or,
+        - If possible, a two variable polynomial in the coordinate ring of this map.
+          Otherwise a fraction field element of the coordinate ring of this map. Or,
           a Symbolic Ring element.
 
         .. TODO::
@@ -768,7 +769,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2+ c*y^2, y^2])
-            sage: f.dynatomic_polynomial([1,2])
+            sage: f.dynatomic_polynomial([1, 2])
             x^2 - x*y + (c + 1)*y^2
 
         ::
@@ -782,7 +783,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: K.<c> = NumberField(X^2 + X + 2)
             sage: PP = P.change_ring(K)
             sage: ff = f.change_ring(K)
-            sage: p = PP((c,1))
+            sage: p = PP((c, 1))
             sage: ff(ff(p)) == p
             True
 
@@ -791,14 +792,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2, x*y])
-            sage: f.dynatomic_polynomial([2,2])
+            sage: f.dynatomic_polynomial([2, 2])
             x^4 + 4*x^2*y^2 + y^4
             sage: R.<X> = PolynomialRing(QQ)
             sage: K.<c> = NumberField(X^4 + 4*X^2 + 1)
             sage: PP = P.change_ring(K)
             sage: ff = f.change_ring(K)
-            sage: p = PP((c,1))
-            sage: ff.nth_iterate(p,4) == ff.nth_iterate(p,2)
+            sage: p = PP((c, 1))
+            sage: ff.nth_iterate(p, 4) == ff.nth_iterate(p, 2)
             True
 
         ::
@@ -835,8 +836,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: S.<t> = PolynomialRing(T)
             sage: P.<x,y> = ProjectiveSpace(FractionField(S),1)
             sage: H = End(P)
-            sage: f = H([t*x^2-1/t*y^2 ,y^2])
-            sage: f.dynatomic_polynomial([1,2]).parent()
+            sage: f = H([t*x^2-1/t*y^2, y^2])
+            sage: f.dynatomic_polynomial([1, 2]).parent()
             Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial
             Ring in t over Number Field in v with defining polynomial x^2 - 33
 
@@ -847,7 +848,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: R = P.coordinate_ring()
             sage: f = H([t*x^2-1*y^2, t*y^2])
-            sage: f.dynatomic_polynomial([1,2]).parent()
+            sage: f.dynatomic_polynomial([1, 2]).parent()
             Symbolic Ring
        """
         if self.domain().ngens() > 2:
@@ -916,7 +917,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - A map between projective spaces
+        - A map between projective spaces.
 
         EXAMPLES::
 
@@ -1000,17 +1001,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` -- a point in ``self.domain()``
+        - ``P`` -- a point in this map's domain.
 
         - ``n`` -- a positive integer.
 
         kwds:
 
-        - ``normalize`` - Boolean (optional Default: ``False``)
+        - ``normalize`` - Boolean (optional Default: ``False``).
 
         OUTPUT:
 
-        - A point in ``self.codomain()``
+        - A point in this map's codomain.
 
         EXAMPLES::
 
@@ -1030,7 +1031,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.nth_iterate(Q, 4, normalize=True)
             (1 : 1)
 
-        Is this the right behavior? ::
+        ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = Hom(P,P)
@@ -1123,7 +1124,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         and the ``n[1]`` coordinate for the codomain.
 
         Note that the new function is defined over the fraction field
-        of the base ring of ``self``.
+        of the base ring of this map.
 
         INPUT:
 
@@ -1132,7 +1133,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - :class:`SchemeMorphism_polynomial_affine_space`
+        - :class:`SchemeMorphism_polynomial_affine_space`.
 
         EXAMPLES::
 
@@ -1245,20 +1246,20 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` -- a point in ``self.domain()``
+        - ``P`` -- a point in this map's domain.
 
-        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers
+        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers.
 
         kwds:
 
-        - ``check`` -- boolean (optional - default: ``True``)
+        - ``check`` -- boolean (optional - default: ``True``).
 
-        - ``normalize`` -- boolean (optional - default: ``False``)
+        - ``normalize`` -- boolean (optional - default: ``False``).
 
 
         OUTPUT:
 
-        - a list of points in ``self.codomain()``
+        - a list of points in this map's codomain.
 
         EXAMPLES::
 
@@ -1376,11 +1377,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``normalize`` -- Boolean (optional - default: ``False``)
+        - ``normalize`` -- Boolean (optional - default: ``False``).
 
         OUTPUT:
 
-        - an element of ``self.codomain().base_ring()``
+        - an element of the base ring of this map.
 
         EXAMPLES::
 
@@ -1473,11 +1474,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         power of each `x_i` is not in the ideal defined by the
         defining polynomials of self. This last condition is what is
         checked. The lcm of the coefficients of the monomials `x_i` in
-        a groebner basis is computed. This may return extra primes.
+        a Groebner basis is computed. This may return extra primes.
 
         INPUT:
 
-        - ``check`` -- Boolean (optional - default: ``True``)
+        - ``check`` -- Boolean (optional - default: ``True``).
 
         OUTPUT:
 
@@ -1591,11 +1592,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``M`` -- a square invertible matrix
+        - ``M`` -- a square invertible matrix.
 
         OUTPUT:
 
-        - a map from ``self.domain()`` to ``self.codomain()``.
+        - a map from the domain to the codomain of this map.
 
         EXAMPLES::
 
@@ -1695,21 +1696,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` - a projective point
+        - ``P`` - a projective point.
 
-        - ``v`` - non-negative integer. a place, use v=0 for the archimedean place
+        - ``v`` - non-negative integer. a place, use v=0 for the archimedean place.
 
         kwds:
 
-        - ``N`` - positive integer. number of terms of the series to use, (optional - default: 10)
+        - ``N`` - positive integer. number of terms of the series to use, (optional - default: 10).
 
-        - ``prec`` - positive integer, float point or p-adic precision, default: 100
+        - ``prec`` - positive integer, float point or p-adic precision, default: 100.
 
-        - ``error_bound`` - a positive real number (optional)
+        - ``error_bound`` - a positive real number (optional).
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -1738,18 +1739,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` -- a projective point
+        - ``P`` -- a projective point.
 
         kwds:
 
-        - ``badprimes`` - a list of primes of bad reduction (optional)
+        - ``badprimes`` - a list of primes of bad reduction (optional).
 
         - ``N`` - positive integer. number of terms of the series to use in the local green functions
-          (optional - default: 10)
+          (optional - default: 10).
 
-        - ``prec`` - positive integer, float point or p-adic precision, default: 100
+        - ``prec`` - positive integer, float point or p-adic precision, default: 100.
 
-        - ``error_bound`` - a positive real number (optional)
+        - ``error_bound`` - a positive real number (optional).
 
         OUTPUT:
 
@@ -1797,7 +1798,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -1859,14 +1860,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``v`` -- a prime or prime ideal of the base ring
+        - ``v`` -- a prime or prime ideal of the base ring.
 
         - ``prec`` -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -1909,14 +1910,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``i`` -- an integer
+        - ``i`` -- an integer.
 
         - ``prec`` -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -1959,11 +1960,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``prec`` - positive integer, float point, default: RealField default
+        - ``prec`` - positive integer, float point, default: RealField default.
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -2053,15 +2054,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` - a point on domain of ``self``
+        - ``P`` - a point on domain of this map.
 
-        - ``n`` - a positive integer, the period of ``P``
+        - ``n`` - a positive integer, the period of ``P``.
 
-        - ``check`` -- verify that ``P`` has period ``n``, Default:True
+        - ``check`` -- verify that ``P`` has period ``n``, Default:True.
 
         OUTPUT:
 
-        - a square matrix of size ``self.codomain().dimension_relative()`` in the ``base_ring`` of ``self``
+        - a square matrix of size ``self.codomain().dimension_relative()``
+          in the ``base_ring`` of this map.
 
         EXAMPLES::
 
@@ -2159,13 +2161,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` - a point on domain of ``self``
+        - ``P`` - a point on domain of this map.
 
-        - ``n`` - a positive integer, the period of ``P``
+        - ``n`` - a positive integer, the period of ``P``.
 
-        - ``p`` - a positive integer
+        - ``p`` - a positive integer.
 
-        - ``k`` - a positive integer
+        - ``k`` - a positive integer.
 
         OUTPUT:
 
@@ -2287,7 +2289,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             try:
                 primebound = [1, ZZ(primebound)]
             except TypeError:
-                raise TypeError("bound on primes must be an integer")
+                raise TypeError("prime bound must be an integer")
         else:
             try:
                 primebound[0] = ZZ(primebound[0])
@@ -2337,11 +2339,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``preper`` - a list or tuple of projective points. The complete set of rational periodic or preperiodic points.
+        - ``preper`` - a list or tuple of projective points. The complete set
+          of rational periodic or preperiodic points.
 
         OUTPUT:
 
-        - a digraph representing the orbit the rational preperiodic points ``preper`` in projective space.
+        - a digraph representing the orbit the rational preperiodic points
+          ``preper`` in projective space.
 
         Examples::
 
@@ -2379,15 +2383,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         r"""
         Checks if this map is a minimal model in its conjugacy class.
 
-        See [Bruin-Molnar] and [Molnar] for a description of the algorithm.
+        See [Bruin-Molnar]_ and [Molnar]_ for a description of the algorithm.
 
         INPUT:
 
-        - ``prime_list`` -- list of primes to check minimality, if None, check all places
+        - ``prime_list`` -- list of primes to check minimality, if None, check all places.
 
         OUTPUT:
 
-        - Boolean - True if ``self`` is minimal, False otherwise.
+        - Boolean - True if this map is minimal, False otherwise.
 
         EXAMPLES::
 
@@ -2436,25 +2440,23 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         REFERENCES:
 
-        [Bruin-Molnar], [Molnar]
+        [Bruin-Molnar]_, [Molnar]_
 
         INPUT:
 
-        - ``self`` -- scheme morphism on the projective line defined over `\QQ`.
-
         - ``return_transformation`` -- a boolean value, default value True. This
-                                    signals a return of the ``PGL_2`` transformation
-                                    to conjugate ``self`` to the calculated minimal
-                                    model. default: False
+                                    signals a return of the `PGL_2` transformation
+                                    to conjugate this map to the calculated minimal
+                                    model. default: False.
 
         - ``prime_list`` -- a list of primes, in case one only wants to determine minimality
                    at those specific primes.
 
         OUTPUT:
 
-        - a scheme morphism on the projective line which is a minimal model of ``self``.
+        - a scheme morphism on the projective line which is a minimal model of this map.
 
-        - a `PGL(2,\QQ)` element which conjugates ``self`` to a minimal model
+        - a `PGL(2,\QQ)` element which conjugates this map to a minimal model.
 
         EXAMPLES::
 
@@ -2555,7 +2557,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``starting_prime`` -- The first prime to use for CRT. default: 5.(optional)
 
         - ``algorithm``-- Choose ``CRT``-Chinese Remainder Theorem- or ``fixed_points`` algorithm.
-            default: depends on ``self``. (optional)
+            default: depends on this map. (optional)
 
         - ``return_functions``-- Boolean - True returns elements as linear fractional transformations.
             False returns elements as `PGL2` matrices. default: False. (optional)
@@ -2654,10 +2656,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         r"""
         Returns the ideal generated by the critical point locus.
 
-        This is the vanishing of the maximal minors of the jacobian matrix.
+        This is the vanishing of the maximal minors of the Jacobian matrix.
         Not implemented for subvarieties.
 
-        OUTPUT: an ideal in ``self.domain().coordinate_ring()``
+        OUTPUT: an ideal in the coordinate ring of the domain of this map.
 
         Examples::
 
@@ -2692,15 +2694,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def critical_points(self, R=None):
         r"""
         Returns the critical points of this endomorphism defined over the ring ``R``
-        or its the base ring of ``self``.
+        or its the base ring of this map.
 
         Must be dimension 1.
 
         INPUT:
 
-            - ``R`` - a ring (optional)
+            - ``R`` - a ring (optional).
 
-        OUTPUT: a list of projective space points defined over ``R``
+        OUTPUT: a list of projective space points defined over ``R``.
 
         Examples::
 
@@ -2752,7 +2754,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-            - ``err`` - positive real number (optional, Default: 0.01)
+            - ``err`` - positive real number (optional, Default: 0.01).
 
         OUTPUT: Boolean
 
@@ -2822,9 +2824,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-            - check - Boolean
+            - check - Boolean.
 
-        OUTPUT: a digraph
+        OUTPUT: a digraph.
 
         Examples::
 
@@ -2884,14 +2886,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         kwds:
 
-        - ``badprimes`` - a list of primes of bad reduction (optional)
+        - ``badprimes`` - a list of primes of bad reduction. (optional)
 
-        - ``N`` - positive integer. number of terms of the series to use in the local green functions
+        - ``N`` - positive integer. number of terms of the series to use in the local green functions.
           (optional - Default: 10)
 
-        - ``prec`` - positive integer, float point or p-adic precision, Default: 100
+        - ``prec`` - positive integer, float point or p-adic precision, Default: 100.
 
-        - ``error_bound`` - a positive real number (optional)
+        - ``error_bound`` - a positive real number. (optional)
 
         OUTPUT: Real number
 
@@ -2949,14 +2951,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``n`` - a positive integer
+        - ``n`` - a positive integer.
 
         - ``minimal`` - Boolean. True specifies to find only the periodic points of minimal period ``n``.
             False specifies to find all periodic points of period ``n``. Default: True.
 
         OUTPUT:
 
-        - a list of periodic points of ``self``
+        - a list of periodic points of this map.
 
         EXAMPLES::
 
@@ -3054,14 +3056,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``n`` - a positive integer, the period
+        - ``n`` - a positive integer, the period.
 
-        - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra of ``self``. False
-            specifies to find the ``n`` multiplier spectra of ``self``. Default: True
+        - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra
+            of this map. False specifies to find the ``n`` multiplier spectra
+            of this map. Default: True
 
         OUTPUT:
 
-        - a list of QQbar elements
+        - a list of `\QQbar` elements.
 
         EXAMPLES::
 
@@ -3182,13 +3185,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``n`` - a positive integer, the period.
 
         - ``formal`` - a Boolean. True specifies to find the values of the elementary symmetric polynomials
-            corresponding to the formal ``n`` multiplier spectra of ``self``. False specifies to instead find
-            the values corresponding to the ``n`` multiplier spectra of ``self``, which includes the multipliers
-            of all periodic points of period ``n`` of ``self``. Default: True
+            corresponding to the formal ``n`` multiplier spectra of this map. False specifies to instead find
+            the values corresponding to the ``n`` multiplier spectra of this map, which includes the multipliers
+            of all periodic points of period ``n`` of this map. Default: True
 
         OUTPUT:
 
-        - a list of QQbar elements
+        - a list of `\QQbar` elements.
 
         EXAMPLES::
 
@@ -3549,7 +3552,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         in the domain with `self(P)==Q`. In other words, the set of first preimages of `Q`.
         The map must be defined over number fields and be an endomorphism.
 
-        In ``Q`` is a subscheme, the return the subscheme that maps to ``Q`` by ``self``.
+        In ``Q`` is a subscheme, the return the subscheme that maps to ``Q`` by this map.
         In particular, `f^{-1}(V(h_1,\ldots,h_t)) = V(h_1 \circ f, \ldots, h_t \circ f)`.
 
         ALGORITHM:
@@ -3557,11 +3560,11 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         INPUT:
 
-        - ``Q`` - a rational point or subscheme in the domain of ``self``.
+        - ``Q`` - a rational point or subscheme in the domain of this map.
 
         OUTPUT:
 
-        - a list of rational points or a subscheme in the domain of ``self``.
+        - a list of rational points or a subscheme in the domain of this map.
 
         Examples::
 
@@ -3734,11 +3737,11 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         INPUT:
 
-        - ``points`` - a list of rational points in the domain of ``self``
+        - ``points`` - a list of rational points in the domain of this map.
 
         OUTPUT:
 
-        - a list of rational points in the domain of ``self``.
+        - a list of rational points in the domain of this map.
 
         Examples::
 
@@ -4035,13 +4038,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         INPUT:
 
-        - ``P`` - A rational preperiodic point of this map
+        - ``P`` - A rational preperiodic point of this map.
 
         - ``n`` - Maximum distance from ``P`` to branch out. A value of 0 indicates no bound. Default: 0
 
         OUTPUT:
 
-        - a list of points connected to ``P`` up to the specified distance
+        - a list of points connected to ``P`` up to the specified distance.
 
         Examples::
 
@@ -4100,7 +4103,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def _number_field_from_algebraics(self):
         r"""
-        Given a projective map defined over ``QQbar``, return the same map, but defined
+        Given a projective map defined over `\QQbar`, return the same map, but defined
         over a number field.
 
         This is only implemented for maps of projective space.
@@ -4151,8 +4154,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             H = Hom(PS,PS2)
         R = PS.coordinate_ring()
         exps = [f.exponents() for f in self]
-        F=[]
-        j=0
+        F = []
+        j = 0
         for t in exps:
             G = 0
             for e in t:
@@ -4192,11 +4195,11 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         INPUT:
 
-        - ``P`` -- a point in ``self.domain()``
+        - ``P`` -- a point in the domain of this map.
 
         OUTPUT:
 
-        - a list `[m,n]` of integers
+        - a list `[m,n]` of integers.
 
         EXAMPLES::
 
@@ -4346,7 +4349,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         Return the subgroup of `PGL2` that is the automorphism group of this map.
 
         Only for dimension 1. The automorphism group is the set of `PGL2` elements that
-        fixed the map under conjugation. See [FMV] for the algorithm.
+        fixed the map under conjugation. See [FMV]_ for the algorithm.
 
         INPUT:
 

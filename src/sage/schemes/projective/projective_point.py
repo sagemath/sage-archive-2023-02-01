@@ -70,9 +70,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     INPUT:
 
-    -  ``X`` -- a homset of a subscheme of an ambient projective space over a field `K`
+    -  ``X`` -- a homset of a subscheme of an ambient projective space over a field `K`.
 
-    - ``v`` -- a list or tuple of coordinates in `K`
+    - ``v`` -- a list or tuple of coordinates in `K`.
 
     - ``check`` -- boolean (optional, default:``True``). Whether to check the input for consistency.
 
@@ -177,7 +177,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``right`` -- a point on projective space
+        - ``right`` -- a point on projective space.
 
         OUTPUT:
 
@@ -185,7 +185,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         Examples::
 
-            sage: PS = ProjectiveSpace(ZZ,1,'x')
+            sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([1, 2])
             sage: Q = PS([2, 4])
             sage: P == Q
@@ -193,7 +193,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: PS = ProjectiveSpace(ZZ,1,'x')
+            sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([1, 2])
             sage: Q = PS([1, 0])
             sage: P == Q
@@ -201,7 +201,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: PS = ProjectiveSpace(Zp(5),1,'x')
+            sage: PS = ProjectiveSpace(Zp(5), 1, 'x')
             sage: P = PS([0, 1])
             sage: P == 0
             True
@@ -209,7 +209,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         ::
 
             sage: R.<t> = PolynomialRing(QQ)
-            sage: PS = ProjectiveSpace(R,1,'x')
+            sage: PS = ProjectiveSpace(R, 1, 'x')
             sage: P = PS([t, 1+t^2])
             sage: Q = PS([t^2, t+t^3])
             sage: P == Q
@@ -217,23 +217,23 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: PS = ProjectiveSpace(ZZ,2,'x')
+            sage: PS = ProjectiveSpace(ZZ, 2, 'x')
             sage: P = PS([0, 1, 2])
             sage: P == 0
             False
 
         ::
 
-            sage: PS = ProjectiveSpace(ZZ,1,'x')
+            sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([2, 1])
-            sage: PS2 = ProjectiveSpace(Zp(7),1,'x')
+            sage: PS2 = ProjectiveSpace(Zp(7), 1, 'x')
             sage: Q = PS2([2, 1])
             sage: P == Q
             False
 
         ::
 
-            sage: PS = ProjectiveSpace(ZZ.quo(6),2,'x')
+            sage: PS = ProjectiveSpace(ZZ.quo(6), 2, 'x')
             sage: P = PS([2, 4, 1])
             sage: Q = PS([0, 1, 3])
             sage: P == Q
@@ -288,7 +288,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``right`` - a point on projective space
+        - ``right`` - a point on projective space.
 
         OUTPUT:
 
@@ -296,7 +296,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         Examples::
 
-            sage: PS = ProjectiveSpace(ZZ,1,'x')
+            sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([1, 2])
             sage: Q = PS([2, 4])
             sage: P != Q
@@ -304,7 +304,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: PS = ProjectiveSpace(ZZ,1,'x')
+            sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([1, 2])
             sage: Q = PS([1, 0])
             sage: P != Q
@@ -312,7 +312,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: PS = ProjectiveSpace(Zp(5),1,'x')
+            sage: PS = ProjectiveSpace(Zp(5), 1, 'x')
             sage: P = PS([0, 1])
             sage: P != 0
             False
@@ -320,7 +320,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         ::
 
             sage: R.<t> = PolynomialRing(QQ)
-            sage: PS = ProjectiveSpace(R,1,'x')
+            sage: PS = ProjectiveSpace(R, 1, 'x')
             sage: P = PS([t, 1+t^2])
             sage: Q = PS([t^2, t+t^3])
             sage: P != Q
@@ -328,23 +328,23 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: PS = ProjectiveSpace(ZZ,2,'x')
+            sage: PS = ProjectiveSpace(ZZ, 2, 'x')
             sage: P = PS([0, 1, 2])
             sage: P != 0
             True
 
         ::
 
-            sage: PS = ProjectiveSpace(ZZ,1,'x')
+            sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([2, 1])
-            sage: PS2 = ProjectiveSpace(Zp(7),1,'x')
+            sage: PS2 = ProjectiveSpace(Zp(7), 1, 'x')
             sage: Q = PS2([2, 1])
             sage: P != Q
             True
 
         ::
 
-            sage: PS = ProjectiveSpace(ZZ.quo(6),2,'x')
+            sage: PS = ProjectiveSpace(ZZ.quo(6), 2, 'x')
             sage: P = PS([2, 4, 1])
             sage: Q = PS([0, 1, 3])
             sage: P != Q
@@ -425,7 +425,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``t`` -- a ring element
+        - ``t`` -- a ring element.
 
         OUTPUT: None.
 
@@ -560,15 +560,15 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def dehomogenize(self,n):
         r"""
-        Dehomogenizes at the nth coordinate
+        Dehomogenizes at the nth coordinate.
 
         INPUT:
 
-        - ``n`` -- non-negative integer
+        - ``n`` -- non-negative integer.
 
         OUTPUT:
 
-        - :class:`SchemeMorphism_point_affine`
+        - :class:`SchemeMorphism_point_affine`.
 
         EXAMPLES::
 
@@ -623,19 +623,19 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``f`` -- a SchmemMorphism_polynomial with ``self`` in ``f.domain()``
+        - ``f`` -- a SchmemMorphism_polynomial with the points in its domain.
 
         - ``n`` -- a positive integer.
 
         kwds:
 
-        - ``check`` -- boolean (optional - default: ``True``)
+        - ``check`` -- Boolean (optional - default: ``True``).
 
-        - ``normalize`` -- Boolean (optional Default: ``False``)
+        - ``normalize`` -- Boolean (optional Default: ``False``).
 
         OUTPUT:
 
-        - A point in ``self.codomain()``
+        - A point in the domain of ``f``.`
 
         EXAMPLES::
 
@@ -733,20 +733,20 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``f`` -- a :class:`SchemeMorphism_polynomial` with ``self`` in ``f.domain()``
+        - ``f`` -- a :class:`SchemeMorphism_polynomial` with this point in the domain of ``f``.
 
-        - ``N`` -- a non-negative integer or list or tuple of two non-negative integers
+        - ``N`` -- a non-negative integer or list or tuple of two non-negative integers.
 
         kwds:
 
-        - ``check`` -- boolean (optional - default: ``True``)
+        - ``check`` -- boolean (optional - default: ``True``).
 
-        - ``normalize`` -- boolean (optional - default: ``False``)
+        - ``normalize`` -- boolean (optional - default: ``False``).
 
 
         OUTPUT:
 
-        - a list of points in ``self.codomain()``
+        - a list of points in the domain of ``f``.
 
         EXAMPLES::
 
@@ -761,7 +761,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2, y^2-z^2, 2*z^2])
-            sage: P(1, 2, 1).orbit(f, [2,4])
+            sage: P(1, 2, 1).orbit(f, [2, 4])
             [(34 : 5 : 8), (1181 : -39 : 128), (1396282 : -14863 : 32768)]
 
         ::
@@ -769,7 +769,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
             sage: X = P.subscheme(x^2-y^2)
             sage: H = Hom(X,X)
-            sage: f = H([x^2 ,y^2, x*z])
+            sage: f = H([x^2, y^2, x*z])
             sage: X(2, 2, 3).orbit(f, 3, normalize=True)
             [(2 : 2 : 3), (2 : 2 : 3), (2 : 2 : 3), (2 : 2 : 3)]
 
@@ -810,7 +810,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
-            sage: f = H([x^3,x*y^2])
+            sage: f = H([x^3, x*y^2])
             sage: P(0, 1).orbit(f, 3)
             Traceback (most recent call last):
             ...
@@ -876,21 +876,21 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``G`` - a projective morphism whose local Green's function we are computing
+        - ``G`` - a projective morphism whose local Green's function we are computing.
 
-        - ``v`` - non-negative integer. a place, use v=0 for the archimedean place
+        - ``v`` - non-negative integer. a place, use v=0 for the archimedean place.
 
         kwds:
 
-        - ``N`` - positive integer. number of terms of the series to use, default: 10
+        - ``N`` - positive integer. number of terms of the series to use, default: 10.
 
-        - ``prec`` - positive integer, float point or p-adic precision, default: 100
+        - ``prec`` - positive integer, float point or p-adic precision, default: 100.
 
-        - ``error_bound`` - a positive real number
+        - ``error_bound`` - a positive real number.
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -1059,20 +1059,20 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``F`` - a projective morphism
+        - ``F`` - a projective morphism.
 
         kwds:
 
-        - ``badprimes`` - a list of primes of bad reduction (optional)
+        - ``badprimes`` - a list of primes of bad reduction (optional).
 
-        - ``N`` - positive integer. number of terms of the series to use in the local green functions
+        - ``N`` - positive integer. number of terms of the series to use in the local green functions.
           (optional - default:10)
 
-        - ``prec`` - positive integer, float point or p-adic precision, default:100
+        - ``prec`` - positive integer, float point or p-adic precision, default:100.
 
-        - ``error_bound`` - a positive real number (optional)
+        - ``error_bound`` - a positive real number (optional).
 
-        OUTPUT: a real number
+        OUTPUT: a real number.
 
         EXAMPLES::
 
@@ -1185,7 +1185,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -1231,14 +1231,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``v`` -- a prime or prime ideal of the base ring
+        - ``v`` -- a prime or prime ideal of the base ring.
 
         - ``prec`` -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -1265,14 +1265,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``i`` -- an integer
+        - ``i`` -- an integer.
 
         - ``prec`` -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
 
-        - a real number
+        - a real number.
 
         EXAMPLES::
 
@@ -1283,7 +1283,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5, 'w'),2)
+            sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5, 'w'), 2)
             sage: Q = P.point([4, 1, 30], False)
             sage: Q.local_height_arch(1)
             3.401197381662155375413236691607
@@ -1300,19 +1300,20 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         r"""
         Returns the multiplier of this point of period ``n`` by the function ``f``.
 
-        ``f`` must be an endomorphism of projective space
+        ``f`` must be an endomorphism of projective space.
 
         INPUT:
 
-        - ``f`` - a endomorphism of ``self.codomain()``
+        - ``f`` - a endomorphism of this point's codomain.
 
-        - ``n`` - a positive integer, the period of ``self``
+        - ``n`` - a positive integer, the period of this point.
 
-        - ``check`` -- check if ``P`` is periodic of period ``n``, Default:True
+        - ``check`` -- check if ``P`` is periodic of period ``n``, Default:True.
 
         OUTPUT:
 
-        - a square matrix of size ``self.codomain().dimension_relative()`` in the ``base_ring`` of ``self``
+        - a square matrix of size ``self.codomain().dimension_relative()`` in the
+          ``base_ring`` of this point.
 
         EXAMPLES::
 
@@ -1336,7 +1337,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         There are two optional keyword arguments:
         ``error_bound`` sets the error_bound used in the canonical height computation
         and ``return_period`` a boolean which controls if the period is returned if the
-        point is preperiodic. If ``return_period`` is ``True`` and the ``self`` is not
+        point is preperiodic. If ``return_period`` is ``True`` and this point is not
         preperiodic, then `(0,0)` is returned for the period.
 
         ALGORITHM:
@@ -1354,21 +1355,21 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``f`` -- an endomorphism of ``self.codomain()``
+        - ``f`` -- an endomorphism of this point's codomain.
 
         kwds:
 
-        - ``error_bound`` -- a positive real number (optional - default: 0.1)
+        - ``error_bound`` -- a positive real number (optional - default: 0.1).
 
-        - ``return_period`` -- boolean (optional - default: ``False``)
+        - ``return_period`` -- boolean (optional - default: ``False``).
 
 
         OUTPUT:
 
-        - boolean - ``True`` if preperiodic
+        - boolean - ``True`` if preperiodic.
 
         - if return_period is ``True``, then ``(0,0)`` if wandering, and ``(m,n)``
-            if preperiod ``m`` and period ``n``
+            if preperiod ``m`` and period ``n``.
 
         EXAMPLES::
 
@@ -1407,7 +1408,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = Hom(P,P)
             sage: f = H([-38/45*x^2 + (2*y - 7/45*z)*x + (-1/2*y^2 - 1/2*y*z + z^2),\
                 -67/90*x^2 + (2*y + z*157/90)*x - y*z, z^2])
@@ -1497,9 +1498,9 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
     INPUT:
 
     -  ``X`` -- a homset of a subscheme of an ambient projective space
-       over a field `K`
+       over a field `K`.
 
-    - ``v`` -- a list or tuple of coordinates in `K`
+    - ``v`` -- a list or tuple of coordinates in `K`.
 
     - ``check`` -- boolean (optional, default:``True``). Whether to
       check the input for consistency.
@@ -1517,8 +1518,8 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
         See :class:`SchemeMorphism_point_projective_ring` for details.
 
-        This function still normalized points so that the rightmost non-zero coordinate is 1.
-        The is to maintain current functionality with current
+        This function still normalizes points so that the rightmost non-zero coordinate is 1.
+        This is to maintain functionality with current
         implementations of curves in projectives space (plane, conic, elliptic, etc).
         The :class:`SchemeMorphism_point_projective_ring` is for general use.
 
@@ -1752,11 +1753,11 @@ class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projecti
 
         INPUT:
 
-        - ``f`` -- a :class:`ScemeMorphism_polynomial` with ``self`` in ``f.domain()``
+        - ``f`` -- a :class:`ScemeMorphism_polynomial` with this point in ``f.domain()``.
 
         OUTPUT:
 
-        - a list `[m,n]` of integers
+        - a list `[m,n]` of integers.
 
         EXAMPLES::
 

@@ -5,7 +5,7 @@ AUTHORS:
 
 - Xander Faber, Michelle Manes, Bianca Viray: algorithm and original code
   "Computing Conjugating Sets and Automorphism Groups of Rational Functions" by
-  Xander Faber, Michelle Manes, and Bianca Viray [FMV]_
+  Xander Faber, Michelle Manes, and Bianca Viray [FMV]_.
 
 - Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaption for inclusion in Sage
 
@@ -46,7 +46,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
 
     ALGORITHM:
 
-        See Algorithm 3 in Faber-Manes-Viray [FMV]_
+        See Algorithm 3 in Faber-Manes-Viray [FMV]_.
 
     INPUT:
 
@@ -296,11 +296,11 @@ def height_bound(polynomial):
 
     INPUT:
 
-    - ``polynomial`` -- a univariate polynomial
+    - ``polynomial`` -- a univariate polynomial.
 
     OUTPUT:
 
-    - a positive integer
+    - a positive integer.
 
     EXAMPLES::
 
@@ -339,11 +339,11 @@ def PGL_repn(rational_function):
 
     INPUT:
 
-    - ``rational_function`` -- a linear fraction transformation
+    - ``rational_function`` -- a linear fraction transformation.
 
     OUTPUT:
 
-    - a 2x2 matrix representing ``rational_function``
+    - a 2x2 matrix representing ``rational_function``.
 
     EXAMPLES::
 
@@ -374,11 +374,11 @@ def PGL_order(A):
 
     INPUT:
 
-    - ``A`` -- a linear fractional transformation
+    - ``A`` -- a linear fractional transformation.
 
     OUTPUT:
 
-    - a positive integer
+    - a positive integer.
 
     EXAMPLES::
 
@@ -414,9 +414,9 @@ def CRT_helper(automorphisms, moduli):
 
     INPUT:
 
-    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`
+    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`.
 
-    - ``moduli`` -- list of the various `p^k`
+    - ``moduli`` -- list of the various `p^k`.
 
     OUTPUT:
 
@@ -465,13 +465,13 @@ def CRT_automorphisms(automorphisms, order_elts, degree, moduli):
 
     INPUT:
 
-    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`
+    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`.
 
-    - ``order_elts`` -- a list of lists of the orders of the elements of ``automorphisms``
+    - ``order_elts`` -- a list of lists of the orders of the elements of ``automorphisms``.
 
-    - ``degree`` - a positive integer
+    - ``degree`` - a positive integer.
 
-    - ``moduli`` -- list of prime powers, i.e., `p^k`
+    - ``moduli`` -- list of prime powers, i.e., `p^k`.
 
     OUTPUT:
 
@@ -511,15 +511,15 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
 
     INPUT:
 
-    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`
+    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`.
 
-    - ``rational_function`` -- A one variable rational function
+    - ``rational_function`` -- A one variable rational function.
 
-    - ``ht_bound`` - a positive integer
+    - ``ht_bound`` - a positive integer.
 
-    - ``M`` -- a positive integer, a product of prime powers
+    - ``M`` -- a positive integer, a product of prime powers.
 
-    - ``return_functions`` -- Boolean. default: False (optional)
+    - ``return_functions`` -- Boolean. default: False (optional).
 
     OUTPUT:
 
@@ -566,13 +566,13 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli, integral_a
 
     INPUT:
 
-    - ``automorphisms`` -- a list of lists of automorphisms
+    - ``automorphisms`` -- a list of lists of automorphisms.
 
-    - ``order_elts`` -- a list of lists of the orders of the elements of ``automorphisms``
+    - ``order_elts`` -- a list of lists of the orders of the elements of ``automorphisms``.
 
-    - ``moduli`` -- a list of prime powers
+    - ``moduli`` -- a list of prime powers.
 
-    - ``integral_autos`` -- list of known automorphisms
+    - ``integral_autos`` -- list of known automorphisms.
 
     OUTPUT:
 
@@ -635,20 +635,20 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
 
     INPUT:
 
-    - ``rational_function`` - a rational function of a univariate polynomial ring over `\QQ`
+    - ``rational_function`` - a rational function of a univariate polynomial ring over `\QQ`.
 
-    - prime_lower_bound`` -- a positive integer - a lower bound for the primes to use for
-      the Chinese Remainder Theorem step. default: 4 (optional)
+    - ``prime_lower_bound`` -- a positive integer - a lower bound for the primes to use for
+      the Chinese Remainder Theorem step. default: 4 (optional).
 
     - ``return_functions`` -- Boolean - True returns linear fractional transformations
       False returns elements of `PGL(2,\QQ)` default: True (optional).
 
     - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group.
-        default: False (optional)
+        default: False (optional).
 
     OUTPUT:
 
-    - a complete list of automorphisms of `rational_function`
+    - a complete list of automorphisms of ``rational_function``.
 
     EXAMPLES::
 
@@ -837,7 +837,7 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
 
     ALGORITHM:
 
-    See Algorithm 4 in Faber-Manes-Viray [FMV]_
+    See Algorithm 4 in Faber-Manes-Viray [FMV]_.
 
     INPUT:
 
@@ -855,7 +855,7 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
 
     OUTPUT:
 
-    - List of automorphisms of ``rational_function``
+    - List of automorphisms of ``rational_function``.
 
     EXAMPLES::
 
@@ -919,11 +919,11 @@ def field_descent(sigma, y):
 
     - ``sigma``-- an embedding sigma: `F` -> `E` of fields.
 
-    - ``y`` --an element of the field `E`
+    - ``y`` --an element of the field `E`.
 
     OUTPUT:
 
-    - the unique element of the subfield if it exists, otherwise ``None``
+    - the unique element of the subfield if it exists, otherwise ``None``.
 
     EXAMPLE::
 
@@ -977,7 +977,7 @@ def rational_function_coefficient_descent(rational_function, sigma, poly_ring):
 
     INPUT:
 
-    - ``rational_function``--a rational function with coefficients in a field `E`,
+    - ``rational_function``--a rational function with coefficients in a field `E`.
 
     - ``sigma``-- a field embedding sigma: `F` -> `E`.
 
@@ -1108,7 +1108,7 @@ def three_stable_points(rational_function, invariant_list):
 
     OUTPUT:
 
-    - list of automorphisms
+    - list of automorphisms.
 
     EXAMPLES::
 
@@ -1478,7 +1478,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
 
     - ``pair``-- a pair of points of `\mathbb{P}^1(E)`.
 
-    - ``quad``-- Boolean: an indicator if this is a quadratic pair of points
+    - ``quad``-- Boolean: an indicator if this is a quadratic pair of points.
 
     OUTPUT:
 
@@ -1727,7 +1727,7 @@ def which_group(list_of_elements):
     INPUT:
 
     - ``list_of_elements``-- a finite list of elements of `PGL(2,K)`
-        that we know a priori form a group
+        that we know a priori form a group.
 
     OUTPUT:
 
@@ -1752,7 +1752,7 @@ def which_group(list_of_elements):
 
     # invalid input
     if n == 0:
-        raise ValueError("Group must have at least one element")
+        raise ValueError("group must have at least one element")
 
     # define ground field and ambient function field
     rational_function = G[-1]

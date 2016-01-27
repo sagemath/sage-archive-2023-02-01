@@ -90,19 +90,19 @@ def scale(c,v,p):
 
     INPUT:
 
-    - ``c`` -- an integer polynomial
+    - ``c`` -- an integer polynomial.
 
-    - ``v`` -- an integer - the bound on the exponent from blift
+    - ``v`` -- an integer - the bound on the exponent from blift.
 
-    - ``p`` -- a prime
+    - ``p`` -- a prime.
 
     OUTPUT:
 
-    - Boolean -- the new exponent bound is 0 or negative
+    - Boolean -- the new exponent bound is 0 or negative.
 
-    - the scaled integer polynomial
+    - the scaled integer polynomial.
 
-    - an integer the new exponent bound
+    - an integer the new exponent bound.
 
     EXAMPLES::
 
@@ -131,17 +131,17 @@ def blift(LF, Li, p, S=None):
 
     INPUT:
 
-    - ``LF`` -- a list of integer polynomials in one variable (the normalized coefficients)
+    - ``LF`` -- a list of integer polynomials in one variable (the normalized coefficients).
 
-    - ``Li`` -- an integer, the bound on coefficients
+    - ``Li`` -- an integer, the bound on coefficients.
 
-    - ``p`` -- a prime
+    - ``p`` -- a prime.
 
     OUTPUT:
 
-    - Boolean -- whether or not the lift is successful
+    - Boolean -- whether or not the lift is successful.
 
-    - integer -- the lift
+    - integer -- the lift.
 
     EXAMPLES::
 
@@ -200,7 +200,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
 
     - ``return_transformation`` -- a boolean value, default value True. This
       signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
-      the calculated minimal model. default: False
+      the calculated minimal model. default: False.
 
     - ``quick`` -- a boolean value. If true the algorithm terminates once
       algorithm determines F/G is not minimal, otherwise algorithm only
@@ -210,7 +210,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
 
     - ``newvp`` -- scheme morphism on the projective line.
 
-    - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``
+    - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``.
 
     EXAMPLES::
 
@@ -315,19 +315,19 @@ def Min(Fun, p, ubRes, conj):
 
     INPUT:
 
-    - ``Fun`` -- a projective space morphisms
+    - ``Fun`` -- a projective space morphisms.
 
     - ``p`` - a prime.
 
     - ``ubRes`` -- integer, the upper bound needed for Th. 3.3.3 in [Molnar]_.
 
-    - ``conj`` -- a 2x2 matrix keeping track of the conjugation
+    - ``conj`` -- a 2x2 matrix keeping track of the conjugation.
 
     OUTPUT:
 
-    - Boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise
+    - Boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise.
 
-    - a projective morphism minimal at ``p``
+    - a projective morphism minimal at ``p``.
 
     EXAMPLES::
 

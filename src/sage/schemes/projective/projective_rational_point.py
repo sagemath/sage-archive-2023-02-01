@@ -63,7 +63,8 @@ def enum_projective_rational_field(X,B):
 
     INPUT:
 
-    - ``X`` -  a scheme or set of abstract rational points of a scheme;
+    - ``X`` -  a scheme or set of abstract rational points of a scheme.
+
     - ``B`` -  a positive integer bound.
 
     OUTPUT:
@@ -145,11 +146,11 @@ def enum_projective_number_field(X,B, prec=53):
 
     INPUT:
 
-    - ``X`` - a scheme defined over a number field
+    - ``X`` - a scheme defined over a number field.
 
-    - ``B`` - a real number
+    - ``B`` - a real number.
 
-    - ``prec`` - the precision to use for computing the elements of bounded height of number fields
+    - ``prec`` - the precision to use for computing the elements of bounded height of number fields.
 
     OUTPUT:
 

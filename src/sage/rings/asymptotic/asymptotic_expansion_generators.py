@@ -694,6 +694,13 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
+            sage: ex = asymptotic_expansions.SingularityAnalysis('n', alpha=-1/2,
+            ....:     precision=4)
+            sage: n = ex.parent().gen()
+            sage: coefficients = ((1-x)^(1/2)).series(
+            ....:     x, 21).truncate().coefficients(x, sparse=False)
+            sage: ex.compare_with_values(n, lambda k: coefficients[k], [5, 10, 20])
+            [(5, 0.015778873294?), (10, 0.01498952777?), (20, 0.0146264622?)]
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=3, precision=2)
             1/2*n^2 + 3/2*n + O(1)

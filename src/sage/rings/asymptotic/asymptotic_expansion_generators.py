@@ -381,6 +381,11 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
+            sage: ex = asymptotic_expansions.HarmonicNumber('n', precision=5)
+            sage: n = ex.parent().gen()
+            sage: ex.compare_with_values(n,
+            ....:      lambda x: sum(1/k for k in srange(1, x+1)), [5, 10, 20])
+            [(5, 0.0038125360?), (10, 0.00392733?), (20, 0.0039579?)]
             sage: asymptotic_expansions.HarmonicNumber('n')
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             - 1/252*n^(-6) + 1/240*n^(-8) - 1/132*n^(-10)

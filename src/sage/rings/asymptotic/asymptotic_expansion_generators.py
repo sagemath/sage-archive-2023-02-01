@@ -156,6 +156,10 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
+            sage: expansion = asymptotic_expansions.Stirling('n', precision=5)
+            sage: n = expansion.parent().gen()
+            sage: expansion.compare_with_values(n, lambda x: x.factorial(), [5, 10, 20])
+            [(5, 0.00675841118?), (10, 0.0067589306?), (20, 0.006744925?)]
             sage: asymptotic_expansions.Stirling('n', precision=5,
             ....:                                skip_constant_factor=True)
             e^(n*log(n))*(e^n)^(-1)*n^(1/2) +
@@ -224,6 +228,10 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
+            sage: expansion = asymptotic_expansions.log_Stirling('n', precision=7)
+            sage: n = expansion.parent().gen()
+            sage: expansion.compare_with_values(n, lambda x: x.factorial().log(), [5, 10, 20])
+            [(5, 0.000564287?), (10, 0.0005870?), (20, 0.0006?)]
             sage: asymptotic_expansions.log_Stirling('n')
             n*log(n) - n + 1/2*log(n) + 1/2*log(2*pi) + 1/12*n^(-1)
             - 1/360*n^(-3) + 1/1260*n^(-5) - 1/1680*n^(-7) + 1/1188*n^(-9)
@@ -387,6 +395,11 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
+            sage: ex = asymptotic_expansions.HarmonicNumber('n', precision=5)
+            sage: n = ex.parent().gen()
+            sage: ex.compare_with_values(n,
+            ....:      lambda x: sum(1/k for k in srange(1, x+1)), [5, 10, 20])
+            [(5, 0.0038125360?), (10, 0.00392733?), (20, 0.0039579?)]
             sage: asymptotic_expansions.HarmonicNumber('n')
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             - 1/252*n^(-6) + 1/240*n^(-8) - 1/132*n^(-10)
@@ -516,6 +529,10 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
+            sage: expansion = asymptotic_expansions.Binomial_kn_over_n('n', k=7/5, precision=3)
+            sage: n = expansion.parent().gen()
+            sage: expansion.compare_with_values(n, lambda x: binomial(7/5*x, x), [5, 10, 20])
+            [(5, -0.0287383845047?), (10, -0.030845971026?), (20, -0.03162833549?)]
             sage: asymptotic_expansions.Binomial_kn_over_n(
             ....:     'n', k=5, precision=3, skip_constant_factor=True)
             (3125/256)^n*n^(-1/2)

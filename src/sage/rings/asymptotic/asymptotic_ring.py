@@ -2192,12 +2192,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         if hasattr(function, 'variables'):
             expr = function
-            if len(expr.variables()) > 1:
-                raise NotImplementedError("expression has more than one "
-                                          "variable")
-            elif len(expr.variables()) == 1:
+            vars = expr.variables()
+            if len(vars) > 1:
+                raise NotImplementedError("expression {} has more than one "
+                                          "variable".format(expr))
+            elif len(vars) == 1:
+                v = vars[0]
                 def function(arg):
-                    return expr.subs({expr.variables()[0]: arg})
+                    return expr.subs({v: arg})
             else:
                 def function(arg):
                     return expr

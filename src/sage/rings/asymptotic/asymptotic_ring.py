@@ -2280,7 +2280,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:                             rescaled=False)
             Graphics object consisting of 1 graphics primitive
 
-        Additional keywords are passed to :meth:`list_plot`::
+        Additional keywords are passed to :func:`list_plot`::
 
             sage: H_expansion.plot_comparison(n, H, srange(1, 30),
             ....:                             plotjoined=True, marker='o',

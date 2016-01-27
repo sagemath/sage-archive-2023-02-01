@@ -823,10 +823,28 @@ class AsymptoticExpansionGenerators(SageObject):
                 exponential_factor = n.rpow(1/zeta)
 
             if beta in ZZ and beta > 0:
-                # product of iterators needed
-                from itertools import product, islice
+                from itertools import chain, islice, count
+                from sage.functions.other import binomial
+                from sage.calculus.calculus import limit
                 L = _sa_coefficients_lambda_(precision, beta=beta)
-                summands = iter()
+                s = SR('s')
+                summands = chain.from_iterable(
+                    iter(
+                        iter(binomial(beta, r) * sum(L[(k, ell)] * (-1)**ell *
+                                                     limit((1/gamma(s)).diff(s, r),
+                                                           s=alpha-ell)
+                                                     for ell in srange(k, 2*k+1)
+                                                     if (k, ell) in L) *
+                             n**(-k) * n.log()**(-r)
+                             for r in srange(beta+1))
+                        for k in count()))
+                contribution = sum(islice(summands, precision))
+                error_term = next(summands)
+                while error_term.is_zero():
+                    error_term = next(summands)
+
+                return exponential_factor * n**(alpha-1) * n.log()**beta * \
+                            (contribution + error_term.O())
             else:
                 from itertools import count, islice
                 from sage.functions.other import binomial
@@ -836,7 +854,7 @@ class AsymptoticExpansionGenerators(SageObject):
                                 limit((1/gamma(s)).diff(s, k), s=alpha) *
                                 n.log() ** (-k) for k in count())
 
-                return exponential_factor * n**(alpha - 1) * n.log()**beta * \
+                return exponential_factor * n**(alpha-1) * n.log()**beta * \
                             (sum(islice(summands, precision)) +
                              (n.log()**(-precision)).O())
 

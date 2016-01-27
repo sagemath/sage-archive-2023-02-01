@@ -2205,15 +2205,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                     return expr
 
         if rescaled:
-            points = list(tuple([k,
-                      ring((main.subs({variable: k}) - function(k)) /
-                           error_growth._substitute_({str(variable): k,
-                                                      '_one_': ZZ(1)}))])
-                          for k in values)
+            points = list(
+                (k, ring((main.subs({variable: k}) - function(k)) /
+                         error_growth._substitute_({str(variable): k,
+                                                    '_one_': ZZ(1)})))
+                for k in values)
         else:
-            points = list(tuple([k, ring(main.subs({variable: k}) -
-                                         function(k))])
-                          for k in values)
+            points = list(
+                (k, ring(main.subs({variable: k}) - function(k)))
+                for k in values)
+
         return points
 
 

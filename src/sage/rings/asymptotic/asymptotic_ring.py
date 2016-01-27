@@ -2112,7 +2112,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        A list of tuples containing comparison points and (rescaled)
+        A list of pairs containing comparison points and (rescaled)
         difference values.
 
         .. SEEALSO::
@@ -2177,6 +2177,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             NameError: name 'x' is not defined
             sage: e.compare_with_values(x, lambda z: z^2, srange(20, 30))
             [(20, 0), (21, 0), ..., (29, 0)]
+            sage: e.compare_with_values(x, SR('x*y'), srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: expression x*y has more than one variable
         """
         from term_monoid import OTerm
         from sage.rings.integer_ring import ZZ
@@ -2241,7 +2245,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``ring`` -- (default: ``RIF``) the parent into which the
           difference is converted.
 
-        Other keywords are passed to :func:`list_plot`.
+        Other keyword arguments are passed to :func:`list_plot`.
 
         OUTPUT:
 

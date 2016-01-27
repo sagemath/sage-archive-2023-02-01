@@ -283,6 +283,36 @@ Arbitrary powers work as well; for example, we have
     sage: (1 + 1/z + O(1/z^5))^(1 + 1/z)
     1 + z^(-1) + z^(-2) + 1/2*z^(-3) + 1/3*z^(-4) + O(z^(-5))
 
+.. NOTE::
+
+    In the asymptotic ring
+    ::
+
+        sage: M.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ', coefficient_ring=ZZ)
+
+    the operation
+    ::
+
+        sage: (1/2)^n
+        Traceback (most recent call last):
+        ...
+        ValueError: 1/2 is not in Exact Term Monoid QQ^n * n^QQ
+        with coefficients in Integer Ring. ...
+
+    fails, since the rational `1/2` is not contained in `M`. You can use
+    ::
+
+        sage: n.rpow(1/2)
+        (1/2)^n
+
+    instead. (See also the examples in
+    :meth:`ExactTerm.rpow() <sage.rings.asymptotic.term_monoid.ExactTerm.rpow>`
+    for a detailed explanation.)
+    Another way is to use a larger coefficent ring::
+
+        sage: M_QQ.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ', coefficient_ring=QQ)
+        sage: (1/2)^n
+        (1/2)^n
 
 Multivariate Arithmetic
 ^^^^^^^^^^^^^^^^^^^^^^^

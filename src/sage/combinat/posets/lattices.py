@@ -695,7 +695,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in C.items():
+            for e3, c in C.iteritems():
                 if c == 1:
                     if len(H.closed_interval(e1, e3)) == 3:
                         return False

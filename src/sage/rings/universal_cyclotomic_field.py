@@ -242,7 +242,7 @@ class UCFtoQQbar(Morphism):
             sage: UCFtoQQbar(UCF.gen(3))  # indirect doctest
             -0.500000000000000? + 0.866025403784439?*I
 
-        Test that the bug reported in #19912 has been fixed::
+        Test that the bug reported in :trac:`19912` has been fixed::
 
             sage: UCFtoQQbar(UCF.gen(4)+1)
             I + 1
@@ -525,7 +525,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: CC(CF(x))
             0.309016994374947 + 0.951056516295154*I
 
-        Test that the bug reported in #19912 has been fixed::
+        Test that the bug reported in :trac:`19912` has been fixed::
 
             sage: a = 1+E(4); a
             1 + E(4)

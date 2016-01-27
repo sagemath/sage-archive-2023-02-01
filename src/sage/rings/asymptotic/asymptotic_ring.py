@@ -2165,14 +2165,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         A list of pairs containing comparison points and (rescaled)
         difference values.
 
-        EXAMPLES:
-
-        In the following example, due to :trac:`19946`, we cannot
-        construct ``4^n`` directly, but need a work-around. ::
+        EXAMPLES::
 
             sage: A.<n> = AsymptoticRing('QQ^n * n^ZZ', SR)
             sage: catalan = binomial(2*x, x)/(x+1)
-            sage: e = n.rpow(4)*(1/sqrt(pi)*n^(-3/2)
+            sage: e = 4^n*(1/sqrt(pi)*n^(-3/2)
             ....:     - 9/8/sqrt(pi)*n^(-5/2)
             ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
             sage: e.compare_with_values(n, catalan, srange(5, 10))

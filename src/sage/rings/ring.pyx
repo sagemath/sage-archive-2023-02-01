@@ -837,6 +837,8 @@ cdef class Ring(ParentWithGens):
             sage: ZZ.is_subring(GF(19))
             False
         """
+        if self == other:
+            return True
         try:
             return self.Hom(other).natural_map().is_injective()
         except TypeError:

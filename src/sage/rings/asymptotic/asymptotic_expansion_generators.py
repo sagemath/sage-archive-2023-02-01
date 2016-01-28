@@ -69,6 +69,7 @@ AUTHORS:
 
 - Daniel Krenn (2015)
 - Clemens Heuberger (2016)
+- Benjamin Hackl (2016)
 
 
 ACKNOWLEDGEMENT:

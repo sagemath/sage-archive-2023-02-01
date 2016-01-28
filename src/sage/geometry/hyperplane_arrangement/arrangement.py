@@ -1886,7 +1886,7 @@ class HyperplaneArrangementElement(Element):
             if I[0] == tuple(signs):
                 return I[1]
 
-    def face_semigroup_algebra(self, field=None):
+    def face_semigroup_algebra(self, field=None, names='e'):
         r"""
         Return the face semigroup algebra of ``self``.
 
@@ -1907,6 +1907,9 @@ class HyperplaneArrangementElement(Element):
         - ``field`` -- a field (default: `\mathbb{Q}`), to be used as the
           base ring for the algebra (can also be a commutative ring, but
           then certain representation-theoretical methods might misbehave)
+
+        - ``names`` -- (default: ``'e'``) string; names for the basis
+          elements of the algebra
 
         .. TODO::
 
@@ -1955,8 +1958,16 @@ class HyperplaneArrangementElement(Element):
             sage: (e3 + 2*e4) * (e1 - e7)
             e4 - e6
 
-            sage: U3 = a.face_semigroup_algebra(field=GF(3)); U3
-            Finite-dimensional algebra of degree 13 over Finite Field of size 3
+        TESTS:
+
+        The ``names`` keyword works::
+
+            sage: a = hyperplane_arrangements.braid(3)
+            sage: U = a.face_semigroup_algebra(names='x'); U
+            Finite-dimensional algebra of degree 13 over Rational Field
+            sage: e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12 = U.basis()
+            sage: e0 * e1
+            x1
         """
         if field is None:
             from sage.rings.rational_field import QQ
@@ -1988,7 +1999,7 @@ class HyperplaneArrangementElement(Element):
                 matrix_j.extend(row_i)
             table.append(MC(MS, matrix_j, copy=False, coerce=False))
         from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FDA
-        return FDA(field, table, assume_associative=True)
+        return FDA(field, table, names=names, assume_associative=True)
 
     def region_containing_point(self, p):
         r"""

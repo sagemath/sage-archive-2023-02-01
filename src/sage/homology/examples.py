@@ -1505,7 +1505,8 @@ def RandomTwoSphere(n):
     REFERENCES: [PS2006]_
     """
     from sage.graphs.generators.random import (_auxiliary_random_word,
-                                               _contour_and_graph_from_word)
+                                               _contour_and_graph_from_word,
+                                               _rotate_word_to_next_occurrence)
 
     if n < 3:
         raise ValueError('only defined for n >= 3')
@@ -1514,19 +1515,11 @@ def RandomTwoSphere(n):
     triangles = []
 
     # 'partial closures' described in 2.1 of [PS2006]_.
-
-    def rotate_word_to_next_occurrence(word):
-        # Rotates 'word' so that 'in1,in2,in3,lf,in3' occurs at word[:5].
-        pattern = ['in', 'in', 'in', 'lf', 'in']
-        n = len(word)
-        for i in range(n):
-            if all(word[(i + j) % n][0] == pattern[j] for j in range(5)):
-                return word[i:] + word[:i]
-        return []
+    pattern = ['in', 'in', 'in', 'lf', 'in']
 
     # We greedily perform the replacements 'in1,in2,in3,lf,in3'->'in1,in3'.
     while True:
-        word2 = rotate_word_to_next_occurrence(word)
+        word2 = _rotate_word_to_next_occurrence(word, pattern)
         if len(word2) >= 5:
             triangles.append([u[1] for u in word2[:3]])  # new triangle
             word = [word2[0]] + word2[4:]

@@ -938,6 +938,34 @@ def _contour_and_graph_from_word(w):
     return word[:-1], Graph(edges, format='list_of_edges')
 
 
+def _rotate_word_to_next_occurrence(word, pattern):
+    """
+    Rotate ``word`` so that the given pattern occurs at the beginning.
+
+    Every letter of ``word`` is a pair, and the pattern is searched on the
+    first components of the letters of ``word``.
+
+    If the given pattern is not found, return the empty list.
+
+    This function is used in :func:`RandomTriangulation`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.random import _rotate_word_to_next_occurrence
+        sage: w = [('a',0),('b',2),('b',1),('a',4),('b',1)]
+        sage: _rotate_word_to_next_occurrence(w, ['b','b','a'])
+        [('b', 2), ('b', 1), ('a', 4), ('b', 1), ('a', 0)]
+        sage: _rotate_word_to_next_occurrence(w, ['b','b','b'])
+        []
+    """
+    n = len(pattern)
+    N = len(word)
+    for i in range(N):
+        if all(word[(i + j) % N][0] == pattern[j] for j in range(n)):
+            return word[i:] + word[:i]
+    return []
+
+
 def RandomTriangulation(n, set_position=False):
     r"""
     Return a random triangulation on `n` vertices.
@@ -1014,19 +1042,11 @@ def RandomTriangulation(n, set_position=False):
     edges = []
 
     # 'partial closures' described in 2.1 of [PS2006]_.
-
-    def rotate_word_to_next_occurrence(word):
-        # Rotates 'word' so that 'in1,in2,in3,lf,in3' occurs at word[:5].
-        pattern = ['in', 'in', 'in', 'lf', 'in']
-        n = len(word)
-        for i in range(n):
-            if all(word[(i + j) % n][0] == pattern[j] for j in range(5)):
-                return word[i:] + word[:i]
-        return []
+    pattern = ['in', 'in', 'in', 'lf', 'in']
 
     # We greedily perform the replacements 'in1,in2,in3,lf,in3'->'in1,in3'.
     while True:
-        word2 = rotate_word_to_next_occurrence(word)
+        word2 = _rotate_word_to_next_occurrence(word, pattern)
         if len(word2) >= 5:
             word = [word2[0]] + word2[4:]
             edges.append([u[1] for u in word[:2]])  # edge 'in1,in3'

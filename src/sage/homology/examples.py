@@ -1548,7 +1548,7 @@ def RandomTwoSphere(n):
 
     assert len(triangles) == 2 * (n - 2)
 
-    return SimplicialComplex(triangles)
+    return SimplicialComplex(triangles, maximality_check=False)
 
 
 # For taking care of old pickles

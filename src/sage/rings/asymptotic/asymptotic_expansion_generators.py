@@ -815,7 +815,8 @@ class AsymptoticExpansionGenerators(SageObject):
                      MonomialGrowthGroup(alpha.parent(), var),
                      MonomialGrowthGroup(beta.parent(), 'log({})'.format(var))])
 
-            A = AsymptoticRing(growth_group=group, coefficient_ring=SR)
+            A = AsymptoticRing(growth_group=group, coefficient_ring=SR,
+                               default_prec=precision)
             n = A.gen()
 
             if zeta == 1:
@@ -885,7 +886,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
             A = AsymptoticRing(
                 growth_group=group,
-                coefficient_ring=iga.parent())
+                coefficient_ring=iga.parent(), default_prec=precision)
             n = A.gen()
 
             if zeta == 1:

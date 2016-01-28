@@ -18,8 +18,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
 from sage.misc.prandom import randint
-from sage.rings.rational_field import QQ
-
 from sage.misc.decorators import rename_keyword
 
 @rename_keyword(deprecation=19559 , method='algorithm')
@@ -948,34 +946,6 @@ def _contour_and_graph_from_word(w):
     return word[:-1], G
 
 
-def _rotate_word_to_next_occurrence(word, pattern):
-    """
-    Rotate ``word`` so that the given pattern occurs at the beginning.
-
-    Every letter of ``word`` is a pair, and the pattern is searched on the
-    first components of the letters of ``word``.
-
-    If the given pattern is not found, return the empty list.
-
-    This function is used in :func:`RandomTriangulation`.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.generators.random import _rotate_word_to_next_occurrence
-        sage: w = [('a',0),('b',2),('b',1),('a',4),('b',1)]
-        sage: _rotate_word_to_next_occurrence(w, ['b','b','a'])
-        [('b', 2), ('b', 1), ('a', 4), ('b', 1), ('a', 0)]
-        sage: _rotate_word_to_next_occurrence(w, ['b','b','b'])
-        []
-    """
-    n = len(pattern)
-    N = len(word)
-    for i in range(N):
-        if all(word[(i + j) % N][0] == pattern[j] for j in range(n)):
-            return word[i:] + word[:i]
-    return []
-
-
 def RandomTriangulation(n, set_position=False, word=None):
     r"""
     Return a random triangulation on `n` vertices.
@@ -988,12 +958,15 @@ def RandomTriangulation(n, set_position=False, word=None):
     - `n` -- an integer
 
     - ``set_position`` -- boolean (default ``False``) if set to ``True``, this
-      will compute a planar embedding of the graph.
+      will compute coordinates for a planar drawing of the graph.
 
     OUTPUT:
 
     A random triangulation chosen uniformly among the *rooted* triangulations on
-    `n` vertices. Because some triangulations have nontrivial automorphism
+    `n` vertices. This is a planar graph and comes with a combinatorial
+    embedding.
+
+    Because some triangulations have nontrivial automorphism
     groups, this may not be equal to the uniform distribution among unrooted
     triangulations.
 
@@ -1016,9 +989,13 @@ def RandomTriangulation(n, set_position=False, word=None):
     At every step of the algorithm, newly created edges are recorded
     in a graph, which will be returned at the end.
 
+    The combinatorial embedding is also computed and recorded in the
+    output graph.
+
     .. SEEALSO::
 
-        :meth:`~sage.graphs.graph_generators.GraphGenerators.triangulations`.
+        :meth:`~sage.graphs.graph_generators.GraphGenerators.triangulations`,
+        :meth:`~sage.homology.examples.RandomTwoSphere`.
 
     EXAMPLES::
 
@@ -1033,6 +1010,8 @@ def RandomTriangulation(n, set_position=False, word=None):
 
     TESTS::
 
+        sage: G.get_embedding() is not None
+        True
         sage: for i in range(10):
         ....:     g = graphs.RandomTriangulation(30)
         ....:     assert g.is_planar()
@@ -1052,13 +1031,25 @@ def RandomTriangulation(n, set_position=False, word=None):
     edges = []
 
     embedding = graph.get_embedding()
-    
+
     # 'partial closures' described in 2.1 of [PS2006]_.
     pattern = ['in', 'in', 'in', 'lf', 'in']
 
+    def rotate_word_to_next_occurrence(word):
+        """
+        Rotate ``word`` so that the given pattern occurs at the beginning.
+
+        If the given pattern is not found, return the empty list.
+        """
+        N = len(word)
+        for i in range(N):
+            if all(word[(i + j) % N][0] == pattern[j] for j in range(5)):
+                return word[i:] + word[:i]
+        return []
+
     # We greedily perform the replacements 'in1,in2,in3,lf,in3'->'in1,in3'.
     while True:
-        word2 = _rotate_word_to_next_occurrence(word, pattern)
+        word2 = rotate_word_to_next_occurrence(word)
         if len(word2) >= 5:
             word = [word2[0]] + word2[4:]
             in1, in2, in3 = [u[1] for u in word2[:3]]

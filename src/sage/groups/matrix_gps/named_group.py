@@ -110,7 +110,7 @@ def normalize_args_vectorspace(*args, **kwds):
         from sage.rings.integer import is_Integer
         try:
             ring = ZZ(ring)
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             var = kwds.get('var', 'a')
             ring = FiniteField(ring, var)
         except (ValueError, TypeError):

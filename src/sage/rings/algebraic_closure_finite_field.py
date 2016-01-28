@@ -700,7 +700,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         if n == 1:
             return self.base_ring()
         else:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             return FiniteField(self.base_ring().cardinality() ** n,
                                name=self.variable_name() + str(n),
                                modulus=self._get_polynomial(n),

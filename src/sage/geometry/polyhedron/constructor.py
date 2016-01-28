@@ -406,7 +406,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         if all(is_Integer(x) for x in values):
             if got_Vrep:
                 base_ring = ZZ
-            else:   # integral inequalities usually do not determine a latice polytope!
+            else:   # integral inequalities usually do not determine a lattice polytope!
                 base_ring = QQ
             convert = False
         elif all(is_Rational(x) for x in values):

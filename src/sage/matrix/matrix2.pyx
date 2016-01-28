@@ -31,9 +31,11 @@ include "sage/ext/python.pxi"
 include "sage/ext/interrupt.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose
+from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
@@ -1876,6 +1878,12 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: m.apply_map(lambda x: x*x, sparse=True).parent()
             Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
+
+        Check that :trac:`19920` is fixed::
+
+            sage: matrix.ones(2).apply_map(lambda x: int(-3))
+            [-3 -3]
+            [-3 -3]
         """
         if self._nrows == 0 or self._ncols == 0:
             if sparse is None or self.is_sparse() is sparse:
@@ -1893,6 +1901,11 @@ cdef class Matrix(matrix1.Matrix):
             values = [phi(v) for v in self.list()]
             if R is None:
                 R = sage.structure.sequence.Sequence(values).universe()
+
+        if isinstance(R, type):
+            R = py_scalar_parent(R)
+        if not is_Ring(R):
+            raise TypeError("unable to find a common ring for all elements")
 
         if sparse is None or sparse is self.is_sparse():
             M = self.parent().change_ring(R)
@@ -12210,7 +12223,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Determines if a real or symmetric matrix is positive definite.
 
-        A square matrix `A` is postive definite if it is
+        A square matrix `A` is positive definite if it is
         symmetric with real entries or Hermitan with complex entries,
         and for every non-zero vector `\vec{x}`
 
@@ -12249,7 +12262,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         A real symmetric matrix that is positive definite,
         as evidenced by the positive entries for the diagonal
-        matrix of the indefinite factorization and the postive
+        matrix of the indefinite factorization and the positive
         determinants of the leading principal submatrices. ::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],

@@ -84,7 +84,7 @@ from sage.rings.all import (PolynomialRing,
 from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.commutative_ring import is_CommutativeRing
 
 from sage.categories.fields import Fields

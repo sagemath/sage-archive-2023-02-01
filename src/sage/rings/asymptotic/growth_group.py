@@ -873,6 +873,14 @@ def _rpow_(self, base):
         sage: x = G('x')
         sage: (x * log(x)).rpow(2)  # indirect doctest
         2^(x*log(x))
+
+    ::
+
+        sage: n = GrowthGroup('QQ^n * n^QQ')('n')
+        sage: n.rpow(2)
+        2^n
+        sage: _.parent()
+        Growth Group QQ^n * n^QQ
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
@@ -2556,7 +2564,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
             sage: Q = GrowthGroup('x^NN'); Q
-            Growth Group x^((Non negative integer semiring))
+            Growth Group x^(Non negative integer semiring)
             sage: e3 = ~Q('x'); e3
             x^(-1)
             sage: e3.parent()

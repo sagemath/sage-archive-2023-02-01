@@ -668,6 +668,22 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             x = (x,y)
         return RealIntervalFieldElement(self, x, base)
 
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of this interval field, i.e., the
+        complex interval field with the same precision.
+
+        EXAMPLES::
+
+            sage: RIF.algebraic_closure()
+            Complex Interval Field with 53 bits of precision
+            sage: RIF.algebraic_closure() is CIF
+            True
+            sage: RealIntervalField(100).algebraic_closure()
+            Complex Interval Field with 100 bits of precision
+        """
+        return self.complex_field()
+
     def construction(self):
         r"""
         Returns the functorial construction of ``self``, namely, completion of

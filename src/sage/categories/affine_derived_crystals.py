@@ -385,15 +385,18 @@ class KirillovReshetikhinCrystals(Category_singleton):
             from sage.combinat.crystals.tensor_product import TensorProductOfCrystals
             T1 = TensorProductOfCrystals(self, K)
             T2 = TensorProductOfCrystals(K, self)
-            gen1 = T1( self.maximal_vector(), K.maximal_vector() )
-            gen2 = T2( K.maximal_vector(), self.maximal_vector() )
-            g = { gen1 : gen2 }
-            return T1.crystal_morphism(g, check=False)
+            gen1 = T1(self.maximal_vector(), K.maximal_vector())
+            gen2 = T2(K.maximal_vector(), self.maximal_vector())
+            return T1.crystal_morphism({gen1: gen2}, check=False)
 
         @cached_method
         def local_energy_function(self, B):
             r"""
             Return the local energy function of ``self`` and ``B``.
+
+            See
+            :class:`~sage.categories.affine_derived_crystals.LocalEnergyFunction`
+            for a definition.
 
             EXAMPLES::
 
@@ -433,7 +436,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['D',6,2], 2,2)
                 sage: K.b_sharp() # long time
                 []
-                sage: K.b_sharp().Phi()
+                sage: K.b_sharp().Phi() # long time
                 2*Lambda[0]
             """
             ell = float('inf')
@@ -623,10 +626,14 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
             .. MATH::
 
-                D(b) = H(b \otimes b^{\sharp}) - H(u_B \otimes b^{\sharp}).
+                D(b) = H(b \otimes b^{\sharp}) - H(u_B \otimes b^{\sharp}),
+
+            where `H` is the :meth:`local energy function
+            <sage.categories.affine_derived_crystals.KirillovReshetikhinCrystals.ParentMethods.local_energy_function>`.
 
             EXAMPLES::
 
+                sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,1)
                 sage: for x in K.classically_highest_weight_vectors():
                 ....:    x, x.energy_function()
                 ([], 1)
@@ -810,14 +817,28 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
                 .. RUBRIC:: definition
 
+                Let `T` be a tensor product of Kirillov-Reshetikhin
+                crystals. Let `R_i` and `H_i` be the combinatorial
+                `R`-matrix and local energy functions, respectively, acting
+                on the `i` and `i+1` factors. Let `D_B` be the energy
+                function of a single Kirillov-Reshetikhin crystal. The
+                *energy function* is given by
+
+                .. MATH::
+
+                    D = \sum_{j > i} H_i R_{i+1} R_{i+2} \cdots R_{j-1}
+                    + \sum_j D_B R_1 R_2 \cdots R_{j-1},
+
+                where `D_B` acts on the rightmost factor.
+
                 .. RUBRIC:: grading
 
-                If  ``self`` is an element of `T`, a tensor product of perfect
-                crystals of the same level, then use the affine grading
-                to determine the energy. Specifically, let `g` denote
-                the affine grading of ``self`` and `d` the affine grading
-                of the maximal vector in `T`. Then the energy of ``self``
-                is given by `d - g`.
+                If  ``self`` is an element of `T`, a tensor product of
+                perfect crystals of the same level, then use the affine
+                grading to determine the energy. Specifically, let `g`
+                denote the affine grading of ``self`` and `d` the affine
+                grading of the maximal vector in `T`. Then the energy
+                of ``self`` is given by `d - g`.
 
                 For more details, see Theorem 7.5 in [SchillingTingley2011]_.
 
@@ -846,24 +867,24 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
                 EXAMPLES::
 
-                    sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+                    sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
                     sage: T = crystals.TensorProduct(K,K,K)
                     sage: hw = T.classically_highest_weight_vectors()
                     sage: for b in hw:
                     ....:     print b, b.energy_function()
                     [[[1]], [[1]], [[1]]] 0
-                    [[[1]], [[2]], [[1]]] 2
                     [[[2]], [[1]], [[1]]] 1
+                    [[[1]], [[2]], [[1]]] 2
                     [[[3]], [[2]], [[1]]] 3
 
-                    sage: K = crystals.KirillovReshetikhin(['C',2,1],1,2)
+                    sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 2)
                     sage: T = crystals.TensorProduct(K,K)
                     sage: hw = T.classically_highest_weight_vectors()
-                    sage: for b in hw:  # long time (5s on sage.math, 2011)
+                    sage: for b in hw:
                     ....:     print b, b.energy_function()
                     [[], []] 4
-                    [[], [[1, 1]]] 1
                     [[[1, 1]], []] 3
+                    [[], [[1, 1]]] 1
                     [[[1, 1]], [[1, 1]]] 0
                     [[[1, 2]], [[1, 1]]] 1
                     [[[2, 2]], [[1, 1]]] 2
@@ -871,13 +892,23 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     [[[1, -1]], [[1, 1]]] 2
                     [[[2, -1]], [[1, 1]]] 2
 
-                    sage: K = crystals.KirillovReshetikhin(['C',2,1],1,1)
+                    sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 1)
                     sage: T = crystals.TensorProduct(K)
                     sage: t = T.module_generators[0]
                     sage: t.energy_function('grading')
                     Traceback (most recent call last):
                     ...
                     NotImplementedError: all crystals in the tensor product need to be perfect of the same level
+
+                TESTS::
+
+                    sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 2)
+                    sage: K2 = crystals.KirillovReshetikhin(['C',2,1], 2, 2)
+                    sage: T = tensor([K, K2])
+                    sage: hw = T.classically_highest_weight_vectors()
+                    sage: all(b.energy_function() == b.energy_function(algorithm='definition')
+                    ....:     for b in hw)
+                    True
                 """
                 C = self.parent().crystals[0]
                 ell = ceil(C.s()/C.cartan_type().c()[C.r()])
@@ -901,12 +932,12 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     R_mats = [[K.R_matrix(Kp) for Kp in self.parent().crystals[i+1:]]
                               for i,K in enumerate(self.parent().crystals)]
                     H_funcs = [[K.local_energy_function(Kp) for Kp in self.parent().crystals[i+1:]]
-                              for i,K in enumerate(self.parent().crystals)]
+                               for i,K in enumerate(self.parent().crystals)]
 
-                    for j,b in enumerate(self):
-                        for k,R in enumerate(R_mats[j]):
-                            H = H_funcs[j][k]
-                            bp = self[j+k+1]
+                    for i,b in enumerate(self):
+                        for j,R in enumerate(R_mats[i]):
+                            H = H_funcs[i][j]
+                            bp = self[i+j+1]
                             T = R.domain()
                             t = T(b, bp)
                             energy += H(t)
@@ -941,8 +972,8 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: for b in hw:
                     ....:     print b, b.affine_grading()
                     [[[1]], [[1]], [[1]]] 3
-                    [[[1]], [[2]], [[1]]] 1
                     [[[2]], [[1]], [[1]]] 2
+                    [[[1]], [[2]], [[1]]] 1
                     [[[3]], [[2]], [[1]]] 0
 
                     sage: K = crystals.KirillovReshetikhin(['C',2,1],1,1)
@@ -951,11 +982,11 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: for b in hw:
                     ....:     print b, b.affine_grading()
                     [[[1]], [[1]], [[1]]] 2
-                    [[[1]], [[2]], [[1]]] 1
-                    [[[1]], [[-1]], [[1]]] 0
                     [[[2]], [[1]], [[1]]] 1
-                    [[[-2]], [[2]], [[1]]] 0
                     [[[-1]], [[1]], [[1]]] 1
+                    [[[1]], [[2]], [[1]]] 1
+                    [[[-2]], [[2]], [[1]]] 0
+                    [[[1]], [[-1]], [[1]]] 0
                 """
                 return self.e_string_to_ground_state().count(0)
 
@@ -1011,14 +1042,63 @@ class LocalEnergyFunction(Map):
     r"""
     The local energy function.
 
-    The *local energy function* `H : B \otimes B' \to \ZZ` is...
+    Let `B` and `B'` be Kirillov-Reshetikhin crystals with maximal
+    vectors `u_B` and `u_{B'}` respectively. The *local energy function*
+    `H : B \otimes B' \to \ZZ` is the function which satisfies
+
+    .. MATH::
+
+        H(e_0(b \otimes b')) = H(b \otimes b') + \begin{cases}
+        1 & \text{if } i = 0 \text{ and LL}, \\
+        -1 & \text{if } i = 0 \text{ and RR}, \\
+        0 & \text{otherwise,}
+        \end{cases}
+
+    where LL (resp. RR) denote `e_0` acts on the left (resp. right)
+    on both `b \otimes b'` and `R(b \otimes b')`, and
+    normalized by `H(u_B \otimes u_{B'}) = 0`.
+
+    INPUT:
+
+    - ``B`` -- a Kirillov-Reshetikhin crystal
+    - ``Bp`` -- a Kirillov-Reshetikhin crystal
+    - ``normalization`` -- (default: 0) the normalization value
+
+    EXAMPLES::
+
+        sage: K = crystals.KirillovReshetikhin(['C',2,1], 1,2)
+        sage: K2 = crystals.KirillovReshetikhin(['C',2,1], 2,1)
+        sage: H = K.local_energy_function(K2)
+        sage: T = tensor([K, K2])
+        sage: hw = T.classically_highest_weight_vectors()
+        sage: for b in hw:
+        ....:     b, H(b)
+        ([[], [[1], [2]]], 1)
+        ([[[1, 1]], [[1], [2]]], 0)
+        ([[[2, -2]], [[1], [2]]], 1)
+        ([[[1, -2]], [[1], [2]]], 1)
+
+    REFERENCES:
+
+    .. [KKMMNN92] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa,
+       T. Nakashima, and A. Nakayashiki.
+       *Affine crystals and vertex models*.
+       Int. J. Mod. Phys. A, **7** (suppl. 1A), (1992) pp. 449-484.
     """
     def __init__(self, B, Bp, normalization=0):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',7,2], 1,2)
+            sage: K2 = crystals.KirillovReshetikhin(['A',7,2], 2,1)
+            sage: H = K.local_energy_function(K2)
+            sage: TestSuite(H).run(skip=['_test_category', '_test_pickling'])
         """
         self._B = B
         self._Bp = Bp
+        self._R_matrix = self._B.R_matrix(self._Bp)
         T = B.tensor(Bp)
         self._known_values = {T.maximal_vector(): ZZ(normalization)}
         self._I0 = T.cartan_type().classical().index_set()
@@ -1027,55 +1107,78 @@ class LocalEnergyFunction(Map):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A', 6, 2], 2, 1)
+            sage: Kp = crystals.KirillovReshetikhin(['A', 6, 2], 1, 1)
+            sage: H = K.local_energy_function(Kp); H
+            Local energy function of
+             Kirillov-Reshetikhin crystal of type ['BC', 3, 2] with (r,s)=(2,1)
+            tensor
+             Kirillov-Reshetikhin crystal of type ['BC', 3, 2] with (r,s)=(1,1)
         """
         return "Local energy function of {} tensor {}".format(self._B, self._Bp)
 
     def _call_(self, x):
         """
         Return the local energy of ``x``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['B',4,1], 1,2)
+            sage: K2 = crystals.KirillovReshetikhin(['B',4,1], 2,1)
+            sage: H = K.local_energy_function(K2)
+            sage: T = tensor([K, K2])
+            sage: hw = T.classically_highest_weight_vectors()
+            sage: H(hw[0])
+            1
         """
         # Setup variables
         visited = {x: 0}
         check0 = [x]
 
-        # Helper functions
-        def classical_hw(cur):
+        # Helper function
+        def to_classical_hw(cur):
             for i in self._I0:
-                y = cur.e(i)
-                if y is not None and y not in visited:
-                    visited[y] = visited[cur] # No change
-                    return y
+                b = cur.e(i)
+                if b is not None and b not in visited:
+                    visited[b] = visited[cur] # No change
+                    return b
             return None # is classically HW or all have been visited
 
         cur = x
-        baseline = 0
+        # Get the affine node (it might not be 0 if the type
+        #   has been relabeled)
+        i0 = x.parent().cartan_type().special_node()
         while cur not in self._known_values:
-            # We first go to the classically highest weight since  the
-            #   maximal vector is classically highest weight
-            y = classical_hw(cur)
+            # We first go towards the classically highest weight since
+            #   the maximal vector is classically highest weight
+            b = to_classical_hw(cur)
 
-            # If classically HW, then try some 0 arrows
-            while y is None:
-                y = check0.pop().e(0)
-                if y in visited:
-                    y = None
+            # If classically HW, then try 0 arrows
+            while b is None:
+                b = check0.pop()
+                c = b.e(i0)
+                # If there is no 0 arrow or we have already seen c, move along
+                if c is None or c in visited:
+                    b = None
                     continue
 
-                if y is not None:
-                    xp = self._B.R_matrix(self._Bp)(x)
-                    yp = xp.e(0)
-                    if x[1] == y[1] and xp[1] == yp[1]: # LL case
-                        visited[y] = visited[cur] + 1
-                    elif x[0] == y[0] and xp[0] == yp[0]: # RR case
-                        visited[y] = visited[cur] - 1
-                    else:
-                        visited[y] = visited[cur] # Otherwise no change
+                bp = self._R_matrix(b)
+                cp = bp.e(i0)
+                if b[1] == c[1] and bp[1] == cp[1]: # LL case
+                    visited[c] = visited[b] + 1
+                elif b[0] == c[0] and bp[0] == cp[0]: # RR case
+                    visited[c] = visited[b] - 1
+                else:
+                    visited[c] = visited[b] # Otherwise no change
+                b = c
 
-            cur = y
-            check0.append(y)
-            baseline = visited[cur]
+            cur = b
+            check0.append(b)
 
-        baseline = self._known_values[cur] - baseline
+        baseline = self._known_values[cur] - visited[cur]
         for y in visited:
             self._known_values[y] = baseline + visited[y]
 

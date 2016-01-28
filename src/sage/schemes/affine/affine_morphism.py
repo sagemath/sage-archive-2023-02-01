@@ -513,7 +513,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f.dynatomic_polynomial(2)
             Traceback (most recent call last):
             ...
-            TypeError: Does not make sense in dimension >1
+            TypeError: does not make sense in dimension >1
 
         ::
 

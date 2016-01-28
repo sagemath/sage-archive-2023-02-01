@@ -56,7 +56,7 @@ class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic)
 
         sage: from sage.schemes.affine.affine_homset import SchemeHomset_points_spec
         sage: SchemeHomset_points_spec(Spec(QQ), Spec(QQ))
-        Set of rational points of Spectrum of Rational Field.
+        Set of rational points of Spectrum of Rational Field
     """
 
     def _element_constructor_(self, *args, **kwds):

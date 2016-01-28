@@ -239,11 +239,11 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: AffineSpace(2, QQ).rational_points()
             Traceback (most recent call last):
             ...
-            TypeError: Base ring (= Rational Field) must be a finite field.
+            TypeError: base ring (= Rational Field) must be a finite field
             sage: AffineSpace(1, GF(3)).rational_points(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: Second argument (= Integer Ring) must be a finite field.
+            TypeError: second argument (= Integer Ring) must be a finite field
         """
         if F is None:
             if not is_FiniteField(self.base_ring()):
@@ -431,15 +431,15 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: A._check_satisfies_equations([1, 2, 3, 4, 5])
             Traceback (most recent call last):
             ...
-            TypeError: The list v=[1, 2, 3, 4, 5] must have 3 components
+            TypeError: the list v=[1, 2, 3, 4, 5] must have 3 components
             sage: A._check_satisfies_equations([1/2, 1, 1])
             Traceback (most recent call last):
             ...
-            TypeError: The components of v=[1/2, 1, 1] must be elements of Integer Ring
+            TypeError: the components of v=[1/2, 1, 1] must be elements of Integer Ring
             sage: A._check_satisfies_equations(5)
             Traceback (most recent call last):
             ...
-            TypeError: The argument v=5 must be a list or tuple
+            TypeError: the argument v=5 must be a list or tuple
         """
         if not isinstance(v, (list, tuple)):
             raise TypeError('the argument v=%s must be a list or tuple'%v)

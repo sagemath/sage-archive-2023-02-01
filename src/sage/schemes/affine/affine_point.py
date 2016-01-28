@@ -218,7 +218,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: k.<w> = NumberField(x^2+5)
-            sage: A = AffineSpace(k, 2,' z')
+            sage: A = AffineSpace(k, 2, 'z')
             sage: A([3, 5*w+1]).global_height(prec=100)
             2.4181409534757389986565376694
 

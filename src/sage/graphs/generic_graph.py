@@ -7027,17 +7027,21 @@ class GenericGraph(GenericGraph_pyx):
                     else:
                         edges = [(u,v,self.edge_label(u,v)),
                                  (v,u,self.edge_label(v,u))]
-                    answer = self.subgraph(edges = edges)
+                    answer = self.subgraph(edges = edges, immutable = False)
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
+                    if self.is_immutable():
+                        answer = answer.copy(immutable = True)
                     return answer
             else:
                 if self.has_multiple_edges() and len(self.edge_label(u,v)) > 1:
                     edges = self.edges()
                     edges.sort(key=weight)
-                    answer = self.subgraph(edges = edges[:2])
+                    answer = self.subgraph(edges = edges[:2], immutable = False)
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
+                    if self.is_immutable():
+                        answer = answer.copy(immutable = True)
                     return answer
 
             raise EmptySetError("The given graph is not Hamiltonian")
@@ -7216,9 +7220,11 @@ class GenericGraph(GenericGraph_pyx):
                         raise EmptySetError("The given graph is not Hamiltonian")
 
             # We can now return the TSP !
-            answer = self.subgraph(edges = h.edges())
+            answer = self.subgraph(edges = h.edges(), immutable = False)
             answer.set_pos(self.get_pos())
             answer.name("TSP from "+g.name())
+            if self.is_immutable():
+                answer = answer.copy(immutable = True)
             return answer
 
         #################################################
@@ -12549,7 +12555,7 @@ class GenericGraph(GenericGraph_pyx):
             False
         """
         if directed_clique and self._directed:
-            subgraph=self.subgraph(vertices)
+            subgraph=self.subgraph(vertices, immutable = False)
             subgraph.allow_loops(False)
             subgraph.allow_multiple_edges(False)
             n=subgraph.order()

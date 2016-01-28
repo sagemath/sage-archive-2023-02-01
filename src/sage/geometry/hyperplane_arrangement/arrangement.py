@@ -1958,6 +1958,9 @@ class HyperplaneArrangementElement(Element):
             sage: (e3 + 2*e4) * (e1 - e7)
             e4 - e6
 
+            sage: U3 = a.face_semigroup_algebra(field=GF(3)); U3
+            Finite-dimensional algebra of degree 13 over Finite Field of size 3
+
         TESTS:
 
         The ``names`` keyword works::

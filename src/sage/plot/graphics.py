@@ -3663,3 +3663,14 @@ class GraphicsArray(WithEqualityById, SageObject):
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
         dm.display_immediately(self, **kwds)
+    def plot(self):
+        """
+        Draw a 2D plot of this graphics object, which just returns this
+        object since this is already a 2D graphics object.
+
+        EXAMPLES::
+
+            place some example here
+            
+        """
+        return self

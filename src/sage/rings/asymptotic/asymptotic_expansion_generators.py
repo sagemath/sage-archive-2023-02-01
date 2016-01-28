@@ -682,6 +682,29 @@ class AsymptoticExpansionGenerators(SageObject):
             Asymptotic Ring <n^(Symbolic Subring rejecting the variable n)>
             over Symbolic Subring rejecting the variable n
 
+        ::
+
+            sage: ae = asymptotic_expansions.SingularityAnalysis('n',
+            ....:          alpha=1/2, beta=1, precision=4); ae
+            1/sqrt(pi)*n^(-1/2)*log(n) + ((euler_gamma + 2*log(2))/sqrt(pi))*n^(-1/2)
+            - 5/8/sqrt(pi)*n^(-3/2)*log(n) + (1/8*(3*euler_gamma + 6*log(2) - 8)/sqrt(pi)
+            - (euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2) + O(n^(-5/2)*log(n))
+            sage: n = ae.parent().gen()
+            sage: ae.subs(n=n-1)
+            1/sqrt(pi)*n^(-1/2)*log(n) + ((euler_gamma + 2*log(2))/sqrt(pi))*n^(-1/2)
+            - 1/8/sqrt(pi)*n^(-3/2)*log(n) + (1/8*(3*euler_gamma + 6*log(2) - 8)/sqrt(pi)
+            + 1/2*(euler_gamma + 2*log(2))/sqrt(pi) - (euler_gamma + 2*log(2) - 2)/sqrt(pi)
+            - 1/sqrt(pi))*n^(-3/2) + O(n^(-5/2)*log(n))
+
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis('n',
+            ....:     alpha=1, beta=1/2, precision=4)
+            log(n)^(1/2) + 1/2*euler_gamma*log(n)^(-1/2)
+            + (-1/8*euler_gamma^2 + 1/48*pi^2)*log(n)^(-3/2)
+            + (1/16*euler_gamma^3 - 1/32*euler_gamma*pi^2 + 1/8*zeta(3))*log(n)^(-5/2)
+            + O(log(n)^(-7/2))
+
         ALGORITHM:
 
         See [FS2009]_ together with the

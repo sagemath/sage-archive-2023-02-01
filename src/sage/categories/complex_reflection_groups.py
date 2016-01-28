@@ -1105,49 +1105,6 @@ class ComplexReflectionGroups(Category_singleton):
                 """
                 return self.degrees().count(2) == self.nr_irreducible_components()
 
-            @cached_method
-            def reflecting_hyperplanes(self):
-                r"""
-                Return the list of all reflecting hyperplanes of
-                ``self``.
-
-                EXAMPLES::
-
-                    sage: W = ReflectionGroup((1,1,3))
-                    sage: for H in W.reflecting_hyperplanes(): print H
-                    Vector space of degree 2 and dimension 1 over Rational Field
-                    Basis matrix:
-                    [0 1]
-                    Vector space of degree 2 and dimension 1 over Rational Field
-                    Basis matrix:
-                    [1 0]
-                    Vector space of degree 2 and dimension 1 over Rational Field
-                    Basis matrix:
-                    [ 1 -1]
-
-                    sage: W = ReflectionGroup((2,1,2))
-                    sage: for H in W.reflecting_hyperplanes(): print H
-                    Vector space of degree 2 and dimension 1 over Rational Field
-                    Basis matrix:
-                    [0 1]
-                    Vector space of degree 2 and dimension 1 over Rational Field
-                    Basis matrix:
-                    [1 0]
-                    Vector space of degree 2 and dimension 1 over Rational Field
-                    Basis matrix:
-                    [ 1 -1]
-                    Vector space of degree 2 and dimension 1 over Rational Field
-                    Basis matrix:
-                    [ 1 -2]
-                """
-                from sage.matrix.all import identity_matrix
-                Hs = []
-                for r in self.distinguished_reflections():
-                    mat = r.as_matrix()
-                    mat = mat - identity_matrix(mat.base_ring(),self.rank())
-                    Hs.append( mat.left_kernel() )
-                return Hs
-
         class ElementMethods:
 
             @abstract_method(optional=True)

@@ -36,6 +36,7 @@ from sage.categories.permutation_groups import PermutationGroups
 from sage.categories.complex_reflection_groups import ComplexReflectionGroups
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.sets.family import Family
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.combinat.root_system.cartan_type import CartanType
@@ -128,7 +129,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         PermutationGroup_generic.__init__(self, gens = generators, canonicalize=False, category = category)
 
-        from sage.sets.family import Family
         l_set = range(len(self.gens()))
         if self._index_set is None:
             self._index_set = Family(dict( (i,i) for i in l_set))
@@ -407,7 +407,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.distinguished_reflections()
             Finite family {0: (1,6)(2,5)(7,8), 1: (1,5)(2,7)(6,8), 2: (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30), 3: (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30), 4: (1,7)(2,6)(5,8), 5: (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26), 6: (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29), 7: (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)}
         """
-        from sage.sets.family import Family
         # imports all distinguished reflections from gap, the Set is used as every such appears multiple times.
         T = [ self(str(r)) for r in self._gap_group.Reflections() ]
         # makes sure that the simple reflections come first
@@ -456,6 +455,65 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return self.distinguished_reflections()[i]
 
     @cached_method
+    def reflecting_hyperplanes(self):
+        r"""
+        Return the list of all reflecting hyperplanes of
+        ``self``.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((1,1,3))
+            sage: for H in W.reflecting_hyperplanes(): print H
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [0 1]
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0]
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -1]
+
+            sage: W = ReflectionGroup((2,1,2))
+            sage: for H in W.reflecting_hyperplanes(): print H
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [0 1]
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0]
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -1]
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2]
+        """
+        from sage.matrix.all import identity_matrix
+        Hs = []
+        for r in self.distinguished_reflections():
+            mat = r.as_matrix()
+            mat = mat - identity_matrix(mat.base_ring(),self.rank())
+            Hs.append( mat.left_kernel() )
+        return Family(self._hyperplane_index_set.keys(), lambda i: Hs[self._hyperplane_index_set[i]] )
+        return Hs
+
+    def reflecting_hyperplane(self, i):
+        r"""
+        Return the ``i``-th reflecting hyperplane of ``self``.
+
+        The ``i``-th reflecting hyperplane corresponds to the ``i``
+        distinguished reflection.
+
+        EXAMPLES::
+
+            sage: tba
+        """
+        if i not in self.hyperplane_index_set():
+            raise ValueError("The given index %s is not an index of a reflecting hyperplane"%i)
+        return self.reflecting_hyperplanes()[i]
+
+    @cached_method
     def reflection_index_set(self):
         r"""
         Return the index set of the reflections of ``self``.
@@ -498,7 +556,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.reflections()
             Finite family {0: (1,6)(2,5)(7,8), 1: (1,5)(2,7)(6,8), 2: (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30), 3: (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30), 4: (1,7)(2,6)(5,8), 5: (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26), 6: (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29), 7: (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28), 8: (3,15,9)(4,16,10)(12,23,17)(14,24,18)(20,29,25)(21,26,22)(27,30,28), 9: (4,27,21)(10,28,22)(11,19,13)(12,20,14)(16,30,26)(17,25,18)(23,29,24)}
         """
-        from sage.sets.family import Family
         T = self.distinguished_reflections().values()
         for i in xrange(self.nr_reflecting_hyperplanes()):
             T.extend( [ T[i]**j for j in range(2,T[i].order()) ] )
@@ -692,7 +749,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: sum( len(C) for C in  W.conjugacy_classes() ) == W.cardinality()
             True
        """
-        from sage.sets.family import Family
         return Family(self.conjugacy_classes_representatives(), lambda w: w.conjugacy_class() )
 
     def rank(self):
@@ -855,7 +911,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             (1,24,17,16,9,2)(3,12,13,18,27,28)(4,21,29,19,6,14)(5,25,26,20,10,11)(7,23,30,22,8,15) [1/6, 1/2, 5/6]
             (1,29,8,7,26,16,14,23,22,11)(2,9,25,3,4,17,24,10,18,19)(5,30,6,13,27,20,15,21,28,12) [3/10, 1/2, 7/10]
             """
-        from sage.sets.family import Family
         class_representatives = self.conjugacy_classes_representatives()
         Ev_list = self._gap_group.ReflectionEigenvalues().sage()
         return Family( class_representatives, lambda w: Ev_list[class_representatives.index(w)] )

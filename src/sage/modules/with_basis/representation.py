@@ -256,8 +256,22 @@ class Representation(CombinatorialFreeModule):
                 sage: s2 * x
                 B[s2*s1*s2] + 2*B[s1*s2] + B[s2] + 3*B[1]
 
+                sage: G = groups.misc.WeylGroup(['B',2], prefix='s')
+                sage: R = G.regular_representation(left=False)
+                sage: s1,s2 = G.gens()
+                sage: x = R.an_element(); x
+                2*B[s2*s1*s2] + B[s1*s2] + 3*B[s2] + B[1]
+                sage: x * s1
+                2*B[s2*s1*s2*s1] + B[s1*s2*s1] + 3*B[s2*s1] + B[s1]
+                sage: x * s2
+                2*B[s2*s1] + B[s1] + B[s2] + 3*B[1]
+
+                sage: G = groups.misc.WeylGroup(['B',2], prefix='s')
+                sage: R = G.regular_representation()
                 sage: A = G.algebra(ZZ)
                 sage: s1,s2 = A.algebra_generators()
+                sage: x = R.an_element(); x
+                2*B[s2*s1*s2] + B[s1*s2] + 3*B[s2] + B[1]
                 sage: s1 * x
                 2*B[s2*s1*s2*s1] + 3*B[s1*s2] + B[s1] + B[s2]
                 sage: s2 * x
@@ -298,6 +312,13 @@ class Representation(CombinatorialFreeModule):
 class RegularRepresentation(Representation):
     """
     The regular representation of a semigroup.
+
+    INPUT:
+
+    - ``semigroup`` -- a semigroup
+    - ``base_ring`` -- the base ring for the representation
+    - ``left`` (keyword argument, defaults to ``True``) -- boolean;
+      whether this is a left or a right representation
 
     REFERENCES:
 
@@ -367,6 +388,11 @@ class RegularRepresentation(Representation):
 class TrivialRepresentation(CombinatorialFreeModule):
     """
     The trivial representation of a semigroup.
+
+    INPUT:
+
+    - ``semigroup`` -- a semigroup
+    - ``base_ring`` -- the base ring for the representation
 
     REFERENCES:
 

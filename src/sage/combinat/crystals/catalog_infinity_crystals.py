@@ -5,6 +5,7 @@ We currently have the following models:
 
 * :class:`GeneralizedYoungWalls
   <sage.combinat.crystals.generalized_young_walls.InfinityCrystalOfGeneralizedYoungWalls>`
+* :class:`LSPaths <sage.combinat.crystals.littelmann_path.InfinityCrystalOfLSPaths>`
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.InfinityCrystalOfNakajimaMonomials>`
 * :class:`PolyhedralRealization <sage.combinat.crystals.polyhedral_realization.InfinityCrystalAsPolyhedralRealization>`
 * :class:`RiggedConfigurations
@@ -18,4 +19,5 @@ from sage.combinat.rigged_configurations.rc_infinity import InfinityCrystalOfRig
 from infinity_crystals import InfinityCrystalOfTableaux as Tableaux
 from sage.combinat.crystals.polyhedral_realization import InfinityCrystalAsPolyhedralRealization as PolyhedralRealization
 from sage.combinat.crystals.star_crystal import StarCrystal as Star
+from sage.combinat.crystals.littelmann_path import InfinityCrystalOfLSPaths as LSPaths
 

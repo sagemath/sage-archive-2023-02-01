@@ -11,7 +11,7 @@ Hyperbolicity
 
       .. MATH::
 
-          S_1 = dist(a, b) + dist(b, c)\\
+          S_1 = dist(a, b) + dist(d, c)\\
           S_2 = dist(a, c) + dist(b, d)\\
           S_3 = dist(a, d) + dist(b, c)\\
 

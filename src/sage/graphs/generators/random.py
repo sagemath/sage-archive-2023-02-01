@@ -946,7 +946,7 @@ def _contour_and_graph_from_word(w):
     return word[:-1], G
 
 
-def RandomTriangulation(n, set_position=False, word=None):
+def RandomTriangulation(n, set_position=False):
     r"""
     Return a random triangulation on `n` vertices.
 

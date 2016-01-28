@@ -51,7 +51,7 @@ AUTHORS:
 #*******************************************************************************
 
 
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.all import ZZ
 from sage.misc.all import srange, cartesian_product_iterator
 from sage.schemes.generic.scheme import is_Scheme

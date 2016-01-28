@@ -80,7 +80,6 @@ TESTS::
 from sage.structure.parent_gens import localvars
 
 import sage.libs.ntl.all as ntl
-import sage.rings.arith
 
 from sage.categories.map import is_Map
 from sage.structure.sequence import Sequence

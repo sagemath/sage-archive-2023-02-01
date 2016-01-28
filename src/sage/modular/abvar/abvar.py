@@ -20,11 +20,15 @@ TESTS::
     True
 """
 
-###########################################################################
-#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
-#  Distributed under the terms of the GNU General Public License (GPL)    #
-#                  http://www.gnu.org/licenses/                           #
-###########################################################################
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
@@ -33,8 +37,8 @@ from morphism                   import HeckeOperator, Morphism, DegeneracyMap
 from torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
 from finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup
-from sage.rings.all             import (ZZ, QQ, QQbar, LCM,
-                                        divisors, Integer, prime_range)
+from sage.rings.all import ZZ, QQ, QQbar, Integer
+from sage.arith.all import LCM, divisors, prime_range, next_prime
 from sage.rings.ring import is_Ring
 from sage.modules.free_module   import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
@@ -4513,7 +4517,6 @@ def sqrt_poly(f):
 ####################################################################################################
 # Useful for decomposing exactly the sort of modular symbols spaces that come up here.
 from random import randrange
-from sage.rings.arith import next_prime
 
 def random_hecke_operator(M, t=None, p=2):
     """

@@ -3,25 +3,21 @@
 Eisenstein Series
 """
 
-#########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import sage.misc.all as misc
-
 import sage.modular.dirichlet as dirichlet
-
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
-
-from sage.rings.all import Integer
-
-from sage.rings.all import (bernoulli, CyclotomicField,
-                            ZZ, QQ, Integer, divisors,
-                            LCM, is_squarefree)
+from sage.rings.all import Integer, CyclotomicField, ZZ, QQ, Integer
+from sage.arith.all import bernoulli, divisors, is_squarefree, lcm
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.power_series_ring import PowerSeriesRing
 from eis_series_cython import eisenstein_series_poly, Ek_ZZ
@@ -187,7 +183,7 @@ def __common_minimal_basering(chi, psi):
     """
     chi = chi.minimize_base_ring()
     psi = psi.minimize_base_ring()
-    n = LCM(chi.base_ring().zeta().multiplicative_order(),\
+    n = lcm(chi.base_ring().zeta().multiplicative_order(),
                   psi.base_ring().zeta().multiplicative_order())
     if n <= 2:
         K = QQ

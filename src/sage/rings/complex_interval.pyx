@@ -1674,36 +1674,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return True
 
-#     def algdep(self, n, **kwds):
-#         """
-#         Returns a polynomial of degree at most $n$ which is approximately
-#         satisfied by this complex number.  Note that the returned polynomial
-#         need not be irreducible, and indeed usually won't be if $z$ is a good
-#         approximation to an algebraic number of degree less than $n$.
-
-#         ALGORITHM: Uses the PARI C-library algdep command.
-
-#         INPUT: Type algdep? at the top level prompt. All additional
-#         parameters are passed onto the top-level algdep command.
-
-#         EXAMPLES::
-#
-#             sage: C = ComplexIntervalField()
-#             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
-#             0.500000000000000 + 0.866025403784439*I
-#             sage: p = z.algdep(5); p
-#             x^5 + x^2
-#             sage: p.factor()
-#             (x + 1) * x^2 * (x^2 - x + 1)
-#             sage: z^2 - z + 1
-#             0.000000000000000111022302462516
-#         """
-#         import sage.rings.arith
-#         return sage.rings.arith.algdep(self,n, **kwds)
-
-#     def algebraic_dependancy( self, n ):
-#         return self.algdep( n )
-
     def cos(self):
         r"""
         Compute the cosine of this complex interval.

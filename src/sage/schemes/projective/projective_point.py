@@ -20,18 +20,15 @@ AUTHORS:
   for affine/projective, height functionality
 """
 
-# Historical note: in trac #11599, V.B. renamed
-# * _point_morphism_class -> _morphism
-# * _homset_class -> _point_homset
-
 #*****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -39,7 +36,6 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 from sage.rings.infinity       import infinity
-from sage.rings.arith          import gcd, lcm, is_prime, binomial
 from sage.rings.integer_ring   import ZZ
 from sage.rings.fraction_field import FractionField
 from sage.rings.morphism       import RingHomomorphism_im_gens
@@ -51,6 +47,7 @@ from sage.rings.quotient_ring  import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double    import RDF
 from sage.rings.real_mpfr      import RealField, RR, is_RealField
+from sage.arith.all import gcd, lcm, is_prime, binomial
 
 from copy                      import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,

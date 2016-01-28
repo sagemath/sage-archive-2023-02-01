@@ -1128,17 +1128,11 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
     dominant but its representative in `\mathcal{B}((k-1)\rho)` is on the wall
     of the dominant chamber.
 
-    .. NOTE::
-
-        This model implemented here has only been proven to be a model for
-        `\mathcal{B}(\infty)` in finite types.  It is open question from
-        [LZ11]_ to show that the model is also valid outside of finite type.
-
     REFERENCES:
 
     .. [LZ11] Bin Li and Hechun Zhang.
        *Path realization of crystal* `B(\infty)`.
-       Front. Math. China, 6(4), (2011) pp. 689--706.
+       Front. Math. China, **6** (4), (2011) pp. 689--706.
        :doi:`10.1007/s11464-010-0073-x`
     """
     @staticmethod

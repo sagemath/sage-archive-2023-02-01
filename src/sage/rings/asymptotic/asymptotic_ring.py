@@ -1716,15 +1716,67 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         geom_k = P.one()
         from sage.rings.integer_ring import ZZ
         k = ZZ(0)
+
+    @staticmethod
+    def _taylor_(coefficients, start, ratio, ratio_start, precision):
+        r"""
+        Return a taylor series.
+
+        Let `c_k` be determined by the ``coefficients`` and set
+
+        .. MATH::
+
+            s_k = c_k \mathrm{ratio_start} \mathrm{ratio}^k.
+
+        The result is
+
+        .. MATH::
+
+            \mathrm{start} + \sum_{k=1}^K s_k
+
+        where `K` is chosen such that adding `s_{K+1}` does not change
+        the result.
+
+        INPUT:
+
+        - ``coefficients`` -- an iterator.
+
+        - ``start`` -- an asymptotic expansion.
+
+        - ``ratio`` -- an asymptotic expansion.
+
+        - ``ratio_start`` -- an asymptotic expansion.
+
+        - ``precision`` -- a non-negative integer.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticExpansion
+            sage: from itertools import count
+            sage: A.<g> = AsymptoticRing('g^ZZ', QQ)
+            sage: AsymptoticExpansion._taylor_(
+            ....:     coefficients=iter(ZZ(k) for k in count(1)),
+            ....:     start=A(42),
+            ....:     ratio=1/g,
+            ....:     ratio_start=A(5),
+            ....:     precision=4)
+            42 + 5*g^(-1) + 10*g^(-2) + 15*g^(-3) + O(g^(-4))
+        """
+        expanding = True
+        result = start
+        g = ratio_start
         while expanding:
-            k += ZZ(1)
-            geom_k *= geom
-            new_result = (result + geom_k / k.factorial()).truncate(precision=precision)
+            c = next(coefficients)
+            g *= ratio
+            new_result = (result + c*g).truncate(precision=precision)
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result
-
-        return result * large_result
+        return result
 
 
     def exp(self, precision=None):

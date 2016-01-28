@@ -1915,7 +1915,7 @@ class HyperplaneArrangementElement(Element):
 
             Also implement it as an actual semigroup algebra?
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: a = hyperplane_arrangements.braid(3)
             sage: [(i, F[0]) for i, F in enumerate(a.closed_faces())]

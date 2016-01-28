@@ -1252,15 +1252,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 imax_elem, max_elem.parent()).parent()(self)
 
         one = new_self.parent().one()
-        geom = one - new_self._mul_term_(imax_elem)
 
-        expanding = True
-        result = one
-        while expanding:
-            new_result = (geom*result + one).truncate(precision=precision)
-            if new_result.has_same_summands(result):
-                expanding = False
-            result = new_result
+        import itertools
+
+        result = AsymptoticExpansion._taylor_(
+            coefficients=itertools.repeat(one),
+            start=one,
+            ratio=one - new_self._mul_term_(imax_elem),
+            ratio_start=one,
+            precision=precision)
+
         return result._mul_term_(imax_elem)
 
 
@@ -1580,17 +1581,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         geom = one - new_self._mul_term_(imax_elem)
 
         from sage.rings.integer_ring import ZZ
-        expanding = True
-        result = -geom
-        geom_k = geom
-        k = ZZ(1)
-        while expanding:
-            k += ZZ(1)
-            geom_k *= geom
-            new_result = (result - geom_k * ~k).truncate(precision=precision)
-            if new_result.has_same_summands(result):
-                expanding = False
-            result = new_result
+        import itertools
+
+        result = AsymptoticExpansion._taylor_(
+            coefficients=iter(-1 / ZZ(k)
+                              for k in itertools.count(2)),
+            start=-geom,
+            ratio=geom,
+            ratio_start=geom,
+            precision=precision)
 
         result += new_self.parent()(max_elem).log()
         if base:
@@ -1711,11 +1710,24 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             geom = expr_o * log(base)
         P = geom.parent()
 
-        expanding = True
-        result = P.one()
-        geom_k = P.one()
         from sage.rings.integer_ring import ZZ
-        k = ZZ(0)
+        import itertools
+
+        def inverted_factorials():
+            f = ZZ(1)
+            for k in itertools.count(1):
+                f /= ZZ(k)
+                yield f
+
+        result = AsymptoticExpansion._taylor_(
+            coefficients=inverted_factorials(),
+            start=P.one(),
+            ratio=geom,
+            ratio_start=P.one(),
+            precision=precision)
+
+        return result * large_result
+
 
     @staticmethod
     def _taylor_(coefficients, start, ratio, ratio_start, precision):

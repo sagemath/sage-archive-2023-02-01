@@ -455,7 +455,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return self.distinguished_reflections()[i]
 
     @cached_method
-    def reflecting_hyperplanes(self):
+    def reflecting_hyperplanes(self, as_linear_functional=False):
         r"""
         Return the list of all reflecting hyperplanes of
         ``self``.
@@ -494,11 +494,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         for r in self.distinguished_reflections():
             mat = r.as_matrix()
             mat = mat - identity_matrix(mat.base_ring(),self.rank())
-            Hs.append( mat.left_kernel() )
+            if as_linear_functional:
+                Hs.append( mat.column_space().gen() )
+            else:
+                Hs.append( mat.left_kernel() )
         return Family(self._hyperplane_index_set.keys(), lambda i: Hs[self._hyperplane_index_set[i]] )
-        return Hs
 
-    def reflecting_hyperplane(self, i):
+    def reflecting_hyperplane(self, i, as_linear_functional=False):
         r"""
         Return the ``i``-th reflecting hyperplane of ``self``.
 
@@ -511,7 +513,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         if i not in self.hyperplane_index_set():
             raise ValueError("The given index %s is not an index of a reflecting hyperplane"%i)
-        return self.reflecting_hyperplanes()[i]
+        return self.reflecting_hyperplanes(as_linear_functional=as_linear_functional)[i]
 
     @cached_method
     def reflection_index_set(self):

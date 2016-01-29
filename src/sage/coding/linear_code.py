@@ -240,6 +240,8 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 from encoder import Encoder
 from decoder import Decoder, DecodingError
+from sage.combinat.subset import Subsets
+from sage.categories.cartesian_product import cartesian_product
 # import compatible with py2 and py3
 from six.moves.urllib.request import urlopen
 
@@ -1558,6 +1560,7 @@ class AbstractLinearCode(module.Module):
 
     check_mat = deprecated_function_alias(17973, parity_check_matrix)
 
+    @cached_method
     def covering_radius(self):
         r"""
         Wraps Guava's ``CoveringRadius`` command.
@@ -1716,7 +1719,8 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.decoder()
-            Syndrome decoder for  Linear code of length 7, dimension 4 over Finite Field of size 2
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 3
+
 
         If the name of a decoder which is not known by ``self`` is passed,
         an exception will be raised::
@@ -4015,30 +4019,69 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 ####################### decoders ###############################
 class LinearCodeSyndromeDecoder(Decoder):
     r"""
-    Construct a decoder for Linear Codes.
+    Constructs a decoder for Linear Codes based on syndrome lookup table.
 
-    .. WARNING::
+    The decoding algorithm works as follows:
 
-        As explained in trac #19623, despite its name this decoder actually uses a
-        nearest neighbor decoding algorithm.
+    - First, a lookup syndrome is built by computing the syndrome of every error
+      pattern of weight up to ``maximum_error_weight``.
+    - Then, whenever one tries to decode a word ``r``, the syndrome of ``r`` is
+      computed. Then, the corresponding error pattern is recovered from the
+      precomputed lookup table.
+    - Finally, the recovered error pattern is substracted from ``r`` to recover
+      the original word.
 
     INPUT:
 
     - ``code`` -- A code associated to this decoder
+
+    - ``maximum_error_weight`` -- (default: ``None``) the number of errors to
+      look for when building the table. If it is let to ``None``,
+      ``maximum_error_weight`` will be set to `n - k`,
+      where `n` is the length of ``code`` and `k` its dimension.
+
+    EXAMPLES::
+
+        sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+        sage: C = LinearCode(G)
+        sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+        sage: D
+        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 3
+
+        If one wants to correct up to a specific number of errors, one can do as follows::
+
+        sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight=2)
+        sage: D
+        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
     """
 
-    def __init__(self, code):
+    def __init__(self, code, maximum_error_weight=None):
         r"""
-        EXAMPLES::
+        TESTS:
+
+        If ``maximum_error_weight`` is greater or equal than `n-k`, where `n`
+        is ``code``'s length, and `k` is ``code``'s dimension,
+        an error is raised::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
-            sage: D
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, 42)
+            Traceback (most recent call last):
+            ...
+            ValueError: maximum_error_weight has to be less than code's length - code's dimension
         """
+        n_minus_k = code.length() - code.dimension()
+        if maximum_error_weight == None:
+            self._maximum_error_weight = n_minus_k
+        elif not isinstance(maximum_error_weight, (Integer, int)):
+            raise ValueError("maximum_error_weight has to be a Sage integer or a Python int")
+        elif maximum_error_weight > n_minus_k:
+            raise ValueError("maximum_error_weight has to be less than code's length - code's dimension")
+        else:
+            self._maximum_error_weight = maximum_error_weight
         super(LinearCodeSyndromeDecoder, self).__init__(code, code.ambient_space(),\
                 code._default_encoder_name)
+        self._lookup_table = self._build_lookup_table()
 
     def __eq__(self, other):
         r"""
@@ -4053,7 +4096,8 @@ class LinearCodeSyndromeDecoder(Decoder):
             True
         """
         return isinstance(other, LinearCodeSyndromeDecoder)\
-                and self.code() == other.code()
+                and self.code() == other.code()\
+                and self.maximum_error_weight() == other.maximum_error_weight()
 
     def _repr_(self):
         r"""
@@ -4065,9 +4109,9 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 3
         """
-        return "Syndrome decoder for %s" % self.code()
+        return "Syndrome decoder for %s handling errors of weight up to %s" % (self.code(), self.maximum_error_weight())
 
     def _latex_(self):
         r"""
@@ -4079,76 +4123,164 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: latex(D)
-            \textnormal{Syndrome decoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+            \textnormal{Syndrome decoder for [7, 4]\textnormal{ Linear code over }\Bold{F}_{2} handling errors of weight up to 3}
         """
-        return "\\textnormal{Syndrome decoder for }%s" % self.code()._latex_()
+        return "\\textnormal{Syndrome decoder for %s handling errors of weight up to %s}" % (self.code()._latex_(), self.maximum_error_weight())
 
-    def syndrome(self, r):
+    @cached_method
+    def _build_lookup_table(self):
         r"""
-        The vector r is a received word, so should be in the same ambient
-        space V as ``self.code()``.
-        Returns all elements in V having the same syndrome (ie, the coset r+C, sorted by weight).
-
-        INPUT:
-
-        - ``r`` -- a vector of the ambient space of ``self.code()``
-
-        OUTPUT:
-
-        - a list of vectors
+        Builds lookup table for all possible error patterns of size :meth:`maximum_error_weight`.
 
         EXAMPLES::
 
-            sage: C = codes.HammingCode(2,GF(3))
-            sage: V = VectorSpace(GF(3), 4)
-            sage: r = V([0, 2, 0, 1])
-            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
-            sage: D.syndrome(r)
-             [(0, 0, 1, 0), (0, 2, 0, 1), (2, 0, 0, 2), (1, 1, 0, 0), (2, 2, 2, 0), (1, 0, 2, 1), (0, 1, 2, 2), (1, 2, 1, 2), (2, 1, 1, 1)]
-
+            sage: G = Matrix(GF(3),[
+            ....:   [1, 0, 0, 0, 2, 2, 1, 1],
+            ....:   [0, 1, 0, 0, 0, 0, 1, 1],
+            ....:   [0, 0, 1, 0, 2, 0, 0, 2],
+            ....:   [0, 0, 0, 1, 0, 2, 0, 1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight = 1)
+            sage: D._build_lookup_table()
+            {(0, 0, 0, 1): (0, 0, 0, 0, 1, 0, 0, 0),
+             (0, 0, 0, 2): (0, 0, 0, 0, 2, 0, 0, 0),
+             (0, 0, 1, 0): (0, 0, 1, 0, 0, 0, 0, 0),
+             (0, 0, 1, 2): (0, 0, 0, 0, 0, 0, 0, 1),
+             (0, 0, 2, 0): (0, 0, 2, 0, 0, 0, 0, 0),
+             (0, 0, 2, 1): (0, 0, 0, 0, 0, 0, 0, 2),
+             (0, 1, 0, 0): (0, 1, 0, 0, 0, 0, 0, 0),
+             (0, 1, 1, 2): (0, 0, 0, 0, 0, 0, 2, 0),
+             (0, 2, 0, 0): (0, 2, 0, 0, 0, 0, 0, 0),
+             (0, 2, 2, 1): (0, 0, 0, 0, 0, 0, 1, 0),
+             (1, 0, 0, 0): (1, 0, 0, 0, 0, 0, 0, 0),
+             (1, 2, 0, 2): (0, 0, 0, 0, 0, 1, 0, 0),
+             (1, 2, 2, 0): (0, 0, 0, 1, 0, 0, 0, 0),
+             (2, 0, 0, 0): (2, 0, 0, 0, 0, 0, 0, 0),
+             (2, 1, 0, 1): (0, 0, 0, 0, 0, 2, 0, 0),
+             (2, 1, 1, 0): (0, 0, 0, 2, 0, 0, 0, 0)}
         """
+        t = self._maximum_error_weight
         C = self.code()
-        V = C.ambient_space()
-        if not isinstance(r, list):
-            r = r.list()
-        r = V(r)
-        coset = [[c + r, (c + r).hamming_weight()] for c in C]
-        return [x[0] for x in sorted(coset, key=lambda x: x[1])]
+        n = C.length()
+        H = C.parity_check_matrix()
+        F = C.base_ring()
+        l = F.list()
+        zero = F.zero()
+        #Builds a list of generators of all error positions for all
+        #possible error weights
+        if zero in l:
+            l.remove(zero)
+        error_position_tables = [cartesian_product([l]*i) for i in range(1, t+1)]
+        lookup = {}
+        first_collision = True
+        #Filling the lookup table
+        for i in range(1, t+1):
+            stop = True
+            patterns = Subsets(range(n), i)
+            basic = vector(F, n)
+            for p in patterns:
+                for error in error_position_tables[i-1]:
+                    ind = 0
+                    e = copy(basic)
+                    for pos in p:
+                        e[pos] = error[ind]
+                        ind += 1
+                    s = H * e
+                    s.set_immutable()
+                    try:
+                        e_cur = lookup[s]
+                        #if this is the first time we see a collision
+                        #we learn the minimum distance of the code
+                        if first_collision:
+                            self._code_minimum_distance = e.hamming_weight() + e_cur.hamming_weight()
+                            first_collision = False
+                    except KeyError:
+                        stop = False
+                        lookup[s] = copy(e)
+            #if we reached the early termination condition
+            #we learn the covering radius of the code
+            if stop:
+                self._code_covering_radius = i - 1
+                half_d = (self._code_minimum_distance-1) // 2
+                if t < self._code_covering_radius:
+                    self._decoding_radius = t
+                else:
+                    self._decoding_radius = self._code_covering_radius
+        self._decoder_type = copy(self._decoder_type)
+        self._decoder_type.remove("dynamic")
+        #if we had some collisions, even if we did not reach the
+        #early termination condition, we can still update the set of decoder types
+        if not first_collision:
+            half_d = (self._code_minimum_distance-1) // 2
+            if t < half_d:
+                self._decoder_type.union("bounded-distance", "always-succeed")
+            if t == half_d:
+                self._decoder_type.union("minimum-distance", "always-succeed")
+            else:
+                self._decoder_type.union("might-error")
+        else:
+            self._decoding_radius = n - self.code().dimension()
+        return lookup
+
 
     def decode_to_code(self, r):
         r"""
-        Decode the received word ``r`` to an element in associated code of ``self``.
+        Decodes ``r`` to an element in message space of ``self``.
 
         INPUT:
 
-        - ``r`` -- a vector of same length as the length of the associated
-           code of ``self`` and over the base field of the associated code of ``self``
+        - ``r`` -- a codeword of ``self``
 
         OUTPUT:
 
-        - a codeword of the associated code of ``self``
+        - a vector of ``self``'s message space
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3),[
+            ....:   [1, 0, 0, 0, 2, 2, 1, 1],
+            ....:   [0, 1, 0, 0, 0, 0, 1, 1],
+            ....:   [0, 0, 1, 0, 2, 0, 0, 2],
+            ....:   [0, 0, 0, 1, 0, 2, 0, 1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight = 2)
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
+            sage: c = C.random_element()
+            sage: r = Chan(c)
+            sage: c == D.decode_to_code(r)
+            True
+        """
+        lookup_table = self.lookup_table()
+        s = self.code().parity_check_matrix() * r
+        s.set_immutable()
+        if s.is_zero():
+            return r
+        err = lookup_table[s]
+        r_corr = copy(r)
+        for i in range(self.code().length()):
+            r_corr[i] = r[i] - err[i]
+        return r_corr
+
+    def maximum_error_weight(self):
+        r"""
+        Returns the maximal number of errors a received word can have
+        and for which ``self`` will always return a most likely codeword.
 
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
-            sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
-            sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
-            sage: D.decode_to_code(word)
-            (1, 1, 0, 0, 1, 1, 0)
+            sage: D.maximum_error_weight()
+            3
         """
-        V = self.input_space()
-        if not isinstance(r, list):
-            r = r.list()
-        r = V(r)
-        c =  -V(self.syndrome(r)[0]) + r
-        c.set_immutable()
-        return c
+        if hasattr(self, "_half_minimum_distance"):
+            return min(self._maximum_error_weight, self._half_minimum_distance)
+        return self._maximum_error_weight
 
     def decoding_radius(self):
         r"""
-        Return maximal number of errors ``self`` can decode.
+        Returns the maximal number of errors ``self`` can decode.
 
         EXAMPLES::
 
@@ -4158,8 +4290,28 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D.decoding_radius()
             1
         """
+        return self._decoding_radius
 
-        return (self.code().minimum_distance()-1) // 2
+    def lookup_table(self):
+        r"""
+        Returns the lookup table of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.lookup_table()
+            {(0, 0, 0): (1, 1, 1, 0, 0, 0, 0),
+             (1, 0, 0): (1, 0, 0, 0, 0, 0, 0),
+             (0, 1, 0): (0, 1, 0, 0, 0, 0, 0),
+             (1, 1, 0): (0, 0, 1, 0, 0, 0, 0),
+             (0, 0, 1): (0, 0, 0, 1, 0, 0, 0),
+             (1, 0, 1): (0, 0, 0, 0, 1, 0, 0),
+             (0, 1, 1): (0, 0, 0, 0, 0, 1, 0),
+             (1, 1, 1): (0, 0, 0, 0, 0, 0, 1)}
+        """
+        return self._lookup_table
 
 
 
@@ -4288,6 +4440,6 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
 LinearCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
+LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
 LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}

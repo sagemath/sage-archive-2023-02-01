@@ -1015,6 +1015,9 @@ def RandomTriangulation(n, set_position=False):
         sage: for i in range(10):
         ....:     g = graphs.RandomTriangulation(30)
         ....:     assert g.is_planar()
+        sage: for i in range(10):
+        ....:    g = graphs.RandomTriangulation(10)
+        ....:    assert g.is_planar(on_embedding=g.get_embedding())
 
     REFERENCES:
 
@@ -1106,7 +1109,6 @@ def RandomTriangulation(n, set_position=False):
     assert graph.num_verts() == n
 
     graph.set_embedding(embedding)
-    # graph.relabel()   # does not act on the embedding !
 
     if set_position:
         graph.layout(layout="planar", save_pos=True)

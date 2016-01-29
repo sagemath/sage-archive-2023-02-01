@@ -1719,7 +1719,7 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.decoder()
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 3
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
 
 
         If the name of a decoder which is not known by ``self`` is passed,
@@ -4065,7 +4065,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         sage: C = LinearCode(G)
         sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
         sage: D
-        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 3
+        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
 
         If one wants to correct up to a lower number of errors, one can do as follows::
 
@@ -4128,7 +4128,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 3
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
         """
         return "Syndrome decoder for %s handling errors of weight up to %s" % (self.code(), self.maximum_error_weight())
 
@@ -4142,7 +4142,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: latex(D)
-            \textnormal{Syndrome decoder for [7, 4]\textnormal{ Linear code over }\Bold{F}_{2} handling errors of weight up to 3}
+            \textnormal{Syndrome decoder for [7, 4]\textnormal{ Linear code over }\Bold{F}_{2} handling errors of weight up to 2}
         """
         return "\\textnormal{Syndrome decoder for %s handling errors of weight up to %s}" % (self.code()._latex_(), self.maximum_error_weight())
 
@@ -4180,7 +4180,6 @@ class LinearCodeSyndromeDecoder(Decoder):
              (2, 1, 1, 0): (0, 0, 0, 2, 0, 0, 0, 0)}
         """
         t = self._maximum_error_weight
-        self._decoding_radius = t
         self._code_covering_radius = None
         self._code_minimum_distance = None
         self._decoder_type = copy(self._decoder_type)
@@ -4231,7 +4230,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             #we learn the covering radius of the code
             if stop:
                 self._code_covering_radius = i - 1
-                self._decoding_radius = self._code_covering_radius
+                self._maximum_error_weight = self._code_covering_radius
         # Update decoder types depending on whether we are decoding up to covering radius
         if self._code_covering_radius:
             self._decoder_type.union("complete")
@@ -4300,7 +4299,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D.maximum_error_weight()
-            3
+            2
         """
         return self._maximum_error_weight
 
@@ -4315,7 +4314,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D.decoding_radius()
-            3
+            2
         """
         return self._maximum_error_weight
 

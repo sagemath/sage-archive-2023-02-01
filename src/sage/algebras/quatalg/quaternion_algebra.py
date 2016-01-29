@@ -38,7 +38,7 @@ from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 from sage.rings.ring import Algebra
 from sage.rings.ideal import Ideal_fractional

@@ -25,7 +25,7 @@ AUTHORS:
 
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.structure.all import Sequence
 

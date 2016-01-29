@@ -171,7 +171,7 @@ List of Poset methods
     :meth:`~FinitePoset.chain_polytope` | Return the chain polytope of the poset.
     :meth:`~FinitePoset.order_polytope` | Return the order polytope of the poset.
 
-**Other & not yet classified**
+**Graphs**
 
 .. csv-table::
     :class: contentstable
@@ -182,6 +182,15 @@ List of Poset methods
     :meth:`~FinitePoset.cover_relations_graph` | Return the (undirected) graph of cover relations.
     :meth:`~FinitePoset.comparability_graph` | Return the comparability graph of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Return the incomparability graph of the poset.
+    :meth:`~FinitePoset.linear_extensions_graph` | Return the linear extensions graph of the poset.
+
+**Other & not yet classified**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset.

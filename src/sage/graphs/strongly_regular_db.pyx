@@ -38,7 +38,7 @@ from sage.combinat.designs.bibd import balanced_incomplete_block_design
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt, floor
 from sage.matrix.constructor import Matrix
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
 from sage.rings.sum_of_squares cimport two_squares_c
 from libc.stdint cimport uint_fast32_t
@@ -1135,7 +1135,9 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
       guys), you may want to disable it whenever you want speed. Set to ``True``
       by default.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    some graphs ::
 
         sage: from sage.graphs.strongly_regular_db import SRG_from_RSHCD
         sage: SRG_from_RSHCD(784, 0, 14, 38, existence=True)
@@ -1144,6 +1146,16 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
         True
         sage: SRG_from_RSHCD(144, 65, 28, 30)
         Graph on 144 vertices
+
+    an example with vertex-transitive automorphism group, found during the
+    implementation of the case `v=324` ::
+
+        sage: G=SRG_from_RSHCD(324,152,70,72)  # long time
+        sage: a=G.automorphism_group()         # long time
+        sage: a.order()                        # long time
+        2592
+        sage: len(a.orbits())                  # long time
+        1
 
     TESTS::
 

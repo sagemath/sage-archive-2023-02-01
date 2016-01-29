@@ -180,10 +180,9 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         return self.__poly
 
-    def __getitem__(self, n):
+    cdef get_unsafe(self, Py_ssize_t n):
         """
-        Returns coefficient of the monomial of degree `n` if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         EXAMPLES::
 
@@ -193,20 +192,10 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             4*x^4 + x^3 + 13*x^2 + 10*x + 5
             sage: f[2]
             13
-            sage: f[1:3]
-            13*x^2 + 10*x
+            sage: f[:3]
+            13*x^2 + 10*x + 5
         """
-        if isinstance(n, slice):
-            start, stop = n.start, n.stop
-            R = self.base_ring()
-            if start < 0:
-                start = 0
-            if stop > self.__poly.degree()+1 or stop is None:
-                stop = self.__poly.degree()+1
-            v = [R(self.__poly[k]._sage_()) for k in range(start,stop)]
-            return self.parent()([0]*int(start) + v)
-        else:
-            return self.parent().base_ring()(self.__poly[n]._sage_())
+        return self._parent._base(self.__poly[n]._sage_())
 
     def _unsafe_mutate(self, n, value):
         n = int(n)
@@ -657,10 +646,9 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         cdef long i
         return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]
 
-    def __getitem__(self, n):
+    cdef get_unsafe(self, Py_ssize_t n):
         """
-        Returns coefficient of the monomial of degree `n` if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         EXAMPLES::
 
@@ -669,28 +657,12 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f = Polynomial_dense_modn_ntl_zz(R,[2, 1])^7
             sage: f[3]
             60
-            sage: f[3:6]
-            84*x^5 + 80*x^4 + 60*x^3
-            sage: f[-5:50] == f
+            sage: f[:6]
+            84*x^5 + 80*x^4 + 60*x^3 + 72*x^2 + 48*x + 28
+            sage: f[:50] == f
             True
-            sage: f[6:]
-            x^7 + 14*x^6
         """
-        if isinstance(n, slice):
-            start, stop = n.start, n.stop
-            R = self.base_ring()
-            if start < 0:
-                start = 0
-            if stop > zz_pX_deg(self.x)+1 or stop is None:
-                stop = zz_pX_deg(self.x)+1
-            v = [ zz_p_rep(zz_pX_GetCoeff(self.x, t)) for t from start <= t < stop ]
-            return Polynomial_dense_modn_ntl_zz(self._parent, v, check=False) << start
-        else:
-            R = self._parent._base
-            if n < 0 or n > zz_pX_deg(self.x):
-                return R(0)
-            else:
-                return R(zz_p_rep(zz_pX_GetCoeff(self.x, n)))
+        return self._parent._base(zz_p_rep(zz_pX_GetCoeff(self.x, n)))
 
     def _unsafe_mutate(self, n, value):
         self.c.restore_c()
@@ -914,7 +886,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         sig_off()
         return q, r
 
-    def __floordiv__(self, right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Returns the whole part of self/right, without remainder.
 
@@ -929,9 +901,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f - q*g
             x + 1
         """
-        if not have_same_parent_c(self, right):
-            self, right = canonical_coercion(self, right)
-            return self // right
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
         cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
         cdef Polynomial_dense_modn_ntl_zz q = numer._new()
@@ -1218,10 +1187,9 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
     def list(self):
         return [self._parent._base(self[n]) for n from 0 <= n <= self.degree()]
 
-    def __getitem__(self, n):
+    cdef get_unsafe(self, Py_ssize_t n):
         """
-        Returns coefficient of the monomial of degree `n` if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         EXAMPLES::
 
@@ -1230,34 +1198,16 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f = Polynomial_dense_modn_ntl_ZZ(R,[2,1])^7
             sage: f[3]
             560
-            sage: f[3:6]
-            84*x^5 + 280*x^4 + 560*x^3
-            sage: f[-5:50] == f
+            sage: f[:6]
+            84*x^5 + 280*x^4 + 560*x^3 + 672*x^2 + 448*x + 128
+            sage: f[:50] == f
             True
-            sage: f[6:]
-            x^7 + 14*x^6
         """
-        if isinstance(n, slice):
-            start, stop = n.start, n.stop
-            R = self.base_ring()
-            if start < 0:
-                start = 0
-            if stop > ZZ_pX_deg(self.x)+1 or stop is None:
-                stop = ZZ_pX_deg(self.x)+1
-            v = [ self[t] for t from start <= t < stop ]
-            return Polynomial_dense_modn_ntl_ZZ(self._parent, v, check=False) << start
-        else:
-            R = self._parent._base
-            if n < 0 or n > ZZ_pX_deg(self.x):
-                return R(0)
-
         self.c.restore_c()
-        cdef Integer z
-
         # TODO, make this faster
         cdef ntl_ZZ_p ntl = ntl_ZZ_p(0, self.c)
         ntl.x = ZZ_pX_coeff(self.x, n)
-        return R(ntl._integer_())
+        return self._parent._base(ntl._integer_())
 
     def _unsafe_mutate(self, n, value):
         self.c.restore_c()
@@ -1472,7 +1422,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         sig_off()
         return q, r
 
-    def __floordiv__(self, right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Returns the whole part of self/right, without remainder.
 
@@ -1487,9 +1437,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f - q*g
             x + 1
         """
-        if not have_same_parent_c(self, right):
-            self, right = canonical_coercion(self, right)
-            return self // right
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
         cdef Polynomial_dense_modn_ntl_ZZ denom = <Polynomial_dense_modn_ntl_ZZ>right
         cdef Polynomial_dense_modn_ntl_ZZ q = numer._new()

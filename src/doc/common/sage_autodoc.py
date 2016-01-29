@@ -42,7 +42,8 @@ from sphinx.util.inspect import getargspec, isdescriptor, safe_getmembers, \
 from sphinx.util.pycompat import base_exception, class_types
 from sphinx.util.docstrings import prepare_docstring
 
-from sage.misc.sageinspect import sage_getdoc_original, sage_getargspec, isclassinstance
+from sage.misc.sageinspect import (sage_getdoc_original,
+        sage_getargspec, sage_formatargspec, isclassinstance)
 from sage.misc.lazy_import import LazyImport
 
 #: extended signature RE: with explicit module name separated by ::
@@ -866,7 +867,7 @@ class FunctionDocumenter(ModuleLevelDocumenter):
         argspec = self.args_on_obj(self.object)
         if argspec is None:
             return None
-        args = inspect.formatargspec(*argspec)
+        args = sage_formatargspec(*argspec)
         # escape backslashes for reST
         args = args.replace('\\', '\\\\')
         return args
@@ -957,7 +958,7 @@ class ClassDocumenter(ModuleLevelDocumenter):
         argspec = sage_getargspec(initmeth)
         if argspec[0] and argspec[0][0] in ('cls', 'self'):
             del argspec[0][0]
-        return inspect.formatargspec(*argspec)
+        return sage_formatargspec(*argspec)
 
     def format_signature(self):
         if self.doc_as_attr:
@@ -1114,7 +1115,9 @@ class MethodDocumenter(ClassLevelDocumenter):
 
     def format_args(self):
         argspec = self.args_on_obj(self.object)
-        return inspect.formatargspec(*argspec) if argspec is not None else None
+        if argspec is None:
+            return None
+        return sage_formatargspec(*argspec)
 
     def document_members(self, all_members=False):
         pass

@@ -86,7 +86,7 @@ NOTE:
 from sage.rings.all      import Integer
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
-from sage.rings.arith import factor
+from sage.arith.all import factor, valuation
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method, weak_cached_function
@@ -2956,7 +2956,6 @@ class SuzukiGroup(PermutationGroup_unique):
         -  http://en.wikipedia.org/wiki/Group_of_Lie_type\#Suzuki-Ree_groups
         """
         q = Integer(q)
-        from sage.rings.arith import valuation
         t = valuation(q, 2)
         if 2**t != q or is_even(t):
             raise ValueError("The ground field size %s must be an odd power of 2." % q)

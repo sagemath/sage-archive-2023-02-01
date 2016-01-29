@@ -40,7 +40,7 @@ from copy import copy
 
 from sage.misc.all import powerset, prod
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.parallel.decorate import parallel
 

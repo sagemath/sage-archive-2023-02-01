@@ -963,7 +963,7 @@ cdef class BooleanFunction(SageObject):
         from sage.misc.all import prod
 
         from sage.matrix.constructor import Matrix
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
 
         for i in xrange(1,d+1):

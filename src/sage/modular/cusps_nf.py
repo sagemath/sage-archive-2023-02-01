@@ -1152,7 +1152,7 @@ def Gamma0_NFCusps(N):
             g = (A*B).gens_reduced()[0]
 
         #for every divisor of N we have to find cusps
-        from sage.rings.arith import divisors
+        from sage.arith.all import divisors
         for d in divisors(N):
             #find delta prime coprime to B in inverse class of d*A
             #by searching in our list of auxiliary prime ideals
@@ -1207,7 +1207,7 @@ def number_of_Gamma0_NFCusps(N):
     """
     k = N.number_field()
     # The number of Gamma0(N)-sub-orbits for each Gamma-orbit:
-    from sage.rings.arith import divisors
+    from sage.arith.all import divisors
     s = sum([len(list((d+N/d).invertible_residues_mod(k.unit_group().gens()))) \
                                                 for d in divisors(N)])
     # There are h Gamma-orbits, with h class number of underlying number field.

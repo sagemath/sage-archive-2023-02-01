@@ -1515,6 +1515,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         .. SEEALSO::
 
             :meth:`pow`, :meth:`rpow`, :meth:`exp`.
+
+        TESTS::
+
+            sage: P.<p> = PowerSeriesRing(QQ, default_prec=6)
+            sage: bool(SR(a.exact_part()).subs(s=1/x) -
+            ....:      SR((1+p).sqrt().polynomial()).subs(p=x) == 0)
+            True
             """
         from sage.rings.rational_field import QQ
         return self.pow(QQ(1)/(QQ(2)), precision=precision)

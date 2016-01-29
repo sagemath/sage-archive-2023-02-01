@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 GenericGraph Cython functions
 

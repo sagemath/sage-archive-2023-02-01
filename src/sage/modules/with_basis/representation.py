@@ -23,7 +23,7 @@ from sage.algebras.group_algebra import GroupAlgebra
 
 class Representation_abstract(CombinatorialFreeModule):
     """
-    Abstract base class for representations.
+    Abstract base class for representations of semigroups.
 
     INPUT:
 
@@ -162,7 +162,7 @@ class Representation(Representation_abstract):
 
     def _test_representation(self, **options):
         """
-        Check that ``self`` is a representation of the
+        Check (on some elements) that ``self`` is a representation of the
         given semigroup.
 
         EXAMPLES::
@@ -270,6 +270,9 @@ class Representation(Representation_abstract):
             sage: R = G.regular_representation()
             sage: R.side()
             'left'
+            sage: S = G.regular_representation(side="right")
+            sage: S.side()
+            'right'
         """
         return "left" if self._left_repr else "right"
 
@@ -285,6 +288,8 @@ class Representation(Representation_abstract):
                 sage: s1,s2 = G.gens()
                 sage: x = R.an_element(); x
                 2*B[s2*s1*s2] + B[s1*s2] + 3*B[s2] + B[1]
+                sage: 2 * x
+                4*B[s2*s1*s2] + 2*B[s1*s2] + 6*B[s2] + 2*B[1]
                 sage: s1 * x
                 2*B[s2*s1*s2*s1] + 3*B[s1*s2] + B[s1] + B[s2]
                 sage: s2 * x
@@ -356,16 +361,17 @@ class RegularRepresentation(Representation):
     r"""
     The regular representation of a semigroup.
 
-    The left regular representation of a semigroup `S` is isomorphic as
-    an `R`-module to the semigroup ring `R[S]` with the action
-    `x b_y = b_{xy}`, where `b_y` is the natural basis and `x,y \in S`.
+    The left regular representation of a semigroup `S` over a commutative
+    ring `R` is the semigroup ring `R[S]` equipped with the left
+    `S`-action `x b_y = b_{xy}`, where `(b_z)_{z \in S}` is the natural
+    basis of `R[S]` and `x,y \in S`.
 
     INPUT:
 
     - ``semigroup`` -- a semigroup
     - ``base_ring`` -- the base ring for the representation
-    - ``left_repr`` (keyword argument, defaults to ``True``) -- boolean;
-      whether this is a left or a right representation
+    - ``side`` -- (default: ``"left"``) whether this is a
+      ``"left"`` or ``"right"`` representation
 
     REFERENCES:
 
@@ -436,8 +442,9 @@ class TrivialRepresentation(Representation_abstract):
     """
     The trivial representation of a semigroup.
 
-    The trivial representation is the `1`-dimensional module where
-    every element acts by the identity.
+    The trivial representation of a semigroup `S` over a commutative ring
+    `R` is the `1`-dimensional `R`-module on which every element of `S`
+    acts by the identity.
 
     This is simultaneously a left and right representation.
 
@@ -487,6 +494,8 @@ class TrivialRepresentation(Representation_abstract):
                 sage: SGA = SymmetricGroupAlgebra(QQ, 3)
                 sage: V = SGA.trivial_representation()
                 sage: x = V.an_element()
+                sage: 2 * x
+                4*B['v']
                 sage: all(x * b == x for b in SGA.basis())
                 True
                 sage: all(b * x == x for b in SGA.basis())
@@ -504,7 +513,7 @@ class TrivialRepresentation(Representation_abstract):
                     d = self.monomial_coefficients(copy=True)
                     d['v'] *= sum(scalar.coefficients())
                     return self.parent()._from_dict(d)
-            return CombinatorialFreeModule.Element._acted_upon_(scalar, self_on_left)
+            return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         _rmul_ = _lmul_ = _acted_upon_
 

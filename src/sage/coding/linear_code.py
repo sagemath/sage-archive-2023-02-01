@@ -4202,10 +4202,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             if stop:
                 self._code_covering_radius = i - 1
                 half_d = (self._code_minimum_distance-1) // 2
-                if t < self._code_covering_radius:
-                    self._decoding_radius = t
-                else:
-                    self._decoding_radius = self._code_covering_radius
+                self._decoding_radius = self._code_covering_radius
         self._decoder_type = copy(self._decoder_type)
         self._decoder_type.remove("dynamic")
         #if we had some collisions, even if we did not reach the

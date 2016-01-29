@@ -34,7 +34,7 @@ Comprehensive Module list
     sage/combinat/cluster_algebra_quiver/mutation_type
     sage/combinat/cluster_algebra_quiver/quiver
     sage/combinat/cluster_algebra_quiver/quiver_mutation_type
-    sage/combinat/colored_permutations 
+    sage/combinat/colored_permutations
     sage/combinat/combinat
     sage/combinat/combinat_cython
     sage/combinat/combination
@@ -70,6 +70,7 @@ Comprehensive Module list
     sage/combinat/crystals/littelmann_path
     sage/combinat/crystals/monomial_crystals
     sage/combinat/crystals/spins
+    sage/combinat/crystals/star_crystal
     sage/combinat/crystals/tensor_product
     sage/combinat/cyclic_sieving_phenomenon
     sage/combinat/debruijn_sequence
@@ -286,6 +287,7 @@ Comprehensive Module list
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type
+    sage/combinat/sine_gordon
     sage/combinat/six_vertex_model
     sage/combinat/skew_partition
     sage/combinat/skew_tableau
@@ -318,6 +320,7 @@ Comprehensive Module list
     sage/combinat/subsets_hereditary
     sage/combinat/subsets_pairwise
     sage/combinat/subword
+    sage/combinat/subword_complex
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau

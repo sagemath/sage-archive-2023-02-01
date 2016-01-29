@@ -39,7 +39,7 @@ from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
 import ell_point
-from sage.rings.arith import gcd, lcm
+from sage.arith.all import gcd, lcm, binomial
 from sage.structure.sequence import Sequence
 
 import sage.plot.all as plot
@@ -1958,7 +1958,6 @@ def supersingular_j_polynomial(p):
     J = polygen(GF(p),'j')
     if p<13:
         return J.parent().one()
-    from sage.rings.arith import binomial
     from sage.misc.all import prod
     m=(p-1)//2
     X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()

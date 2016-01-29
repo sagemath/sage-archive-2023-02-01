@@ -9,7 +9,7 @@ Local Representation Conditions
 from copy import deepcopy
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import prime_divisors, valuation, is_square
+from sage.arith.all import prime_divisors, valuation, is_square
 from sage.quadratic_forms.extras import least_quadratic_nonresidue
 from sage.rings.infinity import infinity
 from sage.misc.functional import numerator, denominator

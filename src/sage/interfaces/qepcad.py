@@ -743,7 +743,7 @@ class Qepcad_expect(Expect):
     The low-level wrapper for QEPCAD.
     """
     def __init__(self, memcells=None,
-                 maxread=100000,
+                 maxread=None,
                  logfile=None,
                  server=None):
         r"""
@@ -767,7 +767,6 @@ class Qepcad_expect(Expect):
                         # it doesn't give prompts
                         prompt="\nEnter an .*:\r",
                         command=_qepcad_cmd(memcells),
-                        maxread=maxread,
                         server=server,
                         restart_on_ctrlc=False,
                         verbose_start=False,
@@ -1668,6 +1667,9 @@ def qepcad_console(memcells=None):
         ...
         Enter an informal description  between '[' and ']':
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%qepcat magics instead.')
     # This will only spawn local processes
     os.system(_qepcad_cmd(memcells))
 

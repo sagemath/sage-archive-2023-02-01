@@ -136,6 +136,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`chow_ring() <sage.matroids.matroid.Matroid.chow_ring>`
     - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
     - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
+    - :meth:`orlik_solomon_algebra() <sage.matroids.matroid.Matroid.orlik_solomon_algebra>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -2813,9 +2814,10 @@ cdef class Matroid(SageObject):
         r"""
         Return the list of broken circuits of ``self``.
 
-        A *broken circuit* `B` for is a subset of the ground set under
-        some total ordering `<` such that `B \cup \{ u \}` is a circuit
-        and `u < b` for all `b \in B`.
+        Let `M` be a matroid with ground set `E`, and let `<` be a total
+        ordering on `E`. A *broken circuit* for `M` means a subset `B` of
+        `E` such that there exists a `u \in E` for which `B \cup \{ u \}`
+        is a circuit of `M` and `u < b` for all `b \in B`.
 
         INPUT:
 
@@ -2890,6 +2892,31 @@ cdef class Matroid(SageObject):
                 if add:
                     ret.append(I)
         return ret
+
+    def orlik_solomon_algebra(self, R, ordering=None):
+        """
+        Return the Orlik-Solomon algebra of ``self``.
+
+        INPUT:
+
+        - ``R`` -- the base ring
+        - ``ordering`` -- (optional) an ordering of the ground set
+
+        .. SEEALSO::
+
+            :class:`~sage.algebras.orlik_solomon.OrlikSolomonAlgebra`
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(3, 4)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS
+            Orlik-Solomon algebra of U(3, 4): Matroid of rank 3 on 4 elements
+             with circuit-closures
+             {3: {{0, 1, 2, 3}}}
+        """
+        from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
+        return OrlikSolomonAlgebra(R, self, ordering)
 
     # polytopes
 
@@ -3644,7 +3671,18 @@ cdef class Matroid(SageObject):
             sage: M.contract(1) == M / 1  # indirect doctest
             True
         """
-        # Shorthand: M / X
+        return self.contract(X)
+
+    def __truediv__(self, X):
+        r"""
+        Shorthand for ``self.contract(X)``.
+
+        EXAMPLES::
+
+            sage: M = matroids.CompleteGraphic(4)
+            sage: M.contract(1) == M.__truediv__(1)
+            True
+        """
         return self.contract(X)
 
     cpdef delete(self, X):

@@ -102,7 +102,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
-import arith
+import sage.arith.all as arith
 import sage.misc.latex
 import rational_field, integer_ring
 from integer import Integer
@@ -148,7 +148,6 @@ cdef class PowerSeries(AlgebraElement):
     multivariate power series. The following methods
     are available with both types of objects.
     """
-
     def __init__(self, parent, prec, is_gen=False):
         """
         Initialize a power series. Not for public use.
@@ -948,133 +947,6 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self[0].is_unit()
 
-    def __invert__(self):
-        """
-        Return the inverse of the power series (i.e., a series `Y` such
-        that `XY = 1`).
-        
-        The first nonzero coefficient must be a unit in
-        the coefficient ring. If the valuation of the series is positive,
-        this function will return a :doc:`laurent_series_ring_element`.
-
-        ALGORITHM: Uses Newton's method. Complexity is around
-        `O(M(n) \log n)`, where `n` is the precision and
-        `M(n)` is the time required to multiply polynomials of
-        length `n`.
-
-        EXAMPLES::
-
-            sage: R.<q> = QQ[[]]
-            sage: 1/(1+q + O(q**2))
-            1 - q + O(q^2)
-            sage: 1/(1+q)
-            1 - q + q^2 - q^3 + q^4 - q^5 + q^6 - q^7 + q^8 - q^9 + q^10 - q^11 + q^12 - q^13 + q^14 - q^15 + q^16 - q^17 + q^18 - q^19 + O(q^20)
-            sage: prec = R.default_prec(); prec
-            20
-            sage: R.set_default_prec(5)
-            sage: 1/(1+q)
-            1 - q + q^2 - q^3 + q^4 + O(q^5)
-
-        ::
-
-            sage: 1/(q + q^2)
-             q^-1 - 1 + q - q^2 + q^3 + O(q^4)
-            sage: g = 1/(q + q^2 + O(q^5))
-            sage: g; g.parent()
-            q^-1 - 1 + q - q^2 + O(q^3)
-            Laurent Series Ring in q over Rational Field
-
-        ::
-
-            sage: 1/g
-            q + q^2 + O(q^5)
-            sage: (1/g).parent()
-            Laurent Series Ring in q over Rational Field
-
-        ::
-
-            sage: 1/(2 + q)
-             1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
-
-        ::
-
-            sage: R.<q> = QQ[['q']]
-            sage: R.set_default_prec(5)
-            sage: f = 1 + q + q^2 + O(q^50)
-            sage: f/10
-            1/10 + 1/10*q + 1/10*q^2 + O(q^50)
-            sage: f/(10+q)
-            1/10 + 9/100*q + 91/1000*q^2 - 91/10000*q^3 + 91/100000*q^4 + O(q^5)
-
-        ::
-
-            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
-            sage: u = 17 + 3*t^2 + 19*t^10 + O(t^12)
-            sage: v = ~u; v
-            1/17 - 3/289*t^2 + 9/4913*t^4 - 27/83521*t^6 + 81/1419857*t^8 - 1587142/24137569*t^10 + O(t^12)
-            sage: u*v
-            1 + O(t^12)
-
-        We try a non-zero, non-unit leading coefficient::
-
-            sage: R.<t> = PowerSeriesRing(IntegerModRing(6))
-            sage: ~R(2)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: leading coefficient must be a unit
-
-        A test for the case where the precision is 0::
-
-            sage: R.<x> = PowerSeriesRing(ZZ, default_prec=0)
-            sage: ~(1+x)
-            O(x^0)
-
-        AUTHORS:
-
-        - David Harvey (2006-09-09): changed to use Newton's method
-        """
-        if self.is_one():
-            return self
-        prec = self.prec()
-        if prec is infinity and self.degree() > 0:
-            prec = self._parent.default_prec()
-        if self.valuation() > 0:
-            u = ~self.valuation_zero_part()    # inverse of unit part
-            R = self._parent.laurent_series_ring()
-            return R(u, -self.valuation())
-
-        # Use Newton's method, i.e. start with single term approximation,
-        # and then iteratively compute $x' = 2x - Ax^2$, where $A$ is the
-        # series we're trying to invert.
-
-        try:
-            first_coeff = ~self[0]
-        except (ValueError, ZeroDivisionError):
-            raise ZeroDivisionError, "leading coefficient must be a unit"
-
-        if prec is infinity:
-            return self._parent(first_coeff, prec=prec)
-        elif not prec:
-            return self._parent(0, prec=0)
-
-        A = self.truncate()
-        R = A.parent()     # R is the corresponding polynomial ring
-        current = R(first_coeff)
-
-        # todo: in the case that the underlying polynomial ring is
-        # implemented via NTL, the truncate() method should use NTL's
-        # methods. Currently it is very slow because it uses generic code
-        # that has to pull all the data in and out of the polynomials.
-
-        # todo: also, NTL has built-in series inversion. We should use
-        # that when available.
-
-        for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
-            z = current.square() * A.truncate(next_prec)
-            current = 2*current - z.truncate(next_prec)
-
-        return self._parent(current, prec=prec)
-
     def inverse(self):
         """
         Return the inverse of self, i.e., self^(-1).
@@ -1529,7 +1401,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: p.O(-5)
             Traceback (most recent call last):
             ...
-            ValueError: n must be at least 0
+            ValueError: prec (= -5) must be non-negative
         """
         if prec is infinity or prec >= self.prec():
             return self
@@ -1762,7 +1634,8 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Return log of this power series to the indicated precision.
 
-        This works only if the constant term of the power series is 1.
+        This works only if the constant term of the power series is 1
+        or the base ring can take the logarithm of the constant coefficient.
 
         INPUT:
 
@@ -1790,17 +1663,26 @@ cdef class PowerSeries(AlgebraElement):
             sage: (-1 + t + O(t^10)).log()
             Traceback (most recent call last):
             ...
-            ArithmeticError: constant term of power series is not 1
+            AttributeError: 'sage.rings.rational.Rational' object has no attribute 'log'
+
+            sage: R.<t> = PowerSeriesRing(RR)
+            sage: (2+t).log().exp()
+            2.00000000000000 + 1.00000000000000*t + O(t^20)
         """
         if prec is None:
             prec = self._parent.default_prec()
 
-        if not self[0].is_one():
-            raise ArithmeticError("constant term of power series is not 1")
-
         zero = self.parent().zero()
+        const_off = zero
+
+        if not self[0].is_one():
+            if self.base_ring() in _Fields:
+                const_off = self[0].log()
+            else:
+                raise ArithmeticError("constant term of power series is not 1")
+
         t = zero.solve_linear_de(prec,b=self.derivative()/self,f0=0)
-        return t
+        return t + const_off
 
     def V(self, n):
         r"""

@@ -1,5 +1,7 @@
 Fix FLINT include paths
 
+See https://github.com/fredrik-johansson/arb/pull/55
+
 diff -ru a/acb/test/t-rising2_ui_bs.c b/acb/test/t-rising2_ui_bs.c
 --- a/acb/test/t-rising2_ui_bs.c	2015-07-14 15:59:03.000000000 +0200
 +++ b/acb/test/t-rising2_ui_bs.c	2015-11-28 20:14:34.089305460 +0100

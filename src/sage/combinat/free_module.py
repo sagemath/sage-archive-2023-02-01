@@ -708,7 +708,7 @@ class CombinatorialFreeModuleElement(Element):
     _lmul_ = _acted_upon_
     _rmul_ = _acted_upon_
 
-    def __div__(self, x, self_on_left=False ):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 
@@ -734,12 +734,12 @@ class CombinatorialFreeModuleElement(Element):
         x = self.base_ring()( x )
         x_inv = x**-1
         D = self._monomial_coefficients
-        if self_on_left:
-            D = dict_linear_combination( [ ( D, x_inv ) ], factor_on_left=False )
-        else:
-            D = dict_linear_combination( [ ( D, x_inv ) ] )
+        D = dict_linear_combination( [ ( D, x_inv ) ] )
 
         return F._from_dict( D, remove_zeros=False )
+
+    __div__ = __truediv__
+
 
 def _divide_if_possible(x, y):
     """
@@ -2106,7 +2106,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
 class CartesianProductWithFlattening(object):
     """
-    A class for cartesian product constructor, with partial flattening
+    A class for Cartesian product constructor, with partial flattening
     """
     def __init__(self, flatten):
         """
@@ -2147,11 +2147,11 @@ CombinatorialFreeModule.Tensor = CombinatorialFreeModule_Tensor
 
 class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
     """
-    An implementation of cartesian products of modules with basis
+    An implementation of Cartesian products of modules with basis
 
     EXAMPLES:
 
-    We construct two free modules, assign them short names, and construct their cartesian product::
+    We construct two free modules, assign them short names, and construct their Cartesian product::
 
         sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
         sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
@@ -2168,7 +2168,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         sage: list(S.basis())
         [B[(0, 4)], B[(0, 5)], B[(1, 4)], B[(1, 6)]]
 
-    We now compute the cartesian product of elements of free modules::
+    We now compute the Cartesian product of elements of free modules::
 
         sage: f =   F.monomial(4) + 2 * F.monomial(5)
         sage: g = 2*G.monomial(4) +     G.monomial(6)
@@ -2180,7 +2180,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         sage: cartesian_product([f,g,h]).parent()
         F (+) G (+) H
 
-    TODO: choose an appropriate semantic for cartesian products of cartesian products (associativity?)::
+    TODO: choose an appropriate semantic for Cartesian products of Cartesian products (associativity?)::
 
         sage: S = cartesian_product([cartesian_product([F, G]), H]) # todo: not implemented
         F (+) G (+) H
@@ -2238,7 +2238,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
     def cartesian_embedding(self, i):
         """
         Return the natural embedding morphism of the ``i``-th
-        cartesian factor (summand) of ``self`` into ``self``.
+        Cartesian factor (summand) of ``self`` into ``self``.
 
         INPUT:
 
@@ -2271,7 +2271,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
     @cached_method
     def cartesian_projection(self, i):
         """
-        Return the natural projection onto the `i`-th cartesian factor
+        Return the natural projection onto the `i`-th Cartesian factor
         (summand) of ``self``.
 
         INPUT:
@@ -2301,11 +2301,11 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
     def _cartesian_product_of_elements(self, elements):
         """
-        Return the cartesian product of the elements.
+        Return the Cartesian product of the elements.
 
         INPUT:
 
-        - ``elements`` -- a tuple with one element of each cartesian
+        - ``elements`` -- a tuple with one element of each Cartesian
           factor of ``self``
 
         EXAMPLES::
@@ -2325,7 +2325,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
     def cartesian_factors(self):
         """
-        Return the factors of the cartesian product.
+        Return the factors of the Cartesian product.
 
         EXAMPLES::
 

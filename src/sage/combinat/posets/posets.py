@@ -71,6 +71,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_graded` | Return ``True`` if all maximal chains of the poset has same length.
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
+    :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation.
@@ -170,7 +171,7 @@ List of Poset methods
     :meth:`~FinitePoset.chain_polytope` | Return the chain polytope of the poset.
     :meth:`~FinitePoset.order_polytope` | Return the order polytope of the poset.
 
-**Other & not yet classified**
+**Graphs**
 
 .. csv-table::
     :class: contentstable
@@ -181,6 +182,15 @@ List of Poset methods
     :meth:`~FinitePoset.cover_relations_graph` | Return the (undirected) graph of cover relations.
     :meth:`~FinitePoset.comparability_graph` | Return the comparability graph of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Return the incomparability graph of the poset.
+    :meth:`~FinitePoset.linear_extensions_graph` | Return the linear extensions graph of the poset.
+
+**Other & not yet classified**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset.
@@ -268,7 +278,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
       1. A two-element list or tuple ``(E, R)``, where ``E`` is a
          collection of elements of the poset and ``R`` is a collection
          of relations ``x <= y``, each represented as a two-element
-         lists/tuples/iterables such as ``[x, y]``. The poset is then
+         list/tuple/iterable such as ``[x, y]``. The poset is then
          the transitive closure of the provided relations. If
          ``cover_relations=True``, then ``R`` is assumed to contain
          exactly the cover relations of the poset. If ``E`` is empty,
@@ -279,7 +289,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
          of elements of the poset and ``f`` is a function such that,
          for any pair ``x, y`` of elements of ``E``, ``f(x, y)``
          returns whether ``x <= y``. If ``cover_relations=True``, then
-         ``f(x,y)`` should return whether ``x`` is covered by ``y``.
+         ``f(x, y)`` should instead return whether ``x`` is covered by
+         ``y``.
 
       3. A dictionary, list or tuple of upper covers: ``data[x]`` is
          a list of the elements that cover the element `x` in the poset.
@@ -586,7 +597,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: Poset([1,2,3], lambda x,y : x<y)
         Traceback (most recent call last):
         ...
-        ValueError: element_labels should be a dict or a list if different from None. (Did you intend data to be equal to a pair ?)
+        ValueError: element_labels should be a dict or a list if different
+        from None. (Did you intend data to be equal to a pair ?)
 
     Another kind of bad input, digraphs with oriented cycles::
 
@@ -624,7 +636,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     elif isinstance(data, DiGraph): # type 4
         D = copy.deepcopy(data)
     elif isinstance(data, dict): # type 3: dictionary of upper covers
-        D = DiGraph(data)
+        D = DiGraph(data, format="dict_of_lists")
     elif isinstance(data,(list,tuple)): # types 1, 2, 3 (list/tuple)
         if len(data) == 2: # types 1 or 2
             if callable(data[1]): # type 2
@@ -647,7 +659,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             D.add_edges(relations)
         elif len(data) > 2:
             # type 3, list/tuple of upper covers
-            D = DiGraph(dict([[Integer(i),data[i]] for i in range(len(data))]))
+            D = DiGraph(dict([[Integer(i),data[i]] for i in range(len(data))]),
+                        format="dict_of_lists")
         else:
             raise ValueError("not valid poset data.")
 
@@ -1647,7 +1660,17 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
             ['a', 'b', 'c', 'd', 'e']
 
-        Plot of the empty poset::
+        The following checks that :trac:`18936` has been fixed and labels still work::
+
+            sage: P = Poset({0: [1,2], 1:[3]})
+            sage: heights = {1 : [0], 2 : [1], 3 : [2,3]}
+            sage: P.plot(heights=heights)
+            Graphics object consisting of 8 graphics primitives
+            sage: elem_labels = {0 : 'a', 1 : 'b', 2 : 'c', 3 : 'd'}
+            sage: P.plot(element_labels=elem_labels, heights=heights)
+            Graphics object consisting of 8 graphics primitives
+
+        Plot of the empy poset::
 
             sage: P = Poset({})
             sage: P.plot()
@@ -1656,23 +1679,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from collections import defaultdict
         graph = self.hasse_diagram()
-        rank_function = self.rank_function()
-        if rank_function:
-            heights = defaultdict(list)
-        else:
-            heights = None
+        heights = kwds.pop('heights', None)
+        if heights is None:
+            rank_function = self.rank_function()
+            if rank_function: # use the rank function to set the heights
+                heights = defaultdict(list)
+                for i in self:
+                    heights[rank_function(i)].append(i)
         # if relabeling is needed
         if label_elements and element_labels is not None:
             relabeling = dict((self(element), label)
                                for (element, label) in element_labels.items())
             graph = graph.relabel(relabeling, inplace = False)
-            if rank_function: # use the rank function to set the heights
-                for i in self:
-                    heights[rank_function(i)].append(relabeling[i])
-        else: # otherwise
-            if rank_function: # use the rank function to set the heights
-                for i in self:
-                    heights[rank_function(i)].append(i)
+            if heights is not None:
+                for key in heights.keys():
+                    heights[key] = [relabeling[i] for i in heights[key]]
 
         if cover_labels is not None:
             if callable(cover_labels):
@@ -3733,7 +3754,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return the ordinal product of ``self`` and ``other``.
 
         The ordinal product of two posets `P` and `Q` is a partial
-        order on the cartesian product of the underlying sets of `P`
+        order on the Cartesian product of the underlying sets of `P`
         and `Q`, defined as follows (see [EnumComb1]_, p. 284).
 
         In the ordinal product, `(p,q) \leq (p',q')` if either `p \leq
@@ -3992,11 +4013,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         if len(labels) != 2:
             raise ValueError("labels must be a pair")
-        new_min = labels[0]
-        new_max = labels[1]
-        
+        new_min, new_max = labels
+
         if self.cardinality() == 0:
-            return constructor(DiGraph({new_min: [new_max]}))
+            return constructor(DiGraph({new_min: [new_max]},
+                                        format="dict_of_lists"))
 
         if new_min in self:
             raise ValueError("the poset already has element %s" % new_min)
@@ -4397,6 +4418,7 @@ class FinitePoset(UniqueRepresentation, Parent):
            *Generating Random Elements of Finite Distributive Lattices*,
            Electron. J. Combin. 4 (1997), no. 2, The Wilf Festschrift volume,
            Research Paper 15.
+           http://www.combinatorics.org/ojs/index.php/eljc/article/view/v4i2r15
         """
         from sage.misc.randstate import current_randstate
         from sage.misc.randstate import seed
@@ -4442,7 +4464,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             raise ValueError("direction must be 'up', 'down' or 'antichain'")
         return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
 
-    def order_filter(self,elements):
+    def order_filter(self, elements):
         """
         Return the order filter generated by the elements of an
         iterable ``elements``.
@@ -4474,7 +4496,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         of = self._hasse_diagram.order_filter(vertices)
         return [self._vertex_to_element(_) for _ in of]
 
-    def order_ideal(self,elements):
+    def order_ideal(self, elements):
         """
         Return the order ideal generated by the elements of an
         iterable ``elements``.
@@ -5561,6 +5583,72 @@ class FinitePoset(UniqueRepresentation, Parent):
                 return False
         return True
 
+    def is_eulerian(self):
+        """
+        Return ``True`` if the poset is Eulerian, and ``False`` otherwise.
+
+        The poset is expected to be graded and bounded.
+
+        A poset is Eulerian if every non-trivial interval has the same
+        number of elements of even rank as of odd rank.
+
+        See :wikipedia:`Eulerian_poset`.
+
+        EXAMPLES::
+
+            sage: P = Poset({0:[1, 2, 3], 1:[4, 5], 2:[4, 6], 3:[5, 6],
+            ....: 4:[7, 8], 5:[7, 8], 6:[7, 8], 7:[9], 8:[9]})
+            sage: P.is_eulerian()
+            True
+            sage: P = Poset({0:[1, 2, 3], 1:[4, 5, 6], 2:[4, 6], 3:[5,6],
+            ....: 4:[7], 5:[7], 6:[7]})
+            sage: P.is_eulerian()
+            False
+
+        Canonical examples of Eulerian posets are the face lattices of
+        convex polytopes::
+
+            sage: P = polytopes.cube().face_lattice()
+            sage: P.is_eulerian()
+            True
+
+        TESTS::
+
+            sage: Poset().is_eulerian()
+            Traceback (most recent call last):
+            ...
+            TypeError: the poset is not bounded
+            sage: Posets.PentagonPoset().is_eulerian()
+            Traceback (most recent call last):
+            ...
+            TypeError: the poset is not graded
+            sage: Poset({1: []}).is_eulerian()
+            True
+        """
+        if not self.is_bounded():
+            raise TypeError("the poset is not bounded")
+        if not self.is_graded():
+            raise TypeError("the poset is not graded")
+
+        n = self.cardinality()
+        if n == 1:
+            return True
+        if n % 2 == 1:
+            return False
+
+        H = self._hasse_diagram
+        M = H.mobius_function_matrix()
+        for i in range(n):
+            for j in range(i):
+                if H.is_lequal(j, i):
+                    if (H._rank[i] - H._rank[j]) % 2 == 1:
+                        if M[j, i] != -1:
+                            return False
+                    else:
+                        if M[j, i] != +1:
+                            return False
+        return True
+
     def frank_network(self):
         r"""
         Computes Frank's network of the poset ``self``.
@@ -5684,7 +5772,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         for i in self:
             pdict[(0, i)] = [(1, j) for j in self if self.ge(i, j)]
             pdict[(1, i)] = [(2, 0)]
-        G = DiGraph(pdict)
+        G = DiGraph(pdict, format="dict_of_lists")
         a = { (u, v): 0 for (u, v, l) in G.edge_iterator() }
         for i in self:
             a[((0, i), (1, i))] = 1
@@ -5838,7 +5926,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.graphs.graph import Graph
         from sage.graphs.independent_sets import IndependentSets
         auxg = Graph({(u, 0): [(v, 1) for v in self if not self.ge(u, v)]
-                      for u in self})
+                      for u in self}, format="dict_of_lists")
         auxg.add_vertices([(v, 1) for v in self])
         return [frozenset([xa for xa, xb in c if xb == 0])
                 for c in IndependentSets(auxg, maximal=True)]

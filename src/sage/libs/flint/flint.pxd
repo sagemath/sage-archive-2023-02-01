@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 cdef extern from "flint/flint.h":
     cdef unsigned long FLINT_BIT_COUNT(unsigned long)
     void flint_free(void * ptr)

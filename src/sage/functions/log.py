@@ -39,6 +39,8 @@ class Function_exp(GinacFunction):
             12.182493960703473
             sage: exp(RDF('2.5'))
             12.182493960703473
+            sage: exp(I*pi/12)
+            1/12*sqrt(6)*(sqrt(3) + 3) - 1/12*I*sqrt(6)*(sqrt(3) - 3)
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 

@@ -18,7 +18,7 @@ from sage.rings.all import (
 from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -457,7 +457,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def __pow__(self, m):
         """
-        Return the cartesian power of self.
+        Return the Cartesian power of self.
 
         INPUT:
 

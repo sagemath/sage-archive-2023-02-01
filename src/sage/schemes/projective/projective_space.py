@@ -108,9 +108,9 @@ from sage.schemes.projective.projective_homset import (SchemeHomset_points_proje
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
                                                       SchemeMorphism_point_projective_field,
                                                       SchemeMorphism_point_projective_finite_field)
-from sage.schemes.projective.projective_morphism import  (SchemeMorphism_polynomial_projective_space,
-                                                          SchemeMorphism_polynomial_projective_space_field,
-                                                          SchemeMorphism_polynomial_projective_space_finite_field)
+from sage.schemes.projective.projective_morphism import (SchemeMorphism_polynomial_projective_space,
+                                                         SchemeMorphism_polynomial_projective_space_field,
+                                                         SchemeMorphism_polynomial_projective_space_finite_field)
 
 def is_ProjectiveSpace(x):
     r"""

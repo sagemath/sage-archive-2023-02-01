@@ -38,42 +38,42 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.calculus.functions       import jacobian
+from sage.calculus.functions import jacobian
 from sage.categories.number_fields import NumberFields
-from sage.categories.homset        import Hom, End
-from sage.combinat.sf.sf           import SymmetricFunctions
-from sage.functions.all            import sqrt
-from sage.libs.pari.all            import PariError
-from sage.matrix.constructor       import matrix, identity_matrix
-from sage.misc.all                 import prod
-from sage.misc.cachefunc           import cached_method
-from sage.misc.misc                import subsets
-from sage.misc.mrange              import xmrange
+from sage.categories.homset import Hom, End
+from sage.combinat.sf.sf import SymmetricFunctions
+from sage.functions.all import sqrt
+from sage.libs.pari.all import PariError
+from sage.matrix.constructor import matrix, identity_matrix
+from sage.misc.all import prod
+from sage.misc.cachefunc import cached_method
+from sage.misc.misc import subsets
+from sage.misc.mrange import xmrange
 from sage.modules.free_module_element import vector
-from sage.rings.all                import Integer, CIF
+from sage.rings.all import Integer, CIF
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
-from sage.rings.complex_field      import ComplexField_class,ComplexField
+from sage.rings.complex_field import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
-from sage.rings.fraction_field     import FractionField
+from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
-from sage.rings.integer_ring       import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.qqbar              import QQbar, number_field_elements_from_algebraics
-from sage.rings.quotient_ring      import QuotientRing_generic
-from sage.rings.qqbar              import QQbar
-from sage.rings.rational_field     import QQ
-from sage.rings.real_mpfr          import RealField_class,RealField
-from sage.rings.real_mpfi          import RealIntervalField_class
+from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
+from sage.rings.quotient_ring import QuotientRing_generic
+from sage.rings.qqbar import QQbar
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RealField_class,RealField
+from sage.rings.real_mpfi import RealIntervalField_class
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.symbolic.constants       import e
+from sage.symbolic.constants import e
 from copy import copy
-from sage.parallel.ncpus           import ncpus
-from sage.parallel.use_fork        import p_iter_fork
-from sage.ext.fast_callable        import fast_callable
-from sage.misc.lazy_attribute      import lazy_attribute
+from sage.parallel.ncpus import ncpus
+from sage.parallel.use_fork import p_iter_fork
+from sage.ext.fast_callable import fast_callable
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 import sys
 from sage.categories.number_fields import NumberFields

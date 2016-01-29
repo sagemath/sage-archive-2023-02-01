@@ -20,23 +20,23 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from copy                          import copy
-from sage.combinat.subset          import Subsets
-from sage.functions.all            import sqrt
-from itertools                     import permutations, combinations
-from sage.matrix.constructor       import matrix
-from sage.matrix.matrix            import is_Matrix
-from sage.misc.functional          import squarefree_part
-from sage.misc.misc_c              import prod
+from copy import copy
+from sage.combinat.subset import Subsets
+from sage.functions.all import sqrt
+from itertools import permutations, combinations
+from sage.matrix.constructor import matrix
+from sage.matrix.matrix import is_Matrix
+from sage.misc.functional import squarefree_part
+from sage.misc.misc_c import prod
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod_ring import Integers
-from sage.rings.fraction_field     import FractionField
-from sage.rings.integer_ring       import ZZ
+from sage.rings.fraction_field import FractionField
+from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field import NumberField
 from sage.arith.all import gcd, lcm, CRT, is_square, divisors
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.rational_field     import QQ
-from sage.sets.primes              import Primes
+from sage.rings.rational_field import QQ
+from sage.sets.primes import Primes
 
 def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False, iso_type=False):
     r"""

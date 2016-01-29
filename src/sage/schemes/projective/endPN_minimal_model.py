@@ -29,14 +29,14 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.homset                            import End
-from copy                                              import copy
-from sage.matrix.constructor                           import matrix
-from sage.rings.finite_rings.integer_mod_ring          import Zmod
-from sage.rings.integer_ring                           import ZZ
+from sage.categories.homset import End
+from copy import copy
+from sage.matrix.constructor import matrix
+from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.rational_field                         import QQ
-from sage.schemes.affine.affine_space                  import AffineSpace
+from sage.rings.rational_field import QQ
+from sage.schemes.affine.affine_space import AffineSpace
 from sage.arith.all import gcd
 
 

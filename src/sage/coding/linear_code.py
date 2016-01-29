@@ -1719,7 +1719,7 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.decoder()
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 1
 
 
         If the name of a decoder which is not known by ``self`` is passed,
@@ -4061,17 +4061,89 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     EXAMPLES::
 
-        sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+        sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
         sage: C = LinearCode(G)
         sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
         sage: D
-        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
+        Syndrome decoder for Linear code of length 9, dimension 3 over Finite Field of size 3 handling errors of weight up to 4
 
-        If one wants to correct up to a lower number of errors, one can do as follows::
+    If one wants to correct up to a lower number of errors, one can do as follows::
 
         sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight=2)
         sage: D
-        Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
+        Syndrome decoder for Linear code of length 9, dimension 3 over Finite Field of size 3 handling errors of weight up to 2
+
+    If one checks the list of types of this decoder before constructing it,
+    one will notice it contains the keyword `dynamic`.
+    Indeed, the behaviour of the syndrome decoder depends on the maximum
+    error weight one wants to handle, and how it compares to the minimum
+    distance and the covering radius of ``code``.
+    In the following examples, we illustrate this property by computing
+    different instances of syndrome decoder for the same code.
+
+    We choose the following linear code, whose covering radius equals to 4
+    and minimum distance to 5 (half the minimum distance is 2)::
+
+        sage: G = matrix(GF(5), [[1, 0, 0, 0, 0, 4, 3, 0, 3, 1, 0],
+        ....:                    [0, 1, 0, 0, 0, 3, 2, 2, 3, 2, 1],
+        ....:                    [0, 0, 1, 0, 0, 1, 3, 0, 1, 4, 1],
+        ....:                    [0, 0, 0, 1, 0, 3, 4, 2, 2, 3, 3],
+        ....:                    [0, 0, 0, 0, 1, 4, 2, 3, 2, 2, 1]])
+        sage: C = LinearCode(G)
+
+    In the following examples, we illustrate how the choice of
+    `maximum_error_weight` influences the types of the instance of
+    syndrome decoder, alongside with its decoding radius.
+
+    We build a first syndrome decoder, and pick a `maximum_error_weight`
+    smaller than both the covering radius and half the minimum distance::
+
+        sage: D = C.decoder("Syndrome", maximum_error_weight = 1)
+        sage: D.decoder_type()
+        {'always-succeed', 'bounded_distance', 'hard-decision', 'unique'}
+        sage: D.decoding_radius()
+        1
+
+    In that case, we are sure the decoder will always succeed. It is also
+    a bounded distance decoder.
+
+    We now build another syndrome decoder, and this time,
+    `maximum_error_weight` is chosen to be bigger than half the minimum distance,
+    but lower than the covering radius::
+
+        sage: D = C.decoder("Syndrome", maximum_error_weight = 3)
+        sage: D.decoder_type()
+        {'bounded_distance', 'hard-decision', 'might-error', 'unique'}
+        sage: D.decoding_radius()
+        3
+
+    Here, we still get a bounded distance decoder.
+    But because we have a maximum error weight bigger than half the
+    minimum distance, we know it might return a codeword which was not
+    the original codeword.
+
+    And now, we build a third syndrome decoder, whose `maximum_error_weight`
+    is bigger than both the covering radius and half the minimum distance::
+
+        sage: D = C.decoder("Syndrome", maximum_error_weight = 5)
+        sage: D.decoder_type()
+        {'complete', 'hard-decision', 'might-error', 'unique'}
+        sage: D.decoding_radius()
+        4
+
+    In that case, the decoder might still return an unexepected codeword, but
+    it is now complete. Note the decoding radius is equal to 4, as it was
+    computed while building the syndrome lookup table that the maximum number
+    of errors this decoder will be likely to decode is 4.
+
+    One can notice we never explicitely computed the minimum distance, nor
+    the covering radius of our code. It can thus be surprising to update
+    dynamically the types. This is because while computing the syndrome
+    lookup table, some information might be found, depending on
+    `maximum_error_weight`: if it is smaller than both the covering
+    radius and the minimum distance, we will never find two different error
+    vectors with the same syndrome, and thus we can update the types.
+    The same method applies in the cases illustrated above.
     """
 
     def __init__(self, code, maximum_error_weight=None):
@@ -4108,7 +4180,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
             sage: D1 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
             sage: D2 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
             sage: D1 == D2
@@ -4124,11 +4196,11 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D
-            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 2
+            Syndrome decoder for Linear code of length 9, dimension 3 over Finite Field of size 3 handling errors of weight up to 4
         """
         return "Syndrome decoder for %s handling errors of weight up to %s" % (self.code(), self.maximum_error_weight())
 
@@ -4138,11 +4210,11 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: latex(D)
-            \textnormal{Syndrome decoder for [7, 4]\textnormal{ Linear code over }\Bold{F}_{2} handling errors of weight up to 2}
+            \textnormal{Syndrome decoder for [9, 3]\textnormal{ Linear code over }\Bold{F}_{3} handling errors of weight up to 4}
         """
         return "\\textnormal{Syndrome decoder for %s handling errors of weight up to %s}" % (self.code()._latex_(), self.maximum_error_weight())
 
@@ -4234,18 +4306,18 @@ class LinearCodeSyndromeDecoder(Decoder):
                 break
         # Update decoder types depending on whether we are decoding up to covering radius
         if self._code_covering_radius:
-            self._decoder_type.union("complete")
+            self._decoder_type.add("complete")
         else:
-            self._decoder_type.union("bounded_distance")
+            self._decoder_type.add("bounded_distance")
         # Update decoder types depending on whether we are decoding beyond d/2
         if self._code_minimum_distance:
             if t == (self._code_minimum_distance-1)//2:
-                self._decoder_type.union("minimum-distance", "always-succeed")
+                self._decoder_type.add("minimum-distance", "always-succeed")
             else:
                 # then t > (d-1)/2
-                self._decoder_type.union("might-error")
+                self._decoder_type.add("might-error")
         else:
-            self._decoder_type.union("always-succeed")
+            self._decoder_type.add("always-succeed")
         return lookup
 
 
@@ -4296,11 +4368,11 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D.maximum_error_weight()
-            2
+            4
         """
         return self._maximum_error_weight
 
@@ -4311,11 +4383,11 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
             sage: C = LinearCode(G)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D.decoding_radius()
-            2
+            4
         """
         return self._maximum_error_weight
 

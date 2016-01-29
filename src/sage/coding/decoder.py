@@ -140,6 +140,9 @@ class Decoder(SageObject):
         Returns the set of types of ``self``. These types describe the nature of ``self``
         and its decoding algorithm.
 
+        One can find a complete description of the types in the
+        introductory thematic tutorial on coding theory.
+
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1, 0, 0, 1], [0, 1, 1, 1]])

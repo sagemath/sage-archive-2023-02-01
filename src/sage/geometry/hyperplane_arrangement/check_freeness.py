@@ -19,7 +19,7 @@ for details.
 #*****************************************************************************
 
 from sage.matrix.constructor import matrix
-import sage.libs.singular.function_factory
+import sage.libs.singular.function_factory as fun_fact
 
 def less_generators(X):
     """
@@ -39,7 +39,7 @@ def less_generators(X):
         [ 0  y  1]
     """
     R = X.base_ring()
-    syz = sage.libs.singular.function_factory.ff.syz
+    syz = fun_fact.ff.syz
     zero = R.zero()
     while True:
         Z = matrix(R, syz(X.transpose()))
@@ -58,9 +58,9 @@ def less_generators(X):
         Kd = set(range(X.nrows())).difference(K)
         X = X.matrix_from_rows(sorted(Kd))
 
-def construct_free_chain(S, A):
+def construct_free_chain(A):
     """
-    Construct the free chain for the hyperplanes ``A`` in ``S``.
+    Construct the free chain for the hyperplanes ``A``.
 
     ALGORITHM:
 
@@ -68,46 +68,72 @@ def construct_free_chain(S, A):
 
     INPUT:
 
-    - ``S`` -- set of all hyperplane arrangements
-    - ``A`` -- a list of hyperplanes in ``H``
+    - ``A`` -- a hyperplane arrangement
 
     EXAMPLES::
 
         sage: from sage.geometry.hyperplane_arrangement.check_freeness import construct_free_chain
         sage: H.<x,y,z> = HyperplaneArrangements(QQ)
         sage: A = H(z, y+z, x+y+z)
-        sage: S = H.ambient_space().symmetric_space()
-        sage: construct_free_chain(S, list(A))
+        sage: construct_free_chain(A)
         [
         [1 0 0]  [ 1  0  0]  [    0     1     0]
         [0 1 0]  [ 0  z -1]  [y + z     0    -1]
         [0 0 z], [ 0  y  1], [    x     0     1]
         ]
     """
-    X = []
-    if not A: # Empty arrangement
-        return X
+    AL = list(A)
+    if not AL: # Empty arrangement
+        return []
 
-    syz = sage.libs.singular.function_factory.ff.syz
+    S = A.parent().ambient_space().symmetric_space()
     # Compute the morphisms \phi_{H_j} : S^{1xR} \to S / <b_j>
+    B = [H.to_symmetric_space() for H in AL]
+    phi = [matrix(S, [[beta.derivative(x)] for x in S.gens()]) for beta in B]
+
+    # Setup variables
+    syz = fun_fact.ff.syz
     G = S.gens()
     r = len(G)
-    B = [H.to_symmetric_space() for H in A] # As elements in S
-    phi = [matrix(S, [[beta.derivative(x)] for x in S.gens()]) for beta in B]
-    # Compute the relative row syzygy of phi_1
-    mu = phi[0].stack(matrix.diagonal([B[0]]).dense_matrix())
-    row_syzygy = matrix(S, syz(mu.transpose())).matrix_from_columns(range(r))
-    X.append( less_generators(row_syzygy) )
-    if not X[-1].is_square():
-        return None
+    indices = list(range(len(B)))
+    X = []
+
+    # Helper function
+    def next_step(indices, prev, T):
+        for pos,i in enumerate(indices):
+            U = prev * T
+            mu = U * phi[i]
+            mu = mu.stack(matrix.diagonal([B[i]]).dense_matrix())
+            row_syzygy = matrix(S, syz(mu.transpose())).matrix_from_columns(range(r))
+            Y = less_generators(row_syzygy)
+            if not Y.is_square():
+                continue
+
+            if len(indices) == 1:
+                return [prev, Y]
+
+            I = list(indices)
+            I.pop(pos)
+            ret = next_step(I, Y, U)
+            if ret is not None:
+                return [prev] + ret
+        return None                
+
     T = matrix.identity(S, r)
-    for i,f in enumerate(phi[1:]):
-        T = X[-1] * T
-        mu = T * f
-        mu = mu.stack(matrix.diagonal([B[i+1]]).dense_matrix())
+    for i in indices:
+        mu = phi[i].stack(matrix.diagonal([B[i]]).dense_matrix())
         row_syzygy = matrix(S, syz(mu.transpose())).matrix_from_columns(range(r))
-        X.append( less_generators(row_syzygy) )
-        if not X[-1].is_square():
-            return None
-    return X
+        Y = less_generators(row_syzygy)
+        if not Y.is_square():
+            continue
+
+        if len(indices) == 1:
+            return [Y]
+
+        I = list(indices)
+        I.pop(i)
+        ret = next_step(I, Y, T)
+        if ret is not None:
+            return ret
+    return None
 

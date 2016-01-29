@@ -2130,15 +2130,10 @@ class HyperplaneArrangementElement(Element):
             <BLANKLINE>
         """
         from sage.geometry.hyperplane_arrangement.check_freeness import construct_free_chain
-        from sage.combinat.permutation import Permutations
-        S = self.parent().ambient_space().symmetric_space()
-        for p in Permutations(list(self)):
-            C = construct_free_chain(S, p)
-            if C is not None:
-                return C
-        return None
+        return construct_free_chain(self)
 
-    def is_free(self):
+    @cached_method(key=lambda self,a: None)
+    def is_free(self, algorithm="singular"):
         """
         Return if ``self`` is free.
 
@@ -2146,16 +2141,34 @@ class HyperplaneArrangementElement(Element):
         of derivations `\operatorname{Der}(A)` is a free `S`-module,
         where `S` is the corresponding symmetric space.
 
+        INPUT:
+
+        - ``algorithm`` -- (default: ``"singular"``) can be one of
+          the following:
+
+          * ``"singular"`` -- use Singular's minimal free resolution
+          * ``"BC"`` -- use the algorithm given by Barakat and Cuntz
+            in [BC12]_ (much slower than using Singular)
+
         ALGORITHM:
 
-        We follow [BC12]_ by constructing a chain of free modules
+        .. RUBRIC:: singular
+
+        Check that the minimal free resolution has length at most 2
+        by using Singular.
+
+        .. RUBRIC:: BC
+
+        This implementation follows [BC12]_ by constructing a chain
+        of free modules
 
         .. MATH::
 
             D(A) = D(A_n) < D(A_{n-1}) < \cdots < D(A_1) < D(A_0)
 
         corresponding to some ordering of the arrangements `A_0 \subset
-        A_1 \subset \cdots \subset A_{n-1} \subset A_n = A`.
+        A_1 \subset \cdots \subset A_{n-1} \subset A_n = A`. Such a
+        chain is found by using a backtracking algorithm.
 
         EXAMPLES:
 
@@ -2163,10 +2176,19 @@ class HyperplaneArrangementElement(Element):
         We verify that in type `A_3`::
 
             sage: W = WeylGroup(['A',3], prefix='s')
-            sage: A = W.long_element().inversion_arrangement()
             sage: for x in W:
             ....:    A = x.inversion_arrangement()
             ....:    assert A.matroid().is_chordal() == A.is_free()
+
+        TESTS:
+
+        We check that the algorithms agree::
+
+            sage: W = WeylGroup(['B',3], prefix='s')
+            sage: for x in W:
+            ....:    A = x.inversion_arrangement()
+            ....:    assert (A.is_free(algorithm="BC")
+            ....:            == A.is_free(algorithm="singular"))
 
         REFERENCES:
 
@@ -2175,7 +2197,14 @@ class HyperplaneArrangementElement(Element):
            Adv. in Math. **229** Issue 1 (2012). pp. 691-709.
            :doi:`10.1016/j.aim.2011.09.011`, :arxiv:`1011.4228`.
         """
-        return self.derivation_module_free_chain() is not None
+        if algorithm == "singular":
+            # TODO: Implement this using libSingular
+            mres = self.defining_polynomial().jacobian_ideal()._singular_().mres(0)
+            return len(mres) <= 2
+        elif algorithm == "BC":
+            return self.derivation_module_free_chain() is not None
+        else:
+            raise ValueError("invalid algorithm")
 
     def derivation_module_basis(self):
         """
@@ -2184,7 +2213,7 @@ class HyperplaneArrangementElement(Element):
 
         .. SEEALSO::
 
-            :meth:`is_free`
+            :meth:`derivation_module_free_chain`, :meth:`is_free`
 
         OUTPUT:
 

@@ -1222,20 +1222,17 @@ class PseudoRiemannianMetric(TensorField):
 
         Schouten tensor of the standard metric on the 2-sphere::
 
-            sage: M = Manifold(3, 'S^3', start_index=1)
+            sage: #Heisenberg's Nil group
+            sage: M = Manifold(3, 'Nil', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.riemannian_metric('g')
-            sage: #standard round sphere, stereographic projection
-            sage: f = 4/(1 + x^2 + y^2 + z^2)
-            sage: g[1,1], g[2,2], g[3,3] = f, f, f
-            sage: g.display() # standard metric on the 3-sphere of radius 1:
-            g = 4/(x^2 + y^2 + z^2 + 1) dx*dx + 4/(x^2 + y^2 + z^2 + 1) dy*dy + 
-            4/(x^2 + y^2 + z^2 + 1) dz*dz
+            sage: g[1,1], g[2,2], g[2,3], g[3,3] = 1, 1+x^2, -x, 1
+            sage: g.display()
+            g = dx*dx + (x^2 + 1) dy*dy - x dy*dz - x dz*dy + dz*dz
             sage: g.schouten() # long time
-            Field of symmetric bilinear forms Schouten(g) on the 3-dimensional 
-            differentiable manifold S^3
-            sage: g.schouten()[1,2] # long time
-            -x*y/(x^4 + y^4 + z^4 + 2*(x^2 + 1)*y^2 + 2*(x^2 + y^2 + 1)*z^2 + 2*x^2 + 1)
+            Field of symmetric bilinear forms Schouten(g) on the 3-dimensional differentiable manifold Nil
+            sage: g.schouten()[1,1] # long time
+            -3/8
 
         """
         n = self._ambient_domain.dimension()

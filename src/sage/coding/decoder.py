@@ -140,8 +140,34 @@ class Decoder(SageObject):
         Returns the set of types of ``self``. These types describe the nature of ``self``
         and its decoding algorithm.
 
-        One can find a complete description of the types in the
-        introductory thematic tutorial on coding theory.
+        A complete description of types follows:
+
+        +-----------------------+--------------------------------------------+
+        | Decoder Type          | Description                                |
+        +=======================+============================================+
+        | always-succeed        | Always return the original codeword if     |
+        |                       | the number of errors is up to the decoding |
+        |                       | radius                                     |
+        +-----------------------+--------------------------------------------+
+        | complete              | Can decode every word in the ambient space |
+        |                       | of the code                                |
+        +-----------------------+--------------------------------------------+
+        | half-minimum-distance | Its decoding radius is at most half the    |
+        |                       | minimum distance of the code               |
+        +-----------------------+--------------------------------------------+
+        | hard-decision         | The symbols of the input word are          |
+        |                       | taken from a finite set of values          |
+        |                       | without any clue on their reliability      |
+        +-----------------------+--------------------------------------------+
+        | list-decoder          | Returns a list of codewords                |
+        +-----------------------+--------------------------------------------+
+        | might-fail            | Might fail at returning anything at all    |
+        +-----------------------+--------------------------------------------+
+        | might-error           | Might return a codeword which is not the   |
+        |                       | original codeword                          |
+        +-----------------------+--------------------------------------------+
+        | unique                | Returns a single codeword                  |
+        +-----------------------+--------------------------------------------+
 
         EXAMPLES::
 

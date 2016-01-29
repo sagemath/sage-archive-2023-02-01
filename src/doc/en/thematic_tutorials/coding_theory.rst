@@ -417,20 +417,6 @@ follows::
     sage: D.decoder_type()
     {'always-succeed', 'complete', 'hard-decision', 'unique'}
 
-One can find the list of all decoder type with their definition here:
-
-- **always-succeed**: always returns the original codeword,
-- **complete**: can decode every word in the ambient space of the code,
-- **half-minimum-distance**: cannot decode if there are more errors than half
-  the minimum dustance of the code,
-- **hard-decision**: returns a codeword computed with an algorithm which
-  is not probabilistic,
-- **list-decoder**: returns a list of codewords which contains the original
-- **might-fail**: might return a codeword which is not the original codeword,
-  codeword,
-- **unique**: returns a single codeword.
-
-
 IV. A deeper look at channels
 =============================
 

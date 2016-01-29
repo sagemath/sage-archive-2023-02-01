@@ -254,7 +254,7 @@ class PariArgumentPrec(PariArgumentClass):
         s = "        {name} = prec_bits_to_words({name})\n"
         return s.format(name=self.name)
 
-class PariArgumentBitPrec(PariArgumentClass):
+class PariArgumentBitprec(PariArgumentClass):
     def _typerepr(self):
         return "bitprec"
     def ctype(self):
@@ -262,7 +262,11 @@ class PariArgumentBitPrec(PariArgumentClass):
     def always_default(self):
         return "0"
     def get_argument_name(self, namesiter):
-        return "bitprecision"
+        return "precision"
+    def convert_code(self):
+        s  = "        if not {name}:\n"
+        s += "            {name} = default_bitprec()\n"
+        return s.format(name=self.name)
 
 class PariArgumentSeriesPrec(PariArgumentClass):
     def _typerepr(self):
@@ -287,7 +291,7 @@ pari_arg_types = {
         'U': PariArgumentULong,
         'n': PariArgumentVariable,
         'p': PariArgumentPrec,
-        'b': PariArgumentBitPrec,
+        'b': PariArgumentBitprec,
         'P': PariArgumentSeriesPrec,
 
     # Codes which are known but not actually supported for Sage

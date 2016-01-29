@@ -69,7 +69,7 @@ expanded to a series. This must be explicitly done by the user::
     sage: (ex1 + ex2).series(x,4)
     1 + 1*x + (-1/2)*x^2 + (-1/6)*x^3 + Order(x^4)
     sage: x*ex1
-    (1*x + (-1/6)*x^3 + Order(x^4))*x
+    x*(1*x + (-1/6)*x^3 + Order(x^4))
     sage: (x*ex1).series(x,5)
     1*x^2 + (-1/6)*x^4 + Order(x^5)
     sage: sin(ex1)

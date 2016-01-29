@@ -116,23 +116,6 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # OBSOLETE
     GEN     bernvec(long nomb)
-    GEN     buchimag(GEN D, GEN c1, GEN c2, GEN gCO)
-    GEN     buchreal(GEN D, GEN gsens, GEN c1, GEN c2, GEN gRELSUP, long prec)
-    GEN     zidealstar(GEN nf, GEN x)
-    GEN     zidealstarinit(GEN nf, GEN x)
-    GEN     zidealstarinitgen(GEN nf, GEN x)
-    GEN     rootmod(GEN f, GEN p)
-    GEN     rootmod2(GEN f, GEN p)
-    GEN     factmod(GEN f, GEN p)
-    GEN     simplefactmod(GEN f, GEN p)
-    void    listkill(GEN list)
-    GEN     discrayabs(GEN bnr, GEN subgroup)
-    GEN     discrayabscond(GEN bnr, GEN subgroup)
-    GEN     discrayrel(GEN bnr, GEN subgroup)
-    GEN     discrayrelcond(GEN bnr, GEN subgroup)
-    GEN     isprincipalforce(GEN bnf, GEN x)
-    GEN     isprincipalgen(GEN bnf, GEN x)
-    GEN     isprincipalgenforce(GEN bnf, GEN x)
 
     # F2x.c
 
@@ -3314,7 +3297,6 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     lfun_get_w2(GEN tech)
     GEN     lfun_get_expot(GEN tech)
     long    lfun_get_der(GEN tech)
-    long    lfun_get_bitprec(GEN tech)
     GEN     lfun(GEN ldata, GEN s, long prec)
     GEN     lfun_bitprec(GEN ldata, GEN s, long bitprec)
     GEN     lfun0_bitprec(GEN ldata, GEN s, long der, long bitprec)

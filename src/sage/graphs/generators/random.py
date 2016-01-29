@@ -1016,8 +1016,8 @@ def RandomTriangulation(n, set_position=False):
         ....:     g = graphs.RandomTriangulation(30)
         ....:     assert g.is_planar()
         sage: for i in range(10):
-        ....:    g = graphs.RandomTriangulation(10)
-        ....:    assert g.is_planar(on_embedding=g.get_embedding())
+        ....:     g = graphs.RandomTriangulation(10)
+        ....:     assert g.is_planar(on_embedding=g.get_embedding())
 
     REFERENCES:
 

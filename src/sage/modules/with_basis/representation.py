@@ -21,7 +21,62 @@ from sage.categories.semigroups import Semigroups
 from sage.categories.modules import Modules
 from sage.algebras.group_algebra import GroupAlgebra
 
-class Representation(CombinatorialFreeModule):
+class Representation_abstract(CombinatorialFreeModule):
+    """
+    Abstract base class for representations.
+
+    INPUT:
+
+    - ``semigroup`` -- a semigroup
+    - ``base_ring`` -- a commutative ring
+    """
+    def __init__(self, semigroup, base_ring, *args, **opts):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: G = FreeGroup(3)
+            sage: T = G.trivial_representation()
+            sage: TestSuite(T).run()
+        """
+        self._semigroup = semigroup
+        self._semigroup_algebra = semigroup.algebra(base_ring)
+        CombinatorialFreeModule.__init__(self, base_ring, *args, **opts)
+
+    def semigroup(self):
+        """
+        Return the semigroup whose representation ``self`` is.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(4)
+            sage: M = CombinatorialFreeModule(QQ, ['v'])
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: on_basis = lambda g,m: M.term(m, g.sign())
+            sage: R = Representation(G, M, on_basis)
+            sage: R.semigroup()
+            Symmetric group of order 4! as a permutation group
+        """
+        return self._semigroup
+
+    def semigroup_algebra(self):
+        """
+        Return the semigroup algebra whose representation ``self`` is.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(4)
+            sage: M = CombinatorialFreeModule(QQ, ['v'])
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: on_basis = lambda g,m: M.term(m, g.sign())
+            sage: R = Representation(G, M, on_basis)
+            sage: R.semigroup_algebra()
+            Symmetric group algebra of order 4 over Rational Field
+        """
+        return self._semigroup_algebra
+
+class Representation(Representation_abstract):
     """
     Representation of a semigroup.
 
@@ -33,7 +88,7 @@ class Representation(CombinatorialFreeModule):
       ``g`` is an element of the semigroup and ``m`` is an element of the
       indexing set for the basis, and returns the result of ``g`` acting
       on ``m``
-    - ``left`` (keyword argument, defaults to ``True``) -- boolean;
+    - ``left_repr`` (keyword argument, defaults to ``True``) -- boolean;
       whether this is a left or a right representation
 
     EXAMPLES:
@@ -80,7 +135,7 @@ class Representation(CombinatorialFreeModule):
 
     - :wikipedia:`Group_representation`
     """
-    def __init__(self, semigroup, module, on_basis, left=True):
+    def __init__(self, semigroup, module, on_basis, left_repr=True):
         """
         Initialize ``self``.
 
@@ -93,17 +148,50 @@ class Representation(CombinatorialFreeModule):
             sage: R = Representation(G, M, on_basis)
             sage: R._test_representation()
         """
-        self._semigroup = semigroup
-        self._semigroup_algebra = semigroup.algebra(module.base_ring())
         self._on_basis = on_basis
-        self._left = left
+        self._left_repr = left_repr
         self._module = module
         indices = module.basis().keys()
         cat = Modules(module.base_ring()).WithBasis()
         if 'FiniteDimensional' in module.category().axioms():
             cat = cat.FiniteDimensional()
-        CombinatorialFreeModule.__init__(self, module.base_ring(), indices,
+        Representation_abstract.__init__(self, semigroup, module.base_ring(), indices,
                                          category=cat, **module.print_options())
+
+    def _test_representation(self, **options):
+        """
+        Check that ``self`` is a representation of the
+        given semigroup.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: R = G.regular_representation()
+            sage: R._test_representation()
+
+            sage: G = CoxeterGroup(['A',4,1], base_ring=ZZ)
+            sage: M = CombinatorialFreeModule(QQ, ['v'])
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: on_basis = lambda g,m: M.term(m, (-1)**g.length())
+            sage: R = Representation(G, M, on_basis, left_repr=False)
+            sage: R._test_representation(max_runs=500)
+        """
+        from sage.functions.other import sqrt
+        tester = self._tester(**options)
+        S = tester.some_elements()
+        L = []
+        max_len = int(sqrt(tester._max_runs)) + 1
+        for i,x in enumerate(self._semigroup):
+            L.append(x)
+            if i >= max_len:
+                break
+        for x in L:
+            for y in L:
+                for elt in S:
+                    if self._left_repr:
+                        tester.assertEqual(x*(y*elt), (x*y)*elt)
+                    else:
+                        tester.assertEqual((elt*y)*x, elt*(y*x))
 
     def _repr_(self):
         """
@@ -166,79 +254,6 @@ class Representation(CombinatorialFreeModule):
             return self._from_dict(x.monomial_coefficients(copy=False), remove_zeros=False)
         return super(Representation, self)._element_constructor_(x)
 
-    def _test_representation(self, **options):
-        """
-        Check (on some elements) that ``self`` is a representation of the
-        semigroup provided.
-
-        EXAMPLES::
-
-            sage: G = groups.permutation.Dihedral(4)
-            sage: R = G.regular_representation()
-            sage: R._test_representation()
-        """
-        if self._semigroup in Semigroups().Finite():
-            sgelts = list(self._semigroup)
-        else:
-            sgelts = self._semigroup.some_elements()
-        tester = self._tester(**options)
-        S = tester.some_elements()
-        for x in sgelts:
-            for y in sgelts:
-                for elt in S:
-                    if self._left:
-                        tester.assertEqual(x*(y*elt), (x*y)*elt)
-                    else:
-                        tester.assertEqual((elt*y)*x, elt*(y*x))
-
-    def module(self):
-        """
-        Return ``self`` as a module over the base ring.
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(4)
-            sage: M = CombinatorialFreeModule(QQ, ['v'])
-            sage: from sage.modules.with_basis.representation import Representation
-            sage: on_basis = lambda g,m: M.term(m, g.sign())
-            sage: R = Representation(G, M, on_basis)
-            sage: R.module()
-            Free module generated by {'v'} over Rational Field
-        """
-        return self._module
-
-    def semigroup(self):
-        """
-        Return the semigroup whose representation ``self`` is.
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(4)
-            sage: M = CombinatorialFreeModule(QQ, ['v'])
-            sage: from sage.modules.with_basis.representation import Representation
-            sage: on_basis = lambda g,m: M.term(m, g.sign())
-            sage: R = Representation(G, M, on_basis)
-            sage: R.semigroup()
-            Symmetric group of order 4! as a permutation group
-        """
-        return self._semigroup
-
-    def semigroup_algebra(self):
-        """
-        Return the semigroup algebra whose representation ``self`` is.
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(4)
-            sage: M = CombinatorialFreeModule(QQ, ['v'])
-            sage: from sage.modules.with_basis.representation import Representation
-            sage: on_basis = lambda g,m: M.term(m, g.sign())
-            sage: R = Representation(G, M, on_basis)
-            sage: R.semigroup_algebra()
-            Symmetric group algebra of order 4 over Rational Field
-        """
-        return self._semigroup_algebra
-
     class Element(CombinatorialFreeModule.Element):
         def _acted_upon_(self, scalar, self_on_left=False):
             """
@@ -257,7 +272,7 @@ class Representation(CombinatorialFreeModule):
                 B[s2*s1*s2] + 2*B[s1*s2] + B[s2] + 3*B[1]
 
                 sage: G = groups.misc.WeylGroup(['B',2], prefix='s')
-                sage: R = G.regular_representation(left=False)
+                sage: R = G.regular_representation(left_repr=False)
                 sage: s1,s2 = G.gens()
                 sage: x = R.an_element(); x
                 2*B[s2*s1*s2] + B[s1*s2] + 3*B[s2] + B[1]
@@ -268,6 +283,8 @@ class Representation(CombinatorialFreeModule):
 
                 sage: G = groups.misc.WeylGroup(['B',2], prefix='s')
                 sage: R = G.regular_representation()
+                sage: R.base_ring()
+                Integer Ring
                 sage: A = G.algebra(ZZ)
                 sage: s1,s2 = A.algebra_generators()
                 sage: x = R.an_element(); x
@@ -276,8 +293,11 @@ class Representation(CombinatorialFreeModule):
                 2*B[s2*s1*s2*s1] + 3*B[s1*s2] + B[s1] + B[s2]
                 sage: s2 * x
                 B[s2*s1*s2] + 2*B[s1*s2] + B[s2] + 3*B[1]
-                sage: R.base_ring()
-                Integer Ring
+                sage: (2*s1 - s2) * x
+                4*B[s2*s1*s2*s1] - B[s2*s1*s2] + 4*B[s1*s2]
+                 + 2*B[s1] + B[s2] - 3*B[1]
+                sage: (3*s1 + s2) * R.zero()
+                0
 
                 sage: A = G.algebra(QQ)
                 sage: s1,s2 = A.algebra_generators()
@@ -292,15 +312,19 @@ class Representation(CombinatorialFreeModule):
             if isinstance(scalar, Element):
                 P = self.parent()
                 if scalar.parent() is P._semigroup:
-                    if self_on_left == P._left:
+                    if not self:
+                        return self
+                    if self_on_left == P._left_repr:
                         scalar = ~scalar
                     return P.linear_combination(((P._on_basis(scalar, m), c)
                                                  for m,c in self), not self_on_left)
-                #R = self.base_ring()
+
                 if scalar.parent() is P._semigroup_algebra:
+                    if not self:
+                        return self
                     ret = P.zero()
                     for ms,cs in scalar:
-                        if self_on_left == P._left:
+                        if self_on_left == P._left_repr:
                             ms = ~ms
                         ret += P.linear_combination(((P._on_basis(ms, m), cs*c)
                                                     for m,c in self), not self_on_left)
@@ -310,21 +334,25 @@ class Representation(CombinatorialFreeModule):
         _rmul_ = _lmul_ = _acted_upon_
 
 class RegularRepresentation(Representation):
-    """
+    r"""
     The regular representation of a semigroup.
+
+    The left regular representation of a semigroup `S` is isomorphic as
+    an `R`-module to the semigroup ring `R[S]` with the action
+    `x b_y = b_{xy}`, where `b_y` is the natural basis and `x,y \in S`.
 
     INPUT:
 
     - ``semigroup`` -- a semigroup
     - ``base_ring`` -- the base ring for the representation
-    - ``left`` (keyword argument, defaults to ``True``) -- boolean;
+    - ``left_repr`` (keyword argument, defaults to ``True``) -- boolean;
       whether this is a left or a right representation
 
     REFERENCES:
 
     - :wikipedia:`Regular_representation`
     """
-    def __init__(self, semigroup, base_ring, left=True):
+    def __init__(self, semigroup, base_ring, left_repr=True):
         """
         Initialize ``self``.
 
@@ -334,12 +362,12 @@ class RegularRepresentation(Representation):
             sage: R = G.regular_representation()
             sage: TestSuite(R).run()
         """
-        if left:
+        if left_repr:
             on_basis = self._left_on_basis
         else:
             on_basis = self._right_on_basis
         module = semigroup.algebra(base_ring)
-        Representation.__init__(self, semigroup, module, on_basis, left)
+        Representation.__init__(self, semigroup, module, on_basis, left_repr)
 
     def _repr_(self):
         """
@@ -351,11 +379,11 @@ class RegularRepresentation(Representation):
             sage: G.regular_representation()
             Left Regular Representation of Dihedral group of order 8
              as a permutation group over Integer Ring
-            sage: G.regular_representation(left=False)
+            sage: G.regular_representation(left_repr=False)
             Right Regular Representation of Dihedral group of order 8
              as a permutation group over Integer Ring
         """
-        if self._left:
+        if self._left_repr:
             base = "Left Regular Representation"
         else:
             base = "Right Regular Representation"
@@ -380,14 +408,19 @@ class RegularRepresentation(Representation):
         EXAMPLES::
 
             sage: G = groups.permutation.Dihedral(4)
-            sage: R = G.regular_representation(left=False)
+            sage: R = G.regular_representation(left_repr=False)
             sage: R._test_representation()  # indirect doctest
         """
         return self.monomial(m*g)
 
-class TrivialRepresentation(CombinatorialFreeModule):
+class TrivialRepresentation(Representation_abstract):
     """
     The trivial representation of a semigroup.
+
+    The trivial representation is the `1`-dimensional module where
+    every element acts by the identity.
+
+    This is simultaneously a left and right representation.
 
     INPUT:
 
@@ -408,10 +441,8 @@ class TrivialRepresentation(CombinatorialFreeModule):
             sage: V = G.trivial_representation()
             sage: TestSuite(V).run()
         """
-        self._semigroup = semigroup
-        self._semigroup_algebra = semigroup.algebra(base_ring)
         cat = Modules(base_ring).WithBasis().FiniteDimensional()
-        CombinatorialFreeModule.__init__(self, base_ring, ['v'], category=cat)
+        Representation_abstract.__init__(self, semigroup, base_ring, ['v'], category=cat)
 
     def _repr_(self):
         """
@@ -441,11 +472,16 @@ class TrivialRepresentation(CombinatorialFreeModule):
                 True
                 sage: all(b * x == x for b in SGA.basis())
                 True
+                sage: z = V.zero()
+                sage: all(b * z == z for b in SGA.basis())
+                True
             """
             if isinstance(scalar, Element):
                 if scalar.parent() is self.parent()._semigroup:
                     return self
                 if scalar.parent() is self.parent()._semigroup_algebra:
+                    if not self:
+                        return self
                     d = self.monomial_coefficients(copy=True)
                     d['v'] *= sum(scalar.coefficients())
                     return self.parent()._from_dict(d)

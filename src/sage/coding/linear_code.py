@@ -4213,11 +4213,11 @@ class LinearCodeSyndromeDecoder(Decoder):
         if not first_collision:
             half_d = (self._code_minimum_distance-1) // 2
             if t < half_d:
-                self._decoder_type.union("bounded_distance")
+                self._decoder_type.union("bounded-distance", "always-succeed")
             if t == half_d:
-                self._decoder_type.union("minimum_distance")
+                self._decoder_type.union("minimum-distance", "always-succeed")
             else:
-                self._decoder_type.union("might_create_decoding_error")
+                self._decoder_type.union("might-error")
         else:
             self._decoding_radius = n - self.code().dimension()
         return lookup
@@ -4440,6 +4440,6 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
 LinearCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "dynamic"}
+LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
 LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}

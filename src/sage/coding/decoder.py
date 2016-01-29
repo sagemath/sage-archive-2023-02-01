@@ -146,7 +146,7 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = C.decoder()
             sage: D.decoder_type()
-            {'always-succeed', 'hard-decision', 'unique'}
+            {'hard-decision', 'unique'}
         """
         return self._decoder_type
 

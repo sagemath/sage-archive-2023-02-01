@@ -1700,6 +1700,36 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return result
 
 
+    def is_exact(self):
+        r"""
+        Return whether all terms of this expansion are exact.
+
+        INPUT:
+
+        Nothin.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing('x^QQ * log(x)^QQ', QQ)
+            sage: (x^2 + O(x)).is_exact()
+            False
+            sage: (x^2 - x).is_exact()
+            True
+
+        TESTS::
+
+            sage: A(0).is_exact()
+            True
+            sage: A.one().is_exact()
+            True
+        """
+        return self.exact_part() == self
+
+
     def is_little_o_of_one(self):
         r"""
         Return whether this expansion is of order `o(1)`.

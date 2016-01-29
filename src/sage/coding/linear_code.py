@@ -4231,6 +4231,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             if stop:
                 self._code_covering_radius = i - 1
                 self._maximum_error_weight = self._code_covering_radius
+                break
         # Update decoder types depending on whether we are decoding up to covering radius
         if self._code_covering_radius:
             self._decoder_type.union("complete")

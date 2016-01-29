@@ -450,12 +450,12 @@ class Semigroups(CategoryWithAxiom):
             from sage.modules.with_basis.representation import TrivialRepresentation
             return TrivialRepresentation(self, base_ring)
 
-        def regular_representation(self, base_ring=None, left_repr=True):
+        def regular_representation(self, base_ring=None, side="left"):
             """
             Return the regular representation of ``self`` over ``base_ring``.
 
-            - ``left_repr`` -- (default: ``True``) whether this is the
-              left or right regular representation
+            - ``side`` -- (default: ``"left"``) whether this is the
+              ``"left"`` or ``"right"`` regular representation
 
             EXAMPLES::
 
@@ -468,7 +468,7 @@ class Semigroups(CategoryWithAxiom):
                 from sage.rings.all import ZZ
                 base_ring = ZZ
             from sage.modules.with_basis.representation import RegularRepresentation
-            return RegularRepresentation(self, base_ring, left_repr)
+            return RegularRepresentation(self, base_ring, side)
 
     class ElementMethods:
 
@@ -660,9 +660,13 @@ class Semigroups(CategoryWithAxiom):
                 """
                 return self.monomial(g1 * g2)
 
-            def trivial_representation(self):
+            def trivial_representation(self, side="left"):
                 """
                 Return the trivial representation of ``self``.
+
+                INPUT:
+
+                - ``side`` -- (ignored)
 
                 EXAMPLES::
 
@@ -675,14 +679,14 @@ class Semigroups(CategoryWithAxiom):
                 S = self.basis().keys()
                 return S.trivial_representation(self.base_ring())
 
-            def regular_representation(self, left_repr=True):
+            def regular_representation(self, side="left"):
                 """
                 Return the regular representation of ``self``.
 
                 INPUT:
 
-                - ``left_repr`` -- (default: ``True``) whether this is the
-                  left or right regular representation
+                - ``side`` -- (default: ``"left"``) whether this is the
+                  ``"left"`` or ``"right"`` regular representation
 
                 EXAMPLES::
 
@@ -693,5 +697,5 @@ class Semigroups(CategoryWithAxiom):
                     True
                 """
                 S = self.basis().keys()
-                return S.regular_representation(self.base_ring(), left_repr)
+                return S.regular_representation(self.base_ring(), side)
 

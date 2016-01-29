@@ -88,8 +88,8 @@ class Representation(Representation_abstract):
       ``g`` is an element of the semigroup and ``m`` is an element of the
       indexing set for the basis, and returns the result of ``g`` acting
       on ``m``
-    - ``left_repr`` (keyword argument, defaults to ``True``) -- boolean;
-      whether this is a left or a right representation
+    - ``side`` -- (default: ``"left"``) whether this is a
+      ``"left"`` or ``"right"`` representation
 
     EXAMPLES:
 
@@ -135,7 +135,7 @@ class Representation(Representation_abstract):
 
     - :wikipedia:`Group_representation`
     """
-    def __init__(self, semigroup, module, on_basis, left_repr=True):
+    def __init__(self, semigroup, module, on_basis, side="left"):
         """
         Initialize ``self``.
 
@@ -148,8 +148,10 @@ class Representation(Representation_abstract):
             sage: R = Representation(G, M, on_basis)
             sage: R._test_representation()
         """
+        if side not in ["left", "right"]:
+            raise ValueError('side must be "left" or "right"')
+        self._left_repr = (side == "left")
         self._on_basis = on_basis
-        self._left_repr = left_repr
         self._module = module
         indices = module.basis().keys()
         cat = Modules(module.base_ring()).WithBasis()
@@ -173,7 +175,7 @@ class Representation(Representation_abstract):
             sage: M = CombinatorialFreeModule(QQ, ['v'])
             sage: from sage.modules.with_basis.representation import Representation
             sage: on_basis = lambda g,m: M.term(m, (-1)**g.length())
-            sage: R = Representation(G, M, on_basis, left_repr=False)
+            sage: R = Representation(G, M, on_basis, side="right")
             sage: R._test_representation(max_runs=500)
         """
         from sage.functions.other import sqrt
@@ -254,6 +256,23 @@ class Representation(Representation_abstract):
             return self._from_dict(x.monomial_coefficients(copy=False), remove_zeros=False)
         return super(Representation, self)._element_constructor_(x)
 
+    def side(self):
+        """
+        Return whether ``self`` is a left or a right representation.
+
+        OUTPUT:
+
+        - the string ``"left"`` or ``"right"``
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: R = G.regular_representation()
+            sage: R.side()
+            'left'
+        """
+        return "left" if self._left_repr else "right"
+
     class Element(CombinatorialFreeModule.Element):
         def _acted_upon_(self, scalar, self_on_left=False):
             """
@@ -272,7 +291,7 @@ class Representation(Representation_abstract):
                 B[s2*s1*s2] + 2*B[s1*s2] + B[s2] + 3*B[1]
 
                 sage: G = groups.misc.WeylGroup(['B',2], prefix='s')
-                sage: R = G.regular_representation(left_repr=False)
+                sage: R = G.regular_representation(side="right")
                 sage: s1,s2 = G.gens()
                 sage: x = R.an_element(); x
                 2*B[s2*s1*s2] + B[s1*s2] + 3*B[s2] + B[1]
@@ -352,7 +371,7 @@ class RegularRepresentation(Representation):
 
     - :wikipedia:`Regular_representation`
     """
-    def __init__(self, semigroup, base_ring, left_repr=True):
+    def __init__(self, semigroup, base_ring, side="left"):
         """
         Initialize ``self``.
 
@@ -362,12 +381,12 @@ class RegularRepresentation(Representation):
             sage: R = G.regular_representation()
             sage: TestSuite(R).run()
         """
-        if left_repr:
+        if side == "left":
             on_basis = self._left_on_basis
         else:
             on_basis = self._right_on_basis
         module = semigroup.algebra(base_ring)
-        Representation.__init__(self, semigroup, module, on_basis, left_repr)
+        Representation.__init__(self, semigroup, module, on_basis, side)
 
     def _repr_(self):
         """
@@ -379,7 +398,7 @@ class RegularRepresentation(Representation):
             sage: G.regular_representation()
             Left Regular Representation of Dihedral group of order 8
              as a permutation group over Integer Ring
-            sage: G.regular_representation(left_repr=False)
+            sage: G.regular_representation(side="right")
             Right Regular Representation of Dihedral group of order 8
              as a permutation group over Integer Ring
         """
@@ -408,7 +427,7 @@ class RegularRepresentation(Representation):
         EXAMPLES::
 
             sage: G = groups.permutation.Dihedral(4)
-            sage: R = G.regular_representation(left_repr=False)
+            sage: R = G.regular_representation(side="right")
             sage: R._test_representation()  # indirect doctest
         """
         return self.monomial(m*g)

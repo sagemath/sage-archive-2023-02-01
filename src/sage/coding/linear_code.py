@@ -4023,22 +4023,41 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     The decoding algorithm works as follows:
 
-    - First, a lookup syndrome is built by computing the syndrome of every error
+    - First, a lookup table is built by computing the syndrome of every error
       pattern of weight up to ``maximum_error_weight``.
     - Then, whenever one tries to decode a word ``r``, the syndrome of ``r`` is
-      computed. Then, the corresponding error pattern is recovered from the
+      computed. The corresponding error pattern is recovered from the
       precomputed lookup table.
     - Finally, the recovered error pattern is substracted from ``r`` to recover
       the original word.
+
+    ``maximum_error_weight`` need never exceed the covering radius of the code,
+    since there are then always lower-weight errors with the same syndrome. If
+    one sets ``maximum_error_weight`` to a value greater than the covering
+    radius, then the covering radius will be determined while building the
+    lookup-table. This lower value is then returned if you query
+    ``decoding_radius`` after construction.
+
+    If ``maximum_error_weight`` is left unspecified or set to a number at least
+    the covering radius of the code, this decoder is complete, i.e. it decodes
+    every vector in the ambient space.
+
+    NOTE:
+
+    Constructing the lookup table takes time exponential in the length of the
+    code and the size of the code's base field. Afterwards, the individual
+    decodings are fast.
 
     INPUT:
 
     - ``code`` -- A code associated to this decoder
 
-    - ``maximum_error_weight`` -- (default: ``None``) the number of errors to
-      look for when building the table. If it is let to ``None``,
-      ``maximum_error_weight`` will be set to `n - k`,
-      where `n` is the length of ``code`` and `k` its dimension.
+    - ``maximum_error_weight`` -- (default: ``None``) the maximum number of
+      errors to look for when building the table. An error is raised if it is
+      set greater than `n-k`, since this is an upper bound on the covering
+      radius on any linear code. If ``maximum_error_weight`` is kept
+      unspecified, it will be set to `n - k`, where `n` is the length of
+      ``code`` and `k` its dimension.
 
     EXAMPLES::
 
@@ -4048,7 +4067,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         sage: D
         Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2 handling errors of weight up to 3
 
-        If one wants to correct up to a specific number of errors, one can do as follows::
+        If one wants to correct up to a lower number of errors, one can do as follows::
 
         sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight=2)
         sage: D
@@ -4068,7 +4087,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, 42)
             Traceback (most recent call last):
             ...
-            ValueError: maximum_error_weight has to be less than code's length - code's dimension
+            ValueError: maximum_error_weight has to be less than code's length minus its dimension
         """
         n_minus_k = code.length() - code.dimension()
         if maximum_error_weight == None:
@@ -4076,7 +4095,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         elif not isinstance(maximum_error_weight, (Integer, int)):
             raise ValueError("maximum_error_weight has to be a Sage integer or a Python int")
         elif maximum_error_weight > n_minus_k:
-            raise ValueError("maximum_error_weight has to be less than code's length - code's dimension")
+            raise ValueError("maximum_error_weight has to be less than code's length minus its dimension")
         else:
             self._maximum_error_weight = maximum_error_weight
         super(LinearCodeSyndromeDecoder, self).__init__(code, code.ambient_space(),\
@@ -4130,7 +4149,7 @@ class LinearCodeSyndromeDecoder(Decoder):
     @cached_method
     def _build_lookup_table(self):
         r"""
-        Builds lookup table for all possible error patterns of size :meth:`maximum_error_weight`.
+        Builds lookup table for all possible error patterns of weight up to :meth:`maximum_error_weight`.
 
         EXAMPLES::
 

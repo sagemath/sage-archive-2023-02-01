@@ -200,9 +200,10 @@ def make_parser():
     parser_fix_checksum = subparsers.add_parser(
         'fix-checksum', epilog=epilog_fix_checksum,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        help='Fix the checksum of package. Use "*" for all packages.')
+        help='Fix the checksum of package.')
     parser_fix_checksum.add_argument(
-        'package_name', nargs='?', default=None, type=str, help='Package name')
+        'package_name', nargs='?', default=None, type=str,
+        help='Package name. Default: fix all packages.')
     
     return parser
 

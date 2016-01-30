@@ -1583,10 +1583,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         from sage.rings.integer_ring import ZZ
         import itertools
 
-        result = AsymptoticExpansion._taylor_(
-            coefficients=iter(-1 / ZZ(k)
+        result = - AsymptoticExpansion._taylor_(
+            coefficients=iter(1 / ZZ(k)
                               for k in itertools.count(2)),
-            start=-geom,
+            start=geom,
             ratio=geom,
             ratio_start=geom,
             precision=precision)
@@ -1778,15 +1778,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:     precision=4)
             42 + 5*g^(-1) + 10*g^(-2) + 15*g^(-3) + O(g^(-4))
         """
-        expanding = True
         result = start
         g = ratio_start
-        while expanding:
-            c = next(coefficients)
+        for c in coefficients:
             g *= ratio
             new_result = (result + c*g).truncate(precision=precision)
             if new_result.has_same_summands(result):
-                expanding = False
+                break
             result = new_result
         return result
 

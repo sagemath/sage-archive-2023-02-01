@@ -63,8 +63,10 @@ class ProgressBar(object):
         self.stream.flush()
         
 
+class DownloadError(IOError):
+    pass
 
-
+        
 class Download(object):
     """
     Download URL
@@ -102,7 +104,7 @@ class Download(object):
         Callback for the URLopener to raise an exception on HTTP errors
         """
         fp.close()
-        raise IOError(errcode, errmsg, url)
+        raise DownloadError(errcode, errmsg, url)
 
     def start_progress_bar(self):
         if self.progress:

@@ -20,8 +20,7 @@ from textwrap import dedent
 
 
 from .capture import CapturedLog
-from sage_bootstrap.download import Download
-from sage_bootstrap.mirror_list import MirrorList
+from sage_bootstrap.download import Download, MirrorList
 from sage_bootstrap.compat import StringIO
 
 

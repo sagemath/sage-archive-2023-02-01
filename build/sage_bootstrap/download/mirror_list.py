@@ -36,13 +36,21 @@ def try_lock(fd, operation):
         if e.errno != ENOLCK:
             raise
 
+        
+class MirrorListException(RuntimeError):
+    pass
+        
+
+MIRRORLIST_FILENAME = os.path.join(SAGE_DISTFILES, 'mirror_list')
+
 
 class MirrorList(object):
+    
     URL = 'http://www.sagemath.org/mirror_list'
     MAXAGE = 24*60*60   # seconds
 
     def __init__(self):
-        self.filename = os.path.join(SAGE_DISTFILES, 'mirror_list')
+        self.filename = MIRRORLIST_FILENAME
         self.mirrors = None
 
         try:
@@ -74,8 +82,14 @@ class MirrorList(object):
             except IOError:
                 log.critical('Failed to load the cached mirror list')
                 return []
+        if mirror_list == '':
+            return []
         import ast
-        return ast.literal_eval(mirror_list)
+        try:
+            return ast.literal_eval(mirror_list)
+        except SyntaxError:
+            log.critical('Downloaded mirror list has syntax error: {0}'.format(mirror_list))
+            return []
 
     def _save(self):
         """
@@ -93,6 +107,8 @@ class MirrorList(object):
             return 443
         if mirror.startswith('ftp://'):
             return 21
+        # Sensible default (invalid mirror?)
+        return 80
 
     def _rank_mirrors(self):
         """
@@ -103,7 +119,9 @@ class MirrorList(object):
         timed_mirrors = []
         import time, socket
         log.info('Searching fastest mirror')
-        timeout = 1
+        timeout = socket.getdefaulttimeout()
+        if timeout is None:
+            timeout = 1
         for mirror in self.mirrors:
             if not mirror.startswith('http'):
                 log.debug('we currently can only handle http, got %s', mirror)
@@ -123,10 +141,10 @@ class MirrorList(object):
             timed_mirrors.append((result, mirror))
         if len(timed_mirrors) == 0:
             # We cannot reach any mirror directly, most likely firewall issue
-           if 'http_proxy' not in os.environ:
-               log.error('Could not reach any mirror directly and no proxy set')
-               raise RuntimeError('no internet connection')
-           log.info('Cannot time mirrors via proxy, using default order')
+            if 'http_proxy' not in os.environ:
+                log.error('Could not reach any mirror directly and no proxy set')
+                raise MirrorListException('Failed to connect to any mirror, probably no internet connection')
+            log.info('Cannot time mirrors via proxy, using default order')
         else:
             timed_mirrors.sort()
             self.mirrors = [m[1] for m in timed_mirrors]
@@ -161,7 +179,7 @@ class MirrorList(object):
             with contextlib.closing(urllib.urlopen(self.URL)) as f:
                 mirror_list = f.read().decode("ascii")
         except IOError:
-            log.critical('Downloading the mirror list failed')
+            log.critical('Downloading the mirror list failed, using cached version')
         else:
             self.mirrors = self._load(mirror_list)
             self._rank_mirrors()

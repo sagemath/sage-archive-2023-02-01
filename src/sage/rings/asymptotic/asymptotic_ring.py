@@ -1727,7 +1727,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: A.one().is_exact()
             True
         """
-        return self.exact_part() == self
+        return self._has_same_summands_(self.exact_part())
 
 
     def is_little_o_of_one(self):

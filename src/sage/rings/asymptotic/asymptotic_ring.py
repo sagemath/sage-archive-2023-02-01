@@ -1481,9 +1481,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         .. MATH::
 
-            (m + r)^{\mathrm{exponent}}
-            = m^{\mathrm{exponent}} \sum_{k=0}^K
-            \binom{\mathrm{exponent}}{k} (r/m)^k
+            (m + r)^{\mathit{exponent}}
+            = m^{\mathit{exponent}} \sum_{k=0}^K
+            \binom{\mathit{exponent}}{k} (r/m)^k
 
         where `K` is chosen such that adding an additional summand
         does not change the result.

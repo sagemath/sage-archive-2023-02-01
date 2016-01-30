@@ -106,14 +106,15 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     Computing derivatives of more auxiliary functions...
     Computing second order differential operator actions...
     sage: asy
-    (1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)), 1,
+    (1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)),
+     1,
      1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)))
     sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
-    [((4, 1), 0.1875000000, [0.1953794675], [-0.042023826...]),
-     ((8, 2), 0.1523437500, [0.1550727862], [-0.017913673...]),
-     ((16, 4), 0.1221771240, [0.1230813519], [-0.0074009592...]),
-     ((32, 8), 0.09739671811, [0.09768973377], [-0.0030084757...]),
-     ((64, 16), 0.07744253816, [0.07753639308], [-0.0012119297...])]
+    [((4, 1), 0.1875000000, [0.1953794675...], [-0.042023826...]),
+     ((8, 2), 0.1523437500, [0.1550727862...], [-0.017913673...]),
+     ((16, 4), 0.1221771240, [0.1230813519...], [-0.0074009592...]),
+     ((32, 8), 0.09739671811, [0.09768973377...], [-0.0030084757...]),
+     ((64, 16), 0.07744253816, [0.07753639308...], [-0.0012119297...])]
 
 A multiple point example (Example 6.5 of [RaWi2012]_)::
 
@@ -616,7 +617,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: 3 == g
             True
         """
-        from sage.structure.sage_object import have_same_parent
+        from sage.structure.element import have_same_parent
         if have_same_parent(self, other):
             return self._eq_(other)
 
@@ -808,7 +809,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + exp(x)/(3*x^2 + 1)
             sage: f
-            e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x)
+            (5*x^5 - 5*x^4 + 2*x - 1)/(x^2 - x) + e^x/(3*x^2 + 1)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
             (0, []) +
@@ -858,7 +859,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = exp(x) / (x^2-x)
             sage: f
-            e^x/((x - 1)*x)
+            e^x/(x^2 - x)
             sage: FFPD(f).univariate_decomposition()
             (0, []) + (e^x, [(x - 1, 1)]) + (-e^x, [(x, 1)])
 
@@ -1449,7 +1450,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             (1/3, [(x*y - 1, 1), (x^2 + y^2 - 1, 1)])
         """
         from sage.calculus.functions import jacobian
-        from sage.rings.arith import xgcd
+        from sage.arith.all import xgcd
         from sage.sets.set import Set
         from sage.symbolic.ring import SR
 
@@ -1931,8 +1932,8 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         if verbose:
             print("Creating auxiliary functions...")
         # Implicit functions.
-        h = function('h', *tuple(X[:d - 1]))
-        U = function('U', *tuple(X))
+        h = function('h')(*tuple(X[:d - 1]))
+        U = function('U')(*tuple(X))
         # All other functions are defined in terms of h, U, and
         # explicit functions.
         Gcheck = -G / U * (h / X[d - 1])
@@ -2051,8 +2052,8 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             # to stand in for the expressions At and Phitu, respectively.
             if verbose:
                 print("Computing derivatives of more auxiliary functions...")
-            AA = function('AA', t)
-            BB = function('BB', t)
+            AA = function('AA')(t)
+            BB = function('BB')(t)
             if v.mod(2) == 0:
                 At_derivs = FractionWithFactoredDenominatorRing._diff_all(
                     At, T, 2 * N - 2,
@@ -2127,11 +2128,11 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             # to stand in for the expressions At and Phitu, respectively.
             if verbose:
                 print("Computing derivatives of more auxiliary functions...")
-            AA = function('AA', *tuple(T))
+            AA = function('AA')(*tuple(T))
             At_derivs = FractionWithFactoredDenominatorRing._diff_all(
                 At, T, 2 * N - 2, sub=hderivs1,
                 sub_final =[Tstar, atP], rekey=AA)
-            BB = function('BB', *tuple(T))
+            BB = function('BB')(*tuple(T))
             Phitu_derivs = FractionWithFactoredDenominatorRing._diff_all(
                 Phitu, T, 2 * N, sub=hderivs1,
                 sub_final =[Tstar, atP], rekey=BB,
@@ -2347,8 +2348,8 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         thetastar = dict([(t, Integer(0)) for t in T])
         thetastar.update(Sstar)
         # Create implicit functions.
-        h = [function('h' + str(j), *tuple(X[:d - 1])) for j in xrange(n)]
-        U = function('U', *tuple(X))
+        h = [function('h' + str(j))(*tuple(X[:d - 1])) for j in xrange(n)]
+        U = function('U')(*tuple(X))
         # All other functions are defined in terms of h, U, and
         # explicit functions.
         Hcheck = prod([X[d - 1] - Integer(1) / h[j] for j in xrange(n)])
@@ -2442,11 +2443,11 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         # to stand in for the expressions At and Phitu respectively.
         if verbose:
             print("Computing derivatives of more auxiliary functions...")
-        AA = [function('A' + str(j), *tuple(T + S)) for j in xrange(n)]
+        AA = [function('A' + str(j))(*tuple(T + S)) for j in xrange(n)]
         At_derivs = FractionWithFactoredDenominatorRing._diff_all(
             At, T + S, 2 * N - 2, sub=hderivs1,
             sub_final=[thetastar, atP], rekey=AA)
-        BB = function('BB', *tuple(T + S))
+        BB = function('BB')(*tuple(T + S))
         Phitu_derivs = FractionWithFactoredDenominatorRing._diff_all(
             Phitu, T + S, 2 * N, sub=hderivs1,
             sub_final=[thetastar, atP], rekey=BB,
@@ -2893,9 +2894,9 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: F = FFPD(G, Hfac)
             sage: alpha = var('a1, a2')
             sage: F.smooth_critical_ideal(alpha)
-            Ideal (y^2 + 2*a1/a2*y - 1, x + ((-a2)/a1)*y + (a2 - a1)/a1) of
+            Ideal (y^2 + 2*a1/a2*y - 1, x + ((-a2)/a1)*y + (-a1 + a2)/a1) of
              Multivariate Polynomial Ring in x, y over Fraction Field of
-             Multivariate Polynomial Ring in a2, a1 over Rational Field
+             Multivariate Polynomial Ring in a1, a2 over Rational Field
 
             sage: H = (1-x-y-x*y)^2
             sage: Hfac = H.factor()
@@ -3742,7 +3743,7 @@ class FractionWithFactoredDenominatorRing(
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
-            sage: f = function('f', x)
+            sage: f = function('f')(x)
             sage: dd = FFDR._diff_all(f, [x], 3)
             sage: dd[(x, x, x)]
             D[0, 0, 0](f)(x)
@@ -3764,14 +3765,14 @@ class FractionWithFactoredDenominatorRing(
         ::
 
             sage: X = var('x, y, z')
-            sage: f = function('f',*X)
+            sage: f = function('f')(*X)
             sage: dd = FFDR._diff_all(f, X, 2, ending=[y, y, y])
             sage: dd[(z, y, y, y)]
             D[1, 1, 1, 2](f)(x, y, z)
 
         ::
 
-            sage: g = function('g',*X)
+            sage: g = function('g')(*X)
             sage: dd = FFDR._diff_all([f, g], X, 2)
             sage: dd[(0, y, z)]
             D[1, 2](f)(x, y, z)
@@ -3780,7 +3781,7 @@ class FractionWithFactoredDenominatorRing(
             D[2, 2](g)(x, y, z)
 
             sage: f = exp(x*y*z)
-            sage: ff = function('ff',*X)
+            sage: ff = function('ff')(*X)
             sage: dd = FFDR._diff_all(f, X, 2, rekey=ff)
             sage: dd[diff(ff, x, z)]
             x*y^2*z*e^(x*y*z) + y*e^(x*y*z)
@@ -3904,8 +3905,8 @@ class FractionWithFactoredDenominatorRing(
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
             sage: T = var('x, y')
-            sage: A = function('A',*tuple(T))
-            sage: B = function('B',*tuple(T))
+            sage: A = function('A')(*tuple(T))
+            sage: B = function('B')(*tuple(T))
             sage: AB_derivs = {}
             sage: M = matrix([[1, 2],[2, 1]])
             sage: DD = FFDR._diff_op(A, B, AB_derivs, T, M, 1, 2)
@@ -4035,8 +4036,8 @@ class FractionWithFactoredDenominatorRing(
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
-            sage: A = function('A', x)
-            sage: B = function('B', x)
+            sage: A = function('A')(x)
+            sage: B = function('B')(x)
             sage: AB_derivs = {}
             sage: sorted(FFDR._diff_op_simple(A, B, AB_derivs, x, 3, 2, 2).items())
             [((0, 0), A(x)),
@@ -4113,8 +4114,8 @@ class FractionWithFactoredDenominatorRing(
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
-            sage: u = function('u', x)
-            sage: g = function('g', x)
+            sage: u = function('u')(x)
+            sage: g = function('g')(x)
             sage: fd = {(x,):1,(x, x):1}
             sage: ud = {u(x=2): 1}
             sage: atc = {x: 2, g(x=2): 3, diff(g, x)(x=2): 5}

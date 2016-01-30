@@ -802,8 +802,8 @@ class HasseDiagram(DiGraph):
             sage: H.moebius_function(0,4) # indirect doctest
             2
             sage: for u,v in P.cover_relations_iterator():
-            ...    if P.moebius_function(u,v) != -1:
-            ...        print "Bug in moebius_function!"
+            ....:     if P.moebius_function(u,v) != -1:
+            ....:         print "Bug in moebius_function!"
 
         This uses ``self._moebius_function_matrix``, as computed by
         :meth:`moebius_function_matrix`.

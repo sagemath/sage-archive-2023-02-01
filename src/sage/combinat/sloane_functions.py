@@ -300,7 +300,7 @@ class SloaneSequence(SageObject):
 ########################################################################
 
 # You may have to import more here when defining new sequences
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.combinat import combinat
@@ -9723,6 +9723,15 @@ class Sloane(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: dog
+
+        ::
+
+            sage: sloane.__repr__
+            <method-wrapper '__repr__' of Sloane object at 0x...>
+            sage: sloane.__name__
+            Traceback (most recent call last):
+            ...
+            AttributeError: __name__
         """
         try:
             return SageObject.__getattribute__(self, name)
@@ -9733,7 +9742,7 @@ class Sloane(SageObject):
                 seq = f()
                 setattr(self, name, seq)
                 return seq
-            except AttributeError:
+            except (AttributeError, TypeError):
                 raise AttributeError(name)
 
 sloane = Sloane()

@@ -411,7 +411,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         iset = self.index_set()
         # The result from is_symmetrizable needs to be scaled
         # to integer coefficients
-        from sage.rings.arith import LCM
+        from sage.arith.all import LCM
         from sage.rings.all import QQ
         scalar = LCM([QQ(x).denominator() for x in sym])
         return Family( {iset[i]: ZZ(val*scalar) for i, val in enumerate(sym)} )

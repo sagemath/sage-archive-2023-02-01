@@ -522,7 +522,7 @@ class InstanceTester(unittest.TestCase):
             sage: Z[1]                   # since #8389, indexed access is used for ring extensions
             Traceback (most recent call last):
             ...
-            ValueError: first letter of variable name must be a letter
+            ValueError: variable name '1' does not start with a letter
             sage: tester = InstanceTester(Z, elements=Z, max_runs=5)
             sage: list(tester.some_elements())
             [0, 1, 2, 3, 4]

@@ -203,7 +203,7 @@ class NakajimaYMonomial(Element):
             sage: m.__ne__(m)
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __lt__(self,other):
         r"""

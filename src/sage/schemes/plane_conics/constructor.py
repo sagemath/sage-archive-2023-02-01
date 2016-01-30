@@ -28,11 +28,11 @@ from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
 from sage.quadratic_forms.quadratic_form import is_QuadraticForm
 from sage.rings.all import PolynomialRing
-from sage.rings.finite_rings.constructor import is_PrimeFiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 
 from sage.rings.integral_domain import is_IntegralDomain
 from sage.rings.rational_field import is_RationalField
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 
 from sage.rings.number_field.number_field import is_NumberField

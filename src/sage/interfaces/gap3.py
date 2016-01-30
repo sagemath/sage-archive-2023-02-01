@@ -282,6 +282,8 @@ class Gap3(Gap_generic):
 
     - Franco Saliola (Feb 2010)
     """
+    _identical_function = "IsIdentical"
+
     def __init__(self, command=gap3_cmd):
         r"""
         Initialize the GAP3 interface and start a session.
@@ -316,7 +318,6 @@ class Gap3(Gap_generic):
              command=self.__gap3_command_string + " -p -y 500",
              server=None,
              ulimit=None,
-             maxread=100000,
              script_subdirectory=None,
              restart_on_ctrlc=True,
              verbose_start=False,
@@ -878,6 +879,9 @@ def gap3_console():
                                 For help enter: ?<return>
         gap>
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gap3 magics instead.')
     os.system(gap3_cmd)
 
 def gap3_version():

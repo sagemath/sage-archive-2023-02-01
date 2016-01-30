@@ -18,14 +18,14 @@ from sage.rings.all import (
 from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import latex
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 
 from sage.schemes.generic.scheme import AffineScheme
 from sage.schemes.generic.ambient_space import AmbientSpace
@@ -299,7 +299,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
@@ -326,7 +326,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
@@ -348,7 +348,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Same as for
         :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
 
-        OUPUT:
+        OUTPUT:
 
         A new instance of
         :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
@@ -457,7 +457,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def __pow__(self, m):
         """
-        Return the cartesian power of self.
+        Return the Cartesian power of self.
 
         INPUT:
 

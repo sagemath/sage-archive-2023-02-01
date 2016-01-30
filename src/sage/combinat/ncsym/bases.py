@@ -110,8 +110,8 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
             str = "{} in the {} basis".format(self.realization_of(), self._realization_name())
             if hasattr(self,'_q'):
                 str += " with parameter q"
-                if self._q.__repr__()!='q':
-                    str += "="+self._q.__repr__()
+                if repr(self._q)!='q':
+                    str += "="+repr(self._q)
             return str
 
         def __getitem__(self, i):
@@ -169,7 +169,7 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
 
             - ``A`` -- a set partition
 
-            OUPUT:
+            OUTPUT:
 
             - either the ``0`` or the ``1`` of the base ring of ``self``
 
@@ -461,7 +461,7 @@ class NCSymBases(Category_realization_of_parent):
 
             - ``i`` -- the indices of an element of the basis of ``self``
 
-            OUPUT:
+            OUTPUT:
 
             - an element of the tensor squared of ``self``
 

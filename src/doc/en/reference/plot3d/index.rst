@@ -52,8 +52,4 @@ Backends
 
    sage/plot/plot3d/tachyon
 
-.. broken, see #16647
-..   sage/plot/plot3d/help
-..   sage/plot/java3d
-
 .. include:: ../footer.txt

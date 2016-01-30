@@ -1,10 +1,12 @@
 r"""
-Index of Channels
+Index of channels
 
 The ``channels`` object may be used to access the codes that Sage can build.
 
 - :func:`channel_constructions.ErrorErasureChannel <sage.coding.channel_constructions.ErrorErasureChannel>`
 - :func:`channel_constructions.StaticErrorRateChannel <sage.coding.channel_constructions.StaticErrorRateChannel>`
+
+- :func:`channel_constructions.QarySymmetricChannel <sage.coding.channel_constructions.QarySymmetricChannel>`
 
 .. NOTE::
 
@@ -14,4 +16,4 @@ The ``channels`` object may be used to access the codes that Sage can build.
 
 """
 
-from channel_constructions import (ErrorErasureChannel, StaticErrorRateChannel)
+from channel_constructions import (ErrorErasureChannel, StaticErrorRateChannel, QarySymmetricChannel)

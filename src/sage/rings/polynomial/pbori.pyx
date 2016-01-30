@@ -194,7 +194,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
@@ -206,6 +206,7 @@ from sage.rings.ideal import FieldIdeal
 from sage.structure.element cimport Element
 from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport have_same_parent_c, coercion_model
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -1150,7 +1151,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: r = B.random_element(terms=(n/2)**2)
         """
         from sage.rings.integer import Integer
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         if not vars_set:
             vars_set=range(self.ngens())
@@ -1260,7 +1261,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             [x*y, x*y, x, x, x, x*y, x, y, x*y, 1]
         """
         from sage.rings.integer_ring import ZZ
-        from sage.combinat.choose_nk import from_rank
+        from sage.combinat.combination import from_rank
 
         t = ZZ.random_element(0,monom_counts[-1])
         if t == 0:
@@ -1770,7 +1771,7 @@ def get_var_mapping(ring, other):
     """
 
     my_names = list(ring._names) # we need .index(.)
-    if isinstance(other, (ParentWithGens,BooleanMonomialMonoid)):
+    if isinstance(other, (Parent, BooleanMonomialMonoid)):
         indices = range(other.ngens())
         ovar_names = other._names
     else:
@@ -2195,8 +2196,6 @@ cdef class BooleanMonomial(MonoidElement):
 
           See class documentation for parameters.
         """
-
-        _parent = <ParentWithBase>parent
         self._ring = parent._ring
         self._pbmonom = PBMonom_Constructor((<BooleanPolynomialRing>self._ring)._pbring)
 
@@ -2897,9 +2896,8 @@ cdef class BooleanPolynomial(MPolynomial):
         use the appropriate ``__call__`` method in the parent.
     """
     def __init__(self, parent):
-        self._parent = <ParentWithBase>parent
+        self._parent = parent
         self._pbpoly = PBPoly_Constructor_ring((<BooleanPolynomialRing>parent)._pbring)
-
 
     def _repr_(self):
         """
@@ -3076,6 +3074,45 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __richcmp__(left, right, int op):
         """
+        Optimized comparison function, checking for boolean ``False``
+        in one of the arguments.
+
+        EXAMPLES::
+
+            sage: P.<x> = BooleanPolynomialRing()
+            sage: P.zero() == True
+            False
+            sage: P(0) != True
+            True
+            sage: P(False) == False
+            True
+            sage: P() != False
+            False
+            sage: x == True
+            False
+            sage: x != True
+            True
+            sage: x == False
+            False
+            sage: x != False
+            True
+        """
+        cdef bint bl, br
+
+        if (op == Py_EQ) or (op == Py_NE):
+            bl = not not left
+            br = not not right
+            if not bl or not br:
+                return (br or bl) == (op == Py_NE)
+
+        # Copy from Element.__richcmp__
+        if have_same_parent_c(left, right):
+            return (<Element>left)._richcmp_(<Element>right, op)
+        else:
+            return coercion_model.richcmp(left, right, op)
+
+    cpdef int _cmp_(left, Element right) except -2:
+        """
         Compare left and right and return -1, 0, 1 for ``less than``,
         ``equal``, and ``greater than`` respectively.
 
@@ -3098,27 +3135,11 @@ cdef class BooleanPolynomial(MPolynomial):
 
         ::
 
-            sage: P(0) == 0
+            sage: P(True) == True
             True
+            sage: cmp(P(0), 0)
+            0
         """
-        cdef bint bl = bool(left)
-        cdef bint br = bool(right)
-
-        if op == Py_EQ:
-            if not bl or not br:
-                return (not br and not bl)
-
-        elif op == Py_NE:
-            if not bl or not br:
-                return not (not br and not bl)
-
-        #boilerplate from sage.structure.element
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
-
-
-
         cdef int res
         from itertools import izip
         for lm, rm in izip(left, right):

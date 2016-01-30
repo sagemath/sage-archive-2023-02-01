@@ -1003,7 +1003,7 @@ def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
         res_name = names + '0'
 
     if modulus is None:
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         modulus = PolynomialRing(base, 'x')(GF(p**k, res_name).modulus().change_ring(ZZ))
 
     return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt, names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_ram_terms=print_max_ram_terms, print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check, unram=True)
@@ -2003,7 +2003,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
     if res_name is None:
         res_name = names + '0'
     if modulus is None:
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         if ram_name is None:
             ram_name = str(F[0][0])
         modulus = PolynomialRing(base, 'x')(GF(q, res_name).modulus().change_ring(ZZ))

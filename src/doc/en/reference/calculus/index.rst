@@ -11,6 +11,7 @@ Symbolic Calculus
    sage/calculus/calculus
    sage/symbolic/units
    sage/symbolic/ring
+   sage/symbolic/subring
    sage/symbolic/function
    sage/symbolic/function_factory
    sage/calculus/functional

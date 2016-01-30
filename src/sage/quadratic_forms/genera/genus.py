@@ -10,12 +10,12 @@
 #*****************************************************************************
 
 from sage.misc.all import prod
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 
 def Genus(A):
@@ -1066,7 +1066,7 @@ class Genus_Symbol_p_adic_ring(object):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     ## Added these two methods to make this class iterable...
@@ -1644,7 +1644,7 @@ class GenusSymbol_global_ring(object):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     def signature_pair_of_matrix(self):

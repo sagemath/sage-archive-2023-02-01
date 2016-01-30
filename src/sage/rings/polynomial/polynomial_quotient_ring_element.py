@@ -155,7 +155,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         return self._polynomial._im_gens_(codomain, im_gens)
 
     def __hash__(self):
-        return self._polynomial.__hash__()
+        return hash(self._polynomial)
 
     def __reduce__(self):
         """

@@ -42,26 +42,25 @@ AUTHORS:
 Functions and methods
 ---------------------
 """
-#***************************************************************************
-#                              Copyright (C) 2007                          #
-#                                                                          #
-#                Peter Dobcsanyi       and         David Joyner            #
-#           <peter@designtheory.org>          <wdjoyner@gmail.com>         #
-#                                                                          #
-#                                                                          #
-#    Distributed under the terms of the GNU General Public License (GPL)   #
-#    as published by the Free Software Foundation; either version 2 of     #
-#    the License, or (at your option) any later version.                   #
-#                    http://www.gnu.org/licenses/                          #
-#***************************************************************************
+
+#*****************************************************************************
+#       Copyright (C) 2007 Peter Dobcsanyi <peter@designtheory.org>
+#       Copyright (C) 2007 David Joyner <wdjoyner@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import binomial, integer_floor
+from sage.arith.all import binomial, integer_floor, is_prime_power
 from incidence_structures import IncidenceStructure
 from sage.misc.decorators import rename_keyword
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.matrix.matrix_space import MatrixSpace
@@ -144,7 +143,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
         ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l+1) is False
         ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l-1) is False
     """
-    import sage.rings.arith as arith
+    import sage.arith.all as arith
 
     q1 = Integer(v - k)
     q2 = Integer(k - lmbda)
@@ -703,7 +702,6 @@ def projective_plane(n, check=True, existence=False):
         sage: designs.projective_plane(12, existence=True)
         Unknown
     """
-    from sage.rings.arith import is_prime_power
     from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
 
     if n <= 1:

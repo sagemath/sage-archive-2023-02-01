@@ -175,7 +175,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         Returns either the real or imaginary component of ``self`` depending
         on the choice of ``i``: real (``i=0``), imaginary (``i=1``)
 
-        INPUTS:
+        INPUT:
 
         - ``i`` - 0 or 1
 
@@ -328,20 +328,20 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
         """
         cdef ComplexIntervalFieldElement a00 = self._new()
-        mpfr_set(&a00.__re.left, &self.__re.left, GMP_RNDN)
+        mpfr_set(&a00.__re.left, &self.__re.left, MPFR_RNDN)
         mpfi_mid(&a00.__re.right, self.__re)
-        mpfr_set(&a00.__im.left, &self.__im.left, GMP_RNDN)
+        mpfr_set(&a00.__im.left, &self.__im.left, MPFR_RNDN)
         mpfi_mid(&a00.__im.right, self.__im)
 
         cdef ComplexIntervalFieldElement a01 = self._new()
-        mpfr_set(&a01.__re.left, &a00.__re.right, GMP_RNDN)
-        mpfr_set(&a01.__re.right, &self.__re.right, GMP_RNDN)
+        mpfr_set(&a01.__re.left, &a00.__re.right, MPFR_RNDN)
+        mpfr_set(&a01.__re.right, &self.__re.right, MPFR_RNDN)
         mpfi_set(a01.__im, a00.__im)
 
         cdef ComplexIntervalFieldElement a10 = self._new()
         mpfi_set(a10.__re, a00.__re)
         mpfi_mid(&a10.__im.left, self.__im)
-        mpfr_set(&a10.__im.right, &self.__im.right, GMP_RNDN)
+        mpfr_set(&a10.__im.right, &self.__im.right, MPFR_RNDN)
 
         cdef ComplexIntervalFieldElement a11 = self._new()
         mpfi_set(a11.__re, a01.__re)
@@ -376,6 +376,87 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return mpfr_equal_p(&self.__re.left, &self.__re.right) and \
                mpfr_equal_p(&self.__im.left, &self.__im.right)
 
+    def endpoints(self):
+        """
+        Return the 4 corners of the rectangle in the complex plane
+        defined by this interval.
+
+        OUTPUT: a 4-tuple of complex numbers
+        (lower left, upper right, upper left, lower right)
+
+        .. SEEALSO::
+
+            :meth:`edges` which returns the 4 edges of the rectangle.
+
+        EXAMPLES::
+
+            sage: CIF(RIF(1,2), RIF(3,4)).endpoints()
+            (1.00000000000000 + 3.00000000000000*I,
+             2.00000000000000 + 4.00000000000000*I,
+             1.00000000000000 + 4.00000000000000*I,
+             2.00000000000000 + 3.00000000000000*I)
+            sage: ComplexIntervalField(20)(-2).log().endpoints()
+            (0.69315 + 3.1416*I,
+             0.69315 + 3.1416*I,
+             0.69315 + 3.1416*I,
+             0.69315 + 3.1416*I)
+        """
+        left, right = self.real().endpoints()
+        lower, upper = self.imag().endpoints()
+        CC = self._parent._middle_field()
+        return (CC(left, lower), CC(right, upper),
+                CC(left, upper), CC(right, lower))
+
+    def edges(self):
+        """
+        Return the 4 edges of the rectangle in the complex plane
+        defined by this interval as intervals.
+
+        OUTPUT: a 4-tuple of complex intervals
+        (left edge, right edge, lower edge, upper edge)
+
+        .. SEEALSO::
+
+            :meth:`endpoints` which returns the 4 corners of the
+            rectangle.
+
+        EXAMPLES::
+
+            sage: CIF(RIF(1,2), RIF(3,4)).edges()
+            (1 + 4.?*I, 2 + 4.?*I, 2.? + 3*I, 2.? + 4*I)
+            sage: ComplexIntervalField(20)(-2).log().edges()
+            (0.69314671? + 3.14160?*I,
+             0.69314766? + 3.14160?*I,
+             0.693147? + 3.1415902?*I,
+             0.693147? + 3.1415940?*I)
+        """
+        cdef ComplexIntervalFieldElement left = self._new()
+        cdef ComplexIntervalFieldElement right = self._new()
+        cdef ComplexIntervalFieldElement lower = self._new()
+        cdef ComplexIntervalFieldElement upper = self._new()
+        cdef mpfr_t x
+        mpfr_init2(x, self.prec())
+
+        # Set real parts
+        mpfi_get_left(x, self.__re)
+        mpfi_set_fr(left.__re, x)
+        mpfi_get_right(x, self.__re)
+        mpfi_set_fr(right.__re, x)
+        mpfi_set(lower.__re, self.__re)
+        mpfi_set(upper.__re, self.__re)
+
+        # Set imaginary parts
+        mpfi_get_left(x, self.__im)
+        mpfi_set_fr(lower.__im, x)
+        mpfi_get_right(x, self.__im)
+        mpfi_set_fr(upper.__im, x)
+        mpfi_set(left.__im, self.__im)
+        mpfi_set(right.__im, self.__im)
+
+        mpfr_clear(x)
+
+        return (left, right, lower, upper)
+
     def diameter(self):
         """
         Returns a somewhat-arbitrarily defined "diameter" for this interval.
@@ -400,7 +481,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfr_init2(tmp, self.prec())
         mpfi_diam(diam.value, self.__re)
         mpfi_diam(tmp, self.__im)
-        mpfr_max(diam.value, diam.value, tmp, GMP_RNDU)
+        mpfr_max(diam.value, diam.value, tmp, MPFR_RNDU)
         mpfr_clear(tmp)
         return diam
 
@@ -1592,36 +1673,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
         """
         return True
-
-#     def algdep(self, n, **kwds):
-#         """
-#         Returns a polynomial of degree at most $n$ which is approximately
-#         satisfied by this complex number.  Note that the returned polynomial
-#         need not be irreducible, and indeed usually won't be if $z$ is a good
-#         approximation to an algebraic number of degree less than $n$.
-
-#         ALGORITHM: Uses the PARI C-library algdep command.
-
-#         INPUT: Type algdep? at the top level prompt. All additional
-#         parameters are passed onto the top-level algdep command.
-
-#         EXAMPLES::
-#
-#             sage: C = ComplexIntervalField()
-#             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
-#             0.500000000000000 + 0.866025403784439*I
-#             sage: p = z.algdep(5); p
-#             x^5 + x^2
-#             sage: p.factor()
-#             (x + 1) * x^2 * (x^2 - x + 1)
-#             sage: z^2 - z + 1
-#             0.000000000000000111022302462516
-#         """
-#         import sage.rings.arith
-#         return sage.rings.arith.algdep(self,n, **kwds)
-
-#     def algebraic_dependancy( self, n ):
-#         return self.algdep( n )
 
     def cos(self):
         r"""

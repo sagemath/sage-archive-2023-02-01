@@ -35,7 +35,7 @@ from sage.rings.integer_ring   import ZZ
 from sage.rings.rational_field import QQ
 
 from sage.rings.integer cimport Integer
-from sage.rings.arith import previous_prime, CRT_basis
+from sage.arith.all import previous_prime, CRT_basis
 
 from sage.rings.real_mpfr import  is_RealField
 from sage.rings.real_mpfr cimport RealNumber
@@ -73,7 +73,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         ...
         ZeroDivisionError: The modulus cannot be zero
     """
-    if not N.__nonzero__():
+    if not N:
         raise ZeroDivisionError("The modulus cannot be zero")
     cdef Matrix_rational_dense R
     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
@@ -156,7 +156,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
         ...
         ZeroDivisionError: The modulus cannot be zero
     """
-    if not N.__nonzero__():
+    if not N:
         raise ZeroDivisionError("The modulus cannot be zero")
     cdef Matrix_rational_sparse R
     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
@@ -524,18 +524,18 @@ def hadamard_row_bound_mpfr(Matrix A):
     mpfr_init(s)
     mpfr_init(d)
     mpfr_init(pr)
-    mpfr_set_si(d, 0, GMP_RNDU)
+    mpfr_set_si(d, 0, MPFR_RNDU)
 
     for i from 0 <= i < A._nrows:
-        mpfr_set_si(s, 0, GMP_RNDU)
+        mpfr_set_si(s, 0, MPFR_RNDU)
         for j from 0 <= j < A._ncols:
             a = A.get_unsafe(i, j)
-            mpfr_mul(pr, a.value, a.value, GMP_RNDU)
-            mpfr_add(s, s, pr, GMP_RNDU)
-        mpfr_log10(s, s, GMP_RNDU)
-        mpfr_add(d, d, s, GMP_RNDU)
+            mpfr_mul(pr, a.value, a.value, MPFR_RNDU)
+            mpfr_add(s, s, pr, MPFR_RNDU)
+        mpfr_log10(s, s, MPFR_RNDU)
+        mpfr_add(d, d, s, MPFR_RNDU)
     b = a._new()
-    mpfr_set(b.value, d, GMP_RNDU)
+    mpfr_set(b.value, d, MPFR_RNDU)
     b /= 2
     mpfr_clear(s)
     mpfr_clear(d)

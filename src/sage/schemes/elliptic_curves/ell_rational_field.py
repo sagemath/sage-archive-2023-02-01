@@ -72,10 +72,10 @@ from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
 import sage.modular.modform.constructor
 import sage.modular.modform.element
-import sage.libs.mwrank.all as mwrank
+import sage.libs.eclib.all as mwrank
 import sage.databases.cremona
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.all as rings
 from sage.rings.all import (
     PowerSeriesRing,
@@ -809,7 +809,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EE
             y^2+ y = x^3 - x^2 - 10*x - 20
             sage: type(EE)
-            <class 'sage.libs.mwrank.interface.mwrank_EllipticCurve'>
+            <class 'sage.libs.eclib.interface.mwrank_EllipticCurve'>
             sage: EE.isogeny_class()
             ([[0, -1, 1, -10, -20], [0, -1, 1, -7820, -263580], [0, -1, 1, 0, 0]],
             [[0, 5, 5], [5, 0, 0], [5, 0, 0]])
@@ -2725,7 +2725,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         from sage.libs.ratpoints import ratpoints
         from sage.functions.all import exp
-        from sage.rings.arith import GCD
+        from sage.arith.all import GCD
         H = exp(float(height_limit)) # max(|p|,|q|) <= H, if x = p/q coprime
         coeffs = [16*self.b6(), 8*self.b4(), self.b2(), 1]
         points = []
@@ -6996,3 +6996,53 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
 
     return xs
 
+
+def elliptic_curve_congruence_graph(curves):
+    r"""
+    Return the congruence graph for this set of elliptic curves.
+
+    INPUT:
+
+    - ``curves`` -- a list of elliptic curves
+
+    OUTPUT:
+
+    The graph with each curve as a vertex (labelled by its Cremona
+    label) and an edge from `E` to `F` labelled `p` if and only if `E` is
+    congruent to `F` mod `p`
+
+    EXAMPLE::
+
+        sage: from sage.schemes.elliptic_curves.ell_rational_field import elliptic_curve_congruence_graph
+        sage: curves = list(cremona_optimal_curves([11..30]))
+        sage: G = elliptic_curve_congruence_graph(curves)
+        sage: G
+        Graph on 12 vertices
+    """
+    from sage.graphs.graph import Graph
+    from sage.arith.all import lcm, prime_divisors
+    from sage.rings.fast_arith import prime_range
+    from sage.misc.all import prod
+    G = Graph()
+    G.add_vertices([curve.cremona_label() for curve in curves])
+    n = len(curves)
+    for i in xrange(n):
+        E = curves[i]
+        M = E.conductor()
+        for j in xrange(i):
+            F = curves[j]
+            N = F.conductor()
+            MN = lcm(M, N)
+            lim = prod([(p - 1) * p ** (e - 1) for p, e in MN.factor()])
+            a_E = E.anlist(lim)
+            a_F = F.anlist(lim)
+            l_list = [p for p in prime_range(lim) if not p.divides(MN)]
+            p_edges = l_list
+            for l in l_list:
+                n = a_E[l] - a_F[l]
+                if n != 0:
+                    p_edges = [p for p in p_edges if p.divides(n)]
+            if len(p_edges):
+                G.add_edge(E.cremona_label(), F.cremona_label(),
+                           p_edges)
+    return G

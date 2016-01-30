@@ -1458,8 +1458,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: f1P == loads(dumps(f1P))
             True
 
-        TESTS::
-
             sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
             sage: S.<z> = R[]
             sage: fS = S.hom(f,S); gS = S.hom(g,S)

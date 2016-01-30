@@ -29,3 +29,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import("sage.modules",
         ("vector_symbolic_dense",  "vector_callable_symbolic_dense"),
         deprecation=18140)
+
+lazy_import('sage.modules.filtered_vector_space', 'FilteredVectorSpace')
+lazy_import('sage.modules.multi_filtered_vector_space', 'MultiFilteredVectorSpace')
+

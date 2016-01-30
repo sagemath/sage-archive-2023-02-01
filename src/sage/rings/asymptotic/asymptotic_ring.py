@@ -1217,7 +1217,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: ~A(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Division by zero in 0.
+            ZeroDivisionError: Cannot invert 0.
 
         ::
 
@@ -1229,7 +1229,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             several maximal elements s, t.
         """
         if not self.summands:
-            raise ZeroDivisionError('Division by zero in %s.' % (self,))
+            raise ZeroDivisionError('Cannot invert {}.'.format(self))
 
         elif len(self.summands) == 1:
             element = next(self.summands.elements())

@@ -2031,9 +2031,10 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_symbol(self._gobj)
 
-    def is_constant(self):
+    def _is_registered_constant_(self):
         """
-        Return True if this symbolic expression is a constant.
+        Return True if this symbolic expression is interally represented as
+        a constant.
 
         This function is intended to provide an interface to query the internal
         representation of the expression. In this sense, the word ``constant``
@@ -2042,21 +2043,51 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: pi.is_constant()
+            sage: pi._is_registered_constant_()
             True
-            sage: x.is_constant()
+            sage: x._is_registered_constant_()
             False
-            sage: SR(1).is_constant()
+            sage: SR(1)._is_registered_constant_()
             False
 
         Note that the complex I is not a constant::
 
-            sage: I.is_constant()
+            sage: I._is_registered_constant_()
             False
             sage: I.is_numeric()
             True
         """
         return is_a_constant(self._gobj)
+
+    def is_constant(self):
+        """
+        Return whether this symbolic expression is a constant.
+
+        A symbolic expression is constant if it does not contain
+        any variables.
+
+        EXAMPLES::
+
+            sage: pi.is_constant()
+            True
+            sage: SR(1).is_constant()
+            True
+            sage: SR(2).is_constant()
+            True
+            sage: log(2).is_constant()
+            True
+            sage: I.is_constant()
+            True
+            sage: x.is_constant()
+            False
+
+        TESTS::
+
+            sage: P.<p> = ZZ[]
+            sage: SR(42).is_constant() == P(2).is_constant()
+            True
+        """
+        return not self.variables()
 
     def is_numeric(self):
         """

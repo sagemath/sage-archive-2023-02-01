@@ -22,6 +22,8 @@ log = logging.getLogger()
 from sage_bootstrap.env import SAGE_DISTFILES
 from sage_bootstrap.package import Package
 from sage_bootstrap.tarball import Tarball
+from sage_bootstrap.updater import ChecksumUpdater, PackageUpdater
+
 
 
 class Application(object):
@@ -107,9 +109,56 @@ class Application(object):
         $ sage --package update pari 2015 --url=http://localhost/pari/tarball.tgz
         """
         log.debug('Updating %s to %s', package_name, new_version)
-        from sage_bootstrap.updater import PackageUpdater
         update = PackageUpdater(package_name, new_version)
         if url is not None:
             log.debug('Downloading %s', url)
             update.download_upstream(url)
         update.fix_checksum()
+
+    def download(self, package_name):
+        """
+        Download a package
+
+        $ sage --package download pari
+        Using cached file /home/vbraun/Code/sage.git/upstream/pari-2.8-2044-g89b0f1e.tar.gz
+        /home/vbraun/Code/sage.git/upstream/pari-2.8-2044-g89b0f1e.tar.gz
+        """
+        log.debug('Downloading %s', package_name)
+        package = Package(package_name)
+        package.tarball.download()
+        print(package.tarball.upstream_fqn)
+
+    def fix_all_checksums(self):
+        """
+        Fix the checksum of a package
+
+        $ sage --package fix-checksum
+        """
+        for pkg in Package.all():
+            if not os.path.exists(pkg.tarball.upstream_fqn):
+                log.debug('Ignoring {0} because tarball is not cached'.format(pkg.tarball_filename))
+                continue
+            if pkg.tarball.checksum_verifies():
+                log.debug('Checksum of {0} unchanged'.format(pkg.tarball_filename))
+                continue
+            update = ChecksumUpdater(pkg.name)
+            print('Updating checksum of {0}'.format(pkg.tarball_filename))
+            update.fix_checksum()
+
+    def fix_checksum(self, package_name):
+        """
+        Fix the checksum of a package
+
+        $ sage --package fix-checksum pari
+        Updating checksum of pari-2.8-2044-g89b0f1e.tar.gz
+        """
+        log.debug('Correcting the checksum of %s', package_name)
+        update = ChecksumUpdater(package_name)
+        pkg = update.package
+        if pkg.tarball.checksum_verifies():
+            print('Checksum of {0} unchanged'.format(pkg.tarball_filename))
+        else:
+            print('Updating checksum of {0}'.format(pkg.tarball_filename))
+            update.fix_checksum()
+        
+        

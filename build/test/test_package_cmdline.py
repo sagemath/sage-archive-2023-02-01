@@ -21,6 +21,7 @@ from sage_bootstrap.env import SAGE_DISTFILES
 from sage_bootstrap.download.mirror_list import MIRRORLIST_FILENAME
 from sage_bootstrap.util import is_url
 from sage_bootstrap.package import Package
+from test.capture import CapturedLog
 
 
 EXECUTABLE = os.path.join(
@@ -73,7 +74,7 @@ class SagePackageTestCase(unittest.TestCase):
 
     def test_tarball(self):
         pkg = Package('configure')
-        rc, stdout, stderr = self.run_command(EXECUTABLE, 'tarball', 'configure')
+        rc, stdout, stderr = self.run_command(EXECUTABLE, 'tarball', pkg.name)
         # returns successfully
         self.assertEqual(rc, 0)
         # Prints to stdout
@@ -87,5 +88,27 @@ class SagePackageTestCase(unittest.TestCase):
         self.assertEqual(rc, 0)
         # Prints to stdout
         self.assertTrue(stdout.startswith('Did you mean:'))
+        # Prints nothing to stderr
+        self.assertEqual(stderr, '')
+
+    def test_download(self):
+        pkg = Package('configure')
+        with CapturedLog() as log:
+            pkg.tarball.download()
+        rc, stdout, stderr = self.run_command(EXECUTABLE, 'download', pkg.name)
+        # returns successfully
+        self.assertEqual(rc, 0)
+        # Prints filename to stdout
+        self.assertEqual(stdout.rstrip(), pkg.tarball.upstream_fqn)
+        # Prints info to stderr
+        self.assertTrue(stderr.startswith('Using cached file'))
+
+    def test_fix_checksum(self):
+        pkg = Package('configure')
+        rc, stdout, stderr = self.run_command(EXECUTABLE, 'fix-checksum', 'configure')
+        # returns successfully
+        self.assertEqual(rc, 0)
+        # Prints to stdout
+        self.assertEqual(stdout.rstrip(), 'Checksum of {0} unchanged'.format(pkg.tarball_filename))
         # Prints nothing to stderr
         self.assertEqual(stderr, '')

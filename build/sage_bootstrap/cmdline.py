@@ -113,6 +113,29 @@ EXAMPLE:
 """
 
 
+epilog_download = \
+"""
+Download the tarball for a package and print the filename to stdout
+    
+EXAMPLE:
+
+    $ sage --package download pari
+    Using cached file /home/vbraun/Code/sage.git/upstream/pari-2.8-2044-g89b0f1e.tar.gz
+    /home/vbraun/Code/sage.git/upstream/pari-2.8-2044-g89b0f1e.tar.gz
+"""
+
+
+epilog_fix_checksum = \
+"""
+Fix the checksum of a package
+    
+EXAMPLE:
+
+    $ sage --package fix-checksum pari
+    Updating checksum of pari-2.8-2044-g89b0f1e.tar.gz
+"""
+
+
 def make_parser():
     """
     The main commandline argument parser
@@ -167,6 +190,20 @@ def make_parser():
     parser_update.add_argument(
         '--url', type=str, default=None, help='Download URL')
 
+    parser_download = subparsers.add_parser(
+        'download', epilog=epilog_download,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        help='Download tarball')
+    parser_download.add_argument(
+        'package_name', type=str, help='Package name')
+    
+    parser_fix_checksum = subparsers.add_parser(
+        'fix-checksum', epilog=epilog_fix_checksum,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        help='Fix the checksum of package. Use "*" for all packages.')
+    parser_fix_checksum.add_argument(
+        'package_name', nargs='?', default=None, type=str, help='Package name')
+    
     return parser
 
 
@@ -194,6 +231,13 @@ def run():
         app.apropos(args.incorrect_name)
     elif args.subcommand == 'update':
         app.update(args.package_name, args.new_version, url=args.url)
+    elif args.subcommand == 'download':
+        app.download(args.package_name)
+    elif args.subcommand == 'fix-checksum':
+        if args.package_name is None:
+            app.fix_all_checksums()
+        else:
+            app.fix_checksum(args.package_name)
     else:
         raise RuntimeError('unknown subcommand: {0}'.format(args))
 

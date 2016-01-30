@@ -1452,6 +1452,137 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
     pow = __pow__
 
 
+    def __pow_number__(self, exponent, precision=None):
+        r"""
+        Return the power of this asymptotic expansion to some
+        number (``exponent``).
+
+        Let `m` be the maximal element of this asymptotic expansion
+        and `r` the remaining summands. This method calculates
+
+        .. MATH::
+
+            (m + r)^{\mathrm{exponent}}
+            = m^{\mathrm{exponent}} \sum_{k=0}^K
+            \binom{\mathrm{exponent}}{k} (r/m)^k
+
+        where `K` is chosen such that adding an additional summand
+        does not change the result.
+
+        INPUT:
+
+        - ``exponent`` -- a numerical value (e.g. integer, rational)
+          or other constant.
+
+        - ``precision`` -- a non-negative integer.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        .. SEEALSO::
+
+            :meth:`pow`
+
+        TESTS::
+
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: (1 + x).__pow_number__(4)
+            x^4 + 4*x^3 + 6*x^2 + 4*x + 1
+            sage: _.parent()
+            Asymptotic Ring <x^ZZ> over Rational Field
+            sage: (x + 1).__pow_number__(1/2, precision=5)
+            x^(1/2) + 1/2*x^(-1/2) - 1/8*x^(-3/2) + 1/16*x^(-5/2)
+            - 5/128*x^(-7/2) + O(x^(-9/2))
+            sage: _.parent()
+            Asymptotic Ring <x^QQ> over Rational Field
+            sage: (8 + 1/x).__pow_number__(1/3, precision=5)
+            2 + 1/12*x^(-1) - 1/288*x^(-2) + 5/20736*x^(-3)
+            - 5/248832*x^(-4) + O(x^(-5))
+            sage: _.parent()
+            Asymptotic Ring <x^QQ> over Rational Field
+
+        ::
+
+            sage: R(0).__pow_number__(-3/2)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot take 0 to the negative exponent -3/2.
+            sage: R(0).__pow_number__(RIF(-1,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: Possible division by zero, since sign of
+            the exponent 0.? cannot be determined.
+
+        ::
+
+            sage: A.<a, b> = AsymptoticRing(growth_group='a^ZZ * b^ZZ', coefficient_ring=QQ)
+            sage: (a + b).__pow_number__(3/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Expansion a + b cannot be taken to the power of 3/2
+            since there are several maximal elements a, b.
+        """
+        if not self.summands:
+            if exponent >= 0:
+                return self.parent().zero()
+            elif exponent < 0:
+                raise ZeroDivisionError(
+                    'Cannot take {} to the negative '
+                    'exponent {}.'.format(self, exponent))
+            else:
+                raise ValueError(
+                    'Possible division by zero, since sign of the exponent '
+                    '{} cannot be determined.'.format(exponent))
+
+        elif len(self.summands) == 1:
+            element = next(self.summands.elements())
+            return self.parent()._create_element_in_extension_(
+                element**exponent, element.parent())
+
+        max_elem = tuple(self.summands.maximal_elements())
+        if len(max_elem) != 1:
+            raise ValueError('Expansion {} cannot be taken to the power of '
+                             '{} since there are several maximal elements '
+                             '{}.'.format(self, exponent,
+                                          ', '.join(str(e) for e in
+                                                    sorted(max_elem, key=str))))
+        max_elem = max_elem[0]
+
+        pmax_elem = max_elem**exponent
+        imax_elem = ~max_elem
+        if pmax_elem.parent() is max_elem.parent():
+            new_self = self
+        else:
+            new_self = self.parent()._create_element_in_extension_(
+                pmax_elem * imax_elem, max_elem.parent()).parent()(self)
+
+        one = new_self.parent().one()
+
+        import itertools
+
+        def binomials(a):
+            P = a.parent()
+            a = a + 1
+            f = P(1)
+            for k in itertools.count(1):
+                k = P(k)
+                b = a - k
+                if b == 0:
+                    return
+                f *= b / k
+                yield f
+
+        result = AsymptoticExpansion._taylor_(
+            coefficients=binomials(exponent),
+            start=one,
+            ratio=new_self._mul_term_(imax_elem) - one,
+            ratio_start=one,
+            precision=precision)
+
+        return result._mul_term_(pmax_elem)
+
+
     def O(self):
         r"""
         Convert all terms in this asymptotic expansion to `O`-terms.

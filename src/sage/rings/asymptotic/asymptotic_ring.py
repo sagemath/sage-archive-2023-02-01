@@ -1888,13 +1888,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         .. MATH::
 
-            s_k = c_k \mathrm{ratio_start} \mathrm{ratio}^k.
+            s_k = c_k \cdot \mathit{ratio\_start} \cdot \mathit{ratio}^k.
 
         The result is
 
         .. MATH::
 
-            \mathrm{start} + \sum_{k=1}^K s_k
+            \mathit{start} + \sum_{k=1}^K s_k
 
         where `K` is chosen such that adding `s_{K+1}` does not change
         the result.

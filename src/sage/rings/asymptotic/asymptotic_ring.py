@@ -1337,18 +1337,21 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         An asymptotic expansion.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: R_QQ.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ)
+            sage: Q.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ)
             sage: x^(1/7)
             x^(1/7)
-            sage: R_ZZ.<y> = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=ZZ)
-            sage: y^(1/7)
-            y^(1/7)
-            sage: (y^(1/7)).parent()
-            Asymptotic Ring <y^QQ> over Rational Field
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
+
+        ::
+
+            sage: Z.<y> = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=ZZ)
+            sage: y^(1/7)
+            y^(1/7)
+            sage: _.parent()
+            Asymptotic Ring <y^QQ> over Rational Field
             sage: (y^2 + O(y))^(1/2)
             y + O(1)
             sage: (y^2 + O(y))^(-2)
@@ -1373,6 +1376,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             2^x + log(2)*2^x*x^(-1) + 1/2*log(2)^2*2^x*x^(-2) + ... + O(2^x*x^(-20))
             sage: _.parent()
             Asymptotic Ring <QQ^x * x^SR * log(x)^QQ> over Symbolic Ring
+
+        TESTS:
 
         See :trac:`19110`::
 

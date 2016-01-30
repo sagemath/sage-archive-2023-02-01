@@ -416,7 +416,7 @@ We conclude with a rank `3 + 1` alcove walk::
     ::
 
         sage: L = RootSystem(["A",3,1]).ambient_space()
-        sage: alcoves = CartesianProduct([0,1],[0,1],[0,1])
+        sage: alcoves = cartesian_product([[0,1],[0,1],[0,1]])
         sage: color = lambda i: "black" if i==0 else None
         sage: L.plot_alcoves(alcoves=alcoves, color=color, bounding_box=10,wireframe=True).show(frame=False) # long time
 
@@ -671,7 +671,7 @@ class PlotOptions:
         # Bounding box
         from sage.rings.real_mpfr import RR
         from sage.geometry.polyhedron.all import Polyhedron
-        from sage.combinat.cartesian_product import CartesianProduct
+        from itertools import product
         if bounding_box in RR:
             bounding_box = [[-bounding_box,bounding_box]] * self.dimension
         else:
@@ -679,7 +679,7 @@ class PlotOptions:
                 raise TypeError("bounding_box argument doesn't match with the plot dimension")
             elif not all(len(b)==2 for b in bounding_box):
                 raise TypeError("Invalid bounding box %s"%bounding_box)
-        self.bounding_box = Polyhedron(vertices=CartesianProduct(*bounding_box))
+        self.bounding_box = Polyhedron(vertices=product(*bounding_box))
 
     @cached_method
     def in_bounding_box(self, x):

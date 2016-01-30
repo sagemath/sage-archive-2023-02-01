@@ -114,8 +114,8 @@ class Semigroups(CategoryWithAxiom):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-            from sage.combinat.cartesian_product import CartesianProduct
-            for x,y,z in tester.some_elements(CartesianProduct(S,S,S)):
+            from sage.misc.misc import some_tuples
+            for x,y,z in some_tuples(S, 3, tester._max_runs):
                 tester.assert_((x * y) * z == x * (y * z))
 
         @abstract_method(optional=True)
@@ -422,7 +422,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. TODO::
 
-                - Fix the above failure by providing a default
+                - Fix the failure in TESTS by providing a default
                   implementation of ``__invert__`` for finite groups
                   (or even finite monoids).
                 - Provide a default implementation of ``one`` for a
@@ -545,7 +545,7 @@ class Semigroups(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
-            Implement the fact that a cartesian product of semigroups is a
+            Implement the fact that a Cartesian product of semigroups is a
             semigroup.
 
             EXAMPLES::

@@ -162,6 +162,18 @@ class NakajimaYMonomial(Element):
                     return_str += "Y(%s,%s) "%(L[x][0][0],L[x][0][1])
             return return_str
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: M = crystals.infinity.NakajimaMonomials(['C',5])
+            sage: m1 = M.module_generators[0].f(1)
+            sage: hash(m1)
+            4715601665014767730  # 64-bit
+            -512614286           # 32-bit
+        """
+        return hash(frozenset(tuple(self._dict.iteritems())))
+
     def __eq__(self,other):
         r"""
         EXAMPLES::
@@ -191,7 +203,7 @@ class NakajimaYMonomial(Element):
             sage: m.__ne__(m)
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __lt__(self,other):
         r"""
@@ -759,7 +771,7 @@ class NakajimaAMonomial(NakajimaYMonomial):
         d[(i,kf)] = d.get((i,kf),0) - 1
         return self.__class__(self.parent(), d)
 
-class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
+class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
     r"""
     Let `Y_{i,k}`, for `i \in I` and `k \in \ZZ`, be a commuting set of
     variables, and let `\boldsymbol{1}` be a new variable which commutes with

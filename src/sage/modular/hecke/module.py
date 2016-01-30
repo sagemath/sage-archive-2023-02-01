@@ -19,7 +19,7 @@ Hecke modules
 
 import sage.rings.all
 from sage.rings.commutative_ring import is_CommutativeRing
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 import sage.modules.module
 from sage.structure.all import Sequence
@@ -979,6 +979,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             ]
 
         TESTS::
+
             sage: M = ModularSymbols(1000,2,sign=1).new_subspace().cuspidal_subspace()
             sage: M.decomposition(3, sort_by_basis = True)
             [

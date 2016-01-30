@@ -52,7 +52,7 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 include "sage/libs/pari/pari_err.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -62,7 +62,7 @@ from element_ext_pari import FiniteField_ext_pariElement
 from element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from sage.structure.sage_object cimport SageObject
 import operator
-import sage.rings.arith
+import sage.arith.all
 import constructor as finite_field
 
 import sage.interfaces.gap
@@ -1297,19 +1297,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         return make_FiniteField_givaroElement(cache, r)
 
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: k.<a> = GF(9); k
-            Finite Field in a of size 3^2
-            sage: a == k('a') # indirect doctest
-            True
-            sage: a == a + 1
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(left, Element right) except -2:
         """
         Comparison of finite field elements is correct or equality
@@ -1594,7 +1581,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         # using how elements are represented as a power of the generator ??
 
         # code copy'n'pasted from element_ext_pari.py
-        import sage.rings.arith
+        import sage.arith.all
 
         if self._multiplicative_order is not None:
             return self._multiplicative_order
@@ -1603,7 +1590,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                 raise ArithmeticError("Multiplicative order of 0 not defined.")
             n = (self._cache).order_c() - 1
             order = Integer(1)
-            for p, e in sage.rings.arith.factor(n):
+            for p, e in sage.arith.all.factor(n):
                 # Determine the power of p that divides the order.
                 a = self**(n/(p**e))
                 while a != 1:

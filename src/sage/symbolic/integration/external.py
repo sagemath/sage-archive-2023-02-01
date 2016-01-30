@@ -3,6 +3,7 @@
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 
+
 def maxima_integrator(expression, v, a=None, b=None):
     """
         sage: from sage.symbolic.integration.external import maxima_integrator
@@ -10,7 +11,7 @@ def maxima_integrator(expression, v, a=None, b=None):
         -cos(x)
         sage: maxima_integrator(cos(x), x)
         sin(x)
-        sage: f(x) = function('f', x)
+        sage: f(x) = function('f')(x)
         sage: maxima_integrator(f(x), x)
         integrate(f(x), x)
     """
@@ -46,7 +47,10 @@ def mma_free_integrator(expression, v, a=None, b=None):
         sage: mma_free_integrator(sin(x), x) # optional - internet
         -cos(x)
     """
-    import urllib, re
+    import re
+    # import compatible with py2 and py3
+    from six.moves.urllib.request import urlopen
+    from six.moves.urllib.parse import urlencode
     # We need to integrate against x
     vars = [str(x) for x in expression.variables()]
     if any(len(x)>1 for x in vars):
@@ -58,8 +62,8 @@ def mma_free_integrator(expression, v, a=None, b=None):
                 shadow_x = SR.var(chr(i))
                 break
         expression = expression.subs({x:shadow_x}).subs({dvar: x})
-    params = urllib.urlencode({'expr': expression._mathematica_init_(), 'random': 'false'})
-    page = urllib.urlopen("http://integrals.wolfram.com/index.jsp", params).read()
+    params = urlencode({'expr': expression._mathematica_init_(), 'random': 'false'})
+    page = urlopen("http://integrals.wolfram.com/index.jsp", params).read()
     page = page[page.index('"inputForm"'):page.index('"outputForm"')]
     page = re.sub("\s", "", page)
     mexpr = re.match(r".*Integrate.*==</em><br/>(.*)</p>", page).groups()[0]

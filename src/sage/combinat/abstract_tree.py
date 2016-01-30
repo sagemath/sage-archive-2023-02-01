@@ -1963,7 +1963,7 @@ class AbstractLabelledTree(AbstractTree):
         from sage.graphs.digraph import DiGraph
         resu = dict([[self.label(),
                     [t.label() for t in self if not t.is_empty()]]])
-        resu = DiGraph(resu)
+        resu = DiGraph(resu, format="dict_of_lists")
         for t in self:
             if not t.is_empty():
                 resu = resu.union(t.as_digraph())
@@ -1987,7 +1987,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         INPUT: ``label`` -- any Sage object
 
-        OUPUT: ``None``, ``self`` is modified in place
+        OUTPUT: ``None``, ``self`` is modified in place
 
         .. NOTE::
 
@@ -2048,7 +2048,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         - ``label`` -- any sage object
 
-        OUPUT: Nothing, ``self`` is modified in place
+        OUTPUT: Nothing, ``self`` is modified in place
 
         .. NOTE::
 

@@ -28,7 +28,7 @@ from ginac cimport *
 from sage.libs.gsl.types cimport *
 from sage.libs.gsl.complex cimport *
 from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
-
+from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
 from sage.structure.element cimport Element, parent_c
 from sage.rings.integer_ring import ZZ
@@ -147,9 +147,9 @@ cdef object exvector_to_PyTuple(GExVector seq):
         ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
-        sage: tfunc(u, x, 3.0, 5.0r, 1r)
-        len(args): 5, types: [<type 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.real_mpfr.RealLiteral'>, <type 'float'>, <type 'int'>]
-        tfunc((1, x + 1, 2), x, 3.00000000000000, 5.0, 1)
+        sage: tfunc(u, x, 3.0, 5.0r)
+        len(args): 4, types: [<type 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.real_mpfr.RealLiteral'>, <type 'float'>]
+        tfunc((1, x + 1, 2), x, 3.00000000000000, 5.0)
 
     TESTS:
 
@@ -233,7 +233,7 @@ cdef int py_get_ginac_serial():
     EXAMPLES::
 
         sage: from sage.symbolic.pynac import get_ginac_serial
-        sage: get_ginac_serial() >= 40
+        sage: get_ginac_serial() >= 35
         True
     """
     global GINAC_FN_SERIAL
@@ -245,7 +245,7 @@ def get_ginac_serial():
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.get_ginac_serial() >= 40
+        sage: sage.symbolic.pynac.get_ginac_serial() >= 35
         True
     """
     return py_get_ginac_serial()
@@ -842,7 +842,6 @@ def test_binomial(n, k):
 #################################################################
 # GCD
 #################################################################
-import sage.rings.arith
 cdef object py_gcd(object n, object k) except +:
     if isinstance(n, Integer) and isinstance(k, Integer):
         if mpz_cmp_si((<Integer>n).value,1) == 0:
@@ -854,7 +853,7 @@ cdef object py_gcd(object n, object k) except +:
     if type(n) is Rational and type(k) is Rational:
         return n.content(k)
     try:
-        return sage.rings.arith.gcd(n,k)
+        return gcd(n,k)
     except (TypeError, ValueError, AttributeError):
         # some strange meaning in case of weird things with no usual lcm.
         return 1
@@ -871,7 +870,7 @@ cdef object py_lcm(object n, object k) except +:
             return n
         return n.lcm(k)
     try:
-        return sage.rings.arith.lcm(n,k)
+        return lcm(n,k)
     except (TypeError, ValueError, AttributeError):
         # some strange meaning in case of weird things with no usual lcm, e.g.,
         # elements of finite fields.
@@ -1104,17 +1103,21 @@ cdef bint py_is_real(object a) except +:
         return True
     return py_imag(a) == 0
 
-import sage.rings.arith
 cdef bint py_is_prime(object n) except +:
     try:
         return n.is_prime()
     except Exception:  # yes, I'm doing this on purpose.
         pass
     try:
-        return sage.rings.arith.is_prime(n)
+        return is_prime(n)
     except Exception:
         pass
     return False
+
+cdef bint py_is_exact(object x) except +:
+    return isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer) or \
+           (isinstance(x, Element) and
+            ((<Element>x)._parent.is_exact() or (<Element>x)._parent == ring.SR))
 
 cdef object py_numer(object n) except +:
     """
@@ -1315,7 +1318,6 @@ def py_tgamma_for_doctests(x):
     """
     return py_tgamma(x)
 
-from sage.rings.arith import factorial
 cdef object py_factorial(object x) except +:
     """
     The factorial function exported to pynac.
@@ -1408,7 +1410,6 @@ cdef object py_step(object n) except +:
         return ONE
     return ONE_HALF
 
-from sage.rings.arith import bernoulli
 cdef object py_bernoulli(object x) except +:
     return bernoulli(x)
 
@@ -1437,6 +1438,7 @@ cdef object py_sin(object x) except +:
 cdef object py_cos(object x) except +:
     """
     TESTS::
+
         sage: cos(float(2)) #indirect doctest
         -0.4161468365471424
         sage: cos(2.)
@@ -2054,6 +2056,7 @@ def py_eval_unsigned_infinity_for_doctests():
     This function tests py_eval_unsigned_infinity.
 
     TESTS::
+
         sage: from sage.symbolic.pynac import py_eval_unsigned_infinity_for_doctests as py_eval_unsigned_infinity
         sage: py_eval_unsigned_infinity()
         Infinity
@@ -2072,6 +2075,7 @@ def py_eval_infinity_for_doctests():
     This function tests py_eval_infinity.
 
     TESTS::
+
         sage: from sage.symbolic.pynac import py_eval_infinity_for_doctests as py_eval_infinity
         sage: py_eval_infinity()
         +Infinity
@@ -2090,6 +2094,7 @@ def py_eval_neg_infinity_for_doctests():
     This function tests py_eval_neg_infinity.
 
     TESTS::
+
         sage: from sage.symbolic.pynac import py_eval_neg_infinity_for_doctests as py_eval_neg_infinity
         sage: py_eval_neg_infinity()
         -Infinity
@@ -2100,14 +2105,36 @@ def py_eval_neg_infinity_for_doctests():
 # Constructors
 ##################################################################
 cdef Integer z = Integer(0)
-cdef object py_integer_from_long(long x) except +:
-    cdef Integer z = PY_NEW(Integer)
-    mpz_init_set_si(z.value, x)
-    return z
+from sage.rings.integer cimport smallInteger
+
+cdef py_integer_from_long(long x):
+    return smallInteger(x)
 
 cdef object py_integer_from_python_obj(object x) except +:
     return Integer(x)
 
+cdef object py_integer_from_mpz(mpz_t bigint) except +:
+    cdef Integer z = PY_NEW(Integer)
+    mpz_set(z.value, bigint)
+    return z
+
+cdef object py_rational_from_mpq(mpq_t bigrat) except +:
+    cdef Rational rat = Rational.__new__(Rational)
+    mpq_set(rat.value, bigrat)
+    mpq_canonicalize(rat.value)
+    return rat
+
+cdef bint py_is_Integer(object x) except +:
+    return isinstance(x, Integer)
+
+cdef bint py_is_Rational(object x) except +:
+    return isinstance(x, Rational)
+
+cdef mpz_ptr py_mpz_from_integer(object x) except +:
+    return <mpz_ptr>((<Integer>x).value)
+
+cdef mpq_ptr py_mpq_from_rational(object x) except +:
+    return <mpq_ptr>((<Rational>x).value)
 
 ZERO = ring.SR(0)
 ONE = ring.SR(1)
@@ -2120,7 +2147,7 @@ def register_symbol(obj, conversions):
     other systems such as Maxima, Mathematica, etc.  This table is used
     to convert *from* other systems back to Sage.
 
-    INPUTS:
+    INPUT:
 
         - `obj` -- a symbolic object or function.
 
@@ -2216,9 +2243,16 @@ def init_function_table():
     py_funcs.py_is_even = &py_is_even
     py_funcs.py_is_cinteger = &py_is_cinteger
     py_funcs.py_is_prime = &py_is_prime
+    py_funcs.py_is_exact = &py_is_exact
 
+    py_funcs.py_integer_from_mpz = &py_integer_from_mpz
+    py_funcs.py_rational_from_mpq = &py_rational_from_mpq
     py_funcs.py_integer_from_long = &py_integer_from_long
     py_funcs.py_integer_from_python_obj = &py_integer_from_python_obj
+    py_funcs.py_is_Integer = &py_is_Integer
+    py_funcs.py_is_Rational = &py_is_Rational
+    py_funcs.py_mpz_from_integer = &py_mpz_from_integer
+    py_funcs.py_mpq_from_rational = &py_mpq_from_rational
 
     py_funcs.py_float = &py_float
     py_funcs.py_RDF_from_double = &py_RDF_from_double

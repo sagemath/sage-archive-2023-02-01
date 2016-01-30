@@ -18,7 +18,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.semigroups import Semigroups
 from sage.misc.lazy_import import LazyImport
 from sage.categories.subquotients import SubquotientsCategory
-from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -525,14 +525,14 @@ class Monoids(CategoryWithAxiom):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of monoids constructed as cartesian products of monoids.
+        The category of monoids constructed as Cartesian products of monoids.
 
         This construction gives the direct product of monoids. See
         :wikipedia:`Direct_product` for more information.
         """
         def extra_super_categories(self):
             """
-            A cartesian product of monoids is endowed with a natural
+            A Cartesian product of monoids is endowed with a natural
             group structure.
 
             EXAMPLES::
@@ -568,7 +568,7 @@ class Monoids(CategoryWithAxiom):
                     sage: N = Monoids.free(ZZ)
                     sage: C = cartesian_product([M, N])
                     sage: C.monoid_generators()
-                    Lazy family (gen(i))_{i in The cartesian product of (...)}
+                    Lazy family (gen(i))_{i in The Cartesian product of (...)}
                 """
                 F = self.cartesian_factors()
                 ids = tuple(M.one() for M in F)
@@ -588,6 +588,7 @@ class Monoids(CategoryWithAxiom):
                 # Infinitely generated
                 # This does not return a good output, but it is "correct"
                 # TODO: Figure out a better way to do things
+                from sage.categories.cartesian_product import cartesian_product
                 gens_prod = cartesian_product([Family(M.monoid_generators(),
                                                       lambda g: (i, g))
                                                for i,M in enumerate(F)])

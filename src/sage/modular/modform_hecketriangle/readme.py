@@ -2,8 +2,8 @@ r"""
 Overview of Hecke triangle groups and modular forms for Hecke triangle groups
 
 AUTHORS:
-- Jonas Jermann (2013): initial version
 
+- Jonas Jermann (2013): initial version
 
 
 Hecke triangle groups and elements:
@@ -460,7 +460,7 @@ Hecke triangle groups and elements:
 
 
 - **Block decomposition of elements:**
-  For each group element a very specfic conjugacy representative
+  For each group element a very specific conjugacy representative
   can be obtained. For hyperbolic and parabolic elements the
   representative is a product ``V(j)``-matrices. They all
   have non-negative trace and the number of factors is called
@@ -1093,7 +1093,7 @@ Modular forms ring and spaces for Hecke triangle groups:
 - **Theta subgroup:**
   The Hecke triangle group corresponding to ``n=infinity`` is also
   completely supported. In particular the (special) behavior around
-  the cusp ``-1`` is considered and can be specfied.
+  the cusp ``-1`` is considered and can be specified.
 
   EXAMPLES::
 
@@ -1145,6 +1145,15 @@ Modular forms ring and spaces for Hecke triangle groups:
       sage: MF.disp_prec(6)
       sage: MF.q_basis(m=-1, order_1=-1, min_exp=-1)
       q^-1 - 203528/7*q^5 + O(q^6)
+
+  Elements with respect to the full group are automatically coerced
+  to elements of the Theta subgroup if necessary::
+
+      sage: el = QuasiMeromorphicModularFormsRing(n=3).Delta().full_reduce() + E2
+      sage: el
+      (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3 + 4096*E2)/4096
+      sage: el.parent()
+      QuasiModularFormsRing(n=+Infinity) over Integer Ring
 
 
 - **Determine exact coefficients from numerical ones:**

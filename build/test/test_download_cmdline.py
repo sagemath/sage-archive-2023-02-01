@@ -99,6 +99,6 @@ class SageDownloadFileTestCase(unittest.TestCase):
         self.assertEqual(rc, 0)
         # Prints single url to stdout
         self.assertTrue(is_url(stdout))
-        # Prints nothing to stderr
-        self.assertEqual(stderr, '')
+        # May or may not print to stderr depending on whether cache was saved
+        
         

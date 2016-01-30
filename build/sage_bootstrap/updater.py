@@ -54,7 +54,7 @@ class ChecksumUpdater(object):
         return '\n'.join(result)
 
     
-class PackageUpdater(object):
+class PackageUpdater(ChecksumUpdater):
 
     def __init__(self, package_name, new_version):
         super(PackageUpdater, self).__init__(package_name)

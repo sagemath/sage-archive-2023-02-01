@@ -166,7 +166,7 @@ class Package(object):
 
         OUTPUT:
 
-        String. The patchlevel of the package. Excludes the "p"
+        Integer. The patchlevel of the package. Excludes the "p"
         prefix.
         """
         return self.__patchlevel
@@ -223,6 +223,6 @@ class Package(object):
             self.__patchlevel = -1
         else:
             self.__version = match.group('version')
-            self.__patchlevel = match.group('patchlevel')
+            self.__patchlevel = int(match.group('patchlevel'))
         
         

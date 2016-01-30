@@ -103,6 +103,18 @@ class SagePackageTestCase(unittest.TestCase):
         # Prints info to stderr
         self.assertTrue(stderr.startswith('Using cached file'))
 
+    def test_update(self):
+        pkg = Package('configure')
+        # The confball never has a patchlevel since we are upstream...
+        self.assertEqual(pkg.patchlevel, -1)
+        rc, stdout, stderr = self.run_command(EXECUTABLE, 'update', pkg.name, pkg.version)
+        # returns successfully
+        self.assertEqual(rc, 0)
+        # Prints nothing to stdout
+        self.assertEqual(stdout, '')
+        # Prints nothing to stderr
+        self.assertEqual(stderr, '')
+
     def test_fix_checksum(self):
         pkg = Package('configure')
         rc, stdout, stderr = self.run_command(EXECUTABLE, 'fix-checksum', 'configure')

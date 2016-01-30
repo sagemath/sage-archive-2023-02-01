@@ -433,9 +433,14 @@ class Semigroups(CategoryWithAxiom):
             return AutomaticSemigroup(generators, ambient=self, one=one,
                                       category=category)
 
-        def trivial_representation(self, base_ring=None):
+        def trivial_representation(self, base_ring=None, side="twosided"):
             """
             Return the trivial representation of ``self`` over ``base_ring``.
+
+            INPUT:
+
+            - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
+            - ``side`` -- ignored
 
             EXAMPLES::
 
@@ -660,13 +665,13 @@ class Semigroups(CategoryWithAxiom):
                 """
                 return self.monomial(g1 * g2)
 
-            def trivial_representation(self, side="left"):
+            def trivial_representation(self, side="twosided"):
                 """
                 Return the trivial representation of ``self``.
 
                 INPUT:
 
-                - ``side`` -- (ignored)
+                - ``side`` -- ignored
 
                 EXAMPLES::
 

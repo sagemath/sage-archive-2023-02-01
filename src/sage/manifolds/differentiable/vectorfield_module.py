@@ -688,6 +688,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         from sage.manifolds.differentiable.automorphismfield import \
                                                               AutomorphismField
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
         if tensor_type==(1,0):
             return self.element_class(self, name=name, latex_name=latex_name)
         elif tensor_type==(0,1):
@@ -708,6 +709,11 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 return self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name,
                                  sym=sym, antisym=antisym)
+        elif tensor_type==(0,2) and specific_type is not None:
+            if issubclass(specific_type, PseudoRiemannianMetric):
+                return self.metric(name, latex_name=latex_name)
+                # NB: the signature is not treated
+        # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
                         tensor_type, name=name, latex_name=latex_name, sym=sym,
                         antisym=antisym)
@@ -866,6 +872,51 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                     latex_name = name
                 self._identity_map.set_name(name=name, latex_name=latex_name)
         return self._identity_map
+
+    def metric(self, name, signature=None, latex_name=None):
+        r"""
+        Construct a pseudo-Riemannian metric (nondegenerate symmetric bilinear
+        form) on the current vector field module.
+
+        A pseudo-Riemannian metric of the vector field module is actually a
+        field of tangent-space non-degenerate symmetric bilinear forms along
+        the manifold `U` on which the vector field module is defined.
+
+        INPUT:
+
+        - ``name`` -- (string) name given to the metric
+        - ``signature`` -- (integer; default: ``None``) signature `S` of the
+          metric: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number of
+          positive terms (resp. number of negative terms) in any diagonal
+          writing of the metric components; if ``signature`` is not provided,
+          `S` is set to the manifold's dimension (Riemannian signature)
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the metric; if ``None``, it is formed from ``name``
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined pseudo-Riemannian metric.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM.metric('g')
+            Riemannian metric g on the 2-dimensional differentiable manifold M
+            sage: XM.metric('g', signature=0)
+            Lorentzian metric g on the 2-dimensional differentiable manifold M
+
+        See the class
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for further documentation.
+
+        """
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
+        return PseudoRiemannianMetric(self, name, signature=signature,
+                                      latex_name=latex_name)
+
 
 #******************************************************************************
 
@@ -1607,6 +1658,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         from sage.manifolds.differentiable.automorphismfield import \
                                       AutomorphismField, AutomorphismFieldParal
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
         if tensor_type==(1,0):
             return self.element_class(self, name=name, latex_name=latex_name)
         elif tensor_type==(0,1):
@@ -1628,6 +1680,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 return self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name,
                                  sym=sym, antisym=antisym)
+        elif tensor_type==(0,2) and specific_type is not None:
+            if issubclass(specific_type, PseudoRiemannianMetric):
+                return self.metric(name, latex_name=latex_name)
+                # NB: the signature is not treated
         # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
                         tensor_type, name=name, latex_name=latex_name, sym=sym,
@@ -1761,3 +1817,48 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         return self.tensor((0,2), name=name, latex_name=latex_name, sym=(0,1))
 
     #### End of methods to be redefined by derived classes of FiniteRankFreeModule ####
+
+    def metric(self, name, signature=None, latex_name=None):
+        r"""
+        Construct a pseudo-Riemannian metric (nondegenerate symmetric bilinear
+        form) on the current vector field module.
+
+        A pseudo-Riemannian metric of the vector field module is actually a
+        field of tangent-space non-degenerate symmetric bilinear forms along
+        the manifold `U` on which the vector field module is defined.
+
+        INPUT:
+
+        - ``name`` -- (string) name given to the metric
+        - ``signature`` -- (integer; default: ``None``) signature `S` of the
+          metric: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number of
+          positive terms (resp. number of negative terms) in any diagonal
+          writing of the metric components; if ``signature`` is not provided,
+          `S` is set to the manifold's dimension (Riemannian signature)
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the metric; if ``None``, it is formed from ``name``
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal`
+          representing the defined pseudo-Riemannian metric.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM.metric('g')
+            Riemannian metric g on the 2-dimensional differentiable manifold M
+            sage: XM.metric('g', signature=0)
+            Lorentzian metric g on the 2-dimensional differentiable manifold M
+
+        See the class
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal`
+        for further documentation.
+
+        """
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetricParal
+        return PseudoRiemannianMetricParal(self, name, signature=signature,
+                                           latex_name=latex_name)

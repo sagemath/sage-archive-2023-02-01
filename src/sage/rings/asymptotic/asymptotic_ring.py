@@ -1356,6 +1356,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             y + O(1)
             sage: (y^2 + O(y))^(-2)
             y^(-4) + O(y^(-5))
+            sage: (1 + 1/y + O(1/y^3))^pi
+            1 + pi*y^(-1) + 1/2*pi*(pi - 1)*y^(-2) + O(y^(-3))
 
         ::
 
@@ -1453,6 +1455,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             pass
         else:
             return self.__pow_number__(exponent, precision=precision)
+
+        from sage.symbolic.expression import Expression
+        if isinstance(exponent, Expression) and exponent.is_constant():
+             return self.__pow_number__(exponent, precision=precision)
 
         try:
             return (exponent * self.log(precision=precision)).exp(precision=precision)

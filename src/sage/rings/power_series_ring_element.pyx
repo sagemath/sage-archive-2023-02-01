@@ -1039,6 +1039,22 @@ cdef class PowerSeries(AlgebraElement):
             num = self
         return num*inv
 
+    cpdef RingElement _floordiv_(self, RingElement denom):
+        """
+        Deprecated alias for ``_div_``.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[[]]
+            sage: (t**10 - 1) // (1 + t + t^7)
+            doctest:...: DeprecationWarning: the operator // is deprecated for power series, use / instead
+            See http://trac.sagemath.org/20062 for details.
+            -1 + t - t^2 + t^3 - t^4 + t^5 - t^6 + 2*t^7 - 3*t^8 + 4*t^9 - 4*t^10 + 5*t^11 - 6*t^12 + 7*t^13 - 9*t^14 + 12*t^15 - 16*t^16 + 20*t^17 - 25*t^18 + 31*t^19 + O(t^20)
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(20062, "the operator // is deprecated for power series, use / instead")
+        return self._div_(denom)
+
     def __mod__(self, other):
         """
         EXAMPLES::

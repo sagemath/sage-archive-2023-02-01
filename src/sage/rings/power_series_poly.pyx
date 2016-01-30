@@ -556,34 +556,6 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return PowerSeries_poly(self._parent, c * self.__f, self._prec, check=False)
 
-    def __floordiv__(self, denom):
-        """
-        EXAMPLES::
-
-            sage: R.<t> = ZZ[[]] ; f = t**10-1 ; g = 1+t+t^7 ; h = f.add_bigoh(20)
-            sage: f // g
-            -1 + t - t^2 + t^3 - t^4 + t^5 - t^6 + 2*t^7 - 3*t^8 + 4*t^9 - 4*t^10 + 5*t^11 - 6*t^12 + 7*t^13 - 9*t^14 + 12*t^15 - 16*t^16 + 20*t^17 - 25*t^18 + 31*t^19 + O(t^20)
-            sage: (f // g) * g
-            -1 + t^10 + O(t^20)
-            sage: g // h
-            -1 - t - t^7 - t^10 - t^11 - t^17 + O(t^20)
-            sage: (g // h) * h
-            1 + t + t^7 + O(t^20)
-            sage: h // g
-            -1 + t - t^2 + t^3 - t^4 + t^5 - t^6 + 2*t^7 - 3*t^8 + 4*t^9 - 4*t^10 + 5*t^11 - 6*t^12 + 7*t^13 - 9*t^14 + 12*t^15 - 16*t^16 + 20*t^17 - 25*t^18 + 31*t^19 + O(t^20)
-            sage: (h // g) * g
-            -1 + t^10 + O(t^20)
-        """
-        try:
-            return PowerSeries.__div__(self, denom)
-        except (PariError, ZeroDivisionError) as e: # PariError to general?
-            if is_PowerSeries(denom) and denom.degree() == 0 and denom[0] in self._parent.base_ring():
-                denom = denom[0]
-            elif not denom in self._parent.base_ring():
-                raise ZeroDivisionError, e
-            return PowerSeries_poly(self._parent,
-                                             self.__f // denom, self._prec)
-
     def __lshift__(PowerSeries_poly self, n):
         """
         Shift self to the left by n, i.e. multiply by x^n.

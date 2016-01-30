@@ -14,6 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ####################################################################################
 
+from sage.misc.abstract_method import abstract_method
 from sage.structure.element import Element
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.groups import Groups
@@ -75,6 +76,23 @@ class Representation_abstract(CombinatorialFreeModule):
             Symmetric group algebra of order 4 over Rational Field
         """
         return self._semigroup_algebra
+
+    @abstract_method
+    def side(self):
+        """
+        Return whether ``self`` is a left, right, or two-sided representation.
+
+        OUTPUT:
+
+        - the string ``"left"``, ``"right"``, or ``"twosided"``
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: R = G.regular_representation()
+            sage: R.side()
+            'left'
+        """
 
 class Representation(Representation_abstract):
     """
@@ -483,6 +501,23 @@ class TrivialRepresentation(Representation_abstract):
         """
         return "Trivial representation of {} over {}".format(self._semigroup,
                                                              self.base_ring())
+
+    def side(self):
+        """
+        Return that ``self`` is a two-sided representation.
+
+        OUTPUT:
+
+        - the string ``"twosided"``
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: R = G.trivial_representation()
+            sage: R.side()
+            'twosided'
+        """
+        return "twosided"
 
     class Element(CombinatorialFreeModule.Element):
         def _acted_upon_(self, scalar, self_on_left=False):

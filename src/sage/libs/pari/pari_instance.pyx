@@ -318,6 +318,18 @@ cpdef long prec_words_to_bits(long prec_in_words):
     # see user's guide to the pari library, page 10
     return (prec_in_words - 2) * BITS_IN_LONG
 
+cpdef long default_bitprec():
+    r"""
+    Return the default precision in bits.
+
+    EXAMPLES::
+
+        sage: from sage.libs.pari.pari_instance import default_bitprec
+        sage: default_bitprec()
+        64
+    """
+    return (prec - 2) * BITS_IN_LONG
+
 def prec_dec_to_words(long prec_in_dec):
     r"""
     Convert from precision expressed in decimal to precision expressed
@@ -1541,7 +1553,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.polsubcyclo(8, 4)
             [x^4 + 1]
             sage: pari.polsubcyclo(8, 2, 'z')
-            [z^2 - 2, z^2 + 1, z^2 + 2]
+            [z^2 + 1, z^2 - 2, z^2 + 2]
             sage: pari.polsubcyclo(8, 1)
             [x - 1]
             sage: pari.polsubcyclo(8, 3)

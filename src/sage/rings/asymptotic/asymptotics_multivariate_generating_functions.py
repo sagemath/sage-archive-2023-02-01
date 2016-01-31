@@ -2228,7 +2228,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def asymptotics_multiple(self, p, alpha, N, asy_var, coordinate=None,
                              numerical=0, verbose=False):
         r"""
-        Same as :meth:`asymtotics`, but only in the case of a
+        Same as :meth:`asymptotics`, but only in the case of a
         convenient multiple point nondegenerate for ``alpha``.
         Assume also that ``self.dimension >= 2`` and that the
         ``p.values()`` are not symbolic variables.
@@ -4276,7 +4276,7 @@ class FractionWithFactoredDenominatorRing(
 
 class FractionWithFactoredDenominatorSum(list):
     r"""
-    A list representing the sum of :class:`FFPD` objects with distinct
+    A list representing the sum of :class:`FractionWithFactoredDenominator` objects with distinct
     denominator factorizations.
 
     AUTHORS:

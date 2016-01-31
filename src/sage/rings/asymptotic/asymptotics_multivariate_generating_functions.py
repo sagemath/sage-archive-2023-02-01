@@ -196,7 +196,7 @@ TESTS::
      [(y - 1, 1), (x^2 + 1, 1), (x*y^2*t + x^2*t + t - 1, 1)])
     sage: p = {x: 1, y: 1, t: 1/3}
     sage: alpha = [1, 1, 1]
-    sage: F.asymptotics_multiple(p, alpha, 1, var('r'))
+    sage: F.asymptotics_multiple(p, alpha, 1, var('r'))  # not tested - see #19989
 
 
 Various
@@ -4243,9 +4243,8 @@ class FractionWithFactoredDenominatorRing(
     @staticmethod
     def direction(v, coordinate=None):
         r"""
-        Return ``[vv / v[coordinate] for vv in v]`` where
-        ``coordinate`` is the largest index of a nonzero entry of ``v``
-        if not specified otherwise.
+        Return ``[vv/v[coordinate] for vv in v]`` where
+        ``coordinate`` is the last index of ``v`` if not specified otherwise.
 
         INPUT:
 
@@ -4261,8 +4260,7 @@ class FractionWithFactoredDenominatorRing(
             (1, 3/2, 5/2)
         """
         if coordinate is None:
-            coordinate = len(v) - 1 -\
-                next(vv[0] for vv in enumerate(reversed(v)) if vv[1] != 0)
+            coordinate = len(v) - 1
         return tuple([vv / v[coordinate] for vv in v])
 
 

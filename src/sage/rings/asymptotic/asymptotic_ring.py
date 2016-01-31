@@ -1357,7 +1357,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: (y^2 + O(y))^(-2)
             y^(-4) + O(y^(-5))
             sage: (1 + 1/y + O(1/y^3))^pi
-            1 + pi*y^(-1) + 1/2*pi*(pi - 1)*y^(-2) + O(y^(-3))
+            1 + pi*y^(-1) + (1/2*pi*(pi - 1))*y^(-2) + O(y^(-3))
 
         ::
 

@@ -21,7 +21,6 @@ Comprehensive Module list
     sage/combinat/algebraic_combinatorics
     sage/combinat/all
     sage/combinat/alternating_sign_matrix
-    sage/combinat/asymptotics_multivariate_generating_functions
     sage/combinat/backtrack
     sage/combinat/baxter_permutations
     sage/combinat/binary_recurrence_sequences

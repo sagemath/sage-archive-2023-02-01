@@ -837,7 +837,7 @@ cdef class Ring(ParentWithGens):
             sage: ZZ.is_subring(GF(19))
             False
 
-        TESTS::
+        TESTS:
 
         Every ring is a subring of itself, :trac:`17287`::
 
@@ -851,8 +851,6 @@ cdef class Ring(ParentWithGens):
             sage: K.is_subring(K)
             True
             sage: R.<x> = RR[]
-            sage: R
-            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
             sage: R.is_subring(R)
             True
         """

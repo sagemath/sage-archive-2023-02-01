@@ -42,11 +42,20 @@ AUTHORS:
 - Alexander Raichev (2008-10-01): Initial version
 
 - Daniel Krenn (2014-12-01): port to Sage parent/element model and review
+.. WARNING::
 
+    As this code is experimental, a warning is thrown when using
+    this module for the first time in a session (see
+    :class:`sage.misc.superseded.experimental`).
 
-EXAMPLES::
+    TESTS::
 
-    sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import *
+    sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+    sage: FFPD = FractionWithFactoredDenominatorRing(QQ['x'], SR)
+    doctest:...: FutureWarning: This class/method/function is marked as
+    experimental. It, its functionality or its interface might change
+    without a formal deprecation.
+    See http://trac.sagemath.org/10519 for details.
 
 A univariate smooth point example::
 
@@ -200,6 +209,7 @@ from functools import total_ordering
 import sage
 from sage.misc.misc_c import prod
 from sage.rings.integer import Integer
+from sage.misc.superseded import experimental
 
 
 @total_ordering
@@ -3295,6 +3305,8 @@ class FractionWithFactoredDenominatorRing(
 
     - Daniel Krenn (2014-12-01)
     """
+
+    @experimental(trac_number=10519)
     def __init__(self, denominator_ring, numerator_ring=None, category=None):
         r"""
         See :class:`FractionWithFactoredDenominatorRing` for details.

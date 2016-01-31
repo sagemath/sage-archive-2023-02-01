@@ -794,7 +794,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def univariate_decomposition(self):
         r"""
         Return the usual univariate partial fraction decomposition
-        of ``self``.
+        if this element.
 
         INPUT:
 
@@ -819,6 +819,15 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
         for some `p_j \in R`.
         We call `(*)` the *usual partial fraction decomposition* of `f`.
+
+        .. NOTE::
+
+            This partial fraction decomposition can be computed using
+            - :meth:`sage.symbolic.expression.Expression.partial_fraction` or
+            - :meth:`sage.categories.quotient_fields.QuotientFields.ElementMethods.partial_fraction_decomposition`
+            as well. However, here we use the already obtained/cached
+            factorization of the denominator. This gives a speed up for
+            non-small instances.
 
         EXAMPLES::
 
@@ -922,10 +931,12 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             p = R.one()
         df = self.denominator_factored()
         decomp = [self.parent()(whole, [])]
-        for (a, m) in df:
-            numer = p * prod([b ** n
-                              for (b, n) in df
-                              if b != a]).inverse_mod(a ** m) % (a ** m)
+        denominator = prod(b**n for b, n in df)
+        for a, m in df:
+            am = a**m
+            q, r = denominator.quo_rem(am)
+            assert r==0
+            numer = p * q.inverse_mod(am) % am
             # The inverse exists because the product and a**m
             # are relatively prime.
             decomp.append(self.parent()(mn * numer, [(a, m)]))

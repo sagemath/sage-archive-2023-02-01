@@ -389,10 +389,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Return the numerator of ``self``.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         The numerator.
@@ -415,10 +411,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def denominator(self):
         r"""
         Return the denominator of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -473,10 +465,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         Return the factorization in ``self.denominator_ring`` of the denominator of
         ``self`` but without the unit part.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         The factored denominator as a list of tuple ``(f, m)``, where `f` is
@@ -501,10 +489,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def denominator_ring(self):
         r"""
         Return the ring of the denominator.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -535,10 +519,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Return the ring of the numerator.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         A ring.
@@ -566,10 +546,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def dimension(self):
         r"""
         Return the number of indeterminates of ``self.denominator_ring``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -599,10 +575,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Convert ``self`` into a quotient.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         An element.
@@ -628,10 +600,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def __repr__(self):
         r"""
         Return a string representation of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -825,10 +793,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         Return the usual univariate partial fraction decomposition
         if this element.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         An instance of :class:`FractionWithFactoredDenominatorSum`.
@@ -976,10 +940,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Return a Nullstellensatz certificate of ``self`` if it exists.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         A list of polynomials or ``None``.
@@ -1024,10 +984,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def nullstellensatz_decomposition(self):
         r"""
         Return a Nullstellensatz decomposition of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -1113,10 +1069,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def algebraic_dependence_certificate(self):
         r"""
         Return the algebraic dependence certificate of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -1217,10 +1169,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def algebraic_dependence_decomposition(self, whole_and_parts=True):
         r"""
         Return an algebraic dependence decomposition of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -1339,10 +1287,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def leinartas_decomposition(self):
         r"""
         Return a Leinartas decomposition of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -1477,10 +1421,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def cohomology_decomposition(self):
         r"""
         Return the cohomology decomposition of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -2900,10 +2840,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Return the singular ideal of ``self``.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         An ideal.
@@ -2939,10 +2875,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def smooth_critical_ideal(self, alpha):
         r"""
         Return the smooth critical ideal of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -3336,10 +3268,6 @@ class FractionWithFactoredDenominatorRing(
 
         - ``category`` -- (default: ``None``) the category.
 
-        OUTPUT:
-
-        Nothing.
-
         TESTS::
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
@@ -3369,10 +3297,6 @@ class FractionWithFactoredDenominatorRing(
         r"""
         Returns a representation.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         A string.
@@ -3392,10 +3316,6 @@ class FractionWithFactoredDenominatorRing(
     def base_ring(self):
         r"""
         Returns the base ring.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -3644,10 +3564,6 @@ class FractionWithFactoredDenominatorRing(
     def _an_element_(self):
         r"""
         Returns an element.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -4318,10 +4234,6 @@ class FractionWithFactoredDenominatorSum(list):
         r"""
         Return a string representation of ``self``.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         A string.
@@ -4342,10 +4254,6 @@ class FractionWithFactoredDenominatorSum(list):
     def __eq__(self, other):
         r"""
         Return ``True`` if ``self`` is equal to ``other``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -4372,10 +4280,6 @@ class FractionWithFactoredDenominatorSum(list):
         r"""
         Return ``True`` if ``self`` is not equal to ``other``.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         A boolean.
@@ -4401,10 +4305,6 @@ class FractionWithFactoredDenominatorSum(list):
     def denominator_ring(self):
         r"""
         Return the polynomial ring of the denominators of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -4434,10 +4334,6 @@ class FractionWithFactoredDenominatorSum(list):
         Rewrite ``self`` as a sum
         of a (possibly zero) polynomial
         followed by reduced rational expressions.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -4497,10 +4393,6 @@ class FractionWithFactoredDenominatorSum(list):
         Combine terms in ``self`` with the same denominator.
         Only useful for multivariate decompositions.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         An instance of :class:`FractionWithFactoredDenominatorSum`.
@@ -4555,10 +4447,6 @@ class FractionWithFactoredDenominatorSum(list):
     def sum(self):
         r"""
         Return the sum of the elements in ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 

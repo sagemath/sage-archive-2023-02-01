@@ -331,9 +331,13 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         """
         super(FractionWithFactoredDenominator, self).__init__(parent)
 
-        self._numerator = numerator
-        self._denominator_factored = denominator_factored
-        R = self.ring()
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        self._numerator = parent.numerator_ring(numerator)
+        self._denominator_factored = list(
+            (parent.denominator_ring(d), NN(n))
+            for d, n in denominator_factored)
+
+        R = self.denominator_ring
         if numerator in R and reduce:
             # Reduce fraction if possible.
             numer = R(self._numerator)
@@ -464,9 +468,10 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         return self._denominator_factored
 
 
-    def ring(self):
+    @property
+    def denominator_ring(self):
         r"""
-        Return the ring of the denominator of ``self``.
+        Return the ring of the denominator.
 
         INPUT:
 
@@ -485,20 +490,53 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: F.ring()
+            sage: F.denominator_ring
             Multivariate Polynomial Ring in x, y over Rational Field
             sage: F = FFPD(G/H)
             sage: F
             (e^y, [(x - 1, 1), (x*y + x + y - 1, 2)])
-            sage: F.ring()
+            sage: F.denominator_ring
             Multivariate Polynomial Ring in x, y over Rational Field
         """
-        return self.parent().base()
+        return self.parent().denominator_ring
+
+
+    @property
+    def numerator_ring(self):
+        r"""
+        Return the ring of the numerator.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A ring.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
+            sage: H = (1 - x - y - x*y)**2*(1-x)
+            sage: Hfac = H.factor()
+            sage: G = exp(y)/Hfac.unit()
+            sage: F = FFPD(G, Hfac)
+            sage: F.numerator_ring
+            Symbolic Ring
+            sage: F = FFPD(G/H)
+            sage: F
+            (e^y, [(x - 1, 1), (x*y + x + y - 1, 2)])
+            sage: F.numerator_ring
+            Symbolic Ring
+        """
+        return self.parent().numerator_ring
 
 
     def dimension(self):
         r"""
-        Return the number of indeterminates of ``self.ring()``.
+        Return the number of indeterminates of ``self.denominator_ring``.
 
         INPUT:
 
@@ -872,13 +910,13 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         if self.dimension() > 1:
             return FractionWithFactoredDenominatorSum([self])
 
-        R = self.ring()
+        R = self.denominator_ring
         p = self.numerator()
         q = self.denominator()
-        if p in R:
-            whole, p = p.quo_rem(q)
+        try:
+            whole, p = R(p).quo_rem(q)
             mn = R.one()
-        else:
+        except TypeError, ValueError:
             whole = R(0)
             mn = p
             p = R.one()
@@ -935,7 +973,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: L is None
             True
         """
-        R = self.ring()
+        R = self.denominator_ring
         df = self.denominator_factored()
         J = R.ideal([q ** e for q, e in df])
         if R.one() in J:
@@ -1048,7 +1086,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         of polynomials ``[q^e for (q, e) in self.denominator_factored()]``,
         which could be the zero ideal.
         The ideal `J` lies in a polynomial ring over the field
-        ``self.ring().base_ring()`` that has
+        ``self.denominator_ring.base_ring()`` that has
         ``m = len(self.denominator_factored())`` indeterminates.
 
         EXAMPLES::
@@ -1100,7 +1138,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        R = self.ring()
+        R = self.denominator_ring
         df = self.denominator_factored()
         if not df:
             return R.ideal()    # The zero ideal.
@@ -1454,7 +1492,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         from sage.sets.set import Set
         from sage.symbolic.ring import SR
 
-        R = self.ring()
+        R = self.denominator_ring
         df = self.denominator_factored()
         n = len(df)
         if sum([e for (q, e) in df]) <= n:
@@ -1587,7 +1625,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         from sage.calculus.var import var
         from sage.symbolic.ring import SR
 
-        R = self.ring()
+        R = self.denominator_ring
         d = self.dimension()
         n = len(self.denominator_factored())
         X = [SR(x) for x in R.gens()]
@@ -1746,7 +1784,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         from sage.calculus.functional import diff
         from sage.calculus.var import var
 
-        R = self.ring()
+        R = self.denominator_ring
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
@@ -1888,7 +1926,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         from sage.rings.all import CC
         from sage.rings.rational_field import QQ
 
-        R = self.ring()
+        R = self.denominator_ring
         d = self.dimension()
         I = sqrt(-Integer(1))
         # Coerce everything into the Symbolic Ring.
@@ -2290,7 +2328,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         from sage.symbolic.relation import solve
         from sage.symbolic.ring import SR
 
-        R = self.ring()
+        R = self.denominator_ring
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
@@ -2546,7 +2584,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
         # Assuming here that each log_grads(f) has nonzero final component.
         # Then 'direction' will not throw a division by zero error.
-        R = self.ring()
+        R = self.denominator_ring
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
@@ -2603,7 +2641,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         """
         from sage.calculus.functional import diff
 
-        R = self.ring()
+        R = self.denominator_ring
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
@@ -2656,7 +2694,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         """
         from sage.calculus.functional import diff
 
-        R = self.ring()
+        R = self.denominator_ring
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
@@ -2706,7 +2744,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         """
         from sage.geometry.cone import Cone
 
-        R = self.ring()
+        R = self.denominator_ring
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
@@ -2771,7 +2809,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         from sage.combinat.subset import Subsets
         from sage.matrix.constructor import matrix
 
-        R = self.ring()
+        R = self.denominator_ring
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
@@ -2851,7 +2889,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             Ideal (x*y + x - 1, y^2 - 2*y*z + 2*y - z + 1, x*z + y - 2*z + 1)
             of Multivariate Polynomial Ring in x, y, z over Rational Field
         """
-        R = self.ring()
+        R = self.denominator_ring
 
         Hred = prod([h for (h, e) in self.denominator_factored()])
         J = R.ideal([Hred] + Hred.gradient())
@@ -2913,7 +2951,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         from sage.sets.set import Set
         from sage.symbolic.ring import SR
 
-        R = self.ring()
+        R = self.denominator_ring
         Hred = prod([h for (h, e) in self.denominator_factored()])
         K = R.base_ring()
         d = self.dimension()
@@ -3001,7 +3039,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         """
         from sage.symbolic.ring import SR
 
-        R = self.ring()
+        R = self.denominator_ring
         d = self.dimension()
         coeffs = {}
 
@@ -3246,7 +3284,7 @@ class FractionWithFactoredDenominatorRing(
 
     - Daniel Krenn (2014-12-01)
     """
-    def __init__(self, base, category=None):
+    def __init__(self, denominator_ring, numerator_ring=None, category=None):
         r"""
         See :class:`FractionWithFactoredDenominatorRing` for details.
 
@@ -3268,9 +3306,18 @@ class FractionWithFactoredDenominatorRing(
             Ring of fractions with factored denominator
             over Multivariate Polynomial Ring in X, Y over Integer Ring
         """
-        # test if base is PolynomialRing
+        if numerator_ring is None:
+            from sage.symbolic.ring import SR
+            numerator_ring = denominator_ring
+        if not numerator_ring.has_coerce_map_from(denominator_ring):
+            raise ValueError('Numerator ring {} has no coercion map from the '
+                             'denominator ring {}.'.format(
+                                 numerator_ring, denominator_ring))
+
+        self.numerator_ring = numerator_ring
+        self.denominator_ring = denominator_ring
         super(FractionWithFactoredDenominatorRing, self).__init__(
-            base, category=category or sage.categories.rings.Rings())
+            denominator_ring, category=category or sage.categories.rings.Rings())
 
 
     Element = FractionWithFactoredDenominator
@@ -4310,7 +4357,8 @@ class FractionWithFactoredDenominatorSum(list):
         return not self.__eq__(other)
 
 
-    def ring(self):
+    @property
+    def denominator_ring(self):
         r"""
         Return the polynomial ring of the denominators of ``self``.
 
@@ -4329,15 +4377,15 @@ class FractionWithFactoredDenominatorSum(list):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: s = FractionWithFactoredDenominatorSum([f])
-            sage: s.ring()
+            sage: s.denominator_ring
             Multivariate Polynomial Ring in x, y over Rational Field
             sage: g = FFPD(x + y, [])
             sage: t = FractionWithFactoredDenominatorSum([g])
-            sage: t.ring()
+            sage: t.denominator_ring
             Multivariate Polynomial Ring in x, y over Rational Field
         """
         for r in self:
-            return r.ring()
+            return r.denominator_ring
         return None
 
 
@@ -4500,7 +4548,7 @@ class FractionWithFactoredDenominatorSum(list):
             return self
 
         # Compute the sum's numerator and denominator.
-        R = self.ring()
+        R = self.denominator_ring
         summy = sum((f.quotient() for f in self))
         numer = summy.numerator()
         denom = R(summy.denominator())

@@ -49,12 +49,12 @@ Introductory Examples
 
     TESTS::
 
-    sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
-    sage: FFPD = FractionWithFactoredDenominatorRing(QQ['x'], SR)
-    doctest:...: FutureWarning: This class/method/function is marked as
-    experimental. It, its functionality or its interface might change
-    without a formal deprecation.
-    See http://trac.sagemath.org/10519 for details.
+        sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+        sage: FFPD = FractionWithFactoredDenominatorRing(QQ['x'], SR)
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/10519 for details.
 
 A univariate smooth point example::
 

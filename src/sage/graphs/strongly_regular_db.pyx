@@ -3034,6 +3034,7 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     from sage.graphs.generators.smallgraphs import SchlaefliGraph
     from sage.graphs.generators.smallgraphs import HigmanSimsGraph
+    from sage.graphs.generators.smallgraphs import IoninKharaghani765Graph
     from sage.graphs.generators.smallgraphs import JankoKharaghaniGraph
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
@@ -3073,6 +3074,7 @@ def _build_small_srg_database():
         (416, 100,  36, 20): [SRG_416_100_36_20],
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (630,  85,  20, 10): [SRG_630_85_20_10],
+        (765, 192,  48, 48): [IoninKharaghani765Graph],
         (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
         (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
         (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],

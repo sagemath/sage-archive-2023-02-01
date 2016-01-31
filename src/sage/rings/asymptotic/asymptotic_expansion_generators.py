@@ -61,6 +61,9 @@ examples.
    * - :meth:`~AsymptoticExpansionGenerators.Binomial_kn_over_n`
      - an asymptotic expansion of the binomial coefficient
 
+   * - :meth:`~AsymptoticExpansionGenerators.SingularityAnalysis`
+     - an asymptotic expansion obtained by singularity analysis
+
 
 AUTHORS:
 
@@ -91,6 +94,16 @@ Classes and Methods
 
 from sage.structure.sage_object import SageObject
 
+
+class NotImplementedOZero(NotImplementedError):
+    r"""
+    A special :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`
+    which is raised when the result is O(0) which means 0
+    for sufficiently large values of the variable.
+    """
+    pass
+
+
 class AsymptoticExpansionGenerators(SageObject):
     r"""
     A collection of constructors for several common asymptotic expansions.
@@ -105,6 +118,7 @@ class AsymptoticExpansionGenerators(SageObject):
     - :meth:`~Stirling`
     - :meth:`~log_Stirling`
     - :meth:`~Binomial_kn_over_n`
+    - :meth:`~SingularityAnalysis`
     """
 
     @staticmethod
@@ -274,7 +288,7 @@ class AsymptoticExpansionGenerators(SageObject):
         n = A.gen()
 
         if precision is None:
-            precision = A.default_prec
+            precision = AsymptoticRing.__default_prec__
 
         from sage.functions.log import log
         result = A.zero()
@@ -572,6 +586,359 @@ class AsymptoticExpansionGenerators(SageObject):
             result *= (k/((k-1)*2*SCR('pi'))).sqrt()
 
         return result
+
+
+    @staticmethod
+    def SingularityAnalysis(var, zeta=1, alpha=0, beta=0, delta=0,
+                            precision=None, skip_constant_factor=False):
+        r"""
+        Return the asymptotic expansion of the coefficients of
+        an power series with specified pole and logarithmic singularity.
+
+        More precisely, this extracts the `n`-th coefficient
+
+        .. MATH::
+
+            [z^n] \left(\frac{1}{1-z}\right)^\alpha
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)^\beta
+            \left(\frac{1}{z} \log
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``zeta`` -- (default: `1`) the location of the singularity.
+
+        - ``alpha`` -- (default: `0`) the pole order of the singularty.
+
+        - ``beta`` -- (default: `0`) the order of the logarithmic singularity.
+          Not yet implemented for ``beta != 0``.
+
+        - ``delta`` -- (default: `0`) the order of the log-log singularity.
+          Not yet implemented for ``delta != 0``.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+        - ``skip_constant_factor`` -- (default: ``False``) a
+          boolean. If set, then the constant factor is left out.
+          As a consequence, the coefficient ring of the output changes
+          from ``Symbolic Constants Subring`` (if ``False``) to
+          ``Rational Field`` (if ``True``).
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: asymptotic_expansions.SingularityAnalysis('n', alpha=1)
+            1
+            sage: asymptotic_expansions.SingularityAnalysis('n', alpha=2)
+            n + 1
+            sage: asymptotic_expansions.SingularityAnalysis('n', alpha=3)
+            1/2*n^2 + 3/2*n + 1
+            sage: _.parent()
+            Asymptotic Ring <n^ZZ> over Rational Field
+
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis('n', alpha=-3/2,
+            ....:     precision=3)
+            3/4/sqrt(pi)*n^(-5/2)
+            + 45/32/sqrt(pi)*n^(-7/2)
+            + 1155/512/sqrt(pi)*n^(-9/2)
+            + O(n^(-11/2))
+            sage: asymptotic_expansions.SingularityAnalysis('n', alpha=-1/2,
+            ....:     precision=3)
+            -1/2/sqrt(pi)*n^(-3/2)
+            - 3/16/sqrt(pi)*n^(-5/2)
+            - 25/256/sqrt(pi)*n^(-7/2)
+            + O(n^(-9/2))
+            sage: asymptotic_expansions.SingularityAnalysis('n', alpha=1/2,
+            ....:     precision=4)
+            1/sqrt(pi)*n^(-1/2)
+            - 1/8/sqrt(pi)*n^(-3/2)
+            + 1/128/sqrt(pi)*n^(-5/2)
+            + 5/1024/sqrt(pi)*n^(-7/2)
+            + O(n^(-9/2))
+            sage: _.parent()
+            Asymptotic Ring <n^QQ> over Symbolic Constants Subring
+
+        ::
+
+            sage: S = SR.subring(rejecting_variables=('n',))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=S.var('a'),
+            ....:     precision=4).map_coefficients(lambda c: c.factor())
+            1/gamma(a)*n^(a - 1)
+            + (1/2*(a - 1)*a/gamma(a))*n^(a - 2)
+            + (1/24*(3*a - 1)*(a - 1)*(a - 2)*a/gamma(a))*n^(a - 3)
+            + (1/48*(a - 1)^2*(a - 2)*(a - 3)*a^2/gamma(a))*n^(a - 4)
+            + O(n^(a - 5))
+            sage: _.parent()
+            Asymptotic Ring <n^(Symbolic Subring rejecting the variable n)>
+            over Symbolic Subring rejecting the variable n
+
+        ALGORITHM:
+
+        See [FS2009]_ together with the
+        `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
+
+        REFERENCES:
+
+        .. [FS2009] Philippe Flajolet and Robert Sedgewick,
+           `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
+           Cambridge University Press, Cambridge, 2009.
+
+        TESTS::
+
+            sage: ex = asymptotic_expansions.SingularityAnalysis('n', alpha=-1/2,
+            ....:     precision=4)
+            sage: n = ex.parent().gen()
+            sage: coefficients = ((1-x)^(1/2)).series(
+            ....:     x, 21).truncate().coefficients(x, sparse=False)
+            sage: ex.compare_with_values(n,    # rel tol 1e-6
+            ....:     lambda k: coefficients[k], [5, 10, 20])
+            [(5, 0.015778873294?), (10, 0.01498952777?), (20, 0.0146264622?)]
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=3, precision=2)
+            1/2*n^2 + 3/2*n + O(1)
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=3, precision=3)
+            1/2*n^2 + 3/2*n + 1
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=3, precision=4)
+            1/2*n^2 + 3/2*n + 1
+
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=0)
+            0
+            sage: _.parent()
+            Asymptotic Ring <n^ZZ> over Rational Field
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=-1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The result is O(0) which means 0
+            for sufficiently large n
+
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'm', alpha=-1/2, precision=3)
+            -1/2/sqrt(pi)*m^(-3/2)
+            - 3/16/sqrt(pi)*m^(-5/2)
+            - 25/256/sqrt(pi)*m^(-7/2)
+            + O(m^(-9/2))
+            sage: _.parent()
+            Asymptotic Ring <m^QQ> over Symbolic Constants Subring
+
+        Skip constant factor::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'm', alpha=-1/2, precision=3,
+            ....:     skip_constant_factor=True)
+            m^(-3/2)
+            + 3/8*m^(-5/2)
+            + 25/128*m^(-7/2)
+            + O(m^(-9/2))
+            sage: _.parent()
+            Asymptotic Ring <m^QQ> over Rational Field
+
+        Location of the singularity::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=1, zeta=2, precision=3)
+            (1/2)^n
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=1, zeta=1/2, precision=3)
+            2^n
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=1, zeta=CyclotomicField(3).gen(),
+            ....:      precision=3)
+            (-zeta3 - 1)^n
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=4, zeta=2, precision=3)
+            1/6*(1/2)^n*n^3 + (1/2)^n*n^2 + 11/6*(1/2)^n*n + O((1/2)^n)
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=-1, zeta=2, precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The result is O(0) which means 0
+            for sufficiently large n
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=1/2, zeta=2, precision=3)
+            1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
+            + 1/128/sqrt(pi)*(1/2)^n*n^(-5/2) + O((1/2)^n*n^(-7/2))
+        """
+        from asymptotic_ring import AsymptoticRing
+        from sage.functions.other import gamma
+        from sage.misc.misc import srange
+        from sage.rings.rational_field import QQ
+        from sage.rings.integer_ring import ZZ
+        from sage.symbolic.ring import SR
+
+        if isinstance(alpha, int):
+            alpha = ZZ(alpha)
+        if isinstance(beta, int):
+            beta = ZZ(beta)
+        if isinstance(delta, int):
+            delta = ZZ(delta)
+
+        if precision is None:
+            precision = AsymptoticRing.__default_prec__
+
+        SCR = SR.subring(no_variables=True)
+
+        if delta != 0:
+            raise NotImplementedError
+
+        elif beta != 0:
+            raise NotImplementedError
+
+        elif alpha != 0:
+
+            if skip_constant_factor:
+                iga = QQ(1)
+            else:
+                iga = QQ(1) / gamma(alpha)
+                if iga.parent() is SR:
+                    try:
+                        iga = SCR(iga)
+                    except TypeError:
+                        pass
+
+            from growth_group import ExponentialGrowthGroup, \
+                MonomialGrowthGroup
+
+            if zeta == 1:
+                group = MonomialGrowthGroup(alpha.parent(), var)
+            else:
+                from sage.categories.cartesian_product \
+                    import cartesian_product
+                group = cartesian_product(
+                    [ExponentialGrowthGroup((1/zeta).parent(), var),
+                     MonomialGrowthGroup(alpha.parent(), var)])
+
+            A = AsymptoticRing(
+                growth_group=group,
+                coefficient_ring=iga.parent())
+            n = A.gen()
+
+            if zeta == 1:
+                exponential_factor = 1
+            else:
+                exponential_factor = n.rpow(1/zeta)
+
+            e = _sa_coefficients_e_(precision, alpha)
+            result = sum(n**(alpha-1-k) * iga * e[k]
+                         for k in srange(precision))
+
+            if alpha in ZZ:
+                a = ZZ(alpha)
+                if a > 0 and a <= precision:
+                    return exponential_factor * result
+                elif a < 0:
+                    assert result.is_zero()
+                    raise NotImplementedOZero(
+                        'The result is O(0) which means 0 for sufficiently '
+                        'large {}'.format(var))
+
+            return exponential_factor * (result + (n**(alpha-1-precision)).O())
+
+        else:
+            return AsymptoticRing(growth_group='%s^ZZ' % (var,),
+                                  coefficient_ring=QQ).zero()
+
+
+def _sa_coefficients_e_(K, alpha):
+    r"""
+    Return the coefficient `e_k` used in singularity analysis.
+
+    INPUT:
+
+    - ``K`` -- an integer specifying the number of coefficients.
+
+    - ``alpha`` -- an object.
+
+    OUTPUT:
+
+    A tuple of objects.
+
+    .. SEEALSO::
+
+        :meth:`~AsymptoticExpansionGenerators.SingularityAnalysis`
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.asymptotic_expansion_generators \
+        ....:     import _sa_coefficients_e_
+        sage: a = SR.var('a')
+        sage: tuple(c.factor() for c in _sa_coefficients_e_(4, a))
+        (1,
+         1/2*(a - 1)*a,
+         1/24*(3*a - 1)*(a - 1)*(a - 2)*a,
+         1/48*(a - 1)^2*(a - 2)*(a - 3)*a^2)
+    """
+    from sage.arith.all import falling_factorial
+    from sage.misc.misc import srange
+    from sage.rings.integer_ring import ZZ
+
+    L = _sa_coefficients_lambda_(K)
+    return tuple(sum((-1)**ell * L[(k, ell)] *
+                     falling_factorial(alpha - 1, ell)
+                     for ell in srange(k, 2*k+1) if L.has_key((k, ell)))
+                 for k in srange(K))
+
+
+def _sa_coefficients_lambda_(K):
+    r"""
+    Return the coefficients `\lambda_{k, \ell}` used in singularity analysis.
+
+    INPUT:
+
+    - ``K`` -- an integer.
+
+    OUTPUT:
+
+    A dictionary mapping pairs of indices to rationals.
+
+    .. SEEALSO::
+
+        :meth:`~AsymptoticExpansionGenerators.SingularityAnalysis`
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.asymptotic_expansion_generators \
+        ....:     import _sa_coefficients_lambda_
+        sage: _sa_coefficients_lambda_(3)
+        {(0, 0): 1,
+         (1, 1): -1,
+         (1, 2): 1/2,
+         (2, 2): 1,
+         (2, 3): -5/6,
+         (2, 4): 1/8,
+         (3, 3): -1,
+         (3, 4): 13/12,
+         (4, 4): 1}
+    """
+    from sage.rings.laurent_series_ring import LaurentSeriesRing
+    from sage.rings.power_series_ring import PowerSeriesRing
+    from sage.rings.rational_field import QQ
+
+    V = LaurentSeriesRing(QQ, names='v', default_prec=K)
+    v = V.gen()
+    T = PowerSeriesRing(V, names='t', default_prec=2*K-1)
+    t = T.gen()
+
+    S = (t - (1+1/v) * (1+v*t).log()).exp()
+    return dict(((k + L.valuation(), ell), c)
+                for ell, L in enumerate(S.list())
+                for k, c in enumerate(L.list()))
 
 
 # Easy access to the asymptotic expansions generators from the command line:

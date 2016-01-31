@@ -836,8 +836,27 @@ cdef class Ring(ParentWithGens):
             True
             sage: ZZ.is_subring(GF(19))
             False
+
+        TESTS::
+
+        Every ring is a subring of itself, :trac:`17287`::
+
+            sage: QQbar.is_subring(QQbar)
+            True
+            sage: RR.is_subring(RR)
+            True
+            sage: CC.is_subring(CC)
+            True
+            sage: K.<a> = NumberField(x^3-x+1/10)
+            sage: K.is_subring(K)
+            True
+            sage: R.<x> = RR[]
+            sage: R
+            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            sage: R.is_subring(R)
+            True
         """
-        if self == other:
+        if self is other:
             return True
         try:
             return self.Hom(other).natural_map().is_injective()

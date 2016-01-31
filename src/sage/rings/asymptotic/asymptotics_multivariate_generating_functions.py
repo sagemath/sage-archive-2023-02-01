@@ -37,11 +37,10 @@ and [RaWi2012]_. For a general reference take a look in the book [PeWi2013].
    Combinatorics in Several Variables*, Cambridge University Press,
    2013.
 
-AUTHORS:
 
-- Alexander Raichev (2008-10-01): Initial version
+Introductory Examples
+=====================
 
-- Daniel Krenn (2014-12-01): port to Sage parent/element model and review
 .. WARNING::
 
     As this code is experimental, a warning is thrown when using
@@ -194,14 +193,30 @@ TESTS::
     sage: p = {x: 1, y: 1, t: 1/3}
     sage: alpha = [1, 1, 1]
     sage: F.asymptotics_multiple(p, alpha, 1, var('r'))
+
+
+Various
+=======
+
+AUTHORS:
+
+- Alexander Raichev (2008)
+- Daniel Krenn (2014, 2016)
+
+
+Classes and Methods
+===================
 """
 #*****************************************************************************
-#       Copyright (C) 2008 Alexander Raichev <tortoise.said@gmail.com>
-#       Copyright (C) 2014 Daniel Krenn <dev@danielkrenn.at>
+# Copyright (C) 2008 Alexander Raichev <tortoise.said@gmail.com>
+# Copyright (C) 2014, 2016 Daniel Krenn <dev@danielkrenn.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+# http://www.gnu.org/licenses/
+# *****************************************************************************
 
 
 # libraries

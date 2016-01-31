@@ -51,7 +51,7 @@ EXAMPLES::
 A univariate smooth point example::
 
     sage: R.<x> = PolynomialRing(QQ)
-    sage: FFPD = FractionWithFactoredDenominatorRing(R)
+    sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
     sage: H = (x - 1/2)^3
     sage: Hfac = H.factor()
     sage: G = -1/(x + 3)/Hfac.unit()
@@ -119,7 +119,7 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
 A multiple point example (Example 6.5 of [RaWi2012]_)::
 
     sage: R.<x,y> = PolynomialRing(QQ)
-    sage: FFPD = FractionWithFactoredDenominatorRing(R)
+    sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
     sage: H = (1 - 2*x - y)**2 * (1 - x - 2*y)**2
     sage: Hfac = H.factor()
     sage: G = 1/Hfac.unit()
@@ -264,7 +264,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     ::
 
         sage: R.<x,y> = PolynomialRing(QQ)
-        sage: FFPD = FractionWithFactoredDenominatorRing(R)
+        sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
         sage: f = 2*y/(5*(x^3 - 1)*(y + 1))
         sage: FFPD(f)
         (2/5*y, [(y + 1, 1), (x - 1, 1), (x^2 + x + 1, 1)])
@@ -274,7 +274,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         sage: qs = q.factor()
         sage: f = FFPD(p/qs.unit(), qs)
         sage: f
-        (1/(3*x^2), [(y, 1), (x, 2)])
+        (1/3/x^2, [(y, 1), (x, 2)])
 
         sage: f = FFPD(cos(x)*x*y^2, [(x, 2), (y, 1)])
         sage: f
@@ -285,12 +285,12 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         sage: a = FFPD(G/H)
         sage: a
         (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
-        sage: a.ring()
+        sage: a.denominator_ring
         Multivariate Polynomial Ring in x, y over Rational Field
         sage: b = FFPD(G, H.factor())
         sage: b
         (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
-        sage: b.ring()
+        sage: b.denominator_ring
         Multivariate Polynomial Ring in x, y over Rational Field
 
     Singular throws a 'not implemented' error when trying to factor in
@@ -372,7 +372,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -399,7 +399,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -441,7 +441,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def denominator_factored(self):
         r"""
-        Return the factorization in ``self.ring()`` of the denominator of
+        Return the factorization in ``self.denominator_ring`` of the denominator of
         ``self`` but without the unit part.
 
         INPUT:
@@ -457,7 +457,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -485,7 +485,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -550,7 +550,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -560,7 +560,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         """
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
-        R = self.ring()
+        R = self.denominator_ring
         if is_PolynomialRing(R) or is_MPolynomialRing(R):
             return R.ngens()
         raise NotImplementedError('Only polynomial rings are supported as base.')
@@ -582,7 +582,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -699,7 +699,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: G = exp(x + y)
             sage: H = (1 - 2*x - y) * (1 - x - 2*y)
             sage: a = FFPD(G/H)
@@ -761,7 +761,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df); f
             (1, [(y, 1), (x*y + 1, 1)])
@@ -844,7 +844,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         One variable with numerator in symbolic ring::
 
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + exp(x)/(3*x^2 + 1)
             sage: f
             (5*x^5 - 5*x^4 + 2*x - 1)/(x^2 - x) + e^x/(3*x^2 + 1)
@@ -894,7 +894,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         TESTS::
 
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: f = exp(x) / (x^2-x)
             sage: f
             e^x/(x^2 - x)
@@ -946,7 +946,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
         Let `[(q_1, e_1), \ldots, (q_n, e_n)]` be the denominator factorization
         of ``self``.
-        Return a list of polynomials `h_1, \ldots, h_m` in ``self.ring()``
+        Return a list of polynomials `h_1, \ldots, h_m` in ``self.denominator_ring``
         that satisfies `h_1 q_1 + \cdots + h_m q_n = 1` if it exists.
         Otherwise return ``None``.
         Only works for multivariate base rings.
@@ -955,7 +955,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: G = sin(x)
             sage: H = x^2 * (x*y + 1)
             sage: f = FFPD(G, H.factor())
@@ -1036,7 +1036,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: G = sin(y)
             sage: H = x*(x*y + 1)
             sage: f = FFPD(G, H.factor())
@@ -1108,7 +1108,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: G = exp(x + y)
             sage: H = x^2 * (x*y + 1) * y^3
             sage: ff = FFPD(G, H.factor())
@@ -1232,7 +1232,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: G = sin(x)
             sage: H = x^2 * (x*y + 1) * y^3
             sage: f = FFPD(G, H.factor())
@@ -1376,7 +1376,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: f = sin(x)/x + 1/y + 1/(x*y + 1)
             sage: G = f.numerator()
             sage: H = R(f.denominator())
@@ -1598,7 +1598,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: f = (x^2 + 1)/((x - 1)^3*(x + 2))
             sage: F = FFPD(f)
             sage: alpha = [var('a')]
@@ -1611,7 +1611,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - 2*x -y)*(1 - x -2*y)**2
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -1670,7 +1670,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
-          ``self.ring().gens()``
+          ``self.denominator_ring.gens()``
         - ``alpha`` -- a tuple of length ``self.dimension()`` of
           positive integers or, if `p` is a smooth point,
           possibly of symbolic variables
@@ -1721,7 +1721,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         A smooth point example::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - x - y - x*y)**2
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -1753,7 +1753,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         A multiple point example::
 
             sage: R.<x,y,z>= PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (4 - 2*x - y - z)**2*(4 - x - 2*y - z)
             sage: Hfac = H.factor()
             sage: G = 16/Hfac.unit()
@@ -1825,7 +1825,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
-          ``self.ring().gens()``
+          ``self.denominator_ring.gens()``
         - ``alpha`` -- a tuple of length ``d = self.dimension()`` of
           positive integers or, if `p` is a smooth point,
           possibly of symbolic variables
@@ -2225,7 +2225,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
-          ``self.ring().gens()``
+          ``self.denominator_ring.gens()``
         - ``alpha`` -- a tuple of length ``d = self.dimension()`` of
           positive integers or, if `p` is a smooth point,
           possibly of symbolic variables
@@ -2295,7 +2295,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: H = (1 - 2*x - y) * (1 - x - 2*y)
             sage: Hfac = H.factor()
             sage: G = exp(x + y)/Hfac.unit()
@@ -2545,7 +2545,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
-          ``self.ring().gens()``
+          ``self.denominator_ring.gens()``
         - ``alpha`` -- a list of rationals
 
         OUTPUT:
@@ -2569,7 +2569,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: p = exp(x)
             sage: df = [(1 - 2*x - y, 1), (1 - x - 2*y, 1)]
             sage: f = FFPD(p, df)
@@ -2613,7 +2613,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``p`` -- (optional; default: ``None``) a dictionary whose keys are
-          the generators of ``self.ring()``
+          the generators of ``self.denominator_ring``
 
         OUTPUT:
 
@@ -2623,7 +2623,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: p = exp(x)
             sage: df = [(x^3 + 3*y^2, 5), (x*y, 2), (y, 1)]
             sage: f = FFPD(p, df)
@@ -2662,7 +2662,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``p`` -- (optional; default: ``None``) a dictionary whose keys
-          are the generators of ``self.ring()``
+          are the generators of ``self.denominator_ring``
 
         OUTPUT:
 
@@ -2676,7 +2676,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: p = exp(x)
             sage: df = [(x^3 + 3*y^2, 5), (x*y, 2), (y, 1)]
             sage: f = FFPD(p, df)
@@ -2714,7 +2714,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
-          ``self.ring().gens()`` and values in a field
+          ``self.denominator_ring.gens()`` and values in a field
         - ``coordinate`` -- (optional; default: ``None``) a natural number
 
         OUTPUT:
@@ -2777,7 +2777,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
-          ``self.ring().gens()``
+          ``self.denominator_ring.gens()``
 
         OUTPUT:
 
@@ -2919,7 +2919,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         INPUT:
 
         - ``alpha`` -- a tuple of positive integers and/or symbolic entries
-          of length ``self.ring().ngens()``
+          of length ``self.denominator_ring.ngens()``
 
         EXAMPLES::
 
@@ -3096,7 +3096,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         - ``approx`` -- an individual or list of symbolic expressions in
           one variable
         - ``alpha`` - a list of positive integers of length
-          ``self.ring().ngens()``
+          ``self.denominator_ring.ngens()``
         - ``interval`` -- a list of positive integers
         - ``exp_scale`` -- (optional; default: 1) a number
 
@@ -4409,7 +4409,7 @@ class FractionWithFactoredDenominatorSum(list):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: f = x**2 + 3*y + 1/x + 1/y
             sage: f = FFPD(f); f
             (x^3*y + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
@@ -4427,7 +4427,7 @@ class FractionWithFactoredDenominatorSum(list):
         """
         whole = 0
         parts = []
-        R = self.ring()
+        R = self.denominator_ring
         for r in self:
             # Since r has already passed through FFPD.__init__()'s reducing
             # procedure, r is already in lowest terms.
@@ -4469,7 +4469,7 @@ class FractionWithFactoredDenominatorSum(list):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: f = FFPD(1/(x * y * (x*y + 1)))
             sage: g = FFPD(x/(x * y * (x*y + 1)))
             sage: s = FractionWithFactoredDenominatorSum([f, g, f])
@@ -4528,7 +4528,7 @@ class FractionWithFactoredDenominatorSum(list):
 
             sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: df = (x, 1), (y, 1), (x*y + 1, 1)
             sage: f = FFPD(2, df)
             sage: g = FFPD(2*x*y, df)

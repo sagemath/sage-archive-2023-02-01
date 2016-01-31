@@ -182,7 +182,7 @@ have a preference::
     
 You can even have custom tick labels along with custom positioning. ::
 
-    sage: plot(x2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi]) # long time
+    sage: plot(x^2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi]) # long time
     Graphics object consisting of 1 graphics primitive
 
 .. PLOT::
@@ -324,14 +324,8 @@ Many concentric circles shrinking toward the origin::
     sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0])) # long time
     
 .. PLOT::
-
-    #j = 0
-    g = Graphics()
-    #for i in range(0,100,1):  #[10,9.9,..,0] gives syntax error
-    #    g=g+circle((j,0),j,hue=sin(j))
-    #    j=j+0.1
-    for i in range(0,101):
-        g=g+circle((i*0.1,0),i*0.1,hue=sin(i/100.0))
+    
+    g = sum(circle((i,0), i, hue=sin(i/10)) for i in srange(0,10,0.1))
     sphinx_plot(g)
     
 Here is a pretty graph::
@@ -385,10 +379,10 @@ Symbolline::
 .. PLOT::
 
     #y(x)=x*sin(x**2) gave SyntaxError: can't assign to function call
+    def y(x): return x*sin(x**2)
     v=list()
-    for i in range(-300,300,5):
-        #inline substitution of y(x)
-        v.append((i*0.01, (i*0.01)*sin((i*0.01)**2)))
+    for x in srange(-3,3,0.05):
+        v.append((x, y(x)))
     g = points(v, rgbcolor=(0.2,0.6, 0.1), pointsize=30) + plot(spline(v), -3.1, 3)
     sphinx_plot(g)
        
@@ -411,13 +405,6 @@ Pi Axis::
     sage: g1 = plot(sin(x), 0, 2*pi)
     sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
     sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # long time # show their sum, nicely formatted
-
-.. PLOT::
-
-    # I see no way to pass tick_formatter even using 
-    # g._matplotlib_tick_formatter(subplot,ticks=(pi,None), tick_formatter=(pi,None),xmax=10,xmin=0,ymax=10,ymin=0)
-
-    #sphinx_plot(g)
     
 An illustration of integration::
 
@@ -433,18 +420,17 @@ An illustration of integration::
 .. PLOT::
     
     #inline f substitution to avoid SyntaxError: can't assign to function call in sphinx_plot
-    #f(x) = (x-3)*(x-5)*(x-7)+40 
-    P = line([(2,0),(2,(2-3)*(2-5)*(2-7)+40)], color='black')
-    P = P + line([(8,0),(8,(8-3)*(8-5)*(8-7)+40)], color='black')
-    # hack to avoid the [(x, f(x)) for x in [2,2.1,..,8]] syntax error in sphinx_plot
-    L = list(((2,0), (2,(2-3)*(2-5)*(2-7)+40)))
-    for i in range(20,81):
-        L.append((i*0.1,(i*0.1-3)*(i*0.1-5)*(i*0.1-7)+40))
+    def f(x): return (x-3)*(x-5)*(x-7)+40 
+    P = line([(2,0),(2,f(2))], color='black')
+    P = P + line([(8,0),(8,f(8))], color='black')
+    L = list(((2,0), (2,f(2))))
+    for i in srange(2,8.1,0.1):
+        L.append((i,f(i)))
     L.append((8,0))
     L.append((2,0))
     P = P + polygon(L, rgbcolor=(0.8,0.8,0.8), aspect_ratio='automatic')
     P = P + text("$\\int_{a}^b f(x) dx$", (5, 20), fontsize=16, color='black')
-    P = P + plot((x-3)*(x-5)*(x-7)+40, (1, 8.5), thickness=3)
+    P = P + plot(f, (1, 8.5), thickness=3)
     sphinx_plot(P)
 
 NUMERICAL PLOTTING:
@@ -2334,6 +2320,11 @@ def parametric_plot(funcs, *args, **kwargs):
         sage: parametric_plot((x, x**2), (x, 1, 10), scale='loglog')
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+    
+        g = parametric_plot((x, x**2), (x, 1, 10), scale='loglog')
+        sphinx_plot(g)
+        
     We can also change the scale of the axes in the graphics just before
     displaying. In this case, the ``aspect_ratio`` must be specified as
     ``'automatic'`` if the ``scale`` is set to ``'semilogx'`` or ``'semilogy'``. For
@@ -2342,6 +2333,7 @@ def parametric_plot(funcs, *args, **kwargs):
 
         sage: p = parametric_plot((x, x**2), (x, 1, 10))
         sage: p.show(scale='semilogy', aspect_ratio='automatic')
+           
 
     TESTS::
 
@@ -2427,41 +2419,81 @@ def polar_plot(funcs, *args, **kwds):
 
         sage: polar_plot(sin(5*x)^2, (x, 0, 2*pi), color='blue')
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='blue')
+        sphinx_plot(g)
 
     A red figure-8::
 
         sage: polar_plot(abs(sqrt(1 - sin(x)^2)), (x, 0, 2*pi), color='red')
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = polar_plot(abs(sqrt(1 - sin(x)**2)), (x, 0, 2*pi), color='red')
+        sphinx_plot(g)
 
     A green limacon of Pascal::
 
         sage: polar_plot(2 + 2*cos(x), (x, 0, 2*pi), color=hue(0.3))
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = polar_plot(2 + 2*cos(x), (x, 0, 2*pi), color=hue(0.3))
+        sphinx_plot(g)
 
     Several polar plots::
 
         sage: polar_plot([2*sin(x), 2*cos(x)], (x, 0, 2*pi))
         Graphics object consisting of 2 graphics primitives
+        
+    .. PLOT::
 
+        g = polar_plot([2*sin(x), 2*cos(x)], (x, 0, 2*pi))
+        sphinx_plot(g)
+    
     A filled spiral::
 
         sage: polar_plot(sqrt, 0, 2 * pi, fill = True)
         Graphics object consisting of 2 graphics primitives
+        
+    .. PLOT::
+    
+        g = polar_plot(sqrt, 0, 2 * pi, fill = True)
+        sphinx_plot(g)
 
     Fill the area between two functions::
 
         sage: polar_plot(cos(4*x) + 1.5, 0, 2*pi, fill=0.5 * cos(4*x) + 2.5, fillcolor='orange')
         Graphics object consisting of 2 graphics primitives
+        
+    .. PLOT::
+    
+        g = polar_plot(cos(4*x) + 1.5, 0, 2*pi, fill=0.5 * cos(4*x) + 2.5, fillcolor='orange')
+        sphinx_plot(g)
 
     Fill the area between several spirals::
 
         sage: polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill = {0: [1], 2: [3], 4: [5]})
         Graphics object consisting of 9 graphics primitives
+        
+    .. PLOT::
+    
+        g = polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill = {0: [1], 2: [3], 4: [5]})
+        sphinx_plot(g)
 
     Exclude points at discontinuities::
 
         sage: polar_plot(log(floor(x)), (x, 1, 4*pi), exclude = [1..12])
         Graphics object consisting of 12 graphics primitives
+        
+    .. PLOT::
+    
+        g = polar_plot(log(floor(x)), (x, 1, 4*pi), exclude = range(1,13))
+        sphinx_plot(g)
 
     """
     kwds['polar']=True
@@ -2500,6 +2532,11 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         sage: list_plot([i^2 for i in range(5)]) # long time
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = list_plot([i**2 for i in range(5)]) # long time
+        sphinx_plot(g)
 
     Here are a bunch of random red points::
 
@@ -2507,27 +2544,65 @@ def list_plot(data, plotjoined=False, **kwargs):
         sage: list_plot(r,color='red')
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+    
+        r = [(random(),random()) for _ in range(20)]
+        g = list_plot(r,color='red')
+        sphinx_plot(g)
+        
     This gives all the random points joined in a purple line::
 
         sage: list_plot(r, plotjoined=True, color='purple')
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+    
+        r = [(random(),random()) for _ in range(20)]
+        g = list_plot(r, plotjoined=True, color='purple')
+        sphinx_plot(g)
+        
     You can provide a numpy array.::
 
         sage: import numpy
         sage: list_plot(numpy.arange(10))
         Graphics object consisting of 1 graphics primitive
-
+        
+    .. PLOT::
+    
+        import numpy
+        g = list_plot(numpy.arange(10))
+        sphinx_plot(g)
+        
+    ::
+        
         sage: list_plot(numpy.array([[1,2], [2,3], [3,4]]))
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        import numpy
+        g = list_plot(numpy.array([[1,2], [2,3], [3,4]]))
+        sphinx_plot(g)
 
     Plot a list of complex numbers::
 
         sage: list_plot([1, I, pi + I/2, CC(.25, .25)])
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+    
+        g = list_plot([1, I, pi + I/2, CC(.25, .25)])
+        sphinx_plot(g)
+        
+    ::
+    
         sage: list_plot([exp(I*theta) for theta in [0, .2..pi]])
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = list_plot([exp(I*theta) for theta in srange(0,pi,0.2)])
+        sphinx_plot(g)
 
     Note that if your list of complex numbers are all actually real,
     they get plotted as real values, so this
@@ -2536,6 +2611,11 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         sage: list_plot([CDF(1), CDF(1/2), CDF(1/3)])
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = list_plot([CDF(1), CDF(1/2), CDF(1/3)])
+        sphinx_plot(g)
 
     is the same as ``list_plot([1, 1/2, 1/3])`` -- it produces a plot of
     the points `(0,1)`, `(1,1/2)`, and `(2,1/3)`.
@@ -2549,6 +2629,13 @@ def list_plot(data, plotjoined=False, **kwargs):
         sage: y_coords = [sin(t)^3 for t in srange(0, 2*pi, 0.02)]
         sage: list_plot(zip(x_coords, y_coords))
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        x_coords = [cos(t)**3 for t in srange(0, 2*pi, 0.02)]
+        y_coords = [sin(t)**3 for t in srange(0, 2*pi, 0.02)]
+        g = list_plot(zip(x_coords, y_coords))
+        sphinx_plot(g)
 
     If instead you try to pass the two lists as separate arguments,
     you will get an error message::
@@ -2562,6 +2649,11 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         sage: list_plot({22: 3365, 27: 3295, 37: 3135, 42: 3020, 47: 2880, 52: 2735, 57: 2550})
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = list_plot({22: 3365, 27: 3295, 37: 3135, 42: 3020, 47: 2880, 52: 2735, 57: 2550})
+        sphinx_plot(g)
 
     Plotting in logarithmic scale is possible for 2D list plots.
     There are two different syntaxes available::
@@ -2569,6 +2661,12 @@ def list_plot(data, plotjoined=False, **kwargs):
         sage: yl = [2**k for k in range(20)]
         sage: list_plot(yl, scale='semilogy')  # long time  # log axis on vertical
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        yl = [2**k for k in range(20)]
+        g = list_plot(yl, scale='semilogy')  # long time  # log axis on vertical
+        sphinx_plot(g)
 
     ::
 
@@ -2596,6 +2694,12 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2) # long time
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        yl = [2**k for k in range(20)]
+        g = list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2) # long time
+        sphinx_plot(g)
 
     We can also change the scale of the axes in the graphics just before
     displaying::
@@ -2698,17 +2802,32 @@ def plot_loglog(funcs, *args, **kwds):
 
         sage: plot_loglog(exp, (1,10)) # plot in loglog scale with base 10
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = plot_loglog(exp, (1,10)) # plot in loglog scale with base 10
+        sphinx_plot(g)
 
     ::
 
         sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT ::
+    
+        g = plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
+        sphinx_plot(g)
+        
     ::
 
         sage: plot_loglog(exp, (1,10), base=(2,3))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+    
+        g = plot_loglog(exp, (1,10), base=(2,3))
+        sphinx_plot(g)
+        
     """
     return plot(funcs, *args, scale='loglog', **kwds)
 
@@ -2731,11 +2850,21 @@ def plot_semilogx(funcs, *args, **kwds):
 
         sage: plot_semilogx(exp, (1,10)) # long time # plot in semilogx scale, base 10
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = plot_semilogx(exp, (1,10)) # long time # plot in semilogx scale, base 10
+        sphinx_plot(g)
 
     ::
 
         sage: plot_semilogx(exp, (1,10), base=2) # with base 2
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = plot_semilogx(exp, (1,10), base=2) # with base 2
+        sphinx_plot(g)
 
     """
     return plot(funcs, *args, scale='semilogx', **kwds)
@@ -2759,11 +2888,21 @@ def plot_semilogy(funcs, *args, **kwds):
 
         sage: plot_semilogy(exp, (1,10)) # long time # plot in semilogy scale, base 10
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = plot_semilogy(exp, (1,10)) # long time # plot in semilogy scale, base 10
+        sphinx_plot(g)
 
     ::
 
         sage: plot_semilogy(exp, (1,10), base=2) # long time # with base 2
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = plot_semilogy(exp, (1,10), base=2) # long time # with base 2
+        sphinx_plot(g)
 
     """
     return plot(funcs, *args, scale='semilogy', **kwds)
@@ -2789,11 +2928,23 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
         sage: yl = [5**k for k in range(10)]; xl = [2**k for k in range(10)]
         sage: list_plot_loglog(zip(xl, yl)) # long time # plot in loglog scale with base 10
         Graphics object consisting of 1 graphics primitive
+    
+    .. PLOT::
+    
+        yl = [5**k for k in range(10)]
+        xl = [2**k for k in range(10)]
+        g = list_plot_loglog(zip(xl, yl)) # long time # plot in loglog scale with base 10
+        sphinx_plot(g)
 
     ::
 
         sage: list_plot_loglog(zip(xl, yl), base=2.1) # long time # with base 2.1 on both axes
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        #g = list_plot_loglog(zip(xl, yl), base=2.1) # long time # with base 2.1 on both axes
+        #sphinx_plot(g)
 
     ::
 
@@ -2839,6 +2990,12 @@ def list_plot_semilogx(data, plotjoined=False, **kwds):
         sage: yl = [2**k for k in range(12)]
         sage: list_plot_semilogx(zip(yl,yl))
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        yl = [2**k for k in range(12)]
+        g = list_plot_semilogx(zip(yl,yl))
+        sphinx_plot(g)
 
     .. warning::
 
@@ -2861,6 +3018,11 @@ def list_plot_semilogx(data, plotjoined=False, **kwds):
 
         sage: list_plot_semilogx([(1,2),(3,4),(3,-1),(25,3)], base=2) # with base 2
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = list_plot_semilogx([(1,2),(3,4),(3,-1),(25,3)], base=2) # with base 2
+        sphinx_plot(g)
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogx', **kwds)
@@ -2884,6 +3046,12 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
         sage: list_plot_semilogy(yl) # plot in semilogy scale, base 10
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+    
+        yl = [2**k for k in range(12)]
+        g = list_plot_semilogy(yl) # plot in semilogy scale, base 10
+        sphinx_plot(g)
+        
     .. warning::
 
         If ``plotjoined`` is ``False`` then the vertical axis must have all
@@ -2906,6 +3074,11 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
         sage: list_plot_semilogy([2, 4, 6, 8, 16, 31], base=2) # with base 2
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        g = list_plot_semilogy([2, 4, 6, 8, 16, 31], base=2) # with base 2
+        sphinx_plot(g)
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogy', **kwds)
@@ -3021,6 +3194,18 @@ def graphics_array(array, nrows=None, ncols=None):
 
         sage: graphics_array(((p1,p2),(p3,p4))) # long time
         Graphics Array of size 2 x 2
+        
+    .. PLOT::
+    
+        def f(x): return sin(x)
+        def g(x): return sin(2*x)
+        def h(x): return sin(4*x)
+        p1 = plot(f,(-2*pi,2*pi),color=hue(0.5)) # long time
+        p2 = plot(g,(-2*pi,2*pi),color=hue(0.9)) # long time
+        p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6)) # long time
+        p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0)) # long time
+        g = graphics_array(((p1,p2),(p3,p4))) # long time
+        sphinx_plot(g)
 
     One can also name the array, and then use :meth:`~sage.plot.graphics.GraphicsArray.show`
     or :meth:`~sage.plot.graphics.GraphicsArray.save`::
@@ -3036,6 +3221,13 @@ def graphics_array(array, nrows=None, ncols=None):
         Graphics Array of size 1 x 2
         sage: g.show()
 
+    .. PLOT::
+    
+        p1 = plot(sin,(-4,4))
+        p2 = plot(cos,(-4,4))
+        g = graphics_array([p1, p2])
+        sphinx_plot(g)
+        
     It is possible to use ``figsize`` to change the size of the plot
     as a whole::
 

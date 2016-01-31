@@ -114,6 +114,10 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     Computing derivatives of more auxiliary functions...
     Computing second order differential operator actions...
     sage: asy
+    (1/24*2^(2/3)*(sqrt(3) + 4/(sqrt(3) + I) + I)*gamma(1/3)/(pi*r^(1/3)),
+     1,
+     1/24*2^(2/3)*(sqrt(3) + 4/(sqrt(3) + I) + I)*gamma(1/3)/(pi*r^(1/3)))
+    sage: r = SR('r'); tuple((a*r^(1/3)).full_simplify() / r^(1/3) for a in asy)  # make nicer coefficients
     (1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)),
      1,
      1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)))

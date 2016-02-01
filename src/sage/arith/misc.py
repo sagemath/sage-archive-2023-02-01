@@ -3901,7 +3901,7 @@ class Moebius:
 
             sage: q = Moebius()
             sage: q.__repr__()
-            The Moebius function
+            'The Moebius function'
         """
         return "The Moebius function"
 

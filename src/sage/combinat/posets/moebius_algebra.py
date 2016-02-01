@@ -125,7 +125,7 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             sage: L = posets.BooleanLattice(4)
             sage: M = L.moebius_algebra(QQ)
             sage: M.a_realization()
-            Möbius algebra of Finite lattice containing 16 elements
+            Moebius algebra of Finite lattice containing 16 elements
              over Rational Field in the natural basis
         """
         return self.E()
@@ -388,7 +388,7 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             sage: L = posets.BooleanLattice(4)
             sage: M = L.quantum_moebius_algebra()
             sage: M.a_realization()
-            Quantum Möbius algebra of Finite lattice containing 16 elements
+            Quantum Moebius algebra of Finite lattice containing 16 elements
              with q=q over Univariate Laurent Polynomial Ring in q
              over Integer Ring in the natural basis
         """
@@ -658,7 +658,7 @@ class MoebiusAlgebraBases(Category_realization_of_parent):
             sage: from sage.combinat.posets.moebius_algebra import MoebiusAlgebraBases
             sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
             sage: MoebiusAlgebraBases(M)
-            Category of bases of Möbius algebra of Finite lattice
+            Category of bases of Moebius algebra of Finite lattice
              containing 16 elements over Rational Field
         """
         return "Category of bases of {}".format(self.base())
@@ -674,7 +674,7 @@ class MoebiusAlgebraBases(Category_realization_of_parent):
             sage: bases = MoebiusAlgebraBases(M)
             sage: bases.super_categories()
             [Category of finite dimensional commutative algebras with basis over Rational Field,
-             Category of realizations of Möbius algebra of Finite lattice
+             Category of realizations of Moebius algebra of Finite lattice
                 containing 16 elements over Rational Field]
         """
         return [self.base()._category, Realizations(self.base())]
@@ -688,10 +688,10 @@ class MoebiusAlgebraBases(Category_realization_of_parent):
 
                 sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
                 sage: M.E()
-                Möbius algebra of Finite lattice containing 16 elements
+                Moebius algebra of Finite lattice containing 16 elements
                  over Rational Field in the natural basis
                 sage: M.I()
-                Möbius algebra of Finite lattice containing 16 elements
+                Moebius algebra of Finite lattice containing 16 elements
                  over Rational Field in the idempotent basis
             """
             return "{} in the {} basis".format(self.realization_of(), self._basis_name)

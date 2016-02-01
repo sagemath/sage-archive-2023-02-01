@@ -6469,7 +6469,7 @@ class A008683(SloaneSequence):
         EXAMPLES::
 
             sage: a = sloane.A008683;a
-            Möbius function mu(n).
+            Moebius function mu(n).
             sage: a(0)
             Traceback (most recent call last):
             ...
@@ -6492,7 +6492,7 @@ class A008683(SloaneSequence):
         EXAMPLES::
 
             sage: sloane.A008683._repr_()
-            Möbius function mu(n).
+            'Moebius function mu(n).'
         """
         return "Moebius function mu(n)."
 

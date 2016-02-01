@@ -671,7 +671,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
       Designs, Codes and Cryptography 5, no. 3 (1995): 189-197.
     """
     from sage.arith.all import is_prime_power
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
     if complement:
         a,b,c = n-a,n-b,n-c
@@ -784,7 +784,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
       Canad. Math. Bull vol7 num.4 (1964)
     """
     from sage.combinat.designs.designs_pyx import is_orthogonal_array
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.arith.all import is_prime_power
     from block_design import DesarguesianProjectivePlaneDesign
     from itertools import chain

@@ -222,6 +222,8 @@ Classes and Methods
 
 import sage
 
+class ZeroCoefficientError(ValueError):
+    pass
 
 def absorption(left, right):
     r"""
@@ -2548,7 +2550,7 @@ class TermWithCoefficient(GenericTerm):
             sage: t = CT_ZZ(x^42, 0)
             Traceback (most recent call last):
             ...
-            ValueError:  Zero coefficient 0 is not allowed in
+            ZeroCoefficientError:  Zero coefficient 0 is not allowed in
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
 
         The conversion of growth elements also works for the creation
@@ -2565,8 +2567,9 @@ class TermWithCoefficient(GenericTerm):
             raise ValueError('%s is not a coefficient in %s.' %
                              (coefficient, parent))
         if coefficient == 0:
-            raise ValueError('Zero coefficient %s is not allowed in %s.' %
-                             (coefficient, parent))
+            raise ZeroCoefficientError(
+                'Zero coefficient %s is not allowed in %s.' %
+                (coefficient, parent))
 
         self.coefficient = coefficient
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
@@ -3368,6 +3371,32 @@ class ExactTerm(TermWithCoefficient):
             Growth Group QQ^x * x^ZZ * log(x)^ZZ
             > *previous* TypeError: unsupported operand parent(s) for '*':
             'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
+
+        ::
+
+            sage: T = TermMonoid('exact', GrowthGroup('QQ^n * n^QQ'), SR)
+            sage: n = T('n')
+            sage: n.rpow(2)
+            2^n
+            sage: _.parent()
+            Exact Term Monoid QQ^n * n^SR with coefficients in Symbolic Ring
+
+        Above, we get ``QQ^n * n^SR``. The reason is the following:
+        Since $n = 1_{SR} \cdot (1_{\QQ})^n \cdot n^{1_{\QQ}}$, we have
+
+        .. MATH::
+
+            2^n = (2_{\QQ})^{1_{SR} \cdot (1_{\QQ})^n \cdot n^{1_{\QQ}}}
+            = \left( (2_{\QQ})^n \cdot n^{0_{\QQ}} \right)^{1_{SR}}
+            = \left((2_{\QQ})^{1_{SR}}\right)^n \cdot n^{0_{\QQ} 1_{SR}}
+            = (2_{\QQ})^n \cdot n^{0_{SR}}
+
+        where ::
+
+            sage: (QQ(2)^SR(1)).parent(), (QQ(0)*SR(1)).parent()
+            (Rational Field, Symbolic Ring)
+
+        was used.
         """
         P = self.parent()
 

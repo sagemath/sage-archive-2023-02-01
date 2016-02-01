@@ -734,7 +734,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``element`` - an element of the poset whose complement is
+        - ``element`` - an element of the lattice whose complement is
           returned. If ``None`` (default) then dictionary of
           complements for all elements having at least one
           complement is returned.
@@ -1084,7 +1084,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is upper semimodular and
         ``False`` otherwise.
 
-        A lattice is upper semimodular if for any `x` in the poset that is
+        A lattice is upper semimodular if for any `x` in the lattice that is
         covered by `y` and `z`, both `y` and `z` are covered by their join.
 
         See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
@@ -1126,7 +1126,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is lower semimodular and
         ``False`` otherwise.
 
-        A lattice is lower semimodular if for any `x` in the poset that covers
+        A lattice is lower semimodular if for any `x` in the lattice that covers
         `y` and `z`, both `y` and `z` cover their meet.
 
         See also :meth:`is_modular` and :meth:`is_upper_semimodular`.

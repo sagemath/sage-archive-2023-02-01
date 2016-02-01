@@ -202,7 +202,7 @@ def kirkman_triple_system(v,existence=False):
     #
     # For all prime powers q=1 mod 6, there exists a KTS(2q+1)
     elif ((v-1)//2)%6 == 1 and is_prime_power((v-1)//2):
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         q = (v-1)//2
         K = GF(q,'x')
         a = K.primitive_element()
@@ -243,7 +243,7 @@ def kirkman_triple_system(v,existence=False):
     #
     # For all prime powers q=1 mod 6, there exists a KTS(3q)
     elif (v//3)%6 == 1 and is_prime_power(v//3):
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         q = v//3
         K = GF(q,'x')
         a = K.primitive_element()
@@ -391,7 +391,7 @@ def v_4_1_rbibd(v,existence=False):
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build a ({},{},1)-RBIBD!".format(v,4))
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     q = (v-1)//3
     nn = (q-1)//4
     G = GF(q,'x')

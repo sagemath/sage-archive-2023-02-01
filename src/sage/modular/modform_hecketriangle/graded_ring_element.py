@@ -1524,7 +1524,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (fix_prec == False):
             #if (prec <1):
-            #    print "Warning: non-positiv precision!"
+            #    print "Warning: non-positive precision!"
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
                 from warnings import warn
                 warn("precision too low to determine any coefficient!")

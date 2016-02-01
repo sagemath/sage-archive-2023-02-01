@@ -43,8 +43,6 @@ abstract base classes.
                         CommutativeAlgebra ??? (should be removed from element.pxd)
                         Matrix
                     InfinityElement
-                        PlusInfinityElement
-                        MinusInfinityElement
                 AdditiveGroupElement
                 Vector
 
@@ -322,14 +320,6 @@ cdef class Element(SageObject):
         - ``parent`` - a SageObject
         """
         self._parent = parent
-
-    cdef _set_parent_c(self, Parent parent):
-        self._parent = parent
-
-    def _make_new_with_parent_c(self, Parent parent):
-        self._parent = parent
-        return self
-
 
     def __getattr__(self, str name):
         """
@@ -3346,28 +3336,6 @@ cdef class InfinityElement(RingElement):
     def __invert__(self):
         from sage.rings.all import ZZ
         return ZZ(0)
-
-cdef class PlusInfinityElement(InfinityElement):
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: hash(+infinity)
-            9223372036854775807 # 64-bit
-            2147483647          # 32-bit
-        """
-        return LONG_MAX
-
-cdef class MinusInfinityElement(InfinityElement):
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: hash(-infinity)
-            -9223372036854775808 # 64-bit
-            -2147483648          # 32-bit
-        """
-        return LONG_MIN
 
 
 #################################################################################

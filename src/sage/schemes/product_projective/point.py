@@ -22,6 +22,8 @@ We construct products projective spaces of various dimensions over the same ring
 #*****************************************************************************
 from copy import copy
 
+from sage.categories.integral_domains import IntegralDomains
+from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import ZZ
 from sage.schemes.generic.morphism import SchemeMorphism
 from sage.schemes.generic.morphism import SchemeMorphism_point
@@ -275,6 +277,40 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             L += P._coords
         return iter(L)
 
+    def __hash__(self):
+        """
+        Computes the hash value of ``self``.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces(ZZ,[1,2])
+            sage: hash(PP([1,1,2,2,2]))
+            805439612                            # 32-bit
+            7267864846446758012                  # 64-bit
+            sage: hash(PP([1,1,1,1,1]))
+            805439612                            # 32-bit
+            7267864846446758012                  # 64-bit
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces(Zmod(6),[1,1])
+            sage: hash(PP([5,1,2,4]))
+            1266382469                        # 32-bit
+            -855399699883264379               # 64-bit
+        """
+        R = self.codomain().base_ring()
+        #if there is a fraction field normalize the point so that
+        #equal points have equal hash values
+        if R in IntegralDomains():
+            P = self.change_ring(FractionField(R))
+            P.normalize_coordinates()
+            return hash(tuple(P))
+        #if there is no good way to normalize return
+        #a constant value
+        return hash(self.codomain())
+
     def normalize_coordinates(self):
         r"""
         Removes common factors (componentwise) from the coordinates of ``self`` (including `-1`).
@@ -488,3 +524,41 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
                 Q.normalize_coordinates()
             Orb.append(Q)
         return(Orb)
+
+class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
+    def __hash__(self):
+        """
+        Computes the hash value of ``self``.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces(QQ, [1,1])
+            sage: hash(PP([1/7,1,2,1]))
+            1139616004                        # 32-bit
+            -7585172175017137916              # 64-bit
+            sage: hash(PP([1,7,1,1/2]))
+            1139616004                        # 32-bit
+            -7585172175017137916              # 64-bit
+        """
+        P = copy(self)
+        P.normalize_coordinates()
+        return hash(tuple(P))
+
+class ProductProjectiveSpaces_point_finite_field(ProductProjectiveSpaces_point_field):
+    def __hash__(self):
+        """
+        Computes the hash value of ``self``.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces(GF(7), [1,1,1])
+            sage: hash(PP([4,1,5,4,6,1]))
+            34
+        """
+        P = copy(self)
+        P.normalize_coordinates()
+        return sum(hash(P[i]) for i in range(self.codomain().num_components()))

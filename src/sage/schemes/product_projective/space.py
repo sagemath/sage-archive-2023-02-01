@@ -41,13 +41,15 @@ from sage.misc.cachefunc import cached_method
 
 from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer)
 from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.categories.fields import Fields
 from sage.rings.polynomial.polydict import ETuple
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_product_projective
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace, ProjectiveSpace_ring
-from sage.schemes.product_projective.homset import SchemeHomset_points_product_projective_spaces_ring
-from sage.schemes.product_projective.point import ProductProjectiveSpaces_point_ring
+from sage.schemes.product_projective.homset import SchemeHomset_points_product_projective_spaces_ring, SchemeHomset_points_product_projective_spaces_field
+from sage.schemes.product_projective.point import ProductProjectiveSpaces_point_ring, ProductProjectiveSpaces_point_field, ProductProjectiveSpaces_point_finite_field
 from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_morphism_ring
 
 
@@ -124,7 +126,12 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
                 raise AttributeError("Components must be over the same base ring")
             N.append(PS.dimension_relative())
             names += PS.variable_names()
-        X = ProductProjectiveSpaces_ring(N, R, names)
+        if is_FiniteField(R):
+            X = ProductProjectiveSpaces_finite_field(N, R, names)
+        elif R in Fields():
+            X = ProductProjectiveSpaces_field(N, R, names)
+        else:
+            X = ProductProjectiveSpaces_ring(N, R, names)
         X._components = n
     else:
         if isinstance(R, (list,tuple)):
@@ -146,7 +153,12 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
             else:
                 n_vars = sum(1+d for d in n)
                 names = normalize_names(n_vars, name_list)
-        X = ProductProjectiveSpaces_ring(n, R, names)
+        if is_FiniteField(R):
+            X = ProductProjectiveSpaces_finite_field(n, R, names)
+        elif R in Fields():
+            X = ProductProjectiveSpaces_field(n, R, names)
+        else:
+            X = ProductProjectiveSpaces_ring(n, R, names)
     return(X)
 
 class ProductProjectiveSpaces_ring(AmbientSpace):
@@ -557,11 +569,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         EXAMPLES::
 
-            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1],GF(5))
-            sage: P._point_homset(Spec(GF(5)), P)
-            Set of rational points of Product of projective spaces P^1 x P^1
-            over Finite Field of size 5
-            """
+            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1],ZZ)
+            sage: P._point_homset(Spec(ZZ), P)
+            Set of rational points of Product of projective spaces P^1 x P^1 over
+            Integer Ring
+        """
         return SchemeHomset_points_product_projective_spaces_ring(*args, **kwds)
 
     def _validate(self, polynomials):
@@ -925,3 +937,154 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         phi = self.hom(mapping,Y)
 
         return phi
+
+class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
+    def _point(self, *args, **kwds):
+        """
+        Construct a point.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        EXAMPLES::
+
+            sage: u = QQ['u'].0
+            sage: P = ProductProjectiveSpaces([1,2], NumberField(u^2 - 2,'v'),'x')
+            sage: P([1,3,u,1,1])
+            (1/3 : 1 , v : 1 : 1)
+        """
+        return ProductProjectiveSpaces_point_field(*args, **kwds)
+
+    def _point_homset(self, *args, **kwds):
+        """
+        Construct a point Hom-set.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1],GF(5))
+            sage: P._point_homset(Spec(GF(5)), P)
+            Set of rational points of Product of projective spaces P^1 x P^1
+            over Finite Field of size 5
+        """
+        return SchemeHomset_points_product_projective_spaces_field(*args, **kwds)
+
+    def points_of_bounded_height(self,bound, prec=53):
+        r"""
+        Returns an iterator of the points in self with the absolute heights of the components of at most the given
+        bound. Bound check is strict for the rational field. Requires self to be a product of projective spaces over
+        a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers up to a given height
+        [Doyle-Krumm].
+
+        INPUT:
+
+        - ``bound`` - a real number
+
+        - ``prec`` - the precision to use to compute the elements of bounded height for number fields
+
+        OUTPUT:
+
+        - an iterator of points in self
+
+        .. WARNING::
+
+           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           cannot be guaranteed to be correct due to the necessity of floating point
+           computations. In some cases, the default 53-bit precision is
+           considerably lower than would be required for the algorithm to
+           generate correct output.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces(QQ,[1,2])
+            sage: list(PP.points_of_bounded_height(2))
+            [(0 : 1 , 0 : 0 : 1), (0 : 1 , 1 : 0 : 1), (0 : 1 , -1 : 0 : 1), (0 : 1 , 0 : 1 : 1),
+            (0 : 1 , 1 : 1 : 1), (0 : 1 , -1 : 1 : 1), (0 : 1 , 0 : -1 : 1), (0 : 1 , 1 : -1 : 1),
+            (0 : 1 , -1 : -1 : 1), (0 : 1 , 0 : 1 : 0), (0 : 1 , 1 : 1 : 0), (0 : 1 , -1 : 1 : 0),
+            (0 : 1 , 1 : 0 : 0), (1 : 1 , 0 : 0 : 1), (1 : 1 , 1 : 0 : 1), (1 : 1 , -1 : 0 : 1),
+            (1 : 1 , 0 : 1 : 1), (1 : 1 , 1 : 1 : 1), (1 : 1 , -1 : 1 : 1), (1 : 1 , 0 : -1 : 1),
+            (1 : 1 , 1 : -1 : 1), (1 : 1 , -1 : -1 : 1), (1 : 1 , 0 : 1 : 0), (1 : 1 , 1 : 1 : 0),
+            (1 : 1 , -1 : 1 : 0), (1 : 1 , 1 : 0 : 0), (-1 : 1 , 0 : 0 : 1), (-1 : 1 , 1 : 0 : 1),
+            (-1 : 1 , -1 : 0 : 1), (-1 : 1 , 0 : 1 : 1), (-1 : 1 , 1 : 1 : 1), (-1 : 1 , -1 : 1 : 1),
+            (-1 : 1 , 0 : -1 : 1), (-1 : 1 , 1 : -1 : 1), (-1 : 1 , -1 : -1 : 1), (-1 : 1 , 0 : 1 : 0),
+            (-1 : 1 , 1 : 1 : 0), (-1 : 1 , -1 : 1 : 0), (-1 : 1 , 1 : 0 : 0), (1 : 0 , 0 : 0 : 1),
+            (1 : 0 , 1 : 0 : 1), (1 : 0 , -1 : 0 : 1), (1 : 0 , 0 : 1 : 1), (1 : 0 , 1 : 1 : 1),
+            (1 : 0 , -1 : 1 : 1), (1 : 0 , 0 : -1 : 1), (1 : 0 , 1 : -1 : 1), (1 : 0 , -1 : -1 : 1),
+            (1 : 0 , 0 : 1 : 0), (1 : 0 , 1 : 1 : 0), (1 : 0 , -1 : 1 : 0), (1 : 0 , 1 : 0 : 0)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: P = ProductProjectiveSpaces([1,1], NumberField(u^2 - 2,'v'))
+            sage: list(P.points_of_bounded_height(1.5))
+            [(0 : 1 , 0 : 1), (0 : 1 , -1 : 1), (0 : 1 , 1 : 1), (0 : 1 , -1/2*v : 1), (0 : 1 , -v : 1),
+            (0 : 1 , 1/2*v : 1), (0 : 1 , v : 1), (0 : 1 , 1 : 0), (-1 : 1 , 0 : 1), (-1 : 1 , -1 : 1),
+            (-1 : 1 , 1 : 1), (-1 : 1 , -1/2*v : 1), (-1 : 1 , -v : 1), (-1 : 1 , 1/2*v : 1), (-1 : 1 , v : 1),
+            (-1 : 1 , 1 : 0), (1 : 1 , 0 : 1), (1 : 1 , -1 : 1), (1 : 1 , 1 : 1), (1 : 1 , -1/2*v : 1),
+            (1 : 1 , -v : 1), (1 : 1 , 1/2*v : 1), (1 : 1 , v : 1), (1 : 1 , 1 : 0), (-1/2*v : 1 , 0 : 1),
+            (-1/2*v : 1 , -1 : 1), (-1/2*v : 1 , 1 : 1), (-1/2*v : 1 , -1/2*v : 1), (-1/2*v : 1 , -v : 1),
+            (-1/2*v : 1 , 1/2*v : 1), (-1/2*v : 1 , v : 1), (-1/2*v : 1 , 1 : 0), (-v : 1 , 0 : 1),
+            (-v : 1 , -1 : 1), (-v : 1 , 1 : 1), (-v : 1 , -1/2*v : 1), (-v : 1 , -v : 1), (-v : 1 , 1/2*v : 1),
+            (-v : 1 , v : 1), (-v : 1 , 1 : 0), (1/2*v : 1 , 0 : 1), (1/2*v : 1 , -1 : 1), (1/2*v : 1 , 1 : 1),
+            (1/2*v : 1 , -1/2*v : 1), (1/2*v : 1 , -v : 1), (1/2*v : 1 , 1/2*v : 1), (1/2*v : 1 , v : 1),
+            (1/2*v : 1 , 1 : 0), (v : 1 , 0 : 1), (v : 1 , -1 : 1), (v : 1 , 1 : 1), (v : 1 , -1/2*v : 1),
+            (v : 1 , -v : 1), (v : 1 , 1/2*v : 1), (v : 1 , v : 1), (v : 1 , 1 : 0), (1 : 0 , 0 : 1),
+            (1 : 0 , -1 : 1), (1 : 0 , 1 : 1), (1 : 0 , -1/2*v : 1), (1 : 0 , -v : 1), (1 : 0 , 1/2*v : 1),
+            (1 : 0 , v : 1), (1 : 0 , 1 : 0)]
+        """
+        comp_points = [list(self._components[i].points_of_bounded_height(bound,prec)) for i in range(self.num_components())]
+        indices = []
+        indices = [[k] for k in range(len(comp_points[0]))]
+        for t in range(1,self.num_components()):
+            tmpL = []
+            for I in indices:
+                for k in range(0,len(comp_points[t])):
+                    tmpL.append(I+[k])
+            indices = []
+            indices = indices + tmpL
+
+        return iter([self([comp_points[t][I[t]] for t in range(self.num_components())]) for I in indices])
+
+class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
+    def _point(self, *args, **kwds):
+        """
+        Construct a point.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        EXAMPLES::
+
+            sage: P = ProductProjectiveSpaces([1,2],GF(11))
+            sage: P([3,7,4,5,9])
+            (2 : 1 , 9 : 3 : 1)
+        """
+        return ProductProjectiveSpaces_point_finite_field(*args, **kwds)
+
+    def rational_points(self, F=None):
+        """
+        Return the list of `F`-rational points on the affine space self,
+        where `F` is a given finite field, or the base ring of self.
+
+        EXAMPLES::
+
+            sage: P = ProductProjectiveSpaces([1,1],GF(5))
+            sage: P.rational_points()
+            [(0 : 1 , 0 : 1), (0 : 1 , 1 : 1), (0 : 1 , 2 : 1), (0 : 1 , 3 : 1), (0 : 1 , 4 : 1), (0 : 1 , 1 : 0),
+            (1 : 1 , 0 : 1), (1 : 1 , 1 : 1), (1 : 1 , 2 : 1), (1 : 1 , 3 : 1), (1 : 1 , 4 : 1), (1 : 1 , 1 : 0),
+            (2 : 1 , 0 : 1), (2 : 1 , 1 : 1), (2 : 1 , 2 : 1), (2 : 1 , 3 : 1), (2 : 1 , 4 : 1), (2 : 1 , 1 : 0),
+            (3 : 1 , 0 : 1), (3 : 1 , 1 : 1), (3 : 1 , 2 : 1), (3 : 1 , 3 : 1), (3 : 1 , 4 : 1), (3 : 1 , 1 : 0),
+            (4 : 1 , 0 : 1), (4 : 1 , 1 : 1), (4 : 1 , 2 : 1), (4 : 1 , 3 : 1), (4 : 1 , 4 : 1), (4 : 1 , 1 : 0),
+            (1 : 0 , 0 : 1), (1 : 0 , 1 : 1), (1 : 0 , 2 : 1), (1 : 0 , 3 : 1), (1 : 0 , 4 : 1), (1 : 0 , 1 : 0)]
+        """
+        comp_points = [list(self._components[i].rational_points(F)) for i in range(self.num_components())]
+        indices = []
+        indices = [[k] for k in range(len(comp_points[0]))]
+        for t in range(1,self.num_components()):
+            tmpL = []
+            for I in indices:
+                for k in range(0,len(comp_points[t])):
+                    tmpL.append(I+[k])
+            indices = []
+            indices = indices + tmpL
+
+        return [self([comp_points[t][I[t]] for t in range(self.num_components())]) for I in indices]

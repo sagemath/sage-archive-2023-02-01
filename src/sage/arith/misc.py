@@ -3900,10 +3900,10 @@ class Moebius:
         EXAMPLES::
 
             sage: q = Moebius()
-            sage: print(q.__repr__())
-            The Möbius function
+            sage: q.__repr__()
+            The Moebius function
         """
-        return "The Möbius function"
+        return "The Moebius function"
 
     def plot(self, xmin=0, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
              **kwds):

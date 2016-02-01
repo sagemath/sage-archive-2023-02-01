@@ -6491,10 +6491,10 @@ class A008683(SloaneSequence):
         """
         EXAMPLES::
 
-            sage: print(sloane.A008683._repr_())
+            sage: sloane.A008683._repr_()
             Möbius function mu(n).
         """
-        return "Möbius function mu(n)."
+        return "Moebius function mu(n)."
 
     def _eval(self, n):
         """

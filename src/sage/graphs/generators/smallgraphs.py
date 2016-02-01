@@ -3825,14 +3825,14 @@ def MoebiusKantorGraph():
 
         sage: MK = graphs.MoebiusKantorGraph()
         sage: MK
-        Möbius-Kantor Graph: Graph on 16 vertices
+        Moebius-Kantor Graph: Graph on 16 vertices
         sage: MK.graph6_string()
         'OhCGKE?O@?ACAC@I?Q_AS'
         sage: (graphs.MoebiusKantorGraph()).show() # long time
     """
     from sage.graphs.generators.families import GeneralizedPetersenGraph
     G=GeneralizedPetersenGraph(8,3)
-    G.name("Möbius-Kantor Graph")
+    G.name("Moebius-Kantor Graph")
     return G
 
 def MoserSpindle():

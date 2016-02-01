@@ -112,9 +112,9 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
 
             sage: L = posets.BooleanLattice(4)
             sage: L.moebius_algebra(QQ)
-            Möbius algebra of Finite lattice containing 16 elements over Rational Field
+            Moebius algebra of Finite lattice containing 16 elements over Rational Field
         """
-        return "Möbius algebra of {} over {}".format(self._lattice, self.base_ring())
+        return "Moebius algebra of {} over {}".format(self._lattice, self.base_ring())
 
     def a_realization(self):
         r"""
@@ -373,10 +373,10 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
 
             sage: L = posets.BooleanLattice(4)
             sage: L.quantum_moebius_algebra()
-            Quantum Möbius algebra of Finite lattice containing 16 elements
+            Quantum Moebius algebra of Finite lattice containing 16 elements
              with q=q over Univariate Laurent Polynomial Ring in q over Integer Ring
         """
-        return "Quantum Möbius algebra of {} with q={} over {}".format(
+        return "Quantum Moebius algebra of {} with q={} over {}".format(
                             self._lattice, self._q, self.base_ring())
 
     def a_realization(self):

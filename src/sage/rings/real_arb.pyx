@@ -1022,6 +1022,8 @@ cdef class RealBall(RingElement):
             [1.282427129100623 +/- 6.02e-16]
             sage: RealBall(RBF, sage.symbolic.constants.e)
             [2.718281828459045 +/- 5.35e-16]
+            sage: RealBall(RBF, sage.symbolic.constants.EulerGamma())
+            [0.577215664901533 +/- 3.57e-16]
         """
         import sage.symbolic.constants
         cdef fmpz_t tmpz
@@ -1081,6 +1083,8 @@ cdef class RealBall(RingElement):
                     arb_const_khinchin(self.value, prec(self))
                 elif isinstance(mid, sage.symbolic.constants.Glaisher):
                     arb_const_glaisher(self.value, prec(self))
+                elif isinstance(mid, sage.symbolic.constants.EulerGamma):
+                    arb_const_euler(self.value, prec(self))
                 else:
                     raise TypeError("unsupported constant")
             finally:

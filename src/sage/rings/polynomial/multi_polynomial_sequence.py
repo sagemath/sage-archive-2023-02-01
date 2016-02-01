@@ -163,7 +163,7 @@ from sage.misc.package import is_package_installed
 from sage.structure.sequence import Sequence, Sequence_generic
 
 from sage.rings.infinity import Infinity
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.quotient_ring import is_QuotientRing

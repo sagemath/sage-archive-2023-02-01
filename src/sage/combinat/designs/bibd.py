@@ -635,7 +635,7 @@ def v_4_1_BIBD(v, check=True):
         return projective_plane(3)._blocks
     if v == 16:
         from block_design import AffineGeometryDesign
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         return AffineGeometryDesign(2,1,FiniteField(4,'x'))._blocks
     if v == 25 or v == 37:
         from difference_family import difference_family
@@ -1084,7 +1084,7 @@ def BIBD_5q_5_for_q_prime_power(q):
         sage: for q in [25, 45, 65, 85, 125, 145, 185, 205, 305, 405, 605]: # long time
         ....:     _ = BIBD_5q_5_for_q_prime_power(q/5)                      # long time
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     if q%4 != 1 or not is_prime_power(q):
         raise ValueError("q is not a prime power or q%4!=1.")
@@ -1187,7 +1187,7 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     # From now on, the code assumes the notations of [Denniston69] for n,q, so
     # that the BIBD returned by the method will have the requested parameters.
 
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     from sage.libs.gap.libgap import libgap
     from sage.matrix.constructor import Matrix
 

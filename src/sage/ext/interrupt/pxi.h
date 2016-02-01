@@ -6,3 +6,7 @@
 #include "interrupt/struct_signals.h"
 #include "interrupt/interrupt_api.h"
 #include "interrupt/macros.h"
+
+/* Undefine this macro from interrupt_api.h to avoid compiler warnings:
+ * Cython redefines it when cimporting interrupt.pxd */
+#undef _signals

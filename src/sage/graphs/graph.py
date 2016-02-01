@@ -6968,6 +6968,7 @@ _additional_categories = {
     Graph.is_distance_regular       : "Graph properties",
     Graph.is_strongly_regular       : "Graph properties",
     Graph.is_line_graph             : "Graph properties",
+    Graph.is_partial_cube           : "Graph properties",
     Graph.tutte_polynomial          : "Algorithmically hard stuff",
     Graph.lovasz_theta              : "Leftovers",
     }

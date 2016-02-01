@@ -337,7 +337,7 @@ many times, which allows them to perform expensive precomputation
 at construction or first use, for the benefit of future use.
 
 This gives a good idea of how the elements work internally.
-Lets us now go a bit more into details on specific points.
+Let us now go a bit more into details on specific points.
 
 III.1 Message spaces
 ---------------------
@@ -401,12 +401,13 @@ Let us see this in Sage, using the first encoder we constructed::
 III.3 Decoders and introspection
 --------------------------------
 
-The algorithms behind decoder work differently for each decoder:
+Each Decoder uses his own decoding algorithm, amd these decoding algorithms
+can have quite different behaviours:
 some might return a list of codewords, while some just return one codeword,
-some cannot decode more than half the minimum distance, while some cannot etc...
+some cannot decode more than half the minimum distance, while some can etc...
 
 When it comes to benchmarking, it can be useful to sort the decoders in order
-to compare decoders which work the same. And in any case, the user might like
+to compare decoders which share properties. And in any case, the user might like
 to know the properties of a given decoder.
 
 We call these properties *types*. One can access these for any decoders as
@@ -420,8 +421,8 @@ follows::
 IV. A deeper look at channels
 =============================
 
-In Section II, we briefly introduced the new Channel objects as
-a new way to put errors in a word.
+In Section II, we briefly introduced the Channel objects as
+a way to put errors in a word.
 In this section, we will look deeper at their functionality and
 introduce a second Channel.
 
@@ -482,7 +483,7 @@ but without checking the input, as illustrated thereafter::
     sage: c_trans in C
     False
 
-We also introduced a useful shortcut for
+Note there exists a useful shortcut for
 :meth:`sage.coding.channel_constuctions.Channel.transmit` ::
 
     sage: r = Chan(c)

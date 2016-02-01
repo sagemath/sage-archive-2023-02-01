@@ -58,7 +58,7 @@ function as well as a Reduce function. Here are some examples :
 
 * **Counting the number of elements**: In this situation, the map function
   can be set to ``lambda x : 1``, and the reduce function just adds the
-  elements together, i.e. ``lambda x,y : x+y``.
+  values together, i.e. ``lambda x,y : x+y``.
 
   Here's the Sage code for binary words of length `\leq 16` ::
 
@@ -71,6 +71,13 @@ function as well as a Reduce function. Here are some examples :
       sage: reduce_init = 0
       sage: S.map_reduce(map_function, reduce_function, reduce_init)
       131071
+
+  One can check that this is indeed the number of binary words of
+  length `\leq 16` ::
+
+      sage: factor(131071 + 1)
+      2^17
+
 
   Note that the function mapped and reduced here are equivalent to the default
   values of the :meth:`sage.combinat.backtrack.SearchForest.map_reduce`
@@ -93,8 +100,6 @@ function as well as a Reduce function. Here are some examples :
       ....:   reduce_init = 0 )
       sage: S.run()
       131071
-      sage: factor(131071 + 1)
-      2^17
 
 * **Generating series**: In this situation, the map function associates a
   monomial to each element of `S`, while the Reduce function is still equal to
@@ -235,7 +240,7 @@ The following should not timeout even on a very slow machine::
 
 As for ``reduce_locally``, one should not see any difference, except for speed
 during normal usage. Most of the time the user should leave it to ``True``,
-unless he set up a mecanism to consume the partial results as soon as they
+unless he sets up a mecanism to consume the partial results as soon as they
 arrive. See :class:`RESetParallelIterator` and in particular the ``__iter__``
 method for a example of consumer use.
 
@@ -393,7 +398,7 @@ iterating though a loop inside
 :meth:`RESetMapReduceWorker.walk_branch_locally`. Work nodes are taken from
 and new nodes ``W._todo`` are appended to ``W._todo``. When a worker ``W`` is
 running out of work, that is ``worker._todo`` is empty, then it tries to steal
-some word (ie: a node) from another worker. This is performed in the
+some work (ie: a node) from another worker. This is performed in the
 :meth:`RESetMapReduceWorker.steal` method.
 
 From the point of view of ``W`` here is what happens:
@@ -442,11 +447,13 @@ When a worker finishes working on a task, it calls
 ``master._active_tasks``. When it reaches 0, it means that there are no more
 nodes: the work is done. The worker executes :meth:`master._shutdown` which
 sends ``AbortError`` on all :meth:`worker._request` and
-:meth:`worker._write_task`. Each worker or thief thread receiving such a
+:meth:`worker._write_task` Queues. Each worker or thief thread receiving such a
 message raise the corresponding exception, stoping therefore its work. A lock
-called ``master._done`` ensures that shutdown is only done once. Finally, it is
-also possible to interrupt the computation before its ends calling
-:meth:`master.abort()`.
+called ``master._done`` ensures that shutdown is only done once.
+
+Finally, it is also possible to interrupt the computation before its ends
+calling :meth:`master.abort()`. This is done by putting
+``master._active_tasks`` to 0 and calling :meth:`master._shutdown`.
 
 
 .. _examples:
@@ -772,6 +779,10 @@ class RESetMapReduce(object):
         self._nprocess = proc_number(max_proc)
         self._results = SimpleQueue()
         self._active_tasks = Semaphore(self._nprocess)
+        # MacOS:
+        # self._active_tasks = (Value(ctypes.c_int, self._nprocess))
+process)
+
         self._done = Lock()
         self._abort = Value(ctypes.c_bool, False)
         sys.stdout.flush()
@@ -918,6 +929,9 @@ class RESetMapReduce(object):
         """
         logger.info("Abort called")
         self._abort.value = True
+        # MacOS:
+        # with self._active_tasks[1]:
+        #      self._active_tasks[0].value = 0
         while self._active_tasks.acquire(False):
             pass
         self._shutdown()
@@ -988,8 +1002,14 @@ class RESetMapReduce(object):
         # stop before receiving the poison pill.
         if self._active_tasks._semlock._is_zero():
             raise AbortError
+        # MacOS:
+        # if self._active_tasks[0].value:
+        #     raise AbortError
         logger.debug("_signal_task_start called")
         self._active_tasks.release()
+        # MacOS:
+        # with self._active_tasks[1]:
+        #    self._active_tasks[0].value += 1
 
     def _signal_task_done(self):
         r"""
@@ -1045,6 +1065,13 @@ class RESetMapReduce(object):
         if self._active_tasks._semlock._is_zero():
             self._shutdown()
             raise AbortError
+        # MacOS:
+        # with self._active_tasks[1]:
+        #     self._active_tasks[0].value -= 1
+        #     if self._active_tasks[0].value <= 0:
+        #         logger.debug("raising AbortError")
+        #         self._shutdown()
+        #         raise AbortError
 
     def random_worker(self):
         r"""

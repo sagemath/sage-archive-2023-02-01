@@ -1552,6 +1552,44 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
     pow = __pow__
 
 
+    def sqrt(self, precision=None):
+        r"""
+        Return the square root of this asymptotic expansion.
+
+        INPUT:
+
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: A.<s> = AsymptoticRing(growth_group='s^QQ', coefficient_ring=QQ)
+            sage: s.sqrt()
+            s^(1/2)
+            sage: a = (1 + 1/s).sqrt(precision=6); a
+            1 + 1/2*s^(-1) - 1/8*s^(-2) + 1/16*s^(-3)
+            - 5/128*s^(-4) + 7/256*s^(-5) + O(s^(-6))
+
+        .. SEEALSO::
+
+            :meth:`pow`, :meth:`rpow`, :meth:`exp`.
+
+        TESTS::
+
+            sage: P.<p> = PowerSeriesRing(QQ, default_prec=6)
+            sage: bool(SR(a.exact_part()).subs(s=1/x) -
+            ....:      SR((1+p).sqrt().polynomial()).subs(p=x) == 0)
+            True
+            """
+        from sage.rings.rational_field import QQ
+        return self.pow(QQ(1)/QQ(2), precision=precision)
+
+
     def O(self):
         r"""
         Convert all terms in this asymptotic expansion to `O`-terms.

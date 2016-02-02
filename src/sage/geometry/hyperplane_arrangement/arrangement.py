@@ -2175,7 +2175,7 @@ class HyperplaneArrangementElement(Element):
 
         EXAMPLES:
 
-        For type `A` arrangements, chordality is equivalent to free.
+        For type `A` arrangements, chordality is equivalent to freeness.
         We verify that in type `A_3`::
 
             sage: W = WeylGroup(['A',3], prefix='s')

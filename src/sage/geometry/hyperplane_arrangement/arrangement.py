@@ -2130,6 +2130,8 @@ class HyperplaneArrangementElement(Element):
             [       0       a1 -a2 - a3]
             <BLANKLINE>
         """
+        if not self.is_central():
+            raise NotImplementedError 'Only implemented for central arrangements'
         from sage.geometry.hyperplane_arrangement.check_freeness import construct_free_chain
         return construct_free_chain(self)
 
@@ -2198,6 +2200,8 @@ class HyperplaneArrangementElement(Element):
            Adv. in Math. **229** Issue 1 (2012). pp. 691-709.
            :doi:`10.1016/j.aim.2011.09.011`, :arxiv:`1011.4228`.
         """
+        if not self.is_central():
+            raise NotImplementedError 'Only implemented for central arrangements'
         if algorithm == "singular":
             # TODO: Implement this using libSingular
             mres = self.defining_polynomial().jacobian_ideal()._singular_().mres(0)

@@ -4074,7 +4074,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         Syndrome decoder for Linear code of length 9, dimension 3 over Finite Field of size 3 handling errors of weight up to 2
 
     If one checks the list of types of this decoder before constructing it,
-    one will notice it contains the keyword `dynamic`.
+    one will notice it contains the keyword ``dynamic``.
     Indeed, the behaviour of the syndrome decoder depends on the maximum
     error weight one wants to handle, and how it compares to the minimum
     distance and the covering radius of ``code``.
@@ -4092,10 +4092,10 @@ class LinearCodeSyndromeDecoder(Decoder):
         sage: C = LinearCode(G)
 
     In the following examples, we illustrate how the choice of
-    `maximum_error_weight` influences the types of the instance of
+    ``maximum_error_weight`` influences the types of the instance of
     syndrome decoder, alongside with its decoding radius.
 
-    We build a first syndrome decoder, and pick a `maximum_error_weight`
+    We build a first syndrome decoder, and pick a ``maximum_error_weight``
     smaller than both the covering radius and half the minimum distance::
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 1)
@@ -4108,7 +4108,7 @@ class LinearCodeSyndromeDecoder(Decoder):
     a bounded distance decoder.
 
     We now build another syndrome decoder, and this time,
-    `maximum_error_weight` is chosen to be bigger than half the minimum distance,
+    ``maximum_error_weight`` is chosen to be bigger than half the minimum distance,
     but lower than the covering radius::
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 3)
@@ -4122,7 +4122,7 @@ class LinearCodeSyndromeDecoder(Decoder):
     minimum distance, we know it might return a codeword which was not
     the original codeword.
 
-    And now, we build a third syndrome decoder, whose `maximum_error_weight`
+    And now, we build a third syndrome decoder, whose ``maximum_error_weight``
     is bigger than both the covering radius and half the minimum distance::
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 5)
@@ -4139,7 +4139,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     The minimum distance and the covering radius are both determined while
     computing the syndrome lookup table. They user did not explicitly ask to
-    compute these on the code `C`. The dynamic typing of the syndrome decoder
+    compute these on the code ``C``. The dynamic typing of the syndrome decoder
     might therefore seem slightly surprising, but in the end is quite
     informative.
     """

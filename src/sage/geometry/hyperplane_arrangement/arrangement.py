@@ -140,32 +140,32 @@ in `\RR^n` are called the *regions* of the arrangement::
     19
     sage: b.regions()
     (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays)
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays)
     sage: b.bounded_regions()
     (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices)
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices)
     sage: b.n_bounded_regions()
     7
     sage: a.unbounded_regions()
@@ -2131,7 +2131,7 @@ class HyperplaneArrangementElement(Element):
             <BLANKLINE>
         """
         if not self.is_central():
-            raise NotImplementedError 'Only implemented for central arrangements'
+            raise NotImplementedError("only implemented for central arrangements")
         from sage.geometry.hyperplane_arrangement.check_freeness import construct_free_chain
         return construct_free_chain(self)
 
@@ -2201,7 +2201,7 @@ class HyperplaneArrangementElement(Element):
            :doi:`10.1016/j.aim.2011.09.011`, :arxiv:`1011.4228`.
         """
         if not self.is_central():
-            raise NotImplementedError 'Only implemented for central arrangements'
+            raise NotImplementedError("only implemented for central arrangements")
         if algorithm == "singular":
             # TODO: Implement this using libSingular
             mres = self.defining_polynomial().jacobian_ideal()._singular_().mres(0)

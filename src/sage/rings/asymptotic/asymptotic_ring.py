@@ -1702,10 +1702,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         r"""
         Return whether all terms of this expansion are exact.
 
-        INPUT:
-
-        Nothin.
-
         OUTPUT:
 
         A boolean.

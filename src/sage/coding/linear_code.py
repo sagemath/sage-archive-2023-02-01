@@ -4027,8 +4027,8 @@ class LinearCodeSyndromeDecoder(Decoder):
       pattern of weight up to ``maximum_error_weight``.
     - Then, whenever one tries to decode a word ``r``, the syndrome of ``r`` is
       computed. The corresponding error pattern is recovered from the
-      precomputed lookup table.
-    - Finally, the recovered error pattern is substracted from ``r`` to recover
+      pre-computed lookup table.
+    - Finally, the recovered error pattern is subtracted from ``r`` to recover
       the original word.
 
     ``maximum_error_weight`` need never exceed the covering radius of the code,
@@ -4131,19 +4131,17 @@ class LinearCodeSyndromeDecoder(Decoder):
         sage: D.decoding_radius()
         4
 
-    In that case, the decoder might still return an unexepected codeword, but
-    it is now complete. Note the decoding radius is equal to 4, as it was
-    computed while building the syndrome lookup table that the maximum number
-    of errors this decoder will be likely to decode is 4.
+    In that case, the decoder might still return an unexpected codeword, but
+    it is now complete. Note the decoding radius is equal to 4: it was
+    determined while building the syndrome lookup table that any error with
+    weight more than 4 will be decoded incorrectly. That is because the covering
+    radius for the code is 4.
 
-    One can notice we never explicitely computed the minimum distance, nor
-    the covering radius of our code. It can thus be surprising to update
-    dynamically the types. This is because while computing the syndrome
-    lookup table, some information might be found, depending on
-    `maximum_error_weight`: if it is smaller than both the covering
-    radius and the minimum distance, we will never find two different error
-    vectors with the same syndrome, and thus we can update the types.
-    The same method applies in the cases illustrated above.
+    The minimum distance and the covering radius are both determined while
+    computing the syndrome lookup table. They user did not explicitly ask to
+    compute these on the code `C`. The dynamic typing of the syndrome decoder
+    might therefore seem slightly surprising, but in the end is quite
+    informative.
     """
 
     def __init__(self, code, maximum_error_weight=None):

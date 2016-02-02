@@ -4321,7 +4321,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Decodes ``r`` to an element in message space of ``self``.
+        Corrects the errors in ``word`` and returns a codeword.
 
         INPUT:
 

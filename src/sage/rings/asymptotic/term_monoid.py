@@ -1093,6 +1093,24 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         """
         return False
 
+    def is_exact(self):
+        r"""
+        Return whether this term is an exact term.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: T = GenericTermMonoid(GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
+            sage: T.an_element().is_exact()
+            False
+        """
+        return False
+
 
     def is_little_o_of_one(self):
         r"""
@@ -3334,6 +3352,33 @@ class ExactTerm(TermWithCoefficient):
             True
         """
         return self.growth.is_lt_one()
+
+
+    def is_exact(self):
+        r"""
+        Return whether this term is an exact term.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
+            sage: T('x * log(x)').is_exact()
+            True
+            sage: T('3 * x^2').is_exact()
+            True
+
+        TESTS::
+
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), QQ)
+            sage: T('x').is_exact()
+            False
+        """
+        return True
 
 
     def rpow(self, base):

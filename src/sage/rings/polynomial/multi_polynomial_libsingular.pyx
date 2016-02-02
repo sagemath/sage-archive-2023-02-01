@@ -222,8 +222,6 @@ from sage.arith.all import gcd
 from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.category_object cimport CategoryObject
 
 from sage.structure.element cimport EuclideanDomainElement
@@ -1634,9 +1632,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef number *n
         cdef number *denom
 
-        if not <ParentWithBase>self is f._parent:
+        if self is not f._parent:
             f = self._coerce_c(f)
-        if not <ParentWithBase>self is g._parent:
+        if self is not g._parent:
             g = self._coerce_c(g)
 
         if not f._poly:
@@ -1737,9 +1735,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         """
         cdef poly *m = p_ISet(1,self._ring)
 
-        if not <ParentWithBase>self is f._parent:
+        if self is not f._parent:
             f = self._coerce_c(f)
-        if not <ParentWithBase>self is g._parent:
+        if self is not g._parent:
             g = self._coerce_c(g)
 
         if f._poly == NULL:
@@ -1939,7 +1937,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             0
         """
         self._poly = NULL
-        self._parent = <ParentWithBase>parent
+        self._parent = parent
         self._parent_ring = singular_ring_reference(parent._ring)
 
     def __dealloc__(self):
@@ -3889,7 +3887,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             return False
 
-    def __floordiv__(MPolynomial_libsingular self, right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Perform division with remainder and return the quotient.
 
@@ -3935,19 +3933,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef poly *temp
         cdef poly *p
 
-        _self = self
-
-        if not isinstance(right, MPolynomial_libsingular) \
-                or (parent is not (<MPolynomial_libsingular>right)._parent):
-            _right = parent._coerce_c(right)
-        else:
-            _right = right
-
         if right.is_zero():
             raise ZeroDivisionError
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError, "Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+
+        _self = <MPolynomial_libsingular>self
+        _right = <MPolynomial_libsingular>right
 
         if r.ringtype != 0:
             if r.ringtype == 4:
@@ -5402,7 +5395,7 @@ cdef inline MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, p
     Singular data structure is used elsewhere.
     """
     cdef MPolynomial_libsingular p = MPolynomial_libsingular.__new__(MPolynomial_libsingular)
-    p._parent = <ParentWithBase>parent
+    p._parent = parent
     p._parent_ring = singular_ring_reference(parent._ring)
     p._poly = juice
     p_Normalize(p._poly, p._parent_ring)

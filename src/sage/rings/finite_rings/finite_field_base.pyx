@@ -862,7 +862,7 @@ cdef class FiniteField(Field):
             pass
 
         from sage.rings.all import PolynomialRing
-        from constructor import GF
+        from finite_field_constructor import GF
         R = PolynomialRing(GF(self.characteristic()), 'x')
         self._modulus = R((-1,1))  # Polynomial x - 1
         return self._modulus
@@ -979,7 +979,7 @@ cdef class FiniteField(Field):
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.finite_rings.constructor import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
 
         if variable_name is None and self.__polynomial_ring is not None:
             return self.__polynomial_ring
@@ -1172,7 +1172,7 @@ cdef class FiniteField(Field):
             sage: F.extension(int(3), 'aa')
             Finite Field in aa of size 2^12
         """
-        from constructor import GF
+        from finite_field_constructor import GF
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.integer import Integer
         if name is None and names is not None:
@@ -1255,7 +1255,7 @@ cdef class FiniteField(Field):
                   Defn: z21 |--> a)]
         """
         from sage.rings.integer import Integer
-        from constructor import GF
+        from finite_field_constructor import GF
         p = self.characteristic()
         n = self.degree()
         if degree != 0:

@@ -879,6 +879,9 @@ def gap3_console():
                                 For help enter: ?<return>
         gap>
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gap3 magics instead.')
     os.system(gap3_cmd)
 
 def gap3_version():

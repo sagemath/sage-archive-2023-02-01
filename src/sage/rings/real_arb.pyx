@@ -2681,21 +2681,40 @@ cdef class RealBall(RingElement):
 
     # Elementary functions
 
-    def log(self):
+    def log(self, base=None):
         """
-        Return the natural logarithm of this ball.
+        Return the logarithm of this ball.
+
+        INPUT:
+
+        - ``base`` (optional, positive real ball or number) -- if ``None``,
+          return the natural logarithm ``ln(self)``, otherwise, return the
+          general logarithm ``ln(self)/ln(base)``
 
         EXAMPLES::
 
             sage: RBF(3).log()
             [1.098612288668110 +/- 6.63e-16]
+            sage: RBF(3).log(2)
+            [1.584962500721156 +/- 7.53e-16]
+
             sage: RBF(-1/3).log()
             nan
+            sage: RBF(3).log(-1)
+            nan
+            sage: RBF(2).log(0)
+            nan
         """
+        cdef RealBall cst
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_log(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
+        if base is not None:
+            cst = self._parent.coerce(base).log()
+            if _do_sig(prec(self)): sig_on()
+            arb_div(res.value, res.value, cst.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
     def log1p(self):

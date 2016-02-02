@@ -28,7 +28,7 @@ from sage.matrix.constructor       import matrix
 from sage.matrix.matrix            import is_Matrix
 from sage.misc.functional          import squarefree_part
 from sage.misc.misc_c              import prod
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ

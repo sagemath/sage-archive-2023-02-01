@@ -2121,23 +2121,6 @@ cdef class NumberFieldElement(FieldElement):
         sig_off()
         return x
 
-    def __floordiv__(self, other):
-        """
-        Return the quotient of self and other. Since these are field
-        elements the floor division is exactly the same as usual division.
-
-        EXAMPLES::
-
-            sage: m.<b> = NumberField(x^4 + x^2 + 2/3)
-            sage: c = (1+b) // (1-b); c
-            3/4*b^3 + 3/4*b^2 + 3/2*b + 1/2
-            sage: (1+b) / (1-b) == c
-            True
-            sage: c * (1-b)
-            b + 1
-        """
-        return self / other
-
     def __nonzero__(self):
         """
         Return True if this number field element is nonzero.

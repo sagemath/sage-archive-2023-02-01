@@ -697,6 +697,9 @@ def reduce_load_Kash():
 
 
 def kash_console():
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%kash magics instead.')
     os.system("kash3 ")
 
 

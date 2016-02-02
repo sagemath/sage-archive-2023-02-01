@@ -692,11 +692,17 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group QQ^x * x^QQ
             sage: cm.common_parent(GrowthGroup('QQ^x * x^ZZ'), GrowthGroup('ZZ^x * x^QQ'))
             Growth Group QQ^x * x^QQ
+
+        ::
+
+            sage: pushout(GrowthGroup('QQ^n * n^QQ'), GrowthGroup('SR^n'))
+            Growth Group SR^n * n^QQ
         """
         from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
         from misc import merge_overlapping
         from misc import underlying_class
 
+        Sfactors = self.cartesian_factors()
         if isinstance(other, GenericProduct):
             Ofactors = other.cartesian_factors()
         elif isinstance(other, GenericGrowthGroup):
@@ -759,7 +765,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                     self.factors = tuple()
 
         from itertools import groupby
-        S = it(groupby(self.cartesian_factors(), key=lambda k: k.variable_names()))
+        S = it(groupby(Sfactors, key=lambda k: k.variable_names()))
         O = it(groupby(Ofactors, key=lambda k: k.variable_names()))
 
         newS = []
@@ -786,9 +792,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         assert(len(newS) == len(newO))
 
-        if (len(self.cartesian_factors()) == len(newS) and
-            len(other.cartesian_factors()) == len(newO)):
-            # We had already all factors in each of the self and
+        if (len(Sfactors) == len(newS) and
+            len(Ofactors) == len(newO)):
+            # We had already all factors in each of self and
             # other, thus splitting it in subproblems (one for
             # each factor) is the strategy to use. If a pushout is
             # possible :func:`sage.categories.pushout.pushout`

@@ -107,15 +107,15 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(ZZ['x'])
         'ZZ[x]'
         sage: parent_to_repr_short(QQ['d, k'])
-        '(QQ[d, k])'
+        'QQ[d, k]'
         sage: parent_to_repr_short(QQ['e'])
         'QQ[e]'
         sage: parent_to_repr_short(SR[['a, r']])
-        '(SR[[a, r]])'
+        'SR[[a, r]]'
         sage: parent_to_repr_short(Zmod(3))
-        '(Ring of integers modulo 3)'
+        'Ring of integers modulo 3'
         sage: parent_to_repr_short(Zmod(3)['g'])
-        '(Univariate Polynomial Ring in g over Ring of integers modulo 3)'
+        'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
     def abbreviate(P):
         if P is sage.rings.integer_ring.ZZ:
@@ -147,8 +147,6 @@ def parent_to_repr_short(P):
         except ValueError:
             s = str(P)
 
-    if ' ' in s:
-        s = '(' + s + ')'
     return s
 
 
@@ -212,7 +210,23 @@ def split_str_by_op(string, op, strip_parentheses=True):
         ('(t)s',)
         sage: split_str_by_op(' ( t  ) s', op=None)
         ('t', 's')
+
+    ::
+
+        sage: split_str_by_op('(e^(n*log(n)))^SR.subring(no_variables=True)', '*')
+        ('(e^(n*log(n)))^SR.subring(no_variables=True)',)
     """
+    def is_balanced(s):
+        open = 0
+        for l in s:
+            if l == '(':
+                open += 1
+            elif l == ')':
+                open -= 1
+            if open < 0:
+                return False
+        return bool(open == 0)
+
     factors = list()
     balanced = True
     if string and op is not None and string.startswith(op):
@@ -228,7 +242,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
                              (string, op, op))
         if not balanced:
             s = factors.pop() + (op if op else '') + s
-        balanced = s.count('(') == s.count(')')
+        balanced = is_balanced(s)
         factors.append(s)
 
     if not balanced:
@@ -239,7 +253,9 @@ def split_str_by_op(string, op, strip_parentheses=True):
         if not s:
             return s
         if strip_parentheses and s[0] == '(' and s[-1] == ')':
-            s = s[1:-1]
+            t = s[1:-1]
+            if is_balanced(t):
+                s = t
         return s.strip()
 
     return tuple(strip(f) for f in factors)

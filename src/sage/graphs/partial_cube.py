@@ -9,7 +9,14 @@ distance of their labels.
 The code in this module is originally from the PADS library by David Eppstein,
 which is available at http://www.ics.uci.edu/~eppstein/PADS/ under the MIT
 license. The algorithm for partial cube recognition in quadratic time has been
-described in [Eppstein2008].
+described in [Eppstein2008]_.
+
+REFERENCE:
+
+.. [Eppstein2008] David Eppstein,
+  "Recognizing partial cubes in quadratic time",
+  J. Graph Algorithms and Applications 15 (2): 269-293, 2011.
+  Available at http://arxiv.org/abs/0705.1025
 
 Functions
 ---------
@@ -73,7 +80,7 @@ def breadth_first_level_search(G, start, ignore_direction=False, neighbors=None)
 
 def depth_first_traversal(G, start, ignore_direction=False,
                           neighbors=None):
-    """r
+    r"""
     Generate a sequence of triples (v,w,edgetype) for DFS of graph G.
 
     Originally written by D. Eppstein for the PADS library
@@ -143,8 +150,8 @@ def is_partial_cube(G, certificate=False):
     Test whether the given graph is a partial cube.
 
     Originally written by D. Eppstein for the PADS library
-    (http://www.ics.uci.edu/~eppstein/PADS/). The algorithm runs in O(n^2)
-    time, where n is the number of vertices.
+    (http://www.ics.uci.edu/~eppstein/PADS/), see also [Eppstein2008]_.
+    The algorithm runs in O(n^2) time, where n is the number of vertices.
 
     INPUT:
 
@@ -155,13 +162,6 @@ def is_partial_cube(G, certificate=False):
       the vertices of the graph to the vertices of a hypercube ((0, 1)-strings
       of a fixed length). When ``certificate = True`` and the graph is not a
       partial cube, ``(False, None)`` is returned.
-
-    REFERENCE:
-
-    .. [Eppstein2008] David Eppstein,
-      "Recognizing partial cubes in quadratic time",
-      J. Graph Algorithms and Applications 15 (2): 269-293, 2011.
-      Available at http://arxiv.org/abs/0705.1025
 
     EXAMPLES:
 

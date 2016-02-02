@@ -173,7 +173,7 @@ class AffineGroup(UniqueRepresentation, Group):
             degree, ring = args
             from sage.rings.integer import is_Integer
             if is_Integer(ring):
-                from sage.rings.finite_rings.constructor import FiniteField
+                from sage.rings.finite_rings.finite_field_constructor import FiniteField
                 var = kwds.get('var', 'a')
                 ring = FiniteField(ring, var)
         return super(AffineGroup, cls).__classcall__(cls, degree, ring)

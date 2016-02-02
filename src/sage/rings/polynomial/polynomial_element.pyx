@@ -88,7 +88,6 @@ from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
 from sage.rings.integral_domain import is_IntegralDomain
 from sage.structure.category_object cimport normalize_names
-from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.derivative import multi_derivative
 
@@ -808,7 +807,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ['push 0.0']
         """
         from sage.ext.fast_eval import fast_float_arg, fast_float_constant
-        var = (<ParentWithGens>self._parent)._names[0]
+        var = self._parent._names[0]
         if len(vars) == 0:
             x = fast_float_arg(0)
         elif var in vars:
@@ -1095,7 +1094,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for i from 0<= i <= self.degree():
             if i == 1:
                 # we delay the hashing until now to not waste it on a constant poly
-                var_name_hash = hash((<ParentWithGens>self._parent)._names[0])
+                var_name_hash = hash(self._parent._names[0])
             # I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
             # This assumption is not true, but I think it is true enough for the purposes and it
             # it allows us to write fast code that omits terms with 0 coefficients.  This is
@@ -3766,7 +3765,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.rings.number_field.number_field_base import is_NumberField
         from sage.rings.number_field.number_field_rel import is_RelativeNumberField
         from sage.rings.number_field.all import NumberField
-        from sage.rings.finite_rings.constructor import is_FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.integer_ring import is_IntegerRing
 

@@ -529,7 +529,7 @@ cdef class ntl_GF2X(object):
         """
         if R is None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
 
         return R(map(int,self.list()))

@@ -745,6 +745,9 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     See sage.misc.sagedoc.skip_TESTS_block for more information.
     """
     from sage.misc.sagedoc import skip_TESTS_block as sagedoc_skip_TESTS
+    if len(docstringlines) == 0:
+        # No docstring, so don't do anything. See :trac:`19932`.
+        return
     s = sagedoc_skip_TESTS("\n".join(docstringlines))
     lines = s.split("\n")
     for i in range(len(lines)):

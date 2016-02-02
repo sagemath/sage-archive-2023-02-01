@@ -2186,7 +2186,7 @@ class HyperplaneArrangementElement(Element):
         We check that the algorithms agree::
 
             sage: W = WeylGroup(['B',3], prefix='s')
-            sage: for x in W:
+            sage: for x in W:   # long time
             ....:    A = x.inversion_arrangement()
             ....:    assert (A.is_free(algorithm="BC")
             ....:            == A.is_free(algorithm="singular"))
@@ -2207,7 +2207,7 @@ class HyperplaneArrangementElement(Element):
         else:
             raise ValueError("invalid algorithm")
 
-    def derivation_module_basis(self):
+    def derivation_module_basis(self, algorithm="singular"):
         """
         Return a basis for the derivation module of ``self`` if
         one exists, otherwise return ``None``.
@@ -2216,6 +2216,15 @@ class HyperplaneArrangementElement(Element):
 
             :meth:`derivation_module_free_chain`, :meth:`is_free`
 
+        INPUT:
+
+        - ``algorithm`` -- (default: ``"singular"``) can be one of
+          the following:
+
+          * ``"singular"`` -- use Singular's minimal free resolution
+          * ``"BC"`` -- use the algorithm given by Barakat and Cuntz
+            in [BC12]_ (much slower than using Singular)
+
         OUTPUT:
 
         A basis for the derivation module (over `S`, the
@@ -2223,18 +2232,78 @@ class HyperplaneArrangementElement(Element):
         <sage.geometry.hyperplane_arrangement.hyperplane.AmbientVectorSpace.symmetric_space>`)
         as vectors of a free module over `S`.
 
+        ALGORITHM:
+
+        .. RUBRIC:: Singular
+
+        This gets the reduced syzygy module of the Jacobian ideal of
+        the defining polynomial `f` of ``self``. It then checks Saito's
+        criterion that the determinat of the basis matrix is a scalar
+        multiple of `f`. If the basis matrix is not square or it fails
+        Saito's criterion, then we check if the arrangement is free.
+        It it is free, then we fall back to the Barakat-Cuntz algorithm.
+
+        .. RUBRIC:: BC
+
+        Return the product of the derivation module free chain matrices.
+        See Section 6 of [BC12]_.
+
         EXAMPLES::
 
             sage: W = WeylGroup(['A',2], prefix='s')
             sage: A = W.long_element().inversion_arrangement()
             sage: A.derivation_module_basis()
-            [(-a1, -a2), (-a1*a2, a1*a2)]
+            [(a1, a2), (0, a1*a2 + a2^2)]
+
+        TESTS:
+
+        We check the algorithms produce a basis with the same exponents::
+
+            sage: W = WeylGroup(['A',2], prefix='s')
+            sage: exponents = lambda B: sorted([max(x.degree() for x in b)
+            ....:                               for b in B])
+            sage: for x in W:  # long time
+            ....:     A = x.inversion_arrangement()
+            ....:     B = A.derivation_module_basis(algorithm="singular")
+            ....:     Bp = A.derivation_module_basis(algorithm="BC")
+            ....:     if B is None:
+            ....:         assert Bp is None
+            ....:     else:
+            ....:         assert exponents(B) == exponents(Bp)
         """
-        C = self.derivation_module_free_chain()
-        if C is not None:
-            from sage.misc.misc_c import prod
-            return prod(reversed(C)).rows()
-        return None
+        if algorithm == "singular":
+            #import sage.libs.singular.function_factory
+            #syz = sage.libs.singular.function_factory.ff.syz
+            f = self.defining_polynomial()
+            I = f + f.jacobian_ideal()
+            IS = I._singular_()
+            ISS = IS.syz()
+            MSTD = ISS.mstd()
+            basis = MSTD[2]._sage_().transpose().submatrix(0,1)
+            try:
+                det = basis.det()
+                # Check using Saito's criterion
+                if det / f in f.parent().base_ring():
+                    return basis.rows()
+            except ValueError: # Non-square matrix
+                pass
+            # Check if it is free
+            if not self.is_free(algorithm=algorithm):
+                return None
+            # The syzygy module did not give a basis, but since it is free,
+            #    fallback to the Barakat-Cuntz method
+            algorithm = "BC"
+        if algorithm == "BC":
+            C = self.derivation_module_free_chain()
+            if C is not None:
+                if not C: # C is an empty list
+                    S = self.parent().ambient_space().symmetric_space()
+                    return matrix.identity(S, self.dimension()).rows()
+                from sage.misc.misc_c import prod
+                return prod(reversed(C)).rows()
+            return None
+        else:
+            raise ValueError("invalid algorithm")
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):
     """

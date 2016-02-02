@@ -560,6 +560,126 @@ class AbortError(Exception):
     pass
 
 
+class ActiveTaskCounterDarwin(object):
+    r"""
+    Handling the number of Active Tasks
+
+    A class for handling the number of active task in distributed
+    computation process. The goal is mostly to circumvent the non POSIX
+    compliant implementation of Semaphore under Darwin's OSes.
+
+        ###########################
+        # The MacOSX Semaphore bug:
+        ###########################
+        # This raises a big problem on MacOSX since they do not correctly
+        # implement POSIX's semaphore semantic. Indeed, on this system,
+        # acquire may fail and return False not only because the semaphore is
+        # equal to zero but also BECAUSE SOMEONE ELSE IS TRYING TO ACQUIRE at
+        # the same time. This renders the usage of Semaphore impossible on
+        # MacOSX so that on this system we use a synchronized integer.
+
+    """
+    def __init__(self, task_number, shutdown):
+        r"""
+        """
+        self._active_tasks = Value(ctypes.c_int, task_number)
+        self._lock = Lock()
+        self._shutdown = shutdown
+
+    def __repr__(self):
+        return "ActiveTaskCounter(value=%s)"%(self._active_tasks.value)
+
+    def task_start(self):
+        r"""
+        """
+        logger.debug("_signal_task_start called")
+        with self._lock:
+            # The following test is not necessary but is allows active thieves to
+            # stop before receiving the poison pill.
+            if self._active_tasks.value == 0:
+                raise AbortError
+            self._active_tasks.value += 1
+
+    def task_done(self):
+        r"""
+        """
+        logger.debug("_signal_task_done called")
+        with self._lock:
+            self._active_tasks.value -= 1
+            # We tests if the semaphore counting the number of active tasks is
+            # becoming negative. This should not happen in normal
+            # computations. However, in case of abort, we artificially put the
+            # semaphore to 0 to stop the computation so that it is needed.
+            if self._active_tasks.value <= 0:
+                logger.debug("raising AbortError")
+                self._shutdown()
+                raise AbortError
+
+    def abort(self):
+        r"""
+        """
+        with self._lock:
+            self._active_tasks.value = 0
+        self._shutdown()
+
+
+class ActiveTaskCounterOther(object):
+    r"""
+    Handling the number of Active Tasks
+
+    A class for handling the number of active task in distributed
+    computation process. The goal is mostly to circumvent the non POSIX
+    compliant implementation of Semaphore under Darwin's OSes.
+
+    """
+    def __init__(self, task_number, shutdown):
+        r"""
+        """
+        self._active_tasks = Semaphore(task_number)
+        self._shutdown = shutdown
+
+    def __repr__(self):
+        return "ActiveTaskCounter(value=%s)"%(self._active_tasks.get_value())
+
+    def task_start(self):
+        r"""
+        """
+        logger.debug("_signal_task_start called")
+        # The following test is not necessary but is allows active thieves to
+        # stop before receiving the poison pill.
+        if self._active_tasks._semlock._is_zero():
+            raise AbortError
+        self._active_tasks.release()
+
+    def task_done(self):
+        r"""
+        """
+        logger.debug("_signal_task_done called")
+        # We tests if the semaphore counting the number of active tasks is
+        # becoming negative. This should not happen in normal
+        # computations. However, in case of abort, we artificially put the
+        # semaphore to 0 to stop the computation so it is needed.
+        if not self._active_tasks.acquire(False):
+            logger.debug("raising AbortError")
+            raise AbortError
+        if self._active_tasks._semlock._is_zero():
+            self._shutdown()
+            raise AbortError
+
+    def abort(self):
+        r"""
+        """
+        while self._active_tasks.acquire(False):
+            pass
+        self._shutdown()
+
+
+ActiveTaskCounter = (ActiveTaskCounterDarwin if sys.platform == 'darwin'
+                     else ActiveTaskCounterOther)
+ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
+
+
+
 class RESetMapReduce(object):
     r"""
     Map-Reduce on recursively enumerated sets
@@ -778,11 +898,7 @@ class RESetMapReduce(object):
         """
         self._nprocess = proc_number(max_proc)
         self._results = SimpleQueue()
-        self._active_tasks = Semaphore(self._nprocess)
-        # MacOS:
-        # self._active_tasks = (Value(ctypes.c_int, self._nprocess))
-process)
-
+        self._active_tasks = ActiveTaskCounter(self._nprocess, self._shutdown)
         self._done = Lock()
         self._abort = Value(ctypes.c_bool, False)
         sys.stdout.flush()
@@ -929,12 +1045,7 @@ process)
         """
         logger.info("Abort called")
         self._abort.value = True
-        # MacOS:
-        # with self._active_tasks[1]:
-        #      self._active_tasks[0].value = 0
-        while self._active_tasks.acquire(False):
-            pass
-        self._shutdown()
+        self._active_tasks.abort()
 
     def _shutdown(self):
         r"""
@@ -978,18 +1089,13 @@ process)
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
             sage: S._active_tasks
-            <Semaphore(value=...)>
+            ActiveTaskCounter(value=2)
 
             sage: S._signal_task_start()
             sage: S._active_tasks
-            <Semaphore(value=...)>
+            ActiveTaskCounter(value=3)
 
-        We can't get the semaphore values on some Unixes. see in particular
-        the note after class multiprocessing.BoundedSemaphore, where it says:
-
-            on Unix platforms like Mac OS X where sem_getvalue() is not implemented.
-
-        We therefore tests the value by releasing it::
+        Signaling one time too many raise a ``AbortError``::
 
             sage: S._signal_task_done()
             sage: S._signal_task_done()
@@ -998,18 +1104,7 @@ process)
             ...
             AbortError
         """
-        # The following test is not necessary but is allows active thieves to
-        # stop before receiving the poison pill.
-        if self._active_tasks._semlock._is_zero():
-            raise AbortError
-        # MacOS:
-        # if self._active_tasks[0].value:
-        #     raise AbortError
-        logger.debug("_signal_task_start called")
-        self._active_tasks.release()
-        # MacOS:
-        # with self._active_tasks[1]:
-        #    self._active_tasks[0].value += 1
+        self._active_tasks.task_start()
 
     def _signal_task_done(self):
         r"""
@@ -1026,11 +1121,11 @@ process)
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
             sage: S._active_tasks
-            <Semaphore(value=...)>
+            ActiveTaskCounter(value=2)
 
             sage: S._signal_task_done()
             sage: S._active_tasks
-            <Semaphore(value=...)>
+            ActiveTaskCounter(value=1)
 
             sage: S._signal_task_done()
             Traceback (most recent call last):
@@ -1041,37 +1136,7 @@ process)
 
             sage: del S._results, S._active_tasks, S._done, S._workers
         """
-        logger.debug("_signal_task_done called")
-        # We tests if the semaphore counting the number of active tasks is
-        # becoming negative. This should not happen in normal
-        # computations. However, in case of abort, we artificially put the
-        # semaphore to 0 to stop the computation so that the following tests
-        # is needed.
-        ###########################
-        # The MacOSX Semaphore bug:
-        ###########################
-        # This raises a big problem on MacOSX since they do not correctly
-        # implement POSIX's semaphore semantic. Indeed, on this system,
-        # acquire may fail and return False not only because the semaphore is
-        # equal to zero but also BECAUSE SOMEONE ELSE IS TRYING TO ACQUIRE at
-        # the same time. This renders the usage of Semaphore impossible on
-        # MacOSX so that on this system we use a synchronized integer.
-        ##
-        ### Florent's NOTE:
-        # sys.platform == 'darwin'
-        if not self._active_tasks.acquire(False):
-            logger.debug("raising AbortError")
-            raise AbortError
-        if self._active_tasks._semlock._is_zero():
-            self._shutdown()
-            raise AbortError
-        # MacOS:
-        # with self._active_tasks[1]:
-        #     self._active_tasks[0].value -= 1
-        #     if self._active_tasks[0].value <= 0:
-        #         logger.debug("raising AbortError")
-        #         self._shutdown()
-        #         raise AbortError
+        self._active_tasks.task_done()
 
     def random_worker(self):
         r"""

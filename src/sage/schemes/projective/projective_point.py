@@ -869,7 +869,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ALGORITHM:
 
-        See Exercise 5.29 and Figure 5.6 of [Silverman_ADS]_.
+        See Exercise 5.29 and Figure 5.6 of [Silverman-ADS]_.
 
         INPUT:
 

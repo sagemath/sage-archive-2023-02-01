@@ -1685,11 +1685,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ALGORITHM:
 
-        See Exercise 5.29 and Figure 5.6 of [Silverman_ADS]_.
+        See Exercise 5.29 and Figure 5.6 of [Silverman-ADS]_.
 
         REFERENCES:
 
-        .. [Silverman_ADS] Joseph H. Silverman. The Arithmetic of Dynamics Systems. Springer, GTM 241, 2007.
+        .. [Silverman-ADS] Joseph H. Silverman. The Arithmetic of Dynamics Systems. Springer, GTM 241, 2007.
 
         INPUT:
 

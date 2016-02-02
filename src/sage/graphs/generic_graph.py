@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Generic graphs (common to directed/undirected)
 

@@ -1,11 +1,6 @@
 r"""
 Partial cubes
 
-A partial cube is a graph that can be isometrically embedded into a hypercube,
-i.e., its vertices can be labelled with (0,1)-vectors of some fixed length such
-that the distance between any two vertices in the graph equals the Hamming
-distance of their labels.
-
 The code in this module is originally from the PADS library by David Eppstein,
 which is available at http://www.ics.uci.edu/~eppstein/PADS/ under the MIT
 license. The algorithm for partial cube recognition in quadratic time has been
@@ -148,6 +143,11 @@ def depth_first_traversal(G, start, ignore_direction=False,
 def is_partial_cube(G, certificate=False):
     r"""
     Test whether the given graph is a partial cube.
+
+    A partial cube is a graph that can be isometrically embedded into a
+    hypercube, i.e., its vertices can be labelled with (0,1)-vectors of some
+    fixed length such that the distance between any two vertices in the graph
+    equals the Hamming distance of their labels.
 
     Originally written by D. Eppstein for the PADS library
     (http://www.ics.uci.edu/~eppstein/PADS/), see also [Eppstein2008]_.

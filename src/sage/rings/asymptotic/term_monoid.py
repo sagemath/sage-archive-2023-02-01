@@ -3172,7 +3172,7 @@ class ExactTerm(TermWithCoefficient):
             sage: t1.can_absorb(t3) or t3.can_absorb(t1)
             False
         """
-        return isinstance(other, ExactTerm) and self.growth == other.growth
+        return other.is_exact() and self.growth == other.growth
 
 
     def _absorb_(self, other):

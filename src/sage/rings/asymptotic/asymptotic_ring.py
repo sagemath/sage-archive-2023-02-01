@@ -1111,8 +1111,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        from term_monoid import ExactTerm
-        simplify = not isinstance(term, ExactTerm)
+        simplify = not term.is_exact()
         return self.parent()(self.summands.mapped(lambda element: term * element),
                              simplify=simplify, convert=False)
 
@@ -1400,10 +1399,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: O(x).exact_part()
             0
         """
-        from term_monoid import ExactTerm
         exact_terms = self.summands.copy()
         for term in self.summands.elements_topological():
-            if not isinstance(term, ExactTerm):
+            if not term.is_exact():
                 exact_terms.remove(term.growth)
 
         return self.parent(exact_terms)

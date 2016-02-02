@@ -9,6 +9,7 @@ parallelizable manifold.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
+- Pablo Angulo (2016): Schouten, Cotton and Cotton-York tensors
 
 REFERENCES:
 
@@ -22,6 +23,7 @@ REFERENCES:
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Pablo Angulo <pang@cancamusa.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -1194,8 +1196,8 @@ class PseudoRiemannianMetric(TensorField):
         Return the Schouten tensor associated with the metric.
 
         The Schouten tensor is the tensor field `Sc` of type (0,2) defined
-        from the Ricci curvature tensor `Ric` and the scalar curvature `s`
-        and the metric `g` by
+        from the Ricci curvature tensor `Ric` (see :meth:`ricci`) and the
+        scalar curvature `r` (see :meth:`ricci_scalar`) and the metric `g` by
 
         .. MATH::
 
@@ -1220,19 +1222,21 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES:
 
-        Schouten tensor of the standard metric on the 2-sphere::
+        Schouten tensor of the left invariant metric of Heisenberg's
+        Nil group::
 
-            sage: #Heisenberg's Nil group
             sage: M = Manifold(3, 'Nil', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.riemannian_metric('g')
             sage: g[1,1], g[2,2], g[2,3], g[3,3] = 1, 1+x^2, -x, 1
             sage: g.display()
             g = dx*dx + (x^2 + 1) dy*dy - x dy*dz - x dz*dy + dz*dz
-            sage: g.schouten() # long time
-            Field of symmetric bilinear forms Schouten(g) on the 3-dimensional differentiable manifold Nil
-            sage: g.schouten()[1,1] # long time
-            -3/8
+            sage: g.schouten()
+            Field of symmetric bilinear forms Schouten(g) on the 3-dimensional
+             differentiable manifold Nil
+            sage: g.schouten().display()
+            Schouten(g) = -3/8 dx*dx + (5/8*x^2 - 3/8) dy*dy - 5/8*x dy*dz
+             - 5/8*x dz*dy + 5/8 dz*dz
 
         """
         n = self._ambient_domain.dimension()
@@ -1251,12 +1255,12 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Return the Cotton conformal tensor associated with the metric.
         The tensor has type (0,3) and is defined in terms of the Schouten
-        tensor `S`
+        tensor `S` (see :meth:`schouten`):
 
         .. MATH::
 
-            C_{ijk} = (n-2) \left(\left(\nabla_k S\right)_{ij}
-            - \left(\nabla_j S\right)_{ik}\right)
+            C_{ijk} = (n-2) \left(\nabla_k S_{ij}
+            - \nabla_j S_{ik}\right)
 
         INPUT:
 
@@ -1311,13 +1315,13 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Return the Cotton-York conformal tensor associated with the metric.
         The tensor has type (0,2) and is only defined for manifolds of
-        dimension 3. It is defined in terms of the Cotton tensor `C` or the
-        Schouten tensor `S`
+        dimension 3. It is defined in terms of the Cotton tensor `C`
+        (see :meth:`cotton`) or the Schouten tensor `S` (see :meth:`schouten`):
 
         .. MATH::
 
-            CY_{ij} = \frac{1}{2} \epsilon^{kl}_{\quad i} C_{jlk}
-                    = \epsilon^{kl}_{\quad i} \nabla_k S_{lj}
+            CY_{ij} = \frac{1}{2} \epsilon^{kl}_{\ \ \, i} C_{jlk}
+                    = \epsilon^{kl}_{\ \ \, i} \nabla_k S_{lj}
 
         INPUT:
 
@@ -1345,7 +1349,10 @@ class PseudoRiemannianMetric(TensorField):
             sage: g.display()
             g = dx*dx + (x^2 + 1) dy*dy - x dy*dz - x dz*dy + dz*dz
             sage: CY = g.cotton_york() ; CY # long time
-            Tensor field CY(g) of type (0,2) on the 3-dimensional differentiable manifold Nil
+            Tensor field CY(g) of type (0,2) on the 3-dimensional
+             differentiable manifold Nil
+            sage: CY.display()  # long time
+            CY(g) = 1/2 dx*dx + (-x^2 + 1/2) dy*dy + x dy*dz + x dz*dy - dz*dz
             sage: det(CY[:]) # long time
             -1/4
 

@@ -1111,8 +1111,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        from term_monoid import ExactTerm
-        simplify = not isinstance(term, ExactTerm)
+        simplify = not term.is_exact()
         return self.parent()(self.summands.mapped(lambda element: term * element),
                              simplify=simplify, convert=False)
 
@@ -1400,10 +1399,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: O(x).exact_part()
             0
         """
-        from term_monoid import ExactTerm
         exact_terms = self.summands.copy()
         for term in self.summands.elements_topological():
-            if not isinstance(term, ExactTerm):
+            if not term.is_exact():
                 exact_terms.remove(term.growth)
 
         return self.parent(exact_terms)
@@ -1736,6 +1734,32 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             from sage.functions.log import log
             result = result / log(base)
         return result
+
+
+    def is_exact(self):
+        r"""
+        Return whether all terms of this expansion are exact.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing('x^QQ * log(x)^QQ', QQ)
+            sage: (x^2 + O(x)).is_exact()
+            False
+            sage: (x^2 - x).is_exact()
+            True
+
+        TESTS::
+
+            sage: A(0).is_exact()
+            True
+            sage: A.one().is_exact()
+            True
+        """
+        return all(T.is_exact() for T in self.summands)
 
 
     def is_little_o_of_one(self):

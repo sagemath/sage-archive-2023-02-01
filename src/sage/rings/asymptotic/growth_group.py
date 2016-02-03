@@ -3432,6 +3432,11 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_SR = GrowthGroup('SR^x')
             sage: P_ZZ(2^x) <= P_SR(sqrt(3)^x)^2  # indirect doctest
             True
+
+        Check that :trac:`19999` is fixed::
+
+            sage: P_ZZ((-2)^x) <= P_ZZ(2^x) or P_ZZ(2^x) <= P_ZZ((-2)^x)
+            False
         """
         return bool(abs(self.base) <= abs(other.base)) and \
                bool(self.base != -other.base)

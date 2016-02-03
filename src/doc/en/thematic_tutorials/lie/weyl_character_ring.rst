@@ -366,7 +366,7 @@ SL versus GL
 ------------
 
 Sage takes the weight space for type ``['A',r]`` to be `r+1`
-dimensional. As a biproduct, if you create the Weyl character ring
+dimensional. As a by-product, if you create the Weyl character ring
 with the command::
 
     sage: A2 = WeylCharacterRing("A2")

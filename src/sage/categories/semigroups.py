@@ -545,7 +545,7 @@ class Semigroups(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
-            Implement the fact that a cartesian product of semigroups is a
+            Implement the fact that a Cartesian product of semigroups is a
             semigroup.
 
             EXAMPLES::

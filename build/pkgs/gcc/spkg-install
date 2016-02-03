@@ -129,7 +129,7 @@ fi
     --disable-libitm \
     $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
 
-$MAKE
+$MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 
 $MAKE install
 

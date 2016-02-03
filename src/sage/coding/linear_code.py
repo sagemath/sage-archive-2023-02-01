@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Linear Codes
+Linear code
 
 VERSION: 1.2
 
@@ -217,12 +217,12 @@ from sage.categories.modules import Modules
 from sage.categories.fields import Fields
 from copy import copy
 from sage.interfaces.all import gap
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
-from sage.rings.arith import GCD, rising_factorial, binomial
+from sage.arith.all import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
 from sage.misc.functional import log, is_even
@@ -326,15 +326,8 @@ def wtdist_gap(Gmat, n, F):
     G = gap(Gmat)
     q = F.order()
     k = gap(F)
-    #C = G.GeneratorMatCode(k)
-    #n = int(C.WordLength())
     z = 'Z(%s)*%s'%(q, [0]*n)     # GAP zero vector as a string
     _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-    # for some reason, this commented code doesn't work:
-    #dist0 = gap("DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-    #v0 = dist0._matrix_(F)
-    #print dist0,v0
-    #d = G.DistancesDistributionMatFFEVecFFE(k, z)
     v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] # because GAP returns vectors in compressed form
     return v
 
@@ -397,7 +390,6 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
         from sage.interfaces.gap import gfq_gap_to_sage
         gap.eval("G:="+Gmat)
         C = gap(Gmat).GeneratorMatCode(F)
-        #n = int(C.length())
         cg = C.MinimumDistanceCodeword()
         c = [gfq_gap_to_sage(cg[j],F) for j in range(1,n+1)]
         V = VectorSpace(F,n)
@@ -413,7 +405,6 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
         gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords(Gmat,K,v,{},1)".format(i))
         gap.eval("d:=WeightVecFFE(P[1])")
         v = gap("P[1]")
-        # P[2] is m = gap("[P[2]]")
         dist = gap("d")
         if dist and dist < dist_min:
             dist_min = dist
@@ -453,7 +444,6 @@ def best_known_linear_code(n, k, F):
     Gs = G._matrix_(F)
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(Gs))
-    #return gap.eval("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
 
 def best_known_linear_code_www(n, k, F, verbose=False):
     r"""
@@ -508,13 +498,11 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     param = ("?q=%s&n=%s&k=%s"%(q,n,k)).replace('L','')
 
     url = "http://iaks-www.ira.uka.de/home/grassl/codetables/BKLC/BKLC.php"+param
-    #url = "http://homepages.cwi.nl/htbin/aeb/lincodbd/"+param
     if verbose:
         print "Looking up the bounds at %s"%url
     f = urlopen(url)
     s = f.read()
     f.close()
-    #print s
 
     i = s.find("<PRE>")
     j = s.find("</PRE>")
@@ -845,7 +833,7 @@ class AbstractLinearCode(module.Module):
             sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: You must set a valid decoder as default decoder for this code, by filling in the dicitonary of registered decoders
+            ValueError: You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders
 
         If the name of the default encoder is not known by the class, it will raise
         an exception::
@@ -879,7 +867,7 @@ class AbstractLinearCode(module.Module):
         if not default_encoder_name in self._registered_encoders:
             raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
         if not default_decoder_name in self._registered_decoders:
-            raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dicitonary of registered decoders")
+            raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders")
         self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
         self._default_encoder_name = default_encoder_name
@@ -963,7 +951,7 @@ class AbstractLinearCode(module.Module):
 
         TESTS:
 
-        It is impossible to use a name which is in the dictionnary of available decoders::
+        It is impossible to use a name which is in the dictionary of available decoders::
 
             sage: C.add_decoder("Syndrome", MyDecoder)
             Traceback (most recent call last):
@@ -1025,7 +1013,7 @@ class AbstractLinearCode(module.Module):
 
         TESTS:
 
-        It is impossible to use a name which is in the dictionnary of available encoders::
+        It is impossible to use a name which is in the dictionary of available encoders::
 
             sage: C.add_encoder("GeneratorMatrix", MyEncoder)
             Traceback (most recent call last):
@@ -1190,23 +1178,20 @@ class AbstractLinearCode(module.Module):
         if t>=d:
             return 0
         nonzerowts = [i for i in range(len(wts)) if wts[i]!=0 and i<=n and i>=d]
-        #print d,t,len(nonzerowts)
         if mode=="verbose":
-            #print "\n"
             for w in nonzerowts:
-                print "The weight ",w," codewords of C form a t-(v,k,lambda) design, where"
-                print "      t = ",t," , v = ",n," , k = ",w," , lambda = ",wts[w]*binomial(w,t)/binomial(n,t)#,"\n"
-                print "      There are ",wts[w]," blocks of this design."
+                print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
+                        t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
+                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
         wtsp = Cp.spectrum()
         dp = min([i for i in range(1,len(wtsp)) if wtsp[i]!=0])
         nonzerowtsp = [i for i in range(len(wtsp)) if wtsp[i]!=0 and i<=n-t and i>=dp]
         s = len([i for i in range(1,n) if wtsp[i]!=0 and i<=n-t and i>0])
         if mode=="verbose":
-            #print "\n"
             for w in nonzerowtsp:
-                print "The weight ",w," codewords of C* form a t-(v,k,lambda) design, where"
-                print "      t = ",t," , v = ",n," , k = ",w," , lambda = ",wtsp[w]*binomial(w,t)/binomial(n,t)#,"\n"
-                print "      There are ",wts[w]," blocks of this design."
+                print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
+                        t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
+                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
         if s<=d-t:
             des = [[t,(n,w,wts[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowts]
             ans = ans + ["weights from C: ",nonzerowts,"designs from C: ",des]
@@ -1796,7 +1781,6 @@ class AbstractLinearCode(module.Module):
         V = VectorSpace(QQ,n+1)
         S = V(A).nonzero_positions()
         S0 = [S[i] for i in range(1,len(S))]
-        #print S0
         if len(S)>1: return GCD(S0)
         return 1
 
@@ -1853,13 +1837,11 @@ class AbstractLinearCode(module.Module):
 
     def dual_code(self):
         r"""
-        This computes the dual code `Cd` of the code `C`,
+        Returns the dual code `C^{\perp}` of the code `C`,
 
         .. math::
 
-            Cd = \{ v \in V\ |\ v\cdot c = 0,\ \forall c \in C \}.
-
-        Does not call GAP.
+            C^{\perp} = \{ v \in V\ |\ v\cdot c = 0,\ \forall c \in C \}.
 
         EXAMPLES::
 
@@ -1870,20 +1852,7 @@ class AbstractLinearCode(module.Module):
             sage: C.dual_code()
             Linear code of length 21, dimension 3 over Finite Field in a of size 2^2
         """
-        G = self.generator_matrix()
-        H = G.transpose().kernel()
-        V = H.ambient_vector_space()
-        Cd = LinearCodeFromVectorSpace(V.span(H))
-        return Cd
-        #another way:
-        #Gsf, p = standard_form(G)
-        #k = len(G.rows())
-        #n = len(G.columns())
-        #MS = G.parent()
-        #sG = G.matrix_from_columns(range(k,n))
-        #Inmk = MatrixSpace(F,n-k,n-k).identity_matrix()
-        #H = Inmk.augment(sG.transpose())
-        #return LinearCode(H)
+        return LinearCode(self.parity_check_matrix())
 
     def dimension(self):
         r"""
@@ -1951,31 +1920,40 @@ class AbstractLinearCode(module.Module):
             sage: C == ZZ
             False
         """
-        if not isinstance(right, LinearCode):
+        if not (isinstance(right, LinearCode)\
+                and self.length() == right.length()\
+                and self.dimension() == right.dimension()\
+                and self.base_ring() == right.base_ring()):
             return False
-        slength = self.length()
-        rlength = right.length()
-        sdim = self.dimension()
-        rdim = right.dimension()
-        sF = self.base_ring()
-        rF = right.base_ring()
-        if slength != rlength:
+        Ks = self.parity_check_matrix().right_kernel()
+        rbas = right.gens()
+        if not all(c in Ks for c in rbas):
             return False
-        if sdim != rdim:
+        Kr = right.parity_check_matrix().right_kernel()
+        sbas = self.gens()
+        if not all(c in Kr for c in sbas):
             return False
-        if sF != rF:
-            return False
-        sbasis = self.gens()
-        rbasis = right.gens()
-        scheck = self.parity_check_matrix()
-        rcheck = right.parity_check_matrix()
-        for c in sbasis:
-            if rcheck*c:
-                return False
-        for c in rbasis:
-            if scheck*c:
-                return False
         return True
+
+    def __ne__(self, other):
+        r"""
+        Tests inequality of ``self`` and ``other``.
+
+        This is a generic implementation, which returns the inverse of ``__eq__`` for self.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C1 = LinearCode(G)
+            sage: C2 = LinearCode(G)
+            sage: C1 != C2
+            False
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
+            sage: C2 = LinearCode(G)
+            sage: C1 != C2
+            True
+        """
+        return not self == other
 
     def encode(self, word, encoder_name=None, **kwargs):
         r"""
@@ -2439,7 +2417,6 @@ class AbstractLinearCode(module.Module):
         H = self.parity_check_matrix()
         V = H.column_space()
         HGm = H*g.matrix()
-        # raise TypeError, (type(H), type(V), type(basis[0]), type(Gmc))
         for c in basis:
             if HGm*c != V(0):
                 return False
@@ -2723,7 +2700,6 @@ class AbstractLinearCode(module.Module):
         if (q == 2 or q == 3) and algorithm=="guava":
             C = gapG.GeneratorMatCode(gap(F))
             d = C.MinimumWeight()
-            #print "Running Guava's MinimumWeight ...\n"
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
         return min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
@@ -3658,7 +3634,6 @@ class AbstractLinearCode(module.Module):
         Bs = B.coefficients()
         b = [Bs[i]/binomial(n,i+d) for i in range(len(Bs))]
         r = n-d-dperp+2
-        #print B,Bs,b,r
         P_coeffs = []
         for i in range(len(b)):
            if i == 0:
@@ -3667,7 +3642,6 @@ class AbstractLinearCode(module.Module):
               P_coeffs.append(b[1] - (q+1)*b[0])
            if i>1:
               P_coeffs.append(b[i] - (q+1)*b[i-1] + q*b[i-2])
-        #print P_coeffs
         P = sum([P_coeffs[i]*T**i for i in range(r+1)])
         return RT(P)/RT(P)(1)
 
@@ -3976,6 +3950,21 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
         """
         super(LinearCodeGeneratorMatrixEncoder, self).__init__(code)
 
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeGeneratorMatrixEncoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: E1 = LinearCode(G).encoder()
+            sage: E2 = LinearCode(G).encoder()
+            sage: E1 == E2
+            True
+        """
+        return isinstance(other, LinearCodeGeneratorMatrixEncoder)\
+                and self.code() == other.code()
+
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.
@@ -4050,6 +4039,21 @@ class LinearCodeSyndromeDecoder(Decoder):
         """
         super(LinearCodeSyndromeDecoder, self).__init__(code, code.ambient_space(),\
                 code._default_encoder_name)
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeSyndromeDecoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: D1 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
+            sage: D2 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
+            sage: D1 == D2
+            True
+        """
+        return isinstance(other, LinearCodeSyndromeDecoder)\
+                and self.code() == other.code()
 
     def _repr_(self):
         r"""
@@ -4188,6 +4192,21 @@ class LinearCodeNearestNeighborDecoder(Decoder):
         """
         super(LinearCodeNearestNeighborDecoder, self).__init__(code, code.ambient_space(), \
                 code._default_encoder_name)
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeNearestNeighborDecoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: D1 = codes.decoders.LinearCodeNearestNeighborDecoder(LinearCode(G))
+            sage: D2 = codes.decoders.LinearCodeNearestNeighborDecoder(LinearCode(G))
+            sage: D1 == D2
+            True
+        """
+        return isinstance(other, LinearCodeNearestNeighborDecoder)\
+                and self.code() == other.code()
 
     def _repr_(self):
         r"""

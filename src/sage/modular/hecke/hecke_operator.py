@@ -21,7 +21,7 @@ Hecke operators
 
 import sage.algebras.algebra_element
 from sage.categories.homset import End
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from   sage.rings.integer import Integer
 
 import algebra

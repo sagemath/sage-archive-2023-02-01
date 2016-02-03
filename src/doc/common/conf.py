@@ -557,9 +557,10 @@ def skip_member(app, what, name, obj, skip, options):
     if getattr(obj, '__module__', None) == '__builtin__':
         return True
 
-    if (hasattr(obj, '__name__') and obj.__name__.find('.') != -1 and
-        obj.__name__.split('.')[-1] != name):
-        return True
+    objname = getattr(obj, "__name__", None)
+    if objname is not None:
+        if objname.find('.') != -1 and objname.split('.')[-1] != name:
+            return True
 
     if name.find("userchild_download_worksheets.zip") != -1:
         return True
@@ -744,6 +745,9 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     See sage.misc.sagedoc.skip_TESTS_block for more information.
     """
     from sage.misc.sagedoc import skip_TESTS_block as sagedoc_skip_TESTS
+    if len(docstringlines) == 0:
+        # No docstring, so don't do anything. See :trac:`19932`.
+        return
     s = sagedoc_skip_TESTS("\n".join(docstringlines))
     lines = s.split("\n")
     for i in range(len(lines)):

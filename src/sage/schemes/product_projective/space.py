@@ -72,7 +72,7 @@ def is_ProductProjectiveSpaces(x):
 
 def ProductProjectiveSpaces(n, R=None, names='x'):
     r"""
-    Returns the cartesian product of projective spaces. Can input either a list of projective spaces
+    Returns the Cartesian product of projective spaces. Can input either a list of projective spaces
     over the same base ring or the list of dimensions, the base ring, and the variable names.
 
     INPUT:

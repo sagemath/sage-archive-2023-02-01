@@ -13,6 +13,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import division
+
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
@@ -370,7 +372,7 @@ cdef class ntl_ZZ_pX(object):
         sig_off()
         return r
 
-    def __div__(ntl_ZZ_pX self, ntl_ZZ_pX other):
+    def __truediv__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -402,6 +404,9 @@ cdef class ntl_ZZ_pX(object):
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return r
+
+    def __div__(self, other):
+        return self / other
 
     def __mod__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
@@ -910,7 +915,7 @@ cdef class ntl_ZZ_pX(object):
         These computations use pseudo-random numbers, so we set the
         seed for reproducible testing. ::
 
-            sage: set_random_seed(0)
+            sage: set_random_seed(12)
             sage: ntl.ZZ_pX([-1,0,0,0,0,1],5).factor()
             [([4 1], 5)]
             sage: ls = ntl.ZZ_pX([-1,0,0,0,1],5).factor()
@@ -1311,7 +1316,7 @@ cdef class ntl_ZZ_pX(object):
 
         c = ~self.leading_coefficient()
         m = self.degree()
-        if (m*(m-1)/2) % 2:
+        if (m*(m-1) // 2) % 2:
             c = -c
         return c*self.resultant(self.derivative())
 

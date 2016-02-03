@@ -30,6 +30,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.jordan_algebra.JordanAlgebra>`
 - :class:`algebras.NilCoxeter
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
+- :class:`algebras.OrlikSolomon
+  <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
 - :func:`algebras.Quaternion
   <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
 - :class:`algebras.Schur <sage.algebras.schur_algebra.SchurAlgebra>`
@@ -53,6 +55,7 @@ lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxete
 lazy_import('sage.algebras.free_zinbiel_algebra', 'FreeZinbielAlgebra', 'FreeZinbiel')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
 lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra', 'Jordan')
+lazy_import('sage.algebras.orlik_solomon', 'OrlikSolomonAlgebra', 'OrlikSolomon')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')

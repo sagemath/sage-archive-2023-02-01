@@ -167,7 +167,7 @@ import sage.matrix.matrix_space
 import sage.misc.latex as latex
 
 from sage.modules.module import Module
-import sage.rings.finite_rings.constructor as finite_field
+import sage.rings.finite_rings.finite_field_constructor as finite_field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
@@ -1326,7 +1326,7 @@ done from the right side.""")
         if not is_FreeModule(other):
             raise TypeError("other must be a free module")
         if other.base_ring() != self.base_ring():
-            raise TypeError("base rins of self and other must be the same")
+            raise TypeError("base rings of self and other must be the same")
         return self.basis_matrix().block_sum(other.basis_matrix()).row_module(self.base_ring())
 
     def coordinates(self, v, check=True):
@@ -2991,11 +2991,9 @@ class FreeModule_generic_pid(FreeModule_generic):
         else:
             raise NotImplementedError("quotients of modules over rings other than fields or ZZ is not fully implemented")
 
-    def __div__(self, sub, check=True):
+    def __truediv__(self, sub):
         """
         Return the quotient of self by the given submodule sub.
-
-        This just calls self.quotient(sub, check).
 
         EXAMPLES::
 
@@ -3006,7 +3004,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: V2/W2
             Finitely generated module V/W over Integer Ring with invariants (4, 12)
         """
-        return self.quotient(sub, check)
+        return self.quotient(sub, check=True)
 
 class FreeModule_generic_field(FreeModule_generic_pid):
     """
@@ -3040,8 +3038,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         Returns a homspace whose morphisms have this vector space as domain.
 
         This is called by the general methods such as
-        :meth:`sage.structure.parent.Parent.Hom` and
-        :meth:`sage.structure.parent_base.ParentWithBase.Hom`.
+        :meth:`sage.structure.parent.Parent.Hom`.
 
         INPUT:
 
@@ -3828,11 +3825,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         A = sage.matrix.constructor.matrix(vectors)  # as rows, so get left kernel
         return A.left_kernel(basis=basis).basis()
 
-    def __div__(self, sub, check=True):
+    def __truediv__(self, sub):
         """
         Return the quotient of self by the given subspace sub.
-
-        This just calls self.quotient(sub, check)
 
         EXAMPLES::
 
@@ -3853,7 +3848,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: Q(W.0)
             (0.0)
         """
-        return self.quotient(sub, check)
+        return self.quotient(sub, check=True)
 
     def quotient(self, sub, check=True):
         """
@@ -5405,7 +5400,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if len(B) == 0:
             return 1
         d = B[0].denominator()
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         for x in B[1:]:
             d = lcm(d,x.denominator())
         return d

@@ -105,19 +105,19 @@ import sage
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
     r"""
-    Create various types of cartesian products depending on its input.
+    Create various types of Cartesian products depending on its input.
 
     INPUT:
 
     - ``growth_groups`` -- a tuple (or other iterable) of growth groups.
 
     - ``order`` -- (default: ``None``) if specified, then this order
-      is taken for comparing two cartesian product elements. If ``order`` is
+      is taken for comparing two Cartesian product elements. If ``order`` is
       ``None`` this is determined automatically.
 
     .. NOTE::
 
-        The cartesian product of growth groups is again a growth
+        The Cartesian product of growth groups is again a growth
         group. In particular, the resulting structure is partially
         ordered.
 
@@ -132,7 +132,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         - Factors over different variables are equipped with the
           product order (i.e. the comparison is component-wise).
 
-        Also, note that the sets of variables of the cartesian
+        Also, note that the sets of variables of the Cartesian
         factors have to be either equal or disjoint.
 
     EXAMPLES::
@@ -172,7 +172,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         sage: CartesianProductFactory('factory')([], category=Sets())
         Traceback (most recent call last):
         ...
-        TypeError: Cannot create cartesian product without factors.
+        TypeError: Cannot create Cartesian product without factors.
     """
     def create_key_and_extra_args(self, growth_groups, category, **kwds):
         r"""
@@ -203,7 +203,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         """
         growth_groups, category = args
         if not growth_groups:
-            raise TypeError('Cannot create cartesian product without factors.')
+            raise TypeError('Cannot create Cartesian product without factors.')
         order = kwds.pop('order', None)
         if order is not None:
             return GenericProduct(growth_groups, category, order=order, **kwds)
@@ -227,7 +227,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
                 raise ValueError('The growth groups %s need to have pairwise '
                                  'disjoint or equal variables.' % (growth_groups,))
 
-        # build cartesian products
+        # build Cartesian products
         u_groups = list()
         for _, gs in vgs:
             gs = tuple(g for _, g in gs)
@@ -250,7 +250,7 @@ from sage.combinat.posets.cartesian_product import CartesianProductPoset
 from growth_group import GenericGrowthGroup
 class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
     r"""
-    A cartesian product of growth groups.
+    A Cartesian product of growth groups.
 
     EXAMPLES::
 
@@ -310,7 +310,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def some_elements(self):
         r"""
-        Return some elements of this cartesian product of growth groups.
+        Return some elements of this Cartesian product of growth groups.
 
         See :class:`TestSuite` for a typical use case.
 
@@ -347,7 +347,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def _create_element_in_extension_(self, element):
         r"""
-        Create an element in an extension of this cartesian product of
+        Create an element in an extension of this Cartesian product of
         growth groups which is chosen according to the input ``element``.
 
         INPUT:
@@ -374,12 +374,12 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: G._create_element_in_extension_((3, 3, 3))
             Traceback (most recent call last):
             ...
-            ValueError: Cannot create (3, 3, 3) as a cartesian product like
+            ValueError: Cannot create (3, 3, 3) as a Cartesian product like
             Growth Group z^ZZ * log(z)^ZZ.
         """
         factors = self.cartesian_factors()
         if len(element) != len(factors):
-            raise ValueError('Cannot create %s as a cartesian product like %s.' %
+            raise ValueError('Cannot create %s as a Cartesian product like %s.' %
                              (element, self))
 
         if all(n.parent() is f for n, f in zip(element, factors)):
@@ -393,7 +393,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def _element_constructor_(self, data):
         r"""
-        Converts the given object to an element of this cartesian
+        Converts the given object to an element of this Cartesian
         product.
 
         EXAMPLES::
@@ -512,7 +512,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
     def _repr_short_(self):
         r"""
         A short (shorter than :meth:`._repr_`) representation string
-        for this cartesian product of growth groups.
+        for this Cartesian product of growth groups.
 
         INPUT:
 
@@ -536,7 +536,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
     def _convert_factors_(self, factors):
         r"""
         Helper method. Try to convert some ``factors`` to an
-        element of one of the cartesian factors and return the product of
+        element of one of the Cartesian factors and return the product of
         all these factors.
 
         INPUT:
@@ -545,7 +545,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         OUTPUT:
 
-        An element of this cartesian product.
+        An element of this Cartesian product.
 
         EXAMPLES::
 
@@ -571,17 +571,17 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def cartesian_injection(self, factor, element):
         r"""
-        Inject the given element into this cartesian product at the given factor.
+        Inject the given element into this Cartesian product at the given factor.
 
         INPUT:
 
-        - ``factor`` -- a growth group (a factor of this cartesian product).
+        - ``factor`` -- a growth group (a factor of this Cartesian product).
 
         - ``element`` -- an element of ``factor``.
 
         OUTPUT:
 
-        An element of this cartesian product.
+        An element of this Cartesian product.
 
         TESTS::
 
@@ -692,11 +692,17 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group QQ^x * x^QQ
             sage: cm.common_parent(GrowthGroup('QQ^x * x^ZZ'), GrowthGroup('ZZ^x * x^QQ'))
             Growth Group QQ^x * x^QQ
+
+        ::
+
+            sage: pushout(GrowthGroup('QQ^n * n^QQ'), GrowthGroup('SR^n'))
+            Growth Group SR^n * n^QQ
         """
         from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
         from misc import merge_overlapping
         from misc import underlying_class
 
+        Sfactors = self.cartesian_factors()
         if isinstance(other, GenericProduct):
             Ofactors = other.cartesian_factors()
         elif isinstance(other, GenericGrowthGroup):
@@ -759,7 +765,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                     self.factors = tuple()
 
         from itertools import groupby
-        S = it(groupby(self.cartesian_factors(), key=lambda k: k.variable_names()))
+        S = it(groupby(Sfactors, key=lambda k: k.variable_names()))
         O = it(groupby(Ofactors, key=lambda k: k.variable_names()))
 
         newS = []
@@ -786,9 +792,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         assert(len(newS) == len(newO))
 
-        if (len(self.cartesian_factors()) == len(newS) and
-            len(other.cartesian_factors()) == len(newO)):
-            # We had already all factors in each of the self and
+        if (len(Sfactors) == len(newS) and
+            len(Ofactors) == len(newO)):
+            # We had already all factors in each of self and
             # other, thus splitting it in subproblems (one for
             # each factor) is the strategy to use. If a pushout is
             # possible :func:`sage.categories.pushout.pushout`
@@ -815,7 +821,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         .. NOTE::
 
             This method calls the ``gens_monomial()`` method on the
-            individual factors of this cartesian product and
+            individual factors of this Cartesian product and
             concatenates the respective outputs.
 
         EXAMPLES::
@@ -865,7 +871,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         def _repr_(self):
             r"""
-            A representation string for this cartesian product element.
+            A representation string for this Cartesian product element.
 
             INPUT:
 
@@ -1113,7 +1119,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         def __invert__(self):
             r"""
-            Return the multiplicative inverse of this cartesian product.
+            Return the multiplicative inverse of this Cartesian product.
 
             OUTPUT:
 
@@ -1138,7 +1144,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         def _substitute_(self, rules):
             r"""
             Substitute the given ``rules`` in this
-            cartesian product growth element.
+            Cartesian product growth element.
 
             INPUT:
 
@@ -1190,7 +1196,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
 class UnivariateProduct(GenericProduct):
     r"""
-    A cartesian product of growth groups with the same variables.
+    A Cartesian product of growth groups with the same variables.
 
     .. NOTE::
 
@@ -1226,7 +1232,7 @@ class UnivariateProduct(GenericProduct):
 
 class MultivariateProduct(GenericProduct):
     r"""
-    A cartesian product of growth groups with pairwise disjoint
+    A Cartesian product of growth groups with pairwise disjoint
     (or equal) variable sets.
 
     .. NOTE::

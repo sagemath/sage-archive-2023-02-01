@@ -40,9 +40,10 @@ def ntl_ZZ_p_random_element(v):
     """
     Return a random number modulo p.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
-        8
+        9
     """
     current_randstate().set_seed_ntl(False)
 
@@ -410,6 +411,34 @@ cdef class ntl_ZZ_p(object):
         cdef ntl_ZZ r = ntl_ZZ()
         self.c.restore_c()
         ZZ_p_modulus( &r.x, &self.x )
+        return r
+
+    def lift_centered(self):
+        """
+        Compute a representative of ``self`` in `(-n/2 , n/2]` as an
+        ``ntl.ZZ`` object.
+
+        OUTPUT:
+
+        - A ``ntl.ZZ`` object `r` such that  `-n/2 < r \\leq n/2` and `Mod(r, n) == self`.
+
+        EXAMPLES::
+
+            sage: x = ntl.ZZ_p(8, 18)
+            sage: x.lift_centered()
+            8
+            sage: type(x.lift_centered())
+            <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+            sage: x = ntl.ZZ_p(12, 18)
+            sage: x.lift_centered()
+            -6
+            sage: type(x.lift_centered())
+            <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+        """
+        cdef ntl_ZZ r = self.lift()
+        cdef ntl_ZZ m = self.modulus()
+        if r*2 > m:
+            r -= m
         return r
 
     def _integer_(self, ZZ=None):

@@ -87,12 +87,18 @@ interpreter, or even use quite different interpreters depending on
 the architecture, without having to worry about forward and backward
 compatibility.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 Carl Witty <Carl.Witty@gmail.com>
+#       Copyright (C) 2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function
 
 import os
@@ -437,7 +443,7 @@ class StorageType(object):
             sage: ty_python.assign_c_from_py('foo[i]', 'bar[j]')
             u'foo[i] = <PyObject *>bar[j]; Py_INCREF(foo[i])'
             sage: ty_mpfr.assign_c_from_py('foo', 'bar')
-            u'rn = self.domain(bar)\nmpfr_set(foo, rn.value, GMP_RNDN)'
+            u'rn = self.domain(bar)\nmpfr_set(foo, rn.value, MPFR_RNDN)'
         """
         return je("{{ c }} = {{ py }}", c=c, py=py)
 
@@ -995,11 +1001,11 @@ class StorageTypeMPFR(StorageTypeAutoReference):
 
             sage: from sage_setup.autogen.interpreters import *
             sage: ty_mpfr.assign_c_from_py('foo[i]', 'bar[j]')
-            u'rn = self.domain(bar[j])\nmpfr_set(foo[i], rn.value, GMP_RNDN)'
+            u'rn = self.domain(bar[j])\nmpfr_set(foo[i], rn.value, MPFR_RNDN)'
         """
         return je("""
 rn{{ myself.id }} = self.domain({{ py }})
-mpfr_set({{ c }}, rn.value, GMP_RNDN)""", myself=self, c=c, py=py)
+mpfr_set({{ c }}, rn.value, MPFR_RNDN)""", myself=self, c=c, py=py)
 
 ty_mpfr = StorageTypeMPFR()
 
@@ -1333,7 +1339,7 @@ class MemoryChunkConstants(MemoryChunkLonglivedArray):
                         mpfr_init2(self._constants[i], self.domain.prec())
                     for i in range(len(val)):
                         rn = self.domain(val[i])
-                        mpfr_set(self._constants[i], rn.value, GMP_RNDN)
+                        mpfr_set(self._constants[i], rn.value, MPFR_RNDN)
             <BLANKLINE>
         """
         return je("""
@@ -1367,7 +1373,7 @@ class MemoryChunkArguments(MemoryChunkLonglivedArray):
             cdef int i
             for i from 0 <= i < len(args):
                 rn = self.domain(args[i])
-                mpfr_set(self._args[i], rn.value, GMP_RNDN)
+                mpfr_set(self._args[i], rn.value, MPFR_RNDN)
             <BLANKLINE>
         """
         return je("""
@@ -2105,9 +2111,9 @@ def instr_funcall_2args_mpfr(name, io, op):
         sage: from sage_setup.autogen.interpreters import *
         sage: pg = RRInterpreter().pg
         sage: instr_funcall_2args_mpfr('add', pg('SS','S'), 'mpfr_add')
-        add: SS->S = 'mpfr_add(o0, i0, i1, GMP_RNDN);'
+        add: SS->S = 'mpfr_add(o0, i0, i1, MPFR_RNDN);'
     """
-    return InstrSpec(name, io, code='%s(o0, i0, i1, GMP_RNDN);' % op)
+    return InstrSpec(name, io, code='%s(o0, i0, i1, MPFR_RNDN);' % op)
 
 def instr_funcall_1arg_mpfr(name, io, op):
     r"""
@@ -2119,9 +2125,9 @@ def instr_funcall_1arg_mpfr(name, io, op):
         sage: from sage_setup.autogen.interpreters import *
         sage: pg = RRInterpreter().pg
         sage: instr_funcall_1arg_mpfr('exp', pg('S','S'), 'mpfr_exp')
-        exp: S->S = 'mpfr_exp(o0, i0, GMP_RNDN);'
+        exp: S->S = 'mpfr_exp(o0, i0, MPFR_RNDN);'
     """
-    return InstrSpec(name, io, code='%s(o0, i0, GMP_RNDN);' % op)
+    return InstrSpec(name, io, code='%s(o0, i0, MPFR_RNDN);' % op)
 
 class InterpreterSpec(object):
     r"""
@@ -2135,34 +2141,30 @@ class InterpreterSpec(object):
 
         Initializes the following fields:
 
-        h_header -- a code snippet to go at the top of the C interpreter
-                  header file
-
-        c_header -- a code snippet to go at the top of the C interpreter
-                  source file
-        pxd_header -- a code snippet to go at the top of the wrapper
-                      class .pxd file
-        pyx_header -- a code snippet to go at the top of the wrapper
-                      class source file
-        err_return -- a string indicating the value to be returned
-                      in case of a Python exception
-        mc_code -- a memory chunk to use for the interpreted code
-        extra_class_members -- Class members for the wrapper that
-                               don't correspond to memory chunks
-        extra_members_initialize -- Code to initialize extra_class_members
+        - ``c_header`` -- a code snippet to go at the top of the C
+           interpreter source file
+        - ``pxd_header`` -- a code snippet to go at the top of the
+           wrapper class .pxd file
+        - ``pyx_header`` -- a code snippet to go at the top of the
+          wrapper class source file
+        - ``err_return`` -- a string indicating the value to be
+          returned in case of a Python exception
+        - ``mc_code`` -- a memory chunk to use for the interpreted code
+        - ``extra_class_members`` -- Class members for the wrapper that
+          don't correspond to memory chunks
+        - ``extra_members_initialize`` -- Code to initialize
+          extra_class_members
 
         EXAMPLES::
 
             sage: from sage_setup.autogen.interpreters import *
             sage: interp = RDFInterpreter()
-            sage: interp.h_header
-            '\n#include <gsl/gsl_math.h>\n'
             sage: interp.c_header
-            ''
+            '#include <gsl/gsl_math.h>'
             sage: interp.pxd_header
             ''
             sage: interp.pyx_header
-            ''
+            'cimport sage.libs.gsl.math  # Add dependency on GSL'
             sage: interp.err_return
             '-1094648009105371'
             sage: interp.mc_code
@@ -2173,7 +2175,6 @@ class InterpreterSpec(object):
             sage: interp.extra_members_initialize
             ''
         """
-        self.h_header = ''
         self.c_header = ''
         self.pxd_header = ''
         self.pyx_header = ''
@@ -2334,9 +2335,8 @@ class RDFInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack, P=self.mc_py_constants)
         self.pg = pg
-        self.h_header = """
-#include <gsl/gsl_math.h>
-"""
+        self.c_header = '#include <gsl/gsl_math.h>'
+        self.pyx_header = 'cimport sage.libs.gsl.math  # Add dependency on GSL'
         instrs = [
             InstrSpec('load_arg', pg('A[D]', 'S'),
                        code='o0 = i0;'),
@@ -2463,9 +2463,10 @@ class CDFInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack, P=self.mc_py_constants)
         self.pg = pg
-        self.h_header = """
+        self.c_header = """
 #include <stdlib.h>
 #include <complex.h>
+#include "interpreters/wrapper_cdf.h"
 
 /* On Solaris, we need to define _Imaginary_I when compiling with GCC,
  * otherwise the constant I doesn't work. The definition below is based
@@ -2476,8 +2477,6 @@ class CDFInterpreter(StackInterpreter):
 #endif
 
 typedef double complex double_complex;
-
-extern int cdf_py_call_helper(PyObject*, int, double complex*, double complex*);
 
 static inline double complex csquareX(double complex z) {
     double complex res;
@@ -2638,7 +2637,7 @@ class RRInterpreter(StackInterpreter):
             ([({MC:args}, {MC:code}, None)], [({MC:stack}, None, None)])
             sage: instrs = dict([(ins.name, ins) for ins in interp.instr_descs])
             sage: instrs['add']
-            add: SS->S = 'mpfr_add(o0, i0, i1, GMP_RNDN);'
+            add: SS->S = 'mpfr_add(o0, i0, i1, MPFR_RNDN);'
             sage: instrs['py_call']
             py_call: *->S = '\nif (!rr_py_call_h...goto error;\n}\n'
 
@@ -2651,18 +2650,20 @@ class RRInterpreter(StackInterpreter):
               goto error;
             }
 
-        This instruction makes use of the function rr_py_call_helper,
-        which is declared::
+        This instruction makes use of the function ``rr_py_call_helper``,
+        which is declared in ``wrapper_rr.h``::
 
-            sage: print(interp.h_header)
+            sage: print(interp.c_header)
             <BLANKLINE>
             #include <mpfr.h>
+            #include "interpreters/wrapper_rr.h"
             <BLANKLINE>
-            extern int rr_py_call_helper(PyObject*, PyObject*, int, mpfr_t*, mpfr_t);
 
-        In particular, rr_py_call_helper comes from::
+        The function ``rr_py_call_helper`` is implemented in Cython::
 
             sage: print(interp.pyx_header)
+            # distutils: libraries = mpfr gmp
+            <BLANKLINE>
             cdef public bint rr_py_call_helper(object domain, object fn,
                                                int n_args,
                                                mpfr_t* args, mpfr_t retval) except 0:
@@ -2671,10 +2672,10 @@ class RRInterpreter(StackInterpreter):
                 cdef RealNumber rn
                 for i from 0 <= i < n_args:
                     rn = domain()
-                    mpfr_set(rn.value, args[i], GMP_RNDN)
+                    mpfr_set(rn.value, args[i], MPFR_RNDN)
                     py_args.append(rn)
                 cdef RealNumber result = domain(fn(*py_args))
-                mpfr_set(retval, result.value, GMP_RNDN)
+                mpfr_set(retval, result.value, MPFR_RNDN)
                 return 1
 
 
@@ -2694,16 +2695,16 @@ class RRInterpreter(StackInterpreter):
                         S=self.mc_stack,
                         P=self.mc_py_constants)
         self.pg = pg
-        self.h_header = """
+        self.c_header = '''
 #include <mpfr.h>
-
-extern int rr_py_call_helper(PyObject*, PyObject*, int, mpfr_t*, mpfr_t);
-"""
+#include "interpreters/wrapper_rr.h"
+'''
         self.pxd_header = """
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.libs.mpfr cimport *
 """
-        self.pyx_header = """
+        self.pyx_header = """# distutils: libraries = mpfr gmp
+
 cdef public bint rr_py_call_helper(object domain, object fn,
                                    int n_args,
                                    mpfr_t* args, mpfr_t retval) except 0:
@@ -2712,20 +2713,20 @@ cdef public bint rr_py_call_helper(object domain, object fn,
     cdef RealNumber rn
     for i from 0 <= i < n_args:
         rn = domain()
-        mpfr_set(rn.value, args[i], GMP_RNDN)
+        mpfr_set(rn.value, args[i], MPFR_RNDN)
         py_args.append(rn)
     cdef RealNumber result = domain(fn(*py_args))
-    mpfr_set(retval, result.value, GMP_RNDN)
+    mpfr_set(retval, result.value, MPFR_RNDN)
     return 1
 
-"""[1:]
+"""
         instrs = [
             InstrSpec('load_arg', pg('A[D]', 'S'),
-                       code='mpfr_set(o0, i0, GMP_RNDN);'),
+                       code='mpfr_set(o0, i0, MPFR_RNDN);'),
             InstrSpec('load_const', pg('C[D]', 'S'),
-                       code='mpfr_set(o0, i0, GMP_RNDN);'),
+                       code='mpfr_set(o0, i0, MPFR_RNDN);'),
             InstrSpec('return', pg('S', ''),
-                       code='mpfr_set(retval, i0, GMP_RNDN);\nreturn 1;\n'),
+                       code='mpfr_set(retval, i0, MPFR_RNDN);\nreturn 1;\n'),
             InstrSpec('py_call', pg('P[D]S@D', 'S'),
                        uses_error_handler=True,
                        code="""
@@ -2758,7 +2759,7 @@ if (!rr_py_call_helper(domain, i0, n_i1, i1, o0)) {
         # of "one" (on the other hand, the constructed temporary copy is
         # on the stack, so it's very likely to be in the cache).
         instrs.append(InstrSpec('invert', pg('S', 'S'),
-                                 code='mpfr_ui_div(o0, 1, i0, GMP_RNDN);'))
+                                 code='mpfr_ui_div(o0, 1, i0, MPFR_RNDN);'))
         self.instr_descs = instrs
         self._set_opcodes()
         # Supported for exponents that fit in a long, so we could use
@@ -2824,7 +2825,7 @@ class PythonInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack)
         self.pg = pg
-        self.h_header = """
+        self.c_header = """
 #define CHECK(x) (x != NULL)
 """
         instrs = [
@@ -2914,8 +2915,8 @@ class ElementInterpreter(PythonInterpreter):
         self.mc_domain_info = MemoryChunkPyConstant('domain')
         self.chunks = [self.mc_args, self.mc_constants, self.mc_stack,
                        self.mc_domain_info, self.mc_code]
-        self.h_header = """
-extern PyObject* el_check_element(PyObject*, PyObject*);
+        self.c_header = """
+#include "interpreters/wrapper_el.h"
 
 #define CHECK(x) do_check(&(x), domain)
 
@@ -2956,8 +2957,9 @@ class InterpreterGenerator(object):
         r"""
         Initialize an InterpreterGenerator.
 
-        INPUTS:
-            spec -- an InterpreterSpec
+        INPUT:
+
+        - ``spec`` -- an InterpreterSpec
 
         EXAMPLES::
 
@@ -2969,7 +2971,6 @@ class InterpreterGenerator(object):
             sage: gen.uses_error_handler
             False
         """
-
         self._spec = spec
         self.uses_error_handler = False
 
@@ -3165,31 +3166,6 @@ class InterpreterGenerator(object):
         {% endif %}{{ ch.declare_parameter() }}
 {%- endfor %})""", ret_ty=ret_ty, s=s)
 
-    def write_interpreter_header(self, write):
-        r"""
-        Generate the header code for the C interpreter.
-
-        EXAMPLES::
-
-            sage: from sage_setup.autogen.interpreters import *
-            sage: interp = RDFInterpreter()
-            sage: gen = InterpreterGenerator(interp)
-            sage: import cStringIO
-            sage: buff = cStringIO.StringIO()
-            sage: gen.write_interpreter_header(buff.write)
-            sage: print(buff.getvalue())
-            /* Automatically generated by ...
-        """
-        s = self._spec
-        w = write
-        w(je("""
-/* {{ warn }} */
-#include <Python.h>
-{% print(s.h_header) %}
-
-{{ myself.func_header() }};
-""", s=s, i=indent_lines, myself=self, warn=autogen_warn))
-
     def write_interpreter(self, write):
         r"""
         Generate the code for the C interpreter.
@@ -3216,7 +3192,7 @@ class InterpreterGenerator(object):
         w = write
         w(je("""
 /* {{ warn }} */
-#include "interp_{{ s.name }}.h"
+#include <Python.h>
 {% print(s.c_header) %}
 
 {{ myself.func_header() }} {
@@ -3292,27 +3268,26 @@ interp_{{ s.name }}(args
 
         w(je("""
 # {{ warn }}
+# distutils: sources = sage/ext/interpreters/interp_{{ s.name }}.c
+{{ s.pyx_header }}
 
 include "sage/ext/stdsage.pxi"
-from cpython cimport PyObject
+from cpython.ref cimport PyObject
 cdef extern from "Python.h":
     void Py_DECREF(PyObject *o)
     void Py_INCREF(PyObject *o)
     void Py_CLEAR(PyObject *o)
 
-cdef extern from "listobject.h":
     object PyList_New(Py_ssize_t len)
     ctypedef struct PyListObject:
         PyObject **ob_item
 
-cdef extern from "tupleobject.h":
     ctypedef struct PyTupleObject:
         PyObject **ob_item
 
 from sage.ext.fast_callable cimport Wrapper
-{% print(s.pyx_header) %}
 
-cdef extern from "interp_{{ s.name }}.h":
+cdef extern:
     {{ myself.func_header(cython=true) -}}
 {% if s.err_return != 'NULL' %}
  except? {{ s.err_return }}
@@ -3459,63 +3434,6 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 """, s=s, myself=self, types=types, indent_lines=indent_lines,
      arg_ch=arg_ch, warn=autogen_warn))
 
-    def get_interpreter_header(self):
-        r"""
-        Return the header code for the C interpreter.
-
-        EXAMPLES:
-
-        First we get the InterpreterSpec for several interpreters::
-
-            sage: from sage_setup.autogen.interpreters import *
-            sage: rdf_spec = RDFInterpreter()
-            sage: rr_spec = RRInterpreter()
-            sage: cdf_spec = CDFInterpreter()
-            sage: el_spec = ElementInterpreter()
-
-        Then we get the actual interpreter code::
-
-            sage: rdf_interp_h = InterpreterGenerator(rdf_spec).get_interpreter_header()
-            sage: rr_interp_h = InterpreterGenerator(rr_spec).get_interpreter_header()
-            sage: cdf_interp_h = InterpreterGenerator(cdf_spec).get_interpreter_header()
-            sage: el_interp_h = InterpreterGenerator(el_spec).get_interpreter_header()
-
-        Each interpreter starts with a file header; this can be
-        customized on a per-interpreter basis::
-
-            sage: print(rdf_interp_h)
-            /* Automatically generated by ... */
-            #include <Python.h>
-            <BLANKLINE>
-            #include <gsl/gsl_math.h>
-            ...
-            sage: print(rr_interp_h)
-            /* Automatically generated by ... */
-            #include <Python.h>
-            <BLANKLINE>
-            #include <mpfr.h>
-            ...
-            sage: print(cdf_interp_h)
-            /* Automatically generated by ... */
-            #include <Python.h>
-            <BLANKLINE>
-            #include <stdlib.h>
-            #include <complex.h>
-            ...
-            sage: print(el_interp_h)
-            /* Automatically generated by ... */
-            #include <Python.h>
-            <BLANKLINE>
-            extern PyObject* el_check_element(PyObject*, PyObject*);
-            <BLANKLINE>
-            #define CHECK(x) do_check(&(x), domain)
-            ...
-        """
-        from six.moves import cStringIO as StringIO
-        buff = StringIO()
-        self.write_interpreter_header(buff.write)
-        return buff.getvalue()
-
     def get_interpreter(self):
         r"""
         Return the code for the C interpreter.
@@ -3542,7 +3460,6 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
             sage: print(rr_interp)
             /* Automatically generated by ... */
-            #include "interp_rr.h"
             ...
 
         Next is the function header, with one argument per memory chunk
@@ -3595,14 +3512,14 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                   {
                     mpfr_ptr i0 = *--stack;
                     mpfr_ptr o0 = *stack++;
-                    mpfr_neg(o0, i0, GMP_RNDN);
+                    mpfr_neg(o0, i0, MPFR_RNDN);
                   }
                   break;
             ...
 
         Here we see that the input and output variables are actually
         just pointers into the stack.  But due to the auto-reference
-        trick, the actual code snippet, ``mpfr_net(o0, i0, GMP_RNDN);``,
+        trick, the actual code snippet, ``mpfr_net(o0, i0, MPFR_RNDN);``,
         is exactly the same as if i0 and o0 were declared as local
         mpfr_t variables.
 
@@ -3667,31 +3584,20 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             sage: print(rdf_wrapper)
             # Automatically generated by ...
             include "sage/ext/stdsage.pxi"
-            from cpython cimport PyObject
+            from cpython.ref cimport PyObject
             cdef extern from "Python.h":
                 void Py_DECREF(PyObject *o)
                 void Py_INCREF(PyObject *o)
                 void Py_CLEAR(PyObject *o)
-            cdef extern from "listobject.h":
+            <BLANKLINE>
                 object PyList_New(Py_ssize_t len)
                 ctypedef struct PyListObject:
-                PyObject **ob_item
-            cdef extern from "tupleobject.h":
+                    PyObject **ob_item
+            <BLANKLINE>
                 ctypedef struct PyTupleObject:
                     PyObject **ob_item
+            <BLANKLINE>
             from sage.ext.fast_callable cimport Wrapper
-            ...
-
-        Next is the declaration of the C interpreter function::
-
-            sage: print(rdf_wrapper)
-            # ...
-            cdef extern from "interp_rdf.h":
-                double interp_rdf(double* args,
-                    double* constants,
-                    PyObject** py_constants,
-                    double* stack,
-                    int* code) except? -1094648009105371
             ...
 
         We need a way to propagate exceptions back to the wrapper,
@@ -3773,7 +3679,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                         mpfr_init2(self._constants[i], self.domain.prec())
                     for i in range(len(val)):
                         rn = self.domain(val[i])
-                        mpfr_set(self._constants[i], rn.value, GMP_RNDN)
+                        mpfr_set(self._constants[i], rn.value, MPFR_RNDN)
             ...
 
         And as described in the documentation for get_pxd, in
@@ -4130,11 +4036,9 @@ def build_interp(interp_spec, dir):
     wrapper_fn = '%s/wrapper_%s.pyx' % (dir, interp_spec.name)
     pxd_fn = '%s/wrapper_%s.pxd' % (dir, interp_spec.name)
     interp = ig.get_interpreter()
-    header = ig.get_interpreter_header()
     wrapper = ig.get_wrapper()
     pxd = ig.get_pxd()
     write_if_changed(interp_fn, interp)
-    write_if_changed(header_fn, header)
     write_if_changed(wrapper_fn, wrapper)
     write_if_changed(pxd_fn, pxd)
 
@@ -4179,34 +4083,8 @@ def rebuild(dir):
     with open(os.path.join(dir, '__init__.py'), 'w') as f:
         f.write("# " + autogen_warn)
 
+
 # This list of modules gets added to the list in module_list.py.
-# For now, that's not important -- we could have just put this
-# list in module_list.py directly.  But eventually, we'll have
-# interpreters that are conditionally built (for example,
-# interpreters that rely on SSE so they only work on x86), so
-# it makes sense to keep the decisions about which interpreters
-# to write and which interpreters to build in the same place.
 modules = [
-    Extension('sage.ext.interpreters.wrapper_rdf',
-              sources = ['sage/ext/interpreters/wrapper_rdf.pyx',
-                         'sage/ext/interpreters/interp_rdf.c'],
-              libraries = ['gsl']),
-
-    Extension('sage.ext.interpreters.wrapper_cdf',
-              sources = ['sage/ext/interpreters/wrapper_cdf.pyx',
-                         'sage/ext/interpreters/interp_cdf.c'],),
-
-    Extension('sage.ext.interpreters.wrapper_rr',
-              sources = ['sage/ext/interpreters/wrapper_rr.pyx',
-                         'sage/ext/interpreters/interp_rr.c'],
-              libraries=['mpfr']),
-
-    Extension('sage.ext.interpreters.wrapper_py',
-              sources = ['sage/ext/interpreters/wrapper_py.pyx',
-                         'sage/ext/interpreters/interp_py.c']),
-
-    Extension('sage.ext.interpreters.wrapper_el',
-              sources = ['sage/ext/interpreters/wrapper_el.pyx',
-                         'sage/ext/interpreters/interp_el.c']),
-
+    Extension('*', ['sage/ext/interpreters/*.pyx'])
 ]

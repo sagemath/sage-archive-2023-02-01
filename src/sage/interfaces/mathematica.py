@@ -400,12 +400,11 @@ class Mathematica(Expect):
     """
     Interface to the Mathematica interpreter.
     """
-    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
                         command = "math-readline",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -974,6 +973,9 @@ def reduce_load(X):
 
 
 def mathematica_console(readline=True):
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%mathematica magics instead.')
     if not readline:
         os.system('math')
         return

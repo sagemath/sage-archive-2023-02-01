@@ -812,7 +812,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
                 elif operation in addition_names:
                     c=bsgs(base*(ord//pi),(a-base*l[i])*(ord//pi**(j+1)),(0,pi),operation=operation)
                     l[i] += c*(pi**j)
-        from sage.rings.arith import CRT_list
+        from sage.arith.all import CRT_list
         return  CRT_list(l,[pi**ri for pi,ri in f])
     except ValueError:
         raise ValueError("No discrete log of %s found to base %s"%(a,base))
@@ -999,7 +999,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
         n = P.order()
         m = Q.order()
 
-    g = sage.rings.arith.gcd(n,m)
+    g = sage.arith.all.gcd(n,m)
     if g==1: return (m,Z(0))
     n1 = n//g
     m1 = m//g
@@ -1233,8 +1233,8 @@ def order_from_bounds(P, bounds, d=None, operation='+',
     if d > 1:
         Q = multiple(P,d,operation=operation)
         lb, ub = bounds
-        bounds = ( sage.rings.arith.integer_ceil(lb/d),
-                   sage.rings.arith.integer_floor(ub/d) )
+        bounds = ( sage.arith.all.integer_ceil(lb/d),
+                   sage.arith.all.integer_floor(ub/d) )
 
     # Use generic bsgs to find  n=d*m with lb<=n<=ub and n*P=0
 
@@ -1321,7 +1321,7 @@ def merge_points(P1,P2, operation='+',
     if n2.divides(n1):
         return (g1,n1)
 
-    m,k1,k2 = sage.rings.arith.xlcm(n1,n2);
+    m,k1,k2 = sage.arith.all.xlcm(n1,n2)
     m1 = n1//k1
     m2 = n2//k2
     g1 = multiple(g1,m1,operation=operation)

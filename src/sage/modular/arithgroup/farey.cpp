@@ -709,7 +709,7 @@ vector<mpq_class> FareySymbol::init_cusps() const {
       }
     }
   }
-  // in earlier version: shift negative cusps to positve ones
+  // in earlier version: shift negative cusps to positive ones
   sort(c.begin(), c.end());
   return c;
 }

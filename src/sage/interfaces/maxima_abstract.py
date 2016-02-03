@@ -2366,4 +2366,7 @@ def maxima_console():
         Maxima 5.34.1 http://maxima.sourceforge.net
         ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%maxima magics instead.')
     os.system('maxima')

@@ -3433,7 +3433,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_ZZ(2^x) <= P_SR(sqrt(3)^x)^2  # indirect doctest
             True
         """
-        return bool(abs(self.base) <= abs(other.base))
+        return bool(abs(self.base) <= abs(other.base)) and \
+               bool(self.base != -other.base)
 
 
     def _substitute_(self, rules):

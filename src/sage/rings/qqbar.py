@@ -4495,8 +4495,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: a = QQbar.zeta(5)
             sage: a.complex_number(CC)
             0.309016994374947 + 0.951056516295154*I
-            sage: (a + a.conjugate()).complex_number(CC)  # abs tol 1e-18
-            0.618033988749895 + 0*I
+
+            sage: b = QQbar(2).sqrt() + QQbar(3).sqrt() * QQbar.gen()
+            sage: b.complex_number(ComplexField(128))
+            1.4142135623730950488016887242096980786 + 1.7320508075688772935274463415058723669*I
         """
         v = self.interval(ComplexIntervalField(field.prec()))
         return field(v)

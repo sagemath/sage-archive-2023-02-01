@@ -1,5 +1,5 @@
 r"""
-Set of homomorphisms between two affine schemes.
+Set of homomorphisms between two affine schemes
 
 For schemes `X` and `Y`, this module implements the set of morphisms
 `Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
@@ -38,7 +38,6 @@ from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
 import sage.schemes.generic.homset
 
 #*******************************************************************

@@ -1,5 +1,5 @@
 r"""
-Points on affine varieties.
+Points on affine varieties
 
 Scheme morphism for points on affine varieties.
 
@@ -29,15 +29,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from copy                          import copy
+from copy import copy
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
-from sage.rings.integer_ring       import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
-from sage.rings.rational_field     import QQ
-from sage.rings.real_mpfr          import RealField
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RealField
 from sage.schemes.generic.morphism import (SchemeMorphism_point, SchemeMorphism, is_SchemeMorphism)
-from sage.structure.sequence       import Sequence
+from sage.structure.sequence import Sequence
 
 ############################################################################
 # Rational points on schemes, which we view as morphisms determined
@@ -99,6 +99,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         INPUT:
 
         - ``f`` -- a :class:`SchemeMorphism_polynomial` with ``self`` if ``f.domain()``.
+
         - ``n`` -- a positive integer.
 
         OUTPUT:
@@ -136,13 +137,15 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
     def orbit(self, f, N):
         r"""
-        Returns the orbit of the point by `f`. If `n` is an integer it returns `[self,f(self), \ldots, f^{n}(self)]`.
+        Returns the orbit of the point by `f`. If `n` is an integer it returns
+        `[self,f(self), \ldots, f^{n}(self)]`.
 
         If `n` is a list or tuple `n=[m, k]` it returns `[f^{m}(self), \ldots, f^{k}(self)]`.
 
         INPUT:
 
         - ``f`` -- a :class:`SchemeMorphism_polynomial` with the point in ``f.domain()``.
+
         - ``n`` -- a non-negative integer or list or tuple of two non-negative integers.
 
         OUTPUT:
@@ -174,7 +177,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
             sage: X(9, 3).orbit(f, (0, 4))
             [(9, 3), (81, 9), (729, 27), (6561, 81), (59049, 243)]
         """
-        Q=copy(self)
+        Q = self
         if isinstance(N, list) or isinstance(N, tuple):
             Bounds = list(N)
         else:
@@ -238,7 +241,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         if self.domain().base_ring() in _NumberFields or is_NumberFieldOrder(self.domain().base_ring()):
             return(max([self[i].global_height(prec) for i in range(self.codomain().ambient_space().dimension_relative())]))
         else:
-            raise NotImplementedError("must be over a Numberfield or a Numberfield Order")
+            raise NotImplementedError("must be over a number field or a number field Order")
 
     def homogenize(self, n):
         r"""
@@ -290,7 +293,7 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
         the equivalent point on the Weil restriction of its
         codomain.
 
-        OUTPUT: Scheme point on the Weil restriction of the codomain of ``self``.
+        OUTPUT: Scheme point on the Weil restriction of the codomain of this point.
 
         EXAMPLES::
 
@@ -352,9 +355,7 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
         r"""
         Returns the integer hash of the point.
 
-        OUTPUT:
-
-        - integer.
+        OUTPUT: integer.
 
         EXAMPLES::
 
@@ -387,7 +388,9 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
 
     def orbit_structure(self, f):
         r"""
-        Every point is preperiodic over a finite field. This function returns the pair `[m, n]` where `m` is the
+        Every point is preperiodic over a finite field.
+
+        This function returns the pair `[m, n]` where `m` is the
         preperiod and `n` is the period of the point by ``f``.
 
         INPUT:
@@ -402,7 +405,7 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
 
             sage: P.<x,y,z> = AffineSpace(GF(5), 3)
             sage: H = Hom(P, P)
-            sage: f = H([x^2 + y^2, y^2, z^2 + y * z])
+            sage: f = H([x^2 + y^2, y^2, z^2 + y*z])
             sage: P(1, 1, 1).orbit_structure(f)
             [0, 6]
 
@@ -419,17 +422,16 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
 
             sage: P.<x,y> = AffineSpace(GF(13), 2)
             sage: H = Hom(P, P)
-            sage: f = H([x^2 - y^2,y^2])
+            sage: f = H([x^2 - y^2, y^2])
             sage: P(3, 4).orbit_structure(f)
             [2, 6]
         """
         Orbit = []
         index = 1
-        P = copy(self)
-        F = copy(f)
+        P = self
         while not P in Orbit:
             Orbit.append(P)
-            P = F(P)
+            P = f(P)
             index += 1
         I = Orbit.index(P)
         return([I, index-I-1])

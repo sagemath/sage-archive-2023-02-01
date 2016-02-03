@@ -1,5 +1,5 @@
 r"""
-Morphisms on affine varieties.
+Morphisms on affine varieties
 
 A morphism of schemes determined by rational functions that define
 what the morphism does on points in the ambient affine space.
@@ -30,23 +30,23 @@ AUTHORS:
 
 
 from sage.calculus.functions import jacobian
-from sage.categories.homset        import Hom
-from sage.matrix.constructor       import matrix, identity_matrix
-from sage.misc.cachefunc           import cached_method
-from sage.misc.all                import prod
-from sage.rings.all                import Integer
-from sage.arith.all                 import lcm, gcd
-from sage.rings.complex_field      import ComplexField
+from sage.categories.homset import Hom
+from sage.matrix.constructor import matrix, identity_matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import prod
+from sage.rings.all import Integer
+from sage.arith.all import lcm, gcd
+from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
-from sage.rings.fraction_field     import FractionField
+from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
-from sage.rings.integer_ring       import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.quotient_ring      import QuotientRing_generic
-from sage.rings.real_mpfr          import RealField
+from sage.rings.quotient_ring import QuotientRing_generic
+from sage.rings.real_mpfr import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.misc.lazy_attribute      import lazy_attribute
-from sage.ext.fast_callable        import fast_callable
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.ext.fast_callable import fast_callable
 import sys
 
 class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
@@ -173,7 +173,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                 except (TypeError, NotImplementedError):
                     raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
             elif self.domain() != x.codomain():
-                raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
+                raise TypeError("%s fails to convert into the map's domain %s,but a `pushforward` method is not properly implemented"%(x, self.domain()))
 
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords)
@@ -189,7 +189,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - Boolean - True if ``affine map`` and ``right`` define the same affine map. False otherwise.
+        - Boolean - True if the two affine maps defined the same map.
 
         EXAMPLES::
 
@@ -226,7 +226,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - Boolean -- True if ``affine map`` and ``right`` define different affine maps. False otherwise.
+        - Boolean -- True if the two affine maps defined the same map.
 
         EXAMPLES::
 
@@ -327,7 +327,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         P = []
         for i in range(len(self._fastpolys[0])):
-            # Check if denominator is the identity; if not, then must append the fraction evaluated at the point
+            # Check if denominator is the identity;
+            #if not, then must append the fraction evaluated at the point
             if self._fastpolys[1][i] is R.one():
                 P.append(self._fastpolys[0][i](*x))
             else:
@@ -344,8 +345,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``n`` -- a tuple of nonnegative integers. If ``n`` is an integer, then the two values of
-            the tuple are assumed to be the same.
+        - ``n`` -- a tuple of nonnegative integers. If ``n`` is an integer,
+                    then the two values of the tuple are assumed to be the same.
 
         OUTPUT:
 
@@ -355,7 +356,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: A.<x,y> = AffineSpace(ZZ, 2)
             sage: H = Hom(A, A)
-            sage: f = H([(x^2-2)/x^5,y^2])
+            sage: f = H([(x^2-2)/x^5, y^2])
             sage: f.homogenize(2)
             Scheme endomorphism of Projective Space of dimension 2 over Integer Ring
               Defn: Defined on coordinates by sending (x0 : x1 : x2) to
@@ -380,7 +381,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(X, X)
             sage: f = H([9*y^2, 3*y])
             sage: f.homogenize(2)
-            Scheme endomorphism of Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+            Scheme endomorphism of Closed subscheme of Projective Space
+            of dimension 2 over Integer Ring defined by:
               -x1^2 + x0*x2
               Defn: Defined on coordinates by sending (x0 : x1 : x2) to
                     (9*x0*x2 : 3*x1*x2 : x2^2)
@@ -436,7 +438,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<x> = AffineSpace(K, 1)
             sage: f = Hom(A, A)([x^2 + c])
             sage: f.homogenize(1)
-            Scheme endomorphism of Projective Space of dimension 1 over Rational function field in c over Rational Field
+            Scheme endomorphism of Projective Space of
+            dimension 1 over Rational function field in c over Rational Field
               Defn: Defined on coordinates by sending (x0 : x1) to
                     (x0^2 + c*x1^2 : x1^2)
         """
@@ -498,7 +501,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``period`` -- a positive integer or a list/tuple `[m,n]` where `m` is the preperiod and `n` is the period.
+        - ``period`` -- a positive integer or a list/tuple `[m,n]`,
+            where `m` is the preperiod and `n` is the period.
 
         OUTPUT:
 
@@ -580,7 +584,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
     def nth_iterate_map(self, n):
         r"""
-        This function returns the nth iterate of the map.
+        This function returns the ``n``th iterate of the map.
 
         ALGORITHM:
 
@@ -655,16 +659,17 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
     def nth_iterate(self, P, n):
         r"""
-        Returns the nth iterate of the point ``P`` by this map.
+        Returns the ``n``th iterate of the point ``P`` by this map.
 
         INPUT:
 
-        - ``P`` -- a point in the maps domain.
+        - ``P`` -- a point in the map's domain.
+
         - ``n`` -- a positive integer.
 
         OUTPUT:
 
-        - a point in the maps codomain.
+        - a point in the map's codomain.
 
         EXAMPLES::
 
@@ -700,12 +705,12 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         Returns the orbit of ``P`` by the map.
 
         If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
-
         If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`.
 
         INPUT:
 
         - ``P`` -- a point in the map domain.
+
         - ``n`` -- a non-negative integer or list or tuple of two non-negative integers.
 
         OUTPUT:
@@ -740,7 +745,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         ::
 
             sage: R.<t> = PolynomialRing(QQ)
-            sage: A.<x,y>=  AffineSpace(FractionField(R), 2)
+            sage: A.<x,y> =  AffineSpace(FractionField(R), 2)
             sage: H = Hom(A, A)
             sage: f = H([(x-t*y^2)/x, t*x*y])
             sage: f.orbit(A(1, t), 3)
@@ -750,9 +755,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         """
         return(P.orbit(self, n))
 
-    def global_height(self,prec=None):
+    def global_height(self, prec=None):
         r"""
-        Returns the maximum of the heights of the coefficients in any of the coordinate functions of the affine morphism.
+        Returns the maximum of the heights of the coefficients in any
+        of the coordinate functions of the affine morphism.
 
         INPUT:
 
@@ -767,7 +773,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: H = Hom(A, A)
-            sage: f = H([1/1331*x^2+4000]);
+            sage: f = H([1/1331*x^2 + 4000]);
             sage: f.global_height()
             8.29404964010203
 
@@ -777,25 +783,18 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: k.<w> = NumberField(x^2 + 5)
             sage: A.<x,y> = AffineSpace(k, 2)
             sage: H = Hom(A, A)
-            sage: f = H([13*w*x^2+4*y, 1/w*y^2]);
+            sage: f = H([13*w*x^2 + 4*y, 1/w*y^2]);
             sage: f.global_height(prec=100)
             3.3696683136785869233538671082
 
-        .. TODO::
+        ::
 
-            Add heights to integer.pyx and remove special case.
+            sage: A.<x> = AffineSpace(ZZ, 1)
+            sage: H = Hom(A, A)
+            sage: f = H([7*x^2 + 1513]);
+            sage: f.global_height()
+            7.32184971378836
         """
-        if self.domain().base_ring() == ZZ:
-            if prec is None:
-                R = RealField()
-            else:
-                R = RealField(prec)
-            H = R(0)
-            for i in range(self.domain().ambient_space().dimension_relative()):
-                C = self[i].coefficients()
-                h = max([c.abs() for c in C])
-                H = max(H, R(h).log())
-            return(H)
         H=0
         for i in range(self.domain().ambient_space().dimension_relative()):
             C = self[i].coefficients()
@@ -810,8 +809,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         r"""
         Returns the Jacobian matrix of partial derivitive of this map.
 
-        The ``(i, j)`` entry of the Jacobian matrix is the partial derivative
-        ``diff(functions[i], variables[j])``.
+        The `(i, j)` entry of the Jacobian matrix is the partial derivative
+        `diff(functions[i], variables[j])`.
 
         OUTPUT:
 
@@ -821,7 +820,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: A.<z> = AffineSpace(QQ, 1)
             sage: H = End(A)
-            sage: f = H([z^2-3/4])
+            sage: f = H([z^2 - 3/4])
             sage: f.jacobian()
             [2*z]
 
@@ -866,7 +865,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         OUTPUT:
 
         - a square matrix of size ``self.codomain().dimension_relative()`` in
-          the ``base_ring`` of the map.
+            the ``base_ring`` of the map.
 
         EXAMPLES::
 
@@ -993,12 +992,14 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
 
     def orbit_structure(self, P):
         r"""
-        Every point is preperiodic over a finite field. This function returns the pair `[m,n]` where `m` is the
+        Every point is preperiodic over a finite field.
+
+        This function returns the pair `[m,n]` where `m` is the
         preperiod and `n` is the period of the point ``P`` by this map.
 
         INPUT:
 
-        - ``P`` -- a point in the maps domain.
+        - ``P`` -- a point in the map's domain.
 
         OUTPUT:
 
@@ -1024,7 +1025,7 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
 
     def _fast_eval(self, x):
         """
-        Evaluate affine morphism at point described by x.
+        Evaluate affine morphism at point described by ``x``.
 
         EXAMPLES::
 
@@ -1063,12 +1064,12 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
 
     def cyclegraph(self):
         r"""
-        Returns digraph of all orbits of this morphism mod `p`. For subschemes, only points on the subscheme whose
+        Returns digraph of all orbits of this morphism mod `p`.
+
+        For subschemes, only points on the subscheme whose
         image are also on the subscheme are in the digraph.
 
-        OUTPUT:
-
-        - a digraph.
+        OUTPUT: A digraph.
 
         EXAMPLES::
 

@@ -1,5 +1,5 @@
 r"""
-Enumeration of rational points on affine schemes.
+Enumeration of rational points on affine schemes
 
 Naive algorithms for enumerating rational points over `\QQ` or finite fields
 over for general schemes.

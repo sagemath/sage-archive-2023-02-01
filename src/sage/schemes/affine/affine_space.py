@@ -1,5 +1,5 @@
 """
-Affine `n` space over a ring.
+Affine `n` space over a ring
 """
 
 #*****************************************************************************
@@ -10,23 +10,16 @@ Affine `n` space over a ring.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (
-    PolynomialRing,
-    ZZ,
-    Integer)
-
+from sage.rings.all import (PolynomialRing, ZZ, Integer)
 from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.constructor import is_FiniteField
-
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.categories.number_fields import NumberFields
-
 from sage.misc.all import latex
 from sage.structure.category_object import normalize_names
-
 from sage.schemes.generic.scheme import AffineScheme
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.affine.affine_homset import SchemeHomset_points_affine
@@ -41,7 +34,7 @@ from sage.schemes.affine.affine_point import (SchemeMorphism_point_affine,
 
 def is_AffineSpace(x):
     r"""
-    Returns True if x is an affine space.
+    Returns True if ``x`` is an affine space.
 
     EXAMPLES::
 
@@ -57,7 +50,7 @@ def is_AffineSpace(x):
 
 def AffineSpace(n, R=None, names='x'):
     r"""
-    Return affine space of dimension `n` over the ring `R`.
+    Return affine space of dimension ``n`` over the ring ``R``.
 
     EXAMPLES:
 
@@ -220,8 +213,8 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def rational_points(self, F=None):
         """
-        Return the list of `F`-rational points on the affine space self,
-        where `F` is a given finite field, or the base ring of self.
+        Return the list of ``F``-rational points on the affine space self,
+        where ``F`` is a given finite field, or the base ring of self.
 
         EXAMPLES::
 
@@ -397,9 +390,9 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
     def _latex_generic_point(self, v=None):
         """
         Return a LaTeX representation of the generic point
-        corresponding to the list of polys on this affine space.
+        corresponding to the list of polys ``v`` on this affine space.
 
-        If polys is None, the representation of the generic point of
+        If ``v`` is None, the representation of the generic point of
         the affine space is returned.
 
         EXAMPLES::
@@ -416,7 +409,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def _check_satisfies_equations(self, v):
         """
-        Return True if `v` defines a point on the scheme self; raise a
+        Return True if ``v`` defines a point on the scheme self; raise a
         TypeError otherwise.
 
         EXAMPLES::
@@ -454,7 +447,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def __pow__(self, m):
         """
-        Return the Cartesian power of this space
+        Return the Cartesian power of this space.
 
         INPUT:
 
@@ -487,7 +480,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def change_ring(self, R):
         r"""
-        Return an affine space over ring `R` and otherwise the same as this space.
+        Return an affine space over ring ``R`` and otherwise the same as this space.
 
         INPUT:
 
@@ -522,12 +515,14 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: R = AffineSpace(2, GF(9,'alpha'), 'z').coordinate_ring(); R
             Multivariate Polynomial Ring in z0, z1 over Finite Field in alpha of size 3^2
             sage: AffineSpace(3, R, 'x').coordinate_ring()
-            Multivariate Polynomial Ring in x0, x1, x2 over Multivariate Polynomial Ring in z0, z1 over Finite Field in alpha of size 3^2
+            Multivariate Polynomial Ring in x0, x1, x2 over Multivariate Polynomial Ring
+            in z0, z1 over Finite Field in alpha of size 3^2
         """
         try:
             return self._coordinate_ring
         except AttributeError:
-            self._coordinate_ring = PolynomialRing(self.base_ring(), self.dimension_relative(), names=self.variable_names())
+            self._coordinate_ring = PolynomialRing(self.base_ring(),
+            self.dimension_relative(), names=self.variable_names())
             return self._coordinate_ring
 
     def _validate(self, polynomials):
@@ -643,7 +638,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def subscheme(self, X):
         """
-        Return the closed subscheme defined by X.
+        Return the closed subscheme defined by ``X``.
 
         INPUT:
 
@@ -710,7 +705,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 class AffineSpace_field(AffineSpace_generic):
     def _point(self, *args, **kwds):
         """
-        Constructs a point.
+        Construct a point.
 
         For internal use only. See :mod:`morphism` for details.
 
@@ -741,11 +736,13 @@ class AffineSpace_field(AffineSpace_generic):
 
     def points_of_bounded_height(self,bound):
         r"""
-        Returns an iterator of the points in self of absolute height of at most the given bound.
+        Returns an iterator of the points in this affine space of
+        absolute height of at most the given bound.
 
-        Bound check
-        is strict for the rational field. Requires self to be affine space over a number field. Uses the
-        Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        Bound check  is strict for the rational field.
+        Requires this space to be affine space over a number field. Uses the
+        Doyle-Krumm algorithm for computing algebraic numbers up
+        to a given height [Doyle-Krumm]_.
 
         INPUT:
 
@@ -811,7 +808,9 @@ class AffineSpace_field(AffineSpace_generic):
     def weil_restriction(self):
         r"""
         Compute the Weil restriction of this affine space over some extension
-        field.  If the field is a finite field, then this computes
+        field.
+
+        If the field is a finite field, then this computes
         the Weil restriction to the prime subfield.
 
         OUTPUT: Affine space of dimension ``d * self.dimension_relative()``

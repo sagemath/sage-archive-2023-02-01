@@ -336,6 +336,9 @@ def fricas_console():
            Issue )quit to leave AXIOM and return to shell.
         -----------------------------------------------------------------------------
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%fricas magics instead.')
     os.system('fricas -nox')
 
 def __doctest_cleanup():

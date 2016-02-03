@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Linear Codes
+Linear code
 
 VERSION: 1.2
 
@@ -217,12 +217,12 @@ from sage.categories.modules import Modules
 from sage.categories.fields import Fields
 from copy import copy
 from sage.interfaces.all import gap
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
-from sage.rings.arith import GCD, rising_factorial, binomial
+from sage.arith.all import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
 from sage.misc.functional import log, is_even

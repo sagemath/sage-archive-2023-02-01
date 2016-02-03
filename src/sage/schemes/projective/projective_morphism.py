@@ -26,18 +26,15 @@ AUTHORS:
 
 """
 
-# Historical note: in trac #11599, V.B. renamed
-# * _point_morphism_class -> _morphism
-# * _homset_class -> _point_homset
-
 #*****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -53,11 +50,11 @@ from sage.misc.cachefunc           import cached_method
 from sage.misc.misc                import subsets
 from sage.misc.mrange              import xmrange
 from sage.modules.free_module_element import vector
-from sage.rings.all                import Integer, moebius, CIF
-from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
+from sage.rings.all                import Integer, CIF
+from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.rings.complex_field      import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
-from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
+from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
@@ -3399,7 +3396,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         Must be defined over `\QQ`.
 
         The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
-        trouble getting a partiuclar map to finish, try first computing the possible periods, then
+        trouble getting a particular map to finish, try first computing the possible periods, then
         try various different ``lifting_prime``.
 
         ALGORITHM:

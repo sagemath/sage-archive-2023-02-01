@@ -1,0 +1,37 @@
+commit e061b74744de9a8d4ab349ab81d8fa9afcdbccb5
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Wed Jan 20 09:58:19 2016 +0100
+
+    Use DEBUGMEM>1 for all garbage collection warnings
+
+diff --git a/src/basemath/hnf_snf.c b/src/basemath/hnf_snf.c
+index 8f0e346..4f2e3cb 100644
+--- a/src/basemath/hnf_snf.c
++++ b/src/basemath/hnf_snf.c
+@@ -1352,7 +1352,7 @@ ZM_hnfcenter(GEN M)
+         for (i = 1; i <= j; i++) gel(Mk,i) = subii(gel(Mk,i), mulii(q,gel(Mj,i)));
+       if (gc_needed(av,1))
+       {
+-        if (DEBUGMEM) pari_warn(warnmem,"ZM_hnfcenter, j = %ld",j);
++        if (DEBUGMEM>1) pari_warn(warnmem,"ZM_hnfcenter, j = %ld",j);
+         M = gerepilecopy(av, M);
+       }
+     }
+@@ -1533,7 +1533,7 @@ ZM_hnflll(GEN A, GEN *ptB, int remove)
+         if (gc_needed(av,3))
+         {
+           GEN b = D-1;
+-          if (DEBUGMEM) pari_warn(warnmem,"hnflll (reducing), kmax = %ld",kmax);
++          if (DEBUGMEM>1) pari_warn(warnmem,"hnflll (reducing), kmax = %ld",kmax);
+           gerepileall(av, B? 4: 3, &A, &lambda, &b, &B);
+           D = b+1;
+         }
+@@ -1543,7 +1543,7 @@ ZM_hnflll(GEN A, GEN *ptB, int remove)
+     if (gc_needed(av,3))
+     {
+       GEN b = D-1;
+-      if (DEBUGMEM) pari_warn(warnmem,"hnflll, kmax = %ld / %ld",kmax,n-1);
++      if (DEBUGMEM>1) pari_warn(warnmem,"hnflll, kmax = %ld / %ld",kmax,n-1);
+       gerepileall(av, B? 4: 3, &A, &lambda, &b, &B);
+       D = b+1;
+     }

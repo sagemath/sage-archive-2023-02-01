@@ -343,6 +343,26 @@ class DisplayManager(SageObject):
         """
         return self._preferences
 
+    def is_in_terminal(self):
+        """
+        Test whether the UI is meant to run in a terminal
+
+        When this method returns ``True``, you can assume that it is
+        possible to use ``raw_input`` or launch external programs that
+        take over the input.
+
+        Otherwise, you should assume that the backend runs remotely or
+        in a pty controlled by another program. Then you should not
+        launch external programs with a (text or graphical) UI.
+
+        This is used to enable/disable interpreter consoles.
+
+        OUTPUT:
+
+        Boolean.
+        """
+        return self._backend.is_in_terminal()
+    
     def check_backend_class(self, backend_class):
         """
         Check that the current backend is an instance of

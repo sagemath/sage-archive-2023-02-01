@@ -28,7 +28,7 @@ import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
 import sage.misc.all as misc
 import sage.modular.hecke.all as hecke
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, infinity, Zmod
 from sage.rings.number_field.number_field_base import is_NumberField

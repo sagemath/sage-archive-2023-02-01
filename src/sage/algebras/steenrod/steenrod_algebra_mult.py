@@ -622,7 +622,7 @@ def multinomial_odd(list,p):
         105
     """
     from sage.rings.all import GF, Integer
-    from sage.rings.arith import binomial
+    from sage.arith.all import binomial
     n = sum(list)
     answer = 1
     F = GF(p)

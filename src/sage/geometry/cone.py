@@ -211,7 +211,8 @@ from sage.matrix.all import matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
 from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector, VectorSpace
-from sage.rings.all import QQ, RR, ZZ, gcd
+from sage.rings.all import QQ, RR, ZZ
+from sage.arith.all import gcd
 from sage.structure.all import SageObject, parent
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \

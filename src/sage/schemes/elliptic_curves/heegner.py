@@ -100,11 +100,12 @@ from sage.structure.sage_object import SageObject
 
 import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
-import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.all import (ZZ, GF, QQ, CDF,
                             Integers, RealField, ComplexField, QuadraticField,
-                            gcd, lcm, is_fundamental_discriminant)
+                            is_fundamental_discriminant)
+from sage.arith.all import (gcd, xgcd, lcm, prime_divisors, factorial,
+        binomial)
 from sage.quadratic_forms.all import (BinaryQF,
                                       BinaryQF_reduced_representatives)
 from sage.matrix.all import MatrixSpace, matrix
@@ -315,7 +316,7 @@ class RingClassField(SageObject):
             sage: E.heegner_point(-7).ring_class_field().ramified_primes()
             [7]
         """
-        return arith.prime_divisors(self.__D * self.__c)
+        return prime_divisors(self.__D * self.__c)
 
     def _repr_(self):
         """
@@ -357,8 +358,6 @@ class RingClassField(SageObject):
             sage: E.heegner_point(-20,11).ring_class_field().degree_over_K()
             24
         """
-        D, c = self.__D, self.__c
-
         K = self.quadratic_field()
 
         # Multiply class number by relative degree of the Hilbert class field H over K.
@@ -1002,7 +1001,7 @@ class GaloisGroup(SageObject):
         w = A.coordinate_vector(alpha.vector())
         w *= w.denominator()
         w = w.change_ring(ZZ)
-        n = arith.gcd(w)
+        n = gcd(w)
         w /= n
         c = P1.N()
         w = P1.normalize(ZZ(w[0])%c, ZZ(w[1])%c)
@@ -2717,7 +2716,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
              Q = N
         if Q == 1:
             return self  # trivial special case
-        g, u, v = arith.xgcd(Q*Q, -N)
+        g, u, v = xgcd(Q*Q, -N)
         if g != Q:
             raise ValueError("Q must divide N and be coprime to N/Q")
         tau = self.tau()
@@ -3284,7 +3283,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: P.x_poly_exact(300)
             x^6 + 1108754853727159228/72351048803252547*x^5 + 88875505551184048168/1953478317687818769*x^4 - 2216200271166098662132/3255797196146364615*x^3 + 14941627504168839449851/9767391588439093845*x^2 - 3456417460183342963918/3255797196146364615*x + 1306572835857500500459/5426328660243941025
         """
-        D, c = self.discriminant(), self.conductor()
         n = self.ring_class_field().degree_over_K()
 
         if algorithm == 'lll':
@@ -3810,7 +3808,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             True
         """
         N = self.__E.conductor()
-        g, u, v = arith.xgcd(Q*Q, -N)
+        g, u, v = xgcd(Q*Q, -N)
         assert g == Q
         tau = self._qf_to_tau(f)
         tau2 = ((u*Q*tau + v) / (N*tau + Q))
@@ -4376,7 +4374,7 @@ class KolyvaginCohomologyClass(SageObject):
         if n is None:
             c = kolyvagin_point.conductor()
             E = kolyvagin_point.curve()
-            n = arith.GCD([(p+1).gcd(E.ap(p)) for p in c.prime_divisors()])
+            n = gcd([(p+1).gcd(E.ap(p)) for p in c.prime_divisors()])
 
         if not kolyvagin_point.satisfies_kolyvagin_hypothesis(n):
             raise ValueError("Kolyvagin point does not satisfy Kolyvagin hypothesis for %s"%n)
@@ -4604,7 +4602,7 @@ class HeegnerQuatAlg(SageObject):
             [-8, -39, -43, -51, -79, -95]
         """
         D = ZZ(D); c = ZZ(c)
-        if arith.gcd(c*D, self.__level*self.__ell) != 1 or arith.gcd(c,D) != 1:
+        if gcd(c*D, self.__level*self.__ell) != 1 or gcd(c,D) != 1:
             return False
         if not satisfies_weak_heegner_hypothesis(self.__level, D):
             return False
@@ -4828,7 +4826,7 @@ class HeegnerQuatAlg(SageObject):
             a = Q.theta_series(n+1)[n]
             if a > 0:
                 reps = Q.representation_vector_list(n+1)[-1]
-                k = len([r for r in reps if arith.gcd(r) == 1])
+                k = len([r for r in reps if gcd(r) == 1])
                 assert k%2 == 0
                 v[i] += k/2
         return B(v)
@@ -6154,7 +6152,7 @@ def make_monic(f):
     n = f.degree()
     f = f / f.leading_coefficient()
     # find lcm of denominators
-    d = arith.lcm([b.denominator() for b in f.list() if b])
+    d = lcm([b.denominator() for b in f.list() if b])
     x = f.variables()[0]
     g = (d**n) * f(x/d)
     return g, d
@@ -6731,7 +6729,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
         if ind.absolute_diameter() < 1:
             t, i = ind.is_int()
             if t:   # unique integer in interval, so we've found exact index squared.
-                return arith.prime_divisors(i), D, i
+                return prime_divisors(i), D, i
         raise RuntimeError("Unable to compute bound for e=%s, D=%s (try increasing precision)"%(self, D))
 
     # First try a quick search, in case we get lucky and find
@@ -6969,7 +6967,7 @@ def heegner_sha_an(self, D, prec=53):
     #    You can think this through or just type something like
     #      f = function('f',x); g = function('g',x); diff(f*g,6)
     #    into Sage to be convinced.
-    L = arith.binomial(rE + rF, rE) * (L_E * L_F / (arith.factorial(rE+rF)) )
+    L = binomial(rE + rF, rE) * (L_E * L_F / factorial(rE+rF) )
 
     #  - ||omega||^2 -- the period.  It is twice the volume of the
     #    period lattice.  See the following paper for a derivation:

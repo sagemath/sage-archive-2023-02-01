@@ -55,10 +55,10 @@ from sage.rings.number_field.number_field import NumberField
 from sage.schemes.elliptic_curves.cm import cm_j_invariants
 from sage.rings.rational_field import QQ
 from sage.modules.free_module import VectorSpace
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer import Integer
 from sage.misc.functional import cyclotomic_polynomial
-from sage.rings.arith import legendre_symbol
+from sage.arith.all import legendre_symbol
 from sage.sets.set import Set
 
 class GaloisRepresentation(SageObject):

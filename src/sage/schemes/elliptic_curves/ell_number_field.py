@@ -76,17 +76,12 @@ REFERENCE:
 
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
-#                          William Stein   <wstein@gmail.com>
+#                          William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -94,7 +89,7 @@ from ell_field import EllipticCurve_field
 import ell_point
 import sage.matrix.all as matrix
 from sage.rings.ring import Ring
-from sage.rings.arith import gcd, prime_divisors
+from sage.arith.all import gcd, prime_divisors, valuation
 from sage.misc.all import prod
 import ell_torsion
 from ell_generic import is_EllipticCurve
@@ -105,7 +100,6 @@ from sage.rings.all import PolynomialRing, ZZ, QQ, RealField
 import sage.misc.misc
 from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
-from sage.rings.arith import valuation
 
 import gal_reps_number_field
 
@@ -915,7 +909,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        A model for this elliptic curve, optimally scaled with repect
+        A model for this elliptic curve, optimally scaled with respect
         to scaling by units, with respect to the logarithmic embedding
         of |c4|^(1/4)+|c6|^(1/6).  No scaling by roots of unity is
         carried out, so there is no change when the unit rank is 0.

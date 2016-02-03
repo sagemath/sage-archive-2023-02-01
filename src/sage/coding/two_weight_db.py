@@ -39,7 +39,7 @@ Check the data's consistency::
     ....:     assert (code['w1'], code['w2']) == (w1, w2)
 
 """
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.matrix.constructor import Matrix
 from sage.coding.linear_code import LinearCode
 

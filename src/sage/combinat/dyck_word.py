@@ -1762,7 +1762,7 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord(area_sequence=[0,0,0]).number_of_parking_functions()
             6
         """
-        from sage.rings.arith import multinomial
+        from sage.arith.all import multinomial
         return multinomial(list(self.rise_composition()))
 
     def list_parking_functions(self):
@@ -3511,7 +3511,7 @@ class DyckWords_size(DyckWords):
             ....:      for p in range(7))
             True
         """
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return (self.k1 - self.k2 + 1) * binomial(self.k1 + self.k2, self.k2) // (self.k1 + 1)
 
 ################################################################

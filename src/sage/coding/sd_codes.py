@@ -88,7 +88,7 @@ REFERENCES:
   Math 3 (1972) 209-246.
 """
 from sage.misc.lazy_import import lazy_import
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.matrix.matrix_space import MatrixSpace
 lazy_import("sage.coding.linear_code", "LinearCode")
 #from linear_code import LinearCode

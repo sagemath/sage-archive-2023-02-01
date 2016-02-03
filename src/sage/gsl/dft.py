@@ -79,7 +79,7 @@ from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.groups.perm_gps.permgroup_element import is_PermutationGroupElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
-from sage.rings.arith import factor
+from sage.arith.all import factor
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
 from sage.functions.all import sin, cos

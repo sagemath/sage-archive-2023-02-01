@@ -54,8 +54,8 @@ def late_import():
     import sage.rings.finite_rings.element_ntl_gf2e
     Cache_ntl_gf2e = sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e
 
-    import sage.rings.finite_rings.constructor
-    GF = sage.rings.finite_rings.constructor.GF
+    import sage.rings.finite_rings.finite_field_constructor
+    GF = sage.rings.finite_rings.finite_field_constructor.GF
     GF2 = GF(2)
 
     import sage.rings.polynomial.polynomial_element

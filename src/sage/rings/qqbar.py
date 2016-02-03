@@ -7652,7 +7652,7 @@ def get_AA_golden_ratio():
 
 class ANRootOfUnity(ANExtensionElement):
     r"""
-    Class to upport old unpickling
+    Deprecated class to support unpickling
 
     TESTS::
 

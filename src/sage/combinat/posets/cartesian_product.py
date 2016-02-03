@@ -202,6 +202,7 @@ class CartesianProductPoset(CartesianProduct):
                 return True
             if S.le(r, l):
                 return False
+            return False
         return True  # equal
 
 

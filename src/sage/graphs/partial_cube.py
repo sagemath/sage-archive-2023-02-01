@@ -207,8 +207,20 @@ def is_partial_cube(G, certificate=False):
         sage: all(all(g.distance(u, v) == len([i for i in range(len(m[u])) if m[u][i] != m[v][i]]) for v in m) for u in m)
         True
 
+    A graph without vertices is trivially a partial cube::
+
+        sage: Graph().is_partial_cube(certificate = True)
+        (True, {})
+
     """
     G._scream_if_not_simple()
+
+    if G.order() == 0:
+        if certificate:
+            return (True, {})
+        else:
+            return True
+
     if certificate:
         fail = (False, None)
     else:

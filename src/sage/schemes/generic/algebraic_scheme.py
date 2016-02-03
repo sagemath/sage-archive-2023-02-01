@@ -2735,7 +2735,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         AS = self.ambient_space()
         CR = AS.coordinate_ring()
         N = AS.dimension_relative_components()
-        M = prod([n+1 for n in N]) -1
+        M = prod([n+1 for n in N]) - 1
 
         vars = list(AS.coordinate_ring().variable_names()) + ['u' + str(i) for i in range(M+1)]
         from sage.rings.all import PolynomialRing
@@ -2756,7 +2756,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
 
         #change the defining ideal of the subscheme into the variables
         I = R.ideal(list(self.defining_polynomials()) + mapping)
-        J  =I.groebner_basis()
+        J = I.groebner_basis()
         s = set(R.gens()[:AS.ngens()])
         n = len(J)-1
         L = []
@@ -2771,9 +2771,9 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
             Y = PS.subscheme(L)
         else:
             if PP.dimension_relative() != M:
-                raise ValueError("Projective Space %s must be dimension %s")%(PP, M)
+                raise ValueError("projective space %s must be dimension %s")%(PP, M)
             S = PP.coordinate_ring()
-            psi = R.hom([0]*(k) + list(S.gens()), S)
+            psi = R.hom([0]*k + list(S.gens()), S)
             L = [psi(l) for l in L]
             Y = PP.subscheme(L)
 

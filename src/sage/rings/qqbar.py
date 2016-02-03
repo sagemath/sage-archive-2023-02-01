@@ -4481,19 +4481,22 @@ class AlgebraicNumber(AlgebraicNumber_base):
             return self.complex_number(field)
 
     def complex_number(self, field):
-        r""" Given a ``ComplexField``, compute a good approximation to
-        self in that field. The approximation will be off by at most
-        two ulp's in each component, except for components which are
-        very close to zero, which will have an absolute error at most
-        ``2**(-(field.prec()-1))``.
+        r"""
+        Given the complex field ``field`` compute an accurate approximation of
+        this element in that field.
+
+        The approximation will be off by at most two ulp's in each component,
+        except for components which are very close to zero, which will have an
+        absolute error at most `2^{-prec+1}` where `prec` is the precision of
+        the field.
 
         EXAMPLES::
 
             sage: a = QQbar.zeta(5)
             sage: a.complex_number(CC)
             0.309016994374947 + 0.951056516295154*I
-            sage: (a + a.conjugate()).complex_number(CC)
-            0.618033988749895
+            sage: (a + a.conjugate()).complex_number(CC)  # abs tol 1e-18
+            0.618033988749895 + 0*I
         """
         v = self.interval(ComplexIntervalField(field.prec()))
         return field(v)
@@ -7644,3 +7647,24 @@ def get_AA_golden_ratio():
         AA_golden_ratio_generator = AlgebraicGenerator(AA_golden_ratio_nf, ANRoot(AAPoly.gen()**2 - AAPoly.gen() - 1, RIF(1.618, 1.6181)))
         AA_golden_ratio = AlgebraicReal(ANExtensionElement(AA_golden_ratio_generator, AA_golden_ratio_nf.gen()))
     return AA_golden_ratio
+
+class ANRootOfUnity(ANExtensionElement):
+    r"""
+    Class to upport old unpickling
+
+    TESTS::
+
+        sage: from sage.rings.qqbar import ANRootOfUnity
+        sage: ANRootOfUnity(1/5, 3/2)
+        doctest:...: DeprecationWarning: ANRootOfUnity is deprecated
+        See http://trac.sagemath.org/19954 for details.
+        3/2*zeta5 where zeta5^4 + zeta5^3 + zeta5^2 + zeta5 + 1 = 0
+        and zeta5 in 0.3090169943749474? + 0.9510565162951536?*I
+    """
+    def __new__(self, a, b):
+        from sage.misc.superseded import deprecation
+        deprecation(19954, "ANRootOfUnity is deprecated")
+        descr = QQbar.zeta(a.denominator())._descr
+        generator = descr._generator
+        value = b * descr._value ** (a.numerator())
+        return ANExtensionElement(generator, value)

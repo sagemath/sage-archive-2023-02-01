@@ -3438,8 +3438,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_ZZ((-2)^x) <= P_ZZ(2^x) or P_ZZ(2^x) <= P_ZZ((-2)^x)
             False
         """
-        return bool(abs(self.base) <= abs(other.base)) and \
-               bool(self.base != -other.base)
+        return bool(abs(self.base) < abs(other.base)) or \
+               bool(self.base == other.base)
 
 
     def _substitute_(self, rules):

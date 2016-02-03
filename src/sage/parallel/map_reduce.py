@@ -568,16 +568,14 @@ class ActiveTaskCounterDarwin(object):
     computation process. The goal is mostly to circumvent the non POSIX
     compliant implementation of Semaphore under Darwin's OSes.
 
-        ###########################
-        # The MacOSX Semaphore bug:
-        ###########################
-        # This raises a big problem on MacOSX since they do not correctly
-        # implement POSIX's semaphore semantic. Indeed, on this system,
-        # acquire may fail and return False not only because the semaphore is
-        # equal to zero but also BECAUSE SOMEONE ELSE IS TRYING TO ACQUIRE at
-        # the same time. This renders the usage of Semaphore impossible on
-        # MacOSX so that on this system we use a synchronized integer.
+    .. note:: The MacOSX Semaphore bug
 
+       This raises a big problem on MacOSX since they do not correctly
+       implement POSIX's semaphore semantic. Indeed, on this system, acquire
+       may fail and return False not only because the semaphore is equal to
+       zero but also BECAUSE SOMEONE ELSE IS TRYING TO ACQUIRE at the same
+       time. This renders the usage of Semaphore impossible on MacOSX so that
+       on this system we use a synchronized integer.
     """
     def __init__(self, task_number, shutdown):
         r"""
@@ -676,7 +674,7 @@ class ActiveTaskCounterOther(object):
 
 ActiveTaskCounter = (ActiveTaskCounterDarwin if sys.platform == 'darwin'
                      else ActiveTaskCounterOther)
-ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
+# ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
 
 
 

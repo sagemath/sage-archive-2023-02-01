@@ -1047,7 +1047,7 @@ class ClusterQuiver(SageObject):
         """
         Returns the list of frozen vertices of self.
         
-            EXAMPLES::
+        EXAMPLES::
         
             sage: Q = ClusterQuiver(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]),frozen = ['b','d'])
             sage: Q.mlist()

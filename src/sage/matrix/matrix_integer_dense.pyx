@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Dense matrices over the integer ring
 

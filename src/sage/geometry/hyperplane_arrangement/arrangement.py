@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hyperplane Arrangements
 
@@ -221,7 +222,7 @@ arrangement. It is defined as
 
 where the sum is `P` is the
 :meth:`~HyperplaneArrangementElement.intersection_poset` of the
-arrangement and `\mu` is the Moebius function of `P`::
+arrangement and `\mu` is the Möbius function of `P`::
 
     sage: a = hyperplane_arrangements.semiorder(5)
     sage: a.characteristic_polynomial()               # long time (about a second on Core i7)
@@ -751,7 +752,7 @@ class HyperplaneArrangementElement(Element):
         x = polygen(QQ, 'x')
         P = self.intersection_poset()
         n = self.dimension()
-        return sum([P.mobius_function(0, p) * x**(n - P.rank(p)) for p in P])
+        return sum([P.moebius_function(0, p) * x**(n - P.rank(p)) for p in P])
 
     @cached_method
     def characteristic_polynomial(self):
@@ -2191,7 +2192,7 @@ class HyperplaneArrangementElement(Element):
         m1 = zero_matrix(ZZ, top+1, top+1)
         m2 = zero_matrix(ZZ, top+1, top+1)
         for i, j in p.relations_iterator():
-            m1[r(i), r(j)] += p.mobius_function(i, j)
+            m1[r(i), r(j)] += p.moebius_function(i, j)
             m2[r(i), r(j)] += 1
         m1.set_immutable()
         m2.set_immutable()
@@ -2201,7 +2202,7 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return the `i,j`-th  doubly-indexed Whitney number.
 
-        If ``kind=1``, this number is obtained by adding the Moebius function
+        If ``kind=1``, this number is obtained by adding the Möbius function
         values `mu(x,y)` over all `x, y` in the intersection poset with
         `\mathrm{rank}(x) = i` and `\mathrm{rank}(y) = j`.
 
@@ -2254,7 +2255,7 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return the ``k``-th Whitney number.
 
-        If ``kind=1``, this number is obtained by summing the Moebius function
+        If ``kind=1``, this number is obtained by summing the Möbius function
         values `mu(0, x)` over all `x` in the intersection poset with
         `\mathrm{rank}(x) = k`.
 

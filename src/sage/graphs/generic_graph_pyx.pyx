@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 GenericGraph Cython functions
 
@@ -1088,7 +1089,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (True, [8, 9, 10, 11, 18, 17, 4, 3, 19, 0, 1, 2, 6, 7, 14, 13, 12, 16, 15, 5])
 
-    Another test, now in the Moebius-Kantor graph which is also
+    Another test, now in the Möbius-Kantor graph which is also
     Hamiltonian, as in our previous example, we are able to find a
     Hamiltonian cycle and path ::
 

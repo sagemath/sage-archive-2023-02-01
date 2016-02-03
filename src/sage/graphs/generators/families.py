@@ -1050,7 +1050,7 @@ def GeneralizedPetersenGraph(n,k):
     For `k=1` the result is a graph isomorphic to the circular ladder graph
     with the same `n`. The regular Petersen Graph has `n=5` and `k=2`.
     Other named graphs that can be described using this notation include
-    the Desargues graph and the Moebius-Kantor graph.
+    the Desargues graph and the Möbius-Kantor graph.
 
     INPUT:
 

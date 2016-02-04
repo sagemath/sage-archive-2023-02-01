@@ -1960,13 +1960,38 @@ class Compositions_n(Compositions):
             sage: Compositions(0).list()
             [[]]
         """
-        if self.n == 0:
-            yield self.element_class(self, [])
-            return
+        for c in composition_iterator_fast(self.n):
+            yield self.element_class(self, c)
 
-        for i in range(1,self.n+1):
-            for c in Compositions_n(self.n-i):
-                yield self.element_class(self, [i]+list(c))
+def composition_iterator_fast(n):
+    """
+    Iterator over compositions of ``n`` and yield them as lists.
+
+    TESTS::
+
+        sage: from sage.combinat.composition import composition_iterator_fast
+        sage: L = list(composition_iterator_fast(4)); L
+        [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
+        sage: type(L[0])
+        <type 'list'>
+    """
+    # Special case
+    if n == 0:
+        yield []
+        return
+
+    s = 0 # Current sum
+    cur = [0]
+    while cur:
+        cur[-1] += 1
+        s += 1
+        if s > n: # Backtrack
+            cur.pop()
+        elif s == n:
+            yield list(cur)
+            s -= cur.pop()
+        else:
+            cur.append(0)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)

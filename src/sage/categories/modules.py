@@ -709,3 +709,20 @@ class Modules(Category_module):
                     Integer Ring
                 """
                 return self._sets[0].base_ring()
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of modules constructed by tensor product of modules.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Modules(ZZ).TensorProducts().extra_super_categories()
+                [Category of modules over Integer Ring]
+                sage: Modules(ZZ).TensorProducts().super_categories()
+                [Category of modules over Integer Ring]
+            """
+            return [self.base_category()]
+

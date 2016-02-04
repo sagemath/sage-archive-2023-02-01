@@ -112,6 +112,59 @@ class Function_zeta(GinacFunction):
 zeta = Function_zeta()
 
 
+class Function_stieltjes(GinacFunction):
+    def __init__(self):
+        r"""
+        Stieltjes constant of index ``n``.
+
+        ``stieltjes(0)`` is identical to the Euler-Mascheroni constant
+        (:class:`sage.symbolic.constants.EulerGamma`). The Stieltjes
+        constants are used in the series expansions of `\zeta(s)`.
+
+        INPUT:
+
+        -  ``n`` - non-negative integer
+
+        EXAMPLES::
+
+            sage: _ = var('n')
+            sage: stieltjes(n)
+            stieltjes(n)
+            sage: stieltjes(0)
+            euler_gamma
+            sage: stieltjes(2)
+            stieltjes(2)
+            sage: stieltjes(int(2))
+            stieltjes(2)
+            sage: stieltjes(2).n(100)
+            -0.0096903631928723184845303860352
+            sage: RR = RealField(200)
+            sage: stieltjes(RR(2))
+            -0.0096903631928723184845303860352125293590658061013407498807014
+
+        It is possible to use the ``hold`` argument to prevent
+        automatic evaluation::
+
+            sage: stieltjes(0,hold=True)
+            stieltjes(0)
+
+            sage: latex(stieltjes(n))
+            \gamma_{n}
+            sage: a = loads(dumps(stieltjes(n)))
+            sage: a.operator() == stieltjes
+            True
+
+            sage: stieltjes(x).subs(x==0)
+            euler_gamma
+        """
+        GinacFunction.__init__(self, "stieltjes", nargs=1,
+                            conversions=dict(mathematica='StieltjesGamma',
+                                sympy='stieltjes'),
+                            latex_name='\gamma')
+
+stieltjes = Function_stieltjes()
+
+
 class Function_HurwitzZeta(BuiltinFunction):
     def __init__(self):
         r"""

@@ -305,6 +305,7 @@ for function field of characteristic 2.")
                     roots[i].append(root)
         if remove:
             supp[remove[0]].remove(remove[1])
+        supp = [[p[0] for p in supp[i]] for i in (0,1,2)]
         
         if case == 0:
         # Find a solution of (5) in [HC2006]
@@ -419,8 +420,6 @@ for function field of characteristic 2.")
         - ``self`` -- conic in reduced form.
         - ``supports`` -- 3-tuple where ``supports[i]`` is a list of all monic
           irreducible `p \in F[t]` that divide the `i`'th of the 3 coefficients.
-          ``supports[i][j]`` must have type
-          :class:`sage.structure.factorization`.
         - ``roots`` -- 3-tuple containing lists of roots of all elements of
           ``supports[i]``, in the same order.
         - ``case`` -- 1 or 0, as in [HC2006]_.
@@ -448,10 +447,10 @@ for function field of characteristic 2.")
 
             sage: K.<t> = PolynomialRing(QQ, 't')
             sage: C = Conic(K, [t^2-2, 2*t, -2*t^3-13*t^2-2*t+18])
-            sage: supp = [[(t^2 - 2, 1)], [(t, 1)], [(t^3 + 13/2*t^2 + t - 9, 1)]]
-            sage: tbar1 = QQ.extension(supp[0][0][0], 'tbar').gens()[0]
-            sage: tbar2 = QQ.extension(supp[1][0][0], 'tbar').gens()[0]
-            sage: tbar3 = QQ.extension(supp[2][0][0], 'tbar').gens()[0]
+            sage: supp = [[t^2 - 2], [t], [t^3 + 13/2*t^2 + t - 9]]
+            sage: tbar1 = QQ.extension(supp[0][0], 'tbar').gens()[0]
+            sage: tbar2 = QQ.extension(supp[1][0], 'tbar').gens()[0]
+            sage: tbar3 = QQ.extension(supp[2][0], 'tbar').gens()[0]
             sage: roots = [[tbar1 + 1], [1/3*tbar2^0], [2/3*tbar3^2 + 11/3*tbar3 - 3]]
             sage: C.find_point(supp, roots, 1)
             (3 : t + 1 : 1)
@@ -484,19 +483,19 @@ for function field of characteristic 2.")
             else:
                 root = roots[0][i].lift()
             alpha = root.parent().hom([t])(root)
-            d = p[0].degree()
+            d = p.degree()
             # Calculate y - alpha*z mod p for all basis vectors
             phi_p = [[] for i in range(A+B+C+4)]
             phi_p[0:A+1] = [vector(F, d)] * (A+1)
             phi_p[A+1] = vector(F, d, {0: F(1)})
             lastpoly = F(1)
             for n in range(B):
-                lastpoly = (lastpoly * t) % p[0]
+                lastpoly = (lastpoly * t) % p
                 phi_p[A+2+n] = vector(F, d, lastpoly.dict())
-            lastpoly = -alpha % p[0]
+            lastpoly = -alpha % p
             phi_p[A+B+2] = vector(F, d, lastpoly.dict())
             for n in range(C):
-                lastpoly = (lastpoly * t) % p[0]
+                lastpoly = (lastpoly * t) % p
                 phi_p[A+B+3+n] = vector(F, d, lastpoly.dict())
             phi_p[A+B+C+3] = vector(F, d)
             phi.append(matrix(phi_p).transpose())
@@ -506,19 +505,19 @@ for function field of characteristic 2.")
             else:
                 root = roots[1][i].lift()
             alpha = root.parent().hom([t])(root)
-            d = p[0].degree()
+            d = p.degree()
             # Calculate z - alpha*x mod p for all basis vectors
             phi_p = [[] for i in range(A+B+C+4)]
             phi_p[A+1:A+B+2] = [vector(F, d)] * (B+1)
             phi_p[A+B+2] = vector(F, d, {0: F(1)})
             lastpoly = F(1)
             for n in range(C):
-                lastpoly = (lastpoly * t) % p[0]
+                lastpoly = (lastpoly * t) % p
                 phi_p[A+B+3+n] = vector(F, d, lastpoly.dict())
-            lastpoly = -alpha % p[0]
+            lastpoly = -alpha % p
             phi_p[0] = vector(F, d, lastpoly.dict())
             for n in range(A):
-                lastpoly = (lastpoly * t) % p[0]
+                lastpoly = (lastpoly * t) % p
                 phi_p[1+n] = vector(F, d, lastpoly.dict())
             phi_p[A+B+C+3] = vector(F, d)
             phi.append(matrix(phi_p).transpose())
@@ -528,19 +527,19 @@ for function field of characteristic 2.")
             else:
                 root = roots[2][i].lift()
             alpha = root.parent().hom([t])(root)
-            d = p[0].degree()
+            d = p.degree()
             # Calculate x - alpha*y mod p for all basis vectors
             phi_p = [[] for i in range(A+B+C+4)]
             phi_p[A+B+2:A+B+C+3] = [vector(F, d)] * (C+1)
             phi_p[0] = vector(F, d, {0: F(1)})
             lastpoly = F(1)
             for n in range(A):
-                lastpoly = (lastpoly * t) % p[0]
+                lastpoly = (lastpoly * t) % p
                 phi_p[1+n] = vector(F, d, lastpoly.dict())
-            lastpoly = -alpha % p[0]
+            lastpoly = -alpha % p
             phi_p[A+1] = vector(F, d, lastpoly.dict())
             for n in range(B):
-                lastpoly = (lastpoly * t) % p[0]
+                lastpoly = (lastpoly * t) % p
                 phi_p[A+2+n] = vector(F, d, lastpoly.dict())
             phi_p[A+B+C+3] = vector(F, d)
             phi.append(matrix(phi_p).transpose())
@@ -563,4 +562,4 @@ for function field of characteristic 2.")
                 return self.point([X,Y,Z])
 
         raise RuntimeError("No solution has been found: possibly incorrect\
-\solubility certificate.")
+ solubility certificate.")

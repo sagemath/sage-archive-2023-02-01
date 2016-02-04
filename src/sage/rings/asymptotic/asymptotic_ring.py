@@ -1728,6 +1728,65 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         return result * large_result
 
+    def _main_term_relative_error_(self):
+        r"""
+        Split this asymptotic expansion into `m(1+x)` with `x=o(1)`.
+
+        OUTPUT:
+
+        A pair (``m``, ``x``) of asymptotic expansions such that
+        this expansion equals ``m*(1+x)`` and `x=o(1)`.
+
+        EXAMPLES::
+
+            sage: R.<n> = AsymptoticRing('n^ZZ', QQ)
+            sage: ex = 2*n^2 + n + O(1/n)
+            sage: (m, x) = ex._main_term_relative_error_()
+            sage: m
+            2*n^2
+            sage: x
+            1/2*n^(-1) + O(n^(-3))
+            sage: ex = 2*n^2 + n
+            sage: (m, x) = ex._main_term_relative_error_()
+            sage: m
+            2*n^2
+            sage: x
+            1/2*n^(-1)
+            sage: R(0)._main_term_relative_error_()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot determine main term of 0.
+
+        TESTS::
+
+            sage: R.<m, n> = AsymptoticRing('n^ZZ*m^ZZ', QQ)
+            sage: (m + n)._main_term_relative_error_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot determine main term of m + n since
+            there are several maximal elements m, n.
+        """
+        if not self.summands:
+            raise ArithmeticError("Cannot determine main term of 0.")
+
+        max_elem = tuple(self.summands.maximal_elements())
+        if len(max_elem) != 1:
+            raise ValueError('Cannot determine main term of {} since there '
+                             'are several maximal elements {}.'.format(
+                             self, ', '.join(str(e) for e in
+                                              sorted(max_elem, key=str))))
+        max_elem = max_elem[0]
+
+        imax_elem = ~max_elem
+        if imax_elem.parent() is max_elem.parent():
+            new_self = self
+        else:
+            new_self = self.parent()._create_element_in_extension_(
+                imax_elem, max_elem.parent()).parent()(self)
+
+        one = new_self.parent().one()
+        x = - one + new_self._mul_term_(imax_elem)
+        return (max_elem, x)
 
     @staticmethod
     def _power_series_(coefficients, start, ratio, ratio_start, precision):

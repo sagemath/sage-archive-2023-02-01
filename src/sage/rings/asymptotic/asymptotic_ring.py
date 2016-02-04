@@ -1255,7 +1255,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         import itertools
 
-        result = AsymptoticExpansion._taylor_(
+        result = AsymptoticExpansion._power_series_(
             coefficients=itertools.repeat(one),
             start=one,
             ratio=one - new_self._mul_term_(imax_elem),
@@ -1583,7 +1583,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         from sage.rings.integer_ring import ZZ
         import itertools
 
-        result = - AsymptoticExpansion._taylor_(
+        result = - AsymptoticExpansion._power_series_(
             coefficients=iter(1 / ZZ(k)
                               for k in itertools.count(2)),
             start=geom,
@@ -1719,7 +1719,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 f /= ZZ(k)
                 yield f
 
-        result = AsymptoticExpansion._taylor_(
+        result = AsymptoticExpansion._power_series_(
             coefficients=inverted_factorials(),
             start=P.one(),
             ratio=geom,
@@ -1730,7 +1730,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
 
     @staticmethod
-    def _taylor_(coefficients, start, ratio, ratio_start, precision):
+    def _power_series_(coefficients, start, ratio, ratio_start, precision):
         r"""
         Return a taylor series.
 
@@ -1770,7 +1770,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticExpansion
             sage: from itertools import count
             sage: A.<g> = AsymptoticRing('g^ZZ', QQ)
-            sage: AsymptoticExpansion._taylor_(
+            sage: AsymptoticExpansion._power_series_(
             ....:     coefficients=iter(ZZ(k) for k in count(1)),
             ....:     start=A(42),
             ....:     ratio=1/g,

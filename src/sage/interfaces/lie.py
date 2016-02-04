@@ -931,6 +931,9 @@ def lie_console():
         ...
 
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%lie magics instead.')
     os.system('bash `which lie`')
 
 

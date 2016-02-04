@@ -75,7 +75,7 @@ import sage.modular.modform.element
 import sage.libs.eclib.all as mwrank
 import sage.databases.cremona
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.all as rings
 from sage.rings.all import (
     PowerSeriesRing,
@@ -2725,7 +2725,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         from sage.libs.ratpoints import ratpoints
         from sage.functions.all import exp
-        from sage.rings.arith import GCD
+        from sage.arith.all import GCD
         H = exp(float(height_limit)) # max(|p|,|q|) <= H, if x = p/q coprime
         coeffs = [16*self.b6(), 8*self.b4(), self.b2(), 1]
         points = []
@@ -7020,7 +7020,7 @@ def elliptic_curve_congruence_graph(curves):
         Graph on 12 vertices
     """
     from sage.graphs.graph import Graph
-    from sage.rings.arith import lcm, prime_divisors
+    from sage.arith.all import lcm, prime_divisors
     from sage.rings.fast_arith import prime_range
     from sage.misc.all import prod
     G = Graph()

@@ -47,7 +47,7 @@ def JohnsonGraph(n, k):
         True
 
     The complement of the Johnson graph `J(n,2)` is isomorphic to the Kneser
-    Graph `K(n,2)`.  In paritcular the complement of `J(5,2)` is isomorphic to
+    Graph `K(n,2)`.  In particular the complement of `J(5,2)` is isomorphic to
     the Petersen graph.  ::
 
         sage: g = graphs.JohnsonGraph(5,2)
@@ -1587,8 +1587,8 @@ def PaleyGraph(q):
         True
     """
     from sage.rings.finite_rings.integer_mod import mod
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.rings.arith import is_prime_power
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
+    from sage.arith.all import is_prime_power
     assert is_prime_power(q), "Parameter q must be a prime power"
     assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
@@ -2558,12 +2558,12 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
        Colloq. Math. Soc. János Bolyai, 25,
        North-Holland, Amsterdam-New York, 1981.
     """
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     from sage.rings.integer_ring import ZZ
     from sage.matrix.constructor import matrix, block_matrix, \
         ones_matrix, identity_matrix
     from itertools import product
-    from sage.rings.arith import two_squares
+    from sage.arith.all import two_squares
     p = 4*t+1
     try:
         x = two_squares(p)

@@ -293,7 +293,7 @@ class DiGraphGenerators():
                     butterfly[(padded_bv,i)]=[(padded_bv,i+1), (padded_bw,i+1)]
         elif vertices=='vectors':
             from sage.modules.free_module import VectorSpace
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             from copy import copy
             butterfly = {}
             for v in VectorSpace(FiniteField(2),n):

@@ -119,6 +119,7 @@ import functools
 import os
 import tokenize
 import types
+import re
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
 
@@ -1500,6 +1501,53 @@ def sage_getargspec(obj):
         defaults = None
     return inspect.ArgSpec(args, varargs, varkw, defaults)
 
+
+_re_address = re.compile(" *at 0x[0-9a-fA-F]+")
+
+def formatvalue_reproducible(obj):
+    """
+    Format the default value for an argspec in a reproducible way: the
+    output should not depend on the system or the Python session.
+
+    INPUT:
+
+    - ``obj`` -- any object
+
+    OUTPUT: a string
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import formatvalue_reproducible
+        sage: x = object()
+        sage: formatvalue_reproducible(x)
+        '=<object object>'
+        sage: formatvalue_reproducible([object(), object()])
+        '=[<object object>, <object object>]'
+    """
+    s = _re_address.sub("", repr(obj))
+    return "=" + s
+
+
+def sage_formatargspec(*argspec):
+    """
+    Format the argspec in a reproducible way.
+
+    EXAMPLES::
+
+        sage: import inspect
+        sage: from sage.misc.sageinspect import sage_getargspec
+        sage: from sage.misc.sageinspect import sage_formatargspec
+        sage: def foo(f=lambda x:x): pass
+        sage: A = sage_getargspec(foo)
+        sage: print inspect.formatargspec(*A)
+        (f=<function <lambda> at 0x...>)
+        sage: print sage_formatargspec(*A)
+        (f=<function <lambda>>)
+    """
+    s = inspect.formatargspec(*argspec, formatvalue=formatvalue_reproducible)
+    return s
+
+
 def sage_getdef(obj, obj_name=''):
     r"""
     Return the definition header for any callable object.
@@ -1978,7 +2026,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        732
+        733
         sage: sage_getsourcelines(matrix)[0][0][6:]
         'MatrixFactory(object):\n'
 

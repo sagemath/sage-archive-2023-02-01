@@ -28,7 +28,7 @@ from ginac cimport *
 from sage.libs.gsl.types cimport *
 from sage.libs.gsl.complex cimport *
 from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
-
+from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
 from sage.structure.element cimport Element, parent_c
 from sage.rings.integer_ring import ZZ
@@ -842,7 +842,6 @@ def test_binomial(n, k):
 #################################################################
 # GCD
 #################################################################
-import sage.rings.arith
 cdef object py_gcd(object n, object k) except +:
     if isinstance(n, Integer) and isinstance(k, Integer):
         if mpz_cmp_si((<Integer>n).value,1) == 0:
@@ -854,7 +853,7 @@ cdef object py_gcd(object n, object k) except +:
     if type(n) is Rational and type(k) is Rational:
         return n.content(k)
     try:
-        return sage.rings.arith.gcd(n,k)
+        return gcd(n,k)
     except (TypeError, ValueError, AttributeError):
         # some strange meaning in case of weird things with no usual lcm.
         return 1
@@ -871,7 +870,7 @@ cdef object py_lcm(object n, object k) except +:
             return n
         return n.lcm(k)
     try:
-        return sage.rings.arith.lcm(n,k)
+        return lcm(n,k)
     except (TypeError, ValueError, AttributeError):
         # some strange meaning in case of weird things with no usual lcm, e.g.,
         # elements of finite fields.
@@ -1104,14 +1103,13 @@ cdef bint py_is_real(object a) except +:
         return True
     return py_imag(a) == 0
 
-import sage.rings.arith
 cdef bint py_is_prime(object n) except +:
     try:
         return n.is_prime()
     except Exception:  # yes, I'm doing this on purpose.
         pass
     try:
-        return sage.rings.arith.is_prime(n)
+        return is_prime(n)
     except Exception:
         pass
     return False
@@ -1320,7 +1318,6 @@ def py_tgamma_for_doctests(x):
     """
     return py_tgamma(x)
 
-from sage.rings.arith import factorial
 cdef object py_factorial(object x) except +:
     """
     The factorial function exported to pynac.
@@ -1413,7 +1410,6 @@ cdef object py_step(object n) except +:
         return ONE
     return ONE_HALF
 
-from sage.rings.arith import bernoulli
 cdef object py_bernoulli(object x) except +:
     return bernoulli(x)
 
@@ -1479,11 +1475,11 @@ cdef object py_stieltjes(object x) except +:
         sage: py_stieltjes(-1)
         Traceback (most recent call last):
         ...
-        AttributeError: Stieltjes constant of negative index
+        ValueError: Stieltjes constant of negative index
     """
     n = ZZ(x)
     if n < 0:
-        raise AttributeError("Stieltjes constant of negative index")
+        raise ValueError("Stieltjes constant of negative index")
     import mpmath
     if isinstance(x, Element) and hasattr((<Element>x)._parent, 'prec'):
         prec = (<Element>x)._parent.prec()
@@ -2159,7 +2155,6 @@ cdef py_integer_from_long(long x):
 cdef object py_integer_from_python_obj(object x) except +:
     return Integer(x)
 
-
 cdef object py_integer_from_mpz(mpz_t bigint) except +:
     cdef Integer z = PY_NEW(Integer)
     mpz_set(z.value, bigint)
@@ -2168,6 +2163,7 @@ cdef object py_integer_from_mpz(mpz_t bigint) except +:
 cdef object py_rational_from_mpq(mpq_t bigrat) except +:
     cdef Rational rat = Rational.__new__(Rational)
     mpq_set(rat.value, bigrat)
+    mpq_canonicalize(rat.value)
     return rat
 
 cdef bint py_is_Integer(object x) except +:

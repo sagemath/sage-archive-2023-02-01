@@ -9,7 +9,7 @@ EXAMPLES::
     sage: H = End(P1xP1)
     sage: H([x^2*u, y^2*v, x*v^2, y*u^2])
     Scheme endomorphism of Product of projective spaces P^1 x P^1 over Rational Field
-      Defn: Defined by sending (x : y , u : v) to 
+      Defn: Defined by sending (x : y , u : v) to
             (x^2*u : y^2*v , x*v^2 : y*u^2).
 """
 #*****************************************************************************
@@ -36,11 +36,11 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         sage: H = T.Hom(T)
         sage: H([x^2,y^2,z^2,w^2,u^2])
         Scheme endomorphism of Product of projective spaces P^2 x P^1 over Rational Field
-          Defn: Defined by sending (x : y : z , w : u) to 
+          Defn: Defined by sending (x : y : z , w : u) to
                 (x^2 : y^2 : z^2 , w^2 : u^2).
     """
 
-    def __init__(self, parent, polys, check = True):
+    def __init__(self, parent, polys, check=True):
         r"""
         The Python constructor.
 
@@ -59,7 +59,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: H = T.Hom(T)
             sage: H([x^2*u,y^2*w,z^2*u,w^2,u^2])
             Scheme endomorphism of Product of projective spaces P^2 x P^1 over Rational Field
-              Defn: Defined by sending (x : y : z , w : u) to 
+              Defn: Defined by sending (x : y : z , w : u) to
                     (x^2*u : y^2*w : z^2*u , w^2 : u^2).
 
         ::
@@ -71,6 +71,30 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             ...
             TypeError: polys (=[x^2*u, y^2*w, z^2*u, w^2, z*u]) must be
             multi-homogeneous of the same degrees (by component)
+
+        ::
+
+            sage: R.<s,t> = PolynomialRing(QQ)
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],QQ)
+            sage: P.<u,v,w,s,t,r> = ProductProjectiveSpaces([3,1],QQ)
+            sage: H = Hom(Z,P)
+            sage: f = H([a^2,b^2,a^2,a*b,a*x,b*z]); f
+            Scheme morphism:
+              From: Product of projective spaces P^1 x P^2 over Rational Field
+              To:   Product of projective spaces P^3 x P^1 over Rational Field
+              Defn: Defined by sending (a : b , x : y : z) to
+                    (a^2 : b^2 : a^2 : a*b , a*x : b*z).
+
+        ::
+
+            sage: Z.<a,b,c,x,y,z> = ProductProjectiveSpaces([1,3],QQ)
+            sage: P.<u,v,w,s,t,r> = ProductProjectiveSpaces([2,2],QQ)
+            sage: H = Hom(Z,P)
+            sage: f = H([a^2,b^2,c^2,x^2,y^2,z^2])
+            Traceback (most recent call last):
+            ...
+            TypeError: polys (=[a^2, b^2, c^2, x^2, y^2, z^2]) must be
+            multi-homogeneous of the same degrees (by component)
         """
         if check:
             #check multi-homogeneous
@@ -81,12 +105,13 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
                 polys = [f.lift() for f in polys]
 
             target = parent.codomain().ambient_space()
+            dom = parent.domain().ambient_space()
             from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
             if is_ProductProjectiveSpaces(target):
                 splitpolys = target._factors(polys)
                 for m in range(len(splitpolys)):
-                    d = target._degree(splitpolys[m][0])
-                    if not all(d == target._degree(f) for f in splitpolys[m]):
+                    d = dom._degree(splitpolys[m][0])
+                    if not all(d == dom._degree(f) for f in splitpolys[m]):
                         raise  TypeError("polys (=%s) must be multi-homogeneous of the same degrees (by component)"%polys)
             else:
                 #we are mapping into some other kind of space
@@ -121,7 +146,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         Return a string representation of ``self``.
 
         OUTPUT:
-        
+
         String.
 
         EXAMPLES::
@@ -139,7 +164,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         s += '.'
         return s
 
-    def __call__(self, P, check = True):
+    def __call__(self, P, check=True):
         r"""
         Make morphisms of products of projective spaces callable.
 
@@ -161,9 +186,52 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: F = H([x^2*u,y^2*w,z^2*u,w^2,u^2])
             sage: F(T([2,1,3,0,1]))
             (4/9 : 0 : 1 , 0 : 1)
+
+        ::
+
+            sage: PP.<x,y,z,u,v,w> = ProductProjectiveSpaces(QQ,[1,1,1])
+            sage: HP = End(PP)
+            sage: f = HP([v*x^2,w*y^2,z^2,u^2,v^2,w^2])
+            sage: Q = PP([0,1,1,1,1,1])
+            sage: f(Q)
+            (0 : 1 , 1 : 1 , 1 : 1)
+
+        ::
+
+            sage: PP.<t0,t1,t2,t3,t4> = ProductProjectiveSpaces([2,1], ZZ)
+            sage: Q = PP([1,1,1,2,1])
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2], ZZ)
+            sage: H = End(Z)
+            sage: f = H([a^3, b^3+a*b^2, x^2, y^2-z^2, z*y])
+            sage: f(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (1 : 1 : 1 , 2 : 1) fails to convert into the map's domain
+            Product of projective spaces P^1 x P^2 over Integer Ring, but a
+            `pushforward` method is not properly implemented
+            sage: f([1,1,1,2,1])
+            (1 : 2 , 1 : 3 : 2)
+
+        ::
+
+            sage: PP.<x,y,u,v> = ProductProjectiveSpaces(ZZ, [1,1])
+            sage: HP = End(PP)
+            sage: g = HP([x^2, y^2, u^2, v^2])
+            sage: g([0,0,0,0],check=False)
+            (0 : 0 , 0 : 0)
         """
+        from sage.schemes.product_projective.point import ProductProjectiveSpaces_point_ring
+        if check:
+            if not isinstance(P, ProductProjectiveSpaces_point_ring):
+                try:
+                    P = self.domain()(P)
+                except (TypeError, NotImplementedError):
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self.domain()))
+            elif self.domain()!= P.codomain():
+                raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self.domain()))
+
         A = self.codomain()
-        Q = P[0]._coords + P[1]._coords
+        Q = list(P)
         newP = [f(Q) for f in self.defining_polynomials()]
         return(A.point(newP, check))
 
@@ -198,7 +266,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: P.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
             sage: Q.<a,b,c,d,e> = ProductProjectiveSpaces([1,2],QQ)
             sage: H = Hom(P,Q)
-            sage: f = H([x^2,y^2,z^3,w^3,u^3])
+            sage: f = H([x^2,y^2,u^3,w^3,u^3])
             sage: f.is_morphism()
             False
         """
@@ -317,7 +385,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: f.nth_iterate_map(3)
             Scheme endomorphism of Product of projective spaces P^1 x P^2 over
             Rational Field
-              Defn: Defined by sending (a : b , x : y : z) to 
+              Defn: Defined by sending (a : b , x : y : z) to
                     (a^27 : b^27 , x^8 : y^8 : z^8).
         """
         if not self.is_endomorphism():

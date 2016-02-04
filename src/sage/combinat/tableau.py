@@ -55,21 +55,18 @@ For display options, see :meth:`Tableaux.global_options`.
 
     - Add a class for tableaux of a given shape (eg Tableaux_shape)
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                     2011 Jason Bandlow <jbandlow@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -79,7 +76,7 @@ from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import factorial
+from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
 from sage.combinat.composition import Composition, Compositions
 from integer_vector import IntegerVectors
@@ -789,7 +786,7 @@ class Tableau(ClonableList):
         from output import tex_from_array
         return tex_from_array(self)
 
-    def __div__(self, t):
+    def __truediv__(self, t):
         """
         Return the skew tableau ``self``/``t``, where ``t`` is a partition
         contained in the shape of ``self``.
@@ -824,6 +821,8 @@ class Tableau(ClonableList):
 
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st)
+
+    __div__ = __truediv__
 
     def __call__(self, *cell):
         r"""
@@ -5524,7 +5523,6 @@ class SemistandardTableaux_size(SemistandardTableaux):
             [[2, 4, 4, 6, 6, 6]]
         """
         from sage.rings.all import ZZ
-        from sage.rings.arith import binomial
         from sage.matrix.constructor import diagonal_matrix
         from sage.combinat.rsk import RSK
         kchoose2m1 = self.max_entry * (self.max_entry - 1) / 2 - 1
@@ -6399,7 +6397,6 @@ class StandardTableaux_size(StandardTableaux):
             True
         """
         from sage.misc.prandom import randrange
-        from sage.rings.arith import binomial
         from sage.misc.prandom import sample
         from sage.combinat.perfect_matching import PerfectMatchings
         from sage.combinat.permutation import from_cycles

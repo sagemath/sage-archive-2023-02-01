@@ -43,7 +43,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     ctypedef struct GExprSeq "exprseq"
 
     ctypedef struct GBasic "basic":
-        unsigned int gethash()
+        long gethash()
         int compare(GBasic other)
 
     ctypedef struct GConstant "constant":
@@ -86,7 +86,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
         GExList append_sym "append" (GSymbol e)
 
     ctypedef struct GEx "ex":
-        unsigned int gethash()        except +
+        long gethash()                except +
         int compare(GEx other)        except +
         GEx expand(unsigned int opt)  except +
         GEx collect(GEx s, bint dist) except +
@@ -163,7 +163,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
 
     bint is_negative(GEx x)                  except +
     bint is_a_relational "is_a<relational>" (GEx e)
-    unsigned decide_relational(GEx e)
+    unsigned decide_relational(GEx e) except +
     operators relational_operator(GEx e)
     operators switch_operator(operators op)
     GEx relational(GEx lhs, GEx rhs, operators o)

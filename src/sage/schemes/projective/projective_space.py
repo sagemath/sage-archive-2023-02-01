@@ -84,7 +84,7 @@ from sage.rings.all import (PolynomialRing,
 from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.commutative_ring import is_CommutativeRing
 
 from sage.categories.fields import Fields
@@ -96,8 +96,7 @@ from sage.categories.number_fields import NumberFields
 from sage.misc.all import (latex,
                            prod)
 from sage.structure.category_object import normalize_names
-from sage.rings.arith import (gcd,
-                              binomial)
+from sage.arith.all import gcd, binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.tuple import Tuples
 from sage.matrix.constructor import matrix

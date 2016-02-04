@@ -14,14 +14,26 @@ EXAMPLES::
     False
     sage: 1 in S
     True
+
+TESTS::
+
+    sage: Pol.<y> = CBF[]
+    sage: Quo.<y> = Pol.quotient(y^3)
+    sage: CBF.zero()*y
+    0
+    sage: ((x - 1)/(x + 1))(1 + y)
+    -0.2500000000000000*y^2 + 0.5000000000000000*y
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 import six
 import sage.rings.number_field.all
@@ -40,11 +52,10 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 from sage.categories.commutative_algebras import CommutativeAlgebras
 
 from sage.structure.category_object import normalize_names
-from sage.structure.parent_gens import ParentWithGens
 
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
 from sage.all import sage_eval, parent
-from sage.structure.element import Element
+
 
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
@@ -637,7 +648,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         -- Simon King (2010-05)
         """
         from sage.categories.pushout import QuotientFunctor
-        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names(),self.is_field()), self.base()
+        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names()), self.base()
 
     @cached_method
     def base_ring(self):
@@ -1108,7 +1119,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                 for ideal_gen in clgp_gen.gens():
                     rel_ideal_gen = back_to_rel(phi(ideal_gen))
                     prod_ideal_gen = [0]*i + [rel_ideal_gen.lift()] + [0]*(n - i - 1)
-                    poly_ideal_gen = self(sage.rings.arith.crt(prod_ideal_gen, moduli))
+                    poly_ideal_gen = self(sage.arith.all.crt(prod_ideal_gen, moduli))
                     ideal_gens.append(poly_ideal_gen)
                 clgp_gens.append((tuple(ideal_gens), gen_order))
 
@@ -1277,7 +1288,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                 mul_order = unit.multiplicative_order()
                 rel_unit = back_to_rel(phi(unit))
                 prod_unit = [1]*i + [rel_unit.lift()] + [1]*(n - i - 1)
-                poly_unit = self(sage.rings.arith.crt(prod_unit, moduli))
+                poly_unit = self(sage.arith.all.crt(prod_unit, moduli))
                 units.append((poly_unit, mul_order))
 
         return units
@@ -1403,7 +1414,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             for gen in component_selmer_groups[isos[i][1]]:
                 rel_gen = back_to_rel(phi(gen))
                 prod_gen = [1]*i + [rel_gen.lift()] + [1]*(n - i - 1)
-                poly_gen = self(sage.rings.arith.crt(prod_gen, moduli))
+                poly_gen = self(sage.arith.all.crt(prod_gen, moduli))
                 gens.append(poly_gen)
 
         return gens

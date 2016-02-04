@@ -358,5 +358,8 @@ def mwrank_console():
         sage: mwrank_console() # not tested: expects console input
         Program mwrank: ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%mwrank magics instead.')
     os.system('mwrank')
 

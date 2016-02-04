@@ -1321,6 +1321,44 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return self.parent()(summands, simplify=True, convert=False)
 
 
+    def exact_part(self):
+        r"""
+        Return the expansion consisting of all exact terms of this
+        expansion.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^QQ * log(x)^QQ', QQ)
+            sage: (x^2 + O(x)).exact_part()
+            x^2
+            sage: (x + log(x)/2 + O(log(x)/x)).exact_part()
+            x + 1/2*log(x)
+
+        TESTS::
+
+            sage: R.<x, y> = AsymptoticRing('x^QQ * y^QQ', QQ)
+            sage: (x + y + O(1/(x*y))).exact_part()
+            x + y
+            sage: O(x).exact_part()
+            0
+        """
+        from term_monoid import ExactTerm
+        exact_terms = self.summands.copy()
+        for term in self.summands.elements_topological():
+            if not isinstance(term, ExactTerm):
+                exact_terms.remove(term.growth)
+
+        return self.parent(exact_terms)
+
+
     def __pow__(self, exponent, precision=None):
         r"""
         Calculate the power of this asymptotic expansion to the given ``exponent``.
@@ -1600,6 +1638,44 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             precision=precision)
 
         return result._mul_term_(pmax_elem)
+
+
+    def sqrt(self, precision=None):
+        r"""
+        Return the square root of this asymptotic expansion.
+
+        INPUT:
+
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: A.<s> = AsymptoticRing(growth_group='s^QQ', coefficient_ring=QQ)
+            sage: s.sqrt()
+            s^(1/2)
+            sage: a = (1 + 1/s).sqrt(precision=6); a
+            1 + 1/2*s^(-1) - 1/8*s^(-2) + 1/16*s^(-3)
+            - 5/128*s^(-4) + 7/256*s^(-5) + O(s^(-6))
+
+        .. SEEALSO::
+
+            :meth:`pow`, :meth:`rpow`, :meth:`exp`.
+
+        TESTS::
+
+            sage: P.<p> = PowerSeriesRing(QQ, default_prec=6)
+            sage: bool(SR(a.exact_part()).subs(s=1/x) -
+            ....:      SR((1+p).sqrt().polynomial()).subs(p=x) == 0)
+            True
+            """
+        from sage.rings.rational_field import QQ
+        return self.pow(QQ(1)/QQ(2), precision=precision)
 
 
     def O(self):

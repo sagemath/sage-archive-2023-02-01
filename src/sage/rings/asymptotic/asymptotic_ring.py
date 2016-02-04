@@ -1208,7 +1208,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<a> = AsymptoticRing(growth_group='a^ZZ', coefficient_ring=ZZ)
             sage: (1 / a).parent()
-            Asymptotic Ring <a^ZZ> over Rational Field
+            Asymptotic Ring <a^ZZ> over Integer Ring
             sage: (a / 2).parent()
             Asymptotic Ring <a^ZZ> over Rational Field
 
@@ -1225,44 +1225,26 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: ~(s + t)
             Traceback (most recent call last):
             ...
-            ValueError: Expansion s + t cannot be inverted since there are
-            several maximal elements s, t.
+            ValueError: Cannot determine main term of s + t since there
+            are several maximal elements s, t.
         """
         if not self.summands:
             raise ZeroDivisionError('Division by zero in %s.' % (self,))
 
-        elif len(self.summands) == 1:
-            element = next(self.summands.elements())
-            return self.parent()._create_element_in_extension_(
-                ~element, element.parent())
+        (max_elem, x) = self._main_term_relative_error_()
+        one = self.parent().one()
+        result = one
 
-        max_elem = tuple(self.summands.maximal_elements())
-        if len(max_elem) != 1:
-            raise ValueError('Expansion %s cannot be inverted since there '
-                             'are several maximal elements %s.' %
-                             (self, ', '.join(str(e) for e in
-                                              sorted(max_elem, key=str))))
-        max_elem = max_elem[0]
+        if x:
+            import itertools
+            result = AsymptoticExpansion._power_series_(
+                coefficients=itertools.repeat(one),
+                start=one,
+                ratio=-x,
+                ratio_start=one,
+                precision=precision)
 
-        imax_elem = ~max_elem
-        if imax_elem.parent() is max_elem.parent():
-            new_self = self
-        else:
-            new_self = self.parent()._create_element_in_extension_(
-                imax_elem, max_elem.parent()).parent()(self)
-
-        one = new_self.parent().one()
-
-        import itertools
-
-        result = AsymptoticExpansion._power_series_(
-            coefficients=itertools.repeat(one),
-            start=one,
-            ratio=one - new_self._mul_term_(imax_elem),
-            ratio_start=one,
-            precision=precision)
-
-        return result._mul_term_(imax_elem)
+        return result._mul_term_(~max_elem)
 
 
     invert = __invert__

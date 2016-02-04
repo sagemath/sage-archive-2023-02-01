@@ -89,10 +89,8 @@ from ell_field import EllipticCurve_field
 from ell_generic import is_EllipticCurve
 from ell_point import EllipticCurvePoint_number_field
 from constructor import EllipticCurve
-from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer, valuation, gcd, prime_divisors
+from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
-
-
 from six import reraise as raise_
 
 class EllipticCurve_number_field(EllipticCurve_field):
@@ -506,7 +504,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # of just one point.
 
         # First factor f over F and then compute a root X of f over K.
-        g = prime_divisors(f)[0]
+        g = f.factor()[0][0]
         X = g.map_coefficients(F_to_K).roots(multiplicities=False)[0]
 
         # Polynomial defining the corresponding Y-coordinate
@@ -1402,7 +1400,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: eK.tamagawa_numbers()
             [4, 6, 1]
         """
-        return [self.tamagawa_number(p) for p in prime_divisors(self.conductor())]
+        return [self.tamagawa_number(p) for p in self.conductor().prime_factors()]
 
     def tamagawa_exponent(self, P, proof = None):
         r"""
@@ -1503,11 +1501,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             if self.base_field().absolute_degree() == 1:
                 p = pp.gens_reduced()[0]
                 f = 1
-                v = valuation(ZZ(uu),p)
+                v = ZZ(uu).valuation(p)
             else:
                 p = pp.smallest_integer()
                 f = pp.residue_class_degree()
-                v = valuation(uu,pp)
+                v = uu.valuation(pp)
             uu_abs_val = p**(f*v)
             pr *= cv * uu_abs_val
         return pr
@@ -2055,7 +2053,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         """
         E = self
-        bound = 0
+        bound = ZZ(0)
         k = 0
         K = E.base_field()
         OK = K.ring_of_integers()
@@ -2080,7 +2078,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                         if eqq < charqq - 1 and disc.valuation(qq) == 0:
                             Etilda = E.reduction(qq)
                             Npp = Etilda.cardinality()
-                            bound = gcd(bound,Npp)
+                            bound = bound.gcd(Npp)
                             if bound == 1:
                                 return bound
                             k += 1
@@ -2844,7 +2842,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         number)::
 
             sage: EL = E.change_ring(L)
-            sage: CL = EL.isogeny_class(); len(CL) # long time (~21s)
+            sage: CL = EL.isogeny_class(); len(CL) # long time (~121s)
             6
             sage: Set([EE.j_invariant() for EE in CL.curves]) == Set(pol26.roots(L,multiplicities=False)) # long time
             True

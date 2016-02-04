@@ -196,6 +196,28 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
+        def hochschild_complex(self, M):
+            """
+            Return the Hochschild complex of ``self`` with coefficients
+            in ``M``.
+
+            .. SEEALSO::
+
+                :class:`~sage.homology.hochschild_complex.HochschildComplex`
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: A = algebras.DifferentialWeyl(R)
+                sage: H = A.hochschild_complex(A)
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: T = SGA.trivial_representation()
+                sage: H = SGA.hochschild_complex(T)
+            """
+            from sage.homology.hochschild_complex import HochschildComplex
+            return HochschildComplex(self, M)
+
     class ElementMethods:
 
         def __invert__(self):

@@ -1407,8 +1407,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot take s + t to the exponent s.
-            > *previous* ValueError: log(s + t) cannot be constructed since
-            there are several maximal elements s, t.
+            > *previous* ValueError: Cannot determine main term of s + t
+            since there are several maximal elements s, t.
         """
         if not self.summands:
             if exponent == 0:
@@ -1547,8 +1547,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: log(s + t)
             Traceback (most recent call last):
             ...
-            ValueError: log(s + t) cannot be constructed since there are
-            several maximal elements s, t.
+            ValueError: Cannot determine main term of s + t since
+            there are several maximal elements s, t.
         """
         P = self.parent()
 
@@ -1562,23 +1562,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return sum(P._create_element_in_extension_(l, element.parent())
                        for l in element.log_term(base=base))
 
-        max_elem = tuple(self.summands.maximal_elements())
-        if len(max_elem) != 1:
-            raise ValueError('log(%s) cannot be constructed since there '
-                             'are several maximal elements %s.' %
-                             (self, ', '.join(str(e) for e in
-                                              sorted(max_elem, key=str))))
-        max_elem = max_elem[0]
-
-        imax_elem = ~max_elem
-        if imax_elem.parent() is max_elem.parent():
-            new_self = self
-        else:
-            new_self = P._create_element_in_extension_(
-                imax_elem, max_elem.parent()).parent()(self)
-
-        one = new_self.parent().one()
-        geom = one - new_self._mul_term_(imax_elem)
+        (max_elem, x) = self._main_term_relative_error_()
+        geom = -x
 
         from sage.rings.integer_ring import ZZ
         import itertools
@@ -1591,7 +1576,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ratio_start=geom,
             precision=precision)
 
-        result += new_self.parent()(max_elem).log()
+        result += x.parent()(max_elem).log()
         if base:
             from sage.functions.log import log
             result = result / log(base)

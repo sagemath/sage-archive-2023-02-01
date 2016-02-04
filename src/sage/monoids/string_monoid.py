@@ -218,12 +218,16 @@ class StringMonoid_class(FreeMonoid_class):
         # FreeMonoid_class.__init__(self, n, names = alphabet)
         FreeMonoid_class.__init__(self, n)
         self._alphabet = alphabet
+        self._identity_element = ""
 
     def __contains__(self, x):
         return isinstance(x, StringMonoidElement) and x.parent() == self
 
     def alphabet(self):
         return tuple(self._alphabet)
+
+    def one(self):
+        return self._identity_element
 
     def gen(self, i=0):
         r"""

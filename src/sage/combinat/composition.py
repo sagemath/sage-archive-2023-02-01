@@ -1965,7 +1965,7 @@ class Compositions_n(Compositions):
 
 def composition_iterator_fast(n):
     """
-    Iterator over compositions of ``n`` and yield them as lists.
+    Iterator over compositions of ``n`` yielded as lists.
 
     TESTS::
 
@@ -1975,23 +1975,25 @@ def composition_iterator_fast(n):
         sage: type(L[0])
         <type 'list'>
     """
-    # Special case
+    # Special cases
+    if n < 0:
+        return
     if n == 0:
         yield []
         return
 
-    s = 0 # Current sum
-    cur = [0]
+    s = Integer(0) # Current sum
+    cur = [Integer(0)]
     while cur:
         cur[-1] += 1
         s += 1
-        if s > n: # Backtrack
-            cur.pop()
-        elif s == n:
+        # Note that because we are adding 1 every time,
+        #   we will never have s > n
+        if s == n:
             yield list(cur)
             s -= cur.pop()
         else:
-            cur.append(0)
+            cur.append(Integer(0))
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)

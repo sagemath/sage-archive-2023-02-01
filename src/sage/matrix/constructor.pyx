@@ -24,7 +24,7 @@ from sage.rings.complex_double import CDF
 from sage.rings.all import ZZ
 
 
-def _matrix_constructor(*args, **kwds):
+class MatrixFactory(object):
     """
     Create a matrix.
 
@@ -465,248 +465,216 @@ def _matrix_constructor(*args, **kwds):
     - Jason Grout (2008-03): almost a complete rewrite, with bits and
       pieces from the original implementation
     """
-    args = list(args)
-    sparse = kwds.get('sparse',False)
-    # if the first object already knows how to make itself into a
-    # matrix, try that, defaulting to a matrix over the integers.
-    if len(args) == 1 and hasattr(args[0], '_matrix_'):
-        try:
-                return args[0]._matrix_(sparse=sparse)
-        except TypeError:
-                return args[0]._matrix_()
-    elif len(args) == 2:
-        if hasattr(args[0], '_matrix_'):
+    def __call__(self, *args, **kwds):
+        args = list(args)
+        sparse = kwds.get('sparse',False)
+        # if the first object already knows how to make itself into a
+        # matrix, try that, defaulting to a matrix over the integers.
+        if len(args) == 1 and hasattr(args[0], '_matrix_'):
             try:
-                return args[0]._matrix_(args[1], sparse=sparse)
+                    return args[0]._matrix_(sparse=sparse)
             except TypeError:
-                return args[0]._matrix_(args[1])
-        elif hasattr(args[1], '_matrix_'):
-            try:
-                return args[1]._matrix_(args[0], sparse=sparse)
-            except TypeError:
-                return args[1]._matrix_(args[0])
+                    return args[0]._matrix_()
+        elif len(args) == 2:
+            if hasattr(args[0], '_matrix_'):
+                try:
+                    return args[0]._matrix_(args[1], sparse=sparse)
+                except TypeError:
+                    return args[0]._matrix_(args[1])
+            elif hasattr(args[1], '_matrix_'):
+                try:
+                    return args[1]._matrix_(args[0], sparse=sparse)
+                except TypeError:
+                    return args[1]._matrix_(args[0])
 
-    if len(args) == 0:
-        # if nothing was passed return the empty matrix over the
-        # integer ring.
-        return matrix_space.MatrixSpace(rings.ZZ, 0, 0, sparse=sparse)([])
+        if len(args) == 0:
+            # if nothing was passed return the empty matrix over the
+            # integer ring.
+            return matrix_space.MatrixSpace(rings.ZZ, 0, 0, sparse=sparse)([])
 
-    if len(args) >= 1 and is_Ring(args[0]):
-        # A ring is specified
-        if kwds.get('ring', args[0]) != args[0]:
-            raise ValueError("Specified rings are not the same")
+        if len(args) >= 1 and is_Ring(args[0]):
+            # A ring is specified
+            if kwds.get('ring', args[0]) != args[0]:
+                raise ValueError("Specified rings are not the same")
+            else:
+                ring = args[0]
+                args.pop(0)
         else:
-            ring = args[0]
-            args.pop(0)
-    else:
-        ring = kwds.get('ring', None)
+            ring = kwds.get('ring', None)
 
-    if len(args) >= 1:
-        # check to see if the number of rows is specified
-        try:
-            import numpy
-            if isinstance(args[0], numpy.ndarray):
-                raise TypeError
-            nrows = int(args[0])
-            args.pop(0)
-            if kwds.get('nrows', nrows) != nrows:
-                raise ValueError("Number of rows specified in two places and they are not the same")
-        except TypeError:
+        if len(args) >= 1:
+            # check to see if the number of rows is specified
+            try:
+                import numpy
+                if isinstance(args[0], numpy.ndarray):
+                    raise TypeError
+                nrows = int(args[0])
+                args.pop(0)
+                if kwds.get('nrows', nrows) != nrows:
+                    raise ValueError("Number of rows specified in two places and they are not the same")
+            except TypeError:
+                nrows = kwds.get('nrows', None)
+        else:
             nrows = kwds.get('nrows', None)
-    else:
-        nrows = kwds.get('nrows', None)
 
-    if len(args) >= 1:
-        # check to see if additionally, the number of columns is specified
-        try:
-            import numpy
-            if isinstance(args[0], numpy.ndarray):
-                raise TypeError
-            ncols = int(args[0])
-            args.pop(0)
-            if kwds.get('ncols', ncols) != ncols:
-                raise ValueError("Number of columns specified in two places and they are not the same")
-        except TypeError:
-            ncols = kwds.get('ncols', None)
-    else:
-        ncols = kwds.get('ncols', None)
-
-
-    # Now we've taken care of initial ring, nrows, and ncols arguments.
-    # We've also taken care of the Sage object case.
-
-    # Now the rest of the arguments are a list of rows, a flat list of
-    # entries, a callable, a dict, a numpy array, or a single value.
-    if len(args) == 0:
-        # If no entries are specified, pass back a zero matrix
-        entries = 0
-        entry_ring = rings.ZZ
-    elif len(args) == 1:
-        if isinstance(args[0], (types.FunctionType, types.LambdaType, types.MethodType)):
-            if ncols is None and nrows is None:
-                raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
-            if ncols is None:
-                ncols = nrows
-            elif nrows is None:
-                nrows = ncols
-
-            f = args[0]
-            args[0] = [[f(i,j) for j in range(ncols)] for i in range(nrows)]
-
-        if isinstance(args[0], (list, tuple)):
-            if len(args[0]) == 0:
-                # no entries are specified, pass back the zero matrix
-                entries = 0
-                entry_ring = rings.ZZ
-            elif isinstance(args[0][0], (list, tuple)) or is_Vector(args[0][0]):
-                # Ensure we have a list of lists, each inner list having the same number of elements
-                first_len = len(args[0][0])
-                if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
-                    raise ValueError("List of rows is not valid (rows are wrong types or lengths)")
-                # We have a list of rows or vectors
-                if nrows is None:
-                    nrows = len(args[0])
-                elif nrows != len(args[0]):
-                    raise ValueError("Number of rows does not match up with specified number.")
-                if ncols is None:
-                    ncols = len(args[0][0])
-                elif ncols != len(args[0][0]):
-                    raise ValueError("Number of columns does not match up with specified number.")
-
-                entries = []
-                for v in args[0]:
-                    entries.extend(v)
-
-            else:
-                # We have a flat list; figure out nrows and ncols
-                if nrows is None:
-                    nrows = 1
-
-                if nrows > 0:
-                    if ncols is None:
-                        ncols = len(args[0]) // nrows
-                    elif ncols != len(args[0]) // nrows:
-                        raise ValueError("entries has the wrong length")
-                elif len(args[0]) > 0:
-                    raise ValueError("entries has the wrong length")
-
-                entries = args[0]
-
-            if nrows > 0 and ncols > 0 and ring is None:
-                entries, ring = prepare(entries)
-
-        elif isinstance(args[0], dict):
-            # We have a dictionary
-            # default to sparse
-            sparse = kwds.get('sparse', True)
-            if len(args[0]) == 0:
-                # no entries are specified, pass back the zero matrix
-                entries = 0
-            else:
-                entries, entry_ring = prepare_dict(args[0])
-                if nrows is None:
-                    nrows = nrows_from_dict(entries)
-                    ncols = ncols_from_dict(entries)
-                # note that ncols can still be None if nrows is set --
-                # it will be assigned nrows down below.
-
-            # See the construction after the numpy case below.
+        if len(args) >= 1:
+            # check to see if additionally, the number of columns is specified
+            try:
+                import numpy
+                if isinstance(args[0], numpy.ndarray):
+                    raise TypeError
+                ncols = int(args[0])
+                args.pop(0)
+                if kwds.get('ncols', ncols) != ncols:
+                    raise ValueError("Number of columns specified in two places and they are not the same")
+            except TypeError:
+                ncols = kwds.get('ncols', None)
         else:
-            import numpy
-            if isinstance(args[0], numpy.ndarray):
-                num_array = args[0]
-                str_dtype = str(num_array.dtype)
+            ncols = kwds.get('ncols', None)
 
-                if not( num_array.flags.c_contiguous is True or num_array.flags.f_contiguous is True):
-                    raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
-                if str_dtype.count('float32')==1:
-                    m=matrix(RDF,num_array.shape[0],num_array.shape[1],0)
-                    m._replace_self_with_numpy32(num_array)
 
-                elif str_dtype.count('float64')==1:
-                    m=matrix(RDF,num_array.shape[0],num_array.shape[1],0)
-                    m._replace_self_with_numpy(num_array)
+        # Now we've taken care of initial ring, nrows, and ncols arguments.
+        # We've also taken care of the Sage object case.
 
-                elif str_dtype.count('complex64')==1:
-                    m=matrix(CDF,num_array.shape[0],num_array.shape[1],0)
-                    m._replace_self_with_numpy32(num_array)
+        # Now the rest of the arguments are a list of rows, a flat list of
+        # entries, a callable, a dict, a numpy array, or a single value.
+        if len(args) == 0:
+            # If no entries are specified, pass back a zero matrix
+            entries = 0
+            entry_ring = rings.ZZ
+        elif len(args) == 1:
+            if isinstance(args[0], (types.FunctionType, types.LambdaType, types.MethodType)):
+                if ncols is None and nrows is None:
+                    raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
+                if ncols is None:
+                    ncols = nrows
+                elif nrows is None:
+                    nrows = ncols
 
-                elif str_dtype.count('complex128')==1:
-                    m=matrix(CDF,num_array.shape[0],num_array.shape[1],0)
-                    m._replace_self_with_numpy(num_array)
+                f = args[0]
+                args[0] = [[f(i,j) for j in range(ncols)] for i in range(nrows)]
 
-                elif str_dtype.count('int') == 1:
-                    m = matrix(ZZ, [list(row) for row in list(num_array)])
+            if isinstance(args[0], (list, tuple)):
+                if len(args[0]) == 0:
+                    # no entries are specified, pass back the zero matrix
+                    entries = 0
+                    entry_ring = rings.ZZ
+                elif isinstance(args[0][0], (list, tuple)) or is_Vector(args[0][0]):
+                    # Ensure we have a list of lists, each inner list having the same number of elements
+                    first_len = len(args[0][0])
+                    if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
+                        raise ValueError("List of rows is not valid (rows are wrong types or lengths)")
+                    # We have a list of rows or vectors
+                    if nrows is None:
+                        nrows = len(args[0])
+                    elif nrows != len(args[0]):
+                        raise ValueError("Number of rows does not match up with specified number.")
+                    if ncols is None:
+                        ncols = len(args[0][0])
+                    elif ncols != len(args[0][0]):
+                        raise ValueError("Number of columns does not match up with specified number.")
 
-                elif str_dtype.count('object') == 1:
-                    #Get the raw nested list from the numpy array
-                    #and feed it back into matrix
-                    try:
-                        return matrix( [list(row) for row in list(num_array)])
-                    except TypeError:
-                        raise TypeError("cannot convert NumPy matrix to Sage matrix")
+                    entries = []
+                    for v in args[0]:
+                        entries.extend(v)
+
                 else:
-                    raise TypeError("cannot convert NumPy matrix to Sage matrix")
+                    # We have a flat list; figure out nrows and ncols
+                    if nrows is None:
+                        nrows = 1
 
-                return m
-            elif nrows is not None and ncols is not None:
-                # assume that we should just pass the thing into the
-                # MatrixSpace constructor and hope for the best
-                # This is not documented, but it is doctested
-                if ring is None:
-                    entry_ring = args[0].parent()
-                entries = args[0]
+                    if nrows > 0:
+                        if ncols is None:
+                            ncols = len(args[0]) // nrows
+                        elif ncols != len(args[0]) // nrows:
+                            raise ValueError("entries has the wrong length")
+                    elif len(args[0]) > 0:
+                        raise ValueError("entries has the wrong length")
+
+                    entries = args[0]
+
+                if nrows > 0 and ncols > 0 and ring is None:
+                    entries, ring = prepare(entries)
+
+            elif isinstance(args[0], dict):
+                # We have a dictionary
+                # default to sparse
+                sparse = kwds.get('sparse', True)
+                if len(args[0]) == 0:
+                    # no entries are specified, pass back the zero matrix
+                    entries = 0
+                else:
+                    entries, entry_ring = prepare_dict(args[0])
+                    if nrows is None:
+                        nrows = nrows_from_dict(entries)
+                        ncols = ncols_from_dict(entries)
+                    # note that ncols can still be None if nrows is set --
+                    # it will be assigned nrows down below.
+
+                # See the construction after the numpy case below.
             else:
-                raise ValueError("Invalid matrix constructor.  Type matrix? for help")
-    else:
-        raise ValueError("Invalid matrix constructor.  Type matrix? for help")
+                import numpy
+                if isinstance(args[0], numpy.ndarray):
+                    num_array = args[0]
+                    str_dtype = str(num_array.dtype)
 
-    if nrows is None:
-        nrows = 0
-    if ncols is None:
-        ncols = nrows
+                    if not( num_array.flags.c_contiguous is True or num_array.flags.f_contiguous is True):
+                        raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+                    if str_dtype.count('float32')==1:
+                        m=matrix(RDF,num_array.shape[0],num_array.shape[1],0)
+                        m._replace_self_with_numpy32(num_array)
+
+                    elif str_dtype.count('float64')==1:
+                        m=matrix(RDF,num_array.shape[0],num_array.shape[1],0)
+                        m._replace_self_with_numpy(num_array)
+
+                    elif str_dtype.count('complex64')==1:
+                        m=matrix(CDF,num_array.shape[0],num_array.shape[1],0)
+                        m._replace_self_with_numpy32(num_array)
+
+                    elif str_dtype.count('complex128')==1:
+                        m=matrix(CDF,num_array.shape[0],num_array.shape[1],0)
+                        m._replace_self_with_numpy(num_array)
+
+                    elif str_dtype.count('int') == 1:
+                        m = matrix(ZZ, [list(row) for row in list(num_array)])
+
+                    elif str_dtype.count('object') == 1:
+                        #Get the raw nested list from the numpy array
+                        #and feed it back into matrix
+                        try:
+                            return matrix( [list(row) for row in list(num_array)])
+                        except TypeError:
+                            raise TypeError("cannot convert NumPy matrix to Sage matrix")
+                    else:
+                        raise TypeError("cannot convert NumPy matrix to Sage matrix")
+
+                    return m
+                elif nrows is not None and ncols is not None:
+                    # assume that we should just pass the thing into the
+                    # MatrixSpace constructor and hope for the best
+                    # This is not documented, but it is doctested
+                    if ring is None:
+                        entry_ring = args[0].parent()
+                    entries = args[0]
+                else:
+                    raise ValueError("Invalid matrix constructor.  Type matrix? for help")
+        else:
+            raise ValueError("Invalid matrix constructor.  Type matrix? for help")
+
+        if nrows is None:
+            nrows = 0
+        if ncols is None:
+            ncols = nrows
 
 
-    if ring is None:
-        try:
-            ring = entry_ring
-        except NameError:
-            ring = rings.ZZ
+        if ring is None:
+            try:
+                ring = entry_ring
+            except NameError:
+                ring = rings.ZZ
 
-    return matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse)(entries)
-
-
-class MatrixFactory(object):
-    """
-    The class of the ``matrix`` object.
-
-    See :func:`_matrix_constructor` for the implementation of the call
-    interface.  Implemented as a class for nicer tab completion.
-
-    EXAMPLES::
-
-        sage: from sage.misc.sageinspect import sage_getdoc, sage_getsource
-        sage: sage_getdoc(matrix)       # used in output of matrix?
-        '   Create a matrix.\n\n   This implements the "matrix" ...'
-        sage: sage_getsource(matrix)    # used in output of matrix??
-        'def _matrix_constructor(*args, **kwds):...'
-    """
-
-    __doc__ = _matrix_constructor.__doc__
-    __call__ = staticmethod(_matrix_constructor)
-
-    def _sage_src_(self):
-        """
-        For introspection of the global matrix object.
-
-        TESTS::
-
-            sage: from sage.misc.sageinspect import sage_getsource
-            sage: sage_getsource(matrix) == sage_getsource(sage.matrix.constructor._matrix_constructor)
-            True
-        """
-        from sage.misc.sageinspect import sage_getsource
-        return sage_getsource(_matrix_constructor)
+        return matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse)(entries)
 
 Matrix = matrix = MatrixFactory()
 

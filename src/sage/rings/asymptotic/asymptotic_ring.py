@@ -1594,6 +1594,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ...
             ValueError: Possible division by zero, since sign of
             the exponent 0.? cannot be determined.
+            sage: R(0)^0
+            1
 
         ::
 
@@ -1605,8 +1607,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             there are several maximal elements a, b.
         """
         if not self.summands:
-            if exponent >= 0:
+            if exponent > 0:
                 return self.parent().zero()
+            elif exponent.is_zero():
+                return self.parent().one()
             elif exponent < 0:
                 raise ZeroDivisionError(
                     'Cannot take {} to the negative '

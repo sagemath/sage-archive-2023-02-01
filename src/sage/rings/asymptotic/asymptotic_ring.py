@@ -1854,6 +1854,20 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:     ratio_start=A(5),
             ....:     precision=4)
             42 + 5*g^(-1) + 10*g^(-2) + 15*g^(-3) + O(g^(-4))
+            sage: AsymptoticExpansion._power_series_(
+            ....:     coefficients=iter(ZZ(k) for k in count(1)),
+            ....:     start=A(42),
+            ....:     ratio=1/g+O(1/g^2),
+            ....:     ratio_start=A(5),
+            ....:     precision=4)
+            42 + 5*g^(-1) + O(g^(-2))
+            sage: AsymptoticExpansion._power_series_(
+            ....:     coefficients=iter(ZZ(k) for k in count(1)),
+            ....:     start=A(42),
+            ....:     ratio=1/g+O(1/g^2),
+            ....:     ratio_start=A(5),
+            ....:     precision=1000000)
+            42 + 5*g^(-1) + O(g^(-2))
         """
         result = start
         g = ratio_start

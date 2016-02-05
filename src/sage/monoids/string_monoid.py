@@ -226,6 +226,20 @@ class StringMonoid_class(FreeMonoid_class):
         return tuple(self._alphabet)
 
     def one(self):
+        r"""
+        Create an identity StringMonoid Element.
+
+        EXAMPLES::
+
+            sage: b = BinaryStrings(); b
+            Free binary string monoid
+            sage: b.one() * b('1011')
+            1011
+            sage: b.one() * b('110') == b('110')
+            True
+            sage: b('10101') * b.one() == b('101011')
+            False
+        """
         return StringMonoidElement(self, '')
 
     def gen(self, i=0):

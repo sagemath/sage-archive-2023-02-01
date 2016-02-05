@@ -1183,7 +1183,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Trivial cases return matrices of the right size and
         characteristics.  ::
 
-            sage: A = matrix(RDF, 5, 0, entries=0)
+            sage: A = matrix(RDF, 5, 0)
             sage: P, L, U = A.LU()
             sage: P.parent()
             Full MatrixSpace of 5 by 5 dense matrices over Real Double Field

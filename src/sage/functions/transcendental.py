@@ -80,12 +80,20 @@ class Function_zeta(GinacFunction):
             sage: a = zeta(2,hold=True); a.simplify()
             1/6*pi^2
 
-        Check that :trac:`15846` is resolved::
+        The Laurent expansion of `\zeta(s)` at `s=1` is
+        implemented by means of the
+        :wikipedia:`Stieltjes constants <Stieltjes_constants>`::
 
-            sage: zeta(x).series(x==1, 1)
-            1*(x - 1)^(-1) + (euler_gamma) + Order(x - 1)
-            sage: zeta(x).residue(x==1)
-            1
+            sage: s = SR('s')
+            sage: zeta(s).series(s==1, 2)
+            1*(s - 1)^(-1) + (euler_gamma) + (-1/2*stieltjes(1))*(s - 1) + Order((s - 1)^2)
+
+        Generally, the Stieltjes constants occur in the Laurent
+        expansion of `\zeta`-type singularities::
+
+            sage: zeta(2*s/(s+1)).series(s==1, 2)
+            2*(s - 1)^(-1) + (euler_gamma + 1) + (-1/4*stieltjes(1))*(s - 1) + Order((s - 1)^2)
+
 
         TESTS::
 

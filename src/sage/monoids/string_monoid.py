@@ -218,7 +218,7 @@ class StringMonoid_class(FreeMonoid_class):
         # FreeMonoid_class.__init__(self, n, names = alphabet)
         FreeMonoid_class.__init__(self, n)
         self._alphabet = alphabet
-        self._identity_element = ""
+        self._identity_element = StringMonoidElement(self, [int(1)])
 
     def __contains__(self, x):
         return isinstance(x, StringMonoidElement) and x.parent() == self

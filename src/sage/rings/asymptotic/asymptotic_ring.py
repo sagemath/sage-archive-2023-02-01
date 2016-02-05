@@ -1835,7 +1835,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         - ``ratio_start`` -- an asymptotic expansion.
 
-        - ``precision`` -- a non-negative integer.
+        - ``precision`` -- a non-negative integer. All intermediate
+          results are truncated to this precision.
 
         OUTPUT:
 

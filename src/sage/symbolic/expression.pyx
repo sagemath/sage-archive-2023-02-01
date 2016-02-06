@@ -1542,6 +1542,7 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(-oo) == hash(SR(-oo))
             True
             sage: hash(-oo) == hash((-x).subs(x=oo))
+            True
         """
         return self._gobj.gethash()
 

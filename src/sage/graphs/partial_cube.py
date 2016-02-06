@@ -237,51 +237,53 @@ def is_partial_cube(G, certificate=False):
         return fail
 
     # Set up data structures for algorithm:
-    # - CG: contracted graph at current stage of algorithm
-    # - UF: union find data structure representing known edge equivalences
-    # - NL: limit on number of remaining available labels
+    # - contracted: contracted graph at current stage of algorithm
+    # - unionfind: union find data structure representing known edge equivalences
+    # - available: limit on number of remaining available labels
     from sage.graphs.digraph import DiGraph
     from sage.graphs.graph import Graph
     from sage.sets.disjoint_set import DisjointSet
-    CG = DiGraph({v: {w: (v, w) for w in G[v]} for v in G})
-    UF = DisjointSet(CG.edges(labels = False))
-    NL = n-1
+    contracted = DiGraph({v: {w: (v, w) for w in G[v]} for v in G})
+    unionfind = DisjointSet(contracted.edges(labels = False))
+    available = n-1
 
     # Main contraction loop in place of the original algorithm's recursion
-    while CG.order() > 1:
-        if not Graph(CG).is_bipartite():
+    while contracted.order() > 1:
+        if not Graph(contracted).is_bipartite():
             return fail
 
-        # Find max degree vertex in CG, and update label limit
-        deg, root = max((len(CG[v]), v) for v in CG)
-        if deg > NL:
+        # Find max degree vertex in contracted, and update label limit
+        deg, root = max((len(contracted[v]), v) for v in contracted)
+        if deg > available:
             return fail
-        NL -= deg
+        available -= deg
 
         # Set up bitvectors on vertices
-        bitvec = {v:0 for v in CG}
+        bitvec = {v:0 for v in contracted}
         neighbors = {}
-        for i, neighbor in enumerate(CG[root]):
+        for i, neighbor in enumerate(contracted[root]):
             bitvec[neighbor] = 1 << i
             neighbors[1 << i] = neighbor
 
         # Breadth first search to propagate bitvectors to the rest of the graph
-        for LG in breadth_first_level_search(CG, root):
-            for v in LG:
-                for w in LG[v]:
+        for level in breadth_first_level_search(contracted, root):
+            for v in level:
+                for w in level[v]:
                     bitvec[w] |= bitvec[v]
 
         # Make graph of labeled edges and union them together
-        labeled = Graph([CG.vertices(), []])
-        for v, w in CG.edge_iterator(labels = False):
+        labeled = Graph([contracted.vertices(), []])
+        for v, w in contracted.edge_iterator(labels = False):
             diff = bitvec[v]^bitvec[w]
             if not diff or bitvec[w] &~ bitvec[v] == 0:
                 continue    # zero edge or wrong direction
             if diff not in neighbors:
                 return fail
             neighbor = neighbors[diff]
-            UF.union(CG.edge_label(v, w), CG.edge_label(root, neighbor))
-            UF.union(CG.edge_label(w, v), CG.edge_label(neighbor, root))
+            unionfind.union(contracted.edge_label(v, w),
+                            contracted.edge_label(root, neighbor))
+            unionfind.union(contracted.edge_label(w, v),
+                            contracted.edge_label(neighbor, root))
             labeled.add_edge(v, w)
 
         # Map vertices to components of labeled-edge graph
@@ -291,29 +293,29 @@ def is_partial_cube(G, certificate=False):
                 component[v] = i
 
         # generate new compressed subgraph
-        NG = DiGraph(labeled.connected_components_number())
-        for v, w, t in CG.edge_iterator():
+        newgraph = DiGraph()
+        for v, w, t in contracted.edge_iterator():
             if bitvec[v] == bitvec[w]:
                 vi = component[v]
                 wi = component[w]
                 if vi == wi:
                     return fail
-                if wi in NG.neighbors_out(vi):
-                    UF.union(NG.edge_label(vi, wi), t)
+                if newgraph.has_edge(vi, wi):
+                    unionfind.union(newgraph.edge_label(vi, wi), t)
                 else:
-                    NG.add_edge(vi, wi, t)
-        CG = NG
+                    newgraph.add_edge(vi, wi, t)
+        contracted = newgraph
 
-    # Make a digraph with edges labeled by the equivalence classes in UF
-    g = DiGraph({v: {w: UF.find((v, w)) for w in G[v]} for v in G})
+    # Make a digraph with edges labeled by the equivalence classes in unionfind
+    g = DiGraph({v: {w: unionfind.find((v, w)) for w in G[v]} for v in G})
 
     # Check that no two edges on a single vertex have the same label
-    action = {v: {} for v in g}
+    action = {v: set() for v in g}
     reverse = {}
     for v, w, t in g.edge_iterator():
         if t in action[v]:
             return fail
-        action[v][t] = w
+        action[v].add(t)
         rt = g.edge_label(w, v)
         if t not in reverse:
             reverse[t] = rt
@@ -322,9 +324,9 @@ def is_partial_cube(G, certificate=False):
 
     # Find list of tokens that lead to the initial state
     activeTokens = set()
-    for LG in breadth_first_level_search(g, initialState):
-        for v in LG:
-            for w in LG[v]:
+    for level in breadth_first_level_search(g, initialState):
+        for v in level:
+            for w in level[v]:
                 activeTokens.add(g.edge_label(w, v))
     for t in activeTokens:
         if reverse[t] in activeTokens:

@@ -1325,7 +1325,7 @@ v            EXAMPLES::
                 ]
             """
             W = self.parent()
-            return [self * t for t in W.conjugacy_class(W.simple_reflection(1))
+            return [self * t for t in W.reflections()
                     if self.absolute_length() < (self * t).absolute_length()]
 
         def canonical_matrix(self):

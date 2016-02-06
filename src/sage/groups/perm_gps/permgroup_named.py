@@ -369,6 +369,20 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         return self([(i, self._domain[self._domain.index(i)+1])], check=False)
 
+    def reflections(self):
+        """
+        Return the list of all reflections in ``self``.
+
+        EXAMPLES::
+
+            sage: A = SymmetricGroup(3)
+            sage: A.reflections()
+            [(1,2), (1,3), (2,3)]
+        """
+        from itertools import combinations
+        dom = self._domain
+        return [self([(i, j)], check=False) for i, j in combinations(dom, 2)]
+
     def young_subgroup(self, comp):
         """
         Return the Young subgroup associated with the composition ``comp``.

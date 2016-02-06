@@ -45,7 +45,7 @@ from sage.arith.all import gcd
 
 from sage.rings.morphism import is_RingHomomorphism
 from sage.rings.rational_field import is_RationalField
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.commutative_ring import is_CommutativeRing
 
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme

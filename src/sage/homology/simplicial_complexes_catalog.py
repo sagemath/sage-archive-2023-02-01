@@ -33,6 +33,7 @@ All of these examples are accessible by typing
 - :meth:`~sage.homology.examples.PoincareHomologyThreeSphere`
 - :meth:`~sage.homology.examples.PseudoQuaternionicProjectivePlane`
 - :meth:`~sage.homology.examples.RandomComplex`
+- :meth:`~sage.homology.examples.RandomTwoSphere`
 - :meth:`~sage.homology.examples.RealProjectivePlane`
 - :meth:`~sage.homology.examples.RealProjectiveSpace`
 - :meth:`~sage.homology.examples.Simplex`
@@ -63,4 +64,5 @@ from sage.homology.examples import (Sphere, Simplex, Torus, ProjectivePlane,
         ComplexProjectivePlane, PseudoQuaternionicProjectivePlane,
         PoincareHomologyThreeSphere, RealProjectiveSpace, K3Surface,
         BarnetteSphere, BrucknerGrunbaumSphere, NotIConnectedGraphs,
-        MatchingComplex, ChessboardComplex, RandomComplex, SumComplex)
+        MatchingComplex, ChessboardComplex, RandomComplex, SumComplex,
+        RandomTwoSphere)

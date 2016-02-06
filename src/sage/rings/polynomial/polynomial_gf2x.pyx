@@ -287,7 +287,7 @@ def GF2X_BuildIrred_list(n):
         sage: GF(2)['x'](GF2X_BuildIrred_list(33))
         x^33 + x^6 + x^3 + x + 1
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c f
     GF2 = FiniteField(2)
     GF2X_BuildIrred(f, int(n))
@@ -307,7 +307,7 @@ def GF2X_BuildSparseIrred_list(n):
         sage: GF(2)['x'](GF2X_BuildSparseIrred_list(33))
         x^33 + x^10 + 1
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c f
     GF2 = FiniteField(2)
     GF2X_BuildSparseIrred(f, int(n))
@@ -327,7 +327,7 @@ def GF2X_BuildRandomIrred_list(n):
         True
     """
     from sage.misc.randstate import current_randstate
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c tmp, f
     GF2 = FiniteField(2)
     current_randstate().set_seed_ntl(False)

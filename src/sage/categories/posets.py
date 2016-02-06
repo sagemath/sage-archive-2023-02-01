@@ -285,8 +285,6 @@ class Posets(Category):
                 [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
             """
 
-        lower_set = order_ideal
-
         @abstract_method(optional = True)
         def order_filter(self, elements):
             r"""
@@ -303,8 +301,6 @@ class Posets(Category):
                 sage: B.order_filter([3,8])
                 [3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             """
-
-        upper_set = order_filter
 
         def directed_subset(self, elements, direction):
             r"""

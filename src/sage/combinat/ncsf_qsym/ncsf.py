@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Non-Commutative Symmetric Functions
 """
@@ -253,7 +254,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         R[1, 3, 2] + R[1, 5] + R[4, 2] + R[6]
 
     This is the sum of all fatter compositions. Using the usual
-    Moebius function for the boolean lattice, the inverse change of
+    Möbius function for the boolean lattice, the inverse change of
     basis is given by the alternating sum of all fatter compositions::
 
         sage: complete(ribbon[1,3,2])
@@ -268,7 +269,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: ribbon(elementary([1,3,2]))
         R[1, 1, 1, 1, 1, 1] + R[1, 1, 1, 2, 1] + R[2, 1, 1, 1, 1] + R[2, 1, 2, 1]
 
-    By Moebius inversion on the composition poset, the ribbon
+    By Möbius inversion on the composition poset, the ribbon
     basis element corresponding to a composition `I` is then the
     alternating sum over all compositions fatter than the
     complement composition of `I` in the elementary basis::

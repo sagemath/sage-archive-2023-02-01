@@ -283,6 +283,36 @@ Arbitrary powers work as well; for example, we have
     sage: (1 + 1/z + O(1/z^5))^(1 + 1/z)
     1 + z^(-1) + z^(-2) + 1/2*z^(-3) + 1/3*z^(-4) + O(z^(-5))
 
+.. NOTE::
+
+    In the asymptotic ring
+    ::
+
+        sage: M.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ', coefficient_ring=ZZ)
+
+    the operation
+    ::
+
+        sage: (1/2)^n
+        Traceback (most recent call last):
+        ...
+        ValueError: 1/2 is not in Exact Term Monoid QQ^n * n^QQ
+        with coefficients in Integer Ring. ...
+
+    fails, since the rational `1/2` is not contained in `M`. You can use
+    ::
+
+        sage: n.rpow(1/2)
+        (1/2)^n
+
+    instead. (See also the examples in
+    :meth:`ExactTerm.rpow() <sage.rings.asymptotic.term_monoid.ExactTerm.rpow>`
+    for a detailed explanation.)
+    Another way is to use a larger coefficent ring::
+
+        sage: M_QQ.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ', coefficient_ring=QQ)
+        sage: (1/2)^n
+        (1/2)^n
 
 Multivariate Arithmetic
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -441,6 +471,7 @@ from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.superseded import experimental
+from sage.rings.all import RIF
 
 class AsymptoticExpansion(CommutativeAlgebraElement):
     r"""
@@ -654,6 +685,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Asymptotic Ring <x^QQ> over Integer Ring
             > *previous* ValueError: 1/2 is not a coefficient in
             Exact Term Monoid x^QQ with coefficients in Integer Ring.
+
+        Check :trac:`19921`::
+
+            sage: CR.<Z> = QQ['Z']
+            sage: CR_mod = CR.quotient((Z^2 - 1)*CR)
+            sage: R.<x> = AsymptoticRing(growth_group='x^NN', coefficient_ring=CR)
+            sage: R_mod = R.change_parameter(coefficient_ring=CR_mod)
+            sage: e = 1 + x*(Z^2-1)
+            sage: R_mod(e)
+            1
         """
         super(AsymptoticExpansion, self).__init__(parent=parent)
 
@@ -664,11 +705,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         if convert:
             from misc import combine_exceptions
-            from term_monoid import TermMonoid
+            from term_monoid import TermMonoid, ZeroCoefficientError
             def convert_terms(element):
                 T = TermMonoid(term_monoid=element.parent(), asymptotic_ring=parent)
                 try:
                     return T(element)
+                except ZeroCoefficientError:
+                    return None
                 except (ValueError, TypeError) as e:
                     raise combine_exceptions(
                         ValueError('Cannot include %s with parent %s in %s' %
@@ -1068,8 +1111,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        from term_monoid import ExactTerm
-        simplify = not isinstance(term, ExactTerm)
+        simplify = not term.is_exact()
         return self.parent()(self.summands.mapped(lambda element: term * element),
                              simplify=simplify, convert=False)
 
@@ -1160,6 +1202,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Cannot invert O(x).
+
+        TESTS:
+
+        See :trac:`19521`::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', SR.subring(no_variables=True))
+            sage: (A.one() / 1).parent()
+            Asymptotic Ring <n^ZZ> over Symbolic Constants Subring
         """
         return self * ~other
 
@@ -1320,6 +1370,43 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return self.parent()(summands, simplify=True, convert=False)
 
 
+    def exact_part(self):
+        r"""
+        Return the expansion consisting of all exact terms of this
+        expansion.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^QQ * log(x)^QQ', QQ)
+            sage: (x^2 + O(x)).exact_part()
+            x^2
+            sage: (x + log(x)/2 + O(log(x)/x)).exact_part()
+            x + 1/2*log(x)
+
+        TESTS::
+
+            sage: R.<x, y> = AsymptoticRing('x^QQ * y^QQ', QQ)
+            sage: (x + y + O(1/(x*y))).exact_part()
+            x + y
+            sage: O(x).exact_part()
+            0
+        """
+        exact_terms = self.summands.copy()
+        for term in self.summands.elements_topological():
+            if not term.is_exact():
+                exact_terms.remove(term.growth)
+
+        return self.parent(exact_terms)
+
+
     def __pow__(self, exponent, precision=None):
         r"""
         Calculate the power of this asymptotic expansion to the given ``exponent``.
@@ -1408,6 +1495,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ValueError: Cannot take s + t to the exponent s.
             > *previous* ValueError: log(s + t) cannot be constructed since
             there are several maximal elements s, t.
+
+        Check that :trac:`19946` is fixed::
+
+            sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
+            sage: e = 2^n; e
+            2^n
+            sage: e.parent()
+            Asymptotic Ring <SR^n * n^SR> over Symbolic Ring
+            sage: e = A(e); e
+            2^n
+            sage: e.parent()
+            Asymptotic Ring <QQ^n * n^QQ> over Symbolic Ring
         """
         if not self.summands:
             if exponent == 0:
@@ -1449,6 +1548,44 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
 
     pow = __pow__
+
+
+    def sqrt(self, precision=None):
+        r"""
+        Return the square root of this asymptotic expansion.
+
+        INPUT:
+
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: A.<s> = AsymptoticRing(growth_group='s^QQ', coefficient_ring=QQ)
+            sage: s.sqrt()
+            s^(1/2)
+            sage: a = (1 + 1/s).sqrt(precision=6); a
+            1 + 1/2*s^(-1) - 1/8*s^(-2) + 1/16*s^(-3)
+            - 5/128*s^(-4) + 7/256*s^(-5) + O(s^(-6))
+
+        .. SEEALSO::
+
+            :meth:`pow`, :meth:`rpow`, :meth:`exp`.
+
+        TESTS::
+
+            sage: P.<p> = PowerSeriesRing(QQ, default_prec=6)
+            sage: bool(SR(a.exact_part()).subs(s=1/x) -
+            ....:      SR((1+p).sqrt().polynomial()).subs(p=x) == 0)
+            True
+            """
+        from sage.rings.rational_field import QQ
+        return self.pow(QQ(1)/QQ(2), precision=precision)
 
 
     def O(self):
@@ -1599,6 +1736,32 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return result
 
 
+    def is_exact(self):
+        r"""
+        Return whether all terms of this expansion are exact.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing('x^QQ * log(x)^QQ', QQ)
+            sage: (x^2 + O(x)).is_exact()
+            False
+            sage: (x^2 - x).is_exact()
+            True
+
+        TESTS::
+
+            sage: A(0).is_exact()
+            True
+            sage: A.one().is_exact()
+            True
+        """
+        return all(T.is_exact() for T in self.summands)
+
+
     def is_little_o_of_one(self):
         r"""
         Return whether this expansion is of order `o(1)`.
@@ -1666,6 +1829,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
             > *previous* TypeError: unsupported operand parent(s) for '*':
             'Growth Group x^ZZ' and 'Growth Group SR^x'
+
+        Check that :trac:`19946` is fixed::
+
+            sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
+            sage: n.rpow(2)
+            2^n
+            sage: _.parent()
+            Asymptotic Ring <QQ^n * n^SR> over Symbolic Ring
         """
         if isinstance(base, AsymptoticExpansion):
             return base.__pow__(self, precision=precision)
@@ -1787,6 +1958,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: exp(x+1)
             e*e^x
+
+        See :trac:`19521`::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', SR.subring(no_variables=True))
+            sage: exp(O(n^(-3))).parent()
+            Asymptotic Ring <n^ZZ> over Symbolic Constants Subring
         """
         return self.rpow('e', precision=precision)
 
@@ -2052,6 +2229,236 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
+    def compare_with_values(self, variable, function, values,
+                            rescaled=True, ring=RIF):
+        """
+        Compute the (rescaled) difference between this asymptotic
+        expansion and the given values.
+
+        INPUT:
+
+        - ``variable`` -- an asymptotic expansion or a string.
+
+        - ``function`` -- a callable or symbolic expression giving the
+          comparison values.
+
+        - ``values`` -- a list or iterable of values where the comparison
+          shall be carried out.
+
+        - ``rescaled`` -- (default: ``True``) determines whether
+          the difference is divided by the error term of the asymptotic
+          expansion.
+
+        - ``ring`` -- (default: ``RIF``) the parent into which the
+          difference is converted.
+
+        OUTPUT:
+
+        A list of pairs containing comparison points and (rescaled)
+        difference values.
+
+        EXAMPLES::
+
+            sage: A.<n> = AsymptoticRing('QQ^n * n^ZZ', SR)
+            sage: catalan = binomial(2*x, x)/(x+1)
+            sage: expansion = 4^n*(1/sqrt(pi)*n^(-3/2)
+            ....:     - 9/8/sqrt(pi)*n^(-5/2)
+            ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
+            sage: expansion.compare_with_values(n, catalan, srange(5, 10))
+            [(5, 0.5303924444775?),
+             (6, 0.5455279498787?),
+             (7, 0.556880411050?),
+             (8, 0.565710587724?),
+             (9, 0.572775029098?)]
+            sage: expansion.compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
+            [(5, 0.3886263699387?), (10, 19.1842458318?), (20, 931314.63637?)]
+            sage: expansion.compare_with_values(n, catalan, [5, 10, 20], rescaled=False, ring=SR)
+            [(5, 168/5*sqrt(5)/sqrt(pi) - 42),
+             (10, 1178112/125*sqrt(10)/sqrt(pi) - 16796),
+             (20, 650486218752/125*sqrt(5)/sqrt(pi) - 6564120420)]
+
+        Instead of a symbolic expression, a callable function can
+        be specified as well::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ * log(n)^ZZ', SR)
+            sage: def H(n):
+            ....:     return sum(1/k for k in srange(1, n+1))
+            sage: H_expansion = (log(n) + euler_gamma + 1/(2*n)
+            ....:                - 1/(12*n^2) + O(n^-4))
+            sage: H_expansion.compare_with_values(n, H, srange(25, 30)) # rel tol 1e-6
+            [(25, -0.008326995?),
+             (26, -0.008327472?),
+             (27, -0.008327898?),
+             (28, -0.00832828?),
+             (29, -0.00832862?)]
+
+        .. SEEALSO::
+
+            :meth:`plot_comparison`
+
+        TESTS::
+
+            sage: A.<x, y> = AsymptoticRing('x^ZZ*y^ZZ', QQ)
+            sage: expansion = x^2 + O(x) + O(y)
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: exactly one error term required
+            sage: expansion = x^2
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: exactly one error term required
+            sage: expansion = x^2 + O(x)
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NameError: name 'x' is not defined
+            sage: expansion.compare_with_values(x, lambda z: z^2, srange(20, 30))
+            [(20, 0), (21, 0), ..., (29, 0)]
+            sage: expansion.compare_with_values(x, SR('x*y'), srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: expression x*y has more than one variable
+        """
+        from term_monoid import OTerm
+        from sage.rings.integer_ring import ZZ
+
+        main = self.exact_part()
+        error = self - main
+        error_terms = list(error.summands)
+        if len(error_terms) != 1:
+            raise NotImplementedError("exactly one error term required")
+        if not isinstance(error_terms[0], OTerm):
+            raise NotImplementedError("{} is not an O term".format(error))
+        error_growth = error_terms[0].growth
+
+        if hasattr(function, 'variables'):
+            expr = function
+            vars = expr.variables()
+            if len(vars) > 1:
+                raise NotImplementedError("expression {} has more than one "
+                                          "variable".format(expr))
+            elif len(vars) == 1:
+                v = vars[0]
+                def function(arg):
+                    return expr.subs({v: arg})
+            else:
+                def function(arg):
+                    return expr
+
+        if rescaled:
+            points = list(
+                (k, ring((main.subs({variable: k}) - function(k)) /
+                         error_growth._substitute_({str(variable): k,
+                                                    '_one_': ZZ(1)})))
+                for k in values)
+        else:
+            points = list(
+                (k, ring(main.subs({variable: k}) - function(k)))
+                for k in values)
+
+        return points
+
+
+    def plot_comparison(self, variable, function, values, rescaled=True,
+                        ring=RIF, relative_tolerance=0.025, **kwargs):
+        r"""
+        Plot the (rescaled) difference between this asymptotic
+        expansion and the given values.
+
+        INPUT:
+
+        - ``variable`` -- an asymptotic expansion or a string.
+
+        - ``function`` -- a callable or symbolic expression giving the
+          comparison values.
+
+        - ``values`` -- a list or iterable of values where the comparison
+          shall be carried out.
+
+        - ``rescaled`` -- (default: ``True``) determines whether
+          the difference is divided by the error term of the asymptotic
+          expansion.
+
+        - ``ring`` -- (default: ``RIF``) the parent into which the
+          difference is converted.
+
+        - ``relative_tolerance`` -- (default: ``0.025``). Raise error
+          when relative error exceeds this tolerance.
+
+        Other keyword arguments are passed to :func:`list_plot`.
+
+        OUTPUT:
+
+        A graphics object.
+
+        .. NOTE::
+
+            If rescaled (i.e. divided by the error term), the output
+            should be bounded.
+
+            This method is mainly meant to have an easily usable
+            plausability check for asymptotic expansion created in
+            some way.
+
+        EXAMPLES:
+
+        We want to check the quality of the asymptotic expansion of
+        the harmonic numbers::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ * log(n)^ZZ', SR)
+            sage: def H(n):
+            ....:     return sum(1/k for k in srange(1, n+1))
+            sage: H_expansion = (log(n) + euler_gamma + 1/(2*n)
+            ....:                - 1/(12*n^2) + O(n^-4))
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30))
+            Graphics object consisting of 1 graphics primitive
+
+        Alternatively, the unscaled (absolute) difference can be
+        plotted as well::
+
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30),
+            ....:                             rescaled=False)
+            Graphics object consisting of 1 graphics primitive
+
+        Additional keywords are passed to :func:`list_plot`::
+
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30),
+            ....:                             plotjoined=True, marker='o',
+            ....:                             color='green')
+            Graphics object consisting of 1 graphics primitive
+
+        .. SEEALSO::
+
+            :meth:`compare_with_values`
+
+        TESTS::
+
+            sage: H_expansion.plot_comparison(n, H, [600])
+            Traceback (most recent call last):
+            ...
+            ValueError: Numerical noise is too high, the comparison is inaccurate
+            sage: H_expansion.plot_comparison(n, H, [600], relative_tolerance=2)
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.plot import list_plot
+        points = self.compare_with_values(variable, function,
+                                          values, rescaled=rescaled, ring=ring)
+
+        from sage.rings.real_mpfi import RealIntervalField_class
+        if isinstance(ring, RealIntervalField_class):
+            if not all(p[1].relative_diameter() <= relative_tolerance for p in points):
+                raise ValueError('Numerical noise is too high, the '
+                                 'comparison is inaccurate')
+
+            # RIFs cannot be plotted, they need to be converted to RR
+            # (see #15011).
+            points = [(p[0], p[1].center()) for p in points]
+
+        return list_plot(points, **kwargs)
+
+
     def symbolic_expression(self, R=None):
         r"""
         Return this asymptotic expansion as a symbolic expression.
@@ -2255,6 +2662,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
     Element = AsymptoticExpansion
 
 
+    from sage.misc.defaults import series_precision
+    __default_prec__ = series_precision()  # default default-precision
+
+
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
                       names=None, category=None, default_prec=None):
@@ -2374,8 +2785,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             category = CommutativeAlgebras(Rings())
 
         if default_prec is None:
-            from sage.misc.defaults import series_precision
-            default_prec = series_precision()
+            default_prec = cls.__default_prec__
 
         return super(AsymptoticRing,
                      cls).__classcall__(cls, growth_group, coefficient_ring,
@@ -3084,6 +3494,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         ::
 
+            sage: Z = R.change_parameter(coefficient_ring=Zmod(3))
+            sage: Z.create_summand('exact', data=42)
+            0
+
+        ::
+
             sage: R.create_summand('O', growth=42*x^2, coefficient=1)
             Traceback (most recent call last):
             ...
@@ -3099,7 +3515,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             TypeError: Cannot create exact term: only 'growth' but
             no 'coefficient' specified.
         """
-        from term_monoid import TermMonoid
+        from term_monoid import TermMonoid, ZeroCoefficientError
         TM = TermMonoid(type, asymptotic_ring=self)
 
         if data is None:
@@ -3111,11 +3527,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 raise TypeError("Cannot create exact term: only 'growth' "
                                 "but no 'coefficient' specified.")
 
-
-        if type == 'exact' and kwds.get('coefficient') == 0:
+        try:
+            return self(TM(data, **kwds), simplify=False, convert=False)
+        except ZeroCoefficientError:
             return self.zero()
-
-        return self(TM(data, **kwds), simplify=False, convert=False)
 
 
     def variable_names(self):

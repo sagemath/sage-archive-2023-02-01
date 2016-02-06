@@ -14,15 +14,6 @@ if [ ! -d "$SPKGDIR"/patches ]; then
    exit 1
 fi
 
-# Check for sagenb location
-if [ ! -d "$SAGE_ROOT/devel/sagenb/sagenb/data/jmol" ]; then
-    echo "No old Jmol install in notebook. Skipping removal of Jmol from notebook."
-else
-    echo "Removing Jmol files from the notebook data directory..."
-    rm -r "$SAGE_ROOT/devel/sagenb/sagenb/data/jmol"
-fi
-
-
 #pure javascript for web and java applet in separate /share/jsmol directory.
 if [ ! -d "$SAGE_LOCAL"/share/jsmol ]; then
     echo "Directory "$SAGE_LOCAL"/share/jsmol does not exist.  Creating directory..."

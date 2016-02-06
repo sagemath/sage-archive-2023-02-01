@@ -38,7 +38,7 @@ from sage.combinat.designs.bibd import balanced_incomplete_block_design
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt, floor
 from sage.matrix.constructor import Matrix
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
 from sage.rings.sum_of_squares cimport two_squares_c
 from libc.stdint cimport uint_fast32_t

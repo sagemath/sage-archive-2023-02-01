@@ -500,6 +500,107 @@ class Magmas(Category_singleton):
                 """
                 return False
 
+        class ElementMethods:
+
+            def __truediv__(left, right):
+                """
+                Return the result of the division of ``left`` by ``right``, if possible.
+
+                This top-level implementation delegates the work to
+                the ``_div_`` method if ``left`` and ``right`` have
+                the same parent and to coercion otherwise. See the
+                extensive documentation at the top of
+                :ref:`sage.structure.element`.
+
+                .. SEEALSO:: :meth:`_div_`
+
+                EXAMPLES::
+
+                    sage: G = FreeGroup(2)
+                    sage: x0, x1 = G.group_generators()
+                    sage: c1 = cartesian_product([x0, x1])
+                    sage: c2 = cartesian_product([x1, x0])
+                    sage: c1.__div__(c2)
+                    (x0*x1^-1, x1*x0^-1)
+                    sage: c1 / c2
+                    (x0*x1^-1, x1*x0^-1)
+
+                Division supports coercion::
+
+                    sage: C = cartesian_product([G, G])
+                    sage: H = Hom(G, C)
+                    sage: phi = H(lambda g: cartesian_product([g, g]))
+                    sage: phi.register_as_coercion()
+                    sage: x1 / c1
+                    (x1*x0^-1, 1)
+                    sage: c1 / x1
+                    (x0*x1^-1, 1)
+
+                Depending on how the division itself is implemented in
+                :meth:`_div_`, division may fail even when ``right``
+                actually divides ``left``::
+
+                    sage: x = cartesian_product([2, 1])
+                    sage: y = cartesian_product([1, 1])
+                    sage: x / y
+                    (2, 1)
+                    sage: x / x
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: no conversion of this rational to integer
+
+                TESTS::
+
+                    sage: c1.__div__.__module__
+                    'sage.categories.magmas'
+                """
+                from sage.structure.element import have_same_parent
+                if have_same_parent(left, right):
+                    return left._div_(right)
+                from sage.structure.element import get_coercion_model
+                import operator
+                return get_coercion_model().bin_op(left, right, operator.div)
+            __div__ = __truediv__ # For Python2/3 compatibility; see e.g. #18578
+
+            def _div_(left, right):
+                r"""
+                Default implementation of division, multiplying (on the right) by the inverse.
+
+                INPUT:
+
+                - ``left``, ``right`` -- two elements of the same unital magma
+
+                .. SEEALSO:: :meth:`__div__`
+
+                EXAMPLES::
+
+                    sage: G = FreeGroup(2)
+                    sage: x0, x1 = G.group_generators()
+                    sage: c1 = cartesian_product([x0, x1])
+                    sage: c2 = cartesian_product([x1, x0])
+                    sage: c1._div_(c2)
+                    (x0*x1^-1, x1*x0^-1)
+
+                With this implementation, division will fail as soon
+                as ``right`` is not invertible, even if ``right``
+                actually divides ``left``::
+
+                    sage: x = cartesian_product([2, 1])
+                    sage: y = cartesian_product([1, 1])
+                    sage: x / y
+                    (2, 1)
+                    sage: x / x
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: no conversion of this rational to integer
+
+                TESTS::
+
+                    sage: c1._div_.__module__
+                    'sage.categories.magmas'
+                """
+                return left._mul_(~right)
+
         class SubcategoryMethods:
 
             @cached_method

@@ -27,10 +27,7 @@ import commutative_ring
 import integral_domain
 import ring
 
-from sage.structure.parent_gens import ParentWithGens
 from sage.libs.pari.all import pari_gen
-
-from sage.structure.category_object import check_default_category
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 

@@ -2,10 +2,31 @@
 r"""
 Projective plane conics over a rational function field
 
+The class :class:`ProjectiveConic_rational_function_field` represents a
+projective plane conic over a rational function field `F(t)`, where `F`
+is any field. Instances can be created using :func:`Conic`.
+
 AUTHORS:
 
-- Lennart Ackermans (2015-12)
+- Lennart Ackermans (2016-02-07): initial version
+    
+EXAMPLES:
+    
+    Create a conic::
 
+        sage: K = FractionField(PolynomialRing(QQ, 't'))
+        sage: P.<X, Y, Z> = K[]
+        sage: Conic(X^2 + Y^2 - Z^2)
+        Projective Conic Curve over Fraction Field of Univariate
+        Polynomial Ring in t over Rational Field defined by
+        X^2 + Y^2 - Z^2
+    
+    Points can be found using :meth:`has_rational_point`::
+
+        sage: K.<t> = FractionField(QQ['t'])
+        sage: C = Conic([1,-t,t])
+        sage: C.has_rational_point(point = True)
+        (True, (0 : 1 : 1))
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Lennart Ackermans <lennart@ackermans.info>
@@ -22,20 +43,17 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing, NumberField
-from sage.matrix.constructor import diagonal_matrix, identity_matrix, matrix, \
-     block_matrix
+from sage.rings.all import PolynomialRing
+from sage.matrix.constructor import diagonal_matrix, matrix, block_matrix
 from sage.schemes.plane_conics.con_field import ProjectiveConic_field
 from sage.rings.arith import lcm, gcd
 from sage.modules.free_module_element import vector
 from sage.rings.fraction_field import is_FractionField
-from sage.modules.free_module_element import vector
 
 class ProjectiveConic_rational_function_field(ProjectiveConic_field):
     r"""
     Create a projective plane conic curve over a rational function field
     `F(t)`, where `F` is any field.
-    See :func:`Conic` for full documentation.
 
     The algorithms used in this class come mostly from [HC2006]_.
 
@@ -306,7 +324,7 @@ for function field of characteristic 2.")
         if remove:
             supp[remove[0]].remove(remove[1])
         supp = [[p[0] for p in supp[i]] for i in (0,1,2)]
-        
+
         if case == 0:
         # Find a solution of (5) in [HC2006]
             leading_conic = Conic(self.base_ring().base_ring(),
@@ -413,7 +431,7 @@ for function field of characteristic 2.")
         definition).
 
         If you don't have a solubility certificate and just want to find a
-        point, use the function :meth:`rational_point` instead.
+        point, use the function :meth:`has_rational_point` instead.
         
         INPUT:
         
@@ -466,15 +484,15 @@ for function field of characteristic 2.")
         deg = [coefficients[0].degree(), coefficients[1].degree(),
                 coefficients[2].degree()]
         # definitions as in [HC2006] and [ACKERMANS2016]
-        A = max(0, ((deg[1] + deg[2]) / 2).ceil() - case)
-        B = max(0, ((deg[2] + deg[0]) / 2).ceil() - case)
-        C = max(0, ((deg[0] + deg[1]) / 2).ceil() - case)
+        A = ((deg[1] + deg[2]) / 2).ceil() - case
+        B = ((deg[2] + deg[0]) / 2).ceil() - case
+        C = ((deg[0] + deg[1]) / 2).ceil() - case
         
         # For all roots as calculated by has_rational_point(), we create
         # a system of linear equations. As in [ACKERMANS2016], we do this
         # by calculating the matrices for all phi_p, with basis consisting
         # of monomials of x, y and z in the space V of potential solutions:
-        # t^0, ..., t^(A+1), t^0, ..., t^(B+1) and t^0, ..., t^(C+1).
+        # t^0, ..., t^A, t^0, ..., t^B and t^0, ..., t^C.
         phi = []
         for (i, p) in enumerate(supports[0]):
             # lift to F[t] and map to R, with R as defined above

@@ -901,7 +901,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     @staticmethod
     def _SingularityAnalysis_non_normalized_(var, zeta=1, alpha=0, beta=0, delta=0,
-                            precision=None, skip_constant_factor=False):
+                            precision=None):
         r"""
         Return the asymptotic expansion of the coefficients of
         an power series with specified pole and logarithmic singularity
@@ -931,12 +931,6 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
-
-        - ``skip_constant_factor`` -- (default: ``False``) a
-          boolean. If set, then the constant factor is left out.
-          As a consequence, the coefficient ring of the output changes
-          from ``Symbolic Constants Subring`` (if ``False``) to
-          ``Rational Field`` (if ``True``).
 
         OUTPUT:
 
@@ -1014,7 +1008,7 @@ class AsymptoticExpansionGenerators(SageObject):
         from sage.rings.integer_ring import ZZ
         if not (beta in ZZ and delta in ZZ):
             raise ValueError("beta and delta must be integers")
-        result = AsymptoticExpansionGenerators.SingularityAnalysis(var, zeta, alpha, beta, delta, precision, skip_constant_factor)
+        result = AsymptoticExpansionGenerators.SingularityAnalysis(var, zeta, alpha, beta, delta, precision)
         n = result.parent()(var)
         return result.subs({n: n-(beta+delta)})
 

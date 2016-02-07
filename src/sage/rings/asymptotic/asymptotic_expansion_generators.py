@@ -796,6 +796,16 @@ class AsymptoticExpansionGenerators(SageObject):
 
         SCR = SR.subring(no_variables=True)
         s = SR('s')
+        iga = 1/gamma(alpha)
+        if iga.parent() is SR:
+            try:
+                iga = SCR(iga)
+            except TypeError:
+                pass
+
+        coefficient_ring = iga.parent()
+        if beta != 0:
+            coefficient_ring = SCR
 
         @cached_function
         def inverse_gamma_derivative(alpha, r):
@@ -809,7 +819,7 @@ class AsymptoticExpansionGenerators(SageObject):
                 result = limit((1/gamma(s)).diff(s, r), s=alpha)
 
             try:
-                return SCR(result)
+                return coefficient_ring(result)
             except TypeError:
                 return result
 
@@ -836,7 +846,7 @@ class AsymptoticExpansionGenerators(SageObject):
             groups.append(MonomialGrowthGroup(beta.parent(), 'log({})'.format(var)))
 
         group = cartesian_product(groups)
-        A = AsymptoticRing(growth_group=group, coefficient_ring=SCR,
+        A = AsymptoticRing(growth_group=group, coefficient_ring=coefficient_ring,
                            default_prec=precision)
         n = A.gen()
 

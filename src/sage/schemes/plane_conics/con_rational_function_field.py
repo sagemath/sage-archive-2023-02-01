@@ -22,16 +22,11 @@ EXAMPLES:
         X^2 + Y^2 - Z^2
     
     Points can be found using :meth:`has_rational_point`::
-
+    
         sage: K.<t> = FractionField(QQ['t'])
         sage: C = Conic([1,-t,t])
         sage: C.has_rational_point(point = True)
         (True, (0 : 1 : 1))
-=======
-AUTHORS:
-
-- Lennart Ackermans (2015-12)
-
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Lennart Ackermans <lennart@ackermans.info>
@@ -51,7 +46,7 @@ AUTHORS:
 from sage.rings.all import PolynomialRing
 from sage.matrix.constructor import diagonal_matrix, matrix, block_matrix
 from sage.schemes.plane_conics.con_field import ProjectiveConic_field
-from sage.rings.arith import lcm, gcd
+from sage.arith.all import lcm, gcd
 from sage.modules.free_module_element import vector
 from sage.rings.fraction_field import is_FractionField
 
@@ -138,7 +133,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: K.<t> = FractionField(PolynomialRing(QQ, 't'))
             sage: C = Conic(K, [t^2-2, 2*t^3, -2*t^3-13*t^2-2*t+18])
             sage: C.has_rational_point(point=True)
-            (True, (3 : (t + 1)/t : 1))
+            (True, (-3 : (t + 1)/t : 1))
             sage: R.<t> = FiniteField(23)[]
             sage: C = Conic([2, t^2+1, t^2+5])
             sage: C.has_rational_point()
@@ -149,7 +144,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: R.<t> = F[]
             sage: C = Conic([1,i*t,-t^2+4])
             sage: C.has_rational_point(point = True)
-            verbose 0 (3321: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            verbose 0 (3369: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
             ...
             (True, (-t - 2*i : -2*i : 1))
 
@@ -247,7 +242,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: C = Conic([a,b,c])
             sage: C.has_rational_point(point = True) # long time (4 seconds)
             (True,
-             ((-656766864/2808401*t^17 + 7629961444/2808401*t^16 - 1363042615/8425203*t^15 - 17532289348/2808401*t^14 + 80370059033/25275609*t^13 + 62186354267/126378045*t^12 - 23518543477/8425203*t^11 + 1002057383551/252756090*t^10 - 483841158703/505512180*t^9 - 627776378677/84252030*t^8 - 197829033097/252756090*t^7 + 386127705377/168504060*t^6 - 5215102697/5616802*t^5 - 467719939843/168504060*t^4 - 2315477546/14042005*t^3 + 27472621/8425203*t^2 + 1968144/2808401*t + 1)/(68731416/2808401*t^13 + 2736603738/2808401*t^12 - 27160449273/5616802*t^11 - 1729441596/2808401*t^10 - 11457685821/5616802*t^9 + 13738260095/11233604*t^8 - 10164360733/5616802*t^7 - 424499058/2808401*t^6 - 3902993449/5616802*t^5 + 1816361849/5616802*t^4 - 50063550/2808401*t^3 + 28408652/2808401*t^2 - 91042314/2808401*t - 117438342/2808401) : (128259480/2808401*t^17 + 9285060358/8425203*t^16 - 149195572469/5616802*t^15 + 1532672896471/16850406*t^14 + 46038188783/5616802*t^13 + 1373933278223/33700812*t^12 - 881883150035/33700812*t^11 + 95661583174/2808401*t^10 + 29359089785/16850406*t^9 + 117023077750/8425203*t^8 - 17302584514/2808401*t^7 + 2589004292/8425203*t^6 - 1272847971/5616802*t^5 + 1699958080/2808401*t^4 + 2240928879/2808401*t^3 - 380835/2808401*t^2 - 78120/2808401*t - 117180/2808401)/(68731416/2808401*t^13 + 2736603738/2808401*t^12 - 27160449273/5616802*t^11 - 1729441596/2808401*t^10 - 11457685821/5616802*t^9 + 13738260095/11233604*t^8 - 10164360733/5616802*t^7 - 424499058/2808401*t^6 - 3902993449/5616802*t^5 + 1816361849/5616802*t^4 - 50063550/2808401*t^3 + 28408652/2808401*t^2 - 91042314/2808401*t - 117438342/2808401) : 1))
+             ((-2/117*t^8 + 304/1053*t^7 + 40/117*t^6 - 1/27*t^5 - 110/351*t^4 - 2/195*t^3 + 11/351*t^2 + 1/117)/(t^4 + 2/39*t^3 + 4/117*t^2 + 2/39*t + 14/39) : -5/3*t^4 + 19*t^3 : 1))
         """
         from constructor import Conic
         
@@ -464,7 +459,7 @@ for function field of characteristic 2.")
             sage: K.<t> = FractionField(QQ['t'])
             sage: C = Conic(K, [t^2-2, 2*t^3, -2*t^3-13*t^2-2*t+18])
             sage: C.has_rational_point(point=True) # indirect test
-            (True, (3 : (t + 1)/t : 1))
+            (True, (-3 : (t + 1)/t : 1))
 
         Different solubility certificates give different points::
 

@@ -10,6 +10,7 @@ cd src
 
 # PATCH
 for patch in ../patches/*.patch; do
+    [ -f "$patch" ] || continue
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error: Patch \"$patch\" failed to apply."

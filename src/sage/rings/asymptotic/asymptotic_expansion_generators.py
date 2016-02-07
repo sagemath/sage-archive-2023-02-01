@@ -69,6 +69,7 @@ AUTHORS:
 
 - Daniel Krenn (2015)
 - Clemens Heuberger (2016)
+- Benjamin Hackl (2016)
 
 
 ACKNOWLEDGEMENT:
@@ -681,6 +682,29 @@ class AsymptoticExpansionGenerators(SageObject):
             Asymptotic Ring <n^(Symbolic Subring rejecting the variable n)>
             over Symbolic Subring rejecting the variable n
 
+        ::
+
+            sage: ae = asymptotic_expansions.SingularityAnalysis('n',
+            ....:          alpha=1/2, beta=1, precision=4); ae
+            1/sqrt(pi)*n^(-1/2)*log(n) + ((euler_gamma + 2*log(2))/sqrt(pi))*n^(-1/2)
+            - 5/8/sqrt(pi)*n^(-3/2)*log(n) + (1/8*(3*euler_gamma + 6*log(2) - 8)/sqrt(pi)
+            - (euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2) + O(n^(-5/2)*log(n))
+            sage: n = ae.parent().gen()
+            sage: ae.subs(n=n-1)
+            1/sqrt(pi)*n^(-1/2)*log(n) + ((euler_gamma + 2*log(2))/sqrt(pi))*n^(-1/2)
+            - 1/8/sqrt(pi)*n^(-3/2)*log(n) + (1/8*(3*euler_gamma + 6*log(2) - 8)/sqrt(pi)
+            + 1/2*(euler_gamma + 2*log(2))/sqrt(pi) - (euler_gamma + 2*log(2) - 2)/sqrt(pi)
+            - 1/sqrt(pi))*n^(-3/2) + O(n^(-5/2)*log(n))
+
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis('n',
+            ....:     alpha=1, beta=1/2, precision=4)
+            log(n)^(1/2) + 1/2*euler_gamma*log(n)^(-1/2)
+            + (-1/8*euler_gamma^2 + 1/48*pi^2)*log(n)^(-3/2)
+            + (1/16*euler_gamma^3 - 1/32*euler_gamma*pi^2 + 1/8*zeta(3))*log(n)^(-5/2)
+            + O(log(n)^(-7/2))
+
         ALGORITHM:
 
         See [FS2009]_ together with the
@@ -798,7 +822,67 @@ class AsymptoticExpansionGenerators(SageObject):
             raise NotImplementedError
 
         elif beta != 0:
-            raise NotImplementedError
+            if skip_constant_factor:
+                raise NotImplementedError('Cannot skip constant factor '
+                                          'when logarithmic terms occur')
+            from growth_group import ExponentialGrowthGroup, \
+                MonomialGrowthGroup
+            from sage.categories.cartesian_product import cartesian_product
+
+            if zeta == 1:
+                group = cartesian_product(
+                    [MonomialGrowthGroup(alpha.parent(), var),
+                     MonomialGrowthGroup(beta.parent(), 'log({})'.format(var))])
+            else:
+                group = cartesian_product(
+                    [ExponentialGrowthGroup((1/zeta).parent(), var),
+                     MonomialGrowthGroup(alpha.parent(), var),
+                     MonomialGrowthGroup(beta.parent(), 'log({})'.format(var))])
+
+            A = AsymptoticRing(growth_group=group, coefficient_ring=SR,
+                               default_prec=precision)
+            n = A.gen()
+
+            if zeta == 1:
+                exponential_factor = 1
+            else:
+                exponential_factor = n.rpow(1/zeta)
+
+            if beta in ZZ and beta > 0:
+                from itertools import chain, islice, count
+                from sage.functions.other import binomial
+                from sage.calculus.calculus import limit
+                L = _sa_coefficients_lambda_(precision, beta=beta)
+                s = SR('s')
+                summands = chain.from_iterable(
+                    iter(
+                        iter(binomial(beta, r) * sum(L[(k, ell)] * (-1)**ell *
+                                                     limit((1/gamma(s)).diff(s, r),
+                                                           s=alpha-ell)
+                                                     for ell in srange(k, 2*k+1)
+                                                     if (k, ell) in L) *
+                             n**(-k) * n.log()**(-r)
+                             for r in srange(beta+1))
+                        for k in count()))
+                contribution = sum(islice(summands, precision))
+                error_term = next(summands)
+                while error_term.is_zero():
+                    error_term = next(summands)
+
+                return exponential_factor * n**(alpha-1) * n.log()**beta * \
+                            (contribution + error_term.O())
+            else:
+                from itertools import count, islice
+                from sage.functions.other import binomial
+                from sage.calculus.calculus import limit
+                s = SR('s')
+                summands = iter(binomial(beta, k) *
+                                limit((1/gamma(s)).diff(s, k), s=alpha) *
+                                n.log() ** (-k) for k in count())
+
+                return exponential_factor * n**(alpha-1) * n.log()**beta * \
+                            (sum(islice(summands, precision)) +
+                             (n.log()**(-precision)).O())
 
         elif alpha != 0:
 
@@ -826,7 +910,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
             A = AsymptoticRing(
                 growth_group=group,
-                coefficient_ring=iga.parent())
+                coefficient_ring=iga.parent(), default_prec=precision)
             n = A.gen()
 
             if zeta == 1:
@@ -895,13 +979,16 @@ def _sa_coefficients_e_(K, alpha):
                  for k in srange(K))
 
 
-def _sa_coefficients_lambda_(K):
+def _sa_coefficients_lambda_(K, beta=0):
     r"""
-    Return the coefficients `\lambda_{k, \ell}` used in singularity analysis.
+    Return the coefficients `\lambda_{k, \ell}(\beta)` used in singularity analysis.
 
     INPUT:
 
     - ``K`` -- an integer.
+
+    - ``beta`` -- (default: `0`) the order of the logarithmic
+      singularity.
 
     OUTPUT:
 
@@ -925,6 +1012,16 @@ def _sa_coefficients_lambda_(K):
          (3, 3): -1,
          (3, 4): 13/12,
          (4, 4): 1}
+        sage: _sa_coefficients_lambda_(3, beta=1)
+        {(0, 0): 1,
+         (1, 1): -2,
+         (1, 2): 1/2,
+         (2, 2): 3,
+         (2, 3): -4/3,
+         (2, 4): 1/8,
+         (3, 3): -4,
+         (3, 4): 29/12,
+         (4, 4): 5}
     """
     from sage.rings.laurent_series_ring import LaurentSeriesRing
     from sage.rings.power_series_ring import PowerSeriesRing
@@ -935,7 +1032,7 @@ def _sa_coefficients_lambda_(K):
     T = PowerSeriesRing(V, names='t', default_prec=2*K-1)
     t = T.gen()
 
-    S = (t - (1+1/v) * (1+v*t).log()).exp()
+    S = (t - (1 +1/v+beta) * (1+v*t).log()).exp()
     return dict(((k + L.valuation(), ell), c)
                 for ell, L in enumerate(S.list())
                 for k, c in enumerate(L.list()))

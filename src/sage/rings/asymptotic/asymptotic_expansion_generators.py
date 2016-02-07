@@ -785,6 +785,7 @@ class AsymptoticExpansionGenerators(SageObject):
         from asymptotic_ring import AsymptoticRing
         from growth_group import ExponentialGrowthGroup, \
                 MonomialGrowthGroup
+        from sage.arith.all import falling_factorial
         from sage.categories.cartesian_product import cartesian_product
         from sage.functions.other import binomial, gamma
         from sage.calculus.calculus import limit
@@ -808,15 +809,15 @@ class AsymptoticExpansionGenerators(SageObject):
             coefficient_ring = SCR
 
         @cached_function
-        def inverse_gamma_derivative(alpha, r):
+        def inverse_gamma_derivative(shift, r):
             """
             Return value of `r`-th derivative of 1/Gamma
-            at alpha.
+            at alpha-shift.
             """
             if r == 0:
-                result =  1/gamma(alpha)
+                result =  iga*falling_factorial(alpha-1, shift)
             else:
-                result = limit((1/gamma(s)).diff(s, r), s=alpha)
+                result = limit((1/gamma(s)).diff(s, r), s=alpha-shift)
 
             try:
                 return coefficient_ring(result)
@@ -888,7 +889,7 @@ class AsymptoticExpansionGenerators(SageObject):
         for (k, r) in it:
             result += binomial(beta, r) * \
                 sum(L[(k, ell)] * (-1)**ell *
-                    inverse_gamma_derivative(alpha-ell, r)
+                    inverse_gamma_derivative(ell, r)
                     for ell in srange(k, 2*k+1)
                     if (k, ell) in L) * \
                 n**(-k) * log_n **(-r)

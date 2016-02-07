@@ -27,6 +27,11 @@ EXAMPLES:
         sage: C = Conic([1,-t,t])
         sage: C.has_rational_point(point = True)
         (True, (0 : 1 : 1))
+=======
+AUTHORS:
+
+- Lennart Ackermans (2015-12)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Lennart Ackermans <lennart@ackermans.info>

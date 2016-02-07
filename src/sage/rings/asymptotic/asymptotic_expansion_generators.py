@@ -591,7 +591,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     @staticmethod
     def SingularityAnalysis(var, zeta=1, alpha=0, beta=0, delta=0,
-                            precision=None, skip_constant_factor=False):
+                            precision=None):
         r"""
         Return the asymptotic expansion of the coefficients of
         an power series with specified pole and logarithmic singularity.
@@ -621,12 +621,6 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
-
-        - ``skip_constant_factor`` -- (default: ``False``) a
-          boolean. If set, then the constant factor is left out.
-          As a consequence, the coefficient ring of the output changes
-          from ``Symbolic Constants Subring`` (if ``False``) to
-          ``Rational Field`` (if ``True``).
 
         OUTPUT:
 
@@ -760,18 +754,6 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: _.parent()
             Asymptotic Ring <m^QQ> over Symbolic Constants Subring
 
-        Skip constant factor::
-
-            sage: asymptotic_expansions.SingularityAnalysis(
-            ....:     'm', alpha=-1/2, precision=3,
-            ....:     skip_constant_factor=True)
-            m^(-3/2)
-            + 3/8*m^(-5/2)
-            + 25/128*m^(-7/2)
-            + O(m^(-9/2))
-            sage: _.parent()
-            Asymptotic Ring <m^QQ> over Rational Field
-
         Location of the singularity::
 
             sage: asymptotic_expansions.SingularityAnalysis(
@@ -821,9 +803,6 @@ class AsymptoticExpansionGenerators(SageObject):
             raise NotImplementedError
 
         elif beta != 0:
-            if skip_constant_factor:
-                raise NotImplementedError('Cannot skip constant factor '
-                                          'when logarithmic terms occur')
             from growth_group import ExponentialGrowthGroup, \
                 MonomialGrowthGroup
             from sage.categories.cartesian_product import cartesian_product
@@ -885,15 +864,12 @@ class AsymptoticExpansionGenerators(SageObject):
 
         elif alpha != 0:
 
-            if skip_constant_factor:
-                iga = QQ(1)
-            else:
-                iga = QQ(1) / gamma(alpha)
-                if iga.parent() is SR:
-                    try:
-                        iga = SCR(iga)
-                    except TypeError:
-                        pass
+            iga = QQ(1) / gamma(alpha)
+            if iga.parent() is SR:
+                try:
+                    iga = SCR(iga)
+                except TypeError:
+                    pass
 
             from growth_group import ExponentialGrowthGroup, \
                 MonomialGrowthGroup

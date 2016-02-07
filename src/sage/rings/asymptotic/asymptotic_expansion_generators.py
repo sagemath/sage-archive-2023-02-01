@@ -938,6 +938,80 @@ class AsymptoticExpansionGenerators(SageObject):
             return AsymptoticRing(growth_group='%s^ZZ' % (var,),
                                   coefficient_ring=QQ).zero()
 
+    @staticmethod
+    def _SingularityAnalysis_non_normalized_(var, zeta=1, alpha=0, beta=0, delta=0,
+                            precision=None, skip_constant_factor=False):
+        r"""
+        Return the asymptotic expansion of the coefficients of
+        an power series with specified pole and logarithmic singularity
+        (without normalization).
+
+        More precisely, this extracts the `n`-th coefficient
+
+        .. MATH::
+
+            [z^n] \left(\frac{1}{1-z}\right)^\alpha
+            \left( \log \frac{1}{1-z}\right)^\beta
+            \left( \log
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``zeta`` -- (default: `1`) the location of the singularity.
+
+        - ``alpha`` -- (default: `0`) the pole order of the singularty.
+
+        - ``beta`` -- an integer (default: `0`): the order of the logarithmic singularity.
+
+        - ``delta`` -- an integer (default: `0`): the order of the log-log singularity.
+          Not yet implemented for ``delta != 0``.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+        - ``skip_constant_factor`` -- (default: ``False``) a
+          boolean. If set, then the constant factor is left out.
+          As a consequence, the coefficient ring of the output changes
+          from ``Symbolic Constants Subring`` (if ``False``) to
+          ``Rational Field`` (if ``True``).
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
+            ....:     'n', 1, alpha=-1/2, beta=1,  precision=2)
+            -1/2/sqrt(pi)*n^(-3/2)*log(n)
+            + (-1/2*(euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2)
+            + O(n^(-5/2)*log(n))
+
+        .. SEEALSO::
+
+            :meth:`SingularityAnalysis`
+
+        TESTS::
+
+            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
+            ....:     'n', 1, 1, 1/2, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: beta and delta must be integers
+            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
+            ....:     'n', 1, 1, 1, 1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: beta and delta must be integers
+        """
+        from sage.rings.integer_ring import ZZ
+        if not (beta in ZZ and delta in ZZ):
+            raise ValueError("beta and delta must be integers")
+        result = AsymptoticExpansionGenerators.SingularityAnalysis(var, zeta, alpha, beta, delta, precision, skip_constant_factor)
+        n = result.parent()(var)
+        return result.subs({n: n-(beta+delta)})
 
 def _sa_coefficients_e_(K, alpha):
     r"""

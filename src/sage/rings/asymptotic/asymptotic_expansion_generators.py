@@ -957,7 +957,7 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', 1, alpha=-1/2, beta=1,  precision=2) * (- sqrt(pi*n^3))
             1/2*log(n) + 1/2*euler_gamma + log(2) - 1 + O(n^(-1)*log(n))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=0, beta=1,  precision=2)
+            ....:     'n', 1, alpha=0, beta=1,  precision=3)
             n^(-1) + O(n^(-2))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
             ....:     'n', 1, alpha=0, beta=2,  precision=14) * n
@@ -968,11 +968,11 @@ class AsymptoticExpansionGenerators(SageObject):
             log(n) + euler_gamma + 2*log(2) - 1/8*n^(-1)*log(n) +
             (-1/8*euler_gamma - 1/4*log(2))*n^(-1) + O(n^(-2)*log(n))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=1, beta=1,  precision=12)
+            ....:     'n', 1, alpha=1, beta=1,  precision=13)
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             + O(n^(-6))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=1, beta=2,  precision=3)
+            ....:     'n', 1, alpha=1, beta=2,  precision=4)
             log(n)^2 + 2*euler_gamma*log(n) + euler_gamma^2 - 1/6*pi^2
             + O(n^(-1)*log(n))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(

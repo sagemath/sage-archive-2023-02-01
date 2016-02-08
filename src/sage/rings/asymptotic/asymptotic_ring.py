@@ -1263,7 +1263,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             raise ZeroDivisionError(
                 'Division by zero in {}.'.format(self.parent()))
 
-        (max_elem, x) = self._main_term_relative_error_()
+        (imax_elem, x) = self._main_term_relative_error_(return_inverse_main_term=True)
         one = self.parent().one()
         result = one
 
@@ -1277,6 +1277,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 precision=precision)
 
         return result._mul_term_(~max_elem)
+        return result._mul_term_(imax_elem)
 
 
     invert = __invert__

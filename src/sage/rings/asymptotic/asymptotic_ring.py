@@ -1265,7 +1265,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         (imax_elem, x) = self._main_term_relative_error_(return_inverse_main_term=True)
         one = self.parent().one()
-        result = one
 
         if x:
             import itertools
@@ -1275,8 +1274,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 ratio=-x,
                 ratio_start=one,
                 precision=precision)
+        else:
+            result = one
 
-        return result._mul_term_(~max_elem)
         return result._mul_term_(imax_elem)
 
 

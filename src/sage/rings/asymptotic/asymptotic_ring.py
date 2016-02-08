@@ -1238,7 +1238,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<a> = AsymptoticRing(growth_group='a^ZZ', coefficient_ring=ZZ)
             sage: (1 / a).parent()
-            Asymptotic Ring <a^ZZ> over Integer Ring
+            Asymptotic Ring <a^ZZ> over Rational Field
             sage: (a / 2).parent()
             Asymptotic Ring <a^ZZ> over Rational Field
 
@@ -1261,9 +1261,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if not self.summands:
             raise ZeroDivisionError('Cannot invert {}.'.format(self))
 
-        (max_elem, x) = self._main_term_relative_error_()
-        one = self.parent().one()
-        result = one
+        (imax_elem, x) = self._main_term_relative_error_(return_inverse_main_term=True)
+        one = x.parent().one()
 
         if x:
             import itertools
@@ -1273,8 +1272,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 ratio=-x,
                 ratio_start=one,
                 precision=precision)
+        else:
+            result = one
 
-        return result._mul_term_(~max_elem)
+        return result._mul_term_(imax_elem)
 
 
     invert = __invert__
@@ -1966,14 +1967,21 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         return result * large_result
 
-    def _main_term_relative_error_(self):
+
+    def _main_term_relative_error_(self, return_inverse_main_term=False):
         r"""
         Split this asymptotic expansion into `m(1+x)` with `x=o(1)`.
 
+        INPUT:
+
+        - ``return_inverse_main_term`` -- (default: ``False``) a boolean.
+          If set, then the pair `(m^{-1},x)` is returned instead of `(m,x)`.
+
         OUTPUT:
 
-        A pair (``m``, ``x``) of asymptotic expansions such that
-        this expansion equals ``m*(1+x)`` and `x=o(1)`.
+        A pair (``m``, ``x``) consisting of
+        a :mod:`term <sage.rings.asymptotic.term_monoid>` ``m`` and
+        an :class:`asymptotic expansion <AsymptoticExpansion>` ``x``.
 
         EXAMPLES::
 
@@ -1990,6 +1998,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             2*n^2
             sage: x
             1/2*n^(-1)
+            sage: ex._main_term_relative_error_(return_inverse_main_term=True)
+            (1/2*n^(-2), 1/2*n^(-1))
             sage: R(0)._main_term_relative_error_()
             Traceback (most recent call last):
             ...
@@ -2024,7 +2034,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         one = new_self.parent().one()
         x = - one + new_self._mul_term_(imax_elem)
-        return (max_elem, x)
+
+        if return_inverse_main_term:
+            return (imax_elem, x)
+        else:
+            return (max_elem, x)
+
 
     @staticmethod
     def _power_series_(coefficients, start, ratio, ratio_start, precision):

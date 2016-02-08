@@ -1238,7 +1238,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<a> = AsymptoticRing(growth_group='a^ZZ', coefficient_ring=ZZ)
             sage: (1 / a).parent()
-            Asymptotic Ring <a^ZZ> over Integer Ring
+            Asymptotic Ring <a^ZZ> over Rational Field
             sage: (a / 2).parent()
             Asymptotic Ring <a^ZZ> over Rational Field
 
@@ -1264,7 +1264,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 'Division by zero in {}.'.format(self.parent()))
 
         (imax_elem, x) = self._main_term_relative_error_(return_inverse_main_term=True)
-        one = self.parent().one()
+        one = x.parent().one()
 
         if x:
             import itertools

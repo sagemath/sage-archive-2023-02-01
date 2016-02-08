@@ -1753,8 +1753,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        A pair (``m``, ``x``) of asymptotic expansions such that
-        this expansion equals ``m*(1+x)`` and `x=o(1)`.
+        A pair (``m``, ``x``) consisting of
+        a :mod:`term <sage.rings.asymptotic.term_monoid>` ``m`` and
+        an :class:`asymptotic expansion <AsymptoticExpansion>` ``x``.
 
         EXAMPLES::
 

@@ -1247,7 +1247,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: ~A(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Division by zero in 0.
+            ZeroDivisionError: Division by zero in
+            Asymptotic Ring <a^ZZ> over Integer Ring.
 
         ::
 
@@ -1259,7 +1260,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             are several maximal elements s, t.
         """
         if not self.summands:
-            raise ZeroDivisionError('Division by zero in %s.' % (self,))
+            raise ZeroDivisionError(
+                'Division by zero in {}.'.format(self.parent()))
 
         (max_elem, x) = self._main_term_relative_error_()
         one = self.parent().one()

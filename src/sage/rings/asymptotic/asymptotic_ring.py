@@ -1747,9 +1747,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         return result * large_result
 
-    def _main_term_relative_error_(self):
+
+    def _main_term_relative_error_(self, return_inverse_main_term=False):
         r"""
         Split this asymptotic expansion into `m(1+x)` with `x=o(1)`.
+
+        INPUT:
+
+        - ``return_inverse_main_term`` -- (default: ``False``) a boolean.
+          If set, then the pair `(m^{-1},x)` is returned instead of `(m,x)`.
 
         OUTPUT:
 
@@ -1772,6 +1778,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             2*n^2
             sage: x
             1/2*n^(-1)
+            sage: ex._main_term_relative_error_(return_inverse_main_term=True)
+            (1/2*n^(-2), 1/2*n^(-1))
             sage: R(0)._main_term_relative_error_()
             Traceback (most recent call last):
             ...
@@ -1806,7 +1814,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         one = new_self.parent().one()
         x = - one + new_self._mul_term_(imax_elem)
-        return (max_elem, x)
+
+        if return_inverse_main_term:
+            return (imax_elem, x)
+        else:
+            return (max_elem, x)
+
 
     @staticmethod
     def _power_series_(coefficients, start, ratio, ratio_start, precision):

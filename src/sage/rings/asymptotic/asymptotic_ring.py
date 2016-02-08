@@ -283,6 +283,36 @@ Arbitrary powers work as well; for example, we have
     sage: (1 + 1/z + O(1/z^5))^(1 + 1/z)
     1 + z^(-1) + z^(-2) + 1/2*z^(-3) + 1/3*z^(-4) + O(z^(-5))
 
+.. NOTE::
+
+    In the asymptotic ring
+    ::
+
+        sage: M.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ', coefficient_ring=ZZ)
+
+    the operation
+    ::
+
+        sage: (1/2)^n
+        Traceback (most recent call last):
+        ...
+        ValueError: 1/2 is not in Exact Term Monoid QQ^n * n^QQ
+        with coefficients in Integer Ring. ...
+
+    fails, since the rational `1/2` is not contained in `M`. You can use
+    ::
+
+        sage: n.rpow(1/2)
+        (1/2)^n
+
+    instead. (See also the examples in
+    :meth:`ExactTerm.rpow() <sage.rings.asymptotic.term_monoid.ExactTerm.rpow>`
+    for a detailed explanation.)
+    Another way is to use a larger coefficent ring::
+
+        sage: M_QQ.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ', coefficient_ring=QQ)
+        sage: (1/2)^n
+        (1/2)^n
 
 Multivariate Arithmetic
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -441,6 +471,7 @@ from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.superseded import experimental
+from sage.rings.all import RIF
 
 class AsymptoticExpansion(CommutativeAlgebraElement):
     r"""
@@ -2122,6 +2153,236 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
+
+
+    def compare_with_values(self, variable, function, values,
+                            rescaled=True, ring=RIF):
+        """
+        Compute the (rescaled) difference between this asymptotic
+        expansion and the given values.
+
+        INPUT:
+
+        - ``variable`` -- an asymptotic expansion or a string.
+
+        - ``function`` -- a callable or symbolic expression giving the
+          comparison values.
+
+        - ``values`` -- a list or iterable of values where the comparison
+          shall be carried out.
+
+        - ``rescaled`` -- (default: ``True``) determines whether
+          the difference is divided by the error term of the asymptotic
+          expansion.
+
+        - ``ring`` -- (default: ``RIF``) the parent into which the
+          difference is converted.
+
+        OUTPUT:
+
+        A list of pairs containing comparison points and (rescaled)
+        difference values.
+
+        EXAMPLES::
+
+            sage: A.<n> = AsymptoticRing('QQ^n * n^ZZ', SR)
+            sage: catalan = binomial(2*x, x)/(x+1)
+            sage: expansion = 4^n*(1/sqrt(pi)*n^(-3/2)
+            ....:     - 9/8/sqrt(pi)*n^(-5/2)
+            ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
+            sage: expansion.compare_with_values(n, catalan, srange(5, 10))
+            [(5, 0.5303924444775?),
+             (6, 0.5455279498787?),
+             (7, 0.556880411050?),
+             (8, 0.565710587724?),
+             (9, 0.572775029098?)]
+            sage: expansion.compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
+            [(5, 0.3886263699387?), (10, 19.1842458318?), (20, 931314.63637?)]
+            sage: expansion.compare_with_values(n, catalan, [5, 10, 20], rescaled=False, ring=SR)
+            [(5, 168/5*sqrt(5)/sqrt(pi) - 42),
+             (10, 1178112/125*sqrt(10)/sqrt(pi) - 16796),
+             (20, 650486218752/125*sqrt(5)/sqrt(pi) - 6564120420)]
+
+        Instead of a symbolic expression, a callable function can
+        be specified as well::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ * log(n)^ZZ', SR)
+            sage: def H(n):
+            ....:     return sum(1/k for k in srange(1, n+1))
+            sage: H_expansion = (log(n) + euler_gamma + 1/(2*n)
+            ....:                - 1/(12*n^2) + O(n^-4))
+            sage: H_expansion.compare_with_values(n, H, srange(25, 30)) # rel tol 1e-6
+            [(25, -0.008326995?),
+             (26, -0.008327472?),
+             (27, -0.008327898?),
+             (28, -0.00832828?),
+             (29, -0.00832862?)]
+
+        .. SEEALSO::
+
+            :meth:`plot_comparison`
+
+        TESTS::
+
+            sage: A.<x, y> = AsymptoticRing('x^ZZ*y^ZZ', QQ)
+            sage: expansion = x^2 + O(x) + O(y)
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: exactly one error term required
+            sage: expansion = x^2
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: exactly one error term required
+            sage: expansion = x^2 + O(x)
+            sage: expansion.compare_with_values(y, lambda z: z^2, srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NameError: name 'x' is not defined
+            sage: expansion.compare_with_values(x, lambda z: z^2, srange(20, 30))
+            [(20, 0), (21, 0), ..., (29, 0)]
+            sage: expansion.compare_with_values(x, SR('x*y'), srange(20, 30))
+            Traceback (most recent call last):
+            ....
+            NotImplementedError: expression x*y has more than one variable
+        """
+        from term_monoid import OTerm
+        from sage.rings.integer_ring import ZZ
+
+        main = self.exact_part()
+        error = self - main
+        error_terms = list(error.summands)
+        if len(error_terms) != 1:
+            raise NotImplementedError("exactly one error term required")
+        if not isinstance(error_terms[0], OTerm):
+            raise NotImplementedError("{} is not an O term".format(error))
+        error_growth = error_terms[0].growth
+
+        if hasattr(function, 'variables'):
+            expr = function
+            vars = expr.variables()
+            if len(vars) > 1:
+                raise NotImplementedError("expression {} has more than one "
+                                          "variable".format(expr))
+            elif len(vars) == 1:
+                v = vars[0]
+                def function(arg):
+                    return expr.subs({v: arg})
+            else:
+                def function(arg):
+                    return expr
+
+        if rescaled:
+            points = list(
+                (k, ring((main.subs({variable: k}) - function(k)) /
+                         error_growth._substitute_({str(variable): k,
+                                                    '_one_': ZZ(1)})))
+                for k in values)
+        else:
+            points = list(
+                (k, ring(main.subs({variable: k}) - function(k)))
+                for k in values)
+
+        return points
+
+
+    def plot_comparison(self, variable, function, values, rescaled=True,
+                        ring=RIF, relative_tolerance=0.025, **kwargs):
+        r"""
+        Plot the (rescaled) difference between this asymptotic
+        expansion and the given values.
+
+        INPUT:
+
+        - ``variable`` -- an asymptotic expansion or a string.
+
+        - ``function`` -- a callable or symbolic expression giving the
+          comparison values.
+
+        - ``values`` -- a list or iterable of values where the comparison
+          shall be carried out.
+
+        - ``rescaled`` -- (default: ``True``) determines whether
+          the difference is divided by the error term of the asymptotic
+          expansion.
+
+        - ``ring`` -- (default: ``RIF``) the parent into which the
+          difference is converted.
+
+        - ``relative_tolerance`` -- (default: ``0.025``). Raise error
+          when relative error exceeds this tolerance.
+
+        Other keyword arguments are passed to :func:`list_plot`.
+
+        OUTPUT:
+
+        A graphics object.
+
+        .. NOTE::
+
+            If rescaled (i.e. divided by the error term), the output
+            should be bounded.
+
+            This method is mainly meant to have an easily usable
+            plausability check for asymptotic expansion created in
+            some way.
+
+        EXAMPLES:
+
+        We want to check the quality of the asymptotic expansion of
+        the harmonic numbers::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ * log(n)^ZZ', SR)
+            sage: def H(n):
+            ....:     return sum(1/k for k in srange(1, n+1))
+            sage: H_expansion = (log(n) + euler_gamma + 1/(2*n)
+            ....:                - 1/(12*n^2) + O(n^-4))
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30))
+            Graphics object consisting of 1 graphics primitive
+
+        Alternatively, the unscaled (absolute) difference can be
+        plotted as well::
+
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30),
+            ....:                             rescaled=False)
+            Graphics object consisting of 1 graphics primitive
+
+        Additional keywords are passed to :func:`list_plot`::
+
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30),
+            ....:                             plotjoined=True, marker='o',
+            ....:                             color='green')
+            Graphics object consisting of 1 graphics primitive
+
+        .. SEEALSO::
+
+            :meth:`compare_with_values`
+
+        TESTS::
+
+            sage: H_expansion.plot_comparison(n, H, [600])
+            Traceback (most recent call last):
+            ...
+            ValueError: Numerical noise is too high, the comparison is inaccurate
+            sage: H_expansion.plot_comparison(n, H, [600], relative_tolerance=2)
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.plot import list_plot
+        points = self.compare_with_values(variable, function,
+                                          values, rescaled=rescaled, ring=ring)
+
+        from sage.rings.real_mpfi import RealIntervalField_class
+        if isinstance(ring, RealIntervalField_class):
+            if not all(p[1].relative_diameter() <= relative_tolerance for p in points):
+                raise ValueError('Numerical noise is too high, the '
+                                 'comparison is inaccurate')
+
+            # RIFs cannot be plotted, they need to be converted to RR
+            # (see #15011).
+            points = [(p[0], p[1].center()) for p in points]
+
+        return list_plot(points, **kwargs)
 
 
     def symbolic_expression(self, R=None):

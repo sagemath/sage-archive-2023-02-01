@@ -1,10 +1,13 @@
 r"""
 Partial cubes
 
-The code in this module is originally from the PADS library by David Eppstein,
-which is available at http://www.ics.uci.edu/~eppstein/PADS/ under the MIT
-license. The algorithm for partial cube recognition in quadratic time has been
-described in [Eppstein2008]_.
+The code in this module that recognizes partial cubes is originally
+from the PADS library by David Eppstein, which is available at
+http://www.ics.uci.edu/~eppstein/PADS/ under the MIT license. It takes
+a quadratic time and has been described in [Eppstein2008]_.
+
+For more information on partial cubes, see the
+:wikipedia:`Partial_cube`.
 
 REFERENCE:
 
@@ -12,6 +15,60 @@ REFERENCE:
   "Recognizing partial cubes in quadratic time",
   J. Graph Algorithms and Applications 15 (2): 269-293, 2011.
   Available at http://arxiv.org/abs/0705.1025
+
+Definitions
+-----------
+
+A **partial cube** is an isometric subgraph `G` of a
+:meth:`~sage.graphs.graph_generators.GraphGenerators.CubeGraph` (of
+possibly high dimension). Consequently, the vertices of `G` can be
+labelled with binary sequences in such a way that the distance between
+two vertices `u,v\in G` is the hamming distance between their labels.
+
+**Tokens** and their **action**: in the terminology of
+[Eppstein2008]_, a token represents a transition of the form:
+
+    *switch the k-th bit of the binary string from 0 to 1*
+
+Each token can be matched with a 'reversed' token, that performs the
+same switch in the opposite direction. Alternatively, a token can be
+seen as a set of disjoint (directed) edges of `G`, corresponding to
+the transitions. When a vertex `v\in G` is the source of such an edge,
+it is said that the token *acts* on `v`.
+
+Observations
+------------
+
+**Shortest paths**: in a hypercube, a shortest path between two
+vertices uses each token at most once. Furthermore, it cannot use both
+a token and it reverse.
+
+**Cycles**: a cycle in a partial cube is necessarily even, as
+hypercubes are bipartite. If an edge `e` of a cycle `C` belongs to a
+token `T`, then the edge opposite to `e` in `C` belongs to the reverse
+of `T`.
+
+**Incident edges**: all `2d_G(v)` arcs incident to a given vertex
+belong to as many different tokens.
+
+Recognition algorithm
+---------------------
+
+**Labeling**: Iteratively, the algorithm selects a vertex `v\in G`,
+which is naturally associated to `2d(v)` tokens. It then performs a
+breadth-first search from `v`, applying the previous observation on
+cycles to attribute a token to some of the edges it meets. None of the
+edges whose token remains undecided after this step can belong to one
+of those `2d(v)` tokens, by virtue of the observation on shortest
+paths.
+
+The labeled edges can then be simplified (contracted) if the previous
+step did not lead to a contradiction, and the procedure is applied
+again until the graph is empty and all edges are labeled.
+
+A partial cube is correctly labeled at this step, but some other
+graphs can also satisfy procedure. The remaining part of the
+algorithms checks (efficiently) that the labeling is consistent.
 
 Functions
 ---------
@@ -35,11 +92,12 @@ def breadth_first_level_search(G, start, ignore_direction=False, neighbors=None)
       graphs. If ``True``, searches across edges in either direction.
 
     - ``neighbors`` -- a function giving the neighbors of a vertex.
-      The function should take a vertex and return a list of
-      vertices.  For a graph, ``neighbors`` is by default the
-      :meth:`~GenericGraph.neighbor_iterator` function of the graph. For a
-      digraph, the ``neighbors`` function defaults to the
-      :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
+      The function should take a vertex and return a list of vertices.
+      For a graph, ``neighbors`` is by default the
+      :meth:`~sage.graphs.generic_graph.GenericGraph.neighbor_iterator`
+      function of the graph. For a digraph, the ``neighbors`` function
+      defaults to the :meth:`~DiGraph.neighbor_out_iterator` function
+      of the graph.
 
     EXAMPLE::
 
@@ -91,11 +149,12 @@ def depth_first_traversal(G, start, ignore_direction=False,
       If True, searches across edges in either direction.
 
     - ``neighbors`` -- a function giving the neighbors of a vertex.
-      The function should take a vertex and return a list of
-      vertices.  For a graph, ``neighbors`` is by default the
-      :meth:`~GenericGraph.neighbor_iterator` function of the graph. For a
-      digraph, the ``neighbors`` function defaults to the
-      :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
+      The function should take a vertex and return a list of vertices.
+      For a graph, ``neighbors`` is by default the
+      :meth:`~sage.graphs.generic_graph.GenericGraph.neighbor_iterator`
+      function of the graph. For a digraph, the ``neighbors`` function
+      defaults to the :meth:`~DiGraph.neighbor_out_iterator` function
+      of the graph.
 
     OUTPUT:
 
@@ -150,8 +209,10 @@ def is_partial_cube(G, certificate=False):
     equals the Hamming distance of their labels.
 
     Originally written by D. Eppstein for the PADS library
-    (http://www.ics.uci.edu/~eppstein/PADS/), see also [Eppstein2008]_.
-    The algorithm runs in O(n^2) time, where n is the number of vertices.
+    (http://www.ics.uci.edu/~eppstein/PADS/), see also
+    [Eppstein2008]_.  The algorithm runs in `O(n^2)` time, where `n`
+    is the number of vertices. See the documentation of
+    :mod:`~sage.graphs.partial_cube` for an overview of the algorithm.
 
     INPUT:
 
@@ -311,17 +372,21 @@ def is_partial_cube(G, certificate=False):
     # Make a digraph with edges labeled by the equivalence classes in unionfind
     g = DiGraph({v: {w: unionfind.find((v, w)) for w in G[v]} for v in G})
 
-    # Check that no two edges on a single vertex have the same label
-    action = {v: set() for v in g}
+    # Associates to a vertex the token that acts on it, an check that
+    # no two edges on a single vertex have the same label
+    action = {}
+    for v in g:
+        action[v] = set(t for _, _, t in g.edge_iterator(v))
+        if len(action[v]) != g.out_degree(v):
+            return fail
+
+    # Associate every token to its reverse
     reverse = {}
     for v, w, t in g.edge_iterator():
-        if t in action[v]:
-            return fail
-        action[v].add(t)
         rt = g.edge_label(w, v)
-        if t not in reverse:
-            reverse[t] = rt
-            reverse[rt] = t
+        reverse[t] = rt
+        reverse[rt] = t
+
     current = initialState = next(g.vertex_iterator())
 
     # Find list of tokens that lead to the initial state

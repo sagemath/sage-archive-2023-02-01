@@ -7,7 +7,7 @@ http://www.ics.uci.edu/~eppstein/PADS/ under the MIT license. It takes
 a quadratic time and has been described in [Eppstein2008]_.
 
 For more information on partial cubes, see the
-:wikipedia:`Partial_cube`.
+:wikipedia:`Partial cube`.
 
 REFERENCE:
 
@@ -23,14 +23,14 @@ A **partial cube** is an isometric subgraph `G` of a
 :meth:`~sage.graphs.graph_generators.GraphGenerators.CubeGraph` (of
 possibly high dimension). Consequently, the vertices of `G` can be
 labelled with binary sequences in such a way that the distance between
-two vertices `u,v\in G` is the hamming distance between their labels.
+two vertices `u,v\in G` is the Hamming distance between their labels.
 
 **Tokens** and their **action**: in the terminology of
 [Eppstein2008]_, a token represents a transition of the form:
 
     *switch the k-th bit of the binary string from 0 to 1*
 
-Each token can be matched with a 'reversed' token, that performs the
+Each token can be matched with a 'reversed' token that performs the
 same switch in the opposite direction. Alternatively, a token can be
 seen as a set of disjoint (directed) edges of `G`, corresponding to
 the transitions. When a vertex `v\in G` is the source of such an edge,
@@ -401,16 +401,16 @@ def is_partial_cube(G, certificate=False):
     activeTokens = list(activeTokens)
 
     # Rest of data structure: point from states to list and list to states
-    activeForState = {v: -1 for v in g}
-    statesForPos = [[] for i in activeTokens]
+    state_to_active_token = {v: -1 for v in g}
+    token_to_states = [[] for i in activeTokens]
 
     def scan(v):
         """Find the next token that is effective for v."""
-        a = next(i for i in range(activeForState[v]+1, len(activeTokens))
+        a = next(i for i in range(state_to_active_token[v]+1, len(activeTokens))
                  if activeTokens[i] is not None
                     and activeTokens[i] in action[v])
-        activeForState[v] = a
-        statesForPos[a].append(v)
+        state_to_active_token[v] = a
+        token_to_states[a].append(v)
 
     # Initialize isometric embedding into a hypercube
     if certificate:
@@ -439,12 +439,12 @@ def is_partial_cube(G, certificate=False):
 
         # Add token to end of list, point to it from old state
         activeTokens.append(g.edge_label(prev, current))
-        activeForState[prev] = len(activeTokens) - 1
-        statesForPos.append([prev])
+        state_to_active_token[prev] = len(activeTokens) - 1
+        token_to_states.append([prev])
 
         # Inactivate reverse token, find new token for its states
-        activeTokens[activeForState[current]] = None
-        for v in statesForPos[activeForState[current]]:
+        activeTokens[state_to_active_token[current]] = None
+        for v in token_to_states[state_to_active_token[current]]:
             if v != current:
                 try:
                     scan(v)

@@ -236,6 +236,11 @@ def is_partial_cube(G, certificate=False):
     if 1 << (2*G.size()//n) > n:
         return fail
 
+    # Check for bipartiteness.
+    # This ensures also that each contraction will be bipartite.
+    if not G.is_bipartite():
+        return fail
+
     # Set up data structures for algorithm:
     # - contracted: contracted graph at current stage of algorithm
     # - unionfind: union find data structure representing known edge equivalences
@@ -249,11 +254,8 @@ def is_partial_cube(G, certificate=False):
 
     # Main contraction loop in place of the original algorithm's recursion
     while contracted.order() > 1:
-        if not Graph(contracted).is_bipartite():
-            return fail
-
         # Find max degree vertex in contracted, and update label limit
-        deg, root = max((len(contracted[v]), v) for v in contracted)
+        deg, root = max((contracted.out_degree(v), v) for v in contracted)
         if deg > available:
             return fail
         available -= deg

@@ -521,7 +521,7 @@ cdef class ntl_mat_GF2E(object):
             [a^2 + 1 a^2 + a]
         """
         if k is None:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             f = self.c.m._sage_()
             e = GF2E_degree()
             k = FiniteField(2**e, name='a', modulus=f)

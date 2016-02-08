@@ -20,7 +20,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.arith.all import lcm
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.sets.all                 import Set
 from sage.misc.misc                import subsets
 

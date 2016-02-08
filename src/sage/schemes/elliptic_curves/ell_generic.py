@@ -552,23 +552,28 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
     def _reduce_point(self, R, p):
         r"""
-        Reduces a point R on an ellipitc curve to the corresponding point on
-        the elliptic curve reduced modulo p. Used to coerce points between
+        Reduces a point R on an elliptic curve to the corresponding point on
+        the elliptic curve reduced modulo p.
+
+        Used to coerce points between
         curves when p is a factor of the denominator of one of the
         coordinates.
 
-        This functionality is used internally in the \code{call} method for
+        This functionality is used internally in the ``call`` method for
         elliptic curves.
 
         INPUT:
-            R -- a point on an elliptic curve
-            p -- a prime
+
+        - R -- a point on an elliptic curve
+        - p -- a prime
 
         OUTPUT:
-            S -- the corresponding point of the elliptic curve containing R, but
-                 reduced modulo p
+
+        S -- the corresponding point of the elliptic curve containing
+           R, but reduced modulo p
 
         EXAMPLES:
+
         Suppose we have a point with large height on a rational elliptic curve
         whose denominator contains a factor of 11::
 

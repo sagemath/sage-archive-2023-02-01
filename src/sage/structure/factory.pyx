@@ -151,7 +151,7 @@ cdef class UniqueFactory(SageObject):
 
     The below examples are rather artificial and illustrate particular
     aspects. For a "real-life" usage case of ``UniqueFactory``, see
-    the finite field factory in :mod:`sage.rings.finite_rings.constructor`.
+    the finite field factory in :mod:`sage.rings.finite_rings.finite_field_constructor`.
 
     In many cases, a factory class is implemented by providing the two
     methods :meth:`create_key` and :meth:`create_object`. In our example,

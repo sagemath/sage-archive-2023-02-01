@@ -487,7 +487,6 @@ import itertools
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.structure.sage_object import SageObject
-from sage.structure.parent_gens import ParentWithGens
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement
 from sage.rings.complex_field import ComplexField
@@ -495,7 +494,6 @@ from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIn
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField

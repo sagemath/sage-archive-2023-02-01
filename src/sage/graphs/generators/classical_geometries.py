@@ -22,7 +22,7 @@ from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
 from sage.arith.all import is_prime_power
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
@@ -1181,7 +1181,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
 
     """
     from sage.modules.free_module_element import free_module_element as vector
-    from sage.rings.finite_rings.constructor import GF
+    from sage.rings.finite_rings.finite_field_constructor import GF
     from itertools import combinations
 
     p, k = is_prime_power(q,get_data=True)

@@ -228,6 +228,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
+- Clemens Heuberger (2016)
 
 ACKNOWLEDGEMENT:
 
@@ -1395,6 +1396,37 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         substitute_raise_exception(self, TypeError(
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
+
+    def _singularity_analysis_(self, singularity, var, precision):
+        r"""
+        Perform singularity analysis on this growth element.
+
+        INPUT:
+
+        - ``singularity`` -- a number
+
+        - ``var`` -- a string denoting the variable
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        and `f` has this growth element as a singular expansion
+        in `1-z\rho\to 0` where `\rho` stands for ``singularity``.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: G(raw_element=2)._singularity_analysis_(2, 'n', 3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity anaylysis not implemented
+            in GenericGrowthGroup
+        """
+        raise NotImplementedError("singularity anaylysis not implemented "
+            "in GenericGrowthGroup")
 
 
 class GenericGrowthGroup(

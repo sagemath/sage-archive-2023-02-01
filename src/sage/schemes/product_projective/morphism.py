@@ -5,7 +5,7 @@ This class builds on the projective space class and its point and morphism class
 
 EXAMPLES::
 
-    sage: P1xP1.<x,y, u,v> = ProductProjectiveSpaces(QQ,[1,1])
+    sage: P1xP1.<x,y,u,v> = ProductProjectiveSpaces(QQ, [1, 1])
     sage: H = End(P1xP1)
     sage: H([x^2*u, y^2*v, x*v^2, y*u^2])
     Scheme endomorphism of Product of projective spaces P^1 x P^1 over Rational Field
@@ -32,9 +32,9 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
     EXAMPLES::
 
-        sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
+        sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
         sage: H = T.Hom(T)
-        sage: H([x^2,y^2,z^2,w^2,u^2])
+        sage: H([x^2, y^2, z^2, w^2, u^2])
         Scheme endomorphism of Product of projective spaces P^2 x P^1 over Rational Field
           Defn: Defined by sending (x : y : z , w : u) to 
                 (x^2 : y^2 : z^2 , w^2 : u^2).
@@ -46,31 +46,31 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``parent`` -- Homset
+        - ``parent`` -- Hom-set.
 
-        - ``polys`` -- anything that defines a point in the class
+        - ``polys`` -- anything that defines a point in the class.
 
-        - ``check`` -- Boolean. Whether or not to perform input checks
+        - ``check`` -- Boolean. Whether or not to perform input checks.
           (Default:`` True``)
 
         EXAMPLES::
 
-            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
+            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
             sage: H = T.Hom(T)
-            sage: H([x^2*u,y^2*w,z^2*u,w^2,u^2])
+            sage: H([x^2*u, y^2*w, z^2*u, w^2, u^2])
             Scheme endomorphism of Product of projective spaces P^2 x P^1 over Rational Field
               Defn: Defined by sending (x : y : z , w : u) to 
                     (x^2*u : y^2*w : z^2*u , w^2 : u^2).
 
         ::
 
-            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
+            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
             sage: H = T.Hom(T)
-            sage: H([x^2*u,y^2*w,z^2*u,w^2,u*z])
+            sage: H([x^2*u, y^2*w, z^2*u, w^2, u*z])
             Traceback (most recent call last):
             ...
             TypeError: polys (=[x^2*u, y^2*w, z^2*u, w^2, z*u]) must be
-            multi-homogeneous of the same degrees (by component)
+            multi-homogeneous of the same degrees (by component).
         """
         if check:
             #check multi-homogeneous
@@ -100,7 +100,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - `i` -- integer
+        - `i` -- integer.
 
         OUTPUT:
 
@@ -108,9 +108,9 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
+            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
             sage: H = T.Hom(T)
-            sage: F = H([x^2*u,y^2*w,z^2*u,w^2,u^2])
+            sage: F = H([x^2*u, y^2*w, z^2*u, w^2, u^2])
             sage: F[2]
             z^2*u
         """
@@ -118,17 +118,15 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
     def _repr_defn(self):
         r"""
-        Return a string representation of ``self``.
+        Return a string representation of this morphism.
 
-        OUTPUT:
-        
-        String.
+        OUTPUT: String.
 
         EXAMPLES::
 
-            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1], QQ)
+            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1, 1], QQ)
             sage: H = Hom(P,P)
-            sage: f = H([x^2,y^2,z,w])
+            sage: f = H([x^2, y^2, z, w])
             sage: f._repr_defn()
             'Defined by sending (x : y , z : w) to \n(x^2 : y^2 , z : w).'
         """
@@ -148,18 +146,16 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         - ``P`` -- a point in the domain.
 
         - ``check`` -- Boolean - whether or not to perform the input checks
-          on the image point (Default: ``True``)
+          on the image point (Default: ``True``).
 
-        OUTPUT:
-
-        The image point in the codomain.
+        OUTPUT: The image point in the codomain.
 
         EXAMPLES::
 
-            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
+            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
             sage: H = T.Hom(T)
-            sage: F = H([x^2*u,y^2*w,z^2*u,w^2,u^2])
-            sage: F(T([2,1,3,0,1]))
+            sage: F = H([x^2*u, y^2*w, z^2*u, w^2, u^2])
+            sage: F(T([2, 1, 3, 0, 1]))
             (4/9 : 0 : 1 , 0 : 1)
         """
         A = self.codomain()
@@ -169,36 +165,36 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
     def is_morphism(self):
         r"""
-        Returns ``True`` if ``self`` is a morphism of products of projective spaces. For each component space of
-        the codomain of ``self`` we consider the subscheme of the domain of ``self`` generated by the corresponding
-        coordinates of ``self``. ``self`` is a morphism iff each of these subschemes has no points.
+        Returns ``True`` if this mapping is a morphism of products of projective spaces.
 
-        OUTPUT:
+        For each component space of the codomain of this mapping we consider the subscheme of
+        the domain of this map generated by the corresponding coordinates of the map.
+        This map is a morphism iff each of these subschemes has no points.
 
-        - Boolean
+        OUTPUT: Boolean.
 
         EXAMPLES::
 
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],ZZ)
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2], ZZ)
             sage: H = End(Z)
-            sage: f = H([a^2,b^2,x*z-y*z,x^2-y^2,z^2])
+            sage: f = H([a^2, b^2, x*z-y*z, x^2-y^2, z^2])
             sage: f.is_morphism()
             False
 
         ::
 
-            sage: P.<x,y,z,u,v,w>=ProductProjectiveSpaces([2,2], QQ)
+            sage: P.<x,y,z,u,v,w>=ProductProjectiveSpaces([2, 2], QQ)
             sage: H = End(P)
-            sage: f = H([u,v,w,u^2,v^2,w^2])
+            sage: f = H([u, v, w, u^2, v^2, w^2])
             sage: f.is_morphism()
             True
 
         ::
 
-            sage: P.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
-            sage: Q.<a,b,c,d,e> = ProductProjectiveSpaces([1,2],QQ)
-            sage: H = Hom(P,Q)
-            sage: f = H([x^2,y^2,z^3,w^3,u^3])
+            sage: P.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
+            sage: Q.<a,b,c,d,e> = ProductProjectiveSpaces([1, 2], QQ)
+            sage: H = Hom(P, Q)
+            sage: f = H([x^2, y^2, z^3, w^3, u^3])
             sage: f.is_morphism()
             False
         """
@@ -223,8 +219,8 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
     def nth_iterate(self, P, n, normalize=False):
         r"""
-        For a map ``self`` and a point `P` in ``self.domain()``
-        this function returns the nth iterate of `P` by ``self``.
+        For a map of this morphism and a point `P` in ``self.domain()``
+        this function returns the nth iterate of `P` by this morphism.
 
         If ``normalize`` is ``True``, then the coordinates are
         automatically normalized.
@@ -233,66 +229,67 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` -- a point in ``self.domain()``
+        - ``P`` -- a point in ``self.domain()``.
 
         - ``n`` -- a positive integer.
 
-        - ``normalize`` - Boolean (optional Default: ``False``)
+        - ``normalize`` - Boolean (optional Default: ``False``).
 
         OUTPUT:
 
-        - A point in ``self.codomain()``
+        - A point in ``self.codomain()``.
 
         EXAMPLES::
 
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],QQ)
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2], QQ)
             sage: H = End(Z)
-            sage: f = H([a^3,b^3+a*b^2,x^2,y^2-z^2,z*y])
-            sage: P = Z([1,1,1,1,1])
-            sage: f.nth_iterate(P,3)
+            sage: f = H([a^3, b^3 + a*b^2, x^2, y^2 - z^2, z*y])
+            sage: P = Z([1, 1, 1, 1, 1])
+            sage: f.nth_iterate(P, 3)
             (1/1872 : 1 , 1 : 1 : 0)
         """
         return(P.nth_iterate(self, n, normalize))
 
     def orbit(self, P, N, **kwds):
         r"""
-        Returns the orbit of `P` by ``self``. If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
-        If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`.
-        Automatically normalize the points if ``normalize==True``. Perform the checks on point initialize if
+        Returns the orbit of `P` by thus morphism. If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
+
+        If `n` is a list or tuple `n = [m, k]` it returns `[self^m(P),\ldots,self^k(P)]`.
+        Automatically normalize the points if ``normalize == True``. Perform the checks on point initialize if
         ``check==True``
 
         INPUT:
 
-        - ``P`` -- a point in ``self.domain()``
+        - ``P`` -- a point in ``self.domain()``.
 
-        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers
+        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers.
 
         kwds:
 
-        - ``check`` -- boolean (optional - default: ``True``)
+        - ``check`` -- boolean (optional - default: ``True``).
 
-        - ``normalize`` -- boolean (optional - default: ``False``)
+        - ``normalize`` -- boolean (optional - default: ``False``).
 
 
         OUTPUT:
 
-        - a list of points in ``self.codomain()``
+        - a list of points in ``self.codomain()``.
 
         EXAMPLES::
 
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],QQ)
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2], QQ)
             sage: H = End(Z)
-            sage: f = H([a^3,b^3+a*b^2,x^2,y^2-z^2,z*y])
-            sage: P = Z([1,1,1,1,1])
-            sage: f.orbit(P,3)
+            sage: f = H([a^3, b^3 + a*b^2, x^2, y^2 - z^2, z*y])
+            sage: P = Z([1, 1, 1, 1, 1])
+            sage: f.orbit(P, 3)
             [(1 : 1 , 1 : 1 : 1), (1/2 : 1 , 1 : 0 : 1), (1/12 : 1 , -1 : 1 : 0), (1/1872 : 1 , 1 : 1 : 0)]
         """
         return(P.orbit(self, N, **kwds))
 
     def nth_iterate_map(self, n):
         r"""
-        For a map ``self`` this function returns the nth iterate of ``self`` as a
-        function on ``self.domain()``
+        For a map of this morphism this function returns the nth iterate of this morphsim as a
+        function on ``self.domain()``.
 
         ALGORITHM:
 
@@ -307,13 +304,13 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - A map between products of projective spaces
+        - A map between products of projective spaces.
 
         EXAMPLES::
 
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],QQ)
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1 , 2], QQ)
             sage: H = End(Z)
-            sage: f = H([a^3,b^3,x^2,y^2,z^2])
+            sage: f = H([a^3, b^3, x^2, y^2, z^2])
             sage: f.nth_iterate_map(3)
             Scheme endomorphism of Product of projective spaces P^1 x P^2 over
             Rational Field
@@ -321,12 +318,12 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
                     (a^27 : b^27 , x^8 : y^8 : z^8).
         """
         if not self.is_endomorphism():
-            raise TypeError("Domain and Codomain of function not equal")
+            raise TypeError("domain and Codomain of function not equal")
 
         E = self.domain()
         D = int(n)
         if D < 0:
-            raise TypeError("Iterate number must be a nonnegative integer")
+            raise TypeError("iterate number must be a nonnegative integer")
         N = sum([E.ambient_space()[i].dimension_relative() + 1 for i in range(E.ambient_space().num_components())])
         F = list(self._polys)
         Coord_ring = E.coordinate_ring()

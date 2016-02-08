@@ -1,0 +1,27 @@
+= MeatAxe =
+
+== Description ==
+
+The MeatAxe is a set of programs for working with matrix representations
+over finite fields. Permutation representations are supported to some
+extent, too.
+
+The MeatAxe is developed for the UNIX operating system. Supported platforms
+include Linux (x86), SunOS/Solaris (Sparc), HP/UX, DEC OSF/1 (Alpha), and
+Windows NT 4.0 (x86, Alpha, PPC).
+
+== License ==
+
+The C Meat-Axe is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 2 of the License, or (at your option) any later
+version.
+
+== Upstream Contact ==
+
+Michael Ringe (mringe@math.rwth-aachen.de)
+
+== Special Update/Build Instructions ==
+
+The original upstream tarball was re-packaged, so that it unpacks into a single
+folder called meataxe-2.4.24

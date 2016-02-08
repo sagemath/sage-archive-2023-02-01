@@ -171,7 +171,7 @@ List of Poset methods
     :meth:`~FinitePoset.chain_polytope` | Return the chain polytope of the poset.
     :meth:`~FinitePoset.order_polytope` | Return the order polytope of the poset.
 
-**Other & not yet classified**
+**Graphs**
 
 .. csv-table::
     :class: contentstable
@@ -182,11 +182,20 @@ List of Poset methods
     :meth:`~FinitePoset.cover_relations_graph` | Return the (undirected) graph of cover relations.
     :meth:`~FinitePoset.comparability_graph` | Return the comparability graph of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Return the incomparability graph of the poset.
+    :meth:`~FinitePoset.linear_extensions_graph` | Return the linear extensions graph of the poset.
+
+**Other & not yet classified**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset.
-    :meth:`~FinitePoset.mobius_function` | Return the value of Möbius function of given elements in the poset.
-    :meth:`~FinitePoset.mobius_function_matrix` | Return a matrix whose ``(i,j)`` entry is the value of the Möbius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+    :meth:`~FinitePoset.moebius_function` | Return the value of Möbius function of given elements in the poset.
+    :meth:`~FinitePoset.moebius_function_matrix` | Return a matrix whose ``(i,j)`` entry is the value of the Möbius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
     :meth:`~FinitePoset.is_linear_extension` | Return whether ``l`` is a linear extension of ``self``.
     :meth:`~FinitePoset.linear_extension` | Return a linear extension of this poset.
     :meth:`~FinitePoset.linear_extensions` | Return the enumerated set of all the linear extensions of this poset.
@@ -3046,45 +3055,48 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return Integer(self._hasse_diagram.order())
 
-    def mobius_function(self,x,y):
+    from sage.misc.superseded import deprecated_function_alias
+    def moebius_function(self,x,y):
         r"""
-        Returns the value of the Mobius function of the poset on the
+        Returns the value of the Möbius function of the poset on the
         elements x and y.
 
         EXAMPLES::
 
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
-            sage: P.mobius_function(P(0),P(4))
+            sage: P.moebius_function(P(0),P(4))
             2
-            sage: sum([P.mobius_function(P(0),v) for v in P])
+            sage: sum([P.moebius_function(P(0),v) for v in P])
             0
-            sage: sum([abs(P.mobius_function(P(0),v)) \
+            sage: sum([abs(P.moebius_function(P(0),v)) \
             ....:      for v in P])
             6
             sage: for u,v in P.cover_relations_iterator():
-            ....:     if P.mobius_function(u,v) != -1:
-            ....:         print "Bug in mobius_function!"
+            ....:     if P.moebius_function(u,v) != -1:
+            ....:         print "Bug in moebius_function!"
 
         ::
 
             sage: Q = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
-            sage: Q.mobius_function(Q(0),Q(7))
+            sage: Q.moebius_function(Q(0),Q(7))
             0
-            sage: Q.mobius_function(Q(0),Q(5))
+            sage: Q.moebius_function(Q(0),Q(5))
             0
-            sage: Q.mobius_function(Q(2),Q(7))
+            sage: Q.moebius_function(Q(2),Q(7))
             2
-            sage: Q.mobius_function(Q(3),Q(3))
+            sage: Q.moebius_function(Q(3),Q(3))
             1
-            sage: sum([Q.mobius_function(Q(0),v) for v in Q])
+            sage: sum([Q.moebius_function(Q(0),v) for v in Q])
             0
         """
         i,j = map(self._element_to_vertex,(x,y))
-        return self._hasse_diagram.mobius_function(i,j)
+        return self._hasse_diagram.moebius_function(i,j)
+    mobius_function = deprecated_function_alias(19855, moebius_function)
 
-    def mobius_function_matrix(self, ring = ZZ, sparse = False):
+    from sage.misc.superseded import deprecated_function_alias
+    def moebius_function_matrix(self, ring = ZZ, sparse = False):
         r"""
-        Returns a matrix whose ``(i,j)`` entry is the value of the Mobius
+        Returns a matrix whose ``(i,j)`` entry is the value of the Möbius
         function evaluated at ``self.linear_extension()[i]`` and
         ``self.linear_extension()[j]``.
 
@@ -3098,9 +3110,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset([[4,2,3],[],[1],[1],[1]])
             sage: x,y = (P.linear_extension()[0],P.linear_extension()[1])
-            sage: P.mobius_function(x,y)
+            sage: P.moebius_function(x,y)
             -1
-            sage: M = P.mobius_function_matrix(); M
+            sage: M = P.moebius_function_matrix(); M
             [ 1 -1 -1 -1  2]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
@@ -3113,15 +3125,16 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         We now demonstrate the usage of the optional parameters::
 
-            sage: P.mobius_function_matrix(ring=QQ, sparse=False).parent()
+            sage: P.moebius_function_matrix(ring=QQ, sparse=False).parent()
             Full MatrixSpace of 5 by 5 dense matrices over Rational Field
         """
-        M = self._hasse_diagram.mobius_function_matrix()
+        M = self._hasse_diagram.moebius_function_matrix()
         if ring is not ZZ:
             M = M.change_ring(ring)
         if not sparse:
             M = M.dense_matrix()
         return M
+    mobius_function_matrix = deprecated_function_alias(19855, moebius_function_matrix)
 
     def lequal_matrix(self, ring = ZZ, sparse = False):
         """
@@ -5218,7 +5231,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             \sum_{x \in P} \mu(\hat{0}, x) q^{n-\rho(x)} \in \ZZ[q],
 
-        where `\rho` is the rank function, and `\mu` is the Moebius
+        where `\rho` is the rank function, and `\mu` is the Möbius
         function of `P`.
 
         See section 3.10 of [EnumComb1]_.
@@ -5244,7 +5257,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = rk(hasse.maximal_elements()[0])
         x0 = hasse.minimal_elements()[0]
         q = polygen(ZZ, 'q')
-        return sum(hasse.mobius_function(x0, x) * q**(n - rk(x)) for x in hasse)
+        return sum(hasse.moebius_function(x0, x) * q**(n - rk(x)) for x in hasse)
 
     def chain_polynomial(self):
         """
@@ -5628,7 +5641,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             return False
 
         H = self._hasse_diagram
-        M = H.mobius_function_matrix()
+        M = H.moebius_function_matrix()
         for i in range(n):
             for j in range(i):
                 if H.is_lequal(j, i):

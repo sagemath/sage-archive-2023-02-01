@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Congruence Subgroup `\Gamma_1(N)`
 """
@@ -348,7 +349,7 @@ class Gamma1_class(GammaH_class):
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
           either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
+          by Möbius inversion using the subgroups GammaH (a method due to
           Jordi Quer).
 
         EXAMPLES::
@@ -397,7 +398,7 @@ class Gamma1_class(GammaH_class):
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
           either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
+          by Möbius inversion using the subgroups GammaH (a method due to
           Jordi Quer).
 
         EXAMPLES:
@@ -491,7 +492,7 @@ class Gamma1_class(GammaH_class):
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
           either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
+          by Möbius inversion using the subgroups GammaH (a method due to
           Jordi Quer).
 
         AUTHORS:
@@ -575,7 +576,7 @@ class Gamma1_class(GammaH_class):
         - ``algorithm`` - either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
           either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
+          by Möbius inversion using the subgroups GammaH (a method due to
           Jordi Quer).
 
         EXAMPLES::

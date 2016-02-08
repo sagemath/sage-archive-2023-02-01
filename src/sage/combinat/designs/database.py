@@ -378,7 +378,7 @@ def OA_9_40():
         sage: designs.orthogonal_arrays.is_available(9,40)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None)],
@@ -678,7 +678,7 @@ def OA_11_80():
         sage: designs.orthogonal_arrays.is_available(11,80)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None)],
@@ -720,7 +720,7 @@ def OA_15_112():
         sage: designs.orthogonal_arrays.is_available(15,112)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -899,7 +899,7 @@ def OA_11_160():
         sage: designs.orthogonal_arrays.is_available(11,160)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
          [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
@@ -942,7 +942,7 @@ def OA_16_176():
         sage: designs.orthogonal_arrays.is_available(16,176)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(1 ,None),(4 ,None),(9 ,None)],
@@ -1141,7 +1141,7 @@ def OA_16_208():
         sage: designs.orthogonal_arrays.is_available(16,208)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (1 ,None)],
@@ -1200,7 +1200,7 @@ def OA_15_224():
         sage: designs.orthogonal_arrays.is_available(15,224)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -1286,7 +1286,7 @@ def OA_20_352():
         sage: designs.orthogonal_arrays.is_available(20,352)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     # Column 8, line 6 : 4,25 became 4,27
     #           line 17: 3,0  became 3,None
@@ -1345,7 +1345,7 @@ def OA_20_416():
         sage: designs.orthogonal_arrays.is_available(20,416)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     Z = None
     A=[
@@ -1405,7 +1405,7 @@ def OA_20_544():
         sage: designs.orthogonal_arrays.is_available(20,544)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     Z = None
 
@@ -1469,7 +1469,7 @@ def OA_17_560():
         sage: designs.orthogonal_arrays.is_available(17,560)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     alpha = 5
     beta  = 4
     p     = 2
@@ -1533,7 +1533,7 @@ def OA_11_640():
         sage: designs.orthogonal_arrays.is_available(11,640)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
@@ -1860,7 +1860,7 @@ def OA_15_896():
         sage: designs.orthogonal_arrays.is_available(15,896)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -3539,7 +3539,7 @@ def DM_45_7_1():
 
         sage: _ = designs.difference_matrix(45,7)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
 
     G533 = cartesian_product((FiniteField(5),FiniteField(3),FiniteField(3)))
@@ -3592,7 +3592,7 @@ def DM_48_9_1():
 
         sage: _ = designs.difference_matrix(48,9)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F16 = FiniteField(16,'x')
     F3 = FiniteField(3)
     F3F16 = F3.cartesian_product(F16)
@@ -3684,7 +3684,7 @@ def DM_52_6_1():
         sage: _ = designs.difference_matrix(52,6)
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F4  = FiniteField(4,'z')
     G13 = FiniteField(13)
     G = F4.cartesian_product(G13)
@@ -3796,7 +3796,7 @@ def DM_56_8_1():
 
         sage: _ = designs.difference_matrix(56,8)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F8  = FiniteField(8,'z')
     F7  = FiniteField(7)
     G   = F8.cartesian_product(F7)
@@ -3923,7 +3923,7 @@ def DM_75_8_1():
 
         sage: _ = designs.difference_matrix(75,8)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
 
     F3 = FiniteField(3)
@@ -4160,7 +4160,7 @@ def BIBD_45_9_8(from_code=False):
     """
     if from_code:
         from sage.coding.code_constructions import ExtendedQuadraticResidueCode
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         C = ExtendedQuadraticResidueCode(47,FiniteField(2))
         min_weight = [map(int,x)[3:] for x in C
                       if x.hamming_weight() == 12 and

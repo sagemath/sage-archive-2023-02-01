@@ -1457,6 +1457,48 @@ cdef object py_cos(object x) except +:
     except (TypeError, ValueError):
         return CC(x).cos()
 
+cdef object py_stieltjes(object x) except +:
+    """
+    Return the Stieltjes constant of the given index.
+
+    The value is expected to be a non-negative integer.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_stieltjes_for_doctests as py_stieltjes
+        sage: py_stieltjes(0)
+        0.577215664901533
+        sage: py_stieltjes(1.0)
+        -0.0728158454836767
+        sage: py_stieltjes(RealField(100)(5))
+        0.00079332381730106270175333487744
+        sage: py_stieltjes(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: Stieltjes constant of negative index
+    """
+    n = ZZ(x)
+    if n < 0:
+        raise ValueError("Stieltjes constant of negative index")
+    import mpmath
+    if isinstance(x, Element) and hasattr((<Element>x)._parent, 'prec'):
+        prec = (<Element>x)._parent.prec()
+    else:
+        prec = 53
+    return mpmath_utils.call(mpmath.stieltjes, n, prec=prec)
+
+def py_stieltjes_for_doctests(x):
+    """
+    This function is for testing py_stieltjes().
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_stieltjes_for_doctests
+        sage: py_stieltjes_for_doctests(0.0)
+        0.577215664901533
+    """
+    return py_stieltjes(x)
+
 cdef object py_zeta(object x) except +:
     """
     Return the value of the zeta function at the given value.
@@ -2264,6 +2306,7 @@ def init_function_table():
     py_funcs.py_bernoulli = &py_bernoulli
     py_funcs.py_sin = &py_sin
     py_funcs.py_cos = &py_cos
+    py_funcs.py_stieltjes = &py_stieltjes
     py_funcs.py_zeta = &py_zeta
     py_funcs.py_exp = &py_exp
     py_funcs.py_log = &py_log

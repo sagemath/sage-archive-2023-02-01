@@ -33,6 +33,7 @@ All of these examples are accessible by typing
 - :func:`PoincareHomologyThreeSphere`
 - :func:`PseudoQuaternionicProjectivePlane`
 - :func:`RandomComplex`
+- :func:`RandomTwoSphere`
 - :func:`RealProjectivePlane`
 - :func:`RealProjectiveSpace`
 - :func:`Simplex`
@@ -1447,7 +1448,72 @@ def SumComplex(n, A):
     return UniqueSimplicialComplex(facets, name='Sum complex on vertices Z/{}Z associated to {}'.format(n, Set(A)))
 
 
+def RandomTwoSphere(n):
+    r"""
+    Return a random triangulation of the 2-dimensional sphere with `n`
+    vertices.
+
+    INPUT:
+
+    `n` -- an integer
+
+    OUTPUT:
+
+    A random triangulation of the sphere chosen uniformly among
+    the *rooted* triangulations on `n` vertices. Because some
+    triangulations have nontrivial automorphism groups, this may
+    not be equal to the uniform distribution among unrooted
+    triangulations.
+
+    ALGORITHM:
+
+    The algorithm is taken from [PS2006]_, section 2.1.
+
+    Starting from a planar tree (represented by its contour as a
+    sequence of vertices), one first performs local closures, until no
+    one is possible. A local closure amounts to replace in the cyclic
+    contour word a sequence ``in1,in2,in3,lf,in3`` by
+    ``in1,in3``. After all local closures are done, one has reached
+    the partial closure, as in [PS2006]_, figure 5 (a).
+
+    Then one has to perform complete closure by adding two more
+    vertices, in order to reach the situation of [PS2006]_, figure 5
+    (b). For this, it is necessary to find inside the final contour
+    one of the two subsequences ``lf,in,lf``.
+
+    At every step of the algorithm, newly created triangles are added
+    in a simplicial complex.
+
+    This algorithm is implemented in
+    :meth:`~sage.graphs.generators.random.RandomTriangulation`, which
+    creates an embedded graph. The triangles of the simplicial
+    complex are recovered from this embedded graph.
+
+    EXAMPLES::
+
+        sage: G = simplicial_complexes.RandomTwoSphere(6); G
+        Simplicial complex with vertex set (0, 1, 2, 3, 'a', 'b')
+        and 8 facets
+        sage: G.homology()
+        {0: 0, 1: 0, 2: Z}
+        sage: G.is_pure()
+        True
+        sage: fg = G.flip_graph(); fg
+        Graph on 8 vertices
+        sage: fg.is_planar() and fg.is_regular(3)
+        True
+    """
+    from sage.graphs.generators.random import RandomTriangulation
+
+    graph = RandomTriangulation(n)
+
+    graph = graph.relabel(inplace=False)
+    triangles = [(u, v, w) for u, L in graph._embedding.iteritems()
+                 for v, w in zip(L, L[1:] + [L[0]]) if u < v and u < w]
+
+    return SimplicialComplex(triangles, maximality_check=False)
+
+
 # For taking care of old pickles
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.homology.examples', 'SimplicialSurface', SimplicialComplex)
-

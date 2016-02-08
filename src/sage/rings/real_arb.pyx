@@ -1022,6 +1022,8 @@ cdef class RealBall(RingElement):
             [1.282427129100623 +/- 6.02e-16]
             sage: RealBall(RBF, sage.symbolic.constants.e)
             [2.718281828459045 +/- 5.35e-16]
+            sage: RealBall(RBF, sage.symbolic.constants.EulerGamma())
+            [0.577215664901533 +/- 3.57e-16]
         """
         import sage.symbolic.constants
         cdef fmpz_t tmpz
@@ -1081,6 +1083,8 @@ cdef class RealBall(RingElement):
                     arb_const_khinchin(self.value, prec(self))
                 elif isinstance(mid, sage.symbolic.constants.Glaisher):
                     arb_const_glaisher(self.value, prec(self))
+                elif isinstance(mid, sage.symbolic.constants.EulerGamma):
+                    arb_const_euler(self.value, prec(self))
                 else:
                     raise TypeError("unsupported constant")
             finally:
@@ -2672,21 +2676,40 @@ cdef class RealBall(RingElement):
 
     # Elementary functions
 
-    def log(self):
+    def log(self, base=None):
         """
-        Return the natural logarithm of this ball.
+        Return the logarithm of this ball.
+
+        INPUT:
+
+        - ``base`` (optional, positive real ball or number) -- if ``None``,
+          return the natural logarithm ``ln(self)``, otherwise, return the
+          general logarithm ``ln(self)/ln(base)``
 
         EXAMPLES::
 
             sage: RBF(3).log()
             [1.098612288668110 +/- 6.63e-16]
+            sage: RBF(3).log(2)
+            [1.584962500721156 +/- 7.53e-16]
+
             sage: RBF(-1/3).log()
             nan
+            sage: RBF(3).log(-1)
+            nan
+            sage: RBF(2).log(0)
+            nan
         """
+        cdef RealBall cst
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_log(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
+        if base is not None:
+            cst = self._parent.coerce(base).log()
+            if _do_sig(prec(self)): sig_on()
+            arb_div(res.value, res.value, cst.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
     def log1p(self):

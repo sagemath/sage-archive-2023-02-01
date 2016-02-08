@@ -39,7 +39,7 @@ from sage.misc.cachefunc           import cached_method
 from sage.misc.mrange              import xmrange
 from sage.rings.all                import Integer
 from sage.rings.commutative_ring   import is_CommutativeRing
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ

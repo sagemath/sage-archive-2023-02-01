@@ -1136,7 +1136,7 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
     INPUT:
 
     - ``children`` -- a list or tuple or more generally any iterable
-                      of trees or object convertible to trees
+      of trees or object convertible to trees
     - ``label`` -- any Sage object (default: ``None``)
 
     EXAMPLES::

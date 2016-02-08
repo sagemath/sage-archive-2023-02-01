@@ -1089,7 +1089,7 @@ class MutablePosetShell(SageObject):
             return
         marked.add(self)
         S = self.predecessors(reverse)
-        if key is not None:
+        if key is not None and len(S) > 1:
             S = sorted(S, key=key)
         for shell in S:
             for e in shell._iter_topological_visit_(marked, reverse,
@@ -3451,6 +3451,11 @@ class MutablePoset(SageObject):
             Since this method works inplace, it is not allowed that
             ``function`` alters the key of an element.
 
+        .. NOTE::
+
+            If ``function`` returns ``None``, then the element is
+            removed.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -3464,6 +3469,11 @@ class MutablePoset(SageObject):
             sage: P
             poset((1, 2, 3), (1, 3, 4), (2, 1, 3), (2, 2, 4), (4, 4, 8))
 
+        TESTS::
+
+            sage: P.map(lambda e: e if e[2] != 4 else None); P
+            poset((1, 2, 3), (2, 1, 3), (4, 4, 8))
+
         .. SEEALSO::
 
             :meth:`copy`,
@@ -3471,8 +3481,13 @@ class MutablePoset(SageObject):
         """
         shells = self.shells_topological(reverse=reverse) \
             if topological else self.shells()
+        remove = []
         for shell in shells:
             shell._element_ = function(shell._element_)
+            if shell._element_ is None:
+                remove.append(shell.key)
+        for key in remove:
+            self.remove(key)
 
 
     def mapped(self, function):

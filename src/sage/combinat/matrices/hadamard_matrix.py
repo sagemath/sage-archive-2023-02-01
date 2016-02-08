@@ -135,7 +135,7 @@ def hadamard_matrix_paleyI(n, normalize=True):
     if not(is_prime_power(p) and (p % 4 == 3)):
         raise ValueError("The order %s is not covered by the Paley type I construction." % n)
 
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     K = FiniteField(p,'x')
     K_list = list(K)
     K_list.insert(0,K.zero())
@@ -198,7 +198,7 @@ def hadamard_matrix_paleyII(n):
     if not(n%2==0 and is_prime_power(q) and (q % 4 == 1)):
         raise ValueError("The order %s is not covered by the Paley type II construction." % n)
 
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     K = FiniteField(q,'x')
     K_list = list(K)
     K_list.insert(0,K.zero())
@@ -514,11 +514,11 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     A Hadamard matrix is said to be *regular* if its rows all sum to the same
     value.
 
-    When `\epsilon\in\{-1,+1\}`, we say that `M` is a `(n,\epsilon)-RSHCD` if
+    For `\epsilon\in\{-1,+1\}`, we say that `M` is a `(n,\epsilon)-RSHCD` if
     `M` is a regular symmetric Hadamard matrix with constant diagonal
-    `\delta\in\{-1,+1\}` and row values all equal to `\delta \epsilon
+    `\delta\in\{-1,+1\}` and row sums all equal to `\delta \epsilon
     \sqrt(n)`. For more information, see [HX10]_ or 10.5.1 in
-    [BH12]_.
+    [BH12]_. For the case `n=324`, see :func:`RSHCD_324` and [CP16]_.
 
     INPUT:
 
@@ -549,6 +549,11 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         100 x 100 dense matrix over Integer Ring
         100 x 100 dense matrix over Integer Ring
         196 x 196 dense matrix over Integer Ring
+
+        sage: for n,e in [(324,1),(324,-1)]: # not tested - long time, tested in RSHCD_324
+        ....:     print regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e) # not tested - long time
+        324 x 324 dense matrix over Integer Ring
+        324 x 324 dense matrix over Integer Ring
 
     From two close prime powers::
 
@@ -619,6 +624,10 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
             return true()
         M = strongly_regular_graph(196,91,42,42).adjacency_matrix()
         M = J(196) - 2*M
+    elif n == 324:
+        if existence:
+            return true()
+        M = RSHCD_324(e)
     elif (  e  == 1                 and
           n%16 == 0                 and
           is_square(n)              and
@@ -653,6 +662,63 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     assert M*M.transpose() == n*I(n)
     assert set(map(sum,M)) == {e*sqrt(n)}
 
+    return M
+
+def RSHCD_324(e):
+    r"""
+    Return a size 324x324 Regular Symmetric Hadamard Matrix with Constant Diagonal.
+
+    We build the matrix `M` for the case `n=324`, `\epsilon=1` directly from
+    :meth:`JankoKharaghaniTonchevGraph
+    <sage.graphs.graph_generators.GraphGenerators.JankoKharaghaniTonchevGraph>`
+    and for the case `\epsilon=-1` from the "twist" `M'` of `M`, using Lemma 11
+    in [HX10]_. Namely, it turns out that the matrix
+
+    .. math::
+
+        M'=\begin{pmatrix} M_{12} & M_{11}\\ M_{11}^\top & M_{21} \end{pmatrix},
+        \quad\text{where}\quad
+        M=\begin{pmatrix} M_{11} & M_{12}\\ M_{21} & M_{22} \end{pmatrix},
+
+    and the `M_{ij}` are 162x162-blocks, also RSHCD, its diagonal blocks having zero row
+    sums, as needed by [loc.cit.]. Interestingly, the corresponding
+    `(324,152,70,72)`-strongly regular graph
+    has a vertex-transitive automorphism group of order 2592, twice the order of the
+    (intransitive) automorphism group of the graph corresponding to `M`. Cf. [CP16]_.
+
+    INPUT:
+
+    - ``e`` -- one of `-1` or `+1`, equal to the value of `\epsilon`
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import RSHCD_324, is_hadamard_matrix
+        sage: for e in [1,-1]: # long time
+        ....:     M = RSHCD_324(e) # long time
+        ....:     print M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in xrange(324)]) # long time
+        ....:     print set(map(sum,M)) # long time
+        True True True
+        set([18])
+        True True True
+        set([-18])
+
+    REFERENCE:
+
+    .. [CP16] N. Cohen, D. Pasechnik,
+       Implementing Brouwer's database of strongly regular graphs,
+       http://arxiv.org/abs/1601.00181
+    """
+
+    from sage.graphs.generators.smallgraphs import JankoKharaghaniTonchevGraph as JKTG
+    M = JKTG().adjacency_matrix()
+    M = J(324) - 2*M
+    if e==-1:
+        M1=M[:162].T
+        M2=M[162:].T
+        M11=M1[:162]
+        M12=M1[162:].T
+        M21=M2[:162].T
+        M=block_matrix([[M12,-M11],[-M11.T,M21]])
     return M
 
 def _helper_payley_matrix(n, zero_position=True):
@@ -716,7 +782,7 @@ def _helper_payley_matrix(n, zero_position=True):
         [ 1  1 -1 -1  1 -1 -1  1  1  0 -1]
         [ 1 -1  1 -1 -1 -1  1  1 -1  1  0]
     """
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     K = GF(n,conway=True,prefix='x')
 
     # Order the elements of K in K_list
@@ -839,10 +905,10 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
 
     .. [GS70s] J.M. Goethals and J. J. Seidel,
       A skew Hadamard matrix of order 36,
-      J. Aust. Math. Soc. 11(1970), 343-344 
+      J. Aust. Math. Soc. 11(1970), 343-344
     .. [Wall71] J. Wallis,
       A skew-Hadamard matrix of order 92,
-      Bull. Aust. Math. Soc. 5(1971), 203-204 
+      Bull. Aust. Math. Soc. 5(1971), 203-204
     .. [KoSt08] C. Koukouvinos, S. Stylianou
       On skew-Hadamard matrices,
       Discrete Math. 308(2008) 2723-2731
@@ -857,7 +923,7 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
         assert A+A.T==2*I(n)
 
     M = block_matrix([[   A,    B*R,    C*R,    D*R],
-                      [-B*R,      A, -D.T*R,  C.T*R], 
+                      [-B*R,      A, -D.T*R,  C.T*R],
                       [-C*R,  D.T*R,      A, -B.T*R],
                       [-D*R, -C.T*R,  B.T*R,      A]])
     if check:
@@ -900,7 +966,7 @@ def GS_skew_hadamard_smallcases(n, existence=False, check=True):
 
     if existence:
         return n in [36, 52, 92]
-             
+
     if n==36:
         a=[ 1,  1, 1, -1,  1, -1,  1, -1, -1]
         b=[ 1, -1, 1,  1, -1, -1,  1,  1, -1]
@@ -918,8 +984,8 @@ def GS_skew_hadamard_smallcases(n, existence=False, check=True):
         c = [1, 1,-1,-1,-1, 1,-1, 1,-1, 1,-1, 1, 1,-1, 1,-1, 1,-1, 1,-1,-1,-1, 1]
         d = [1,-1,-1,-1,-1, 1,-1,-1, 1,-1,-1, 1, 1,-1,-1, 1,-1,-1, 1,-1,-1,-1,-1]
         return WGS(a,b,c,d, check=check)
-    return None 
-        
+    return None
+
 _skew_had_cache={}
 
 def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):

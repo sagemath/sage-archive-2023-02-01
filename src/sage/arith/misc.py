@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Miscellaneous arithmetic functions
 """
@@ -259,6 +260,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
       - ``'default'`` -- use 'flint' for n <= 300000, and 'bernmm'
         otherwise (this is just a heuristic, and not guaranteed to be
         optimal on all hardware)
+      - ``'arb'`` -- use the arb library
       - ``'flint'`` -- use the FLINT library
       - ``'pari'`` -- use the PARI C library
       - ``'gap'`` -- use GAP
@@ -278,6 +280,8 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     We demonstrate each of the alternative algorithms::
 
+        sage: bernoulli(12, algorithm='arb')
+        -691/2730
         sage: bernoulli(12, algorithm='flint')
         -691/2730
         sage: bernoulli(12, algorithm='gap')
@@ -295,7 +299,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     TESTS::
 
-        sage: algs = ['gap','gp','pari','bernmm','flint']
+        sage: algs = ['arb','gap','gp','pari','bernmm','flint']
         sage: test_list = [ZZ.random_element(2, 2255) for _ in range(500)]
         sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list]  # long time (up to 21s on sage.math, 2011)
         sage: union([len(union(x))==1 for x in vals])  # long time (depends on previous line)
@@ -315,7 +319,10 @@ def bernoulli(n, algorithm='default', num_threads=1):
     if algorithm == 'default':
         algorithm = 'flint' if n <= 300000 else 'bernmm'
 
-    if algorithm == 'flint':
+    if algorithm == 'arb':
+        import sage.libs.arb.arith as arb_arith
+        return arb_arith.bernoulli(n)
+    elif algorithm == 'flint':
         return flint_arith.bernoulli_number(n)
     elif algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
@@ -3819,7 +3826,7 @@ def quadratic_residues(n):
 
 class Moebius:
     r"""
-    Returns the value of the Moebius function of abs(n), where n is an
+    Returns the value of the Möbius function of abs(n), where n is an
     integer.
 
     DEFINITION: `\mu(n)` is 0 if `n` is not square
@@ -3907,7 +3914,7 @@ class Moebius:
     def plot(self, xmin=0, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
              **kwds):
         """
-        Plot the Moebius function.
+        Plot the Möbius function.
 
         INPUT:
 
@@ -3941,9 +3948,9 @@ class Moebius:
 
     def range(self, start, stop=None, step=None):
         """
-        Return the Moebius function evaluated at the given range of values,
+        Return the Möbius function evaluated at the given range of values,
         i.e., the image of the list range(start, stop, step) under the
-        Mobius function.
+        Möbius function.
 
         This is much faster than directly computing all these values with a
         list comprehension.

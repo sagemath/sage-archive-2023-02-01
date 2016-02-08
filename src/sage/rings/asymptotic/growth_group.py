@@ -2845,6 +2845,51 @@ class MonomialGrowthElement(GenericGrowthElement):
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
+    def _singularity_analysis_(self, zeta, var, precision):
+        r"""
+        Perform singularity analysis on this growth element.
+
+        INPUT:
+
+        - ``zeta`` -- a number
+
+        - ``var`` -- a string denoting the variable
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        and `f` has this growth element as a singular expansion
+        in `1-z\zeta\to 0`.
+
+        EXAMPLE::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^QQ')
+            sage: G(x^(1/2))._singularity_analysis_(2, 'n', 2)
+            1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
+            + O((1/2)^n*n^(-5/2))
+
+        TESTS::
+
+            sage: G = GrowthGroup('log(x)^QQ')
+            sage: G(log(x)^(1/2))._singularity_analysis_(2, 'n', 3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis not implemented
+            for Growth Group log(x)^QQ
+        """
+        if self.parent()._var_.is_monomial():
+            from sage.rings.asymptotic.asymptotic_expansion_generators import \
+                asymptotic_expansions
+            return asymptotic_expansions.SingularityAnalysis(
+                var=var, zeta=zeta, alpha=self.exponent, beta=0, delta=0,
+                precision=precision)
+        else:
+            raise NotImplementedError(
+                "singularity analysis not implemented for {}".format(self.parent()))
+
 
 class MonomialGrowthGroup(GenericGrowthGroup):
     r"""

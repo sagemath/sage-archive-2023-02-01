@@ -1247,7 +1247,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: ~A(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Cannot invert 0.
+            ZeroDivisionError: Cannot invert 0 in
+            Asymptotic Ring <a^ZZ> over Integer Ring.
 
         ::
 
@@ -1259,7 +1260,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             are several maximal elements s, t.
         """
         if not self.summands:
-            raise ZeroDivisionError('Cannot invert {}.'.format(self))
+            raise ZeroDivisionError(
+                'Cannot invert {} in {}.'.format(self, self.parent()))
 
         (imax_elem, x) = self._main_term_relative_error_(return_inverse_main_term=True)
         one = x.parent().one()

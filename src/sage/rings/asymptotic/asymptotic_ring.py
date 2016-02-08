@@ -1635,7 +1635,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         one = x.parent().one()
 
         import itertools
-#        from sage.arith.all import binomial
 
         def binomials(a):
             P = a.parent()
@@ -1647,7 +1646,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 if b == 0:
                     return
                 f *= b / k
-#                assert f == binomial(exponent, k)
                 yield f
 
         result = AsymptoticExpansion._power_series_(

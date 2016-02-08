@@ -12,34 +12,30 @@ AUTHORS:
     
 EXAMPLES:
     
-    Create a conic::
+Create a conic::
 
-        sage: K = FractionField(PolynomialRing(QQ, 't'))
-        sage: P.<X, Y, Z> = K[]
-        sage: Conic(X^2 + Y^2 - Z^2)
-        Projective Conic Curve over Fraction Field of Univariate
-        Polynomial Ring in t over Rational Field defined by
-        X^2 + Y^2 - Z^2
-    
-    Points can be found using :meth:`has_rational_point`::
-    
-        sage: K.<t> = FractionField(QQ['t'])
-        sage: C = Conic([1,-t,t])
-        sage: C.has_rational_point(point = True)
-        (True, (0 : 1 : 1))
+    sage: K = FractionField(PolynomialRing(QQ, 't'))
+    sage: P.<X, Y, Z> = K[]
+    sage: Conic(X^2 + Y^2 - Z^2)
+    Projective Conic Curve over Fraction Field of Univariate
+    Polynomial Ring in t over Rational Field defined by
+    X^2 + Y^2 - Z^2
+
+Points can be found using :meth:`has_rational_point`::
+
+    sage: K.<t> = FractionField(QQ['t'])
+    sage: C = Conic([1,-t,t])
+    sage: C.has_rational_point(point = True)
+    (True, (0 : 1 : 1))
 """
+
 #*****************************************************************************
-#       Copyright (C) 2015 Lennart Ackermans <lennart@ackermans.info>
+#       Copyright (C) 2016 Lennart Ackermans
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 

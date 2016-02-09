@@ -2367,6 +2367,38 @@ class OTerm(GenericTerm):
             substitute_raise_exception(self, e)
 
 
+    def _singularity_analysis_(self, zeta, var, precision):
+        r"""
+        Perform singularity analysis on this term.
+
+        INPUT:
+
+        - ``zeta`` -- a number
+
+        - ``var`` -- a string denoting the variable
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        and `f` has this term as a singular expansion
+        in `(1-z\zeta)\to 0`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), ZZ)
+            sage: T('x^1')._singularity_analysis_(2, 'n', 3)
+            O((1/2)^n)
+            sage: T('x^(-1)')._singularity_analysis_(2, 'n', 3)
+            O((1/2)^n*n^(-2))
+        """
+        return self.growth._singularity_analysis_(
+            zeta=zeta, var=var, precision=0)
+
+
 class OTermMonoid(GenericTermMonoid):
     r"""
     Parent for asymptotic big `O`-terms.

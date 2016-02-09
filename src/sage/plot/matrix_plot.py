@@ -233,7 +233,7 @@ class MatrixPlot(GraphicPrimitive):
 
 @suboptions('colorbar', orientation='vertical', format=None)
 @suboptions('subdivision',boundaries=None, style=None)
-@options(aspect_ratio=1, axes=False, cmap='gray', colorbar=False,
+@options(aspect_ratio=1, axes=False, cmap='Greys', colorbar=False,
          frame=True, marker='.', norm=None, origin='upper',
          subdivisions=False, ticks_integer=True, vmin=None, vmax=None)
 def matrix_plot(mat, **options):
@@ -257,11 +257,14 @@ def matrix_plot(mat, **options):
     The following input must all be passed in as named parameters, if
     default not used:
 
-    - ``cmap`` - a colormap (default: 'gray'), the name of
-      a predefined colormap, a list of colors,
-      or an instance of a matplotlib Colormap.
-      Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
-      for available colormap names.
+    - ``cmap`` - a colormap (default: 'Greys'), the name of a predefined
+      colormap, a list of colors, or an instance of a matplotlib Colormap.
+
+      The list of predefined color maps can be visualized in `matplotlib's
+      documentation
+      <http://matplotlib.org/examples/color/colormaps_reference.html>`__. You
+      can also type ``import matplotlib.cm; matplotlib.cm.datad.keys()`` to list
+      their names.
 
     - ``colorbar`` -- boolean (default: False) Show a colorbar or not (dense matrices only).
 

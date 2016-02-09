@@ -1413,7 +1413,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         An asymptotic expansion for  `[z^n] f` where `n` is ``var``
         and `f` has this growth element as a singular expansion
-        in `1-z\zeta\to 0`.
+        in `(1-z\zeta)\to 0`.
 
         TESTS::
 
@@ -1422,10 +1422,10 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: G(raw_element=2)._singularity_analysis_(2, 'n', 3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: singularity anaylysis not implemented
+            NotImplementedError: singularity analysis not implemented
             in GenericGrowthGroup
         """
-        raise NotImplementedError("singularity anaylysis not implemented "
+        raise NotImplementedError("singularity analysis not implemented "
             "in GenericGrowthGroup")
 
 
@@ -2861,7 +2861,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         An asymptotic expansion for  `[z^n] f` where `n` is ``var``
         and `f` has this growth element as a singular expansion
-        in `1-z\zeta\to 0`.
+        in `(1-z\zeta)\to 0`.
 
         EXAMPLE::
 

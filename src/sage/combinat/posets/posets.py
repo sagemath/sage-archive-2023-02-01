@@ -3964,7 +3964,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`ordinal_components`, :meth:`disjoint_union`, :meth:`ordinal_product`
+            :meth:`ordinal_summands`, :meth:`disjoint_union`, :meth:`ordinal_product`
         """
         from sage.combinat.posets.lattices import LatticePoset, \
              JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \

@@ -131,7 +131,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
 
     #check if infinity is a fixed point
     if g.degree() < d: #then infinity is a fixed point
-        #find elements in W of the form (infinty, y)
+        #find elements in W of the form (infinity, y)
         #where W is the set of F-rational points (x,y) such that
         #x is fixed by phi and phi(y)=x
         for T in g.roots(multiplicities=False):

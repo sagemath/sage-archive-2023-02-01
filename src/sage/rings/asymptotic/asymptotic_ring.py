@@ -1273,7 +1273,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: ~A(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Division by zero in 0.
+            ZeroDivisionError: Division by zero in
+            Asymptotic Ring <a^ZZ> over Integer Ring.
 
         ::
 
@@ -1281,42 +1282,27 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: ~(s + t)
             Traceback (most recent call last):
             ...
-            ValueError: Expansion s + t cannot be inverted since there are
-            several maximal elements s, t.
+            ValueError: Cannot determine main term of s + t since there
+            are several maximal elements s, t.
         """
         if not self.summands:
-            raise ZeroDivisionError('Division by zero in %s.' % (self,))
+            raise ZeroDivisionError(
+                'Division by zero in {}.'.format(self.parent()))
 
-        elif len(self.summands) == 1:
-            element = next(self.summands.elements())
-            return self.parent()._create_element_in_extension_(
-                ~element, element.parent())
+        (imax_elem, x) = self._main_term_relative_error_(return_inverse_main_term=True)
+        one = x.parent().one()
 
-        max_elem = tuple(self.summands.maximal_elements())
-        if len(max_elem) != 1:
-            raise ValueError('Expansion %s cannot be inverted since there '
-                             'are several maximal elements %s.' %
-                             (self, ', '.join(str(e) for e in
-                                              sorted(max_elem, key=str))))
-        max_elem = max_elem[0]
-
-        imax_elem = ~max_elem
-        if imax_elem.parent() is max_elem.parent():
-            new_self = self
+        if x:
+            import itertools
+            result = AsymptoticExpansion._power_series_(
+                coefficients=itertools.repeat(one),
+                start=one,
+                ratio=-x,
+                ratio_start=one,
+                precision=precision)
         else:
-            new_self = self.parent()._create_element_in_extension_(
-                imax_elem, max_elem.parent()).parent()(self)
+            result = one
 
-        one = new_self.parent().one()
-        geom = one - new_self._mul_term_(imax_elem)
-
-        expanding = True
-        result = one
-        while expanding:
-            new_result = (geom*result + one).truncate(precision=precision)
-            if new_result.has_same_summands(result):
-                expanding = False
-            result = new_result
         return result._mul_term_(imax_elem)
 
 
@@ -1499,8 +1485,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot take s + t to the exponent s.
-            > *previous* ValueError: log(s + t) cannot be constructed since
-            there are several maximal elements s, t.
+            > *previous* ValueError: Cannot determine main term of s + t
+            since there are several maximal elements s, t.
 
         Check that :trac:`19946` is fixed::
 
@@ -1689,8 +1675,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: log(s + t)
             Traceback (most recent call last):
             ...
-            ValueError: log(s + t) cannot be constructed since there are
-            several maximal elements s, t.
+            ValueError: Cannot determine main term of s + t since
+            there are several maximal elements s, t.
         """
         P = self.parent()
 
@@ -1704,38 +1690,21 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return sum(P._create_element_in_extension_(l, element.parent())
                        for l in element.log_term(base=base))
 
-        max_elem = tuple(self.summands.maximal_elements())
-        if len(max_elem) != 1:
-            raise ValueError('log(%s) cannot be constructed since there '
-                             'are several maximal elements %s.' %
-                             (self, ', '.join(str(e) for e in
-                                              sorted(max_elem, key=str))))
-        max_elem = max_elem[0]
-
-        imax_elem = ~max_elem
-        if imax_elem.parent() is max_elem.parent():
-            new_self = self
-        else:
-            new_self = P._create_element_in_extension_(
-                imax_elem, max_elem.parent()).parent()(self)
-
-        one = new_self.parent().one()
-        geom = one - new_self._mul_term_(imax_elem)
+        (max_elem, x) = self._main_term_relative_error_()
+        geom = -x
 
         from sage.rings.integer_ring import ZZ
-        expanding = True
-        result = -geom
-        geom_k = geom
-        k = ZZ(1)
-        while expanding:
-            k += ZZ(1)
-            geom_k *= geom
-            new_result = (result - geom_k * ~k).truncate(precision=precision)
-            if new_result.has_same_summands(result):
-                expanding = False
-            result = new_result
+        import itertools
 
-        result += new_self.parent()(max_elem).log()
+        result = - AsymptoticExpansion._power_series_(
+            coefficients=iter(1 / ZZ(k)
+                              for k in itertools.count(2)),
+            start=geom,
+            ratio=geom,
+            ratio_start=geom,
+            precision=precision)
+
+        result += x.parent()(max_elem).log()
         if base:
             from sage.functions.log import log
             result = result / log(base)
@@ -1888,20 +1857,171 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             geom = expr_o * log(base)
         P = geom.parent()
 
-        expanding = True
-        result = P.one()
-        geom_k = P.one()
         from sage.rings.integer_ring import ZZ
-        k = ZZ(0)
-        while expanding:
-            k += ZZ(1)
-            geom_k *= geom
-            new_result = (result + geom_k / k.factorial()).truncate(precision=precision)
-            if new_result.has_same_summands(result):
-                expanding = False
-            result = new_result
+        import itertools
+
+        def inverted_factorials():
+            f = ZZ(1)
+            for k in itertools.count(1):
+                f /= ZZ(k)
+                yield f
+
+        result = AsymptoticExpansion._power_series_(
+            coefficients=inverted_factorials(),
+            start=P.one(),
+            ratio=geom,
+            ratio_start=P.one(),
+            precision=precision)
 
         return result * large_result
+
+
+    def _main_term_relative_error_(self, return_inverse_main_term=False):
+        r"""
+        Split this asymptotic expansion into `m(1+x)` with `x=o(1)`.
+
+        INPUT:
+
+        - ``return_inverse_main_term`` -- (default: ``False``) a boolean.
+          If set, then the pair `(m^{-1},x)` is returned instead of `(m,x)`.
+
+        OUTPUT:
+
+        A pair (``m``, ``x``) consisting of
+        a :mod:`term <sage.rings.asymptotic.term_monoid>` ``m`` and
+        an :class:`asymptotic expansion <AsymptoticExpansion>` ``x``.
+
+        EXAMPLES::
+
+            sage: R.<n> = AsymptoticRing('n^ZZ', QQ)
+            sage: ex = 2*n^2 + n + O(1/n)
+            sage: (m, x) = ex._main_term_relative_error_()
+            sage: m
+            2*n^2
+            sage: x
+            1/2*n^(-1) + O(n^(-3))
+            sage: ex = 2*n^2 + n
+            sage: (m, x) = ex._main_term_relative_error_()
+            sage: m
+            2*n^2
+            sage: x
+            1/2*n^(-1)
+            sage: ex._main_term_relative_error_(return_inverse_main_term=True)
+            (1/2*n^(-2), 1/2*n^(-1))
+            sage: R(0)._main_term_relative_error_()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot determine main term of 0.
+
+        TESTS::
+
+            sage: R.<m, n> = AsymptoticRing('n^ZZ*m^ZZ', QQ)
+            sage: (m + n)._main_term_relative_error_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot determine main term of m + n since
+            there are several maximal elements m, n.
+        """
+        if not self.summands:
+            raise ArithmeticError("Cannot determine main term of 0.")
+
+        max_elem = tuple(self.summands.maximal_elements())
+        if len(max_elem) != 1:
+            raise ValueError('Cannot determine main term of {} since there '
+                             'are several maximal elements {}.'.format(
+                             self, ', '.join(str(e) for e in
+                                              sorted(max_elem, key=str))))
+        max_elem = max_elem[0]
+
+        imax_elem = ~max_elem
+        if imax_elem.parent() is max_elem.parent():
+            new_self = self
+        else:
+            new_self = self.parent()._create_element_in_extension_(
+                imax_elem, max_elem.parent()).parent()(self)
+
+        one = new_self.parent().one()
+        x = - one + new_self._mul_term_(imax_elem)
+
+        if return_inverse_main_term:
+            return (imax_elem, x)
+        else:
+            return (max_elem, x)
+
+
+    @staticmethod
+    def _power_series_(coefficients, start, ratio, ratio_start, precision):
+        r"""
+        Return a taylor series.
+
+        Let `c_k` be determined by the ``coefficients`` and set
+
+        .. MATH::
+
+            s_k = c_k \cdot \mathit{ratio\_start} \cdot \mathit{ratio}^k.
+
+        The result is
+
+        .. MATH::
+
+            \mathit{start} + \sum_{k=1}^K s_k
+
+        where `K` is chosen such that adding `s_{K+1}` does not change
+        the result.
+
+        INPUT:
+
+        - ``coefficients`` -- an iterator.
+
+        - ``start`` -- an asymptotic expansion.
+
+        - ``ratio`` -- an asymptotic expansion.
+
+        - ``ratio_start`` -- an asymptotic expansion.
+
+        - ``precision`` -- a non-negative integer. All intermediate
+          results are truncated to this precision.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticExpansion
+            sage: from itertools import count
+            sage: A.<g> = AsymptoticRing('g^ZZ', QQ)
+            sage: AsymptoticExpansion._power_series_(
+            ....:     coefficients=iter(ZZ(k) for k in count(1)),
+            ....:     start=A(42),
+            ....:     ratio=1/g,
+            ....:     ratio_start=A(5),
+            ....:     precision=4)
+            42 + 5*g^(-1) + 10*g^(-2) + 15*g^(-3) + O(g^(-4))
+            sage: AsymptoticExpansion._power_series_(
+            ....:     coefficients=iter(ZZ(k) for k in count(1)),
+            ....:     start=A(42),
+            ....:     ratio=1/g+O(1/g^2),
+            ....:     ratio_start=A(5),
+            ....:     precision=4)
+            42 + 5*g^(-1) + O(g^(-2))
+            sage: AsymptoticExpansion._power_series_(
+            ....:     coefficients=iter(ZZ(k) for k in count(1)),
+            ....:     start=A(42),
+            ....:     ratio=1/g+O(1/g^2),
+            ....:     ratio_start=A(5),
+            ....:     precision=1000000)
+            42 + 5*g^(-1) + O(g^(-2))
+        """
+        result = start
+        g = ratio_start
+        for c in coefficients:
+            g *= ratio
+            new_result = (result + c*g).truncate(precision=precision)
+            if new_result.has_same_summands(result):
+                break
+            result = new_result
+        return result
 
 
     def exp(self, precision=None):

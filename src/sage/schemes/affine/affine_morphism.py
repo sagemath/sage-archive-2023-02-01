@@ -37,7 +37,7 @@ from sage.misc.all                import prod
 from sage.rings.all                import Integer
 from sage.arith.all import lcm, gcd
 from sage.rings.complex_field      import ComplexField
-from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
+from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer_ring       import ZZ

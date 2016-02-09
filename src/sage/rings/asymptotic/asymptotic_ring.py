@@ -685,6 +685,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Asymptotic Ring <x^QQ> over Integer Ring
             > *previous* ValueError: 1/2 is not a coefficient in
             Exact Term Monoid x^QQ with coefficients in Integer Ring.
+
+        Check :trac:`19921`::
+
+            sage: CR.<Z> = QQ['Z']
+            sage: CR_mod = CR.quotient((Z^2 - 1)*CR)
+            sage: R.<x> = AsymptoticRing(growth_group='x^NN', coefficient_ring=CR)
+            sage: R_mod = R.change_parameter(coefficient_ring=CR_mod)
+            sage: e = 1 + x*(Z^2-1)
+            sage: R_mod(e)
+            1
         """
         super(AsymptoticExpansion, self).__init__(parent=parent)
 
@@ -695,11 +705,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         if convert:
             from misc import combine_exceptions
-            from term_monoid import TermMonoid
+            from term_monoid import TermMonoid, ZeroCoefficientError
             def convert_terms(element):
-                T = TermMonoid(term=element.parent(), asymptotic_ring=parent)
+                T = TermMonoid(term_monoid=element.parent(), asymptotic_ring=parent)
                 try:
                     return T(element)
+                except ZeroCoefficientError:
+                    return None
                 except (ValueError, TypeError) as e:
                     raise combine_exceptions(
                         ValueError('Cannot include %s with parent %s in %s' %
@@ -1099,8 +1111,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        from term_monoid import ExactTerm
-        simplify = not isinstance(term, ExactTerm)
+        simplify = not term.is_exact()
         return self.parent()(self.summands.mapped(lambda element: term * element),
                              simplify=simplify, convert=False)
 
@@ -1352,7 +1363,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             if convert_terms.count < precision:
                 convert_terms.count += 1
                 return element
-            T = TermMonoid(term='O', asymptotic_ring=self.parent())
+            T = TermMonoid(term_monoid='O', asymptotic_ring=self.parent())
             return T(element)
         convert_terms.count = 0
         summands.map(convert_terms, topological=True, reverse=True)
@@ -1388,10 +1399,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: O(x).exact_part()
             0
         """
-        from term_monoid import ExactTerm
         exact_terms = self.summands.copy()
         for term in self.summands.elements_topological():
-            if not isinstance(term, ExactTerm):
+            if not term.is_exact():
                 exact_terms.remove(term.growth)
 
         return self.parent(exact_terms)
@@ -1686,6 +1696,32 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             from sage.functions.log import log
             result = result / log(base)
         return result
+
+
+    def is_exact(self):
+        r"""
+        Return whether all terms of this expansion are exact.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing('x^QQ * log(x)^QQ', QQ)
+            sage: (x^2 + O(x)).is_exact()
+            False
+            sage: (x^2 - x).is_exact()
+            True
+
+        TESTS::
+
+            sage: A(0).is_exact()
+            True
+            sage: A.one().is_exact()
+            True
+        """
+        return all(T.is_exact() for T in self.summands)
 
 
     def is_little_o_of_one(self):
@@ -2479,7 +2515,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 coefficient_ring=new_coefficient_ring)
             if hasattr(term, 'coefficient'):
                 c = f(term.coefficient)
-                if c == 0:
+                if c.is_zero():
                     return None
                 return T(term.growth, c)
             else:
@@ -3535,6 +3571,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         ::
 
+            sage: Z = R.change_parameter(coefficient_ring=Zmod(3))
+            sage: Z.create_summand('exact', data=42)
+            0
+
+        ::
+
             sage: R.create_summand('O', growth=42*x^2, coefficient=1)
             Traceback (most recent call last):
             ...
@@ -3550,7 +3592,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             TypeError: Cannot create exact term: only 'growth' but
             no 'coefficient' specified.
         """
-        from term_monoid import TermMonoid
+        from term_monoid import TermMonoid, ZeroCoefficientError
         TM = TermMonoid(type, asymptotic_ring=self)
 
         if data is None:
@@ -3562,11 +3604,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 raise TypeError("Cannot create exact term: only 'growth' "
                                 "but no 'coefficient' specified.")
 
-
-        if type == 'exact' and kwds.get('coefficient') == 0:
+        try:
+            return self(TM(data, **kwds), simplify=False, convert=False)
+        except ZeroCoefficientError:
             return self.zero()
-
-        return self(TM(data, **kwds), simplify=False, convert=False)
 
 
     def variable_names(self):

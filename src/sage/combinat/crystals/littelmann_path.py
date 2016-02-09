@@ -5,7 +5,9 @@ AUTHORS:
 
 - Mark Shimozono, Anne Schilling (2012): Initial version
 - Anne Schilling (2013): Implemented
-  :class:`~sage.combinat.crystals.littlemann_path.CrystalOfProjectedLevelZeroLSPaths`
+  :class:`~sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths`
+- Travis Scrimshaw (2016): Implemented
+  :class:`~sage.combinat.crystals.littelmann_path.InfinityCrystalOfLSPaths`
 """
 #****************************************************************************
 #       Copyright (C) 2012 Mark Shimozono
@@ -23,7 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-from sage.misc.cachefunc import cached_in_parent_method
+from sage.misc.cachefunc import cached_in_parent_method, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
@@ -124,7 +126,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         Classcall to mend the input.
 
         Internally, the
-        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfLSPaths` code
+        :class:`~sage.combinat.crystals.littelmann_path.CrystalOfLSPaths` code
         works with a ``starting_weight`` that is in the weight space associated
         to the crystal. The user can, however, also input a ``cartan_type``
         and the coefficients of the fundamental weights as
@@ -178,7 +180,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             sage: C.weight.parent()
             Extended weight space over the Rational Field of the Root system of type ['A', 2, 1]
             sage: C.module_generators
-            [(-Lambda[0] + Lambda[2],)]
+            ((-Lambda[0] + Lambda[2],),)
 
         TESTS::
 
@@ -219,10 +221,10 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             Parent.__init__(self, category = ClassicalCrystals())
 
         if starting_weight == starting_weight.parent().zero():
-            initial_element = self(tuple([]))
+            initial_element = self(())
         else:
-            initial_element = self(tuple([starting_weight]))
-        self.module_generators = [initial_element]
+            initial_element = self((starting_weight,))
+        self.module_generators = (initial_element,)
 
     def _repr_(self):
         """
@@ -297,18 +299,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: c.compress()
                 (Lambda[1] + Lambda[2],)
             """
-            def positively_parallel_weights(v, w):
-                """
-                Checks whether the vectors ``v`` and ``w`` are positive scalar multiples of each other.
-                """
-                supp = v.support()
-                if len(supp) > 0:
-                    i = supp[0]
-                    if v[i]*w[i] > 0 and v[i]*w == w[i]*v:
-                        return True
-                return False
-
-            if len(self.value) == 0:
+            if not self.value:
                 return self
             q = []
             curr = self.value[0]
@@ -626,6 +617,10 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             return [latex(p) for p in self.value]
 
 
+#####################################################################
+## Projected level-zero
+
+
 class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
     r"""
     Crystal of projected level zero LS paths.
@@ -636,7 +631,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
     When ``weight`` is just a single fundamental weight `\Lambda_r`, this crystal is
     isomorphic to a Kirillov-Reshetikhin (KR) crystal, see also
-    :meth:`sage.combinat.crystals.kirillov_reshetikhin.crystals.KirillovReshetikhinFromLSPaths`.
+    :meth:`sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinFromLSPaths`.
     For general weights, it is isomorphic to a tensor product of single-column KR crystals.
 
     EXAMPLES::
@@ -677,9 +672,9 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         Classcall to mend the input.
 
         Internally, the
-        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfProjectedLevelZeroLSPaths`
+        :class:`~sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths`
         uses a level zero weight, which is passed on to
-        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfLSPaths`.
+        :class:`~sage.combinat.crystals.littelmann_path.CrystalOfLSPaths`.
         ``weight`` is first coerced to a level zero weight.
 
         TESTS::
@@ -1116,3 +1111,320 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                     return s/2
                 else:
                     return s
+
+
+#####################################################################
+## B(\infty)
+
+
+class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
+    r"""
+    LS path model for `\mathcal{B}(\infty)`.
+
+    Elements of `\mathcal{B}(\infty)` are equivalence classes of paths `[\pi]`
+    in `\mathcal{B}(k\rho)` for `k\gg 0`, where `\rho` is the Weyl vector.  A
+    canonical representative for an element of `\mathcal{B}(\infty)` is chosen
+    by taking `k` to be minimal such that the endpoint of `\pi` is strictly
+    dominant but its representative in `\mathcal{B}((k-1)\rho)` is on the wall
+    of the dominant chamber.
+
+    REFERENCES:
+
+    .. [LZ11] Bin Li and Hechun Zhang.
+       *Path realization of crystal* `B(\infty)`.
+       Front. Math. China, **6** (4), (2011) pp. 689--706.
+       :doi:`10.1007/s11464-010-0073-x`
+    """
+    @staticmethod
+    def __classcall_private__(cls, cartan_type):
+        """
+        Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: B1 = crystals.infinity.LSPaths(['A',4])
+            sage: B2 = crystals.infinity.LSPaths('A4')
+            sage: B3 = crystals.infinity.LSPaths(CartanType(['A',4]))
+            sage: B1 is B2 and B2 is B3
+            True
+        """
+        cartan_type = CartanType(cartan_type)
+        return super(InfinityCrystalOfLSPaths, cls).__classcall__(cls, cartan_type)
+
+    def __init__(self, cartan_type):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.LSPaths(['D',4,3])
+            sage: TestSuite(B).run(max_runs=500)
+            sage: B = crystals.infinity.LSPaths(['B',3])
+            sage: TestSuite(B).run() # long time
+        """
+        Parent.__init__(self, category=(HighestWeightCrystals(),
+                                        InfiniteEnumeratedSets()))
+        self._cartan_type = cartan_type
+        self.module_generators = (self.module_generator(),)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: crystals.infinity.LSPaths(['A',4])
+            The infinity crystal of LS paths of type ['A', 4]
+        """
+        return "The infinity crystal of LS paths of type %s" % self._cartan_type
+
+    @cached_method
+    def module_generator(self):
+        r"""
+        Return the module generator (or highest weight element) of ``self``.
+
+        The module generator is the unique path
+        `\pi_\infty\colon t \mapsto t\rho`, for `t \in [0,\infty)`.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.LSPaths(['A',6,2])
+            sage: mg = B.module_generator(); mg
+            (Lambda[0] + Lambda[1] + Lambda[2] + Lambda[3],)
+            sage: mg.weight()
+            0
+        """
+        rho = self.weight_lattice_realization().rho()
+        return self((rho,))
+
+    def weight_lattice_realization(self):
+        """
+        Return the weight lattice realization of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.LSPaths(['C',4])
+            sage: B.weight_lattice_realization()
+            Weight space over the Rational Field of the Root system of type ['C', 4]
+        """
+        if self._cartan_type.is_affine():
+            return self._cartan_type.root_system().weight_space(extended=True)
+        return self._cartan_type.root_system().weight_space()
+
+    class Element(CrystalOfLSPaths.Element):
+
+        def e(self, i, power=1, length_only=False):
+            r"""
+            Return the `i`-th crystal raising operator on ``self``.
+
+            INPUT:
+
+            - ``i`` -- element of the index set
+            - ``power`` -- (default: 1) positive integer; specifies the
+              power of the lowering operator to be applied
+            - ``length_only`` -- (default: ``False``) boolean; if ``True``,
+              then return the distance to the anti-dominant end of the
+              `i`-string of ``self``
+
+            EXAMPLES::
+
+                sage: B = crystals.infinity.LSPaths(['B',3,1])
+                sage: mg = B.module_generator()
+                sage: mg.e(0)
+                sage: mg.e(1)
+                sage: mg.e(2)
+                sage: x = mg.f_string([1,0,2,1,0,2,1,1,0])
+                sage: all(x.f(i).e(i) == x for i in B.index_set())
+                True
+                sage: all(x.e(i).f(i) == x for i in B.index_set() if x.epsilon(i) > 0)
+                True
+
+            TESTS:
+
+            Check that this works in affine types::
+
+                sage: B = crystals.infinity.LSPaths(['A',3,1])
+                sage: mg = B.highest_weight_vector()
+                sage: x = mg.f_string([0,1,2,3])
+                sage: x.e_string([3,2,1,0]) == mg
+                True
+
+            We check that :meth:`epsilon` works::
+
+                sage: B = crystals.infinity.LSPaths(['D',4])
+                sage: mg = B.highest_weight_vector()
+                sage: x = mg.f_string([1,3,4,2,4,3,2,1,4])
+                sage: [x.epsilon(i) for i in B.index_set()]
+                [1, 1, 0, 1]
+            """
+            ret = super(InfinityCrystalOfLSPaths.Element, self).e(i, power=power,
+                                                                  length_only=length_only)
+            if ret is None:
+                return None
+            if length_only:
+                return ret
+            WLR = self.parent().weight_lattice_realization()
+            value = list(ret.value)
+            endpoint = sum(p for p in value)
+            rho = WLR.rho()
+            h = WLR.simple_coroots()
+            I = self.parent().index_set()
+
+            if not positively_parallel_weights(value[-1], rho):
+                value.append(rho)
+                endpoint += rho
+
+            while any(endpoint.scalar(alc) < 1 for alc in h):
+                value[-1] += rho
+                endpoint += rho
+            while all(endpoint.scalar(alc) > 1 for alc in h):
+                value[-1] -= rho
+                endpoint -= rho
+            while value[-1] == WLR.zero():
+                value.pop()
+            ret.value = tuple(value)
+            return ret
+
+        def f(self, i, power=1, length_only=False):
+            r"""
+            Return the `i`-th crystal lowering operator on ``self``.
+
+            INPUT:
+
+            - ``i`` -- element of the index set
+            - ``power`` -- (default: 1) positive integer; specifies the
+              power of the lowering operator to be applied
+            - ``length_only`` -- (default: ``False``) boolean; if ``True``,
+              then return the distance to the anti-dominant end of the
+              `i`-string of ``self``
+
+            EXAMPLES::
+
+                sage: B = crystals.infinity.LSPaths(['D',3,2])
+                sage: mg = B.highest_weight_vector()
+                sage: mg.f(1)
+                (3*Lambda[0] - Lambda[1] + 3*Lambda[2],
+                 2*Lambda[0] + 2*Lambda[1] + 2*Lambda[2])
+                sage: mg.f(2)
+                (Lambda[0] + 2*Lambda[1] - Lambda[2],
+                 2*Lambda[0] + 2*Lambda[1] + 2*Lambda[2])
+                sage: mg.f(0)
+                (-Lambda[0] + 2*Lambda[1] + Lambda[2] - delta,
+                 2*Lambda[0] + 2*Lambda[1] + 2*Lambda[2])
+            """
+            dual_path = self.dualize()
+            dual_path = super(InfinityCrystalOfLSPaths.Element, dual_path).e(i, power, length_only=length_only)
+            if length_only:
+                return dual_path
+            if dual_path is None:
+                return None
+            ret = dual_path.dualize()
+            WLR = self.parent().weight_lattice_realization()
+            value = list(ret.value)
+            endpoint = sum(p for p in value)
+            rho = WLR.rho()
+            h = WLR.simple_coroots()
+
+            if not positively_parallel_weights(value[-1], rho):
+                value.append(rho)
+                endpoint += rho
+
+            while any(endpoint.scalar(alc) < 1 for alc in h):
+                value[-1] += rho
+                endpoint += rho
+            while all(endpoint.scalar(alc) > 1 for alc in h):
+                value[-1] -= rho
+                endpoint -= rho
+            while value[-1] == WLR.zero():
+                value.pop()
+            ret.value = tuple(value)
+            return ret
+
+        @cached_method
+        def weight(self):
+            """
+            Return the weight of ``self``.
+
+            .. TODO::
+
+                This is a generic algorithm. We should find a better
+                description and implement it.
+
+            EXAMPLES::
+
+                sage: B = crystals.infinity.LSPaths(['E',6])
+                sage: mg = B.highest_weight_vector()
+                sage: f_seq = [1,4,2,6,4,2,3,1,5,5]
+                sage: x = mg.f_string(f_seq)
+                sage: x.weight()
+                -3*Lambda[1] - 2*Lambda[2] + 2*Lambda[3] + Lambda[4] - Lambda[5]
+
+                sage: al = B.cartan_type().root_system().weight_space().simple_roots()
+                sage: x.weight() == -sum(al[i] for i in f_seq)
+                True
+            """
+            WLR = self.parent().weight_lattice_realization()
+            alpha = WLR.simple_roots()
+            return -WLR.sum(alpha[i] for i in self.to_highest_weight()[1])
+
+        def phi(self,i):
+            r"""
+            Return `\varphi_i` of ``self``.
+
+            Let `\pi \in \mathcal{B}(\infty)`. Define
+
+            .. MATH::
+
+                \varphi_i(\pi) := \varepsilon_i(\pi) + \langle h_i,
+                \mathrm{wt}(\pi) \rangle,
+
+            where `h_i` is the `i`-th simple coroot and `\mathrm{wt}(\pi)`
+            is the :meth:`weight` of `\pi`.
+
+            INPUT:
+
+            - ``i`` -- element of the index set
+
+            EXAMPLES::
+
+                sage: B = crystals.infinity.LSPaths(['D',4])
+                sage: mg = B.highest_weight_vector()
+                sage: x = mg.f_string([1,3,4,2,4,3,2,1,4])
+                sage: [x.phi(i) for i in B.index_set()]
+                [-1, 4, -2, -3]
+            """
+            WLR = self.parent().weight_lattice_realization()
+            h = WLR.simple_coroots()
+            return self.epsilon(i) + WLR(self.weight()).scalar(h[i])
+
+
+#####################################################################
+## Helper functions
+
+
+def positively_parallel_weights(v, w):
+    """
+    Check whether the vectors ``v`` and ``w`` are positive scalar
+    multiples of each other.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.crystals.littelmann_path import positively_parallel_weights
+        sage: La = RootSystem(['A',5,2]).weight_space(extended=True).fundamental_weights()
+        sage: rho = sum(La)
+        sage: positively_parallel_weights(rho, 4*rho)
+        True
+        sage: positively_parallel_weights(4*rho, rho)
+        True
+        sage: positively_parallel_weights(rho, -rho)
+        False
+        sage: positively_parallel_weights(rho, La[1] + La[2])
+        False
+    """
+    supp = v.support()
+    if len(supp) > 0:
+        i = supp[0]
+        if v[i]*w[i] > 0 and v[i]*w == w[i]*v:
+            return True
+    return False
+

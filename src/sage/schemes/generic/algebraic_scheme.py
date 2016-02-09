@@ -138,7 +138,7 @@ from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex

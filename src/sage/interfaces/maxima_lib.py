@@ -1565,7 +1565,7 @@ def sr_to_max(expr):
             max_op_dict[op_max]=op
         return EclObject(([sage_op_dict[op]],
                      [sr_to_max(o) for o in expr.operands()]))
-    elif expr.is_symbol() or expr.is_constant():
+    elif expr.is_symbol() or expr._is_registered_constant_():
         if not expr in sage_sym_dict:
             sym_max=maxima(expr).ecl()
             sage_sym_dict[expr]=sym_max

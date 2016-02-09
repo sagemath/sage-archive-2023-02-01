@@ -3326,7 +3326,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             0
 
         where the leftmost non-zero entry is in degree `0` and the
-        rightmost entry in degree `d`. See [Klyachko], eq. (3.2). This
+        rightmost entry in degree `d`. See [Klyachko]_, eq. (3.2). This
         complex computes the homology of `|\Sigma|\subset N_\RR` with
         arbitrary support,
 
@@ -3429,13 +3429,6 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan = Fan([Cone([(-1,0,0),(0,-1,0),(0,0,-1)])])
             sage: fan.complex().homology()
             {0: 0, 1: 0, 2: 0, 3: 0}
-
-        REFERENCES:
-
-        ..  [Klyachko]
-            A. A. Klyachko,
-            Equivariant Bundles on Toral Varieties.
-            Mathematics of the USSR - Izvestiya 35 (1990), 337-375.
         """
         dim = self.dim()
         delta = dict()

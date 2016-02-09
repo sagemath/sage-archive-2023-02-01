@@ -1,5 +1,5 @@
 r"""
-Fast binary code routines.
+Fast binary code routines
 
 Some computations with linear binary codes. Fix a basis for $GF(2)^n$.
 A linear binary code is a linear subspace of $GF(2)^n$, together with

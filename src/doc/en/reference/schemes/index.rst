@@ -79,5 +79,7 @@ Toric Varieties
    sage/schemes/toric/homset
    sage/schemes/toric/points
 
+   sage/schemes/toric/sheaf/constructor
+   sage/schemes/toric/sheaf/klyachko
 
 .. include:: ../footer.txt

@@ -1434,7 +1434,7 @@ cdef class GapElement_FiniteField(GapElement):
         deg = self.DegreeFFE().sage()
         char = self.Characteristic().sage()
         if ring is None:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             ring = GF(char**deg, name=var)
 
         if self.IsOne():
@@ -1678,7 +1678,7 @@ cdef class GapElement_Ring(GapElement):
             Finite Field in A of size 3^2
         """
         size = self.Size().sage()
-        from sage.rings.finite_rings.constructor import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         return GF(size, name=var)
 
 
@@ -2602,7 +2602,7 @@ cdef class GapElement_RecordIterator(object):
 
     def __next__(self):
         r"""
-        The next elemnt in the record.
+        Return the next element in the record.
 
         OUTPUT:
 

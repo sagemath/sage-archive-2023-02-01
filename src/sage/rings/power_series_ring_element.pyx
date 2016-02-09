@@ -1401,7 +1401,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: p.O(-5)
             Traceback (most recent call last):
             ...
-            ValueError: n must be at least 0
+            ValueError: prec (= -5) must be non-negative
         """
         if prec is infinity or prec >= self.prec():
             return self

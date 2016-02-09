@@ -181,8 +181,10 @@ cdef class PolynomialRealDense(Polynomial):
             self._coeffs = <mpfr_t*>check_reallocarray(self._coeffs, i+1, sizeof(mpfr_t))
             self._degree = i
 
-    def __getitem__(self, ix):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -202,27 +204,9 @@ cdef class PolynomialRealDense(Polynomial):
             x^5 + 5.0*x^4 + 10.*x^3 + 10.*x^2 + 5.0*x + 1.0
             sage: f[:3]
             10.*x^2 + 5.0*x + 1.0
-            sage: f[3:]
-            x^5 + 5.0*x^4 + 10.*x^3
-            sage: f[1:4]
-            10.*x^3 + 10.*x^2 + 5.0*x
-
         """
-        if isinstance(ix, slice):
-            if ix.stop is None:
-                chopped = self
-            else:
-                chopped = self.truncate(ix.stop)
-            if ix.start is None:
-                return chopped
-            else:
-                return (chopped >> ix.start) << ix.start
-        cdef RealNumber r = <RealNumber>RealNumber(self._base_ring)
-        cdef Py_ssize_t i = ix
-        if 0 <= i <= self._degree:
-            mpfr_set(r.value, self._coeffs[i], self._base_ring.rnd)
-        else:
-            mpfr_set_ui(r.value, 0, self._base_ring.rnd)
+        cdef RealNumber r = <RealNumber>RealNumber.__new__(RealNumber, self._base_ring)
+        mpfr_set(r.value, self._coeffs[i], self._base_ring.rnd)
         return r
 
     cdef PolynomialRealDense _new(self, Py_ssize_t degree):

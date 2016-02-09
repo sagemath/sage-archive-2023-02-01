@@ -54,7 +54,7 @@ from sage.rings.all                import Integer, CIF
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.rings.complex_field      import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
-from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
+from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
@@ -3396,7 +3396,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         Must be defined over `\QQ`.
 
         The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
-        trouble getting a partiuclar map to finish, try first computing the possible periods, then
+        trouble getting a particular map to finish, try first computing the possible periods, then
         try various different ``lifting_prime``.
 
         ALGORITHM:

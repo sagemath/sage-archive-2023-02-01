@@ -2854,7 +2854,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         forms of discriminant `-104`, from which we have selected a
         small prime::
 
-            sage: CL.matrix() # long time
+            sage: CL.matrix() # long time # random (see :trac:`19229`)
             [1 2 3 3 5 5]
             [2 1 5 5 3 3]
             [3 5 1 3 2 5]
@@ -2864,7 +2864,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         To see the array of binary quadratic forms::
 
-            sage: CL.qf_matrix()  # long time
+            sage: CL.qf_matrix()  # long time # random (see :trac:`19229`)
             [[[1], [2, 0, 13], [3, -2, 9], [3, -2, 9], [5, -4, 6], [5, -4, 6]],
              [[2, 0, 13], [1], [5, -4, 6], [5, -4, 6], [3, -2, 9], [3, -2, 9]],
              [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [2, 0, 13], [5, -4, 6]],

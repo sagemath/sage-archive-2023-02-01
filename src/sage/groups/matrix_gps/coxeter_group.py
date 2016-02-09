@@ -667,7 +667,6 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         from sage.sets.family import Family
         return Family(resu, lambda rt: d[rt])
 
-    @cached_method
     def positive_roots(self, as_reflections=None):
         """
         Return the positive roots.

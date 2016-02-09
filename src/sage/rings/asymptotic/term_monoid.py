@@ -188,6 +188,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
+- Clemens Heuberger (2016)
 
 ACKNOWLEDGEMENT:
 
@@ -1213,6 +1214,39 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         substitute_raise_exception(self, TypeError(
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
+
+
+    def _singularity_analysis_(self, zeta, var, precision):
+        r"""
+        Perform singularity analysis on this term.
+
+        INPUT:
+
+        - ``zeta`` -- a number
+
+        - ``var`` -- a string denoting the variable
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        and `f` has this term as a singular expansion
+        in `(1-z\zeta)\to 0`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: t = GenericTermMonoid(GrowthGroup('x^ZZ'), ZZ).an_element()
+            sage: t._singularity_analysis_(2, 'n', 3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis not implemented
+            in GenericTermMonoid
+        """
+        raise NotImplementedError("singularity analysis not implemented "
+            "in GenericTermMonoid")
 
 
 class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,

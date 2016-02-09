@@ -3409,7 +3409,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         INPUT:
 
-        - ``function`` -- a function.
+        - ``function`` -- a callable function in one variable.
 
         - ``singularities`` -- list of dominant singularities of the function
 

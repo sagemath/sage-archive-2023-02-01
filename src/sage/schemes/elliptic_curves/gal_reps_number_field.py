@@ -311,7 +311,7 @@ class GaloisRepresentation(SageObject):
             sage: E.galois_representation().isogeny_bound() # No 7-isogeny, but...
             [7]
 
-        For curves with rational CM, there are infintely many primes
+        For curves with rational CM, there are infinitely many primes
         `p` for which the mod-`p` representation is reducible, and [0]
         is returned::
 
@@ -381,7 +381,7 @@ class GaloisRepresentation(SageObject):
             sage: rho.reducible_primes()
             []
 
-        For curves with rational CM, there are infintely many primes
+        For curves with rational CM, there are infinitely many primes
         `p` for which the mod-`p` representation is reducible, and [0]
         is returned::
 

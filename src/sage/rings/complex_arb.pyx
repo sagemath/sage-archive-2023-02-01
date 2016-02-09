@@ -1222,7 +1222,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(exp(I*pi/3)).accuracy()
-            51
+            52
             sage: CBF(I/2).accuracy() == CBF.base().maximal_accuracy()
             True
             sage: CBF('nan', 'inf').accuracy() == -CBF.base().maximal_accuracy()
@@ -2080,7 +2080,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1/2).exppii()
             1.000000000000000*I
             sage: CBF(0, -1/pi).exppii()
-            [2.71828182845904 +/- 6.05e-15]
+            [2.71828182845904 +/- 6.20e-15]
         """
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -2125,7 +2125,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(pi/2, 1/10).tan()
-            [+/- 4.00e-14] + [10.0333111322540 +/- 3.60e-14]*I
+            [+/- 2.87e-14] + [10.0333111322540 +/- 3.16e-14]*I
             sage: CBF(pi/2).tan()
             [+/- inf]
         """
@@ -2358,7 +2358,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(1, pi/2).hypergeometric([], [])
-            [+/- 3.57e-15] + [2.7182818284590 +/- 5.37e-14]*I
+            [+/- 2.99e-15] + [2.7182818284590 +/- 5.31e-14]*I
 
             sage: CBF(1, pi).hypergeometric([1/4], [1/4])
             [-2.7182818284590 +/- 8.63e-14] + [+/- 3.69e-14]*I

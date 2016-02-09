@@ -3442,11 +3442,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: B.<n> = AsymptoticRing('QQ^n*n^QQ', QQ)
             sage: B.singularity_analysis(catalan, (1/4,), precision=3)
             1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
-            + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-9/2))
+            + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-4))
             sage: B.singularity_analysis(catalan, (1/4,), precision=2,
             ....:                        return_singular_expansions=True)
             SingularityAnalysisResult(asymptotic_expansion=1/sqrt(pi)*4^n*n^(-3/2)
-            - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-7/2)),
+            - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3)),
             singular_expansions={1/4: 2 - 2*T^(-1/2)
             + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
 
@@ -3462,56 +3462,42 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         """
         from sage.symbolic.ring import SR
         from sage.rings.integer_ring import ZZ
-        from term_monoid import ExactTerm, OTerm
-        from growth_group import MonomialGrowthGroup
-        from asymptotic_expansion_generators import asymptotic_expansions
+        from asymptotic_expansion_generators import asymptotic_expansions,\
+            NotImplementedOZero
 
         singular_expansions = {}
-        # workaround: access from inner scope otherwise not possible
-        flags = {'OZeroEncountered': False}
 
-        def expand_summand(summand, singularity, precision=precision):
-            # helper function: takes a single summand from the singular
-            # expansion and determines the asymptotic growth of the
-            # coefficients.
-            alpha = summand.growth.exponent
-            if alpha in ZZ and alpha <= 0:
-                flags['OZeroEncountered'] = True
-                return self.zero()
-            if isinstance(summand, ExactTerm):
-                expansion = asymptotic_expansions.\
-                    SingularityAnalysis('Z', alpha=alpha, zeta=singularity,
-                                        precision=precision).subs(Z=self.gen())
-                return summand.coefficient * expansion
-            elif isinstance(summand, OTerm):
-                return (self.gen() ** (alpha - 1)).O()
-
-        def handle_singularity(function, singularity):
-            A = AsymptoticRing('T^QQ', coefficient_ring=SR, default_prec=precision)
+        OZeroEncountered = False
+        result = 0
+        for singularity in singularities:
+            A = AsymptoticRing(
+                'T^QQ', coefficient_ring=SR, default_prec=precision)
             T = A.gen()
             singular_expansion = A(function((1-1/T)*singularity))
             singular_expansions[singularity] = singular_expansion
-            if not isinstance(singular_expansion.parent().growth_group,
-                              MonomialGrowthGroup):
-                raise NotImplementedError('only implemented for monomial growth groups')
 
-            return sum(expand_summand(s, singularity)
-                       for s in singular_expansion.summands)
+            for s in singular_expansion.summands:
+                try:
+                    contribution = s._singularity_analysis_(
+                        singularity, 'Z', precision).subs(Z=self.gen())
+                except NotImplementedOZero:
+                    OZeroEncountered = True
+                else:
+                    result += contribution
 
-        result = sum(handle_singularity(function, singularity)
-                     for singularity in singularities)
-
-        if flags['OZeroEncountered'] and result.exact_part() == result:
-            from asymptotic_expansion_generators import NotImplementedOZero
-            raise NotImplementedOZero('The error term is O(0) which means 0 '
-                                      'for sufficiently large {}.'.format(self.gen()))
+        if OZeroEncountered and result.is_exact():
+            raise NotImplementedOZero(
+                'The error term is O(0) which means 0 '
+                'for sufficiently large {}.'.format(self.gen()))
 
         if return_singular_expansions:
             from collections import namedtuple
-            SingularityAnalysisResult = namedtuple('SingularityAnalysisResult',
-                                                   ['asymptotic_expansion', 'singular_expansions'])
-            return SingularityAnalysisResult(asymptotic_expansion=result,
-                                             singular_expansions=singular_expansions)
+            SingularityAnalysisResult = namedtuple(
+                'SingularityAnalysisResult',
+                ['asymptotic_expansion', 'singular_expansions'])
+            return SingularityAnalysisResult(
+                asymptotic_expansion=result,
+                singular_expansions=singular_expansions)
         else:
             return result
 

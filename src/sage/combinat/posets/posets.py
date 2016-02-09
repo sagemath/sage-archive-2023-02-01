@@ -104,7 +104,7 @@ List of Poset methods
     :meth:`~FinitePoset.dual` | Return the dual poset of this poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
-    :meth:`~FinitePoset.ordinal_components` | Return the ordinal decomposition of the poset as subposets.
+    :meth:`~FinitePoset.ordinal_summands` | Return the ordinal summands of the poset.
     :meth:`~FinitePoset.subposet` | Return the subposet containing elements with partial order induced by this poset.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
     :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled with elements `\{0, \ldots, n-1\}`.
@@ -3636,11 +3636,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [self.subposet(self._vertex_to_element(x) for x in cc)
                 for cc in comps]
 
-    def ordinal_components(self):
+    def ordinal_summands(self):
         r"""
-        Return the ordinal decomposition of the poset as subposets.
+        Return the ordinal summands of the poset as subposets.
 
-        The ordinal decomposition of a poset `P` is the longest list of
+        The ordinal summands of a poset `P` is the longest list of
         non-empty subposets `P_1, \ldots, P_n` whose ordinal sum is `P`. This
         decomposition is unique.
 
@@ -3652,7 +3652,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({'a': ['c', 'd'], 'b': ['d'], 'c': ['x', 'y'],
             ....: 'd': ['x', 'y']})
-            sage: parts = P.ordinal_components(); parts
+            sage: parts = P.ordinal_summands(); parts
             [Finite poset containing 4 elements, Finite poset containing 2 elements]
             sage: sorted(parts[0])
             ['a', 'b', 'c', 'd']
@@ -3677,9 +3677,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: Poset().ordinal_components()
+            sage: Poset().ordinal_summands()
             [Finite poset containing 0 elements]
-            sage: Poset({1:[]}).ordinal_components()
+            sage: Poset({1: []}).ordinal_summands()
             [Finite poset containing 1 elements]
         """
         n = self.cardinality()

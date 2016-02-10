@@ -3148,7 +3148,7 @@ class ExactTerm(TermWithCoefficient):
             sage: latex((1+a)/n)
             \left(a + 1\right) n^{-1}
         """
-	return self._repr_(latex=True)
+        return self._repr_(latex=True)
 
 
     def __invert__(self):

@@ -261,7 +261,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
     return tuple(strip(f) for f in factors)
 
 
-def repr_op(left, op, right=None):
+def repr_op(left, op, right=None, latex=False):
     r"""
     Create a string ``left op right`` with
     taking care of parentheses in its operands.
@@ -300,12 +300,14 @@ def repr_op(left, op, right=None):
         else:
             return s
         if any(sig in s for sig in signals):
-            return '(%s)' % (s,)
+            if latex:
+                return r'\left({}\right)'.format(s)
+            else:
+                return '({})'.format(s)
         else:
             return s
 
-    return add_parentheses(left, op) + op +\
-        add_parentheses(right, op)
+    return add_parentheses(left, op) + op + add_parentheses(right, op)
 
 
 def combine_exceptions(e, *f):

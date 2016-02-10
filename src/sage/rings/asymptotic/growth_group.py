@@ -2494,7 +2494,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         return self._raw_element_
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this monomial growth element.
 
@@ -2524,18 +2524,50 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P(x^-42)  # indirect doctest
             x^(-42)
         """
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
         from sage.rings.integer_ring import ZZ
         from misc import repr_op
 
-        var = repr(self.parent()._var_)
+        var = f(self.parent()._var_)
         if self.exponent.is_zero():
             return '1'
         elif self.exponent.is_one():
             return var
+        elif latex:
+            return repr_op(var, '^', latex=True) + \
+                '{' + latex_repr(self.exponent)._latex_() + '}'
         elif self.exponent in ZZ and self.exponent > 0:
             return repr_op(var, '^') + str(self.exponent)
         else:
             return repr_op(var, '^') + '(' + str(self.exponent) + ')'
+
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('x^QQ')
+            sage: latex(P(1))  # indirect doctest
+            1
+            sage: latex(P(x^5))  # indirect doctest
+            x^{5}
+            sage: latex(P(x^(1/2)))  # indirect doctest
+            x^{\frac{1}{2}}
+
+        ::
+
+            sage: latex(P(x^-1))  # indirect doctest
+            x^{-1}
+            sage: latex(P(x^-42))  # indirect doctest
+            x^{-42}
+        """
+        return self._repr_(latex=True)
 
 
     def _mul_(self, other):

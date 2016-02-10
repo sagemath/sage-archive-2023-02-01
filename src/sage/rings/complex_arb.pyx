@@ -141,6 +141,7 @@ from sage.libs.mpfr cimport MPFR_RNDU
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
+from sage.libs.arb.acb_modular cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
@@ -2771,5 +2772,59 @@ cdef class ComplexBall(RingElement):
         acb_hypgeom_li(result.value, self.value, offset, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
+
+    def jacobi_theta(self, tau):
+        r"""
+        Return the four Jacobi theta functions evaluated at the argument
+        ``self`` (representing `z`) and the parameter ``tau`` which should lie
+        in the upper half plane.
+
+        The following definitions are used:
+
+        .. math ::
+
+            \theta_1(z,\tau) = 2 q_{1/4} \sum_{n=0}^{\infty} (-1)^n q^{n(n+1)} \sin((2n+1) \pi z)
+
+            \theta_2(z,\tau) = 2 q_{1/4} \sum_{n=0}^{\infty} q^{n(n+1)} \cos((2n+1) \pi z)
+
+            \theta_3(z,\tau) = 1 + 2 \sum_{n=1}^{\infty} q^{n^2} \cos(2n \pi z)
+
+            \theta_4(z,\tau) = 1 + 2 \sum_{n=1}^{\infty} (-1)^n q^{n^2} \cos(2n \pi z)
+
+        where `q = \exp(\pi i \tau)` and `q_{1/4} = \exp(\pi i \tau / 4)`.
+        Note that `z` is multiplied by `\pi`; some authors omit this factor.
+
+        EXAMPLES::
+
+            sage: CBF(3,-1/2).jacobi_theta(CBF(1/4,2))
+            ([-0.186580562274757 +/- 5.52e-16] + [0.93841744788594 +/- 2.48e-15]*I,
+             [-1.02315311037951 +/- 4.10e-15] + [-0.203600094532010 +/- 7.33e-16]*I,
+             [1.030613911309632 +/- 4.25e-16] + [0.030613917822067 +/- 1.89e-16]*I,
+             [0.969386075665498 +/- 4.65e-16] + [-0.030613917822067 +/- 1.89e-16]*I)
+
+            sage: CBF(3,-1/2).jacobi_theta(CBF(1/4,-2))
+            ([+/- inf] + [+/- inf]*I,
+             [+/- inf] + [+/- inf]*I,
+             [+/- inf] + [+/- inf]*I,
+             [+/- inf] + [+/- inf]*I)
+
+            sage: CBF(0).jacobi_theta(CBF(0,1))
+            (0,
+             [0.91357913815612 +/- 3.96e-15],
+             [1.086434811213308 +/- 8.16e-16],
+             [0.913579138156117 +/- 8.89e-16])
+
+        """
+
+        cdef ComplexBall res1 = self._new()
+        cdef ComplexBall res2 = self._new()
+        cdef ComplexBall res3 = self._new()
+        cdef ComplexBall res4 = self._new()
+        cdef ComplexBall my_tau = self._parent.coerce(tau)
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_theta(res1.value, res2.value, res3.value, res4.value,
+            self.value, my_tau.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res1, res2, res3, res4
 
 CBF = ComplexBallField()

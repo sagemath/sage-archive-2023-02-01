@@ -76,8 +76,9 @@ Functions
 
 def breadth_first_level_search(G, start, ignore_direction=False, neighbors=None):
     r"""
-    Generate a sequence of dictionaries, each mapping the vertices from level i
-    to a set of their neighbours at level i+1.
+    Generate a sequence of dictionaries, each mapping the vertices at
+    distance ``i`` from ``start`` to the set of their neighbours at
+    distance ``i+1``.
 
     Originally written by D. Eppstein for the PADS library
     (http://www.ics.uci.edu/~eppstein/PADS/).
@@ -402,7 +403,7 @@ def is_partial_cube(G, certificate=False):
 
     # Rest of data structure: point from states to list and list to states
     state_to_active_token = {v: -1 for v in g}
-    token_to_states = [[] for i in activeTokens]
+    token_to_states = [[] for i in activeTokens] # (i.e. vertices on which each token acts)
 
     def scan(v):
         """Find the next token that is effective for v."""

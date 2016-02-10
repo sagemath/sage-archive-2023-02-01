@@ -998,7 +998,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         self._summands_.merge(reverse=True)
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this asymptotic expansion.
 
@@ -1018,12 +1018,30 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: (5*x^2-12*x) * (x^3+O(x))  # indirect doctest
             5*x^5 - 12*x^4 + O(x^3)
         """
-        s = ' + '.join(repr(elem) for elem in
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+        s = ' + '.join(f(elem) for elem in
                        self.summands.elements_topological(reverse=True))
         s = s.replace('+ -', '- ')
         if not s:
             return '0'
         return s
+
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: latex((5*x^2+12*x) * (x^3+O(x)))  # indirect doctest
+            5 x^{5} + 12 x^{4} + O\left(x^3\right)
+            sage: latex((5*x^2-12*x) * (x^3+O(x)))  # indirect doctest
+            5 x^{5} - 12 x^{4} + O\left(x^3\right)
+        """
+        return self._repr_(latex=True)
 
 
     def _add_(self, other):

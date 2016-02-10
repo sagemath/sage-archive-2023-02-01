@@ -3285,7 +3285,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         return self._raw_element_
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this exponential growth element.
 
@@ -3323,13 +3323,53 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: G('(1+x)^y')
             (x + 1)^y
         """
-        from sage.rings.integer_ring import ZZ
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
         from misc import repr_op
 
-        var = repr(self.parent()._var_)
+        var = f(self.parent()._var_)
         if self.base.is_one():
             return '1'
-        return repr_op(str(self.base), '^', var)
+        if latex:
+            return repr_op(latex_repr(self.base)._latex_(), '^', latex=True) + \
+                '{' + latex_repr(var)._latex_() + '}'
+        else:
+            return repr_op(str(self.base), '^', var)
+
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('QQ^x')
+            sage: latex(P(1))
+            1
+            sage: latex(P(5^x))  # indirect doctest
+            5^{x}
+            sage: latex(P((1/2)^x))  # indirect doctest
+            \left(\frac{1}{2}\right)^{x}
+
+        ::
+
+            sage: latex(P((-1)^x))  # indirect doctest
+            \left(-1\right)^{x}
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: G = ExponentialGrowthGroup(ZZ['x'], 'y'); G
+            Growth Group ZZ[x]^y
+            sage: latex(G('(1-x)^y'))
+            \left(-x + 1\right)^{y}
+            sage: latex(G('(1+x)^y'))
+            \left(x + 1\right)^{y}
+        """
+        return self._repr_(latex=True)
 
 
     def _mul_(self, other):

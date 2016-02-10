@@ -1202,6 +1202,10 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         return 'Generic Term with growth ' + repr(self.growth)
 
 
+    def _latex_(self):
+        raise NotImplementedError
+
+
     def _substitute_(self, rules):
         r"""
         Substitute the given ``rules`` in this generic term.

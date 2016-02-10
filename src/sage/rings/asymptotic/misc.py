@@ -290,6 +290,11 @@ def repr_op(left, op, right=None, latex=False):
         '(a-b)^c'
         sage: repr_op('a+b', '^', 'c')
         '(a+b)^c'
+
+    ::
+
+        sage: print repr_op(r'\frac{1}{2}', '^', 'c', latex=True)
+        \left(\frac{1}{2}\right)^c
     """
     left = str(left)
     right = str(right) if right is not None else ''
@@ -299,7 +304,7 @@ def repr_op(left, op, right=None, latex=False):
             signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
-        if any(sig in s for sig in signals):
+        if any(sig in s for sig in signals) or latex and s.startswith(r'\frac'):
             if latex:
                 return r'\left({}\right)'.format(s)
             else:

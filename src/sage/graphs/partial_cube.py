@@ -99,7 +99,7 @@ Functions
 ---------
 """
 
-def breadth_first_level_search(G, start, ignore_direction=False, neighbors=None):
+def breadth_first_level_search(G, start):
     r"""
     Generate a sequence of dictionaries, each mapping the vertices at
     distance ``i`` from ``start`` to the set of their neighbours at
@@ -114,32 +114,21 @@ def breadth_first_level_search(G, start, ignore_direction=False, neighbors=None)
 
     - ``start`` -- vertex or list of vertices from which to start the traversal.
 
-    - ``ignore_direction`` -- (default ``False``) only applies to directed
-      graphs. If ``True``, searches across edges in either direction.
-
-    - ``neighbors`` -- a function giving the neighbors of a vertex.
-      The function should take a vertex and return a list of vertices.
-      For a graph, ``neighbors`` is by default the
-      :meth:`~sage.graphs.generic_graph.GenericGraph.neighbor_iterator`
-      function of the graph. For a digraph, the ``neighbors`` function
-      defaults to the :meth:`~DiGraph.neighbor_out_iterator` function
-      of the graph.
-
     EXAMPLE::
 
-        sage: H = graphs.HeawoodGraph()
-        sage: list(sage.graphs.partial_cube.breadth_first_level_search(H, 0))
-        [{0: {1, 5, 13}},
-         {1: {2, 10}, 5: {4, 6}, 13: {8, 12}},
-         {2: {3, 7}, 4: {3, 9}, 6: {7, 11}, 8: {7, 9}, 10: {9, 11}, 12: {3, 11}},
-         {3: set(), 7: set(), 9: set(), 11: set()}]
+        sage: H = digraphs.DeBruijn(3,2)
+        sage: list(sage.graphs.partial_cube.breadth_first_level_search(H, '00'))
+        [{'00': {'01', '02'}},
+         {'01': {'10', '11', '12'}, '02': {'20', '21', '22'}},
+         {'10': set(),
+          '11': set(),
+          '12': set(),
+          '20': set(),
+          '21': set(),
+          '22': set()}]
 
     """
-    if neighbors is None:
-        if not G._directed or ignore_direction:
-            neighbors = G.neighbor_iterator
-        else:
-            neighbors = G.neighbor_out_iterator
+    neighbors = G.neighbor_out_iterator
     visited = set()
     if isinstance(start, list):
         currentLevel = start
@@ -157,8 +146,7 @@ def breadth_first_level_search(G, start, ignore_direction=False, neighbors=None)
         yield levelGraph
         currentLevel = nextLevel
 
-def depth_first_traversal(G, start, ignore_direction=False,
-                          neighbors=None):
+def depth_first_traversal(G, start):
     r"""
     Generate a sequence of triples (v,w,edgetype) for DFS of graph G.
 
@@ -171,17 +159,6 @@ def depth_first_traversal(G, start, ignore_direction=False,
 
     - ``start`` -- vertex or list of vertices from which to start the traversal.
 
-    - ``ignore_direction`` -- (default False) only applies to directed graphs.
-      If True, searches across edges in either direction.
-
-    - ``neighbors`` -- a function giving the neighbors of a vertex.
-      The function should take a vertex and return a list of vertices.
-      For a graph, ``neighbors`` is by default the
-      :meth:`~sage.graphs.generic_graph.GenericGraph.neighbor_iterator`
-      function of the graph. For a digraph, the ``neighbors`` function
-      defaults to the :meth:`~DiGraph.neighbor_out_iterator` function
-      of the graph.
-
     OUTPUT:
 
     - a generator of triples ``(v,w,edgetype)``, where ``edgetype`` is ``True``
@@ -190,19 +167,13 @@ def depth_first_traversal(G, start, ignore_direction=False,
 
     EXAMPLE::
 
-        sage: H = graphs.HeawoodGraph()
-        sage: t = list(sage.graphs.partial_cube.depth_first_traversal(H, 0))
+        sage: H = digraphs.DeBruijn(3,2)
+        sage: t = list(sage.graphs.partial_cube.depth_first_traversal(H, '00'))
         sage: len(t)
-        26
+        16
 
     """
-    if neighbors is None:
-        if not G._directed or ignore_direction:
-            neighbors=G.neighbor_iterator
-        else:
-            neighbors=G.neighbor_out_iterator
-    else:
-        neighbors = lambda v: iter(neighbors(v))
+    neighbors=G.neighbor_out_iterator
     seen=set([])
     if not isinstance(start, list):
         start = [start]

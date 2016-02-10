@@ -14,4 +14,7 @@ if os.path.exists(old_doc):
         rmtree(old_doc)
 
 # Add symlink ouput -> . inside SAGE_DOC (for backwards compatibility)
-os.symlink(".", os.path.join(SAGE_DOC, "output"))
+try:
+    os.symlink(".", os.path.join(SAGE_DOC, "output"))
+except OSError:
+    pass

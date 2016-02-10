@@ -3,8 +3,8 @@ Partial cubes
 
 The code in this module that recognizes partial cubes is originally
 from the PADS library by David Eppstein, which is available at
-http://www.ics.uci.edu/~eppstein/PADS/ under the MIT license. It takes
-a quadratic time and has been described in [Eppstein2008]_.
+http://www.ics.uci.edu/~eppstein/PADS/ under the MIT license. It has a
+quadratic runtime and has been described in [Eppstein2008]_.
 
 For more information on partial cubes, see the
 :wikipedia:`Partial cube`.
@@ -16,8 +16,11 @@ REFERENCE:
   J. Graph Algorithms and Applications 15 (2): 269-293, 2011.
   Available at http://arxiv.org/abs/0705.1025
 
+Recognition algorithm
+---------------------
+
 Definitions
------------
+^^^^^^^^^^^
 
 A **partial cube** is an isometric subgraph `G` of a
 :meth:`~sage.graphs.graph_generators.GraphGenerators.CubeGraph` (of
@@ -37,7 +40,7 @@ the transitions. When a vertex `v\in G` is the source of such an edge,
 it is said that the token *acts* on `v`.
 
 Observations
-------------
+^^^^^^^^^^^^
 
 **Shortest paths**: in a hypercube, a shortest path between two
 vertices uses each token at most once. Furthermore, it cannot use both
@@ -51,8 +54,8 @@ of `T`.
 **Incident edges**: all `2d_G(v)` arcs incident to a given vertex
 belong to as many different tokens.
 
-Recognition algorithm
----------------------
+Algorithm
+^^^^^^^^^
 
 **Labeling**: Iteratively, the algorithm selects a vertex `v\in G`,
 which is naturally associated to `2d(v)` tokens. It then performs a
@@ -67,8 +70,30 @@ step did not lead to a contradiction, and the procedure is applied
 again until the graph is empty and all edges are labeled.
 
 A partial cube is correctly labeled at this step, but some other
-graphs can also satisfy procedure. The remaining part of the
-algorithms checks (efficiently) that the labeling is consistent.
+graphs can also satisfy the procedure.
+
+**Checking the labeling**: once all tokens are defined and the
+vertices are labeled with a binary string, we check that they define
+an isometric subgraph of the hypercube. To ensure that the distance
+`d(v_0,u)` is what we expect for any vertex `u`, it is sufficient to
+find, for any vertex `u`, a neighbor `n_u` of `u` whose hamming
+distance with `v_0` is strictly less than the hamming distance between
+`u` and `v_0`. Here is the algorithm used to check the labeling:
+
+* For an initial vertex `v`, run a BFS starting from `v`, and
+  associate to every other vertex `u` a token that brings `u` closer
+  to `v`. This yields shortest paths from every vertex to `v`
+
+* Assuming that the information is computed (and correct) for `v`, it
+  is easy to update it for a neighbor `v'` of `v`. Indeed, if we write
+  `T` the token that turns `v` into `v'`, only the vertices which were
+  associated with the reverse of `T` need to select a new neighor. All
+  others can remain as they were previously.
+
+  With this second observation, one can efficiently check that the
+  distance between all pairs of vertices are what they should be. In
+  the implementation, the sequence of the sources `(v, v', ...)` is
+  given by a depth-first search.
 
 Functions
 ---------
@@ -390,6 +415,11 @@ def is_partial_cube(G, certificate=False):
 
     current = initialState = next(g.vertex_iterator())
 
+    # A token T is said to be 'active' for a vertex u if it takes u
+    # one step closer to the source in terms of distance. The 'source'
+    # is initially 'initialState'. See the module's documentation for
+    # more explanations.
+
     # Find list of tokens that lead to the initial state
     activeTokens = set()
     for level in breadth_first_level_search(g, initialState):
@@ -444,6 +474,9 @@ def is_partial_cube(G, certificate=False):
         token_to_states.append([prev])
 
         # Inactivate reverse token, find new token for its states
+        #
+        # (the 'active' token of 'current' is necessarily the label of
+        #  (current, previous))
         activeTokens[state_to_active_token[current]] = None
         for v in token_to_states[state_to_active_token[current]]:
             if v != current:

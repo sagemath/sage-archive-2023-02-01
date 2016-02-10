@@ -14,7 +14,7 @@ suitable for parsing by MathJax.  The LaTeX macros are produced using
 the ``_latex_`` method for each Sage object listed in ``macros``, and
 the MathJax macros are produced from the LaTeX macros.  The list of
 LaTeX macros is used in the file
-``SAGE_DOC/common/conf.py`` to add to the preambles of
+``SAGE_DOC_SRC/common/conf.py`` to add to the preambles of
 both the LaTeX file used to build the PDF version of the documentation
 and the LaTeX file used to build the HTML version.  The list of
 MathJax macros is used in the file
@@ -42,7 +42,7 @@ the name of a generator.)
 
 To see evidence of the results of the code here, run ``sage --docbuild
 tutorial latex`` (for example), and look at the resulting LaTeX file in
-``SAGE_DOC_OUTPUT/latex/en/tutorial/``.  The preamble should
+``SAGE_DOC/latex/en/tutorial/``.  The preamble should
 contain '\newcommand' lines for each of the entries in ``macros``.
 """
 
@@ -149,7 +149,7 @@ def convert_latex_macro_to_mathjax(macro):
 # To see the results of this, run 'sage --docbuild tutorial latex' (for
 # example -- you could replace 'tutorial' with your favorite piece of
 # documentation), and look at the resulting tex file in
-# SAGE_DOC_OUTPUT/latex/en/tutorial.  The preamble should contain
+# SAGE_DOC/latex/en/tutorial.  The preamble should contain
 # \newcommand's for each of the entries here.
 macros = [["ZZ"],
           ["NN"],

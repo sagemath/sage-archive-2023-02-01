@@ -16,7 +16,7 @@
 import os
 import sys
 
-sys.path.append(os.environ["SAGE_DOC"])
+sys.path.append(os.environ["SAGE_DOC_SRC"])
 from common.conf import *
 
 # General information about the project.

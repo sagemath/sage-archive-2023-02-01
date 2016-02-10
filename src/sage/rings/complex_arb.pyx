@@ -2339,7 +2339,7 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    def hypergeometric(self, a, b):
+    def hypergeometric(self, a, b, bint regularized=False):
         r"""
         Return the generalized hypergeometric function of ``self``.
 
@@ -2350,6 +2350,9 @@ cdef class ComplexBall(RingElement):
 
         - ``b`` -- lower parameters, list of complex numbers that coerce into
           this ball's parent.
+
+        - ``regularized`` -- if True, the regularized generalized hypergeometric
+          function is computed.
 
         OUTPUT:
 
@@ -2363,10 +2366,20 @@ cdef class ComplexBall(RingElement):
         extended using analytic continuation or regularization when the sum
         does not converge.
 
+        The regularized generalized hypergeometric function
+
+        .. math::
+
+            {}_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;z)
+            = \sum_{k=0}^\infty \frac{(a_1)_k\dots(a_p)_k}{\Gamma(b_1+k)\dots\Gamma(b_q+k)} \frac {z^k} {k!}
+
+        is well-defined even when the lower parameters are nonpositive
+        integers. Currently, this is only supported for some `p` and `q`.
+
         EXAMPLES::
 
             sage: CBF(1, pi/2).hypergeometric([], [])
-            [+/- 3.57e-15] + [2.7182818284590 +/- 5.37e-14]*I
+            [+/- 1.08e-15] + [2.71828182845904 +/- 6.75e-15]*I
 
             sage: CBF(1, pi).hypergeometric([1/4], [1/4])
             [-2.7182818284590 +/- 8.63e-14] + [+/- 3.69e-14]*I
@@ -2382,25 +2395,70 @@ cdef class ComplexBall(RingElement):
             sage: CBF(0).hypergeometric([1], [])
             1.000000000000000
             sage: CBF(1, 1).hypergeometric([1], [])
-            [+/- inf] + [+/- inf]*I
+            1.000000000000000*I
+
+            sage: CBF(2+3*I).hypergeometric([1/4,1/3],[1/2])
+            [0.7871684267473 +/- 3.57e-14] + [0.2749254173721 +/- 6.45e-14]*I
+            sage: CBF(2+3*I).hypergeometric([1/4,1/3],[1/2],regularized=True)
+            [0.4441122268685 +/- 1.83e-14] + [0.1551100567338 +/- 4.07e-14]*I
+
+            sage: CBF(5).hypergeometric([2,3], [-5])
+            nan + nan*I
+            sage: CBF(5).hypergeometric([2,3], [-5], regularized=True)
+            [5106.925964355 +/- 5.41e-10]
+
+            sage: CBF(2016).hypergeometric([], [2/3])
+            [2.0256426923278e+38 +/- 8.90e+24]
+            sage: CBF(-2016).hypergeometric([], [2/3], regularized=True)
+            [-0.0005428550847 +/- 5.00e-14]
+
+            sage: CBF(-7).hypergeometric([4], [])
+            0.0002441406250000000
+
+            sage: CBF(0, 3).hypergeometric([CBF(1,1)], [-4], regularized=True)
+            [239.5140007528 +/- 5.01e-11] + [105.1751573490 +/- 2.36e-11]*I
 
         TESTS::
 
             sage: CBF(0, 1).hypergeometric([QQbar(sqrt(2)), RLF(pi)], [1r, 1/2])
             [-8.7029449215408 +/- 6.89e-14] + [-0.8499070546106 +/- 4.98e-14]*I
+
         """
-        cdef ComplexBall tmp, my_a, my_b
+        cdef ComplexBall tmp, my_a, my_b, my_c
         cdef ComplexBall res = self._new()
         cdef long p = len(a)
         cdef long q = len(b)
+        if p == q == 0:
+            return self.exp()
+        if p == 1 and q == 0:
+            my_a = self._parent.coerce(a[0])
+            return (1-self)**(-my_a)
+        if p == 0 and q == 1:
+            my_b = self._parent.coerce(b[0])
+            if _do_sig(prec(self)): sig_on()
+            acb_hypgeom_0f1(res.value, my_b.value, self.value,
+                regularized, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return res
         if p == q == 1:
             my_a = self._parent.coerce(a[0])
             my_b = self._parent.coerce(b[0])
             if _do_sig(prec(self)): sig_on()
-            acb_hypgeom_m(res.value, my_a.value, my_b.value, self.value, 0,
-                          prec(self))
+            acb_hypgeom_m(res.value, my_a.value, my_b.value, self.value,
+                regularized, prec(self))
             if _do_sig(prec(self)): sig_off()
             return res
+        if p == 2 and q == 1:
+            my_a = self._parent.coerce(a[0])
+            my_b = self._parent.coerce(a[1])
+            my_c = self._parent.coerce(b[0])
+            if _do_sig(prec(self)): sig_on()
+            acb_hypgeom_2f1(res.value, my_a.value, my_b.value, my_c.value,
+                self.value, regularized, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return res
+        if regularized:
+            raise NotImplementedError("regularized=True not yet supported in this case")
         cdef long i1 = -1
         cdef long s
         try:

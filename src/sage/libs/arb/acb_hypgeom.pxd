@@ -59,4 +59,6 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_chi_2f3(acb_t res, const acb_t z, long prec)
     void acb_hypgeom_chi(acb_t res, const acb_t z, long prec)
     void acb_hypgeom_li(acb_t res, const acb_t z, int offset, long prec)
+    void acb_hypgeom_0f1(acb_t res, const acb_t b, const acb_t z, bint regularized, long prec)
+    void acb_hypgeom_2f1(acb_t res, const acb_t a, const acb_t b, const acb_t z, const acb_t z, bint regularized, long prec)
 

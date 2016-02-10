@@ -1878,6 +1878,9 @@ cdef class ComplexBall(RingElement):
             [-1.0000000000000 +/- 5.48e-15] + [+/- 4.14e-15]*I
             sage: CBF(2*i)**10r
             -1024.000000000000
+            sage: CBF(1,1) ^ -1r
+            0.5000000000000000 - 0.5000000000000000*I
+
         """
         cdef fmpz_t tmpz
         if not isinstance(base, ComplexBall):
@@ -1886,7 +1889,7 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall res = self._new()
         if isinstance(expo, int):
             if _do_sig(prec(self)): sig_on()
-            acb_pow_ui(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
+            acb_pow_si(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
             if _do_sig(prec(self)): sig_off()
         elif isinstance(expo, sage.rings.integer.Integer):
             if _do_sig(prec(self)): sig_on()

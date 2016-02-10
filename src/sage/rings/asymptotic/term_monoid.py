@@ -1975,7 +1975,7 @@ class OTerm(GenericTerm):
         O(x^17)
     """
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this `O`-term.
 
@@ -1993,13 +1993,36 @@ class OTerm(GenericTerm):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, QQ)
-            sage: t1 = OT(x); t2 = OT(x^2); t3 = OT(x^3)
-            sage: t1._repr_(), t2._repr_()
-            ('O(x)', 'O(x^2)')
-            sage: t3
+            sage: OT(x)._repr_()
+            'O(x)'
+            sage: OT(x^2)._repr_()
+            'O(x^2)'
+            sage: OT(x^3)
             O(x^3)
         """
-        return 'O(%s)' % self.growth
+        if latex:
+            s = r'O\left({g}\right)'
+        else:
+            s = 'O({g})'
+        return s.format(g=self.growth)
+
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: OT = TermMonoid('O', G, QQ)
+            sage: latex(OT(x))
+            O\left(x\right)
+            sage: latex(OT(x^2))
+            O\left(x^2\right)
+            sage: latex(OT(x^3))
+            O\left(x^3\right)
+        """
+        return self._repr_(latex=True)
 
 
     def __invert__(self):

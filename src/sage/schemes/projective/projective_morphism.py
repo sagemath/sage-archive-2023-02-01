@@ -113,16 +113,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     A more complicated example::
 
-        sage: P2.<x,y,z> = ProjectiveSpace(2,QQ)
+        sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
         sage: P1 = P2.subscheme(x-y)
         sage: H12 = P1.Hom(P2)
-        sage: H12([x^2,x*z, z^2])
+        sage: H12([x^2, x*z, z^2])
         Scheme morphism:
           From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
           x - y
           To:   Projective Space of dimension 2 over Rational Field
           Defn: Defined on coordinates by sending (x : y : z) to
-              (y^2 : y*z : z^2)
+              (x^2 : x*z : z^2)
 
     We illustrate some error checking::
 
@@ -187,9 +187,34 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (y : 2*x)
+
+        ::
+
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: X = P.subscheme([x])
+            sage: H = End(X)
+            sage: H([x^2, t*y^2, x*z])
+            Scheme endomorphism of Closed subscheme of Projective Space of dimension
+            2 over Univariate Polynomial Ring in t over Rational Field defined by:
+              x
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^2 : t*y^2 : x*z)
+
+        When elements of the quotient ring is used, they are reduced::
+
+            sage: P.<x,y,z> = ProjectiveSpace(CC, 2)
+            sage: X = P.subscheme([x-y])
+            sage: u,v,w = X.coordinate_ring().gens()
+            sage: H = End(X)
+            sage: H([u^2, v^2, w*u])
+            Scheme endomorphism of Closed subscheme of Projective Space of dimension
+            2 over Complex Field with 53 bits of precision defined by:
+              x - y
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (y^2 : y^2 : y*z)
         """
         SchemeMorphism_polynomial.__init__(self, parent, polys, check)
-
         if check:
             # morphisms from projective space are always given by
             # homogeneous polynomials of the same degree
@@ -1184,11 +1209,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(X,X)
             sage: f = H([x^2,y^2,x*z])
             sage: f.dehomogenize(2)
-            Scheme endomorphism of Closed subscheme of Affine Space of dimension 2
-            over Integer Ring defined by:
+            Scheme endomorphism of Closed subscheme of Affine Space of dimension 2 over Integer Ring defined by:
               x0^2 - x1^2
               Defn: Defined on coordinates by sending (x0, x1) to
-                    (x1^2/x0, x1^2/x0)
+                    (x0, x1^2/x0)
 
         ::
 

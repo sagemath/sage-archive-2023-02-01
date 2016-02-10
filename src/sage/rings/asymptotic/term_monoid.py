@@ -3053,7 +3053,7 @@ class ExactTerm(TermWithCoefficient):
         5*x^2
     """
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this exact term.
 
@@ -3071,7 +3071,7 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: ET = TermMonoid('exact', G, ZZ)
-            sage: et1 = ET(x^2, 2); et1
+            sage: ET(x^2, 2)
             2*x^2
 
         TESTS::
@@ -3093,20 +3093,62 @@ class ExactTerm(TermWithCoefficient):
             sage: (1+a)/n
             (a + 1)*n^(-1)
         """
-        g = repr(self.growth)
-        c = repr(self.coefficient)
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
+        g = f(self.growth)
+        c = f(self.coefficient)
+
         if g == '1':
             return c
         elif c == '1':
-            return '%s' % (g,)
+            return '{g}'.format(g=g)
         elif c == '-1':
-            return '-%s' % (g,)
+            return '-{g}'.format(g=g)
         elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
             # note that -pi/2 is not atomic, but -5 is. As subtractions are handeled
             # in the asymptotic ring, we ignore such non-atomicity.
-            return '%s*%s' % (c, g)
+            s = '{c} {g}' if latex else '{c}*{g}'
+            return s.format(c=c, g=g)
         else:
-            return '(%s)*%s' % (c, g)
+            s = r'\left({c}\right) {g}' if latex else '({c})*{g}'
+            return s.format(c=c, g=g)
+
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: ET = TermMonoid('exact', G, ZZ)
+            sage: latex(ET(x^2, 2))
+            2 x^{2}
+
+        ::
+
+            sage: latex(ET(x^2, 1))
+            x^{2}
+            sage: latex(ET(x^2, -1))
+            -x^{2}
+            sage: latex(ET(x^0, 42))
+            42
+
+        ::
+
+            sage: C.<c> = AsymptoticRing('c^ZZ', SR)
+            sage: latex((1+pi)*c)
+            \left(\pi + 1\right) c
+            sage: R.<a> = QQ[]
+            sage: S.<n> = AsymptoticRing('n^QQ', R)
+            sage: latex((1+a)/n)
+            \left(a + 1\right) n^{-1}
+        """
+	return self._repr_(latex=True)
 
 
     def __invert__(self):

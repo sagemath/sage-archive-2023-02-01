@@ -325,7 +325,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         sage: v = Variable('(e^(n*log(n)))', ignore=('e',)); repr(v), v.variable_names()
         ('e^(n*log(n))', ('n',))
     """
-    def __init__(self, var, repr=None, ignore=None):
+    def __init__(self, var, repr=None, latex_name=None, ignore=None):
         r"""
         See :class:`Variable` for details.
 
@@ -358,24 +358,38 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         if ignore is None:
             ignore = tuple()
 
+        from sage.misc.latex import latex
+        from sage.symbolic.ring import SR
+
         if repr is None:
             var_bases = tuple(i for i in sum(iter(
                 self.extract_variable_names(v)
                 if not isidentifier(v) else (v,)
                 for v in var), tuple()) if i not in ignore)
             var_repr = ', '.join(var)
+            if latex_name is None:
+                latex_name = ', '.join(latex(SR(v)) for v in var if v)
         else:
             for v in var:
                 if not isidentifier(v):
                     raise ValueError("'%s' is not a valid name for a variable." % (v,))
             var_bases = var
             var_repr = str(repr).strip()
+            if latex_name is None:
+                try:
+                    latex_name = latex(SR(var_repr))
+                except TypeError:
+                    latex_name = latex(var_repr)
 
         if len(var_bases) != len(set(var_bases)):
             raise ValueError('Variable names %s are not pairwise distinct.' %
                              (var_bases,))
+
+
         self.var_bases = var_bases
         self.var_repr = var_repr
+
+        self.latex_name = latex_name
 
 
     def __hash__(self):
@@ -448,6 +462,21 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             blub
         """
         return self.var_repr
+
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: latex(Variable('x'))  # indirect doctest
+            x
+            sage: latex(Variable('x1'))  # indirect doctest
+            x_{1}
+            sage: latex(Variable('x_1'))  # indirect doctest
+            x_{1}
+        """
+        return self.latex_name
 
 
     def variable_names(self):

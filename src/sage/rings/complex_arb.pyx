@@ -2560,6 +2560,67 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return result
 
+    def bessel_J_Y(self, nu):
+        """
+        Return the Bessel function of the first and second kind with argument
+        ``self`` and index ``nu``, computed simultaneously.
+
+        EXAMPLES::
+
+            sage: J, Y = CBF(1, 1).bessel_J_Y(1)
+            sage: J - CBF(1, 1).bessel_J(1)
+            [+/- 7.95e-16] + [+/- 6.84e-16]*I
+            sage: Y - CBF(1, 1).bessel_Y(1)
+            [+/- 2.31e-14] + [+/- 2.26e-14]*I
+
+        """
+        cdef ComplexBall result1 = self._new()
+        cdef ComplexBall result2 = self._new()
+        cdef ComplexBall my_nu = self._parent.coerce(nu)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_bessel_jy(result1.value, result2.value,
+            my_nu.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result1, result2
+
+    def bessel_Y(self, nu):
+        """
+        Return the Bessel function of the second kind with argument ``self``
+        and index ``nu``.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).bessel_Y(1)
+            [-0.6576945355913 +/- 5.62e-14] + [0.6298010039929 +/- 2.77e-14]*I
+            sage: CBF(100, -100).bessel_Y(1/3)
+            [-8.952577603125e+41 +/- 4.65e+28] + [-1.108431870251e+41 +/- 6.29e+28]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_nu = self._parent.coerce(nu)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_bessel_y(result.value, my_nu.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def bessel_I(self, nu):
+        """
+        Return the modified Bessel function of the first kind with argument ``self``
+        and index ``nu``.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).bessel_I(1)
+            [0.365028028827088 +/- 6.62e-16] + [0.614160334922903 +/- 8.48e-16]*I
+            sage: CBF(100, -100).bessel_I(1/3)
+            [5.4362189595644e+41 +/- 6.48e+27] + [7.1989436985321e+41 +/- 2.69e+27]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_nu = self._parent.coerce(nu)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_bessel_i(result.value, my_nu.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
     def bessel_K(self, nu):
         """
         Return the modified Bessel function of the second kind with argument

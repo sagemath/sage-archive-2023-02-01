@@ -67,7 +67,8 @@ paths.
 
 The labeled edges can then be simplified (contracted) if the previous
 step did not lead to a contradiction, and the procedure is applied
-again until the graph is empty and all edges are labeled.
+again until the graph is contracted to a single vertex and all edges
+are labeled.
 
 A partial cube is correctly labeled at this step, but some other
 graphs can also satisfy the procedure.
@@ -76,18 +77,18 @@ graphs can also satisfy the procedure.
 vertices are labeled with a binary string, we check that they define
 an isometric subgraph of the hypercube. To ensure that the distance
 `d(v_0,u)` is what we expect for any vertex `u`, it is sufficient to
-find, for any vertex `u`, a neighbor `n_u` of `u` whose hamming
-distance with `v_0` is strictly less than the hamming distance between
+find, for any vertex `u`, a neighbor `n_u` of `u` whose Hamming
+distance with `v_0` is strictly less than the Hamming distance between
 `u` and `v_0`. Here is the algorithm used to check the labeling:
 
 * For an initial vertex `v`, run a BFS starting from `v`, and
   associate to every other vertex `u` a token that brings `u` closer
-  to `v`. This yields shortest paths from every vertex to `v`
+  to `v`. This yields shortest paths from every vertex to `v`.
 
 * Assuming that the information is computed (and correct) for `v`, it
   is easy to update it for a neighbor `v'` of `v`. Indeed, if we write
   `T` the token that turns `v` into `v'`, only the vertices which were
-  associated with the reverse of `T` need to select a new neighor. All
+  associated with the reverse of `T` need to select a new neighbour. All
   others can remain as they were previously.
 
   With this second observation, one can efficiently check that the
@@ -240,7 +241,7 @@ def is_partial_cube(G, certificate=False):
     The returned mapping is an isometric embedding into a hypercube::
 
         sage: g = graphs.DesarguesGraph()
-        sage: _, m = g.is_partial_cube(certificate=True)
+        sage: _, m = g.is_partial_cube(certificate = True)
         sage: m # random
         {0: '00000',
          1: '00001',

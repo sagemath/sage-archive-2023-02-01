@@ -3161,6 +3161,42 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         return (self(raw_element=self.base().one()),)
 
 
+    def gens_logarithmic(self):
+        r"""
+        Return a tuple containing logarithmic generators of this growth
+        group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A tuple containing elements of this growth group.
+
+        .. NOTE::
+
+            A generator is called logarithmic generator if the variable
+            of the underlying growth group is the logarithm of a valid
+            identifier. For
+            example, ``x^ZZ`` has no logarithmic generator,
+            while ``log(x)^ZZ`` has ``log(x)`` as
+            logarithmic generator.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ').gens_logarithmic()
+            ()
+            sage: GrowthGroup('log(x)^QQ').gens_logarithmic()
+            (log(x),)
+        """
+        if str(self.gen()) == "log({})".format(self.variable_name()):
+            return (self(raw_element=self.base().one()),)
+        else:
+            return tuple()
+
+
     def construction(self):
         r"""
         Return the construction of this growth group.

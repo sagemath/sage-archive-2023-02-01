@@ -1037,9 +1037,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: latex((5*x^2+12*x) * (x^3+O(x)))  # indirect doctest
-            5 x^{5} + 12 x^{4} + O\left(x^3\right)
+            5 x^{5} + 12 x^{4} + O\!\left(x^{3}\right)
             sage: latex((5*x^2-12*x) * (x^3+O(x)))  # indirect doctest
-            5 x^{5} - 12 x^{4} + O\left(x^3\right)
+            5 x^{5} - 12 x^{4} + O\!\left(x^{3}\right)
         """
         return self._repr_(latex=True)
 

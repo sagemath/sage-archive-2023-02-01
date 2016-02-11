@@ -2022,11 +2022,11 @@ class OTerm(GenericTerm):
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, QQ)
             sage: latex(OT(x))
-            O\left(x\right)
+            O\!\left(x\right)
             sage: latex(OT(x^2))
-            O\left(x^2\right)
+            O\!\left(x^{2}\right)
             sage: latex(OT(x^3))
-            O\left(x^3\right)
+            O\!\left(x^{3}\right)
         """
         return self._repr_(latex=True)
 

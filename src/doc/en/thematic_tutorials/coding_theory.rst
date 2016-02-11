@@ -81,7 +81,7 @@ call GUAVA:
    ::
 
 
-         sage: C = codes.HammingCode(3,GF(2))
+         sage: C = codes.HammingCode(GF(2), 3)
          sage: C.zeta_polynomial()
          2/5*T^2 + 2/5*T + 1/5
          sage: C = best_known_linear_code(6,3,GF(2)) # known bug
@@ -105,14 +105,14 @@ call GUAVA:
    ::
 
 
-           sage: C = codes.HammingCode(3,GF(2))
+           sage: C = codes.HammingCode(GF(2), 3)
            sage: C.binomial_moment(2)
            0
            sage: C.binomial_moment(3)    # known bug
            0
            sage: C.binomial_moment(4)    # long time
            35
-           sage: C = codes.HammingCode(3,GF(2))
+           sage: C = codes.HammingCode(GF(2), 3)
            sage: MS = MatrixSpace(GF(2),1,7)
            sage: F = GF(2); a = F.gen()
            sage: v1 = [a,a,F(0),a,a,F(0),a]
@@ -135,13 +135,13 @@ call GUAVA:
    ::
 
 
-           sage: C = codes.HammingCode(3,GF(2))
+           sage: C = codes.HammingCode(GF(2), 3)
            sage: G = C.automorphism_group_binary_code(); G # known bug
            Permutation Group with generators [(2,3)(5,7), (2,5)(3,7),
                               (2,3,7,5)(4,6), (2,4)(6,7), (1,2)(3,4)]
            sage: G.order() # known bug
            168
-           sage: C = codes.HammingCode(3,GF(2))
+           sage: C = codes.HammingCode(GF(2), 3)
            sage: C.generator_matrix() # known bug
            [1 0 0 1 0 1 0]
            [0 1 0 1 0 1 1]
@@ -480,14 +480,14 @@ Python:
    ::
 
 
-         sage: codes.HammingCode(3,GF(2))
-         Linear code of length 7, dimension 4 over Finite Field of size 2
-         sage: C = codes.HammingCode(3,GF(3)); C
-         Linear code of length 13, dimension 10 over Finite Field of size 3
-         sage: C.minimum_distance()
-         3
-         sage: C = codes.HammingCode(3,GF(4,'a')); C
-         Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
+        sage: C = codes.HammingCode(GF(2), 3); C
+        [7, 4] Hamming Code over Finite Field of size 2
+        sage: C = codes.HammingCode(GF(3), 3); C
+        [13, 10] Hamming Code over Finite Field of size 3
+        sage: C.minimum_distance()
+        3
+        sage: C = codes.HammingCode(GF(4,'a'), 3); C
+        [21, 18] Hamming Code over Finite Field in a of size 2^2
 
 -  ``LinearCodeFromCheckMatrix`` - for specifing the code using the check
    matrix instead of the generator matrix.
@@ -514,14 +514,14 @@ Python:
    ::
 
 
-         sage: C = codes.HammingCode(3,GF(2))
+         sage: C = codes.HammingCode(GF(2), 3)
          sage: H = C.parity_check_matrix(); H   # known bug
          [1 0 0 1 1 0 1]
          [0 1 0 1 0 1 1]
          [0 0 1 1 1 1 0]
          sage: codes.LinearCodeFromCheckMatrix(H) == C # known bug
          True
-         sage: C = codes.HammingCode(2,GF(3))
+         sage: C = codes.HammingCode(GF(3), 3)
          sage: H = C.parity_check_matrix(); H                    # known bug
          [1 0 2 2]
          [0 1 2 1]

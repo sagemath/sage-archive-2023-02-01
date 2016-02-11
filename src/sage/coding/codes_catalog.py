@@ -22,7 +22,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                HammingCode, LinearCode, LinearCodeFromCheckMatrix,
+                                LinearCode, LinearCodeFromCheckMatrix,
                                 QuadraticResidueCode, QuadraticResidueCodeEvenPair,
                                 QuadraticResidueCodeOddPair, RandomLinearCode,
                                 ReedSolomonCode, TernaryGolayCode,
@@ -32,6 +32,7 @@ from grs import GeneralizedReedSolomonCode
 from subfield_subcode import SubfieldSubcode
 
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+from hamming_code import HammingCode
 
 import decoders_catalog as decoders
 import encoders_catalog as encoders

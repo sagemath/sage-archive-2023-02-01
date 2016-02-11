@@ -2001,10 +2001,16 @@ class OTerm(GenericTerm):
             O(x^3)
         """
         if latex:
-            s = r'O\left({g}\right)'
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
+        if latex:
+            s = r'O\!\left({g}\right)'
         else:
             s = 'O({g})'
-        return s.format(g=self.growth)
+        return s.format(g=f(self.growth))
 
 
     def _latex_(self):

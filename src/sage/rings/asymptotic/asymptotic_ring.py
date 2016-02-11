@@ -1755,7 +1755,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             :func:`sage.rings.power_series_ring.PowerSeriesRing`,
             :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`.
+
+        TESTS::
+
+            sage: AR(0).O()
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The result is O(0)
+            which means 0 for sufficiently large x
         """
+        if not self.summands:
+            from misc import NotImplementedOZero
+            raise NotImplementedOZero(self.parent())
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
 

@@ -1466,6 +1466,20 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: _.parent()
             Asymptotic Ring <QQ^x * x^SR * log(x)^QQ> over Symbolic Ring
 
+        ::
+
+            sage: C.<c> = AsymptoticRing(growth_group='QQ^c * c^QQ', coefficient_ring=QQ, default_prec=5)
+            sage: (3 + 1/c^2)^c
+            3^c + 1/3*3^c*c^(-1) + 1/18*3^c*c^(-2) - 4/81*3^c*c^(-3)
+            - 35/1944*3^c*c^(-4) + O(3^c*c^(-5))
+            sage: _.parent()
+            Asymptotic Ring <QQ^c * c^QQ> over Rational Field
+            sage: (2 + (1/3)^c)^c
+            2^c + 1/2*(2/3)^c*c + 1/8*(2/9)^c*c^2 - 1/8*(2/9)^c*c
+            + 1/48*(2/27)^c*c^3 + O((2/27)^c*c^2)
+            sage: _.parent()
+            Asymptotic Ring <QQ^c * c^QQ> over Rational Field
+
         TESTS:
 
         See :trac:`19110`::
@@ -1482,6 +1496,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: z^(1+1/z)
             z + log(z) + 1/2*z^(-1)*log(z)^2 + 1/6*z^(-2)*log(z)^3 +
             1/24*z^(-3)*log(z)^4 + O(z^(-4)*log(z)^5)
+            sage: _.parent()
+            Asymptotic Ring <z^QQ * log(z)^QQ> over Rational Field
 
         ::
 
@@ -1564,7 +1580,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         from sage.symbolic.expression import Expression
         if isinstance(exponent, Expression) and exponent.is_constant():
-             return self.__pow_number__(exponent, precision=precision)
+            return self.__pow_number__(exponent, precision=precision)
+
+        if isinstance(exponent, AsymptoticExpansion) and len(self.summands) != 1:
+            try:
+                return self.__pow_number__(exponent, precision=precision,
+                                           check_convergence=True)
+            except NoConvergenceError:
+                pass
 
         try:
             return (exponent * self.log(precision=precision)).exp(precision=precision)

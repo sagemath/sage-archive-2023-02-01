@@ -133,7 +133,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                     ((5*x0^3 + 3*x0*x1^2 - x1^3)/(x0^3 - 1), (x0^2*x1 + 3)/(x0^3 - 1))
         """
         if check:
-            if not isinstance(polys,(list, tuple)):
+            if not isinstance(polys, (list, tuple)):
                 raise TypeError("polys (=%s) must be a list or tuple"%polys)
             source_ring = parent.domain().ambient_space().coordinate_ring()
             target = parent.codomain().ambient_space()
@@ -189,7 +189,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - Boolean - True if the two affine maps defined the same map.
+        - Boolean - True if the two affine maps define the same map.
 
         EXAMPLES::
 
@@ -226,7 +226,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - Boolean -- True if the two affine maps defined the same map.
+        - Boolean -- True if the two affine maps define the same map.
 
         EXAMPLES::
 
@@ -709,7 +709,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` -- a point in the map domain.
+        - ``P`` -- a point in the map's domain.
 
         - ``n`` -- a non-negative integer or list or tuple of two non-negative integers.
 
@@ -745,7 +745,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         ::
 
             sage: R.<t> = PolynomialRing(QQ)
-            sage: A.<x,y> =  AffineSpace(FractionField(R), 2)
+            sage: A.<x,y> = AffineSpace(FractionField(R), 2)
             sage: H = Hom(A, A)
             sage: f = H([(x-t*y^2)/x, t*x*y])
             sage: f.orbit(A(1, t), 3)
@@ -852,6 +852,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     def multiplier(self, P, n, check=True):
         r"""
         Returns the multiplier of the point ``P`` of period ``n`` by the map.
+
         The map must be an endomorphism.
 
         INPUT:
@@ -952,7 +953,7 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
         of the codomain.
 
         OUTPUT: Scheme morphism on the Weil restrictions of the domain
-            and codomain of extension field.
+            and codomain of the map.
 
         EXAMPLES::
 

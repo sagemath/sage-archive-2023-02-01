@@ -1,7 +1,7 @@
 r"""
 Points on affine varieties
 
-Scheme morphism for points on affine varieties.
+Scheme morphism for points on affine varieties
 
 
 AUTHORS:
@@ -94,7 +94,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
     def nth_iterate(self, f, n):
         r"""
-        Returns the point `f^n(point)`
+        Returns the point `f^n(self)`
 
         INPUT:
 
@@ -137,8 +137,9 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
     def orbit(self, f, N):
         r"""
-        Returns the orbit of the point by `f`. If `n` is an integer it returns
-        `[self,f(self), \ldots, f^{n}(self)]`.
+        Returns the orbit of the point by `f`.
+
+        If `n` is an integer it returns `[self,f(self), \ldots, f^{n}(self)]`.
 
         If `n` is a list or tuple `n=[m, k]` it returns `[f^{m}(self), \ldots, f^{k}(self)]`.
 
@@ -156,7 +157,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
             sage: A.<x,y>=AffineSpace(QQ, 2)
             sage: H = Hom(A, A)
-            sage: f = H([(x-2*y^2)/x,3*x*y])
+            sage: f = H([(x-2*y^2)/x, 3*x*y])
             sage: A(9, 3).orbit(f, 3)
             [(9, 3), (-1, 81), (13123, -243), (-104975/13123, -9566667)]
 
@@ -228,8 +229,6 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         .. TODO::
 
             P-adic heights.
-
-            Add heights to integer.pyx and remove special case.
         """
         if self.domain().base_ring() == ZZ:
             if prec is None:
@@ -388,10 +387,11 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
 
     def orbit_structure(self, f):
         r"""
-        Every point is preperiodic over a finite field.
-
         This function returns the pair `[m, n]` where `m` is the
         preperiod and `n` is the period of the point by ``f``.
+
+        Every point is preperiodic over a finite field.
+
 
         INPUT:
 

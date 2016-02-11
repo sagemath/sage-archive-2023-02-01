@@ -3473,7 +3473,9 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             Make this method more usable by implementing the
             processing of symbolic expressions.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Catalan numbers::
 
             sage: def catalan(z):
             ....:     return (1-(1-4*z)^(1/2))/(2*z)
@@ -3487,10 +3489,25 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3)),
             singular_expansions={1/4: 2 - 2*T^(-1/2)
             + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
+
+        Unit fractions::
+
             sage: def logarithmic(z):
             ....:     return -log(1-z)
             sage: B.singularity_analysis(logarithmic, (1,), precision=5)
             n^(-1) + O(n^(-3))
+
+        Harmonic numbers::
+
+            sage: def harmonic(z):
+            ....:     return -log(1-z)/(1-z)
+            sage: B.<n> = AsymptoticRing('QQ^n*n^QQ * log(n)^QQ', QQ)
+            sage: ex = B.singularity_analysis(harmonic, (1,), precision=13); ex
+            log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
+            + O(n^(-6))
+            sage: ex.has_same_summands(asymptotic_expansions.HarmonicNumber(
+            ....:    'n', precision=5))
+            True
 
         TESTS::
 

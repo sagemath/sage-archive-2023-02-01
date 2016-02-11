@@ -1190,6 +1190,68 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 from misc import substitute_raise_exception
                 substitute_raise_exception(self, e)
 
+        def _singularity_analysis_(self, zeta, var, precision):
+            r"""
+            Perform singularity analysis on this growth element.
+
+            INPUT:
+
+            - ``zeta`` -- a number
+
+            - ``var`` -- a string denoting the variable
+
+            - ``precision`` -- an integer
+
+            OUTPUT:
+
+            An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+            and `f` has this growth element as a singular expansion
+            in `(1-z\zeta)\to 0`.
+
+            EXAMPLE::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('exp(x)^QQ * x^QQ * log(x)^QQ')
+                sage: G(x^(1/2))._singularity_analysis_(2, 'n', 2)
+                1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
+                + O((1/2)^n*n^(-5/2))
+                sage: G(log(x))._singularity_analysis_(1, 'n', 5)
+                n^(-1) + O(n^(-3))
+
+            TESTS::
+
+                sage: G(x*log(x))._singularity_analysis_(1, 'n', 5)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: singularity analysis for more
+                than one factor not yet implemented
+                sage: G(1)._singularity_analysis_(2, 'n', 3)
+                Traceback (most recent call last):
+                ...
+                NotImplementedOZero: The error term is O(0) which means
+                0 for sufficiently large n.
+                sage: G('exp(x)')._singularity_analysis_(2, 'n', 3)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: singularity analysis not implemented
+                for Growth Group exp(x)^QQ
+            """
+            factors = self.factors()
+            if len(factors) == 0:
+                from asymptotic_expansion_generators import asymptotic_expansions,\
+                    NotImplementedOZero
+
+                raise NotImplementedOZero(
+                    'The error term is O(0) which means 0 '
+                    'for sufficiently large {}.'.format(var))
+            elif len(factors) == 1:
+                return factors[0]._singularity_analysis_(
+                    zeta=zeta, var=var, precision=precision)
+            else:
+                raise NotImplementedError(
+                    "singularity analysis for more than one "
+                    "factor not yet implemented")
+
 
     CartesianProduct = CartesianProductGrowthGroups
 

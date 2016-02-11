@@ -1149,9 +1149,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             multiplication, or methods that exploit the structure
             of the underlying poset shall be implemented at a later
             point.
+
+        TESTS::
+
+            sage: R(1) * R(0)
+            0
         """
-        return sum(self._mul_term_(term_other) for
-                   term_other in other.summands.elements())
+        return sum(iter(self._mul_term_(term_other) for
+                        term_other in other.summands.elements()),
+                   self.parent().zero())
 
 
     def _rmul_(self, other):

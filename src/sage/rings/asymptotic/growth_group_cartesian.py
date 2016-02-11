@@ -1217,14 +1217,21 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 + O((1/2)^n*n^(-5/2))
                 sage: G(log(x))._singularity_analysis_(1, 'n', 5)
                 n^(-1) + O(n^(-3))
+                sage: G(x*log(x))._singularity_analysis_(1, 'n', 5)
+                log(n) + euler_gamma + 1/2*n^(-1) + O(n^(-2))
 
             TESTS::
 
-                sage: G(x*log(x))._singularity_analysis_(1, 'n', 5)
+                sage: G('exp(x)*log(x)')._singularity_analysis_(1, 'n', 5)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: singularity analysis of
+                exp(x)*log(x) not implemented
+                sage: G('exp(x)*x*log(x)')._singularity_analysis_(1, 'n', 5)
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: singularity analysis for more
-                than one factor not yet implemented
+                than two factors not yet implemented
                 sage: G(1)._singularity_analysis_(2, 'n', 3)
                 Traceback (most recent call last):
                 ...
@@ -1247,10 +1254,36 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             elif len(factors) == 1:
                 return factors[0]._singularity_analysis_(
                     zeta=zeta, var=var, precision=precision)
+            elif len(factors) == 2:
+                from growth_group import MonomialGrowthGroup
+                from sage.rings.integer_ring import ZZ
+
+                if all(isinstance(_.parent(), MonomialGrowthGroup)
+                       for _ in factors) \
+                        and factors[0].parent().gens_monomial() \
+                        and factors[1].parent().gens_logarithmic() \
+                        and factors[0].parent().variable_name() == \
+                            factors[1].parent().variable_name():
+                    if factors[1].exponent not in ZZ:
+                        raise NotImplementedError(
+                            "singularity analysis not implemented for non-integer "
+                            "exponent {} of {}".format(
+                                factors[1].exponent, factors[1].parent().gen()))
+
+                    from sage.rings.asymptotic.asymptotic_expansion_generators import \
+                        asymptotic_expansions
+                    return asymptotic_expansions._SingularityAnalysis_non_normalized_(
+                        var=var, zeta=zeta, alpha=factors[0].exponent,
+                        beta=ZZ(factors[1].exponent), delta=0,
+                        precision=precision)
+                else:
+                    raise NotImplementedError(
+                        "singularity analysis of {} not implemented".format(
+                            self))
             else:
                 raise NotImplementedError(
-                    "singularity analysis for more than one "
-                    "factor not yet implemented")
+                    "singularity analysis for more than two "
+                    "factors not yet implemented")
 
 
     CartesianProduct = CartesianProductGrowthGroups

@@ -95,15 +95,6 @@ Classes and Methods
 from sage.structure.sage_object import SageObject
 
 
-class NotImplementedOZero(NotImplementedError):
-    r"""
-    A special :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`
-    which is raised when the result is O(0) which means 0
-    for sufficiently large values of the variable.
-    """
-    pass
-
-
 class AsymptoticExpansionGenerators(SageObject):
     r"""
     A collection of constructors for several common asymptotic expansions.
@@ -844,9 +835,8 @@ class AsymptoticExpansionGenerators(SageObject):
                     return exponential_factor * result
                 elif a < 0:
                     assert result.is_zero()
-                    raise NotImplementedOZero(
-                        'The result is O(0) which means 0 for sufficiently '
-                        'large {}'.format(var))
+                    from misc import NotImplementedOZero
+                    raise NotImplementedOZero(A)
 
             return exponential_factor * (result + (n**(alpha-1-precision)).O())
 

@@ -31,21 +31,30 @@ class FieldEmbedding(SageObject):
     Represents the embedding of a big non prime field into a smaller
     non prime field.
 
-        EXAMPLES::
+    INPUT:
 
-            sage: from sage.coding.field_embedding import *
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: FieldEmbedding(Fqm, Fq)
-            Embedding between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+    - ``big_field``, ``small_field`` -- two finite fields, ``small_field``
+                                    being a subfield of ``big_field``
 
-        It is possible to specify the embedding to use
-        from ``big_field`` to ``small_field``::
+    - ``embedding`` -- (default: ``None``) an homomorphism from ``small_field`` to
+                       ``big_field``. If ``None`` is provided, it will default to the
+                       first homomorphism of the list of homomorphisms Sage can build.
 
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: FieldEmbedding(Fqm, Fq, embedding=Hom(Fq, Fqm)[1])
-            Embedding between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+    EXAMPLES::
+
+        sage: from sage.coding.field_embedding import *
+        sage: Fqm.<aa> = GF(16)
+        sage: Fq.<a> = GF(4)
+        sage: FieldEmbedding(Fqm, Fq)
+        Embedding between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+
+    It is possible to specify the embedding to use
+    from ``big_field`` to ``small_field``::
+
+        sage: Fqm.<aa> = GF(16)
+        sage: Fq.<a> = GF(4)
+        sage: FieldEmbedding(Fqm, Fq, embedding=Hom(Fq, Fqm)[1])
+        Embedding between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
     """
 
     def __init__(self, big_field, small_field, embedding=None):

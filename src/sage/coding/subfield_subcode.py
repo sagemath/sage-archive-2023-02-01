@@ -19,9 +19,9 @@ coordinate of `c`.
 #*****************************************************************************
 
 from linear_code import (AbstractLinearCode,
+                         LinearCodeParityCheckEncoder,
                          LinearCodeSyndromeDecoder,
                          LinearCodeNearestNeighborDecoder)
-from encoder import Encoder
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -29,46 +29,56 @@ from sage.functions.all import log
 
 class SubfieldSubcode(AbstractLinearCode):
     r"""
-    Representation of a subfield subcode
+    Representation of a subfield subcode.
+
+    INPUT:
+
+    - ``original_code``  -- the code ``self`` comes from.
+
+    - ``subfield`` -- the base field of ``self``.
 
     EXAMPLES::
 
-        sage: C = codes.RandomLinearCode(7, 3, GF(8, 'a'))
-        sage: Cs = codes.SubfieldSubcode(C, 4)
-        sage: Cs
-        Subfield subcode of order 4 coming from Linear code of length 7, dimension 3 over Finite Field in a of size 2^3
+        sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+        sage: codes.SubfieldSubcode(C, GF(4, 'a'))
+        Subfield subcode over Finite Field in a of size 2^2 coming from Linear code of length 7, dimension 3 over Finite Field in aa of size 2^4
     """
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, original_code, subfield_order):
+    def __init__(self, original_code, subfield, embedding=None):
         r"""
         TESTS:
 
-        ``subfield_order`` has to divide the order of ``original_code``'s base field,
-        otherwise an error is raised::
+        ``subfield`` has to be a finite field, otherwise an error is raised::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(8, 'a'))
-            sage: Cs = codes.SubfieldSubcode(C, 3)
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, RR)
             Traceback (most recent call last):
             ...
-            ValueError: subfield_order must divide the order of original_code's base field
+            ValueError: subfield has to be a finite field
+
+        ``subfield`` has to be a subfield of ``original_code``'s base field,
+        otherwise an error is raised::
+
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(8, 'a'))
+            Traceback (most recent call last):
+            ...
+            ValueError: subfield has to be a subfield of the base field of the original code
 
         """
         if not isinstance(original_code, AbstractLinearCode):
             raise ValueError("original_code must be a linear code")
-        if not isinstance(subfield_order, (int, Integer)):
-            raise ValueError("subfield_order must be a Python int or a Sage integer")
-        subfield_order = Integer(subfield_order)
-        if not subfield_order.divides(original_code.base_field().order()):
-            raise ValueError("subfield_order must divide the order of original_code's base field")
+        if not subfield.is_finite():
+            raise ValueError("subfield has to be a finite field")
+        p = subfield.characteristic()
+        s = log(subfield.order(), p)
+        sm = log(original_code.base_field().order(), p)
+        if not s.divides(sm):
+            raise ValueError("subfield has to be a subfield of the base field of the original code")
         self._original_code = original_code
-        self._subfield_order = subfield_order
-        if subfield_order.is_prime():
-            F = GF(subfield_order)
-        else:
-            F = GF(subfield_order, 'x')
-        super(SubfieldSubcode, self).__init__(F, original_code.length(), "ParityCheck", "Syndrome")
+        super(SubfieldSubcode, self).__init__(subfield, original_code.length(), "ParityCheck", "Syndrome")
 
     def __eq__(self, other):
         r"""
@@ -76,15 +86,15 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(8, 'a'))
-            sage: Cs1 = codes.SubfieldSubcode(C, 4)
-            sage: Cs2 = codes.SubfieldSubcode(C, 4)
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs1 = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: Cs2 = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs1 == Cs2
             True
         """
         return isinstance(other, SubfieldSubcode) \
                 and self.original_code() == other.original_code()\
-                and self.base_field().order() == other.base_field.order()
+                and self.base_field().order() == other.base_field().order()
 
     def _repr_(self):
         r"""
@@ -92,13 +102,13 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(8, 'a'))
-            sage: Cs = codes.SubfieldSubcode(C, 4)
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs
-            Subfield subcode of order 4 coming from Linear code of length 7, dimension 3 over Finite Field in a of size 2^3
+            Subfield subcode over Finite Field in a of size 2^2 coming from Linear code of length 7, dimension 3 over Finite Field in aa of size 2^4
         """
-        return "Subfield subcode of order %s coming from %s"\
-                % (self.base_field().order(), self.original_code())
+        return "Subfield subcode over %s coming from %s"\
+                % (self.base_field(), self.original_code())
 
     def _latex_(self):
         r"""
@@ -106,13 +116,13 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(8, 'a'))
-            sage: Cs = codes.SubfieldSubcode(C, 4)
-            sage: Cs
-
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: latex(Cs)
+            \textnormal{Subfield subcode over \Bold{F}_{2^{2}} coming from }[7, 3]\textnormal{ Linear code over }\Bold{F}_{2^{4}}
         """
-        return "\\textnormal{Subfield subcode of order %s coming from }%s"\
-                % (self.base_field().order(), self.original_code())
+        return "\\textnormal{Subfield subcode over %s coming from }%s"\
+                % (self.base_field()._latex_(), self.original_code()._latex_())
 
     def dimension(self):
         r"""
@@ -127,8 +137,8 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(8, 'a'))
-            sage: Cs = codes.SubfieldSubcode(C, 4)
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.dimension_upper_bound()
             3
         """
@@ -140,12 +150,12 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(8, 'a'))
-            sage: Cs = codes.SubfieldSubcode(C, 4)
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.dimension_lower_bound()
-            1
+            -1 #???????????
         """
-        C = self._original_code()
+        C = self.original_code()
         n = C.length()
         k = C.dimension()
         F = C.base_field()
@@ -158,10 +168,10 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(8, 'a'))
-            sage: Cs = codes.SubfieldSubcode(C, 4)
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.original_code()
-            Linear code of length 7, dimension 3 over Finite Field in a of size 2^3
+            Linear code of length 7, dimension 3 over Finite Field in aa of size 2^4
         """
         return self._original_code
 
@@ -174,86 +184,8 @@ class SubfieldSubcode(AbstractLinearCode):
         raise NotImplementedError
 
 
-
-
-
-
-
-
-#Purely TEMPORARY, will be integrated with trac #19930
-
-class SubfieldSubcodeParityCheckEncoder(Encoder):
-    r"""
-    Encoder based on :meth:`parity_check_matrix` for Linear codes.
-
-    It constructs the generator matrix through the parity check matrix.
-
-    INPUT:
-
-    - ``code`` -- The associated code of this encoder.
-    """
-
-    def __init__(self, code):
-        r"""
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            sage: E
-            Parity check matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
-        """
-        super(LinearCodeParityCheckEncoder, self).__init__(code)
-
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            sage: E
-            Parity check matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
-        """
-        return "Parity check matrix-based encoder for the %s" % self.code()
-
-    def _latex_(self):
-        r"""
-        Return a latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            sage: latex(E)
-            \textnormal{Parity check matrix-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
-        """
-        return "\\textnormal{Parity check matrix-based encoder for the }%s" % self.code()._latex_()
-
-    @cached_method
-    def generator_matrix(self):
-        r"""
-        Returns a generator matrix of the associated code of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            sage: E.generator_matrix()
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1]
-        """
-        return self.code().parity_check_matrix().right_kernel_matrix()
-
-
 ####################### registration ###############################
 
-SubfieldSubcode._registered_encoders["ParityCheck"] = SubfieldSubcodeParityCheckEncoder
+SubfieldSubcode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
 SubfieldSubcode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 SubfieldSubcode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

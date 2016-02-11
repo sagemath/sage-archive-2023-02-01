@@ -1528,9 +1528,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 raise NotImplementedError('Taking %s to the exponent %s not implemented.' %
                                           (self, exponent))
 
+        elif exponent == 0:
+            return self.parent().one()
+
+        elif exponent == 1:
+            return self
+
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
             if isinstance(exponent, AsymptoticExpansion) and element.is_constant():
+
                 return exponent.rpow(base=element.coefficient, precision=precision)
             try:
                 return self.parent()._create_element_in_extension_(

@@ -8504,6 +8504,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: img.save(filename)
             sage: open(filename).read().startswith('\x89PNG')
             True
+
+        TESTS:
+
+        Test :trac:`17341`::
+
+            sage: random_matrix(GF(2), 8, 586, sparse=True).visualize_structure()
         """
         cdef int x, y, _x, _y, v, bi, bisq
         cdef int ir,ic

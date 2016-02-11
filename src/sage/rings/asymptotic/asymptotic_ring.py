@@ -1570,7 +1570,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
     pow = __pow__
 
 
-    def __pow_number__(self, exponent, precision=None):
+    def __pow_number__(self, exponent, precision=None, check_convergence=False):
         r"""
         Return the power of this asymptotic expansion to some
         number (``exponent``).
@@ -1593,6 +1593,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
           or other constant.
 
         - ``precision`` -- a non-negative integer.
+
+        - ``check_convergence`` -- (default: ``False``) a boolean. If set,
+          then an additional check on the input is performed to ensure,
+          that the calculated sum converges.
 
         OUTPUT:
 
@@ -1642,6 +1646,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ...
             ValueError: Cannot determine main term of a + b since
             there are several maximal elements a, b.
+
+        ::
+
+            sage: S.<s> = AsymptoticRing(growth_group='QQ^s * s^ZZ', coefficient_ring=QQ)
+            sage: (2 + 2/s^2).__pow_number__(s, precision=7)
+            2^s + 2^s*s^(-1) + 1/2*2^s*s^(-2) - 1/3*2^s*s^(-3)
+            - 11/24*2^s*s^(-4) + 11/120*2^s*s^(-5)
+            + 271/720*2^s*s^(-6) + O(2^s*s^(-7))
+            sage: _.parent()
+            Asymptotic Ring <QQ^s * s^QQ> over Rational Field
         """
         if not self.summands:
             if exponent > 0:
@@ -1662,16 +1676,20 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return self.parent()._create_element_in_extension_(
                 element**exponent, element.parent())
 
-        (max_elem, x) = self._main_term_relative_error_()
+        try:
+            (max_elem, x) = self._main_term_relative_error_()
+        except ValueError:
+            if check_convergence:
+                raise NoConvergenceError
+            raise
 
-        pmax_elem = max_elem**exponent
-        x = self.parent()._create_element_in_extension_(
-                pmax_elem, max_elem.parent()).parent()(x)
+        if check_convergence:
+            if not (x * exponent).is_little_o_of_one():
+                raise NoConvergenceError
 
-        one = x.parent().one()
+        pmax = self.parent()(max_elem)**exponent
 
         import itertools
-
         def binomials(a):
             P = a.parent()
             a = a + 1
@@ -1684,6 +1702,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 f *= b / k
                 yield f
 
+        one = x.parent().one()
+
         result = AsymptoticExpansion._power_series_(
             coefficients=binomials(exponent),
             start=one,
@@ -1691,7 +1711,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ratio_start=one,
             precision=precision)
 
-        return result._mul_term_(pmax_elem)
+        return result * pmax
 
 
     def sqrt(self, precision=None):

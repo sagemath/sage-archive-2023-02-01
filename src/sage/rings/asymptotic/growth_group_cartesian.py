@@ -869,7 +869,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         is_lt_one = _is_lt_one_
 
 
-        def _repr_(self):
+        def _repr_(self, latex=False):
             r"""
             A representation string for this Cartesian product element.
 
@@ -889,10 +889,21 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: cartesian_product([P, L], order='lex').an_element()._repr_()
                 'x^(1/2)*log(x)'
             """
-            s = '*'.join(repr(v) for v in self.value if not v.is_one())
+            if latex:
+                from sage.misc.latex import latex as latex_repr
+                f = latex_repr
+            else:
+                f = repr
+
+            mul = ' ' if latex else '*'
+            s = mul.join(f(v) for v in self.value if not v.is_one())
             if s == '':
                 return '1'
             return s
+
+
+        def _latex_(self):
+            return self._repr_(latex=True)
 
 
         def __pow__(self, exponent):

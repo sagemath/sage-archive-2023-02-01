@@ -3487,6 +3487,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3)),
             singular_expansions={1/4: 2 - 2*T^(-1/2)
             + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
+            sage: def logarithmic(z):
+            ....:     return -log(1-z)
+            sage: B.singularity_analysis(logarithmic, (1,), precision=5)
+            n^(-1) + O(n^(-3))
 
         TESTS::
 
@@ -3509,7 +3513,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         result = 0
         for singularity in singularities:
             A = AsymptoticRing(
-                'T^QQ', coefficient_ring=SR, default_prec=precision)
+                'T^QQ*log(T)^QQ', coefficient_ring=SR, default_prec=precision)
             T = A.gen()
             singular_expansion = A(function((1-1/T)*singularity))
             singular_expansions[singularity] = singular_expansion

@@ -130,6 +130,7 @@ graphplot_options.update(
                         '"-", "--", ":", "-.", respectively. '
                         'This currently only works for directed graphs, '
                         'since we pass off the undirected graph to networkx.',
+                    'thickness': 'The tickness of the edges.',
                     'edge_color': 'The default color for edges.',
                     'edge_colors': 'a dictionary specifying edge colors: each '
                         'key is a color recognized by matplotlib, and each '
@@ -182,6 +183,7 @@ DEFAULT_PLOT_OPTIONS = {
     "vertex_labels"       : True,
     "layout"              : None,
     "edge_style"          : 'solid',
+    "thickness"           : 1,
     "edge_color"          : 'black',
     "edge_colors"         : None,
     "edge_labels"         : False,

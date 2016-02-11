@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hyperplane Arrangements
 
@@ -221,7 +222,7 @@ arrangement. It is defined as
 
 where the sum is `P` is the
 :meth:`~HyperplaneArrangementElement.intersection_poset` of the
-arrangement and `\mu` is the Moebius function of `P`::
+arrangement and `\mu` is the Möbius function of `P`::
 
     sage: a = hyperplane_arrangements.semiorder(5)
     sage: a.characteristic_polynomial()               # long time (about a second on Core i7)
@@ -350,7 +351,7 @@ from copy import copy
 
 class HyperplaneArrangementElement(Element):
     """
-    An element in a hyperplane arrangement.
+    A hyperplane arrangement.
 
     .. WARNING::
 
@@ -639,9 +640,18 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        A new yperplane arrangement. Its equations consist of
+        A new hyperplane arrangement. Its equations consist of
         `[0, -d, a_1, \ldots, a_n]` for each `[d, a_1, \ldots, a_n]` in the
         original arrangement and the equation `[0, 1, 0, \ldots, 0]`.
+
+        .. WARNING::
+
+            While there is an almost-one-to-one correspondence between the
+            hyperplanes of ``self`` and those of ``self.cone()``, there is
+            no guarantee that the order in which they appear in
+            ``self.hyperplanes()`` will match the order in which their
+            counterparts in ``self.cone()`` will appear in
+            ``self.cone().hyperplanes()``!
 
         EXAMPLES::
 
@@ -740,7 +750,7 @@ class HyperplaneArrangementElement(Element):
         x = polygen(QQ, 'x')
         P = self.intersection_poset()
         n = self.dimension()
-        return sum([P.mobius_function(0, p) * x**(n - P.rank(p)) for p in P])
+        return sum([P.moebius_function(0, p) * x**(n - P.rank(p)) for p in P])
         
     @cached_method
     def characteristic_polynomial(self):
@@ -923,6 +933,16 @@ class HyperplaneArrangementElement(Element):
 
         The hyperplane arrangement obtained by changing the base
         field, as a new hyperplane arrangement.
+
+        .. WARNING::
+
+            While there is often a one-to-one correspondence between the
+            hyperplanes of ``self`` and those of
+            ``self.change_ring(base_ring)``, there is
+            no guarantee that the order in which they appear in
+            ``self.hyperplanes()`` will match the order in which their
+            counterparts in ``self.cone()`` will appear in
+            ``self.change_ring(base_ring).hyperplanes()``!
 
         EXAMPLES::
 
@@ -1413,7 +1433,7 @@ class HyperplaneArrangementElement(Element):
 
         The polyhedron constructed from taking the linear expressions
         as inequalities.
-        
+
         EXAMPLES::
 
             sage: H.<x,y> = HyperplaneArrangements(QQ)
@@ -1483,6 +1503,506 @@ class HyperplaneArrangementElement(Element):
                         subdivided.append(part)
             regions = subdivided
         return tuple(regions)
+
+    @cached_method
+    def closed_faces(self, labelled=True):
+        r"""
+        Return the closed faces of the hyperplane arrangement ``self``
+        (provided that ``self`` is defined over a totally ordered field).
+
+        Let `\mathcal{A}` be a hyperplane arrangement in the vector
+        space `K^n`, whose hyperplanes are the zero sets of the
+        affine-linear functions `u_1, u_2, \ldots, u_N`. (We consider
+        these functions `u_1, u_2, \ldots, u_N`, and not just the
+        hyperplanes, as given. We also assume the field `K` to be
+        totally ordered.) For any point `x \in K^n`, we define the
+        *sign vector* of `x` to be the vector
+        `(v_1, v_2, \ldots, v_N) \in \{-1, 0, 1\}^N` such that (for each
+        `i`) the number `v_i` is the sign of `u_i(x)`. For any
+        `v \in \{-1, 0, 1\}^N`, we let `F_v` be the set of all `x \in K^n`
+        which have sign vector `v`. The nonempty ones among all these
+        subsets `F_v` are called the *open faces* of `\mathcal{A}`. They
+        form a partition of the set `K^n`.
+
+        Furthermore, for any
+        `v = (v_1, v_2, \ldots, v_N) \in \{-1, 0, 1\}^N`, we let `G_v` be
+        the set of all `x \in K^n` such that, for every `i`, the sign of
+        `u_i(x)` is either `0` or `v_i`.
+        Then, `G_v` is a polyhedron. The nonempty ones among all these
+        polyhedra `G_v` are called the *closed faces* of `\mathcal{A}`.
+        While several sign vectors `v` can lead to one and the same
+        closed face `G_v`, we can assign to every closed face a canonical
+        choice of a sign vector: Namely, if `G` is a closed face of
+        `\mathcal{A}`, then the *sign vector* of `G` is defined to be the
+        vector `(v_1, v_2, \ldots, v_N) \in \{-1, 0, 1\}^N` where `x` is
+        any point in the relative interior of `G` and where, for each `i`,
+        the number `v_i` is the sign of `u_i(x)`. (This does not depend on
+        the choice of `x`.)
+
+        There is a one-to-one correspondence between the closed faces and
+        the open faces of `\mathcal{A}`. It sends a closed face `G` to
+        the open face `F_v`, where `v` is the sign vector of `G`; this
+        `F_v` is also the relative interior of `G_v`. The inverse map
+        sends any open face `O` to the closure of `O`.
+
+        INPUT:
+
+        - ``labelled`` -- boolean (default: ``True``); if ``True``, then
+          this method returns not the faces itself but rather pairs
+          `(v, F)` where `F` is a closed face and `v` is its sign vector
+          (here, the order and the orientation of the
+          `u_1, u_2, \ldots, u_N` is as given by ``self.hyperplanes()``).
+
+        OUTPUT:
+
+        A tuple containing the closed faces as polyhedra, or (if
+        ``labelled`` is set to ``True``) the pairs of sign vectors and
+        corresponding closed faces.
+
+        .. TODO::
+
+            Should the output rather be a dictionary where the keys are
+            the sign vectors and the values are the faces?
+
+        EXAMPLES::
+
+            sage: a = hyperplane_arrangements.braid(2)
+            sage: a.hyperplanes()
+            (Hyperplane t0 - t1 + 0,)
+            sage: a.closed_faces()
+            (((0,),
+              A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line),
+             ((1,),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex, 1 ray, 1 line),
+             ((-1,),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex, 1 ray, 1 line))
+            sage: a.closed_faces(labelled=False)
+            (A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line,
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex, 1 ray, 1 line)
+            sage: [(v, F, F.representative_point()) for v, F in a.closed_faces()]
+            [((0,),
+              A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line,
+              (0, 0)),
+             ((1,),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+              (0, -1)),
+             ((-1,),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+              (-1, 0))]
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: a = H(x, y+1)
+            sage: a.hyperplanes()
+            (Hyperplane 0*x + y + 1, Hyperplane x + 0*y + 0)
+            sage: [(v, F, F.representative_point()) for v, F in a.closed_faces()]
+            [((0, 0),
+              A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex,
+              (0, -1)),
+             ((0, 1),
+              A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray,
+              (1, -1)),
+             ((0, -1),
+              A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray,
+              (-1, -1)),
+             ((1, 0),
+              A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray,
+              (0, 0)),
+             ((1, 1),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+              (1, 0)),
+             ((1, -1),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+              (-1, 0)),
+             ((-1, 0),
+              A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray,
+              (0, -2)),
+             ((-1, 1),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+              (1, -2)),
+             ((-1, -1),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+              (-1, -2))]
+
+            sage: a = hyperplane_arrangements.braid(3)
+            sage: a.hyperplanes()
+            (Hyperplane 0*t0 + t1 - t2 + 0,
+             Hyperplane t0 - t1 + 0*t2 + 0,
+             Hyperplane t0 + 0*t1 - t2 + 0)
+            sage: [(v, F, F.representative_point()) for v, F in a.closed_faces()]
+            [((0, 0, 0),
+              A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line,
+              (0, 0, 0)),
+             ((0, 1, 1),
+              A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+              (0, -1, -1)),
+             ((0, -1, -1),
+              A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+              (-1, 0, 0)),
+             ((1, 0, 1),
+              A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+              (1, 1, 0)),
+             ((1, 1, 1),
+              A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+              (0, -1, -2)),
+             ((1, -1, 0),
+              A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+              (-1, 0, -1)),
+             ((1, -1, 1),
+              A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+              (1, 2, 0)),
+             ((1, -1, -1),
+              A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+              (-2, 0, -1)),
+             ((-1, 0, -1),
+              A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+              (0, 0, 1)),
+             ((-1, 1, 0),
+              A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+              (1, 0, 1)),
+             ((-1, 1, 1),
+              A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+              (0, -2, -1)),
+             ((-1, 1, -1),
+              A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+              (1, 0, 2)),
+             ((-1, -1, -1),
+              A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+              (-1, 0, 1))]
+
+        Let us check that the number of closed faces with a given
+        dimension computed using ``self.closed_faces()`` equals the one
+        computed using :meth:`face_vector`::
+
+            sage: def test_number(a):
+            ....:     Qx = PolynomialRing(QQ, 'x'); x = Qx.gen()
+            ....:     RHS = Qx.sum(vi * x ** i for i, vi in enumerate(a.face_vector()))
+            ....:     LHS = Qx.sum(x ** F[1].dim() for F in a.closed_faces())
+            ....:     return LHS == RHS
+            sage: a = hyperplane_arrangements.Catalan(2)
+            sage: test_number(a)
+            True
+            sage: a = hyperplane_arrangements.Shi(3)
+            sage: test_number(a) # long time
+            True
+
+        TESTS:
+
+        An empty border case::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: a = H()
+            sage: a.closed_faces()
+            (((),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 lines),)
+        """
+        R = self.base_ring()
+        if R.characteristic() != 0:
+            raise ValueError('base field must have characteristic zero')
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        dim = self.dimension()
+        hypes = self.hyperplanes()
+        universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
+        faces = [((), universe)]
+        for k, hyperplane in enumerate(hypes):
+            # Loop invariant:
+            # ``faces == Hk.closed_faces()``, where ``Hk`` is the
+            # hyperplane arrangement given by the first ``k`` hyperplanes
+            # in the list ``hypes`` (that is, by ``hypes[:k]``).
+            ieq = vector(R, hyperplane.dense_coefficient_list())
+            zero_half = Polyhedron(eqns=[ieq], base_ring=R)
+            # ``zero_half`` is the hyperplane ``hyperplane`` itself
+            # (viewed as a polyhedron).
+            pos_half = Polyhedron(ieqs=[ ieq], base_ring=R)
+            neg_half = Polyhedron(ieqs=[-ieq], base_ring=R)
+            subdivided = []
+            for signs, face in faces:
+                # So ``face`` is a face of the hyperplane arrangement
+                # given by the first ``k`` hyperplanes in the list
+                # ``hypes``, and ``signs`` is the corresponding
+                # (length-``k``) sign vector.
+                face_dim = face.dim()
+                # Adding the intersection of ``face`` with ``hyperplane``:
+                zero_part = face.intersection(zero_half)
+                zero_part_dim = zero_part.dim()
+                if zero_part_dim == face_dim:
+                    # If the intersection of ``face`` with ``hyperplane``
+                    # has the same dimension as ``face``, then this
+                    # intersection *is* ``face``, so we can continue
+                    # (without adding the other two intersections, since
+                    # those are empty):
+                    subdivided.append((signs + (0,), face))
+                    continue
+                # If we are here, then ``face`` is not contained in
+                # ``hyperplane``.
+                if zero_part_dim >= 0:
+                    # Do not append ``zero_part`` yet! It might be
+                    # redundant (in the sense that some of its defining
+                    # inequalities are always equalities on it). Check for
+                    # this:
+                    zero_part_point = zero_part.representative_point()
+                    for l, testhype in enumerate(hypes[:k]):
+                        if signs[l] != 0:
+                            h = testhype.dense_coefficient_list()
+                            testval = R.sum(h[i+1] * gi for i, gi in enumerate(zero_part_point)) + h[0]
+                            if testval == 0:
+                                break
+                    else:
+                        # Now we know ``zero_part`` is not redundant.
+                        subdivided.append((signs + (0,), zero_part))
+                # Adding the intersection of ``face`` with the positive
+                # halfspace:
+                pos_part = face.intersection(pos_half)
+                pos_part_dim = pos_part.dim()
+                if pos_part_dim == face_dim:
+                    # If this condition is not satisfied, then
+                    # ``pos_part`` is either ``zero_part`` or the empty
+                    # set; in either case we need not add it. Conversely,
+                    # if it is satisfied, then ``pos_part`` is not yet in
+                    # ``subdivided``, nor is it redundant.
+                    subdivided.append((signs + (1,), pos_part))
+                neg_part = face.intersection(neg_half)
+                neg_part_dim = neg_part.dim()
+                if neg_part_dim == face_dim:
+                    # If this condition is not satisfied, then
+                    # ``neg_part`` is either ``zero_part`` or the empty
+                    # set; in either case we need not add it. Conversely,
+                    # if it is satisfied, then ``neg_part`` is not yet in
+                    # ``subdivided``, nor is it redundant.
+                    subdivided.append((signs + (-1,), neg_part))
+            faces = subdivided
+        if labelled:
+            return tuple(faces)
+            # Or, if we want a dictionary:
+            # return {F[0]: F[1] for F in faces}
+        return tuple(x[1] for x in faces)
+
+    def face_product(self, F, G, normalize=True):
+        r"""
+        Return the product `FG` in the face semigroup of ``self``, where
+        `F` and `G` are two closed faces of ``self``.
+
+        The face semigroup of a hyperplane arrangement `\mathcal{A}` is
+        defined as follows: As a set, it is the set of all open faces
+        of ``self`` (see :meth:`closed_faces`). Its product is defined by
+        the following rule: If `F` and `G` are two open faces of
+        `\mathcal{A}`, then `FG` is an open face of `\mathcal{A}`, and
+        for every hyperplane `H \in \mathcal{A}`, the open face `FG` lies
+        on the same side of `H` as `F` unless `F \subseteq H`, in which
+        case `FG` lies on the same side of `H` as `G`. Alternatively,
+        `FG` can be defined as follows: If `f` and `g` are two points in
+        `F` and `G`, respectively, then `FG` is the face that contains
+        the point `(f + \varepsilon g) / (1 + \varepsilon)` for any
+        sufficiently small positive `\varepsilon`.
+
+        In our implementation, the face semigroup consists of closed faces
+        rather than open faces (thanks to the 1-to-1 correspondence
+        between open faces and closed faces, this is not really a
+        different semigroup); these closed faces are given as polyhedra.
+
+        The face semigroup of a hyperplane arrangement is always a
+        left-regular band (i.e., a semigroup satisfying the identities
+        `x^2 = x` and `xyx = xy`). When the arrangement is central, then
+        this semigroup is a monoid. See [Brown2000]_ (Appendix A in
+        particular) for further properties.
+
+        INPUT:
+
+        - ``F``, ``G`` -- two faces of ``self`` (as polyhedra)
+
+        - ``normalize`` -- Boolean (default: ``True``); if ``True``, then
+          this method returns the precise instance of `FG` in the list
+          returned by ``self.closed_faces()``, rather than creating a new
+          instance
+
+        EXAMPLES::
+
+            sage: a = hyperplane_arrangements.braid(3)
+            sage: a.hyperplanes()
+            (Hyperplane 0*t0 + t1 - t2 + 0,
+             Hyperplane t0 - t1 + 0*t2 + 0,
+             Hyperplane t0 + 0*t1 - t2 + 0)
+            sage: faces = {F0: F1 for F0, F1 in a.closed_faces()}
+            sage: xGyEz = faces[(0, 1, 1)] # closed face x >= y = z
+            sage: xGyEz.representative_point()
+            (0, -1, -1)
+            sage: xGyEz = faces[(0, 1, 1)] # closed face x >= y = z
+            sage: xGyEz.representative_point()
+            (0, -1, -1)
+            sage: yGxGz = faces[(1, -1, 1)] # closed face y >= x >= z
+            sage: xGyGz = faces[(1, 1, 1)] # closed face x >= y >= z
+            sage: a.face_product(xGyEz, yGxGz) == xGyGz
+            True
+            sage: a.face_product(yGxGz, xGyEz) == yGxGz
+            True
+            sage: xEzGy = faces[(-1, 1, 0)] # closed face x = z >= y
+            sage: xGzGy = faces[(-1, 1, 1)] # closed face x >= z >= y
+            sage: a.face_product(xEzGy, yGxGz) == xGzGy
+            True
+
+        REFERENCES:
+
+        .. [Brown2000] Kenneth S. Brown, *Semigroups, rings, and Markov
+           chains*, :arxiv:`math/0006145v1`.
+        """
+        f = F.representative_point()
+        g = G.representative_point()
+        n = len(f)
+        R = self.base_ring()
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        eqns = [[0] + [0] * n]
+        ieqs = []
+        signs = []
+        for hyperplane in self.hyperplanes():
+            # Decide which side of ``hyperplane`` our face ``FG`` will be
+            # on.
+            H = hyperplane.dense_coefficient_list()
+            ieq = vector(R, H)
+            x = R.sum(H[i+1] * fi for i, fi in enumerate(f)) + H[0]
+            if x < 0:
+                side = -1
+            elif x > 0:
+                side = 1
+            else:
+                x = R.sum(H[i+1] * gi for i, gi in enumerate(g)) + H[0]
+                if x < 0:
+                    side = -1
+                elif x > 0:
+                    side = 1
+                else:
+                    side = 0
+            signs.append(side)
+            if side == 0:
+                eqns.append(ieq)
+            elif side == -1:
+                ieqs.append(-ieq)
+            else:
+                ieqs.append(ieq)
+        face = Polyhedron(eqns=eqns, ieqs=ieqs, base_ring=R)
+        if not normalize:
+            return face
+        # Look for ``I`` in ``self.closed_faces()``:
+        for I in self.closed_faces():
+            if I[0] == tuple(signs):
+                return I[1]
+
+    def face_semigroup_algebra(self, field=None, names='e'):
+        r"""
+        Return the face semigroup algebra of ``self``.
+
+        This is the semigroup algebra of the face semigroup of ``self``
+        (see :meth:`face_product` for the definition of the semigroup).
+
+        Due to limitations of the current Sage codebase (e.g., semigroup
+        algebras do not profit from the functionality of the
+        :class:`FiniteDimensionalAlgebra` class), this is implemented not
+        as a semigroup algebra, but as a
+        :class:`FiniteDimensionalAlgebra`. The closed faces of ``self``
+        (in the order in which the :meth:`closed_faces` method outputs
+        them) are identified with the vectors `(0, 0, \ldots, 0, 1, 0, 0,
+        \ldots, 0)` (with the `1` moving from left to right).
+
+        INPUT:
+
+        - ``field`` -- a field (default: `\mathbb{Q}`), to be used as the
+          base ring for the algebra (can also be a commutative ring, but
+          then certain representation-theoretical methods might misbehave)
+
+        - ``names`` -- (default: ``'e'``) string; names for the basis
+          elements of the algebra
+
+        .. TODO::
+
+            Also implement it as an actual semigroup algebra?
+
+        EXAMPLES::
+
+            sage: a = hyperplane_arrangements.braid(3)
+            sage: [(i, F[0]) for i, F in enumerate(a.closed_faces())]
+            [(0, (0, 0, 0)),
+             (1, (0, 1, 1)),
+             (2, (0, -1, -1)),
+             (3, (1, 0, 1)),
+             (4, (1, 1, 1)),
+             (5, (1, -1, 0)),
+             (6, (1, -1, 1)),
+             (7, (1, -1, -1)),
+             (8, (-1, 0, -1)),
+             (9, (-1, 1, 0)),
+             (10, (-1, 1, 1)),
+             (11, (-1, 1, -1)),
+             (12, (-1, -1, -1))]
+            sage: U = a.face_semigroup_algebra(); U
+            Finite-dimensional algebra of degree 13 over Rational Field
+            sage: e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12 = U.basis()
+            sage: e0 * e1
+            e1
+            sage: e0 * e5
+            e5
+            sage: e5 * e0
+            e5
+            sage: e3 * e2
+            e6
+            sage: e7 * e12
+            e7
+            sage: e3 * e12
+            e6
+            sage: e4 * e8
+            e4
+            sage: e8 * e4
+            e11
+            sage: e8 * e1
+            e11
+            sage: e5 * e12
+            e7
+            sage: (e3 + 2*e4) * (e1 - e7)
+            e4 - e6
+
+            sage: U3 = a.face_semigroup_algebra(field=GF(3)); U3
+            Finite-dimensional algebra of degree 13 over Finite Field of size 3
+
+        TESTS:
+
+        The ``names`` keyword works::
+
+            sage: a = hyperplane_arrangements.braid(3)
+            sage: U = a.face_semigroup_algebra(names='x'); U
+            Finite-dimensional algebra of degree 13 over Rational Field
+            sage: e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12 = U.basis()
+            sage: e0 * e1
+            x1
+        """
+        if field is None:
+            from sage.rings.rational_field import QQ
+            field = QQ
+        zero = field.zero()
+        one = field.one()
+        from sage.matrix.matrix_space import MatrixSpace
+        Fs = [F0 for F0, F1 in self.closed_faces()]
+        # ``Fs`` is the list of the sign vectors of all closed faces of
+        # ``self``.
+        Fdict = {v: i for i, v in enumerate(Fs)}
+        # ``Fdict`` is a dictionary whose keys are the sign vectors of the
+        # closed faces of ``self``, and whose values are their positions
+        # in the list ``Fs``.
+        N = len(Fs)
+        # Some hackery to generate a matrix quickly and without
+        # unnecessary sanitization/ducktyping:
+        MS = MatrixSpace(field, N, N)
+        MC = MS._get_matrix_class()
+        table = []
+        for j, sj in enumerate(Fs):
+            matrix_j = []
+            for i, si in enumerate(Fs):
+                row_i = [zero] * N
+                sk = [sil if sil != 0 else sj[l]
+                      for l, sil in enumerate(si)]
+                k = Fdict[tuple(sk)]
+                row_i[k] = one
+                matrix_j.extend(row_i)
+            table.append(MC(MS, matrix_j, copy=False, coerce=False))
+        from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FDA
+        return FDA(field, table, names=names, assume_associative=True)
 
     def region_containing_point(self, p):
         r"""
@@ -1670,7 +2190,7 @@ class HyperplaneArrangementElement(Element):
         m1 = zero_matrix(ZZ, top+1, top+1)
         m2 = zero_matrix(ZZ, top+1, top+1)
         for i, j in p.relations_iterator():
-            m1[r(i), r(j)] += p.mobius_function(i, j)
+            m1[r(i), r(j)] += p.moebius_function(i, j)
             m2[r(i), r(j)] += 1
         m1.set_immutable()
         m2.set_immutable()
@@ -1680,7 +2200,7 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return the `i,j`-th  doubly-indexed Whitney number.
 
-        If ``kind=1``, this number is obtained by adding the Moebius function
+        If ``kind=1``, this number is obtained by adding the Möbius function
         values `mu(x,y)` over all `x, y` in the intersection poset with
         `\mathrm{rank}(x) = i` and `\mathrm{rank}(y) = j`.
 
@@ -1733,7 +2253,7 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return the ``k``-th Whitney number.
 
-        If ``kind=1``, this number is obtained by summing the Moebius function
+        If ``kind=1``, this number is obtained by summing the Möbius function
         values `mu(0, x)` over all `x` in the intersection poset with
         `\mathrm{rank}(x) = k`.
 

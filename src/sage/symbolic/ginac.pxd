@@ -151,6 +151,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     bint is_a_series "is_a<pseries>" (GEx e)
     # you must ensure that is_a_series(e) is true before calling this:
     bint g_is_a_terminating_series(GEx e) except +
+    GEx g_series_var(GEx e) except +
 
     # Relations
     ctypedef enum operators "relational::operators":

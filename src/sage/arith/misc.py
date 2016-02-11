@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Miscellaneous arithmetic functions
 """
@@ -3825,7 +3826,7 @@ def quadratic_residues(n):
 
 class Moebius:
     r"""
-    Returns the value of the Moebius function of abs(n), where n is an
+    Returns the value of the Möbius function of abs(n), where n is an
     integer.
 
     DEFINITION: `\mu(n)` is 0 if `n` is not square
@@ -3913,7 +3914,7 @@ class Moebius:
     def plot(self, xmin=0, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
              **kwds):
         """
-        Plot the Moebius function.
+        Plot the Möbius function.
 
         INPUT:
 
@@ -3947,9 +3948,9 @@ class Moebius:
 
     def range(self, start, stop=None, step=None):
         """
-        Return the Moebius function evaluated at the given range of values,
+        Return the Möbius function evaluated at the given range of values,
         i.e., the image of the list range(start, stop, step) under the
-        Mobius function.
+        Möbius function.
 
         This is much faster than directly computing all these values with a
         list comprehension.

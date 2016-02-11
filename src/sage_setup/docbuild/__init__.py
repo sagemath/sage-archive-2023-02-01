@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 The documentation builder
 
@@ -11,51 +10,30 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 * The sphinx subprocesses are configured in conf.py
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 import logging, optparse, os, shutil, subprocess, sys, re
 
 import sphinx.cmdline
 import sphinx.util.console
 import sphinx.ext.intersphinx
 
-#We remove the current directory from sys.path right away
-#so that we import sage from the proper spot
-try:
-    sys.path.remove(os.path.realpath(os.getcwd()))
-except ValueError:
-    pass
-
+import sage.all
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import sage_makedirs as mkdir
-from sage.env import SAGE_DOC, SAGE_SRC
+from sage.misc.misc import sage_makedirs
+from sage.env import SAGE_DOC, SAGE_DOC_OUTPUT, SAGE_SRC
 
-# Load the options, including
-#     SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT,
-#     PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS
-# from build_options.py.
-fpath = os.path.join(SAGE_DOC, 'common', 'build_options.py')
-exec(compile(open(fpath).read(), fpath, 'exec'))
+from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
+     PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
+     INCREMENTAL_BUILD, ABORT_ON_ERROR)
 
 
-def delete_empty_directories(root_dir, verbose=True):
-    """
-    Delete all empty directories found under ``root_dir``
-
-    INPUT:
-
-    - ``root_dir`` -- string. A valid directory name.
-    """
-    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
-        if not dirnames + filenames:
-            if verbose:
-                print('Deleting empty directory {0}'.format(dirpath))
-            os.rmdir(dirpath)
-
-
-def print_build_error():
+def excepthook(*exc_info):
     """
     Print docbuild error and hint how to solve it
     """
-    logger.error('Error building the documentation.')
+    logger.error('Error building the documentation.', exc_info=exc_info)
     if INCREMENTAL_BUILD:
         logger.error('''
 Note: incremental documentation builds sometimes cause spurious
@@ -104,10 +82,14 @@ def builder_helper(type):
                                                   output_dir)
         logger.debug(build_command)
 
-        # Execute custom-sphinx-build.py
-        sys.argv = [os.path.join(SAGE_DOC, 'common', 'custom-sphinx-build.py')]
-        sys.argv.extend(build_command.split())
-        eval(compile(open(sys.argv[0]).read(), sys.argv[0], 'exec'))
+        # Run Sphinx with Sage's special logger
+        sys.argv = ["sphinx-build"] + build_command.split()
+        from .sphinxbuild import runsphinx
+        try:
+            runsphinx()
+        except Exception:
+            if ABORT_ON_ERROR:
+                raise
 
         # Print message about location of output:
         #   - by default if html output
@@ -150,10 +132,6 @@ class DocBuilder(object):
         self.lang = lang
         self.dir = os.path.join(SAGE_DOC, self.lang, self.name)
 
-        #Make sure the .static and .templates directories are there
-        mkdir(os.path.join(self.dir, "static"))
-        mkdir(os.path.join(self.dir, "templates"))
-
     def _output_dir(self, type):
         """
         Returns the directory where the output of type ``type`` is stored.
@@ -162,13 +140,13 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-            sage: b = builder.DocBuilder('tutorial')
+            sage: from sage_setup.docbuild import DocBuilder
+            sage: b = DocBuilder('tutorial')
             sage: b._output_dir('html')
             '.../doc/output/html/en/tutorial'
         """
-        d = os.path.join(SAGE_DOC, "output", type, self.lang, self.name)
-        mkdir(d)
+        d = os.path.join(SAGE_DOC_OUTPUT, type, self.lang, self.name)
+        sage_makedirs(d)
         return d
 
     def _doctrees_dir(self):
@@ -179,13 +157,13 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-            sage: b = builder.DocBuilder('tutorial')
+            sage: from sage_setup.docbuild import DocBuilder
+            sage: b = DocBuilder('tutorial')
             sage: b._doctrees_dir()
             '.../doc/output/doctrees/en/tutorial'
         """
-        d = os.path.join(SAGE_DOC, "output", 'doctrees', self.lang, self.name)
-        mkdir(d)
+        d = os.path.join(SAGE_DOC_OUTPUT, 'doctrees', self.lang, self.name)
+        sage_makedirs(d)
         return d
 
     def _output_formats(self):
@@ -194,8 +172,8 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-            sage: b = builder.DocBuilder('tutorial')
+            sage: from sage_setup.docbuild import DocBuilder
+            sage: b = DocBuilder('tutorial')
             sage: b._output_formats()
             ['changes', 'html', 'htmlhelp', 'inventory', 'json', 'latex', 'linkcheck', 'pickle', 'web']
 
@@ -219,8 +197,8 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-            sage: b = builder.DocBuilder('tutorial')
+            sage: from sage_setup.docbuild import DocBuilder
+            sage: b = DocBuilder('tutorial')
             sage: b.pdf() #not tested
         """
         self.latex()
@@ -331,8 +309,8 @@ class AllBuilder(object):
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-            sage: documents = builder.AllBuilder().get_all_documents()
+            sage: from sage_setup.docbuild import AllBuilder
+            sage: documents = AllBuilder().get_all_documents()
             sage: 'en/tutorial' in documents
             True
             sage: documents[0] == 'en/reference'
@@ -485,13 +463,13 @@ class ReferenceBuilder(AllBuilder):
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-            sage: b = builder.ReferenceBuilder('reference')
+            sage: from sage_setup.docbuild import ReferenceBuilder
+            sage: b = ReferenceBuilder('reference')
             sage: b._output_dir('html')
             '.../doc/output/html/en/reference'
         """
-        d = os.path.join(SAGE_DOC, "output", type, lang, self.name)
-        mkdir(d)
+        d = os.path.join(SAGE_DOC_OUTPUT, type, lang, self.name)
+        sage_makedirs(d)
         return d
 
     def _wrapper(self, format, *args, **kwds):
@@ -537,7 +515,7 @@ class ReferenceBuilder(AllBuilder):
                 # (Don't copy all of _static to save some space: we
                 # don't need all of the MathJax stuff, and in
                 # particular we don't need the fonts.)
-                website_dir = os.path.join(SAGE_DOC, 'output', 'html',
+                website_dir = os.path.join(SAGE_DOC_OUTPUT, 'html',
                                            'en', 'website')
                 static_files = ['COPYING.txt', 'basic.css', 'blank.gif',
                          'default.css', 'doctools.js', 'favicon.ico',
@@ -545,7 +523,7 @@ class ReferenceBuilder(AllBuilder):
                          'pdf.png', 'plus.png', 'pygments.css',
                          'sage.css', 'sageicon.png', 'sagelogo.png',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
-                mkdir(os.path.join(output_dir, '_static'))
+                sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
                     try:
                         shutil.copyfile(os.path.join(website_dir, '_static', f),
@@ -639,8 +617,8 @@ for a webpage listing all of the documents.''' % (output_dir,
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-            sage: b = builder.ReferenceBuilder('reference')
+            sage: from sage_setup.docbuild import ReferenceBuilder
+            sage: b = ReferenceBuilder('reference')
             sage: refdir = os.path.join(os.environ['SAGE_DOC'], 'en', b.name)
             sage: sorted(b.get_all_documents(refdir))
             ['reference/algebras',
@@ -864,7 +842,7 @@ class ReferenceSubBuilder(DocBuilder):
         the documentation was last built.
         """
         for module_name in self.get_modified_modules():
-            print module_name
+            print(module_name)
 
     def get_all_rst_files(self, exclude_sage=True):
         """
@@ -910,7 +888,7 @@ class ReferenceSubBuilder(DocBuilder):
         don't appear in the cache.
         """
         for module_name in self.get_newly_included_modules():
-            print module_name
+            print(module_name)
 
     def get_modules(self, filename):
         """
@@ -960,9 +938,8 @@ class ReferenceSubBuilder(DocBuilder):
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-            sage: import builder
-            sage: builder.ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
+            sage: from sage_setup.docbuild import ReferenceSubBuilder
+            sage: ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
             '.../doc/en/reference/sage/combinat/partition.rst'
         """
         return self.dir + os.path.sep + module_name.replace('.',os.path.sep) + '.rst'
@@ -974,7 +951,7 @@ class ReferenceSubBuilder(DocBuilder):
         if not module_name.startswith('sage'):
             return
         filename = self.auto_rest_filename(module_name)
-        mkdir(os.path.dirname(filename))
+        sage_makedirs(os.path.dirname(filename))
 
         outfile = open(filename, 'w')
 
@@ -1061,7 +1038,7 @@ class ReferenceSubBuilder(DocBuilder):
         reference manual.
         """
         for module_name in self.get_unincluded_modules():
-            print module_name
+            print(module_name)
 
     def print_included_modules(self):
         """
@@ -1069,8 +1046,7 @@ class ReferenceSubBuilder(DocBuilder):
         manual.
         """
         for module_name in self.get_all_included_modules():
-            print module_name
-
+            print(module_name)
 
 
 class SingleFileBuilder(DocBuilder):
@@ -1098,7 +1074,6 @@ class SingleFileBuilder(DocBuilder):
         # the static and templates directories in the output directory.
         # By default, this is DOT_SAGE/docbuild/MODULE_NAME, but can
         # also be specified at the command line.
-        orig_dir = os.path.join(SAGE_DOC, self.lang, self.name)
         module_name = os.path.splitext(os.path.basename(path))[0]
         latex_name = module_name.replace('_', r'\_')
 
@@ -1115,49 +1090,54 @@ class SingleFileBuilder(DocBuilder):
                 pass
         self.dir = os.path.join(base_dir, 'source')
 
-        mkdir(self.dir)
-        mkdir(os.path.join(self.dir, "static"))
-        mkdir(os.path.join(self.dir, "templates"))
+        sage_makedirs(os.path.join(self.dir, "static"))
+        sage_makedirs(os.path.join(self.dir, "templates"))
         # Write self.dir/conf.py
         conf = """# -*- coding: utf-8 -*-
+# This file is automatically generated by {}, do not edit!
 
 import sys, os
 sys.path.append(os.environ['SAGE_DOC'])
-sys.path.append('%s')
+sys.path.append({!r})
 from common.conf import *
-project = u'Documentation for %s'
+project = u'Documentation for {}'
 release = 'unknown'
-name = u'%s'
+name = {!r}
 html_title = project
 html_short_title = project
 htmlhelp_basename = name
 
 latex_domain_indices = False
 latex_documents = [
-  ('index', name + '.tex', u'Documentation for %s',
+  ('index', name + '.tex', u'Documentation for {}',
    u'unknown', 'manual'),
 ]
-""" % (self.dir, module_name, module_name, latex_name)
-        conffile = open(os.path.join(self.dir, 'conf.py'), 'w')
-        conffile.write(conf)
-        conffile.close()
+""".format(__file__, self.dir, module_name, module_name, latex_name)
+
+        if 'SAGE_DOC_UNDERSCORE' in os.environ:
+            conf +="""
+def setup(app):
+    app.connect('autodoc-skip-member', skip_member)
+"""
+
+        with open(os.path.join(self.dir, 'conf.py'), 'w') as conffile:
+            conffile.write(conf)
 
         # Write self.dir/index.rst
-        module_name = os.path.splitext(os.path.basename(path))[0]
-        index = """
-.. automodule:: %s
+        title = 'Docs for file %s' % path
+        heading = title + "\n" + ("=" * len(title))
+        index = """{}
+
+.. This file is automatically generated by {}, do not edit!
+
+.. automodule:: {}
    :members:
    :undoc-members:
    :show-inheritance:
 
-""" % module_name
-        indexfile = open(os.path.join(self.dir, 'index.rst'), 'w')
-        title = 'Docs for file %s' % path
-        indexfile.write(title + '\n')
-        indexfile.write('='*len(title) + "\n\n")
-        indexfile.write('.. This file has been autogenerated.\n\n')
-        indexfile.write(index)
-        indexfile.close()
+""".format(heading, __file__, module_name)
+        with open(os.path.join(self.dir, 'index.rst'), 'w') as indexfile:
+            indexfile.write(index)
 
         # Create link from original file to self.dir. Note that we
         # append self.dir to sys.path in conf.py. This is reasonably
@@ -1175,7 +1155,7 @@ latex_documents = [
         """
         base_dir = os.path.split(self.dir)[0]
         d = os.path.join(base_dir, "output", type)
-        mkdir(d)
+        sage_makedirs(d)
         return d
 
     def _doctrees_dir(self):
@@ -1209,8 +1189,8 @@ def get_builder(name):
     elif name in get_documents() or name in AllBuilder().get_all_documents():
         return DocBuilder(name)
     else:
-        print "'%s' is not a recognized document. Type 'sage -docbuild -D' for a list"%name
-        print "of documents, or 'sage -docbuild --help' for more help."
+        print("'%s' is not a recognized document. Type 'sage --docbuild -D' for a list"%name)
+        print("of documents, or 'sage --docbuild --help' for more help.")
         sys.exit(1)
 
 def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
@@ -1242,7 +1222,7 @@ def help_usage(s=u"", compact=False):
     documentation builder.  If 'compact' is False, the function adds a
     final newline character.
     """
-    s += "sage -docbuild [OPTIONS] DOCUMENT (FORMAT | COMMAND)"
+    s += "sage --docbuild [OPTIONS] DOCUMENT (FORMAT | COMMAND)"
     if not compact:
         s += "\n"
     return s
@@ -1271,12 +1251,12 @@ def help_examples(s=u""):
     builder.
     """
     s += "Examples:\n"
-    s += "    sage -docbuild -FDC all\n"
-    s += "    sage -docbuild constructions pdf\n"
-    s += "    sage -docbuild reference html -jv3\n"
-    s += "    sage -docbuild --mathjax tutorial html\n"
-    s += "    sage -docbuild reference print_unincluded_modules\n"
-    s += "    sage -docbuild developer -j html --sphinx-opts -q,-aE --verbose 2"
+    s += "    sage --docbuild -FDC all\n"
+    s += "    sage --docbuild constructions pdf\n"
+    s += "    sage --docbuild reference html -jv3\n"
+    s += "    sage --docbuild --mathjax tutorial html\n"
+    s += "    sage --docbuild reference print_unincluded_modules\n"
+    s += "    sage --docbuild developer -j html --sphinx-opts -q,-aE --verbose 2"
     return s
 
 def get_documents():
@@ -1354,7 +1334,7 @@ def help_message_long(option, opt_str, value, parser):
                    help_formats, help_commands, parser.format_option_help,
                    help_examples ]
     for f in help_funcs:
-        print f()
+        print(f())
     sys.exit(0)
 
 def help_message_short(option=None, opt_str=None, value=None, parser=None,
@@ -1381,11 +1361,11 @@ def help_wrapper(option, opt_str, value, parser):
     formats, and document-specific commands.
     """
     if option.dest == 'commands':
-        print help_commands(value),
+        print(help_commands(value), end="")
     if option.dest == 'documents':
-        print help_documents(),
+        print(help_documents(), end="")
     if option.dest == 'formats':
-        print help_formats(),
+        print(help_formats(), end="")
     setattr(parser.values, 'printed_list', 1)
 
 
@@ -1535,7 +1515,7 @@ def setup_logger(verbose=1, color=True):
             format_debug += " "
 
     # Documentation:  http://docs.python.org/library/logging.html
-    logger = logging.getLogger('doc.common.builder')
+    logger = logging.getLogger('docbuild')
 
     # Note: There's also Handler.setLevel().  The argument is the
     # lowest severity message that the respective logger or handler
@@ -1583,9 +1563,11 @@ class IntersphinxCache:
             self.inventories[t] = i
             return i
 
-if __name__ == '__main__':
+
+def main():
     # Parse the command-line.
     parser = setup_parser()
+    global options
     options, args = parser.parse_args()
 
     # Get the name and type (target format) of the document we are
@@ -1595,10 +1577,12 @@ if __name__ == '__main__':
     except ValueError:
         help_message_short(parser=parser, error=True)
         sys.exit(1)
-    delete_empty_directories(SAGE_DOC, verbose=False)
 
     # Set up module-wide logging.
+    global logger
     logger = setup_logger(options.verbose, options.color)
+
+    sys.excepthook = excepthook
 
     # Process selected options.
     #
@@ -1615,6 +1599,7 @@ if __name__ == '__main__':
     if options.underscore:
         os.environ['SAGE_DOC_UNDERSCORE'] = "True"
 
+    global ALLSPHINXOPTS, WEBSITESPHINXOPTS, ABORT_ON_ERROR
     if options.sphinx_opts:
         ALLSPHINXOPTS += options.sphinx_opts.replace(',', ' ') + " "
     if options.no_pdf_links:
@@ -1628,20 +1613,8 @@ if __name__ == '__main__':
 
     ABORT_ON_ERROR = not options.keep_going
 
-    # Make sure common/static exists.
-    mkdir(os.path.join(SAGE_DOC, 'common', 'static'))
-
-    import sage.all
-
     # Set up Intersphinx cache
     C = IntersphinxCache()
 
-    # Get the builder and build.
-    try:
-        getattr(get_builder(name), type)()
-    except Exception:
-        print_build_error()
-        raise
-
-    # Clean up empty directories.
-    delete_empty_directories(SAGE_DOC, verbose=False)
+    builder = getattr(get_builder(name), type)
+    builder()

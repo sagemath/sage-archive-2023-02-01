@@ -76,6 +76,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     struct gp_context
     struct pariFILE
     struct pari_mt
+    struct pari_stack
     struct pari_thread
     struct pari_timer
     struct GENbin

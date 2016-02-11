@@ -111,7 +111,7 @@ def read_decl():
 
         sage: from sage_setup.autogen.pari.parser import read_decl
         sage: read_decl()
-        {'ABC_to_bnr', ..., 'zx_to_ZX'}
+        {'ABC_to_bnr', ..., 'zx_to_zv'}
     """
     s = set()
     with open(os.path.join(sage_src_pari(), "paridecl.pxd")) as f:

@@ -74,7 +74,7 @@ from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.pari.closure cimport objtoclosure
 
 from pari_instance cimport (PariInstance, pari_instance,
-        prec_bits_to_words, prec_words_to_bits)
+        prec_bits_to_words, prec_words_to_bits, default_bitprec)
 cdef PariInstance P = pari_instance
 
 from sage.rings.integer cimport Integer
@@ -6325,9 +6325,9 @@ cdef class gen(gen_auto):
             sage: e.elllseries(2.1)
             0.402838047956645
             sage: e.elllseries(1, precision=128)
-            2.98766720445395 E-38
+            6.21952537507477 E-39
             sage: e.elllseries(1, precision=256)
-            5.48956813891054 E-77
+            2.95993347819786 E-77
             sage: e.elllseries(-2)
             0
             sage: e.elllseries(2.1, A=1.1)
@@ -7043,7 +7043,7 @@ cdef class gen(gen_auto):
 
             sage: G = pari(x^4 + 1).galoisinit()
             sage: G.galoisfixedfield(G[5][1], flag=2)
-            [x^2 + 4, Mod(2*x^2, x^4 + 1), [x^2 - 1/2*y, x^2 + 1/2*y]]
+            [x^2 - 2, Mod(-x^3 + x, x^4 + 1), [x^2 - y*x + 1, x^2 + y*x + 1]]
             sage: G.galoisfixedfield(G[5][5:7])
             [x^4 + 1, Mod(x, x^4 + 1)]
             sage: L = G.galoissubgroups()
@@ -9167,7 +9167,7 @@ cdef class gen(gen_auto):
             sage: pari(0).znstar()
             [2, [2], [-1]]
             sage: pari(96).znstar()
-            [32, [8, 2, 2], [Mod(37, 96), Mod(79, 96), Mod(65, 96)]]
+            [32, [8, 2, 2], [Mod(67, 96), Mod(31, 96), Mod(65, 96)]]
             sage: pari(-5).znstar()
             [4, [4], [Mod(2, 5)]]
         """

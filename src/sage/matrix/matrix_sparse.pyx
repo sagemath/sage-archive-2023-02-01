@@ -20,7 +20,7 @@ from sage.misc.misc import verbose
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 import sage.matrix.matrix_space
 

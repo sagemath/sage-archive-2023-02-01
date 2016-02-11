@@ -100,7 +100,7 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 
 cimport matrix_dense

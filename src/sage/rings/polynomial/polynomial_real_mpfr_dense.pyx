@@ -23,7 +23,7 @@ Check that operations with numpy elements work well (see :trac:`18076` and
 """
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from sage.ext.memory cimport check_reallocarray, check_allocarray, sage_free
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE

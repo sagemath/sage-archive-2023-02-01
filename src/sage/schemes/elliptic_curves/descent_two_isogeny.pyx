@@ -17,7 +17,7 @@ from sage.arith.all import prime_divisors
 from sage.all import ntl
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.libs.gmp.mpz cimport *

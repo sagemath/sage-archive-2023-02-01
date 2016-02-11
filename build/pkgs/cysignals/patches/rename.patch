@@ -1,0 +1,40 @@
+commit d0d86f16b1fa3f323ae966521983ff6ef3ef1b78
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Thu Feb 11 10:02:54 2016 +0100
+
+    init_interrupts -> init_cysignals
+
+diff --git a/src/cysignals/__init__.py b/src/cysignals/__init__.py
+index 00e7cf4..81efe32 100644
+--- a/src/cysignals/__init__.py
++++ b/src/cysignals/__init__.py
+@@ -1,3 +1,3 @@
+-from .signals import AlarmInterrupt, SignalError, init_interrupts  # noqa
++from .signals import AlarmInterrupt, SignalError, init_cysignals  # noqa
+ 
+-init_interrupts()
++init_cysignals()
+diff --git a/src/cysignals/signals.pyx b/src/cysignals/signals.pyx
+index eb438ed..4484185 100644
+--- a/src/cysignals/signals.pyx
++++ b/src/cysignals/signals.pyx
+@@ -156,7 +156,7 @@ def sig_print_exception(sig, msg=None):
+         traceback.print_exception(typ, val, None, file=sys.stdout)
+ 
+ 
+-def init_interrupts():
++def init_cysignals():
+     """
+     Initialize ``cysignals``.
+ 
+@@ -169,8 +169,8 @@ def init_interrupts():
+ 
+     EXAMPLES::
+ 
+-        >>> from cysignals.signals import init_interrupts
+-        >>> init_interrupts()
++        >>> from cysignals.signals import init_cysignals
++        >>> init_cysignals()
+         <built-in function python_check_interrupt>
+ 
+     """

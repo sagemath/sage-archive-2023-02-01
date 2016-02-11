@@ -17,7 +17,7 @@ multiplication algorithms.
 
 from matrix_window cimport MatrixWindow
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 def strassen_window_multiply(C, A,B, cutoff):

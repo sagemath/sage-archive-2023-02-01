@@ -28,7 +28,7 @@ include 'sage/modules/vector_integer_sparse_c.pxi'
 include 'sage/modules/vector_rational_sparse_h.pxi'
 include 'sage/modules/vector_rational_sparse_c.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.sequence cimport *
 
 from sage.rings.rational cimport Rational

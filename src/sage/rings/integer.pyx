@@ -139,7 +139,7 @@ import sys
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.long cimport pyobject_to_long
 
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 from sage.ext.memory cimport check_malloc, check_allocarray
@@ -6336,7 +6336,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         For PARI, we try 10 interrupts with increasing intervals to
         check for reliable interrupting, see :trac:`18919`::
 
-            sage: from sage.ext.interrupt import AlarmInterrupt
+            sage: from cysignals import AlarmInterrupt
             sage: for i in [1..10]:  # long time (5s)
             ....:     try:
             ....:         alarm(i/11)

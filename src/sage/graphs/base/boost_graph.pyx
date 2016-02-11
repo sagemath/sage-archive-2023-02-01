@@ -44,7 +44,7 @@ Functions
 ---------
 """
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
     r"""

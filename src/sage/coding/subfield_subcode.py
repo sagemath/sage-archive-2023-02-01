@@ -26,6 +26,10 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.functions.all import log
+from sage.categories.homset import Hom
+from field_embedding import FieldEmbedding
+from sage.matrix.constructor import matrix
+from sage.modules.free_module_element import vector
 
 class SubfieldSubcode(AbstractLinearCode):
     r"""
@@ -36,6 +40,10 @@ class SubfieldSubcode(AbstractLinearCode):
     - ``original_code``  -- the code ``self`` comes from.
 
     - ``subfield`` -- the base field of ``self``.
+
+    - ``embedding`` -- (default: ``None``) an homomorphism from ``subfield`` to
+      ``original_code``'s base field. If ``None`` is provided, it will default
+      to the first homomorphism of the list of homomorphisms Sage can build.
 
     EXAMPLES::
 
@@ -73,11 +81,19 @@ class SubfieldSubcode(AbstractLinearCode):
         if not subfield.is_finite():
             raise ValueError("subfield has to be a finite field")
         p = subfield.characteristic()
+        F = original_code.base_field()
         s = log(subfield.order(), p)
-        sm = log(original_code.base_field().order(), p)
+        sm = log(F.order(), p)
         if not s.divides(sm):
             raise ValueError("subfield has to be a subfield of the base field of the original code")
         self._original_code = original_code
+        H = Hom(subfield, F)
+        if embedding is not None and not embedding in H:
+            raise ValueError("embedding has to be an embedding from subfield to original_code's base field")
+        elif embedding is not None:
+            self._embedding = FieldEmbedding(F, subfield, embedding)
+        else:
+            self._embedding = FieldEmbedding(F, subfield, H[0])
         super(SubfieldSubcode, self).__init__(subfield, original_code.length(), "ParityCheck", "Syndrome")
 
     def __eq__(self, other):
@@ -153,14 +169,16 @@ class SubfieldSubcode(AbstractLinearCode):
             sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.dimension_lower_bound()
-            -1 #???????????
+            -1
         """
         C = self.original_code()
         n = C.length()
         k = C.dimension()
         F = C.base_field()
-        t = log(F.order() // self.base_field().order(), F.characteristic())
-        return n - t*(n-k)
+        p = F.characteristic()
+        s = log(self.base_field().order(), p)
+        m = log(F.order(), p) / s
+        return n - m*(n-k)
 
     def original_code(self):
         r"""
@@ -175,13 +193,64 @@ class SubfieldSubcode(AbstractLinearCode):
         """
         return self._original_code
 
+    def embedding(self):
+        r"""
+        Returns the field embedding between the base field of ``self`` and
+        the base field of its original code.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: Cs.embedding()
+            Embedding between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+        """
+        return self._embedding
+
     @cached_method
     def parity_check_matrix(self):
         r"""
         Returns a parity check matrix of ``self``.
 
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: Cs.parity_check_matrix()
+            [    1     0     0     0     0     0     0     0     0     0     1 a + 1 a + 1]
+            [    0     1     0     0     0     0     0     0     0     0 a + 1     0     a]
+            [    0     0     1     0     0     0     0     0     0     0 a + 1     a     0]
+            [    0     0     0     1     0     0     0     0     0     0     0 a + 1     a]
+            [    0     0     0     0     1     0     0     0     0     0 a + 1     1 a + 1]
+            [    0     0     0     0     0     1     0     0     0     0     1     1     1]
+            [    0     0     0     0     0     0     1     0     0     0     a     a     1]
+            [    0     0     0     0     0     0     0     1     0     0     a     1     a]
+            [    0     0     0     0     0     0     0     0     1     0 a + 1 a + 1     1]
+            [    0     0     0     0     0     0     0     0     0     1     a     0 a + 1]
         """
-        raise NotImplementedError
+        C = self.original_code()
+        Fqm = C.base_field()
+        Fq = self.base_field()
+        H_original = C.parity_check_matrix()
+        E = self.embedding()
+        n = self.length()
+        p = Fq.characteristic()
+        s = log(Fq.order(), p)
+        m = log(Fqm.order(), p) / s
+        H = matrix(Fq, H_original.nrows()*m, n)
+        for i in range(H_original.nrows()):
+            for j in range(H_original.ncols()):
+                h = H_original[i][j]
+                h_vect = E.small_field_representation(h)
+                for k in range(m):
+                    H[i*m + k, j] = Fq(h_vect[k*s:k*s+s])
+        H = H.echelon_form()
+        delete = []
+        for i in range(H.nrows()):
+            if H.row(i) == 0:
+                delete.append(i)
+        return H.delete_rows(delete)
+
 
 
 ####################### registration ###############################

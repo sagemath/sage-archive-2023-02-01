@@ -34,11 +34,11 @@ class FieldEmbedding(SageObject):
     INPUT:
 
     - ``big_field``, ``small_field`` -- two finite fields, ``small_field``
-                                    being a subfield of ``big_field``
+      being a subfield of ``big_field``
 
     - ``embedding`` -- (default: ``None``) an homomorphism from ``small_field`` to
-                       ``big_field``. If ``None`` is provided, it will default to the
-                       first homomorphism of the list of homomorphisms Sage can build.
+      ``big_field``. If ``None`` is provided, it will default to the first
+      homomorphism of the list of homomorphisms Sage can build.
 
     EXAMPLES::
 

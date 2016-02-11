@@ -473,6 +473,15 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.superseded import experimental
 from sage.rings.all import RIF
 
+
+class NoConvergenceError(RuntimeError):
+    r"""
+    A special :python:`RuntimeError<library/exceptions.html#exceptions.RuntimeError>`
+    which is raised when an algorithm does not converge/stop.
+    """
+    pass
+
+
 class AsymptoticExpansion(CommutativeAlgebraElement):
     r"""
     Class for asymptotic expansions, i.e., the elements of an

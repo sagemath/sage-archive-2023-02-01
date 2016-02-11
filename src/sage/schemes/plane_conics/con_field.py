@@ -421,16 +421,14 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             sage: Conic(RR, [1, 2, -3]).has_rational_point(point = True)
             (True, (1.73205080756888 : 0.000000000000000 : 1.00000000000000))
 
-        Conics over polynomial rings can not be solved yet without Magma::
+        Conics over polynomial rings can be solved internally::
 
             sage: R.<t> = QQ[]
             sage: C = Conic([-2,t^2+1,t^2-1])
             sage: C.has_rational_point()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: has_rational_point not implemented for conics over base field Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            True
 
-        But they can be solved with Magma::
+        And they can also be solved with Magma::
 
             sage: C.has_rational_point(algorithm='magma') # optional - magma
             True

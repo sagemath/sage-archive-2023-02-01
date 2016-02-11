@@ -3439,6 +3439,107 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return len(self.growth_group.gens_monomial())
 
 
+    def singularity_analysis(self, function, singularities, precision=None,
+                             return_singular_expansions=False):
+        r"""
+        Return the asymptotic growth of the coefficients of some
+        generating function by means of Singularity Analysis.
+
+        INPUT:
+
+        - ``function`` -- a callable function in one variable.
+
+        - ``singularities`` -- list of dominant singularities of the function
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+        - ``return_singular_expansions`` -- (default: ``False``) a boolean.
+          if set, the singular expansions are also returned.
+
+        OUTPUT:
+
+        - If ``return_singular_expansions=False``: An asymptotic expansion from
+          this ring.
+
+        - If ``return_singular_expansions=True``: A named tuple with
+          components ``asymptotic_expansion`` and
+          ``singular_expansions``. The former contains the asymptotic
+          expansion in this ring, the latter is a dictionary which
+          contains the singular expansions around the singularities.
+
+        .. TODO::
+
+            Make this method more usable by implementing the
+            processing of symbolic expressions.
+
+        EXAMPLES::
+
+            sage: def catalan(z):
+            ....:     return (1-(1-4*z)^(1/2))/(2*z)
+            sage: B.<n> = AsymptoticRing('QQ^n*n^QQ', QQ)
+            sage: B.singularity_analysis(catalan, (1/4,), precision=3)
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
+            + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-4))
+            sage: B.singularity_analysis(catalan, (1/4,), precision=2,
+            ....:                        return_singular_expansions=True)
+            SingularityAnalysisResult(asymptotic_expansion=1/sqrt(pi)*4^n*n^(-3/2)
+            - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3)),
+            singular_expansions={1/4: 2 - 2*T^(-1/2)
+            + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
+
+        TESTS::
+
+            sage: def f(z):
+            ....:     return z/(1-z)
+            sage: B.singularity_analysis(f, (1,), precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term is O(0) which means
+            0 for sufficiently large n.
+        """
+        from sage.symbolic.ring import SR
+        from sage.rings.integer_ring import ZZ
+        from asymptotic_expansion_generators import asymptotic_expansions,\
+            NotImplementedOZero
+
+        singular_expansions = {}
+
+        OZeroEncountered = False
+        result = 0
+        for singularity in singularities:
+            A = AsymptoticRing(
+                'T^QQ', coefficient_ring=SR, default_prec=precision)
+            T = A.gen()
+            singular_expansion = A(function((1-1/T)*singularity))
+            singular_expansions[singularity] = singular_expansion
+
+            for s in singular_expansion.summands:
+                try:
+                    contribution = s._singularity_analysis_(
+                        singularity, 'Z', precision).subs(Z=self.gen())
+                except NotImplementedOZero:
+                    OZeroEncountered = True
+                else:
+                    result += contribution
+
+        if OZeroEncountered and result.is_exact():
+            raise NotImplementedOZero(
+                'The error term is O(0) which means 0 '
+                'for sufficiently large {}.'.format(self.gen()))
+
+        if return_singular_expansions:
+            from collections import namedtuple
+            SingularityAnalysisResult = namedtuple(
+                'SingularityAnalysisResult',
+                ['asymptotic_expansion', 'singular_expansions'])
+            return SingularityAnalysisResult(
+                asymptotic_expansion=result,
+                singular_expansions=singular_expansions)
+        else:
+            return result
+
+
     def create_summand(self, type, data=None, **kwds):
         r"""
         Create a simple asymptotic expansion consisting of a single

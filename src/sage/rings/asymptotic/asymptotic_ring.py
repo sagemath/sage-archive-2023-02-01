@@ -1752,8 +1752,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             42*x^42 + x^10 + O(x^2)
             sage: expr.O()
             O(x^42)
-            sage: O(AR(0))
-            0
             sage: (2*x).O()
             O(x)
 

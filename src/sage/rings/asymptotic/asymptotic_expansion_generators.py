@@ -807,7 +807,7 @@ class AsymptoticExpansionGenerators(SageObject):
             at alpha-shift.
             """
             if r == 0:
-                result =  iga*falling_factorial(alpha-1, shift)
+                result = iga*falling_factorial(alpha-1, shift)
             else:
                 result = limit((1/gamma(s)).diff(s, r), s=alpha-shift)
 
@@ -868,7 +868,7 @@ class AsymptoticExpansionGenerators(SageObject):
         it = reversed(list(islice(it, precision+1)))
         L = _sa_coefficients_lambda_(max(1, k_max), beta=beta)
         (k, r) = next(it)
-        result = (n**(-k) * log_n ** (-r)).O()
+        result = (n**(-k) * log_n**(-r)).O()
 
         if alpha in ZZ and beta == 0:
             if alpha > 0 and alpha <= precision:
@@ -883,11 +883,12 @@ class AsymptoticExpansionGenerators(SageObject):
                     inverse_gamma_derivative(ell, r)
                     for ell in srange(k, 2*k+1)
                     if (k, ell) in L) * \
-                n**(-k) * log_n **(-r)
+                n**(-k) * log_n**(-r)
 
         result *= exponential_factor * n**(alpha-1) * log_n**beta
 
         return result
+
 
 def _sa_coefficients_lambda_(K, beta=0):
     r"""
@@ -942,7 +943,7 @@ def _sa_coefficients_lambda_(K, beta=0):
     T = PowerSeriesRing(V, names='t', default_prec=2*K-1)
     t = T.gen()
 
-    S = (t - (1 +1/v+beta) * (1+v*t).log()).exp()
+    S = (t - (1+1/v+beta) * (1+v*t).log()).exp()
     return dict(((k + L.valuation(), ell), c)
                 for ell, L in enumerate(S.list())
                 for k, c in enumerate(L.list()))

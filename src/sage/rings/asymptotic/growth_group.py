@@ -1546,8 +1546,17 @@ class GenericGrowthGroup(
             Category of groups
             sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()  # indirect doctest
             Category of monoids
+
+        ::
+
+            sage: MonomialGrowthGroup(AsymptoticRing('z^ZZ', QQ), 'x')
+            Traceback (most recent call last):
+            ...
+            TypeError: Asymptotic Ring <z^ZZ> over Rational Field is not a valid base.
         """
-        if not isinstance(base, sage.structure.parent.Parent):
+        from asymptotic_ring import AsymptoticRing
+        if not isinstance(base, sage.structure.parent.Parent) or \
+           isinstance(base, AsymptoticRing):
             raise TypeError('%s is not a valid base.' % (base,))
 
         if var is None:
@@ -3509,8 +3518,14 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_SR = GrowthGroup('SR^x')
             sage: P_ZZ(2^x) <= P_SR(sqrt(3)^x)^2  # indirect doctest
             True
+
+        Check that :trac:`19999` is fixed::
+
+            sage: P_ZZ((-2)^x) <= P_ZZ(2^x) or P_ZZ(2^x) <= P_ZZ((-2)^x)
+            False
         """
-        return bool(abs(self.base) <= abs(other.base))
+        return bool(abs(self.base) < abs(other.base)) or \
+               bool(self.base == other.base)
 
 
     def _substitute_(self, rules):

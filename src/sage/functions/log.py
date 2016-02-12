@@ -119,6 +119,13 @@ class Function_exp(GinacFunction):
 
             sage: 2*sqrt(e)
             2*sqrt(e)
+
+        Check that :trac:`19918` is fixed::
+
+            sage: exp(-x^2).subs(x=oo)
+            0
+            sage: exp(-x).subs(x=-oo)
+            +Infinity
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))

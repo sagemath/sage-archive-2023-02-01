@@ -312,22 +312,21 @@ page on the Sage website. Each release of Sage comes with the full
 documentation that makes up the Sage standard documentation. If you
 have downloaded a binary Sage release, the HTML version of the
 corresponding documentation comes pre-built and can be found under the
-directory
-``SAGE_ROOT/src/doc/output/html/``. During the compilation
-of Sage from source, the HTML version of the documentation is also
-built in the process. To build the HTML version of the documentation,
-issue the following command from ``SAGE_ROOT``::
+directory ``SAGE_ROOT/local/share/doc/sage/html/``.
+During the compilation of Sage from source, the HTML version of the
+documentation is also built in the process. To build the HTML version
+of the documentation, issue the following command from ``SAGE_ROOT``::
 
-    $ ./sage -docbuild --no-pdf-links all html
+    $ ./sage --docbuild --no-pdf-links all html
 
 Building the PDF version requires that your system has a working LaTeX
 installation. To build the PDF version of the documentation, issue the
 following command from ``SAGE_ROOT``::
 
-    $ ./sage -docbuild all pdf
+    $ ./sage --docbuild all pdf
 
 For more command line options, refer to the output of any of the
 following commands::
 
-    $ ./sage -help
-    $ ./sage -advanced
+    $ ./sage --help
+    $ ./sage --advanced

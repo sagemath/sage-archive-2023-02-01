@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Functions that compute some of the sequences in Sloane's tables
 
@@ -6451,7 +6452,7 @@ class A001157(SloaneSequence):
 class A008683(SloaneSequence):
     def __init__(self):
         r"""
-        Moebius function `\mu(n)`.
+        Möbius function `\mu(n)`.
 
         INPUT:
 

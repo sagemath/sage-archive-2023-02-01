@@ -107,6 +107,11 @@ TESTS::
     sage: polygen(CBF, x)^3
     x^3
 
+Check that :trac:`19839` is fixed::
+
+    sage: log(SR(CBF(0.42))).pyobject().parent()
+    Complex ball field with 53 bits precision
+
 Classes and Methods
 ===================
 """

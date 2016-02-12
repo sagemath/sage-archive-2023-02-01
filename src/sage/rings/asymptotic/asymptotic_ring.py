@@ -1154,6 +1154,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: R(1) * R(0)
             0
+            sage: _.parent()
+            Asymptotic Ring <x^ZZ> over Integer Ring
         """
         return sum(iter(self._mul_term_(term_other) for
                         term_other in other.summands.elements()),

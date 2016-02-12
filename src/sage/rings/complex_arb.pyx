@@ -2348,6 +2348,42 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def barnes_g(self):
+        """
+        Return the Barnes G-function of ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(-4).barnes_g()
+            0
+            sage: CBF(8).barnes_g()
+            24883200.00000000
+            sage: CBF(500,10).barnes_g()
+            [4.54078781e+254873 +/- 5.43e+254864] + [8.65835455e+254873 +/- 7.27e+254864]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_barnes_g(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def log_barnes_g(self):
+        """
+        Return the logarithmic Barnes G-function of ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(10^100).log_barnes_g()
+            [1.14379254649702e+202 +/- 4.09e+187]
+            sage: CBF(0,1000).log_barnes_g()
+            [-2702305.04929258 +/- 2.60e-9] + [-790386.325561423 +/- 9.72e-10]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_log_barnes_g(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def agm1(self):
         """
         Return the arithmetic-geometric mean of 1 and ``self``.

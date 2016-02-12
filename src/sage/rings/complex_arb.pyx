@@ -2827,4 +2827,206 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res1, res2, res3, res4
 
+    def modular_j(self):
+        """
+        Return the modular j-invariant with *tau* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(0,1).modular_j()
+            [1728.0000000000 +/- 5.33e-11]
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_j(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def modular_eta(self):
+        """
+        Return the Dedekind eta function with *tau* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(0,1).modular_eta()
+            [0.768225422326057 +/- 9.18e-16]
+            sage: CBF(12,1).modular_eta()
+            [-0.768225422326057 +/- 9.18e-16]
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_eta(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def modular_lambda(self):
+        """
+        Return the modular lambda function with *tau* given by ``self``.
+
+        EXAMPLES::
+
+            sage: tau = CBF(sqrt(2),pi)
+            sage: tau.modular_lambda()
+            [-0.00022005123884157 +/- 6.64e-18] + [-0.0007978734645994 +/- 5.23e-17]*I
+            sage: (tau + 2).modular_lambda()
+            [-0.00022005123884157 +/- 6.64e-18] + [-0.0007978734645994 +/- 5.23e-17]*I
+            sage: (tau / (1 - 2*tau)).modular_lambda()
+            [-0.00022005123884 +/- 2.75e-15] + [-0.00079787346460 +/- 3.34e-15]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_lambda(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def modular_delta(self):
+        """
+        Return the modular discriminant with *tau* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(0,1).modular_delta()
+            [0.0017853698506421 +/- 6.15e-17]
+            sage: a, b, c, d = 2, 5, 1, 3
+            sage: tau = CBF(1,3)
+            sage: ((a*tau+b)/(c*tau+d)).modular_delta()
+            [0.20921376655 +/- 6.94e-12] + [1.5761192552 +/- 3.49e-11]*I
+            sage: (c*tau+d)^12 * tau.modular_delta()
+            [0.20921376654986 +/- 4.89e-15] + [1.5761192552253 +/- 4.45e-14]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_delta(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def eisenstein(self, long n):
+        r"""
+        Return the first ``n`` entries in the sequence of Eisenstein series
+        `G_4(\tau), G_6(\tau), G_8(\tau), \ldots` where *tau* is given
+        by ``self``. The output is a list.
+
+        EXAMPLES::
+
+            sage: a, b, c, d = 2, 5, 1, 3
+            sage: tau = CBF(1,3)
+            sage: tau.eisenstein(4)
+            [[2.1646498507193 +/- 6.30e-14],
+             [2.0346794456073 +/- 2.44e-14],
+             [2.0081609898081 +/- 3.67e-14],
+             [2.0019857082706 +/- 4.60e-14]]
+            sage: ((a*tau+b)/(c*tau+d)).eisenstein(3)[2]
+            [331011.200433 +/- 1.36e-7] + [-711178.165575 +/- 5.18e-7]*I
+            sage: (c*tau+d)^8 * tau.eisenstein(3)[2]
+            [331011.20043304 +/- 7.62e-9] + [-711178.1655746 +/- 1.34e-8]*I
+
+        """
+        if n < 0:
+            raise ValueError("n must be nonnegative")
+        cdef acb_ptr vec_r = _acb_vec_init(n)
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_eisenstein(vec_r, self.value, n, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        result = [self._new() for i in range(n)]
+        for i in range(n):
+            acb_swap((<ComplexBall>(result[i])).value, &(vec_r[i]))
+        _acb_vec_clear(vec_r, n)
+        return result
+
+    def elliptic_p(self, tau, n=None):
+        r"""
+        Return the Weierstrass elliptic function with lattice parameter ``tau``,
+        evaluated at ``self``. The function is doubly periodic in ``self``
+        with periods 1 and ``tau``, which should lie in the upper half plane.
+
+        If ``n`` is given, return a list containing the first ``n``
+        terms in the Taylor expansion at ``self``. In particular, with
+        ``n`` = 2, compute the Weierstrass elliptic function together
+        with its derivative, which generate the field of elliptic
+        functions with periods 1 and ``tau``.
+
+        EXAMPLES::
+
+            sage: tau = CBF(1,4)
+            sage: z = CBF(sqrt(2), sqrt(3))
+            sage: z.elliptic_p(tau)
+            [-3.28920996772709 +/- 7.68e-15] + [-0.000367376730293 +/- 3.64e-16]*I
+            sage: (z + tau).elliptic_p(tau)
+            [-3.28920996772709 +/- 8.90e-15] + [-0.00036737673029 +/- 4.40e-15]*I
+            sage: (z + 1).elliptic_p(tau)
+            [-3.28920996772709 +/- 7.68e-15] + [-0.000367376730293 +/- 3.64e-16]*I
+
+            sage: z.elliptic_p(tau, 3)
+            [[-3.28920996772709 +/- 7.66e-15] + [-0.000367376730293 +/- 3.50e-16]*I,
+             [0.00247305579431 +/- 2.15e-15] + [0.00385955404027 +/- 4.15e-15]*I,
+             [-0.0129908756171 +/- 2.20e-14] + [0.0072502752191 +/- 6.12e-14]*I]
+            sage: (z + 3 + 4*tau).elliptic_p(tau, 3)
+            [[-3.2892099677271 +/- 3.42e-14] + [-0.0003673767303 +/- 2.51e-14]*I,
+             [0.00247305579 +/- 6.06e-12] + [0.00385955404 +/- 1.87e-12]*I,
+             [-0.012990876 +/- 4.78e-10] + [0.007250275 +/- 3.21e-10]*I]
+
+        """
+        cdef ComplexBall my_tau = self._parent.coerce(tau)
+        cdef ComplexBall result
+        cdef long nn
+        cdef acb_ptr vec_r
+        if n is None:
+            result = self._new()
+            if _do_sig(prec(self)): sig_on()
+            acb_modular_elliptic_p(result.value, self.value,
+                my_tau.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return result
+        else:
+            nn = n
+            if nn < 0:
+                raise ValueError("n must be nonnegative")
+            vec_r = _acb_vec_init(nn)
+            if _do_sig(prec(self)): sig_on()
+            acb_modular_elliptic_p_zpx(vec_r, self.value, my_tau.value, nn, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            result_list = [self._new() for i in range(nn)]
+            for i in range(nn):
+                acb_swap((<ComplexBall>(result_list[i])).value, &(vec_r[i]))
+            _acb_vec_clear(vec_r, nn)
+            return result_list
+
+    def elliptic_k(self):
+        """
+        Return the complete elliptic integral of the first kind evaluated
+        at *m* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(2,3).elliptic_k()
+            [1.0429132919285 +/- 5.77e-14] + [0.6296824723086 +/- 7.16e-14]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_elliptic_k(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_e(self):
+        """
+        Return the complete elliptic integral of the second kind evaluated
+        at *m* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(2,3).elliptic_e()
+            [1.472797144959 +/- 5.13e-13] + [-1.231604783936 +/- 1.61e-13]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_elliptic_e(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
 CBF = ComplexBallField()

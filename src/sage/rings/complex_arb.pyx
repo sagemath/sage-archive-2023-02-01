@@ -1975,6 +1975,8 @@ cdef class ComplexBall(RingElement):
 
         The `n`-th rising factorial of `x` is equal to `x (x+1) \cdots (x+n-1)`.
 
+        For complex `n`, it is a quotient of gamma functions.
+
         EXAMPLES::
 
             sage: CBF(1).rising_factorial(5)
@@ -1983,25 +1985,21 @@ cdef class ComplexBall(RingElement):
             [-3.87949484514e+612 +/- 5.24e+600] + [-3.52042209763e+612 +/- 5.56e+600]*I
 
             sage: CBF(1).rising_factorial(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: expected a nonnegative index
+            nan
             sage: CBF(1).rising_factorial(2**64)
-            Traceback (most recent call last):
-            ...
-            OverflowError: index too large
+            [+/- 2.30e+347382171305201370464]
+            sage: ComplexBallField(128)(1).rising_factorial(2**64)
+            [2.343691126796861348e+347382171305201285713 +/- 4.71e+347382171305201285694]
+            sage: CBF(1/2).rising_factorial(CBF(2,3))
+            [-0.123060451458124 +/- 4.46e-16] + [0.040641263167655 +/- 3.75e-16]*I
+
         """
-        cdef ComplexBall res = self._new()
-        cdef sage.rings.integer.Integer n_as_Integer = ZZ.coerce(n)
-        if mpz_fits_ulong_p(n_as_Integer.value):
-            if _do_sig(prec(self)): sig_on()
-            acb_rising_ui(res.value, self.value, mpz_get_ui(n_as_Integer.value), prec(self))
-            if _do_sig(prec(self)): sig_off()
-            return res
-        elif n_as_Integer < 0:
-            raise ValueError("expected a nonnegative index")
-        else:
-            raise OverflowError("index too large")
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        if _do_sig(prec(self)): sig_on()
+        acb_rising(result.value, self.value, my_n.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
 
     # Elementary functions
 

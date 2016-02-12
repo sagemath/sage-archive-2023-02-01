@@ -3058,6 +3058,28 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def rising_factorial(self, n):
+        """
+        Return the ``n``-th rising factorial of this ball.
+
+        The `n`-th rising factorial of `x` is equal to `x (x+1) \cdots (x+n-1)`.
+
+        For real `n`, it is a quotient of gamma functions.
+
+        EXAMPLES::
+
+            sage: RBF(1).rising_factorial(5)
+            120.0000000000000
+            sage: RBF(1/2).rising_factorial(1/3)
+            [0.63684988431797 +/- 5.71e-15]
+        """
+        cdef RealBall result = self._new()
+        cdef RealBall my_n = self._parent.coerce(n)
+        if _do_sig(prec(self)): sig_on()
+        arb_rising(result.value, self.value, my_n.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
     cpdef RealBall psi(self):
         """
         Compute the digamma function with argument self.

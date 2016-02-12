@@ -1514,8 +1514,17 @@ class GenericGrowthGroup(
             Category of groups
             sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()  # indirect doctest
             Category of monoids
+
+        ::
+
+            sage: MonomialGrowthGroup(AsymptoticRing('z^ZZ', QQ), 'x')
+            Traceback (most recent call last):
+            ...
+            TypeError: Asymptotic Ring <z^ZZ> over Rational Field is not a valid base.
         """
-        if not isinstance(base, sage.structure.parent.Parent):
+        from asymptotic_ring import AsymptoticRing
+        if not isinstance(base, sage.structure.parent.Parent) or \
+           isinstance(base, AsymptoticRing):
             raise TypeError('%s is not a valid base.' % (base,))
 
         if var is None:

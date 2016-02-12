@@ -81,22 +81,27 @@ class SageKernel(IPythonKernel):
 
         See the Jupyter documentation.
 
+        .. NOTE::
+
+            Urls starting with "kernelspecs" are prepended by the
+            browser with the appropriate path.
+
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.kernel import SageKernel
             sage: sk = SageKernel.__new__(SageKernel)
             sage: sk.help_links
             [{'text': 'Sage Documentation',
-              'url': '../kernelspecs/sagemath/doc/index.html'},
+              'url': 'kernelspecs/sagemath/doc/index.html'},
              ...]
         """
         from sage.repl.ipython_kernel.install import SageKernelSpec
         identifier = SageKernelSpec.identifier()
-        kernel_url = lambda x: '../kernelspecs/{0}/{1}'.format(identifier, x)
+        kernel_url = lambda x: 'kernelspecs/{0}/{1}'.format(identifier, x)
         return [
             {
                 'text': 'Sage Documentation',
-                'url': kernel_url('doc/index.html')
+                'url': kernel_url('doc/index.html'),
             },
             {
                 'text': 'Sage Tutorial',

@@ -38,6 +38,8 @@ Algebras
    sage/algebras/hall_algebra
    sage/algebras/jordan_algebra
 
+   sage/algebras/orlik_solomon
+
    sage/algebras/quatalg/quaternion_algebra
 
    sage/algebras/schur_algebra

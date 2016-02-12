@@ -1089,7 +1089,7 @@ class MutablePosetShell(SageObject):
             return
         marked.add(self)
         S = self.predecessors(reverse)
-        if key is not None:
+        if key is not None and len(S) > 1:
             S = sorted(S, key=key)
         for shell in S:
             for e in shell._iter_topological_visit_(marked, reverse,
@@ -3454,7 +3454,7 @@ class MutablePoset(SageObject):
         .. NOTE::
 
             If ``function`` returns ``None``, then the element is
-            removed after the mapping.
+            removed.
 
         EXAMPLES::
 

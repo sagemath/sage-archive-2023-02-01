@@ -222,6 +222,8 @@ Classes and Methods
 
 import sage
 
+class ZeroCoefficientError(ValueError):
+    pass
 
 def absorption(left, right):
     r"""
@@ -1087,6 +1089,24 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
             sage: T('x').is_constant()
             False
             sage: T(1).is_constant()
+            False
+        """
+        return False
+
+    def is_exact(self):
+        r"""
+        Return whether this term is an exact term.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: T = GenericTermMonoid(GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
+            sage: T.an_element().is_exact()
             False
         """
         return False
@@ -2548,7 +2568,7 @@ class TermWithCoefficient(GenericTerm):
             sage: t = CT_ZZ(x^42, 0)
             Traceback (most recent call last):
             ...
-            ValueError:  Zero coefficient 0 is not allowed in
+            ZeroCoefficientError:  Zero coefficient 0 is not allowed in
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
 
         The conversion of growth elements also works for the creation
@@ -2565,8 +2585,9 @@ class TermWithCoefficient(GenericTerm):
             raise ValueError('%s is not a coefficient in %s.' %
                              (coefficient, parent))
         if coefficient == 0:
-            raise ValueError('Zero coefficient %s is not allowed in %s.' %
-                             (coefficient, parent))
+            raise ZeroCoefficientError(
+                'Zero coefficient %s is not allowed in %s.' %
+                (coefficient, parent))
 
         self.coefficient = coefficient
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
@@ -3151,7 +3172,7 @@ class ExactTerm(TermWithCoefficient):
             sage: t1.can_absorb(t3) or t3.can_absorb(t1)
             False
         """
-        return isinstance(other, ExactTerm) and self.growth == other.growth
+        return other.is_exact() and self.growth == other.growth
 
 
     def _absorb_(self, other):
@@ -3331,6 +3352,33 @@ class ExactTerm(TermWithCoefficient):
             True
         """
         return self.growth.is_lt_one()
+
+
+    def is_exact(self):
+        r"""
+        Return whether this term is an exact term.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
+            sage: T('x * log(x)').is_exact()
+            True
+            sage: T('3 * x^2').is_exact()
+            True
+
+        TESTS::
+
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), QQ)
+            sage: T('x').is_exact()
+            False
+        """
+        return True
 
 
     def rpow(self, base):
@@ -3549,9 +3597,9 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     INPUT:
 
-    - ``term`` -- the kind of term that shall be created. Either a string
-      ``'exact'`` or ``'O'`` (capital letter ``O``),
-      or an existing instance of a term.
+    - ``term_monoid`` -- the kind of terms held in the new term monoid.
+      Either a string ``'exact'`` or ``'O'`` (capital letter ``O``),
+      or an existing instance of a term monoid.
 
     - ``growth_group`` -- a growth group.
 
@@ -3642,7 +3690,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         running ._test_prod() . . . pass
         running ._test_some_elements() . . . pass
     """
-    def create_key_and_extra_args(self, term,
+    def create_key_and_extra_args(self, term_monoid,
                                   growth_group=None, coefficient_ring=None,
                                   asymptotic_ring=None,
                                   **kwds):
@@ -3679,16 +3727,16 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: Integer Ring has to be an asymptotic growth group
         """
-        if isinstance(term, GenericTermMonoid):
+        if isinstance(term_monoid, GenericTermMonoid):
             from misc import underlying_class
-            term_class = underlying_class(term)
-        elif term == 'O':
+            term_class = underlying_class(term_monoid)
+        elif term_monoid == 'O':
             term_class = OTermMonoid
-        elif term == 'exact':
+        elif term_monoid == 'exact':
             term_class = ExactTermMonoid
         else:
             raise ValueError("Term specification '%s' has to be either 'exact' or 'O' "
-                             "or an instance of an existing term." % term)
+                             "or an instance of an existing term." % term_monoid)
 
         if asymptotic_ring is not None and \
                 (growth_group is not None or coefficient_ring is not None):
@@ -3707,7 +3755,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
         if coefficient_ring is None:
             raise ValueError("A coefficient ring has to be specified to "
-                             "create a term monoid of type '%s'" % (term,))
+                             "create a term monoid of type '%s'" % (term_monoid,))
 
         return (term_class, growth_group, coefficient_ring), kwds
 

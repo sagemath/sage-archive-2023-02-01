@@ -160,6 +160,10 @@ class Function_tan(GinacFunction):
             sage: tan(complex(1,1))     # rel tol 1e-15
             (0.2717525853195118+1.0839233273386946j)
 
+        Check that :trac:`19791` is fixed::
+
+            sage: tan(2+I).imag().n()
+            1.16673625724092
         """
         GinacFunction.__init__(self, "tan", latex_name=r"\tan")
 
@@ -600,6 +604,13 @@ class Function_arctan(GinacFunction):
 
             sage: arctan(x).operator()
             arctan
+
+        Check that :trac:`19918` is fixed::
+
+            sage: arctan(-x).subs(x=oo)
+            -1/2*pi
+            sage: arctan(-x).subs(x=-oo)
+            1/2*pi
         """
         GinacFunction.__init__(self, "arctan", latex_name=r'\arctan',
                 conversions=dict(maxima='atan', sympy='atan'))

@@ -43,8 +43,6 @@ abstract base classes.
                         CommutativeAlgebra ??? (should be removed from element.pxd)
                         Matrix
                     InfinityElement
-                        PlusInfinityElement
-                        MinusInfinityElement
                 AdditiveGroupElement
                 Vector
 
@@ -137,8 +135,13 @@ from cpython.ref cimport PyObject
 from cpython.number cimport PyNumber_TrueDivide
 
 import types
-cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
-from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
+cdef add, sub, mul, div, truediv, floordiv
+cdef iadd, isub, imul, idiv, itruediv, ifloordiv
+from operator import (add, sub, mul, div, truediv, floordiv,
+        iadd, isub, imul, idiv, itruediv, ifloordiv)
+cdef dict _coerce_op_symbols = dict(
+        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//',
+        iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//')
 
 cdef MethodType
 from types import MethodType
@@ -263,8 +266,6 @@ def have_same_parent(left, right):
     return have_same_parent_c(left, right)
 
 
-cdef dict _coerce_op_symbols = {'mul':'*', 'add':'+', 'sub':'-', 'div':'/', 'imul': '*', 'iadd': '+', 'isub':'-', 'idiv':'/'}
-
 cdef str arith_error_message(x, y, op):
     name = op.__name__
     try:
@@ -319,14 +320,6 @@ cdef class Element(SageObject):
         - ``parent`` - a SageObject
         """
         self._parent = parent
-
-    cdef _set_parent_c(self, Parent parent):
-        self._parent = parent
-
-    def _make_new_with_parent_c(self, Parent parent):
-        self._parent = parent
-        return self
-
 
     def __getattr__(self, str name):
         """
@@ -1920,7 +1913,7 @@ cdef class RingElement(ModuleElement):
 
         EXAMPLES::
 
-            1/3*pisage: operator.truediv(2, 3)
+            sage: operator.truediv(2, 3)
             2/3
             sage: operator.truediv(pi, 3)
             1/3*pi
@@ -1928,6 +1921,26 @@ cdef class RingElement(ModuleElement):
         if have_same_parent_c(self, right):
             return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, truediv)
+
+    def __itruediv__(self, right):
+        """
+        Top-level in-place true division operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+
+        If two elements have the same parent, we just call ``_div_``
+        because all divisions of Sage elements are really true
+        divisions.
+
+        EXAMPLES::
+
+            sage: operator.itruediv(2, 3)
+            2/3
+            sage: operator.itruediv(pi, 3)
+            1/3*pi
+        """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._div_(<RingElement>right)
+        return coercion_model.bin_op(self, right, itruediv)
 
     def __div__(self, right):
         """
@@ -1959,6 +1972,58 @@ cdef class RingElement(ModuleElement):
         if have_same_parent_c(self, right):
             return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, idiv)
+
+    def __floordiv__(self, right):
+        """
+        Top-level floor division operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 7 // 3
+            2
+            sage: 7 // int(3)
+            2
+            sage: int(7) // 3
+            2
+            sage: p = Parent()
+            sage: e = RingElement(p)
+            sage: e // e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '//': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._floordiv_(<RingElement>right)
+        return coercion_model.bin_op(self, right, floordiv)
+
+    cpdef RingElement _floordiv_(self, RingElement right):
+        """
+        Cython classes should override this function to implement floor
+        division. See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 23._floordiv_(5)
+            4
+        """
+        raise TypeError(arith_error_message(self, right, floordiv))
+
+    def __ifloordiv__(self, right):
+        """
+        Top-level in-place floor division operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: x = 23
+            sage: x //= 7
+            sage: x
+            3
+        """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._floordiv_(<RingElement>right)
+        return coercion_model.bin_op(self, right, ifloordiv)
 
     def __invert__(self):
         if self.is_one():
@@ -2421,12 +2486,12 @@ cdef class CommutativeRingElement(RingElement):
         #This code is very general, it works for all integral domains that have the
         #is_square(root = True) option
 
-        from sage.rings.integral_domain import is_IntegralDomain
+        from sage.rings.ring import IntegralDomain
         P=self._parent
         is_sqr, sq_rt = self.is_square( root = True )
         if is_sqr:
             if all:
-                if not is_IntegralDomain(P):
+                if not isinstance(P, IntegralDomain):
                     raise NotImplementedError('sqrt() with all=True is only implemented for integral domains, not for %s' % P)
                 if P.characteristic()==2 or sq_rt==0:
                     #0 has only one square root, and in charasteristic 2 everything also has only 1 root
@@ -2434,7 +2499,7 @@ cdef class CommutativeRingElement(RingElement):
                 return [ sq_rt, -sq_rt ]
             return sq_rt
         #from now on we know that self is not a square
-        if not is_IntegralDomain(P):
+        if not isinstance(P, IntegralDomain):
             raise NotImplementedError('sqrt() of non squares is only implemented for integral domains, not for %s' % P)
         if not extend:
             #all square roots of a non-square should be an empty list
@@ -3070,9 +3135,24 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
             x, y = canonical_coercion(self, other)
             return x.quo_rem(y)
 
-    def __floordiv__(self,right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Quotient of division of ``self`` by other.  This is denoted //.
+
+        This default implementation assumes that ``quo_rem`` has been
+        implemented.
+
+        EXAMPLES::
+
+            sage: cython('''
+            ....: from sage.structure.element cimport EuclideanDomainElement
+            ....: cdef class MyElt(EuclideanDomainElement):
+            ....:     def quo_rem(self, other):
+            ....:         return self._parent.var('quo,rem')
+            ....: ''')
+            sage: e = MyElt(SR)
+            sage: e // e
+            quo
         """
         Q, _ = self.quo_rem(right)
         return Q
@@ -3081,13 +3161,28 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         Remainder of division of ``self`` by other.
 
+        This default implementation assumes that ``quo_rem`` has been
+        implemented.
+
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: x % (x+1)
             -1
-            sage: (x**3 + x - 1) % (x**2 - 1)
+            sage: (x^3 + x - 1) % (x^2 - 1)
             2*x - 1
+
+        ::
+
+            sage: cython('''
+            ....: from sage.structure.element cimport EuclideanDomainElement
+            ....: cdef class MyElt(EuclideanDomainElement):
+            ....:     def quo_rem(self, other):
+            ....:         return self._parent.var('quo,rem')
+            ....: ''')
+            sage: e = MyElt(SR)
+            sage: e % e
+            rem
         """
         _, R = self.quo_rem(other)
         return R
@@ -3099,9 +3194,22 @@ def is_FieldElement(x):
     return isinstance(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
+    cpdef RingElement _floordiv_(self, RingElement right):
+        """
+        Return the quotient of self and other. Since these are field
+        elements, the floor division is exactly the same as usual division.
 
-    def __floordiv__(self, other):
-        return self / other
+        EXAMPLES::
+
+            sage: K.<b> = NumberField(x^4 + x^2 + 2/3)
+            sage: c = (1+b) // (1-b); c
+            3/4*b^3 + 3/4*b^2 + 3/2*b + 1/2
+            sage: (1+b) / (1-b) == c
+            True
+            sage: c * (1-b)
+            b + 1
+        """
+        return self._div_(right)
 
     def is_unit(self):
         r"""
@@ -3228,28 +3336,6 @@ cdef class InfinityElement(RingElement):
     def __invert__(self):
         from sage.rings.all import ZZ
         return ZZ(0)
-
-cdef class PlusInfinityElement(InfinityElement):
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: hash(+infinity)
-            9223372036854775807 # 64-bit
-            2147483647          # 32-bit
-        """
-        return LONG_MAX
-
-cdef class MinusInfinityElement(InfinityElement):
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: hash(-infinity)
-            -9223372036854775808 # 64-bit
-            -2147483648          # 32-bit
-        """
-        return LONG_MIN
 
 
 #################################################################################

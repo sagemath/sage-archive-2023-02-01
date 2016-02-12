@@ -48,15 +48,15 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
         sage: list(G)
         [(),
-        (1,),
-        (1, 2),
-        (1, 2, 1),
-        (1, 2, 1, 2),
-        (1, 2, 1, 2, 1),
-        (2,),
-        (2, 1),
-        (2, 1, 2),
-        (2, 1, 2, 1)]
+         (1,),
+         (2,),
+         (1, 2),
+         (2, 1),
+         (1, 2, 1),
+         (2, 1, 2),
+         (1, 2, 1, 2),
+         (2, 1, 2, 1),
+         (1, 2, 1, 2, 1)]
 
     This reduced word is unique, except for the longest element where
     the choosen reduced word is `(1,2,1,2\dots)`::
@@ -229,10 +229,10 @@ class DihedralGroup(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: D5 = FiniteCoxeterGroups().example(5)
-                sage: [i^2 for i in D5]
-                [(), (), (1, 2, 1, 2), (), (2, 1), (), (), (2, 1, 2, 1), (), (1, 2)]
-                sage: [i^5 for i in D5]
-                [(), (1,), (), (1, 2, 1), (), (1, 2, 1, 2, 1), (2,), (), (2, 1, 2), ()]
+                sage: [i^2 for i in D5]  # indirect doctest
+                [(), (), (), (1, 2, 1, 2), (2, 1, 2, 1), (), (), (2, 1), (1, 2), ()]
+                sage: [i^5 for i in D5]  # indirect doctest
+                [(), (1,), (2,), (), (), (1, 2, 1), (2, 1, 2), (), (), (1, 2, 1, 2, 1)]
             """
             from copy import copy
             reduced_word = copy(self.value)

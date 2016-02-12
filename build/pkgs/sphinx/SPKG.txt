@@ -69,16 +69,3 @@ Home Page: http://sphinx.pocoo.org,
    Grammar2.7.pickle in site-packages/Sphinx-.../sphinx/pycode/.  This
    helps to avoid race conditions when building the documentation in
    parallel.
-
- * To do: autogenerate the file sage_autodoc.py from
-   src/sphinx/ext/autodoc.py.  sage_autodoc.py is currently in
-   SAGE_ROOT/devel/sage/doc/common and is tracked in the Sage library
-   repository, and as a result, it is now somewhat out-of-synch with
-   autodoc.py.  Instead we could do the following: in spkg-install,
-
-     cp sphinx/ext/autodoc.py sphinx/ext/sage_autodoc.py
-
-   Then patch sage_autodoc.py in place.  This would require modifying
-   devel/sage/doc/common/conf.py: 'extensions' would use
-   'sphinx.ext.sage_autodoc' instead of 'sage_autodoc'.
-

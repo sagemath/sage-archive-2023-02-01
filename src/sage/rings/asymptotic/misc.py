@@ -576,6 +576,43 @@ def log_string(element, base=None):
     return 'log(%s%s)' % (element, basestr)
 
 
+class NotImplementedOZero(NotImplementedError):
+    r"""
+    A special :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`
+    which is raised when the result is O(0) which means 0
+    for sufficiently large values of the variable.
+    """
+    def __init__(self, data):
+        r"""
+        INPUT:
+
+        - ``data`` -- an :class:`AsymptoticRing` or a string.
+
+        TESTS::
+
+            sage: A = AsymptoticRing('n^ZZ', ZZ)
+            doctest:...: FutureWarning: ...
+            sage: from sage.rings.asymptotic.misc import NotImplementedOZero
+            sage: raise NotImplementedOZero(A)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The result is O(0)
+            which means 0 for sufficiently large n
+            sage: raise NotImplementedOZero('something')
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: something
+        """
+        from asymptotic_ring import AsymptoticRing
+        if isinstance(data, AsymptoticRing):
+            message = ('The result is O(0) which means 0 for sufficiently '
+                       'large {}'.format(
+                           ', '.join(str(g) for g in data.gens())))
+        else:
+            message = data
+        super(NotImplementedOZero, self).__init__(message)
+
+
 def transform_category(category,
                        subcategory_mapping, axiom_mapping,
                        initial_category=None):

@@ -20,19 +20,18 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.arith.all import lcm
-from sage.rings.finite_rings.constructor import GF
-from sage.sets.all                 import Set
-from sage.misc.misc                import subsets
+from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.sets.all import Set
+from sage.misc.misc import subsets
 
-def _fast_possible_periods(self,return_points=False):
+def _fast_possible_periods(self, return_points=False):
     r"""
     Returns the list of possible minimal periods of a periodic point
     over `\QQ` and (optionally) a point in each cycle.
 
     ALGORITHM:
 
-    The list comes from B. Hutz. Good reduction of periodic points, Illinois Journal of
-    Mathematics 53 (Winter 2009), no. 4, 1109-1126..
+    See [Hutz-gr]_
 
     INPUT:
 
@@ -45,10 +44,10 @@ def _fast_possible_periods(self,return_points=False):
     Examples::
 
             sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
-            sage: P.<x,y>=ProjectiveSpace(GF(23),1)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2-2*y^2,y^2])
-            sage: _fast_possible_periods(f,False)
+            sage: P.<x,y> = ProjectiveSpace(GF(23),1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-2*y^2, y^2])
+            sage: _fast_possible_periods(f, False)
             [1, 5, 11, 22, 110]
 
         ::
@@ -56,8 +55,8 @@ def _fast_possible_periods(self,return_points=False):
             sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
             sage: P.<x,y> = ProjectiveSpace(GF(13),1)
             sage: H = End(P)
-            sage: f = H([x^2-y^2,y^2])
-            sage: sorted(_fast_possible_periods(f,True))
+            sage: f = H([x^2-y^2, y^2])
+            sage: sorted(_fast_possible_periods(f, True))
             [[(0 : 1), 2], [(1 : 0), 1], [(3 : 1), 3], [(3 : 1), 36]]
 
         ::
@@ -66,7 +65,7 @@ def _fast_possible_periods(self,return_points=False):
             sage: PS.<x,y,z> = ProjectiveSpace(2,GF(7))
             sage: H = End(PS)
             sage: f = H([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
-            sage: _fast_possible_periods(f,False)
+            sage: _fast_possible_periods(f, False)
             [1, 2, 4, 6, 12, 14, 28, 42, 84]
 
         .. TODO::
@@ -77,10 +76,10 @@ def _fast_possible_periods(self,return_points=False):
     cdef list pointslist
 
     if not self._is_prime_finite_field:
-        raise TypeError("Must be prime field")
+        raise TypeError("must be prime field")
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
     if is_ProjectiveSpace(self.domain()) == False or self.domain()!=self.codomain():
-        raise NotImplementedError("Must be an endomorphism of projective space")
+        raise NotImplementedError("must be an endomorphism of projective space")
 
     PS = self.domain()
     p = PS.base_ring().order()
@@ -102,59 +101,59 @@ def _fast_possible_periods(self,return_points=False):
                 Q = _normalize_coordinates(Q, p, N+1)
                 hash_q = _hash(Q, p)
                 point_table[hash_p][0] = hash_q
-                P=Q
-                hash_p=hash_q
-                index+=1
+                P = Q
+                hash_p = hash_q
+                index += 1
 
             if point_table[hash_p][1] >= startindex:
-                P_proj=PS(P)
-                period=index-point_table[hash_p][1]
+                P_proj = PS(P)
+                period = index-point_table[hash_p][1]
                 periods.add(period)
-                points_periods.append([P_proj,period])
-                l=P_proj.multiplier(self,period,False)
-                lorders=set()
+                points_periods.append([P_proj, period])
+                l = P_proj.multiplier(self, period, False)
+                lorders = set()
                 for poly,_ in l.charpoly().factor():
                     if poly.degree() == 1:
                         eig = -poly.constant_coefficient()
                         if not eig:
                             continue # exclude 0
                     else:
-                        eig = GF(p ** poly.degree(), 't', modulus=poly).gen()
+                        eig = GF(p**poly.degree(), 't', modulus=poly).gen()
                     if eig:
                         lorders.add(eig.multiplicative_order())
                 S = subsets(lorders)
                 next(S)   # get rid of the empty set
-                rvalues=set()
+                rvalues = set()
                 for s in S:
                     rvalues.add(lcm(s))
-                rvalues=list(rvalues)
-                if N==1:
+                rvalues = list(rvalues)
+                if N == 1:
                     for k in xrange(len(rvalues)):
-                        r=rvalues[k]
+                        r = rvalues[k]
                         periods.add(period*r)
-                        points_periods.append([P_proj,period*r])
+                        points_periods.append([P_proj, period*r])
                         if p == 2 or p == 3: #need e=1 for N=1, QQ
                             periods.add(period*r*p)
-                            points_periods.append([P_proj,period*r*p])
+                            points_periods.append([P_proj, period*r*p])
                 else:
                     for k in xrange(len(rvalues)):
-                        r=rvalues[k]
+                        r = rvalues[k]
                         periods.add(period*r)
                         periods.add(period*r*p)
-                        points_periods.append([P_proj,period*r])
-                        points_periods.append([P_proj,period*r*p])
-                        if p==2:  #need e=3 for N>1, QQ
+                        points_periods.append([P_proj, period*r])
+                        points_periods.append([P_proj, period*r*p])
+                        if p == 2:  #need e=3 for N>1, QQ
                             periods.add(period*r*4)
-                            points_periods.append([P_proj,period*r*4])
+                            points_periods.append([P_proj, period*r*4])
                             periods.add(period*r*8)
-                            points_periods.append([P_proj,period*r*8])
+                            points_periods.append([P_proj, period*r*8])
 
-    if return_points==False:
+    if return_points == False:
         return sorted(periods)
     else:
         return(points_periods)
 
-def _enum_points(int prime,int dimension):
+def _enum_points(int prime, int dimension):
     """
     Enumerate points in projective space over finite field with given prime and dimension.
 
@@ -162,7 +161,8 @@ def _enum_points(int prime,int dimension):
 
         sage: from sage.schemes.projective.projective_morphism_helper import _enum_points
         sage: list(_enum_points(3,2))
-        [[1, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [0, 0, 1], [1, 0, 1], [2, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 1], [0, 2, 1], [1, 2, 1], [2, 2, 1]]
+        [[1, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [0, 0, 1], [1, 0, 1],
+        [2, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 1], [0, 2, 1], [1, 2, 1], [2, 2, 1]]
     """
     cdef int current_range
     cdef int highest_range
@@ -176,7 +176,7 @@ def _enum_points(int prime,int dimension):
             yield _get_point_from_hash(value,prime,dimension)
         current_range = current_range*prime
 
-def _hash(list Point,int prime):
+def _hash(list Point, int prime):
     """
     Hash point given as list to unique number.
 
@@ -194,13 +194,13 @@ def _hash(list Point,int prime):
     hash_q = 0
 
     for coefficient in Point:
-        hash_q = hash_q * prime + coefficient
+        hash_q = hash_q*prime + coefficient
 
     Point.reverse()
 
     return hash_q
 
-def _get_point_from_hash(int value,int prime,int dimension):
+def _get_point_from_hash(int value, int prime, int dimension):
     """
     Hash unique number to point as a list.
 

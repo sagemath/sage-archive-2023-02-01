@@ -62,4 +62,13 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_li(acb_t res, const acb_t z, int offset, long prec)
     void acb_hypgeom_0f1(acb_t res, const acb_t b, const acb_t z, bint regularized, long prec)
     void acb_hypgeom_2f1(acb_t res, const acb_t a, const acb_t b, const acb_t z, const acb_t z, bint regularized, long prec)
+    void acb_hypgeom_legendre_p(acb_t res, const acb_t n, const acb_t m, const acb_t z, int type, long prec)
+    void acb_hypgeom_legendre_q(acb_t res, const acb_t n, const acb_t m, const acb_t z, int type, long prec)
+    void acb_hypgeom_jacobi_p(acb_t res, const acb_t n, const acb_t a, const acb_t b, const acb_t z, long prec)
+    void acb_hypgeom_gegenbauer_c(acb_t res, const acb_t n, const acb_t m, const acb_t z, long prec)
+    void acb_hypgeom_laguerre_l(acb_t res, const acb_t n, const acb_t m, const acb_t z, long prec)
+    void acb_hypgeom_hermite_h(acb_t res, const acb_t n, const acb_t z, long prec)
+    void acb_hypgeom_chebyshev_t(acb_t res, const acb_t n, const acb_t z, long prec)
+    void acb_hypgeom_chebyshev_u(acb_t res, const acb_t n, const acb_t z, long prec)
+    void acb_hypgeom_spherical_y(acb_t res, long n, long m, const acb_t theta, const acb_t phi, long prec)
 

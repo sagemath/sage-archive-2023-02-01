@@ -3029,4 +3029,218 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return result
 
+    def chebyshev_T(self, n):
+        """
+        Return the Chebyshev function of the first kind of order ``n``
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1/3).chebyshev_T(20)
+            [0.8710045668809 +/- 6.15e-14]
+            sage: CBF(1/3).chebyshev_T(CBF(5,1))
+            [1.8429685451876 +/- 3.57e-14] + [0.20053614301799 +/- 7.05e-15]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_chebyshev_t(result.value, my_n.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def chebyshev_U(self, n):
+        """
+        Return the Chebyshev function of the second kind of order ``n``
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1/3).chebyshev_U(20)
+            [0.6973126541184 +/- 2.83e-14]
+            sage: CBF(1/3).chebyshev_U(CBF(5,1))
+            [1.7588496489342 +/- 5.99e-14] + [0.7497317165104 +/- 4.35e-14]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_chebyshev_u(result.value, my_n.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def jacobi_P(self, n, a, b):
+        r"""
+        Return the Jacobi polynomial (or function) `P_n^{(a,b)}(z)`
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(5,-6).jacobi_P(8, CBF(1,2), CBF(2,3))
+            [-920983000.460 +/- 7.60e-4] + [6069919969.93 +/- 2.03e-3]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_a = self._parent.coerce(a)
+        cdef ComplexBall my_b = self._parent.coerce(b)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_jacobi_p(result.value, my_n.value,
+            my_a.value, my_b.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def gegenbauer_C(self, n, m):
+        r"""
+        Return the Gegenbauer polynomial (or function) `C_n^m(z)`
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(-10).gegenbauer_C(7, 1/2)
+            [-263813415.6250000 +/- 9.57e-8]
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_gegenbauer_c(result.value, my_n.value,
+            my_m.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def laguerre_L(self, n, m=0):
+        r"""
+        Return the Laguerre polynomial (or function) `L_n^m(z)`
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(10).laguerre_L(3)
+            [-45.6666666666666 +/- 9.28e-14]
+            sage: CBF(10).laguerre_L(3, 2)
+            [-6.666666666667 +/- 4.15e-13]
+            sage: CBF(5,7).laguerre_L(CBF(2,3), CBF(1,-2))
+            [5515.31503027 +/- 7.93e-9] + [-12386.94284527 +/- 8.00e-9]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_laguerre_l(result.value, my_n.value,
+            my_m.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def hermite_H(self, n):
+        """
+        Return the Hermite function (or polynomial) of order ``n``
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(10).hermite_H(1)
+            20.00000000000000
+            sage: CBF(10).hermite_H(30)
+            [8.05746709617e+37 +/- 1.32e+25]
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_hermite_h(result.value, my_n.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def legendre_P(self, n, m=0, type=2):
+        r"""
+        Return the Legendre function of the first kind `P_n^m(z)`
+        evaluated at ``self``.
+
+        The ``type`` parameter can be either 2 or 3. This selects between
+        different branch cut conventions. The definitions of the "type 2"
+        and "type 3" functions are the same as those used by *Mathematica*
+        and *mpmath*.
+
+        EXAMPLES::
+
+            sage: CBF(1/2).legendre_P(5)
+            0.08984375000000000
+            sage: CBF(1,2).legendre_P(CBF(2,3), CBF(0,1))
+            [0.10996180744 +/- 4.71e-12] + [0.14312767804 +/- 1.62e-12]*I
+            sage: CBF(-10).legendre_P(5, 325/100)
+            [-22104403.487377 +/- 6.81e-7] + [53364750.687392 +/- 7.25e-7]*I
+            sage: CBF(-10).legendre_P(5, 325/100, type=3)
+            [-57761589.914581 +/- 6.99e-7] + [+/- 5.14e-7]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef ComplexBall result = self._new()
+        cdef int my_type = type
+        if my_type != 2 and my_type != 3:
+            raise ValueError("expected type 2 or 3")
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_legendre_p(result.value, my_n.value,
+            my_m.value, self.value, my_type - 2, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def legendre_Q(self, n, m=0, type=2):
+        r"""
+        Return the Legendre function of the second kind `Q_n^m(z)`
+        evaluated at ``self``.
+
+        The ``type`` parameter can be either 2 or 3. This selects between
+        different branch cut conventions. The definitions of the "type 2"
+        and "type 3" functions are the same as those used by *Mathematica*
+        and *mpmath*.
+
+        EXAMPLES::
+
+            sage: CBF(1/2).legendre_Q(5)
+            [0.55508089057168 +/- 5.32e-15]
+            sage: CBF(1,2).legendre_Q(CBF(2,3), CBF(0,1))
+            [0.167678710 +/- 5.89e-10] + [-0.161558598 +/- 8.76e-10]*I
+            sage: CBF(-10).legendre_Q(5, 325/100)
+            [-83825154.36008 +/- 4.95e-6] + [-34721515.80396 +/- 5.40e-6]*I
+            sage: CBF(-10).legendre_Q(5, 325/100, type=3)
+            [-4.797306921692e-6 +/- 6.92e-19] + [-4.797306921692e-6 +/- 6.68e-19]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef ComplexBall result = self._new()
+        cdef int my_type = type
+        if my_type != 2 and my_type != 3:
+            raise ValueError("expected type 2 or 3")
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_legendre_q(result.value, my_n.value,
+            my_m.value, self.value, my_type - 2, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def spherical_harmonic(self, phi, n, m):
+        r"""
+        Return the spherical harmonic `Y_n^m(\theta,\phi)`
+        evaluated at `\theta` given by ``self``.
+        In the current implementation, ``n`` and ``m`` must be small integers.
+
+        EXAMPLES::
+
+            sage: CBF(1+I).spherical_harmonic(1/2, -3, -2)
+            [0.80370071745224 +/- 4.02e-15] + [-0.07282031864711 +/- 4.69e-15]*I
+        """
+        cdef ComplexBall my_phi = self._parent.coerce(phi)
+        cdef long my_n = n
+        cdef long my_m = m
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_spherical_y(result.value, my_n, my_m,
+            self.value, my_phi.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
 CBF = ComplexBallField()

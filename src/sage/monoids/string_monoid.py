@@ -227,7 +227,7 @@ class StringMonoid_class(FreeMonoid_class):
 
     def one(self):
         r"""
-        Create an identity StringMonoid Element.
+        Return the identity element of ``self``
 
         EXAMPLES::
 

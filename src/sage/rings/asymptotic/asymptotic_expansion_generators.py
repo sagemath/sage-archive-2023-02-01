@@ -674,11 +674,12 @@ class AsymptoticExpansionGenerators(SageObject):
             - 5/8/sqrt(pi)*n^(-3/2)*log(n) + (1/8*(3*euler_gamma + 6*log(2) - 8)/sqrt(pi)
             - (euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2) + O(n^(-5/2)*log(n))
             sage: n = ae.parent().gen()
-            sage: ae.subs(n=n-1)
-            1/sqrt(pi)*n^(-1/2)*log(n) + ((euler_gamma + 2*log(2))/sqrt(pi))*n^(-1/2)
-            - 1/8/sqrt(pi)*n^(-3/2)*log(n) + (1/8*(3*euler_gamma + 6*log(2) - 8)/sqrt(pi)
-            + 1/2*(euler_gamma + 2*log(2))/sqrt(pi) - (euler_gamma + 2*log(2) - 2)/sqrt(pi)
-            - 1/sqrt(pi))*n^(-3/2) + O(n^(-5/2)*log(n))
+            sage: ae.subs(n=n-1).map_coefficients(lambda x: x.canonicalize_radical())
+            1/sqrt(pi)*n^(-1/2)*log(n)
+            + ((euler_gamma + 2*log(2))/sqrt(pi))*n^(-1/2)
+            - 1/8/sqrt(pi)*n^(-3/2)*log(n)
+            + (-1/8*(euler_gamma + 2*log(2))/sqrt(pi))*n^(-3/2)
+            + O(n^(-5/2)*log(n))
 
         ::
 

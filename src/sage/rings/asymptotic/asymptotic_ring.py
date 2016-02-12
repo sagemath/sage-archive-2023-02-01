@@ -3783,13 +3783,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: B.singularity_analysis(f, (1,), precision=3)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term is O(0) which means
-            0 for sufficiently large n.
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
         """
         from sage.symbolic.ring import SR
         from sage.rings.integer_ring import ZZ
-        from asymptotic_expansion_generators import asymptotic_expansions,\
-            NotImplementedOZero
+        from asymptotic_expansion_generators import asymptotic_expansions
+        from misc import NotImplementedOZero
 
         singular_expansions = {}
 
@@ -3812,9 +3812,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                     result += contribution
 
         if OZeroEncountered and result.is_exact():
-            raise NotImplementedOZero(
-                'The error term is O(0) which means 0 '
-                'for sufficiently large {}.'.format(self.gen()))
+            raise NotImplementedOZero(self)
 
         if return_singular_expansions:
             from collections import namedtuple

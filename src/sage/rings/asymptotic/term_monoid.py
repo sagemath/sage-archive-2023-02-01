@@ -3608,8 +3608,8 @@ class ExactTerm(TermWithCoefficient):
             sage: T('2*x^(-1)')._singularity_analysis_(2, 'n', 3)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The result is O(0) which means 0
-            for sufficiently large n
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
         """
         return self.coefficient * self.growth._singularity_analysis_(
             zeta=zeta, var=var, precision=precision)

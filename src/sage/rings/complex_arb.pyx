@@ -2235,9 +2235,29 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    def psi(self):
+    def rgamma(self):
+        """
+        Compute the reciprocal gamma function with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(6).rgamma()
+            [0.00833333333333333 +/- 4.96e-18]
+            sage: CBF(-1).rgamma()
+            0
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_rgamma(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def psi(self, n=None):
         """
         Compute the digamma function with argument ``self``.
+
+        If ``n`` is provided, compute the polygamma function of order ``n``
+        and argument ``self``.
 
         EXAMPLES::
 
@@ -2245,12 +2265,21 @@ cdef class ComplexBall(RingElement):
             [0.0946503206224770 +/- 7.34e-17] + [1.076674047468581 +/- 2.63e-16]*I
             sage: CBF(-1).psi()
             nan
-        """
+            sage: CBF(1,1).psi(10)
+            [56514.8269344249 +/- 4.70e-11] + [56215.1218005823 +/- 5.70e-11]*I
 
+        """
+        cdef ComplexBall my_n
         cdef ComplexBall result = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_digamma(result.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if n is None:
+            if _do_sig(prec(self)): sig_on()
+            acb_digamma(result.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        else:
+            my_n = self._parent.coerce(n)
+            if _do_sig(prec(self)): sig_on()
+            acb_polygamma(result.value, my_n.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return result
 
     def zeta(self, a=None):

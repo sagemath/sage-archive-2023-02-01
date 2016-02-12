@@ -247,3 +247,7 @@ cdef extern from "arb.h":
     void arb_chebyshev_u_ui(arb_t a, unsigned long n, const arb_t x, long prec)
     void arb_chebyshev_t2_ui(arb_t a, arb_t b, unsigned long n, const arb_t x, long prec)
     void arb_chebyshev_u2_ui(arb_t a, arb_t b, unsigned long n, const arb_t x, long prec)
+    void arb_bell_fmpz(arb_t z, const fmpz_t n, long prec)
+    void arb_bell_ui(arb_t z, unsigned long n, long prec)
+    void arb_doublefac_ui(arb_t z, unsigned long n, long prec)
+

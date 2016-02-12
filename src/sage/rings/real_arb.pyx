@@ -867,6 +867,82 @@ class RealBallField(UniqueRepresentation, Field):
             fmpz_clear(tmpz)
         return res
 
+    def bell_number(self, n):
+        """
+        Return a ball enclosing the ``n``-th Bell number.
+
+        EXAMPLES::
+
+            sage: [RBF.bell_number(n) for n in xrange(7)]
+            [1.000000000000000,
+             1.000000000000000,
+             2.000000000000000,
+             5.000000000000000,
+             15.00000000000000,
+             52.00000000000000,
+             203.0000000000000]
+            sage: RBF.bell_number(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected a nonnegative index
+            sage: RBF.bell_number(10**20)
+            [5.38270113176282e+1794956117137290721328 +/- 5.44e+1794956117137290721313]
+        """
+        cdef fmpz_t tmpz
+        cdef RealBall res = self.element_class(self)
+        cdef Integer n_as_Integer = ZZ.coerce(n)
+        if n_as_Integer < 0:
+            raise ValueError("expected a nonnegative index")
+        try:
+            if _do_sig(self._prec): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, n_as_Integer.value)
+            arb_bell_fmpz(res.value, tmpz, self._prec)
+            if _do_sig(self._prec): sig_off()
+        finally:
+            fmpz_clear(tmpz)
+        return res
+
+    def double_factorial(self, n):
+        """
+        Return a ball enclosing the ``n``-th double factorial.
+
+        EXAMPLES::
+
+            sage: [RBF.double_factorial(n) for n in range(7)]
+            [1.000000000000000,
+             1.000000000000000,
+             2.000000000000000,
+             3.000000000000000,
+             8.000000000000000,
+             15.00000000000000,
+             48.00000000000000]
+            sage: RBF.double_factorial(2**20)
+            [1.4483729903e+2928836 +/- 8.96e+2928825]
+            sage: RBF.double_factorial(2**1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument too large
+            sage: RBF.double_factorial(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected a nonnegative index
+
+        """
+        cdef RealBall res
+        cdef Integer n_as_Integer = ZZ.coerce(n)
+        if mpz_fits_ulong_p(n_as_Integer.value):
+            res = self.element_class(self)
+            if _do_sig(self._prec): sig_on()
+            arb_doublefac_ui(res.value, mpz_get_ui(n_as_Integer.value), self._prec)
+            if _do_sig(self._prec): sig_off()
+            return res
+        elif n_as_Integer < 0:
+            raise ValueError("expected a nonnegative index")
+        else:
+            # TODO: Fall back to a Sage implementation in this case?
+            raise ValueError("argument too large")
+
     def maximal_accuracy(self):
         r"""
         Return the relative accuracy of exact elements measured in bits.

@@ -1638,6 +1638,19 @@ cdef class ComplexBall(RingElement):
         """
         return acb_contains_zero(self.value)
 
+    def contains_integer(self):
+        """
+        Return ``True`` iff this ball contains any integer.
+
+        EXAMPLES::
+
+            sage: CBF(3, RBF(0.1)).contains_integer()
+            False
+            sage: CBF(3, RBF(0.1,0.1)).contains_integer()
+            True
+        """
+        return acb_contains_int(self.value)
+
     # Arithmetic
 
     def __neg__(self):

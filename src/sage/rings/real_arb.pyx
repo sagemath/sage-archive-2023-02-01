@@ -2335,6 +2335,19 @@ cdef class RealBall(RingElement):
         """
         return arb_contains_zero(self.value)
 
+    def contains_integer(self):
+        """
+        Return ``True`` iff this ball contains any integer.
+
+        EXAMPLES::
+
+            sage: RBF(3.1, 0.1).contains_integer()
+            True
+            sage: RBF(3.1, 0.05).contains_integer()
+            False
+        """
+        return arb_contains_int(self.value)
+
     def is_negative_infinity(self):
         """
         Return ``True`` if this ball is the point -∞.

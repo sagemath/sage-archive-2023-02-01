@@ -54,6 +54,8 @@ cdef extern from "acb.h":
     bint acb_contains_fmpz(const acb_t x, const fmpz_t y)
     bint acb_contains(const acb_t x, const acb_t y)
     bint acb_contains_zero(const acb_t x)
+    bint acb_contains_int(const acb_t x)
+
     long acb_rel_error_bits(const acb_t x)
     long acb_rel_accuracy_bits(const acb_t x)
     long acb_bits(const acb_t x)

@@ -152,8 +152,8 @@ To do this, we need up to three elements:
 
 We build our code as follows::
 
-    sage: F = GF(13)
-    sage: length, dimension = 12, 4
+    sage: F = GF(7)
+    sage: length, dimension = 6, 3
     sage: evaluation_pts = F.list()[:length]
     sage: column_mults = F.list()[1:length+1]
     sage: C = codes.GeneralizedReedSolomonCode(evaluation_pts, dimension, column_mults)
@@ -162,11 +162,11 @@ Our GRS code is now created. We can ask for its parameters, as we did in the
 previous section::
 
     sage: C.length()
-    12
+    6
     sage: C.dimension()
-    4
+    3
     sage: C.base_ring()
-    Finite Field of size 13
+    Finite Field of size 7
 
 It is also possible to ask for the evaluation points and
 the column multipliers by calling
@@ -183,13 +183,13 @@ search algorithm presented in section I to find ``C``'s minimum distance
 but use the operation introduced above. And you instantly get::
 
     sage: C.minimum_distance()
-    9
+    4
 
 All these parameters are summarized inside the string representation
 of our code::
 
     sage: C
-    [12, 4, 9] Generalized Reed-Solomon Code over Finite Field of size 13
+    [6, 3, 4] Generalized Reed-Solomon Code over Finite Field of size 7
 
 .. NOTE::
 
@@ -235,13 +235,13 @@ as abstractions for communication channels and for manipulation of
 data representation. In this case, we want to emulate a communication channel
 which adds some, but not too many, errors to a transmitted word::
 
-    sage: err = 4
+    sage: err = 2
     sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), err)
     sage: Chan
-    Static error rate channel creating 4 errors, of input and output space Vector space of dimension 12 over Finite Field of size 13
+    Static error rate channel creating 2 errors, of input and output space Vector space of dimension 6 over Finite Field of size 7
     sage: r = Chan.transmit(c)
     sage: len((c-r).nonzero_positions())
-    4
+    2
 
 If you want to learn more on Channels, please refer to section IV
 of this tutorial.

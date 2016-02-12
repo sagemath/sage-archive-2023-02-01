@@ -567,7 +567,7 @@ def _multi_variate(base_ring, names, n, sparse, order, implementation):
         return R
 
     from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-    if m.integral_domain.is_IntegralDomain(base_ring):
+    if isinstance(base_ring, ring.IntegralDomain):
         if n < 1:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
         else:

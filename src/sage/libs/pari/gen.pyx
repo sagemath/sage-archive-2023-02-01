@@ -7047,7 +7047,7 @@ cdef class gen(gen_auto):
             sage: G.galoisfixedfield(G[5][5:7])
             [x^4 + 1, Mod(x, x^4 + 1)]
             sage: L = G.galoissubgroups()
-            sage: G.galoisfixedfield(L[2], flag=2, v='z')
+            sage: G.galoisfixedfield(L[3], flag=2, v='z')
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
         .. _galoisfixedfield: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisfixedfield
@@ -7085,7 +7085,7 @@ cdef class gen(gen_auto):
             sage: G.galoissubfields(flag=1)
             [x, x^2 + 972, x^3 + 54, x^3 + 864, x^3 - 54, x^6 + 108]
             sage: G = pari(x^4 + 1).galoisinit()
-            sage: G.galoissubfields(flag=2, v='z')[2]
+            sage: G.galoissubfields(flag=2, v='z')[3]
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
         .. _galoissubfields: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoissubfields
@@ -9167,7 +9167,7 @@ cdef class gen(gen_auto):
             sage: pari(0).znstar()
             [2, [2], [-1]]
             sage: pari(96).znstar()
-            [32, [8, 2, 2], [Mod(67, 96), Mod(31, 96), Mod(65, 96)]]
+            [32, [8, 2, 2], [Mod(37, 96), Mod(31, 96), Mod(65, 96)]]
             sage: pari(-5).znstar()
             [4, [4], [Mod(2, 5)]]
         """

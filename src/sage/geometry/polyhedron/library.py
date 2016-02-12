@@ -1416,6 +1416,7 @@ class Polytopes():
         Return the grand antiprism.
 
         The grand antiprism is a 4-dimensional non-Wythoffian uniform polytope.
+        For more information, see the :wikipedia:`Grand_antiprism`.
 
         .. WARNING::
 

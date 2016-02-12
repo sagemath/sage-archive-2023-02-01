@@ -7153,14 +7153,14 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in a1 with defining polynomial x^2 - 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
               Defn: a1 |--> a^2 + 3/2, None),
-            (Number Field in a2 with defining polynomial x^2 + 2, Ring morphism:
-              From: Number Field in a2 with defining polynomial x^2 + 2
+            (Number Field in a2 with defining polynomial x^2 + 4, Ring morphism:
+              From: Number Field in a2 with defining polynomial x^2 + 4
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a2 |--> 2*a^3 + 5*a, None),
-            (Number Field in a3 with defining polynomial x^2 + 4, Ring morphism:
-              From: Number Field in a3 with defining polynomial x^2 + 4
+              Defn: a2 |--> 2*a^3 + 7*a, None),
+            (Number Field in a3 with defining polynomial x^2 + 2, Ring morphism:
+              From: Number Field in a3 with defining polynomial x^2 + 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a3 |--> 2*a^3 + 7*a, None),
+              Defn: a3 |--> 2*a^3 + 5*a, None),
             (Number Field in a4 with defining polynomial x^4 + 1, Ring morphism:
               From: Number Field in a4 with defining polynomial x^4 + 1
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
@@ -8143,8 +8143,8 @@ class NumberField_absolute(NumberField_generic):
             sage: [L.relativize(h, 'c') for (f,h,i) in L.subfields()]
             [Number Field in c with defining polynomial x^4 + 1 over its base field,
              Number Field in c with defining polynomial x^2 - a1*x + 1 over its base field,
-             Number Field in c with defining polynomial x^2 - a2*x - 1 over its base field,
-             Number Field in c with defining polynomial x^2 - 1/2*a3 over its base field,
+             Number Field in c with defining polynomial x^2 - 1/2*a2 over its base field,
+             Number Field in c with defining polynomial x^2 - a3*x - 1 over its base field,
              Number Field in c with defining polynomial x - a4 over its base field]
 
         We can relativize over a relative field::

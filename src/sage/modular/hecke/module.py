@@ -2,23 +2,17 @@
 Hecke modules
 """
 
-##########################################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##########################################################################################
+#*****************************************************************************
 
 import sage.rings.all
-from sage.rings.commutative_ring import is_CommutativeRing
 import sage.arith.all as arith
 import sage.misc.misc as misc
 import sage.modules.module
@@ -79,7 +73,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: ModularForms(3, 3).category()
             Category of Hecke modules over Rational Field
         """
-        if not is_CommutativeRing(base_ring):
+        if not isinstance(base_ring, sage.rings.all.CommutativeRing):
             raise TypeError("base_ring must be commutative ring")
 
         from sage.categories.hecke_modules import HeckeModules

@@ -25,7 +25,7 @@ from log import (exp, log, ln, polylog, dilog, lambert_w)
 
 
 from transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
-                            dickman_rho)
+                            dickman_rho, stieltjes)
 
 from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y, Bessel)
 

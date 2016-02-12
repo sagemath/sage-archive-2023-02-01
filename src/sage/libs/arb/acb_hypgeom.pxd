@@ -71,4 +71,5 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_chebyshev_t(acb_t res, const acb_t n, const acb_t z, long prec)
     void acb_hypgeom_chebyshev_u(acb_t res, const acb_t n, const acb_t z, long prec)
     void acb_hypgeom_spherical_y(acb_t res, long n, long m, const acb_t theta, const acb_t phi, long prec)
+    void acb_hypgeom_airy(acb_t ai, acb_t aip, acb_t bi, acb_t bip, const acb_t z, long prec)
 

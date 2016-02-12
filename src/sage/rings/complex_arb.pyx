@@ -2686,10 +2686,95 @@ cdef class ComplexBall(RingElement):
             sage: CBF(100, 100).erfc()
             [0.00065234366376858 +/- 6.52e-18] + [-0.00393572636292141 +/- 5.16e-18]*I
         """
-
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
         acb_hypgeom_erfc(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def airy(self):
+        """
+        Return the Airy functions Ai, Ai', Bi, Bi' with argument ``self``,
+        evaluated simultaneously.
+
+        EXAMPLES::
+
+            sage: CBF(10*pi).airy()
+            ([1.2408955946101e-52 +/- 7.36e-66],
+             [-6.965048886977e-52 +/- 3.50e-65],
+             [2.2882956833436e+50 +/- 5.24e+36],
+             [1.2807602335816e+51 +/- 6.89e+37])
+            sage: ai, aip, bi, bip = CBF(1,2).airy()
+            sage: (ai * bip - bi * aip) * CBF(pi)
+            [1.0000000000000 +/- 1.25e-15] + [+/- 3.27e-16]*I
+
+        """
+        cdef ComplexBall ai = self._new()
+        cdef ComplexBall aip = self._new()
+        cdef ComplexBall bi = self._new()
+        cdef ComplexBall bip = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(ai.value, aip.value, bi.value, bip.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return (ai, aip, bi, bip)
+
+    def airy_ai(self):
+        """
+        Return the Airy function Ai with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1,2).airy_ai()
+            [-0.2193862549814276 +/- 7.47e-17] + [-0.1753859114081094 +/- 4.06e-17]*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(result.value, NULL, NULL, NULL, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def airy_ai_prime(self):
+        """
+        Return the Airy function derivative Ai' with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1,2).airy_ai_prime()
+            [0.1704449781789148 +/- 3.12e-17] + [0.387622439413295 +/- 1.06e-16]*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(NULL, result.value, NULL, NULL, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def airy_bi(self):
+        """
+        Return the Airy function Bi with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1,2).airy_bi()
+            [0.0488220324530612 +/- 1.30e-17] + [0.1332740579917484 +/- 6.25e-17]*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(NULL, NULL, result.value, NULL, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def airy_bi_prime(self):
+        """
+        Return the Airy function derivative Bi' with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1,2).airy_bi_prime()
+            [-0.857239258605362 +/- 3.47e-16] + [0.4955063363095674 +/- 9.22e-17]*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(NULL, NULL, NULL, result.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 

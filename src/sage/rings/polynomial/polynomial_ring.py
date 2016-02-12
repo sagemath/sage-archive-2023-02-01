@@ -154,12 +154,13 @@ These may change over time::
     <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
 """
 
-
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -167,12 +168,9 @@ from sage.structure.element import Element
 from sage.structure.category_object import check_default_category
 import sage.algebras.algebra
 import sage.categories.basic as categories
-import sage.rings.commutative_ring as commutative_ring
 import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
-import sage.rings.ring_element as ring_element
-import sage.rings.integral_domain as integral_domain
-import sage.rings.principal_ideal_domain as principal_ideal_domain
+from sage.structure.element import is_RingElement
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
@@ -267,7 +265,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: category(ZZ['x'])
             Join of Category of unique factorization domains
                 and Category of commutative algebras over
-                        (euclidean domains and infinite enumerated sets)
+                        (euclidean domains and infinite enumerated sets and metric spaces)
             sage: category(GF(7)['x'])
             Join of Category of euclidean domains and
                     Category of commutative algebras over (finite fields and
@@ -1507,7 +1505,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
         return DifferentialWeylAlgebra(self)
 
-class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
+class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
             element_class=None):
         """
@@ -1557,8 +1555,7 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,
-                           principal_ideal_domain.PrincipalIdealDomain,
-                           ):
+                           ring.PrincipalIdealDomain):
     def __init__(self, base_ring, name="x", sparse=False, element_class=None):
         """
         TESTS::
@@ -2516,7 +2513,7 @@ def polygen(ring_or_element, name="x"):
        get a tuple of indeterminates, exactly as if you called
        polygens.
     """
-    if ring_element.is_RingElement(ring_or_element):
+    if is_RingElement(ring_or_element):
         base_ring = ring_or_element.parent()
     elif ring.is_Ring(ring_or_element):
         base_ring = ring_or_element

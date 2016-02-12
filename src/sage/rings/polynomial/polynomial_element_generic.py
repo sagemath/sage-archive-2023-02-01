@@ -40,6 +40,7 @@ from sage.structure.element import coerce_binop
 
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 
 
 class Polynomial_generic_sparse(Polynomial):
@@ -230,6 +231,71 @@ class Polynomial_generic_sparse(Polynomial):
             del d[-1]
         return P(d)
 
+    def integral(self, var=None):
+        """
+        Return the integral of this polynomial.
+
+        By default, the integration variable is the variable of the
+        polynomial.
+
+        Otherwise, the integration variable is the optional parameter ``var``
+
+        .. NOTE::
+
+            The integral is always chosen so that the constant term is 0.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (1 + 3*x^10 - 2*x^100).integral()
+            -2/101*x^101 + 3/11*x^11 + x
+
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^2^100).integral()
+            1/1267650600228229401496703205377*x^1267650600228229401496703205377
+
+        Check the correctness when the base ring is a polynomial ring::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: S.<t> = PolynomialRing(R, sparse=True)
+            sage: (x*t+1).integral()
+            1/2*x*t^2 + t
+            sage: (x*t+1).integral(x)
+            1/2*x^2*t + x
+
+        Check the correctness when the base ring is not an integral domain::
+
+            sage: R.<x> = PolynomialRing(Zmod(4), sparse=True)
+            sage: (x^4 + 2*x^2  + 3).integral()
+            x^5 + 2*x^3 + 3*x
+            sage: x.integral()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+        """
+        R = self.parent()
+        # TODO:
+        # calling the coercion model bin_op is much more accurate than using the
+        # true division (which is bypassed by polynomials). But it does not work
+        # in all cases!!
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        import operator
+        try:
+            Q = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
+        except TypeError:
+            F = (R.base_ring().one()/ZZ.one()).parent()
+            Q = R.change_ring(F)
+
+        if var is not None and var != R.gen():
+            return Q({k:v.integral(var) for k,v in self.__coeffs.iteritems()}, check=False)
+
+        return Q({ k+1:v/(k+1) for k,v in self.__coeffs.iteritems()}, check=False)
+
     def _dict_unsafe(self):
         """
         Return unsafe access to the underlying dictionary of coefficients.
@@ -306,8 +372,7 @@ class Polynomial_generic_sparse(Polynomial):
 
     def __getitem__(self,n):
         """
-        Return the `n`-th coefficient of this polynomial if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of this polynomial.
 
         Negative indexes are allowed and always return 0 (so you can
         view the polynomial as embedding Laurent series).
@@ -327,30 +392,53 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<x> = PolynomialRing(RealField(19), sparse=True)
             sage: f = (2-3.5*x)^3; f
             -42.875*x^3 + 73.500*x^2 - 42.000*x + 8.0000
-            sage: f[1:3]
-            73.500*x^2 - 42.000*x
+
+        Using slices, we can truncate polynomials::
+
             sage: f[:2]
             -42.000*x + 8.0000
-            sage: f[2:]
-            -42.875*x^3 + 73.500*x^2
+
+        Any other kind of slicing is deprecated or an error::
+
+            sage: f[1:3]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
+            73.500*x^2 - 42.000*x
+            sage: f[1:3:2]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomial slicing with a step is not defined
+            sage: f["hello"]
+            Traceback (most recent call last):
+            ...
+            TypeError: list indices must be integers, not str
         """
         if isinstance(n, slice):
-            start, stop = n.start, n.stop
-            if start < 0:
+            d = self.degree() + 1
+            start, stop, step = n.start, n.stop, n.step
+            if step is not None:
+                raise NotImplementedError("polynomial slicing with a step is not defined")
+            if start is None:
                 start = 0
-            if stop is None:
-                stop = len(self.__coeffs) + 1
-            v = {}
+            else:
+                if start < 0:
+                    start = 0
+                from sage.misc.superseded import deprecation
+                deprecation(18940, "polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead")
+            if stop is None or stop > d:
+                stop = d
             x = self.__coeffs
-            for k in x.keys():
-                if start <= k and k < stop:
-                    v[k] = x[k]
-            P = self.parent()
-            return P(v)
-        else:
-            if n not in self.__coeffs:
-                return self.base_ring()(0)
+            v = {k: x[k] for k in x.keys() if start <= k < stop}
+            return self.parent()(v)
+
+        try:
+            n = n.__index__()
+        except AttributeError:
+            raise TypeError("list indices must be integers, not {0}".format(type(n).__name__))
+        try:
             return self.__coeffs[n]
+        except KeyError:
+            return self.base_ring().zero()
 
     def _unsafe_mutate(self, n, value):
         r"""
@@ -626,22 +714,32 @@ class Polynomial_generic_sparse(Polynomial):
             sage: p.shift(2)
              x^100002 + 2*x^3 + 4*x^2
 
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = x^2^100 - 5
+            sage: p.shift(10)
+            x^1267650600228229401496703205386 - 5*x^10
+            sage: p.shift(-10)
+            x^1267650600228229401496703205366
+            sage: p.shift(1.5)
+            Traceback (most recent call last):
+            ...
+            TypeError: Attempt to coerce non-integral RealNumber to Integer
+
         AUTHOR:
         - David Harvey (2006-08-06)
         """
-        n = int(n)
+        n = ZZ(n)
         if n == 0:
             return self
         if n > 0:
-            output = {}
-            for (index, coeff) in self.__coeffs.iteritems():
-                output[index + n] = coeff
+            output = {index+n: coeff for index, coeff in self.__coeffs.iteritems()}
             return self.parent()(output, check=False)
         if n < 0:
-            output = {}
-            for (index, coeff) in self.__coeffs.iteritems():
-                if index + n >= 0:
-                    output[index + n] = coeff
+            output = {index+n:coeff for index, coeff in self.__coeffs.iteritems() if index + n >= 0}
             return self.parent()(output, check=False)
 
     @coerce_binop
@@ -726,6 +824,110 @@ class Polynomial_generic_sparse(Polynomial):
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
 
+    def gcd(self,other,algorithm=None):
+        """
+        Return the gcd of this polynomial and ``other``
+
+        INPUT:
+
+        - ``other`` -- a polynomial defined over the same ring as this
+          polynomial.
+
+        ALGORITHM:
+
+        Two algorithms are provided:
+
+        - ``generic``: Uses the generic implementation, which depends on the
+          base ring being a UFD or a field.
+        - ``dense``: The polynomials are converted to the dense representation,
+          their gcd is computed and is converted back to the sparse
+          representation.
+
+        Default is ``dense`` for polynomials over ZZ and ``generic`` in the
+        other cases.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: p = x^6 + 7*x^5 + 8*x^4 + 6*x^3 + 2*x^2 + x + 2
+            sage: q = 2*x^4 - x^3 - 2*x^2 - 4*x - 1
+            sage: gcd(p,q)
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "dense")
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "generic")
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown algorithm 'foobar'
+        """
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.arith.all import lcm
+
+        if algorithm is None:
+            if self.base_ring() == ZZ:
+                algorithm = "dense"
+            else:
+                algorithm = "generic"
+        if algorithm=="dense":
+            S = self.parent()
+            # FLINT is faster but a bug makes the conversion extremely slow,
+            # so NTL is used in those cases where the conversion is too slow. Cf
+            # <https://groups.google.com/d/msg/sage-devel/6qhW90dgd1k/Hoq3N7fWe4QJ>
+            sd = self.degree()
+            od = other.degree()
+            if max(sd,od)<100 or \
+               min(len(self.__coeffs)/sd, len(other.__coeffs)/od)>.06:
+                implementation="FLINT"
+            else:
+                implementation="NTL"
+            D = PolynomialRing(S.base_ring(),'x',implementation=implementation)
+            g = D(self).gcd(D(other))
+            return S(g)
+        elif algorithm=="generic":
+            return Polynomial.gcd(self,other)
+        else:
+            raise ValueError("Unknown algorithm '%s'" % algorithm)
+
+    def reverse(self, degree=None):
+        """
+        Return this polynomial but with the coefficients reversed.
+
+        If an optional degree argument is given the coefficient list will be
+        truncated or zero padded as necessary and the reverse polynomial will
+        have the specified degree.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = x^4 + 2*x^2^100
+            sage: p.reverse()
+            x^1267650600228229401496703205372 + 2
+            sage: p.reverse(10)
+            x^6
+        """
+        if degree is None:
+            degree = self.degree()
+        if not isinstance(degree, (int,Integer)):
+            raise ValueError("degree argument must be a nonnegative integer, got %s"%degree)
+        d = {degree-k: v for k,v in self.__coeffs.iteritems() if degree >= k}
+        return self.parent()(d, check=False)
+
+    def truncate(self, n):
+        """
+        Return the polynomial of degree `< n` equal to `self` modulo `x^n`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^11 + x^10 + 1).truncate(11)
+            x^10 + 1
+            sage: (x^2^500 + x^2^100 + 1).truncate(2^101)
+            x^1267650600228229401496703205376 + 1
+        """
+        return self[:n]
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):

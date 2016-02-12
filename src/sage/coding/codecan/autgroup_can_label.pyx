@@ -1,5 +1,5 @@
 r"""
-Canonical forms and automorphisms for linear codes over finite fields.
+Canonical forms and automorphisms for linear codes over finite fields
 
 We implemented the algorithm described in [Feu2009]_ which computes, a unique
 code (canonical form) in the equivalence class of a given

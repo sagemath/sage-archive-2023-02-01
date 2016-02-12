@@ -440,7 +440,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         else:
             return self._MPolynomial_element__element.max_exp()
 
-    def degree(self, x=None):
+    def degree(self, x=None, std_grading=False):
         """
         Return the degree of self in x, where x must be one of the
         generators for the parent of self.
@@ -450,7 +450,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         - ``x`` - multivariate polynomial (a generator of the parent
            of self). If ``x`` is not specified (or is None), return
            the total degree, which is the maximum degree of any
-           monomial.
+           monomial. Note that a weighted term ordering alters the
+           grading of the generators of the ring; see the tests below.
+           To avoid this behavior, set the optional argument ``std_grading=True``.
 
         OUTPUT: integer
 
@@ -466,6 +468,29 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             3
             sage: (y^10*x - 7*x^2*y^5 + 5*x^3).degree(y)
             10
+
+        Note that total degree takes into account if we are working in a polynomial
+        ring with a weighted term order.
+
+        ::
+
+            sage: R = PolynomialRing(QQ,'x,y',order=TermOrder('wdeglex',(2,3)))
+            sage: x,y = R.gens()
+            sage: x.degree()
+            2
+            sage: y.degree()
+            3
+            sage: x.degree(y),x.degree(x),y.degree(x),y.degree(y)
+            (0, 1, 0, 1)
+            sage: f = (x^2*y+x*y^2)
+            sage: f.degree(x)
+            2
+            sage: f.degree(y)
+            2
+            sage: f.degree()
+            8
+            sage: f.degree(std_grading=True)
+            3
 
         Note that if ``x`` is not a generator of the parent of self,
         for example if it is a generator of a polynomial algebra which
@@ -489,9 +514,33 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             Traceback (most recent call last):
             ...
             TypeError: x must be one of the generators of the parent
+
+        TEST::
+
+            sage: R = PolynomialRing(GF(2)['t'],'x,y',order=TermOrder('wdeglex',(2,3)))
+            sage: x,y = R.gens()
+            sage: x.degree()
+            2
+            sage: y.degree()
+            3
+            sage: x.degree(y),x.degree(x),y.degree(x),y.degree(y)
+            (0, 1, 0, 1)
+            sage: f = (x^2*y+x*y^2)
+            sage: f.degree(x)
+            2
+            sage: f.degree(y)
+            2
+            sage: f.degree()
+            8
+            sage: f.degree(std_grading=True)
+            3
+            sage: R(0).degree()
+            -1
         """
         if x is None:
-            return self.element().degree(None)
+            if std_grading or not self.parent().term_order().is_weighted_degree_order():
+                return self.element().degree(None)
+            return self.weighted_degree(self.parent().term_order().weights())
         if isinstance(x, MPolynomial):
             if not x.parent() is self.parent():
                 try:
@@ -1394,7 +1443,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return self._MPolynomial_element__element.dict()!={}
 
-    def __floordiv__(self,right):
+    def _floordiv_(self, right):
         r"""
         Quotient of division of self by other. This is denoted //.
 
@@ -1415,9 +1464,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: type(0//y)
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
-        if type(self) is not type(right) or self.parent() is not right.parent():
-            self, right = canonical_coercion(self, right)
-            return self // right  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         # handle division by monomials without using Singular
         if len(right.dict()) == 1:
             P = self.parent()

@@ -204,16 +204,16 @@ time spent in prison)::
 When obtaining Nash equilibrium there are 3 algorithms currently available:
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
-  algorithm uses the optional 'lrslib' package. To install it type ``sage -i
-  lrslib`` at the command line. For more information see [A2000]_.
+  algorithm uses the optional 'lrslib' package. To install it, type
+  ``sage -i lrslib`` in the shell. For more information, see [A2000]_.
 
 * ``'LCP'``: Linear complementarity program algorithm for 2 player games.
   This algorithm uses the open source game theory package:
   `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. At present this is
   the only gambit algorithm available in sage but further development will
   hope to implement more algorithms
-  (in particular for games with more than 2 players). To install it
-  type ``sage -i gambit`` at the command line.
+  (in particular for games with more than 2 players). To install it,
+  type ``sage -i gambit`` in the shell.
 
 * ``'enumeration'``: Support enumeration for 2 player games. This
   algorithm is hard coded in Sage and checks through all potential
@@ -606,7 +606,6 @@ AUTHOR:
 from collections import MutableMapping
 from itertools import product
 from parser import Parser
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
 from sage.misc.misc import powerset
 from sage.rings.all import QQ
@@ -898,7 +897,7 @@ class NormalFormGame(SageObject, MutableMapping):
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
             return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
-        return latex(self.__str__())
+        return latex(str(self))
 
     def _two_matrix_game(self, matrices):
         r"""
@@ -1549,7 +1548,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                powerset(range(player.num_strategies))]
                               for player in self.players]
 
-        potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
+        potential_support_pairs = [pair for pair in product(*potential_supports) if len(pair[0]) == len(pair[1])]
 
         equilibria = []
         for pair in potential_support_pairs:
@@ -2027,7 +2026,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                                         potential_supports]
 
         potential_support_pairs = [pair for pair in
-                                   CartesianProduct(*potential_supports) if
+                                   product(*potential_supports) if
                                    len(pair[0]) != len(pair[1])]
 
         # Sort so that solve small linear systems first

@@ -40,6 +40,8 @@ for patch in ../patches/*.patch; do
     check_error "Patch '$patch' failed to apply."
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19734)
+cp "$SAGE_ROOT"/config/config.* .
 
 # Note that maxima configure checks for git and, if it finds it, uses
 # versions information from the repo. See #15529. We disable this with

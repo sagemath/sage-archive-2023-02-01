@@ -146,7 +146,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w = Word("abbabaab", alphabet="abc"); w
         word: abbabaab
         sage: w.parent()
-        Words over {'a', 'b', 'c'}
+        Finite words over {'a', 'b', 'c'}
 
     Word from a free monoid element::
 
@@ -159,7 +159,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w = Word("abbabaab"); w
         word: abbabaab
         sage: w.parent()
-        Words
+        Finite words over Set of Python objects of type 'object'
 
     We can also input a semistandard tableau and a standard tableau to
     obtain a word from the inverse RSK algorithm using the
@@ -204,7 +204,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
     # Create the parent object
     from words import Words
-    parent = Words() if alphabet is None else Words(alphabet)
+    parent = Words(alphabet)
 
     return parent(data=data, length=length, datatype=datatype, caching=caching)
 
@@ -503,7 +503,7 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
         sage: from itertools import count
         sage: w = Word(count())
         sage: type(w)
-        <class 'sage.combinat.words.word.InfiniteWord_iter_with_caching'>
+        <class 'sage.combinat.words.word.Word_iter_with_caching'>
 
     Pickle is not supported for infinite word defined by an iterator::
 
@@ -541,7 +541,7 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
         sage: from itertools import count
         sage: w = Word(count(), caching=False)
         sage: type(w)
-        <class 'sage.combinat.words.word.InfiniteWord_iter'>
+        <class 'sage.combinat.words.word.Word_iter'>
 
     Pickle is not supported for infinite word defined by an iterator::
 

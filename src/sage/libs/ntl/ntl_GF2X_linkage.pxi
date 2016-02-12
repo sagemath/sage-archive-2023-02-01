@@ -14,8 +14,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.ntl.ntl_GF2_decl cimport *
-from sage.libs.ntl.ntl_GF2X_decl cimport *
+from sage.libs.ntl.GF2 cimport *
+from sage.libs.ntl.GF2X cimport *
 include "sage/ext/interrupt.pxi"
 
 
@@ -24,8 +24,7 @@ cdef GF2X_c *celement_new(long parent):
     EXAMPLE:
         sage: P.<x> = GF(2)[]
     """
-    cdef GF2X_c *e = GF2X_new()
-    return e
+    return new GF2X_c()
 
 cdef int celement_delete(GF2X_c *e, long parent):
     """
@@ -33,14 +32,14 @@ cdef int celement_delete(GF2X_c *e, long parent):
         sage: P.<x> = GF(2)[]
         sage: del x
     """
-    GF2X_delete(e)
+    del e
 
 cdef int celement_construct(GF2X_c *e, long parent):
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
     """
-    GF2X_construct(e)
+    pass
 
 cdef int celement_destruct(GF2X_c *e, long parent):
     """
@@ -48,7 +47,7 @@ cdef int celement_destruct(GF2X_c *e, long parent):
         sage: P.<x> = GF(2)[]
         sage: del x
     """
-    GF2X_destruct(e)
+    pass
 
 cdef int celement_gen(GF2X_c *e, long i, long parent) except -2:
     """
@@ -128,7 +127,7 @@ cdef inline bint celement_equal(GF2X_c *a, GF2X_c *b, long parent) except -2:
         sage: x^2 + 1 == x^2 + x
         False
     """
-    return GF2X_equal(a[0], b[0])
+    return a[0] == b[0]
 
 cdef inline int celement_cmp(GF2X_c *a, GF2X_c *b, long parent) except -2:
     """

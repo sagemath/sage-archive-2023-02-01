@@ -154,7 +154,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: Q.is_field()
             True
             sage: Q.category()
-            Category of quotient fields
+            Join of Category of quotient fields and Category of metric spaces
             sage: Q.zeta()
             -1
 
@@ -215,7 +215,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             ('x',)
         """
         from sage.categories.basic import QuotientFields
-        ParentWithGens.__init__(self, self, category = QuotientFields())
+        ParentWithGens.__init__(self, self, category=QuotientFields().Metric())
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
 
@@ -401,35 +401,6 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: [a.height() for a in lst]
             [1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4]
         """
-
-        #The previous version of this function, implemented by Nils
-        #Bruin, used the sequence defined by $a_0=0$ and
-        #$a_{n+1}=\frac{1}{2\lfloor a_n\rfloor+1-a_n}$ and generated the
-        #sequence $$a_0,a_1,-a_1,a_2,-a_2,\ldots$$.  This is [A002487]
-        #in Sloane's encyclopedia, attributed to [Stern].  It is not
-        #monotone in height, but has other interesting properties
-        #described in [CalkinWilf].
-        #REFERENCES:
-        #  [A002487] Sloane's OLEIS,
-        #    http://oeis.org/classic/A002487
-        #  [CalkinWilf] N. Calkin and H.S. Wilf, Recounting the
-        #    rationals, American Mathematical Monthly 107 (2000),
-        #    360--363
-        #  [Stern] M.A. Stern, Ueber eine zahlentheoretische Funktion,
-        #    Journal fuer die reine und angewandte Mathematik 55
-        #    (1858), 193--220
-        #
-        # [beginning of Nils' code]
-        #from sage.rings.arith import integer_floor as floor
-        #
-        #n=self(0)
-        #yield n
-        #while True:
-        #  n=1/(2*floor(n)+1-n)
-        #  yield n
-        #  yield -n
-        # [end of Nils' code]
-
         yield self(0)
         yield self(1)
         yield self(-1)
@@ -529,7 +500,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         if B<2:
             raise StopIteration
 
-        from sage.rings.arith import primes
+        from sage.arith.all import primes
         for p in primes(B+1):
             yield p
 

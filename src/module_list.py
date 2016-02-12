@@ -30,6 +30,7 @@ else:
     BLAS='gslcblas'
     BLAS2='gslcblas'
 
+
 #########################################################
 ### Commonly used definitions and aliases
 #########################################################
@@ -60,17 +61,11 @@ for line in open(SAGE_INC + "/m4ri/m4ri_config.h"):
 singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 
 #########################################################
-### PolyBoRi settings
-#########################################################
-
-polybori_extra_compile_args = []
-polybori_major_version = '0.8'
-
-#########################################################
 ### Library order
 #########################################################
 
-# This list defines the *order* of linking libraries. Cython allows
+# This list defines the *order* of linking libraries. A library should
+# be put *before* any library it links to. Cython allows
 # defining libraries using "# distutils: libraries = LIB". However, if
 # there are multiple libraries, the order is undefined so we need to
 # manually reorder the libraries according to this list. The order is
@@ -82,15 +77,15 @@ library_order_list = [
     "singular", "ec", "ecm",
     "linboxsage", "ntl", "iml", "linbox", "givaro",
     "gsl", "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
-    "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
-    "polybori-" + polybori_major_version,
-    "polybori_groebner-" + polybori_major_version,
+    "arb", "fplll", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
+    "polybori",
+    "polybori_groebner",
     "m4rie", "m4ri",
     "zn_poly", "gap",
     "gd", "png12",
     "m", "readline", "Lfunction",
     BLAS, BLAS2,
-    "cryptominisat", "fplll", "z"]
+    "cryptominisat", "z"]
 
 # Make a dict with library:order pairs, where the order are negative
 # integers sorted according to library_order_list. When sorting,
@@ -194,6 +189,9 @@ ext_modules = [
     ################################
 
     Extension('*', ['sage/combinat/**/*.pyx']),
+
+    Extension('sage.combinat.subword_complex_c',
+              sources=['sage/combinat/subword_complex_c.pyx']),
 
     ################################
     ##
@@ -369,6 +367,11 @@ ext_modules = [
     Extension('sage.graphs.graph_decompositions.cutwidth',
               sources = ['sage/graphs/graph_decompositions/cutwidth.pyx']),
 
+    OptionalExtension('sage.graphs.graph_decompositions.tdlib',
+              sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
+              language="c++",
+              package = 'tdlib'),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
@@ -462,8 +465,7 @@ ext_modules = [
     Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
               sources = ['sage/groups/perm_gps/partn_ref2/refinement_generic.pyx'],
               libraries = ["flint", "gmp", "gmpxx", "stdc++"],
-              extra_compile_args=["-std=c99"],
-              depends = ['sage/groups/perm_gps/partn_ref2/refinement_generic.h']),
+              extra_compile_args=["-std=c99"]),
 
     ################################
     ##
@@ -514,8 +516,7 @@ ext_modules = [
 
     Extension('sage.libs.ecl',
               sources = ["sage/libs/ecl.pyx"],
-              libraries = ["ecl"],
-              depends = [SAGE_INC + '/ecl/ecl.h']),
+              libraries = ["ecl"]),
 
     OptionalExtension("sage.libs.fes",
              ["sage/libs/fes.pyx"],
@@ -539,12 +540,7 @@ ext_modules = [
               extra_compile_args = ["-std=c99", "-D_XPG6"]),
 
     Extension('sage.libs.fplll.fplll',
-              sources = ['sage/libs/fplll/fplll.pyx'],
-              libraries = ['gmp', 'mpfr', 'fplll'],
-              language="c++",
-              include_dirs = [SAGE_INC + '/fplll'],
-              extra_compile_args=["-DFPLLL_V3_COMPAT"],
-              depends = [SAGE_INC + "/fplll/fplll.h"]),
+              sources = ['sage/libs/fplll/fplll.pyx']),
 
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
@@ -570,25 +566,10 @@ ext_modules = [
               sources = ['sage/libs/libecm.pyx'],
               libraries = ['ecm'],
               extra_link_args = uname_specific("Linux", ["-Wl,-z,noexecstack"],
-                                                        []),
-              depends = [SAGE_INC + "/ecm.h"]),
+                                                        [])),
 
     Extension('sage.libs.lrcalc.lrcalc',
-              sources = ["sage/libs/lrcalc/lrcalc.pyx"],
-              include_dirs = [SAGE_INC + '/lrcalc/'],
-              libraries = ["lrcalc"]),
-
-    Extension('sage.libs.mwrank.mwrank',
-              sources = ["sage/libs/mwrank/mwrank.pyx",
-                         "sage/libs/mwrank/wrap.cc"],
-              define_macros = [("NTL_ALL",None)],
-              depends = ["sage/libs/mwrank/wrap.h"] +
-                        [ SAGE_INC + "/eclib/" + h for h in
-                          ["curve.h","egr.h","descent.h","points.h","isogs.h",
-                            "marith.h","htconst.h","interface.h"]
-                        ],
-              libraries = ["ec", "pari",
-                           "ntl", "gmp", "gmpxx", "stdc++", "m"]),
+              sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
     Extension('sage.libs.pari.closure',
               sources = ["sage/libs/pari/closure.pyx"],
@@ -606,14 +587,10 @@ ext_modules = [
               libraries = ['flint']),
 
     Extension('sage.libs.ppl',
-              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc'],
-              libraries = ['ppl', 'gmpxx', 'gmp', 'm'],
-              language="c++",
-              depends = [SAGE_INC + "/ppl.hh"]),
+              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),
 
     Extension('sage.libs.ratpoints',
               sources = ["sage/libs/ratpoints.pyx"],
-              depends = [SAGE_INC + '/ratpoints.h'],
               libraries = ["ratpoints"]),
 
     Extension('sage.libs.readline',
@@ -658,8 +635,7 @@ ext_modules = [
 
     Extension('sage.libs.symmetrica.symmetrica',
               sources = ["sage/libs/symmetrica/symmetrica.pyx"],
-              libraries = ["symmetrica"],
-              depends = [SAGE_INC + "/symmetrica/def.h"]),
+              libraries = ["symmetrica"]),
 
     Extension('sage.libs.mpmath.utils',
               sources = ["sage/libs/mpmath/utils.pyx"],
@@ -674,6 +650,22 @@ ext_modules = [
 
     Extension('sage.libs.mpmath.ext_libmp',
               sources = ["sage/libs/mpmath/ext_libmp.pyx"]),
+
+    ###################################
+    ##
+    ## sage.libs.arb
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/arb/*.pyx"]),
+
+    ###################################
+    ##
+    ## sage.libs.eclib
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/eclib/*.pyx"]),
 
     ################################
     ##
@@ -692,46 +684,6 @@ ext_modules = [
     Extension('sage.libs.gap.libgap',
               sources = ["sage/libs/gap/libgap.pyx"],
               libraries = ['gmp', 'gap', 'm']),
-
-    ###################################
-    ##
-    ## sage.libs.cremona
-    ##
-    ###################################
-
-    Extension('sage.libs.cremona.homspace',
-              sources = ["sage/libs/cremona/homspace.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)],
-              depends = [ SAGE_INC + "/eclib/" + h for h in
-                          ["interface.h","bigrat.h","rat.h","curve.h",
-                           "moddata.h","symb.h","cusp.h","homspace.h","mat.h"]
-                        ]),
-
-    Extension('sage.libs.cremona.mat',
-              sources = ["sage/libs/cremona/mat.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)],
-              depends = [ SAGE_INC + "/eclib/" + h for h in
-                          ["interface.h","bigrat.h","rat.h","curve.h",
-                           "moddata.h","symb.h","cusp.h","homspace.h","mat.h"]
-                        ]),
-
-    Extension('sage.libs.cremona.newforms',
-              sources = ["sage/libs/cremona/newforms.pyx"],
-              libraries = ['ec', 'ntl', 'pari',
-                           'gmpxx', 'gmp', 'm'],
-              language='c++',
-              define_macros = [("NTL_ALL",None)],
-              depends = [ SAGE_INC + "/eclib/" + h for h in
-                          ["interface.h","bigrat.h","rat.h","curve.h",
-                           "moddata.h","symb.h","cusp.h","xsplit.h","method.h",
-                           "oldforms.h","homspace.h","cperiods.h","newforms.h"]
-                        ]),
 
     ###################################
     ##
@@ -894,8 +846,7 @@ ext_modules = [
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
-              libraries = ['iml', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h']),
+              libraries = ['iml', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2]),
 
     Extension('sage.matrix.matrix_integer_sparse',
               sources = ['sage/matrix/matrix_integer_sparse.pyx']),
@@ -906,8 +857,8 @@ ext_modules = [
               extra_compile_args = m4ri_extra_compile_args,
               depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
 
-    Extension('sage.matrix.matrix_mod2e_dense',
-              sources = ['sage/matrix/matrix_mod2e_dense.pyx'],
+    Extension('sage.matrix.matrix_gf2e_dense',
+              sources = ['sage/matrix/matrix_gf2e_dense.pyx'],
               libraries = ['m4rie', 'm4ri', 'm'],
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
               extra_compile_args = m4ri_extra_compile_args),
@@ -953,6 +904,11 @@ ext_modules = [
     Extension('sage.matrix.matrix_window',
               sources = ['sage/matrix/matrix_window.pyx']),
 
+    OptionalExtension("sage.matrix.matrix_gfpn_dense",
+              sources = ['sage/matrix/matrix_gfpn_dense.pyx'],
+              libraries = ['mtx'],
+              package = 'meataxe'),
+
     Extension('sage.matrix.misc',
               sources = ['sage/matrix/misc.pyx'],
               libraries=['mpfr']),
@@ -988,7 +944,6 @@ ext_modules = [
     OptionalExtension('sage.misc.darwin_utilities',
         sources = ['sage/misc/darwin_memory_usage.c',
                    'sage/misc/darwin_utilities.pyx'],
-        depends = ['sage/misc/darwin_memory_usage.h'],
         condition = (UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'))),
 
     ################################
@@ -1003,9 +958,7 @@ ext_modules = [
     Extension('sage.modular.arithgroup.farey_symbol',
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',
                          'sage/modular/arithgroup/farey.cpp',
-                         'sage/modular/arithgroup/sl2z.cpp'],
-              libraries = ['gmpxx', 'gmp'],
-              language = 'c++'),
+                         'sage/modular/arithgroup/sl2z.cpp']),
 
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
@@ -1096,27 +1049,31 @@ ext_modules = [
               ["sage/numerical/linear_tensor_element.pyx"],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.sdp",
+              ["sage/numerical/sdp.pyx"]),
+
     Extension("sage.numerical.backends.generic_backend",
               ["sage/numerical/backends/generic_backend.pyx"],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.backends.generic_sdp_backend",
+              ["sage/numerical/backends/generic_sdp_backend.pyx"]),
+
     Extension("sage.numerical.backends.glpk_backend",
-              ["sage/numerical/backends/glpk_backend.pyx"],
-              language = 'c++',
-              libraries=["gmp", "glpk", "z"]),
+              ["sage/numerical/backends/glpk_backend.pyx"]),
 
     Extension("sage.numerical.backends.ppl_backend",
               ["sage/numerical/backends/ppl_backend.pyx"],
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.cvxopt_backend",
-              ["sage/numerical/backends/cvxopt_backend.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/backends/cvxopt_backend.pyx"]),
+
+    Extension("sage.numerical.backends.cvxopt_sdp_backend",
+              ["sage/numerical/backends/cvxopt_sdp_backend.pyx"]),
 
     Extension("sage.numerical.backends.glpk_graph_backend",
-              ["sage/numerical/backends/glpk_graph_backend.pyx"],
-              language = 'c++',
-              libraries=["gmp", "glpk", "z"]),
+              ["sage/numerical/backends/glpk_graph_backend.pyx"]),
 
     OptionalExtension("sage.numerical.backends.gurobi_backend",
               ["sage/numerical/backends/gurobi_backend.pyx"],
@@ -1230,11 +1187,9 @@ ext_modules = [
               libraries=['ntl'],
               language = 'c++'),
 
-    OptionalExtension("sage.rings.complex_ball_acb",
-                      ["sage/rings/complex_ball_acb.pyx"],
-                      libraries=['arb', 'mpfi', 'mpfr'],
-                      include_dirs=[SAGE_INC + '/flint'],
-                      package='arb'),
+    Extension("sage.rings.complex_arb",
+              ["sage/rings/complex_arb.pyx"],
+              libraries=['mpfi', 'mpfr', 'gmp']),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
@@ -1303,11 +1258,9 @@ ext_modules = [
     Extension('sage.rings.real_interval_absolute',
               sources = ['sage/rings/real_interval_absolute.pyx']),
 
-    OptionalExtension("sage.rings.real_arb",
-                      ["sage/rings/real_arb.pyx"],
-                      libraries = ['arb', 'mpfi', 'mpfr'],
-                      include_dirs = [SAGE_INC + '/flint'],
-                      package = 'arb'),
+    Extension("sage.rings.real_arb",
+              ["sage/rings/real_arb.pyx"],
+              libraries = ['mpfi', 'mpfr']),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),
@@ -1480,6 +1433,11 @@ ext_modules = [
     Extension('sage.rings.polynomial.cyclotomic',
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
 
+    Extension('sage.rings.polynomial.evaluation',
+              libraries = ["flint", "gmp", "ntl", "mpfr", "mpfi"],
+              sources = ['sage/rings/polynomial/evaluation.pyx'],
+              language = 'c++'),
+
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
 
@@ -1497,8 +1455,7 @@ ext_modules = [
               sources = ['sage/rings/polynomial/plural.pyx'],
               libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
-              include_dirs = singular_incs,
-              depends = [SAGE_INC + "/libsingular.h"]),
+              include_dirs = singular_incs)
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
@@ -1525,8 +1482,7 @@ ext_modules = [
               sources = ['sage/rings/polynomial/polynomial_gf2x.pyx'],
               libraries = ['gmp', 'ntl'],
               extra_compile_args = m4ri_extra_compile_args,
-              language = 'c++',
-              depends = [SAGE_INC + '/m4ri/m4ri.h']),
+              language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_zz_pex',
               sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx'],
@@ -1563,11 +1519,10 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['polybori-' + polybori_major_version,
-                         'polybori_groebner-' + polybori_major_version, 'm4ri', 'gd', 'png12'],
-              depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"] ] + \
+              libraries=['polybori', 'polybori_groebner', 'm4ri', 'png12'],
+              depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"] ] +
                         [SAGE_INC + '/m4ri/m4ri.h'],
-              extra_compile_args = polybori_extra_compile_args + m4ri_extra_compile_args,
+              extra_compile_args = m4ri_extra_compile_args,
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',
@@ -1578,8 +1533,13 @@ ext_modules = [
               sources = ['sage/rings/polynomial/real_roots.pyx'],
               libraries=['mpfr']),
 
+    Extension('sage.rings.polynomial.refine_root',
+              sources = ['sage/rings/polynomial/refine_root.pyx'],
+              libraries=['gmp', 'mpfr', 'mpfi']),
+
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
+
 
     ################################
     ##
@@ -1622,8 +1582,6 @@ ext_modules = [
     Extension('sage.schemes.elliptic_curves.descent_two_isogeny',
               sources = ['sage/schemes/elliptic_curves/descent_two_isogeny.pyx'],
               extra_compile_args=["-std=c99"],
-              depends = [SAGE_INC + '/ratpoints.h',
-                         SAGE_INC + '/gmp.h'],
               libraries = ['flint', 'ratpoints']),
 
     Extension('sage.schemes.elliptic_curves.period_lattice_region',
@@ -1730,7 +1688,3 @@ ext_modules = [
     Extension('sage.tests.cython',
               sources = ['sage/tests/cython.pyx']),
 ]
-
-# Add auto-generated modules
-import sage_setup.autogen.interpreters
-ext_modules += sage_setup.autogen.interpreters.modules

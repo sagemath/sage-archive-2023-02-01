@@ -22,7 +22,16 @@ following functions are available:
 Functions
 ---------
 """
-from sage.rings.arith     import is_prime_power
+
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.arith.all import is_prime_power
 from sage.misc.unknown    import Unknown
 from incidence_structures import IncidenceStructure
 
@@ -169,7 +178,7 @@ def GDD_4_2(q,existence=False,check=True):
     if existence:
         return True
 
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     G = GF(q,'x')
     w = G.primitive_element()
     e = w**((q-1)/3)

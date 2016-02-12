@@ -25,11 +25,6 @@ PPC64/Linux, S390X/Linux, ARM/Android (2.3.x), X86/Darwin and AMD64/Darwin
 Valgrind is Open Source / Free Software, and is freely available under the
 GNU General Public License, version 2.
 
-== SPKG Maintainers ==
-
- * Tim Dumol
- * Ivan Andrus
-
 == Upstream Contact ==
 
  * http://www.valgrind.org/

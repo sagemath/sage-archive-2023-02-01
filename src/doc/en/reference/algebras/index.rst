@@ -4,6 +4,8 @@ Algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/associated_graded
+
    sage/algebras/catalog
 
    sage/algebras/clifford_algebra
@@ -25,6 +27,8 @@ Algebras
    sage/algebras/free_algebra_quotient
    sage/algebras/free_algebra_quotient_element
 
+   sage/algebras/free_zinbiel_algebra
+
    sage/algebras/group_algebra
 
    sage/algebras/iwahori_hecke_algebra
@@ -33,6 +37,8 @@ Algebras
 
    sage/algebras/hall_algebra
    sage/algebras/jordan_algebra
+
+   sage/algebras/orlik_solomon
 
    sage/algebras/quatalg/quaternion_algebra
 

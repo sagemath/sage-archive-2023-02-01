@@ -46,12 +46,12 @@ def sidon_sets(N, g = 1):
         sage: S.cardinality()
         8
         sage: S.category()
-        Category of sets
+        Category of finite sets
         sage: sid = S.an_element()
         sage: sid
         {2}
         sage: sid.category()
-        Category of sets
+        Category of finite sets
 
     TESTS::
 

@@ -19,7 +19,7 @@ AUTHORS:
 
 from element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from finite_field_base import FiniteField
-from constructor import GF
+from finite_field_constructor import GF
 
 class FiniteField_pari_ffelt(FiniteField):
     """

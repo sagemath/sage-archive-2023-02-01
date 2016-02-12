@@ -7,28 +7,21 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import ring_element
+
+from sage.structure.element import RingElement
 
 from sage.interfaces.singular import singular as singular_default
 
-class QuotientRingElement(ring_element.RingElement):
+class QuotientRingElement(RingElement):
     """
     An element of a quotient ring `R/I`.
 
@@ -93,7 +86,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: v = S.gens(); v
             (xbar,)
         """
-        ring_element.RingElement.__init__(self, parent)
+        RingElement.__init__(self, parent)
         self.__rep = rep
         if reduce:
             self._reduce_()
@@ -401,7 +394,7 @@ class QuotientRingElement(ring_element.RingElement):
                 return L * R.inverse_mod(I)
             except NotImplementedError:
                 if R.is_unit():
-                    return L * R.__invert__()
+                    return L * ~R
                 else:
                     raise
 
@@ -435,7 +428,7 @@ class QuotientRingElement(ring_element.RingElement):
           one for each `x` in ``self.parent().gens()``, that define
           a homomorphism `f` from ``self.parent()`` to ``codomain``
 
-        OUPUT:
+        OUTPUT:
 
         The image of ``self`` in ``codomain`` under the above
         homomorphism `f`.
@@ -596,6 +589,18 @@ class QuotientRingElement(ring_element.RingElement):
             TypeError
         """
         return float(self.lift())
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<a,b> = R.quo(x^2 + y^2)
+            sage: hash(a)
+            15360174650385711  # 64-bit
+            1505322287         # 32-bit
+        """
+        return hash(self.__rep)
 
     def __cmp__(self, other):
         """

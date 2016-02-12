@@ -813,7 +813,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             vertices = [ V.coordinates(v-v0) for v in self.vertices() ]
         return LatticePolytope_PPL(*vertices)
 
-    @cached_method
     def base_projection(self, fiber):
         """
         The projection that maps the sub-polytope ``fiber`` to a
@@ -834,7 +833,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         """
         return self.ambient_space().quotient(fiber.affine_space())
 
-    @cached_method
     def base_projection_matrix(self, fiber):
         """
         The projection that maps the sub-polytope ``fiber`` to a
@@ -902,18 +900,19 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ((1),)
         """
         quo = self.base_projection(fiber)
-        vertices = []
+        vertices = set()
         for p in points:
-            v = vector(ZZ,quo(p))
+            v = quo(p).vector()
             if v.is_zero():
                 continue
-            d =  GCD_list(v.list())
-            if d>1:
-                for i in range(0,v.degree()):
+            d = GCD_list(v.list())
+            if d > 1:
+                v = v.__copy__()
+                for i in range(v.degree()):
                     v[i] /= d
-            v.set_immutable()
-            vertices.append(v)
-        return tuple(uniq(vertices))
+                v.set_immutable()
+            vertices.add(v)
+        return tuple(sorted(vertices))
 
     @cached_method
     def has_IP_property(self):
@@ -1069,7 +1068,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             Permutation Group with generators [(), (3,4), (1,6)(2,5), (1,6)(2,5)(3,4)]
 
         Point labels also work for lattice polytopes that are not
-        full-dimensional, see trac:`16669`::
+        full-dimensional, see :trac:`16669`::
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: lp = LatticePolytope_PPL((1,0,0),(0,1,0),(-1,-1,0))

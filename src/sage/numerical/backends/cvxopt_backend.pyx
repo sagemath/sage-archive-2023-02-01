@@ -7,14 +7,15 @@ AUTHORS:
 - Ingolfur Edvardsson (2014-05)        : initial implementation
 
 """
-
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2014 Ingolfur Edvardsson <ingolfured@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
-
+#*****************************************************************************
 
 from sage.numerical.mip import MIPSolverException
 from cvxopt import solvers
@@ -208,10 +209,10 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.set_variable_type(3, -2)
             Traceback (most recent call last):
             ...
-            Exception: ...
+            ValueError: ...
         """
         if vtype != -1:
-            raise Exception('This backend does not handle integer variables ! Read the doc !')
+            raise ValueError('This backend does not handle integer variables ! Read the doc !')
 
     cpdef set_sense(self, int sense):
         """
@@ -829,9 +830,9 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.set_variable_type(0,0)
             Traceback (most recent call last):
             ...
-            Exception: ...
+            ValueError: ...
             sage: p.is_variable_binary(0)
-            False 
+            False
 
         """
         return False
@@ -857,9 +858,9 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.set_variable_type(0,1)
             Traceback (most recent call last):
             ...
-            Exception: ...
+            ValueError: ...
             sage: p.is_variable_integer(0)
-            False 
+            False
         """
         return False
 
@@ -885,9 +886,9 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.set_variable_type(0,1)
             Traceback (most recent call last):
             ...
-            Exception: ...
+            ValueError: ...
             sage: p.is_variable_continuous(0)
-            True            
+            True
 
         """
         return True

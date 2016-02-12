@@ -362,8 +362,8 @@ fact that the third output is different than the first::
     AA(2)
 
 Just for fun, let's try ``sage_input`` on a very complicated expression. The
-output of this example changed with the rewritting of polynomial multiplication
-algorithms in #10255::
+output of this example changed with the rewriting of polynomial multiplication
+algorithms in :trac:`10255`::
 
     sage: rt2 = sqrt(AA(2))
     sage: rt3 = sqrt(QQbar(3))
@@ -449,7 +449,7 @@ Here are examples of all of these conversions::
     ....:     def convert_test(v):
     ....:         try:
     ....:             return ty(v)
-    ....:         except ValueError:
+    ....:         except (TypeError, ValueError):
     ....:             return None
     ....:     return [convert_test(_) for _ in all_vals]
     sage: convert_test_all(float)
@@ -487,7 +487,6 @@ import itertools
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.structure.sage_object import SageObject
-from sage.structure.parent_gens import ParentWithGens
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement
 from sage.rings.complex_field import ComplexField
@@ -495,12 +494,11 @@ from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIn
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
-from sage.rings.arith import factor
+from sage.arith.all import factor
 from sage.structure.element import generic_power, canonical_coercion
 import infinity
 from sage.misc.functional import cyclotomic_polynomial
@@ -3557,21 +3555,28 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             else:
                 return []
 
-        root = self.__pow__(~ZZ(2))
+        root = self ** ~ZZ(2)
 
         if all:
             return [root, -root]
         else:
            return root
 
-    def nth_root(self, n):
+    def nth_root(self, n, all=False):
         r"""
         Return the ``n``-th root of this number.
 
-        Note that for odd `n` and negative real numbers, ``AlgebraicReal``
-        and ``AlgebraicNumber`` values give different answers: ``AlgebraicReal``
-        values prefer real results, and ``AlgebraicNumber`` values
-        return the principal root.
+        INPUT:
+
+        -  ``all`` - bool (default: ``False``). If ``True``, return a list of
+           all `n`-th roots as complex algebraic numbers.
+
+        .. WARNING::
+
+            Note that for odd `n`, all=`False` and negative real numbers,
+            ``AlgebraicReal`` and ``AlgebraicNumber`` values give different
+            answers: ``AlgebraicReal`` values prefer real results, and
+            ``AlgebraicNumber`` values return the principal root.
 
         EXAMPLES::
 
@@ -3581,8 +3586,40 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             1.000000000000000? + 1.732050807568878?*I
             sage: QQbar.zeta(12).nth_root(15)
             0.9993908270190957? + 0.03489949670250097?*I
+
+        You can get all ``n``-th roots of algebraic numbers::
+
+            sage: AA(-8).nth_root(3, all=True)
+            [1.000000000000000? + 1.732050807568878?*I,
+            -2,
+            1.000000000000000? - 1.732050807568878?*I]
+
+            sage: QQbar(1+I).nth_root(4, all=True)
+            [1.069553932363986? + 0.2127475047267431?*I,
+             -0.2127475047267431? + 1.069553932363986?*I,
+             -1.069553932363986? - 0.2127475047267431?*I,
+             0.2127475047267431? - 1.069553932363986?*I]
+
+        TESTS::
+
+            sage: AA(-8).nth_root(3, all=True)[1]
+            -2
+            sage: _.parent()
+            Algebraic Field
+
+            sage: AA(-2).nth_root(5, all=True) == QQbar(-2).nth_root(5, all=True)   # long time
+            True
         """
-        return self.__pow__(~ZZ(n))
+        if not all:
+            return self ** ~ZZ(n)
+        else:
+            root = QQbar(self) ** ~ZZ(n)
+            zlist = [root]
+            zeta = QQbar.zeta(n)
+            for k in range(1, n):
+                root *= zeta
+                zlist.append(root)
+            return zlist
 
     def as_number_field_element(self, minimal=False):
         r"""
@@ -3807,7 +3844,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def interval_fast(self, field):
         r"""
-        Given a ``RealIntervalField``, compute the value of this number
+        Given a :class:`RealIntervalField` or
+        :class:`ComplexIntervalField`, compute the value of this number
         using interval arithmetic of at least the precision of the field,
         and return the value in that field. (More precision may be used
         in the computation.)  The returned interval may be arbitrarily
@@ -3827,15 +3865,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: x.interval_fast(RIF)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert number to real interval.
+            TypeError: unable to convert 0.7071067811865475244? + 0.7071067811865475244?*I to real interval
         """
-        if field.prec() == self._value.prec():
-            return field(self._value)
-        elif field.prec() > self._value.prec():
+        while self._value.prec() < field.prec():
             self._more_precision()
-            return self.interval_fast(field)
-        else:
-            return field(self._value)
+        return field(self._value)
 
     def interval_diameter(self, diam):
         """
@@ -3887,10 +3921,21 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.8412535328311811689? + 0.540640817455597582?*I
             sage: x.interval(CIF64)
             0.8412535328311811689? + 0.5406408174555975822?*I
+
+        The following implicitly use this method::
+
+            sage: RIF(AA(5).sqrt())
+            2.236067977499790?
+            sage: AA(-5).sqrt().interval(RIF)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 2.236067977499789697?*I to real interval
         """
         target = RR(1.0) >> field.prec()
         val = self.interval_diameter(target)
         return field(val)
+
+    _real_mpfi_ = interval
 
     def radical_expression(self):
         r"""
@@ -4019,14 +4064,14 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: x = polygen(ZZ)
             sage: p = 69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321
             sage: sorted(p.roots(QQbar,False))
-            [-0.0221204634374360? - 1.090991904211621?*I,
-             -0.0221204634374360? + 1.090991904211621?*I,
+            [-0.0221204634374361? - 1.090991904211621?*I,
+             -0.0221204634374361? + 1.090991904211621?*I,
              -0.8088604911480535?*I,
-             -0.7598602580415435?*I,
-             0.7598602580415435?*I,
+             0.?e-182 - 0.7598602580415435?*I,
+             0.?e-249 + 0.7598602580415435?*I,
              0.8088604911480535?*I,
-             0.0221204634374360? - 1.090991904211621?*I,
-             0.0221204634374360? + 1.090991904211621?*I]
+             0.0221204634374361? - 1.090991904211621?*I,
+             0.0221204634374361? + 1.090991904211621?*I]
 
         It also works for comparison of conjugate roots even in a degenerate
         situation where many roots have the same real part. In the following
@@ -4133,10 +4178,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
                 return False
         if self is other: return True
         if other._descr.is_rational() and other._descr.rational_value() == 0:
-            return not self.__nonzero__()
+            return not self
         if self._descr.is_rational() and self._descr.rational_value() == 0:
-            return not other.__nonzero__()
-        return not self._sub_(other).__nonzero__()
+            return not other
+        return not self._sub_(other)
 
     def __ne__(self, other):
         r"""
@@ -4153,7 +4198,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar(2) != GF(7)(2)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __nonzero__(self):
         """
@@ -4553,13 +4598,13 @@ class AlgebraicNumber(AlgebraicNumber_base):
         EXAMPLES::
 
             sage: a = QQbar.zeta(5)
-            sage: a.complex_number(CIF)
+            sage: a.complex_number(CC)
             0.309016994374947 + 0.951056516295154*I
-            sage: (a + a.conjugate()).complex_number(CIF)
+            sage: (a + a.conjugate()).complex_number(CC)
             0.618033988749895 - 5.42101086242752e-20*I
         """
         v = self.interval(ComplexIntervalField(field.prec()))
-        return v.center()
+        return field(v)
 
     def complex_exact(self, field):
         r"""
@@ -4823,7 +4868,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             return AlgebraicNumber(0)
         if d % 2 == 0:
             if self.sign() < 0:
-                return QQbar(self).__pow__(e)
+                return QQbar(self) ** e
         pow_n = self**n
         poly = AAPoly.gen()**d - pow_n
         range = pow_n.interval_fast(RIF)
@@ -5204,21 +5249,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             1.41421356237309
         """
         v = self.interval(RealIntervalField(field.prec()))
-
-        mode = field.rounding_mode()
-        if mode == 'RNDN':
-            return v.center()
-        if mode == 'RNDD':
-            return v.lower()
-        if mode == 'RNDU':
-            return v.upper()
-        if mode == 'RNDZ':
-            if v > 0:
-                return field(v.lower())
-            elif v < 0:
-                return field(v.upper())
-            else:
-                return field(0)
+        return field(v)
 
     _mpfr_ = real_number
 

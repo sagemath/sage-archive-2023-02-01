@@ -117,6 +117,7 @@ import os
 import struct
 import zlib
 
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_dir, tmp_filename, graphics_filename
 import plot
@@ -139,7 +140,7 @@ def animate(frames, **kwds):
     """
     return Animation(frames, **kwds)
 
-class Animation(SageObject):
+class Animation(WithEqualityById, SageObject):
     r"""
     Return an animation of a sequence of plots of objects.
 
@@ -215,6 +216,9 @@ class Animation(SageObject):
         sage: a._frames
         <generator object ...
 
+        sage: from sage.plot.animate import Animation
+        sage: hash(Animation()) # random
+        140658972348064
     """
     def __init__(self, v=None, **kwds):
         r"""
@@ -265,7 +269,6 @@ class Animation(SageObject):
             if values:
                 new_kwds[name] = getattr(__builtin__, name[1:])(values)
         return new_kwds
-
 
     def __getitem__(self, i):
         """

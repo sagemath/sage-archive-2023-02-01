@@ -42,26 +42,25 @@ AUTHORS:
 Functions and methods
 ---------------------
 """
-#***************************************************************************
-#                              Copyright (C) 2007                          #
-#                                                                          #
-#                Peter Dobcsanyi       and         David Joyner            #
-#           <peter@designtheory.org>          <wdjoyner@gmail.com>         #
-#                                                                          #
-#                                                                          #
-#    Distributed under the terms of the GNU General Public License (GPL)   #
-#    as published by the Free Software Foundation; either version 2 of     #
-#    the License, or (at your option) any later version.                   #
-#                    http://www.gnu.org/licenses/                          #
-#***************************************************************************
+
+#*****************************************************************************
+#       Copyright (C) 2007 Peter Dobcsanyi <peter@designtheory.org>
+#       Copyright (C) 2007 David Joyner <wdjoyner@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import binomial, integer_floor
+from sage.arith.all import binomial, integer_floor, is_prime_power
 from incidence_structures import IncidenceStructure
 from sage.misc.decorators import rename_keyword
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.matrix.matrix_space import MatrixSpace
@@ -78,7 +77,7 @@ def tdesign_params(t, v, k, L):
 
     EXAMPLES::
 
-        sage: BD = designs.BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+        sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
         sage: from sage.combinat.designs.block_design import tdesign_params
         sage: tdesign_params(2,7,3,1)
         (2, 7, 7, 3, 3, 1)
@@ -144,7 +143,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
         ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l+1) is False
         ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l-1) is False
     """
-    import sage.rings.arith as arith
+    import sage.arith.all as arith
 
     q1 = Integer(v - k)
     q2 = Integer(k - lmbda)
@@ -165,7 +164,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
 
     return (True, (q,d)) if return_parameters else True
 
-def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
+def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, check=True):
     """
     Return a projective geometry design.
 
@@ -188,6 +187,10 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
       GAP's "design" package must be available in this case, and that it can be
       installed with the ``gap_packages`` spkg.
 
+    - ``point_coordinates`` -- ``True`` by default. Ignored and assumed to be ``False`` if
+      ``algorithm="gap"``. If ``True``, the ground set is indexed by coordinates in `F^{n+1}`.
+      Otherwise the ground set is indexed by integers,
+
     EXAMPLES:
 
     The set of `d`-dimensional subspaces in a `n`-dimensional projective space
@@ -202,6 +205,18 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
         sage: PG = designs.ProjectiveGeometryDesign(3,1,GF(4,'z'))
         sage: PG.is_t_design(return_parameters=True)
         (True, (2, 85, 5, 1))
+
+    Use coordinates::
+
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3))
+        sage: PG.blocks()[0]
+        [(1, 0, 0), (1, 0, 1), (1, 0, 2), (0, 0, 1)]
+
+    Use indexing by integers::
+
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3),point_coordinates=0)
+        sage: PG.blocks()[0]
+        [0, 1, 2, 12]
 
     Check that the constructor using gap also works::
 
@@ -224,7 +239,10 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
                 m.set_immutable()
                 b.append(points[m])
             blocks.append(b)
-        return BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
+        B = BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
+        if point_coordinates:
+            B.relabel({i:p[0] for p,i in points.iteritems()})
+        return B
     if algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
         gap.load_package("design")
@@ -236,7 +254,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign", check=check)
 
-def DesarguesianProjectivePlaneDesign(n, check=True):
+def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     r"""
     Return the Desarguesian projective plane of order ``n`` as a 2-design.
 
@@ -247,6 +265,9 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     INPUT:
 
     - ``n`` -- an integer which must be a power of a prime number
+
+    - ``point_coordinates`` (boolean) -- whether to label the points with their
+      homogeneous coordinates (default) or with integers.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -271,8 +292,9 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
         Traceback (most recent call last):
         ...
         ValueError: the order of a finite field must be a prime power
+
     """
-    K = FiniteField(n, 'x')
+    K = FiniteField(n, 'a')
     n2 = n**2
     relabel = {x:i for i,x in enumerate(K)}
     Kiter = relabel  # it is much faster to iterate throug a dict than through
@@ -316,7 +338,20 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
         if not is_projective_plane(blcks):
             raise RuntimeError('There is a problem in the function DesarguesianProjectivePlane')
     from bibd import BalancedIncompleteBlockDesign
-    return BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
+    B = BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
+
+    if point_coordinates:
+        zero = K.zero()
+        one  = K.one()
+        d = {affine_plane(x,y): (x,y,one)
+             for x in Kiter
+             for y in Kiter}
+        d.update({line_infinity(x): (x,one,zero)
+                  for x in Kiter})
+        d[n2+n]=(one,zero,zero)
+        B.relabel(d)
+
+    return B
 
 def q3_minus_one_matrix(K):
     r"""
@@ -572,10 +607,10 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.designs.block_design import projective_plane_to_OA
-        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2)
+        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2,point_coordinates=False)
         sage: projective_plane_to_OA(p2)
         [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
-        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3)
+        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3,point_coordinates=False)
         sage: projective_plane_to_OA(p3)
         [[0, 0, 0, 0],
          [0, 1, 2, 1],
@@ -587,7 +622,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
          [2, 1, 0, 2],
          [2, 2, 2, 0]]
 
-        sage: pp = designs.DesarguesianProjectivePlaneDesign(16)
+        sage: pp = designs.DesarguesianProjectivePlaneDesign(16,point_coordinates=False)
         sage: _ = projective_plane_to_OA(pp, pt=0)
         sage: _ = projective_plane_to_OA(pp, pt=3)
         sage: _ = projective_plane_to_OA(pp, pt=7)
@@ -667,7 +702,6 @@ def projective_plane(n, check=True, existence=False):
         sage: designs.projective_plane(12, existence=True)
         Unknown
     """
-    from sage.rings.arith import is_prime_power
     from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
 
     if n <= 1:
@@ -697,7 +731,7 @@ def projective_plane(n, check=True, existence=False):
     if existence:
         return True
     else:
-        return DesarguesianProjectivePlaneDesign(n, check=check)
+        return DesarguesianProjectivePlaneDesign(n, point_coordinates=False, check=check)
 
 def AffineGeometryDesign(n, d, F):
     r"""
@@ -759,6 +793,34 @@ def AffineGeometryDesign(n, d, F):
     for b in gblcks:
        gB.append([x-1 for x in b])
     return BlockDesign(v, gB, name="AffineGeometryDesign")
+
+def CremonaRichmondConfiguration():
+    r"""
+    Return the Cremona-Richmond configuration
+
+    The Cremona-Richmond configuration is a set system whose incidence graph
+    is equal to the
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.TutteCoxeterGraph`. It
+    is a generalized quadrangle of parameters `(2,2)`.
+
+    For more information, see the
+    :wikipedia:`Cremona-Richmond_configuration`.
+
+    EXAMPLE::
+
+        sage: H = designs.CremonaRichmondConfiguration(); H
+        Incidence structure with 15 points and 15 blocks
+        sage: g = graphs.TutteCoxeterGraph()
+        sage: H.incidence_graph().is_isomorphic(g)
+        True
+    """
+    from sage.graphs.generators.smallgraphs import TutteCoxeterGraph
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    g = TutteCoxeterGraph()
+    H = IncidenceStructure([g.neighbors(v)
+                            for v in g.bipartite_sets()[0]])
+    H.relabel()
+    return H
 
 def WittDesign(n):
     """

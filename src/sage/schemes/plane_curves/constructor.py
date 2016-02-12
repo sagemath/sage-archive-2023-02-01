@@ -25,7 +25,7 @@ AUTHORS:
 
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.structure.all import Sequence
 
@@ -155,7 +155,7 @@ def Curve(F):
         sage: Curve(x^2+y^2+z)
         Traceback (most recent call last):
         ...
-        TypeError: x^2 + y^2 + z is not a homogeneous polynomial!
+        TypeError: x^2 + y^2 + z is not a homogeneous polynomial
 
     The defining polynomial must always be nonzero::
 

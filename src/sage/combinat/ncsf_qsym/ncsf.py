@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Non-Commutative Symmetric Functions
 """
@@ -32,6 +33,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.functions.other import factorial
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.rings import Rings
+from sage.categories.fields import Fields
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.combinat.composition import Compositions
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -252,7 +254,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         R[1, 3, 2] + R[1, 5] + R[4, 2] + R[6]
 
     This is the sum of all fatter compositions. Using the usual
-    Moebius function for the boolean lattice, the inverse change of
+    Möbius function for the boolean lattice, the inverse change of
     basis is given by the alternating sum of all fatter compositions::
 
         sage: complete(ribbon[1,3,2])
@@ -267,7 +269,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: ribbon(elementary([1,3,2]))
         R[1, 1, 1, 1, 1, 1] + R[1, 1, 1, 2, 1] + R[2, 1, 1, 1, 1] + R[2, 1, 2, 1]
 
-    By Moebius inversion on the composition poset, the ribbon
+    By Möbius inversion on the composition poset, the ribbon
     basis element corresponding to a composition `I` is then the
     alternating sum over all compositions fatter than the
     complement composition of `I` in the elementary basis::
@@ -401,9 +403,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         r"""
         TESTS::
 
+            sage: NCSF1 = NonCommutativeSymmetricFunctions(FiniteField(23))
+            sage: NCSF2 = NonCommutativeSymmetricFunctions(Integers(23))
             sage: TestSuite(NonCommutativeSymmetricFunctions(QQ)).run()
         """
-        assert(R in Rings())
+        # change the line below to assert(R in Rings()) once MRO issues from #15536, #15475 are resolved
+        assert(R in Fields() or R in Rings()) # side effect of this statement assures MRO exists for R
         self._base = R # Won't be needed once CategoryObject won't override base_ring
         Parent.__init__(self, category = GradedHopfAlgebras(R).WithRealizations())
 
@@ -951,8 +956,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     ....:     for i in reversed(xs):
                     ....:         res = res.bernstein_creation_operator(i)
                     ....:     return res
+                    sage: import itertools
                     sage: all( immaculate_by_bernstein(p) == I.immaculate_function(p)
-                    ....:      for p in CartesianProduct(range(-1, 3), range(-1, 3), range(-1, 3)) )
+                    ....:      for p in itertools.product(range(-1, 3), repeat=3))
                     True
 
                 Some examples::
@@ -3553,7 +3559,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             ....:     Psi = NCSF.Psi()
             ....:     a = R.sum([(-1) ** i * R[[1]*i + [n-i]]
             ....:                for i in range(n)])
-            ....:     return Psi(a) == Psi[n]
+            ....:     return a == R(Psi[n])
             sage: test_psi(2)
             True
             sage: test_psi(3)
@@ -4206,7 +4212,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 The current implementation on the Phi basis gives the
                 same results as the default implementation::
 
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
                     sage: S = NSym.S()
+                    sage: Phi = NSym.Phi()
                     sage: def test_phi(N, n):
                     ....:     for I in Compositions(N):
                     ....:         if S(Phi[I].verschiebung(n)) != S(Phi[I]).verschiebung(n):
@@ -4474,7 +4482,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                    distinct=True )
             # Note: sum(I) works both if I is a list and if I is a composition
             # (although the latter case doesn't work in IPython, cf.
-            # :trac:`15163`).
+            # trac #15163).
 
         def _from_psi_on_basis(self, I):
             r"""

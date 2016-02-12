@@ -72,7 +72,6 @@ Installation Guide:
 1. Make sure you have the dependencies and 5 GB of free disk space.
 
    All Linux versions: gcc, make, m4, perl, ranlib, and tar.
-   Debian or Ubuntu systems: the dpkg-dev package.
    Fedora or RedHat systems: the perl-ExtUtils-MakeMaker package.
    (install these using your package manager)
 
@@ -210,7 +209,7 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
 7. The HTML version of the documentation is built
    during the compilation process of Sage and resides in the directory:
 
-       $SAGE_ROOT/src/doc/output/html/
+       $SAGE_ROOT/local/share/doc/sage/html/
 
    OPTIONAL: If you want to build the PDF version (requires LaTeX) of
    the documentation, run:

@@ -360,7 +360,7 @@ class Face(SageObject):
         elif v1 > v2:
             return 1
         else:
-            return t1.__cmp__(t2)
+            return cmp(t1, t2)
 
     def __hash__(self):
         r"""
@@ -692,7 +692,7 @@ class Patch(SageObject):
         r"""
         Returns the number of faces contained in the patch.
 
-        OUPUT:
+        OUTPUT:
 
             integer
 
@@ -1410,7 +1410,7 @@ class E1Star(SageObject):
             raise ValueError("The substitution (%s) must be defined on positive integers."%sigma)
 
         self._sigma = WordMorphism(sigma)
-        self._d = self._sigma.domain().size_of_alphabet()
+        self._d = self._sigma.domain().alphabet().cardinality()
 
         # self._base_iter is a base for the iteration of the application of self on set
         # of faces. (Exploits the linearity of `E_1^*(\sigma)` to optimize computation.)

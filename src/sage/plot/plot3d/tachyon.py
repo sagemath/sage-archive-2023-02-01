@@ -139,6 +139,7 @@ from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
 
 from sage.interfaces.tachyon import tachyon_rt
 
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 
 from sage.misc.misc import SAGE_TMP
@@ -153,7 +154,7 @@ import os
 from math import sqrt
 
 
-class Tachyon(SageObject):
+class Tachyon(WithEqualityById, SageObject):
     r"""
     Create a scene the can be rendered using the Tachyon ray tracer.
 
@@ -334,6 +335,11 @@ class Tachyon(SageObject):
         ....:         tt = 't1'
         ....:     T.sphere((q, q/3+.3*sin(3*q), .1+.3*cos(3*q)), .1, tt)
         sage: T.show()
+
+    TESTS::
+
+        sage: hash(Tachyon()) # random
+        140658972348064
     """
     def __init__(self,
                  xres=350, yres=350,
@@ -379,7 +385,7 @@ class Tachyon(SageObject):
                 raise ValueError('camera_center and look_at coincide')
         else:
             self._viewdir = viewdir
-
+    
     def save_image(self, filename=None, *args, **kwds):
         r"""
         Save an image representation of ``self``.
@@ -748,7 +754,7 @@ class Tachyon(SageObject):
             sage: t.sphere((0,-1,1), 1, 'mirror')
             sage: t.sphere((2,-1,1), 0.5, 'mirror')
             sage: t.sphere((2,1,1), 0.5, 'mirror')
-            sage: show(t)  # known bug (:trac:`7232`)
+            sage: show(t)  # known bug (trac #7232)
         """
         if texfunc and not isinstance(texfunc, Texfunc):
             texfunc = self.texfunc(int(texfunc), imagefile=imagefile)

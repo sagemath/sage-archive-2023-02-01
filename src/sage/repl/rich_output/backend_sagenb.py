@@ -38,6 +38,21 @@ filenames::
     sage: os.path.exists('sage0.png')
     True
     sage: os.remove('sage0.png')
+
+Tables are typeset as html in SageNB::
+
+    sage: table([1, 2, 3])
+    <html><div class="notruncate">
+    <table  class="table_form">
+    <tbody>
+    <tr class ="row-a">
+    <td><script type="math/tex">1</script></td>
+    <td><script type="math/tex">2</script></td>
+    <td><script type="math/tex">3</script></td>
+    </tr>
+    </tbody>
+    </table>
+    </div></html>
 """
 
 #*****************************************************************************
@@ -306,6 +321,7 @@ class BackendSageNB(BackendBase):
         """
         return set([
             OutputPlainText, OutputAsciiArt, OutputLatex,
+            OutputHtml,
             OutputImagePng, OutputImageGif, OutputImageJpg,
             OutputImagePdf, OutputImageSvg,
             SageNbOutputSceneJmol,
@@ -350,6 +366,8 @@ class BackendSageNB(BackendBase):
             rich_output.print_to_stdout()
         elif isinstance(rich_output, OutputLatex):
             print(rich_output.mathjax())
+        elif isinstance(rich_output, OutputHtml):
+            print(rich_output.with_html_tag())
         elif isinstance(rich_output, OutputImagePng):
             self.embed_image(rich_output.png, '.png')
         elif isinstance(rich_output, OutputImageGif):

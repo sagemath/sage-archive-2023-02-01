@@ -25,7 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 import sage.rings.integer
 from sage.sets.set import Set, is_Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -191,7 +191,7 @@ class OrderedSetPartition(ClonableArray):
         """
         return Composition([len(_) for _ in self])
 
-class OrderedSetPartitions(Parent, UniqueRepresentation):
+class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
     Return the combinatorial class of ordered set partitions of ``s``.
 

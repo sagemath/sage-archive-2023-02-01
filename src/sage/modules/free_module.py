@@ -70,7 +70,9 @@ Base ring::
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
 
-TESTS: We intersect a zero-dimensional vector space with a
+TESTS:
+
+We intersect a zero-dimensional vector space with a
 1-dimension submodule.
 
 ::
@@ -165,8 +167,7 @@ import sage.matrix.matrix_space
 import sage.misc.latex as latex
 
 from sage.modules.module import Module
-import sage.rings.finite_rings.constructor as finite_field
-import sage.rings.integral_domain as integral_domain
+import sage.rings.finite_rings.finite_field_constructor as finite_field
 import sage.rings.ring as ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
@@ -376,7 +377,7 @@ done from the right side.""")
                 and base_ring.is_maximal() and base_ring.class_number() == 1:
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
-            elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
+            elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
                 return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
 
             else:
@@ -654,7 +655,8 @@ class FreeModule_generic(Module):
     def __init__(self, base_ring, rank, degree, sparse=False,
                  coordinate_ring=None, category=None):
         """
-        Create the free module of given rank over the given base_ring.
+        Create the free module of given rank ``rank`` over the given base
+        ring ``base_ring``.
 
         INPUT:
 
@@ -672,10 +674,11 @@ class FreeModule_generic(Module):
         - ``category`` -- category (default: None)
 
         If ``base_ring`` is a field, then the default category is the
-        category of vector spaces over that field; otherwise it is the
-        category of free modules over that ring.  In addition, the
-        category is intersected with the category of finite enumerated
-        sets if the ring is finite or the rank is 0.
+        category of finite-dimensional vector spaces over that field;
+        otherwise it is the category of finite-dimensional free modules
+        over that ring.  In addition, the category is intersected with the
+        category of finite enumerated sets if the ring is finite or the
+        rank is 0.
 
         EXAMPLES::
 
@@ -683,17 +686,22 @@ class FreeModule_generic(Module):
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
 
             sage: FreeModule(GF(7),3).category()
-            Category of vector spaces with basis over (finite fields
-            and subquotients of monoids and quotients of semigroups)
+            Category of finite dimensional vector spaces with basis over
+             (finite fields and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
-            Category of vector spaces with basis over quotient fields
+            Category of finite dimensional vector spaces with basis over
+             (quotient fields and metric spaces)
             sage: V = GF(5)**20; V.category()
-            Category of vector spaces with basis over (finite fields
-            and subquotients of monoids and quotients of semigroups)
+            Category of finite dimensional vector spaces with basis over
+             (finite fields and subquotients of monoids
+              and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
-            Category of modules with basis over (euclidean domains and infinite enumerated sets)
+            Category of finite dimensional modules with basis over
+             (euclidean domains and infinite enumerated sets
+              and metric spaces)
             sage: (QQ^0).category()
-            Category of vector spaces with basis over quotient fields
+            Category of finite dimensional vector spaces with basis
+             over (quotient fields and metric spaces)
 
         TESTS::
 
@@ -734,7 +742,7 @@ done from the right side.""")
 
         if category is None:
             from sage.categories.all import FreeModules
-            category = FreeModules(base_ring.category())
+            category = FreeModules(base_ring.category()).FiniteDimensional()
 
         super(FreeModule_generic, self).__init__(base_ring, category=category)
         self.__coordinate_ring = coordinate_ring
@@ -903,7 +911,7 @@ done from the right side.""")
 
     def _element_constructor_(self, x, coerce=True, copy=True, check=True):
         r"""
-        Create an element of this free module from x.
+        Create an element of this free module from ``x``.
 
         The ``coerce`` and ``copy`` arguments are
         passed on to the underlying element constructor. If
@@ -968,7 +976,7 @@ done from the right side.""")
 
     def is_submodule(self, other):
         """
-        Return True if self is a submodule of other.
+        Return ``True`` if ``self`` is a submodule of ``other``.
 
         EXAMPLES::
 
@@ -1002,11 +1010,9 @@ done from the right side.""")
             sage: M.is_submodule(N)
             True
 
-        Since basis() is not implemented in general, submodule testing does
-        not work for all PID's. However, trivial cases are already used
-        (and useful) for coercion, e.g.
-
-        ::
+        Since :meth:`basis` is not implemented in general, submodule
+        testing does not work for all PID's. However, trivial cases are
+        already used (and useful) for coercion, e.g. ::
 
             sage: QQ(1/2) * vector(ZZ['x']['y'],[1,2,3,4])
             (1/2, 1, 3/2, 2)
@@ -1319,7 +1325,7 @@ done from the right side.""")
         if not is_FreeModule(other):
             raise TypeError("other must be a free module")
         if other.base_ring() != self.base_ring():
-            raise TypeError("base rins of self and other must be the same")
+            raise TypeError("base rings of self and other must be the same")
         return self.basis_matrix().block_sum(other.basis_matrix()).row_module(self.base_ring())
 
     def coordinates(self, v, check=True):
@@ -2984,11 +2990,9 @@ class FreeModule_generic_pid(FreeModule_generic):
         else:
             raise NotImplementedError("quotients of modules over rings other than fields or ZZ is not fully implemented")
 
-    def __div__(self, sub, check=True):
+    def __truediv__(self, sub):
         """
         Return the quotient of self by the given submodule sub.
-
-        This just calls self.quotient(sub, check).
 
         EXAMPLES::
 
@@ -2999,7 +3003,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: V2/W2
             Finitely generated module V/W over Integer Ring with invariants (4, 12)
         """
-        return self.quotient(sub, check)
+        return self.quotient(sub, check=True)
 
 class FreeModule_generic_field(FreeModule_generic_pid):
     """
@@ -3033,8 +3037,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         Returns a homspace whose morphisms have this vector space as domain.
 
         This is called by the general methods such as
-        :meth:`sage.structure.parent.Parent.Hom` and
-        :meth:`sage.structure.parent_base.ParentWithBase.Hom`.
+        :meth:`sage.structure.parent.Parent.Hom`.
 
         INPUT:
 
@@ -3067,10 +3070,10 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H
-            Set of Morphisms from Vector space of dimension 2 over
-            Rational Field to Ambient free module of rank 3 over the
-            principal ideal domain Integer Ring in Category of vector
-            spaces with basis over quotient fields
+            Set of Morphisms from Vector space of dimension 2 over Rational Field
+             to Ambient free module of rank 3 over the principal ideal domain Integer Ring
+             in Category of finite dimensional vector spaces with basis over
+              (quotient fields and metric spaces)
         """
         if Y.base_ring().is_field():
             import vector_space_homspace
@@ -3821,11 +3824,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         A = sage.matrix.constructor.matrix(vectors)  # as rows, so get left kernel
         return A.left_kernel(basis=basis).basis()
 
-    def __div__(self, sub, check=True):
+    def __truediv__(self, sub):
         """
         Return the quotient of self by the given subspace sub.
-
-        This just calls self.quotient(sub, check)
 
         EXAMPLES::
 
@@ -3846,7 +3847,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: Q(W.0)
             (0.0)
         """
-        return self.quotient(sub, check)
+        return self.quotient(sub, check=True)
 
     def quotient(self, sub, check=True):
         """
@@ -4483,7 +4484,7 @@ class FreeModule_ambient(FreeModule_generic):
         Return the linear combination of the basis for self obtained from
         the elements of the list v.
 
-        INPUTS:
+        INPUT:
 
         - ``v`` - list
 
@@ -5398,7 +5399,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if len(B) == 0:
             return 1
         d = B[0].denominator()
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         for x in B[1:]:
             d = lcm(d,x.denominator())
         return d
@@ -6042,7 +6043,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Return the linear combination of the basis for self obtained from
         the coordinates of v.
 
-        INPUTS:
+        INPUT:
 
         - ``v`` - list
 

@@ -376,38 +376,27 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return smallInteger(fmpq_poly_degree(self.__poly))
 
-    def __getitem__(self, n):
+    cdef get_unsafe(self, Py_ssize_t n):
         """
-        Returns coefficient of the monomial of degree `n` if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         INPUT:
 
-        - ``n`` - Degree of the monomial whose coefficient is to be returned
-                  or a slice.
+        - ``n`` -- Degree of the monomial whose coefficient is to be
+          returned.
 
         EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t + t^2/2 + t^3/3 + t^4/4
-            sage: f[-1], f[0], f[3], f[5]            # indirect doctest
+            sage: f[-1], f[0], f[3], f[5]           # indirect doctest
             (0, 1, 1/3, 0)
-            sage: f[1:3]                             # indirect doctest
-            1/2*t^2 + t
+            sage: f[:3]                             # indirect doctest
+            1/2*t^2 + t + 1
         """
         cdef Rational z = Rational.__new__(Rational)
-        cdef Polynomial_rational_flint res = self._new()
-        cdef bint do_sig = _do_sig(self.__poly)
-        if isinstance(n, slice):
-            start, stop, step = n.indices(self.degree() + 1)
-            if do_sig: sig_str("FLINT exception")
-            fmpq_poly_get_slice(res.__poly, self.__poly, start, stop)
-            if do_sig: sig_off()
-            return res
-        else:
-            if 0 <= n and n < fmpq_poly_length(self.__poly):
-                fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
-            return z
+        fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
+        return z
 
     cpdef _unsafe_mutate(self, unsigned long n, value):
         """
@@ -829,8 +818,6 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f = R.random_element(2000)
             sage: f - f/2 == 1/2 * f          # indirect doctest
             True
-            sage: f[:1000] == f - f[1000:]    # indirect doctest
-            True
         """
         cdef Polynomial_rational_flint op2 = <Polynomial_rational_flint> right
         cdef Polynomial_rational_flint res = self._new()
@@ -1232,6 +1219,54 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return res
 
+    cpdef Polynomial inverse_series_trunc(self, long prec):
+        r"""
+        Return a polynomial approximation of precision ``prec`` of the inverse
+        series of this polynomial.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: p = 2 + x - 3/5*x**2
+            sage: q5 = p.inverse_series_trunc(5)
+            sage: q5
+            151/800*x^4 - 17/80*x^3 + 11/40*x^2 - 1/4*x + 1/2
+            sage: q5 * p
+            -453/4000*x^6 + 253/800*x^5 + 1
+
+            sage: q100 = p.inverse_series_trunc(100)
+            sage: (q100 * p).truncate(100)
+            1
+
+        TESTS::
+
+            sage: (0*x).inverse_series_trunc(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term is zero
+            sage: x.inverse_series_trunc(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term is zero
+            sage: (x+1).inverse_series_trunc(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision must be positive, got 0
+        """
+        if prec <= 0:
+            raise ValueError("the precision must be positive, got {}".format(prec))
+        if fmpq_poly_degree(self.__poly) == -1 or \
+           fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term is zero")
+
+        cdef Polynomial_rational_flint res = self._new()
+        if prec <= 0:
+            return res
+        sig_on()
+        fmpq_poly_inv_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
     def __mod__(Polynomial_rational_flint self, right):
         """
         Returns the remainder of self and right obtain by Euclidean division.
@@ -1475,6 +1510,416 @@ cdef class Polynomial_rational_flint(Polynomial):
             sig_off()
             return primitive.is_irreducible()
 
+    #######################################################
+    # Transcendental functions (return truncated series)  #
+    #######################################################
+
+    def _log_series(self, long prec):
+        r"""
+        Return the logarithm of this polynomial up to precision ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: (1+x)._log_series(5)
+            -1/4*x^4 + 1/3*x^3 - 1/2*x^2 + x
+
+            sage: (1/3*x^3 - 2*x^2 + x + 1)._log_series(10)._exp_series(10)
+            1/3*x^3 - 2*x^2 + x + 1
+
+        TESTS::
+
+            sage: x._log_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 1 in order to take logarithm
+            sage: (0*x)._log_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 1 in order to take logarithm
+        """
+        if fmpq_poly_degree(self.__poly) == -1 or \
+           fmpz_cmp(fmpq_poly_numref(self.__poly),
+                    fmpq_poly_denref(self.__poly)):
+            raise ValueError("constant term should be 1 in order to take logarithm")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_log_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _exp_series(self, long prec):
+        r"""
+        Return the exponential of this polynomial up to precision ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._exp_series(5)
+            1/24*x^4 + 1/6*x^3 + 1/2*x^2 + x + 1
+            sage: (1/3*x^4 - 3*x^2 - 1/2*x)._exp_series(5)._log_series(5)
+            1/3*x^4 - 3*x^2 - 1/2*x
+
+        TESTS::
+
+            sage: (x+1)._exp_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take exponential
+            sage: (0*x)._exp_series(5)
+            1
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.one()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take exponential")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_exp_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _atan_series(self, long prec):
+        r"""
+        Return the arctangent of this polynomial up to precision ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._atan_series(7)
+            1/5*x^5 - 1/3*x^3 + x
+            sage: (1/5*x^3 + 2*x^2 - x)._atan_series(10)._tan_series(10)
+            1/5*x^3 + 2*x^2 - x
+
+        TESTS::
+
+            sage: (1+x)._atan_series(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take arctangent
+            sage: (0*x)._atan_series(10)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take arctangent")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_atan_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _atanh_series(self, long prec):
+        r"""
+        Return the hyperbolic arctangent of this polynomial up to precision
+        ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._atanh_series(7)
+            1/5*x^5 + 1/3*x^3 + x
+            sage: (1/5*x^3 + 2*x^2 - x)._atanh_series(10)._tanh_series(10)
+            1/5*x^3 + 2*x^2 - x
+
+        TESTS::
+
+            sage: (0*x)._atanh_series(10)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take hyperbolic arctangent")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_atanh_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _asin_series(self, long prec):
+        r"""
+        Return the arcsine of this polynomial up to precision ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._asin_series(7)
+            3/40*x^5 + 1/6*x^3 + x
+            sage: (1/5*x^3 + 2*x^2 - x)._asin_series(10)._sin_series(10)
+            1/5*x^3 + 2*x^2 - x
+
+        TESTS::
+
+            sage: (x+1)._asin_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take arcsine
+            sage: (0*x)._asin_series(5)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take arcsine")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_asin_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _asinh_series(self, long prec):
+        r"""
+        Return the hyperbolic arcsine of this polynomial up to precision
+        ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._asinh_series(7)
+            3/40*x^5 - 1/6*x^3 + x
+            sage: (1/5*x^3 + 2*x^2 - x)._asinh_series(10)._sinh_series(10)
+            1/5*x^3 + 2*x^2 - x
+
+        TESTS::
+
+            sage: (x+1)._asinh_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take hyperbolic arcsine
+            sage: (0*x)._asinh_series(5)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take hyperbolic arcsine")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_asinh_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _tan_series(self, long prec):
+        r"""
+        Return the tangent of this polynomial up to precision ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._tan_series(8)
+            17/315*x^7 + 2/15*x^5 + 1/3*x^3 + x
+            sage: (1/5*x^3 + 2*x^2 - x)._tan_series(10)._atan_series(10)
+            1/5*x^3 + 2*x^2 - x
+
+        TESTS::
+
+            sage: (x+1)._tan_series(10)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take tangent
+            sage: (0*x)._tan_series(5)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take tangent")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_tan_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _sin_series(self, long prec):
+        r"""
+        Return the sine of this polynomial up to precision ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._sin_series(8)
+            -1/5040*x^7 + 1/120*x^5 - 1/6*x^3 + x
+            sage: (1/5*x^3 - 2*x^2 + 1/2*x)._sin_series(10)._asin_series(10)
+            1/5*x^3 - 2*x^2 + 1/2*x
+
+        TESTS::
+
+            sage: (x+1)._sin_series(10)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take sine
+            sage: (0*x)._sin_series(5)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take sine")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_sin_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _cos_series(self, long prec):
+        r"""
+        Return the cosine of this polynomial up to precision ``prec``
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._cos_series(10)
+            1/40320*x^8 - 1/720*x^6 + 1/24*x^4 - 1/2*x^2 + 1
+
+        TESTS::
+
+            sage: (x+1)._cos_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take cosine
+            sage: (0*x)._cos_series(5)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take cosine")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_cos_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _sinh_series(self, long prec):
+        r"""
+        Return the hyperbolic sine of this polynomial up to precision ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._sinh_series(8)
+            1/5040*x^7 + 1/120*x^5 + 1/6*x^3 + x
+
+        TESTS::
+
+            sage: (x+1)._sinh_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take hyperbolic sine
+            sage: (0*x)._sinh_series(5)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take hyperbolic sine")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_sinh_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _cosh_series(self, long prec):
+        r"""
+        Return the hyperbolic cosine of this polynomial up to precision
+        ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._cosh_series(8)
+            1/720*x^6 + 1/24*x^4 + 1/2*x^2 + 1
+
+        A trigonometric identity::
+
+            sage: x._cosh_series(8) + x._sinh_series(8) == x._exp_series(8)
+            True
+
+        TESTS::
+
+            sage: (x+1)._cosh_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take hyperbolic cosine
+            sage: (0*x)._cosh_series(5)
+            1
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.one()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take hyperbolic cosine")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_cosh_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
+    def _tanh_series(self, long prec):
+        r"""
+        Return the hyperbolic tangent of this polynomial up to precision
+        ``prec``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: x._tanh_series(8)
+            -17/315*x^7 + 2/15*x^5 - 1/3*x^3 + x
+
+        TESTS::
+
+            sage: (x+1)._tanh_series(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term should be 0 in order to take hyperbolic tangent
+            sage: (0*x)._tanh_series(5)
+            0
+            sage: _.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        if fmpq_poly_degree(self.__poly) == -1:
+            return self._parent.zero()
+        elif not fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term should be 0 in order to take hyperbolic tangent")
+
+        cdef Polynomial_rational_flint res = self._new()
+        sig_on()
+        fmpq_poly_tanh_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
     ###########################################################################
     # Methods using PARI                                                      #
     ###########################################################################
@@ -1645,7 +2090,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
         p = Integer(p)
         if not p.is_prime():

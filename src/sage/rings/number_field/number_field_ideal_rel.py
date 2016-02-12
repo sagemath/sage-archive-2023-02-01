@@ -64,7 +64,10 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         sage: ((a0 + 1) / g).is_integral()
         True
 
-    TESTS: one test fails, because ideals aren't fully integrated into the categories framework yet::
+    TESTS:
+
+    One test fails, because ideals aren't fully integrated into the
+    categories framework yet::
 
         sage: TestSuite(i).run()
         Failure in _test_category:
@@ -302,7 +305,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         """
         if self.is_zero():
             raise ZeroDivisionError
-        return self._from_absolute_ideal( self.absolute_ideal().__invert__() )
+        return self._from_absolute_ideal(~self.absolute_ideal())
 
     def is_principal(self, proof=None):
         """
@@ -453,7 +456,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K0
             Number Field in a0 with defining polynomial x^2 - 6*x + 24
             sage: L = K.relativize(K0_into_K, 'c'); L
-            Number Field in c0 with defining polynomial x^2 + a0 over its base field
+            Number Field in c with defining polynomial x^2 + a0 over its base field
             sage: L.base_field() is K0
             True
             sage: L.ideal(7)

@@ -9,21 +9,17 @@ AUTHORS:
 Special thanks to: Nicolas Borie, Anne Schilling, Travis Scrimshaw, and
 Nicolas Thiery.
 """
+
 #*****************************************************************************
-# Copyright (C) 2008 Brant Jones <brant at math.ucdavis.edu>
-# Copyright (C) 2013 Arthur Lubovsky <alubovsky at albany.edu>
+#       Copyright (C) 2008 Brant Jones <brant at math.ucdavis.edu>
+#       Copyright (C) 2013 Arthur Lubovsky <alubovsky at albany.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#****************************************************************************
+#*****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -674,9 +670,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1])
             sage: [c.phi(1) for c in C]
-            [1, 0, 2, 0, 1, 1, 0, 0]
+            [1, 0, 2, 1, 0, 1, 0, 0]
             sage: [c.phi(2) for c in C]
-            [1, 2, 0, 1, 0, 0, 1, 0]
+            [1, 2, 0, 0, 1, 0, 1, 0]
         """
         highest_weight_crystal = self.parent()._highest_weight_crystal
         positions, gi = self._gi(i)
@@ -698,9 +694,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1])
             sage: [c.epsilon(1) for c in C]
-            [0, 1, 0, 0, 1, 0, 2, 1]
+            [0, 1, 0, 1, 0, 0, 2, 1]
             sage: [c.epsilon(2) for c in C]
-            [0, 0, 1, 1, 0, 2, 0, 1]
+            [0, 0, 1, 0, 1, 2, 0, 1]
         """
         #crude but functional
         j = 0
@@ -714,23 +710,32 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
     def weight(self):
         """
-        Returns the weight of self.
+        Return the weight of ``self``.
 
         EXAMPLES::
 
             sage: C = crystals.AlcovePaths(['A',2],[2,0])
             sage: for i in C: i.weight()
-            2*Lambda[1]
-            Lambda[2]
-            Lambda[1] - Lambda[2]
-            -2*Lambda[1] + 2*Lambda[2]
-            -Lambda[1]
-            -2*Lambda[2]
-
+            (0, 2, 0)
+            (0, 0, 1)
+            (0, -2, 2)
+            (0, 1, -1)
+            (0, -1, 0)
+            (0, 0, -2)
             sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
             sage: p = B.module_generators[0].f_string([0,1,2])
             sage: p.weight()
             Lambda[0] - delta
+
+        TESTS:
+
+        Check that crystal morphisms work (:trac:`19481`)::
+
+            sage: C1 = crystals.AlcovePaths(['A',2],[1,0])
+            sage: C2 = crystals.AlcovePaths(['A',2],[2,0])
+            sage: phi = C1.crystal_morphism(C2.module_generators, scaling_factors={1:2, 2:2})
+            sage: [phi(x) for x in C1]
+            [(), ((alpha[1], 0),), ((alpha[1], 0), (alpha[1] + alpha[2], 0))]
         """
         root_space = self.parent().R.root_space()
         weight = -self.parent().weight
@@ -738,7 +743,10 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             root = root_space(i.root)
             weight = -i.height*root + weight.reflection(root)
 
-        return -weight
+        WLR = self.parent().weight_lattice_realization()
+        B = WLR.basis()
+        return WLR._from_dict({i: Integer(c) for i,c in -weight},
+                              remove_zeros=False)
 
     #def __repr__(self):
         #return str(self.integer_sequence())

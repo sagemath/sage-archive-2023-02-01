@@ -19,6 +19,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19727)
+cp "$SAGE_ROOT"/config/config.* config
+
 # As config/acinclude.m4 is patched, we need to touch some files to prevent
 # autotools to invoke black magic.
 touch aclocal.m4 configure Makefile.in gf2x/gf2x-config.h.in

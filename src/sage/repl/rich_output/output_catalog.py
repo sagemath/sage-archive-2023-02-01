@@ -22,6 +22,10 @@ from .output_basic import (
     OutputLatex,
 )
 
+from .output_browser import (
+    OutputHtml,
+)
+
 from .output_graphics import (
     OutputImagePng,
     OutputImageGif,

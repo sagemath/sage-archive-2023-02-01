@@ -1,30 +1,14 @@
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from 'gmpxx.h':
-    cdef cppclass mpz_class:
-        mpz_class()
-        mpz_class(int i)
-        mpz_class(mpz_t z)
-        mpz_class(mpz_class)
-        mpz_t get_mpz_t()
-        mpz_class operator%(mpz_class, mpz_class)
-    cdef cppclass mpq_class:
-        mpq_class()
-        mpz_t get_num_mpz_t()
-        mpz_t get_den_mpz_t()
+from sage.libs.gmpxx cimport *
 
 cdef extern from "sage/modular/arithgroup/sl2z.hpp":
     cppclass cpp_SL2Z "SL2Z":

@@ -96,6 +96,7 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
+- **python**: Python >= 2.6.
 
 Fortran and compiler suites
 ###########################
@@ -142,10 +143,12 @@ System-specific requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 On Mac OS X, there are various developer tools needed which may require
-some registration on Apple's developer site; see :ref:`section_macprereqs`.
+some registration on Apple's developer site; see
+:ref:`section_macprereqs`.
 
-On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
-`multiarch <http://wiki.debian.org/Multiarch>`_ support.
+On Redhat-derived systems not all perl components are installed by
+default and you might have to install the **perl-ExtUtils-MakeMaker**
+package.
 
 On Cygwin, the **lapack** and **liblapack-devel** packages are required to
 provide ATLAS support as the Sage package for ATLAS is not built by default.
@@ -182,13 +185,21 @@ distribution, but on a `Debian <http://www.debian.org/>`_ based system (e.g.
 you would use
 `apt-get <http://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
 
-     sudo apt-get install binutils gcc make m4 perl tar
+     # debian
+     sudo apt-get install binutils gcc make m4 perl tar git
 
+     # redhat
+     sudo yum install binutils gcc make m4 perl tar git perl-ExtUtils-MakeMaker
+     
 to install all general requirements, or, if you don't want Sage to build its
 own GCC::
 
-     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar
+     # debian
+     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar git
 
+     # redhat
+     sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl tar git perl-ExtUtils-MakeMaker
+     
 (This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
 `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
@@ -402,8 +413,8 @@ or similar commands.
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    sage -f python  # rebuild Python
-    make            # rebuild components of Sage depending on Python
+    sage -f python2  # rebuild Python
+    make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
 
@@ -705,7 +716,7 @@ Starting from a fresh Sage tarball::
 And if you've already built Sage::
 
     ./sage -i openssl
-    ./sage -f python
+    ./sage -f python2
     make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
@@ -783,8 +794,8 @@ how it is built:
   primarily intended for use when producing certain binary
   distributions of Sage, to lower the size of the distribution. As of
   this writing (December 2014, Sage 6.5), there are only a few such
-  plots, adding about 4M to the :file:`src/doc/output/` directory. In
-  the future, this may grow, of course. Note: after using this, if you
+  plots, adding about 4M to the :file:`local/share/doc/sage/` directory.
+  In the future, this may grow, of course. Note: after using this, if you
   want to build the documentation and include the pictures, you should
   run ``make doc-clean``, because the presence, or lack, of pictures
   is cached in the documentation output.
@@ -881,7 +892,7 @@ Here are some of the more commonly used variables affecting the build process:
   maximum of 8 and a minimum of 2).
 
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
-  and when running ``sage -i <package-name>`` or ``sage -f <package-name>``,
+  or when installing packages manually,
   run the test suite for each package which has one.
   See also :envvar:`SAGE_CHECK_PACKAGES`.
 
@@ -981,7 +992,10 @@ Here are some of the more commonly used variables affecting the build process:
   argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
   you run ``make``, ``make doc``, or ``make doc-pdf``.
   For example, you can add ``--no-plot`` to this variable to avoid building
-  the graphics coming from the ``.. PLOT`` directive within the documentation.
+  the graphics coming from the ``.. PLOT`` directive within the documentation,
+  or you can add ``--no-tests`` to omit all "TESTS" blocks in the
+  reference manual. Run ``sage --docbuild help`` to see the full list
+  of options.
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for

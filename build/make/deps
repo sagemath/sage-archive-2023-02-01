@@ -4,14 +4,15 @@
 ###############################################################################
 
 # Do not put an explicit path for sage-spkg here, it will be found in $PATH.
-SAGE_SPKG = sage-spkg -f
+SAGE_SPKG = sage-spkg
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:
 .PHONY: all all-sage all-toolchain all-build start \
 	base toolchain toolchain-deps sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean lib-clean build-clean
+	doc-clean doc-src-clean doc-output-clean \
+	clean sagelib-clean build-clean
 
 # Build everything and start Sage.
 # Note that we put the "doc" target first in the rule below because
@@ -26,13 +27,12 @@ all-build: all-toolchain
 	$(MAKE) all-sage
 
 
-# Make the 4 preliminary build phases:
-# prereq, base, toolchain, toolchain-deps.
+# Make the 3 preliminary build phases:
+# base, toolchain, toolchain-deps.
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
 # such that packages can do different things when they are built
 # as prerequisite of GCC.
 all-toolchain:
-	$(MAKE) $(INST)/prereq
 	$(MAKE) base
 	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
 	$(MAKE) toolchain-deps
@@ -44,6 +44,12 @@ all-sage: \
 		$(OPTIONAL_INSTALLED_PACKAGES) \
 		$(EXTCODE) \
 		$(SCRIPTS)
+
+# Download all packages which should be inside an sdist tarball (the -B
+# option to make forces all targets to be built unconditionally)
+download-for-sdist: base
+	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
+		$(STANDARD_PACKAGES) gcc mpir python2
 
 # TOOLCHAIN consists of dependencies determined by build/make/install,
 # including for example the GCC package.
@@ -60,7 +66,6 @@ toolchain-deps:
 	$(MAKE) $(INST)/$(SAGE_MP_LIBRARY)
 	$(MAKE) $(INST)/$(MPFR)
 	$(MAKE) $(INST)/$(MPC)
-	$(MAKE) $(INST)/$(PPL)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
@@ -86,18 +91,6 @@ $(STARTED): $(STANDARD_PACKAGES)
 ###############################################################################
 base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
 
-$(INST)/prereq: ../../configure
-	@cd ../..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
-	./configure $$PREREQ_OPTIONS || ( \
-		if [ "x$$SAGE_PORT" = x ]; then \
-			echo "If you would like to try to build Sage anyway (to help porting),"; \
-			echo "export the variable 'SAGE_PORT' to something non-empty."; \
-			exit 1; \
-		else \
-			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
-		fi; )
-	touch $@
-
 ###############################################################################
 # Building normal packages
 ###############################################################################
@@ -107,7 +100,9 @@ $(INST)/prereq: ../../configure
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, SAGE_MP_LIBRARY).
 sagelib: \
+		$(INST)/$(ARB) \
 		$(INST)/$(ATLAS) \
+		$(INST)/$(BRIAL) \
 		$(INST)/$(CEPHES) \
 		$(INST)/$(CLIQUER) \
 		$(INST)/$(CYTHON) \
@@ -122,6 +117,7 @@ sagelib: \
 		$(INST)/$(GSL) \
 		$(INST)/$(IML) \
 		$(INST)/$(JINJA2) \
+		$(INST)/$(JUPYTER_CORE) \
 		$(INST)/$(LCALC) \
 		$(INST)/$(LRCALC) \
 		$(INST)/$(LIBGAP) \
@@ -137,7 +133,6 @@ sagelib: \
 		$(INST)/$(NUMPY) \
 		$(INST)/$(PARI) \
 		$(INST)/$(PLANARITY) \
-		$(INST)/$(POLYBORI) \
 		$(INST)/$(PPL) \
 		$(INST)/$(PYNAC) \
 		$(INST)/$(PYTHON) \
@@ -147,7 +142,8 @@ sagelib: \
 		$(INST)/$(SINGULAR) \
 		$(INST)/$(SIX) \
 		$(INST)/$(SYMMETRICA) \
-		$(INST)/$(ZN_POLY)
+		$(INST)/$(ZN_POLY) \
+		$(EXTCODE)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
 		sage-logger 'time $(MAKE) sage' '$(SAGE_LOGS)/sage-$(SAGE_VERSION).log'; \
@@ -192,7 +188,8 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 DOC_DEPENDENCIES = sagelib $(INST)/$(SPHINX) $(INST)/$(SAGENB) \
 	| $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(NETWORKX) \
 	$(INST)/$(SCIPY) $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) \
-	$(INST)/$(MATHJAX)
+	$(INST)/$(MATHJAX) $(INST)/$(IPYKERNEL) $(INST)/$(JUPYTER_CLIENT) \
+	$(INST)/$(CONWAY_POLYNOMIALS)
 
 doc: doc-html
 
@@ -215,8 +212,13 @@ doc-html-jsmath: doc-html-mathjax
 doc-pdf: $(DOC_DEPENDENCIES)
 	cd ../.. && sage-logger './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
 
-doc-clean:
+doc-clean: doc-src-clean doc-output-clean
+
+doc-src-clean:
 	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
+
+doc-output-clean:
+	rm -rf "$(SAGE_SHARE)/doc/sage"
 
 
 ###############################################################################
@@ -227,7 +229,7 @@ clean:
 	@echo "Deleting package build directories..."
 	rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"
 
-lib-clean:
+sagelib-clean:
 	cd "$(SAGE_SRC)" && $(MAKE) clean
 
-build-clean: clean doc-clean lib-clean
+build-clean: clean doc-clean sagelib-clean

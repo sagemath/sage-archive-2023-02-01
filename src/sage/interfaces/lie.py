@@ -289,6 +289,7 @@ AUTHORS:
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
 from sage.misc.all import prod
 from sage.env import DOT_SAGE, SAGE_LOCAL
+import os
 
 
 COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj'%DOT_SAGE
@@ -306,7 +307,7 @@ class LiE(Expect):
 
     """
     def __init__(self,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  logfile=None,
                  server=None):
         """
@@ -328,7 +329,6 @@ class LiE(Expect):
                         # This is the command that starts up your program
                         command = "bash "+ SAGE_LOCAL + "/bin/lie",
 
-                        maxread = maxread,
                         server=server,
                         script_subdirectory = script_subdirectory,
 
@@ -363,10 +363,15 @@ class LiE(Expect):
             True
             sage: lie._read_info_files(use_disk_cache=False) #optional - lie
             sage: lie._trait_names_list # optional - lie
-            ['history',
-             'version',
+            ['Adams',
              ...
-             'sort']
+             'history',
+             ...
+             'sort',
+             ...
+             'version',
+             'void',
+             'write']
         """
         import sage.misc.persist
         if use_disk_cache:
@@ -376,7 +381,7 @@ class LiE(Expect):
                 v = []
                 for key in trait_dict:
                     v += trait_dict[key]
-                self._trait_names_list = v
+                self._trait_names_list = sorted(v)
                 self._trait_names_dict = trait_dict
                 self._help_dict = help_dict
                 return
@@ -451,7 +456,7 @@ class LiE(Expect):
 
         #Save the data
         self._trait_names_dict = commands
-        self._trait_names_list = l
+        self._trait_names_list = sorted(l)
         self._help_dict = help
 
         #Write them to file
@@ -513,16 +518,20 @@ class LiE(Expect):
         EXAMPLES::
 
             sage: lie.trait_names() # optional - lie
-            ['Cartan_type',
+            ['Adams',
+             ...
+             'Cartan_type',
+             ...
              'cent_roots',
              ...
-             'n_comp']
-
+             'n_comp',
+             ...
+             'write']
         """
         if self._trait_names_dict is None:
             self._read_info_files()
         if type:
-            return self._trait_names_dict[type]
+            return sorted(self._trait_names_dict[type])
         else:
             return self._trait_names_list
 
@@ -743,11 +752,15 @@ class LiEElement(ExpectElement):
 
             sage: a4 = lie('A4')   # optional - lie
             sage: a4.trait_names() # optional - lie
-            ['center',
+            ['Cartan',
+             ...
+             'center',
+             'det_Cartan',
              'diagram',
              ...
-             'n_comp']
-
+             'n_comp',
+             ...
+             'res_mat']
         """
         return self.parent().trait_names(type=self.type())
 
@@ -903,7 +916,7 @@ def reduce_load_lie():
     """
     return lie
 
-import os
+
 def lie_console():
     """
     Spawn a new LiE command-line session.
@@ -918,6 +931,9 @@ def lie_console():
         ...
 
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%lie magics instead.')
     os.system('bash `which lie`')
 
 
@@ -929,7 +945,7 @@ def lie_version():
         sage: lie_version() # optional - lie
         '2.1'
     """
-    f = open(SAGE_LOCAL + 'lib/LiE/INFO.0')
+    f = open(os.path.join(SAGE_LOCAL, 'lib', 'LiE', 'INFO.0'))
     lines = f.readlines()
     f.close()
     i = lines.index('@version()\n')

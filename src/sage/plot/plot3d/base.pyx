@@ -29,8 +29,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from cpython.list cimport *
+from cpython.object cimport PyObject
 
 import os
 from functools import reduce
@@ -41,6 +41,8 @@ from cStringIO import StringIO
 from sage.misc.misc import sage_makedirs
 from sage.env import SAGE_LOCAL
 from sage.doctest import DOCTEST_MODE
+
+from sage.misc.fast_methods cimport hash_by_id
 
 from sage.modules.free_module_element import vector
 
@@ -79,6 +81,16 @@ cdef class Graphics3d(SageObject):
         """
         self._extra_kwds = dict()
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.plot.plot3d.base import Graphics3d
+            sage: hash(Graphics3d()) # random
+            140658972348064
+        """
+        return hash_by_id(<void *> self)
+
     def _repr_(self):
         """
         Return a string representation.
@@ -116,9 +128,6 @@ cdef class Graphics3d(SageObject):
         can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
         opts = self._process_viewing_options(kwds)
         viewer = opts.get('viewer', None)
-        if viewer == 'java3d':
-            from sage.misc.superseded import deprecation
-            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
         # make sure viewer is one of the supported options
         if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
             import warnings
@@ -1284,8 +1293,6 @@ end_scene""" % (render_params.antialiasing,
            * 'jmol': Interactive 3D viewer using Java
 
            * 'tachyon': Ray tracer generates a static PNG image
-
-           * 'java3d': Interactive OpenGL based 3D
 
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)

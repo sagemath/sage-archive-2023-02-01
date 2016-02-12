@@ -40,9 +40,9 @@ defined, and ``["GF", 4]`` would have raised an error, because to
 define the field with four elements in Sage, you also need to specify
 the name of a generator.)
 
-To see evidence of the results of the code here, run ``sage -docbuild
+To see evidence of the results of the code here, run ``sage --docbuild
 tutorial latex`` (for example), and look at the resulting LaTeX file in
-``SAGE_DOC/output/latex/en/tutorial/``.  The preamble should
+``SAGE_DOC_OUTPUT/latex/en/tutorial/``.  The preamble should
 contain '\newcommand' lines for each of the entries in ``macros``.
 """
 
@@ -73,7 +73,7 @@ def produce_latex_macro(name, *sample_args):
     If the Sage object is not in the global name space, describe it
     like so::
 
-         sage: produce_latex_macro('sage.rings.finite_rings.constructor.FiniteField', 3)
+         sage: produce_latex_macro('sage.rings.finite_rings.finite_field_constructor.FiniteField', 3)
          '\\newcommand{\\FiniteField}[1]{\\Bold{F}_{#1}}'
     """
     from sage.misc.latex import LatexCall
@@ -146,10 +146,10 @@ def convert_latex_macro_to_mathjax(macro):
 # form [name, arguments], which will be passed to the function
 # produce_latex_macro: see that for more documentation.
 #
-# To see the results of this, run 'sage -docbuild tutorial latex' (for
+# To see the results of this, run 'sage --docbuild tutorial latex' (for
 # example -- you could replace 'tutorial' with your favorite piece of
 # documentation), and look at the resulting tex file in
-# SAGE_DOC/output/latex/en/tutorial.  The preamble should contain
+# SAGE_DOC_OUTPUT/latex/en/tutorial.  The preamble should contain
 # \newcommand's for each of the entries here.
 macros = [["ZZ"],
           ["NN"],

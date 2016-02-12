@@ -14,13 +14,16 @@ Library interface to Embeddable Common Lisp (ECL)
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include "sage/ext/signals.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
+from libc.stdlib cimport abort
+from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
+from libc.signal cimport raise_ as signal_raise
+from posix.signal cimport sigaction, sigaction_t
+
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.rings.rational import Rational
 
 #it would be preferrable to let bint_symbolp wrap an efficient macro
 #but the macro provided in object.h doesn't seem to work
@@ -40,9 +43,9 @@ cdef bint bint_rationalp(cl_object obj):
 cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
     void ecl_sig_off()
-    cdef Sigaction ecl_sigint_handler
-    cdef Sigaction ecl_sigbus_handler
-    cdef Sigaction ecl_sigsegv_handler
+    cdef sigaction_t ecl_sigint_handler
+    cdef sigaction_t ecl_sigbus_handler
+    cdef sigaction_t ecl_sigsegv_handler
     cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
     cdef cl_object ecl_bignum_from_mpz(mpz_t num)
 
@@ -232,7 +235,7 @@ def init_ecl():
     global read_from_string_clobj
     global ecl_has_booted
     cdef char *argv[1]
-    cdef Sigaction sage_action[32]
+    cdef sigaction_t sage_action[32]
     cdef int i
 
     if ecl_has_booted:
@@ -262,7 +265,7 @@ def init_ecl():
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
 
     #verify that no SIGCHLD handler was installed
-    cdef Sigaction sig_test
+    cdef sigaction_t sig_test
     sigaction(SIGCHLD, NULL, &sig_test)
     assert sage_action[SIGCHLD].sa_handler == NULL  # Sage does not set SIGCHLD handler
     assert sig_test.sa_handler == NULL              # And ECL bootup did not set one 

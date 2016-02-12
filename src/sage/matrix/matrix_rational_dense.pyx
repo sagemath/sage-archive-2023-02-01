@@ -41,21 +41,25 @@ TESTS::
     sage: TestSuite(a).run()
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/random.pxi"
 
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.libs.gmp.randomize cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
 cimport sage.structure.element
@@ -68,10 +72,10 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
 from sage.rings.integer_ring import ZZ, is_IntegerRing
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
@@ -305,8 +309,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if mpq_set_str(self._entries[i], s, 32):
                 raise RuntimeError("invalid pickle data")
 
-    def __richcmp__(Matrix self, right, int op):
-        return self._richcmp(right, op)
     def __hash__(self):
         return self._hash()
 
@@ -2578,7 +2580,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1,2,2,4])._invert_pari()
             Traceback (most recent call last):
             ...
-            PariError: impossible inverse in ginv: 0
+            PariError: impossible inverse in ginv: [1, 2; 2, 4]
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")

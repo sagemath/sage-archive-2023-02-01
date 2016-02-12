@@ -3118,11 +3118,15 @@ class ExactTerm(TermWithCoefficient):
             # note that -pi/2 is not atomic, but -5 is. As subtractions are handeled
             # in the asymptotic ring, we ignore such non-atomicity.
             s = '{c} {g}' if latex else '{c}*{g}'
-            return s.format(c=c, g=g)
         else:
             s = r'\left({c}\right) {g}' if latex else '({c})*{g}'
-            return s.format(c=c, g=g)
+        s = s.format(c=c, g=g)
 
+        if latex:
+            import re
+            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \cdot \2', s)
+
+        return s
 
     def _latex_(self):
         r"""
@@ -3153,6 +3157,12 @@ class ExactTerm(TermWithCoefficient):
             sage: S.<n> = AsymptoticRing('n^QQ', R)
             sage: latex((1+a)/n)
             \left(a + 1\right) n^{-1}
+
+        ::
+
+            sage: D.<d> = AsymptoticRing('QQ^d * d^ZZ', ZZ)
+            sage: latex(42*3^d)
+            42 \cdot 3^{d}
         """
         return self._repr_(latex=True)
 

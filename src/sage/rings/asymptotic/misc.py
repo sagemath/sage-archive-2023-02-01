@@ -274,6 +274,9 @@ def repr_op(left, op, right=None, latex=False):
 
     - ``right`` -- an alement.
 
+    - ``latex`` -- (default: ``False``) a boolean. If set, then
+      LaTeX-output is returned.
+
     OUTPUT:
 
     A string.

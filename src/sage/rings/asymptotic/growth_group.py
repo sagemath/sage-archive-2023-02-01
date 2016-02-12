@@ -271,6 +271,9 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
       will be displayed instead of ``var``. Use this to get
       e.g. ``log(x)^ZZ``: ``var`` is then used to specify the variable `x`.
 
+    - ``latex_name`` -- (default: ``None``) if specified, then this string
+      will be used as LaTeX-representation of ``var``.
+
     - ``ignore`` -- (default: ``None``) a tuple (or other iterable)
       of strings which are not variables.
 
@@ -455,6 +458,10 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         r"""
         Return a representation string of this variable.
 
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import Variable
@@ -466,6 +473,12 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def _latex_(self):
         r"""
+        Return a LaTeX-representation string of this variable.
+
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import Variable
@@ -2500,7 +2513,8 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -2549,6 +2563,12 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def _latex_(self):
         r"""
+        A LaTeX-representation string for this monomial growth element.
+
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
@@ -3291,7 +3311,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -3343,6 +3364,12 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
     def _latex_(self):
         r"""
+        A LaTeX-representation string for this exponential growth element.
+
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup

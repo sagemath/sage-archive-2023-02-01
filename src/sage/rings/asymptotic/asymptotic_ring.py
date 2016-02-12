@@ -1004,7 +1004,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -1033,6 +1034,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def _latex_(self):
         r"""
+        A LaTeX-representation string for this asymptotic expansion.
+
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)

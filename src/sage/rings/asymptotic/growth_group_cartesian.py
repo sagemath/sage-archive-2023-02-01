@@ -875,7 +875,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             INPUT:
 
-            Nothing.
+            - ``latex`` -- (default: ``False``) a boolean. If set, then
+              LaTeX-output is returned.
 
             OUTPUT:
 
@@ -903,6 +904,23 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
 
         def _latex_(self):
+            r"""
+            A representation string for this Cartesian product element.
+
+            OUTPUT:
+
+            A string.
+
+            TESTS::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: P = GrowthGroup('x^QQ')
+                sage: L = GrowthGroup('log(x)^ZZ')
+                sage: latex(cartesian_product([P, L], order='lex').an_element())  # indirect doctest
+                x^{\frac{1}{2}} \log\left(x\right)
+                sage: latex(GrowthGroup('QQ^n * n^QQ').an_element())  # indirect doctest
+                \left(\frac{1}{2}\right)^{n} n^{\frac{1}{2}}
+            """
             return self._repr_(latex=True)
 
 

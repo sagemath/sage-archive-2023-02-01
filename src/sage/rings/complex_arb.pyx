@@ -2159,6 +2159,36 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def arcsin(self):
+        """
+        Return the arcsine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arcsin()
+            [0.66623943249252 +/- 5.40e-15] + [1.06127506190504 +/- 5.04e-15]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_asin(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arccos(self):
+        """
+        Return the arccosine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arccos()
+            [0.90455689430238 +/- 2.18e-15] + [-1.06127506190504 +/- 5.04e-15]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_acos(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def arctan(self):
         """
         Return the arctangent of this ball.
@@ -2173,6 +2203,51 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         acb_atan(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arcsinh(self):
+        """
+        Return the hyperbolic arcsine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arcsinh()
+            [1.06127506190504 +/- 5.04e-15] + [0.66623943249252 +/- 5.40e-15]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_asinh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arccosh(self):
+        """
+        Return the hyperbolic arccosine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arccosh()
+            [1.061275061905035 +/- 8.44e-16] + [0.904556894302381 +/- 8.22e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_acosh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arctanh(self):
+        """
+        Return the hyperbolic arctangent of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arctanh()
+            [0.4023594781085251 +/- 8.52e-17] + [1.017221967897851 +/- 4.93e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_atanh(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 

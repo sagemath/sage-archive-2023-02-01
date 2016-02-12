@@ -128,7 +128,12 @@ cdef extern from "acb.h":
     void acb_tan_pi(acb_t s, const acb_t z, long prec)
     void acb_cot_pi(acb_t s, const acb_t z, long prec)
 
+    void acb_asin(acb_t s, const acb_t z, long prec)
+    void acb_acos(acb_t s, const acb_t z, long prec)
     void acb_atan(acb_t s, const acb_t z, long prec)
+    void acb_asinh(acb_t s, const acb_t z, long prec)
+    void acb_acosh(acb_t s, const acb_t z, long prec)
+    void acb_atanh(acb_t s, const acb_t z, long prec)
 
     void acb_sinh(acb_t s, const acb_t z, long prec)
     void acb_cosh(acb_t c, const acb_t z, long prec)

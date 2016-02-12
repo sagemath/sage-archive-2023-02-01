@@ -470,6 +470,7 @@ Classes and Methods
 from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.defaults import series_precision
 from sage.misc.superseded import experimental
 from sage.rings.all import RIF
 
@@ -2931,7 +2932,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
     Element = AsymptoticExpansion
 
 
-    from sage.misc.defaults import series_precision
     __default_prec__ = series_precision()  # default default-precision
 
 

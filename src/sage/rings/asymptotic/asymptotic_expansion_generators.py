@@ -726,14 +726,14 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', alpha=0)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The result is O(0) which means 0
-            for sufficiently large n
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=-1)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The result is O(0) which means 0
-            for sufficiently large n
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
 
         ::
 
@@ -765,8 +765,8 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', alpha=-1, zeta=2, precision=3)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The result is O(0) which means 0
-            for sufficiently large n
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=1/2, zeta=2, precision=3)
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)

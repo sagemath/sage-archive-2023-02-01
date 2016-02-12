@@ -596,8 +596,8 @@ class NotImplementedOZero(NotImplementedError):
             sage: raise NotImplementedOZero(A)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The result is O(0)
-            which means 0 for sufficiently large n
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
             sage: raise NotImplementedOZero('something')
             Traceback (most recent call last):
             ...
@@ -605,8 +605,9 @@ class NotImplementedOZero(NotImplementedError):
         """
         from asymptotic_ring import AsymptoticRing
         if isinstance(data, AsymptoticRing):
-            message = ('The result is O(0) which means 0 for sufficiently '
-                       'large {}'.format(
+            message = ('The error term in the result is O(0) '
+                       'which means 0 for sufficiently '
+                       'large {}.'.format(
                            ', '.join(str(g) for g in data.gens())))
         else:
             message = data

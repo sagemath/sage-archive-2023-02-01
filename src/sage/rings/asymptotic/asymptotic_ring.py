@@ -1767,8 +1767,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: AR(0).O()
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The result is O(0)
-            which means 0 for sufficiently large x
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large x.
         """
         if not self.summands:
             from misc import NotImplementedOZero

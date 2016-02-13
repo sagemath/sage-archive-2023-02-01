@@ -3794,11 +3794,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         singular_expansions = {}
 
         OZeroEncountered = False
-        result = 0
+
+        A = AsymptoticRing('T^QQ', coefficient_ring=SR, default_prec=precision)
+        T = A.gen()
+
+        result = A.zero()
         for singularity in singularities:
-            A = AsymptoticRing(
-                'T^QQ', coefficient_ring=SR, default_prec=precision)
-            T = A.gen()
             singular_expansion = A(function((1-1/T)*singularity))
             singular_expansions[singularity] = singular_expansion
 

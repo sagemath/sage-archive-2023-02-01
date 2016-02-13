@@ -1633,7 +1633,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``precision`` -- a non-negative integer.
 
         - ``check_convergence`` -- (default: ``False``) a boolean. If set,
-          then an additional check on the input is performed to ensure,
+          then an additional check on the input is performed to ensure
           that the calculated sum converges.
 
         OUTPUT:

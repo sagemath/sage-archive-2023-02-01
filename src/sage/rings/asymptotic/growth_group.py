@@ -1397,6 +1397,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
 
+
     def _singularity_analysis_(self, zeta, var, precision):
         r"""
         Perform singularity analysis on this growth element.
@@ -1411,7 +1412,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         OUTPUT:
 
-        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
         and `f` has this growth element as a singular expansion
         in `(1-z\zeta)\to 0`.
 
@@ -2854,9 +2855,10 @@ class MonomialGrowthElement(GenericGrowthElement):
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
+
     def _singularity_analysis_(self, zeta, var, precision):
         r"""
-        Perform singularity analysis on this growth element.
+        Perform singularity analysis on this monomial growth element.
 
         INPUT:
 
@@ -2868,7 +2870,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         OUTPUT:
 
-        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
         and `f` has this growth element as a singular expansion
         in `(1-z\zeta)\to 0`.
 

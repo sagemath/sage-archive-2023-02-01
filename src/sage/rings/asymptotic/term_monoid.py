@@ -1250,7 +1250,7 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
 
         OUTPUT:
 
-        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
         and `f` has this term as a singular expansion
         in `(1-z\zeta)\to 0`.
 
@@ -2389,7 +2389,7 @@ class OTerm(GenericTerm):
 
     def _singularity_analysis_(self, zeta, var, precision):
         r"""
-        Perform singularity analysis on this term.
+        Perform singularity analysis on this O-term.
 
         INPUT:
 
@@ -2401,7 +2401,7 @@ class OTerm(GenericTerm):
 
         OUTPUT:
 
-        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
         and `f` has this term as a singular expansion
         in `(1-z\zeta)\to 0`.
 
@@ -3580,7 +3580,7 @@ class ExactTerm(TermWithCoefficient):
 
     def _singularity_analysis_(self, zeta, var, precision):
         r"""
-        Perform singularity analysis on this term.
+        Perform singularity analysis on this exact term.
 
         INPUT:
 
@@ -3592,7 +3592,7 @@ class ExactTerm(TermWithCoefficient):
 
         OUTPUT:
 
-        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
         and `f` has this term as a singular expansion
         in `(1-z\zeta)\to 0`.
 

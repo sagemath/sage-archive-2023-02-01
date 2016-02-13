@@ -1262,11 +1262,11 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
             sage: t._singularity_analysis_(2, 'n', 3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: singularity analysis not implemented
-            in GenericTermMonoid
+            NotImplementedError: singularity analysis not implemented for
+            Generic Term with growth x
         """
-        raise NotImplementedError("singularity analysis not implemented "
-            "in GenericTermMonoid")
+        raise NotImplementedError('singularity analysis not implemented '
+                                  'for {}'.format(self))
 
 
 class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,

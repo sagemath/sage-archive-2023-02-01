@@ -1424,10 +1424,10 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis not implemented
-            in GenericGrowthGroup
+            for GenericGrowthElement(2)
         """
-        raise NotImplementedError("singularity analysis not implemented "
-            "in GenericGrowthGroup")
+        raise NotImplementedError('singularity analysis not implemented '
+                                  'for {}'.format(self))
 
 
 class GenericGrowthGroup(
@@ -2889,7 +2889,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis not implemented
-            for Growth Group log(x)^QQ
+            for log(x)^(1/2)
         """
         if self.parent()._var_.is_monomial():
             from sage.rings.asymptotic.asymptotic_expansion_generators import \
@@ -2899,7 +2899,7 @@ class MonomialGrowthElement(GenericGrowthElement):
                 precision=precision)
         else:
             raise NotImplementedError(
-                "singularity analysis not implemented for {}".format(self.parent()))
+                'singularity analysis not implemented for {}'.format(self))
 
 
 class MonomialGrowthGroup(GenericGrowthGroup):

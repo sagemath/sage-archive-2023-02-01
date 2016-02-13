@@ -1416,7 +1416,8 @@ class Polytopes():
         Return the grand antiprism.
 
         The grand antiprism is a 4-dimensional non-Wythoffian uniform polytope.
-        For more information, see the :wikipedia:`Grand_antiprism`.
+        The coordinates were taken from [4D]_. For more information, see the
+        :wikipedia:`Grand_antiprism`.
 
         .. WARNING::
 
@@ -1441,6 +1442,10 @@ class Polytopes():
             sage: gap = polytopes.grand_antiprism(exact=True)  # not tested - very long time
             sage: len(list(gap.bounded_edges()))               # not tested - very long time
             500
+
+        REFERENCE:
+
+        .. [4D] http://eusebeia.dyndns.org/4d/gap
         """
         if exact:
             from sage.rings.number_field.number_field import QuadraticField

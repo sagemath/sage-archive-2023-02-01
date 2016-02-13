@@ -1447,6 +1447,8 @@ class Polytopes():
 
         .. [4D] http://eusebeia.dyndns.org/4d/gap
         """
+        from itertools import product
+
         if exact:
             from sage.rings.number_field.number_field import QuadraticField
             K = QuadraticField(5, 'sqrt5')
@@ -1459,22 +1461,22 @@ class Polytopes():
 
         q12 = base_ring(1) / base_ring(2)
         z   = base_ring.zero()
-        verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in itertools.product([1,-1], repeat=4)]
+        verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in product([1,-1], repeat=4)]
         V = (base_ring)**4
         verts.extend(V.basis()[2:])
         verts.extend(-v for v in V.basis()[2:])
 
-        verts.extend([s1 * q12, s2/(2*g), s3*g/2, z] for (s1,s2,s3) in itertools.product([1,-1], repeat=3))
-        verts.extend([s3*g/2, s1 * q12, s2/(2*g), z] for (s1,s2,s3) in itertools.product([1,-1], repeat=3))
-        verts.extend([s2/(2*g), s3*g/2, s1 * q12, z] for (s1,s2,s3) in itertools.product([1,-1], repeat=3))
+        verts.extend([s1 * q12, s2/(2*g), s3*g/2, z] for (s1,s2,s3) in product([1,-1], repeat=3))
+        verts.extend([s3*g/2, s1 * q12, s2/(2*g), z] for (s1,s2,s3) in product([1,-1], repeat=3))
+        verts.extend([s2/(2*g), s3*g/2, s1 * q12, z] for (s1,s2,s3) in product([1,-1], repeat=3))
 
-        verts.extend([s1 * q12, s2*g/2, z, s3/(2*g)] for (s1,s2,s3) in itertools.product([1,-1], repeat=3))
-        verts.extend([s3/(2*g), s1 * q12, z, s2*g/2] for (s1,s2,s3) in itertools.product([1,-1], repeat=3))
-        verts.extend([s2*g/2, s3/(2*g), z, s1 * q12] for (s1,s2,s3) in itertools.product([1,-1], repeat=3))
+        verts.extend([s1 * q12, s2*g/2, z, s3/(2*g)] for (s1,s2,s3) in product([1,-1], repeat=3))
+        verts.extend([s3/(2*g), s1 * q12, z, s2*g/2] for (s1,s2,s3) in product([1,-1], repeat=3))
+        verts.extend([s2*g/2, s3/(2*g), z, s1 * q12] for (s1,s2,s3) in product([1,-1], repeat=3))
 
-        verts.extend([s1 * q12, z, s2/(2*g), s3*g/2] for (s1,s2,s3) in itertools.product([1,-1], repeat=3))
+        verts.extend([s1 * q12, z, s2/(2*g), s3*g/2] for (s1,s2,s3) in product([1,-1], repeat=3))
 
-        verts.extend([z, s1 * q12, s2*g/2, s3/(2*g)] for (s1,s2,s3) in itertools.product([1,-1], repeat=3))
+        verts.extend([z, s1 * q12, s2*g/2, s3/(2*g)] for (s1,s2,s3) in product([1,-1], repeat=3))
 
         verts.extend([z, s1/(2*g), q12, g/2] for s1 in [1,-1])
         verts.extend([z, s1/(2*g), -q12, -g/2] for s1 in [1,-1])

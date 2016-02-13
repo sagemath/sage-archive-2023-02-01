@@ -690,6 +690,14 @@ class AsymptoticExpansionGenerators(SageObject):
             + (1/16*euler_gamma^3 - 1/32*euler_gamma*pi^2 + 1/8*zeta(3))*log(n)^(-5/2)
             + O(log(n)^(-7/2))
 
+        ::
+
+            sage: ae = asymptotic_expansions.SingularityAnalysis('n',
+            ....:     alpha=0, beta=2, precision=14)
+            sage: n = ae.parent().gen()
+            sage: ae.subs(n=n-2)
+            2*n^(-1)*log(n) + 2*euler_gamma*n^(-1) - n^(-2) - 1/6*n^(-3) + O(n^(-5))
+
         ALGORITHM:
 
         See [FS2009]_ together with the

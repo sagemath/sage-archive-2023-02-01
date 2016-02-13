@@ -1149,9 +1149,17 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             multiplication, or methods that exploit the structure
             of the underlying poset shall be implemented at a later
             point.
+
+        TESTS::
+
+            sage: R(1) * R(0)
+            0
+            sage: _.parent()
+            Asymptotic Ring <x^ZZ> over Integer Ring
         """
-        return sum(self._mul_term_(term_other) for
-                   term_other in other.summands.elements())
+        return sum(iter(self._mul_term_(term_other) for
+                        term_other in other.summands.elements()),
+                   self.parent().zero())
 
 
     def _rmul_(self, other):
@@ -1746,8 +1754,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             42*x^42 + x^10 + O(x^2)
             sage: expr.O()
             O(x^42)
-            sage: O(AR(0))
-            0
             sage: (2*x).O()
             O(x)
 
@@ -1755,7 +1761,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             :func:`sage.rings.power_series_ring.PowerSeriesRing`,
             :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`.
+
+        TESTS::
+
+            sage: AR(0).O()
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large x.
         """
+        if not self.summands:
+            from misc import NotImplementedOZero
+            raise NotImplementedOZero(self.parent())
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
 
@@ -3437,22 +3454,24 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                         raise combine_exceptions(
                             ValueError('Symbolic expression %s is not in %s.' %
                                        (data, self)), e)
-                return sum(summands)
+                return sum(summands, self.zero())
 
         elif is_PolynomialRing(P):
             p = P.gen()
             try:
-                return sum(self.create_summand('exact', growth=p**i,
-                                               coefficient=c)
-                           for i, c in enumerate(data))
+                return sum(iter(self.create_summand('exact', growth=p**i,
+                                                    coefficient=c)
+                                for i, c in enumerate(data)),
+                           self.zero())
             except ValueError as e:
                 raise combine_exceptions(
                     ValueError('Polynomial %s is not in %s' % (data, self)), e)
 
         elif is_MPolynomialRing(P):
             try:
-                return sum(self.create_summand('exact', growth=g, coefficient=c)
-                           for c, g in iter(data))
+                return sum(iter(self.create_summand('exact', growth=g, coefficient=c)
+                                for c, g in iter(data)),
+                           self.zero())
             except ValueError as e:
                 raise combine_exceptions(
                     ValueError('Polynomial %s is not in %s' % (data, self)), e)

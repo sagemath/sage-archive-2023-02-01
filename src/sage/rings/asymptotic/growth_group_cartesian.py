@@ -1225,13 +1225,13 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: G('exp(x)*log(x)')._singularity_analysis_(1, 'n', 5)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: singularity analysis of
-                exp(x)*log(x) not implemented
+                NotImplementedError: singularity analysis not implemented
+                for exp(x)*log(x)
                 sage: G('exp(x)*x*log(x)')._singularity_analysis_(1, 'n', 5)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: singularity analysis for more
-                than two factors not yet implemented
+                NotImplementedError: singularity analysis not yet implemented
+                for exp(x)*x*log(x), since it has more than two factors
                 sage: G(1)._singularity_analysis_(2, 'n', 3)
                 Traceback (most recent call last):
                 ...
@@ -1275,12 +1275,12 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                         precision=precision)
                 else:
                     raise NotImplementedError(
-                        "singularity analysis of {} not implemented".format(
+                        "singularity analysis not implemented for {}".format(
                             self))
             else:
                 raise NotImplementedError(
-                    "singularity analysis for more than two "
-                    "factors not yet implemented")
+                    'singularity analysis not yet implemented for {}, '
+                    'since it has more than two factors'.format(self))
 
 
     CartesianProduct = CartesianProductGrowthGroups

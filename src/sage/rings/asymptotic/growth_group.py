@@ -1398,7 +1398,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             'base class %s.' % (self.parent(),)))
 
 
-    def _singularity_analysis_(self, zeta, var, precision):
+    def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this growth element.
 
@@ -1420,7 +1420,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
             sage: G = GenericGrowthGroup(ZZ)
-            sage: G(raw_element=2)._singularity_analysis_(2, 'n', 3)
+            sage: G(raw_element=2)._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis not implemented
@@ -2856,7 +2856,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             substitute_raise_exception(self, e)
 
 
-    def _singularity_analysis_(self, zeta, var, precision):
+    def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this monomial growth element.
 
@@ -2878,7 +2878,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^QQ')
-            sage: G(x^(1/2))._singularity_analysis_(2, 'n', 2)
+            sage: G(x^(1/2))._singularity_analysis_('n', 2, precision=2)
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
             + O((1/2)^n*n^(-5/2))
             sage: G = GrowthGroup('log(x)^QQ')
@@ -2890,13 +2890,13 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         TESTS::
 
-            sage: G(log(x)^(1/2))._singularity_analysis_(2, 'n', 3)
+            sage: G(log(x)^(1/2))._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis not implemented
             for non-integer exponent 1/2 of log(x)
             sage: G = GrowthGroup('log(log(x))^QQ')
-            sage: G(log(log(x))^(1/2))._singularity_analysis_(2, 'n', 3)
+            sage: G(log(log(x))^(1/2))._singularity_analysis_('n', 3)
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis not implemented

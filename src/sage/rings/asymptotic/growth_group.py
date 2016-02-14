@@ -151,7 +151,7 @@ This contains elements of the form
     sage: C.an_element()
     (1/2)^z*z^(1/2)*log(z)^(1/2)
 
-The group `C` itself is a cartesian product; to be precise a
+The group `C` itself is a Cartesian product; to be precise a
 :class:`~sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct`. We
 can see its factors::
 
@@ -166,7 +166,7 @@ Multivariate constructions are also possible::
 This gives a
 :class:`~sage.rings.asymptotic.growth_group_cartesian.MultivariateProduct`.
 
-Both these cartesian products are derived from the class
+Both these Cartesian products are derived from the class
 :class:`~sage.rings.asymptotic.growth_group_cartesian.GenericProduct`. Moreover
 all growth groups have the abstract base class
 :class:`GenericGrowthGroup` in common.
@@ -190,7 +190,7 @@ Some Examples
     x^42*y^42
 
 A monomial growth group itself is totally ordered, all elements
-are comparable. However, this does **not** hold for cartesian
+are comparable. However, this does **not** hold for Cartesian
 products::
 
     sage: e1 = x^2*y; e2 = x*y^2
@@ -873,6 +873,14 @@ def _rpow_(self, base):
         sage: x = G('x')
         sage: (x * log(x)).rpow(2)  # indirect doctest
         2^(x*log(x))
+
+    ::
+
+        sage: n = GrowthGroup('QQ^n * n^QQ')('n')
+        sage: n.rpow(2)
+        2^n
+        sage: _.parent()
+        Growth Group QQ^n * n^QQ
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
@@ -1425,7 +1433,7 @@ class GenericGrowthGroup(
         :class:`ExponentialGrowthGroup`
     """
     # TODO: implement some sort of 'assume', where basic assumptions
-    # for the variables can be stored. --> within the cartesian product
+    # for the variables can be stored. --> within the Cartesian product
 
     # enable the category framework for elements
     Element = GenericGrowthElement
@@ -3424,8 +3432,14 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_SR = GrowthGroup('SR^x')
             sage: P_ZZ(2^x) <= P_SR(sqrt(3)^x)^2  # indirect doctest
             True
+
+        Check that :trac:`19999` is fixed::
+
+            sage: P_ZZ((-2)^x) <= P_ZZ(2^x) or P_ZZ(2^x) <= P_ZZ((-2)^x)
+            False
         """
-        return bool(abs(self.base) <= abs(other.base))
+        return bool(abs(self.base) < abs(other.base)) or \
+               bool(self.base == other.base)
 
 
     def _substitute_(self, rules):

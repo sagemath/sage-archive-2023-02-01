@@ -40,7 +40,7 @@ from copy import copy
 
 from sage.misc.all import powerset, prod
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.parallel.decorate import parallel
 
@@ -869,7 +869,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         OUTPUT:
 
         All solutions (as tuple of log inhomogeneous coordinates) in
-        the cartesian product of the ranges.
+        the Cartesian product of the ranges.
 
         EXAMPLES::
 
@@ -916,7 +916,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             for log_t in self.solutions_serial(inhomogeneous_equations, log_range):
                 yield log_t
             raise StopIteration
-        # Parallelize the outermost loop of the cartesian product
+        # Parallelize the outermost loop of the Cartesian product
         work = [([[r]] + log_range[1:],) for r in log_range[0]]
         from sage.parallel.decorate import Parallel
         parallel = Parallel()

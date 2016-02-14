@@ -21,6 +21,7 @@ from sage.functions.all import exp
 from sage.symbolic.all import pi, i
 from sage.structure.parent_gens import localvars
 from sage.modules.free_module_element import vector
+from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1231,6 +1232,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         Return the (overall) order of ``self`` at ``tau`` if easily possible:
         Namely if ``tau`` is ``infinity`` or congruent to ``i`` resp. ``rho``.
 
+        It is possible to determine the order of points from ``HyperbolicPlane()``.
+        In this case the coordinates of the upper half plane model are used.
+
         If ``self`` is homogeneous and modular then the rational function
         ``self.rat()`` is used. Otherwise only ``tau=infinity`` is supported
         by using the Fourier expansion with increasing precision
@@ -1305,7 +1309,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             3
             sage: (1/MR.f_inf()^2).order_at(-1)
             0
+
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: MR((x-y)^10).order_at(p)
+            10
+            sage: MR.zero().order_at(p)
+            +Infinity
         """
+
+        # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
+        if (tau in HyperbolicPlane()):
+            tau = tau.to_model('UHP').coordinates()
 
         if self.is_zero():
             return infinity
@@ -1510,7 +1524,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (fix_prec == False):
             #if (prec <1):
-            #    print "Warning: non-positiv precision!"
+            #    print "Warning: non-positive precision!"
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
                 from warnings import warn
                 warn("precision too low to determine any coefficient!")
@@ -1803,6 +1817,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         (and fail) for certain (many) choices of
         (``base_ring``, ``tau.parent()``).
 
+        It is possible to evalutate at points of ``HyperbolicPlane()``.
+        In this case the coordinates of the upper half plane model are used.
+
         To obtain a precise and fast result the parameters
         ``prec`` and ``num_prec`` both have to be considered/balanced.
         A high ``prec`` value is usually quite costly.
@@ -2088,7 +2105,24 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
             sage: (f.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             -140.471170232432551196978... + 469.079369280804086032719...*I
+
+        It is possible to evaluate at points of ``HyperbolicPlane()``::
+
+            sage: p = HyperbolicPlane().PD().get_point(-I/2)
+            sage: bool(p.to_model('UHP').coordinates() == I/3)
+            True
+            sage: E4(p) == E4(I/3)
+            True
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: f_inf(p, check=True) == 0
+            True
+            sage: (1/(E2^2-E4))(p) == infinity
+            True
         """
+
+        # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
+        if (tau in HyperbolicPlane()):
+           tau = tau.to_model('UHP').coordinates()
 
         if (prec == None):
             prec = self.parent().default_prec()

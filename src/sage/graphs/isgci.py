@@ -462,7 +462,7 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal <= graph_classes.Tree
             Unknown
         """
-        return other.__ge__(self)
+        return other >= self
 
     def __ge__(self, other):
         r"""
@@ -489,7 +489,7 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal == graph_classes.Tree
             Unknown
         """
-        return self.__ge__(other) and other.__ge__(self)
+        return self >= other and other >= self
 
     def __lt__(self, other):
         r"""
@@ -802,11 +802,12 @@ class GraphClasses(UniqueRepresentation):
 
             sage: graph_classes._download_db() # Not tested -- requires internet
         """
+        # import compatible with py2 and py3
+        from six.moves.urllib.request import urlopen
 
         from sage.misc.misc import SAGE_TMP
-        import urllib2
         import os.path
-        u = urllib2.urlopen('http://www.graphclasses.org/data.zip')
+        u = urlopen('http://www.graphclasses.org/data.zip')
         localFile = open(os.path.join(SAGE_TMP,'isgci.zip'), 'w')
         localFile.write(u.read())
         localFile.close()

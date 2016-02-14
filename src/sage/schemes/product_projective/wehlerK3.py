@@ -29,6 +29,15 @@ AUTHORS:
 
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 import sys
 from sage.calculus.functions       import jacobian
 from sage.categories.fields        import Fields
@@ -37,9 +46,8 @@ from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
 from sage.misc.cachefunc           import cached_method
 from sage.misc.mrange              import xmrange
-from sage.rings.all                import Integer
-from sage.rings.commutative_ring   import is_CommutativeRing
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.all import Integer, CommutativeRing
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ
@@ -87,7 +95,7 @@ def WehlerK3Surface(polys):
             return WehlerK3Surface_finite_field(polys)
         else:
             return WehlerK3Surface_field(polys) 
-    elif is_CommutativeRing(R):
+    elif isinstance(R, CommutativeRing):
         return WehlerK3Surface_ring(polys)
     else:
         raise TypeError( "R ( = %s) must be a commutative ring"%R)

@@ -64,6 +64,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.misc.misc_c import prod
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
+from sage.libs.ntl.convert cimport ZZ_to_mpz
 
 cimport integer
 cimport rational
@@ -75,8 +76,8 @@ cdef void late_import():
     # A hack to avoid circular imports.
     global arith
     if arith is None:
-        import sage.rings.arith
-        arith = sage.rings.arith
+        import sage.arith.all
+        arith = sage.arith.all
 
 cdef int number_of_integer_rings = 0
 

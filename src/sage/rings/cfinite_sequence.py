@@ -94,11 +94,11 @@ REFERENCES:
 
 from sage.categories.fields import Fields
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.rings.commutative_ring import CommutativeRing
+from sage.rings.ring import CommutativeRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.laurent_series_ring import LaurentSeriesRing
@@ -739,7 +739,7 @@ class CFiniteSequence(FieldElement):
         astr = ', starting a(%s...) = [' % str(self._off)
         maxwexp = self.numerator().quo_rem(self.denominator())[0].degree() + 1
         for i in range(maxwexp + self._deg):
-            astr = astr + str(self.__getitem__(self._off + i)) + ', '
+            astr = astr + str(self[self._off + i]) + ', '
         astr = astr[:-2] + ']'
         return 'Homogenous linear recurrence with constant coefficients of degree ' + str(self._deg) + ': ' + cstr + astr
 

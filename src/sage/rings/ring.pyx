@@ -69,7 +69,6 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.element cimport coercion_model
-from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
 from sage.misc.prandom import randint
@@ -635,7 +634,7 @@ cdef class Ring(ParentWithGens):
         """
         return self.quotient(I, names=names)
 
-    def __div__(self, I):
+    def __truediv__(self, I):
         """
         Dividing one ring by another is not supported because there is no good
         way to specify generator names.
@@ -647,8 +646,7 @@ cdef class Ring(ParentWithGens):
             ...
             TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
         """
-        raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
-        #return self.quotient(I, names=None)
+        raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
     def quotient_ring(self, I, names=None):
         """
@@ -836,7 +834,26 @@ cdef class Ring(ParentWithGens):
             True
             sage: ZZ.is_subring(GF(19))
             False
+
+        TESTS:
+
+        Every ring is a subring of itself, :trac:`17287`::
+
+            sage: QQbar.is_subring(QQbar)
+            True
+            sage: RR.is_subring(RR)
+            True
+            sage: CC.is_subring(CC)
+            True
+            sage: K.<a> = NumberField(x^3-x+1/10)
+            sage: K.is_subring(K)
+            True
+            sage: R.<x> = RR[]
+            sage: R.is_subring(R)
+            True
         """
+        if self is other:
+            return True
         try:
             return self.Hom(other).natural_map().is_injective()
         except TypeError:
@@ -1019,14 +1036,15 @@ cdef class Ring(ParentWithGens):
 
     def zeta(self, n=2, all=False):
         """
-        Return an ``n``-th root of unity in ``self`` if there is one,
-        or raise an ``ArithmeticError`` otherwise.
+        Return a primitive ``n``-th root of unity in ``self`` if there
+        is one, or raise a ``ValueError`` otherwise.
 
         INPUT:
 
         - ``n`` -- positive integer
-        - ``all`` -- bool, default: False.  If True, return a list of all n-th
-          roots of 1.
+
+        - ``all`` -- bool (default: False) - whether to return
+          a list of all primitive `n`-th roots of unity.
 
         OUTPUT:
 
@@ -1038,11 +1056,11 @@ cdef class Ring(ParentWithGens):
             -1
             sage: QQ.zeta(1)
             1
-            sage: CyclotomicField(6).zeta()
+            sage: CyclotomicField(6).zeta(6)
             zeta6
-            sage: CyclotomicField(3).zeta()
+            sage: CyclotomicField(3).zeta(3)
             zeta3
-            sage: CyclotomicField(3).zeta().multiplicative_order()
+            sage: CyclotomicField(3).zeta(3).multiplicative_order()
             3
             sage: a = GF(7).zeta(); a
             3
@@ -1062,6 +1080,18 @@ cdef class Ring(ParentWithGens):
             ValueError: no n-th root of unity in rational field
             sage: Zp(7, prec=8).zeta()
             3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + 6*7^6 + 2*7^7 + O(7^8)
+
+        TESTS::
+
+            sage: from sage.rings.ring import Ring
+            sage: Ring.zeta(QQ, 1)
+            1
+            sage: Ring.zeta(QQ, 2)
+            -1
+            sage: Ring.zeta(QQ, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no 3rd root of unity in Rational Field
         """
         if n == 2:
             if all:
@@ -1080,7 +1110,8 @@ cdef class Ring(ParentWithGens):
             for P, e in f.factor():
                 if P.degree() == 1:
                     return -P[0]
-            raise ArithmeticError, "no %s-th root of unity in self"%n
+            from sage.rings.all import ZZ
+            raise ValueError("no %s root of unity in %r" % (ZZ(n).ordinal_str(), self))
 
     def zeta_order(self):
         """
@@ -2166,7 +2197,7 @@ cdef class Field(PrincipalIdealDomain):
             import sage.rings.rational_field
             return sage.rings.rational_field.RationalField()
         else:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             return GF(self.characteristic())
 
     def algebraic_closure(self):

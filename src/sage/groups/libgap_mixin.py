@@ -474,7 +474,7 @@ class GroupMixinLibGAP(object):
             [1 0]
             [0 1]
         """
-        if hasattr(self.list, 'get_cache') and self.list.get_cache() is not None:
+        if self.list.cache is not None:
             for g in self.list():
                 yield g
             return

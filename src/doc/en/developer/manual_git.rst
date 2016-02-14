@@ -12,11 +12,14 @@ If you want to contribute using git only, you are at the right place. This
 chapter will tell you how to do so, assuming some basic familiarity with git. In
 particular, you should have read :ref:`chapter-walkthrough` first.
 
+Randall Munroe has provided a `basic overview <http://xkcd.com/1597/>`_.
+
 We assume that you have a copy of the Sage git repository, for example
 by running::
 
     [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     [user@localhost ~]$ cd sage
+    [user@localhost sage]$ git checkout develop
     [user@localhost sage]$ make
 
 .. _section-git-trac:

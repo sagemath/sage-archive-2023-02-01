@@ -151,7 +151,7 @@ class Macaulay2(Expect):
     """
     Interface to the Macaulay2 interpreter.
     """
-    def __init__(self, maxread=10000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         """
         Initialize a Macaulay2 interface instance.
@@ -185,7 +185,6 @@ class Macaulay2(Expect):
                         name = 'macaulay2',
                         prompt = PROMPT,
                         command = "M2 --no-debug --no-readline --silent -e '%s'" % init_str,
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -1221,6 +1220,9 @@ def macaulay2_console():
         ...
 
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%macaulay2 magics instead.')
     os.system('M2')
 
 

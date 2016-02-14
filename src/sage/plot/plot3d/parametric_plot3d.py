@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Parametric Plots
 """
@@ -137,12 +138,12 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         ....:   (u, 0, 2*pi), (v, -pi, pi), color=(cf, colormaps.PiYG), plot_points=[60,60])
         sage: P.show(viewer='tachyon')
 
-    Another example, a colored Mobius band::
+    Another example, a colored Möbius band::
 
         sage: cm = colormaps.ocean
         sage: def c(x,y): return sin(x*y)**2
-        sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-        sage: MobiusStrip(5,1,plot_points=200, color=(c,cm))
+        sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+        sage: MoebiusStrip(5,1,plot_points=200, color=(c,cm))
         Graphics3d Object
 
     Yet another colored example::
@@ -430,7 +431,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sage: parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0))
         Graphics3d Object
 
-    A Mobius strip::
+    A Möbius strip::
 
         sage: u,v = var("u,v")
         sage: parametric_plot3d([cos(u)*(1+v*cos(u/2)), sin(u)*(1+v*cos(u/2)), 0.2*v*sin(u/2)], (u,0, 4*pi+0.5), (v,0, 0.3),plot_points=[50,50])
@@ -468,7 +469,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sage: plot3d(u^2-v^2, (u, -1, 1), (v, -1, 1), plot_points=[50,50])
         Graphics3d Object
 
-    A weird looking surface - like a Mobius band but also an O::
+    A weird looking surface - like a Möbius band but also an O::
 
         sage: u, v = var('u,v')
         sage: parametric_plot3d([sin(u)*cos(u)*log(u^2)*sin(v), (u^2)^(1/6)*(cos(u)^2)^(1/4)*cos(v), sin(v)], (u, 0.001, 1), (v, -pi, pi+0.2), plot_points=[50,50])

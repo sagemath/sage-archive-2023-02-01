@@ -30,8 +30,6 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
-import sys
-
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -44,18 +42,6 @@ from sage.structure.element import coerce_binop
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    def __richcmp__(left, right, int op):
-        """
-        Comparison.
-
-        EXAMPLES::
-
-            sage: R = Zp(5); a = R(5, 6); b = R(5 + 5^6, 8)
-            sage: a == b #indirect doctest
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(left, Element right) except -2:
         """
         First compare valuations, then compare normalized
@@ -283,7 +269,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (a // b) * b + a % b
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^16)
 
-            The alternative definition:
+        The alternative definition::
 
             sage: a
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
@@ -425,7 +411,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             The element returned is an element of the fraction field.
         """
-        return self.parent().fraction_field()(self, relprec = self.precision_relative()).__invert__()
+        return ~self.parent().fraction_field()(self, relprec = self.precision_relative())
 
     def __mod__(self, right):
         """
@@ -528,7 +514,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         Returns a string representation of self.
 
-        INPUTS:
+        INPUT:
 
         - ``mode`` -- allows one to override the default print mode of
           the parent (default: ``None``).
@@ -681,7 +667,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             x^4 - x^3 + x^2 - x + 1
         """
         # TODO: figure out if this works for extension rings.  If not, move this to padic_base_generic_element.
-        from sage.rings.arith import algdep
+        from sage.arith.all import algdep
         return algdep(self, n)
 
     def algebraic_dependency(self, n):
@@ -1558,7 +1544,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p = self.parent().prime()
         alpha = self.unit_part().lift()
         m = Integer(p**self.precision_relative())
-        from sage.rings.arith import rational_reconstruction
+        from sage.arith.all import rational_reconstruction
         r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
@@ -1704,7 +1690,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         to 0 under any homomorphism to the fraction field, which is a torsion
         free group.
 
-        INPUTS:
+        INPUT:
 
         - ``p_branch`` -- an element in the base ring or its fraction
           field; the implementation will choose the branch of the

@@ -546,7 +546,6 @@ class DocTestController(SageObject):
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
             self.files.append(opj(SAGE_SRC, 'sage_setup'))
-            self.files.append(opj(SAGE_SRC, 'doc', 'common'))
             self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
         DOT_GIT= opj(SAGE_ROOT, '.git')
@@ -1042,7 +1041,7 @@ def run_doctests(module, options=None):
     """
     Runs the doctests in a given file.
 
-    INPUTS:
+    INPUT:
 
     - ``module`` -- a Sage module, a string, or a list of such.
 

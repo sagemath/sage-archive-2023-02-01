@@ -46,16 +46,16 @@ AUTHORS:
 
 """
 
-########################################################################
-#       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
-#                     2014 Julian Rueth <julian.rueth@fsfe.org>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod
@@ -63,7 +63,6 @@ import sage.misc.prandom                    as random
 import sage.modules.free_module             as free_module
 import sage.modules.free_module_element     as free_module_element
 import sage.rings.all                       as rings
-import sage.rings.arith                     as arith
 import sage.rings.number_field.number_field as number_field
 
 from sage.categories.map import Map
@@ -74,12 +73,13 @@ from sage.rings.ring import is_Ring
 
 from sage.misc.cachefunc                    import cached_method
 from sage.misc.fast_methods                 import WithEqualityById
-from sage.rings.arith                       import binomial, bernoulli
 from sage.structure.element                 import MultiplicativeGroupElement
 from sage.structure.gens_py                 import multiplicative_iterator
 from sage.structure.parent                  import Parent
 from sage.structure.sequence                import Sequence
 from sage.structure.factory                 import UniqueFactory
+from sage.arith.all import (binomial, bernoulli, kronecker, factor, gcd,
+        lcm, fundamental_discriminant, euler_phi, factorial, valuation)
 
 def trivial_character(N, base_ring=rings.RationalField()):
     r"""
@@ -125,9 +125,9 @@ def kronecker_character(d):
     if d == 0:
         raise ValueError("d must be nonzero")
 
-    D = arith.fundamental_discriminant(d)
+    D = fundamental_discriminant(d)
     G = DirichletGroup(abs(D), rings.RationalField())
-    return G([arith.kronecker(D,u) for u in G.unit_gens()])
+    return G([kronecker(D,u) for u in G.unit_gens()])
 
 
 def kronecker_character_upside_down(d):
@@ -149,7 +149,7 @@ def kronecker_character_upside_down(d):
         raise ValueError("d must be positive")
 
     G = DirichletGroup(d, rings.RationalField())
-    return G([arith.kronecker(u.lift(),d) for u in G.unit_gens()])
+    return G([kronecker(u.lift(),d) for u in G.unit_gens()])
 
 
 def is_DirichletCharacter(x):
@@ -292,7 +292,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             if e.modulus() % 2 == 0:
                 if e.modulus() % 4 == 0:
                     val *= e.values_on_gens()[0] # first gen is -1 for 2-power modulus
-            elif (arith.euler_phi(e.parent().modulus()) / e.order()) % 2 != 0:
+            elif (euler_phi(e.parent().modulus()) / e.order()) % 2 != 0:
                 val *= -1
         return val
 
@@ -704,7 +704,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             g = t/((N*t).exp(prec) - 1)
             # h(n) = g(t)*e^{nt}
             h = [0] + [g * ((n*t).exp(prec)) for n in range(1,N+1)]
-            ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * arith.factorial(k)
+            ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * factorial(k)
         else:
             raise ValueError("algorithm = '%s' unknown"%algorithm)
 
@@ -735,7 +735,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         if self.modulus() == 1 or self.is_trivial():
             return rings.Integer(1)
-        F = arith.factor(self.modulus())
+        F = factor(self.modulus())
         if len(F) > 1:
             return prod([d.conductor() for d in self.decomposition()])
         p = F[0][0]
@@ -745,7 +745,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         # depends only on the factor of p**(r-1) on the right hand side.
         # Since p-1 is coprime to p, this smallest r such that the
         # divisibility holds equals Valuation(Order(x),p)+1.
-        cond = p**(arith.valuation(self.order(),p) + 1)
+        cond = p**(valuation(self.order(),p) + 1)
         if p == 2 and F[0][1] > 2 and self.values_on_gens()[1].multiplicative_order() != 1:
             cond *= 2;
         return rings.Integer(cond)
@@ -940,7 +940,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             zeta = L.zeta(m)
         elif number_field.is_CyclotomicField(K) or is_RationalField(K):
             chi = chi.minimize_base_ring()
-            n = arith.lcm(m, G.zeta_order())
+            n = lcm(m, G.zeta_order())
             L = rings.CyclotomicField(n)
             zeta = L.gen(0) ** (n // m)
         else:
@@ -1095,9 +1095,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
             11
 
-        And sums where exactly one character is nontrivial (see trac #6393)::
+        And sums where exactly one character is nontrivial (see :trac:`6393`)::
 
-            sage: G=DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
+            sage: G = DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
             sage: Y.jacobi_sum(Z)
             -1
             sage: Z.jacobi_sum(Y)
@@ -1175,15 +1175,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
             raise NotImplementedError("Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         g = 0
         m = G.modulus()
-        L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
+        L = rings.CyclotomicField(lcm(m,G.zeta_order()))
         zeta = L.gen(0)
         n = zeta.multiplicative_order()
         zeta = zeta ** (n // m)
         for c in range(1,m):
-            if arith.gcd(c,m)==1:
+            if gcd(c,m)==1:
                 e = rings.Mod(c,m)
                 z = zeta ** int(a*e + b*(e**(-1)))
-                g += self.__call__(c)*z
+                g += self(c)*z
         return g
 
     def kloosterman_sum_numerical(self, prec=53, a=1,b=0):
@@ -1227,10 +1227,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
         zeta = CC.zeta(m)
 
         for c in range(1,m):
-            if arith.gcd(c,m)==1:
+            if gcd(c,m)==1:
                 e = rings.Mod(c,m)
                 z = zeta ** int(a*e + b*(e**(-1)))
-                g += phi(self.__call__(c))*z
+                g += phi(self(c))*z
         return g
 
     @cached_method
@@ -1412,7 +1412,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             g = 2
         z = self.base_ring().zeta()
         n = z.multiplicative_order()
-        m = arith.LCM(g,n)
+        m = lcm(g,n)
         if n == m:
             return self
         K = rings.CyclotomicField(m)
@@ -1470,7 +1470,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         elif self.order() <= 2:
             K = rings.QQ
         elif (isinstance(R, number_field.NumberField_generic)
-              and arith.euler_phi(self.order()) < R.absolute_degree()):
+              and euler_phi(self.order()) < R.absolute_degree()):
             K = rings.CyclotomicField(self.order())
         else:
             return self
@@ -2001,7 +2001,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         if is_ComplexField(base_ring):
             for i in range(1, self._zeta_order):
                 a = a * zeta
-                a._set_multiplicative_order(zeta_order/arith.GCD(zeta_order, i))
+                a._set_multiplicative_order(zeta_order/gcd(zeta_order, i))
                 v[a] = i
                 w.append(a)
         else:
@@ -2223,7 +2223,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         """
         R = self.base_ring()
         return Sequence([DirichletGroup(p**r,R) for p, r \
-                           in arith.factor(self.modulus())],
+                           in factor(self.modulus())],
                                 cr=True,
                                 universe = cat.Objects())
 
@@ -2271,7 +2271,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         R = self.base_ring()
         p = R.characteristic()
         if p == 0:
-            Auts = [e for e in xrange(1,n) if arith.GCD(e,n) == 1]
+            Auts = [e for e in xrange(1,n) if gcd(e,n) == 1]
         else:
             if not rings.ZZ(p).is_prime():
                 raise NotImplementedError("Automorphisms for finite non-field base rings not implemented")
@@ -2392,7 +2392,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         orders = self.integers_mod().unit_group().gens_orders()
         for i in range(len(self.unit_gens())):
             z = zero.__copy__()
-            z[i] = ord//arith.GCD(ord, orders[i])
+            z[i] = ord//gcd(ord, orders[i])
             g.append(self.element_class(self, z, check=False))
         return tuple(g)
 

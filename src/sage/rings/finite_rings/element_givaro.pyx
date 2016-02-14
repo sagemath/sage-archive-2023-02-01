@@ -62,16 +62,14 @@ from element_ext_pari import FiniteField_ext_pariElement
 from element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from sage.structure.sage_object cimport SageObject
 import operator
-import sage.rings.arith
-import constructor as finite_field
+import sage.arith.all
+import finite_field_constructor as finite_field
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
 from sage.libs.pari.gen cimport gen
 
 from sage.structure.parent cimport Parent
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.superseded import deprecated_function_alias
 
@@ -112,7 +110,7 @@ cdef void late_import():
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
-    import sage.rings.finite_rings.constructor
+    import sage.rings.finite_rings.finite_field_constructor
     conway_polynomial = sage.rings.finite_rings.conway_polynomials.conway_polynomial
 
     import sage.rings.polynomial.multi_polynomial_element
@@ -1581,7 +1579,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         # using how elements are represented as a power of the generator ??
 
         # code copy'n'pasted from element_ext_pari.py
-        import sage.rings.arith
+        import sage.arith.all
 
         if self._multiplicative_order is not None:
             return self._multiplicative_order
@@ -1590,7 +1588,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                 raise ArithmeticError("Multiplicative order of 0 not defined.")
             n = (self._cache).order_c() - 1
             order = Integer(1)
-            for p, e in sage.rings.arith.factor(n):
+            for p, e in sage.arith.all.factor(n):
                 # Determine the power of p that divides the order.
                 a = self**(n/(p**e))
                 while a != 1:

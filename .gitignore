@@ -76,3 +76,9 @@ $RECYCLE.BIN/
 *.sage-chat
 *.sage-history
 *.syncdoc*
+
+###########
+# Jupyter #
+###########
+.ipynb_checkpoints
+Untitled*.ipynb

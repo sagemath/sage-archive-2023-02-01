@@ -146,7 +146,7 @@ class FiniteField_givaro(FiniteField):
         if q >= 1<<16:
             raise ValueError("q must be < 2^16")
 
-        from constructor import GF
+        from finite_field_constructor import GF
         FiniteField.__init__(self, GF(p), name, normalize=False)
 
         self._kwargs['repr'] = repr
@@ -441,7 +441,7 @@ class FiniteField_givaro(FiniteField):
         try:
             return self._prime_subfield
         except AttributeError:
-            from constructor import GF
+            from finite_field_constructor import GF
             self._prime_subfield = GF(self.characteristic())
             return self._prime_subfield
 

@@ -19,13 +19,15 @@ EXAMPLES::
 
 """
 
-#########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import weakref
 import re
@@ -33,8 +35,6 @@ import re
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
-
-from sage.rings.commutative_ring import is_CommutativeRing
 
 import ambient_eps
 import ambient_g0
@@ -123,7 +123,7 @@ def canonical_parameters(group, level, weight, base_ring):
             raise ValueError("group and level do not match.")
         group = arithgroup.Gamma0(m)
 
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, rings.CommutativeRing):
         raise TypeError("base_ring (=%s) must be a commutative ring"%base_ring)
 
     # it is *very* important to include the level as part of the data
@@ -243,12 +243,12 @@ def ModularForms(group  = 1,
         sage: m.T(2).charpoly('x')
         x^4 - 917*x^2 - 42284
 
-    This came up in a subtle bug (trac #5923)::
+    This came up in a subtle bug (:trac:`5923`)::
 
         sage: ModularForms(gp(1), gap(12))
         Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
 
-    This came up in another bug (related to trac #8630)::
+    This came up in another bug (related to :trac:`8630`)::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: ModularForms(chi, 2, base_ring = CyclotomicField(15))

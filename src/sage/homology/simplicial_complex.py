@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Finite simplicial complexes
 
@@ -163,7 +164,7 @@ from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 from sage.misc.latex import latex
 from sage.misc.misc import union
 from sage.matrix.constructor import matrix
@@ -434,7 +435,7 @@ class Simplex(SageObject):
             sage: 3 in Simplex(2)
             False
         """
-        return self.__set.__contains__(x)
+        return x in self.__set
 
     def __getitem__(self, n):
         """
@@ -447,7 +448,7 @@ class Simplex(SageObject):
             sage: Simplex(['a', 'b', 'c'])[1]
             'b'
         """
-        return self.__tuple.__getitem__(n)
+        return self.__tuple[n]
 
     def __iter__(self):
         """
@@ -458,7 +459,7 @@ class Simplex(SageObject):
             sage: [v**2 for v in Simplex(3)]
             [0, 1, 4, 9]
         """
-        return self.__tuple.__iter__()
+        return iter(self.__tuple)
 
     def __add__(self, other):
         """
@@ -472,7 +473,7 @@ class Simplex(SageObject):
             sage: Simplex((1,2,3)) + Simplex((5,6))
             (1, 2, 3, 5, 6)
         """
-        return Simplex(self.__tuple.__add__(other.__tuple))
+        return Simplex(self.__tuple + other.__tuple)
 
     def face(self, n):
         """
@@ -634,7 +635,7 @@ class Simplex(SageObject):
         subdivide it into simplices `(v_0, v_1, ..., v_{dim})` and
         `(v_{dim}, v_{dim + 1}, ..., v_n)`.
 
-        INPUTS:
+        INPUT:
 
         - ``dim`` -- integer between 0 and one more than the
           dimension of this simplex
@@ -720,7 +721,7 @@ class Simplex(SageObject):
             sage: S._repr_()
             '(0, 1, 2, 3, 4, 5)'
         """
-        return self.__tuple.__repr__()
+        return repr(self.__tuple)
 
     def _latex_(self):
         r"""
@@ -813,12 +814,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
     From a characteristic monotone boolean function, e.g. the simplicial complex
     of all subsets `S\subseteq \{0,1,2,3,4\}` such that `sum(S)\leq 4`::
 
-        sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4,range(5)))
+        sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4, range(5)))
         Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
 
     or e.g. the simplicial complex of all 168 hyperovals of the projective plane of order 4::
 
-        sage: l=designs.ProjectiveGeometryDesign(2,1,GF(4,name='a'))
+        sage: l = designs.ProjectiveGeometryDesign(2,1,GF(4,name='a'))
         sage: f = lambda S: not any(len(set(S).intersection(x))>2 for x in l)
         sage: SimplicialComplex(from_characteristic_function=(f, l.ground_set()))
         Simplicial complex with 21 vertices and 168 facets
@@ -1025,7 +1026,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             raise ValueError("This simplicial complex must be immutable. Call set_immutable().")
         return hash(self._facets)
 
-    def __cmp__(self,right):
+    def __eq__(self,right):
         """
         Two simplicial complexes are equal iff their vertex sets are
         equal and their sets of facets are equal.
@@ -1039,10 +1040,22 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X == SimplicialComplex([[1,3]])
             True
         """
-        if isinstance(right, SimplicialComplex) and set(self._facets) == set(right._facets):
-            return 0
-        else:
-            return -1
+        return isinstance(right, SimplicialComplex) and set(self._facets) == set(right._facets)
+
+    def __ne__(self, right):
+        """
+        Return ``True`` if ``self`` and ``right`` are not equal.
+
+        EXAMPLES::
+
+            sage: SimplicialComplex([[1,2], [2,3], [4]]) != SimplicialComplex([[4], [2,3], [3], [2,1]])
+            False
+            sage: X = SimplicialComplex()
+            sage: X.add_face([1,3])
+            sage: X != SimplicialComplex([[1,3]])
+            False
+        """
+        return not self.__eq__(right)
 
     def __copy__(self):
         """
@@ -1223,7 +1236,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         An iterator for the faces in this simplicial complex.
 
-        INPUTS:
+        INPUT:
 
         - ``increasing`` -- (optional, default ``True``) if ``True``, return
           faces in increasing order of dimension, thus starting with
@@ -1312,7 +1325,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         If the complex has dimension `d` and `(f_{-1}, f_0, f_1, ...,
         f_d)` is its `f`-vector (with `f_{-1} = 1`, representing the
-        empy simplex), then the `h`-vector `(h_0, h_1, ..., h_d,
+        empty simplex), then the `h`-vector `(h_0, h_1, ..., h_d,
         h_{d+1})` is defined by
 
         .. MATH::
@@ -1339,7 +1352,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: octa.h_vector()
             [1, 3, 3, 1]
         """
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         d = self.dimension()
         f = self.f_vector()  # indexed starting at 0, since it's a Python list
         h = []
@@ -1560,9 +1573,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
         These can get large pretty quickly::
 
             sage: T = simplicial_complexes.Torus(); T
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 14 facets
+            Minimal triangulation of the torus
             sage: K = simplicial_complexes.KleinBottle(); K
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets
+            Minimal triangulation of the Klein bottle
             sage: T.product(K)      # long time: 5 or 6 seconds
             Simplicial complex with 56 vertices and 1344 facets
         """
@@ -2328,7 +2341,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S1.connected_sum(S1.connected_sum(S1)).homology()
             {0: 0, 1: Z}
             sage: P = simplicial_complexes.RealProjectivePlane(); P
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 10 facets
+            Minimal triangulation of the real projective plane
             sage: P.connected_sum(P)    # the Klein bottle
             Simplicial complex with 9 vertices and 18 facets
 
@@ -2464,7 +2477,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = simplicial_complexes.Sphere(2)
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Minimal triangulation of the 2-sphere
             sage: S.generated_subcomplex([0,1,2])
             Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
 
@@ -2725,7 +2738,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S4 = simplicial_complexes.Sphere(4)
             sage: S4
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 6 facets
+            Minimal triangulation of the 4-sphere
             sage: S4.barycentric_subdivision()
             Simplicial complex with 62 vertices and 720 facets
         """
@@ -2947,7 +2960,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: T = simplicial_complexes.Torus(); T
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 14 facets
+            Minimal triangulation of the torus
 
         Inside the torus, define a subcomplex consisting of a loop::
 
@@ -3385,15 +3398,15 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: T = simplicial_complexes.Sphere(2)
             sage: H = Hom(S,T)  # indirect doctest
             sage: H
-            Set of Morphisms from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-             to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Set of Morphisms from Minimal triangulation of the 1-sphere
+             to Minimal triangulation of the 2-sphere
              in Category of finite simplicial complexes
             sage: f = {0:0,1:1,2:3}
             sage: x = H(f)
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-              To: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+              From: Minimal triangulation of the 1-sphere
+              To: Minimal triangulation of the 2-sphere
             Defn: 0 |--> 0
                   1 |--> 1
                   2 |--> 3
@@ -3403,7 +3416,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ...
             TypeError: Category of objects is not a subcategory of SimplicialComplexes()
             sage: type(Hom(S, T, Objects()))
-            <class 'sage.categories.homset.Homset_with_category'>
+            <class 'sage.categories.homset.Homset_with_category_with_equality_by_id'>
         """
         if not category.is_subcategory(SimplicialComplexes()):
             raise TypeError("{} is not a subcategory of SimplicialComplexes()".format(category))
@@ -3598,4 +3611,74 @@ class SimplicialComplex(Parent, GenericCellComplex):
             True
         """
         return not self._is_mutable
+
+
+# Miscellaneous utility functions.
+
+# The following two functions can be used to generate the facets for
+# the corresponding examples in sage.homology.examples. These take a
+# few seconds to run, so the actual examples have the facets
+# hard-coded. Thus the following functions are not currently used in
+# the Sage library.
+
+def facets_for_RP4():
+    """
+    Return the list of facets for a minimal triangulation of 4-dimensional
+    real projective space.
+
+    We use vertices numbered 1 through 16, define two facets, and define
+    a certain subgroup `G` of the symmetric group `S_{16}`. Then the set
+    of all facets is the `G`-orbit of the two given facets.
+
+    See the description in Example 3.12 in Datta [Da2007]_.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_complex import facets_for_RP4
+        sage: A = facets_for_RP4()   # long time (1 or 2 seconds)
+        sage: SimplicialComplex(A) == simplicial_complexes.RealProjectiveSpace(4) # long time
+        True
+    """
+    # Define the group:
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    g1 = '(2,7)(4,10)(5,6)(11,12)'
+    g2 = '(1, 2, 3, 4, 5, 10)(6, 8, 9)(11, 12, 13, 14, 15, 16)'
+    G = PermutationGroup([g1, g2])
+    # Define the two simplices:
+    t1 = (1, 2, 4, 5, 11)
+    t2 = (1, 2, 4, 11, 13)
+    # Apply the group elements to the simplices:
+    facets = []
+    for g in G:
+        d = g.dict()
+        for t in [t1, t2]:
+            new = tuple([d[j] for j in t])
+            if new not in facets:
+                facets.append(new)
+    return facets
+
+def facets_for_K3():
+    """
+    Returns the facets for a minimal triangulation of the K3 surface.
+
+    This is a pure simplicial complex of dimension 4 with 16
+    vertices and 288 facets. The facets are obtained by constructing a
+    few facets and a permutation group `G`, and then computing the
+    `G`-orbit of those facets.
+
+    See Casella and Kühnel in [CK2001]_ and Spreer and Kühnel [SK2011]_;
+    the construction here uses the labeling from Spreer and Kühnel.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_complex import facets_for_K3
+        sage: A = facets_for_K3()   # long time (a few seconds)
+        sage: SimplicialComplex(A) == simplicial_complexes.K3Surface()  # long time
+        True
+    """
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    G = PermutationGroup([[(1,3,8,4,9,16,15,2,14,12,6,7,13,5,10)],
+                         [(1,11,16),(2,10,14),(3,12,13),(4,9,15),(5,7,8)]])
+    return ([tuple([g(i) for i in (1,2,3,8,12)]) for g in G]
+            +[tuple([g(i) for i in (1,2,5,8,14)]) for g in G])
 

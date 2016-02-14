@@ -150,9 +150,6 @@ On Redhat-derived systems not all perl components are installed by
 default and you might have to install the **perl-ExtUtils-MakeMaker**
 package.
 
-On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
-`multiarch <http://wiki.debian.org/Multiarch>`_ support.
-
 On Cygwin, the **lapack** and **liblapack-devel** packages are required to
 provide ATLAS support as the Sage package for ATLAS is not built by default.
 
@@ -797,8 +794,8 @@ how it is built:
   primarily intended for use when producing certain binary
   distributions of Sage, to lower the size of the distribution. As of
   this writing (December 2014, Sage 6.5), there are only a few such
-  plots, adding about 4M to the :file:`src/doc/output/` directory. In
-  the future, this may grow, of course. Note: after using this, if you
+  plots, adding about 4M to the :file:`local/share/doc/sage/` directory.
+  In the future, this may grow, of course. Note: after using this, if you
   want to build the documentation and include the pictures, you should
   run ``make doc-clean``, because the presence, or lack, of pictures
   is cached in the documentation output.
@@ -995,7 +992,10 @@ Here are some of the more commonly used variables affecting the build process:
   argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
   you run ``make``, ``make doc``, or ``make doc-pdf``.
   For example, you can add ``--no-plot`` to this variable to avoid building
-  the graphics coming from the ``.. PLOT`` directive within the documentation.
+  the graphics coming from the ``.. PLOT`` directive within the documentation,
+  or you can add ``--no-tests`` to omit all "TESTS" blocks in the
+  reference manual. Run ``sage --docbuild help`` to see the full list
+  of options.
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for

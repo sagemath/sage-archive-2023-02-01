@@ -44,7 +44,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         Initialization.
 
-        INPUTS::
+        INPUT:
 
             - base -- Base ring.
             - p -- prime
@@ -85,7 +85,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         print options but modified by the options in the dictionary
         print_mode.
 
-        INPUTS::
+        INPUT:
 
             - print_mode -- dictionary with keys in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']
 
@@ -313,7 +313,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k
             Finite Field of size 3
         """
-        from sage.rings.finite_rings.constructor import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         return GF(self.prime())
 
     def residue_field(self):

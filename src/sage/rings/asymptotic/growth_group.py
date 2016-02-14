@@ -1398,15 +1398,15 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             'base class %s.' % (self.parent(),)))
 
 
-    def _singularity_analysis_(self, zeta, var, precision):
+    def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this growth element.
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 
@@ -1420,7 +1420,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
             sage: G = GenericGrowthGroup(ZZ)
-            sage: G(raw_element=2)._singularity_analysis_(2, 'n', 3)
+            sage: G(raw_element=2)._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis of GenericGrowthElement(2)
@@ -2856,15 +2856,15 @@ class MonomialGrowthElement(GenericGrowthElement):
             substitute_raise_exception(self, e)
 
 
-    def _singularity_analysis_(self, zeta, var, precision):
+    def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this monomial growth element.
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 
@@ -2878,25 +2878,25 @@ class MonomialGrowthElement(GenericGrowthElement):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^QQ')
-            sage: G(x^(1/2))._singularity_analysis_(2, 'n', 2)
+            sage: G(x^(1/2))._singularity_analysis_('n', 2, precision=2)
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
             + O((1/2)^n*n^(-5/2))
             sage: G = GrowthGroup('log(x)^QQ')
-            sage: G(log(x))._singularity_analysis_(1, 'n', 5)
+            sage: G(log(x))._singularity_analysis_('n', 1, precision=5)
             n^(-1) + O(n^(-3))
-            sage: G(log(x)^2)._singularity_analysis_(2, 'n', 3)
+            sage: G(log(x)^2)._singularity_analysis_('n', 2, precision=3)
             8*(1/2)^n*n^(-1)*log(n) + 8*euler_gamma*(1/2)^n*n^(-1)
             + O((1/2)^n*n^(-2)*log(n)^2)
 
         TESTS::
 
-            sage: G(log(x)^(1/2))._singularity_analysis_(2, 'n', 3)
+            sage: G(log(x)^(1/2))._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis of log(x)^(1/2)
             not implemented since exponent 1/2 is not an integer
             sage: G = GrowthGroup('log(log(x))^QQ')
-            sage: G(log(log(x))^(1/2))._singularity_analysis_(2, 'n', 3)
+            sage: G(log(log(x))^(1/2))._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis of log(log(x))^(1/2)

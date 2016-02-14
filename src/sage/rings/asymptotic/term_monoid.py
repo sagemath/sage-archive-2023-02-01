@@ -1236,15 +1236,15 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
             'base class %s.' % (self.parent(),)))
 
 
-    def _singularity_analysis_(self, zeta, var, precision):
+    def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this term.
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 
@@ -1259,7 +1259,7 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
             sage: t = GenericTermMonoid(GrowthGroup('x^ZZ'), ZZ).an_element()
-            sage: t._singularity_analysis_(2, 'n', 3)
+            sage: t._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis of Generic Term with growth x
@@ -2387,15 +2387,15 @@ class OTerm(GenericTerm):
             substitute_raise_exception(self, e)
 
 
-    def _singularity_analysis_(self, zeta, var, precision):
+    def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this O-term.
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 
@@ -2410,13 +2410,13 @@ class OTerm(GenericTerm):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), ZZ)
-            sage: T('x^1')._singularity_analysis_(2, 'n', 3)
+            sage: T('x^1')._singularity_analysis_('n', 2, precision=3)
             O((1/2)^n)
-            sage: T('x^(-1)')._singularity_analysis_(2, 'n', 3)
+            sage: T('x^(-1)')._singularity_analysis_('n', 2, precision=3)
             O((1/2)^n*n^(-2))
         """
         return self.growth._singularity_analysis_(
-            zeta=zeta, var=var, precision=0)
+            var=var, zeta=zeta, precision=0)
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -3578,15 +3578,15 @@ class ExactTerm(TermWithCoefficient):
             substitute_raise_exception(self, e)
 
 
-    def _singularity_analysis_(self, zeta, var, precision):
+    def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this exact term.
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 
@@ -3601,18 +3601,18 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: T = TermMonoid('exact', GrowthGroup('x^QQ'), ZZ)
-            sage: T('5*x^(1/2)')._singularity_analysis_(2, 'n', 2)
+            sage: T('5*x^(1/2)')._singularity_analysis_('n', 2, precision=2)
             5/sqrt(pi)*(1/2)^n*n^(-1/2)
             - 5/8/sqrt(pi)*(1/2)^n*n^(-3/2)
             + O((1/2)^n*n^(-5/2))
-            sage: T('2*x^(-1)')._singularity_analysis_(2, 'n', 3)
+            sage: T('2*x^(-1)')._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedOZero: The error term in the result is O(0)
             which means 0 for sufficiently large n.
         """
         return self.coefficient * self.growth._singularity_analysis_(
-            zeta=zeta, var=var, precision=precision)
+            var=var, zeta=zeta, precision=precision)
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

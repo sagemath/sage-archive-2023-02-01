@@ -3601,7 +3601,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
       Either a string ``'exact'`` or ``'O'`` (capital letter ``O``),
       or an existing instance of a term monoid.
 
-    - ``growth_group`` -- a growth group.
+    - ``growth_group`` -- a growth group or
+      a string describing a growth group.
 
     - ``coefficient_ring`` -- a ring.
 
@@ -3629,6 +3630,10 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         Exact Term Monoid x^ZZ with coefficients in Rational Field
         sage: TermMonoid('O', asymptotic_ring=R)
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
+
+        sage: TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', ZZ)
+        Exact Term Monoid QQ^m * m^QQ * log(n)^ZZ
+        with coefficients in Integer Ring
 
     TESTS::
 
@@ -3750,8 +3755,12 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
         from growth_group import GenericGrowthGroup
         if not isinstance(growth_group, GenericGrowthGroup):
-            raise ValueError("%s has to be an asymptotic growth group"
-                             % growth_group)
+            if isinstance(growth_group, str):
+                from growth_group import GrowthGroup
+                growth_group = GrowthGroup(growth_group)
+            else:
+                raise ValueError('{} has to be an asymptotic growth '
+                                 'group'.format(growth_group))
 
         if coefficient_ring is None:
             raise ValueError("A coefficient ring has to be specified to "

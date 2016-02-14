@@ -1255,23 +1255,24 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 from growth_group import MonomialGrowthGroup
                 from sage.rings.integer_ring import ZZ
 
-                if all(isinstance(_.parent(), MonomialGrowthGroup)
-                       for _ in factors) \
-                        and factors[0].parent().gens_monomial() \
-                        and factors[1].parent().gens_logarithmic() \
-                        and factors[0].parent().variable_name() == \
-                            factors[1].parent().variable_name():
-                    if factors[1].exponent not in ZZ:
+                a, b = factors
+                if all(isinstance(f.parent(), MonomialGrowthGroup)
+                       for f in factors) \
+                        and a.parent().gens_monomial() \
+                        and b.parent().gens_logarithmic() \
+                        and a.parent().variable_name() == \
+                            b.parent().variable_name():
+                    if b.exponent not in ZZ:
                         raise NotImplementedError(
                             "singularity analysis not implemented for non-integer "
                             "exponent {} of {}".format(
-                                factors[1].exponent, factors[1].parent().gen()))
+                                b.exponent, b.parent().gen()))
 
                     from sage.rings.asymptotic.asymptotic_expansion_generators import \
                         asymptotic_expansions
                     return asymptotic_expansions._SingularityAnalysis_non_normalized_(
-                        var=var, zeta=zeta, alpha=factors[0].exponent,
-                        beta=ZZ(factors[1].exponent), delta=0,
+                        var=var, zeta=zeta, alpha=a.exponent,
+                        beta=ZZ(b.exponent), delta=0,
                         precision=precision)
                 else:
                     raise NotImplementedError(

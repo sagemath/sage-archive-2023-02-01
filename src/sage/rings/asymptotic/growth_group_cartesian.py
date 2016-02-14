@@ -971,7 +971,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             """
             return sum(iter(f.factors()
                             for f in self.cartesian_factors()
-                            if f != f.parent().one()),
+                            if not f.is_one()),
                        tuple())
 
 

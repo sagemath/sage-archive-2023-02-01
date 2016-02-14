@@ -3806,7 +3806,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             for s in singular_expansion.summands:
                 try:
                     contribution = s._singularity_analysis_(
-                        singularity, 'Z', precision).subs(Z=self.gen())
+                        var='Z', zeta=singularity,
+                        precision=precision).subs(Z=self.gen())
                 except NotImplementedOZero:
                     OZeroEncountered = True
                 else:

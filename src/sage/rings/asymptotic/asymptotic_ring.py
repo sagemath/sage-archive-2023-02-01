@@ -3789,7 +3789,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: def harmonic(z):
             ....:     return -log(1-z)/(1-z)
-            sage: B.<n> = AsymptoticRing('QQ^n*n^QQ * log(n)^QQ', QQ)
+            sage: B.<n> = AsymptoticRing('QQ^n * n^QQ * log(n)^QQ', QQ)
             sage: ex = B.singularity_analysis(harmonic, (1,), precision=13); ex
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             + O(n^(-6))

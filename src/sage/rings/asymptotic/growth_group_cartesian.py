@@ -1204,11 +1204,11 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             OUTPUT:
 
-            An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+            An asymptotic expansion for `[z^n] f` where `n` is ``var``
             and `f` has this growth element as a singular expansion
             in `(1-z\zeta)\to 0`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: from sage.rings.asymptotic.growth_group import GrowthGroup
                 sage: G = GrowthGroup('exp(x)^QQ * x^QQ * log(x)^QQ')

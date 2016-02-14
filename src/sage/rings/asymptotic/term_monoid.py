@@ -1235,6 +1235,32 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
             'base class %s.' % (self.parent(),)))
 
 
+    def variable_names(self):
+        r"""
+        Return the names of the variables of this term.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', QQ)
+            sage: T('4 * 2^m * m^4 * log(n)').variable_names()
+            ('m', 'n')
+            sage: T('4 * 2^m * m^4').variable_names()
+            ('m',)
+            sage: T('4 * log(n)').variable_names()
+            ('n',)
+            sage: T('4 * m^3').variable_names()
+            ('m',)
+            sage: T('4 * m^0').variable_names()
+            ()
+        """
+        return self.growth.variable_names()
+
+
 class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,
                         sage.structure.parent.Parent):
     r"""

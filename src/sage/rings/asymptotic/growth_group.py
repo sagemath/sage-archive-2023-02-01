@@ -1414,7 +1414,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         An asymptotic expansion for `[z^n] f` where `n` is ``var``
         and `f` has this growth element as a singular expansion
-        in `(1-z\zeta)\to 0`.
+        in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
+        is a growth element in `T`.
 
         TESTS::
 
@@ -2872,7 +2873,8 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         An asymptotic expansion for `[z^n] f` where `n` is ``var``
         and `f` has this growth element as a singular expansion
-        in `(1-z\zeta)\to 0`.
+        in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
+        is a growth element in `T`.
 
         EXAMPLE::
 

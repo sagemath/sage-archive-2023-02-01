@@ -2879,6 +2879,41 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return S.subs(n=P.coerce(self))
 
 
+    def variable_names(self):
+        r"""
+        Return the names of the variables of this asymptotic expansion.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: A.<m, n> = AsymptoticRing('QQ^m * m^QQ * n^ZZ * log(n)^ZZ', QQ)
+            sage: (4*2^m*m^4*log(n)).variable_names()
+            ('m', 'n')
+            sage: (4*2^m*m^4).variable_names()
+            ('m',)
+            sage: (4*log(n)).variable_names()
+            ('n',)
+            sage: (4*m^3).variable_names()
+            ('m',)
+            sage: (4*m^0).variable_names()
+            ()
+            sage: (4*2^m*m^4 + log(n)).variable_names()
+            ('m', 'n')
+            sage: (2^m + m^4 + log(n)).variable_names()
+            ('m', 'n')
+            sage: (2^m + m^4).variable_names()
+            ('m',)
+        """
+        vars = sorted(sum(iter(s.variable_names()
+                               for s in self.summands),
+                          tuple()))
+        from itertools import groupby
+        return tuple(v for v, _ in groupby(vars))
+
+
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expansions <AsymptoticExpansion>`.

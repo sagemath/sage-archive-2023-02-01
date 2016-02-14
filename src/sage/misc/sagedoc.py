@@ -801,7 +801,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         exts = ['html']
         title = 'Documentation'
         base_path = SAGE_DOC
-        doc_path = SAGE_DOC
+        doc_path = SAGE_DOC_SRC
 
         from sage_setup.docbuild.build_options import LANGUAGES, OMIT
         # List of languages

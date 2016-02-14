@@ -591,10 +591,10 @@ class AsymptoticExpansionGenerators(SageObject):
 
         .. MATH::
 
-            [z^n] \left(\frac{1}{1-z}\right)^\alpha
-            \left(\frac{1}{z} \log \frac{1}{1-z}\right)^\beta
-            \left(\frac{1}{z} \log
-            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta.
+            [z^n] \left(\frac{1}{1-z/\zeta}\right)^\alpha
+            \left(\frac{1}{z/\zeta} \log \frac{1}{1-z/\zeta}\right)^\beta
+            \left(\frac{1}{z/\zeta} \log
+            \left(\frac{1}{z/\zeta} \log \frac{1}{1-z/\zeta}\right)\right)^\delta.
 
         INPUT:
 

@@ -1241,7 +1241,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: singularity analysis not implemented
-                for Growth Group exp(x)^QQ
+                for exp(x)
             """
             factors = self.factors()
             if len(factors) == 0:

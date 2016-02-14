@@ -2900,7 +2900,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis not implemented
-            for Growth Group log(log(x))^QQ
+            for log(log(x))^(1/2)
         """
         from sage.rings.integer_ring import ZZ
 

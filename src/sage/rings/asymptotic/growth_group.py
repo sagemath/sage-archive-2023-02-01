@@ -2882,9 +2882,9 @@ class MonomialGrowthElement(GenericGrowthElement):
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
             + O((1/2)^n*n^(-5/2))
             sage: G = GrowthGroup('log(x)^QQ')
-            sage: G(log(x))._singularity_analysis_(1, 'n', 5)
+            sage: G(log(x))._singularity_analysis_('n', 1, precision=5)
             n^(-1) + O(n^(-3))
-            sage: G(log(x)^2)._singularity_analysis_(2, 'n', 3)
+            sage: G(log(x)^2)._singularity_analysis_('n', 2, precision=3)
             8*(1/2)^n*n^(-1)*log(n) + 8*euler_gamma*(1/2)^n*n^(-1)
             + O((1/2)^n*n^(-2)*log(n)^2)
 
@@ -2896,7 +2896,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             NotImplementedError: singularity analysis not implemented
             for non-integer exponent 1/2 of log(x)
             sage: G = GrowthGroup('log(log(x))^QQ')
-            sage: G(log(log(x))^(1/2))._singularity_analysis_('n', 3)
+            sage: G(log(log(x))^(1/2))._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedError: singularity analysis not implemented

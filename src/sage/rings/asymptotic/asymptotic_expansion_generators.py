@@ -674,11 +674,12 @@ class AsymptoticExpansionGenerators(SageObject):
             - 5/8/sqrt(pi)*n^(-3/2)*log(n) + (1/8*(3*euler_gamma + 6*log(2) - 8)/sqrt(pi)
             - (euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2) + O(n^(-5/2)*log(n))
             sage: n = ae.parent().gen()
-            sage: ae.subs(n=n-1)
-            1/sqrt(pi)*n^(-1/2)*log(n) + ((euler_gamma + 2*log(2))/sqrt(pi))*n^(-1/2)
-            - 1/8/sqrt(pi)*n^(-3/2)*log(n) + (1/8*(3*euler_gamma + 6*log(2) - 8)/sqrt(pi)
-            + 1/2*(euler_gamma + 2*log(2))/sqrt(pi) - (euler_gamma + 2*log(2) - 2)/sqrt(pi)
-            - 1/sqrt(pi))*n^(-3/2) + O(n^(-5/2)*log(n))
+            sage: ae.subs(n=n-1).map_coefficients(lambda x: x.canonicalize_radical())
+            1/sqrt(pi)*n^(-1/2)*log(n)
+            + ((euler_gamma + 2*log(2))/sqrt(pi))*n^(-1/2)
+            - 1/8/sqrt(pi)*n^(-3/2)*log(n)
+            + (-1/8*(euler_gamma + 2*log(2))/sqrt(pi))*n^(-3/2)
+            + O(n^(-5/2)*log(n))
 
         ::
 
@@ -688,6 +689,14 @@ class AsymptoticExpansionGenerators(SageObject):
             + (-1/8*euler_gamma^2 + 1/48*pi^2)*log(n)^(-3/2)
             + (1/16*euler_gamma^3 - 1/32*euler_gamma*pi^2 + 1/8*zeta(3))*log(n)^(-5/2)
             + O(log(n)^(-7/2))
+
+        ::
+
+            sage: ae = asymptotic_expansions.SingularityAnalysis('n',
+            ....:     alpha=0, beta=2, precision=14)
+            sage: n = ae.parent().gen()
+            sage: ae.subs(n=n-2)
+            2*n^(-1)*log(n) + 2*euler_gamma*n^(-1) - n^(-2) - 1/6*n^(-3) + O(n^(-5))
 
         ALGORITHM:
 
@@ -806,7 +815,7 @@ class AsymptoticExpansionGenerators(SageObject):
             at alpha-shift.
             """
             if r == 0:
-                result =  iga*falling_factorial(alpha-1, shift)
+                result = iga*falling_factorial(alpha-1, shift)
             else:
                 result = limit((1/gamma(s)).diff(s, r), s=alpha-shift)
 
@@ -867,7 +876,7 @@ class AsymptoticExpansionGenerators(SageObject):
         it = reversed(list(islice(it, precision+1)))
         L = _sa_coefficients_lambda_(max(1, k_max), beta=beta)
         (k, r) = next(it)
-        result = (n**(-k) * log_n ** (-r)).O()
+        result = (n**(-k) * log_n**(-r)).O()
 
         if alpha in ZZ and beta == 0:
             if alpha > 0 and alpha <= precision:
@@ -882,7 +891,7 @@ class AsymptoticExpansionGenerators(SageObject):
                     inverse_gamma_derivative(ell, r)
                     for ell in srange(k, 2*k+1)
                     if (k, ell) in L) * \
-                n**(-k) * log_n **(-r)
+                n**(-k) * log_n**(-r)
 
         result *= exponential_factor * n**(alpha-1) * log_n**beta
 
@@ -1002,6 +1011,7 @@ class AsymptoticExpansionGenerators(SageObject):
         n = result.parent()(var)
         return result.subs({n: n-(beta+delta)})
 
+
 def _sa_coefficients_lambda_(K, beta=0):
     r"""
     Return the coefficients `\lambda_{k, \ell}(\beta)` used in singularity analysis.
@@ -1055,7 +1065,7 @@ def _sa_coefficients_lambda_(K, beta=0):
     T = PowerSeriesRing(V, names='t', default_prec=2*K-1)
     t = T.gen()
 
-    S = (t - (1 +1/v+beta) * (1+v*t).log()).exp()
+    S = (t - (1+1/v+beta) * (1+v*t).log()).exp()
     return dict(((k + L.valuation(), ell), c)
                 for ell, L in enumerate(S.list())
                 for k, c in enumerate(L.list()))

@@ -900,7 +900,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     @staticmethod
     def _SingularityAnalysis_non_normalized_(var, zeta=1, alpha=0, beta=0, delta=0,
-                            precision=None):
+                                             precision=None):
         r"""
         Return the asymptotic expansion of the coefficients of
         an power series with specified pole and logarithmic singularity
@@ -938,7 +938,7 @@ class AsymptoticExpansionGenerators(SageObject):
         EXAMPLES::
 
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=-1/2, beta=1,  precision=2)
+            ....:     'n', 1, alpha=-1/2, beta=1, precision=2)
             -1/2/sqrt(pi)*n^(-3/2)*log(n)
             + (-1/2*(euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2)
             + O(n^(-5/2)*log(n))
@@ -951,39 +951,39 @@ class AsymptoticExpansionGenerators(SageObject):
 
         The following tests correspond to Table VI.5 in [FS2009]_. ::
 
-            sage: A.<n> = AsymptoticRing('n^QQ*log(n)^QQ', QQ)
+            sage: A.<n> = AsymptoticRing('n^QQ * log(n)^QQ', QQ)
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=-1/2, beta=1,  precision=2) * (- sqrt(pi*n^3))
+            ....:     'n', 1, alpha=-1/2, beta=1, precision=2) * (- sqrt(pi*n^3))
             1/2*log(n) + 1/2*euler_gamma + log(2) - 1 + O(n^(-1)*log(n))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=0, beta=1,  precision=3)
+            ....:     'n', 1, alpha=0, beta=1, precision=3)
             n^(-1) + O(n^(-2))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
             ....:     'n', 1, alpha=0, beta=2,  precision=14) * n
             2*log(n) + 2*euler_gamma - n^(-1) - 1/6*n^(-2) +  O(n^(-4))
             sage: (asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=1/2, beta=1,  precision=4) * sqrt(pi*n)).\
-            ....:     map_coefficients(lambda x:x.expand())
+            ....:     'n', 1, alpha=1/2, beta=1, precision=4) * sqrt(pi*n)).\
+            ....:     map_coefficients(lambda x: x.expand())
             log(n) + euler_gamma + 2*log(2) - 1/8*n^(-1)*log(n) +
             (-1/8*euler_gamma - 1/4*log(2))*n^(-1) + O(n^(-2)*log(n))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=1, beta=1,  precision=13)
+            ....:     'n', 1, alpha=1, beta=1, precision=13)
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             + O(n^(-6))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=1, beta=2,  precision=4)
+            ....:     'n', 1, alpha=1, beta=2, precision=4)
             log(n)^2 + 2*euler_gamma*log(n) + euler_gamma^2 - 1/6*pi^2
             + O(n^(-1)*log(n))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=3/2, beta=1,  precision=3) * sqrt(pi/n)
+            ....:     'n', 1, alpha=3/2, beta=1, precision=3) * sqrt(pi/n)
             2*log(n) + 2*euler_gamma + 4*log(2) - 4 + 3/4*n^(-1)*log(n)
             + O(n^(-1))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=2, beta=1,  precision=5)
+            ....:     'n', 1, alpha=2, beta=1, precision=5)
             n*log(n) + (euler_gamma - 1)*n + log(n) + euler_gamma + 1/2
             + O(n^(-1))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=2, beta=2,  precision=4) / n
+            ....:     'n', 1, alpha=2, beta=2, precision=4) / n
             log(n)^2 + (2*euler_gamma - 2)*log(n)
             - 2*euler_gamma + euler_gamma^2 - 1/6*pi^2 + 2
             + n^(-1)*log(n)^2 + O(n^(-1)*log(n))
@@ -1007,7 +1007,8 @@ class AsymptoticExpansionGenerators(SageObject):
         from sage.rings.integer_ring import ZZ
         if not (beta in ZZ and delta in ZZ):
             raise ValueError("beta and delta must be integers")
-        result = AsymptoticExpansionGenerators.SingularityAnalysis(var, zeta, alpha, beta, delta, precision)
+        result = AsymptoticExpansionGenerators.SingularityAnalysis(
+            var, zeta, alpha, beta, delta, precision)
         n = result.parent()(var)
         return result.subs({n: n-(beta+delta)})
 

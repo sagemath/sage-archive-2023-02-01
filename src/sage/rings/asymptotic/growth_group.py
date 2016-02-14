@@ -1423,11 +1423,11 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: G(raw_element=2)._singularity_analysis_(2, 'n', 3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: singularity analysis not implemented
-            for GenericGrowthElement(2)
+            NotImplementedError: singularity analysis of GenericGrowthElement(2)
+            not implemented
         """
-        raise NotImplementedError('singularity analysis not implemented '
-                                  'for {}'.format(self))
+        raise NotImplementedError('singularity analysis of {} '
+                                  'not implemented '.format(self))
 
 
 class GenericGrowthGroup(
@@ -2893,14 +2893,14 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: G(log(x)^(1/2))._singularity_analysis_(2, 'n', 3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: singularity analysis not implemented
-            for non-integer exponent 1/2 of log(x)
+            NotImplementedError: singularity analysis of log(x)^(1/2)
+            not implemented since exponent 1/2 is not an integer
             sage: G = GrowthGroup('log(log(x))^QQ')
             sage: G(log(log(x))^(1/2))._singularity_analysis_(2, 'n', 3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: singularity analysis not implemented
-            for log(log(x))^(1/2)
+            NotImplementedError: singularity analysis of log(log(x))^(1/2)
+            not implemented
         """
         from sage.rings.integer_ring import ZZ
 
@@ -2913,8 +2913,9 @@ class MonomialGrowthElement(GenericGrowthElement):
         elif self.parent().gens_logarithmic():
             if self.exponent not in ZZ:
                 raise NotImplementedError(
-                    "singularity analysis not implemented for non-integer "
-                    "exponent {} of {}".format(self.exponent, self.parent().gen()))
+                    'singularity analysis of {} not implemented '
+                    'since exponent {} is not an integer'.format(
+                        self, self.exponent))
             from sage.rings.asymptotic.asymptotic_expansion_generators import \
                 asymptotic_expansions
             return asymptotic_expansions._SingularityAnalysis_non_normalized_(
@@ -2922,7 +2923,7 @@ class MonomialGrowthElement(GenericGrowthElement):
                 precision=precision)
         else:
             raise NotImplementedError(
-                'singularity analysis not implemented for {}'.format(self))
+                'singularity analysis of {} not implemented'.format(self))
 
 
 class MonomialGrowthGroup(GenericGrowthGroup):

@@ -1404,9 +1404,9 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 
@@ -2862,9 +2862,9 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 

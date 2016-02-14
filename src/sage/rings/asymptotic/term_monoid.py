@@ -1242,9 +1242,9 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 
@@ -2393,9 +2393,9 @@ class OTerm(GenericTerm):
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 
@@ -3584,9 +3584,9 @@ class ExactTerm(TermWithCoefficient):
 
         INPUT:
 
-        - ``zeta`` -- a number
-
         - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
 
         - ``precision`` -- an integer
 

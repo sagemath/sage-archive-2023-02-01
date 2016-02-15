@@ -33,7 +33,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
     The group element is defined by a tuple whose ``i``-th entry is an
     integer in the range from 0 (inclusively) to ``G.gen(i).order()``
     (exclusively) if the `i`-th generator is of finite order, and an
-    arbitrary integer if the `i`-th generator is of infinte order.
+    arbitrary integer if the `i`-th generator is of infinite order.
 
     INPUT:
 

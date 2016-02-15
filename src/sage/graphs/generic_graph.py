@@ -1169,7 +1169,7 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
 
         formats = {"adjlist"           : networkx.write_adjlist,
-                   "dot"               : networkx.write_dot,
+                   "dot"               : networkx.drawing.nx_pydot.write_dot,
                    "edgelist"          : networkx.write_edgelist,
                    "gexf"              : networkx.write_gexf,
                    "gml"               : networkx.write_gml,

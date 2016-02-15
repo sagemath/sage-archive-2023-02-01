@@ -11,7 +11,8 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 .PHONY: all all-sage all-toolchain all-build start \
 	base toolchain toolchain-deps sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean sagelib-clean build-clean
+	doc-clean doc-src-clean doc-output-clean \
+	clean sagelib-clean build-clean
 
 # Build everything and start Sage.
 # Note that we put the "doc" target first in the rule below because
@@ -211,8 +212,13 @@ doc-html-jsmath: doc-html-mathjax
 doc-pdf: $(DOC_DEPENDENCIES)
 	cd ../.. && sage-logger './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
 
-doc-clean:
+doc-clean: doc-src-clean doc-output-clean
+
+doc-src-clean:
 	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
+
+doc-output-clean:
+	rm -rf "$(SAGE_SHARE)/doc/sage"
 
 
 ###############################################################################

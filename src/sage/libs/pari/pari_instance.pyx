@@ -1553,7 +1553,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.polsubcyclo(8, 4)
             [x^4 + 1]
             sage: pari.polsubcyclo(8, 2, 'z')
-            [z^2 + 1, z^2 - 2, z^2 + 2]
+            [z^2 + 2, z^2 - 2, z^2 + 1]
             sage: pari.polsubcyclo(8, 1)
             [x - 1]
             sage: pari.polsubcyclo(8, 3)

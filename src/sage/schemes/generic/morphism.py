@@ -83,7 +83,6 @@ from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
 from sage.rings.all           import Integer, CIF
-from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism

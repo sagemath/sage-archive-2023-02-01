@@ -1731,10 +1731,9 @@ import weakref
 from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 from sage.schemes.hyperelliptic_curves.hyperelliptic_generic import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
-from sage.rings.all import QQ
+from sage.rings.all import QQ, IntegralDomain
 
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
-from sage.rings.integral_domain import is_IntegralDomain
 
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -2911,7 +2910,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
         for i in range(n):
             L.append((y*x**i).diff().extract_pow_y(0))
         A = matrix(L).transpose()
-        if not is_IntegralDomain(A.base_ring()):
+        if not isinstance(A.base_ring(), IntegralDomain):
             # must be using integer_mod or something to approximate
             self._helper_matrix = (~A.change_ring(QQ)).change_ring(A.base_ring())
         else:

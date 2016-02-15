@@ -1411,7 +1411,7 @@ class Polytopes():
             verts.extend(p(x) for x in pts)
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
-    def grand_antiprism(self, exact=False):
+    def grand_antiprism(self, exact=True):
         """
         Return the grand antiprism.
 
@@ -1421,26 +1421,30 @@ class Polytopes():
 
         .. WARNING::
 
-            The coordinates are not exact by default. The computation with exact
-            coordinates takes a huge amount of time.
+            The coordinates are exact by default. The computation with exact
+            coordinates is not as fast as with floating point approximations.
+            If you find this method to be too slow, consider using floating
+            point approximations
 
         INPUT:
 
-        - ``exact`` - (boolean, default ``False``) if ``True`` use exact
-          coordinates instead of floating point approximations
+        - ``exact`` - (boolean, default ``True``) if ``False`` use floating
+          point approximations instead of exact coordinates
 
         EXAMPLES::
 
-            sage: gap = polytopes.grand_antiprism()
+            sage: gap = polytopes.grand_antiprism()  # not tested - very long time
+            sage: gap                                # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^4 defined as the convex hull of 100 vertices
+
+        Computation with approximated coordinates is much faster::
+
+            sage: gap = polytopes.grand_antiprism(exact=False)
             sage: gap
             A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 100 vertices
             sage: gap.f_vector()
             (1, 100, 500, 720, 320, 1)
-
-        Computation with exact coordinates is currently too long to be useful::
-
-            sage: gap = polytopes.grand_antiprism(exact=True)  # not tested - very long time
-            sage: len(list(gap.bounded_edges()))               # not tested - very long time
+            sage: len(list(gap.bounded_edges()))
             500
         """
         from itertools import product

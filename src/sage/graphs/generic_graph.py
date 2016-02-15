@@ -10949,6 +10949,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.degree_histogram()
             [0, 0, 0, 0, 4, 0, 34, 0, 70]
         """
+        if self.order() = 0:
+            return []
         degree_sequence = self.degree()
         dmax = max(degree_sequence) + 1
         frequency = [0]*dmax

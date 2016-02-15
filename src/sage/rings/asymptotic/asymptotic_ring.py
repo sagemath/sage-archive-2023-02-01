@@ -2869,14 +2869,59 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         .. SEEALSO::
 
             :meth:`~sage.rings.asymptotic.asymptotic_expansion_generators.AsymptoticExpansionGenerators.Stirling`
+
+        TESTS::
+
+            sage: A.<m> = AsymptoticRing(growth_group='m^ZZ * log(m)^ZZ', coefficient_ring=QQ, default_prec=5)
+            sage: m.factorial()
+            sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(1/2)
+            + 1/12*sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(-1/2)
+            + 1/288*sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(-3/2)
+            + O(e^(m*log(m))*(e^m)^(-1)*m^(-5/2))
+
+        ::
+
+            sage: A(1/2).factorial()
+            1/2*sqrt(pi)
+            sage: _.parent()
+            Asymptotic Ring <m^ZZ * log(m)^ZZ> over Symbolic Ring
+
+        ::
+
+            sage: B.<a, b> = AsymptoticRing('a^ZZ * b^ZZ', QQ, default_prec=3)
+            sage: b.factorial()
+            O(e^(b*log(b))*(e^b)^(-1)*b^(1/2))
+            sage: (a*b).factorial()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build the factorial of a*b
+            since it is not univariate.
         """
-        from asymptotic_expansion_generators import asymptotic_expansions
-        S = asymptotic_expansions.Stirling(
-            'n', precision=self.parent().default_prec)
-        from sage.structure.element import get_coercion_model
-        cm = get_coercion_model()
-        P = cm.common_parent(self, S)
-        return S.subs(n=P.coerce(self))
+        vars = self.variable_names()
+
+        if len(vars) == 0:
+            if self.is_zero():
+                return self.parent().one()
+            assert len(self.summands) == 1
+            element = next(self.summands.elements())
+            return self.parent()._create_element_in_extension_(
+                element._factorial_(), element.parent())
+
+        if len(vars) == 1:
+            from asymptotic_expansion_generators import \
+                asymptotic_expansions
+            var = vars[0]
+            S = asymptotic_expansions.Stirling(
+                var, precision=self.parent().default_prec)
+            from sage.structure.element import get_coercion_model
+            cm = get_coercion_model()
+            P = cm.common_parent(self, S)
+            return S.subs({var: P.coerce(self)})
+
+        else:
+            raise ValueError(
+                'Cannot build the factorial of {} since it is not '
+                'univariate.'.format(self))
 
 
     def variable_names(self):

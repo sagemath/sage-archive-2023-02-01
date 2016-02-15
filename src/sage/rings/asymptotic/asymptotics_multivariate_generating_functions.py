@@ -625,6 +625,13 @@ class FractionWithFactoredDenominator(RingElement):
         ``True`` or ``False``.
 
         TESTS::
+
+            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: f = FFPD(x, [])
+            sage: f == x
+            True
         """
         from sage.structure.element import have_same_parent
         if have_same_parent(self, other):
@@ -3164,7 +3171,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             numerator_ring = denominator_ring
         if not numerator_ring.has_coerce_map_from(denominator_ring):
             raise ValueError('numerator ring {} has no coercion map from the '
-                             'denominator ring {}.'.format(
+                             'denominator ring {}'.format(
                                  numerator_ring, denominator_ring))
         category = Rings().or_subcategory(category)
         return super(FractionWithFactoredDenominatorRing, cls).__classcall__(cls,

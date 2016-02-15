@@ -584,7 +584,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
     def nth_iterate_map(self, n):
         r"""
-        This function returns the ``n``th iterate of the map.
+        This function returns the ``n``-th iterate of the map.
 
         ALGORITHM:
 
@@ -659,7 +659,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
     def nth_iterate(self, P, n):
         r"""
-        Returns the ``n``th iterate of the point ``P`` by this map.
+        Returns the ``n``-th iterate of the point ``P`` by this map.
 
         INPUT:
 

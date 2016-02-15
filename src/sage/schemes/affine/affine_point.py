@@ -147,7 +147,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
         - ``f`` -- a :class:`SchemeMorphism_polynomial` with the point in ``f.domain()``.
 
-        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers.
+        - ``N`` -- a non-negative integer or list or tuple of two non-negative integers.
 
         OUTPUT:
 

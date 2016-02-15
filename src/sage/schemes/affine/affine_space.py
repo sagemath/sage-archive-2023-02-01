@@ -618,7 +618,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         except KeyError:
             pass
 
-        #if no ith embedding exists, we may still be here with PP==None
+        #if no i-th embedding exists, we may still be here with PP==None
         if PP is None:
             from sage.schemes.projective.projective_space import ProjectiveSpace
             PP = ProjectiveSpace(n, self.base_ring())

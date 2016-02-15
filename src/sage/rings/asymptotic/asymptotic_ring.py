@@ -2866,6 +2866,21 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             + 145/128/sqrt(pi)*(e^n)^(2*log(2))*n^(-7/2)
             + O((e^n)^(2*log(2))*n^(-9/2))
 
+        Note that this method substitutes the asymptotic expansion into
+        Stirling's formula. This substitution has to be possible which is
+        not always guaranteed::
+
+            sage: S.<s> = AsymptoticRing(growth_group='s^QQ * log(s)^QQ', coefficient_ring=QQ, default_prec=4)
+            sage: log(s).factorial()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot apply the substitution rules {s: log(s)} on
+            sqrt(2)*sqrt(pi)*e^(s*log(s))*(e^s)^(-1)*s^(1/2)
+            + O(e^(s*log(s))*(e^s)^(-1)*s^(-1/2)) in
+            Asymptotic Ring <(e^(s*log(s)))^QQ * (e^s)^QQ * s^QQ * log(s)^QQ>
+            over Symbolic Constants Subring.
+            ...
+
         .. SEEALSO::
 
             :meth:`~sage.rings.asymptotic.asymptotic_expansion_generators.AsymptoticExpansionGenerators.Stirling`

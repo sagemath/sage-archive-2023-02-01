@@ -228,6 +228,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
+- Clemens Heuberger (2016)
 
 ACKNOWLEDGEMENT:
 
@@ -1395,6 +1396,39 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         substitute_raise_exception(self, TypeError(
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
+
+
+    def _singularity_analysis_(self, var, zeta, precision):
+        r"""
+        Perform singularity analysis on this growth element.
+
+        INPUT:
+
+        - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
+        and `f` has this growth element as a singular expansion
+        in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
+        is a growth element in `T`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: G(raw_element=2)._singularity_analysis_('n', 2, precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis not implemented
+            for GenericGrowthElement(2)
+        """
+        raise NotImplementedError('singularity analysis not implemented '
+                                  'for {}'.format(self))
 
 
 class GenericGrowthGroup(
@@ -2821,6 +2855,53 @@ class MonomialGrowthElement(GenericGrowthElement):
         except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
+
+
+    def _singularity_analysis_(self, var, zeta, precision):
+        r"""
+        Perform singularity analysis on this monomial growth element.
+
+        INPUT:
+
+        - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
+        and `f` has this growth element as a singular expansion
+        in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
+        is a growth element in `T`.
+
+        EXAMPLE::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^QQ')
+            sage: G(x^(1/2))._singularity_analysis_('n', 2, precision=2)
+            1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
+            + O((1/2)^n*n^(-5/2))
+
+        TESTS::
+
+            sage: G = GrowthGroup('log(x)^QQ')
+            sage: G(log(x)^(1/2))._singularity_analysis_('n', 2, precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis not implemented
+            for log(x)^(1/2)
+        """
+        if self.parent()._var_.is_monomial():
+            from sage.rings.asymptotic.asymptotic_expansion_generators import \
+                asymptotic_expansions
+            return asymptotic_expansions.SingularityAnalysis(
+                var=var, zeta=zeta, alpha=self.exponent, beta=0, delta=0,
+                precision=precision)
+        else:
+            raise NotImplementedError(
+                'singularity analysis not implemented for {}'.format(self))
 
 
 class MonomialGrowthGroup(GenericGrowthGroup):

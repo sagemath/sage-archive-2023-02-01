@@ -1149,9 +1149,17 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             multiplication, or methods that exploit the structure
             of the underlying poset shall be implemented at a later
             point.
+
+        TESTS::
+
+            sage: R(1) * R(0)
+            0
+            sage: _.parent()
+            Asymptotic Ring <x^ZZ> over Integer Ring
         """
-        return sum(self._mul_term_(term_other) for
-                   term_other in other.summands.elements())
+        return sum(iter(self._mul_term_(term_other) for
+                        term_other in other.summands.elements()),
+                   self.parent().zero())
 
 
     def _rmul_(self, other):
@@ -1746,8 +1754,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             42*x^42 + x^10 + O(x^2)
             sage: expr.O()
             O(x^42)
-            sage: O(AR(0))
-            0
             sage: (2*x).O()
             O(x)
 
@@ -1755,7 +1761,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             :func:`sage.rings.power_series_ring.PowerSeriesRing`,
             :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`.
+
+        TESTS::
+
+            sage: AR(0).O()
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large x.
         """
+        if not self.summands:
+            from misc import NotImplementedOZero
+            raise NotImplementedOZero(self.parent())
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
 
@@ -3577,22 +3594,24 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                         raise combine_exceptions(
                             ValueError('Symbolic expression %s is not in %s.' %
                                        (data, self)), e)
-                return sum(summands)
+                return sum(summands, self.zero())
 
         elif is_PolynomialRing(P):
             p = P.gen()
             try:
-                return sum(self.create_summand('exact', growth=p**i,
-                                               coefficient=c)
-                           for i, c in enumerate(data))
+                return sum(iter(self.create_summand('exact', growth=p**i,
+                                                    coefficient=c)
+                                for i, c in enumerate(data)),
+                           self.zero())
             except ValueError as e:
                 raise combine_exceptions(
                     ValueError('Polynomial %s is not in %s' % (data, self)), e)
 
         elif is_MPolynomialRing(P):
             try:
-                return sum(self.create_summand('exact', growth=g, coefficient=c)
-                           for c, g in iter(data))
+                return sum(iter(self.create_summand('exact', growth=g, coefficient=c)
+                                for c, g in iter(data)),
+                           self.zero())
             except ValueError as e:
                 raise combine_exceptions(
                     ValueError('Polynomial %s is not in %s' % (data, self)), e)
@@ -3846,6 +3865,107 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             1
         """
         return len(self.growth_group.gens_monomial())
+
+
+    def singularity_analysis(self, function, singularities, precision=None,
+                             return_singular_expansions=False):
+        r"""
+        Return the asymptotic growth of the coefficients of some
+        generating function by means of Singularity Analysis.
+
+        INPUT:
+
+        - ``function`` -- a callable function in one variable.
+
+        - ``singularities`` -- list of dominant singularities of the function.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+        - ``return_singular_expansions`` -- (default: ``False``) a boolean.
+          If set, the singular expansions are also returned.
+
+        OUTPUT:
+
+        - If ``return_singular_expansions=False``: An asymptotic expansion from
+          this ring.
+
+        - If ``return_singular_expansions=True``: A named tuple with
+          components ``asymptotic_expansion`` and
+          ``singular_expansions``. The former contains an asymptotic
+          expansion from this ring, the latter is a dictionary which
+          contains the singular expansions around the singularities.
+
+        .. TODO::
+
+            Make this method more usable by implementing the
+            processing of symbolic expressions.
+
+        EXAMPLES::
+
+            sage: def catalan(z):
+            ....:     return (1-(1-4*z)^(1/2))/(2*z)
+            sage: B.<n> = AsymptoticRing('QQ^n * n^QQ', QQ)
+            sage: B.singularity_analysis(catalan, (1/4,), precision=3)
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
+            + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-4))
+            sage: B.singularity_analysis(catalan, (1/4,), precision=2,
+            ....:                        return_singular_expansions=True)
+            SingularityAnalysisResult(asymptotic_expansion=1/sqrt(pi)*4^n*n^(-3/2)
+            - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3)),
+            singular_expansions={1/4: 2 - 2*T^(-1/2)
+            + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
+
+        TESTS::
+
+            sage: def f(z):
+            ....:     return z/(1-z)
+            sage: B.singularity_analysis(f, (1,), precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
+        """
+        from sage.symbolic.ring import SR
+        from sage.rings.integer_ring import ZZ
+        from asymptotic_expansion_generators import asymptotic_expansions
+        from misc import NotImplementedOZero
+
+        singular_expansions = {}
+
+        OZeroEncountered = False
+
+        A = AsymptoticRing('T^QQ', coefficient_ring=SR, default_prec=precision)
+        T = A.gen()
+
+        result = A.zero()
+        for singularity in singularities:
+            singular_expansion = A(function((1-1/T)*singularity))
+            singular_expansions[singularity] = singular_expansion
+
+            for s in singular_expansion.summands:
+                try:
+                    contribution = s._singularity_analysis_(
+                        var='Z', zeta=singularity,
+                        precision=precision).subs(Z=self.gen())
+                except NotImplementedOZero:
+                    OZeroEncountered = True
+                else:
+                    result += contribution
+
+        if OZeroEncountered and result.is_exact():
+            raise NotImplementedOZero(self)
+
+        if return_singular_expansions:
+            from collections import namedtuple
+            SingularityAnalysisResult = namedtuple(
+                'SingularityAnalysisResult',
+                ['asymptotic_expansion', 'singular_expansions'])
+            return SingularityAnalysisResult(
+                asymptotic_expansion=result,
+                singular_expansions=singular_expansions)
+        else:
+            return result
 
 
     def create_summand(self, type, data=None, **kwds):

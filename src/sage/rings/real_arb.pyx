@@ -456,6 +456,11 @@ class RealBallField(UniqueRepresentation, Field):
             [2.718281828459045 +/- 5.35e-16]
             sage: RBF(pi)
             [3.141592653589793 +/- 5.61e-16]
+
+        Symbolic expressions are parsed ::
+
+            sage: RBF(4*zeta(3))
+            [4.808227612638377 +/- 9.50e-16]
         """
         try:
             return self.element_class(self, mid, rad)
@@ -463,6 +468,10 @@ class RealBallField(UniqueRepresentation, Field):
             pass
         try:
             return self.element_class(self, mid.pyobject(), rad)
+        except (AttributeError, TypeError):
+            pass
+        try:
+            return mid.operator()(*[self(operand) for operand in mid.operands()])
         except (AttributeError, TypeError):
             pass
         try:

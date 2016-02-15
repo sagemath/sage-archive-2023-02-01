@@ -1261,6 +1261,30 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         return self.growth.variable_names()
 
 
+    def _factorial_(self):
+        r"""
+        Return the factorial of this generic term.
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: T = GenericTermMonoid(GrowthGroup('x^QQ'), QQ)
+            sage: T.an_element()._factorial_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot build the factorial of
+            Generic Term with growth x^(1/2).
+        """
+        raise NotImplementedError(
+            'Cannot build the factorial of {}.'.format(self))
+
+
+
 class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,
                         sage.structure.parent.Parent):
     r"""
@@ -2377,6 +2401,35 @@ class OTerm(GenericTerm):
         except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
+
+
+    def _factorial_(self):
+        r"""
+        Return the factorial of this O-term if it is constant
+        (i.e., has growth `1`).
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('O', 'z^QQ', QQ)
+            sage: T(1)._factorial_()
+            O(1)
+            sage: T('z^(3/2)')._factorial_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build the factorial of O(z^(3/2))
+            since it has growth != 1.
+        """
+        if not self.growth.is_one():
+            raise ValueError(
+                'Cannot build the factorial of {} since it has growth '
+                '!= 1.'.format(self))
+
+        return self
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -3536,6 +3589,39 @@ class ExactTerm(TermWithCoefficient):
         except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
+
+
+    def _factorial_(self):
+        r"""
+        Return the factorial of this exact term if it is constant
+        (i.e., has growth `1`).
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', 'z^QQ', QQ)
+            sage: T('4')._factorial_()
+            24
+            sage: T('1/2')._factorial_()
+            1/2*sqrt(pi)
+            sage: T('4*z^(3/2)')._factorial_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build the factorial of 4*z^(3/2)
+            since it has growth != 1.
+        """
+        if not self.growth.is_one():
+            raise ValueError(
+                'Cannot build the factorial of {} since it has growth '
+                '!= 1.'.format(self))
+
+        from sage.functions.other import factorial
+        return self.parent()._create_element_in_extension_(
+            self.growth, factorial(self.coefficient))
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

@@ -3787,7 +3787,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return len(self.growth_group.gens_monomial())
 
 
-    def singularity_analysis(self, function, singularities, precision=None,
+    def coefficients_of_generating_function(self, function, singularities, precision=None,
                              return_singular_expansions=False):
         r"""
         Return the asymptotic growth of the coefficients of some
@@ -3828,10 +3828,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: def catalan(z):
             ....:     return (1-(1-4*z)^(1/2))/(2*z)
             sage: B.<n> = AsymptoticRing('QQ^n * n^QQ', QQ)
-            sage: B.singularity_analysis(catalan, (1/4,), precision=3)
+            sage: B.coefficients_of_generating_function(catalan, (1/4,), precision=3)
             1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
             + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-4))
-            sage: B.singularity_analysis(catalan, (1/4,), precision=2,
+            sage: B.coefficients_of_generating_function(catalan, (1/4,), precision=2,
             ....:                        return_singular_expansions=True)
             SingularityAnalysisResult(asymptotic_expansion=1/sqrt(pi)*4^n*n^(-3/2)
             - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3)),
@@ -3842,7 +3842,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: def logarithmic(z):
             ....:     return -log(1-z)
-            sage: B.singularity_analysis(logarithmic, (1,), precision=5)
+            sage: B.coefficients_of_generating_function(logarithmic, (1,), precision=5)
             n^(-1) + O(n^(-3))
 
         Harmonic numbers::
@@ -3850,7 +3850,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: def harmonic(z):
             ....:     return -log(1-z)/(1-z)
             sage: B.<n> = AsymptoticRing('QQ^n * n^QQ * log(n)^QQ', QQ)
-            sage: ex = B.singularity_analysis(harmonic, (1,), precision=13); ex
+            sage: ex = B.coefficients_of_generating_function(harmonic, (1,), precision=13); ex
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             + O(n^(-6))
             sage: ex.has_same_summands(asymptotic_expansions.HarmonicNumber(
@@ -3861,7 +3861,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: def f(z):
             ....:     return z/(1-z)
-            sage: B.singularity_analysis(f, (1,), precision=3)
+            sage: B.coefficients_of_generating_function(f, (1,), precision=3)
             Traceback (most recent call last):
             ...
             NotImplementedOZero: The error term in the result is O(0)

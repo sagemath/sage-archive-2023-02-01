@@ -582,11 +582,13 @@ class NotImplementedOZero(NotImplementedError):
     which is raised when the result is O(0) which means 0
     for sufficiently large values of the variable.
     """
-    def __init__(self, data):
+    def __init__(self, data=None, var=None):
         r"""
         INPUT:
 
-        - ``data`` -- an :class:`AsymptoticRing` or a string.
+        - ``data`` -- (default: ``None``) an :class:`AsymptoticRing` or a string.
+
+        - ``var`` -- (default: ``None``) a string.
 
         TESTS::
 
@@ -602,13 +604,19 @@ class NotImplementedOZero(NotImplementedError):
             Traceback (most recent call last):
             ...
             NotImplementedOZero: something
+            sage: raise NotImplementedOZero(var='m')
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large m.
         """
         from asymptotic_ring import AsymptoticRing
-        if isinstance(data, AsymptoticRing):
+        if isinstance(data, AsymptoticRing) or var is not None:
+            if var is None:
+                var = ', '.join(str(g) for g in data.gens())
             message = ('The error term in the result is O(0) '
                        'which means 0 for sufficiently '
-                       'large {}.'.format(
-                           ', '.join(str(g) for g in data.gens())))
+                       'large {}.'.format(var))
         else:
             message = data
         super(NotImplementedOZero, self).__init__(message)

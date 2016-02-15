@@ -1424,11 +1424,11 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: G(raw_element=2)._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: singularity analysis not implemented
-            for GenericGrowthElement(2)
+            NotImplementedError: singularity analysis of GenericGrowthElement(2)
+            not implemented
         """
-        raise NotImplementedError('singularity analysis not implemented '
-                                  'for {}'.format(self))
+        raise NotImplementedError('singularity analysis of {} '
+                                  'not implemented '.format(self))
 
 
 class GenericGrowthGroup(
@@ -2883,25 +2883,49 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: G(x^(1/2))._singularity_analysis_('n', 2, precision=2)
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
             + O((1/2)^n*n^(-5/2))
+            sage: G = GrowthGroup('log(x)^QQ')
+            sage: G(log(x))._singularity_analysis_('n', 1, precision=5)
+            n^(-1) + O(n^(-3))
+            sage: G(log(x)^2)._singularity_analysis_('n', 2, precision=3)
+            8*(1/2)^n*n^(-1)*log(n) + 8*euler_gamma*(1/2)^n*n^(-1)
+            + O((1/2)^n*n^(-2)*log(n)^2)
 
         TESTS::
 
-            sage: G = GrowthGroup('log(x)^QQ')
             sage: G(log(x)^(1/2))._singularity_analysis_('n', 2, precision=3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: singularity analysis not implemented
-            for log(x)^(1/2)
+            NotImplementedError: singularity analysis of log(x)^(1/2)
+            not implemented since exponent 1/2 is not an integer
+            sage: G = GrowthGroup('log(log(x))^QQ')
+            sage: G(log(log(x))^(1/2))._singularity_analysis_('n', 2, precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis of log(log(x))^(1/2)
+            not implemented
         """
+        from sage.rings.integer_ring import ZZ
+
         if self.parent()._var_.is_monomial():
             from sage.rings.asymptotic.asymptotic_expansion_generators import \
                 asymptotic_expansions
             return asymptotic_expansions.SingularityAnalysis(
                 var=var, zeta=zeta, alpha=self.exponent, beta=0, delta=0,
                 precision=precision)
+        elif self.parent().gens_logarithmic():
+            if self.exponent not in ZZ:
+                raise NotImplementedError(
+                    'singularity analysis of {} not implemented '
+                    'since exponent {} is not an integer'.format(
+                        self, self.exponent))
+            from sage.rings.asymptotic.asymptotic_expansion_generators import \
+                asymptotic_expansions
+            return asymptotic_expansions._SingularityAnalysis_non_normalized_(
+                var=var, zeta=zeta, alpha=0, beta=ZZ(self.exponent), delta=0,
+                precision=precision)
         else:
             raise NotImplementedError(
-                'singularity analysis not implemented for {}'.format(self))
+                'singularity analysis of {} not implemented'.format(self))
 
 
 class MonomialGrowthGroup(GenericGrowthGroup):
@@ -3172,6 +3196,42 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if not self._var_.is_monomial():
             return tuple()
         return (self(raw_element=self.base().one()),)
+
+
+    def gens_logarithmic(self):
+        r"""
+        Return a tuple containing logarithmic generators of this growth
+        group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A tuple containing elements of this growth group.
+
+        .. NOTE::
+
+            A generator is called logarithmic generator if the variable
+            of the underlying growth group is the logarithm of a valid
+            identifier. For
+            example, ``x^ZZ`` has no logarithmic generator,
+            while ``log(x)^ZZ`` has ``log(x)`` as
+            logarithmic generator.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ').gens_logarithmic()
+            ()
+            sage: GrowthGroup('log(x)^QQ').gens_logarithmic()
+            (log(x),)
+        """
+        if str(self.gen()) == "log({})".format(self.variable_name()):
+            return (self(raw_element=self.base().one()),)
+        else:
+            return tuple()
 
 
     def construction(self):

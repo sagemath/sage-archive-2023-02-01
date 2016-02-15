@@ -3736,7 +3736,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         INPUT:
 
-        - ``function`` -- a callable function in one variable.
+        - ``function`` -- a callable function in one variable or a singular expansion.
 
         - ``singularities`` -- list of dominant singularities of the function.
 
@@ -3778,6 +3778,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3)),
             singular_expansions={1/4: 2 - 2*T^(-1/2)
             + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
+            sage: C.<T> = AsymptoticRing('T^QQ', QQ)
+            sage: B.singularity_analysis(
+            ....:     2 - 2*T^(-1/2) + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2)),
+            ....:     (1/4,), precision=2)
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))
 
         Unit fractions::
 
@@ -3822,7 +3827,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         result = A.zero()
         for singularity in singularities:
-            singular_expansion = A(function((1-1/T)*singularity))
+            if hasattr(function, "parent") \
+                    and isinstance(function.parent(), AsymptoticRing):
+                singular_expansion = function
+            else:
+                singular_expansion = A(function((1-1/T)*singularity))
             singular_expansions[singularity] = singular_expansion
 
             for s in singular_expansion.summands:

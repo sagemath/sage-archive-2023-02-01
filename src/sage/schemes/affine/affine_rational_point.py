@@ -7,6 +7,7 @@ over for general schemes.
 .. WARNING::
 
     Incorrect results and infinite loops may occur if using a wrong function.
+
     (For instance using an affine function for a projective scheme or a finite
     field function for a scheme defined over an infinite field.)
 

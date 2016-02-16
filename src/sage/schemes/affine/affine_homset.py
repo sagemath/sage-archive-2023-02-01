@@ -87,9 +87,7 @@ class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic)
         """
         Return a string representation of a homset.
 
-        OUTPUT:
-
-        A string.
+        OUTPUT: A string.
 
         EXAMPLES::
 

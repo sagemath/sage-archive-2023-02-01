@@ -1,7 +1,7 @@
 r"""
 Points on affine varieties
 
-Scheme morphism for points on affine varieties
+Scheme morphism for points on affine varieties.
 
 
 AUTHORS:
@@ -55,7 +55,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
     - ``v`` -- a list/tuple/iterable of coordinates in `R`.
 
     - ``check`` -- boolean (optional, default:``True``). Whether to
-        check the input for consistency.
+      check the input for consistency.
 
     EXAMPLES::
 
@@ -198,7 +198,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         INPUT:
 
         - ``prec`` -- desired floating point precision (default:
-            default RealField precision).
+          default RealField precision).
 
         OUTPUT:
 
@@ -354,7 +354,7 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
         r"""
         Returns the integer hash of the point.
 
-        OUTPUT: integer.
+        OUTPUT: Integer.
 
         EXAMPLES::
 

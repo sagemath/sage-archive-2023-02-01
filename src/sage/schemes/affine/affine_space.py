@@ -535,7 +535,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         INPUT:
 
         - ``polynomials`` -- tuple of polynomials in the coordinate ring of
-            this space.
+          this space.
 
         OUTPUT:
 
@@ -687,7 +687,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         r"""
         Returns an element of this affine space,used both for illustration and testing purposes.
 
-        OUTPUT: a point in the affine space.
+        OUTPUT: A point in the affine space.
 
         EXAMPLES::
 
@@ -814,7 +814,7 @@ class AffineSpace_field(AffineSpace_generic):
         the Weil restriction to the prime subfield.
 
         OUTPUT: Affine space of dimension ``d * self.dimension_relative()``
-            over the base field of ``self.base_ring()``.
+                over the base field of ``self.base_ring()``.
 
         EXAMPLES::
 

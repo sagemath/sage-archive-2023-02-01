@@ -1,7 +1,7 @@
 r"""
 Morphisms on affine varieties
 
-A morphism of schemes determined by rational functions that define
+A morphism of schemes determined by rational functions that define \
 what the morphism does on points in the ambient affine space.
 
 
@@ -222,11 +222,11 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``right`` -- a map on affine space.
+        - ``right`` -  a map on affine space.
 
         OUTPUT:
 
-        - Boolean -- True if the two affine maps define the same map.
+        - Boolean - True if the two affine maps define the same map.
 
         EXAMPLES::
 
@@ -346,7 +346,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         INPUT:
 
         - ``n`` -- a tuple of nonnegative integers. If ``n`` is an integer,
-                    then the two values of the tuple are assumed to be the same.
+          then the two values of the tuple are assumed to be the same.
 
         OUTPUT:
 
@@ -502,11 +502,11 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         INPUT:
 
         - ``period`` -- a positive integer or a list/tuple `[m,n]`,
-            where `m` is the preperiod and `n` is the period.
+          where `m` is the preperiod and `n` is the period.
 
         OUTPUT:
 
-        - If possible, a single variable polynomial in the coordinate ring of the polynomial.
+        - If possible, a single variable polynomial in the coordinate ring of the polynomial. \
           Otherwise a fraction field element of the coordinate ring of the polynomial.
 
         EXAMPLES::
@@ -765,9 +765,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         - ``prec`` -- desired floating point precision (default:
           default RealField precision).
 
-        OUTPUT:
-
-        - a real number.
+        OUTPUT: A real number.
 
         EXAMPLES::
 
@@ -866,7 +864,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         OUTPUT:
 
         - a square matrix of size ``self.codomain().dimension_relative()`` in
-            the ``base_ring`` of the map.
+          the ``base_ring`` of the map.
 
         EXAMPLES::
 
@@ -953,7 +951,7 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
         of the codomain.
 
         OUTPUT: Scheme morphism on the Weil restrictions of the domain
-            and codomain of the map.
+                and codomain of the map.
 
         EXAMPLES::
 

@@ -104,6 +104,7 @@ sagelib: \
 		$(INST)/$(BRIAL) \
 		$(INST)/$(CEPHES) \
 		$(INST)/$(CLIQUER) \
+		$(INST)/$(CYSIGNALS) \
 		$(INST)/$(CYTHON) \
 		$(INST)/$(ECL) \
 		$(INST)/$(ECLIB) \

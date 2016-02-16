@@ -3779,7 +3779,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             singular_expansions={1/4: 2 - 2*T^(-1/2)
             + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
             sage: C.<T> = AsymptoticRing('T^QQ', QQ)
-            sage: B.singularity_analysis(
+            sage: B.coefficients_of_generating_function(
             ....:     2 - 2*T^(-1/2) + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2)),
             ....:     (1/4,), precision=2)
             1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))

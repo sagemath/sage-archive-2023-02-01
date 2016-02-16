@@ -95,8 +95,8 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
      Multivariate Polynomial Ring in x, y over Rational Field
     sage: s = solve([SR(z) for z in I.gens()],
     ....:           [SR(z) for z in R.gens()], solution_dict=true)
-    sage: s
-    [{y: 1, x: 1}]
+    sage: print "#solutions = {}, x = {}, y = {}".format(len(s), s[0][SR(x)], s[0][SR(y)])
+    #solutions = 1, x = 1, y = 1
     sage: p = s[0]
     sage: asy = F.asymptotics(p, alpha, 1, verbose=True)
     Creating auxiliary functions...

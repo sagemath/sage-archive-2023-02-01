@@ -3855,6 +3855,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ....:    'n', precision=5))
             True
 
+        .. WARNING::
+
+            Once singular expansions around points other than infinity
+            are implemented (:trac:`20050`), the output in the case
+            ``return_singular_expansions`` will change to return singular
+            expansions around the singularities.
+
         TESTS::
 
             sage: def f(z):

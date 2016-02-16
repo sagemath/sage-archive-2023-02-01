@@ -26,8 +26,6 @@ Algebraic numbers exist in one of the following forms:
 
 - a rational number
 
-- the product of a rational number and an `n`'th root of unity
-
 - the sum, difference, product, or quotient of algebraic numbers
 
 - the negation, inverse, absolute value, norm, real part,
@@ -42,12 +40,6 @@ Algebraic numbers exist in one of the following forms:
   number given as the root of an irreducible polynomial with integral
   coefficients and the polynomial is given as a
   ``NumberFieldElement``.
-
-The multiplicative subgroup of the algebraic numbers generated
-by the rational numbers and the roots of unity is handled particularly
-efficiently, as long as these roots of unity come from the ``QQbar.zeta()``
-method. Cyclotomic fields in general are fairly efficient, again
-as long as they are derived from ``QQbar.zeta()``.
 
 An algebraic number can be coerced into ``ComplexIntervalField`` (or
 ``RealIntervalField``, for algebraic reals); every algebraic number has a
@@ -2563,11 +2555,10 @@ class AlgebraicGenerator(SageObject):
         return self._field(elt.field_element_value().polynomial()(sp))
 
 # These are the functions used to add, subtract, multiply, and divide
-# algebraic numbers. Basically, we try to compute exactly if the
-# result would be a Gaussian rational, or a rational times a root
-# of unity; or if both arguments are already known to be in the same
-# number field. Otherwise we fall back to floating-point computation,
-# to be backed up by exact symbolic computation only as required.
+# algebraic numbers. Basically, we try to compute exactly if both
+# arguments are already known to be in the same number field. Otherwise
+# we fall back to floating-point computation to be backed up by exact
+# symbolic computation only as required.
 
 # These choices are motivated partly by efficiency considerations
 # (not backed up by benchmarks, so other possibilities might be more

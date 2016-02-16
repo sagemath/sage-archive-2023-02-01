@@ -4082,9 +4082,3 @@ def rebuild(dir):
 
     with open(os.path.join(dir, '__init__.py'), 'w') as f:
         f.write("# " + autogen_warn)
-
-
-# This list of modules gets added to the list in module_list.py.
-modules = [
-    Extension('*', ['sage/ext/interpreters/*.pyx'])
-]

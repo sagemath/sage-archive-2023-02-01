@@ -1,5 +1,5 @@
 .. -*- coding: utf-8 -*-
-.. nodoctest
+.. linkall
 
 .. _coding_theory:
 
@@ -152,8 +152,8 @@ To do this, we need up to three elements:
 
 We build our code as follows::
 
-    sage: F = GF(13)
-    sage: length, dimension = 12, 4
+    sage: F = GF(7)
+    sage: length, dimension = 6, 3
     sage: evaluation_pts = F.list()[:length]
     sage: column_mults = F.list()[1:length+1]
     sage: C = codes.GeneralizedReedSolomonCode(evaluation_pts, dimension, column_mults)
@@ -162,11 +162,11 @@ Our GRS code is now created. We can ask for its parameters, as we did in the
 previous section::
 
     sage: C.length()
-    12
+    6
     sage: C.dimension()
-    4
+    3
     sage: C.base_ring()
-    Finite Field of size 13
+    Finite Field of size 7
 
 It is also possible to ask for the evaluation points and
 the column multipliers by calling
@@ -183,13 +183,13 @@ search algorithm presented in section I to find ``C``'s minimum distance
 but use the operation introduced above. And you instantly get::
 
     sage: C.minimum_distance()
-    9
+    4
 
 All these parameters are summarized inside the string representation
 of our code::
 
     sage: C
-    [12, 4, 9] Generalized Reed-Solomon Code over Finite Field of size 13
+    [6, 3, 4] Generalized Reed-Solomon Code over Finite Field of size 7
 
 .. NOTE::
 
@@ -235,15 +235,13 @@ as abstractions for communication channels and for manipulation of
 data representation. In this case, we want to emulate a communication channel
 which adds some, but not too many, errors to a transmitted word::
 
-    sage: err = 4
+    sage: err = 2
     sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), err)
     sage: Chan
-    Static error rate channel creating 3 errors, of input and output space
-    Vector space of dimension 12 over Finite field of size 13
+    Static error rate channel creating 2 errors, of input and output space Vector space of dimension 6 over Finite Field of size 7
     sage: r = Chan.transmit(c)
-    sage: c - r
     sage: len((c-r).nonzero_positions())
-    4 #so we get 4 errors as expected
+    2
 
 If you want to learn more on Channels, please refer to section IV
 of this tutorial.
@@ -301,13 +299,12 @@ Let us see how one can explore this::
     sage: C.encoders_available()
     ['EvaluationPolynomial', 'EvaluationVector']
     sage: C.decoders_available()
-    ['BerlekampWelch',
-    'Gao',
-    'ErrorErasure',
-    'GuruswamiSudan',
-    'KeyEquationSyndrome',
-    'Syndrome',
-    'NearestNeighbor']
+    ['Syndrome',
+     'NearestNeighbor',
+     'ErrorErasure',
+     'Gao',
+     'KeyEquationSyndrome',
+     'BerlekampWelch']
 
 We got a list of the available encoders and decoders for our GRS code.
 Rather than using the default ones as we did before,
@@ -315,14 +312,14 @@ we can now ask for specific encoder and decoder::
 
     sage: Evect = C.encoder("EvaluationVector")
     sage: Evect
-    Evaluation vector-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+    Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     sage: type(Evect)
-    <class `sage.coding.grs.EncoderGRSEvaluationVector`>
+    <class 'sage.coding.grs.GRSEvaluationVectorEncoder'>
     sage: msg = random_vector(GF(59), C.dimension()) #random
     sage: c = Evect.encode(msg)
     sage: NN = C.decoder("NearestNeighbor")
     sage: NN
-    Nearest Neighbor decoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+    Nearest neighbor decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
 
 Calling::
 
@@ -345,9 +342,9 @@ many times, which allows them to perform expensive precomputation
 at construction or first use, for the benefit of future use.
 
 This gives a good idea of how the elements work internally.
-Lets us now go a bit more into details on specific points.
+Let us now go a bit more into details on specific points.
 
-III.1 Messages spaces
+III.1 Message spaces
 ---------------------
 
 The point of an Encoder is to encode messages into the code.
@@ -361,7 +358,7 @@ let us investigate the one we left behind in the part just before::
 
     sage: Epoly = C.encoder("EvaluationPolynomial")
     sage: Epoly
-    Evaluation polynomial-style encoder for the [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+    Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     sage: Epoly.message_space()
     Univariate Polynomial Ring in x over Finite Field of size 59
     sage: msg_p = Epoly.message_space().random_element(degree=C.dimension()-1); msg_p #random
@@ -449,13 +446,11 @@ to inform the user about this. Let us illustrate that by a long example::
     sage: Gao.decode_to_message(c) #random
     43*x^2 + 9*x + 55
 
-
-
 IV. A deeper look at channels
 =============================
 
-In Section II, we briefly introduced the new Channel objects as
-a new way to put errors in a word.
+In Section II, we briefly introduced the Channel objects as
+a way to put errors in a word.
 In this section, we will look deeper at their functionality and
 introduce a second Channel.
 
@@ -483,7 +478,7 @@ We can describe these boundaries in two ways:
     sage: t = 14
     sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), t)
     sage: Chan
-    Static error rate channel creating 14 error(s)
+    Static error rate channel creating 14 errors, of input and output space Vector space of dimension 40 over Finite Field of size 59
 
 - We can also pass a tuple of two integers, the first smaller than the second.
   Then each time a word is transmitted, a random number of errors
@@ -492,7 +487,7 @@ We can describe these boundaries in two ways:
     sage: t = (1, 14)
     sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), t)
     sage: Chan
-    Static error rate channel creating between 1 and 14 errors
+    Static error rate channel creating between 1 and 14 errors, of input and output space Vector space of dimension 40 over Finite Field of size 59
 
 We already know that a channel has a
 :meth:`sage.coding.channel_constuctions.Channel.transmit` method which will
@@ -516,7 +511,7 @@ but without checking the input, as illustrated thereafter::
     sage: c_trans in C
     False
 
-We also introduced a useful shortcut for
+Note there exists a useful shortcut for
 :meth:`sage.coding.channel_constuctions.Channel.transmit` ::
 
     sage: r = Chan(c)
@@ -532,7 +527,8 @@ as well as it erases some positions::
 
     sage: Chan = channels.ErrorErasureChannel(C.ambient_space(), 3, 4)
     sage: Chan
-    Error-and-erasure channel creating 3 error(s) and 4 erasure(s)
+    Error-and-erasure channel creating 3 errors and 4 erasures of input space Vector space of dimension 40 over Finite Field of size 59 and output space The Cartesian product of (Vector space of dimension 40 over Finite Field of size 59, Vector space of dimension 40 over Finite Field of size 2)
+
 
 The first parameter is the input space of the channel.
 The next two are (respectively) the number of errors
@@ -550,8 +546,7 @@ This is reflected in :meth:`sage.coding.channel_constructions.output_space`::
 
     sage: C = codes.RandomLinearCode(10, 5, GF(7))
     sage: Chan.output_space()
-    The Cartesian product of (Vector space of dimension 10 over Finite Field of size 7, Vector space of dimension 10 over Finite Field of size 2)
-    sage: c = C.random_element()
+    The Cartesian product of (Vector space of dimension 40 over Finite Field of size 59, Vector space of dimension 40 over Finite Field of size 2)
     sage: Chan(c) # random
     ((0, 3, 6, 4, 4, 0, 1, 0, 0, 1),
      (1, 0, 0, 0, 0, 1, 0, 0, 1, 0))

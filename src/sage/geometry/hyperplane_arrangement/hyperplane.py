@@ -137,7 +137,7 @@ class Hyperplane(LinearExpression):
         Hyperplane x + y - 1
 
     For technical reasons, we must allow the degenerate cases of
-    an empty empty and full space::
+    an empty space and of a full space::
 
         sage: 0*x
         Hyperplane 0*x + 0*y + 0
@@ -629,7 +629,31 @@ class Hyperplane(LinearExpression):
         arrangement = HyperplaneArrangements(parent.base_ring(), names=parent._names)
         return arrangement(self, other)
 
-            
+    def to_symmetric_space(self):
+        """
+        Return ``self`` considered as an element in the corresponding
+        symmetric space.
+
+        EXAMPLES::
+
+            sage: L.<x, y> = HyperplaneArrangements(QQ)
+            sage: h = -1/3*x + 1/2*y
+            sage: h.to_symmetric_space()
+            -1/3*x + 1/2*y
+
+            sage: hp = -1/3*x + 1/2*y - 1
+            sage: hp.to_symmetric_space()
+            Traceback (most recent call last):
+            ...
+            ValueError: the hyperplane must pass through the origin
+        """
+        coeff = self.coefficients()
+        if coeff[0] != 0:
+            raise ValueError("the hyperplane must pass through the origin")
+        S = self.parent().symmetric_space()
+        G = S.gens()
+        # We skip the first coefficient since it corresponds to the constant term
+        return S.sum(G[i]*c for i,c in enumerate(coeff[1:]))
 
 class AmbientVectorSpace(LinearExpressionModule):
     """
@@ -712,4 +736,24 @@ class AmbientVectorSpace(LinearExpressionModule):
             True
         """
         return AmbientVectorSpace(base_ring, self._names)
+
+    def symmetric_space(self):
+        """
+        Construct the symmetric space of ``self``.
+
+        Consider a hyperplane arrangement `A` in the vector space
+        `V = k^n`, for some field `k`. The symmetric space is the
+        symmetric algebra `S(V^*)` as the polynomial ring
+        `k[x_1, x_2, \ldots, x_n]` where `(x_1, x_2, \ldots, x_n)` is
+        a basis for `V`.
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H.ambient_space()
+            sage: A.symmetric_space()
+            Multivariate Polynomial Ring in x, y, z over Rational Field
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        return PolynomialRing(self.base_ring(), self.variable_names())
 

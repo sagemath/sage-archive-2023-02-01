@@ -193,6 +193,18 @@ class CartesianProductPoset(CartesianProduct):
             (1, 0) <= (1, 1) = True
             (1, 0) <= (0, 1) = False
             (1, 0) <= (1, 0) = True
+
+        TESTS:
+
+        Check that :trac:`19999` is resolved::
+
+            sage: P = Poset((srange(2), lambda left, right: left <= right))
+            sage: Q = cartesian_product((P, P), order='product')
+            sage: R = cartesian_product((Q, P), order='lex')
+            sage: R(((1, 0), 0)) <= R(((0, 1), 0))
+            False
+            sage: R(((0, 1), 0)) <= R(((1, 0), 0))
+            False
         """
         for l, r, S in \
                 zip(left.value, right.value, self.cartesian_factors()):
@@ -202,6 +214,7 @@ class CartesianProductPoset(CartesianProduct):
                 return True
             if S.le(r, l):
                 return False
+            return False  # incomparable components
         return True  # equal
 
 

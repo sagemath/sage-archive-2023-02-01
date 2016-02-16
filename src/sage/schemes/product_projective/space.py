@@ -27,20 +27,22 @@ We can also construct the product by specifying the dimensions and the base ring
     Defining x0, x1, x2, y0, y1, y2
 """
 #*****************************************************************************
-# Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
-#                    Ben Hutz <bn4941@gmail.com>
+#       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2014 Ben Hutz <bn4941@gmail.com>
 #
-# Distributed under the terms of the GNU General Public License (GPL)
-# as published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-# http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import six
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer)
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer,
+    CommutativeRing)
 from sage.rings.polynomial.polydict import ETuple
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_product_projective
@@ -131,7 +133,7 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
            n, R = R, n
         if not isinstance(n,(list,tuple)):
             raise ValueError("Need list or tuple of dimensions")
-        if not is_CommutativeRing(R):
+        if not isinstance(R, CommutativeRing):
             raise ValueError("Must be a commutative ring")
         from sage.structure.category_object import normalize_names
         n_vars=sum(d+1 for d in n)
@@ -208,7 +210,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         """
         assert isinstance(N, (tuple, list))
         N = [Integer(n) for n in N]
-        assert is_CommutativeRing(R)
+        assert isinstance(R, CommutativeRing)
         if len(N) < 2:
             raise ValueError("Must be at least two components for a product")
         AmbientSpace.__init__(self, sum(N), R)
@@ -512,6 +514,8 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             ValueError: polynomial is not multi-homogeneous
         """
         E = polynomial.exponents()
+        if len(E) == 0:
+            return []
         d = [sum(t) for t in self._factors(E[0])]
         for k in range(len(E)):
             if not all([d == [sum(t) for t in self._factors(E[k])]]):

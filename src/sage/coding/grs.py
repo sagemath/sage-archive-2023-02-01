@@ -27,7 +27,7 @@ This file contains the following elements:
 #*****************************************************************************
 
 from sage.matrix.constructor import matrix, diagonal_matrix
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace

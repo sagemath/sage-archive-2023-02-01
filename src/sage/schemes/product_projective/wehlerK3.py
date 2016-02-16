@@ -240,7 +240,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         if self.L(*Point) == 0 and self.Q(*Point) == 0:
             return True
         else:
-            raise AttributeError( "point not on Surface")
+            raise AttributeError( "point not on surface")
 
     def _Lcoeff(self, component, i):
         r"""
@@ -342,7 +342,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     def Gpoly( self, component, k):
         r"""
         Returns the G polynomials defined by
-        `G^*_k = \left(L^*_j\right)^2Q^*_{ii}-L^*_iL^*_jQ^*_{ij}+\left(L^*_i\right)^2Q^*_{jj}`
+        `G^*_k = \left(L^*_j\right)^2Q^*_{ii}-L^*_iL^*_jQ^*_{ij}+\left(L^*_i\right)^2Q^*_{jj}`\
         where {i, j, k} is some permutation of (0, 1, 2) and * is either
         x ( Component = 1) or y ( Component = 0).
 
@@ -640,7 +640,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     def Ramification_poly(self,i):
         r"""
         Function will return the Ramification polynomial defined by:
-        `g^* = \frac{\left(H^*_{ij}\right)^2 - 4G^*_iG^*_j}{\left(L^*_k\right)^2}`
+        `g^* = \frac{\left(H^*_{ij}\right)^2 - 4G^*_iG^*_j}{\left(L^*_k\right)^2}`.
 
         The roots of this polynomial will either be degenerate fibers or fixed points
         of the involutions `\sigma_x` or `\sigma_y` for more information, see [CaSi]_.
@@ -747,7 +747,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def degenerate_fibers(self):
         r"""
-        Function will return the (rational) degenerate fibers of the surface
+        Function will return the (rational) degenerate fibers of the surface \
         defined over the base ring, or the fraction field of the base ring if it is not a field.
 
         ALGORITHM:
@@ -888,7 +888,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         is what is checked. The lcm of the coefficients of the monomials `x_i` in
         a groebner basis is computed. This may return extra primes.
 
-        OUTPUT: list of primes.
+        OUTPUT: List of primes.
 
         EXAMPLES::
 
@@ -1568,7 +1568,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         - ``normalize`` -- Boolean (optional - default: ``True``) normalizes the point.
 
-        OUTPUT: A poitn on this surface.
+        OUTPUT: A point on this surface.
 
         EXAMPLES::
 
@@ -1589,7 +1589,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def lambda_plus(self,P,v,N,m,n, prec = 100):
         r"""
-        Evaluates the  local canonical height plus function of Call-Silverman at
+        Evaluates the  local canonical height plus function of Call-Silverman at \
         the place ``v`` for ``P`` with ``N`` terms of the series.
 
         Use ``v = 0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
@@ -1886,9 +1886,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: set_verbose(None)
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2, 2], QQ)
             sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 +\
-             3*x0*x1*y0*y1 -2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -\
-             4*x1*x2*y1^2 + 5*x0*x2*y0*y2 -4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 +\
-              x0*x1*y2^2 + 3*x2^2*y2^2
+             3*x0*x1*y0*y1 - 2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 - \
+             4*x1*x2*y1^2 + 5*x0*x2*y0*y2 - 4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + \
+             x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z, Y])
             sage: P = X([0, 1, 0, 0, 0, 1])
@@ -1947,7 +1947,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: set_verbose(None)
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2, 2], QQ)
             sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + 3*x0*x1*y0*y1 - \
-            2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -4*x1*x2*y1^2 + 5*x0*x2*y0*y2 \
+            2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 - 4*x1*x2*y1^2 + 5*x0*x2*y0*y2 \
             -4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z, Y])
@@ -2320,13 +2320,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         INPUT: 
 
-        - ``P`` - Point on the K3 surface.
+        - ``P`` - a point on the K3 surface.
 
         - ``N`` - a non-negative integer or list or tuple of two non-negative integers.
 
         kwds:
 
-        - ``check`` - Boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` - boolean (optional - default: ``True``) checks to see if point is on the surface.
 
         - ``normalize`` -- boolean (optional - default: ``False``) normalizes the point.
 
@@ -2414,7 +2414,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         INPUT:
 
-        - ``orbit`` a periodic cycle of either psi or phi.
+        - ``orbit``- a periodic cycle of either psi or phi.
 
         OUTPUT: Boolean.
 
@@ -2468,9 +2468,7 @@ class WehlerK3Surface_finite_field( WehlerK3Surface_field):
         Enumerate points over `\mathbb{P}^2`, and then count the points on the fiber of 
         each of those points.
 
-        OUTPUT:
-
-        - Integer, total number of points on the surface.
+        OUTPUT: Integer- total number of points on the surface.
 
         EXAMPLES::
 

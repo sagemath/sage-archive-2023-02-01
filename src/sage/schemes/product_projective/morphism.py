@@ -95,7 +95,6 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             ...
             TypeError: polys (=[a^2, b^2, c^2, x^2, y^2, z^2]) must be
             multi-homogeneous of the same degrees (by component)
->>>>>>> master
         """
         if check:
             #check multi-homogeneous
@@ -263,7 +262,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: P.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
             sage: Q.<a,b,c,d,e> = ProductProjectiveSpaces([1, 2], QQ)
             sage: H = Hom(P, Q)
-            sage: f = H([x^2, y^2, z^3, w^3, u^3])
+            sage: f = H([x^2, y^2, u^3, w^3, u^3])
             sage: f.is_morphism()
             False
         """

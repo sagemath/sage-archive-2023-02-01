@@ -4,7 +4,9 @@ Products of projective spaces
 This class builds on the projective space class and its point and morphism classes.
 
 Products of projective spaces of varying dimension are convenient
-ambient spaces for complete intersections. Group actions on them, and
+ambient spaces for complete intersections.
+
+Group actions on them, and
 the interplay with representation theory, provide many interesting
 examples of algebraic varieties.
 
@@ -72,8 +74,8 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
     r"""
     Returns the Cartesian product of projective spaces.
 
-    Can input either a list of projective space over the same base ring or the list of dimensions,
-    the base ring, and the variable names.
+    Can input either a list of projective space over the same base \
+    ring or the list of dimensions, the base ring, and the variable names.
 
     INPUT:
 
@@ -130,7 +132,7 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
         if not isinstance(n,(list,tuple)):
             raise ValueError("need list or tuple of dimensions")
         if not isinstance(R, CommutativeRing):
-        raise ValueError("must be a commutative ring")
+            raise ValueError("must be a commutative ring")
         from sage.structure.category_object import normalize_names
         n_vars=sum(d+1 for d in n)
         if isinstance(names, six.string_types):
@@ -819,7 +821,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         OUTPUT:
 
-        Hom -- from thsi space to the appropriate subscheme of projective space.
+        Hom -- from this space to the appropriate subscheme of projective space.
 
         .. TODO::
 

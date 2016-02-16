@@ -532,15 +532,15 @@ class GRSGuruswamiSudanDecoder(Decoder):
         else:
             raise ValueError("Specify either tau or parameters")
         if hasattr(interpolation_alg, '__call__'):
-            self.interpolation_alg = interpolation_alg
+            self._interpolation_alg = interpolation_alg
         elif interpolation_alg == None or interpolation_alg == "LinearAlgebra":
-            self.interpolation_alg = construct_Q_linalg
+            self._interpolation_alg = construct_Q_linalg
         else:
             raise ValueError("Please provide a method or one of the allowed strings for interpolation_alg")
         if hasattr(root_finder, '__call__'):
-            self.root_finder = root_finder
+            self._root_finder = root_finder
         elif root_finder == None or interpolation_alg == "RothRuckenstein":
-            self.root_finder = rootfind_roth_ruckenstein
+            self._root_finder = rootfind_roth_ruckenstein
         else:
             raise ValueError("Please provide a method or one of the allowed strings for root_finder")
         super(GRSGuruswamiSudanDecoder, self).__init__(code, code.ambient_space(), "EvaluationPolynomial")
@@ -620,7 +620,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: D.interpolation_algorithm() #random
             <function construct_Q_linalg at 0x7f9d55753500>
         """
-        return self.interpolation_alg
+        return self._interpolation_alg
 
     def rootfinding_algorithm(self):
         r"""
@@ -638,7 +638,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: D.rootfinding_algorithm() #random
             <function rootfind_roth_ruckenstein at 0x7fea00618848>
         """
-        return self.root_finder
+        return self._root_finder
 
     def multiplicity(self):
         r"""

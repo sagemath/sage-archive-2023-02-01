@@ -972,7 +972,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             """
             return sum(iter(f.factors()
                             for f in self.cartesian_factors()
-                            if f != f.parent().one()),
+                            if not f.is_one()),
                        tuple())
 
 
@@ -1283,6 +1283,36 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 raise NotImplementedError(
                     'singularity analysis of {} not yet implemented '
                     'since it has more than two factors'.format(self))
+
+
+        def variable_names(self):
+            r"""
+            Return the names of the variables of this growth element.
+
+            OUTPUT:
+
+            A tuple of strings.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^m * m^QQ * log(n)^ZZ')
+                sage: G('2^m * m^4 * log(n)').variable_names()
+                ('m', 'n')
+                sage: G('2^m * m^4').variable_names()
+                ('m',)
+                sage: G('log(n)').variable_names()
+                ('n',)
+                sage: G('m^3').variable_names()
+                ('m',)
+                sage: G('m^0').variable_names()
+                ()
+            """
+            vars = sum(iter(factor.variable_names()
+                            for factor in self.factors()),
+                       tuple())
+            from itertools import groupby
+            return tuple(v for v, _ in groupby(vars))
 
 
     CartesianProduct = CartesianProductGrowthGroups

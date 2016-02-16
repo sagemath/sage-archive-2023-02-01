@@ -1398,6 +1398,24 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             'base class %s.' % (self.parent(),)))
 
 
+    def variable_names(self):
+        r"""
+        Return the names of the variables of this generic growth element.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(QQ)
+            sage: G(raw_element=2).variable_names()
+            ()
+        """
+        return self.parent()._var_.variable_names()
+
+
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this growth element.
@@ -2857,6 +2875,29 @@ class MonomialGrowthElement(GenericGrowthElement):
             substitute_raise_exception(self, e)
 
 
+    def variable_names(self):
+        r"""
+        Return the names of the variables of this monomial growth element.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('m^QQ')
+            sage: G('m^2').variable_names()
+            ('m',)
+            sage: G('m^0').variable_names()
+            ()
+        """
+        if self.is_one():
+            return tuple()
+        else:
+            return self.parent()._var_.variable_names()
+
+
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this monomial growth element.
@@ -3628,6 +3669,29 @@ class ExponentialGrowthElement(GenericGrowthElement):
         except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
+
+
+    def variable_names(self):
+        r"""
+        Return the names of the variables of this exponential growth element.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^m')
+            sage: G('2^m').variable_names()
+            ('m',)
+            sage: G('1^m').variable_names()
+            ()
+        """
+        if self.is_one():
+            return tuple()
+        else:
+            return self.parent()._var_.variable_names()
 
 
 class ExponentialGrowthGroup(GenericGrowthGroup):

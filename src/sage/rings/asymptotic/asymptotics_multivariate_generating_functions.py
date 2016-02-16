@@ -4369,19 +4369,15 @@ def coerce_point(R, p):
         sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = FFPD()
         sage: p = {SR(x): 1, SR(y): 7/8}
-        sage: p
-        {y: 7/8, x: 1}
         sage: for k in sorted(p.keys(), key=str):
-        ....:     print k, k.parent()
-        x Symbolic Ring
-        y Symbolic Ring
+        ....:     print k, k.parent(), p[k]
+        x Symbolic Ring 1
+        y Symbolic Ring 7/8
         sage: q = coerce_point(R, p)
-        sage: q
-        {y: 7/8, x: 1}
-        sage: for k in sorted(q.keys()):
-        ....:     print k, k.parent()
-        y Multivariate Polynomial Ring in x, y over Rational Field
-        x Multivariate Polynomial Ring in x, y over Rational Field
+        sage: for k in sorted(q.keys(), key=str):
+        ....:     print k, k.parent(), q[k]
+        x Multivariate Polynomial Ring in x, y over Rational Field 1
+        y Multivariate Polynomial Ring in x, y over Rational Field 7/8
     """
     if p is not None and p.keys() and p.keys()[0].parent() != R:
         try:

@@ -670,6 +670,39 @@ class Function_floor(BuiltinFunction):
 
 floor = Function_floor()
 
+class Function_Order(GinacFunction):
+    def __init__(self):
+        r"""
+        The order function.
+
+        This function gives the order of magnitude of some expression,
+        similar to `O`-terms.
+
+        .. SEEALSO::
+
+            :meth:`~sage.symbolic.expression.Expression.Order`,
+            :mod:`~sage.rings.big_oh`
+
+        EXAMPLES::
+
+            sage: x = SR('x')
+            sage: x.Order()
+            Order(x)
+            sage: (x^2 + x).Order()
+            Order(x^2 + x)
+
+        TESTS:
+
+        Check that :trac:`19425` is resolved::
+
+            sage: x.Order().operator()
+            Order
+        """
+        GinacFunction.__init__(self, "Order", latex_name=r"\mathcal{O}")
+
+Function_Order()
+
+
 class Function_gamma(GinacFunction):
     def __init__(self):
         r"""
@@ -899,7 +932,7 @@ class Function_gamma_inc(BuiltinFunction):
         EXAMPLES::
 
             sage: gamma_inc(CDF(0,1), 3)
-            0.003208574993369116 + 0.012406185811871568*I
+            0.0032085749933691158 + 0.012406185811871568*I
             sage: gamma_inc(RDF(1), 3)
             0.049787068367863944
             sage: gamma_inc(3,2)
@@ -1618,7 +1651,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(3/2,SR(1/1))
             3/2
         """
-        return sage.rings.arith.binomial(n, k)
+        return sage.arith.all.binomial(n, k)
 
 binomial = Function_binomial()
 
@@ -1681,19 +1714,23 @@ class Function_beta(GinacFunction):
             -1
             sage: beta(-1/2,-1/2)
             0
-            sage: beta(x/2,3)
-            beta(3, 1/2*x)
+            sage: ex = beta(x/2,3)
+            sage: set(ex.operands()) == set([1/2*x, 3])
+            True
             sage: beta(.5,.5)
             3.14159265358979
             sage: beta(1,2.0+I)
             0.400000000000000 - 0.200000000000000*I
-            sage: beta(3,x+I)
-            beta(3, x + I)
+            sage: ex = beta(3,x+I)
+            sage: set(ex.operands()) == set([x+I, 3])
+            True
 
         The result is symbolic if exact input is given::
 
-            sage: beta(2,1+5*I)
-            beta(5*I + 1, 2)
+            sage: ex = beta(2,1+5*I); ex
+            beta(...
+            sage: set(ex.operands()) == set([1+5*I, 2])
+            True
             sage: beta(2, 2.)
             0.166666666666667
             sage: beta(I, 2.)

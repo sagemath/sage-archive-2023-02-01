@@ -194,7 +194,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
@@ -1151,7 +1151,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: r = B.random_element(terms=(n/2)**2)
         """
         from sage.rings.integer import Integer
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         if not vars_set:
             vars_set=range(self.ngens())
@@ -1771,7 +1771,7 @@ def get_var_mapping(ring, other):
     """
 
     my_names = list(ring._names) # we need .index(.)
-    if isinstance(other, (ParentWithGens,BooleanMonomialMonoid)):
+    if isinstance(other, (Parent, BooleanMonomialMonoid)):
         indices = range(other.ngens())
         ovar_names = other._names
     else:
@@ -2196,8 +2196,6 @@ cdef class BooleanMonomial(MonoidElement):
 
           See class documentation for parameters.
         """
-
-        _parent = <ParentWithBase>parent
         self._ring = parent._ring
         self._pbmonom = PBMonom_Constructor((<BooleanPolynomialRing>self._ring)._pbring)
 
@@ -2898,9 +2896,8 @@ cdef class BooleanPolynomial(MPolynomial):
         use the appropriate ``__call__`` method in the parent.
     """
     def __init__(self, parent):
-        self._parent = <ParentWithBase>parent
+        self._parent = parent
         self._pbpoly = PBPoly_Constructor_ring((<BooleanPolynomialRing>parent)._pbring)
-
 
     def _repr_(self):
         """

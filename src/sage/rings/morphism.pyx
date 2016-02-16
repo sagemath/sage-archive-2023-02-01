@@ -1933,9 +1933,9 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
             sage: FrobeniusEndomorphism_generic(K, 2)
             Frobenius endomorphism x |--> x^(5^2) of Power Series Ring in u over Finite Field of size 5
         """
-        from commutative_ring import is_CommutativeRing
+        from .ring import CommutativeRing
         from sage.categories.homset import Hom
-        if not is_CommutativeRing(domain):
+        if not isinstance(domain, CommutativeRing):
             raise TypeError("The base ring must be a commutative ring")
         self._p = domain.characteristic()
         if not self._p.is_prime():

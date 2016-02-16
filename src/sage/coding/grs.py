@@ -1,5 +1,5 @@
 r"""
-Generalized Reed-Solomon Code
+Generalized Reed-Solomon code
 
 Given `n` different evaluation points `\alpha_1, \dots, \alpha_n` from some
 finite field `F`, and `n` column multipliers `\beta_1, \dots, \beta_n`, the

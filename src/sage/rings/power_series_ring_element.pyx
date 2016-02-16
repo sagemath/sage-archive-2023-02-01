@@ -102,7 +102,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
-import arith
+import sage.arith.all as arith
 import sage.misc.latex
 import rational_field, integer_ring
 from integer import Integer
@@ -1401,7 +1401,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: p.O(-5)
             Traceback (most recent call last):
             ...
-            ValueError: n must be at least 0
+            ValueError: prec (= -5) must be non-negative
         """
         if prec is infinity or prec >= self.prec():
             return self

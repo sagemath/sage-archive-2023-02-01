@@ -73,10 +73,12 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.pari.closure cimport objtoclosure
 
-from pari_instance cimport PariInstance, prec_bits_to_words, pari_instance
+from pari_instance cimport (PariInstance, pari_instance,
+        prec_bits_to_words, prec_words_to_bits, default_bitprec)
 cdef PariInstance P = pari_instance
 
 from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 
 
 include 'auto_gen.pxi'
@@ -1408,12 +1410,22 @@ cdef class gen(gen_auto):
 
     def python(self, locals=None):
         """
-        Return Python eval of self.
+        Return the closest Python/Sage equivalent of the given PARI object.
 
-        Note: is self is a real (type t_REAL) the result will be a
-        RealField element of the equivalent precision; if self is a complex
-        (type t_COMPLEX) the result will be a ComplexField element of
-        precision the minimum precision of the real and imaginary parts.
+        INPUT:
+
+        - `z` -- PARI ``gen``
+
+        - `locals` -- optional dictionary used in fallback cases that
+          involve :func:`sage_eval`
+
+        .. NOTE::
+
+            If ``self`` is a real (type ``t_REAL``), then the result
+            will be a RealField element of the equivalent precision;
+            if ``self`` is a complex (type ``t_COMPLEX``), then the
+            result will be a ComplexField element of precision the
+            maximal precision of the real and imaginary parts.
 
         EXAMPLES::
 
@@ -1426,17 +1438,115 @@ cdef class gen(gen_auto):
             sage: f.python({'x':x, 'y':y})
             2/3*x^3 + x + y - 5/7
 
-        You can also use .sage, which is a psynonym::
+        You can also use :meth:`.sage`, which is an alias::
 
             sage: f.sage({'x':x, 'y':y})
             2/3*x^3 + x + y - 5/7
+
+        Converting a real number::
+
+            sage: pari.set_real_precision(70)
+            15
+            sage: a = pari('1.234').python(); a
+            1.234000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: a.parent()
+            Real Field with 256 bits of precision
+            sage: pari.set_real_precision(15)
+            70
+            sage: a = pari('1.234').python(); a
+            1.23400000000000000
+            sage: a.parent()
+            Real Field with 64 bits of precision
+
+        For complex numbers, the parent depends on the PARI type::
+
+            sage: a = pari('(3+I)').python(); a
+            i + 3
+            sage: a.parent()
+            Number Field in i with defining polynomial x^2 + 1
+
+            sage: a = pari('2^31-1').python(); a
+            2147483647
+            sage: a.parent()
+            Integer Ring
+
+            sage: a = pari('12/34').python(); a
+            6/17
+            sage: a.parent()
+            Rational Field
+
+            sage: a = pari('(3+I)/2').python(); a
+            1/2*i + 3/2
+            sage: a.parent()
+            Number Field in i with defining polynomial x^2 + 1
+
+            sage: z = pari(CC(1.0+2.0*I)); z
+            1.00000000000000 + 2.00000000000000*I
+            sage: a = z.python(); a
+            1.00000000000000000 + 2.00000000000000000*I
+            sage: a.parent()
+            Complex Field with 64 bits of precision
+
+            sage: I = sqrt(-1)
+            sage: a = pari(1.0 + 2.0*I).python(); a
+            1.00000000000000000 + 2.00000000000000000*I
+            sage: a.parent()
+            Complex Field with 64 bits of precision
+
+        Vectors and matrices::
+
+            sage: a = pari('[1,2,3,4]')
+            sage: a
+            [1, 2, 3, 4]
+            sage: a.type()
+            't_VEC'
+            sage: b = a.python(); b
+            [1, 2, 3, 4]
+            sage: type(b)
+            <type 'list'>
+
+            sage: a = pari('[1,2;3,4]')
+            sage: a.type()
+            't_MAT'
+            sage: b = a.python(); b
+            [1 2]
+            [3 4]
+            sage: b.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+            sage: a = pari('Vecsmall([1,2,3,4])')
+            sage: a.type()
+            't_VECSMALL'
+            sage: a.python()
+            [1, 2, 3, 4]
+
+        We use the locals dictionary::
+
+            sage: f = pari('(2/3)*x^3 + x - 5/7 + y')
+            sage: x,y=var('x,y')
+            sage: from sage.libs.pari.gen import gentoobj
+            sage: gentoobj(f, {'x':x, 'y':y})
+            2/3*x^3 + x + y - 5/7
+            sage: gentoobj(f)
+            Traceback (most recent call last):
+            ...
+            NameError: name 'x' is not defined
+
+        Conversion of p-adics::
+
+            sage: K = Qp(11,5)
+            sage: x = K(11^-10 + 5*11^-7 + 11^-6); x
+            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+            sage: y = pari(x); y
+            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+            sage: y.sage()
+            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+            sage: pari(K(11^-5)).sage()
+            11^-5 + O(11^0)
         """
-        import sage.libs.pari.gen_py
-        return sage.libs.pari.gen_py.python(self, locals=locals)
+        return gentoobj(self, locals)
 
-    sage = python
-
-    _sage_ = _eval_ = python
+    sage = _sage_ = _eval_ = python
 
     def __long__(gen self):
         """
@@ -6215,9 +6325,9 @@ cdef class gen(gen_auto):
             sage: e.elllseries(2.1)
             0.402838047956645
             sage: e.elllseries(1, precision=128)
-            2.98766720445395 E-38
+            6.21952537507477 E-39
             sage: e.elllseries(1, precision=256)
-            5.48956813891054 E-77
+            2.95993347819786 E-77
             sage: e.elllseries(-2)
             0
             sage: e.elllseries(2.1, A=1.1)
@@ -6933,11 +7043,11 @@ cdef class gen(gen_auto):
 
             sage: G = pari(x^4 + 1).galoisinit()
             sage: G.galoisfixedfield(G[5][1], flag=2)
-            [x^2 + 4, Mod(2*x^2, x^4 + 1), [x^2 - 1/2*y, x^2 + 1/2*y]]
+            [x^2 - 2, Mod(-x^3 + x, x^4 + 1), [x^2 - y*x + 1, x^2 + y*x + 1]]
             sage: G.galoisfixedfield(G[5][5:7])
             [x^4 + 1, Mod(x, x^4 + 1)]
             sage: L = G.galoissubgroups()
-            sage: G.galoisfixedfield(L[2], flag=2, v='z')
+            sage: G.galoisfixedfield(L[3], flag=2, v='z')
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
         .. _galoisfixedfield: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisfixedfield
@@ -6975,7 +7085,7 @@ cdef class gen(gen_auto):
             sage: G.galoissubfields(flag=1)
             [x, x^2 + 972, x^3 + 54, x^3 + 864, x^3 - 54, x^6 + 108]
             sage: G = pari(x^4 + 1).galoisinit()
-            sage: G.galoissubfields(flag=2, v='z')[2]
+            sage: G.galoissubfields(flag=2, v='z')[3]
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
         .. _galoissubfields: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoissubfields
@@ -8197,7 +8307,7 @@ cdef class gen(gen_auto):
         Now it takes much less than a second::
 
             sage: pari.allocatemem(200000)
-            PARI stack size set to 200000 bytes
+            PARI stack size set to 200000 bytes, maximum size set to ...
             sage: x = polygen(ZpFM(3,10))
             sage: pol = ((x-1)^50 + x)
             sage: pari(pol).poldisc()
@@ -9057,7 +9167,7 @@ cdef class gen(gen_auto):
             sage: pari(0).znstar()
             [2, [2], [-1]]
             sage: pari(96).znstar()
-            [32, [8, 2, 2], [Mod(37, 96), Mod(79, 96), Mod(65, 96)]]
+            [32, [8, 2, 2], [Mod(37, 96), Mod(31, 96), Mod(65, 96)]]
             sage: pari(-5).znstar()
             [4, [4], [Mod(2, 5)]]
         """
@@ -9573,6 +9683,100 @@ cdef class gen(gen_auto):
 cpdef gen objtogen(s):
     """
     Convert any Sage/Python object to a PARI gen.
+
+    For Sage types, this uses the `_pari_()` method on the object.
+    Basic Python types like ``int`` are converted directly. For other
+    types, the string representation is used.
+
+    EXAMPLES::
+
+        sage: pari([2,3,5])
+        [2, 3, 5]
+        sage: pari(Matrix(2,2,range(4)))
+        [0, 1; 2, 3]
+        sage: pari(x^2-3)
+        x^2 - 3
+
+    ::
+
+        sage: a = pari(1); a, a.type()
+        (1, 't_INT')
+        sage: a = pari(1/2); a, a.type()
+        (1/2, 't_FRAC')
+        sage: a = pari(1/2); a, a.type()
+        (1/2, 't_FRAC')
+
+    Conversion from reals uses the real's own precision::
+
+        sage: a = pari(1.2); a, a.type(), a.precision()
+        (1.20000000000000, 't_REAL', 4) # 32-bit
+        (1.20000000000000, 't_REAL', 3) # 64-bit
+
+    Conversion from strings uses the current PARI real precision.
+    By default, this is 64 bits::
+
+        sage: a = pari('1.2'); a, a.type(), a.precision()
+        (1.20000000000000, 't_REAL', 4)  # 32-bit
+        (1.20000000000000, 't_REAL', 3)  # 64-bit
+
+    But we can change this precision::
+
+        sage: pari.set_real_precision(35)  # precision in decimal digits
+        15
+        sage: a = pari('1.2'); a, a.type(), a.precision()
+        (1.2000000000000000000000000000000000, 't_REAL', 6)  # 32-bit
+        (1.2000000000000000000000000000000000, 't_REAL', 4)  # 64-bit
+
+    Set the precision to 15 digits for the remaining tests::
+
+        sage: pari.set_real_precision(15)
+        35
+
+    Conversion from matrices and vectors is supported::
+
+        sage: a = pari(matrix(2,3,[1,2,3,4,5,6])); a, a.type()
+        ([1, 2, 3; 4, 5, 6], 't_MAT')
+        sage: v = vector([1.2, 3.4, 5.6])
+        sage: pari(v)
+        [1.20000000000000, 3.40000000000000, 5.60000000000000]
+
+    Some more exotic examples::
+
+        sage: K.<a> = NumberField(x^3 - 2)
+        sage: pari(K)
+        [y^3 - 2, [1, 1], -108, 1, [[1, 1.25992104989487, 1.58740105196820; 1, -0.629960524947437 + 1.09112363597172*I, -0.793700525984100 - 1.37472963699860*I], [1, 1.25992104989487, 1.58740105196820; 1, 0.461163111024285, -2.16843016298270; 1, -1.72108416091916, 0.581029111014503], [1, 1, 2; 1, 0, -2; 1, -2, 1], [3, 0, 0; 0, 0, 6; 0, 6, 0], [6, 0, 0; 0, 6, 0; 0, 0, 3], [2, 0, 0; 0, 0, 1; 0, 1, 0], [2, [0, 0, 2; 1, 0, 0; 0, 1, 0]], []], [1.25992104989487, -0.629960524947437 + 1.09112363597172*I], [1, y, y^2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [1, 0, 0, 0, 0, 2, 0, 2, 0; 0, 1, 0, 1, 0, 0, 0, 0, 2; 0, 0, 1, 0, 1, 0, 1, 0, 0]]
+
+        sage: E = EllipticCurve('37a1')
+        sage: pari(E)
+        [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]
+
+    Conversion from basic Python types::
+
+        sage: pari(int(-5))
+        -5
+        sage: pari(long(2**150))
+        1427247692705959881058285969449495136382746624
+        sage: pari(float(pi))
+        3.14159265358979
+        sage: pari(complex(exp(pi*I/4)))
+        0.707106781186548 + 0.707106781186548*I
+        sage: pari(False)
+        0
+        sage: pari(True)
+        1
+
+    Some commands are just executed without returning a value::
+
+        sage: pari("dummy = 0; kill(dummy)")
+        sage: type(pari("dummy = 0; kill(dummy)"))
+        <type 'NoneType'>
+
+    TESTS::
+
+        sage: pari(None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot convert None to pari
     """
     cdef GEN g
     cdef Py_ssize_t length, i
@@ -9633,6 +9837,73 @@ cpdef gen objtogen(s):
 
     # Simply use the string representation
     return objtogen(str(s))
+
+
+cpdef gentoobj(gen z, locals={}):
+    """
+    Convert a PARI gen to a Sage/Python object.
+
+    See the ``python`` method of :class:`gen` for documentation and
+    examples.
+    """
+    cdef GEN g = z.g
+    cdef long t = typ(g)
+    cdef long tx, ty
+    cdef gen real, imag
+    cdef Py_ssize_t i, j, nr, nc
+
+    if t == t_INT:
+         return Integer(z)
+    elif t == t_FRAC:
+         return Rational(z)
+    elif t == t_REAL:
+        from sage.rings.all import RealField
+        prec = prec_words_to_bits(z.precision())
+        return RealField(prec)(z)
+    elif t == t_COMPLEX:
+        real = z.real()
+        imag = z.imag()
+        tx = typ(real.g)
+        ty = typ(imag.g)
+        if tx in [t_INTMOD, t_PADIC] or ty in [t_INTMOD, t_PADIC]:
+            raise NotImplementedError("No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components")
+        if tx == t_REAL or ty == t_REAL:
+            xprec = real.precision()  # will be 0 if exact
+            yprec = imag.precision()  # will be 0 if exact
+            if xprec == 0:
+                prec = prec_words_to_bits(yprec)
+            elif yprec == 0:
+                prec = prec_words_to_bits(xprec)
+            else:
+                prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
+
+            from sage.rings.all import RealField, ComplexField
+            R = RealField(prec)
+            C = ComplexField(prec)
+            return C(R(real), R(imag))
+        else:
+            from sage.rings.all import QuadraticField
+            K = QuadraticField(-1, 'i')
+            return K([gentoobj(real), gentoobj(imag)])
+    elif t == t_VEC or t == t_COL:
+        return [gentoobj(x, locals) for x in z.python_list()]
+    elif t == t_VECSMALL:
+        return z.python_list_small()
+    elif t == t_MAT:
+        nc = lg(g)-1
+        nr = 0 if nc == 0 else lg(gel(g,1))-1
+        L = [gentoobj(z[i,j], locals) for i in range(nr) for j in range(nc)]
+        from sage.matrix.constructor import matrix
+        return matrix(nr, nc, L)
+    elif t == t_PADIC:
+        from sage.rings.padics.factory import Qp
+        p = z.padicprime()
+        K = Qp(Integer(p), precp(g))
+        return K(z.lift())
+
+    # Fallback (e.g. polynomials): use string representation
+    from sage.misc.sage_eval import sage_eval
+    return sage_eval(str(z), locals=locals)
 
 
 cdef GEN _Vec_append(GEN v, GEN a, long n):

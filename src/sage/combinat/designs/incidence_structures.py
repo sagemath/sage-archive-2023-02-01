@@ -1535,7 +1535,7 @@ class IncidenceStructure(object):
             sage: I.is_t_design(return_parameters=True)
             (False, (0, 0, 0, 0))
         """
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         # Missing parameters ?
         if v is None:

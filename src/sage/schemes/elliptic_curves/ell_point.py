@@ -2935,7 +2935,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             1/2*log(75923153929839865104)
 
             sage: F.<a> = NumberField(x^4 + 2*x^3 + 19*x^2 + 18*x + 288)
-            sage: F.ring_of_integers().gens()
+            sage: F.ring_of_integers().basis()
             [1, 5/6*a^3 + 1/6*a, 1/6*a^3 + 1/6*a^2, a^3]
             sage: F.class_number()
             12

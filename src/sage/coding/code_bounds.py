@@ -188,7 +188,7 @@ REFERENCES:
 
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.functions.all import log, sqrt
 from sage.misc.decorators import rename_keyword
 from delsarte_bounds import delsarte_bound_hamming_space, \

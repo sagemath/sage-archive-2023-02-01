@@ -3341,7 +3341,7 @@ class Graph(GenericGraph):
         b = {}
 
 
-        # Checking the input type. We make a dictionay out of it
+        # Checking the input type. We make a dictionary out of it
         if isinstance(bound, dict):
             b = bound
         else:
@@ -3648,7 +3648,7 @@ class Graph(GenericGraph):
             sage: s(XG)
             30*s[1, 1, 1, 1, 1] + 10*s[2, 1, 1, 1] + 10*s[2, 2, 1]
 
-        Not all graphs have a postive Schur expansion::
+        Not all graphs have a positive Schur expansion::
 
             sage: G = graphs.ClawGraph()
             sage: XG = G.chromatic_symmetric_function(); XG
@@ -3987,7 +3987,7 @@ class Graph(GenericGraph):
         OUTPUT:
 
         This method returns ``False`` when the homomorphism does not exist, and
-        returns the homomorphism otherwise as a dictionnary associating a vertex
+        returns the homomorphism otherwise as a dictionary associating a vertex
         of `H` to a vertex of `G`.
 
         EXAMPLE:

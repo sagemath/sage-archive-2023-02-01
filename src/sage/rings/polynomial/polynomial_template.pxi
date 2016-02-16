@@ -1,11 +1,15 @@
 """
 Polynomial Template for C/C++ Library Interfaces
 """
+
 #*****************************************************************************
 #       Copyright (C) 2008 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #       Copyright (C) 2008 Robert Bradshaw
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -75,7 +79,7 @@ cdef class Polynomial_template(Polynomial):
     .. note::
 
         Implementations using this template MUST implement coercion from base
-        ring elements and ``__getitem__``. See
+        ring elements and :meth:`get_unsafe`. See
         :class:`~sage.rings.polynomial.polynomial_gf2x.Polynomial_GF2X` for an
         example.
     """
@@ -408,21 +412,28 @@ cdef class Polynomial_template(Polynomial):
         #assert(t._parent(tp) == t)
         return r,s,t
 
-    def __floordiv__(self, right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: x//(x + 1)
             1
             sage: (x + 1)//x
             1
+            sage: F = GF(47)
+            sage: R.<x> = F[]
+            sage: x // 1
+            x
+            sage: x // F(1)
+            x
+            sage: 1 // x
+            0
+            sage: parent(x // 1)
+            Univariate Polynomial Ring in x over Finite Field of size 47
+            sage: parent(1 // x)
+            Univariate Polynomial Ring in x over Finite Field of size 47
         """
-        # We can't use @coerce_binop for operators in cython classes,
-        # so we use sage.structure.element.bin_op to handle coercion.
-        if type(self) is not type(right) or \
-                (<Polynomial_template>self)._parent is not (<Polynomial_template>right)._parent:
-            return bin_op(self, right, operator.mod)
         cdef Polynomial_template _right = <Polynomial_template>right
 
         if celement_is_zero(&_right.x, (<Polynomial_template>self)._cparent):

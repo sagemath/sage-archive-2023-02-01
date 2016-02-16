@@ -2462,7 +2462,7 @@ class FractionWithFactoredDenominator(RingElement):
 
         .. SEEALSO::
 
-            :function:`direction`
+            :func:`direction`
 
         .. NOTE::
 

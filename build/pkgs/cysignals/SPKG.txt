@@ -16,3 +16,4 @@ https://github.com/sagemath/cysignals
 
 * Python
 * Cython
+* PARI (optional)

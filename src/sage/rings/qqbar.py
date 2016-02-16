@@ -2607,48 +2607,6 @@ def an_muldiv_rational(a, b, div):
         v = va * vb
     return ANRational(v)
 
-def an_addsub_gaussian(a, b, sub):
-    r"""
-    Used to add and subtract algebraic numbers when both are in `\QQ(i)`.
-
-    EXAMPLE::
-
-        sage: i = QQbar(I)
-        sage: from sage.rings.qqbar import an_addsub_gaussian
-        sage: x=an_addsub_gaussian(2 + 3*i, 2/3 + 1/4*i, True); x
-        11/4*I + 4/3 where I^2 + 1 = 0 and I in 1*I
-        sage: type(x)
-        <class 'sage.rings.qqbar.ANExtensionElement'>
-    """
-    va = a._descr.gaussian_value()
-    vb = b._descr.gaussian_value()
-    if sub:
-        v = va - vb
-    else:
-        v = va + vb
-    return ANExtensionElement(QQbar_I_generator, v)
-
-def an_muldiv_gaussian(a, b, div):
-    r"""
-    Used to multiply and divide algebraic numbers when both are in `\QQ(i)`.
-
-    EXAMPLE::
-
-        sage: i = QQbar(I)
-        sage: from sage.rings.qqbar import an_muldiv_gaussian
-        sage: x=an_muldiv_gaussian(2 + 3*i, 2/3 + 1/4*i, True); x
-        216/73*I + 300/73 where I^2 + 1 = 0 and I in 1*I
-        sage: type(x)
-        <class 'sage.rings.qqbar.ANExtensionElement'>
-    """
-    va = a._descr.gaussian_value()
-    vb = b._descr.gaussian_value()
-    if div:
-        v = va / vb
-    else:
-        v = va * vb
-    return ANExtensionElement(QQbar_I_generator, v)
-
 def an_addsub_expr(a, b, sub):
     r"""
     Add or subtract algebraic numbers represented as multi-part expressions.
@@ -2737,55 +2695,31 @@ def an_addsub_element(a, b, sub):
             return ANExtensionElement(bdg, ad._value - bd._value)
         else:
             return ANExtensionElement(bdg, ad._value + bd._value)
-    if bdg == qq_generator:
+    elif bdg == qq_generator:
         if sub:
             return ANExtensionElement(adg, ad._value - bd._value)
         else:
             return ANExtensionElement(adg, ad._value + bd._value)
-    return ANBinaryExpr(a, b, ('-' if sub else '+'))
+    else:
+        return ANBinaryExpr(a, b, ('-' if sub else '+'))
 
 # Here we hand-craft a simple multimethod dispatch.
 _mul_algo = {}
 _add_algo = {}
-_descriptors = ('rational', 'gaussian', 'element', 'other')
+_descriptors = ('rational', 'element', 'other')
 for a in _descriptors:
     for b in _descriptors:
         key = (a, b)
-        if a == 'rational' and b == 'rational':
+
+        if a == b == 'rational':
             _mul_algo[key] = an_muldiv_rational
             _add_algo[key] = an_addsub_rational
-            continue
-        if b == 'rational':
-            a1, b1 = b, a
-        else:
-            a1, b1 = a, b
-        if a1 == 'rational':
-            if b1 == 'gaussian':
-                _mul_algo[key] = an_muldiv_gaussian
-                _add_algo[key] = an_addsub_gaussian
-                continue
-            if b1 == 'rootunity':
-                _mul_algo[key] = an_muldiv_rootunity
-                _add_algo[key] = an_addsub_expr
-                continue
-            if b1 == 'element':
-                _mul_algo[key] = an_muldiv_element
-                _add_algo[key] = an_addsub_element
-                continue
-        if a1 == 'gaussian' and b1 == 'gaussian':
-            _mul_algo[key] = an_muldiv_gaussian
-            _add_algo[key] = an_addsub_gaussian
-            continue
-        if a1 == 'rootunity' and b1 == 'rootunity':
-            _mul_algo[key] = an_muldiv_rootunity
-            _add_algo[key] = an_addsub_rootunity
-            continue
-        if a1 == 'element' and b1 == 'element':
+        elif a in ('rational', 'element') and b in ('rational', 'element'):
             _mul_algo[key] = an_muldiv_element
             _add_algo[key] = an_addsub_element
-            continue
-        _mul_algo[key] = an_muldiv_expr
-        _add_algo[key] = an_addsub_expr
+        else:
+            _mul_algo[key] = an_muldiv_expr
+            _add_algo[key] = an_addsub_expr
 
 class ANDescr(SageObject):
     r"""
@@ -5528,21 +5462,6 @@ class ANRational(ANDescr):
             return QQ(1)/2
         return None
 
-    def gaussian_value(self):
-        r"""
-        Return self as an element of `\QQ(i)`.
-
-        EXAMPLE::
-
-            sage: a = QQbar(3)
-            sage: b = a._descr
-            sage: x = b.gaussian_value(); x
-            3
-            sage: x.parent()
-            Number Field in I with defining polynomial x^2 + 1
-        """
-        return QQbar_I_nf(self._value)
-
     def angle(self):
         r"""
         Return a rational number `q \in (-1/2, 1/2]` such that ``self`` is a rational multiple of
@@ -7040,35 +6959,6 @@ class ANExtensionElement(ANDescr):
         # rational in rat_arg_fl and make sure its denominator is > max_b.
         # For now, we just punt.
         raise NotImplementedError
-
-    def gaussian_value(self):
-        r"""
-        Return self as an element of `\QQ(i)`.
-
-        EXAMPLE::
-
-            sage: a = QQbar(I) + 3/7
-            sage: a.exactify()
-            sage: b = a._descr
-            sage: type(b)
-            <class 'sage.rings.qqbar.ANExtensionElement'>
-            sage: b.gaussian_value()
-            I + 3/7
-
-        A non-example::
-
-            sage: a = QQbar(sqrt(-2)) + QQbar(sqrt(-3))
-            sage: a.exactify()
-            sage: b = a._descr
-            sage: type(b)
-            <class 'sage.rings.qqbar.ANExtensionElement'>
-            sage: b.gaussian_value()
-            Traceback (most recent call last):
-            ...
-            AssertionError
-        """
-        assert(self._generator is QQbar_I_generator)
-        return self._value
 
 class ANUnaryExpr(ANDescr):
     def __init__(self, arg, op):

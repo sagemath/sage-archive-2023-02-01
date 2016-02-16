@@ -2841,7 +2841,6 @@ class FractionWithFactoredDenominator(RingElement):
              Univariate Polynomial Ring in a over Rational Field
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.sets.set import Set
 
         R = self.denominator_ring
         Hred = prod([h for (h, e) in self.denominator_factored()])
@@ -2853,7 +2852,7 @@ class FractionWithFactoredDenominator(RingElement):
         for a in alpha:
             if a not in K and a in SR:
                 indets.append(a)
-        indets = sorted(Set(indets))   # Delete duplicates in indets.
+        indets = sorted(set(indets), key=str)   # Delete duplicates in indets.
         if indets:
             L = PolynomialRing(K, indets).fraction_field()
             S = R.change_ring(L)
@@ -4372,10 +4371,10 @@ def coerce_point(R, p):
         sage: p = {SR(x): 1, SR(y): 7/8}
         sage: p
         {y: 7/8, x: 1}
-        sage: for k in sorted(p.keys()):
+        sage: for k in sorted(p.keys(), key=str):
         ....:     print k, k.parent()
-        y Symbolic Ring
         x Symbolic Ring
+        y Symbolic Ring
         sage: q = coerce_point(R, p)
         sage: q
         {y: 7/8, x: 1}

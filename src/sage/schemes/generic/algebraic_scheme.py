@@ -133,7 +133,6 @@ AUTHORS:
 from sage.categories.number_fields import NumberFields
 
 from sage.rings.all import ZZ
-
 from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
@@ -1512,22 +1511,128 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         except TypeError:
             raise TypeError("Unable to enumerate points over %s."%F)
 
-    def change_ring(self,R):
+    def change_ring(self, R, **kwds):
         r"""
-        Returns a new projective subscheme whose base ring is self coerced to R.
+        Returns a new algebraic subscheme which is this subscheme coerced to ``R``.
+
+        The user may specify the embedding into ``R`` with a keyword.
+
+        INPUT:
+
+        - ``R`` -- ring
+
+        kwds:
+
+        - ``embedding`` -- field embedding from the base ring of this subscheme to ``R``
+
+        OUTPUT:
+
+        - A new algebraic subscheme which is this subscheme coerced to ``R``.
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: X=P.subscheme([3*x^2-y^2])
-            sage: H=Hom(X,X)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: X = P.subscheme([3*x^2-y^2])
+            sage: H = Hom(X,X)
             sage: X.change_ring(GF(3))
             Closed subscheme of Projective Space of dimension 1 over Finite Field of size 3 defined by:
             -y^2
+
+        ::
+
+            sage: K.<w> = QuadraticField(2)
+            sage: R.<z> = K[]
+            sage: L.<v> = K.extension(z^3-5)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: X = P.subscheme(x - w*y)
+            sage: X.change_ring(L)
+            Closed subscheme of Projective Space of dimension 1 over Number Field in v with
+            defining polynomial z^3 - 5 over its base field defined by:
+              x + (-w)*y
+
+        ::
+
+            sage: K.<w> = QuadraticField(2)
+            sage: R.<z> = K[]
+            sage: L.<v> = K.extension(z^3-5)
+            sage: P.<x,y,z> = AffineSpace(L,3)
+            sage: X = P.subscheme([x-w*y, z^2-v*x])
+            sage: emb = L.embeddings(QQbar)
+            sage: X.change_ring(QQbar, embedding=emb[0])
+            Closed subscheme of Affine Space of dimension 3 over Algebraic Field
+            defined by:
+              x + (-1.414213562373095? + 0.?e-16*I)*y,
+              z^2 + (0.8549879733383485? + 1.480882609682365?*I)*x
+
+        ::
+
+            sage: K.<w> = QuadraticField(2)
+            sage: R.<z> = K[]
+            sage: L.<v> = K.extension(z^3-5)
+            sage: P.<x,y,z> = AffineSpace(L,3)
+            sage: X = P.subscheme([x-w*y, z^2-v*x])
+            sage: emb = L.embeddings(QQbar)
+            sage: X.change_ring(QQbar, embedding=emb[1])
+            Closed subscheme of Affine Space of dimension 3 over Algebraic Field
+            defined by:
+              x + (-1.414213562373095? + 0.?e-16*I)*y,
+              z^2 + (0.8549879733383485? - 1.480882609682365?*I)*x
+
+        ::
+
+            sage: K.<w> = QuadraticField(-3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: X = P.subscheme(x-w*y)
+            sage: X.change_ring(CC)
+            Closed subscheme of Projective Space of dimension 1 over Complex Field
+            with 53 bits of precision defined by:
+              x + 1.73205080756888*I*y
+
+        ::
+
+            sage: K.<w> = QuadraticField(3)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: X = P.subscheme(x-w*y)
+            sage: X.change_ring(RR)
+            Closed subscheme of Projective Space of dimension 1 over Real Field
+            with 53 bits of precision defined by:
+              x + 1.73205080756888*y
+
+        ::
+
+            sage: K.<v> = CyclotomicField(7)
+            sage: O = K.maximal_order()
+            sage: P.<x,y> = ProjectiveSpace(O, 1)
+            sage: X = P.subscheme([x^2+O(v)*y^2])
+            sage: X.change_ring(CC)
+            Closed subscheme of Projective Space of dimension 1 over Complex Field with 53 bits of precision defined by:
+              x^2 + (0.623489801858734 + 0.781831482468030*I)*y^2
+            sage: X.change_ring(K).change_ring(QQbar)
+            Closed subscheme of Projective Space of dimension 1 over Algebraic Field defined by:
+              x^2 + (-0.9009688679024191? - 0.4338837391175581?*I)*y^2
         """
-        A=self.ambient_space().change_ring(R)
-        I=self.defining_ideal().change_ring(A.coordinate_ring())
-        return(A.subscheme(I))
+        K = self.base_ring()
+        AS = self.ambient_space()
+        new_AS = AS.change_ring(R)
+        emb =  kwds.get('embedding', None)
+        if emb is None:
+            #see if one can be constructed
+            try:
+                phi = K.embeddings(R)[0]
+                Kx = AS.coordinate_ring()
+                Rx = R[Kx.variable_names()]
+                phix = Kx.hom(phi,Rx)
+                I = [phix(f) for f in self.defining_polynomials()]
+            except (IndexError, ValueError, AttributeError):
+                #otherwise hope for the best
+                I = [f.change_ring(R) for f in self.defining_polynomials()]
+        else:
+            #we're given an embedding
+            if emb.domain() == K:
+                emb = AS.coordinate_ring().hom(emb, new_AS.coordinate_ring())
+            #else assume it is already polyring to polyring
+            I = [emb(f) for f in self.defining_polynomials()]
+        return(new_AS.subscheme(I))
 
     def weil_restriction(self):
         r"""

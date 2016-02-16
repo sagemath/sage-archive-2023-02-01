@@ -78,26 +78,23 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power, parent
-from sage.structure.sequence  import Sequence
-from sage.categories.homset   import Homset, Hom, End
-from sage.categories.number_fields import NumberFields
-from sage.rings.all           import Integer, CIF
-from sage.rings.fraction_field     import FractionField
+from sage.structure.element import AdditiveGroupElement, RingElement, Element, generic_power, parent
+from sage.structure.sequence import Sequence
+from sage.categories.homset import Homset, Hom, End
+from sage.categories.fields import Fields
+from sage.rings.all import Integer
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
-from sage.rings.number_field.order import is_NumberFieldOrder
-from point                    import is_SchemeTopologicalPoint
-from sage.rings.infinity      import infinity
+from point import is_SchemeTopologicalPoint
+from sage.rings.infinity import infinity
 import scheme
 
 from sage.categories.gcd_domains import GcdDomains
-from sage.rings.qqbar            import QQbar
-from sage.rings.quotient_ring    import QuotientRing_generic
-from sage.rings.rational_field   import QQ
-from sage.categories.map         import FormalCompositeMap, Map
+from sage.rings.quotient_ring import QuotientRing_generic
+from sage.rings.rational_field import QQ
+from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
-from sage.categories.morphism    import SetMorphism
+from sage.categories.morphism import SetMorphism
 
 def is_SchemeMorphism(f):
     """
@@ -1279,11 +1276,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         """
         return(self._polys[0].parent())
 
-    def change_ring(self,R, **kwds):
+    def change_ring(self, R, **kwds):
         r"""
-        Returns a new :class:`SchemeMorphism_polynomial` which is ``self`` coerced to ``R``. If ``check``
-        is ``True``, then the initialization checks are performed. The user may specify the embedding
-        into ``R`` with a keyword.
+        Returns a new :class:`SchemeMorphism_polynomial` which is this map coerced to ``R``.
+
+        If ``check`` is ``True``, then the initialization checks are performed.
+        The user may specify the embedding into ``R`` with a keyword.
 
         INPUT:
 
@@ -1293,17 +1291,17 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         - ``check`` -- Boolean
 
-        - ``embedding`` -- field embedding from the base ring of ``self`` to ``R``
+        - ``embedding`` -- field embedding from the base ring of this map to ``R``
 
         OUTPUT:
 
-        - A new :class: `SchemeMorphism_polynomial` which is ``self`` coerced to ``R``.
+        - A new :class: `SchemeMorphism_polynomial` which is this map coerced to ``R``.
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: H = Hom(P,P)
-            sage: f = H([3*x^2,y^2])
+            sage: f = H([3*x^2, y^2])
             sage: f.change_ring(GF(3))
             Traceback (most recent call last):
             ...
@@ -1311,9 +1309,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: H = Hom(P,P)
-            sage: f = H([5/2*x^3 + 3*x*y^2-y^3,3*z^3 + y*x^2, x^3-z^3])
+            sage: f = H([5/2*x^3 + 3*x*y^2-y^3, 3*z^3 + y*x^2, x^3-z^3])
             sage: f.change_ring(GF(3))
             Scheme endomorphism of Projective Space of dimension 2 over Finite Field of size 3
                 Defn: Defined on coordinates by sending (x : y : z) to
@@ -1321,10 +1319,10 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: X = P.subscheme([5*x^2-y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: X = P.subscheme([5*x^2 - y^2])
             sage: H = Hom(X,X)
-            sage: f = H([x,y])
+            sage: f = H([x, y])
             sage: f.change_ring(GF(3))
             Scheme endomorphism of Closed subscheme of Projective Space of dimension
             1 over Finite Field of size 3 defined by:
@@ -1334,9 +1332,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         Check that :trac:`16834` is fixed::
 
-            sage: A.<x,y,z> = AffineSpace(RR,3)
+            sage: A.<x,y,z> = AffineSpace(RR, 3)
             sage: h = Hom(A,A)
-            sage: f = h([x^2+1.5,y^3,z^5-2.0])
+            sage: f = h([x^2+1.5, y^3, z^5-2.0])
             sage: f.change_ring(CC)
             Scheme endomorphism of Affine Space of dimension 3 over Complex Field with 53 bits of precision
             Defn: Defined on coordinates by sending (x, y, z) to
@@ -1344,8 +1342,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: A.<x,y> = ProjectiveSpace(ZZ,1)
-            sage: B.<u,v> = AffineSpace(QQ,2)
+            sage: A.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: B.<u,v> = AffineSpace(QQ, 2)
             sage: h = Hom(A,B)
             sage: f = h([x^2, y^2])
             sage: f.change_ring(QQ)
@@ -1359,7 +1357,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
             sage: A.<x,y> = AffineSpace(QQ,2)
             sage: H = Hom(A,A)
-            sage: f = H([3*x^2/y,y^2/x])
+            sage: f = H([3*x^2/y, y^2/x])
             sage: f.change_ring(RR)
             Scheme endomorphism of Affine Space of dimension 2 over Real Field with
             53 bits of precision
@@ -1370,9 +1368,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^3-x+1)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
-            sage: f = H([x^2 + a*x*y + a^2*y^2,y^2])
+            sage: f = H([x^2 + a*x*y + a^2*y^2, y^2])
             sage: emb = K.embeddings(QQbar)
             sage: f.change_ring(QQbar, embedding=emb[0])
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic
@@ -1389,14 +1387,29 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         ::
 
             sage: K.<v> = QuadraticField(2)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
-            sage: f = H([x^2+v*y^2,y^2])
+            sage: f = H([x^2+v*y^2, y^2])
             sage: f.change_ring(QQbar)
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic
             Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + (-1.414213562373095?)*y^2 : y^2)
+
+        ::
+
+            sage: set_verbose(None)
+            sage: K.<w> = QuadraticField(2)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: X = P.subscheme(x-y)
+            sage: H = End(X)
+            sage: f = H([6*x^2+2*x*y+16*y^2, -w*x^2-4*x*y-4*y^2])
+            sage: f.change_ring(QQbar, embedding=K.embeddings(QQbar)[0])
+            Scheme endomorphism of Closed subscheme of Projective Space of dimension
+            1 over Algebraic Field defined by:
+              x - y
+              Defn: Defined on coordinates by sending (x : y) to
+                    (24*y^2 : (-6.585786437626905?)*y^2)
         """
         check = kwds.get('check', True)
         emb =  kwds.get('embedding', None)
@@ -1409,27 +1422,33 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             H = Hom(T,S)
 
         if emb is None:
-            if is_NumberFieldOrder(K):
-                K = FractionField(K)
-            if R == QQbar and K in NumberFields() and K != QQ:
-                #if we are embedding a number field into QQbar and the emb is not
-                #specified we need to construct one
-                abspoly = K.absolute_polynomial()
-                phi = K.hom(QQbar.polynomial_root(abspoly,abspoly.any_root(CIF)),QQbar)
+            #see if one can be constructed
+            try:
+                phi = K.embeddings(R)[0]
                 Kx = self.coordinate_ring()
-                QQbarx = QQbar[Kx.variable_names()]
-                phix = Kx.hom(phi,QQbarx)
-                G = [phix(t) for t in self]
-            else:
+                #affine maps can be fraction field elements
+                if Kx in Fields():
+                    Kx = Kx.ring()
+                Rx = R[Kx.variable_names()]
+                phix = Kx.hom(phi,Rx)
                 G = []
-                for f in self._polys:
-                    if isinstance(f,FractionFieldElement):
+                for f in self:
+                    #Affine maps map be rational
+                    if isinstance(f, FractionFieldElement):
+                        G.append(phix(f.numerator())/phix(f.denominator()))
+                    else:
+                        G.append(phix(f))
+            except (IndexError, ValueError, AttributeError):
+                #otherwise hope for the best
+                G = []
+                for f in self:
+                    if isinstance(f, FractionFieldElement):
                         G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
                     else:
                         G.append(f.change_ring(R))
         else:
             if emb.domain() == self.base_ring():
-                emb = self.coordinate_ring().hom(emb, T.coordinate_ring())
+                emb = self.coordinate_ring().hom(emb, T.ambient_space().coordinate_ring())
             #else assume it is already polyring to polyring
             G = []
             for f in self._polys:
@@ -1437,7 +1456,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                     G.append(emb(f.numerator()) / emb(f.denominator()))
                 else:
                     G.append(emb(f))
-        return(H(G,check))
+        return(H(G, check))
 
 ############################################################################
 # Rational points on schemes, which we view as morphisms determined
@@ -1619,11 +1638,12 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         return self._codomain
 
-    def change_ring(self,R, **kwds):
+    def change_ring(self, R, **kwds):
         r"""
-        Returns a new :class:`SchemeMorphism_point` which is self coerced to R. If `check`
-        is true, then the initialization checks are performed. The user may specify the embedding
-        into ``R`` with a keyword.
+        Returns a new :class:`SchemeMorphism_point` which is this point coerced to``R``.
+
+        If ``check`` is true, then the initialization checks are performed.
+        The user may specify the embedding into ``R`` with a keyword.
 
         INPUT:
 
@@ -1633,13 +1653,13 @@ class SchemeMorphism_point(SchemeMorphism):
 
         - ``check`` -- Boolean
 
-        - ``embedding`` -- field embedding from the base ring of ``self`` to ``R``
+        - ``embedding`` -- field embedding from the base ring of this point to ``R``
 
         OUTPUT: :class:`SchemeMorphism_point`
 
         EXAMPLES::
 
-            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
             sage: X = P.subscheme(x^2-y^2)
             sage: X(23,23,1).change_ring(GF(13))
             (10 : 10 : 1)
@@ -1655,6 +1675,18 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)
             sage: P(152,113).change_ring(Zp(5))
             (2 + 5^2 + 5^3 + O(5^20) : 3 + 2*5 + 4*5^2 + O(5^20))
+
+        ::
+
+            sage: K.<v> = QuadraticField(-7)
+            sage: O = K.maximal_order()
+            sage: P.<x,y> = ProjectiveSpace(O, 1)
+            sage: H = End(P)
+            sage: F = H([x^2+O(v)*y^2, y^2])
+            sage: F.change_ring(K).change_ring(QQbar)
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + (-2.645751311064591?*I)*y^2 : y^2)
 
         ::
 
@@ -1679,17 +1711,14 @@ class SchemeMorphism_point(SchemeMorphism):
         check = kwds.get('check', True)
         emb = kwds.get('embedding', None)
         K = self.codomain().base_ring()
-        S = self._codomain.change_ring(R)
+        S = self.codomain().change_ring(R)
         if emb is None:
-            if is_NumberFieldOrder(K):
-                K = FractionField(K)
-            if R == QQbar and K in NumberFields() and K != QQ:
-                #if we are embedding a number field into QQbar and the emb is not
-                #specified we need to construct one
-                abspoly = K.absolute_polynomial()
-                phi = K.hom(QQbar.polynomial_root(abspoly,abspoly.any_root(CIF)),QQbar)
+            #see if one can be constructed
+            try:
+                phi = K.embeddings(R)[0]
                 Q = [phi(t) for t in self]
-            else:
+            except (IndexError, ValueError, AttributeError):
+                #otherwise hope for the best
                 Q = [R(t) for t in self]
         else:
             Q = [emb(t) for t in self]

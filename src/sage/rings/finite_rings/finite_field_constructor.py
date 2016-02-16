@@ -432,11 +432,13 @@ class FiniteFieldFactory(UniqueFactory):
 
     Before :trac:`17569`, the boolean keyword argument ``conway``
     was required when creating finite fields without a variable
-    name.  This keyword argument is now silently ignored.  You
+    name.  This keyword argument is now deprecated.  You
     can still pass in ``prefix`` as an argument, which has the
     effect of changing the variable name of the algebraic closure::
 
         sage: K = GF(3^10, conway=True, prefix='w'); L = GF(3^10); K is L
+        doctest:...: DeprecationWarning: the 'conway' argument is deprecated, pseudo-conway polynomials are now used by default if no variable name is given
+        See http://trac.sagemath.org/17569 for details.
         False
         sage: K.variable_name(), L.variable_name()
         ('w10', 'z10')
@@ -492,6 +494,10 @@ class FiniteFieldFactory(UniqueFactory):
                     name = kwds['prefix'] + str(n)
                     if modulus is not None:
                         raise ValueError("no modulus may be specified if variable name not given")
+                    if 'conway' in kwds:
+                        del kwds['conway']
+                        from sage.misc.superseded import deprecation
+                        deprecation(17569, "the 'conway' argument is deprecated, pseudo-conway polynomials are now used by default if no variable name is given")
                     # Fpbar will have a strong reference, since algebraic_closure caches its results,
                     # and the coefficients of modulus lie in GF(p)
                     Fpbar = GF(p).algebraic_closure(kwds.get('prefix','z'))

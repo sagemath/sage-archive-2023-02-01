@@ -104,6 +104,7 @@ List of Poset methods
     :meth:`~FinitePoset.dual` | Return the dual poset of this poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
+    :meth:`~FinitePoset.ordinal_summands` | Return the ordinal summands of the poset.
     :meth:`~FinitePoset.subposet` | Return the subposet containing elements with partial order induced by this poset.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
     :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled with elements `\{0, \ldots, n-1\}`.
@@ -3648,6 +3649,96 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [self.subposet(self._vertex_to_element(x) for x in cc)
                 for cc in comps]
 
+    def ordinal_summands(self):
+        r"""
+        Return the ordinal summands of the poset as subposets.
+
+        The ordinal summands of a poset `P` is the longest list of
+        non-empty subposets `P_1, \ldots, P_n` whose ordinal sum is `P`. This
+        decomposition is unique.
+
+        .. SEEALSO::
+
+            :meth:`ordinal_sum`
+
+        EXAMPLES::
+
+            sage: P = Poset({'a': ['c', 'd'], 'b': ['d'], 'c': ['x', 'y'],
+            ....: 'd': ['x', 'y']})
+            sage: parts = P.ordinal_summands(); parts
+            [Finite poset containing 4 elements, Finite poset containing 2 elements]
+            sage: sorted(parts[0])
+            ['a', 'b', 'c', 'd']
+            sage: Q = parts[0].ordinal_sum(parts[1])
+            sage: Q.is_isomorphic(P)
+            True
+
+        ALGORITHM:
+
+        Suppose that a poset `P` is the ordinal sum of posets `L` and `U`. Then
+        `P` contains maximal antichains `l` and `u` such that every element of
+        `u` covers every element of `l`; they correspond to maximal elements of
+        `L` and minimal elements of `U`.
+
+        We consider a linear extension `x_1,\ldots,x_n` of the poset's
+        elements.
+
+        We keep track of the maximal elements of subposet induced by elements
+        `0,\ldots,x_i` and minimal elements of subposet induced by elements
+        `x_{i+1},\ldots,x_n`, incrementing `i` one by one. We then check if
+        `l` and `u` fit the previous description.
+
+        TESTS::
+
+            sage: Poset().ordinal_summands()
+            [Finite poset containing 0 elements]
+            sage: Poset({1: []}).ordinal_summands()
+            [Finite poset containing 1 elements]
+        """
+        n = self.cardinality()
+        if n <= 0:
+            return [self]
+
+        H = self._hasse_diagram
+        cut_points = [-1]
+        in_degrees = H.in_degree()
+        lower = set([])
+        upper = set(H.sources())
+
+        for e in range(n):
+
+            # update 'lower' by adding 'e' to it
+            lower.add(e)
+            lower.difference_update(H.neighbors_in(e))
+
+            # update 'upper' too
+            upper.discard(e)
+            up_covers = H.neighbors_out(e)
+            for uc in up_covers:
+                in_degrees[uc] -= 1
+                if in_degrees[uc] == 0:
+                    upper.add(uc)
+
+            if e+1 in up_covers:
+                uc_len = len(upper)
+                for l in lower:
+                    if H.out_degree(l) != uc_len:
+                        break
+                else:
+                    for l in lower:
+                        if set(H.neighbors_out(l)) != upper:
+                            break
+                    else:
+                        cut_points.append(e)
+
+        cut_points.append(n-1)
+
+        parts = []
+        for i,j in zip(cut_points,cut_points[1:]):
+            parts.append(self.subposet([self._vertex_to_element(e)
+                                        for e in range(i+1,j+1)]))
+        return parts
+
     def product(self, other):
         """
         Return the Cartesian product of the poset with ``other``.
@@ -3886,7 +3977,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`disjoint_union`, :meth:`ordinal_product`
+            :meth:`ordinal_summands`, :meth:`disjoint_union`, :meth:`ordinal_product`
         """
         from sage.combinat.posets.lattices import LatticePoset, \
              JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \

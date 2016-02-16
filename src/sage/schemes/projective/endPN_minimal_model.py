@@ -29,20 +29,22 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.homset                            import End
-from copy                                              import copy
-from sage.matrix.constructor                           import matrix
-from sage.rings.finite_rings.integer_mod_ring          import Zmod
-from sage.rings.integer_ring                           import ZZ
+from sage.categories.homset import End
+from copy import copy
+from sage.matrix.constructor import matrix
+from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.rational_field                         import QQ
-from sage.schemes.affine.affine_space                  import AffineSpace
+from sage.rings.rational_field import QQ
+from sage.schemes.affine.affine_space import AffineSpace
 from sage.arith.all import gcd
 
 
 def bCheck(c, v, p, b):
     r"""
-    Compute a lower bound on the value of ``b`` needed, for a transformation
+    Compute a lower bound on the value of ``b``.
+
+    This value is needed for a transformation
     `A(z) = z*p^k + b` to satisfy `ord_p(Res(\phi^A)) < ord_p(Res(\phi))` for a
     rational map `\phi`. See Theorem 3.3.5 in [Molnar]_.
 
@@ -81,25 +83,27 @@ def bCheck(c, v, p, b):
 
 def scale(c,v,p):
     r"""
+    Create scaled integer polynomial with respect to prime ``p``.
+
     Given an integral polynomial ``c``, we can write `c = p^i*c'`, where ``p`` does not
     divide ``c``. Returns ``c'`` and `v - i` where `i` is the smallest valuation of the
     coefficients of `c`.
 
     INPUT:
 
-    - ``c`` -- an integer polynomial
+    - ``c`` -- an integer polynomial.
 
-    - ``v`` -- an integer - the bound on the exponent from blift
+    - ``v`` -- an integer - the bound on the exponent from blift.
 
-    - ``p`` -- a prime
+    - ``p`` -- a prime.
 
     OUTPUT:
 
-    - Boolean -- the new exponent bound is 0 or negative
+    - Boolean -- the new exponent bound is 0 or negative.
 
-    - the scaled integer polynomial
+    - the scaled integer polynomial.
 
-    - an integer the new exponent bound
+    - an integer the new exponent bound.
 
     EXAMPLES::
 
@@ -119,24 +123,26 @@ def scale(c,v,p):
     return [flag,c,v]
 
 
-def blift(LF,Li,p,S=None):
+def blift(LF, Li, p, S=None):
     r"""
-    Search for a solution to the given list of inequalities. If found, lift the solution to
+    Search for a solution to the given list of inequalities.
+
+    If found, lift the solution to
     an appropriate valuation. See Lemma 3.3.6 in [Molnar]_
 
     INPUT:
 
-    - ``LF`` -- a list of integer polynomials in one variable (the normalized coefficients)
+    - ``LF`` -- a list of integer polynomials in one variable (the normalized coefficients).
 
-    - ``Li`` -- an integer, the bound on coefficients
+    - ``Li`` -- an integer, the bound on coefficients.
 
-    - ``p`` -- a prime
+    - ``p`` -- a prime.
 
     OUTPUT:
 
-    - Boolean -- whether or not the lift is successful
+    - Boolean -- whether or not the lift is successful.
 
-    - integer -- the lift
+    - integer -- the lift.
 
     EXAMPLES::
 
@@ -163,22 +169,24 @@ def blift(LF,Li,p,S=None):
     #We need a solution for each polynomial on the left hand side of the inequalities,
     #so we need only find a solution for their gcd.
     g = gcd(keptScaledIneqs)
-    rts = g.roots(multiplicities=False)
+    rts = g.roots(multiplicities = False)
     for r in rts:
         #Recursively try to lift each root
-        r_initial=QQ(r)
-        newInput = P([r_initial,p])
+        r_initial = QQ(r)
+        newInput = P([r_initial, p])
         LG = [F(newInput) for F in LF]
         lift,lifted = blift(LG,Li,p,S=S)
         if lift:
             #Lift successful.
-            return True,r_initial+ p*lifted
+            return True,r_initial + p*lifted
     #Lift non successful.
     return False,0
 
 
-def affine_minimal(vp, return_transformation = False,D=None, quick = False):
+def affine_minimal(vp, return_transformation=False, D=None, quick=False):
     r"""
+    Determine if given map is affine minimal.
+
     Given vp a scheme morphisms on the projective line over the rationals,
     this procedure determines if `\phi` is minimal. In particular, it determines
     if the map is affine minimal, which is enough to decide if it is minimal
@@ -193,7 +201,7 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
 
     - ``return_transformation`` -- a boolean value, default value True. This
       signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
-      the calculated minimal model. default: False
+      the calculated minimal model. default: False.
 
     - ``quick`` -- a boolean value. If true the algorithm terminates once
       algorithm determines F/G is not minimal, otherwise algorithm only
@@ -203,15 +211,15 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
 
     - ``newvp`` -- scheme morphism on the projective line.
 
-    - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``
+    - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``.
 
     EXAMPLES::
 
-        sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
+        sage: PS.<X,Y> = ProjectiveSpace(QQ, 1)
         sage: H = Hom(PS,PS)
-        sage: vp = H([X^2+9*Y^2,X*Y])
+        sage: vp = H([X^2 + 9*Y^2, X*Y])
         sage: from sage.schemes.projective.endPN_minimal_model import affine_minimal
-        sage: affine_minimal(vp,True)
+        sage: affine_minimal(vp, True)
         (
         Scheme endomorphism of Projective Space of dimension 1 over Rational
         Field
@@ -222,22 +230,22 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
         [0 1]
         )
     """
-    BR=vp.domain().base_ring()
-    conj=matrix(BR,2,2,1)
+    BR = vp.domain().base_ring()
+    conj = matrix(BR,2,2,1)
     flag = True
     d = vp.degree()
 
     vp.normalize_coordinates();
-    Affvp=vp.dehomogenize(1)
-    R=Affvp.coordinate_ring()
+    Affvp = vp.dehomogenize(1)
+    R = Affvp.coordinate_ring()
     if R.is_field():
         #want the polynomial ring not the fraction field
-        R=R.ring()
-    F=R(Affvp[0].numerator())
-    G=R(Affvp[0].denominator())
-    if G.degree()==0 or F.degree()==0:
-        raise TypeError("Affine minimality is only considered for maps not of the form f or 1/f for a polynomial f.")
-    z=F.parent().gen(0)
+        R = R.ring()
+    F = R(Affvp[0].numerator())
+    G = R(Affvp[0].denominator())
+    if G.degree() == 0 or F.degree() == 0:
+        raise TypeError("affine minimality is only considered for maps not of the form f or 1/f for a polynomial f")
+    z = F.parent().gen(0)
     minF,minG = F,G
     #If the valuation of a prime in the resultant is small enough, we can say the
     #map is affine minimal at that prime without using the local minimality loop. See
@@ -251,12 +259,10 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
     #Some quantities needed for the local minimization loop, but we compute now
     #since the value is constant, so we do not wish to compute in every local loop.
     #See Theorem 3.3.3 in [Molnar, M.Sc thesis]
-
-    H=F-z*minG
-    d1=F.degree()
-    A=AffineSpace(BR,1,H.parent().variable_name())
-    end_ring=End(A)
-
+    H = F-z*minG
+    d1 = F.degree()
+    A = AffineSpace(BR,1,H.parent().variable_name())
+    end_ring = End(A)
     ubRes = end_ring([H/minG]).homogenize(1).resultant()
     #Set the primes to check minimality at, if not already prescribed
     if D is None:
@@ -273,12 +279,12 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
             else:
                 #The model may not be minimal at p.
                 newvp,conj = Min(vp,p,ubRes,conj)
-                if newvp==vp:
-                    min=True
+                if newvp == vp:
+                    min = True
                 else:
-                    vp=newvp
-                    Affvp=vp.dehomogenize(1)
-                    min=False
+                    vp = newvp
+                    Affvp = vp.dehomogenize(1)
+                    min = False
             if min:
                 #The model is minimal at p
                 break
@@ -310,23 +316,23 @@ def Min(Fun, p, ubRes, conj):
 
     INPUT:
 
-    - ``Fun`` -- a projective space morphisms
+    - ``Fun`` -- a projective space morphisms.
 
     - ``p`` - a prime.
 
     - ``ubRes`` -- integer, the upper bound needed for Th. 3.3.3 in [Molnar]_.
 
-    - ``conj`` -- a 2x2 matrix keeping track of the conjugation
+    - ``conj`` -- a 2x2 matrix keeping track of the conjugation.
 
     OUTPUT:
 
-    - Boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise
+    - Boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise.
 
-    - a projective morphism minimal at ``p``
+    - a projective morphism minimal at ``p``.
 
     EXAMPLES::
 
-        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: P.<x,y> = ProjectiveSpace(QQ, 1)
         sage: H = End(P)
         sage: f = H([149*x^2 + 39*x*y + y^2, -8*x^2 + 137*x*y + 33*y^2])
         sage: from sage.schemes.projective.endPN_minimal_model import Min
@@ -341,15 +347,14 @@ def Min(Fun, p, ubRes, conj):
         [0 1]
         )
     """
-
-    d=Fun.degree()
-    AffFun=Fun.dehomogenize(1)
-    R=AffFun.coordinate_ring()
+    d = Fun.degree()
+    AffFun = Fun.dehomogenize(1)
+    R = AffFun.coordinate_ring()
     if R.is_field():
         #want the polynomial ring not the fraction field
-        R=R.ring()
-    F=R(AffFun[0].numerator())
-    G=R(AffFun[0].denominator())
+        R = R.ring()
+    F = R(AffFun[0].numerator())
+    G = R(AffFun[0].denominator())
     dG = G.degree()
     if dG > (d+1)/2:
         lowerBound = (-2*(G[dG]).valuation(p)/(2*dG - d + 1) + 1).floor()
@@ -365,9 +370,9 @@ def Min(Fun, p, ubRes, conj):
         #resultant of F/G
         k = lowerBound
         Qb = PolynomialRing(QQ,'b')
-        b=Qb.gen(0)
+        b = Qb.gen(0)
         Q = PolynomialRing(Qb,'z')
-        z=Q.gen(0)
+        z = Q.gen(0)
         while k <= upperBound:
             A = (p**k)*z + b
             Ft = Q(F(A) - b*G(A))
@@ -378,21 +383,16 @@ def Min(Fun, p, ubRes, conj):
             RHS = (d + 1)*k/2
             #If there is some b such that Res(phi^A) < Res(phi), we must have ord_p(c) >
             #RHS for each c in coeffs.
-
             #Make sure constant coefficients in coeffs satisfy the inequality.
-
             if all( QQ(c).valuation(p) > RHS for c in coeffs if c.degree() ==0 ):
                 #Constant coefficients in coeffs have large enough valuation, so check
-                #the rest.
-                #We start by checking if simply picking b=0 works
+                #the rest. We start by checking if simply picking b=0 works
                 if all(c(0).valuation(p) > RHS for c in coeffs):
                     #A = z*p^k satisfies the inequalities, and F/G is not minimal
-
                     #"Conjugating by", p,"^", k, "*z +", 0
-                    newconj=matrix(QQ,2,2,[p**k,0,0,1])
-                    minFun=Fun.conjugate(newconj)
-                    conj=conj*newconj
-
+                    newconj = matrix(QQ,2,2,[p**k,0,0,1])
+                    minFun = Fun.conjugate(newconj)
+                    conj = conj*newconj
                     minFun.normalize_coordinates()
                     return minFun, conj
 
@@ -422,9 +422,9 @@ def Min(Fun, p, ubRes, conj):
                     #Rescale, conjugate and return new map
                     bsol = QQ(sol*(p**bval))
                     #"Conjugating by ", p,"^", k, "*z +", bsol
-                    newconj=matrix(QQ,2,2,[p**k,bsol,0,1])
-                    minFun=Fun.conjugate(newconj)
-                    conj=conj*newconj
+                    newconj = matrix(QQ,2,2,[p**k,bsol,0,1])
+                    minFun = Fun.conjugate(newconj)
+                    conj = conj*newconj
 
                     minFun.normalize_coordinates()
                     return minFun, conj

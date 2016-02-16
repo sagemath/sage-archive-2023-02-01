@@ -62,7 +62,6 @@ AUTHORS:
 import sage.misc.prandom as random
 
 from sage.arith.all import factor, primitive_root, CRT_basis
-import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 import integer_mod
 import sage.rings.integer as integer
@@ -1418,7 +1417,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             sage: H = A.unit_group(algorithm='pari'); H
             Multiplicative Abelian group isomorphic to C4 x C2 x C2
             sage: H.gens_values()
-            (17, 31, 11)
+            (17, 31, 21)
 
             sage: A = Zmod(192)
             sage: G = A.unit_group(); G
@@ -1428,7 +1427,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             sage: H = A.unit_group(algorithm='pari'); H
             Multiplicative Abelian group isomorphic to C16 x C2 x C2
             sage: H.gens_values()
-            (67, 127, 65)
+            (133, 127, 65)
 
         In the following examples, the cyclic factors are not even
         isomorphic::
@@ -1506,8 +1505,8 @@ In the latter case, please inform the developers.""".format(self.order()))
             sage: R.random_element(2) in [R(16), R(17), R(0), R(1), R(2)]
             True
         """
-        if not (bound is None):
-            return commutative_ring.CommutativeRing.random_element(self, bound)
+        if bound is not None:
+            return ring.CommutativeRing.random_element(self, bound)
         a = random.randint(0,self.order()-1)
         return self(a)
 

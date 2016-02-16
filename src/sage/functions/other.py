@@ -932,7 +932,7 @@ class Function_gamma_inc(BuiltinFunction):
         EXAMPLES::
 
             sage: gamma_inc(CDF(0,1), 3)
-            0.003208574993369116 + 0.012406185811871568*I
+            0.0032085749933691158 + 0.012406185811871568*I
             sage: gamma_inc(RDF(1), 3)
             0.049787068367863944
             sage: gamma_inc(3,2)

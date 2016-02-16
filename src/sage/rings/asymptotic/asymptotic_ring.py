@@ -3866,15 +3866,14 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             which means 0 for sufficiently large n.
         """
         from sage.symbolic.ring import SR
-        from sage.rings.integer_ring import ZZ
-        from asymptotic_expansion_generators import asymptotic_expansions
         from misc import NotImplementedOZero
 
         singular_expansions = {}
 
         OZeroEncountered = False
 
-        A = AsymptoticRing('T^QQ * log(T)^QQ', coefficient_ring=SR, default_prec=precision)
+        A = AsymptoticRing('T^QQ * log(T)^QQ', coefficient_ring=SR,
+                           default_prec=precision)
         T = A.gen()
 
         result = A.zero()

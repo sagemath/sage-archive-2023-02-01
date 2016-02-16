@@ -2729,8 +2729,8 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
               u1 - u3,
               u0 - u2
               Defn: Defined by sending (x : y : z , u : v , s : t) to
-                    (x*v*s : x*v*t : x*v*s : x*v*t : y*v*s : y*v*t : y*v*s : y*v*t :
-            z*v*s : z*v*t : z*v*s : z*v*t).
+                    (x*u*s : x*u*t : x*v*s : x*v*t : y*u*s : y*u*t : y*v*s : y*v*t :
+            z*u*s : z*u*t : z*v*s : z*v*t).
         """
         AS = self.ambient_space()
         CR = AS.coordinate_ring()

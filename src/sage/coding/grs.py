@@ -866,23 +866,6 @@ class GRSBerlekampWelchDecoder(Decoder):
                 and self.code() == other.code()\
                 and self.input_space() == other.input_space()
 
-    def __ne__(self, other):
-        r"""
-        Tests inequality between GRSBerlekampWelchDecoder objects.
-
-        EXAMPLES::
-
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k + 1)
-            sage: D1 = codes.decoders.GRSBerlekampWelchDecoder(C1)
-            sage: D2 = codes.decoders.GRSBerlekampWelchDecoder(C2)
-            sage: D1.__ne__(D2)
-            True
-        """
-        return not self.__eq__(other)
-
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.
@@ -1065,23 +1048,6 @@ class GRSGaoDecoder(Decoder):
         return isinstance(other, GRSGaoDecoder) \
                 and self.code() == other.code()\
                 and self.input_space() == other.input_space()
-
-    def __ne__(self, other):
-       r"""
-       Tests inequality of GRSGaoDecoder objects.
-
-       EXAMPLES::
-
-           sage: F = GF(59)
-           sage: n, k = 40, 12
-           sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-           sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k + 1)
-           sage: D1 = codes.decoders.GRSGaoDecoder(C1)
-           sage: D2 = codes.decoders.GRSGaoDecoder(C2)
-           sage: D1.__ne__(D2)
-           True
-       """
-       return not self.__eq__(other)
 
     def _repr_(self):
         r"""
@@ -1330,23 +1296,6 @@ class GRSErrorErasureDecoder(Decoder):
         return isinstance(other, GRSErrorErasureDecoder) \
                 and self.code() == other.code()
 
-    def __ne__(self, other):
-        r"""
-        Tests inequality of GRSErrorErasureDecoder objects.
-
-        EXAMPLES::
-
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k + 1)
-            sage: D1 = codes.decoders.GRSErrorErasureDecoder(C1)
-            sage: D2 = codes.decoders.GRSErrorErasureDecoder(C2)
-            sage: D1.__ne__(D2)
-            True
-        """
-        return not self.__eq__(other)
-
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -1542,23 +1491,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         return isinstance(other, GRSKeyEquationSyndromeDecoder) \
                 and self.code() == other.code()\
                 and self.input_space() == other.input_space()
-
-    def __ne__(self, other):
-       r"""
-       Tests inequality of GRSKeyEquationSyndromeDecoder objects.
-
-       EXAMPLES::
-
-           sage: F = GF(59)
-           sage: n, k = 40, 12
-           sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
-           sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k + 1)
-           sage: D1 = codes.decoders.GRSKeyEquationSyndromeDecoder(C1)
-           sage: D2 = codes.decoders.GRSKeyEquationSyndromeDecoder(C2)
-           sage: D1.__ne__(D2)
-           True
-       """
-       return not self.__eq__(other)
 
     def _repr_(self):
         r"""

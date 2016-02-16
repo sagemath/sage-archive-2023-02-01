@@ -86,7 +86,6 @@ from sage.rings.integer cimport smallInteger
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
-from sage.rings.integral_domain import is_IntegralDomain
 from sage.structure.category_object cimport normalize_names
 
 from sage.misc.derivative import multi_derivative

@@ -1463,7 +1463,7 @@ class _sage_doc:
             sage: browse_sage_doc._open("reference", testing=True)[0]
             'http://localhost:8000/doc/live/reference/index.html'
             sage: browse_sage_doc._open("tutorial", testing=True)[1]
-            '...doc/output/html/en/tutorial/index.html'
+            '.../html/en/tutorial/index.html'
         """
         url = self._base_url + os.path.join(name, "index.html")
         path = os.path.join(self._base_path, name, "index.html")

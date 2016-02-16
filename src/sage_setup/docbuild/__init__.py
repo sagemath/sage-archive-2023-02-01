@@ -91,22 +91,12 @@ def builder_helper(type):
             if ABORT_ON_ERROR:
                 raise
 
-        # Print message about location of output:
-        #   - by default if html output
-        #   - if verbose and if not pdf output
-        #   - if pdf: print custom message here if verbose, and print
-        #     full message below (see pdf method) after 'make all-pdf'
-        #     is done running
-
-        if 'output/html' in output_dir:
-            logger.warning("Build finished. The built documents can be found in %s",
-                           output_dir)
-        elif 'output/pdf' not in output_dir:
-            logger.info("Build finished. The built documents can be found in %s",
-                           output_dir)
+        if "/latex" in output_dir:
+            logger.warning("LaTeX file written to {}".format(output_dir))
         else:
-            logger.info("LaTeX file written to %s; now making PDF.",
-                           output_dir)
+            logger.warning(
+                "Build finished.  The built documents can be found in {}".
+                format(output_dir))
 
     f.is_output_format = True
     return f
@@ -143,7 +133,7 @@ class DocBuilder(object):
             sage: from sage_setup.docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._output_dir('html')
-            '.../doc/output/html/en/tutorial'
+            '.../html/en/tutorial'
         """
         d = os.path.join(SAGE_DOC_OUTPUT, type, self.lang, self.name)
         sage_makedirs(d)
@@ -160,7 +150,7 @@ class DocBuilder(object):
             sage: from sage_setup.docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._doctrees_dir()
-            '.../doc/output/doctrees/en/tutorial'
+            '.../doctrees/en/tutorial'
         """
         d = os.path.join(SAGE_DOC_OUTPUT, 'doctrees', self.lang, self.name)
         sage_makedirs(d)
@@ -379,7 +369,7 @@ class WebsiteBuilder(DocBuilder):
             document_name = document.split('/')[1]
 
             # the sage directory within a subdocument, for example
-            # /path/to/.../output/html/en/reference/algebras/sage
+            # local/share/doc/sage/html/en/reference/algebras/sage
             sage_directory = os.path.join(path, document, 'sage')
 
             # Walk through all of the files in the sage_directory
@@ -466,7 +456,7 @@ class ReferenceBuilder(AllBuilder):
             sage: from sage_setup.docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: b._output_dir('html')
-            '.../doc/output/html/en/reference'
+            '.../html/en/reference'
         """
         d = os.path.join(SAGE_DOC_OUTPUT, type, lang, self.name)
         sage_makedirs(d)
@@ -511,7 +501,7 @@ class ReferenceBuilder(AllBuilder):
                 # few seconds.)
                 getattr(get_builder('website'), 'html')()
                 # Copy the relevant pieces of
-                # output/html/en/website/_static to output_dir.
+                # SAGE_DOC_OUTPUT/html/en/website/_static to output_dir.
                 # (Don't copy all of _static to save some space: we
                 # don't need all of the MathJax stuff, and in
                 # particular we don't need the fonts.)

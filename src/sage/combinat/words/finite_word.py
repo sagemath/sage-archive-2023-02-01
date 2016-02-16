@@ -5732,7 +5732,7 @@ class FiniteWord_class(Word_class):
         The finite word ``self`` must be defined on a two-letter alphabet.
 
         A binary word is said to be *tangent* if it can appear in
-        infintely many cutting sequences of a smooth curve, where each
+        infinitely many cutting sequences of a smooth curve, where each
         cutting sequence is observed on a progressively smaller grid.
 
         This class of words strictly contains the class of 1-balanced

@@ -30,7 +30,7 @@ from sage.quadratic_forms.quadratic_form import is_QuadraticForm
 from sage.rings.all import PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 
-from sage.rings.integral_domain import is_IntegralDomain
+from sage.rings.ring import IntegralDomain
 from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
@@ -139,7 +139,7 @@ def Conic(base_field, F=None, names=None, unique=True):
         sage: Conic([a([x,x^2]) for x in range(5)])
         Projective Conic Curve over Finite Field of size 13 defined by x^2 - y*z
     """
-    if not (is_IntegralDomain(base_field) or base_field is None):
+    if not (base_field is None or isinstance(base_field, IntegralDomain)):
         if names is None:
             names = F
         F = base_field
@@ -169,7 +169,7 @@ def Conic(base_field, F=None, names=None, unique=True):
                 if len(C) != 3:
                     raise TypeError("points in F (=%s) must be planar" % F)
                 P = C.universe()
-                if not is_IntegralDomain(P):
+                if not isinstance(P, IntegralDomain):
                     raise TypeError("coordinates of points in F (=%s) must " \
                                      "be in an integral domain" % F)
                 L.append(Sequence([C[0]**2, C[0]*C[1], C[0]*C[2], C[1]**2,
@@ -209,7 +209,7 @@ def Conic(base_field, F=None, names=None, unique=True):
 
     if base_field is None:
         base_field = F.base_ring()
-    if not is_IntegralDomain(base_field):
+    if not isinstance(base_field, IntegralDomain):
         raise ValueError("Base field (=%s) must be a field" % base_field)
     base_field = base_field.fraction_field()
     if names is None:

@@ -5,23 +5,22 @@
 ########################################################################
 
 # Assume current directory is SAGE_ROOT/build/make
-SAGE_ROOT=`cd ../.. && pwd -P`
-SAGE_SRC="$SAGE_ROOT/src"
-SAGE_LOCAL="$SAGE_ROOT/local"
-SAGE_SHARE="$SAGE_LOCAL/share"
-SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
-SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
-SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
-SAGE_VERSION=`cat $SAGE_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
+export SAGE_ROOT=`cd ../.. && pwd -P`
+export SAGE_SRC="$SAGE_ROOT/src"
+export SAGE_LOCAL="$SAGE_ROOT/local"
+export SAGE_SHARE="$SAGE_LOCAL/share"
+export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
+export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
+export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+export SAGE_VERSION=`cat $SAGE_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
 
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET
 fi
-PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
-PYTHONPATH="$SAGE_LOCAL"
-export SAGE_ROOT SAGE_SRC SAGE_LOCAL SAGE_EXTCODE SAGE_LOGS SAGE_SPKG_INST SAGE_VERSION PATH PYTHONPATH
+export PYTHONPATH="$SAGE_LOCAL"
 
 # Storing the start time of the build process. The time is stored in
 # seconds since 1970-01-01 in a hidden file called

@@ -794,8 +794,8 @@ how it is built:
   primarily intended for use when producing certain binary
   distributions of Sage, to lower the size of the distribution. As of
   this writing (December 2014, Sage 6.5), there are only a few such
-  plots, adding about 4M to the :file:`src/doc/output/` directory. In
-  the future, this may grow, of course. Note: after using this, if you
+  plots, adding about 4M to the :file:`local/share/doc/sage/` directory.
+  In the future, this may grow, of course. Note: after using this, if you
   want to build the documentation and include the pictures, you should
   run ``make doc-clean``, because the presence, or lack, of pictures
   is cached in the documentation output.

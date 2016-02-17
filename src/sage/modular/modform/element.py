@@ -3,13 +3,15 @@
 Elements of modular forms spaces
 """
 
-#########################################################################
-#       Copyright (C) 2004--2008 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import space
 import sage.modular.hecke.element as element
@@ -25,7 +27,7 @@ from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose, sxrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
-from sage.rings.arith import lcm, divisors, moebius
+from sage.arith.all import lcm, divisors, moebius, sigma, factor
 from sage.structure.element import get_coercion_model
 
 
@@ -1993,9 +1995,9 @@ class EisensteinSeries(ModularFormElement):
             elif n == 0:
                 v.append(F(t-1)/F(24))
             else:
-                an = rings.sigma(n,1)
-                if n%t==0:
-                    an -= t*rings.sigma(n/t,1)
+                an = sigma(n,1)
+                if n%t == 0:
+                    an -= t * sigma(n/t,1)
                 v.append(an)
         return v
 
@@ -2186,8 +2188,5 @@ class EisensteinSeries(ModularFormElement):
             [[60, 2], [60, 3], [60, 2], [60, 5], [60, 2], [60, 2], [60, 2], [60, 3], [60, 2], [60, 2], [60, 2]]
         """
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
-            return rings.factor(self.__t)[0][0]
+            return factor(self.__t)[0][0]
         return self.L()*self.M()
-
-
-

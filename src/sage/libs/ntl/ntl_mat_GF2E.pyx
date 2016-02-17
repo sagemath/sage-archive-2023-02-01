@@ -471,7 +471,7 @@ cdef class ntl_mat_GF2E(object):
             sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in xrange(2*2)])
             sage: ntl.GF2XHexOutput(0)
             sage: m.list()
-            [[1 0 1 0 1 0 0 1], [1 0 1 1 1 0 0 1], [0 0 0 1 1 1 1], [1 1 1 1 1 1]]
+            [[1 1 0 0 1 0 1 1], [1 1 1 0 1 1 1], [0 1 1 1 1 0 0 1], [0 1 0 1 1 1]]
         """
         return [self[i,j] for i in range(self.NumRows()) for j in range(self.x.NumCols())]
 
@@ -521,7 +521,7 @@ cdef class ntl_mat_GF2E(object):
             [a^2 + 1 a^2 + a]
         """
         if k is None:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             f = self.c.m._sage_()
             e = GF2E_degree()
             k = FiniteField(2**e, name='a', modulus=f)
@@ -666,7 +666,7 @@ cdef class ntl_mat_GF2E(object):
             sage: A = ntl.mat_GF2E(ctx, 100,100)
             sage: A.randomize()
             sage: len([e for e in A.list() if e!=0])
-            9389
+            9346
 
             sage: A = ntl.mat_GF2E(ctx, 100,100)
             sage: A.randomize(nonzero=True)

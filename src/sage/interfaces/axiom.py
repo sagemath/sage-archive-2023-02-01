@@ -214,7 +214,6 @@ class PanAxiom(Expect):
                         name = name,
                         prompt = '\([0-9]+\) -> ',
                         command = command,
-                        maxread = 10,
                         script_subdirectory = script_subdirectory,
                         server=server,
                         server_tmpdir=server_tmpdir,
@@ -1021,5 +1020,8 @@ def axiom_console():
         -----------------------------------------------------------------------------
 
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%axiom magics instead.')
     os.system('axiom -nox')
 

@@ -14,8 +14,7 @@ from sage.structure.element import get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module import is_FreeModule
 from sage.misc.cachefunc import cached_method
-from sage.rings.commutative_ring import is_CommutativeRing
-from sage.rings.all import ZZ, QQ, RDF
+from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
 
 from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
@@ -557,7 +556,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         """
         Register actions with the coercion model.
 
-        The monoid actions are Minkowski sum and cartesian product. In
+        The monoid actions are Minkowski sum and Cartesian product. In
         addition, we want multiplication by a scalar to be dilation
         and addition by a vector to be translation. This is
         implemented as an action in the coercion model.
@@ -637,7 +636,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                                            extended_self._internal_coerce_map_from(self).__copy__())
             return action
 
-        if op is operator.mul and is_CommutativeRing(other):
+        if op is operator.mul and isinstance(other, CommutativeRing):
             ring = self._coerce_base_ring(other)
             if ring is self.base_ring():
                 return ActedUponAction(other, self, not self_is_left)

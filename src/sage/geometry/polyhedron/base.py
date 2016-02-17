@@ -2,15 +2,18 @@ r"""
 Base class for polyhedra
 """
 
-
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
+
+from __future__ import division
 
 import itertools
 import six
@@ -2521,7 +2524,7 @@ class Polyhedron_base(Element):
     @coerce_binop
     def product(self, other):
         """
-        Return the cartesian product.
+        Return the Cartesian product.
 
         INPUT:
 
@@ -2529,7 +2532,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        The cartesian product of ``self`` and ``other`` with a
+        The Cartesian product of ``self`` and ``other`` with a
         suitable base ring to encompass the two.
 
         EXAMPLES::
@@ -2539,7 +2542,7 @@ class Polyhedron_base(Element):
             sage: P1.product(P2)
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
 
-        The cartesian product is the product in the semiring of polyhedra::
+        The Cartesian product is the product in the semiring of polyhedra::
 
             sage: P1 * P1
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
@@ -2690,7 +2693,7 @@ class Polyhedron_base(Element):
         """
         return self.dilation(-1)
 
-    def __div__(self, scalar):
+    def __truediv__(self, scalar):
         """
         Divide by a scalar factor.
 
@@ -2701,8 +2704,12 @@ class Polyhedron_base(Element):
             sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(2,4)])
             sage: (p/5).Vrepresentation()
             (A vertex at (2/5, 4/5, 8/5), A vertex at (3/5, 9/5, 27/5))
+            sage: (p/int(5)).Vrepresentation()
+            (A vertex at (0.4, 0.8, 1.6), A vertex at (0.6, 1.8, 5.4))
         """
         return self.dilation(1/scalar)
+
+    __div__ = __truediv__
 
     @coerce_binop
     def convex_hull(self, other):

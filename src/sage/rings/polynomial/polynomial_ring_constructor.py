@@ -29,7 +29,7 @@ import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -567,7 +567,7 @@ def _multi_variate(base_ring, names, n, sparse, order, implementation):
         return R
 
     from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-    if m.integral_domain.is_IntegralDomain(base_ring):
+    if isinstance(base_ring, ring.IntegralDomain):
         if n < 1:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
         else:

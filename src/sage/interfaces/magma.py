@@ -279,14 +279,11 @@ class Magma(Expect):
         '1.1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         sage: magma.SetDefaultRealFieldPrecision(30, nvals=0)  # optional - magma
     """
-    def __init__(self, maxread=10000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None, server_tmpdir=None,
                  user_config=False, seed=None):
         """
         INPUT:
-
-
-        -  ``maxread`` - affects buffering
 
         -  ``script_subdirectory`` - directory where scripts
            are read from
@@ -303,7 +300,7 @@ class Magma(Expect):
 
         EXAMPLES::
 
-            sage: Magma(maxread=1000, logfile=tmp_filename())
+            sage: Magma(logfile=tmp_filename())
             Magma
         """
         # If the -b argument is given to Magma, the opening banner and all other
@@ -317,7 +314,6 @@ class Magma(Expect):
                         name = "magma",
                         prompt = ">>SAGE>>",
                         command = command,
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -2737,6 +2733,9 @@ def magma_console():
         >
         Total time: 2.820 seconds, Total memory usage: 3.95MB
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%magma magics instead.')
     console('sage-native-execute magma')
 
 def magma_version():

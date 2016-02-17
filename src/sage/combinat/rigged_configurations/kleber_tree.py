@@ -70,7 +70,7 @@ import itertools
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.integer import Integer
 
 from sage.structure.parent import Parent

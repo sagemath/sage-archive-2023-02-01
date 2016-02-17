@@ -119,6 +119,7 @@ import functools
 import os
 import tokenize
 import types
+import re
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
 
@@ -1500,6 +1501,53 @@ def sage_getargspec(obj):
         defaults = None
     return inspect.ArgSpec(args, varargs, varkw, defaults)
 
+
+_re_address = re.compile(" *at 0x[0-9a-fA-F]+")
+
+def formatvalue_reproducible(obj):
+    """
+    Format the default value for an argspec in a reproducible way: the
+    output should not depend on the system or the Python session.
+
+    INPUT:
+
+    - ``obj`` -- any object
+
+    OUTPUT: a string
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import formatvalue_reproducible
+        sage: x = object()
+        sage: formatvalue_reproducible(x)
+        '=<object object>'
+        sage: formatvalue_reproducible([object(), object()])
+        '=[<object object>, <object object>]'
+    """
+    s = _re_address.sub("", repr(obj))
+    return "=" + s
+
+
+def sage_formatargspec(*argspec):
+    """
+    Format the argspec in a reproducible way.
+
+    EXAMPLES::
+
+        sage: import inspect
+        sage: from sage.misc.sageinspect import sage_getargspec
+        sage: from sage.misc.sageinspect import sage_formatargspec
+        sage: def foo(f=lambda x:x): pass
+        sage: A = sage_getargspec(foo)
+        sage: print inspect.formatargspec(*A)
+        (f=<function <lambda> at 0x...>)
+        sage: print sage_formatargspec(*A)
+        (f=<function <lambda>>)
+    """
+    s = inspect.formatargspec(*argspec, formatvalue=formatvalue_reproducible)
+    return s
+
+
 def sage_getdef(obj, obj_name=''):
     r"""
     Return the definition header for any callable object.
@@ -1602,6 +1650,22 @@ def _sage_getdoc_unformatted(obj):
         sage: _sage_getdoc_unformatted(isinstance.__class__)
         ''
 
+    Construct an object raising an exception when accessing the
+    ``_sage_doc_`` attribute. This should not give an error in
+    ``_sage_getdoc_unformatted``, see :trac:`19671`::
+
+        sage: class NoSageDoc(object):
+        ....:     @property
+        ....:     def _sage_doc_(self):
+        ....:         raise Exception("no doc here")
+        sage: obj = NoSageDoc()
+        sage: obj._sage_doc_
+        Traceback (most recent call last):
+        ...
+        Exception: no doc here
+        sage: _sage_getdoc_unformatted(obj)
+        ''
+
     AUTHORS:
 
     - William Stein
@@ -1610,9 +1674,14 @@ def _sage_getdoc_unformatted(obj):
     if obj is None:
         return ''
     try:
-        r = obj._sage_doc_()
-    except (AttributeError, TypeError): # the TypeError occurs if obj is a class
+        getdoc = obj._sage_doc_
+    except Exception:
         r = obj.__doc__
+    else:
+        try:
+            r = getdoc()
+        except TypeError:  # This can occur if obj is a class
+            r = obj.__doc__
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
@@ -1957,7 +2026,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        732
+        733
         sage: sage_getsourcelines(matrix)[0][0][6:]
         'MatrixFactory(object):\n'
 

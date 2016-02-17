@@ -171,7 +171,7 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
 
-    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None,
+    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None,
                  seed=None):
         """
         EXAMPLES::
@@ -183,7 +183,6 @@ class Octave(Expect):
                         name = 'octave',
                         prompt = '>',
                         command = "sage-native-execute octave --no-line-editing --silent",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -774,6 +773,9 @@ def octave_console():
     octave, like Sage, remembers its history from one session to
     another.
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%octave magics instead.')
     os.system('octave')
 
 

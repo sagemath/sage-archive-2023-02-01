@@ -496,6 +496,7 @@ Verify that :trac:`10981` is fixed::
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
 """
 import itertools
+import operator
 
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
@@ -2547,179 +2548,12 @@ class AlgebraicGenerator(SageObject):
             return elt.field_element_value()
         gen = elt.generator()
         sp = gen.super_poly(self)
-        # print gen
-        # print self
         assert(not(sp is None))
-        # print sp
-        # print self._field
         return self._field(elt.field_element_value().polynomial()(sp))
 
-# These are the functions used to add, subtract, multiply, and divide
-# algebraic numbers. Basically, we try to compute exactly if both
-# arguments are already known to be in the same number field. Otherwise
-# we fall back to floating-point computation to be backed up by exact
-# symbolic computation only as required.
 
-# These choices are motivated partly by efficiency considerations
-# (not backed up by benchmarks, so other possibilities might be more
-# efficient), and partly by concerns for the prettiness of output:
-# we want algebraic numbers to print as Gaussian rationals, rather
-# than as intervals, as often as possible.
-
-def an_addsub_rational(a, b, sub):
-    r"""
-    Used to add and subtract algebraic numbers. Used when both are actually rational.
-
-    EXAMPLE::
-
-        sage: from sage.rings.qqbar import an_addsub_rational
-        sage: f = an_addsub_rational(QQbar(2), QQbar(3/7), False); f
-        17/7
-        sage: type(f)
-        <class 'sage.rings.qqbar.ANRational'>
-    """
-    va = a._descr._value
-    vb = b._descr._value
-    if sub:
-        v = va - vb
-    else:
-        v = va + vb
-    return ANRational(v)
-
-def an_muldiv_rational(a, b, div):
-    r"""
-    Used to multiply and divide algebraic numbers. Used when both are actually rational.
-
-    EXAMPLE::
-
-        sage: from sage.rings.qqbar import an_muldiv_rational
-        sage: f = an_muldiv_rational(QQbar(2), QQbar(3/7), False); f
-        6/7
-        sage: type(f)
-        <class 'sage.rings.qqbar.ANRational'>
-    """
-    va = a._descr._value
-    va = a._descr._value
-    vb = b._descr._value
-    if div:
-        v = va / vb
-    else:
-        v = va * vb
-    return ANRational(v)
-
-def an_addsub_expr(a, b, sub):
-    r"""
-    Add or subtract algebraic numbers represented as multi-part expressions.
-
-    EXAMPLE::
-
-        sage: a = QQbar(sqrt(2)) + QQbar(sqrt(3))
-        sage: b = QQbar(sqrt(3)) + QQbar(sqrt(5))
-        sage: type(a._descr); type(b._descr)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
-        sage: from sage.rings.qqbar import an_addsub_expr
-        sage: x = an_addsub_expr(a, b, False); x
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
-        sage: x.exactify()
-        -6/7*a^7 + 2/7*a^6 + 71/7*a^5 - 26/7*a^4 - 125/7*a^3 + 72/7*a^2 + 43/7*a - 47/7 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.12580...?
-    """
-    return ANBinaryExpr(a, b, ('-' if sub else '+'))
-
-def an_muldiv_expr(a, b, div):
-    r"""
-    Multiply or divide algebraic numbers represented as multi-part expressions.
-
-    EXAMPLE::
-
-        sage: a = QQbar(sqrt(2)) + QQbar(sqrt(3))
-        sage: b = QQbar(sqrt(3)) + QQbar(sqrt(5))
-        sage: type(a._descr)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
-        sage: from sage.rings.qqbar import an_muldiv_expr
-        sage: x = an_muldiv_expr(a, b, False); x
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
-        sage: x.exactify()
-        2*a^7 - a^6 - 24*a^5 + 12*a^4 + 46*a^3 - 22*a^2 - 22*a + 9 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.1258...?
-    """
-    return ANBinaryExpr(a, b, ('/' if div else '*'))
-
-def an_muldiv_element(a, b, div):
-    r"""
-    Multiply or divide two elements represented as elements of number fields.
-
-    EXAMPLES::
-
-        sage: a = QQbar(sqrt(2) + sqrt(3)); a.exactify()
-        sage: b = QQbar(sqrt(3) + sqrt(5)); b.exactify()
-        sage: type(a._descr)
-        <class 'sage.rings.qqbar.ANExtensionElement'>
-        sage: from sage.rings.qqbar import an_muldiv_element
-        sage: an_muldiv_element(a,b,False)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
-    """
-    ad = a._descr
-    bd = b._descr
-    adg = ad.generator()
-    bdg = bd.generator()
-    if adg == qq_generator or adg == bdg:
-        if div:
-            return ANExtensionElement(bdg, ad._value / bd._value)
-        else:
-            return ANExtensionElement(bdg, ad._value * bd._value)
-    if bdg == qq_generator:
-        if div:
-            return ANExtensionElement(adg, ad._value / bd._value)
-        else:
-            return ANExtensionElement(adg, ad._value * bd._value)
-    return ANBinaryExpr(a, b, ('/' if div else '*'))
-
-def an_addsub_element(a, b, sub):
-    r"""
-    Add or subtract two elements represented as elements of number fields.
-
-    EXAMPLES::
-
-        sage: a = QQbar(sqrt(2) + sqrt(3)); a.exactify()
-        sage: b = QQbar(sqrt(3) + sqrt(5)); b.exactify()
-        sage: from sage.rings.qqbar import an_addsub_element
-        sage: an_addsub_element(a,b,False)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
-    """
-    ad = a._descr
-    bd = b._descr
-    adg = ad.generator()
-    bdg = bd.generator()
-    if adg == qq_generator or adg == bdg:
-        if sub:
-            return ANExtensionElement(bdg, ad._value - bd._value)
-        else:
-            return ANExtensionElement(bdg, ad._value + bd._value)
-    elif bdg == qq_generator:
-        if sub:
-            return ANExtensionElement(adg, ad._value - bd._value)
-        else:
-            return ANExtensionElement(adg, ad._value + bd._value)
-    else:
-        return ANBinaryExpr(a, b, ('-' if sub else '+'))
-
-# Here we hand-craft a simple multimethod dispatch.
-_mul_algo = {}
-_add_algo = {}
-_descriptors = ('rational', 'element', 'other')
-for a in _descriptors:
-    for b in _descriptors:
-        key = (a, b)
-
-        if a == b == 'rational':
-            _mul_algo[key] = an_muldiv_rational
-            _add_algo[key] = an_addsub_rational
-        elif a in ('rational', 'element') and b in ('rational', 'element'):
-            _mul_algo[key] = an_muldiv_element
-            _add_algo[key] = an_addsub_element
-        else:
-            _mul_algo[key] = an_muldiv_expr
-            _add_algo[key] = an_addsub_expr
+# dictionary for multimethod dispatch
+_binop_algo = {}
 
 class ANDescr(SageObject):
     r"""
@@ -2912,6 +2746,7 @@ class ANDescr(SageObject):
             return ANUnaryExpr(n, 'norm')
         else:
             return (n*n)._descr
+
 
 class AlgebraicNumber_base(sage.structure.element.FieldElement):
     r"""
@@ -3117,11 +2952,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: AA(sqrt(2)) * AA(sqrt(8)) # indirect doctest
             4.000000000000000?
         """
-        sd = self._descr
-        od = other._descr
-        sdk = sd.kind()
-        odk = od.kind()
-        return type(self)(_mul_algo[sdk, odk](self, other, False))
+        sk = type(self._descr)
+        ok = type(other._descr)
+        return type(self)(_binop_algo[sk,ok](self, other, operator.mul))
 
     def _div_(self, other):
         """
@@ -3130,11 +2963,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: AA(sqrt(2)) / AA(sqrt(8)) # indirect doctest
             0.500000000000000?
         """
-        sd = self._descr
-        od = other._descr
-        sdk = sd.kind()
-        odk = od.kind()
-        return type(self)(_mul_algo[sdk, odk](self, other, True))
+        sk = type(self._descr)
+        ok = type(other._descr)
+        return type(self)(_binop_algo[sk,ok](self, other, operator.div))
 
     def __invert__(self):
         """
@@ -3155,11 +2986,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: rt1 + rt2 # indirect doctest
             1.000000000000000?
         """
-        sd = self._descr
-        od = other._descr
-        sdk = sd.kind()
-        odk = od.kind()
-        return type(self)(_add_algo[sdk, odk](self, other, False))
+        sk = type(self._descr)
+        ok = type(other._descr)
+        return type(self)(_binop_algo[sk,ok](self, other, operator.add))
 
     def _sub_(self, other):
         """
@@ -3168,11 +2997,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: AA(golden_ratio) * 2 - AA(5).sqrt() # indirect doctest
             1.000000000000000?
         """
-        sd = self._descr
-        od = other._descr
-        sdk = sd.kind()
-        odk = od.kind()
-        return type(self)(_add_algo[sdk, odk](self, other, True))
+        sk = type(self._descr)
+        ok = type(other._descr)
+        return type(self)(_binop_algo[sk,ok](self, other, operator.sub))
 
     def _neg_(self):
         """
@@ -5274,24 +5101,6 @@ class ANRational(ANDescr):
             v = sib.name('QQbar' if is_qqbar else 'AA')(v)
         return (v, False)
 
-    def kind(self):
-        r"""
-        Return a string describing what kind of element this is. Since this is
-        a rational number, the result is either ``'zero'`` or ``'rational'``.
-
-        EXAMPLES::
-
-            sage: a = QQbar(3)._descr; type(a)
-            <class 'sage.rings.qqbar.ANRational'>
-            sage: a.kind()
-            'rational'
-            sage: a = QQbar(0)._descr; type(a)
-            <class 'sage.rings.qqbar.ANRational'>
-            sage: a.kind()
-            'rational'
-        """
-        return 'rational'
-
     def _interval_fast(self, prec):
         r"""
         Return an approximation to self in a real interval field of precision prec.
@@ -5882,17 +5691,6 @@ class ANRoot(ANDescr):
         else:
             good_intv = intv
         return (parent.polynomial_root(poly, sib(good_intv)), True)
-
-    def kind(self):
-        r"""
-        Return a string indicating what kind of element this is.
-
-        EXAMPLE::
-
-            sage: (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.kind()
-            'other'
-        """
-        return 'other'
 
     def is_complex(self):
         r"""
@@ -6491,8 +6289,6 @@ class ANRoot(ANDescr):
         self._more_precision()
         return self._interval_fast(prec)
 
-qq_generator = AlgebraicGenerator(QQ, ANRoot(AAPoly.gen() - 1, RIF(1)))
-
 class ANExtensionElement(ANDescr):
     r"""
     The subclass of ``ANDescr`` that represents a number field
@@ -6605,23 +6401,6 @@ class ANExtensionElement(ANDescr):
         if result_is_qqbar != is_qqbar:
             v = sib.name('QQbar' if is_qqbar else 'AA')(v)
         return (v, True)
-
-    def kind(self):
-        r"""
-        Return a string describing what kind of element this is.
-
-        EXAMPLE::
-
-            sage: x = QQbar(sqrt(2) + sqrt(3))
-            sage: x.exactify()
-            sage: x._descr.kind()
-            'element'
-            sage: x = QQbar(I) + 1
-            sage: x.exactify()
-            sage: x._descr.kind()
-            'element'
-        """
-        return 'element'
 
     def is_complex(self):
         r"""
@@ -7073,21 +6852,6 @@ class ANUnaryExpr(ANDescr):
 
         return (v, True)
 
-    def kind(self):
-        r"""
-        Return a string describing what kind of element this is.
-
-        EXAMPLE::
-
-            sage: x = -QQbar(sqrt(2))
-            sage: y = x._descr
-            sage: type(y)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
-            sage: y.kind()
-            'other'
-        """
-        return 'other'
-
     def is_complex(self):
         r"""
         Return whether or not this element is complex. Note that this is a data
@@ -7311,7 +7075,7 @@ class ANBinaryExpr(ANDescr):
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
-            sage: binexp = ANBinaryExpr(AA(3), AA(5), '*')
+            sage: binexp = ANBinaryExpr(AA(3), AA(5), operator.mul)
             sage: binexp.handle_sage_input(sib, False, False)
             ({binop:* {atomic:3} {call: {atomic:AA}({atomic:5})}}, True)
             sage: binexp.handle_sage_input(sib, False, True)
@@ -7344,14 +7108,16 @@ class ANBinaryExpr(ANDescr):
         v1 = sib(arg1, arg1_coerced)
         v2 = sib(arg2, arg2_coerced)
 
-        if op == '+':
+        if op is operator.add:
             v = sib.sum([v1, v2], simplify=True)
-        elif op == '-':
+        elif op is operator.sub:
             v = sib.sum([v1, -v2], simplify=True)
-        elif op == '*':
+        elif op is operator.mul:
             v = sib.prod([v1, v2], simplify=True)
-        else:
+        elif op is operator.div:
             v = v1 / v2
+        else:
+            raise RuntimeError("op is {}".format(op))
 
         if result_is_qqbar != is_qqbar:
             # The following version is not safe with respect to caching;
@@ -7364,20 +7130,6 @@ class ANBinaryExpr(ANDescr):
             v = sib.name('QQbar' if is_qqbar else 'AA')(v)
 
         return (v, True)
-
-    def kind(self):
-        r"""
-        Return a string describing what kind of element this is. Returns ``'other'``.
-
-        EXAMPLE::
-
-            sage: x = (QQbar(sqrt(2)) + QQbar(sqrt(5)))._descr
-            sage: type(x)
-            <class 'sage.rings.qqbar.ANBinaryExpr'>
-            sage: x.kind()
-            'other'
-        """
-        return 'other'
 
     def is_complex(self):
         r"""
@@ -7412,19 +7164,7 @@ class ANBinaryExpr(ANDescr):
         if not (is_ComplexIntervalFieldElement(lv) or is_ComplexIntervalFieldElement(rv)):
             self._complex = False
 
-        if op == '-':
-            return lv - rv
-
-        if op == '+':
-            return lv + rv
-
-        if op == '/':
-            return lv / rv
-
-        if op == '*':
-            return lv * rv
-
-        raise NotImplementedError
+        return op(lv, rv)
 
     def exactify(self):
         """
@@ -7461,14 +7201,16 @@ class ANBinaryExpr(ANDescr):
 
             op = self._op
 
-            if op == '+':
+            if op is operator.add:
                 value = left_value + right_value
-            if op == '-':
+            elif op is operator.sub:
                 value = left_value - right_value
-            if op == '*':
+            elif op is operator.mul:
                 value = left_value * right_value
-            if op == '/':
+            elif op is operator.div:
                 value = left_value / right_value
+            else:
+                raise RuntimeError("op is {}".format(op))
 
             if gen.is_trivial():
                 return ANRational(value)
@@ -7476,6 +7218,151 @@ class ANBinaryExpr(ANDescr):
                 return ANExtensionElement(gen, value)
         finally:
             sys.setrecursionlimit(old_recursion_limit)
+
+# These are the functions used to add, subtract, multiply, and divide
+# algebraic numbers. Basically, we try to compute exactly if both
+# arguments are already known to be in the same number field. Otherwise
+# we fall back to floating-point computation to be backed up by exact
+# symbolic computation only as required.
+
+def an_binop_rational(a, b, op):
+    r"""
+    Used to add, subtract, multiply or divide algebraic numbers.
+
+    Used when both are actually rational.
+
+    EXAMPLES::
+
+        sage: from sage.rings.qqbar import an_binop_rational
+        sage: f = an_binop_rational(QQbar(2), QQbar(3/7), operator.add)
+        sage: f
+        17/7
+        sage: type(f)
+        <class 'sage.rings.qqbar.ANRational'>
+
+        sage: f = an_binop_rational(QQbar(2), QQbar(3/7), operator.mul)
+        sage: f
+        6/7
+        sage: type(f)
+        <class 'sage.rings.qqbar.ANRational'>
+    """
+    return ANRational(op(a._descr._value, b._descr._value))
+
+def an_binop_expr(a, b, op):
+    r"""
+    Add, subtract, multiply or divide algebraic numbers represented as
+    binary expressions.
+
+    INPUT:
+
+    - ``a``, ``b`` -- two elements
+
+    - ``op`` -- an operator
+
+    EXAMPLE::
+
+        sage: a = QQbar(sqrt(2)) + QQbar(sqrt(3))
+        sage: b = QQbar(sqrt(3)) + QQbar(sqrt(5))
+        sage: type(a._descr); type(b._descr)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: from sage.rings.qqbar import an_binop_expr
+        sage: x = an_binop_expr(a, b, operator.add); x
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: x.exactify()
+        -6/7*a^7 + 2/7*a^6 + 71/7*a^5 - 26/7*a^4 - 125/7*a^3 + 72/7*a^2 + 43/7*a - 47/7 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.12580...?
+
+        sage: a = QQbar(sqrt(2)) + QQbar(sqrt(3))
+        sage: b = QQbar(sqrt(3)) + QQbar(sqrt(5))
+        sage: type(a._descr)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: x = an_binop_expr(a, b, operator.mul); x
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: x.exactify()
+        2*a^7 - a^6 - 24*a^5 + 12*a^4 + 46*a^3 - 22*a^2 - 22*a + 9 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.1258...?
+    """
+    return ANBinaryExpr(a, b, op)
+
+def an_binop_element(a, b, op):
+    r"""
+    Add, subtract, multiply or divide two elements represented as elements of
+    number fields.
+
+    EXAMPLES::
+
+        sage: sqrt2 = QQbar(2).sqrt()
+        sage: sqrt3 = QQbar(3).sqrt()
+        sage: sqrt5 = QQbar(5).sqrt()
+
+        sage: a = sqrt2 + sqrt3; a.exactify()
+        sage: b = sqrt3 + sqrt5; b.exactify()
+        sage: type(a._descr)
+        <class 'sage.rings.qqbar.ANExtensionElement'>
+        sage: from sage.rings.qqbar import an_binop_element
+        sage: an_binop_element(a, b, operator.add)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: an_binop_element(a, b, operator.sub)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: an_binop_element(a, b, operator.mul)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: an_binop_element(a, b, operator.div)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+
+    The code tries to use existing unions of number fields::
+
+        sage: sqrt17 = QQbar(17).sqrt()
+        sage: sqrt19 = QQbar(19).sqrt()
+        sage: a = sqrt17 + sqrt19
+        sage: b = sqrt17 * sqrt19 - sqrt17 + sqrt19 * (sqrt17 + 2)
+        sage: b, type(b._descr)
+        (40.53909377268655?, <class 'sage.rings.qqbar.ANBinaryExpr'>)
+        sage: a.exactify()
+        sage: b = sqrt17 * sqrt19 - sqrt17 + sqrt19 * (sqrt17 + 2)
+        sage: b, type(b._descr)
+        (40.53909377268655?, <class 'sage.rings.qqbar.ANExtensionElement'>)
+    """
+    ad = a._descr
+    bd = b._descr
+    adg = ad.generator()
+    bdg = bd.generator()
+    if adg == qq_generator or adg == bdg:
+        return ANExtensionElement(bdg, op(ad._value, bd._value))
+
+    if bdg == qq_generator:
+        return ANExtensionElement(adg, op(ad._value, bd._value))
+
+    if adg in bdg._unions or bdg in adg._unions:
+        p = bdg._unions[adg] if adg in bdg._unions else adg._unions[bdg]
+        p = p.parent
+        adg2 = adg.super_poly(p)
+        bdg2 = bdg.super_poly(p)
+        av = ad._value.polynomial()(adg2)
+        bv = bd._value.polynomial()(bdg2)
+        v = op(av, bv)
+        return ANExtensionElement(p, op(av, bv))
+
+    adg2 = adg.super_poly(bdg)
+    if adg2 is not None:
+        av = ad._value.polynomial()(adg2)
+        return ANExtensionElement(bdg, op(av, bd._value))
+
+    bdg2 = bdg.super_poly(adg)
+    if bdg2 is not None:
+        bv = bd._value.polynomial()(bdg2)
+        return ANExtensionElement(adg, op(ad._value, bv))
+
+    return ANBinaryExpr(a, b, op)
+
+# instanciation of the multimethod dispatch
+_binop_algo[ANRational, ANRational] = an_binop_rational
+_binop_algo[ANRational, ANExtensionElement] = \
+_binop_algo[ANExtensionElement, ANRational] = \
+_binop_algo[ANExtensionElement, ANExtensionElement ] = an_binop_element
+for t1 in (ANRational, ANRoot, ANExtensionElement, ANUnaryExpr, ANBinaryExpr):
+    for t2 in (ANUnaryExpr, ANBinaryExpr, ANRoot):
+        _binop_algo[t1, t2] = _binop_algo[t2, t1] = an_binop_expr
+
+qq_generator = AlgebraicGenerator(QQ, ANRoot(AAPoly.gen() - 1, RIF(1)))
 
 
 def _init_qqbar():

@@ -1275,7 +1275,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                     return asymptotic_expansions.SingularityAnalysis(
                         var=var, zeta=zeta, alpha=a.exponent,
                         beta=ZZ(b.exponent), delta=0,
-                        precision=precision, renormalize=False)
+                        precision=precision, normalized=False)
                 else:
                     raise NotImplementedError(
                         'singularity analysis of {} not implemented'.format(self))

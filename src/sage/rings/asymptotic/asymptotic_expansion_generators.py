@@ -582,7 +582,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     @staticmethod
     def SingularityAnalysis(var, zeta=1, alpha=0, beta=0, delta=0,
-                            precision=None, renormalize=True):
+                            precision=None, normalized=True):
         r"""
         Return the asymptotic expansion of the coefficients of
         an power series with specified pole and logarithmic singularity.
@@ -612,7 +612,7 @@ class AsymptoticExpansionGenerators(SageObject):
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
 
-        - ``renormalize`` -- (default: ``True``) a boolean. If ``False``, then
+        - ``normalized`` -- (default: ``True``) a boolean. If ``False``, then
           the coefficient of `[z^n] \left(\frac{1}{1-z}\right)^\alpha
           \left(\log \frac{1}{1-z}\right)^\beta
           \left(\log
@@ -708,12 +708,12 @@ class AsymptoticExpansionGenerators(SageObject):
         ::
 
             sage: asymptotic_expansions.SingularityAnalysis(
-            ....:     'n', 1, alpha=-1/2, beta=1, precision=2, renormalize=False)
+            ....:     'n', 1, alpha=-1/2, beta=1, precision=2, normalized=False)
             -1/2/sqrt(pi)*n^(-3/2)*log(n)
             + (-1/2*(euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2)
             + O(n^(-5/2)*log(n))
             sage: asymptotic_expansions.SingularityAnalysis(
-            ....:     'n', 1/2, alpha=0, beta=1, precision=3, renormalize=False)
+            ....:     'n', 1/2, alpha=0, beta=1, precision=3, normalized=False)
             2^n*n^(-1) + O(2^n*n^(-2))
 
 
@@ -805,45 +805,45 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: A.<n> = AsymptoticRing('n^QQ * log(n)^QQ', QQ)
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=-1/2, beta=1, precision=2,
-            ....:     renormalize=False) * (- sqrt(pi*n^3))
+            ....:     normalized=False) * (- sqrt(pi*n^3))
             1/2*log(n) + 1/2*euler_gamma + log(2) - 1 + O(n^(-1)*log(n))
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=0, beta=1, precision=3,
-            ....:     renormalize=False)
+            ....:     normalized=False)
             n^(-1) + O(n^(-2))
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=0, beta=2,  precision=14,
-            ....:     renormalize=False) * n
+            ....:     normalized=False) * n
             2*log(n) + 2*euler_gamma - n^(-1) - 1/6*n^(-2) +  O(n^(-4))
             sage: (asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=1/2, beta=1, precision=4,
-            ....:     renormalize=False) * sqrt(pi*n)).\
+            ....:     normalized=False) * sqrt(pi*n)).\
             ....:     map_coefficients(lambda x: x.expand())
             log(n) + euler_gamma + 2*log(2) - 1/8*n^(-1)*log(n) +
             (-1/8*euler_gamma - 1/4*log(2))*n^(-1) + O(n^(-2)*log(n))
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=1, beta=1, precision=13,
-            ....:     renormalize=False)
+            ....:     normalized=False)
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             + O(n^(-6))
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=1, beta=2, precision=4,
-            ....:     renormalize=False)
+            ....:     normalized=False)
             log(n)^2 + 2*euler_gamma*log(n) + euler_gamma^2 - 1/6*pi^2
             + O(n^(-1)*log(n))
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=3/2, beta=1, precision=3,
-            ....:     renormalize=False) * sqrt(pi/n)
+            ....:     normalized=False) * sqrt(pi/n)
             2*log(n) + 2*euler_gamma + 4*log(2) - 4 + 3/4*n^(-1)*log(n)
             + O(n^(-1))
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=2, beta=1, precision=5,
-            ....:     renormalize=False)
+            ....:     normalized=False)
             n*log(n) + (euler_gamma - 1)*n + log(n) + euler_gamma + 1/2
             + O(n^(-1))
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', 1, alpha=2, beta=2, precision=4,
-            ....:     renormalize=False) / n
+            ....:     normalized=False) / n
             log(n)^2 + (2*euler_gamma - 2)*log(n)
             - 2*euler_gamma + euler_gamma^2 - 1/6*pi^2 + 2
             + n^(-1)*log(n)^2 + O(n^(-1)*log(n))
@@ -854,12 +854,12 @@ class AsymptoticExpansionGenerators(SageObject):
         Checking parameters::
 
             sage: asymptotic_expansions.SingularityAnalysis(
-            ....:     'n', 1, 1, 1/2, precision=0, renormalize=False)
+            ....:     'n', 1, 1, 1/2, precision=0, normalized=False)
             Traceback (most recent call last):
             ...
             ValueError: beta and delta must be integers
             sage: asymptotic_expansions.SingularityAnalysis(
-            ....:     'n', 1, 1, 1, 1/2, renormalize=False)
+            ....:     'n', 1, 1, 1, 1/2, normalized=False)
             Traceback (most recent call last):
             ...
             ValueError: beta and delta must be integers
@@ -926,7 +926,7 @@ class AsymptoticExpansionGenerators(SageObject):
             precision = AsymptoticRing.__default_prec__
 
 
-        if not renormalize and not (beta in ZZ and delta in ZZ):
+        if not normalized and not (beta in ZZ and delta in ZZ):
             raise ValueError("beta and delta must be integers")
         if delta != 0:
             raise NotImplementedError("not implemented for delta!=0")
@@ -967,7 +967,7 @@ class AsymptoticExpansionGenerators(SageObject):
             log_n = 1
 
         it = reversed(list(islice(it, precision+1)))
-        if renormalize:
+        if normalized:
             beta_denominator = beta
         else:
             beta_denominator = 0

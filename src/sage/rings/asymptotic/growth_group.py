@@ -2922,7 +2922,7 @@ class MonomialGrowthElement(GenericGrowthElement):
                 asymptotic_expansions
             return asymptotic_expansions.SingularityAnalysis(
                 var=var, zeta=zeta, alpha=0, beta=ZZ(self.exponent), delta=0,
-                precision=precision, renormalize=False)
+                precision=precision, normalized=False)
         else:
             raise NotImplementedError(
                 'singularity analysis of {} not implemented'.format(self))

@@ -942,6 +942,9 @@ class AsymptoticExpansionGenerators(SageObject):
             -1/2/sqrt(pi)*n^(-3/2)*log(n)
             + (-1/2*(euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2)
             + O(n^(-5/2)*log(n))
+            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
+            ....:     'n', 1/2, alpha=0, beta=1, precision=3)
+            2^n * n^(-1) + O(2^n * n^(-2))
 
         .. SEEALSO::
 

@@ -4394,12 +4394,18 @@ def falling_factorial(x, a):
         sage: type(falling_factorial(d, 0))
         <type 'sage.symbolic.expression.Expression'>
 
+    Check that :trac:`20075` is fixed::
+
+        sage: bool(falling_factorial(int(4), int(2)) == falling_factorial(4,2))
+        True
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
     from sage.symbolic.expression import Expression
-
+    if isinstance(x, (int, long)):
+        x = Integer(x)
     if (isinstance(a, (Integer, int, long)) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
@@ -4494,7 +4500,7 @@ def rising_factorial(x, a):
     - Jaap Spies (2006-03-05)
     """
     from sage.symbolic.expression import Expression
-    if isinstance(x, int):
+    if isinstance(x, (int, long)):
         x = Integer(x)
     if (isinstance(a, (Integer, int, long)) or
         (isinstance(a, Expression) and

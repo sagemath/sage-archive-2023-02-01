@@ -2920,9 +2920,9 @@ class MonomialGrowthElement(GenericGrowthElement):
                         self, self.exponent))
             from sage.rings.asymptotic.asymptotic_expansion_generators import \
                 asymptotic_expansions
-            return asymptotic_expansions._SingularityAnalysis_non_normalized_(
+            return asymptotic_expansions.SingularityAnalysis(
                 var=var, zeta=zeta, alpha=0, beta=ZZ(self.exponent), delta=0,
-                precision=precision)
+                precision=precision, renormalize=False)
         else:
             raise NotImplementedError(
                 'singularity analysis of {} not implemented'.format(self))

@@ -787,6 +787,13 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', alpha=1/2, zeta=2, precision=3)
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
             + 1/128/sqrt(pi)*(1/2)^n*n^(-5/2) + O((1/2)^n*n^(-7/2))
+
+        ::
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=0, beta=0, delta=1, precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented for delta!=0
         """
         from itertools import islice, count
         from asymptotic_ring import AsymptoticRing
@@ -845,7 +852,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if not renormalize and not (beta in ZZ and delta in ZZ):
             raise ValueError("beta and delta must be integers")
         if delta != 0:
-            raise NotImplementedError
+            raise NotImplementedError("not implemented for delta!=0")
 
         groups = []
         if zeta != 1:

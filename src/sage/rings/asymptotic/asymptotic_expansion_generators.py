@@ -582,7 +582,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     @staticmethod
     def SingularityAnalysis(var, zeta=1, alpha=0, beta=0, delta=0,
-                            precision=None):
+                            precision=None, renormalize=True):
         r"""
         Return the asymptotic expansion of the coefficients of
         an power series with specified pole and logarithmic singularity.
@@ -611,6 +611,13 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
+
+        - ``renormalize`` -- (default: ``True``) a boolean. If ``False``, then
+          the coefficient of `[z^n] \left(\frac{1}{1-z}\right)^\alpha
+          \left(\log \frac{1}{1-z}\right)^\beta
+          \left(\log
+          \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta`
+          is computed.
 
         OUTPUT:
 
@@ -835,6 +842,8 @@ class AsymptoticExpansionGenerators(SageObject):
             precision = AsymptoticRing.__default_prec__
 
 
+        if not renormalize and not (beta in ZZ and delta in ZZ):
+            raise ValueError("beta and delta must be integers")
         if delta != 0:
             raise NotImplementedError
 
@@ -874,7 +883,11 @@ class AsymptoticExpansionGenerators(SageObject):
             log_n = 1
 
         it = reversed(list(islice(it, precision+1)))
-        L = _sa_coefficients_lambda_(max(1, k_max), beta=beta)
+        if renormalize:
+            beta_denominator = beta
+        else:
+            beta_denominator = 0
+        L = _sa_coefficients_lambda_(max(1, k_max), beta=beta_denominator)
         (k, r) = next(it)
         result = (n**(-k) * log_n**(-r)).O()
 
@@ -944,7 +957,7 @@ class AsymptoticExpansionGenerators(SageObject):
             + O(n^(-5/2)*log(n))
             sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
             ....:     'n', 1/2, alpha=0, beta=1, precision=3)
-            2^n * n^(-1) + O(2^n * n^(-2))
+            2^n*n^(-1) + O(2^n*n^(-2))
 
         .. SEEALSO::
 
@@ -1007,13 +1020,8 @@ class AsymptoticExpansionGenerators(SageObject):
             ...
             ValueError: beta and delta must be integers
         """
-        from sage.rings.integer_ring import ZZ
-        if not (beta in ZZ and delta in ZZ):
-            raise ValueError("beta and delta must be integers")
-        result = AsymptoticExpansionGenerators.SingularityAnalysis(
-            var, zeta, alpha, beta, delta, precision)
-        n = result.parent()(var)
-        return result.subs({n: n-(beta+delta)})
+        return AsymptoticExpansionGenerators.SingularityAnalysis(
+            var, zeta, alpha, beta, delta, precision, renormalize=False)
 
 
 def _sa_coefficients_lambda_(K, beta=0):

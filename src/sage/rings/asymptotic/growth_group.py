@@ -2887,7 +2887,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: G(log(x))._singularity_analysis_('n', 1, precision=5)
             n^(-1) + O(n^(-3))
             sage: G(log(x)^2)._singularity_analysis_('n', 2, precision=3)
-            8*(1/2)^n*n^(-1)*log(n) + 8*euler_gamma*(1/2)^n*n^(-1)
+            2*(1/2)^n*n^(-1)*log(n) + 2*euler_gamma*(1/2)^n*n^(-1)
             + O((1/2)^n*n^(-2)*log(n)^2)
 
         TESTS::

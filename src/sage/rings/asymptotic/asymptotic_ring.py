@@ -1071,8 +1071,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<x> = AsymptoticRing('(e^x)^QQ * x^QQ', SR.subring(no_variables=True))
             sage: (zeta(3) * (e^x)^(-1/2) * x^42).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}
-            \zeta(3) \left(e^{x}\right)^{-\frac{1}{2}} x^{42}</script></html>
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\zeta(3)
+            \left(e^{x}\right)^{-\frac{1}{2}} x^{42}</script></html>
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)

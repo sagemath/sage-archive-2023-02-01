@@ -1422,6 +1422,16 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             ('m',)
             sage: G('1^m').variable_names()
             ()
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(QQ)
+            sage: G(raw_element=2).variable_names()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'GenericGrowthGroup_with_category.element_class' object
+            has no attribute 'is_one'
         """
         if self.is_one():
             return tuple()

@@ -1949,7 +1949,7 @@ def DejterGraph():
     """
     from sage.graphs.generators.families import CubeGraph
     from sage.coding.hamming_code import HammingCode
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     from string import join
     g = CubeGraph(7)

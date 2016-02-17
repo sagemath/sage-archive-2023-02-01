@@ -88,6 +88,13 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         sage: R({10:-1})
         7*x^10
 
+    TESTS::
+
+        sage: f = Integers(5*2^100)['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_n
+        sage: isinstance(f, Polynomial_dense_mod_n)
+        True
+
     """
     def __init__(self, parent, x=None, check=True,
                  is_gen=False, construct=False):

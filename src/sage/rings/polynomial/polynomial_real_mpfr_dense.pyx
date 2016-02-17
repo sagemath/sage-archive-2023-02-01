@@ -41,6 +41,16 @@ from sage.libs.mpfr cimport *
 from sage.libs.all import pari_gen
 
 cdef class PolynomialRealDense(Polynomial):
+    r"""
+
+    TESTS::
+
+        sage: f = RR['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
+        sage: isinstance(f, PolynomialRealDense)
+        True
+
+    """
 
     cdef Py_ssize_t _degree
     cdef mpfr_t* _coeffs

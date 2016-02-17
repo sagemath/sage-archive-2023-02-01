@@ -67,6 +67,13 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
     r"""
     Polynomial on `\ZZ/n\ZZ` implemented via FLINT.
 
+    TESTS::
+
+        sage: f = Integers(4)['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_zmod_flint import Polynomial_zmod_flint
+        sage: isinstance(f, Polynomial_zmod_flint)
+        True
+
     .. automethod:: _add_
     .. automethod:: _sub_
     .. automethod:: _lmul_

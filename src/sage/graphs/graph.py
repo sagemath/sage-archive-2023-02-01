@@ -6905,6 +6905,53 @@ class Graph(GenericGraph):
                         T[2 * j + 1, 2 * i] = 1
         return T.charpoly('t').reverse()
 
+    def perfect_matchings(self):
+        """
+        Generator which yields all perfect matchings of a graph ``self``.
+
+        ALGORITHM:
+
+        Choose a vertex v, then recurse through all edges incident to v,
+        removing one edge at a time whenever an edge is added to a matching
+
+        EXAMPLES::
+
+            sage: G=graphs.GridGraph([2,3])
+            sage: list(G.perfect_matchings())
+            [[((0, 0), (0, 1), None), ((0, 2), (1, 2), None), ((1, 0), (1, 1), None)],
+            [((0, 0), (1, 0), None), ((0, 1), (0, 2), None), ((1, 1), (1, 2), None)],
+            [((0, 0), (1, 0), None), ((0, 1), (1, 1), None), ((0, 2), (1, 2), None)]]
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: list(G.perfect_matchings())
+            [[(0, 1, None), (2, 3, None)],
+             [(0, 2, None), (1, 3, None)],
+             [(0, 3, None), (1, 2, None)]]
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: list(G.perfect_matchings())
+            []
+
+            sage: G = graphs.PetersenGraph()
+            sage: list(G.perfect_matchings())
+            [[(0, 1, None), (2, 3, None), (4, 9, None), (5, 7, None), (6, 8, None)],
+            [(0, 1, None), (2, 7, None), (3, 4, None), (5, 8, None), (6, 9, None)],
+            [(0, 4, None), (1, 2, None), (3, 8, None), (5, 7, None), (6, 9, None)],
+            [(0, 4, None), (1, 6, None), (2, 3, None), (5, 8, None), (7, 9, None)],
+            [(0, 5, None), (1, 2, None), (3, 4, None), (6, 8, None), (7, 9, None)],
+            [(0, 5, None), (1, 6, None), (2, 7, None), (3, 8, None), (4, 9, None)]]
+        """
+        if not self.vertices():
+            yield []
+        # if every connected component has an even number of vertices
+        elif all(len(cc)%2==0 for cc in self.connected_components()):
+            v = self.vertices()[0] # choose one of the two (or more) vertices
+            for e in self.edges_incident(v):
+                Gp = self.copy()
+                Gp.delete_vertices([e[0],e[1]])
+                for mat in Gp.perfect_matchings():
+                    yield [e]+mat
+
 
 # Aliases to functions defined in Cython modules
 import types

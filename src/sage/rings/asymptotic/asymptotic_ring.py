@@ -1051,6 +1051,33 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return self._repr_(latex=True)
 
 
+    def show(self):
+        r"""
+        Pretty-print this asymptotic expansion.
+
+        OUTPUT:
+
+        Nothing, the representation is printed directly on the
+        screen.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing('QQ^x * x^QQ * log(x)^QQ', SR.subring(no_variables=True))
+            sage: (pi/2 * 5^x * x^(42/17) - sqrt(euler_gamma) * log(x)^(-7/8)).show()
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2} \, \pi
+            5^{x} x^{\frac{42}{17}} - \sqrt{\gamma_E} \log\left(x\right)^{-\frac{7}{8}}</script></html>
+
+        TESTS::
+
+            sage: A.<x> = AsymptoticRing('(e^x)^QQ * x^QQ', SR.subring(no_variables=True))
+            sage: (zeta(3) * (e^x)^(-1/2) * x^42).show()
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}
+            \zeta(3) \left(e^{x}\right)^{-\frac{1}{2}} x^{42}</script></html>
+        """
+        from sage.repl.rich_output.pretty_print import pretty_print
+        pretty_print(self)
+
+
     def _add_(self, other):
         r"""
         Add ``other`` to this asymptotic expansion.

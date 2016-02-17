@@ -1236,6 +1236,55 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
             'base class %s.' % (self.parent(),)))
 
 
+    def variable_names(self):
+        r"""
+        Return the names of the variables of this term.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', QQ)
+            sage: T('4 * 2^m * m^4 * log(n)').variable_names()
+            ('m', 'n')
+            sage: T('4 * 2^m * m^4').variable_names()
+            ('m',)
+            sage: T('4 * log(n)').variable_names()
+            ('n',)
+            sage: T('4 * m^3').variable_names()
+            ('m',)
+            sage: T('4 * m^0').variable_names()
+            ()
+        """
+        return self.growth.variable_names()
+
+
+    def _factorial_(self):
+        r"""
+        Return the factorial of this generic term.
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: T = GenericTermMonoid(GrowthGroup('x^QQ'), QQ)
+            sage: T.an_element()._factorial_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot build the factorial of
+            Generic Term with growth x^(1/2).
+        """
+        raise NotImplementedError(
+            'Cannot build the factorial of {}.'.format(self))
+
+
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this term.
@@ -2386,6 +2435,35 @@ class OTerm(GenericTerm):
         except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
+
+
+    def _factorial_(self):
+        r"""
+        Return the factorial of this O-term if it is constant
+        (i.e., has growth `1`).
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('O', 'z^QQ', QQ)
+            sage: T(1)._factorial_()
+            O(1)
+            sage: T('z^(3/2)')._factorial_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build the factorial of O(z^(3/2))
+            since it has growth != 1.
+        """
+        if not self.growth.is_one():
+            raise ValueError(
+                'Cannot build the factorial of {} since it has growth '
+                '!= 1.'.format(self))
+
+        return self
 
 
     def _singularity_analysis_(self, var, zeta, precision):
@@ -3580,6 +3658,39 @@ class ExactTerm(TermWithCoefficient):
             substitute_raise_exception(self, e)
 
 
+    def _factorial_(self):
+        r"""
+        Return the factorial of this exact term if it is constant
+        (i.e., has growth `1`).
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', 'z^QQ', QQ)
+            sage: T('4')._factorial_()
+            24
+            sage: T('1/2')._factorial_()
+            1/2*sqrt(pi)
+            sage: T('4*z^(3/2)')._factorial_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build the factorial of 4*z^(3/2)
+            since it has growth != 1.
+        """
+        if not self.growth.is_one():
+            raise ValueError(
+                'Cannot build the factorial of {} since it has growth '
+                '!= 1.'.format(self))
+
+        from sage.functions.other import factorial
+        return self.parent()._create_element_in_extension_(
+            self.growth, factorial(self.coefficient))
+
+
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this exact term.
@@ -3707,7 +3818,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
       Either a string ``'exact'`` or ``'O'`` (capital letter ``O``),
       or an existing instance of a term monoid.
 
-    - ``growth_group`` -- a growth group.
+    - ``growth_group`` -- a growth group or
+      a string describing a growth group.
 
     - ``coefficient_ring`` -- a ring.
 
@@ -3735,6 +3847,10 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         Exact Term Monoid x^ZZ with coefficients in Rational Field
         sage: TermMonoid('O', asymptotic_ring=R)
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
+
+        sage: TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', ZZ)
+        Exact Term Monoid QQ^m * m^QQ * log(n)^ZZ
+        with coefficients in Integer Ring
 
     TESTS::
 
@@ -3856,8 +3972,12 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
         from growth_group import GenericGrowthGroup
         if not isinstance(growth_group, GenericGrowthGroup):
-            raise ValueError("%s has to be an asymptotic growth group"
-                             % growth_group)
+            if isinstance(growth_group, str):
+                from growth_group import GrowthGroup
+                growth_group = GrowthGroup(growth_group)
+            else:
+                raise ValueError('{} has to be an asymptotic growth '
+                                 'group'.format(growth_group))
 
         if coefficient_ring is None:
             raise ValueError("A coefficient ring has to be specified to "

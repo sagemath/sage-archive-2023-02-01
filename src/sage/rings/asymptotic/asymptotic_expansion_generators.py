@@ -146,6 +146,11 @@ class AsymptoticExpansionGenerators(SageObject):
             Asymptotic Ring <(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ>
             over Symbolic Constants Subring
 
+        .. SEEALSO::
+
+            :meth:`log_Stirling`,
+            :meth:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpansion.factorial`.
+
         TESTS::
 
             sage: expansion = asymptotic_expansions.Stirling('n', precision=5)
@@ -217,6 +222,11 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: asymptotic_expansions.log_Stirling('n', precision=7)
             n*log(n) - n + 1/2*log(n) + 1/2*log(2*pi) + 1/12*n^(-1)
             - 1/360*n^(-3) + 1/1260*n^(-5) + O(n^(-7))
+
+        .. SEEALSO::
+
+            :meth:`Stirling`,
+            :meth:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpansion.factorial`.
 
         TESTS::
 

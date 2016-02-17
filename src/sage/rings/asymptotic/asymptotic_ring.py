@@ -536,7 +536,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         sage: (x+2*x^2+3*x^3+4*x^4) * (O(x)+x^2)
         4*x^6 + O(x^5)
 
-    In particular, :meth:`~sage.rings.big_oh.O` can be used to
+    In particular, :func:`~sage.rings.big_oh.O` can be used to
     construct the asymptotic expansions. With the help of the
     :meth:`summands`, we can also have a look at the inner structure
     of an asymptotic expansion::
@@ -2910,6 +2910,146 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         S = self.summands.copy()
         S.map(mapping)
         return P(S, simplify=False, convert=False)
+
+
+    def factorial(self):
+        r"""
+        Return the factorial of this asymptotic expansion.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: A.<n> = AsymptoticRing(growth_group='n^ZZ * log(n)^ZZ', coefficient_ring=ZZ, default_prec=5)
+            sage: n.factorial()
+            sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(1/2)
+            + 1/12*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-1/2)
+            + 1/288*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-3/2)
+            + O(e^(n*log(n))*(e^n)^(-1)*n^(-5/2))
+            sage: _.parent()
+            Asymptotic Ring <(e^(n*log(n)))^(Symbolic Constants Subring) *
+                             (e^n)^(Symbolic Constants Subring) *
+                             n^(Symbolic Constants Subring) *
+                             log(n)^(Symbolic Constants Subring)>
+            over Symbolic Constants Subring
+
+        :wikipedia:`Catalan numbers <Catalan_number>`
+        `\frac{1}{n+1}\binom{2n}{n}`::
+
+            sage: (2*n).factorial() / n.factorial()^2 / (n+1)  # long time
+            1/sqrt(pi)*(e^n)^(2*log(2))*n^(-3/2)
+            - 9/8/sqrt(pi)*(e^n)^(2*log(2))*n^(-5/2)
+            + 145/128/sqrt(pi)*(e^n)^(2*log(2))*n^(-7/2)
+            + O((e^n)^(2*log(2))*n^(-9/2))
+
+        Note that this method substitutes the asymptotic expansion into
+        Stirling's formula. This substitution has to be possible which is
+        not always guaranteed::
+
+            sage: S.<s> = AsymptoticRing(growth_group='s^QQ * log(s)^QQ', coefficient_ring=QQ, default_prec=4)
+            sage: log(s).factorial()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot apply the substitution rules {s: log(s)} on
+            sqrt(2)*sqrt(pi)*e^(s*log(s))*(e^s)^(-1)*s^(1/2)
+            + O(e^(s*log(s))*(e^s)^(-1)*s^(-1/2)) in
+            Asymptotic Ring <(e^(s*log(s)))^QQ * (e^s)^QQ * s^QQ * log(s)^QQ>
+            over Symbolic Constants Subring.
+            ...
+
+        .. SEEALSO::
+
+            :meth:`~sage.rings.asymptotic.asymptotic_expansion_generators.AsymptoticExpansionGenerators.Stirling`
+
+        TESTS::
+
+            sage: A.<m> = AsymptoticRing(growth_group='m^ZZ * log(m)^ZZ', coefficient_ring=QQ, default_prec=5)
+            sage: m.factorial()
+            sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(1/2)
+            + 1/12*sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(-1/2)
+            + 1/288*sqrt(2)*sqrt(pi)*e^(m*log(m))*(e^m)^(-1)*m^(-3/2)
+            + O(e^(m*log(m))*(e^m)^(-1)*m^(-5/2))
+
+        ::
+
+            sage: A(1/2).factorial()
+            1/2*sqrt(pi)
+            sage: _.parent()
+            Asymptotic Ring <m^ZZ * log(m)^ZZ> over Symbolic Ring
+
+        ::
+
+            sage: B.<a, b> = AsymptoticRing('a^ZZ * b^ZZ', QQ, default_prec=3)
+            sage: b.factorial()
+            O(e^(b*log(b))*(e^b)^(-1)*b^(1/2))
+            sage: (a*b).factorial()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build the factorial of a*b
+            since it is not univariate.
+        """
+        vars = self.variable_names()
+
+        if len(vars) == 0:
+            if self.is_zero():
+                return self.parent().one()
+            assert len(self.summands) == 1
+            element = next(self.summands.elements())
+            return self.parent()._create_element_in_extension_(
+                element._factorial_(), element.parent())
+
+        if len(vars) == 1:
+            from asymptotic_expansion_generators import \
+                asymptotic_expansions
+            var = vars[0]
+            S = asymptotic_expansions.Stirling(
+                var, precision=self.parent().default_prec)
+            from sage.structure.element import get_coercion_model
+            cm = get_coercion_model()
+            P = cm.common_parent(self, S)
+            return S.subs({var: P.coerce(self)})
+
+        else:
+            raise ValueError(
+                'Cannot build the factorial of {} since it is not '
+                'univariate.'.format(self))
+
+
+    def variable_names(self):
+        r"""
+        Return the names of the variables of this asymptotic expansion.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: A.<m, n> = AsymptoticRing('QQ^m * m^QQ * n^ZZ * log(n)^ZZ', QQ)
+            sage: (4*2^m*m^4*log(n)).variable_names()
+            ('m', 'n')
+            sage: (4*2^m*m^4).variable_names()
+            ('m',)
+            sage: (4*log(n)).variable_names()
+            ('n',)
+            sage: (4*m^3).variable_names()
+            ('m',)
+            sage: (4*m^0).variable_names()
+            ()
+            sage: (4*2^m*m^4 + log(n)).variable_names()
+            ('m', 'n')
+            sage: (2^m + m^4 + log(n)).variable_names()
+            ('m', 'n')
+            sage: (2^m + m^4).variable_names()
+            ('m',)
+        """
+        vars = sorted(sum(iter(s.variable_names()
+                               for s in self.summands),
+                          tuple()))
+        from itertools import groupby
+        return tuple(v for v, _ in groupby(vars))
 
 
 class AsymptoticRing(Algebra, UniqueRepresentation):

@@ -2541,9 +2541,9 @@ class AlgebraicGenerator(SageObject):
             -a^2 + 2
         """
         if self._trivial:
-            return elt.rational_value()
-        if elt.is_rational():
-            return self._field(elt.rational_value())
+            return elt._value
+        if isinstance(elt, ANRational):
+            return self._field(elt._value)
         if elt.generator() is self:
             return elt.field_element_value()
         gen = elt.generator()
@@ -2564,22 +2564,6 @@ class ANDescr(SageObject):
     ``ANDescr`` and all of its subclasses are for internal use, and should not
     be used directly.
     """
-    def is_exact(self):
-        """
-        Returns True if self is an ANRational, or ANExtensionElement.
-
-        EXAMPLES::
-
-            sage: from sage.rings.qqbar import ANRational
-            sage: ANRational(1/2).is_exact()
-            True
-            sage: QQbar(3+I)._descr.is_exact()
-            True
-            sage: QQbar.zeta(17)._descr.is_exact()
-            True
-        """
-        return False
-
     def is_simple(self):
         r"""
         Checks whether this descriptor represents a value with the same
@@ -2604,38 +2588,6 @@ class ANDescr(SageObject):
             False
             sage: rt2b.simplify()
             sage: rt2b._descr.is_simple()
-            True
-        """
-        return False
-
-    def is_rational(self):
-        r"""
-        Returns ``True`` if self is an ``ANRational`` object. (Note that the
-        constructors for ``ANExtensionElement``         will actually return
-        ``ANRational`` objects for rational numbers.)
-
-        EXAMPLES::
-
-            sage: from sage.rings.qqbar import ANRational
-            sage: ANRational(3/7).is_rational()
-            True
-        """
-        return False
-
-    def is_field_element(self):
-        r"""
-        Returns ``True`` if self is an ``ANExtensionElement``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.qqbar import ANExtensionElement, ANRoot, AlgebraicGenerator
-            sage: _.<y> = QQ['y']
-            sage: x = polygen(QQbar)
-            sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
-            sage: root2 = ANRoot(x^2 - 2, RIF(1, 2))
-            sage: gen2 = AlgebraicGenerator(nf2, root2)
-            sage: sqrt2 = ANExtensionElement(gen2, nf2.gen())
-            sage: sqrt2.is_field_element()
             True
         """
         return False
@@ -2854,7 +2806,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: AA(19).sqrt()
             4.358898943540674?
         """
-        if self._descr.is_rational():
+        if isinstance(self._descr, ANRational):
             return repr(self._descr)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return repr(self._descr._value)
@@ -2885,7 +2837,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             4.358898943540674?
         """
         from sage.misc.latex import latex
-        if self._descr.is_rational():
+        if isinstance(self._descr, ANRational):
             return latex(self._descr._value)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return latex(self._descr._value)
@@ -3338,7 +3290,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             2
         """
         od = self._descr
-        if od.is_exact(): return
+        if isinstance(od, (ANRational, ANExtensionElement)): return
         self._set_descr(self._descr.exactify())
 
     def _set_descr(self, new_descr):
@@ -3402,7 +3354,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
 
         sd = self._descr
-        if sd.is_exact():
+        if isinstance(sd, (ANRational, ANExtensionElement)):
             return sd.generator()
         self.exactify()
         return self._exact_field()
@@ -3422,7 +3374,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             2*a^4 + 2*a^3 - 34*a^2 - 17*a + 150 where a^5 - 2*a^4 - 18*a^3 + 38*a^2 + 82*a - 181 = 0 and a in 2.554256611698490?
         """
         sd = self._descr
-        if sd.is_exact():
+        if isinstance(sd, (ANRational, ANExtensionElement)):
             return sd
         self.exactify()
         return self._descr
@@ -3827,9 +3779,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
             except TypeError:
                 return False
         if self is other: return True
-        if other._descr.is_rational() and other._descr.rational_value() == 0:
+        if isinstance(other._descr, ANRational) and other._descr._value.is_zero():
             return not self
-        if self._descr.is_rational() and self._descr.rational_value() == 0:
+        if isinstance(self._descr, ANRational) and self._descr._value.is_zero():
             return not other
         return not self._sub_(other)
 
@@ -3864,17 +3816,16 @@ class AlgebraicNumber(AlgebraicNumber_base):
             True
         """
         val = self._value
-        if not val.contains_zero():
+        d = self._descr
+        if not val.contains_zero() or isinstance(d, ANExtensionElement):
             return True
-        if self._descr.is_field_element():
-            # The ANExtensionElement constructor returns an ANRational
-            # instead, if the number is zero.
-            return True
-        if self._descr.is_rational():
-            return self._descr.rational_value().__nonzero__()
-        if self._value.prec() < 128:
+        elif isinstance(d, ANRational):
+            return bool(d._value)
+
+        while self._value.prec() < 128:
             self._more_precision()
-            return self.__nonzero__()
+            if not self._value.contains_zero():
+                return True
 
         # Sigh...
         self.exactify()
@@ -4432,9 +4383,9 @@ class AlgebraicReal(AlgebraicNumber_base):
             -1
         """
         if self is other: return 0
-        if other._descr.is_rational() and other._descr.rational_value() == 0:
+        if isinstance(other._descr, ANRational) and other._descr._value.is_zero():
             return self.sign()
-        elif self._descr.is_rational() and self._descr.rational_value() == 0:
+        elif isinstance(self._descr, ANRational) and self._descr._value.is_zero():
             return -other.sign()
         else:
             return self._sub_(other).sign()
@@ -4555,10 +4506,10 @@ class AlgebraicReal(AlgebraicNumber_base):
             raise ValueError("Cannot coerce non-integral Algebraic Real %s to Integer" % self)
 
         self.exactify()
-        if not self._descr.is_rational():
+        if not isinstance(self._descr, ANRational):
             raise ValueError("Cannot coerce irrational Algebraic Real %s to Integer" % self)
 
-        return ZZ(self._descr.rational_value())
+        return ZZ(self._descr._value)
 
     def _floor_ceil(self, method):
         r"""
@@ -4589,7 +4540,7 @@ class AlgebraicReal(AlgebraicNumber_base):
                 return candidate
             self._more_precision()
             # field elements are irrational by construction
-            if i == 2 and not self._descr.is_field_element():
+            if i == 2 and not isinstance(self._descr, ANExtensionElement):
                 try:
                     return method(self._rational_())
                 except (ValueError, TypeError):
@@ -4685,10 +4636,10 @@ class AlgebraicReal(AlgebraicNumber_base):
             25/8
         """
         self.exactify()
-        if not self._descr.is_rational():
+        if not isinstance(self._descr, ANRational):
             raise ValueError("Cannot coerce irrational Algebraic Real %s to Rational" % self)
 
-        return QQ(self._descr.rational_value())
+        return QQ(self._descr._value)
 
     def real(self):
         """
@@ -4754,15 +4705,9 @@ class AlgebraicReal(AlgebraicNumber_base):
             return 1
         elif self._value.upper() < 0:
             return -1
-        elif self._descr.is_rational():
-            val = self._descr.rational_value()
-            if val > 0:
-                return 1
-            elif val < 0:
-                return -1
-            else:
-                return 0
-        elif self._descr.is_field_element():
+        elif isinstance(self._descr, ANRational):
+            return self._descr._value.sign()
+        elif isinstance(self._descr, ANExtensionElement):
             # All field elements are irrational by construction
             # (the ANExtensionElement constructor will return an ANRational
             # instead, if the number is actually rational).
@@ -5135,33 +5080,6 @@ class ANRational(ANDescr):
         """
         return False
 
-    def is_rational(self):
-        r"""
-        Return True, since this is a rational number.
-
-        EXAMPLE::
-
-            sage: QQbar(34/9)._descr.is_rational()
-            True
-            sage: QQbar(0)._descr.is_rational()
-            True
-        """
-        return True
-
-    def rational_value(self):
-        r"""
-        Return self as a rational number.
-
-        EXAMPLE::
-
-            sage: a = QQbar(789/19)
-            sage: b = a._descr.rational_value(); b
-            789/19
-            sage: type(b)
-            <type 'sage.rings.rational.Rational'>
-        """
-        return self._value
-
     def exactify(self):
         r"""
         Calculate self exactly. Since self is a rational number, return self.
@@ -5173,17 +5091,6 @@ class ANRational(ANDescr):
             True
         """
         return self
-
-    def is_exact(self):
-        r"""
-        Return True, since rationals are exact.
-
-        EXAMPLE::
-
-            sage: QQbar(1/3)._descr.is_exact()
-            True
-        """
-        return True
 
     def is_simple(self):
         """
@@ -6127,8 +6034,6 @@ class ANRoot(ANDescr):
             sage: two = ANRoot((x-2)*(x-sqrt(QQbar(2))), RIF(1.9, 2.1))
             sage: two.exactify()
             2
-            sage: two.exactify().rational_value()
-            2
             sage: strange = ANRoot(x^2 + sqrt(QQbar(3))*x - sqrt(QQbar(2)), RIF(-0, 1))
             sage: strange.exactify()
             a where a^8 - 6*a^6 + 5*a^4 - 12*a^2 + 4 = 0 and a in 0.6051012265139511?
@@ -6424,24 +6329,6 @@ class ANExtensionElement(ANDescr):
         """
         return not self._exactly_real
 
-    def is_exact(self):
-        r"""
-        Return True, since ANExtensionElements are exact.
-
-        EXAMPLE::
-
-            sage: rt2 = QQbar(sqrt(2))
-            sage: rtm3 = QQbar(sqrt(-3))
-            sage: x = rtm3 + rt2 - rtm3
-            sage: x.exactify()
-            sage: y = x._descr
-            sage: type(y)
-            <class 'sage.rings.qqbar.ANExtensionElement'>
-            sage: y.is_exact()
-            True
-        """
-        return True
-
     def is_simple(self):
         r"""
         Checks whether this descriptor represents a value with the same
@@ -6473,18 +6360,6 @@ class ANExtensionElement(ANDescr):
         except AttributeError:
             self._is_simple = (self.minpoly().degree() == self.generator().field().degree())
             return self._is_simple
-
-    def is_field_element(self):
-        r"""
-        Return True if self is an element of a number field (always true for ANExtensionElements)
-
-        EXAMPLE::
-
-            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.exactify()
-            sage: v.is_field_element()
-            True
-        """
-        return True
 
     def generator(self):
         r"""

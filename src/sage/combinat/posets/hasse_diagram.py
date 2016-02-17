@@ -707,7 +707,8 @@ class HasseDiagram(DiGraph):
         """
         return self.order()
 
-    def mobius_function(self,i,j): # dumb algorithm
+    from sage.misc.superseded import deprecated_function_alias
+    def moebius_function(self,i,j): # dumb algorithm
         r"""
         Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
@@ -716,49 +717,51 @@ class HasseDiagram(DiGraph):
 
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
             sage: H = P._hasse_diagram
-            sage: H.mobius_function(0,4)
+            sage: H.moebius_function(0,4)
             2
             sage: for u,v in P.cover_relations_iterator():
-            ...    if P.mobius_function(u,v) != -1:
-            ...        print "Bug in mobius_function!"
+            ....:     if P.moebius_function(u,v) != -1:
+            ....:         print "Bug in moebius_function!"
         """
         try:
-            return self._mobius_function_values[(i,j)]
+            return self._moebius_function_values[(i,j)]
         except AttributeError:
-            self._mobius_function_values = {}
-            return self.mobius_function(i,j)
+            self._moebius_function_values = {}
+            return self.moebius_function(i,j)
         except KeyError:
             if i == j:
-                self._mobius_function_values[(i,j)] = 1
+                self._moebius_function_values[(i,j)] = 1
             elif i > j:
-                self._mobius_function_values[(i,j)] = 0
+                self._moebius_function_values[(i,j)] = 0
             else:
                 ci = self.closed_interval(i,j)
                 if len(ci) == 0:
-                    self._mobius_function_values[(i,j)] = 0
+                    self._moebius_function_values[(i,j)] = 0
                 else:
-                    self._mobius_function_values[(i,j)] = \
-                     -sum([self.mobius_function(i,k) for k in ci[:-1]])
-        return self._mobius_function_values[(i,j)]
+                    self._moebius_function_values[(i,j)] = \
+                     -sum([self.moebius_function(i,k) for k in ci[:-1]])
+        return self._moebius_function_values[(i,j)]
+    mobius_function = deprecated_function_alias(19855, moebius_function)
 
-    def mobius_function_matrix(self):
+    from sage.misc.superseded import deprecated_function_alias
+    def moebius_function_matrix(self):
         r"""
         Returns the matrix of the Möbius function of this poset
 
         This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
         is the value of the Möbius function of ``self`` evaluated on
-        ``x`` and ``y``, and redefines :meth:`mobius_function` to use
+        ``x`` and ``y``, and redefines :meth:`moebius_function` to use
         it.
 
         .. NOTE::
 
-            The result is cached in :meth:`_mobius_function_matrix`.
+            The result is cached in :meth:`_moebius_function_matrix`.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
-            sage: H.mobius_function_matrix()
+            sage: H.moebius_function_matrix()
             [ 1 -1 -1 -1  1  0  1  0]
             [ 0  1  0  0 -1  0  0  0]
             [ 0  0  1  0 -1 -1 -1  2]
@@ -770,22 +773,24 @@ class HasseDiagram(DiGraph):
 
         TESTS::
 
-            sage: H.mobius_function_matrix().is_immutable()
+            sage: H.moebius_function_matrix().is_immutable()
             True
-            sage: hasattr(H,'_mobius_function_matrix')
+            sage: hasattr(H,'_moebius_function_matrix')
             True
 
-            sage: H.mobius_function == H._mobius_function_from_matrix
+            sage: H.moebius_function == H._moebius_function_from_matrix
             True
         """
-        if not hasattr(self,'_mobius_function_matrix'):
-            self._mobius_function_matrix = self.lequal_matrix().inverse().change_ring(ZZ)
-            self._mobius_function_matrix.set_immutable()
-            self.mobius_function = self._mobius_function_from_matrix
-        return self._mobius_function_matrix
+        if not hasattr(self,'_moebius_function_matrix'):
+            self._moebius_function_matrix = self.lequal_matrix().inverse().change_ring(ZZ)
+            self._moebius_function_matrix.set_immutable()
+            self.moebius_function = self._moebius_function_from_matrix
+        return self._moebius_function_matrix
+    mobius_function_matrix = deprecated_function_alias(19855, moebius_function_matrix)
 
-    # Redefine self.mobius_function
-    def _mobius_function_from_matrix(self, i,j):
+    # Redefine self.moebius_function
+    from sage.misc.superseded import deprecated_function_alias
+    def _moebius_function_from_matrix(self, i,j):
         r"""
         Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
@@ -794,16 +799,17 @@ class HasseDiagram(DiGraph):
 
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
             sage: H = P._hasse_diagram
-            sage: H.mobius_function(0,4) # indirect doctest
+            sage: H.moebius_function(0,4) # indirect doctest
             2
             sage: for u,v in P.cover_relations_iterator():
-            ...    if P.mobius_function(u,v) != -1:
-            ...        print "Bug in mobius_function!"
+            ....:     if P.moebius_function(u,v) != -1:
+            ....:         print "Bug in moebius_function!"
 
-        This uses ``self._mobius_function_matrix``, as computed by
-        :meth:`mobius_function_matrix`.
+        This uses ``self._moebius_function_matrix``, as computed by
+        :meth:`moebius_function_matrix`.
         """
-        return self._mobius_function_matrix[i,j]
+        return self._moebius_function_matrix[i,j]
+    _mobius_function_from_matrix = deprecated_function_alias(19855, _moebius_function_from_matrix)
 
     @cached_method
     def coxeter_transformation(self):
@@ -827,7 +833,7 @@ class HasseDiagram(DiGraph):
             sage: M**8 == 1
             True
         """
-        return - self.lequal_matrix()*self.mobius_function_matrix().transpose()
+        return - self.lequal_matrix()*self.moebius_function_matrix().transpose()
 
     def order_filter(self, elements):
         """

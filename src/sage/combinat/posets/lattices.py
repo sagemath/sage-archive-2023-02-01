@@ -1320,7 +1320,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def moebius_algebra(self, R):
         """
-        Return the Mobius algebra of ``self`` over ``R``.
+        Return the Möbius algebra of ``self`` over ``R``.
 
         EXAMPLES::
 
@@ -1333,7 +1333,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def quantum_moebius_algebra(self, q=None):
         """
-        Return the quantum Mobius algebra of ``self`` with parameter ``q``.
+        Return the quantum Möbius algebra of ``self`` with parameter ``q``.
 
         INPUT:
 

@@ -17,6 +17,9 @@ Abstract base class for Euclidean domains
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(20011, "the module sage.rings.euclidean_domain is deprecated and will be removed")
+
 from sage.rings.ring import EuclideanDomain
 
 def is_EuclideanDomain(R):
@@ -25,6 +28,9 @@ def is_EuclideanDomain(R):
 
     EXAMPLES::
 
+        sage: import sage.rings.euclidean_domain
+        doctest:...: DeprecationWarning: the module sage.rings.euclidean_domain is deprecated and will be removed
+        See http://trac.sagemath.org/20011 for details.
         sage: sage.rings.euclidean_domain.is_EuclideanDomain(EuclideanDomain(ZZ))
         True
     """

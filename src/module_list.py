@@ -1455,7 +1455,7 @@ ext_modules = [
               sources = ['sage/rings/polynomial/plural.pyx'],
               libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
-              include_dirs = singular_incs)
+              include_dirs = singular_incs),
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],

@@ -4076,7 +4076,7 @@ cdef class Expression(CommutativeRingElement):
             a = 0
         if a == infinity:
             return (-self.subs({x: 1/x}) / x**2).residue(x == 0)
-        return self.subs({x: x+a}).series(x == 0, 0).coefficient(x, -1)
+        return self.subs({x: x+a}).canonicalize_radical().series(x == 0, 0).coefficient(x, -1)
 
     def taylor(self, *args):
         r"""

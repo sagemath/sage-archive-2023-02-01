@@ -167,8 +167,8 @@ static ex zeta1_eval(const ex& m)
 static ex zeta1_series(const ex& m, const relational& rel, int order, unsigned options)
 {
 	// use taylor expansion everywhere except at the singularity at 1
-	const numeric val = ex_to<numeric>(m.subs(rel, subs_options::no_pattern));
-	if (val != 1)
+	const ex val = m.subs(rel, subs_options::no_pattern);
+	if (!val.is_equal(_ex1))
 		throw do_taylor();  // caught by function::series()
 	// at 1, use the expansion with the stieltjes-constants
 	ex ser = 1/(m-1);

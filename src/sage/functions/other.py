@@ -1415,7 +1415,7 @@ class Function_factorial(GinacFunction):
             sage: latex(factorial)
             {\rm factorial}
 
-        Check that #11539 is fixed::
+        Check that :trac:`11539` is fixed::
 
             sage: (factorial(x) == 0).simplify()
             factorial(x) == 0
@@ -1558,6 +1558,12 @@ class Function_binomial(GinacFunction):
             sage: binomial._maxima_init_()
             'binomial'
 
+        For polynomials::
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
+
         Test pickling::
 
             sage: loads(dumps(binomial(n,k)))
@@ -1584,10 +1590,14 @@ class Function_binomial(GinacFunction):
             sage: binomial._binomial_sym(x, SR(3))
             1/6*(x - 1)*(x - 2)*x
 
-           sage: binomial._binomial_sym(x, 0r)
-           1
-           sage: binomial._binomial_sym(x, -1)
-           0
+            sage: binomial._binomial_sym(x, 0r)
+            1
+            sage: binomial._binomial_sym(x, -1)
+            0
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial._binomial_sym(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
         """
         if isinstance(k, Expression):
             if k.is_integer():
@@ -1603,7 +1613,7 @@ class Function_binomial(GinacFunction):
             return n
 
         from sage.misc.all import prod
-        return prod([n-i for i in xrange(k)])/factorial(k)
+        return prod([n - i for i in xrange(k)]) / factorial(k)
 
     def _eval_(self, n, k):
         """
@@ -1622,15 +1632,21 @@ class Function_binomial(GinacFunction):
             sage: n = var('n')
             sage: binomial._eval_(x, n) is None
             True
+
+        TESTS::
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial._eval_(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
         """
         if not isinstance(k, Expression):
             if not isinstance(n, Expression):
                 n, k = coercion_model.canonical_coercion(n, k)
                 return self._evalf_(n, k)
-            if k in ZZ:
-                return self._binomial_sym(n, k)
+        if k in ZZ:
+            return self._binomial_sym(n, k)
         if (n - k) in ZZ:
-            return self._binomial_sym(n, n-k)
+            return self._binomial_sym(n, n - k)
 
         return None
 

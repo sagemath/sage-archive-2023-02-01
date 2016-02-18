@@ -299,7 +299,12 @@ Let us see how one can explore this::
     sage: C.encoders_available()
     ['EvaluationPolynomial', 'EvaluationVector']
     sage: C.decoders_available()
-    ['Syndrome', 'NearestNeighbor']
+    ['Syndrome',
+     'NearestNeighbor',
+     'ErrorErasure',
+     'Gao',
+     'KeyEquationSyndrome',
+     'BerlekampWelch']
 
 We got a list of the available encoders and decoders for our GRS code.
 Rather than using the default ones as we did before,
@@ -398,25 +403,48 @@ Let us see this in Sage, using the first encoder we constructed::
     sage: G == C.generator_matrix()
     True
 
-III.3 Decoders and introspection
---------------------------------
+III.3 Decoders and messages
+---------------------------
 
-Each Decoder uses his own decoding algorithm, amd these decoding algorithms
-can have quite different behaviours:
-some might return a list of codewords, while some just return one codeword,
-some cannot decode more than half the minimum distance, while some can etc...
+As we saw before, any code has two generic methods for decoding, called
+``decode_to_codeword`` and ``decode_to_message``.
+Every Decoder also has these two methods, and the methods on the code
+simply forward the calls to the default decoder of this code.
 
-When it comes to benchmarking, it can be useful to sort the decoders in order
-to compare decoders which share properties. And in any case, the user might like
-to know the properties of a given decoder.
+There are two reasons for having these two methods: convenience and speed.
+Convenience is clear: having both methods provides a useful shortcut
+depending on the user's needs.
+Concerning speed, some decoders naturally decode directly to a codeword,
+while others directly to a message space.
+Supporting both methods therefore avoids unnecessary work
+in encoding and unencoding.
 
-We call these properties *types*. One can access these for any decoders as
-follows::
+However, ``decode_to_message`` implies that there is a message space
+and an encoding from that space to the code behind the scenes.
+A Decoder has methods ``message_space`` and ``connected_encoder``
+to inform the user about this. Let us illustrate that by a long example::
 
-    sage: C = codes.RandomLinearCode(7, 4, GF(2))
-    sage: D = C.decoder('NearestNeighbor')
-    sage: D.decoder_type()
-    {'always-succeed', 'complete', 'hard-decision', 'unique'}
+    sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[1:41], 3, GF(59).list()[1:41])
+    sage: c = C.random_element()
+    sage: c in C
+    True
+
+    #Create two decoders: Syndrome and Gao
+    sage: Syn = C.decoder("KeyEquationSyndrome")
+    sage: Gao = C.decoder("Gao")
+
+    #Check their message spaces
+    sage: Syn.message_space()
+    Vector space of dimension 3 over Finite Field of size 59
+    sage: Gao.message_space()
+    Univariate Polynomial Ring in x over Finite Field of size 59
+
+    #and now we unencode
+    sage: Syn.decode_to_message(c) #random
+    (55,9,43)
+
+    sage: Gao.decode_to_message(c) #random
+    43*x^2 + 9*x + 55
 
 IV. A deeper look at channels
 =============================

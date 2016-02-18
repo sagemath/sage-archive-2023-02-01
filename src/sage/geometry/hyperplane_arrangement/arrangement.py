@@ -2528,7 +2528,7 @@ class HyperplaneArrangementElement(Element):
 
         EXAMPLES:
 
-        We construct Example 2.2 from [Vuz93]_::
+        We construct Example 2.2 from [Yuz93]_::
 
             sage: P.<x,y,z> = HyperplaneArrangements(QQ)
             sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z, 3*x+5*z, 3*x+4*y+5*z)
@@ -2540,7 +2540,7 @@ class HyperplaneArrangementElement(Element):
 
         REFERENCES:
 
-        .. [Vuz93] Sergey Yuzvinksy,
+        .. [Yuz93] Sergey Yuzvinsky,
            *The first two obstructions to the freeness of arrangements*,
            Transactions of the American Mathematical Society,
            Vol. 335, **1** (1993) pp. 231--244.
@@ -2571,7 +2571,7 @@ class HyperplaneArrangementElement(Element):
         """
         Return if ``self`` is formal.
 
-        A hyperplane arrangement is *formal* if it is 3-generated [Vuz93]_,
+        A hyperplane arrangement is *formal* if it is 3-generated [Yuz93]_,
         where `k`-generated is defined in :meth:`minimal_generated_number`.
 
         EXAMPLES::

@@ -1410,6 +1410,19 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               x - y
               Defn: Defined on coordinates by sending (x : y) to
                     (24*y^2 : (-6.585786437626905?)*y^2)
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^6-2
+            sage: L.<b> = NumberField(f, embedding=f.roots(QQbar)[1][0])
+            sage: A.<x,y> = AffineSpace(L,2)
+            sage: H = Hom(A,A)
+            sage: F = H([b*x/y, 1+y])
+            sage: F.change_ring(QQbar)
+            Scheme endomorphism of Affine Space of dimension 2 over Algebraic Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (1.122462048309373?*x/y, y + 1)
         """
         check = kwds.get('check', True)
         emb =  kwds.get('embedding', None)
@@ -1422,30 +1435,34 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             H = Hom(T,S)
 
         if emb is None:
-            #see if one can be constructed
+            #try to coerce
             try:
-                phi = K.embeddings(R)[0]
-                Kx = self.coordinate_ring()
-                #affine maps can be fraction field elements
-                if Kx in Fields():
-                    Kx = Kx.ring()
-                Rx = R[Kx.variable_names()]
-                phix = Kx.hom(phi,Rx)
-                G = []
-                for f in self:
-                    #Affine maps map be rational
-                    if isinstance(f, FractionFieldElement):
-                        G.append(phix(f.numerator())/phix(f.denominator()))
-                    else:
-                        G.append(phix(f))
-            except (IndexError, ValueError, AttributeError):
-                #otherwise hope for the best
                 G = []
                 for f in self:
                     if isinstance(f, FractionFieldElement):
                         G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
                     else:
                         G.append(f.change_ring(R))
+            except TypeError:
+                #see if one can be constructed
+                try:
+                    phi = K.embeddings(R)[0]
+                    Kx = self.coordinate_ring()
+                    #affine maps can be fraction field elements
+                    if Kx in Fields():
+                        Kx = Kx.ring()
+                    Rx = R[Kx.variable_names()]
+                    phix = Kx.hom(phi,Rx)
+                    G = []
+                    for f in self:
+                        #Affine maps map be rational
+                        if isinstance(f, FractionFieldElement):
+                            G.append(phix(f.numerator())/phix(f.denominator()))
+                        else:
+                            G.append(phix(f))
+                except (IndexError, ValueError, AttributeError):
+                    #raise a better error
+                    raise TypeError("unable to find an embedding of %s to %s"%(K,R))
         else:
             if emb.domain() == self.base_ring():
                 emb = self.coordinate_ring().hom(emb, T.ambient_space().coordinate_ring())
@@ -1707,19 +1724,33 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: Q = P([v,1])
             sage: Q.change_ring(QQbar)
             (-1.414213562373095? : 1)
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^6-2
+            sage: L.<b> = NumberField(f, embedding=f.roots(QQbar)[1][0])
+            sage: A.<x,y> = AffineSpace(L,2)
+            sage: P = A([b,1])
+            sage: P.change_ring(QQbar)
+            (1.122462048309373?, 1)
         """
         check = kwds.get('check', True)
         emb = kwds.get('embedding', None)
         K = self.codomain().base_ring()
         S = self.codomain().change_ring(R)
         if emb is None:
-            #see if one can be constructed
+            #try to coerce
             try:
-                phi = K.embeddings(R)[0]
-                Q = [phi(t) for t in self]
-            except (IndexError, ValueError, AttributeError):
-                #otherwise hope for the best
                 Q = [R(t) for t in self]
+            except TypeError:
+                #see if one can be constructed
+                try:
+                    phi = K.embeddings(R)[0]
+                    Q = [phi(t) for t in self]
+                except (IndexError, ValueError, AttributeError):
+                    #raise a better error
+                    raise TypeError("unable to find an embedding of %s to %s"%(K,R))
         else:
             Q = [emb(t) for t in self]
         return(S.point(Q, check=check))

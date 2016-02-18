@@ -1586,7 +1586,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: X.change_ring(CC)
             Closed subscheme of Projective Space of dimension 1 over Complex Field
             with 53 bits of precision defined by:
-              x + 1.73205080756888*I*y
+              x + (-1.73205080756888*I)*y
 
         ::
 
@@ -1596,7 +1596,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: X.change_ring(RR)
             Closed subscheme of Projective Space of dimension 1 over Real Field
             with 53 bits of precision defined by:
-              x + 1.73205080756888*y
+              x - 1.73205080756888*y
 
         ::
 
@@ -1610,22 +1610,40 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: X.change_ring(K).change_ring(QQbar)
             Closed subscheme of Projective Space of dimension 1 over Algebraic Field defined by:
               x^2 + (-0.9009688679024191? - 0.4338837391175581?*I)*y^2
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^6-2
+            sage: L.<b> = NumberField(f, embedding=f.roots(CC)[2][0])
+            sage: A.<x,y> = AffineSpace(L, 2)
+            sage: H = Hom(A,A)
+            sage: X = A.subscheme([b*x^2, y^2])
+            sage: X.change_ring(CC)
+            Closed subscheme of Affine Space of dimension 2 over Complex Field with
+            53 bits of precision defined by:
+              (-0.561231024154687 - 0.972080648619833*I)*x^2,
+              y^2
         """
         K = self.base_ring()
         AS = self.ambient_space()
         new_AS = AS.change_ring(R)
         emb =  kwds.get('embedding', None)
         if emb is None:
-            #see if one can be constructed
             try:
-                phi = K.embeddings(R)[0]
-                Kx = AS.coordinate_ring()
-                Rx = R[Kx.variable_names()]
-                phix = Kx.hom(phi,Rx)
-                I = [phix(f) for f in self.defining_polynomials()]
-            except (IndexError, ValueError, AttributeError):
-                #otherwise hope for the best
+                #try to coerce
                 I = [f.change_ring(R) for f in self.defining_polynomials()]
+            except TypeError:
+                try:
+                    #try to construct an embedding
+                    phi = K.embeddings(R)[0]
+                    Kx = AS.coordinate_ring()
+                    Rx = R[Kx.variable_names()]
+                    phix = Kx.hom(phi,Rx)
+                    I = [phix(f) for f in self.defining_polynomials()]
+                except (IndexError, AttributeError, ValueError):
+                    #raise a better error message
+                    raise TypeError("unable to find an embedding of %s to %s"%(K,R))
         else:
             #we're given an embedding
             if emb.domain() == K:

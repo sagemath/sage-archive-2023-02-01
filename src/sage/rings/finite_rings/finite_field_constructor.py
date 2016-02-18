@@ -665,7 +665,7 @@ def is_PrimeFiniteField(x):
 
     EXAMPLES::
 
-        sage: from sage.rings.finite_rings.constructor import is_PrimeFiniteField
+        sage: from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
         sage: is_PrimeFiniteField(QQ)
         False
         sage: is_PrimeFiniteField(GF(7))

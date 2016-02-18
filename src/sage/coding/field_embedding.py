@@ -210,8 +210,12 @@ class FieldEmbedding(SageObject):
         pol = Fq.zero()
         s = self.small_field_power()
         sm = self.big_field_power()
-        for i in range(0, sm, s):
-            pol += Fq(vect[i:i+s])
+        if s == 1:
+            for i in vect:
+                pol += i
+        else:
+            for i in range(0, sm, s):
+                pol += Fq(vect[i:i+s])
         return pol
 
     def big_field_representation(self, a):

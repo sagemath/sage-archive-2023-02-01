@@ -9,7 +9,7 @@ coordinate of `c`.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
+#       Copyright (C) 2016 David Lucas, Inria  <david.lucas@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -240,12 +240,20 @@ class SubfieldSubcode(AbstractLinearCode):
         s = log(Fq.order(), p)
         m = log(Fqm.order(), p) / s
         H = matrix(Fq, H_original.nrows()*m, n)
-        for i in range(H_original.nrows()):
-            for j in range(H_original.ncols()):
-                h = H_original[i][j]
-                h_vect = E.small_field_vector_representation(h)
-                for k in range(m):
-                    H[i*m + k, j] = Fq(h_vect[k*s:k*s+s])
+        if s == 1:
+            for i in range(H_original.nrows()):
+                for j in range(H_original.ncols()):
+                    h = H_original[i][j]
+                    h_vect = E.small_field_vector_representation(h)
+                    for k in range(m):
+                        H[i*m+k, j] = h_vect[k]
+        else:
+            for i in range(H_original.nrows()):
+                for j in range(H_original.ncols()):
+                    h = H_original[i][j]
+                    h_vect = E.small_field_vector_representation(h)
+                    for k in range(m):
+                        H[i*m + k, j] = Fq(h_vect[k*s:k*s+s])
         H = H.echelon_form()
         delete = []
         for i in range(H.nrows()):
@@ -279,12 +287,27 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
 
     EXAMPLES::
 
-    r"""
+        sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
+        sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+        sage: codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
+        Decoder of Subfield subcode over Finite Field in a of size 2^2 coming from [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4 through Gao decoder for [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4
+    """
 
     def __init__(self, code, original_decoder = None, **kwargs):
         r"""
         TESTS:
 
+        If the original decoder is not a decoder over ``code``'s original code, an error is
+        raised::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: Cbis = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:9], 5)
+            sage: D = Cbis.decoder()
+            sage: codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs, original_decoder = D)
+            Traceback (most recent call last):
+            ...
+            ValueError: original_decoder must have the original code as associated code
         """
         original_code = code.original_code()
         if original_decoder is not None and not original_decoder.code() == code.original_code():
@@ -305,11 +328,11 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
             sage: D
-
+            Decoder of Subfield subcode over Finite Field in a of size 2^2 coming from [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4 through Gao decoder for [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4
         """
         return "Decoder of %s through %s" % (self.code(), self.original_decoder())
 
@@ -319,13 +342,13 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
             sage: latex(D)
-
+            \textnormal{Decoder of Subfield subcode over Finite Field in a of size 2^2 coming from [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4 through } Gao decoder for [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4
         """
-        return "\\textnormal{Decoder of } %s \\textnormal{ through } %s" % (self.code(), self.original_decoder())
+        return "\\textnormal{Decoder of %s through } %s" % (self.code(), self.original_decoder())
 
     def original_decoder(self):
         r"""
@@ -334,11 +357,11 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
             sage: D.original_decoder()
-            Syndrome decoder for Linear code of length 7, dimension 3 over Finite Field in aa of size 16
+            Gao decoder for [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4
         """
         return self._original_decoder
 
@@ -353,10 +376,8 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
             sage: F = Cs.base_field()
             sage: a = F.gen()
-            sage: c = vector(F, (a + 1, a, a + 1, 1, 1, a, 1,
-            a + 1, 0, 0, 1, 0, a + 1))
-            sage: y = vector(F, (a + 1, a, a + 1, a, 1, a, 0,
-            0, 0, 0, 1, 0, 1))
+            sage: c = vector(F, (a + 1, a, a + 1, 1, 1, a, 1, a + 1, 0, 0, 1, 0, a + 1))
+            sage: y = vector(F, (a + 1, a, a + 1, a, 1, a, 0, 0, 0, 0, 1, 0, 1))
             sage: D.decode_to_code(y) == c
             True
 
@@ -375,10 +396,11 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
             sage: D.decoding_radius()
+            4
         """
         return self.original_decoder().decoding_radius()
 

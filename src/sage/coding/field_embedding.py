@@ -173,7 +173,7 @@ class FieldEmbedding(SageObject):
             for i in range(m) for j in range(s)])
         return A.inverse()
 
-    def small_field_representation(self, b):
+    def small_field_vector_representation(self, b):
         r"""
         Returns a vector representation of ``b`` in the basis of
         the small field over the base field.
@@ -185,10 +185,34 @@ class FieldEmbedding(SageObject):
             sage: Fq.<a> = GF(4)
             sage: FE = FieldEmbedding(Fqm, Fq)
             sage: b = aa^3 + aa^2 + aa + 1
-            sage: FE.small_field_representation(b)
+            sage: FE.small_field_vector_representation(b)
             (1, 0, 1, 1)
         """
         return self.representation_matrix() * vector(b)
+
+    def small_field_polynomial_representation(self, b):
+        r"""
+        Returns a polynomial representation of ``b`` in the basis of
+        the small field over the base field.
+
+        EXAMPLES::
+
+            sage: from sage.coding.field_embedding import *
+            sage: Fqm.<aa> = GF(16)
+            sage: Fq.<a> = GF(4)
+            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: b = aa^3 + aa^2 + aa + 1
+            sage: FE.small_field_polynomial_representation(b)
+            a
+        """
+        Fq = self.small_field()
+        vect = self.representation_matrix() * vector(b)
+        pol = Fq.zero()
+        s = self.small_field_power()
+        sm = self.big_field_power()
+        for i in range(0, sm, s):
+            pol += Fq(vect[i:i+s])
+        return pol
 
     def big_field_representation(self, a):
         r"""

@@ -8,6 +8,10 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :func:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
 - :func:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 
+**Subfield subcode decoder**
+
+- :class:`subfield_subcode.SubfieldSubcodeOriginalCodeDecoder <sage.coding.subfield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
+
 .. NOTE::
 
     To import these names into the global namespace, use:
@@ -25,3 +29,4 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 #*****************************************************************************
 
 from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
+from subfield_subcode import SubfieldSubcodeOriginalCodeDecoder

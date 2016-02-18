@@ -30,6 +30,7 @@ from sage.categories.homset import Hom
 from field_embedding import FieldEmbedding
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
+from decoder import Decoder
 
 class SubfieldSubcode(AbstractLinearCode):
     r"""
@@ -241,7 +242,7 @@ class SubfieldSubcode(AbstractLinearCode):
         for i in range(H_original.nrows()):
             for j in range(H_original.ncols()):
                 h = H_original[i][j]
-                h_vect = E.small_field_representation(h)
+                h_vect = E.small_field_vector_representation(h)
                 for k in range(m):
                     H[i*m + k, j] = Fq(h_vect[k*s:k*s+s])
         H = H.echelon_form()
@@ -253,8 +254,130 @@ class SubfieldSubcode(AbstractLinearCode):
 
 
 
+
+
+
+
+
+
+
+class SubfieldSubcodeOriginalCodeDecoder(Decoder):
+    r"""
+    Decoder decoding through a decoder over the original code of ``code``.
+
+    INPUT:
+
+    - ``code`` -- The associated code of this decoder
+
+    - ``original_decoder`` -- (default: ``None``) The decoder that will be used
+      over the original code. It has to be a decoder object over the original
+      code. If it is set to ``None``, the default decoder over the original
+      code will be used.
+
+    - ``**kwargs`` -- All extra arguments are forwarded to original code's decoder
+
+    EXAMPLES::
+
+    r"""
+
+    def __init__(self, code, original_decoder = None, **kwargs):
+        r"""
+        TESTS:
+
+        """
+        original_code = code.original_code()
+        if original_decoder is not None and not original_decoder.code() == code.original_code():
+            raise ValueError("original_decoder must have the original code as associated code")
+        elif original_decoder is not None:
+            self._original_decoder = original_decoder
+        else:
+            self._original_decoder = original_code.decoder(**kwargs)
+        self._decoder_type = copy(self._decoder_type)
+        self._decoder_type.remove("dynamic")
+        self._decoder_type = original_decoder.decoder_type()
+        super(SubfieldSubcodeOriginalCodeDecoder, self).__init__(code, code.ambient_space(),
+                original_decoder.connected_encoder())
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
+            sage: D
+
+        """
+        return "Decoder of %s through %s" % (self.code(), self.original_decoder())
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
+            sage: latex(D)
+
+        """
+        return "\\textnormal{Decoder of } %s \\textnormal{ through } %s" % (self.code(), self.original_decoder())
+
+    def original_decoder(self):
+        r"""
+        Returns the decoder over the original code that will be used to decode words of
+        :meth:`sage.coding.decoder.Decoder.code`.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
+            sage: D.original_decoder()
+            Syndrome decoder for Linear code of length 7, dimension 3 over Finite Field in aa of size 16
+        """
+        return self._original_decoder
+
+    def decode_to_code(self, y):
+        r"""
+        Corrects the errors in ``word`` and returns a codeword.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:10], 5)
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
+            sage: c = vector()
+
+        """
+        C = self.code()
+        D = self.original_decoder()
+        FE = C.embedding()
+        y_or = FE.big_field_representation(y)
+        c_or = D.decode_to_code(y_or)
+        return FE.small_field_polynomial_representation(c_or)
+
+    def decoding_radius(self):
+        r"""
+        Returns maximal number of errors ``self`` can decode.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
+            sage: D.decoding_radius()
+
+        """
+        return self.original_decoder().decoding_radius()
+
 ####################### registration ###############################
 
 SubfieldSubcode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
 SubfieldSubcode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 SubfieldSubcode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+SubfieldSubcode._registered_decoders["OriginalCode"] = SubfieldSubcodeOriginalCodeDecoder
+SubfieldSubcodeOriginalCodeDecoder._decoder_type = {"dynamic"}

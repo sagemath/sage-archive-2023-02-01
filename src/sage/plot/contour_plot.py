@@ -111,6 +111,9 @@ class ContourPlot(GraphicPrimitive):
                         a list of colors, or an instance of a
                         matplotlib Colormap. Type: import matplotlib.cm; matplotlib.cm.datad.keys()
                         for available colormap names.""",
+                'norm':"""an optional matplotlib Normalize instance
+                        to specify more advanced colormap settings.
+                        Type: matplotlib.color.Normalize""",
                 'colorbar': "Include a colorbar indicating the levels",
                 'colorbar_options': "a dictionary of options for colorbars",
                 'fill':'Fill contours or not',
@@ -151,6 +154,7 @@ class ContourPlot(GraphicPrimitive):
         options = self.options()
         fill = options['fill']
         contours = options['contours']
+        norm = options.get('norm', None)  # None is matplotlib default for norm
         if 'cmap' in options:
             cmap = get_cmap(options['cmap'])
         elif fill or contours is None:
@@ -171,9 +175,9 @@ class ContourPlot(GraphicPrimitive):
         CSF=None
         if fill:
             if contours is None:
-                CSF=subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1), label=options['legend_label'])
+                CSF=subplot.contourf(self.xy_data_array, cmap=cmap, norm=norm, extent=(x0,x1,y0,y1), label=options['legend_label'])
             else:
-                CSF=subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),extend='both', label=options['legend_label'])
+                CSF=subplot.contourf(self.xy_data_array, contours, cmap=cmap, norm=norm, extent=(x0,x1,y0,y1),extend='both', label=options['legend_label'])
 
         linewidths = options.get('linewidths',None)
         if isinstance(linewidths, (int, Integer)):
@@ -188,10 +192,10 @@ class ContourPlot(GraphicPrimitive):
         else:
             linestyles = get_matplotlib_linestyle(linestyles, 'long')
         if contours is None:
-            CS = subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1),
+            CS = subplot.contour(self.xy_data_array, cmap=cmap, norm=norm, extent=(x0,x1,y0,y1),
                                  linewidths=linewidths, linestyles=linestyles, label=options['legend_label'])
         else:
-            CS = subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1),
+            CS = subplot.contour(self.xy_data_array, contours, cmap=cmap, norm=norm, extent=(x0,x1,y0,y1),
                             linewidths=linewidths, linestyles=linestyles, label=options['legend_label'])
         if options.get('labels', False):
             label_options = options['label_options']
@@ -243,6 +247,9 @@ def contour_plot(f, xrange, yrange, **options):
       a predefined colormap, a list of colors or an instance of a matplotlib
       Colormap. Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
       for available colormap names.
+
+    - ``norm`` -- A normalizer, (default:``None``).
+      Type: ``matplotlib.color.Normalize``
 
     - ``contours`` -- integer or list of numbers (default: ``None``):
       If a list of numbers is given, then this specifies the contour levels

@@ -1272,10 +1272,10 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
                     from sage.rings.asymptotic.asymptotic_expansion_generators import \
                         asymptotic_expansions
-                    return asymptotic_expansions._SingularityAnalysis_non_normalized_(
+                    return asymptotic_expansions.SingularityAnalysis(
                         var=var, zeta=zeta, alpha=a.exponent,
                         beta=ZZ(b.exponent), delta=0,
-                        precision=precision)
+                        precision=precision, normalized=False)
                 else:
                     raise NotImplementedError(
                         'singularity analysis of {} not implemented'.format(self))

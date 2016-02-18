@@ -592,7 +592,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     @staticmethod
     def SingularityAnalysis(var, zeta=1, alpha=0, beta=0, delta=0,
-                            precision=None):
+                            precision=None, normalized=True):
         r"""
         Return the asymptotic expansion of the coefficients of
         an power series with specified pole and logarithmic singularity.
@@ -604,7 +604,18 @@ class AsymptoticExpansionGenerators(SageObject):
             [z^n] \left(\frac{1}{1-z/\zeta}\right)^\alpha
             \left(\frac{1}{z/\zeta} \log \frac{1}{1-z/\zeta}\right)^\beta
             \left(\frac{1}{z/\zeta} \log
-            \left(\frac{1}{z/\zeta} \log \frac{1}{1-z/\zeta}\right)\right)^\delta.
+            \left(\frac{1}{z/\zeta} \log \frac{1}{1-z/\zeta}\right)\right)^\delta
+
+        (if ``normalized=True``, the default) or
+
+        .. MATH::
+
+            [z^n] \left(\frac{1}{1-z/\zeta}\right)^\alpha
+            \left(\log \frac{1}{1-z/\zeta}\right)^\beta
+            \left(\log
+            \left(\frac{1}{z/\zeta} \log \frac{1}{1-z/\zeta}\right)\right)^\delta
+
+        (if ``normalized=False``).
 
         INPUT:
 
@@ -621,6 +632,8 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
+
+        - ``normalized`` -- (default: ``True``) a boolean, see above.
 
         OUTPUT:
 
@@ -708,6 +721,18 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: ae.subs(n=n-2)
             2*n^(-1)*log(n) + 2*euler_gamma*n^(-1) - n^(-2) - 1/6*n^(-3) + O(n^(-5))
 
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=-1/2, beta=1, precision=2, normalized=False)
+            -1/2/sqrt(pi)*n^(-3/2)*log(n)
+            + (-1/2*(euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2)
+            + O(n^(-5/2)*log(n))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1/2, alpha=0, beta=1, precision=3, normalized=False)
+            2^n*n^(-1) + O(2^n*n^(-2))
+
+
         ALGORITHM:
 
         See [FS2009]_ together with the
@@ -790,6 +815,78 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:     'n', alpha=1/2, zeta=2, precision=3)
             1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
             + 1/128/sqrt(pi)*(1/2)^n*n^(-5/2) + O((1/2)^n*n^(-7/2))
+
+        The following tests correspond to Table VI.5 in [FS2009]_. ::
+
+            sage: A.<n> = AsymptoticRing('n^QQ * log(n)^QQ', QQ)
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=-1/2, beta=1, precision=2,
+            ....:     normalized=False) * (- sqrt(pi*n^3))
+            1/2*log(n) + 1/2*euler_gamma + log(2) - 1 + O(n^(-1)*log(n))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=0, beta=1, precision=3,
+            ....:     normalized=False)
+            n^(-1) + O(n^(-2))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=0, beta=2,  precision=14,
+            ....:     normalized=False) * n
+            2*log(n) + 2*euler_gamma - n^(-1) - 1/6*n^(-2) +  O(n^(-4))
+            sage: (asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=1/2, beta=1, precision=4,
+            ....:     normalized=False) * sqrt(pi*n)).\
+            ....:     map_coefficients(lambda x: x.expand())
+            log(n) + euler_gamma + 2*log(2) - 1/8*n^(-1)*log(n) +
+            (-1/8*euler_gamma - 1/4*log(2))*n^(-1) + O(n^(-2)*log(n))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=1, beta=1, precision=13,
+            ....:     normalized=False)
+            log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
+            + O(n^(-6))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=1, beta=2, precision=4,
+            ....:     normalized=False)
+            log(n)^2 + 2*euler_gamma*log(n) + euler_gamma^2 - 1/6*pi^2
+            + O(n^(-1)*log(n))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=3/2, beta=1, precision=3,
+            ....:     normalized=False) * sqrt(pi/n)
+            2*log(n) + 2*euler_gamma + 4*log(2) - 4 + 3/4*n^(-1)*log(n)
+            + O(n^(-1))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=2, beta=1, precision=5,
+            ....:     normalized=False)
+            n*log(n) + (euler_gamma - 1)*n + log(n) + euler_gamma + 1/2
+            + O(n^(-1))
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, alpha=2, beta=2, precision=4,
+            ....:     normalized=False) / n
+            log(n)^2 + (2*euler_gamma - 2)*log(n)
+            - 2*euler_gamma + euler_gamma^2 - 1/6*pi^2 + 2
+            + n^(-1)*log(n)^2 + O(n^(-1)*log(n))
+
+        Be aware that the last result does *not* coincide with [FS2009]_,
+        they do have a different error term.
+
+        Checking parameters::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, 1, 1/2, precision=0, normalized=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: beta and delta must be integers
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', 1, 1, 1, 1/2, normalized=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: beta and delta must be integers
+
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', alpha=0, beta=0, delta=1, precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented for delta!=0
         """
         from itertools import islice, count
         from asymptotic_ring import AsymptoticRing
@@ -845,8 +942,10 @@ class AsymptoticExpansionGenerators(SageObject):
             precision = AsymptoticRing.__default_prec__
 
 
+        if not normalized and not (beta in ZZ and delta in ZZ):
+            raise ValueError("beta and delta must be integers")
         if delta != 0:
-            raise NotImplementedError
+            raise NotImplementedError("not implemented for delta!=0")
 
         groups = []
         if zeta != 1:
@@ -884,7 +983,11 @@ class AsymptoticExpansionGenerators(SageObject):
             log_n = 1
 
         it = reversed(list(islice(it, precision+1)))
-        L = _sa_coefficients_lambda_(max(1, k_max), beta=beta)
+        if normalized:
+            beta_denominator = beta
+        else:
+            beta_denominator = 0
+        L = _sa_coefficients_lambda_(max(1, k_max), beta=beta_denominator)
         (k, r) = next(it)
         result = (n**(-k) * log_n**(-r)).O()
 
@@ -906,121 +1009,6 @@ class AsymptoticExpansionGenerators(SageObject):
         result *= exponential_factor * n**(alpha-1) * log_n**beta
 
         return result
-
-
-    @staticmethod
-    def _SingularityAnalysis_non_normalized_(var, zeta=1, alpha=0, beta=0, delta=0,
-                                             precision=None):
-        r"""
-        Return the asymptotic expansion of the coefficients of
-        an power series with specified pole and logarithmic singularity
-        (without normalization).
-
-        More precisely, this extracts the `n`-th coefficient
-
-        .. MATH::
-
-            [z^n] \left(\frac{1}{1-z}\right)^\alpha
-            \left( \log \frac{1}{1-z}\right)^\beta
-            \left( \log
-            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta.
-
-        INPUT:
-
-        - ``var`` -- a string for the variable name.
-
-        - ``zeta`` -- (default: `1`) the location of the singularity.
-
-        - ``alpha`` -- (default: `0`) the pole order of the singularty.
-
-        - ``beta`` -- an integer (default: `0`): the order of the logarithmic singularity.
-
-        - ``delta`` -- an integer (default: `0`): the order of the log-log singularity.
-          Not yet implemented for ``delta != 0``.
-
-        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
-          the default precision of the asymptotic ring is used.
-
-        OUTPUT:
-
-        An asymptotic expansion.
-
-        EXAMPLES::
-
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=-1/2, beta=1, precision=2)
-            -1/2/sqrt(pi)*n^(-3/2)*log(n)
-            + (-1/2*(euler_gamma + 2*log(2) - 2)/sqrt(pi))*n^(-3/2)
-            + O(n^(-5/2)*log(n))
-
-        .. SEEALSO::
-
-            :meth:`SingularityAnalysis`
-
-        TESTS:
-
-        The following tests correspond to Table VI.5 in [FS2009]_. ::
-
-            sage: A.<n> = AsymptoticRing('n^QQ * log(n)^QQ', QQ)
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=-1/2, beta=1, precision=2) * (- sqrt(pi*n^3))
-            1/2*log(n) + 1/2*euler_gamma + log(2) - 1 + O(n^(-1)*log(n))
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=0, beta=1, precision=3)
-            n^(-1) + O(n^(-2))
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=0, beta=2,  precision=14) * n
-            2*log(n) + 2*euler_gamma - n^(-1) - 1/6*n^(-2) +  O(n^(-4))
-            sage: (asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=1/2, beta=1, precision=4) * sqrt(pi*n)).\
-            ....:     map_coefficients(lambda x: x.expand())
-            log(n) + euler_gamma + 2*log(2) - 1/8*n^(-1)*log(n) +
-            (-1/8*euler_gamma - 1/4*log(2))*n^(-1) + O(n^(-2)*log(n))
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=1, beta=1, precision=13)
-            log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
-            + O(n^(-6))
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=1, beta=2, precision=4)
-            log(n)^2 + 2*euler_gamma*log(n) + euler_gamma^2 - 1/6*pi^2
-            + O(n^(-1)*log(n))
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=3/2, beta=1, precision=3) * sqrt(pi/n)
-            2*log(n) + 2*euler_gamma + 4*log(2) - 4 + 3/4*n^(-1)*log(n)
-            + O(n^(-1))
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=2, beta=1, precision=5)
-            n*log(n) + (euler_gamma - 1)*n + log(n) + euler_gamma + 1/2
-            + O(n^(-1))
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, alpha=2, beta=2, precision=4) / n
-            log(n)^2 + (2*euler_gamma - 2)*log(n)
-            - 2*euler_gamma + euler_gamma^2 - 1/6*pi^2 + 2
-            + n^(-1)*log(n)^2 + O(n^(-1)*log(n))
-
-        Be aware that the last result does *not* coincide with [FS2009]_,
-        they do have a different error term.
-
-        Checking parameters::
-
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, 1, 1/2, 0)
-            Traceback (most recent call last):
-            ...
-            ValueError: beta and delta must be integers
-            sage: asymptotic_expansions._SingularityAnalysis_non_normalized_(
-            ....:     'n', 1, 1, 1, 1/2)
-            Traceback (most recent call last):
-            ...
-            ValueError: beta and delta must be integers
-        """
-        from sage.rings.integer_ring import ZZ
-        if not (beta in ZZ and delta in ZZ):
-            raise ValueError("beta and delta must be integers")
-        result = AsymptoticExpansionGenerators.SingularityAnalysis(
-            var, zeta, alpha, beta, delta, precision)
-        n = result.parent()(var)
-        return result.subs({n: n-(beta+delta)})
 
 
 def _sa_coefficients_lambda_(K, beta=0):

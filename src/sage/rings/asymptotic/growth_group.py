@@ -2928,7 +2928,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: G(log(x))._singularity_analysis_('n', 1, precision=5)
             n^(-1) + O(n^(-3))
             sage: G(log(x)^2)._singularity_analysis_('n', 2, precision=3)
-            8*(1/2)^n*n^(-1)*log(n) + 8*euler_gamma*(1/2)^n*n^(-1)
+            2*(1/2)^n*n^(-1)*log(n) + 2*euler_gamma*(1/2)^n*n^(-1)
             + O((1/2)^n*n^(-2)*log(n)^2)
 
         TESTS::
@@ -2961,9 +2961,9 @@ class MonomialGrowthElement(GenericGrowthElement):
                         self, self.exponent))
             from sage.rings.asymptotic.asymptotic_expansion_generators import \
                 asymptotic_expansions
-            return asymptotic_expansions._SingularityAnalysis_non_normalized_(
+            return asymptotic_expansions.SingularityAnalysis(
                 var=var, zeta=zeta, alpha=0, beta=ZZ(self.exponent), delta=0,
-                precision=precision)
+                precision=precision, normalized=False)
         else:
             raise NotImplementedError(
                 'singularity analysis of {} not implemented'.format(self))

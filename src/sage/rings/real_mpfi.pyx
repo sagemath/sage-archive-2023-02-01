@@ -3191,6 +3191,45 @@ cdef class RealIntervalFieldElement(RingElement):
         else:
             raise ValueError("interval does not have a unique sign")
 
+    def argument(self):
+        r"""
+        The argument of this interval, if it is well-defined, in the
+        complex sense. Otherwise raises a ``ValueError``.
+        
+        OUTPUT:
+        
+        - an element of the parent of this interval (0 or pi)
+        
+        EXAMPLES::
+        
+            sage: RIF(1).argument()
+            0
+            sage: RIF(-1).argument()
+            3.141592653589794?
+            sage: RIF(0,1).argument()
+            0
+            sage: RIF(-1,0).argument()
+            3.141592653589794?
+            sage: RIF(0).argument()
+            Traceback (most recent call last):
+            ...
+            ValueError: Can't take the argument of an exact zero
+            sage: RIF(-1,1).argument()
+            Traceback (most recent call last):
+            ...
+            ValueError: Can't take the argument of interval strictly containing zero
+
+        """
+        k=self.parent()
+        if mpfi_is_zero(self.value):
+            raise ValueError("Can't take the argument of an exact zero")
+        if mpfi_is_nonneg(self.value):
+            return k.zero()
+        elif mpfi_is_nonpos(self.value):
+            return k.pi()
+        else:
+            raise ValueError("Can't take the argument of interval strictly containing zero")
+ 
     def unique_floor(self):
         """
         Returns the unique floor of this interval, if it is well defined,

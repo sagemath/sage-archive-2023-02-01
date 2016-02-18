@@ -2419,7 +2419,7 @@ We can convert to complex fields::
     1j
 
     sage: QQbar(I)
-    1*I
+    I
 
     sage: abs(I)
     1

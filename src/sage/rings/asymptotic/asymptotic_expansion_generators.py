@@ -594,7 +594,18 @@ class AsymptoticExpansionGenerators(SageObject):
             [z^n] \left(\frac{1}{1-z}\right)^\alpha
             \left(\frac{1}{z} \log \frac{1}{1-z}\right)^\beta
             \left(\frac{1}{z} \log
-            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta.
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta
+
+        (if ``normalized=True``, the default) or
+
+        .. MATH::
+
+            [z^n] \left(\frac{1}{1-z}\right)^\alpha
+            \left(\log \frac{1}{1-z}\right)^\beta
+            \left(\log
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta
+
+        (if ``normalized=False``).
 
         INPUT:
 
@@ -612,12 +623,7 @@ class AsymptoticExpansionGenerators(SageObject):
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
 
-        - ``normalized`` -- (default: ``True``) a boolean. If ``False``, then
-          the coefficient of `[z^n] \left(\frac{1}{1-z}\right)^\alpha
-          \left(\log \frac{1}{1-z}\right)^\beta
-          \left(\log
-          \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta`
-          is computed.
+        - ``normalized`` -- (default: ``True``) a boolean, see above.
 
         OUTPUT:
 

@@ -122,7 +122,7 @@ II.1 Create specific codes in Sage
 ----------------------------------
 
 Now that we know how to create generic linear codes, we want to go deeper
-and created specific code families. In Sage, all codes families can be
+and create specific code families. In Sage, all codes families can be
 accessed by typing::
 
     codes.<tab>
@@ -143,7 +143,7 @@ By clicking on the link provided above, or typing::
 one can access the documentation page for GRS codes, find a definition
 of these and learn what is needed to build one in Sage.
 
-Here we choose to build the [12, 6] GRS code over :math:`\GF{13}`.
+Here we choose to build a [12, 6] GRS code over :math:`\GF{13}`.
 To do this, we need up to three elements:
 
 - The **list of evaluation points**,
@@ -334,7 +334,7 @@ you get the default encoder for the code.
 :meth:`sage.coding.linear_code.AbstractLinearCode.encoder`
 also has an important side-effect: **it caches the constructed encoder**
 before returning it. This means that each time one will access the same
-EvaluationVector encoder for C, which saves construction time.
+``EvaluationVector`` encoder for ``C``, which saves construction time.
 
 All the above things are similar for Decoders.
 This reinforces that Encoders and Decoders are rarely constructed but used
@@ -349,7 +349,7 @@ III.1 Message spaces
 
 The point of an Encoder is to encode messages into the code.
 These messages are often just vectors over the base field of the code
-and whose length match code's dimension.
+and whose length matches the code's dimension.
 But it could be anything: vectors over other fields, polynomials, or even
 something quite different.
 Therefore, each Encoder has a :meth:`sage.coding.encoder.Encoder.message_space`.
@@ -377,14 +377,14 @@ so when we call
 :meth:`sage.coding.linear_code.AbstractLinearCode.decode_to_message` or
 :meth:`sage.coding.linear_code.AbstractLinearCode.unencode` on the code itself,
 as illustrated on the first example, this will always return
-vectors whose length are the dimension of the code.
+vectors whose length is the dimension of the code.
 
 
 III.2 Generator matrices
 ------------------------
 
 Whenever the message space of an Encoder is a vector space
-and it encodes using a linear map, then the Encoder will
+and it encodes using a linear map, the Encoder will
 possess a generator matrix (note that this notion does not
 make sense for other types of encoders), which specifies that linear map.
 
@@ -582,7 +582,7 @@ and check if there's a subcategory which matches your needs.
 
 Despite all the hard work we put on it, there's always much to do!
 
-Maybe at some point you might want to create you own codes for Sage.
+Maybe at some point you might want to create your own codes for Sage.
 If it's the case and if you don't know how to do that, don't panic!
 We also wrote a tutorial for this specific case, which you can find here:
 :ref:`structures_in_coding_theory`.

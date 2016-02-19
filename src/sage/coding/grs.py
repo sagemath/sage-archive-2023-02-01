@@ -188,7 +188,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         if F.is_finite() == False or F.is_field() == False:
             raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
         super(GeneralizedReedSolomonCode, self).__init__(F, \
-                len(self._evaluation_points), "EvaluationVector", "Syndrome")
+                len(self._evaluation_points), "EvaluationVector", "Gao")
 
         if dimension not in ZZ or dimension > self._length or dimension < 1:
             raise ValueError("The dimension must be a positive integer at most the length of the code.")

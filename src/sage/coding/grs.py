@@ -1453,17 +1453,18 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def __init__(self, code):
         r"""
-        EXAMPLES::
+        TESTS::
 
             sage: F = GF(59)
             sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
-            sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
-            sage: D
-            Key equation decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: codes.decoders.GRSKeyEquationSyndromeDecoder(C)
+            Traceback (most recent call last):
+            ...
+            ValueError: Impossible to use this decoder over a GRS code which contains 0 amongst its evaluation points
         """
-        if (code.base_field())(0) in code.evaluation_points():
-            raise ValueError("Impossible to decode a GRS code which contains 0 amongst its evaluation points")
+        if code.base_field().zero() in code.evaluation_points():
+            raise ValueError("Impossible to use this decoder over a GRS code which contains 0 amongst its evaluation points")
         super(GRSKeyEquationSyndromeDecoder, self).__init__(code, code.ambient_space(),
                 "EvaluationVector")
 

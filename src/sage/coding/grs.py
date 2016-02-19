@@ -1080,10 +1080,9 @@ class GRSGaoDecoder(Decoder):
         return "\\textnormal{Gao decoder for }%s" % self.code()._latex_()
 
     @cached_method
-    def precompute(self, PolRing):
+    def _polynomial_vanishing_at_alphas(self, PolRing):
         r"""
-        Return the unique monic polynomial vanishing on the evaluation points.
-        Helper function for internal purposes.
+        Return the unique minimal-degree polynomial vanishing at all the evaluation points.
 
         INPUT:
 
@@ -1100,12 +1099,12 @@ class GRSGaoDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSGaoDecoder(C)
             sage: P = PolynomialRing(F,'x')
-            sage: D.precompute(P)
+            sage: D._polynomial_vanishing_at_alphas(P)
             x^10 + 10*x^9 + x^8 + 10*x^7 + x^6 + 10*x^5 + x^4 + 10*x^3 + x^2 + 10*x
         """
         alphas = self.code().evaluation_points()
-        G = 1
-        x = PolRing.gens()[0]
+        G = PolRing.one()
+        x = PolRing.gen()
         for i in range(0, self.code().length()):
             G = G*(x-self.code().evaluation_points()[i])
         return G
@@ -1192,7 +1191,7 @@ class GRSGaoDecoder(Decoder):
         alphas = C.evaluation_points()
         col_mults = C.column_multipliers()
         PolRing = C.base_field()['x']
-        G = self.precompute(PolRing)
+        G = self._polynomial_vanishing_at_alphas(PolRing)
 
         if r in C:
             return self.connected_encoder().unencode_nocheck(r)

@@ -157,6 +157,11 @@ static ex sin_eval(const ex & x)
 		if (is_ex_the_function(x, atan))
 			return t*power(_ex1+power(t,_ex2),_ex_1_2);
 	}
+
+	// try something
+	const ex ExOverPi = x/Pi;
+	if (ExOverPi.info(info_flags::integer))
+		return _ex0;
 	
 	// sin(float) -> float
         if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
@@ -312,6 +317,11 @@ static ex cos_eval(const ex & x)
 		if (is_ex_the_function(x, atan))
 			return power(_ex1+power(t,_ex2),_ex_1_2);
 	}
+
+	// cos(integer*pi) --> (-1)^integer
+	const ex ExOverPi = x/Pi;
+	if (ExOverPi.info(info_flags::integer))
+		return pow(_ex_1, ExOverPi);
 	
 	// cos(float) -> float
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
@@ -477,6 +487,11 @@ static ex tan_eval(const ex & x)
 			return power(t,_ex_1)*sqrt(_ex1-power(t,_ex2));
 	}
 	
+	// tan(integer*pi) -> 0
+	const ex ExOverPi = x/Pi;
+	if (ExOverPi.info(info_flags::integer))
+		return _ex0;
+
 	// tan(float) -> float
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational)) {
 		return tan(ex_to<numeric>(x));

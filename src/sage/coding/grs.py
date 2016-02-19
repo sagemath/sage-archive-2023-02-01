@@ -187,7 +187,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         if F.is_finite() == False or F.is_field() == False:
             raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
-        super(GeneralizedReedSolomonCode, self).__init__(F, \
+        super(GeneralizedReedSolomonCode, self).__init__(F,
                 len(self._evaluation_points), "EvaluationVector", "Gao")
 
         if dimension not in ZZ or dimension > self._length or dimension < 1:
@@ -248,7 +248,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             [40, 12, 29] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{59}
         """
         return "[%s, %s, %s] \\textnormal{ Generalized Reed-Solomon Code over } %s"\
-                % (self.length(), self.dimension() ,self.minimum_distance(),\
+                % (self.length(), self.dimension() ,self.minimum_distance(),
                 self.base_field()._latex_())
 
     def minimum_distance(self):
@@ -843,7 +843,7 @@ class GRSBerlekampWelchDecoder(Decoder):
             sage: D
             Berlekamp-Welch decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        super(GRSBerlekampWelchDecoder, self).__init__(code, code.ambient_space(),\
+        super(GRSBerlekampWelchDecoder, self).__init__(code, code.ambient_space(),
             "EvaluationPolynomial")
 
     def __eq__(self, other):
@@ -938,8 +938,8 @@ class GRSBerlekampWelchDecoder(Decoder):
         t  = (C.minimum_distance()-1) // 2
         l0 = C.length()-1-t
         l1 = C.length()-1-t-(C.dimension()-1)
-        S  = matrix(C.base_field(), C.length(), l0+l1+2, lambda i,j :\
-                (C.evaluation_points()[i])**j if j<(l0+1)\
+        S  = matrix(C.base_field(), C.length(), l0+l1+2, lambda i,j :
+                (C.evaluation_points()[i])**j if j<(l0+1)
                 else r[i]*(C.evaluation_points()[i])**(j-(l0+1)))
         S  = S.right_kernel()
         S  = S.basis_matrix().row(0)
@@ -1026,7 +1026,7 @@ class GRSGaoDecoder(Decoder):
             sage: D
             Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        super(GRSGaoDecoder, self).__init__(code, code.ambient_space(),\
+        super(GRSGaoDecoder, self).__init__(code, code.ambient_space(),
                 "EvaluationPolynomial")
 
     def __eq__(self, other):
@@ -1192,7 +1192,7 @@ class GRSGaoDecoder(Decoder):
         if r in C:
             return self.connected_encoder().unencode_nocheck(r)
 
-        points = [(alphas[i], r[i]/col_mults[i]) for i in \
+        points = [(alphas[i], r[i]/col_mults[i]) for i in
                 range(0, C.length())]
         R = PolRing.lagrange_polynomial(points)
 
@@ -1268,7 +1268,7 @@ class GRSErrorErasureDecoder(Decoder):
             sage: D
             Error-Erasure decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
-        input_space = cartesian_product([code.ambient_space(),\
+        input_space = cartesian_product([code.ambient_space(),
                 VectorSpace(GF(2), code.ambient_space().dimension())])
         super(GRSErrorErasureDecoder, self).__init__(code, input_space, "EvaluationVector")
 
@@ -1364,14 +1364,14 @@ class GRSErrorErasureDecoder(Decoder):
         if erasure_vector.hamming_weight() >= self.code().minimum_distance():
             raise DecodingError("Too many erasures in the received word")
 
-        shorten_word = vector(self.code().base_ring(), [word[i] for i in range(len(word))\
+        shorten_word = vector(self.code().base_ring(), [word[i] for i in range(len(word))
                 if erasure_vector[i]!=1])
         C1_length = len(shorten_word)
-        C1_evaluation_points = [self.code().evaluation_points()[i] for i in\
+        C1_evaluation_points = [self.code().evaluation_points()[i] for i in
                 range(self.code().length()) if erasure_vector[i]!=1]
-        C1_column_multipliers = [self.code().column_multipliers()[i] for i in\
+        C1_column_multipliers = [self.code().column_multipliers()[i] for i in
                 range(self.code().length()) if erasure_vector[i]!=1]
-        C1 = GeneralizedReedSolomonCode(C1_evaluation_points,\
+        C1 = GeneralizedReedSolomonCode(C1_evaluation_points,
                 self.code().dimension(), C1_column_multipliers)
         return C1.decode_to_message(shorten_word)
 
@@ -1464,7 +1464,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         """
         if (code.base_field())(0) in code.evaluation_points():
             raise ValueError("Impossible to decode a GRS code which contains 0 amongst its evaluation points")
-        super(GRSKeyEquationSyndromeDecoder, self).__init__(code, code.ambient_space(),\
+        super(GRSKeyEquationSyndromeDecoder, self).__init__(code, code.ambient_space(),
                 "EvaluationVector")
 
     def __eq__(self, other):

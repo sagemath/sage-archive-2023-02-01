@@ -41,6 +41,20 @@ error messages. To be certain that these are real errors, run
 "make doc-clean" first and try again.''')
 
 
+def delete_empty_directories(root_dir):
+    """
+    Delete all empty directories found under ``root_dir``
+
+    INPUT:
+
+    - ``root_dir`` -- string. A valid directory name.
+    """
+    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
+        if not dirnames + filenames:
+            logger.warning('Deleting empty directory {0}'.format(dirpath))
+            os.rmdir(dirpath)
+
+
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
@@ -1602,6 +1616,11 @@ def main():
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
     ABORT_ON_ERROR = not options.keep_going
+
+    # Delete empty directories. This is needed in particular for empty
+    # directories due to "git checkout" which never deletes empty
+    # directories it leaves behind. See Trac #20010.
+    delete_empty_directories(SAGE_DOC)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

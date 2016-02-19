@@ -4067,6 +4067,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (1/(x^2 - x - 1)).residue(x == 1/2*sqrt(5) + 1/2)
             1/5*sqrt(5)
+
+        Check that :trac:`20084` is fixed::
+
+            sage: (1/(1 - 2^-x)).residue(x == 2*pi*I/log(2))
+            1/log(2)
         """
         if symbol.is_relational():
             x = symbol.lhs()

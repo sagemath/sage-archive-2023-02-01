@@ -372,7 +372,7 @@ Notice that the message space of ``Epoly`` is all univariate polynomials:
 ``message_space`` is the ambient space of the messages, and sometimes an Encoder
 demands that the messages are actually picked from a subspace hereof.
 
-The default encoder for a code is always one with vector behaviour,
+The default encoder of a code always has a vector space as message space,
 so when we call
 :meth:`sage.coding.linear_code.AbstractLinearCode.decode_to_message` or
 :meth:`sage.coding.linear_code.AbstractLinearCode.unencode` on the code itself,
@@ -540,8 +540,7 @@ As opposed to this channel though, the output of
 is not the same as its input space, i.e. the ambient space of C.
 Rather, it will return two vectors: the first is the transmitted word
 with the errors added and erased positions set to 0.
-The second one is the erasure vector over which has 1 on the erased positions
-and 0 elsewhere.
+The second one is the erasure vector whose erased positions contain ones.
 This is reflected in :meth:`sage.coding.channel_constructions.output_space`::
 
     sage: C = codes.RandomLinearCode(10, 5, GF(7))

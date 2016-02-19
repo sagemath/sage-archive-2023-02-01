@@ -1116,7 +1116,6 @@ class GRSGaoDecoder(Decoder):
         code, `k` its dimension, and returns `(r, s)` such that in the step
         just before termination, `r = a\times s + b\times t`.
 
-
         INPUT:
 
         - ``a, b`` -- polynomials over ``PolRing``
@@ -1396,7 +1395,7 @@ class GRSErrorErasureDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSErrorErasureDecoder(C)
             sage: D.decoding_radius(5)
-            12
+            11
 
         If we receive too many erasures, it returns an exception as codeword will
         be impossible to decode::
@@ -1406,7 +1405,7 @@ class GRSErrorErasureDecoder(Decoder):
             ...
             ValueError: The number of erasures exceed decoding capability
         """
-        diff = self.code().minimum_distance() - number_erasures
+        diff = self.code().minimum_distance() - 1 - number_erasures
         if diff <= 0:
             raise ValueError("The number of erasures exceed decoding capability")
         else :

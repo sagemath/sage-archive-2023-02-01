@@ -55,9 +55,10 @@ from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_mor
 
 def is_ProductProjectiveSpaces(x):
     r"""
-    Return True if `x` is a product of projective spaces, i.e., an ambient space
-    `\mathbb{P}^n_R \times \cdots \times \mathbb{P}^m_R`, where `R` is a ring and
-    `n,\ldots,m\geq 0`are integers.
+    Return True if ``x`` is a product of projective spaces.
+
+    This is an ambient space defined by`\mathbb{P}^n_R \times \cdots \times \mathbb{P}^m_R`,
+    where `R` is a ring and`n,\ldots,m\geq 0`are integers.
 
     OUTPUT: Boolean.
 
@@ -134,7 +135,7 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
         if not isinstance(R, CommutativeRing):
             raise ValueError("must be a commutative ring")
         from sage.structure.category_object import normalize_names
-        n_vars=sum(d+1 for d in n)
+        n_vars = sum(d+1 for d in n)
         if isinstance(names, six.string_types):
             names = normalize_names(n_vars, names)
         else:
@@ -425,8 +426,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
     def ngens(self):
         r"""
-        Returns the number of generators of this space, i.e.,
-        the number of variables in the coordinate ring of the projectice space.
+        Returns the number of generators of this space.
+
+       This is the number of variables in the coordinate ring of the projectice space.
 
         OUTPUT: An integer.
 
@@ -440,11 +442,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
     def _factors(self, v):
         r"""
-        Return the tuple/list ``v`` split into the components of this space
+        Return the tuple/list ``v`` split into the components of this space.
 
         INPUT:
 
-        - ``v`` -- a list or tuple
+        - ``v`` -- a list or tuple.
 
         OUTPUT: A list of lists.
 
@@ -546,7 +548,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
     def _validate(self, polynomials):
         r"""
-        If ``polynomials`` is a tuple of valid polynomial functions onthis space,
+        If ``polynomials`` is a tuple of valid polynomial functions on this space,
         return ``polynomials``, otherwise raise a TypeError.
 
         Since this is a product of projective spaces, the polynomials must be multi-homogeneous.
@@ -718,7 +720,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
     def change_ring(self, R):
         r"""
-        Return a product of projective spaces over a ring `R` and otherwise the same as this projective space.
+        Return a product of projective spaces over a ring ``R`` and otherwise the same as this projective space.
 
         INPUT:
 
@@ -730,7 +732,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         .. NOTE::
 
-            There is no need to have any relation between `R` and the base ring
+            There is no need to have any relation between ``R`` and the base ring
             of this space, if you want to have such a relation, use
             ``self.base_extend(R)`` instead.
 

@@ -79,7 +79,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         if all(isinstance(P, SchemeMorphism_point) for P in polys):
             if check:
                 Q = []
-                self._points=[]
+                self._points = []
                 for i in range(len(polys)):
                     if polys[i].codomain() != parent.codomain().ambient_space()[i]:
                         raise ValueError("points must be in correct projective spaces")
@@ -96,15 +96,15 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
     def __getitem__(self, i):
         r"""
-        Return the `i`-th coordinate point.
+        Return the ``i``-th coordinate point.
 
         INPUT:
 
-        - `i` - integer.
+        - ``i`` - integer.
 
         OUTPUT:
 
-        The projective space point that is the `i`-th coordinate.
+        The projective space point that is the ``i``-th coordinate.
 
         EXAMPLES::
 
@@ -234,7 +234,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         OUTPUT:
 
-        - a point in the same space as thid point.
+        - a point in the same space as third point.
 
         EXAMPLES::
 
@@ -291,7 +291,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
     def scale_by(self, t):
         r"""
-        Scale the coordinates of the point by `t`, done componentwise.
+        Scale the coordinates of the point by ``t``, done componentwise.
 
         A ``TypeError`` occurs if the point is not in the base ring of the
         codomain after scaling.
@@ -330,7 +330,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         - ``check`` -- Boolean.
 
-        - ``embedding`` -- field embedding from the base ring of ``self`` to ``R``.
+        - ``embedding`` -- field embedding from the base ring of this point to ``R``.
 
         OUTPUT:
 
@@ -348,7 +348,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         Q = [P.change_ring(R,**kwds) for P in self._points]
         return(S.point(Q, check))
 
-    def nth_iterate(self,f,n,normalize=False):
+    def nth_iterate(self, f, n, normalize=False):
         r"""
         For a map of this point and a point `P` in ``self.domain()``
         this function returns the nth iterate of `P` by  this point.
@@ -370,7 +370,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         EXAMPLES::
 
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2],QQ)
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2], QQ)
             sage: H = End(Z)
             sage: f = H([a^3, b^3 + a*b^2, x^2, y^2 - z^2, z*y])
             sage: P = Z([1, 1, 1, 1, 1])
@@ -388,7 +388,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         .. TODO:: Is there a more efficient way to do this?
         """
-        if self.codomain()!=f.domain():
+        if self.codomain() != f.domain():
             raise TypeError("point is not defined over domain of function")
         if not f.is_endomorphism():
             raise TypeError("domain and Codomain of function not equal")
@@ -410,18 +410,20 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
                     Q.normalize_coordinates()
             return(Q)
 
-    def orbit(self,f,N,**kwds):
+    def orbit(self, f, N, **kwds):
         r"""
-        Returns the orbit of `P` by this point. If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
+        Returns the orbit this point by ``f``.
 
-        If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)`].
+        If ``N`` is an integer it returns `[P, self(P), \ldots,self^N(P)]`.
+
+        If ``N`` is a list or tuple `N=[m,k]` it returns `[self^m(P),\ldots,self^k(P)`].
         Automatically normalize the points if ``normalize == True``.
         Perform the checks on point initialization if
         ``check==True``
 
         INPUT:
 
-        - ``f`` -- a :class:`ProductProjectiveSpaces_morphism_ring` with ``self`` in ``f.domain()``.
+        - ``f`` -- a :class:`ProductProjectiveSpaces_morphism_ring` with the orbit of `P` in ``f.domain()``.
 
         - ``N`` -- a non-negative integer or list or tuple of two non-negative integers.
 
@@ -454,12 +456,12 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: P.orbit(f, 3, normalize = True)
             [(1 : 3 , 1 : 2), (1 : 3 , -7 : 4), (1 : 3 , 407 : 112), (1 : 3 , 66014215 : 5105408)]
         """
-        if self.codomain()!=f.domain():
+        if self.codomain() != f.domain():
             raise TypeError("point is not defined over domain of function")
         if not f.is_endomorphism():
-            raise TypeError("domain and Codomain of function not equal")
-        if (isinstance(N,(list,tuple)) == False):
-            N = [0,N]
+            raise TypeError("domain and codomain of function not equal")
+        if (isinstance(N, (list,tuple)) == False):
+            N = [0, N]
         try:
             N[0] = ZZ(N[0])
             N[1] = ZZ(N[1])

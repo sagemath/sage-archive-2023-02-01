@@ -1003,7 +1003,31 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             Traceback (most recent call last):
             ...
             OverflowError: Sage Integer too large to convert to C long
+
+        If this polynomial is constant, hand over to the base ring
+        (:trac:`20086`)::
+
+            sage: P.<R> = ZZ[]
+            sage: P(1)^(1/3)
+            1
+            sage: _.parent()
+            Univariate Polynomial Ring in R over Integer Ring
+            sage: P(4)^(1/2)
+            2
+            sage: _.parent()
+            Univariate Polynomial Ring in R over Integer Ring
+            sage: P(3)^(1/2)
+            sqrt(3)
+            sage: _.parent()
+            Symbolic Ring
         """
+        if fmpz_poly_degree(self.__poly) == 0:
+            result = self[0]**exp
+            try:
+                return self.parent()(result)
+            except TypeError:
+                return result
+
         cdef Polynomial_integer_dense_flint res = self._new()
         cdef long nn = pyobject_to_long(exp)
 

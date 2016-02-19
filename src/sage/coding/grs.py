@@ -1109,15 +1109,13 @@ class GRSGaoDecoder(Decoder):
             G = G*(x-self.code().evaluation_points()[i])
         return G
 
-    def partial_xgcd(self, a, b, PolRing):
+    def _partial_xgcd(self, a, b, PolRing):
         r"""
-        Returns the greatest common divisor of ``a`` and ``b``.
+        Performs an Euclidean algorithm on ``a`` and ``b`` until a remainder
+        has degree less than `\frac{n+k}{2}`, `n` being the dimension of the
+        code, `k` its dimension, and returns `(r, s)` such that in the step
+        just before termination, `r = a\times s + b\times t`.
 
-        The computation stops whenever the degree of the xgcd falls below
-        `\frac{d+k}{2}`, where `d` is the dimension of ``self.code()`` and
-        `k` its dimension.
-
-        This is a helper function, used in :meth:`decode_to_message`.
 
         INPUT:
 
@@ -1127,8 +1125,7 @@ class GRSGaoDecoder(Decoder):
 
         OUTPUT:
 
-        - a tuple of polynomials ``(r, s)`` where ``r`` is to the xgcd of
-          ``a`` and ``b`` and ``s`` is the Bezout coefficient of ``a``.
+        - a tuple of polynomials
 
         EXAMPLES::
 
@@ -1140,7 +1137,7 @@ class GRSGaoDecoder(Decoder):
             sage: x = P.parameter()
             sage: a = 5*x^2 + 9*x + 8
             sage: b = 10*x^2 + 3*x + 5
-            sage: D.partial_xgcd(a, b, P)
+            sage: D._partial_xgcd(a, b, P)
             (10*x^2 + 3*x + 5, 1)
         """
         stop = floor(self.code().dimension() + self.code().length()) / 2
@@ -1200,7 +1197,7 @@ class GRSGaoDecoder(Decoder):
                 range(0, C.length())]
         R = PolRing.lagrange_polynomial(points)
 
-        (Q1, Q0) = self.partial_xgcd(G, R, PolRing)
+        (Q1, Q0) = self._partial_xgcd(G, R, PolRing)
 
         if not Q0.divides(Q1):
             raise DecodingError()
@@ -1521,14 +1518,12 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         """
         return "\\textnormal{Key equation decoder for }%s" % self.code()._latex_()
 
-    def partial_xgcd(self, a, b, PolRing):
+    def _partial_xgcd(self, a, b, PolRing):
         r"""
-        Returns the greatest common divisor of ``a`` and ``b``.
-
-        The computation stops whenever the degree of the xgcd falls below
-        the degree of ``t``, with ``t`` the Euler coefficient of ``b``.
-
-        This is a helper function, used in :meth:`decode_to_message`.
+        Performs an Euclidean algorithm on ``a`` and ``b`` until a remainder
+        has degree less than `\frac{n+k}{2}`, `n` being the dimension of the
+        code, `k` its dimension, and returns `(r, t)` such that in the step
+        just before termination, `r = a\times s + b\times t`.
 
         INPUT:
 
@@ -1538,8 +1533,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         OUTPUT:
 
-        - a tuple of polynomials ``(r, s)`` where ``r`` is to the xgcd of
-          ``a`` and ``b`` and ``s`` is the Bezout coefficient of ``a``.
+        - a tuple of polynomials
 
         EXAMPLES::
 
@@ -1551,7 +1545,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: x = P.parameter()
             sage: a = 5*x^2 + 9*x + 8
             sage: b = 10*x^2 + 3*x + 5
-            sage: D.partial_xgcd(a, b, P)
+            sage: D._partial_xgcd(a, b, P)
             (5, 8*x + 10)
         """
         stop = (self.code().length() - self.code().dimension()) / 2
@@ -1681,7 +1675,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         S = PolRing(self.syndrome(r))
         a = x ** (C.minimum_distance() - 1)
 
-        (EEP, ELP) = self.partial_xgcd(a, S, PolRing)
+        (EEP, ELP) = self._partial_xgcd(a, S, PolRing)
 
         e = self.forney_formula(EEP, ELP)
         return r - e

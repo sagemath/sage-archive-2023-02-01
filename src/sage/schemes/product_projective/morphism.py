@@ -223,7 +223,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
                 try:
                     P = self.domain()(P)
                 except (TypeError, NotImplementedError):
-                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is     xnot properly implemented"%(P, self.domain()))
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self.domain()))
             elif self.domain()!= P.codomain():
                 raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self.domain()))
 
@@ -321,7 +321,9 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
     def orbit(self, P, N, **kwds):
         r"""
-        Returns the orbit of `P` by this morphism. If `N` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
+        Returns the orbit of `P` by this morphism.
+
+        If `N` is an integer it returns `[P,self(P),\ldots,self^N(P)]`.
 
         If `n` is a list or tuple `n = [m, k]` it returns `[self^m(P),\ldots,self^k(P)]`.
         Automatically normalize the points if ``normalize == True``. Perform the checks on point initialize if

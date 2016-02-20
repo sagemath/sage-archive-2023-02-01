@@ -391,7 +391,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         if self.codomain() != f.domain():
             raise TypeError("point is not defined over domain of function")
         if not f.is_endomorphism():
-            raise TypeError("domain and Codomain of function not equal")
+            raise TypeError("domain and codomain of function not equal")
         try:
             n = ZZ(n)
         except TypeError:

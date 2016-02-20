@@ -15,16 +15,16 @@ AUTHORS:
         Number Fields
 
     REFERENCES:
-    
+
     .. [FaHu] J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
-                Wehler K3 Surfaces over finite fields 
+                Wehler K3 Surfaces over finite fields
                 :arxiv:`1309.6598`, 2013.
     .. [CaSi] G. Call and J. Silverman. Computing the Canonical Height on
                 K3 Surfaces. Mathematics of Comp. , 65 (1996), 259-290.
     .. [Wehl] J. Wehler. Hypersurfaces of the Flag Variety: Deformation
                 Theory and the Theorems of Kodaira-Spencer, Torelli,
                 Lefschetz, M. Noether, and Serre. Math. Z. 198 (1988), 21-38
-    .. [Hutzthesis] B. Hutz. Arithmetic Dynamics on Varieties of dimension greater 
+    .. [Hutzthesis] B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
                 than one. PhD Thesis, Brown University 2007
 
 """
@@ -71,7 +71,7 @@ def WehlerK3Surface(polys):
     Defines a K3 Surface over `\mathbb{P}^2 \times \mathbb{P}^2` defined as
     the intersection of a bilinear and biquadratic form. [Wehl]_
 
-    INPUT: Bilinear and Biquadratic polynomials as a tuple or list.
+    INPUT: Bilinear and biquadratic polynomials as a tuple or list.
 
     OUTPUT: :class:`WehlerK3Surface_ring`.
 
@@ -87,18 +87,18 @@ def WehlerK3Surface(polys):
          x0*x1*y1^2 + x2^2*y0*y2
     """
     if not isinstance(polys, (list, tuple)):
-        raise TypeError( "polys must be a list or tuple of polynomials")
+        raise TypeError("polys must be a list or tuple of polynomials")
 
     R = polys[0].parent().base_ring()
     if R in _Fields:
         if is_FiniteField(R):
             return WehlerK3Surface_finite_field(polys)
         else:
-            return WehlerK3Surface_field(polys) 
+            return WehlerK3Surface_field(polys)
     elif isinstance(R, CommutativeRing):
         return WehlerK3Surface_ring(polys)
     else:
-        raise TypeError( "R (= %s) must be a commutative ring"%R)
+        raise TypeError("R (= %s) must be a commutative ring"%R)
 
 def random_WehlerK3Surface(PP):
     r"""
@@ -115,9 +115,9 @@ def random_WehlerK3Surface(PP):
         sage: random_WehlerK3Surface(PP)
         Closed subscheme of Product of projective spaces P^2 x P^2 over Finite Field of size 3 defined by:
         x0*y0 + x1*y1 + x2*y2,
-        -x1^2*y0^2 - x2^2*y0^2 + x0^2*y0*y1 - x0*x1*y0*y1 - x1^2*y0*y1\
-        + x1*x2*y0*y1 + x0^2*y1^2 + x0*x1*y1^2 - x1^2*y1^2 + x0*x2*y1^2\
-        - x0^2*y0*y2 - x0*x1*y0*y2 + x0*x2*y0*y2 + x1*x2*y0*y2 + x0*x1*y1*y2\
+        -x1^2*y0^2 - x2^2*y0^2 + x0^2*y0*y1 - x0*x1*y0*y1 - x1^2*y0*y1
+        + x1*x2*y0*y1 + x0^2*y1^2 + x0*x1*y1^2 - x1^2*y1^2 + x0*x2*y1^2
+        - x0^2*y0*y2 - x0*x1*y0*y2 + x0*x2*y0*y2 + x1*x2*y0*y2 + x0*x1*y1*y2
         - x1^2*y1*y2 - x1*x2*y1*y2 - x0^2*y2^2 + x0*x1*y2^2 - x1^2*y2^2 - x0*x2*y2^2
     """
 
@@ -127,7 +127,7 @@ def random_WehlerK3Surface(PP):
     for a in xmrange([3,3]):
         for b in xmrange([3,3]):
             Q += BR.random_element() * CR.gen(a[0]) * CR.gen(a[1]) * CR.gen(3+b[0]) * CR.gen(3+b[1])
-    #We can always change coordinates to make L diagonal 
+    #We can always change coordinates to make L diagonal
     L = CR.gen(0) * CR.gen(3) + CR.gen(1) * CR.gen(4) + CR.gen(2) * CR.gen(5)
     return(WehlerK3Surface([L,Q]))
 
@@ -150,7 +150,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     """
     def __init__(self, polys):
         if not isinstance(polys, (list,tuple)):
-            raise TypeError( "polys must be a list or tuple of polynomials")
+            raise TypeError("polys must be a list or tuple of polynomials")
         R = polys[0].parent()
         vars = R.variable_names()
         A = ProductProjectiveSpaces([2, 2],R.base_ring(),vars)
@@ -159,21 +159,21 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         #    Is the user calling in 2 polynomials from a list or tuple?
         #    Is there one biquadratic and one bilinear polynomial?
         if len(polys) != 2:
-            raise AttributeError( "there must be 2 polynomials")
+            raise AttributeError("there must be 2 polynomials")
 
         if (all(((e[0] + e[1] + e[2]) == 1 and (e[3] + e[4] + e[5]) == 1) for e in polys[0].exponents())):
             self.L = CR(polys[0])
-        elif (all((( e[0] + e[1] + e[2]) == 1 and (e[3] + e[4] + e[5]) == 1) for e in polys[1].exponents() )):
+        elif (all(((e[0] + e[1] + e[2]) == 1 and (e[3] + e[4] + e[5]) == 1) for e in polys[1].exponents())):
             self.L = CR(polys[1])
         else:
-            raise AttributeError( "there must be one bilinear polynomial")
+            raise AttributeError("there must be one bilinear polynomial")
 
         if (all(((e[0] + e[1] + e[2]) == 2 and (e[3] + e[4] + e[5]) == 2) for e in polys[0].exponents())):
             self.Q = CR(polys[0])
         elif (all(((e[0] + e[1] + e[2]) == 2 and (e[3] + e[4] + e[5]) == 2) for e in polys[1].exponents())):
             self.Q = CR(polys[1])
         else:
-            raise AttributeError( "there must be one biquadratic polynomial")
+            raise AttributeError("there must be one biquadratic polynomial")
         AlgebraicScheme_subscheme.__init__(self, A, polys)
 
     def change_ring(self, R):
@@ -243,7 +243,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         if self.L(*Point) == 0 and self.Q(*Point) == 0:
             return True
         else:
-            raise AttributeError( "point not on surface")
+            raise AttributeError("point not on surface")
 
     def _Lcoeff(self, component, i):
         r"""
@@ -287,9 +287,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         """
         #Error Checks for Passed in Values
         if not component in [0,1]:
-            raise ValueError( "component can only be 1 or 0")
+            raise ValueError("component can only be 1 or 0")
         if not i in [0,1,2]:
-            raise ValueError( "index must be 0, 1, or 2")
+            raise ValueError("index must be 0, 1, or 2")
         R = self.ambient_space().coordinate_ring()
         return self.L.coefficient(R.gen(component*3 + i))
 
@@ -337,10 +337,10 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         """
         #Check Errors in Passed in Values
         if not component in [0,1]:
-            raise ValueError( "component can only be 1 or 0")
+            raise ValueError("component can only be 1 or 0")
 
-        if not (i in [0,1,2]) and  not (j in [0,1,2]):
-            raise ValueError( "the two indexes must be either 0, 1, or 2")
+        if not (i in [0,1,2]) and not (j in [0,1,2]):
+            raise ValueError("the two indexes must be either 0, 1, or 2")
 
         R = self.ambient_space().coordinate_ring()
         return self.Q.coefficient(R.gen(component * 3 + i) * R.gen(component * 3 + j))
@@ -375,18 +375,18 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         """
         #Check Errors in passed in values
         if not component in [0, 1]:
-            raise ValueError( "component can only be 1 or 0")
+            raise ValueError("component can only be 1 or 0")
 
         if not k in [0,1,2]:
-            raise ValueError( "index must be either 0, 1, or 2")
+            raise ValueError("index must be either 0, 1, or 2")
 
-        Indices = [ 0, 1, 2]
+        Indices = [0, 1, 2]
         Indices.remove( k)
         i = Indices[0]
         j = Indices[1]
 
-        return (self._Lcoeff(component, j) ** 2) * (self._Qcoeff(component, i, i) ) - (self._Lcoeff(component, i) ) * \
-            (self._Lcoeff(component, j)) * (self._Qcoeff(component, i, j)) + (self._Lcoeff( component, i) ** 2) * \
+        return (self._Lcoeff(component, j)**2) * (self._Qcoeff(component, i, i)) - (self._Lcoeff(component, i))* \
+            (self._Lcoeff(component, j)) * (self._Qcoeff(component, i, j)) + (self._Lcoeff( component, i)**2)* \
             (self._Qcoeff( component, j, j))
 
     @cached_method
@@ -420,11 +420,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
              2*y0*y1^3 + 2*y0*y1*y2^2 - y1*y2^3
         """
         #Check Errors in Passed in Values
-        if ( component in [0, 1]) == False:
-            raise ValueError( "component can only be 1 or 0")
+        if (component in [0, 1]) == False:
+            raise ValueError("component can only be 1 or 0")
 
-        if ( i in [0, 1, 2] == False) or ( j in [0, 1, 2] == False):
-            raise ValueError( "the two indexes must be either 0, 1, or 2")
+        if (i in [0, 1, 2] == False) or ( j in [0, 1, 2] == False):
+            raise ValueError("the two indexes must be either 0, 1, or 2")
 
         Indices = [ 0, 1, 2]
         Indices.remove(i)
@@ -432,10 +432,10 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         k = Indices[0]
 
-        return 2*( self._Lcoeff(component, i)) * (self._Lcoeff(component, j)) * (self._Qcoeff(component, k, k)) -\
+        return 2*(self._Lcoeff(component, i)) * (self._Lcoeff(component, j)) * (self._Qcoeff(component, k, k)) -\
              (self._Lcoeff(component, i)) * (self._Lcoeff( component, k)) * (self._Qcoeff(component, j, k)) -\
               (self._Lcoeff(component, j)) * (self._Lcoeff(component, k)) * (self._Qcoeff( component, i, k)) +\
-               (self._Lcoeff(component, k) ** 2) * (self._Qcoeff(component, i, j))
+               (self._Lcoeff(component, k)**2) * (self._Qcoeff(component, i, j))
 
     def Lxa(self, a):
         r"""
@@ -506,11 +506,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             raise TypeError("point must be in Projective Space of dimension 2")
         AS = self.ambient_space()
         ASC = AS.coordinate_ring()
-        PSY = AS[1];
+        PSY = AS[1]
         PSYC = PSY.coordinate_ring()
         #Define projection homomorphism
-        p = ASC.hom([a[0], a[1], a[2]] + list( PSY.gens()), PSYC)
-        return((p(self.Q)))
+        p = ASC.hom([a[0], a[1], a[2]] + list(PSY.gens()), PSYC)
+        return(p(self.Q))
 
     def Sxa(self, a):
         r"""
@@ -584,7 +584,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         PSY = AS[0];
         PSYC = PSY.coordinate_ring()
         p = ASC.hom(list(PSY.gens()) + [b[0], b[1], b[2]], PSYC)
-        return ((p(self.L)))
+        return (p(self.L))
 
     def Qyb(self, b):
         r"""
@@ -618,7 +618,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             raise TypeError("point must be in projective space of dimension 2")
         AS = self.ambient_space()
         ASC = AS.coordinate_ring()
-        PSY = AS[0];
+        PSY = AS[0]
         PSYC = PSY.coordinate_ring()
         p = ASC.hom(list(PSY.gens()) + [b[0], b[1], b[2]], PSYC)
         return (p(self.Q))
@@ -657,13 +657,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             raise TypeError("point must be in projective space of dimension 2")
         AS = self.ambient_space()
         ASC = AS.coordinate_ring()
-        PSY = AS[0];
+        PSY = AS[0]
         PSYC = PSY.coordinate_ring()
         return PSY.subscheme([self.Lyb(b), self.Qyb(b)])
 
     def Ramification_poly(self, i):
         r"""
-        Function will return the Ramification polynomial  `g^* `.
+        Function will return the Ramification polynomial  `g^*`.
 
         This polynomial is defined by:
 
@@ -685,9 +685,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z, Y])
             sage: X.Ramification_poly(0)
-            8*y0^5*y1 - 24*y0^4*y1^2 + 48*y0^2*y1^4 - 16*y0*y1^5 + y1^6 + 84*y0^3*y1^2*y2\
-            + 46*y0^2*y1^3*y2 - 20*y0*y1^4*y2 + 16*y1^5*y2 + 53*y0^4*y2^2 + 56*y0^3*y1*y2^2\
-            - 32*y0^2*y1^2*y2^2 - 80*y0*y1^3*y2^2 - 92*y1^4*y2^2 - 12*y0^2*y1*y2^3\
+            8*y0^5*y1 - 24*y0^4*y1^2 + 48*y0^2*y1^4 - 16*y0*y1^5 + y1^6 + 84*y0^3*y1^2*y2
+            + 46*y0^2*y1^3*y2 - 20*y0*y1^4*y2 + 16*y1^5*y2 + 53*y0^4*y2^2 + 56*y0^3*y1*y2^2
+            - 32*y0^2*y1^2*y2^2 - 80*y0*y1^3*y2^2 - 92*y1^4*y2^2 - 12*y0^2*y1*y2^3
             - 168*y0*y1^2*y2^3 - 122*y1^3*y2^3 + 14*y0^2*y2^4 + 8*y0*y1*y2^4 - 112*y1^2*y2^4 + y2^6
         """
         return ((self._Lcoeff(i, 0))**2)*(self._Qcoeff(i, 1, 2))**2 + \
@@ -755,10 +755,10 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                     self.Hpoly(1, 0, 2), self.Hpoly(1, 1, 2))
         phi = R.hom(vars + [0, 0, 0], R0)
         I = phi(I)
-        if I.dimension() !=  0:
+        if I.dimension() != 0:
             return True
 
-        PS = PP[1]; #check for y fibers
+        PS = PP[1] #check for y fibers
         vars = list(PS.gens())
         R0 = PolynomialRing(K,3,vars) #for dimension calculation to work,
         #must be done with Polynomial ring over a field
@@ -767,7 +767,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                     self.Hpoly(0, 0, 2), self.Hpoly(0, 1, 2))
         phi = R.hom([0, 0, 0] + vars, R0)
         I = phi(I)
-        if I.dimension() !=  0:
+        if I.dimension() != 0:
             return True
         return False
 
@@ -881,8 +881,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 Var = J.variety()
                 if Var !=  [{}]:
                     for d in Var: #iterate through dictionaries
-                        P = [] #new point                         
-                        for z in mapvars: #assign coordinate values 
+                        P = [] #new point
+                        for z in mapvars: #assign coordinate values
                             if (z == 1):
                                 P.append(1)
                             else:
@@ -908,7 +908,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         `p` is a prime of bad reduction if and only if the defining
         polynomials of self plus the G and H polynomials have a common
         zero. Or stated another way, `p` is a prime of bad reducion if
-        and only if the radical of the ideal defined by the defining 
+        and only if the radical of the ideal defined by the defining
         polynomials of self plus the G and H polynomials is not
         `(x_0,x_1,\ldots,x_N)`.  This happens if and only if some
         power of each `x_i` is not in the ideal defined by the
@@ -932,16 +932,16 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         """
         PP = self.ambient_space()
         if PP.base_ring() in _NumberFields or is_NumberFieldOrder(PP.base_ring()):
-            if PP.base_ring() !=  ZZ and PP.base_ring() !=  QQ:
-                raise NotImplementedError( "must be ZZ or QQ")
+            if PP.base_ring() != ZZ and PP.base_ring() != QQ:
+                raise NotImplementedError("must be ZZ or QQ")
         else:
-            raise TypeError( "must be over a number field")
+            raise TypeError("must be over a number field")
         if self.is_degenerate():
-            raise TypeError( "surface is degenerate at all primes")
+            raise TypeError("surface is degenerate at all primes")
         RR = PP.coordinate_ring()
 
         #x-fibers
-        PSX = PP[0];
+        PSX = PP[0]
         vars = list(PSX.gens())
         K = PSX.base_ring()
         R = PolynomialRing(K, 3, vars)
@@ -967,7 +967,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 bad_primes = bad_primes+GB[i].lt().coefficients()[0].support()
 
         #y-fibers
-        PSY = PP[1];
+        PSY = PP[1]
         vars = list(PSY.gens())
         K = PSY.base_ring()
         R = PolynomialRing(K, 3, vars)
@@ -1005,7 +1005,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Checks to confirm that all of the 2x2 minors of the Jacobian generated from
-        the Biquadratic and Bilinear forms have no common vanishing points.
+        the biquadratic and bilinear forms have no common vanishing points.
 
         OUTPUT:  Boolean.
 
@@ -1220,14 +1220,14 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         phi = RR.hom([s, 1, z0, z1, z2], SS)
         J = phi(I)
         if J.dimension() > 0:
-            raise ValueError( "cannot distinguish points in the degenerate fiber")
+            raise ValueError("cannot distinguish points in the degenerate fiber")
         V = J.variety()
-        #Our blow-up point has more than one line passing through it, thus we cannot find 
+        #Our blow-up point has more than one line passing through it, thus we cannot find
         #the corresponding point on the surface
         if len(V) > 2:
-            raise ValueError( "cannot distinguish points in the degenerate fiber")
+            raise ValueError("cannot distinguish points in the degenerate fiber")
         #We always expect to have the trivial solution (0, 0, 0)
-        if len(V) ==  2:
+        if len(V) == 2:
             for D in V:
                 if D[s] != 0:
                     [a,b,c] = [D[z0], D[z1], D[z2]]
@@ -1265,10 +1265,10 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             phi = SS.hom([0, z0, z1, z2], SSS)
             J2 = phi(II)
             if J2.dimension() > 0:
-                raise ValueError( "cannot distinguish points in the degenerate fiber")
+                raise ValueError("cannot distinguish points in the degenerate fiber")
             V = J2.variety()
             if len(V) > 1:
-                raise ValueError( "cannot distinguish points in the degenerate fiber")
+                raise ValueError("cannot distinguish points in the degenerate fiber")
 
             if len(V) == 1:
                 [a, b, c] = [V[0][z0], V[0][z1], V[0][z2]]
@@ -1284,8 +1284,6 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 if len(V) > 1:
                     raise ValueError( "cannot distinguish points in the degenerate fiber")
                 [a,b,c] = [V[0][z0], V[0][z1], V[0][z2]]
-
-            
 
         Point = [P[0][0], P[0][1], P[0][2], a, b, c]
         if normalize:
@@ -1463,13 +1461,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         phi = RR.hom([s, 1, z0, z1, z2], SS)
         J = phi(I)
         if J.dimension() > 0:
-            raise ValueError( "cannot distinguish points in the degenerate fiber")
+            raise ValueError("cannot distinguish points in the degenerate fiber")
         V = J.variety()
 
-        #Our blow-up point has more than one line passing through it, thus we cannot find 
+        #Our blow-up point has more than one line passing through it, thus we cannot find
         #the corresponding point on the surface
         if len(V) > 2:
-            raise ValueError( "cannot distinguish points in the degenerate fiber")
+            raise ValueError("cannot distinguish points in the degenerate fiber")
         #We always expect to have the trivial solution (0, 0, 0)
         if len(V) ==  2:
             for D in V:
@@ -1506,11 +1504,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             phi = SS.hom([0, z0, z1 ,z2], SSS)
             J2 = phi(II)
             if J2.dimension() > 0:
-                raise ValueError( "cannot distinguish points in the degenerate fiber")
+                raise ValueError("cannot distinguish points in the degenerate fiber")
             V = J2.variety()
 
             if len(V) > 1:
-                raise ValueError( "cannot distinguish points in the degenerate fiber")
+                raise ValueError("cannot distinguish points in the degenerate fiber")
             if len(V) == 1:
                 [a, b, c] = [V[0][z0], V[0][z1], V[0][z2]]
             if len(V) == 0 or [a,b,c] == [0, 0, 0]:
@@ -1519,10 +1517,10 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 phi = RR.hom([1, 0, z0, z1, z2], SS)
                 J = phi(I)
                 if J.dimension() > 0:
-                    raise ValueError( "cannot distinguish points in the degenerate fiber")
+                    raise ValueError("cannot distinguish points in the degenerate fiber")
                 V = phi(I).variety()
                 if len(V) > 1:
-                    raise ValueError( "cannot distinguish points in the degenerate fiber")
+                    raise ValueError("cannot distinguish points in the degenerate fiber")
                 [a,b,c] = [V[0][z0], V[0][z1], V[0][z2]]
 
         Point = [a, b, c, P[1][0], P[1][1], P[1][2]]
@@ -1614,7 +1612,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def lambda_plus(self, P, v, N, m, n, prec = 100):
         r"""
-        Evaluates the  local canonical height plus function of Call-Silverman at \
+        Evaluates the  local canonical height plus function of Call-Silverman at
         the place ``v`` for ``P`` with ``N`` terms of the series.
 
         Use ``v = 0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
@@ -1686,7 +1684,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             #normalize PK
             newP.scale_by([1/PK[0][i],1])
 
-            #Find B and A, helper values for the local height 
+            #Find B and A, helper values for the local height
             if PK[1][j].abs() <= PK[1][l].abs():
                 B = Rx(W.Gpoly(1, l))(tuple(newP[0]))*PK[1][j]/PK[1][l]
             else:
@@ -1711,7 +1709,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             PK = newQ
         return local_height
 
-    def lambda_minus(self, P, v, N, m, n, prec = 100):
+    def lambda_minus(self, P, v, N, m, n, prec=100):
         r"""
         Evaluates the local canonical height minus function of Call-Silverman
         at the place ``v`` for ``P`` with ``N`` terms of the series.
@@ -1805,7 +1803,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             PK = newQ
         return local_height
 
-    def canonical_height_plus(self, P, N, badprimes = None, prec = 100):
+    def canonical_height_plus(self, P, N, badprimes=None, prec=100):
         r"""
         Evaluates the canonical height plus function of Call-Silverman
         for ``P`` with ``N`` terms of the series of the local heights.
@@ -1869,7 +1867,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             h += self.lambda_plus(P, p, N, m, n, prec)
         return(h)
 
-    def canonical_height_minus(self, P, N, badprimes = None, prec = 100):
+    def canonical_height_minus(self, P, N, badprimes=None, prec=100):
         r"""
         Evaluates the canonical height minus function of Call-Silverman
         for ``P`` with ``N`` terms of the series of the local heights.
@@ -1933,7 +1931,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             h += self.lambda_minus(P, p, N, m, n, prec)
         return(h)
 
-    def canonical_height(self, P, N, badprimes = None, prec = 100):
+    def canonical_height(self, P, N, badprimes=None, prec=100):
         r"""
         Evaluates the canonical height for ``P`` with ``N`` terms of the series of the local
         heights.
@@ -1986,9 +1984,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         return(self.canonical_height_plus(P, N,badprimes,prec) +
                self.canonical_height_minus(P, N,badprimes,prec))
 
-    def fiber(self,p,component):
+    def fiber(self, p, component):
         r"""
-        Returns the fibers [y (component = 1) or x (Component = 0)]  of a point on a
+        Returns the fibers [y (component = 1) or x (Component = 0)] of a point on a
         K3 Surface, will work for nondegenerate fibers only.
 
         For algorithm, see [Hutzthesis]_.
@@ -2174,8 +2172,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         OUTPUT:
 
-        The nth iterate of the point given the phi function (if n is positive), or the 
-        psi function (if n is negative).
+        The nth iterate of the point given the phi function (if ``n`` is positive), or the
+        psi function (if ``n`` is negative).
 
         EXAMPLES::
 
@@ -2209,18 +2207,18 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             True
         """
         try:
-            n=ZZ(n)
+            n = ZZ(n)
         except TypeError:
             raise TypeError("iterate number must be an integer")
         #Since phi and psi and inveerses and automorphism
-        if n <0:
+        if n < 0:
             return(self.nth_iterate_psi(P, abs(n), **kwds))
-        if n==0:
+        if n == 0:
             return(self)
         else:
-            Q=self.phi(P, **kwds)
+            Q = self.phi(P, **kwds)
             for i in range(2, n+1):
-                Q=self.phi(Q, **kwds)
+                Q = self.phi(Q, **kwds)
             return(Q)
 
     def nth_iterate_psi(self, P, n, **kwds):
@@ -2241,8 +2239,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         OUTPUT:
 
-        The nth iterate of the point given the psi function (if n is positive),
-        or the phi function (if n is negative).
+        The nth iterate of the point given the psi function (if ``n`` is positive),
+        or the phi function (if ``n`` is negative).
 
         EXAMPLES::
 
@@ -2264,7 +2262,6 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: W.nth_iterate_psi(T, 7)
             (1 : 0 : 1 , -1 : 2 : 1)
         """
-
         try:
             n = ZZ(n)
         except TypeError:
@@ -2285,7 +2282,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         Returns the orbit of the `\phi` function defined by `\phi = \sigma_y \circ \sigma_x`
         Function is defined in [CaSi]_.
 
-        INPUT: 
+        INPUT:
 
         - ``P`` - Point on the K3 surface.
 
@@ -2313,7 +2310,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             [(0 : 0 : 1 , 1 : 0 : 0), (-1 : 0 : 1 , 0 : 1 : 0), (-12816/6659 : 55413/6659 : 1 , 1 : 1/9 : 1)]
             sage: X.orbit_phi(T,[2,3], normalize = True)
             [(-12816/6659 : 55413/6659 : 1 , 1 : 1/9 : 1),
-            (7481279673854775690938629732119966552954626693713001783595660989241/18550615454277582153932951051931712107449915856862264913424670784695 
+            (7481279673854775690938629732119966552954626693713001783595660989241/18550615454277582153932951051931712107449915856862264913424670784695
             : 3992260691327218828582255586014718568398539828275296031491644987908/18550615454277582153932951051931712107449915856862264913424670784695 :
             1 , -117756062505511/54767410965117 : -23134047983794359/37466994368025041 : 1)]
         """
@@ -2324,9 +2321,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             N[0] = ZZ(N[0])
             N[1] = ZZ(N[1])
         except TypeError:
-            raise TypeError( "orbit bounds must be integers")
+            raise TypeError("orbit bounds must be integers")
         if N[0] < 0 or N[1] < 0:
-            raise TypeError( "orbit bounds must be non-negative")
+            raise TypeError("orbit bounds must be non-negative")
         if N[0] > N[1]:
             return([])
         Q = copy(P)
@@ -2344,7 +2341,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         Function is defined in [CaSi]_.
 
-        INPUT: 
+        INPUT:
 
         - ``P`` - a point on the K3 surface.
 
@@ -2380,9 +2377,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             N[0] = ZZ(N[0])
             N[1] = ZZ(N[1])
         except TypeError:
-            raise TypeError( "orbit bounds must be integers")
+            raise TypeError("orbit bounds must be integers")
         if N[0] < 0 or N[1] < 0:
-            raise TypeError( "orbit bounds must be non-negative")
+            raise TypeError("orbit bounds must be non-negative")
         if N[0] > N[1]:
             return([])
         Q = copy(P)
@@ -2397,7 +2394,6 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     def is_isomorphic(self, right):
         r"""
         Checks to see if two K3 surfaces have the same defining ideal.
-        
 
         INPUT:
 
@@ -2429,7 +2425,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: Q = x1^2*y0^2 + 2*x2^2*y0*y1 + x0^2*y1^2 -x0*x1*y2^2
             sage: W2 = WehlerK3Surface([L, Q])
             sage: W1.is_isomorphic(W2)
-            False 
+            False
         """
         return self.defining_ideal() == right.defining_ideal()
 
@@ -2469,11 +2465,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             False
         """
         N = len(orbit)
-        if self.nth_iterate_phi(orbit[0], N) != orbit[0] and  self.nth_iterate_psi(orbit[0], N) != orbit[0]:
+        if self.nth_iterate_phi(orbit[0], N) != orbit[0] and self.nth_iterate_psi(orbit[0], N) != orbit[0]:
             raise ValueError("must be an orbit of phi or psi functions")
         sym = False
         i = 0
-        while i < len(orbit)-1 and sym == False: 
+        while i < len(orbit)-1 and sym == False:
             P = orbit[i]
             Q = orbit[i + 1]
             if P[0] == Q[0] or P[1] == Q[1]:
@@ -2490,8 +2486,8 @@ class WehlerK3Surface_finite_field( WehlerK3Surface_field):
         Counts the total number of points on the K3 surface.
 
         ALGORITHM:
- 
-        Enumerate points over `\mathbb{P}^2`, and then count the points on the fiber of 
+
+        Enumerate points over `\mathbb{P}^2`, and then count the points on the fiber of
         each of those points.
 
         OUTPUT: Integer- total number of points on the surface.

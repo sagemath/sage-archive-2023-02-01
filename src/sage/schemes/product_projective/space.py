@@ -428,7 +428,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         r"""
         Returns the number of generators of this space.
 
-       This is the number of variables in the coordinate ring of the projectice space.
+        This is the number of variables in the coordinate ring of the projectice space.
 
         OUTPUT: An integer.
 
@@ -549,7 +549,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
     def _validate(self, polynomials):
         r"""
         If ``polynomials`` is a tuple of valid polynomial functions on this space,
-        return ``polynomials``, otherwise raise a TypeError.
+        return ``polynomials``, otherwise raise a ``TypeError``.
 
         Since this is a product of projective spaces, the polynomials must be multi-homogeneous.
 

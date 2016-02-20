@@ -1373,13 +1373,13 @@ unsigned G3_SERIAL::serial = function::register_new(function_options("G", 3).
 static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
 {
 	// classical polylogs
-	if (m_.info(info_flags::posint)) {
-		if (x_.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(m_) and m_.info(info_flags::posint)) {
+		if (is_exactly_a<numeric>(x_)) {
 			return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_), parent);
 		} else {
 			// try to numerically evaluate second argument
 			ex x_val = x_.evalf(0, parent);
-			if (x_val.info(info_flags::numeric)) {
+			if (is_exactly_a<numeric>(x_val)) {
 				return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_val), parent);
 			}
 		}

@@ -116,7 +116,7 @@ static ex exp_eval(const ex & x)
 		return x.op(0);
 	
 	// exp(float) -> float
-	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
+	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational))
 		return exp(ex_to<numeric>(x));
 	
 	return exp(x).hold();
@@ -228,7 +228,7 @@ static ex log_evalf(const ex & x, PyObject* parent)
 
 static ex log_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 		// log(float) -> float
 		if (!x.info(info_flags::crational))
 			return log(ex_to<numeric>(x));
@@ -414,7 +414,7 @@ static ex sinh_evalf(const ex & x, PyObject* parent)
 
 static ex sinh_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// sinh(0) -> 0
 		if (x.is_zero())
@@ -438,8 +438,9 @@ static ex sinh_eval(const ex & x)
 		return x;
 	}
 	
-	if ((x/Pi).info(info_flags::numeric) &&
-		ex_to<numeric>(x/Pi).real().is_zero())  // sinh(I*x) -> I*sin(x)
+        ex xoverpi = x/Pi;
+	if (is_exactly_a<numeric>(xoverpi) &&
+		ex_to<numeric>(xoverpi).real().is_zero())  // sinh(I*x) -> I*sin(x)
 		return I*sin(x/I);
 	
 	if (is_exactly_a<function>(x)) {
@@ -507,7 +508,7 @@ static ex cosh_evalf(const ex & x, PyObject* parent)
 
 static ex cosh_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// cosh(0) -> 1
 		if (x.is_zero())
@@ -531,8 +532,9 @@ static ex cosh_eval(const ex & x)
 		return Infinity;
 	}
 
-	if ((x/Pi).info(info_flags::numeric) &&
-		ex_to<numeric>(x/Pi).real().is_zero())  // cosh(I*x) -> cos(x)
+        ex xoverpi = x/Pi;
+	if (is_exactly_a<numeric>(xoverpi) &&
+		ex_to<numeric>(xoverpi).real().is_zero())  // cosh(I*x) -> cos(x)
 		return cos(x/I);
 	
 	if (is_exactly_a<function>(x)) {
@@ -600,7 +602,7 @@ static ex tanh_evalf(const ex & x, PyObject* parent)
 
 static ex tanh_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// tanh(0) -> 0
 		if (x.is_zero())
@@ -627,8 +629,9 @@ static ex tanh_eval(const ex & x)
 		throw (std::runtime_error("tanh_eval(): tanh(unsigned_infinity) encountered"));
 	}
 		
-	if ((x/Pi).info(info_flags::numeric) &&
-		ex_to<numeric>(x/Pi).real().is_zero())  // tanh(I*x) -> I*tan(x);
+        ex xoverpi = x/Pi;
+	if (is_exactly_a<numeric>(xoverpi) &&
+		ex_to<numeric>(xoverpi).real().is_zero())  // tanh(I*x) -> I*tan(x);
 		return I*tan(x/I);
 	
 	if (is_exactly_a<function>(x)) {
@@ -717,7 +720,7 @@ static ex asinh_evalf(const ex & x, PyObject* parent)
 
 static ex asinh_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// asinh(0) -> 0
 		if (x.is_zero())
@@ -786,7 +789,7 @@ static ex acosh_evalf(const ex & x, PyObject* parent)
 
 static ex acosh_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// acosh(0) -> Pi*I/2
 		if (x.is_zero())
@@ -858,7 +861,7 @@ static ex atanh_evalf(const ex & x, PyObject* parent)
 
 static ex atanh_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// atanh(0) -> 0
 		if (x.is_zero())

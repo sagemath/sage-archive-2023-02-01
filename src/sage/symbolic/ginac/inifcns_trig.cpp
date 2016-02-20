@@ -159,7 +159,7 @@ static ex sin_eval(const ex & x)
 	}
 	
 	// sin(float) -> float
-        if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
+        if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational))
 		return sin(ex_to<numeric>(x));
 
 	// sin() is odd
@@ -314,7 +314,7 @@ static ex cos_eval(const ex & x)
 	}
 	
 	// cos(float) -> float
-	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
+	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational))
 		return cos(ex_to<numeric>(x));
 	
 	// cos() is even
@@ -478,7 +478,7 @@ static ex tan_eval(const ex & x)
 	}
 	
 	// tan(float) -> float
-	if (x.info(info_flags::numeric) && !x.info(info_flags::crational)) {
+	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
 		return tan(ex_to<numeric>(x));
 	}
 	
@@ -572,7 +572,7 @@ static ex cot_eval(const ex & x)
 	}
 
 	// cot(float) -> float
-	if (x.info(info_flags::numeric) && !x.info(info_flags::crational)) {
+	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
 		return tan(ex_to<numeric>(x)).inverse();
 	}
 
@@ -651,7 +651,7 @@ static ex asin_evalf(const ex & x, PyObject* parent)
 
 static ex asin_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// asin(0) -> 0
 		if (x.is_zero())
@@ -732,7 +732,7 @@ static ex acos_evalf(const ex & x, PyObject* parent)
 
 static ex acos_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// acos(1) -> 0
 		if (x.is_equal(_ex1))
@@ -813,7 +813,7 @@ static ex atan_evalf(const ex & x, PyObject* parent)
 
 static ex atan_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		// atan(0) -> 0
 		if (x.is_zero())
@@ -992,8 +992,8 @@ static ex atan2_eval(const ex & y, const ex & x)
 	}
 
 	// atan2(float, float) -> float
-	if (is_a<numeric>(y) && !y.info(info_flags::crational) &&
-	    is_a<numeric>(x) && !x.info(info_flags::crational))
+	if (is_exactly_a<numeric>(y) && !y.info(info_flags::crational) &&
+	    is_exactly_a<numeric>(x) && !x.info(info_flags::crational))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
 
 	// handle infinities
@@ -1060,7 +1060,7 @@ static ex acot_evalf(const ex & x, PyObject* parent)
 
 static ex acot_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 
 		if (x.is_zero())
 			return _ex1_2*Pi;

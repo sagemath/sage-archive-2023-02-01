@@ -362,7 +362,7 @@ static ex step_series(const ex & arg,
                       unsigned options)
 {
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
-	if (arg_pt.info(info_flags::numeric)
+	if (is_exactly_a<numeric>(arg_pt)
 	    && ex_to<numeric>(arg_pt).real().is_zero()
 	    && !(options & series_options::suppress_branchcut))
 		throw (std::domain_error("step_series(): on imaginary axis"));

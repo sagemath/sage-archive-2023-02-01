@@ -101,7 +101,9 @@ static ex lgamma_series(const ex & arg,
 	//   series(lgamma(x),x==-m,order) ==
 	//   series(lgamma(x+m+1)-log(x)...-log(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
-	if (!arg_pt.info(info_flags::integer) || arg_pt.info(info_flags::positive))
+	if (not is_exactly_a<numeric>(arg_pt)
+            or not arg_pt.info(info_flags::integer)
+            or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole of tgamma(-m):
 	numeric m = -ex_to<numeric>(arg_pt);
@@ -157,7 +159,7 @@ static ex tgamma_evalf(const ex & x, PyObject* parent)
  *  @exception pole_error("tgamma_eval(): simple pole",0) */
 static ex tgamma_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 		// trap integer arguments:
 		const numeric two_x = (*_num2_p)*ex_to<numeric>(x);
 		if (two_x.is_even()) {
@@ -214,7 +216,9 @@ static ex tgamma_series(const ex & arg,
 	//   series(tgamma(x),x==-m,order) ==
 	//   series(tgamma(x+m+1)/(x*(x+1)*...*(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
-	if (!arg_pt.info(info_flags::integer) || arg_pt.info(info_flags::positive))
+	if (not is_exactly_a<numeric>(arg_pt)
+            or not arg_pt.info(info_flags::integer)
+            or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole at -m:
 	const numeric m = -ex_to<numeric>(arg_pt);
@@ -265,7 +269,7 @@ static ex beta_eval(const ex & x, const ex & y)
 		return 1/y;
 	if (y.is_equal(_ex1))
 		return 1/x;
-	if (x.info(info_flags::numeric) && y.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x) and is_exactly_a<numeric>(y)) {
 		// treat all problematic x and y that may not be passed into tgamma,
 		// because they would throw there although beta(x,y) is well-defined
 		// using the formula beta(x,y) == (-1)^y * beta(1-x-y, y)
@@ -292,8 +296,7 @@ static ex beta_eval(const ex & x, const ex & y)
 		    (nx+ny).is_integer() &&
 		   !(nx+ny).is_positive())
 			 return _ex0;
-		if (!ex_to<numeric>(x).is_crational() ||
-				!ex_to<numeric>(y).is_crational())
+		if (not nx.is_crational() or not ny.is_crational())
 			return evalf(beta(x, y).hold());
 	}
 	
@@ -381,7 +384,7 @@ static ex psi1_evalf(const ex & x, PyObject* parent)
  *  Somebody ought to provide some good numerical evaluation some day... */
 static ex psi1_eval(const ex & x)
 {
-	if (x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(x)) {
 		const numeric &nx = ex_to<numeric>(x);
 		if (nx.is_integer()) {
 			// integer case 
@@ -416,8 +419,8 @@ static ex psi1_eval(const ex & x)
 				return recur+psi(_ex1_2);
 			}
 		}
-		if (!ex_to<numeric>(x).is_crational())
-			return psi(ex_to<numeric>(x));
+		if (not nx.is_crational())
+			return psi(nx);
 	}
 	
 	return psi(x).hold();
@@ -445,7 +448,9 @@ static ex psi1_series(const ex & arg,
 	//   series(psi(x),x==-m,order) ==
 	//   series(psi(x+m+1) - 1/x - 1/(x+1) - 1/(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
-	if (!arg_pt.info(info_flags::integer) || arg_pt.info(info_flags::positive))
+	if (not is_exactly_a<numeric>(arg_pt)
+            or not arg_pt.info(info_flags::integer) 
+            or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole at -m:
 	const numeric m = -ex_to<numeric>(arg_pt);
@@ -489,8 +494,9 @@ static ex psi2_eval(const ex & n, const ex & x)
 	// psi(-1,x) -> log(tgamma(x))
 	if (n.is_equal(_ex_1))
 		return log(tgamma(x));
-	if (n.info(info_flags::numeric) && n.info(info_flags::posint) &&
-		x.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(n)
+            and n.info(info_flags::posint)
+	    and is_exactly_a<numeric>(x)) {
 		const numeric &nn = ex_to<numeric>(n);
 		const numeric &nx = ex_to<numeric>(x);
 		if (nx.is_integer()) {
@@ -572,7 +578,9 @@ static ex psi2_series(const ex & n,
 	//   series(psi(x+m+1) - (-1)^n * n! * ((x)^(-n-1) + (x+1)^(-n-1) + ...
 	//                                      ... + (x+m)^(-n-1))),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
-	if (!arg_pt.info(info_flags::integer) || arg_pt.info(info_flags::positive))
+	if ((not is_exactly_a<numeric>(arg_pt)
+            and not arg_pt.info(info_flags::integer))
+            or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a pole of order n+1 at -m:
 	const numeric m = -ex_to<numeric>(arg_pt);

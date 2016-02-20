@@ -568,7 +568,7 @@ def contour_plot(f, xrange, yrange, **options):
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
 
-@options(plot_points=150, contours=(0,0), fill=False, cmap=["blue"])
+@options(plot_points=150, contours=(0,), fill=False, cmap=["blue"])
 def implicit_plot(f, xrange, yrange, **options):
     r"""
     ``implicit_plot`` takes a function of two variables, `f(x,y)`

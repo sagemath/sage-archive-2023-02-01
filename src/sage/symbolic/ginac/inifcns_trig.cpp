@@ -638,6 +638,177 @@ REGISTER_FUNCTION(cot, eval_func(cot_eval).
                        latex_name("\\cot"));
 
 //////////
+// secant (trigonometric function)
+//////////
+
+static ex sec_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return cos(ex_to<numeric>(x)).inverse();
+
+	return sec(x).hold();
+}
+
+static ex sec_eval(const ex & x)
+{
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+
+		// sec(asec(x)) -> x
+		if (is_ex_the_function(x, asec))
+			return t;
+	}
+
+	// sec(float) -> float
+	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
+		return cos(ex_to<numeric>(x)).inverse();
+	}
+
+        ex res = cos_eval(x);
+	if (not is_ex_the_function(res, cos))
+                return power(res, _ex_1);
+
+	return sec(x).hold();
+}
+
+static ex sec_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+
+	// d/dx sec(x) -> sec(x)*tan(x);
+	return sec(x)*tan(x);
+}
+
+static ex sec_real_part(const ex & x)
+{
+	ex a = GiNaC::real_part(x);
+	ex b = GiNaC::imag_part(x);
+	return cos(a)*cosh(b)/(sin(a)*sin(a)*sinh(b)*sinh(b) \
+            + cos(a)*cos(a)*cosh(b)*cosh(b));
+}
+
+static ex sec_imag_part(const ex & x)
+{
+	ex a = GiNaC::real_part(x);
+	ex b = GiNaC::imag_part(x);
+	return sin(a)*sinh(b)/(sin(a)*sin(a)*sinh(b)*sinh(b) \
+            + cos(a)*cos(a)*cosh(b)*cosh(b));
+}
+
+static ex sec_series(const ex &x,
+                     const relational &rel,
+                     int order,
+                     unsigned options)
+{
+	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
+	return (_ex1/cos(x)).series(rel, order, options);
+}
+
+static ex sec_conjugate(const ex & x)
+{
+	// conjugate(tan(x))==1/tan(conjugate(x))
+	return power(cos(x.conjugate()), _ex_1);
+}
+
+REGISTER_FUNCTION(sec, eval_func(sec_eval).
+                       evalf_func(sec_evalf).
+                       derivative_func(sec_deriv).
+                       series_func(sec_series).
+                       real_part_func(sec_real_part).
+                       imag_part_func(sec_imag_part).
+                       conjugate_func(sec_conjugate).
+                       latex_name("\\sec"));
+
+//////////
+// cosecant (trigonometric function)
+//////////
+
+static ex csc_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return sin(ex_to<numeric>(x)).inverse();
+
+	return csc(x).hold();
+}
+
+static ex csc_eval(const ex & x)
+{
+	// csc(0) -> error
+	// This should be before the tests below, since multiplying infinity
+	// with other values raises runtime_errors
+	if (x.is_zero()) {
+		throw (std::runtime_error("csc_eval(): csc(0) encountered"));
+	}
+
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+
+		// csc(acsc(x)) -> x
+		if (is_ex_the_function(x, acsc))
+			return t;
+	}
+
+	// csc(float) -> float
+	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
+		return sin(ex_to<numeric>(x)).inverse();
+	}
+
+        ex res = sin_eval(x);
+	if (not is_ex_the_function(res, sin))
+                return power(res, _ex_1);
+
+	return csc(x).hold();
+}
+
+static ex csc_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+
+	// d/dx cot(x) -> -1-cot(x)^2;
+	return -csc(x)*cot(x);
+}
+
+static ex csc_real_part(const ex & x)
+{
+	ex a = GiNaC::real_part(x);
+	ex b = GiNaC::imag_part(x);
+	return sin(a)*cosh(b)/(sin(a)*sin(a)*cosh(b)*cosh(b) \
+            + cos(a)*cos(a)*sinh(b)*sinh(b));
+}
+
+static ex csc_imag_part(const ex & x)
+{
+	ex a = GiNaC::real_part(x);
+	ex b = GiNaC::imag_part(x);
+	return -cos(a)*sinh(b)/(sin(a)*sin(a)*cosh(b)*cosh(b) \
+            + cos(a)*cos(a)*sinh(b)*sinh(b));
+}
+
+static ex csc_series(const ex &x,
+                     const relational &rel,
+                     int order,
+                     unsigned options)
+{
+	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
+	return (_ex1/sin(x)).series(rel, order, options);
+}
+
+static ex csc_conjugate(const ex & x)
+{
+	// conjugate(tan(x))==1/tan(conjugate(x))
+	return power(sin(x.conjugate()), _ex_1);
+}
+
+REGISTER_FUNCTION(csc, eval_func(csc_eval).
+                       evalf_func(csc_evalf).
+                       derivative_func(csc_deriv).
+                       series_func(csc_series).
+                       real_part_func(csc_real_part).
+                       imag_part_func(csc_imag_part).
+                       conjugate_func(csc_conjugate).
+                       latex_name("\\csc"));
+
+//////////
 // inverse sine (arc sine)
 //////////
 
@@ -1111,7 +1282,125 @@ REGISTER_FUNCTION(acot, eval_func(acot_eval).
                         evalf_func(acot_evalf).
                         derivative_func(acot_deriv).
                         series_func(acot_series).
-			set_name("arccot", "\\arccot"));
+			set_name("arccot", "\\operatorname{arccot}"));
+
+
+//////////
+// inverse secant (arc secant)
+//////////
+
+static ex asec_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return acos(ex_to<numeric>(x).inverse());
+
+	return asec(x).hold();
+}
+
+static ex asec_eval(const ex & x)
+{
+	if (is_exactly_a<numeric>(x) and not x.info(info_flags::crational))
+		return acos(ex_to<numeric>(x).inverse());
+
+        if (x.is_zero()) {
+		throw (pole_error("asec_eval(): asec(0) encountered",0));
+	}
+
+	if (x.info(info_flags::infinity)) {
+		return Pi/_ex2;
+	}
+
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+		if (is_ex_the_function(x, sec))
+			return t;
+	}
+	return asec(x).hold();
+}
+
+static ex asec_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+	return power(mul(x, power(_ex_1 + power(x,_ex2), _ex1_2)), _ex_1);
+}
+
+static ex asec_series(const ex &arg,
+                      const relational &rel,
+                      int order,
+                      unsigned options)
+{
+	const ex &point = rel.rhs();
+	if (not point.info(info_flags::infinity)) {
+		throw (pole_error("cannot expand asec(x) around finite value",0));
+        }
+
+        throw (std::runtime_error("series growing in 1/x not implemented"));
+}
+
+REGISTER_FUNCTION(asec, eval_func(asec_eval).
+                        evalf_func(asec_evalf).
+                        derivative_func(asec_deriv).
+                        series_func(asec_series).
+			set_name("arcsec", "\\operatorname{arcsec}"));
+
+
+//////////
+// inverse cosecant (arc cosecant)
+//////////
+
+static ex acsc_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return asin(ex_to<numeric>(x).inverse());
+
+	return acsc(x).hold();
+}
+
+static ex acsc_eval(const ex & x)
+{
+	if (is_exactly_a<numeric>(x) and not x.info(info_flags::crational))
+		return asin(ex_to<numeric>(x).inverse());
+
+	if (x.is_zero()) {
+		throw (pole_error("acsc_eval(): asec(0) encountered",0));
+	}
+
+	if (x.info(info_flags::infinity)) {
+		return _ex0;
+	}
+
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+		if (is_ex_the_function(x, csc))
+			return t;
+	}
+	return acsc(x).hold();
+}
+
+static ex acsc_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+	return -power(mul(x, power(_ex_1 + power(x,_ex2), _ex1_2)), _ex_1);
+}
+
+static ex acsc_series(const ex &arg,
+                      const relational &rel,
+                      int order,
+                      unsigned options)
+{
+	const ex &point = rel.rhs();
+	if (not point.info(info_flags::infinity)) {
+		throw (pole_error("cannot expand acsc(x) around finite value",0));
+        }
+
+        throw (std::runtime_error("series growing in 1/x not implemented"));
+}
+
+REGISTER_FUNCTION(acsc, eval_func(acsc_eval).
+                        evalf_func(acsc_evalf).
+                        derivative_func(acsc_deriv).
+                        series_func(acsc_series).
+			set_name("arccsc", "\\operatorname{arccsc}"));
 
 
 } // namespace GiNaC

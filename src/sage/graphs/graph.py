@@ -6905,10 +6905,14 @@ class Graph(GenericGraph):
                         T[2 * j + 1, 2 * i] = 1
         return T.charpoly('t').reverse()
 
-    @doc_index("Basic methods")
+    @doc_index("Leftovers")
     def perfect_matchings(self):
         """
-        Returns an interator over all perfect matchings of the graph
+        Returns an interator over all perfect matchings of the graph.
+
+        .. SEEALSO::
+
+            :meth:`matching`
 
         ALGORITHM:
 
@@ -6929,7 +6933,21 @@ class Graph(GenericGraph):
              [(0, 2, None), (1, 3, None)],
              [(0, 3, None), (1, 2, None)]]
 
+             sage: G = graphs.CompleteGraph(8)
+             sage: len(list(G.perfect_matchings())) == \
+             ....: G.matching_polynomial().coefficients(sparse=False)[0]
+             True
+
             sage: G = graphs.PetersenGraph()
+            sage: list(G.perfect_matchings())
+            [[(0, 1, None), (2, 3, None), (4, 9, None), (6, 8, None), (5, 7, None)],
+             [(0, 1, None), (2, 7, None), (3, 4, None), (5, 8, None), (6, 9, None)],
+             [(0, 4, None), (1, 2, None), (3, 8, None), (6, 9, None), (5, 7, None)],
+             [(0, 4, None), (1, 6, None), (2, 3, None), (5, 8, None), (7, 9, None)],
+             [(0, 5, None), (1, 2, None), (3, 4, None), (6, 8, None), (7, 9, None)],
+             [(0, 5, None), (1, 6, None), (2, 7, None), (3, 8, None), (4, 9, None)]]
+
+            sage: G = graphs.PetersenGraph().copy(immutable=True)
             sage: list(G.perfect_matchings())
             [[(0, 1, None), (2, 3, None), (4, 9, None), (6, 8, None), (5, 7, None)],
              [(0, 1, None), (2, 7, None), (3, 4, None), (5, 8, None), (6, 9, None)],
@@ -6951,7 +6969,7 @@ class Graph(GenericGraph):
         elif all(len(cc)%2==0 for cc in self.connected_components()):
             v = next(self.vertex_iterator())
             for e in self.edges_incident(v):
-                Gp = self.copy()
+                Gp = self.copy(immutable=False)
                 Gp.delete_vertices([e[0],e[1]])
                 for mat in Gp.perfect_matchings():
                     yield [e]+mat

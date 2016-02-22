@@ -35,7 +35,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.constant_function import ConstantFunction
 from sage.matrix.constructor import matrix
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 from sage.combinat.partition import Partitions_all_bounded
 from sage.misc.misc_c import prod
 

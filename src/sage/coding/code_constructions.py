@@ -1091,7 +1091,7 @@ def QuadraticResidueCodeEvenPair(n,F):
         ...
         ValueError: the order of the finite field must be a quadratic residue modulo n
     """
-    from sage.misc.misc import srange
+    from sage.arith.srange import srange
     from sage.categories.finite_fields import FiniteFields
     if F not in FiniteFields():
         raise ValueError("the argument F must be a finite field")
@@ -1153,7 +1153,7 @@ def QuadraticResidueCodeOddPair(n,F):
         ...
         ValueError: the argument n must be an odd prime
     """
-    from sage.misc.misc import srange
+    from sage.arith.srange import srange
     from sage.categories.finite_fields import FiniteFields
     if F not in FiniteFields():
         raise ValueError("the argument F must be a finite field")

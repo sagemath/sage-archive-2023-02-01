@@ -1790,7 +1790,7 @@ class TransducerGenerators(object):
                 ValueError: Conflicting recursion for [0].
         """
         from sage.graphs.digraph import DiGraph
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
 
         if is_zero is None:
             is_zero = lambda x: not x

@@ -19,7 +19,7 @@ Plotting fields
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
-from sage.misc.misc import xsrange
+from sage.arith.srange import xsrange
 
 # Below is the base class that is used to make 'field plots'.
 # Its implementation is motivated by 'PlotField'.

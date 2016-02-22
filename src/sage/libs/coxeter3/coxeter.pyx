@@ -302,7 +302,7 @@ cdef class CoxGroup(SageObject):
             sage: W._ordering_from_cartan_type(CartanType(['A',5]))                     # optional - coxeter3
             [1, 2, 3, 4, 5]
         """
-        from sage.misc.all import srange
+        from sage.arith.srange import srange
         t = cartan_type.type()
         r = cartan_type.rank()
         is_affine = cartan_type.is_affine()

@@ -55,6 +55,7 @@ Lists and Iteration, etc.
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded
+   sage/arith/srange
 
 File and OS Access
 ~~~~~~~~~~~~~~~~~~

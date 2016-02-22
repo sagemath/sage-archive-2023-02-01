@@ -1168,16 +1168,21 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: _.parent()
             Univariate Polynomial Ring in R over Rational Field
             sage: P(1/3)^(1/2)
-            sqrt(1/3)
-            sage: _.parent()
-            Symbolic Ring
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot compute (1/3)^(1/2) in Univariate Polynomial
+            Ring in R over Rational Field
         """
         if fmpq_poly_degree(self.__poly) == 0:
             result = self[0]**exp
             try:
                 return self.parent()(result)
             except TypeError:
-                return result
+                raise TypeError(
+                    "cannot compute ({base})^({power}) in {parent}".format(
+                        base=self,
+                        power=exp,
+                        parent=self.parent()))
 
         cdef Polynomial_rational_flint res
 

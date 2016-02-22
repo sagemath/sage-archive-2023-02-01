@@ -177,7 +177,7 @@ Classes and Methods
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 
 from cpython.float cimport PyFloat_AS_DOUBLE

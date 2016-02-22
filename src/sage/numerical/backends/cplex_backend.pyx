@@ -15,7 +15,6 @@ AUTHORS:
 ##############################################################################
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
 
 from sage.numerical.mip import MIPSolverException
 

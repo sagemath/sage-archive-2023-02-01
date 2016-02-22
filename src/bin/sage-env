@@ -640,6 +640,12 @@ if [ -z "$SAGE_DOC_MATHJAX" ]; then
     export SAGE_DOC_MATHJAX
 fi
 
+# Set the cysignals crash logs directory
+if [ -z "$CYSIGNALS_CRASH_LOGS" ]; then
+    export CYSIGNALS_CRASH_LOGS="$DOT_SAGE/crash_logs"
+    export CYSIGNALS_CRASH_DAYS=7  # keep logs for 7 days
+fi
+
 # You can set environment variables in $SAGE_RC_FILE
 # (by default, this is the file $DOT_SAGE/sagerc).  For example,
 # setting PS1 there will set your prompt when you run "sage --sh".

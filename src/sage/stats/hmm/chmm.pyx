@@ -13,7 +13,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from libc.math cimport log, sqrt, exp, isnormal, isfinite, M_PI
 cdef double sqrt2pi = sqrt(2*M_PI)

@@ -17,7 +17,7 @@ See if :trac:`15118` is fixed::
     ZeroDivisionError
 """
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.long cimport *

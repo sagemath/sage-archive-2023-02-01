@@ -12,7 +12,7 @@ Modular symbols using eclib newforms
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from ..eclib cimport *
 from sage.libs.gmp.mpq cimport mpq_numref

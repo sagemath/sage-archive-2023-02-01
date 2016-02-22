@@ -241,7 +241,7 @@ import math # for log
 import sys
 import operator
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
 from cpython.string cimport *

@@ -1964,19 +1964,19 @@ class Graphics(WithEqualityById, SageObject):
         be run or doctested::
 
             sage: p = ellipse((0,0),4,1)
-            sage: #p.show(figsize=[232,232],dpi=100) # not tested
+            sage: p.show(figsize=[232,232],dpi=100)  # not tested
             ------------------------------------------------------------------------
-            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage has a bug
+            Unhandled SIGSEGV: A segmentation fault occurred.
+            This probably occurred because a *compiled* module has a bug
             in it and is not properly wrapped with sig_on(), sig_off().
-            Sage will now terminate.
+            Python will now terminate.
             ------------------------------------------------------------------------
-            sage: #p.show(figsize=[327,181],dpi=100) # not tested
+            sage: p.show(figsize=[327,181],dpi=100)  # not tested
             ------------------------------------------------------------------------
-            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage has a bug
+            Unhandled SIGSEGV: A segmentation fault occurred.
+            This probably occurred because a *compiled* module has a bug
             in it and is not properly wrapped with sig_on(), sig_off().
-            Sage will now terminate.
+            Python will now terminate.
             ------------------------------------------------------------------------
 
         The following tests ensure we give a good error message for

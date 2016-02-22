@@ -36,7 +36,7 @@ import weakref
 from sage.rings.infinity import infinity
 from sage.libs.gmp.mpz cimport *
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 cdef long maxpreccap = (1L << (sizeof(long) * 8 - 2)) - 1

@@ -111,7 +111,6 @@ REFERENCE:
 
 from libc.string cimport memcmp, memcpy
 include 'data_structures_pyx.pxi' # includes bitsets
-include 'sage/ext/interrupt.pxi'
 
 cdef inline int agcl_cmp(int a, int b):
     if a < b: return -1

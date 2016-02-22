@@ -76,7 +76,7 @@ TESTS::
 #############################################################################
 
 include "sage/ext/cdefs.pxi"
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *

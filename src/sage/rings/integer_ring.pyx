@@ -44,7 +44,7 @@ other types will also coerce to the integers, when it makes sense.
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "cysignals/signals.pxi"
 
 from cpython.int cimport *
 from cpython.list cimport *

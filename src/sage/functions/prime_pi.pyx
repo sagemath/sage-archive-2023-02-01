@@ -29,7 +29,7 @@ EXAMPLES::
 #*****************************************************************************
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from sage.libs.pari.paridecl cimport *
 
 from libc.stdint cimport int_fast8_t, uint_fast16_t, uint8_t, uint32_t, uint64_t

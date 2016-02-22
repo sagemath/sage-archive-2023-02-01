@@ -29,29 +29,12 @@ class BraidMoveCalculator(object):
     """
     Helper class to compute braid moves.
     """
-    def __init__(self,coxeter_group):
+    def __init__(self, coxeter_group):
+        """
+        Initialize ``self``.
+        """
         self.coxeter_group = coxeter_group
         self.coxeter_matrix = coxeter_group.coxeter_matrix()
-        # Unused
-        self.simple_reflections = self.coxeter_group.simple_reflections()
-
-    # Unused           
-    def multiply_word(self,word):
-        return self.coxeter_group.from_reduced_word(word)
-        #return prod([self.s[i] for i in word])
-
-    # Unused
-    def is_reduced(self, word):
-        return (len(word) == self.multiply_word(word).length())
-
-    # Unused
-    def braid_word(self, i, j):
-        s = self.simple_reflections
-        # m_ij = (s[i]*s[j]).order()  #For some reason this is no longer implemented
-        m_ij = int(self.coxeter_matrix[i-1,j-1])
-        num_pairs = m_ij // 2
-        extra_term = m_ij % 2
-        return (i,j)*num_pairs + (i,)*extra_term
 
     def _apply_put_in_front_recur_step(self, k, input_word, coxeter_matrix_entry):        
         i = input_word[0]
@@ -87,7 +70,7 @@ class BraidMoveCalculator(object):
         is ``k``. There still remains an issue with 0 indices.
         """
         i = input_word[0]
-        if i == 0 or k == 0:
+        if i == 0 or k == 0: # Is this for affine types? - Travis
             raise NotImplementedError
         entry = self.coxeter_matrix[i, k]
         return self._apply_put_in_front_recur_step(k, input_word, entry)

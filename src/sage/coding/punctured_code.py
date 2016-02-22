@@ -2,7 +2,7 @@ r"""
 Punctured code
 
 Let `C` be a linear code. Let `C_i` be the set of all words of `C` with the
-`i`-th coordinate beingremoved. `C_i` is the punctured code of `C`
+`i`-th coordinate being removed. `C_i` is the punctured code of `C`
 on the `i`-th position.
 """
 
@@ -62,8 +62,8 @@ class PuncturedCode(AbstractLinearCode):
 
     - ``C`` -- A linear code
 
-    - ``positions`` -- the positions where ``C`` will be punctured. It can be either an Sage integer
-      or a Python int if you need to puncture only one position, or a list of positions to puncture.
+    - ``positions`` -- the positions where ``C`` will be punctured. It can be either an integer
+      if one need to puncture only one position, or a list of positions to puncture.
       If the same position is passed several times, it will be considered only once.
 
     EXAMPLES::
@@ -82,10 +82,12 @@ class PuncturedCode(AbstractLinearCode):
 
     def __init__(self, C, positions):
         r"""
-        TESTS::
+        TESTS:
+
+        If one of the positions to puncture is bigger than the length of ``C``, an exception will be raised::
 
             sage: C = codes.RandomLinearCode(11, 5, GF(7))
-            sage: Cp = codes.PuncturedCode(C, 13)
+            sage: Cp = codes.PuncturedCode(C, [4,8,15])
             Traceback (most recent call last):
             ...
             ValueError: Positions to puncture must be positive integers smaller than the length of the provided code
@@ -126,20 +128,6 @@ class PuncturedCode(AbstractLinearCode):
                 and self.punctured_positions() == other.punctured_positions() \
                 and self.original_code() == other.original_code()
 
-    def __ne__(self, other):
-        r"""
-        Tests inequality between two Punctured codes.
-
-        EXAMPLES::
-
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
-            sage: Cp1 = codes.PuncturedCode(C, 2)
-            sage: Cp2 = codes.PuncturedCode(C, 3)
-            sage: Cp1 != Cp2
-            True
-        """
-        return not self.__eq__(other)
-
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.
@@ -170,7 +158,7 @@ class PuncturedCode(AbstractLinearCode):
 
     def punctured_positions(self):
         r"""
-        Returns the list of positions which were punctured on the original code
+        Returns the list of positions which were punctured on the original code.
 
         EXAMPLES::
 
@@ -196,7 +184,7 @@ class PuncturedCode(AbstractLinearCode):
 
     def dimension(self):
         r"""
-        Returns the dimension of ``self``
+        Returns the dimension of ``self``.
 
         EXAMPLES::
 
@@ -215,9 +203,8 @@ class PuncturedCode(AbstractLinearCode):
         r"""
         Returns a random codeword of ``self``.
 
-        This methods avoids computation of ``self``'s :meth:`sage.coding.linear_code.generator_matrix`
-        by puncturing the result of ``self``'s :meth:`original_code`'s
-        :meth:`sage.coding.linear_code.random_element`.
+        This methods does not trigger the computation of
+        ``self``'s :meth:`sage.coding.linear_code.generator_matrix`.
 
         INPUT:
 
@@ -325,6 +312,13 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
     INPUT:
 
     - ``code`` -- The associated code of this encoder.
+
+        EXAMPLES::
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
+            sage: E
+            Punctured matrix-based encoder for the Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
     """
 
     def __init__(self, code):
@@ -416,7 +410,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
     - ``strategy`` -- (dafault: ``None``) the strategy used to decode.
       The available strategies are:
 
-        * ``'error-erasure'`` -- uses an error erasure decoder over the original code if available,
+        * ``'error-erasure'`` -- uses an error-erasure decoder over the original code if available,
            fails otherwise.
 
         * ``'random-values'`` -- fills the punctured positions with random elements

@@ -2625,7 +2625,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     if new:
                         set_mnf += Set([candidate])
 
-        for candidate in Subsets(vertices, dimension+1): #  Checks for minimal nonfaces in the remaining dimension
+        for candidate in Subsets(vertices, dimension+2): #  Checks for minimal nonfaces in the remaining dimension
             new = not any((candidate.issuperset(mnf) for mnf in set_mnf))
             if new:
                 set_mnf += Set([candidate])

@@ -484,7 +484,9 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             if not error_erasure:
                 self._original_decoder = original_code.decoder(**kwargs)
         self._strategy = strategy
-        self._original_decoder.decoder_type()
+        self._decoder_type = copy(self._decoder_type)
+        self._decoder_type.remove("dynamic")
+        self._decoder_type = self._original_decoder.decoder_type()
         super(PuncturedCodeOriginalCodeDecoder, self).__init__(code, code.ambient_space(),\
                 self._original_decoder.connected_encoder())
 

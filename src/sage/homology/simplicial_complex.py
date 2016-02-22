@@ -2610,27 +2610,36 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Y = SimplicialComplex([[0,1], [1,2], [2,3], [3,0]])
             sage: Y.minimal_nonfaces()
             {(1, 3), (0, 2)}
+
+        TESTS::
+
+            sage: SC = SimplicialComplex([(0,1,2),(0,2,3),(2,3,4),(1,2,4), \
+                                          (1,4,5),(0,3,6),(3,6,7),(4,5,7)])
+            sage: SC.minimal_nonfaces() #  This was taking a long time before :trac:`20078`
+            {(3, 4, 7), (0, 7), (0, 4), (0, 5), (3, 5), (1, 7), (2, 5), (5, 6),
+            (1, 3), (4, 6), (2, 7), (2, 6), (1, 6)}
+
         """
 
         face_dict = self.faces()
         vertices = self.vertices()
         dimension = self.dimension()
-        set_mnf = frozenset()
+        set_mnf = set()
 
         for dim in range(dimension+1):
             face_sets = frozenset(f.set() for f in face_dict[dim])
             for candidate in combinations(vertices, dim + 1):
                 set_candidate = frozenset(candidate)
                 if set_candidate not in face_sets:
-                    new = not any((set_candidate.issuperset(mnf) for mnf in set_mnf))
+                    new = not any(set_candidate.issuperset(mnf) for mnf in set_mnf)
                     if new:
-                        set_mnf = set_mnf.union(frozenset([set_candidate]))
+                        set_mnf.add(set_candidate)
 
         for candidate in combinations(vertices, dimension+2): #  Checks for minimal nonfaces in the remaining dimension
             set_candidate = frozenset(candidate)
-            new = not any((set_candidate.issuperset(mnf) for mnf in set_mnf))
+            new = not any(set_candidate.issuperset(mnf) for mnf in set_mnf)
             if new:
-                set_mnf = set_mnf.union(frozenset([set_candidate]))
+                set_mnf.add(set_candidate)
 
         min_non_faces = Set([Simplex(mnf) for mnf in set_mnf])
 
@@ -3098,9 +3107,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 cube = []
                 for n in range(1, embed+1):
                     if n == i:
-                        cube.append([0, ])
+                        cube.append([0])
                     elif n not in J:
-                        cube.append([1, ])
+                        cube.append([1])
                     else:
                         cube.append([0, 1])
                 cubes.append(cube)

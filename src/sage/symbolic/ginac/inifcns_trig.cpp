@@ -64,8 +64,8 @@ static ex sin_eval(const ex & x)
 
 	ex coef_pi = x.coeff(Pi).expand();
 	ex rem = _ex0;
-	if (is_exactly_a<add>(coef_pi)){
-		for (size_t i=0; i < coef_pi.nops(); i++){
+	if (is_exactly_a<add>(coef_pi)) {
+		for (size_t i=0; i < coef_pi.nops(); i++) {
 			if ((coef_pi.op(i) / _ex2).info(info_flags::integer))
 				rem += Pi * coef_pi.op(i);
 		}
@@ -241,8 +241,8 @@ static ex cos_eval(const ex & x)
 
 	ex coef_pi = x.coeff(Pi).expand();
 	ex rem = _ex0;
-	if (is_exactly_a<add>(coef_pi)){
-		for (size_t i=0; i < coef_pi.nops(); i++){
+	if (is_exactly_a<add>(coef_pi)) {
+		for (size_t i=0; i < coef_pi.nops(); i++) {
 			if ((coef_pi.op(i) / _ex2).info(info_flags::integer))
 				rem += Pi * coef_pi.op(i);
 		}
@@ -413,8 +413,8 @@ static ex tan_eval(const ex & x)
 
 	ex coef_pi = x.coeff(Pi).expand();
 	ex rem = _ex0;
-	if (is_exactly_a<add>(coef_pi)){
-		for (size_t i=0; i < coef_pi.nops(); i++){
+	if (is_exactly_a<add>(coef_pi)) {
+		for (size_t i=0; i < coef_pi.nops(); i++) {
 			if (coef_pi.op(i).info(info_flags::integer))
 				rem += Pi * coef_pi.op(i);
 		}

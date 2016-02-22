@@ -451,7 +451,36 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             w_en += wd[i + d] * x ** (i + d)
         return w_en
 
+    def decode_to_message(self, r):
+        r"""
+        Decodes``r`` to an element in message space of ``self``
 
+        .. NOTE::
+
+            If the code associated to ``self`` has the same length as its
+            dimension, ``r`` will be unencoded as is. In that case,
+            if ``r`` is not a codeword, the output is unspecified.
+
+        INPUT:
+
+        - ``r`` -- a codeword of ``self``
+
+        OUTPUT:
+
+        - a vector of ``self`` message space
+
+        EXAMPLES::
+
+            sage: F = GF(11)
+            sage: n, k = 10, 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
+            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
+            sage: C.decode_to_message(r)
+            (3, 6, 6, 3, 1)
+        """
+        if self.length() == self.dimension():
+            return self.encoder().unencode_nocheck(r)
+        return vector(self.decoder().decode_to_message(r))
 
 
 
@@ -901,6 +930,12 @@ class GRSBerlekampWelchDecoder(Decoder):
         r"""
         Decodes ``r`` to an element in message space of ``self``.
 
+        .. NOTE::
+
+            If the code associated to ``self`` has the same length as its
+            dimension, ``r`` will be unencoded as is. In that case,
+            if ``r`` is not a codeword, the output is unspecified.
+
         INPUT:
 
         - ``r`` -- a codeword of ``self``
@@ -929,16 +964,19 @@ class GRSBerlekampWelchDecoder(Decoder):
             DecodingError
         """
         C = self.code()
-        col_mults = C.column_multipliers()
+        n, k = C.length(), C.dimension()
+        if n == k:
+            return self.connected_encoder().unencode_nocheck(r)
         if r in C:
             return self.connected_encoder().unencode_nocheck(r)
+        col_mults = C.column_multipliers()
 
         r = [r[i]/col_mults[i] for i in range(0, C.length())]
 
         t  = (C.minimum_distance()-1) // 2
-        l0 = C.length()-1-t
-        l1 = C.length()-1-t-(C.dimension()-1)
-        S  = matrix(C.base_field(), C.length(), l0+l1+2, lambda i,j :
+        l0 = n-1-t
+        l1 = n-1-t-(k-1)
+        S  = matrix(C.base_field(), n, l0+l1+2, lambda i,j :
                 (C.evaluation_points()[i])**j if j<(l0+1)
                 else r[i]*(C.evaluation_points()[i])**(j-(l0+1)))
         S  = S.right_kernel()
@@ -1156,6 +1194,12 @@ class GRSGaoDecoder(Decoder):
         r"""
         Decodes ``r`` to an element in message space of ``self``
 
+        .. NOTE::
+
+            If the code associated to ``self`` has the same length as its
+            dimension, ``r`` will be unencoded as is. In that case,
+            if ``r`` is not a codeword, the output is unspecified.
+
         INPUT:
 
         - ``r`` -- a codeword of ``self``
@@ -1188,12 +1232,16 @@ class GRSGaoDecoder(Decoder):
         col_mults = C.column_multipliers()
         PolRing = C.base_field()['x']
         G = self._polynomial_vanishing_at_alphas(PolRing)
+        n = C.length()
+
+        if n == C.dimension():
+            return self.connected_encoder().unencode_nocheck(r)
 
         if r in C:
             return self.connected_encoder().unencode_nocheck(r)
 
         points = [(alphas[i], r[i]/col_mults[i]) for i in
-                range(0, C.length())]
+                range(0, n)]
         R = PolRing.lagrange_polynomial(points)
 
         (Q1, Q0) = self._partial_xgcd(G, R, PolRing)
@@ -1327,6 +1375,16 @@ class GRSErrorErasureDecoder(Decoder):
         Decode ``word_and_erasure_vector`` to an element in message space
         of ``self``
 
+        .. NOTE::
+
+            If the code associated to ``self`` has the same length as its
+            dimension, ``r`` will be unencoded as is.
+            If the number of erasures is exactly `n - k`, where `n` is the
+            length of the code associated to ``self`` and `k` its dimension,
+            ``r`` will be returned as is.
+            In either case, if ``r`` is not a codeword,
+            the output is unspecified.
+
         INPUT:
 
         - ``word_and_erasure_vector`` -- a pair of vectors, where
@@ -1359,21 +1417,24 @@ class GRSErrorErasureDecoder(Decoder):
             ...
             DecodingError: Too many erasures in the received word
         """
-
+        C = self.code()
+        n, k = C.length(), C.dimension()
         word, erasure_vector = word_and_erasure_vector
         if erasure_vector.hamming_weight() >= self.code().minimum_distance():
             raise DecodingError("Too many erasures in the received word")
 
-        shorten_word = vector(self.code().base_ring(), [word[i] for i in range(len(word))
-                if erasure_vector[i]!=1])
-        C1_length = len(shorten_word)
+        punctured_word = vector(self.code().base_ring(), [word[i] for i in
+            range(len(word)) if erasure_vector[i]!=1])
+        C1_length = len(punctured_word)
+        if C1_length == k:
+            return self.connected_encoder().unencode_nocheck(word)
         C1_evaluation_points = [self.code().evaluation_points()[i] for i in
-                range(self.code().length()) if erasure_vector[i]!=1]
+                range(n) if erasure_vector[i]!=1]
         C1_column_multipliers = [self.code().column_multipliers()[i] for i in
-                range(self.code().length()) if erasure_vector[i]!=1]
-        C1 = GeneralizedReedSolomonCode(C1_evaluation_points,
-                self.code().dimension(), C1_column_multipliers)
-        return C1.decode_to_message(shorten_word)
+                range(n) if erasure_vector[i]!=1]
+        C1 = GeneralizedReedSolomonCode(C1_evaluation_points, k,
+                C1_column_multipliers)
+        return C1.decode_to_message(punctured_word)
 
     def decoding_radius(self, number_erasures):
         r"""
@@ -1646,6 +1707,11 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         r"""
         Corrects the errors in ``r`` and returns a codeword.
 
+        .. NOTE::
+
+            If the code associated to ``self`` has the same length as its
+            dimension, ``r`` will be returned as is.
+
         INPUT:
 
         - ``r`` -- a vector of the ambient space of ``self.code()``
@@ -1669,6 +1735,8 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         PolRing = C.base_field()['x']
         x = PolRing.gen()
 
+        if C.length() == C.dimension():
+            return r
         if r in C:
             return r
 
@@ -1679,6 +1747,39 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         e = self.forney_formula(EEP, ELP)
         return r - e
+
+    def decode_to_message(self, r):
+        r"""
+        Decodes``r`` to an element in message space of ``self``
+
+        .. NOTE::
+
+            If the code associated to ``self`` has the same length as its
+            dimension, ``r`` will be unencoded as is. In that case,
+            if ``r`` is not a codeword, the output is unspecified.
+
+        INPUT:
+
+        - ``r`` -- a codeword of ``self``
+
+        OUTPUT:
+
+        - a vector of ``self`` message space
+
+        EXAMPLES::
+
+            sage: F = GF(11)
+            sage: n, k = 10, 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
+            sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
+            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
+            sage: D.decode_to_message(r)
+            (3, 6, 6, 3, 1)
+        """
+        C = self.code()
+        if C.length() == C.dimension():
+            return self.connected_encoder().unencode_nocheck(r)
+        return super(GRSKeyEquationSyndromeDecoder, self).decode_to_message(r)
 
     def decoding_radius(self):
         r"""

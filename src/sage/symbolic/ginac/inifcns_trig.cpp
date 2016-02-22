@@ -176,7 +176,7 @@ static ex sin_eval(const ex & x)
 		return _ex0;
 	
 	// sin(float) -> float
-        if (is_exactly_a<numeric>(x_red) && !x.info(info_flags::crational))
+        if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
 		return sin(ex_to<numeric>(x_red));
 
 	// sin() is odd
@@ -348,7 +348,7 @@ static ex cos_eval(const ex & x)
 		return pow(_ex_1, ExOverPi);
 	
 	// cos(float) -> float
-	if (is_exactly_a<numeric>(x_red) && !x.info(info_flags::crational))
+	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
 		return cos(ex_to<numeric>(x_red));
 	
 	// cos() is even
@@ -525,7 +525,7 @@ static ex tan_eval(const ex & x)
 	}
 
 	// tan(float) -> float
-	if (is_exactly_a<numeric>(x_red) && !x.info(info_flags::crational)) {
+	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational)) {
 		return tan(ex_to<numeric>(x_red));
 	}
 	

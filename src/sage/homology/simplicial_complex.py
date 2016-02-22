@@ -163,7 +163,6 @@ from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
-from sage.combinat.subset import Subsets
 from sage.rings.integer_ring import ZZ
 from sage.structure.category_object import normalize_names
 from sage.misc.latex import latex
@@ -172,6 +171,7 @@ from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from functools import reduce
+from itertools import combinations
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
@@ -2615,20 +2615,22 @@ class SimplicialComplex(Parent, GenericCellComplex):
         face_dict = self.faces()
         vertices = self.vertices()
         dimension = self.dimension()
-        set_mnf = Set()
+        set_mnf = frozenset()
 
         for dim in range(dimension+1):
             face_sets = Set(f.set() for f in face_dict[dim])
-            for candidate in Subsets(vertices, dim + 1):
-                if frozenset(candidate) not in face_sets:
-                    new = not any((candidate.issuperset(mnf) for mnf in set_mnf))
+            for candidate in combinations(vertices, dim + 1):
+                set_candidate = frozenset(candidate)
+                if set_candidate not in face_sets:
+                    new = not any((set_candidate.issuperset(mnf) for mnf in set_mnf))
                     if new:
-                        set_mnf += Set([candidate])
+                        set_mnf = set_mnf.union(frozenset([set_candidate]))
 
-        for candidate in Subsets(vertices, dimension+2): #  Checks for minimal nonfaces in the remaining dimension
-            new = not any((candidate.issuperset(mnf) for mnf in set_mnf))
+        for candidate in combinations(vertices, dimension+2): #  Checks for minimal nonfaces in the remaining dimension
+            set_candidate = frozenset(candidate)
+            new = not any((set_candidate.issuperset(mnf) for mnf in set_mnf))
             if new:
-                set_mnf += Set([candidate])
+                set_mnf = set_mnf.union(frozenset([set_candidate]))
 
         min_non_faces = Set([Simplex(mnf) for mnf in set_mnf])
 

@@ -62,97 +62,123 @@ static ex sin_eval(const ex & x)
 		throw (std::runtime_error("sin_eval(): sin(infinity) encountered"));
 	}
 
-	ex coef_pi = x.coeff(Pi).expand();
-	ex rem = _ex0;
-	if (is_exactly_a<add>(coef_pi)) {
-		for (size_t i=0; i < coef_pi.nops(); i++) {
-			if ((coef_pi.op(i) / _ex2).info(info_flags::integer))
-				rem += Pi * coef_pi.op(i);
-		}
-	}
-	else if ((coef_pi / _ex2).info(info_flags::integer))
-		rem = Pi * coef_pi;
-	ex const x_red = x - rem;
+        if (is_exactly_a<numeric>(x) and ex_to<numeric>(x).is_zero())
+                return _ex0;
 
-	// sin(n/d*Pi) -> { all known radicals with nesting depth 2 }
-	const ex SixtyExOverPi = _ex60*x_red/Pi;
-	ex sign = _ex1;
-	if (is_exactly_a<numeric>(SixtyExOverPi)
-                and SixtyExOverPi.info(info_flags::integer)) {
-		numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num120_p);
-		if (z>=*_num60_p) {
-			// wrap to interval [0, Pi)
-			z -= *_num60_p;
-			sign = _ex_1;
-		}
-		if (z>*_num30_p) {
-			// wrap to interval [0, Pi/2)
-			z = *_num60_p-z;
-		}
-                // Not included were n*Pi/15 which has 3-level-deep roots
-		if (z.is_equal(*_num0_p))  // sin(0)       -> 0
-			return _ex0;
-		if (z.is_equal(*_num2_p))  // sin(Pi/30)   -> -1/8*sqrt(5) + 1/2*sqrt(-3/8*sqrt(5) + 15/8) - 1/8
-			return sign*(_ex_1*(sqrt(_ex5)+_ex1)/_ex8 +
-                                _ex1_4*sqrt(_ex1_2*(_ex15-_ex3*sqrt(_ex5))));
-		if (z.is_equal(*_num5_p))  // sin(Pi/12)   -> sqrt(6)/4*(1-sqrt(3)/3)
-			return sign*_ex1_4*sqrt(_ex6)*(_ex1+_ex_1_3*sqrt(_ex3));
-		if (z.is_equal(*_num6_p))  // sin(Pi/10)   -> sqrt(5)/4-1/4
-			return sign*(_ex1_4*sqrt(_ex5)+_ex_1_4);
-		if (z.is_equal(*_num10_p)) // sin(Pi/6)    -> 1/2
-			return sign*_ex1_2;
-		if (z.is_equal(*_num12_p)) // sin(Pi/5)    -> 1/4*sqrt(10-2*sqrt(5))
-			return sign*_ex1_4*sqrt(_ex10-_ex2*sqrt(_ex5));
-		if (z.is_equal(*_num14_p))  // sin(7*Pi/30)   -> -1/8*sqrt(5) + 1/2*sqrt(3/8*sqrt(5) + 15/8) + 1/8
-			return sign*((_ex1-sqrt(_ex5))/_ex8 +
-                                _ex1_4*sqrt(_ex1_2*(_ex15+_ex3*sqrt(_ex5))));
-		if (z.is_equal(*_num15_p)) // sin(Pi/4)    -> sqrt(2)/2
-			return sign*_ex1_2*sqrt(_ex2);
-		if (z.is_equal(*_num18_p)) // sin(3/10*Pi) -> sqrt(5)/4+1/4
-			return sign*(_ex1_4*sqrt(_ex5)+_ex1_4);
-		if (z.is_equal(*_num20_p)) // sin(Pi/3)    -> sqrt(3)/2
-			return sign*_ex1_2*sqrt(_ex3);
-		if (z.is_equal(*_num22_p))  // sin(11*Pi/30)   -> 1/8*sqrt(5) + 1/2*sqrt(-3/8*sqrt(5) + 15/8) + 1/8
-			return sign*((sqrt(_ex5)+_ex1)/_ex8 +
-                                _ex1_4*sqrt(_ex1_2*(_ex15-_ex3*sqrt(_ex5))));
-		if (z.is_equal(*_num24_p)) // sin(2*Pi/5)    -> 1/4*sqrt(10+2*sqrt(5))
-			return sign*_ex1_4*sqrt(_ex10+_ex2*sqrt(_ex5));
-		if (z.is_equal(*_num25_p)) // sin(5/12*Pi) -> sqrt(6)/4*(1+sqrt(3)/3)
-			return sign*_ex1_4*sqrt(_ex6)*(_ex1+_ex1_3*sqrt(_ex3));
-		if (z.is_equal(*_num26_p))  // sin(13*Pi/30)   -> 1/8*sqrt(5) + 1/2*sqrt(3/8*sqrt(5) + 15/8) - 1/8
-			return sign*((sqrt(_ex5)-_ex1)/_ex8 +
-                                _ex1_4*sqrt(_ex1_2*(_ex15+_ex3*sqrt(_ex5))));
-		if (z.is_equal(*_num30_p)) // sin(Pi/2)    -> 1
-			return sign;
-	}
+        std::function<bool (const ex&)> has_pi =
+        [&](const ex & the_ex) -> bool
+        {
+                if (is_exactly_a<constant>(the_ex)
+                        and ex_to<constant>(the_ex) == Pi)
+                        return true;
+                for (size_t i=0; i<the_ex.nops(); ++i)
+                        if (has_pi(the_ex.op(i)))
+                                return true;
+                return false;
+        };
 
-	const ex TwentyforExOverPi = _ex24*x_red/Pi;
-        sign = _ex1;
-	if (is_exactly_a<numeric>(TwentyforExOverPi)
-                and TwentyforExOverPi.info(info_flags::integer)) {
-		numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
-		if (z>=*_num24_p) {
-			// wrap to interval [0, Pi)
-			z -= *_num24_p;
-			sign = _ex_1;
-		}
-		if (z>*_num12_p) {
-			// wrap to interval [0, Pi/2)
-			z = *_num24_p-z;
-		}
-		if (z.is_equal(*_num1_p))  // sin(Pi/24) -> 1/4*sqrt(8-2*sqrt(6)-2*sqrt(2))
-			return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
-		if (z.is_equal(*_num3_p))  // sin(Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
-			return sign*(_ex1_2*sqrt(_ex2-sqrt(_ex2)));
-		if (z.is_equal(*_num5_p))  // sin(5*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)+2*sqrt(2))
-			return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
-		if (z.is_equal(*_num7_p))  // sin(7*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)-2*sqrt(2))
-			return sign *(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
-		if (z.is_equal(*_num9_p))  // sin(3*Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
-			return sign*(_ex1_2*sqrt(_ex2+sqrt(_ex2)));
-		if (z.is_equal(*_num11_p))  // sin(11*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)+2*sqrt(2))
-			return sign *(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
-	}
+        ex x_red;
+        if (has_pi(x)) {
+
+                ex coef_pi = x.coeff(Pi).expand();
+                ex rem = _ex0;
+                if (is_exactly_a<add>(coef_pi)) {
+                        for (size_t i=0; i < coef_pi.nops(); i++) {
+                                if ((coef_pi.op(i) / _ex2).info(info_flags::integer))
+                                        rem += Pi * coef_pi.op(i);
+                        }
+                }
+                else if ((coef_pi / _ex2).info(info_flags::integer))
+                        rem = Pi * coef_pi;
+                x_red = x - rem;
+
+                // sin(n/d*Pi) -> { all known radicals with nesting depth 2 }
+                const ex SixtyExOverPi = _ex60*x_red/Pi;
+                ex sign = _ex1;
+                if (is_exactly_a<numeric>(SixtyExOverPi)
+                        and SixtyExOverPi.info(info_flags::integer)) {
+                        numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num120_p);
+                        if (z>=*_num60_p) {
+                                // wrap to interval [0, Pi)
+                                z -= *_num60_p;
+                                sign = _ex_1;
+                        }
+                        if (z>*_num30_p) {
+                                // wrap to interval [0, Pi/2)
+                                z = *_num60_p-z;
+                        }
+                        // Not included were n*Pi/15 which has 3-level-deep roots
+                        if (z.is_equal(*_num0_p))  // sin(0)       -> 0
+                                return _ex0;
+                        if (z.is_equal(*_num2_p))  // sin(Pi/30)   -> -1/8*sqrt(5) + 1/2*sqrt(-3/8*sqrt(5) + 15/8) - 1/8
+                                return sign*(_ex_1*(sqrt(_ex5)+_ex1)/_ex8 +
+                                        _ex1_4*sqrt(_ex1_2*(_ex15-_ex3*sqrt(_ex5))));
+                        if (z.is_equal(*_num5_p))  // sin(Pi/12)   -> sqrt(6)/4*(1-sqrt(3)/3)
+                                return sign*_ex1_4*sqrt(_ex6)*(_ex1+_ex_1_3*sqrt(_ex3));
+                        if (z.is_equal(*_num6_p))  // sin(Pi/10)   -> sqrt(5)/4-1/4
+                                return sign*(_ex1_4*sqrt(_ex5)+_ex_1_4);
+                        if (z.is_equal(*_num10_p)) // sin(Pi/6)    -> 1/2
+                                return sign*_ex1_2;
+                        if (z.is_equal(*_num12_p)) // sin(Pi/5)    -> 1/4*sqrt(10-2*sqrt(5))
+                                return sign*_ex1_4*sqrt(_ex10-_ex2*sqrt(_ex5));
+                        if (z.is_equal(*_num14_p))  // sin(7*Pi/30)   -> -1/8*sqrt(5) + 1/2*sqrt(3/8*sqrt(5) + 15/8) + 1/8
+                                return sign*((_ex1-sqrt(_ex5))/_ex8 +
+                                        _ex1_4*sqrt(_ex1_2*(_ex15+_ex3*sqrt(_ex5))));
+                        if (z.is_equal(*_num15_p)) // sin(Pi/4)    -> sqrt(2)/2
+                                return sign*_ex1_2*sqrt(_ex2);
+                        if (z.is_equal(*_num18_p)) // sin(3/10*Pi) -> sqrt(5)/4+1/4
+                                return sign*(_ex1_4*sqrt(_ex5)+_ex1_4);
+                        if (z.is_equal(*_num20_p)) // sin(Pi/3)    -> sqrt(3)/2
+                                return sign*_ex1_2*sqrt(_ex3);
+                        if (z.is_equal(*_num22_p))  // sin(11*Pi/30)   -> 1/8*sqrt(5) + 1/2*sqrt(-3/8*sqrt(5) + 15/8) + 1/8
+                                return sign*((sqrt(_ex5)+_ex1)/_ex8 +
+                                        _ex1_4*sqrt(_ex1_2*(_ex15-_ex3*sqrt(_ex5))));
+                        if (z.is_equal(*_num24_p)) // sin(2*Pi/5)    -> 1/4*sqrt(10+2*sqrt(5))
+                                return sign*_ex1_4*sqrt(_ex10+_ex2*sqrt(_ex5));
+                        if (z.is_equal(*_num25_p)) // sin(5/12*Pi) -> sqrt(6)/4*(1+sqrt(3)/3)
+                                return sign*_ex1_4*sqrt(_ex6)*(_ex1+_ex1_3*sqrt(_ex3));
+                        if (z.is_equal(*_num26_p))  // sin(13*Pi/30)   -> 1/8*sqrt(5) + 1/2*sqrt(3/8*sqrt(5) + 15/8) - 1/8
+                                return sign*((sqrt(_ex5)-_ex1)/_ex8 +
+                                        _ex1_4*sqrt(_ex1_2*(_ex15+_ex3*sqrt(_ex5))));
+                        if (z.is_equal(*_num30_p)) // sin(Pi/2)    -> 1
+                                return sign;
+                }
+
+                const ex TwentyforExOverPi = _ex24*x_red/Pi;
+                sign = _ex1;
+                if (is_exactly_a<numeric>(TwentyforExOverPi)
+                        and TwentyforExOverPi.info(info_flags::integer)) {
+                        numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
+                        if (z>=*_num24_p) {
+                                // wrap to interval [0, Pi)
+                                z -= *_num24_p;
+                                sign = _ex_1;
+                        }
+                        if (z>*_num12_p) {
+                                // wrap to interval [0, Pi/2)
+                                z = *_num24_p-z;
+                        }
+                        if (z.is_equal(*_num1_p))  // sin(Pi/24) -> 1/4*sqrt(8-2*sqrt(6)-2*sqrt(2))
+                                return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
+                        if (z.is_equal(*_num3_p))  // sin(Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
+                                return sign*(_ex1_2*sqrt(_ex2-sqrt(_ex2)));
+                        if (z.is_equal(*_num5_p))  // sin(5*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)+2*sqrt(2))
+                                return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
+                        if (z.is_equal(*_num7_p))  // sin(7*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)-2*sqrt(2))
+                                return sign *(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
+                        if (z.is_equal(*_num9_p))  // sin(3*Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
+                                return sign*(_ex1_2*sqrt(_ex2+sqrt(_ex2)));
+                        if (z.is_equal(*_num11_p))  // sin(11*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)+2*sqrt(2))
+                                return sign *(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
+                }
+                
+                // evaluate sin(integer * pi) -> 0
+                const ex ExOverPi = x_red/Pi;
+                if (ExOverPi.info(info_flags::integer))
+                        return _ex0;
+        }
+        else
+                x_red = x;
 
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);
@@ -170,11 +196,6 @@ static ex sin_eval(const ex & x)
 			return t*power(_ex1+power(t,_ex2),_ex_1_2);
 	}
 
-	// evaluate sin(integer * pi) -> 0
-	const ex ExOverPi = x_red/Pi;
-	if (ExOverPi.info(info_flags::integer))
-		return _ex0;
-	
 	// sin(float) -> float
         if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
 		return sin(ex_to<numeric>(x_red));
@@ -239,92 +260,118 @@ static ex cos_eval(const ex & x)
 		throw (std::runtime_error("cos_eval(): cos(infinity) encountered"));
 	}
 
-	ex coef_pi = x.coeff(Pi).expand();
-	ex rem = _ex0;
-	if (is_exactly_a<add>(coef_pi)) {
-		for (size_t i=0; i < coef_pi.nops(); i++) {
-			if ((coef_pi.op(i) / _ex2).info(info_flags::integer))
-				rem += Pi * coef_pi.op(i);
-		}
-	}
-	else if ((coef_pi / _ex2).info(info_flags::integer))
-		rem = Pi * coef_pi;
-	ex const x_red = x - rem;
+        if (is_exactly_a<numeric>(x) and ex_to<numeric>(x).is_zero())
+                return _ex1;
 
-	// cos(n/d*Pi) -> { all known radicals with nesting depth 2 }
-	const ex SixtyExOverPi = _ex60*x_red/Pi;
-	ex sign = _ex1;
-	if (is_exactly_a<numeric>(SixtyExOverPi)
-                and SixtyExOverPi.info(info_flags::integer)) {
-		numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num120_p);
-		if (z>=*_num60_p) {
-			// wrap to interval [0, Pi)
-			z = *_num120_p-z;
-		}
-		if (z>=*_num30_p) {
-			// wrap to interval [0, Pi/2)
-			z = *_num60_p-z;
-			sign = _ex_1;
-		}
-		if (z.is_equal(*_num0_p))  // cos(0)       -> 1
-			return sign;
-		if (z.is_equal(*_num4_p))  // cos(Pi/15)   -> 1/8*sqrt(5) + 1/2*sqrt(3/8*sqrt(5) + 15/8) - 1/8
-			return sign*((sqrt(_ex5)-_ex1)/_ex8 + _ex1_4*sqrt((_ex15+_ex3*sqrt(_ex5))/_ex2));
-		if (z.is_equal(*_num5_p))  // cos(Pi/12)   -> sqrt(6)/4*(1+sqrt(3)/3)
-			return sign*_ex1_4*sqrt(_ex6)*(_ex1+_ex1_3*sqrt(_ex3));
-		if (z.is_equal(*_num6_p))  // cos(Pi/10)   -> 1/2*sqrt(1/2*sqrt(5) + 5/2)
-			return sign*_ex1_2*sqrt(_ex1_2*(_ex5+sqrt(_ex5)));
-		if (z.is_equal(*_num8_p))  // cos(2*Pi/15)   -> 1/8*sqrt(5) + 1/2*sqrt(-3/8*sqrt(5) + 15/8) + 1/8
-			return sign*((sqrt(_ex5)+_ex1)/_ex8 + _ex1_4*sqrt((_ex15-_ex3*sqrt(_ex5))/_ex2));
-		if (z.is_equal(*_num10_p)) // cos(Pi/6)    -> sqrt(3)/2
-			return sign*_ex1_2*sqrt(_ex3);
-		if (z.is_equal(*_num12_p)) // cos(Pi/5)    -> sqrt(5)/4+1/4
-			return sign*(_ex1_4*sqrt(_ex5)+_ex1_4);
-		if (z.is_equal(*_num15_p)) // cos(Pi/4)    -> sqrt(2)/2
-			return sign*_ex1_2*sqrt(_ex2);
-		if (z.is_equal(*_num16_p))  // cos(4*Pi/15)   -> -1/8*sqrt(5) + 1/2*sqrt(3/8*sqrt(5) + 15/8) + 1/8
-			return sign*((_ex1-sqrt(_ex5))/_ex8 + _ex1_4*sqrt((_ex15+_ex3*sqrt(_ex5))/_ex2));
-		if (z.is_equal(*_num18_p))  // cos(3*Pi/10)   -> 1/2*sqrt(-1/2*sqrt(5) + 5/2)
-			return sign*_ex1_2*sqrt(_ex1_2*(_ex5-sqrt(_ex5)));
-		if (z.is_equal(*_num20_p)) // cos(Pi/3)    -> 1/2
-			return sign*_ex1_2;
-		if (z.is_equal(*_num24_p)) // cos(2/5*Pi)  -> sqrt(5)/4-1/4x
-			return sign*(_ex1_4*sqrt(_ex5)+_ex_1_4);
-		if (z.is_equal(*_num25_p)) // cos(5/12*Pi) -> sqrt(6)/4*(1-sqrt(3)/3)
-			return sign*_ex1_4*sqrt(_ex6)*(_ex1+_ex_1_3*sqrt(_ex3));
-		if (z.is_equal(*_num28_p))  // cos(7*Pi/15)   -> -1/8*sqrt(5) + 1/2*sqrt(-3/8*sqrt(5) + 15/8) - 1/8
-			return sign*(_ex_1*(_ex1+sqrt(_ex5))/_ex8 + _ex1_4*sqrt((_ex15-_ex3*sqrt(_ex5))/_ex2));
-		if (z.is_equal(*_num30_p)) // cos(Pi/2)    -> 0
-			return _ex0;
-	}
+        std::function<bool (const ex&)> has_pi =
+        [&](const ex & the_ex) -> bool
+        {
+                if (is_exactly_a<constant>(the_ex)
+                        and ex_to<constant>(the_ex) == Pi)
+                        return true;
+                for (size_t i=0; i<the_ex.nops(); ++i)
+                        if (has_pi(the_ex.op(i)))
+                                return true;
+                return false;
+        };
 
-	const ex TwentyforExOverPi = _ex24*x_red/Pi;
-        sign = _ex1;
-	if (is_exactly_a<numeric>(TwentyforExOverPi)
-                        and TwentyforExOverPi.info(info_flags::integer)) {
-		numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
-		if (z>=*_num24_p) {
-			// wrap to interval [0, Pi)
-			z -= *_num48_p;
-		}
-		if (z>*_num12_p) {
-			// wrap to interval [0, Pi/2)
-			z = *_num24_p-z;
-			sign = _ex_1;
-		}
-		if (z.is_equal(*_num1_p))  // cos(Pi/24) -> 1/4*sqrt(8+2*sqrt(6)+2*sqrt(2))
-			return sign*(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
-		if (z.is_equal(*_num3_p))  // cos(Pi/8) -> 1/2*sqrt(sqrt(2) + 2)
-			return sign*(_ex1_2*sqrt(_ex2+sqrt(_ex2)));
-		if (z.is_equal(*_num5_p))  // cos(5*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)-2*sqrt(2))
-			return sign*(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
-		if (z.is_equal(*_num7_p))  // cos(7*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)+2*sqrt(2))
-			return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
-		if (z.is_equal(*_num9_p))  // cos(3*Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
-			return sign*(_ex1_2*sqrt(_ex2-sqrt(_ex2)));
-		if (z.is_equal(*_num11_p))  // cos(11*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)-2*sqrt(2))
-			return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
+        ex x_red;
+        if (has_pi(x)) {
+
+                ex coef_pi = x.coeff(Pi).expand();
+                ex rem = _ex0;
+                if (is_exactly_a<add>(coef_pi)) {
+                        for (size_t i=0; i < coef_pi.nops(); i++) {
+                                if ((coef_pi.op(i) / _ex2).info(info_flags::integer))
+                                        rem += Pi * coef_pi.op(i);
+                        }
+                }
+                else if ((coef_pi / _ex2).info(info_flags::integer))
+                        rem = Pi * coef_pi;
+                x_red = x - rem;
+
+                // cos(n/d*Pi) -> { all known radicals with nesting depth 2 }
+                const ex SixtyExOverPi = _ex60*x_red/Pi;
+                ex sign = _ex1;
+                if (is_exactly_a<numeric>(SixtyExOverPi)
+                        and SixtyExOverPi.info(info_flags::integer)) {
+                        numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num120_p);
+                        if (z>=*_num60_p) {
+                                // wrap to interval [0, Pi)
+                                z = *_num120_p-z;
+                        }
+                        if (z>=*_num30_p) {
+                                // wrap to interval [0, Pi/2)
+                                z = *_num60_p-z;
+                                sign = _ex_1;
+                        }
+                        if (z.is_equal(*_num0_p))  // cos(0)       -> 1
+                                return sign;
+                        if (z.is_equal(*_num4_p))  // cos(Pi/15)   -> 1/8*sqrt(5) + 1/2*sqrt(3/8*sqrt(5) + 15/8) - 1/8
+                                return sign*((sqrt(_ex5)-_ex1)/_ex8 + _ex1_4*sqrt((_ex15+_ex3*sqrt(_ex5))/_ex2));
+                        if (z.is_equal(*_num5_p))  // cos(Pi/12)   -> sqrt(6)/4*(1+sqrt(3)/3)
+                                return sign*_ex1_4*sqrt(_ex6)*(_ex1+_ex1_3*sqrt(_ex3));
+                        if (z.is_equal(*_num6_p))  // cos(Pi/10)   -> 1/2*sqrt(1/2*sqrt(5) + 5/2)
+                                return sign*_ex1_2*sqrt(_ex1_2*(_ex5+sqrt(_ex5)));
+                        if (z.is_equal(*_num8_p))  // cos(2*Pi/15)   -> 1/8*sqrt(5) + 1/2*sqrt(-3/8*sqrt(5) + 15/8) + 1/8
+                                return sign*((sqrt(_ex5)+_ex1)/_ex8 + _ex1_4*sqrt((_ex15-_ex3*sqrt(_ex5))/_ex2));
+                        if (z.is_equal(*_num10_p)) // cos(Pi/6)    -> sqrt(3)/2
+                                return sign*_ex1_2*sqrt(_ex3);
+                        if (z.is_equal(*_num12_p)) // cos(Pi/5)    -> sqrt(5)/4+1/4
+                                return sign*(_ex1_4*sqrt(_ex5)+_ex1_4);
+                        if (z.is_equal(*_num15_p)) // cos(Pi/4)    -> sqrt(2)/2
+                                return sign*_ex1_2*sqrt(_ex2);
+                        if (z.is_equal(*_num16_p))  // cos(4*Pi/15)   -> -1/8*sqrt(5) + 1/2*sqrt(3/8*sqrt(5) + 15/8) + 1/8
+                                return sign*((_ex1-sqrt(_ex5))/_ex8 + _ex1_4*sqrt((_ex15+_ex3*sqrt(_ex5))/_ex2));
+                        if (z.is_equal(*_num18_p))  // cos(3*Pi/10)   -> 1/2*sqrt(-1/2*sqrt(5) + 5/2)
+                                return sign*_ex1_2*sqrt(_ex1_2*(_ex5-sqrt(_ex5)));
+                        if (z.is_equal(*_num20_p)) // cos(Pi/3)    -> 1/2
+                                return sign*_ex1_2;
+                        if (z.is_equal(*_num24_p)) // cos(2/5*Pi)  -> sqrt(5)/4-1/4x
+                                return sign*(_ex1_4*sqrt(_ex5)+_ex_1_4);
+                        if (z.is_equal(*_num25_p)) // cos(5/12*Pi) -> sqrt(6)/4*(1-sqrt(3)/3)
+                                return sign*_ex1_4*sqrt(_ex6)*(_ex1+_ex_1_3*sqrt(_ex3));
+                        if (z.is_equal(*_num28_p))  // cos(7*Pi/15)   -> -1/8*sqrt(5) + 1/2*sqrt(-3/8*sqrt(5) + 15/8) - 1/8
+                                return sign*(_ex_1*(_ex1+sqrt(_ex5))/_ex8 + _ex1_4*sqrt((_ex15-_ex3*sqrt(_ex5))/_ex2));
+                        if (z.is_equal(*_num30_p)) // cos(Pi/2)    -> 0
+                                return _ex0;
+                }
+
+                const ex TwentyforExOverPi = _ex24*x_red/Pi;
+                sign = _ex1;
+                if (is_exactly_a<numeric>(TwentyforExOverPi)
+                                and TwentyforExOverPi.info(info_flags::integer)) {
+                        numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
+                        if (z>=*_num24_p) {
+                                // wrap to interval [0, Pi)
+                                z -= *_num48_p;
+                        }
+                        if (z>*_num12_p) {
+                                // wrap to interval [0, Pi/2)
+                                z = *_num24_p-z;
+                                sign = _ex_1;
+                        }
+                        if (z.is_equal(*_num1_p))  // cos(Pi/24) -> 1/4*sqrt(8+2*sqrt(6)+2*sqrt(2))
+                                return sign*(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
+                        if (z.is_equal(*_num3_p))  // cos(Pi/8) -> 1/2*sqrt(sqrt(2) + 2)
+                                return sign*(_ex1_2*sqrt(_ex2+sqrt(_ex2)));
+                        if (z.is_equal(*_num5_p))  // cos(5*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)-2*sqrt(2))
+                                return sign*(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
+                        if (z.is_equal(*_num7_p))  // cos(7*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)+2*sqrt(2))
+                                return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
+                        if (z.is_equal(*_num9_p))  // cos(3*Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
+                                return sign*(_ex1_2*sqrt(_ex2-sqrt(_ex2)));
+                        if (z.is_equal(*_num11_p))  // cos(11*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)-2*sqrt(2))
+                                return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
+                }
+
+                // cos(integer*pi) --> (-1)^integer
+                const ex ExOverPi = x_red/Pi;
+                if (ExOverPi.info(info_flags::integer))
+                        return pow(_ex_1, ExOverPi);
 	}
+        else
+                x_red = x;
 
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);
@@ -342,11 +389,6 @@ static ex cos_eval(const ex & x)
 			return power(_ex1+power(t,_ex2),_ex_1_2);
 	}
 
-	// cos(integer*pi) --> (-1)^integer
-	const ex ExOverPi = x_red/Pi;
-	if (ExOverPi.info(info_flags::integer))
-		return pow(_ex_1, ExOverPi);
-	
 	// cos(float) -> float
 	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
 		return cos(ex_to<numeric>(x_red));
@@ -411,102 +453,123 @@ static ex tan_eval(const ex & x)
 		throw (std::runtime_error("tan_eval(): tan(infinity) encountered"));
 	}
 
-	ex coef_pi = x.coeff(Pi).expand();
-	ex rem = _ex0;
-	if (is_exactly_a<add>(coef_pi)) {
-		for (size_t i=0; i < coef_pi.nops(); i++) {
-			if (coef_pi.op(i).info(info_flags::integer))
-				rem += Pi * coef_pi.op(i);
-		}
-	}
-	else if (coef_pi.info(info_flags::integer))
-		rem = Pi * coef_pi;
-	ex const x_red = x - rem;
+        if (is_exactly_a<numeric>(x) and ex_to<numeric>(x).is_zero())
+                return _ex0;
+
+        std::function<bool (const ex&)> has_pi =
+        [&](const ex & the_ex) -> bool
+        {
+                if (is_exactly_a<constant>(the_ex)
+                        and ex_to<constant>(the_ex) == Pi)
+                        return true;
+                for (size_t i=0; i<the_ex.nops(); ++i)
+                        if (has_pi(the_ex.op(i)))
+                                return true;
+                return false;
+        };
+
+        ex x_red;
+        if (has_pi(x)) {
+
+                ex coef_pi = x.coeff(Pi).expand();
+                ex rem = _ex0;
+                if (is_exactly_a<add>(coef_pi)) {
+                        for (size_t i=0; i < coef_pi.nops(); i++) {
+                                if (coef_pi.op(i).info(info_flags::integer))
+                                        rem += Pi * coef_pi.op(i);
+                        }
+                }
+                else if (coef_pi.info(info_flags::integer))
+                        rem = Pi * coef_pi;
+                x_red = x - rem;
 
 
-	// tan(n/d*Pi) -> { all known non-nested radicals }
-	const ex SixtyExOverPi = _ex60*x_red/Pi;
-	ex sign = _ex1;
-	if (is_exactly_a<numeric>(SixtyExOverPi)
-                and SixtyExOverPi.info(info_flags::integer)) {
-		numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num60_p);
-		if (z>=*_num60_p) {
-			// wrap to interval [0, Pi)
-			z -= *_num60_p;
-		}
-		if (z>=*_num30_p) {
-			// wrap to interval [0, Pi/2)
-			z = *_num60_p-z;
-			sign = _ex_1;
-		}
-		if (z.is_equal(*_num0_p))  // tan(0)       -> 0
-			return _ex0;
-		if (z.is_equal(*_num3_p)) // tan(Pi/20)    -> sqrt(5) - 1/2*sqrt(8*sqrt(5) + 20) + 1
-			return sign*(sqrt(_ex5)+_ex1-sqrt(_ex20+_ex8*sqrt(_ex5))/_ex2);
-		if (z.is_equal(*_num5_p))  // tan(Pi/12)   -> 2-sqrt(3)
-			return sign*(_ex2-sqrt(_ex3));
-		if (z.is_equal(*_num6_p)) // tan(Pi/10)    -> sqrt(1-2/5*sqrt(5))
-			return sign*sqrt(_ex1-_ex2/_ex5*sqrt(_ex5));
-		if (z.is_equal(*_num9_p)) // tan(3*Pi/20)    -> sqrt(5) - 1/2*sqrt(-8*sqrt(5) + 20) - 1
-			return sign*(sqrt(_ex5)-_ex1-sqrt(_ex20-_ex8*sqrt(_ex5))/_ex2);
-		if (z.is_equal(*_num10_p)) // tan(Pi/6)    -> sqrt(3)/3
-			return sign*_ex1_3*sqrt(_ex3);
-		if (z.is_equal(*_num12_p)) // tan(Pi/5)    -> sqrt(5-2*sqrt(5))
-			return sign*sqrt(_ex5-_ex2*sqrt(_ex5));
-		if (z.is_equal(*_num15_p)) // tan(Pi/4)    -> 1
-			return sign;
-		if (z.is_equal(*_num18_p)) // tan(3*Pi/10)    -> sqrt(1+2/5*sqrt(5))
-			return sign*sqrt(_ex1+_ex2/_ex5*sqrt(_ex5));
-		if (z.is_equal(*_num20_p)) // tan(Pi/3)    -> sqrt(3)
-			return sign*sqrt(_ex3);
-		if (z.is_equal(*_num21_p)) // tan(7*Pi/20)    -> sqrt(5) + 1/2*sqrt(-8*sqrt(5) + 20) - 1
-			return sign*(sqrt(_ex5)-_ex1+sqrt(_ex20-_ex8*sqrt(_ex5))/_ex2);
-		if (z.is_equal(*_num24_p)) // tan(2*Pi/5)    -> sqrt(5+2*sqrt(5))
-			return sign*sqrt(_ex5+_ex2*sqrt(_ex5));
-		if (z.is_equal(*_num25_p)) // tan(5/12*Pi) -> 2+sqrt(3)
-			return sign*(sqrt(_ex3)+_ex2);
-		if (z.is_equal(*_num27_p)) // tan(9*Pi/20)    -> sqrt(5) + 1/2*sqrt(8*sqrt(5) + 20) + 1
-			return sign*(sqrt(_ex5)+_ex1+sqrt(_ex20+_ex8*sqrt(_ex5))/_ex2);
-		if (z.is_equal(*_num30_p)) // tan(Pi/2)    -> infinity
-			//throw (pole_error("tan_eval(): simple pole",1));
-			return UnsignedInfinity;
-	}
+                // tan(n/d*Pi) -> { all known non-nested radicals }
+                const ex SixtyExOverPi = _ex60*x_red/Pi;
+                ex sign = _ex1;
+                if (is_exactly_a<numeric>(SixtyExOverPi)
+                        and SixtyExOverPi.info(info_flags::integer)) {
+                        numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num60_p);
+                        if (z>=*_num60_p) {
+                                // wrap to interval [0, Pi)
+                                z -= *_num60_p;
+                        }
+                        if (z>=*_num30_p) {
+                                // wrap to interval [0, Pi/2)
+                                z = *_num60_p-z;
+                                sign = _ex_1;
+                        }
+                        if (z.is_equal(*_num0_p))  // tan(0)       -> 0
+                                return _ex0;
+                        if (z.is_equal(*_num3_p)) // tan(Pi/20)    -> sqrt(5) - 1/2*sqrt(8*sqrt(5) + 20) + 1
+                                return sign*(sqrt(_ex5)+_ex1-sqrt(_ex20+_ex8*sqrt(_ex5))/_ex2);
+                        if (z.is_equal(*_num5_p))  // tan(Pi/12)   -> 2-sqrt(3)
+                                return sign*(_ex2-sqrt(_ex3));
+                        if (z.is_equal(*_num6_p)) // tan(Pi/10)    -> sqrt(1-2/5*sqrt(5))
+                                return sign*sqrt(_ex1-_ex2/_ex5*sqrt(_ex5));
+                        if (z.is_equal(*_num9_p)) // tan(3*Pi/20)    -> sqrt(5) - 1/2*sqrt(-8*sqrt(5) + 20) - 1
+                                return sign*(sqrt(_ex5)-_ex1-sqrt(_ex20-_ex8*sqrt(_ex5))/_ex2);
+                        if (z.is_equal(*_num10_p)) // tan(Pi/6)    -> sqrt(3)/3
+                                return sign*_ex1_3*sqrt(_ex3);
+                        if (z.is_equal(*_num12_p)) // tan(Pi/5)    -> sqrt(5-2*sqrt(5))
+                                return sign*sqrt(_ex5-_ex2*sqrt(_ex5));
+                        if (z.is_equal(*_num15_p)) // tan(Pi/4)    -> 1
+                                return sign;
+                        if (z.is_equal(*_num18_p)) // tan(3*Pi/10)    -> sqrt(1+2/5*sqrt(5))
+                                return sign*sqrt(_ex1+_ex2/_ex5*sqrt(_ex5));
+                        if (z.is_equal(*_num20_p)) // tan(Pi/3)    -> sqrt(3)
+                                return sign*sqrt(_ex3);
+                        if (z.is_equal(*_num21_p)) // tan(7*Pi/20)    -> sqrt(5) + 1/2*sqrt(-8*sqrt(5) + 20) - 1
+                                return sign*(sqrt(_ex5)-_ex1+sqrt(_ex20-_ex8*sqrt(_ex5))/_ex2);
+                        if (z.is_equal(*_num24_p)) // tan(2*Pi/5)    -> sqrt(5+2*sqrt(5))
+                                return sign*sqrt(_ex5+_ex2*sqrt(_ex5));
+                        if (z.is_equal(*_num25_p)) // tan(5/12*Pi) -> 2+sqrt(3)
+                                return sign*(sqrt(_ex3)+_ex2);
+                        if (z.is_equal(*_num27_p)) // tan(9*Pi/20)    -> sqrt(5) + 1/2*sqrt(8*sqrt(5) + 20) + 1
+                                return sign*(sqrt(_ex5)+_ex1+sqrt(_ex20+_ex8*sqrt(_ex5))/_ex2);
+                        if (z.is_equal(*_num30_p)) // tan(Pi/2)    -> infinity
+                                //throw (pole_error("tan_eval(): simple pole",1));
+                                return UnsignedInfinity;
+                }
 
-	const ex FortyeightExOverPi = _ex48*x_red/Pi;
-        sign = _ex1;
-	if (is_exactly_a<numeric>(FortyeightExOverPi)
-                        and FortyeightExOverPi.info(info_flags::integer)) {
-		numeric z = mod(ex_to<numeric>(FortyeightExOverPi),*_num48_p);
-		if (z>=*_num48_p) {
-			// wrap to interval [0, Pi)
-			z -= *_num48_p;
-		}
-		if (z>*_num24_p) {
-			// wrap to interval [0, Pi/2)
-			z = *_num48_p-z;
-			sign = _ex_1;
-		}
-		if (z.is_equal(*_num2_p))  // tan(Pi/24) -> sqrt(6) - sqrt(-2*sqrt(6) + 5) - 2
-			return sign *(_ex_2+sqrt(_ex6)+sqrt(_ex2)-sqrt(_ex3));
-		if (z.is_equal(*_num3_p))  // tan(Pi/16) -> -sqrt(2) + sqrt(2*sqrt(2) + 4) - 1
-			return sign*(_ex_1-sqrt(_ex2)+sqrt(_ex2*sqrt(_ex2)+_ex4));
-		if (z.is_equal(*_num6_p))  // tan(Pi/8) -> sqrt(2)-1
-			return sign*(sqrt(_ex2)-_ex1);
-		if (z.is_equal(*_num9_p))  // tan(3*Pi/16) -> -sqrt(2) + sqrt(-2*sqrt(2) + 4) + 1
-			return sign*(_ex1-sqrt(_ex2)+sqrt(_ex4-_ex2*sqrt(_ex2)));
-		if (z.is_equal(*_num10_p))  // tan(5*Pi/24) -> sqrt(6) + sqrt(-2*sqrt(6) + 5) - 2
-			return sign*(_ex_2+sqrt(_ex6)-sqrt(_ex2)+sqrt(_ex3));
-		if (z.is_equal(*_num14_p))  // tan(7*Pi/24) -> sqrt(6) - sqrt(2*sqrt(6) + 5) + 2
-			return sign*(_ex2+sqrt(_ex6)-sqrt(_ex2)-sqrt(_ex3));
-		if (z.is_equal(*_num15_p))  // tan(5*Pi/16) -> sqrt(2) + sqrt(-2*sqrt(2) + 4) + 1
-			return sign*(_ex_1+sqrt(_ex2)+sqrt(_ex4-_ex2*sqrt(_ex2)));
-		if (z.is_equal(*_num18_p))  // tan(3*Pi/8) -> sqrt(2)+1
-			return sign*(sqrt(_ex2)+_ex1);
-		if (z.is_equal(*_num21_p))  // tan(7*Pi/16) -> sqrt(2) + sqrt(2*sqrt(2) + 4) + 1
-			return sign*(_ex1+sqrt(_ex2)+sqrt(_ex2*sqrt(_ex2)+_ex4));
-		if (z.is_equal(*_num22_p))  // tan(11*Pi/24) -> sqrt(6) + sqrt(2*sqrt(6) + 5) + 2
-			return sign*(_ex2+sqrt(_ex6)+sqrt(_ex2)+sqrt(_ex3));
-	}
+                const ex FortyeightExOverPi = _ex48*x_red/Pi;
+                sign = _ex1;
+                if (is_exactly_a<numeric>(FortyeightExOverPi)
+                                and FortyeightExOverPi.info(info_flags::integer)) {
+                        numeric z = mod(ex_to<numeric>(FortyeightExOverPi),*_num48_p);
+                        if (z>=*_num48_p) {
+                                // wrap to interval [0, Pi)
+                                z -= *_num48_p;
+                        }
+                        if (z>*_num24_p) {
+                                // wrap to interval [0, Pi/2)
+                                z = *_num48_p-z;
+                                sign = _ex_1;
+                        }
+                        if (z.is_equal(*_num2_p))  // tan(Pi/24) -> sqrt(6) - sqrt(-2*sqrt(6) + 5) - 2
+                                return sign *(_ex_2+sqrt(_ex6)+sqrt(_ex2)-sqrt(_ex3));
+                        if (z.is_equal(*_num3_p))  // tan(Pi/16) -> -sqrt(2) + sqrt(2*sqrt(2) + 4) - 1
+                                return sign*(_ex_1-sqrt(_ex2)+sqrt(_ex2*sqrt(_ex2)+_ex4));
+                        if (z.is_equal(*_num6_p))  // tan(Pi/8) -> sqrt(2)-1
+                                return sign*(sqrt(_ex2)-_ex1);
+                        if (z.is_equal(*_num9_p))  // tan(3*Pi/16) -> -sqrt(2) + sqrt(-2*sqrt(2) + 4) + 1
+                                return sign*(_ex1-sqrt(_ex2)+sqrt(_ex4-_ex2*sqrt(_ex2)));
+                        if (z.is_equal(*_num10_p))  // tan(5*Pi/24) -> sqrt(6) + sqrt(-2*sqrt(6) + 5) - 2
+                                return sign*(_ex_2+sqrt(_ex6)-sqrt(_ex2)+sqrt(_ex3));
+                        if (z.is_equal(*_num14_p))  // tan(7*Pi/24) -> sqrt(6) - sqrt(2*sqrt(6) + 5) + 2
+                                return sign*(_ex2+sqrt(_ex6)-sqrt(_ex2)-sqrt(_ex3));
+                        if (z.is_equal(*_num15_p))  // tan(5*Pi/16) -> sqrt(2) + sqrt(-2*sqrt(2) + 4) + 1
+                                return sign*(_ex_1+sqrt(_ex2)+sqrt(_ex4-_ex2*sqrt(_ex2)));
+                        if (z.is_equal(*_num18_p))  // tan(3*Pi/8) -> sqrt(2)+1
+                                return sign*(sqrt(_ex2)+_ex1);
+                        if (z.is_equal(*_num21_p))  // tan(7*Pi/16) -> sqrt(2) + sqrt(2*sqrt(2) + 4) + 1
+                                return sign*(_ex1+sqrt(_ex2)+sqrt(_ex2*sqrt(_ex2)+_ex4));
+                        if (z.is_equal(*_num22_p))  // tan(11*Pi/24) -> sqrt(6) + sqrt(2*sqrt(6) + 5) + 2
+                                return sign*(_ex2+sqrt(_ex6)+sqrt(_ex2)+sqrt(_ex3));
+                }
+        }
+        else
+                x_red = x;
 
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);

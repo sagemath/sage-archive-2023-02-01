@@ -2618,7 +2618,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         set_mnf = frozenset()
 
         for dim in range(dimension+1):
-            face_sets = Set(f.set() for f in face_dict[dim])
+            face_sets = frozenset(f.set() for f in face_dict[dim])
             for candidate in combinations(vertices, dim + 1):
                 set_candidate = frozenset(candidate)
                 if set_candidate not in face_sets:

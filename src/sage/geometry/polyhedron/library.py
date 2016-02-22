@@ -891,7 +891,7 @@ class Polytopes():
             sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 6)
             20
         """
-        return self.icosahedron(exact=exact, base_ring=base_ring).edge_truncation()
+        return self.icosahedron(exact=exact, base_ring=base_ring).truncation()
 
     def icosidodecahedron(self, exact=True):
         """

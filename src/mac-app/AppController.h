@@ -25,6 +25,7 @@
 
     NSString *sageBinary;
     NSString *logPath;
+    NSString *jupyterURL;
     NSMutableArray *URLQueue;
 
     NSUserDefaults *defaults;
@@ -42,6 +43,7 @@
 // Server control
 -(IBAction)startJupyter:(id)sender;
 -(IBAction)stopJupyter:(id)sender;
+-(void)receivedData:(NSNotification *)notif;
 -(IBAction)startServer:(id)sender;
 -(IBAction)stopServer:(id)sender;
 -(BOOL)serverIsRunning:(BOOL)wait;

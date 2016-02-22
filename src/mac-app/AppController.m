@@ -60,6 +60,7 @@
     }
 
     // indicate that we haven't started the server yet
+    jupyterURL = nil;
     port = 0;
     neverOpenedFileBrowser = YES;
     URLQueue = [[NSMutableArray arrayWithCapacity:3] retain];
@@ -92,14 +93,17 @@
     [jupyterTask release];
     [taskPipe release];
     [URLQueue release];
+    [jupyterURL release];
     [super dealloc];
 }
 
 -(IBAction)startJupyter:(id)sender{
 
-    if ( jupyterTask != nil ) {// TODO: open a new browser window
-        // [self browseRemoteURL:[[NSBundle mainBundle] pathForResource:@"loading-page" ofType:@"html"]];
-        
+    if ( jupyterTask != nil ) {
+        if ( jupyterURL != nil ) {
+            NSLog(@"Going to browse to %@",jupyterURL);
+            [self browseRemoteURL:jupyterURL];
+        }
         return;
     }
 
@@ -134,7 +138,9 @@
     // Compile the command.
     // We have to run it through a shell so that the default arguments are parsed properly
     NSString *command = [NSString stringWithFormat:
-                         @"'%@' --notebook=jupyter %@ >> '%@' 2>&1",
+                         @"'%@' --notebook=jupyter %@ 2>&1 | tee -a '%@' |"
+                         " grep --line-buffered -i 'ipython notebook is running at' |"
+                         " grep --line-buffered -o http://.*",
                          escSageBin,
                          // default args are ready to be
                          (defArgs == nil) ? @"" : defArgs,
@@ -146,10 +152,33 @@
     [jupyterTask setLaunchPath:@"/bin/bash"];
     [jupyterTask setArguments:[NSArray arrayWithObjects: @"-c", command, nil]];
     [jupyterTask setCurrentDirectoryPath:jupyterPath];
-    [jupyterTask launch];
+    
+    // set up std out to
+    NSPipe *outputPipe = [NSPipe pipe];
+    [jupyterTask setStandardOutput:outputPipe];
 
+    NSFileHandle *fh = [outputPipe fileHandleForReading];
+    [fh waitForDataInBackgroundAndNotify];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedData:) name:NSFileHandleDataAvailableNotification object:fh];
+
+    [jupyterTask launch];
+    
     if (haveStatusItem)  [statusItem setImage:statusImageBlue];
 }
+
+
+- (void)receivedData:(NSNotification *)notif {
+    NSFileHandle *fh = [notif object];
+    NSData *data = [fh availableData];
+    if (data.length > 0) {
+        NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        jupyterURL = [[str stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]]
+                      retain];
+        [str release];
+    }
+}
+
 
 -(IBAction)stopJupyter:(id)sender{
     
@@ -164,7 +193,6 @@
     jupyterTask = nil;
     if (haveStatusItem)  [statusItem setImage:statusImageGrey];
 }
-
 
 
 -(IBAction)startServer:(id)sender{
@@ -315,8 +343,6 @@
     }
 }
 
-// TODO: Figure out how to create new worksheet from Jupyter
-// TODO: Test Jupyter vs. SageNB
 // TODO: Test upgrading...
 
 -(IBAction)stopServer:(id)sender{
@@ -485,7 +511,6 @@ You can change it later in Preferences."];
     if ( ! [filemgr fileExistsAtPath:@"~/.sage/sage_notebook.sagenb/users.pickle"]
         && [defaults boolForKey:@"askToUpgradeNB"]) {
         
-        // TODO: variable to
         NSAlert *alert = [NSAlert alertWithMessageText:@"Sage Notebook Upgrade"
                                          defaultButton:@"Upgrade"
                                        alternateButton:@"Ask me Later"
@@ -514,7 +539,6 @@ You can change it later in Preferences."];
 
 -(IBAction)upgradeNotebook:(id)sender{
     NSLog(@"Upgrade Notebook.");
-    // TODO: the variable will be set in the upgrade function
     [self sageTerminalRun:@"notebook=export" withArguments:nil];
     [defaults setBool:NO forKey:@"askToUpgradeNB"];
     [defaults setObject:@"jupyter" forKey:@"preferredNotebookType"];
@@ -531,11 +555,20 @@ You can change it later in Preferences."];
 }
 
 -(IBAction)openNotebook:(id)sender{
-    [self browseLocalSageURL:@""];
+    if ( jupyterURL != nil ) {
+        [self browseRemoteURL:jupyterURL];
+    } else {
+        [self browseLocalSageURL:@""];
+    }
 }
 
 -(IBAction)newWorksheet:(id)sender{
-    [self browseLocalSageURL:@"new_worksheet"];
+    if ( jupyterURL != nil ) {
+        // AFAICT you can't create a new worksheet via curl
+        [self browseRemoteURL:jupyterURL];
+    } else {
+        [self browseLocalSageURL:@"new_worksheet"];
+    }
 }
 
 -(IBAction)showPreferences:(id)sender{

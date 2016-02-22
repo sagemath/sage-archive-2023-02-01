@@ -697,7 +697,7 @@ def GoethalsSeidelGraph(k,r):
     in Theorem 2.4 of [GS70]_. It relies on a :func:`(v,k)-BIBD
     <sage.combinat.designs.bibd.balanced_incomplete_block_design>` with `r`
     blocks and a
-    :func:`~sage.combinat.matrices.hadamard_matrix.hadamard_matrix>` of order
+    :func:`~sage.combinat.matrices.hadamard_matrix.hadamard_matrix` of order
     `r+1`. The result is a
     :func:`sage.graphs.strongly_regular_db.strongly_regular_graph` on `v(r+1)`
     vertices with degree `k=(n+r-1)/2`.
@@ -1599,11 +1599,12 @@ def PasechnikGraph(n):
     """
     Pasechnik strongly regular graph on `(4n-1)^2` vertices
 
-    A strongly regular graph with parameters of the orthogonal array graph
-    :func:`OrthogonalArrayBlockGraph
-    <sage.graphs.generateudo_L_2n_4n_m_1ors.GraphGenerators.OrthogonalArrayBlockGraph>`, also
-    known as pseudo Latin squares graph `L_{2n-1}(4n-1)`, constructed from a
-    skew Hadamard matrix of order `4n` following [Pa92]_.
+    A strongly regular graph with parameters of the orthogonal array
+    graph
+    :func:`~sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph`,
+    also known as pseudo Latin squares graph `L_{2n-1}(4n-1)`,
+    constructed from a skew Hadamard matrix of order `4n` following
+    [Pa92]_.
 
     EXAMPLES::
 
@@ -1611,6 +1612,7 @@ def PasechnikGraph(n):
         (225, 98, 43, 42)
         sage: graphs.PasechnikGraph(9).is_strongly_regular(parameters=True) # long time
         (1225, 578, 273, 272)
+
     """
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
     from sage.matrix.constructor import identity_matrix, matrix
@@ -1627,7 +1629,7 @@ def SquaredSkewHadamardMatrixGraph(n):
 
     A strongly regular graph with parameters of the orthogonal array graph
     :func:`OrthogonalArrayBlockGraph
-    <sage.graphs.generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
+    <sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
     known as pseudo Latin squares graph `L_{2n}(4n-1)`, constructed from a
     skew Hadamard matrix of order `4n`, due to Goethals and Seidel, see [BvL84]_.
 
@@ -1658,7 +1660,7 @@ def SwitchedSquaredSkewHadamardMatrixGraph(n):
     A strongly regular graph in the
     :meth:`Seidel switching <Graph.seidel_switching>` class of the disjoint union of
     a 1-vertex graph and the one produced by :func:`Pseudo-L_{2n}(4n-1)
-    <sage.graphs.generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
+    <sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
 
     In this case, the other possible parameter set of a strongly regular graph in the
     Seidel switching class of the latter graph (see [BH12]_) coincides with the set

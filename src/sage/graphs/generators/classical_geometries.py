@@ -833,7 +833,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     obtained as a two-graph descendant of the
     :func:`Taylor's two-graph <sage.combinat.designs.twographs.taylor_twograph>` `T`.
     This graph admits a partition into cliques of size `q`, which are useful in
-    :func:`TaylorTwographSRG <sage.graphs.generators.classical_geometries.TaylorTwographSRG>`,
+    :func:`~sage.graphs.graph_generators.GraphGenerators.TaylorTwographSRG`,
     a strongly regular graph on `q^3+1` vertices in the
     Seidel switching class of `T`, for which we need `(q^2+1)/2` cliques.
     The cliques are the `q^2` lines on `v_0` of the projective plane containing the unital
@@ -919,7 +919,7 @@ def TaylorTwographSRG(q):
 
     .. SEEALSO::
 
-        * :func:`TaylorTwographDescendantSRG <sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG>`
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.TaylorTwographDescendantSRG`
 
     EXAMPLES::
 

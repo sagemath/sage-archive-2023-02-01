@@ -43,8 +43,6 @@ abstract base classes.
                         CommutativeAlgebra ??? (should be removed from element.pxd)
                         Matrix
                     InfinityElement
-                        PlusInfinityElement
-                        MinusInfinityElement
                 AdditiveGroupElement
                 Vector
 
@@ -322,14 +320,6 @@ cdef class Element(SageObject):
         - ``parent`` - a SageObject
         """
         self._parent = parent
-
-    cdef _set_parent_c(self, Parent parent):
-        self._parent = parent
-
-    def _make_new_with_parent_c(self, Parent parent):
-        self._parent = parent
-        return self
-
 
     def __getattr__(self, str name):
         """
@@ -2496,12 +2486,12 @@ cdef class CommutativeRingElement(RingElement):
         #This code is very general, it works for all integral domains that have the
         #is_square(root = True) option
 
-        from sage.rings.integral_domain import is_IntegralDomain
+        from sage.rings.ring import IntegralDomain
         P=self._parent
         is_sqr, sq_rt = self.is_square( root = True )
         if is_sqr:
             if all:
-                if not is_IntegralDomain(P):
+                if not isinstance(P, IntegralDomain):
                     raise NotImplementedError('sqrt() with all=True is only implemented for integral domains, not for %s' % P)
                 if P.characteristic()==2 or sq_rt==0:
                     #0 has only one square root, and in charasteristic 2 everything also has only 1 root
@@ -2509,7 +2499,7 @@ cdef class CommutativeRingElement(RingElement):
                 return [ sq_rt, -sq_rt ]
             return sq_rt
         #from now on we know that self is not a square
-        if not is_IntegralDomain(P):
+        if not isinstance(P, IntegralDomain):
             raise NotImplementedError('sqrt() of non squares is only implemented for integral domains, not for %s' % P)
         if not extend:
             #all square roots of a non-square should be an empty list
@@ -3346,28 +3336,6 @@ cdef class InfinityElement(RingElement):
     def __invert__(self):
         from sage.rings.all import ZZ
         return ZZ(0)
-
-cdef class PlusInfinityElement(InfinityElement):
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: hash(+infinity)
-            9223372036854775807 # 64-bit
-            2147483647          # 32-bit
-        """
-        return LONG_MAX
-
-cdef class MinusInfinityElement(InfinityElement):
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: hash(-infinity)
-            -9223372036854775808 # 64-bit
-            -2147483648          # 32-bit
-        """
-        return LONG_MIN
 
 
 #################################################################################

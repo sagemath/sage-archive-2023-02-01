@@ -73,6 +73,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via FLINT.
 
+    TESTS::
+
+        sage: f = ZZ['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
+        sage: isinstance(f, Polynomial_integer_dense_flint)
+        True
+
     .. automethod:: _add_
     .. automethod:: _sub_
     .. automethod:: _lmul_
@@ -1496,7 +1503,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.factor_mod(7)
             (2) * x * (x + 5)^2
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         p = Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"

@@ -391,7 +391,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             p = self.realization_of().p()
             P = Poset((A.coarsenings(), lt))
             R = self.base_ring()
-            return p._from_dict({B: R(P.mobius_function(A, B)) for B in P})
+            return p._from_dict({B: R(P.moebius_function(A, B)) for B in P})
 
         @cached_method
         def _m_to_cp_on_basis(self, A):
@@ -1315,7 +1315,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             P_refine = Poset((A.refinements(), A.parent().lt))
             c = prod((-1)**(i-1) * factorial(i-1) for i in A.shape())
             R = self.base_ring()
-            return e._from_dict({B: R(P_refine.mobius_function(B, A) / ZZ(c))
+            return e._from_dict({B: R(P_refine.moebius_function(B, A) / ZZ(c))
                                  for B in P_refine}, remove_zeros=False)
 
         @cached_method
@@ -1343,7 +1343,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             P_refine = Poset((A.refinements(), A.parent().lt))
             c = abs(prod((-1)**(i-1) * factorial(i-1) for i in A.shape()))
             R = self.base_ring()
-            return h._from_dict({B: R(P_refine.mobius_function(B, A) / ZZ(c))
+            return h._from_dict({B: R(P_refine.moebius_function(B, A) / ZZ(c))
                                  for B in P_refine}, remove_zeros=False)
 
         @cached_method
@@ -1786,7 +1786,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             p = self.realization_of().p()
             P_refine = Poset((A.refinements(), lt))
             R = self.base_ring()
-            return p._from_dict({B: R(P_refine.mobius_function(B, A))
+            return p._from_dict({B: R(P_refine.moebius_function(B, A))
                                  for B in P_refine})
 
     x = x_basis

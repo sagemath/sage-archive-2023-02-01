@@ -7,6 +7,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
+- Clemens Heuberger (2016)
 
 ACKNOWLEDGEMENT:
 
@@ -692,11 +693,17 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group QQ^x * x^QQ
             sage: cm.common_parent(GrowthGroup('QQ^x * x^ZZ'), GrowthGroup('ZZ^x * x^QQ'))
             Growth Group QQ^x * x^QQ
+
+        ::
+
+            sage: pushout(GrowthGroup('QQ^n * n^QQ'), GrowthGroup('SR^n'))
+            Growth Group SR^n * n^QQ
         """
         from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
         from misc import merge_overlapping
         from misc import underlying_class
 
+        Sfactors = self.cartesian_factors()
         if isinstance(other, GenericProduct):
             Ofactors = other.cartesian_factors()
         elif isinstance(other, GenericGrowthGroup):
@@ -759,7 +766,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                     self.factors = tuple()
 
         from itertools import groupby
-        S = it(groupby(self.cartesian_factors(), key=lambda k: k.variable_names()))
+        S = it(groupby(Sfactors, key=lambda k: k.variable_names()))
         O = it(groupby(Ofactors, key=lambda k: k.variable_names()))
 
         newS = []
@@ -786,9 +793,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         assert(len(newS) == len(newO))
 
-        if (len(self.cartesian_factors()) == len(newS) and
-            len(other.cartesian_factors()) == len(newO)):
-            # We had already all factors in each of the self and
+        if (len(Sfactors) == len(newS) and
+            len(Ofactors) == len(newO)):
+            # We had already all factors in each of self and
             # other, thus splitting it in subproblems (one for
             # each factor) is the strategy to use. If a pushout is
             # possible :func:`sage.categories.pushout.pushout`
@@ -965,7 +972,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             """
             return sum(iter(f.factors()
                             for f in self.cartesian_factors()
-                            if f != f.parent().one()),
+                            if not f.is_one()),
                        tuple())
 
 
@@ -1183,6 +1190,129 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             except (ArithmeticError, TypeError, ValueError) as e:
                 from misc import substitute_raise_exception
                 substitute_raise_exception(self, e)
+
+        def _singularity_analysis_(self, var, zeta, precision):
+            r"""
+            Perform singularity analysis on this growth element.
+
+            INPUT:
+
+            - ``var`` -- a string denoting the variable
+
+            - ``zeta`` -- a number
+
+            - ``precision`` -- an integer
+
+            OUTPUT:
+
+            An asymptotic expansion for `[z^n] f` where `n` is ``var``
+            and `f` has this growth element as a singular expansion
+            in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this
+            element is a growth element in `T`.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('exp(x)^QQ * x^QQ * log(x)^QQ')
+                sage: G(x^(1/2))._singularity_analysis_('n', 2, precision=2)
+                1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
+                + O((1/2)^n*n^(-5/2))
+                sage: G(log(x))._singularity_analysis_('n', 1, precision=5)
+                n^(-1) + O(n^(-3))
+                sage: G(x*log(x))._singularity_analysis_('n', 1, precision=5)
+                log(n) + euler_gamma + 1/2*n^(-1) + O(n^(-2))
+
+            TESTS::
+
+                sage: G('exp(x)*log(x)')._singularity_analysis_('n', 1, precision=5)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: singularity analysis of exp(x)*log(x)
+                not implemented
+                sage: G('exp(x)*x*log(x)')._singularity_analysis_('n', 1, precision=5)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: singularity analysis of exp(x)*x*log(x)
+                not yet implemented since it has more than two factors
+                sage: G(1)._singularity_analysis_('n', 2, precision=3)
+                Traceback (most recent call last):
+                ...
+                NotImplementedOZero: The error term in the result is O(0)
+                which means 0 for sufficiently large n.
+                sage: G('exp(x)')._singularity_analysis_('n', 2, precision=3)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: singularity analysis of exp(x)
+                not implemented
+            """
+            factors = self.factors()
+            if len(factors) == 0:
+                from asymptotic_expansion_generators import asymptotic_expansions
+                from misc import NotImplementedOZero
+                raise NotImplementedOZero(var=var)
+            elif len(factors) == 1:
+                return factors[0]._singularity_analysis_(
+                    var=var, zeta=zeta, precision=precision)
+            elif len(factors) == 2:
+                from growth_group import MonomialGrowthGroup
+                from sage.rings.integer_ring import ZZ
+
+                a, b = factors
+                if all(isinstance(f.parent(), MonomialGrowthGroup)
+                       for f in factors) \
+                        and a.parent().gens_monomial() \
+                        and b.parent().gens_logarithmic() \
+                        and a.parent().variable_name() == \
+                            b.parent().variable_name():
+                    if b.exponent not in ZZ:
+                        raise NotImplementedError(
+                            'singularity analysis of {} not implemented '
+                            'since exponent {} of {} is not an integer'.format(
+                                self, b.exponent, b.parent().gen()))
+
+                    from sage.rings.asymptotic.asymptotic_expansion_generators import \
+                        asymptotic_expansions
+                    return asymptotic_expansions.SingularityAnalysis(
+                        var=var, zeta=zeta, alpha=a.exponent,
+                        beta=ZZ(b.exponent), delta=0,
+                        precision=precision, normalized=False)
+                else:
+                    raise NotImplementedError(
+                        'singularity analysis of {} not implemented'.format(self))
+            else:
+                raise NotImplementedError(
+                    'singularity analysis of {} not yet implemented '
+                    'since it has more than two factors'.format(self))
+
+
+        def variable_names(self):
+            r"""
+            Return the names of the variables of this growth element.
+
+            OUTPUT:
+
+            A tuple of strings.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^m * m^QQ * log(n)^ZZ')
+                sage: G('2^m * m^4 * log(n)').variable_names()
+                ('m', 'n')
+                sage: G('2^m * m^4').variable_names()
+                ('m',)
+                sage: G('log(n)').variable_names()
+                ('n',)
+                sage: G('m^3').variable_names()
+                ('m',)
+                sage: G('m^0').variable_names()
+                ()
+            """
+            vars = sum(iter(factor.variable_names()
+                            for factor in self.factors()),
+                       tuple())
+            from itertools import groupby
+            return tuple(v for v, _ in groupby(vars))
 
 
     CartesianProduct = CartesianProductGrowthGroups

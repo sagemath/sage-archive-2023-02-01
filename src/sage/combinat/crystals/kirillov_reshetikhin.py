@@ -2915,13 +2915,28 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
             sage: b = K.module_generators[0]
             sage: b.epsilon(0) # indirect doctest
             1
+
+        TESTS:
+
+        Check that :trac:`19982` is fixed::
+
+            sage: K = crystals.KirillovReshetikhin(['D',3,2], 2,3)
+            sage: def eps0_defn(elt):
+            ....:     x = elt.e(0)
+            ....:     eps = 0
+            ....:     while x is not None:
+            ....:         x = x.e(0)
+            ....:         eps = eps + 1
+            ....:     return eps
+            sage: all(eps0_defn(x) == x.epsilon0() for x in K)
+            True
         """
         n = self.parent().cartan_type().rank()-1
         [b,l] = self.lift().to_highest_weight(index_set=range(2,n+1))
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l1 = pm.pm_diagram[n-1][0]
         l4 = pm.pm_diagram[n][0]
-        return l1+l4
+        return l1+l4/2
 
     def phi0(self):
         r"""
@@ -2933,13 +2948,28 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
             sage: b = K.module_generators[0]
             sage: b.phi(0) # indirect doctest
             0
+
+        TESTS:
+
+        Check that :trac:`19982` is fixed::
+
+            sage: K = crystals.KirillovReshetikhin(['D',3,2], 2,3)
+            sage: def phi0_defn(elt):
+            ....:     x = elt.f(0)
+            ....:     phi = 0
+            ....:     while x is not None:
+            ....:         x = x.f(0)
+            ....:         phi = phi + 1
+            ....:     return phi
+            sage: all(phi0_defn(x) == x.phi0() for x in K)
+            True
         """
         n = self.parent().cartan_type().rank()-1
         [b,l] = self.lift().to_highest_weight(index_set=range(2,n+1))
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l2 = pm.pm_diagram[n-1][1]
         l4 = pm.pm_diagram[n][0]
-        return l2+l4
+        return l2+l4/2
 
 KR_type_Dn_twisted.Element = KR_type_Dn_twistedElement
 

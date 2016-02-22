@@ -658,6 +658,14 @@ ext_modules = [
 
     ###################################
     ##
+    ## sage.libs.arb
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/arb/*.pyx"]),
+
+    ###################################
+    ##
     ## sage.libs.eclib
     ##
     ###################################
@@ -1689,7 +1697,3 @@ ext_modules = [
     Extension('sage.tests.cython',
               sources = ['sage/tests/cython.pyx']),
 ]
-
-# Add auto-generated modules
-import sage_setup.autogen.interpreters
-ext_modules += sage_setup.autogen.interpreters.modules

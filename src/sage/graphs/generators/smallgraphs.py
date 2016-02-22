@@ -1413,7 +1413,7 @@ def BrouwerHaemersGraph():
         sage: set(g.spectrum()) == {20,2,-7}
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.matrix.constructor import identity_matrix
@@ -1949,7 +1949,7 @@ def DejterGraph():
     """
     from sage.graphs.generators.families import CubeGraph
     from sage.coding.code_constructions import HammingCode
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     from string import join
     g = CubeGraph(7)
@@ -2897,7 +2897,7 @@ def HeawoodGraph():
     Returns a Heawood graph.
 
     The Heawood graph is a cage graph that has 14 nodes. It is a cubic
-    symmetric graph. (See also the Moebius-Kantor graph). It is
+    symmetric graph. (See also the Möbius-Kantor graph). It is
     nonplanar and Hamiltonian. It has diameter = 3, radius = 3, girth =
     6, chromatic number = 2. It is 4-transitive but not 5-transitive.
 
@@ -3805,9 +3805,9 @@ def McLaughlinGraph():
 
 def MoebiusKantorGraph():
     """
-    Returns a Moebius-Kantor Graph.
+    Returns a Möbius-Kantor Graph.
 
-    A Moebius-Kantor graph is a cubic symmetric graph. (See also the
+    A Möbius-Kantor graph is a cubic symmetric graph. (See also the
     Heawood graph). It has 16 nodes and 24 edges. It is nonplanar and
     Hamiltonian. It has diameter = 4, girth = 6, and chromatic number =
     2. It is identical to the Generalized Petersen graph, P[8,3].
@@ -3816,7 +3816,7 @@ def MoebiusKantorGraph():
 
     REFERENCES:
 
-    - [1] Weisstein, E. (1999). "Moebius-Kantor Graph - from
+    - [1] Weisstein, E. (1999). "Möbius-Kantor Graph - from
       Wolfram MathWorld". [Online] Available:
       http://mathworld.wolfram.com/Moebius-KantorGraph.html [2007,
       February 17]
@@ -4859,7 +4859,7 @@ def JankoKharaghaniGraph(v):
        http://journals.cambridge.org/article_S1446788700033929
 
     """
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     from sage.matrix.constructor import matrix
 
     # The notations of [JK02] are rather tricky, and so this code attempts to

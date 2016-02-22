@@ -668,6 +668,22 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             x = (x,y)
         return RealIntervalFieldElement(self, x, base)
 
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of this interval field, i.e., the
+        complex interval field with the same precision.
+
+        EXAMPLES::
+
+            sage: RIF.algebraic_closure()
+            Complex Interval Field with 53 bits of precision
+            sage: RIF.algebraic_closure() is CIF
+            True
+            sage: RealIntervalField(100).algebraic_closure()
+            Complex Interval Field with 100 bits of precision
+        """
+        return self.complex_field()
+
     def construction(self):
         r"""
         Returns the functorial construction of ``self``, namely, completion of
@@ -5044,49 +5060,24 @@ cdef class RealIntervalFieldElement(RingElement):
 #         sig_off()
 #         return x
 
-#     def zeta(self):
-#         r"""
-#         Return the Riemann zeta function evaluated at this real number.
+    def zeta(self, a=None):
+        """
+        Return the image of this interval by the Hurwitz zeta function.
 
-#         \note{PARI is vastly more efficient at computing the Riemann zeta
-#         function.   See the example below for how to use it.}
+        For ``a = 1`` (or ``a = None``), this computes the Riemann zeta function.
 
-#         EXAMPLES::
-#
-#             sage: R = RealIntervalField()
-#             sage: R(2).zeta()
-#             1.64493406684822
-#             sage: R.pi()^2/6
-#             1.64493406684822
-#             sage: R(-2).zeta()
-#             0.000000000000000
-#             sage: R(1).zeta()
-#             +infinity
+        EXAMPLES::
 
-#         Computing zeta using PARI is much more efficient in difficult cases.
-#         Here's how to compute zeta with at least a given precision:
-
-#              sage: z = pari.new_with_bits_prec(2, 53).zeta(); z
-#              1.644934066848226436472415167              # 32-bit
-#              1.6449340668482264364724151666460251892    # 64-bit
-
-#         Note that the number of bits of precision in the constructor only
-#         affects the internal precision of the pari number, not the number
-#         of digits that gets displayed.  To increase that you must
-#         use \code{pari.set_real_precision}.
-
-#              sage: type(z)
-#              <type 'sage.libs.pari.gen.gen'>
-#              sage: R(z)
-#              1.64493406684822
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         sig_on()
-#         mpfi_zeta(x.value, self.value)
-#         sig_off()
-#         return x
-
+            sage: zeta(RIF(3))
+            1.202056903159595?
+            sage: _.parent()
+            Real Interval Field with 53 bits of precision
+            sage: RIF(3).zeta(1/2)
+            8.41439832211716?
+        """
+        from sage.rings.real_arb import RealBallField
+        return RealBallField(self.precision())(self).zeta(a).\
+            _real_mpfi_(self._parent)
 
 def _simplest_rational_test_helper(low, high, low_open=False, high_open=False):
     """

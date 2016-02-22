@@ -138,8 +138,10 @@ from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.fraction_field import FractionField
 
+from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
@@ -2651,7 +2653,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
     @cached_method
     def segre_embedding(self, PP=None):
         r"""
-        Return the Segre embedding of ``self`` into the appropriate projective
+        Return the Segre embedding of this subscheme into the appropriate projective
         space.
 
         INPUT:
@@ -2661,15 +2663,11 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
 
         OUTPUT:
 
-        Hom from ``self`` to the appropriate subscheme of projective space
-
-        .. TODO::
-
-            products with more than two components
+        Hom from this subscheme to the appropriate subscheme of projective space
 
         EXAMPLES::
 
-            sage: X.<x,y,z,w,u,v> = ProductProjectiveSpaces([2,2],QQ)
+            sage: X.<x,y,z,w,u,v> = ProductProjectiveSpaces([2,2], QQ)
             sage: P = ProjectiveSpace(QQ,8,'t')
             sage: L = (-w - v)*x + (-w*y - u*z)
             sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + \
@@ -2678,12 +2676,66 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
             sage: phi = W.segre_embedding(P)
             sage: phi.codomain().ambient_space() == P
             True
+
+        ::
+
+            sage: PP.<x,y,u,v,s,t> = ProductProjectiveSpaces([1,1,1], CC)
+            sage: PP.subscheme([]).segre_embedding()
+            Scheme morphism:
+              From: Closed subscheme of Product of projective spaces P^1 x P^1 x P^1
+            over Complex Field with 53 bits of precision defined by:
+              (no polynomials)
+              To:   Closed subscheme of Projective Space of dimension 7 over Complex
+            Field with 53 bits of precision defined by:
+              -u5*u6 + u4*u7,
+              -u3*u6 + u2*u7,
+              -u3*u4 + u2*u5,
+              -u3*u5 + u1*u7,
+              -u3*u4 + u1*u6,
+              -u3*u4 + u0*u7,
+              -u2*u4 + u0*u6,
+              -u1*u4 + u0*u5,
+              -u1*u2 + u0*u3
+              Defn: Defined by sending (x : y , u : v , s : t) to
+                    (x*u*s : x*u*t : x*v*s : x*v*t : y*u*s : y*u*t : y*v*s : y*v*t).
+
+        ::
+
+            sage: PP.<x,y,z,u,v,s,t> = ProductProjectiveSpaces([2,1,1], ZZ)
+            sage: PP.subscheme([x^3, u-v, s^2-t^2]).segre_embedding()
+            Scheme morphism:
+              From: Closed subscheme of Product of projective spaces P^2 x P^1 x P^1
+            over Integer Ring defined by:
+              x^3,
+              u - v,
+              s^2 - t^2
+              To:   Closed subscheme of Projective Space of dimension 11 over
+            Integer Ring defined by:
+              u10^2 - u11^2,
+              u9 - u11,
+              u8 - u10,
+              -u7*u10 + u6*u11,
+              u6*u10 - u7*u11,
+              u6^2 - u7^2,
+              u5 - u7,
+              u4 - u6,
+              u3^3,
+              -u3*u10 + u2*u11,
+              u2*u10 - u3*u11,
+              -u3*u6 + u2*u7,
+              u2*u6 - u3*u7,
+              u2*u3^2,
+              u2^2 - u3^2,
+              u1 - u3,
+              u0 - u2
+              Defn: Defined by sending (x : y : z , u : v , s : t) to
+                    (x*v*s : x*v*t : x*v*s : x*v*t : y*v*s : y*v*t : y*v*s : y*v*t :
+            z*v*s : z*v*t : z*v*s : z*v*t).
         """
         AS = self.ambient_space()
+        CR = AS.coordinate_ring()
         N = AS.dimension_relative_components()
-        if len(N) > 2:
-            raise NotImplementedError("Cannot have more than two components.")
-        M = (N[0]+1)*(N[1]+1)-1
+        M = prod([n+1 for n in N]) - 1
 
         vars = list(AS.coordinate_ring().variable_names()) + ['u' + str(i) for i in range(M+1)]
         from sage.rings.all import PolynomialRing
@@ -2692,14 +2744,19 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         #set-up the elimination for the segre embedding
         mapping = []
         k = AS.ngens()
-        for i in range(N[0]+1):
-            for j in range(N[0]+1, N[0]+N[1]+2):
-                mapping.append(R.gen(k)-R(AS.gen(i)*AS.gen(j)))
-                k+=1
+        index = AS.num_components()*[0]
+        for count in range(M + 1):
+            mapping.append(R.gen(k+count)-prod([CR(AS[i].gen(index[i])) for i in range(len(index))]))
+            for i in range(len(index)-1, -1, -1):
+                if index[i] == N[i]:
+                    index[i] = 0
+                else:
+                    index[i] += 1
+                    break #only increment once
 
         #change the defining ideal of the subscheme into the variables
         I = R.ideal(list(self.defining_polynomials()) + mapping)
-        J  =I.groebner_basis()
+        J = I.groebner_basis()
         s = set(R.gens()[:AS.ngens()])
         n = len(J)-1
         L = []
@@ -2713,24 +2770,30 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
             PS = ProjectiveSpace(self.base_ring(), M, R.gens()[AS.ngens():])
             Y = PS.subscheme(L)
         else:
-            if PP.dimension_relative()!= M:
-                raise ValueError("Projective Space %s must be dimension %s")%(PP, M)
+            if PP.dimension_relative() != M:
+                raise ValueError("projective space %s must be dimension %s")%(PP, M)
             S = PP.coordinate_ring()
-            psi = R.hom([0]*(N[0]+N[1]+2) + list(S.gens()), S)
+            psi = R.hom([0]*k + list(S.gens()), S)
             L = [psi(l) for l in L]
             Y = PP.subscheme(L)
 
         #create embedding for points
         mapping = []
-        for i in range(N[0]+1):
-            for j in range(N[0]+1,N[0]+N[1]+2):
-                mapping.append(AS.gen(i)*AS.gen(j))
+        index = AS.num_components()*[0]
+        for count in range(M + 1):
+            mapping.append(prod([CR(AS[i].gen(index[i])) for i in range(len(index))]))
+            for i in range(len(index)-1, -1, -1):
+                if index[i] == N[i]:
+                    index[i] = 0
+                else:
+                    index[i] += 1
+                    break #only increment once
         phi = self.hom(mapping, Y)
 
         return phi
 
     def dimension(self):
-        """
+        r"""
         Return the dimension of the algebraic subscheme.
 
         OUTPUT:
@@ -2746,12 +2809,49 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
             sage: W = X.subscheme([L,Q])
             sage: W.dimension()
             2
+
+        ::
+
+            sage: PP.<x,y,z,u,v,s,t> = ProductProjectiveSpaces([2,1,1], QQ)
+            sage: X = PP.subscheme([x^3, x^5+y^5, z^6, x*u-v*y, s^2-t^2])
+            sage: X.dimension()
+            -1
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces([2,1,3], CC, 't')
+            sage: PP.subscheme([]).dimension()
+            6
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces([1,3,1], ZZ, 't')
+            sage: PP.subscheme([]).dimension()
+            5
+
+        ::
+
+            sage: PP.<x,y,u,v,s,t> = ProductProjectiveSpaces([1,1,1], CC)
+            sage: X = PP.subscheme([x^2-y^2, u-v, s^2-t^2])
+            sage: X.dimension()
+            0
         """
         try:
             return self.__dimension
         except AttributeError:
-            phi = self.segre_embedding()
-            self.__dimension = phi.codomain().defining_ideal().dimension()-1
+            try:
+                #move to field to compute radical
+                X = self.change_ring(FractionField(self.base_ring()))
+                PP = X.ambient_space()
+                I = X.defining_ideal().radical()
+                #check if the irrelevant ideal of any component is in the radical
+                if any([all([t in I for t in PS.gens()]) for PS in PP]):
+                    self.__dimension = -1
+                else:
+                    self.__dimension = I.dimension() - PP.num_components()
+            except TypeError:  #cannot compute radical for this base ring
+                phi = self.segre_embedding()
+                self.__dimension = phi.codomain().defining_ideal().dimension() - 1
             return self.__dimension
 
     def is_smooth(self, point=None):

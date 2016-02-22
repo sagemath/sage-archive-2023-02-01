@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Generic graphs (common to directed/undirected)
 
@@ -155,6 +156,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_vertex_transitive` | Return whether the automorphism group of self is transitive within the partition provided
     :meth:`~GenericGraph.is_isomorphic` | Test for isomorphism between self and other.
     :meth:`~GenericGraph.canonical_label` | Return the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which 1) is isomorphic to self 2) is invariant in the isomorphism class.
+    :meth:`~GenericGraph.is_cayley` | Check whether the graph is a Cayley graph.
 
 **Graph properties:**
 
@@ -1167,7 +1169,7 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
 
         formats = {"adjlist"           : networkx.write_adjlist,
-                   "dot"               : networkx.write_dot,
+                   "dot"               : networkx.drawing.nx_pydot.write_dot,
                    "edgelist"          : networkx.write_edgelist,
                    "gexf"              : networkx.write_gexf,
                    "gml"               : networkx.write_gml,
@@ -7026,17 +7028,21 @@ class GenericGraph(GenericGraph_pyx):
                     else:
                         edges = [(u,v,self.edge_label(u,v)),
                                  (v,u,self.edge_label(v,u))]
-                    answer = self.subgraph(edges = edges)
+                    answer = self.subgraph(edges = edges, immutable = False)
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
+                    if self.is_immutable():
+                        answer = answer.copy(immutable = True)
                     return answer
             else:
                 if self.has_multiple_edges() and len(self.edge_label(u,v)) > 1:
                     edges = self.edges()
                     edges.sort(key=weight)
-                    answer = self.subgraph(edges = edges[:2])
+                    answer = self.subgraph(edges = edges[:2], immutable = False)
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
+                    if self.is_immutable():
+                        answer = answer.copy(immutable = True)
                     return answer
 
             raise EmptySetError("The given graph is not Hamiltonian")
@@ -7215,9 +7221,11 @@ class GenericGraph(GenericGraph_pyx):
                         raise EmptySetError("The given graph is not Hamiltonian")
 
             # We can now return the TSP !
-            answer = self.subgraph(edges = h.edges())
+            answer = self.subgraph(edges = h.edges(), immutable = False)
             answer.set_pos(self.get_pos())
             answer.name("TSP from "+g.name())
+            if self.is_immutable():
+                answer = answer.copy(immutable = True)
             return answer
 
         #################################################
@@ -10927,7 +10935,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def degree_histogram(self):
         """
-        Returns a list, whose ith entry is the frequency of degree i.
+        Return a list, whose ith entry is the frequency of degree i.
 
         EXAMPLES::
 
@@ -10940,7 +10948,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.Grid2dGraph(9,12).to_directed()
             sage: G.degree_histogram()
             [0, 0, 0, 0, 4, 0, 34, 0, 70]
+
+        TESTS::
+
+            sage: Graph().degree_histogram()
+            []
         """
+        if self.order() == 0:
+            return []
         degree_sequence = self.degree()
         dmax = max(degree_sequence) + 1
         frequency = [0]*dmax
@@ -12548,7 +12563,7 @@ class GenericGraph(GenericGraph_pyx):
             False
         """
         if directed_clique and self._directed:
-            subgraph=self.subgraph(vertices)
+            subgraph=self.subgraph(vertices, immutable = False)
             subgraph.allow_loops(False)
             subgraph.allow_multiple_edges(False)
             n=subgraph.order()
@@ -20788,6 +20803,158 @@ class GenericGraph(GenericGraph_pyx):
             return H, c_new
         else:
             return H
+
+    def is_cayley(self, return_group = False, mapping = False,
+                  generators = False, allow_disconnected = False):
+        r"""
+        Check whether the graph is a Cayley graph.
+
+        If none of the parameters are ``True``, return a boolean indicating
+        whether the graph is a Cayley graph. Otherwise, return a tuple
+        containing said boolean and the requested data. If the graph is not
+        a Cayley graph, each of the data will be ``None``.
+
+        .. NOTE::
+
+            For this routine to work on all graphs, the optional packages
+            ``gap_packages`` and ``database_gap`` need to be installed: to do
+            so, it is enough to run ``sage -i gap_packages database_gap``.
+
+        INPUT:
+
+        - ``return_group`` (boolean; ``False``) -- If True, return a group for
+          which the graph is a Cayley graph.
+
+        - ``mapping`` (boolean; ``False``) -- If True, return a mapping from
+          vertices to group elements.
+
+        - ``generators`` (boolean; ``False``) -- If True, return the generating
+          set of the Cayley graph.
+
+        - ``allow_disconnected`` (boolean; ``False``) -- If True, disconnected
+          graphs are considered Cayley if they can be obtained from the Cayley
+          construction with a generating set that does not generate the group.
+
+        ALGORITHM:
+
+        For connected graphs, find a regular subgroup of the automorphism
+        group. For disconnected graphs, check that the graph is
+        vertex-transitive and perform the check on one of its connected
+        components. If a simple graph has density over 1/2, perform the check
+        on its complement as its disconnectedness may increase performance.
+
+        EXAMPLES:
+
+        A Petersen Graph is not a Cayley graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_cayley()
+            False
+
+        A Cayley digraph is a Cayley graph::
+
+            sage: C7 = groups.permutation.Cyclic(7)
+            sage: S = [(1,2,3,4,5,6,7), (1,3,5,7,2,4,6), (1,5,2,6,3,7,4)]
+            sage: d = C7.cayley_graph(generators=S)
+            sage: d.is_cayley()
+            True
+
+        Graphs with loops and multiedges will have identity and repeated
+        elements, respectively, among the generators::
+
+            sage: g = Graph(graphs.PaleyGraph(9), loops=True, multiedges=True)
+            sage: g.add_edges([(u, u) for u in g])
+            sage: g.add_edges([(u, u+1) for u in g])
+            sage: _, S = g.is_cayley(generators=True)
+            sage: S # random
+            [(),
+             (0,2,1)(a,a + 2,a + 1)(2*a,2*a + 2,2*a + 1),
+             (0,2,1)(a,a + 2,a + 1)(2*a,2*a + 2,2*a + 1),
+             (0,1,2)(a,a + 1,a + 2)(2*a,2*a + 1,2*a + 2),
+             (0,1,2)(a,a + 1,a + 2)(2*a,2*a + 1,2*a + 2),
+             (0,2*a + 2,a + 1)(1,2*a,a + 2)(2,2*a + 1,a),
+             (0,a + 1,2*a + 2)(1,a + 2,2*a)(2,a,2*a + 1)]
+
+        TESTS:
+
+        Cayley graphs can be reconstructed from the group and generating set::
+
+            sage: g = graphs.PaleyGraph(9)
+            sage: _, G, S = g.is_cayley(return_group=True, generators=True)
+            sage: Graph(G.cayley_graph(generators=S)).is_isomorphic(g)
+            True
+
+        A disconnected graphs may also be a Cayley graph::
+
+            sage: g = graphs.PaleyGraph(9)
+            sage: h = g.disjoint_union(g)
+            sage: h = h.disjoint_union(h)
+            sage: h = h.disjoint_union(g)
+            sage: _, G, d, S = h.is_cayley(return_group=True, mapping=True, generators=True, allow_disconnected=True)
+            sage: all(set(d[u] for u in h.neighbors(v)) == set(d[v]*x for x in S) for v in h)
+            True
+
+        The method also works efficiently with dense simple graphs::
+
+            sage: graphs.CompleteBipartiteGraph(50, 50).is_cayley()
+            True
+
+        """
+        compute_map = mapping or generators
+        certificate = return_group or compute_map
+        c, G, map, genset = False, None, None, None
+        if not self.is_connected():
+            if allow_disconnected and self.is_vertex_transitive():
+                C = self.connected_components_subgraphs()
+                if certificate:
+                    c, CG = C[0].is_cayley(return_group = True)
+                    if c:
+                        from sage.groups.perm_gps.permgroup import PermutationGroup
+                        I = [C[0].is_isomorphic(g, certify=True)[1] for g in C]
+                        # gens generate the direct product of CG and a cyclic group
+                        gens = [sum([[tuple([M[x] for x in p])
+                                for p in h.cycle_tuples()] for M in I], [])
+                                for h in CG.gens()] + \
+                               [[tuple([M[v] for M in I])
+                                 for v in C[0].vertices()]]
+                        G = PermutationGroup(gens, domain = self.vertices())
+                else:
+                    c = C[0].is_cayley(return_group = False)
+        elif not self.allows_loops() and not self.allows_multiple_edges() and \
+                self.density() > Rational(1)/Rational(2):
+            if certificate:
+                c, G = self.complement().is_cayley(return_group = True,
+                                                   allow_disconnected = True)
+            else:
+                c = self.complement().is_cayley(return_group = False,
+                                                allow_disconnected = True)
+        else:
+            A = self.automorphism_group()
+            if certificate:
+                G = A.has_regular_subgroup(return_group = True)
+                c = G is not None
+            else:
+                c = A.has_regular_subgroup(return_group = False)
+        if c and compute_map:
+            v = next(self.vertex_iterator())
+            map = {(f**-1)(v): f for f in G}
+            if generators:
+                # self.(out_)neighbors ignores multiedges,
+                # so we use edge_iterator instead
+                adj = [y if v == x else x
+                       for x, y, z in self.edge_iterator(v)]
+                genset = [map[u] for u in adj]
+        if certificate:
+            out = [c]
+            if return_group:
+                out.append(G)
+            if mapping:
+                out.append(map)
+            if generators:
+                out.append(genset)
+            return tuple(out)
+        else:
+            return c
 
 import types
 

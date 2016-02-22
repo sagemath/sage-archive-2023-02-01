@@ -75,6 +75,13 @@ cdef class Polynomial_rational_flint(Polynomial):
     polynomial and a positive denominator which is coprime to the content of
     the numerator.
 
+    TESTS::
+
+        sage: f = QQ['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
+        sage: isinstance(f, Polynomial_rational_flint)
+        True
+
     .. automethod:: _add_
     .. automethod:: _sub_
     .. automethod:: _lmul_
@@ -2090,7 +2097,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
         p = Integer(p)
         if not p.is_prime():

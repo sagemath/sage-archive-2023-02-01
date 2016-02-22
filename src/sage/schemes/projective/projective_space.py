@@ -81,11 +81,10 @@ from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
 
-from sage.rings.ring import is_Ring
+from sage.rings.ring import CommutativeRing
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -108,15 +107,16 @@ from sage.schemes.projective.projective_homset import (SchemeHomset_points_proje
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
                                                       SchemeMorphism_point_projective_field,
                                                       SchemeMorphism_point_projective_finite_field)
-from sage.schemes.projective.projective_morphism import  (SchemeMorphism_polynomial_projective_space,
-                                                          SchemeMorphism_polynomial_projective_space_field,
-                                                          SchemeMorphism_polynomial_projective_space_finite_field)
+from sage.schemes.projective.projective_morphism import (SchemeMorphism_polynomial_projective_space,
+                                                         SchemeMorphism_polynomial_projective_space_field,
+                                                         SchemeMorphism_polynomial_projective_space_finite_field)
 
 def is_ProjectiveSpace(x):
     r"""
-    Return True if `x` is a projective space, i.e., an ambient space
-    `\mathbb{P}^n_R`, where `R` is a ring and `n\geq 0` is an
-    integer.
+    Return True if ``x`` is a projective space.
+
+    In other words, if ``x`` is an ambient space `\mathbb{P}^n_R`,
+    where `R` is a ring and `n\geq 0` is an integer.
 
     EXAMPLES::
 
@@ -132,7 +132,7 @@ def is_ProjectiveSpace(x):
 
 def ProjectiveSpace(n, R=None, names='x'):
     r"""
-    Return projective space of dimension `n` over the ring `R`.
+    Return projective space of dimension ``n`` over the ring ``R``.
 
     EXAMPLES: The dimension and ring can be given in either order.
 
@@ -208,7 +208,7 @@ def ProjectiveSpace(n, R=None, names='x'):
             return ProjectiveSpace_rational_field(n, R, names)
         else:
             return ProjectiveSpace_field(n, R, names)
-    elif is_CommutativeRing(R):
+    elif isinstance(R, CommutativeRing):
         return ProjectiveSpace_ring(n, R, names)
     else:
         raise TypeError("R (=%s) must be a commutative ring"%R)
@@ -240,6 +240,8 @@ class ProjectiveSpace_ring(AmbientSpace):
     """
     def __init__(self, n, R=ZZ, names=None):
         """
+        Initialization function.
+
         EXAMPLES::
 
             sage: ProjectiveSpace(3, Zp(5), 'y')
@@ -251,8 +253,9 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def ngens(self):
         """
-        Return the number of generators of self, i.e. the number of
-        variables in the coordinate ring of self.
+        Return the number of generators of this projective space.
+
+        This is the number of variables in the coordinate ring of self.
 
         EXAMPLES::
 
@@ -265,7 +268,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def _check_satisfies_equations(self, v):
         """
-        Return True if `v` defines a point on the scheme self; raise a
+        Return True if ``v`` defines a point on the scheme; raise a
         TypeError otherwise.
 
         EXAMPLES::
@@ -286,7 +289,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P._check_satisfies_equations([0, 0, 0])
             Traceback (most recent call last):
             ...
-            TypeError: The zero vector is not a point in projective space
+            TypeError: the zero vector is not a point in projective space
 
         ::
 
@@ -294,7 +297,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P._check_satisfies_equations((1, 0))
             Traceback (most recent call last):
             ...
-            TypeError: The list v=(1, 0) must have 3 components
+            TypeError: the list v=(1, 0) must have 3 components
 
         ::
 
@@ -302,20 +305,20 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P._check_satisfies_equations([1/2, 0, 1])
             Traceback (most recent call last):
             ...
-            TypeError: The components of v=[1/2, 0, 1] must be elements of Integer Ring
+            TypeError: the components of v=[1/2, 0, 1] must be elements of Integer Ring
         """
         if not isinstance(v, (list, tuple)):
-            raise TypeError('The argument v=%s must be a list or tuple'%v)
+            raise TypeError('the argument v=%s must be a list or tuple'%v)
         n = self.ngens()
         if not len(v) == n:
-            raise TypeError('The list v=%s must have %s components'%(v, n))
+            raise TypeError('the list v=%s must have %s components'%(v, n))
         R = self.base_ring()
         for coord in v:
             if not coord in R:
-                raise TypeError('The components of v=%s must be elements of %s'%(v, R))
+                raise TypeError('the components of v=%s must be elements of %s'%(v, R))
         zero = [R(0)]*n
         if v == zero:
-            raise TypeError('The zero vector is not a point in projective space')
+            raise TypeError('the zero vector is not a point in projective space')
         return True
 
     def coordinate_ring(self):
@@ -354,11 +357,11 @@ class ProjectiveSpace_ring(AmbientSpace):
         INPUT:
 
         - ``polynomials`` -- tuple of polynomials in the coordinate ring of
-            self
+            this space.
 
         OUTPUT:
 
-        - tuple of polynomials in the coordinate ring of self
+        - tuple of polynomials in the coordinate ring of this space.
 
         EXAMPLES::
 
@@ -372,7 +375,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P._validate((x*y - z, x))
             Traceback (most recent call last):
             ...
-            TypeError: x*y - z is not a homogeneous polynomial!
+            TypeError: x*y - z is not a homogeneous polynomial
 
       ::
 
@@ -380,17 +383,19 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P._validate(x*y - z)
             Traceback (most recent call last):
             ...
-            TypeError: The argument polynomials=x*y - z must be a list or tuple
+            TypeError: the argument polynomials=x*y - z must be a list or tuple
         """
         if not isinstance(polynomials, (list, tuple)):
-            raise TypeError('The argument polynomials=%s must be a list or tuple'%polynomials)
+            raise TypeError('the argument polynomials=%s must be a list or tuple'%polynomials)
         for f in polynomials:
             if not f.is_homogeneous():
-                raise TypeError("%s is not a homogeneous polynomial!" % f)
+                raise TypeError("%s is not a homogeneous polynomial" % f)
         return polynomials
 
     def __cmp__(self, right):
         """
+        Compare equality of two projective spaces.
+
         EXAMPLES::
 
             sage: ProjectiveSpace(QQ, 3, 'a') == ProjectiveSpace(ZZ, 3, 'a')
@@ -426,17 +431,17 @@ class ProjectiveSpace_ring(AmbientSpace):
     def _linear_system_as_kernel(self, d, pt, m):
         """
         Return a matrix whose kernel consists of the coefficient vectors
-        of the degree d hypersurfaces (wrt lexicographic ordering of its
-        monomials) with multiplicity at least m at pt.
+        of the degree ``d`` hypersurfaces (wrt lexicographic ordering of its
+        monomials) with multiplicity at least ``m`` at ``pt``.
 
         INPUT:
 
-        -  ``d`` -- a nonnegative integer
+        -  ``d`` -- a nonnegative integer.
 
         -  ``pt`` -- a point of self (possibly represented by a list with at \
-                     least one component equal to 1)
+                     least one component equal to 1).
 
-        -  ``m`` -- a nonnegative integer
+        -  ``m`` -- a nonnegative integer.
 
         OUTPUT:
 
@@ -459,7 +464,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             [0]
             [0]
 
-        If the multiplcity `m` is 0, then the a matrix with zero rows is returned::
+        If the multiplcity ``m`` is 0, then the a matrix with zero rows is returned::
 
             sage: P = ProjectiveSpace(GF(5), 2, names='x')
             sage: pt = P([1, 1, 1])
@@ -488,7 +493,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P._linear_system_as_kernel(3, pt, 2)
             Traceback (most recent call last):
             ...
-            TypeError: At least one component of pt=[3, 3, 0] must be equal
+            TypeError: at least one component of pt=[3, 3, 0] must be equal
                           to 1
 
         The components of the list do not have to be elements of the base ring
@@ -513,36 +518,36 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         """
         if not isinstance(d, (int, Integer)):
-            raise TypeError('The argument d=%s must be an integer'%d)
+            raise TypeError('the argument d=%s must be an integer'%d)
         if d < 0:
-            raise ValueError('The integer d=%s must be nonnegative'%d)
+            raise ValueError('the integer d=%s must be nonnegative'%d)
         if not isinstance(pt, (list, tuple, \
                                SchemeMorphism_point_projective_ring)):
-            raise TypeError('The argument pt=%s must be a list, tuple, or '
+            raise TypeError('the argument pt=%s must be a list, tuple, or '
                             'point on a projective space'%pt)
         pt, R = prepare(pt, None)
         n = self.dimension_relative()
         if not len(pt) == n+1:
-            raise TypeError('The sequence pt=%s must have %s '
+            raise TypeError('the sequence pt=%s must have %s '
                             'components'%(pt, n + 1))
         if not R.has_coerce_map_from(self.base_ring()):
-            raise TypeError('Unable to find a common ring for all elements')
+            raise TypeError('unable to find a common ring for all elements')
         try:
             i = pt.index(1)
         except Exception:
-            raise TypeError('At least one component of pt=%s must be equal '
+            raise TypeError('at least one component of pt=%s must be equal '
                             'to 1'%pt)
         pt = pt[:i] + pt[i+1:]
         if not isinstance(m, (int, Integer)):
-            raise TypeError('The argument m=%s must be an integer'%m)
+            raise TypeError('the argument m=%s must be an integer'%m)
         if m < 0:
-            raise ValueError('The integer m=%s must be nonnegative'%m)
+            raise ValueError('the integer m=%s must be nonnegative'%m)
         # the components of partials correspond to partial derivatives
         # of order at most m-1 with respect to n variables
-        partials = IntegerVectors(m-1,n+1).list()
+        partials = IntegerVectors(m-1, n+1).list()
         # the components of monoms correspond to monomials of degree
         # at most d in n variables
-        monoms = IntegerVectors(d,n+1).list()
+        monoms = IntegerVectors(d, n+1).list()
         M = matrix(R,len(partials),len(monoms))
         for row in range(M.nrows()):
             e = partials[row][:i] + partials[row][i+1:]
@@ -617,9 +622,9 @@ class ProjectiveSpace_ring(AmbientSpace):
     def _repr_generic_point(self, v=None):
         """
         Return a string representation of the generic point
-        corresponding to the list of polys on this projective space.
+        corresponding to the list of polys ``v`` on this projective space.
 
-        If polys is None, the representation of the generic point of
+        If ``v`` is None, the representation of the generic point of
         the projective space is returned.
 
         EXAMPLES::
@@ -637,9 +642,9 @@ class ProjectiveSpace_ring(AmbientSpace):
     def _latex_generic_point(self, v=None):
         """
         Return a LaTeX representation of the generic point
-        corresponding to the list of polys on this projective space.
+        corresponding to the list of polys ``v`` on this projective space.
 
-        If polys is None, the representation of the generic point of
+        If ``v`` is None, the representation of the generic point of
         the projective space is returned.
 
         EXAMPLES::
@@ -656,20 +661,20 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def change_ring(self, R):
         r"""
-        Return a projective space over ring `R` and otherwise the same as self.
+        Return a projective space over ring ``R``.
 
         INPUT:
 
-        - ``R`` -- commutative ring
+        - ``R`` -- commutative ring.
 
         OUTPUT:
 
-        - projective space over ``R``
+        - projective space over ``R``.
 
         .. NOTE::
 
-            There is no need to have any relation between `R` and the base ring
-            of  self, if you want to have such a relation, use
+            There is no need to have any relation between ``R`` and the base ring
+            of this space, if you want to have such a relation, use
             ``self.base_extend(R)`` instead.
 
         EXAMPLES::
@@ -685,7 +690,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def is_projective(self):
         """
-        Return that this ambient space is projective n-space.
+        Return that this ambient space is projective `n`-space.
 
         EXAMPLES::
 
@@ -696,11 +701,11 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def subscheme(self, X):
         """
-        Return the closed subscheme defined by X.
+        Return the closed subscheme defined by ``X``.
 
         INPUT:
 
-        -  ``X`` - a list or tuple of equations
+        -  ``X`` - a list or tuple of equations.
 
         EXAMPLES::
 
@@ -731,14 +736,18 @@ class ProjectiveSpace_ring(AmbientSpace):
               To:   Spectrum of Rational Field
               Defn: Structure map
 
-            sage: TestSuite(X).run(skip=["_test_an_element", "_test_elements", "_test_elements_eq", "_test_some_elements", "_test_elements_eq_reflexive",  "_test_elements_eq_symmetric", "_test_elements_eq_transitive", "_test_elements_neq"])
+            sage: TestSuite(X).run(skip=["_test_an_element", "_test_elements",\
+            "_test_elements_eq", "_test_some_elements", "_test_elements_eq_reflexive",\
+            "_test_elements_eq_symmetric", "_test_elements_eq_transitive",\
+            "_test_elements_neq"])
         """
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
-    def affine_patch(self, i, AA = None):
+    def affine_patch(self, i, AA=None):
         r"""
         Return the `i^{th}` affine patch of this projective space.
+
         This is an ambient affine space `\mathbb{A}^n_R,` where
         `R` is the base ring of self, whose "projective embedding"
         map is `1` in the `i^{th}` factor.
@@ -782,7 +791,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         i = int(i)   # implicit type checking
         n = self.dimension_relative()
         if i < 0 or i > n:
-            raise ValueError("Argument i (= %s) must be between 0 and %s."%(i, n))
+            raise ValueError("argument i (= %s) must be between 0 and %s"%(i, n))
         try:
             A = self.__affine_patches[i]
             #assume that if you've passed in a new affine space you want to override
@@ -798,7 +807,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             from sage.schemes.affine.affine_space import AffineSpace
             AA = AffineSpace(n, self.base_ring(), names = 'x')
         elif AA.dimension_relative() != n:
-                raise ValueError("Affine Space must be of the dimension %s"%(n))
+                raise ValueError("affine space must be of the dimension %s"%(n))
         AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
@@ -806,18 +815,18 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def _an_element_(self):
         r"""
-        Returns a (preferably typical) element of ``self``.
+        Returns a (preferably typical) element of this space.
 
         This is used both for illustration and testing purposes.
 
-        OUTPUT: a point in the projective space ``self``.
+        OUTPUT: a point in this projective space.
 
         EXAMPLES::
 
-            sage: ProjectiveSpace(ZZ,3,'x').an_element()
+            sage: ProjectiveSpace(ZZ, 3, 'x').an_element()
             (7 : 6 : 5 : 1)
 
-            sage: ProjectiveSpace(PolynomialRing(ZZ,'y'),3,'x').an_element()
+            sage: ProjectiveSpace(PolynomialRing(ZZ,'y'), 3, 'x').an_element()
             (7*y : 6*y : 5*y : 1)
         """
         n = self.dimension_relative()
@@ -826,27 +835,31 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def Lattes_map(self, E, m):
         r"""
-        Given an elliptic curve `E` and an integer `m` return the Lattes map associated to multiplication by `m`.
-        In other words, the rational map on the quotient `E/\{\pm 1\} \cong \mathbb{P}^1` associated to `[m]:E \to E`.
+        Given an elliptic curve ``E`` and an integer ``m`` return
+        the Lattes map associated to multiplication by `m`.
+
+        In other words, the rational map on the quotient
+        `E/\{\pm 1\} \cong \mathbb{P}^1` associated to `[m]:E \to E`.
 
         INPUT:
 
-        - ``E`` -- an elliptic curve
-        - ``m`` -- an integer
+        - ``E`` -- an elliptic curve.
 
-        OUTPUT: an endomorphism of ``self``.
+        - ``m`` -- an integer.
+
+        OUTPUT: an endomorphism of this projective space.
 
         Examples::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: E = EllipticCurve(QQ,[-1, 0])
-            sage: P.Lattes_map(E,2)
+            sage: P.Lattes_map(E, 2)
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^4 + 2*x^2*y^2 + y^4 : 4*x^3*y - 4*x*y^3)
         """
         if self.dimension_relative() != 1:
-            raise TypeError("Must be dimension 1")
+            raise TypeError("must be dimension 1")
 
         L = E.multiplication_by_m(m, x_only = True)
         F = [L.numerator(), L.denominator()]
@@ -859,21 +872,21 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def cartesian_product(self, other):
         r"""
-        Return the Cartesian product of the projective spaces ``self`` and
+        Return the Cartesian product of this projective space and
         ``other``.
 
         INPUT:
 
-        - ``other`` - A projective space with the same base ring as ``self``
+        - ``other`` - A projective space with the same base ring as this space.
 
         OUTPUT:
 
-        - A Cartesian product of projective spaces
+        - A Cartesian product of projective spaces.
 
         EXAMPLES::
 
-            sage: P1 = ProjectiveSpace(QQ,1,'x')
-            sage: P2 = ProjectiveSpace(QQ,2,'y')
+            sage: P1 = ProjectiveSpace(QQ, 1, 'x')
+            sage: P2 = ProjectiveSpace(QQ, 2, 'y')
             sage: PP = P1.cartesian_product(P2); PP
             Product of projective spaces P^1 x P^2 over Rational Field
             sage: PP.gens()
@@ -929,21 +942,23 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
 
-    def points_of_bounded_height(self,bound, prec=53):
+    def points_of_bounded_height(self, bound, prec=53):
         r"""
-        Returns an iterator of the points in self of absolute height of at most the given bound. Bound check
-        is strict for the rational field. Requires self to be projective space over a number field. Uses the
-        Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm].
+        Returns an iterator of the points in self of absolute height of at most the given bound.
+
+        Bound check is strict for the rational field. Requires self to be projective space
+        over a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers
+        up to a given height [Doyle-Krumm].
 
         INPUT:
 
-        - ``bound`` - a real number
+        - ``bound`` - a real number.
 
-        - ``prec`` - the precision to use to compute the elements of bounded height for number fields
+        - ``prec`` - the precision to use to compute the elements of bounded height for number fields.
 
         OUTPUT:
 
-        - an iterator of points in self
+        - an iterator of points in this space.
 
         .. WARNING::
 
@@ -955,7 +970,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: list(P.points_of_bounded_height(5))
             [(0 : 1), (1 : 1), (-1 : 1), (1/2 : 1), (-1/2 : 1), (2 : 1), (-2 : 1), (1/3 : 1),
             (-1/3 : 1), (3 : 1), (-3 : 1), (2/3 : 1), (-2/3 : 1), (3/2 : 1), (-3/2 : 1), (1/4 : 1),
@@ -964,7 +979,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         ::
 
             sage: u = QQ['u'].0
-            sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2,'v'), 2)
+            sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
             sage: len(list(P.points_of_bounded_height(1.5)))
             57
         """
@@ -973,7 +988,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         elif (self.base_ring() in NumberFields()): # true for rational field as well, so check is_RationalField first
             ftype = True
         else:
-            raise NotImplementedError("self must be projective space over a number field.")
+            raise NotImplementedError("self must be projective space over a number field")
 
         bound = bound**(self.base_ring().absolute_degree()) # convert to relative height
 
@@ -1107,8 +1122,8 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
 
     def rational_points(self, F=None):
         """
-        Return the list of `F`-rational points on the affine space self,
-        where `F` is a given finite field, or the base ring of self.
+        Return the list of ``F``-rational points on this projective space,
+        where ``F`` is a given finite field, or the base ring of this space.
 
         EXAMPLES::
 
@@ -1121,7 +1136,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         if F is None:
             return [ P for P in self ]
         elif not is_FiniteField(F):
-            raise TypeError("Second argument (= %s) must be a finite field."%F)
+            raise TypeError("second argument (= %s) must be a finite field"%F)
         return [ P for P in self.base_extend(F) ]
 
     def rational_points_dictionary(self):
@@ -1134,7 +1149,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
 
         EXAMPLES::
 
-            sage: P1=ProjectiveSpace(GF(7),1,'x')
+            sage: P1 = ProjectiveSpace(GF(7),1,'x')
             sage: P1.rational_points_dictionary()
             {(0 : 1): 0,
              (1 : 0): 7,
@@ -1173,26 +1188,35 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         return(D)
 
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
-    def rational_points(self,bound=0):
+    def rational_points(self, bound=0):
         r"""
         Returns the projective points `(x_0:\cdots:x_n)` over
         `\QQ` with `|x_i| \leq` bound.
 
+       ALGORITHM:
+
+       The very simple algorithm works as follows: every point
+       `(x_0:\cdots:x_n)` in projective space has a unique
+       largest index `i` for which `x_i` is not
+       zero. The algorithm then iterates downward on this
+       index. We normalize by choosing `x_i` positive. Then,
+       the points `x_0,\ldots,x_{i-1}` are the points of
+       affine `i`-space that are relatively prime to
+       `x_i`. We access these by using the Tuples method.
+
         INPUT:
 
-
-        -  ``bound`` - integer
-
+        -  ``bound`` - integer.
 
         EXAMPLES::
 
-            sage: PP = ProjectiveSpace(0,QQ)
+            sage: PP = ProjectiveSpace(0, QQ)
             sage: PP.rational_points(1)
             [(1)]
-            sage: PP = ProjectiveSpace(1,QQ)
+            sage: PP = ProjectiveSpace(1, QQ)
             sage: PP.rational_points(2)
             [(-2 : 1), (-1 : 1), (0 : 1), (1 : 1), (2 : 1), (-1/2 : 1), (1/2 : 1), (1 : 0)]
-            sage: PP = ProjectiveSpace(2,QQ)
+            sage: PP = ProjectiveSpace(2, QQ)
             sage: PP.rational_points(2)
             [(-2 : -2 : 1), (-1 : -2 : 1), (0 : -2 : 1), (1 : -2 : 1), (2 : -2 : 1),
             (-2 : -1 : 1), (-1 : -1 : 1), (0 : -1 : 1), (1 : -1 : 1), (2 : -1 : 1),
@@ -1206,49 +1230,35 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
             0), (1 : 1 : 0), (2 : 1 : 0), (-1/2 : 1 : 0), (1/2 : 1 : 0), (1 : 0 :
             0)]
 
-
-        .. note::
-
-           The very simple algorithm works as follows: every point
-           `(x_0:\cdots:x_n)` in projective space has a unique
-           largest index `i` for which `x_i` is not
-           zero. The algorithm then iterates downward on this
-           index. We normalize by choosing `x_i` positive. Then,
-           the points `x_0,\ldots,x_{i-1}` are the points of
-           affine `i`-space that are relatively prime to
-           `x_i`. We access these by using the Tuples method.
-
         AUTHORS:
 
         - Benjamin Antieau (2008-01-12)
         """
         if not bound > 0:
-            raise ValueError("Argument bound (= %s) must be a positive integer.")
+            raise ValueError("argument bound (= %s) must be a positive integer")
 
         n = self.dimension_relative()
 
-
-        Q = [ k-bound for k in range(2*bound+1) ]      # the affine coordinates
-        R = [ (k+1) for k in range(bound) ]            # the projective coordinate
-        S = [ Tuples(Q,(k+1)) for k in range(n) ]
+        Q = [k-bound for k in range(2*bound+1)]      # the affine coordinates
+        R = [(k+1) for k in range(bound)]            # the projective coordinate
+        S = [Tuples(Q, (k+1)) for k in range(n)]
         pts = []
 
-        i=n
-
+        i = n
         while i > 0:
             P = [ 0 for _ in range(n+1) ]
             for ai in R:
-                P[i]=ai
+                P[i] = ai
                 for tup in S[i-1]:
-                    if gcd([ai]+tup)==1:
+                    if gcd([ai] + tup) == 1:
                         for j in range(i):
-                            P[j]=tup[j]
+                            P[j] = tup[j]
                         pts.append(self(P))
-            i-=1
+            i -= 1
 
         # now do i=0; this is treated as a special case so that
         # we don't have all points (1:0),(2,0),(3,0),etc.
-        P = [ 0 for _ in range(n+1) ]; P[0]=1
+        P = [ 0 for _ in range(n+1) ]; P[0] = 1
         pts.append(self(P))
         return pts
 

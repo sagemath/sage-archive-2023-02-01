@@ -21,6 +21,7 @@ import sage.rings.all as rings
 from sage.rings.ring import is_Ring
 import sage.matrix.matrix_space as matrix_space
 from sage.modules.free_module_element import vector
+from sage.structure.coerce import py_scalar_parent
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 from sage.rings.real_double import RDF
@@ -792,18 +793,22 @@ def prepare(w):
         Traceback (most recent call last):
         ...
         TypeError: unable to find a common ring for all elements
+
+    TESTS:
+
+    Check that :trac:`19920` is fixed::
+
+        sage: import numpy
+        sage: matrix([[numpy.int8(1)]])
+        [1]
     """
-    if 0 == len(w):
+    if not w:
         return Sequence([], rings.ZZ), rings.ZZ
     entries = Sequence(w)
     ring = entries.universe()
-    if ring is int or ring is long:
-        ring = rings.ZZ
-    elif ring is float:
-        ring = rings.RDF
-    elif ring is complex:
-        ring = rings.CDF
-    elif not is_Ring(ring):
+    if isinstance(ring,type):
+        ring = py_scalar_parent(ring)
+    if not is_Ring(ring):
         raise TypeError("unable to find a common ring for all elements")
     return entries, ring
 

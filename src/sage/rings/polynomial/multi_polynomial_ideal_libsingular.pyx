@@ -38,21 +38,13 @@ Two examples from the Mathematica documentation (done in Sage):
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -65,8 +57,6 @@ from sage.libs.singular.decl cimport scKBase, poly, testHomog, idSkipZeroes, idR
 from sage.libs.singular.decl cimport OPT_REDTAIL, singular_options, kInterRed, t_rep_gb, p_GetCoeff
 from sage.libs.singular.decl cimport pp_Mult_nn, p_Delete, n_Delete
 from sage.libs.singular.decl cimport rIsPluralRing
-
-from sage.structure.parent_base cimport ParentWithBase
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport new_MP
 from sage.rings.polynomial.plural cimport new_NCP

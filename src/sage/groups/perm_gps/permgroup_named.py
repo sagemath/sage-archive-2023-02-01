@@ -85,7 +85,7 @@ NOTE:
 
 from sage.rings.all      import Integer
 from sage.interfaces.all import gap
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.arith.all import factor, valuation
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even

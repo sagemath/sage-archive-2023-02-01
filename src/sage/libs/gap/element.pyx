@@ -18,6 +18,7 @@ elements. For general information about libGAP, you should read the
 include "sage/ext/interrupt.pxi"
 from cpython.object cimport *
 
+from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
 from sage.rings.all import ZZ
@@ -373,7 +374,6 @@ cdef class GapElement(RingElement):
             return
         dereference_obj(self.value)
 
-
     cpdef _type_number(self):
         """
         Return the GAP internal type number.
@@ -395,24 +395,24 @@ cdef class GapElement(RingElement):
         name = decode_type_number.get(n, 'unknown')
         return (n, name)
 
-
-    def trait_names(self):
+    def __dir__(self):
         """
-        Return all Gap function names.
-
-        OUTPUT:
-
-        A list of strings.
+        Customize tab completion
 
         EXAMPLES::
 
+            sage: G = libgap.DihedralGroup(4)
+            sage: 'GeneratorsOfMagmaWithInverses' in dir(G)
+            True
+            sage: 'GeneratorsOfGroup' in dir(G)    # known bug
+            False
             sage: x = libgap(1)
-            sage: len(x.trait_names()) > 1000
+            sage: len(dir(x)) > 100
             True
         """
-        import gap_functions
-        return gap_functions.common_gap_functions
-
+        from sage.libs.gap.operations import OperationInspector
+        ops = OperationInspector(self).op_names()
+        return dir(self.__class__) + ops
 
     def __getattr__(self, name):
         r"""
@@ -421,6 +421,8 @@ cdef class GapElement(RingElement):
         EXAMPLES::
 
             sage: lst = libgap([])
+            sage: 'Add' in dir(lst)    # This is why tab-completion works
+            True
             sage: lst.Add(1)    # this is the syntactic sugar
             sage: lst
             [ 1 ]
@@ -458,7 +460,6 @@ cdef class GapElement(RingElement):
             raise AttributeError('name "'+str(name)+'" does not define a GAP function.')
         return proxy
 
-
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -485,7 +486,6 @@ cdef class GapElement(RingElement):
         finally:
             libgap_finish_interaction()
             libgap_exit()
-
 
     cpdef _set_compare_by_id(self):
         """
@@ -524,7 +524,6 @@ cdef class GapElement(RingElement):
             True
         """
         self._compare_by_id = True
-
 
     cpdef _assert_compare_by_id(self):
         """
@@ -1434,7 +1433,7 @@ cdef class GapElement_FiniteField(GapElement):
         deg = self.DegreeFFE().sage()
         char = self.Characteristic().sage()
         if ring is None:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             ring = GF(char**deg, name=var)
 
         if self.IsOne():
@@ -1678,7 +1677,7 @@ cdef class GapElement_Ring(GapElement):
             Finite Field in A of size 3^2
         """
         size = self.Size().sage()
-        from sage.rings.finite_rings.constructor import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         return GF(size, name=var)
 
 
@@ -2602,7 +2601,7 @@ cdef class GapElement_RecordIterator(object):
 
     def __next__(self):
         r"""
-        The next elemnt in the record.
+        Return the next element in the record.
 
         OUTPUT:
 

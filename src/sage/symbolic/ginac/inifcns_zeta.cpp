@@ -32,7 +32,7 @@ static ex stieltjes1_evalf(const ex& x, PyObject* parent)
 
 static ex stieltjes1_eval(const ex& arg)
 {
-	if (not arg.info(info_flags::numeric))
+	if (not is_exactly_a<numeric>(arg))
                 return stieltjes(arg).hold();
 
 	if (not arg.info(info_flags::integer))
@@ -131,7 +131,7 @@ static ex zeta1_eval(const ex& m)
 		return zeta(m).hold();
 	}
 
-	if (m.info(info_flags::numeric)) {
+	if (is_exactly_a<numeric>(m)) {
 		const numeric& y = ex_to<numeric>(m);
 		// trap integer arguments:
 		if (y.is_integer()) {

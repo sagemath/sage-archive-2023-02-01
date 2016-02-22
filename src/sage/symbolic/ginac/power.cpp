@@ -257,8 +257,9 @@ void power::do_print_csrc(const print_csrc & c, unsigned level) const
 	}
 
 	// Integer powers of symbols are printed in a special, optimized way
-	if (exponent.info(info_flags::integer)
-	 && (is_exactly_a<symbol>(basis) || is_exactly_a<constant>(basis))) {
+	if (is_exactly_a<numeric>(exponent)
+            and exponent.info(info_flags::integer)
+	    and (is_exactly_a<symbol>(basis) or is_exactly_a<constant>(basis))) {
 		int exp = ex_to<numeric>(exponent).to_int();
 		if (exp > 0)
 			c.s << '(';
@@ -774,19 +775,22 @@ bool power::has(const ex & other, unsigned options) const
 		return basic::has(other, options);
 	if (!is_a<power>(other))
 		return basic::has(other, options);
-	if (!exponent.info(info_flags::integer)
-			|| !other.op(1).info(info_flags::integer))
-		return basic::has(other, options);
-	if (exponent.info(info_flags::posint)
-			&& other.op(1).info(info_flags::posint)
-			&& ex_to<numeric>(exponent)	> ex_to<numeric>(other.op(1))
-			&& basis.match(other.op(0)))
-		return true;
-	if (exponent.info(info_flags::negint)
-			&& other.op(1).info(info_flags::negint)
-			&& ex_to<numeric>(exponent) < ex_to<numeric>(other.op(1))
-			&& basis.match(other.op(0)))
-		return true;
+	if (is_exactly_a<numeric>(exponent)
+            and is_exactly_a<numeric>(other.op(1))) {
+                if (!exponent.info(info_flags::integer)
+                                || !other.op(1).info(info_flags::integer))
+                        return basic::has(other, options);
+                if (exponent.info(info_flags::posint)
+                                && other.op(1).info(info_flags::posint)
+                                && ex_to<numeric>(exponent)	> ex_to<numeric>(other.op(1))
+                                && basis.match(other.op(0)))
+                        return true;
+                if (exponent.info(info_flags::negint)
+                                && other.op(1).info(info_flags::negint)
+                                && ex_to<numeric>(exponent) < ex_to<numeric>(other.op(1))
+                                && basis.match(other.op(0)))
+                        return true;
+        }
 	return basic::has(other, options);
 }
 

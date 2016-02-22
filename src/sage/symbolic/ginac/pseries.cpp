@@ -1084,7 +1084,8 @@ pseries pseries::shift_exponents(int deg) const
 ex power::series(const relational & r, int order, unsigned options) const
 {
 	// If basis is already a series, just power it
-	if (is_exactly_a<pseries>(basis))
+	if (is_exactly_a<pseries>(basis)
+            and is_exactly_a<numeric>(exponent))
 		return ex_to<pseries>(basis).power_const(ex_to<numeric>(exponent), order);
 
 	// Basis is not a series, may there be a singularity?
@@ -1131,7 +1132,8 @@ ex power::series(const relational & r, int order, unsigned options) const
 	// Singularity encountered, is the basis equal to (var - point)?
 	if (basis.is_equal(r.lhs() - r.rhs())) {
 		epvector new_seq;
-		if (ex_to<numeric>(exponent).to_int() < order)
+		if (is_exactly_a<numeric>(exponent)
+                    and ex_to<numeric>(exponent).to_int() < order)
 			new_seq.push_back(expair(_ex1, exponent));
 		else
 			new_seq.push_back(expair(Order(_ex1), exponent));

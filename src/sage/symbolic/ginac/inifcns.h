@@ -59,6 +59,12 @@ DECLARE_FUNCTION_1P(cos)
 /** Tangent. */
 DECLARE_FUNCTION_1P(tan)
 
+/** Secant. */
+DECLARE_FUNCTION_1P(sec)
+
+/** Cosecant. */
+DECLARE_FUNCTION_1P(csc)
+
 /** Cotangent. */
 DECLARE_FUNCTION_1P(cot)
 
@@ -79,6 +85,12 @@ DECLARE_FUNCTION_1P(atan)
 
 /** Inverse cotangent (arc cotangent). */
 DECLARE_FUNCTION_1P(acot)
+
+/** Inverse secant (arc secant). */
+DECLARE_FUNCTION_1P(asec)
+
+/** Inverse cosecant (arc cosecant). */
+DECLARE_FUNCTION_1P(acsc)
 
 /** Inverse tangent with two arguments. */
 DECLARE_FUNCTION_2P(atan2)

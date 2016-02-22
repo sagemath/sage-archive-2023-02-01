@@ -22,7 +22,8 @@ from decoder import Decoder, DecodingError
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
-from sage.rings.finite_rings.constructor import GF
+from sage.modules.free_module_element import vector
+from sage.rings.finite_rings.finite_field_constructor import GF
 from copy import copy
 
 def puncture(v, points, code):
@@ -433,16 +434,47 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
             sage: Cp = codes.PuncturedCode(C, 3)
-            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
-            sage: D
-            Decoder of Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3] through Syndrome decoder for Linear code of length 11, dimension 5 over Finite Field of size 7
+            sage: codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
+            Decoder of Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) [3] through Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
+
+        As seen below, if all optional are left blank, and if an error-erasure decoder is
+        available, it will be chosen as the original decoder.
+        Now, if one forces ``strategy `` to ``'try-all'`` or ``'random_values'``, the
+        default decoder of the original code will be chosen, even if an error-erasure is available::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp, strategy="try-all")
+            sage: "error-erasure" in D.decoder_type()
+            False
+
+        And if one fills ``original_decoder`` and ``strategy`` fields with contradictory
+        elements, the ``original_decoder`` takes precedence::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: Dor = C.decoder("Gao")
+            sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp, original_decoder = Dor, strategy="error-erasure")
+            sage: D.original_decoder() == Dor
+            True
     """
 
     def __init__(self, code, strategy = None, original_decoder = None, **kwargs):
         r"""
         TESTS:
+
+        If one tries to pass an original_decoder whose associated code is not the original
+        code of ``self``, it returns an error::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
+            sage: Cp = codes.PuncturedCode(C, 3)
+            sage: C2 = codes.GeneralizedReedSolomonCode(GF(7).list()[:6], 3)
+            sage: D = Cp.decoder(original_decoder = C2.decoder())
+            Traceback (most recent call last):
+            ...
+            ValueError: Original decoder must have the original code of its associated punctured code as associated code
 
         If one tries to use ``'error-erasure'`` strategy when the original code has no such
         decoder, it returns an error::
@@ -459,7 +491,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             if not isinstance(original_decoder, Decoder):
                 raise TypeError("original_decoder must be a decoder object")
             if not original_decoder.code() == original_code:
-                raise ValueError("original decoder must have the original code as associated code")
+                raise ValueError("Original decoder must have the original code of its associated punctured code as associated code")
             if 'error-erasure' in original_decoder.decoder_type():
                 strategy = 'error-erasure'
             self._original_decoder = original_decoder
@@ -496,11 +528,12 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
             sage: D
-            Decoder of Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3] through Syndrome decoder for Linear code of length 11, dimension 5 over Finite Field of size 7
+            Decoder of Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) [3] through Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
+
         """
         return "Decoder of %s through %s" % (self.code(), self.original_decoder())
 
@@ -511,11 +544,11 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
             sage: latex(D)
-            \textnormal{Decoder of } Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3] \textnormal{ through } Syndrome decoder for Linear code of length 11, dimension 5 over Finite Field of size 7
+            \textnormal{Decoder of } Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) [3] \textnormal{ through } Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
         """
         return "\\textnormal{Decoder of } %s \\textnormal{ through } %s" % (self.code(), self.original_decoder())
 
@@ -526,11 +559,11 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
             sage: D.original_decoder()
-            Syndrome decoder for Linear code of length 11, dimension 5 over Finite Field of size 7
+            Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
         """
         return self._original_decoder
 
@@ -540,14 +573,12 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: set_random_seed(42)
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
-            sage: c = vector(GF(7), [6, 5, 5, 6, 2, 3, 4, 4, 1, 5])
-            sage: c in Cp
-            True
-            sage: y = vector(GF(7), [6, 5, 5, 6, 0, 3, 4, 4, 1, 5])
+            sage: c = Cp.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(Cp.ambient_space(), 3)
+            sage: y = Chan(c)
             sage: y in Cp
             False
             sage: D.decode_to_code(y) == c
@@ -624,11 +655,11 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
-            sage: D.decoding_radius()
-            1
+            sage: D.decoding_radius(2)
+            3
         """
         punctured = len(self.code().punctured_positions())
         D = self.original_decoder()

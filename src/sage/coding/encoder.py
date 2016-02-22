@@ -124,6 +124,10 @@ class Encoder(SageObject):
             One should use the exception :class:`EncodingError` to catch attempts
             to encode words that are outside of the message space.
 
+        One can use the following shortcut to encode a word with an encoder ``E``::
+
+            E(word)
+
         INPUT:
 
         - ``word`` -- a vector of the message space of the ``self``.
@@ -153,6 +157,9 @@ class Encoder(SageObject):
         if word not in M:
             raise ValueError("The value to encode must be in %s" % M)
         return vector(word) * self.generator_matrix()
+
+    #Alias for encode method
+    __call__ = encode
 
     def unencode(self, c, nocheck=False):
         r"""

@@ -30,7 +30,7 @@
 #include "operators.h"
 #include "pseries.h"
 #include "utils.h"
-
+#include "add.h"
 
 namespace GiNaC {
 

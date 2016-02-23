@@ -314,7 +314,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
         """
         a = self.evaluation_points()
-        one = self.base_ringe().one()
+        one = self.base_ring().one()
         return [ one/prod([ a[i] - a[h] for h in range(0, len(a)) if h != i ])
                     for i in range(0,len(a)) ]
 
@@ -1610,8 +1610,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: D._partial_xgcd(a, b, P)
             (5, 8*x + 10)
         """
-        stop = (self.code().length() - self.code().dimension()) / 2
-
         prev_t = PolRing.zero()
         t = PolRing.one()
 

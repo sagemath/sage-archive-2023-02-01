@@ -1091,14 +1091,20 @@ ex power::series(const relational & r, int order, unsigned options) const
 	// Basis is not a series, may there be a singularity?
 	bool must_expand_basis = false;
 	try {
-		basis.subs(r, subs_options::no_pattern);
+		ex basis_subs = basis.subs(r, subs_options::no_pattern);
+		if (is_exactly_a<infinity>(basis_subs)) {
+			must_expand_basis = true;
+		}
 	} catch (pole_error) {
 		must_expand_basis = true;
 	}
 
 	bool exponent_is_regular = true;
 	try {
-		exponent.subs(r, subs_options::no_pattern);
+		ex exponent_subs = exponent.subs(r, subs_options::no_pattern);
+		if (is_exactly_a<infinity>(exponent_subs)) {
+			exponent_is_regular = false;
+		}
 	} catch (pole_error) {
 		exponent_is_regular = false;
 	}

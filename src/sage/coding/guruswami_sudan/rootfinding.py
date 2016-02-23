@@ -40,11 +40,12 @@ from sage.functions.other import binomial, floor
 
 def _convert_Q_representation(Q):
     r"""
-    Returns ``Q`` converted from either `F[x,y]`, `F[x][y]` or `F[x]` list to `F[x]` list.
+    Converts the bivariate polynomial ``Q(x,y)`` from any accepted type to the
+    internally used `F[x]` list, for a field `F`.
 
     INPUT:
 
-    - ``Q`` -- a bivariate polynomial
+    - ``Q`` -- a bivariate polynomial, represented either over `F[x,y]`, `F[x][y]` or `F[x]` list.
 
     EXAMPLES::
 
@@ -87,31 +88,33 @@ def _convert_Q_representation(Q):
 
 def _sanitise_rootfinding_input(Q, maxd, precision):
     r"""
-    Returns a list of useful elements to rootfinding methods.
+    Verifies, converts and sanitises legal input to the root-finding procedures,
+    as well as returning relevant helper variables.
 
     INPUT:
 
-    - ``Q`` -- a bivariate polynomial given as a list of its monomials
-      in its first variable
+    - ``Q`` -- a bivariate polynomial, represented either over `F[x,y]`, `F[x][y]` or `F[x]` list.
 
-    - ``maxd``, an integer, the maximal degree of a root of ``Q`` that we're interested in.
+    - ``maxd``, an integer, the maximal degree of a root of ``Q`` that we're
+      interested in, possibly ``None``.
 
-    - ``precision``, an integer, the precision asked for all monomials of ``Q``
+    - ``precision``, an integer, the precision asked for all monomials of ``Q``, possibly ``None``.
 
     OUTPUT:
 
-    - ``Q``, a modified version of ``Q`` passed in input,
-      where all monomials have been truncated to ``precision``,
+    - ``Q``, a modified version of ``Q``, where all monomials have been
+      truncated to ``precision``. Represented as an `F[x]` list.
 
-    - ``Qinp``,  the original ``Q`` passed in input,
+    - ``Qinp``,  the original ``Q`` passed in input, represented as an `F[x]` list.
 
-    - ``F``, the base ring of the coefficients in ``Q``'s first variable,
+    - ``F``, the base ring of the coefficients in ``Q``'s first variable.
 
-    - ``Rx``, the polynomial ring where live all monomial in ``Q``'s first variable,
+    - ``Rx``, the polynomial ring `F[x]`.
 
-    - ``x``, the generator of ``Rx``, and
+    - ``x``, the generator of ``Rx``.
 
-    - ``maxd``, the maximal degree of a root of ``Q`` that we're interested in
+    - ``maxd``, the maximal degree of a root of ``Q`` that we're interested in,
+      possibly inferred according ``precision``.
 
     EXAMPLES::
 
@@ -138,21 +141,17 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
          x,
          3)
     """
+    Q = _convert_Q_representation(Q)
     Qinp = Q
     Rx = Q[0].parent()
     F = Rx.base_ring()
     x = Rx.gen()
 
-    if all(p.is_zero() for p in Q):
-        if precision:
-            return [(Rx.zero(), 0)]
-        else:
-            return ValueError("The zero polynomial has infinitely many roots.")
     if not maxd:
         if precision:
             maxd = precision-1
         else:
-            #The maximal degree of a root is at least
+            #The maximal degree of a root is at most
             #(di-dl)/(l-i) d being the degree of a monomial
             maxd = 0
             l = len(Q) -1
@@ -332,6 +331,10 @@ def rootfind_roth_ruckenstein(Q, maxd=None, precision=None):
         sage: rootfind_roth_ruckenstein(Q, None, None)
         [x^3 + 4*x + 16, x^2 + x + 1]
     """
-    Q = _convert_Q_representation(Q)
     (Q, Qinp, F, Rx, x, maxd) = _sanitise_rootfinding_input(Q, maxd, precision)
+    if all(p.is_zero() for p in Q):
+        if precision:
+            return [(Rx.zero(), 0)]
+        else:
+            return ValueError("The zero polynomial has infinitely many roots.")
     return _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision)

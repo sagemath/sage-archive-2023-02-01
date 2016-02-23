@@ -595,24 +595,11 @@ class GRSGuruswamiSudanDecoder(Decoder):
         """
         return isinstance(other, GRSGuruswamiSudanDecoder)\
                 and self.code() == other.code()\
+                and self.decoding_radius() == other.decoding_radius()\
                 and self.multiplicity() == other.multiplicity()\
                 and self.list_size() == other.list_size()\
                 and self.interpolation_algorithm() == other.interpolation_algorithm()\
                 and self.rootfinding_algorithm() == other.rootfinding_algorithm()
-
-    def __ne__(self, other):
-        r"""
-        Tests inequality between GRSGuruswamiSudanDecoder objects.
-
-        EXAMPLES::
-
-            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
-            sage: D1 = C.decoder("GuruswamiSudan", tau = 97)
-            sage: D2 = C.decoder("GuruswamiSudan", tau = 98)
-            sage: D1.__ne__(D2)
-            True
-        """
-        return not self.__eq__(other)
 
     def interpolation_algorithm(self):
         r"""

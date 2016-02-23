@@ -719,26 +719,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             ...
             ValueError: The provided root-finding algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.rootfinding_algorithm()` for details
         """
-        C = self.code()
-        n, k, d, alphas, colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
-                C.evaluation_points(), C.column_multipliers(), self.multiplicity(), self.list_size()
-        tau = self.decoding_radius()
-        ## SETUP INTERPOLATION PROBLEM
-        wy = k-1
-        points = [(alphas[i], r[i]/colmults[i]) for i in range(0,len(alphas))]
-        ## SOLVE INTERPOLATION
-        try:
-            Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
-        except TypeError:
-            raise ValueError("The provided interpolation algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.interpolation_algorithm()` for details")
-        ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
-        try:
-            polynomials = self.rootfinding_algorithm()(Q, maxd = wy)
-        except TypeError:
-            raise ValueError("The provided root-finding algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.rootfinding_algorithm()` for details")
-        if not polynomials:
-            return None
-        return [f for f in polynomials]
+        return [self.connected_encoder().unencode(c) for c in self.decode_to_code(r)]
 
     def decode_to_code(self, r):
         r"""
@@ -761,7 +742,30 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: c in D.decode_to_code(r)
             True
         """
-        return [self.connected_encoder().encode(i) for i in self.decode_to_message(r)]
+        C = self.code()
+        n, k, d, alphas, colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
+                C.evaluation_points(), C.column_multipliers(), self.multiplicity(), self.list_size()
+        tau = self.decoding_radius()
+        ## SETUP INTERPOLATION PROBLEM
+        wy = k-1
+        points = [(alphas[i], r[i]/colmults[i]) for i in range(0,len(alphas))]
+        ## SOLVE INTERPOLATION
+        try:
+            Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
+        except TypeError:
+            raise ValueError("The provided interpolation algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.interpolation_algorithm()` for details")
+        ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
+        try:
+            polynomials = self.rootfinding_algorithm()(Q, maxd = wy)
+        except TypeError:
+            raise ValueError("The provided root-finding algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.rootfinding_algorithm()` for details")
+        if not polynomials:
+            return None
+
+        E = self.connected_encoder()
+        codewords = [ E.encode(f) for f in polynomials]
+        # Root-finding might find spurious roots. Return only the ones which give nearby codewords
+        return [ c for c in codewords if (r - c).hamming_weight() <= tau ]
 
     def decoding_radius(self):
         r"""

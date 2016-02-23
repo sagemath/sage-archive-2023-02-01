@@ -31,6 +31,7 @@
 #include "symbol.h"
 #include "pseries.h"
 #include "utils.h"
+#include "add.h"
 
 #include <vector>
 #include <stdexcept>

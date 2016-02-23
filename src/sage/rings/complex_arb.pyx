@@ -1161,6 +1161,8 @@ cdef class ComplexBall(RingElement):
             sage: CBF(i/3).rad().parent()
             Real Field with 30 bits of precision
 
+        .. SEEALSO:: :meth:`diameter`, :meth:`mid`
+
         TESTS::
 
             sage: (CBF(0, 1/3) << (2^64)).rad()
@@ -1184,6 +1186,25 @@ cdef class ComplexBall(RingElement):
 
     # Should we implement rad_as_ball? If we do, should it return an enclosure
     # of the radius (which radius?), or an upper bound?
+
+    def diameter(self):
+        r"""
+        Return the diameter of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1 + i).diameter()
+            0.00000000
+            sage: CBF(i/3).diameter()
+            2.2204460e-16
+            sage: CBF(i/3).diameter().parent()
+            Real Field with 30 bits of precision
+            sage: CBF(CIF(RIF(1.02, 1.04), RIF(2.1, 2.2))).diameter()
+            0.20000000
+
+        .. SEEALSO:: :meth:`rad`, :meth:`mid`
+        """
+        return 2 * self.rad()
 
     # Precision and accuracy
 

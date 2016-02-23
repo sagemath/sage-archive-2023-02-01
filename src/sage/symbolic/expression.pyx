@@ -6236,7 +6236,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a
             x^3 + y + sqrt(2)
             sage: type(a)
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
             sage: a.degree()
             0
 
@@ -6370,15 +6370,17 @@ cdef class Expression(CommutativeRingElement):
         return R(f, f.degree()+1)
 
     def gcd(self, b):
-        """
-        Return the gcd of self and b, which must be integers or polynomials over
-        the rational numbers.
+        r"""
+        Return the gcd of self and b, which must be integers or polynomials
+        over the rational numbers.
 
-        TODO: I tried the massive gcd from
-        http://trac.sagemath.org/sage_trac/ticket/694 on Ginac dies
-        after about 10 seconds.  Singular easily does that GCD now.
-        Since Ginac only handles poly gcd over QQ, we should change
-        ginac itself to use Singular.
+        .. TODO::
+
+            I tried the massive gcd from
+            :trac:`694` on Ginac dies
+            after about 10 seconds.  Singular easily does that GCD now.
+            Since Ginac only handles poly gcd over `\QQ`, we should change
+            ginac itself to use Singular.
 
         EXAMPLES::
 

@@ -28,6 +28,7 @@
 #include "constant.h"
 #include "infinity.h"
 #include "numeric.h"
+#include "mul.h"
 #include "power.h"
 #include "operators.h"
 #include "relational.h"
@@ -327,18 +328,19 @@ static ex tanh_series(const ex &x,
 	return (sinh(x)/cosh(x)).series(rel, order, options);
 }
 
+// See http://dlmf.nist.gov/4.35.E36
 static ex tanh_real_part(const ex & x)
 {
-	ex a = GiNaC::real_part(x);
-	ex b = GiNaC::imag_part(x);
-	return tanh(a)/(1+power(tanh(a),2)*power(tan(b),2));
+	ex a = mul(real_part(x), _ex2);
+	ex b = mul(imag_part(x), _ex2);
+	return sinh(a) / (cosh(a) + cos(b));
 }
 
 static ex tanh_imag_part(const ex & x)
 {
-	ex a = GiNaC::real_part(x);
-	ex b = GiNaC::imag_part(x);
-	return tan(b)/(1+power(tanh(a),2)*power(tan(b),2));
+	ex a = mul(real_part(x), _ex2);
+	ex b = mul(imag_part(x), _ex2);
+	return sin(b) / (cosh(a) + cos(b));
 }
 
 static ex tanh_conjugate(const ex & x)

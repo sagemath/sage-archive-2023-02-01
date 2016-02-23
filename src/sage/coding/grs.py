@@ -194,7 +194,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             raise ValueError("The dimension must be a positive integer at most the length of the code.")
         self._dimension = dimension
 
-        if 0 in self._column_multipliers:
+        if F.zero() in self._column_multipliers:
             raise ValueError("All column multipliers must be non-zero")
         if len(self._evaluation_points) != len(set(self._evaluation_points)):
             raise ValueError("All evaluation points must be different")
@@ -314,7 +314,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
         """
         a = self.evaluation_points()
-        return [ 1/prod([ a[i] - a[h] for h in range(0, len(a)) if h != i ])
+        one = self.base_ringe().one()
+        return [ one/prod([ a[i] - a[h] for h in range(0, len(a)) if h != i ])
                     for i in range(0,len(a)) ]
 
     @cached_method
@@ -1692,16 +1693,18 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         alphas = C.evaluation_points()
         col_mults = C.parity_column_multipliers()
         ELPp = error_locator.derivative()
+        F = C.base_ring()
+        zero, one = F.zero(), F.one()
         e = []
 
         for i in range(C.length()):
-            alpha_inv = 1/alphas[i]
-            if error_locator(alpha_inv) == 0:
+            alpha_inv = one/alphas[i]
+            if error_locator(alpha_inv) == zero:
                 e.append(-alphas[i]/col_mults[i] * error_evaluator(alpha_inv)/ELPp(alpha_inv))
             else:
-                e.append(0)
+                e.append(zero)
 
-        return vector(C.base_ring(), e)
+        return vector(F, e)
 
     def decode_to_code(self, r):
         r"""

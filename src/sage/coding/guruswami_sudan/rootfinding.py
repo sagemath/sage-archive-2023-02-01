@@ -1,5 +1,21 @@
 r"""
-Rootfinding algorithms for Guruswami-Sudan decoder
+Finding `F[x]`-roots, or modular `F[x]` roots, in polynomials over `F[x][y]`, where `F` is a (finite) field.
+
+This module contains functions for finding two types of `F[x]` roots in a
+polynomial over `F[x][y]`, where `F` is a field. Note that if `F` is an infinite
+field, then these functions should work, but no measures are taken to limit
+coefficient growth. The functions also assume the existence of a root finding
+procedure in `F[x]`.
+
+Given a `Q(x,y) \in F[x,y]`, the first type of root are actual `F[x]` roots,
+i.e. polynomials `f(x) \in F[x]` such that `Q(x, f(x)) = 0`.
+
+The second type of root are modular roots: given `Q(x,y) \in F[x,y]` and a
+precision `d \in \ZZ_+`, then we find all `f(x) \in F[x]` such that `Q(x, f(x))
+\equiv 0 \mod x^d`. Since this set is infinite, we return a succinct description
+of all such polynomials: this is given as pairs `(f(x), h)` such that `f(x) +
+g(x)x^h` is a modular root of `Q` for any `g \in F[x]`.
+
 
 AUTHORS:
 

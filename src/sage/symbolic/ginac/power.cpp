@@ -561,6 +561,16 @@ ex power::eval(int level) const
 	if (is_exactly_a<power>(ebasis) && ebasis.op(0).info(info_flags::positive) && ebasis.op(1).info(info_flags::real))
 		return power(ebasis.op(0), ebasis.op(1) * eexponent);
 
+	// Reduce x^(c/log(x)) to exp(c)
+	if (is_exactly_a<mul>(eexponent)) {
+		for (size_t i=0; i < eexponent.nops(); i++) {
+			if (eexponent.op(i).is_equal(1/log(ebasis)))
+				return exp(log(ebasis)*eexponent);
+		}
+	}
+	else if (eexponent.is_equal(1/log(ebasis)))
+		return exp(log(ebasis)*eexponent);
+
 	if (exponent_is_numerical) {
 		// ^(c1,c2) -> c1^c2  (c1, c2 numeric(),
 		// except if c1,c2 are rational, but c1^c2 is not)

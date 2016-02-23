@@ -323,8 +323,8 @@ def enhance_braid_move_chain(braid_move_chain, cartan_type):
 
     OUTPUT:
 
-    A list of 3-tuples
-    ``(reduced_word, interval_of_change, cartan_sub_matrix)`` where
+    A list of 2-tuples
+    ``(interval_of_change, cartan_sub_matrix)`` where
 
     - ``interval_of_change`` is the (half-open) interval of indices where
       the braid move occurs; this is `None` for the first tuple

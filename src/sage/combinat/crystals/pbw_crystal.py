@@ -51,7 +51,7 @@ class PBWCrystalElement(Element):
         lusztig_datum = list(pbw_datum.lusztig_datum)
         al = self.parent()._pbw_datum_parent._root_list_from(self.parent()._default_word)
         from sage.misc.latex import latex
-        ret_str = ' '.join("f_{%s}%s"%(latex(al[i]), "^{%s}"%latex(exp) if i > 1 else "")
+        ret_str = ' '.join("f_{%s}%s"%(latex(al[i]), "^{%s}"%latex(exp) if exp > 1 else "")
                            for i, exp in enumerate(lusztig_datum) if exp)
         if ret_str == '':
             return '1'
@@ -66,6 +66,7 @@ class PBWCrystalElement(Element):
             word = self.parent()._default_word
         else:
             self.parent()._check_is_long_word(word)
+        word = tuple(word)
         pbw_datum = self._pbw_datum.convert_to_new_long_word(word)
         return tuple(pbw_datum.lusztig_datum)
 
@@ -85,6 +86,17 @@ class PBWCrystalElement(Element):
         Check inequality of ``self`` with ``other``.
         """
         return not (self == other)
+
+    # Necessary for displaying subcrystals
+    def _cmp_(self, other):
+        """
+        Return comparison of ``self`` and ``other``.
+        """
+        i = self.parent().index_set()[0]
+        word = self.parent()._pbw_datum_parent._long_word_begin_with(i)
+        lusztig_datum = tuple(self._pbw_datum.convert_to_new_long_word(word).lusztig_datum)
+        other_lusztig_datum = tuple(other._pbw_datum.convert_to_new_long_word(word).lusztig_datum)
+        return cmp(lusztig_datum, other_lusztig_datum)
 
     @cached_method
     def __hash__(self):
@@ -111,8 +123,8 @@ class PBWCrystalElement(Element):
             sage: c.e_string([2,2,1,3,2,1,3,2]) == b
             True
         """
-        equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i) 
-        new_long_word = equiv_pbw_datum.long_word 
+        equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i)
+        new_long_word = equiv_pbw_datum.long_word
         new_lusztig_datum = list(equiv_pbw_datum.lusztig_datum)
         if new_lusztig_datum[0] == 0:
             return None
@@ -177,7 +189,7 @@ class PBWCrystalElement(Element):
         EXAMPLES::
 
             sage: B = crystals.infinity.PBW(['A', 2])
-            sage: s = B((1,2,1), (2,2,2)) 
+            sage: s = B((1,2,1), (2,2,2))
             sage: s.weight()
             (-4, 0, 4)
         """

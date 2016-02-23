@@ -99,17 +99,34 @@ static ex exp_eval(const ex & x)
                 return false;
         };
 
+	ex x_red;
         if (has_pi_and_py(x)) { // true if x contains Pi and Python objects
                                 // like I. To make this check should be faster
                                 // than the following
-                ex res1 = sin(x/I);
-                ex res2 = cos(x/I);
-                if (((not is_exactly_a<function>(res1))
-                or (not is_ex_the_function(res1, sin)))
-                and ((not is_exactly_a<function>(res2))
-                or (not is_ex_the_function(res2, cos))))
-                        return I*res1 + res2;
+
+		ex coef_pi = x.coeff(Pi).expand();
+		ex rem = _ex0;
+		if (is_exactly_a<add>(coef_pi)) {
+			for (size_t i=0; i < coef_pi.nops(); i++) {
+				if ((coef_pi.op(i) / (_ex2 * I)).info(info_flags::integer))
+					rem += Pi * coef_pi.op(i);
+			}
+		}
+		else if ((coef_pi / (_ex2 * I)).info(info_flags::integer))
+			rem = Pi * coef_pi;
+		x_red = x - rem;
+
+
+		ex res1 = sin(x_red/I);
+		ex res2 = cos(x_red/I);
+		if (((not is_exactly_a<function>(res1))
+		or (not is_ex_the_function(res1, sin)))
+		and ((not is_exactly_a<function>(res2))
+		or (not is_ex_the_function(res2, cos))))
+			return I*res1 + res2;
         }
+	else
+		x_red = x;
 
 	// exp(log(x)) -> x
 	if (is_ex_the_function(x, log))

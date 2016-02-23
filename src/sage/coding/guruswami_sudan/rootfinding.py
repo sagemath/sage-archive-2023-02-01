@@ -78,7 +78,7 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
     - ``Q`` -- a bivariate polynomial given as a list of its monomials
       in its first variable
 
-    - ``maxd``, an integer, the maximal degree of a root of ``Q``
+    - ``maxd``, an integer, the maximal degree of a root of ``Q`` that we're interested in.
 
     - ``precision``, an integer, the precision asked for all monomials of ``Q``
 
@@ -95,7 +95,7 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
 
     - ``x``, the generator of ``Rx``, and
 
-    - ``maxd``, the maximal degree of a root of ``Q``
+    - ``maxd``, the maximal degree of a root of ``Q`` that we're interested in
 
     EXAMPLES::
 
@@ -213,7 +213,7 @@ def _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision):
 
     - ``x``, the generator of ``Rx``,
 
-    - ``maxd``, the maximal degree of a root of ``Q``, and
+    - ``maxd``, the maximal degree of a root of ``Q`` that we're interested in,
 
     - ``precision``, an integer, the precision asked for all monomials of ``Q``.
 
@@ -302,7 +302,7 @@ def rootfind_roth_ruckenstein(Q, maxd=None, precision=None):
 
     - ``Q`` -- a bivariate polynomial,
 
-    - ``maxd`` -- (default: ``None``) an integer, as defined above, and
+    - ``maxd`` -- (default: ``None``) an integer degree bound, as defined above, and
 
     - ``precision`` -- (default: ``None``) an integer, as defined above.
 

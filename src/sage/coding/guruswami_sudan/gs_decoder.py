@@ -682,12 +682,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
     def decode_to_message(self, r):
         r"""
         Decodes ``r`` to the list of polynomials whose encoding by
-        :meth:``self.code()`` is within Hamming distance
-        :meth:``self.decoding_radius()`` of ``r``.
+        :meth:`self.code()` is within Hamming distance
+        :meth:`self.decoding_radius` of ``r``.
 
         INPUT:
 
-        - ``r`` -- a received word, i.e. a vector in the input space of ``self``.
+        - ``r`` -- a received word, i.e. a vector in `F^n` where `F` and `n` are
+          the base field respectively length of :meth:`self.code`.
 
         EXAMPLES::
 
@@ -699,7 +700,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: r = vector(GF(17), [3,1,4,2,14,1,0,4,13,12,1,16,1,13,15])
             sage: (c-r).hamming_weight()
             5
-            sage: m in D.decode_to_message(r)
+            sage: [ m ] == D.decode_to_message(r)
             True
 
         TESTS:
@@ -716,7 +717,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: m in D.decode_to_message(r)
             Traceback (most recent call last):
             ...
-            ValueError: The provided rootfinding algorithm has a wrong signature. See decoder's doc for details
+            ValueError: The provided root-finding algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.rootfinding_algorithm()` for details
         """
         C = self.code()
         n, k, d, alphas, colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
@@ -729,12 +730,12 @@ class GRSGuruswamiSudanDecoder(Decoder):
         try:
             Q = self.interpolation_algorithm()(points, tau, (s,l), wy)
         except TypeError:
-            raise ValueError("The provided interpolation algorithm has a wrong signature. See decoder's doc for details")
+            raise ValueError("The provided interpolation algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.interpolation_algorithm()` for details")
         ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
         try:
             polynomials = self.rootfinding_algorithm()(Q, maxd = wy)
         except TypeError:
-            raise ValueError("The provided rootfinding algorithm has a wrong signature. See decoder's doc for details")
+            raise ValueError("The provided root-finding algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.rootfinding_algorithm()` for details")
         if not polynomials:
             return None
         return [f for f in polynomials]

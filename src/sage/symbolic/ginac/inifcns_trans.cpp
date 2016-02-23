@@ -129,14 +129,14 @@ static ex exp_eval(const ex & x)
 		x_red = x;
 
 	// exp(log(x)) -> x
-	if (is_ex_the_function(x, log))
-		return x.op(0);
+	if (is_ex_the_function(x_red, log))
+		return x_red.op(0);
 	
 	// exp(float) -> float
-	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational))
-		return exp(ex_to<numeric>(x));
+	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
+		return exp(ex_to<numeric>(x_red));
 	
-	return exp(x).hold();
+	return exp(x_red).hold();
 }
 
 static ex exp_deriv(const ex & x, unsigned deriv_param)

@@ -306,20 +306,21 @@ def rootfind_roth_ruckenstein(Q, maxd=None, precision=None):
     r"""
     Returns the list of roots of a bivariate polynomial ``Q``.
 
-    Uses the Roth-Ruckenstein algorithm to find roots or roots
-    modulo-up-to-some-precision of a `Q \in \mathbb{F}[x][y]` where `\mathbb{F}` is a field.
+    Uses the Roth-Ruckenstein algorithm to find roots or modular roots of a `Q
+    \in \mathbb{F}[x][y]` where `\mathbb{F}` is a field.
 
-    If ``precision = None`` then actual roots will be found, i.e. all `f \in \mathbb{F}[x]`
-    such that `Q(f) = 0`. This will be returned as a list of `\mathbb{F}[x]` elements.
+    If ``precision = None`` then actual roots will be found, i.e. all `f \in
+    \mathbb{F}[x]` such that `Q(f) = 0`. This will be returned as a list of
+    `\mathbb{F}[x]` elements.
 
-    If ``precision = k`` for some integer ``k``, then all `f \in \mathbb{F}[x]` such that
-    `Q(f) \equiv 0 \mod x^k` will be returned. This set is infinite, and so it
-    will be returned as a list of pairs in `\mathbb{F}[x] \times \mathbb{Z}_+`, where
-    `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^k` for any `h \in
-    \mathbb{F}[x]`.
+    If ``precision = d`` for some integer ``d``, then all `f \in \mathbb{F}[x]`
+    such that `Q(f) \equiv 0 \mod x^d` will be returned. This set is infinite,
+    and so it will be returned as a list of pairs in `\mathbb{F}[x] \times
+    \mathbb{Z}_+`, where `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^d`
+    for any `h \in \mathbb{F}[x]`.
 
     If ``maxd`` is given, then find only `f` with `deg f \leq maxd`. In case
-    `precision=k` setting `maxd` means to only find the roots up to precision
+    `precision=d` setting `maxd` means to only find the roots up to precision
     `maxd`; otherwise, the precision will be `precision-1`.
 
     INPUT:

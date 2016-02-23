@@ -95,6 +95,8 @@ class GRSGuruswamiSudanDecoder(Decoder):
     beyond half the minimum distance of the code. It can decode up to the
     Johnson radius which is `n - \sqrt(n(n-d))`, where `n, d` is the length,
     respectively minimum distance of the RS code. See [GS99] for more details.
+    It is a list-decoder meaning that it returns a list of all closest codewords
+    or their corresponding message polynomials.
 
     The algorithm has two free parameters, the list size and the multiplicity,
     and these determine how many errors the method will correct: generally,
@@ -665,11 +667,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
     def decode_to_message(self, r):
         r"""
-        Decodes ``r`` to the message space of ``self``'s connected encoder.
+        Decodes ``r`` to the list of polynomials whose encoding by
+        :meth:``self.code()`` is within Hamming distance
+        :meth:``self.decoding_radius()`` of ``r``.
 
         INPUT:
 
-        - ``r`` -- a element of the input space of ``self``.
+        - ``r`` -- a received word, i.e. a vector in the input space of ``self``.
 
         EXAMPLES::
 

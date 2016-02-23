@@ -218,44 +218,6 @@ def _interpolation_matrix_problem(points, tau, parameters, wy):
     M = _interpolation_matrix_given_monomials(points, s, monomials)
     return (M, monomials)
 
-def _gs_interpolation_from_matrix(M, monomials):
-    r"""
-    Returns a Guruswami-Sudan interpolation polynomial given the interpolation
-    matrix problem and the corresponding list of monomials.
-
-    IMPUT:
-
-    - ``M`` -- a matrix.
-
-    - ``monomials`` -- a list of monomials.
-
-    EXAMPLES::
-
-        sage: from sage.coding.guruswami_sudan.interpolation import _gs_interpolation_from_matrix
-        sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_problem
-        sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
-        sage: tau = 1
-        sage: params = (1, 1)
-        sage: wy = 1
-        sage: res = _interpolation_matrix_problem(points, tau, params, wy)
-        sage: M, monomials = res[0], res[1]
-        sage: _gs_interpolation_from_matrix(M, monomials)
-        4202026*x^6 - 5614235*x^5*y - 29351399*x^5 + 64635986*x^4*y + 41894587*x^4 - 273534229*x^3*y + 3*x^3 + 508264978*x^2*y + x^2 - 297101040*x*y + 2*x - 840*y + 1680
-    """
-    if M.nrows() >= M.ncols():
-        raise Exception("More rows than columns! This matrix is not satisfactory.")
-    Sp = M.right_kernel()
-    sol = Sp.an_element()
-    while sol.is_zero():
-        # Picking out e.g. element 1 directly seems to run into an infinite
-        # loop for large matrices.
-        sol = Sp.random_element()
-    # Construct the Q polynomial
-    PF = M.base_ring()['x', 'y'] #make that ring a ring in <x>
-    x, y = PF.gens()
-    Q = sum([x**monomials[i][0] * y**monomials[i][1] * sol[i] for i in range(0, len(monomials))])
-    return Q
-
 def gs_interpolation_linalg(points, tau, parameters, wy):
     r"""
     Compute an interpolation polynomial Q(x,y) for the Guruswami-Sudan algorithm
@@ -282,15 +244,42 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
     - ``wy`` -- an integer, the `y`-weight, where we seek ``Q`` of low
       ``(1,wy)`` weighted degree.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    The following parameters arise from Guruswami-Sudan decoding of an [6,2,5]
+    GRS code over F(11) with multiplicity 2 and list size 4.
 
         sage: from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg
-        sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
-        sage: tau = 1
-        sage: params = (1, 1)
+        sage: F = GF(11)
+        sage: points = [ (F(x),F(y)) for (x,y) in (0, 5), (1, 1), (2, 4), (3, 6), (4, 3), (5, 3)]
+        sage: tau = 3
+        sage: params = (2, 4)
         sage: wy = 1
-        sage: gs_interpolation_linalg(points, tau, params, wy)
-        4202026*x^6 - 5614235*x^5*y - 29351399*x^5 + 64635986*x^4*y + 41894587*x^4 - 273534229*x^3*y + 3*x^3 + 508264978*x^2*y + x^2 - 297101040*x*y + 2*x - 840*y + 1680
+        sage: Q = gs_interpolation_linalg(points, tau, params, wy); Q
+        4*x^5 - 4*x^4*y - 2*x^2*y^3 - x*y^4 + 3*x^4 - 4*x^2*y^2 + 5*y^4 - x^3 + x^2*y + 5*x*y^2 - 5*y^3 + 3*x*y - 2*y^2 + x - 4*y + 1
+
+    We verify that the interpolation polynomial has a zero of multiplicity at least 2 in each point:
+
+        sage: all( Q(x=a, y=b).is_zero() for (a,b) in points )
+        True
+        sage: x,y = Q.parent().gens()
+        sage: dQdx = Q.derivative(x)
+        sage: all( dQdx(x=a, y=b).is_zero() for (a,b) in points )
+        True
+        sage: dQdy = Q.derivative(y)
+        sage: all( dQdy(x=a, y=b).is_zero() for (a,b) in points )
+        True
     """
-    return _gs_interpolation_from_matrix(
-                *_interpolation_matrix_problem(points, tau, parameters, wy))
+    M, monomials = _interpolation_matrix_problem(points, tau, parameters, wy)
+    Sp = M.right_kernel()
+    # Pick a non-zero element from the right kernel
+    sol = Sp.an_element()
+    while sol.is_zero():
+        # Picking out e.g. element 1 directly seems to run into an infinite
+        # loop for large matrices.
+        sol = Sp.random_element()
+    # Construct the Q polynomial
+    PF = M.base_ring()['x', 'y'] #make that ring a ring in <x>
+    x, y = PF.gens()
+    Q = sum([x**monomials[i][0] * y**monomials[i][1] * sol[i] for i in range(0, len(monomials))])
+    return Q

@@ -12,12 +12,12 @@
 # serve to show the default.
 
 import sys, os
-from sage.env import SAGE_DOC, SAGE_DOC_OUTPUT
-sys.path.append(SAGE_DOC)
+from sage.env import SAGE_DOC_SRC, SAGE_DOC
+sys.path.append(SAGE_DOC_SRC)
 from common.conf import *
 
-ref_src = os.path.join(SAGE_DOC, 'en', 'reference')
-ref_out = os.path.join(SAGE_DOC_OUTPUT, 'html', 'en', 'reference')
+ref_src = os.path.join(SAGE_DOC_SRC, 'en', 'reference')
+ref_out = os.path.join(SAGE_DOC, 'html', 'en', 'reference')
 
 # General information about the project.
 project = u"Sage Reference Manual"

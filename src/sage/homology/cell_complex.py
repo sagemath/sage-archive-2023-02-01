@@ -39,7 +39,6 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from sage.misc.cachefunc import cached_method
 
 class GenericCellComplex(SageObject):
     r"""
@@ -397,7 +396,7 @@ class GenericCellComplex(SageObject):
 
     def homology(self, dim=None, **kwds):
         r"""
-        The reduced homology of this cell complex.
+        The (reduced) homology of this cell complex.
 
         :param dim: If None, then return the homology in every
            dimension.  If ``dim`` is an integer or list, return the
@@ -424,6 +423,8 @@ class GenericCellComplex(SageObject):
         :param verbose: If True, print some messages as the homology is
            computed.
         :type verbose: boolean; optional, default False
+        :param reduced: If ``True``, return the reduced homology.
+        :type reduced: boolean; optional, default ``True``
 
         .. note::
 
@@ -473,6 +474,8 @@ class GenericCellComplex(SageObject):
             sage: P = delta_complexes.RealProjectivePlane()
             sage: P.homology()
             {0: 0, 1: C2, 2: 0}
+            sage: P.homology(reduced=False)
+            {0: Z, 1: C2, 2: 0}
             sage: P.homology(base_ring=GF(2))
             {0: Vector space of dimension 0 over Finite Field of size 2,
              1: Vector space of dimension 1 over Finite Field of size 2,
@@ -511,6 +514,7 @@ class GenericCellComplex(SageObject):
         subcomplex = kwds.pop('subcomplex', None)
         verbose = kwds.get('verbose', False)
         algorithm = kwds.get('algorithm', 'auto')
+        reduced = kwds.get('reduced', True)
 
         if dim is not None:
             if isinstance(dim, (list, tuple)):
@@ -554,7 +558,7 @@ class GenericCellComplex(SageObject):
         if hasattr(self, '_homology_'):
             return self._homology_(dim, subcomplex=subcomplex, **kwds)
 
-        C = self.chain_complex(cochain=cohomology, augmented=True,
+        C = self.chain_complex(cochain=cohomology, augmented=reduced,
                                dimensions=dims, subcomplex=subcomplex, **kwds)
         answer = C.homology(**kwds)
         if dim is None:
@@ -579,6 +583,7 @@ class GenericCellComplex(SageObject):
         :param subcomplex:
         :param algorithm:
         :param verbose:
+        :param reduced:
 
         EXAMPLES::
 
@@ -668,6 +673,48 @@ class GenericCellComplex(SageObject):
         except AttributeError:
             return H.dimension()
 
+    def is_acyclic(self, base_ring=ZZ):
+        """
+        True if the reduced homology with coefficients in ``base_ring`` of
+        this cell complex is zero.
+
+        INPUT:
+
+        - ``base_ring`` -- optional, default ``ZZ``. Compute homology
+          with coefficients in this ring.
+
+        EXAMPLES::
+
+            sage: RP2 = simplicial_complexes.RealProjectivePlane()
+            sage: RP2.is_acyclic()
+            False
+            sage: RP2.is_acyclic(QQ)
+            True
+
+        This first computes the Euler characteristic: if it is not 1,
+        the complex cannot be acyclic. So this should return ``False``
+        reasonably quickly on complexes with Euler characteristic not
+        equal to 1::
+
+            sage: K = cubical_complexes.KleinBottle()
+            sage: C = cubical_complexes.Cube(2)
+            sage: P = K.product(C)
+            sage: P
+            Cubical complex with 168 vertices and 1512 cubes
+            sage: P.euler_characteristic()
+            0
+            sage: P.is_acyclic()
+            False
+        """
+        if self.euler_characteristic() != 1:
+            return False
+        H = self.homology(base_ring=base_ring)
+        if base_ring == ZZ:
+            return all(len(x.invariants()) == 0 for x in H.values())
+        else:
+            # base_ring is a field.
+            return all(x.dimension() == 0 for x in H.values())
+
     def n_chains(self, n, base_ring=None, cochains=False):
         r"""
         Return the free module of chains in degree ``n`` over ``base_ring``.
@@ -696,9 +743,6 @@ class GenericCellComplex(SageObject):
         """
         return Chains(tuple(self.n_cells(n)), base_ring, cochains)
 
-    # This is cached for speed reasons: it can be very slow to run
-    # this function.
-    @cached_method
     def algebraic_topological_model(self, base_ring=None):
         r"""
         Algebraic topological model for this cell complex with
@@ -707,65 +751,23 @@ class GenericCellComplex(SageObject):
         The term "algebraic topological model" is defined by Pilarczyk
         and Réal [PR]_.
 
-        This is implemented for simplicial, cubical, and
-        `\Delta`-complexes, not for arbitrary generic cell complexes.
-
-        INPUT:
-
-        - ``base_ring`` - coefficient ring (optional, default
-          ``QQ``). Must be a field.
-
-        Denote by `C` the chain complex associated to this cell
-        complex. The algebraic topological model is a chain complex
-        `M` with zero differential, with the same homology as `C`,
-        along with chain maps `\pi: C \to M` and `\iota: M \to C`
-        satisfying `\iota \pi = 1_M` and `\pi \iota` chain homotopic
-        to `1_C`. The chain homotopy `\phi` must satisfy
-
-        - `\phi \phi = 0`,
-        - `\pi \phi = 0`,
-        - `\phi \iota = 0`.
-
-        Such a chain homotopy is called a *chain contraction*.
-
-        OUTPUT: a pair consisting of
-
-        - chain contraction ``phi`` associated to `C`, `M`, `\pi`, and
-          `\iota`
-        - the chain complex `M`
-
-        Note that from the chain contraction ``phi``, one can recover the
-        chain maps `\pi` and `\iota` via ``phi.pi()`` and
-        ``phi.iota()``. Then one can recover `C` and `M` from, for
-        example, ``phi.pi().domain()`` and ``phi.pi().codomain()``,
-        respectively.
+        This is not implemented for generic cell complexes. For any
+        classes deriving from this one, when this method is
+        implemented, it should essentially just call either
+        :func:`~sage.homology.algebraic_topological_model.algebraic_topological_model`
+        or
+        :func:`~sage.homology.algebraic_topological_model.algebraic_topological_model_delta_complex`.
 
         EXAMPLES::
 
-            sage: RP2 = simplicial_complexes.RealProjectivePlane()
-            sage: phi, M = RP2.algebraic_topological_model(GF(2))
-            sage: M.homology()
-            {0: Vector space of dimension 1 over Finite Field of size 2,
-             1: Vector space of dimension 1 over Finite Field of size 2,
-             2: Vector space of dimension 1 over Finite Field of size 2}
-            sage: T = simplicial_complexes.Torus()
-            sage: phi, M = T.algebraic_topological_model(QQ)
-            sage: M.homology()
-            {0: Vector space of dimension 1 over Rational Field,
-             1: Vector space of dimension 2 over Rational Field,
-             2: Vector space of dimension 1 over Rational Field}
+            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: A = GenericCellComplex()
+            sage: A.algebraic_topological_model(QQ)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        from algebraic_topological_model import algebraic_topological_model, algebraic_topological_model_delta_complex
-        from cubical_complex import CubicalComplex
-        from simplicial_complex import SimplicialComplex
-        from delta_complex import DeltaComplex
-        if base_ring is None:
-            base_ring = QQ
-        if not isinstance(self, (CubicalComplex, SimplicialComplex, DeltaComplex)):
-            raise NotImplementedError('only implemented for simplicial, cubical, and Delta complexes')
-        if isinstance(self, DeltaComplex):
-            return algebraic_topological_model_delta_complex(self, base_ring)
-        return algebraic_topological_model(self, base_ring)
+        raise NotImplementedError
 
     def homology_with_basis(self, base_ring=None, cohomology=False):
         r"""
@@ -927,6 +929,56 @@ class GenericCellComplex(SageObject):
         if base_ring is None:
             base_ring = QQ
         return CohomologyRing(base_ring, self)
+
+    def alexander_whitney(self, cell, dim_left):
+        r"""
+        The decomposition of ``cell`` in this complex into left and right
+        factors, suitable for computing cup products. This should
+        provide a cellular approximation for the diagonal map `K \to K
+        \times K`.
+
+        This method is not implemented for generic cell complexes, but
+        must be implemented for any derived class to make cup products
+        work in ``self.cohomology_ring()``.
+
+        INPUT:
+
+        - ``cell`` -- a cell in this complex.
+        - ``dim_left`` -- the dimension of the left-hand factors in
+          the decomposition.
+
+        OUTPUT: a list containing triples ``(c, left, right)``.
+        ``left`` and ``right`` should be cells in this complex, and
+        ``c`` an integer. In the cellular approximation of the
+        diagonal map, the chain represented by ``cell`` should get
+        sent to the sum of terms `c (left \otimes right)` in the
+        tensor product `C(K) \otimes C(K)` of the chain complex for
+        this complex with itself.
+
+        This gets used in the method
+        :meth:`~sage.homology.homology_vector_space_with_basis.CohomologyRing.product_on_basis`
+        for the class of cohomology rings.
+
+        For simplicial and cubical complexes, the decomposition can be
+        done at the level of individual cells: see
+        :meth:`~sage.homology.simplicial_complex.Simplex.alexander_whitney`
+        and
+        :meth:`~sage.homology.cubical_complex.Cube.alexander_whitney`. Then
+        the method for simplicial complexes just calls the method for
+        individual simplices, and similarly for cubical complexes. For
+        `\Delta`-complexes, the method is instead defined at the level
+        of the cell complex.
+
+        EXAMPLES::
+
+            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: A = GenericCellComplex()
+            sage: A.alexander_whitney(None, 2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
 
     ############################################################
     # end of chain complexes, homology

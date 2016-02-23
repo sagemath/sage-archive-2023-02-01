@@ -546,9 +546,9 @@ class Chain_class(ModuleElement):
         parent = self.parent()
         return parent.element_class(parent, vectors)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare two chains
+        Return ``True`` if this chain is equal to ``other``.
 
         EXAMPLES::
 
@@ -559,13 +559,24 @@ class Chain_class(ModuleElement):
             sage: c == C(0)
             False
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        c = cmp(self.parent(), other.parent())
-        if c != 0:
-            return c
-        return cmp(self._vec, other._vec)
+        if type(self) != type(other) or self.parent() != other.parent():
+            return False
+        return self._vec == other._vec
+
+    def __ne__(self, other):
+        """
+        Return ``True`` if this chain is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
+            sage: c != c
+            False
+            sage: c != C(0)
+            True
+        """
+        return not self == other
         
 
 class ChainComplex_class(Parent):
@@ -987,7 +998,7 @@ class ChainComplex_class(Parent):
             rank = self.free_module_rank(degree)
         return FreeModule(self.base_ring(), rank)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Return ``True`` iff this chain complex is the same as other: that
         is, if the base rings and the matrices of the two are the
@@ -1000,11 +1011,8 @@ class ChainComplex_class(Parent):
             sage: C == D
             True
         """
-        if not isinstance(other, ChainComplex_class):
-            return cmp(type(other), ChainComplex_class)
-        c = cmp(self.base_ring(), other.base_ring())
-        if c != 0:
-            return c
+        if not isinstance(other, ChainComplex_class) or self.base_ring() != other.base_ring():
+            return False
         R = self.base_ring()
         equal = True
         for d,mat in self.differential().iteritems():
@@ -1016,9 +1024,23 @@ class ChainComplex_class(Parent):
         for d,mat in other.differential().iteritems():
             if d not in self.differential():
                 equal = equal and mat.ncols() == 0 and mat.nrows() == 0
-        if equal:
-            return 0
-        return -1
+        return equal
+
+    def __ne__(self, other):
+        """
+        Return ``True`` iff this chain complex is not the same as other.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=GF(2))
+            sage: D = ChainComplex({0: matrix(GF(2), 2, 3, [1, 0, 0, 0, 0, 0]), 1: matrix(ZZ, 0, 2), 3: matrix(ZZ, 0, 0)})  # base_ring determined from the matrices
+            sage: C != D
+            False
+            sage: E = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=ZZ)
+            sage: C != E
+            True
+        """
+        return not self == other
 
     def _homology_chomp(self, deg, base_ring, verbose, generators):
         """

@@ -553,33 +553,11 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
         for gamma_index in H._graded_indices.get(deg_tot, []):
             gamma_coeff = base_ring.zero()
             for cell, coeff in H._to_cycle_on_basis((deg_tot, gamma_index)):
-                if hasattr(cell, 'alexander_whitney'):
-                    # Simplicial and cubical case: each cell has a
-                    # method 'alexander_whitney' which computes
-                    # the appropriate faces.
-                    for (c, left_cell, right_cell) in cell.alexander_whitney(deg_left):
+                for (c, left_cell, right_cell) in scomplex.alexander_whitney(cell, deg_left):
+                    if c:
                         left = n_chains_left(left_cell)
                         right = n_chains_right(right_cell)
                         gamma_coeff += c * coeff * left_cycle.eval(left) * right_cycle.eval(right)
-                else:
-                    # Delta complex case: each "cell" in n_chains
-                    # is just a pair (integer, tuple), where the
-                    # integer is its index in the list, and the
-                    # jth entry of the tuple is the index of its
-                    # jth face in the list of (n-1)-chains. Use
-                    # this data to compute the appropriate faces
-                    # by hand.
-                    left_cell = cell
-                    for i in range(deg_tot, deg_left, -1):
-                        idx = left_cell[1][i]
-                        left_cell = (idx, scomplex.n_cells(i-1)[idx])
-                    right_cell = cell
-                    for i in range(deg_tot, deg_right, -1):
-                        idx = right_cell[1][0]
-                        right_cell = (idx, scomplex.n_cells(i-1)[idx])
-                    left = n_chains_left(left_cell)
-                    right = n_chains_right(right_cell)
-                    gamma_coeff += coeff * left_cycle.eval(left) * right_cycle.eval(right)
             if gamma_coeff != base_ring.zero():
                 result[(deg_tot, gamma_index)] = gamma_coeff
         return self._from_dict(result, remove_zeros=False)
@@ -760,29 +738,29 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                                 while indices:
                                     right_endpoint = indices[0] - 1
                                     for k in range(left_endpoint, indices.pop(0), -1):
-                                        left = left.face(k)
+                                        left = scomplex.face(left, k)
                                     try:
                                         left_endpoint = indices[0] - 1
                                         for k in range(right_endpoint, indices.pop(0), -1):
-                                            right = right.face(k)
+                                            right = scomplex.face(right, k)
                                     except IndexError:
                                         pass
                                 for k in range(right_endpoint, -1, -1):
-                                    right = right.face(k)
+                                    right = scomplex.face(right, k)
                             else:
                                 right_endpoint = m
                                 while indices:
                                     left_endpoint = indices[0] - 1
                                     try:
                                         for k in range(right_endpoint, indices.pop(0), -1):
-                                            right = right.face(k)
+                                            right = scomplex.face(right, k)
                                         right_endpoint = indices[0] - 1
                                     except IndexError:
                                         pass
                                     for k in range(left_endpoint, indices.pop(0), -1):
-                                        left = left.face(k)
+                                        left = scomplex.face(left, k)
                                 for k in range(right_endpoint, -1, -1):
-                                    right = right.face(k)
+                                    right = scomplex.face(right, k)
 
                             left = n_chains(left)
                             right = n_chains(right)

@@ -639,6 +639,20 @@ class GRSGuruswamiSudanDecoder(Decoder):
         """
         return self._root_finder
 
+    def parameters(self):
+        r"""
+        Returns the multiplicity and list size parameters of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
+            sage: D = C.decoder("GuruswamiSudan", tau = 97)
+            sage: D.parameters()
+            (1, 2)
+        """
+        return (self._s, self._ell)
+
+
     def multiplicity(self):
         r"""
         Returns the multiplicity parameter of ``self``.

@@ -1,5 +1,5 @@
 """
-Interpolation algorithms for Guruswami-Sudan decoder
+Interpolation algorithms for the Guruswami-Sudan decoder
 
 AUTHORS:
 
@@ -46,6 +46,10 @@ def _flatten_once(lstlst):
         for e in lst:
             yield e
 
+#*************************************************************
+#  Linear algebraic Interpolation algorithm, helper functions
+#*************************************************************
+
 def _monomial_list(maxdeg, l, wy):
     r"""
     Returns a list of all non-negative integer pairs `(i,j)` such that ``i + wy
@@ -85,28 +89,36 @@ def _monomial_list(maxdeg, l, wy):
 
 def _interpolation_matrix_given_monomials(points, s, monomials):
     r"""
-    Returns a generator of the interpolation matrix whose nullspace gives the coefficients
-    for all interpolation polynomials, given the list of monomials allowed.
+    Returns a matrix whose nullspace is a basis for all interpolation
+    polynomials, each polynomial having its coefficients laid out according to
+    the given list of monomials.
 
-    Its ``i``-th column will be the coefficients on the ``i``-th monomial
-    in ``monomials``.
+    The output is an `S \times T` matrix, where `T` is the length of
+    ``monomials``, and `S = s(s+1)/2`. Its ``i``-th column will be the
+    coefficients on the ``i``-th monomial in ``monomials``.
 
     INPUT:
 
-    - ``points`` -- a list of integers, the interpolation points.
+    - ``points`` -- a list of pairs of field elements, the interpolation points.
 
     - ``s`` -- an integer, the multiplicity parameter from Guruswami-Sudan algorithm.
 
-    - ``monomials`` -- a list of monomials.
+    - ``monomials`` -- a list of monomials, each represented by the powers as an integer pair `(i,j)`.
 
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_given_monomials
-        sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
-        sage: s = 1
-        sage: monomials = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (0, 1), (1, 1)]
-        sage: _interpolation_matrix_given_monomials(points, s, monomials) #random
-        <generator object _flatten_once at 0x7fb5ff8cce10>
+        sage: F = GF(11)
+        sage: points = [ (F(0), F(1)), (F(1), F(5)) ]
+        sage: s = 2
+        sage: monomials = [(0, 0), (1, 0), (1, 1), (0, 2) ]
+        sage: list(_interpolation_matrix_given_monomials(points, s, monomials))
+        [[1, 0, 0, 1],
+        [0, 0, 0, 2],
+        [0, 1, 1, 0],
+        [1, 1, 5, 3],
+        [0, 0, 1, 10],
+        [0, 1, 5, 0]]
     """
     n = len(points)
     def eqs_affine(x0,y0):
@@ -130,7 +142,7 @@ def _interpolation_matrix_given_monomials(points, s, monomials):
                         eq[monomial] = jcoeff * icoeff
                 eqs.append([eq.get(monomial, 0) for monomial in monomials])
         return eqs
-    return _flatten_once([eqs_affine(*point) for point in points])
+    return matrix(flatten_once([eqs_affine(*point) for point in points]))
 
 def _interpolation_max_weighted_deg(n, tau, s):
     """Return the maximal weighted degree allowed for an interpolation
@@ -187,7 +199,7 @@ def _interpolation_matrix_problem(points, tau, parameters, wy):
     """
     s, l = parameters[0], parameters[1]
     monomials = _monomial_list(_interpolation_max_weighted_deg(len(points), tau, s), l, wy)
-    M = matrix(list(_interpolation_matrix_given_monomials(points, s, monomials)))
+    M = _interpolation_matrix_given_monomials(points, s, monomials)
     return (M, monomials)
 
 def _gs_interpolation_from_matrix(M, monomials):

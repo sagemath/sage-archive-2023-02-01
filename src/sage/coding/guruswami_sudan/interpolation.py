@@ -271,13 +271,9 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
         True
     """
     M, monomials = _interpolation_matrix_problem(points, tau, parameters, wy)
-    Sp = M.right_kernel()
+    Ker = M.right_kernel()
     # Pick a non-zero element from the right kernel
-    sol = Sp.an_element()
-    while sol.is_zero():
-        # Picking out e.g. element 1 directly seems to run into an infinite
-        # loop for large matrices.
-        sol = Sp.random_element()
+    sol = Ker.basis()[0]
     # Construct the Q polynomial
     PF = M.base_ring()['x', 'y'] #make that ring a ring in <x>
     x, y = PF.gens()

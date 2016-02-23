@@ -723,11 +723,12 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Corrects the errors in ``r`` and returns a codeword.
+        Return the list of all codeword within radius :meth:`self.decoding_radius` of the received word `r`.
 
         INPUT:
 
-        - ``r`` -- a element of the input space of ``self``.
+        - ``r`` -- a received word, i.e. a vector in `F^n` where `F` and `n` are
+          the base field respectively length of :meth:`self.code`.
 
         EXAMPLES::
 
@@ -739,7 +740,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: r = vector(GF(17), [3,1,4,2,14,1,0,4,13,12,1,16,1,13,15])
             sage: r in C
             False
-            sage: c in D.decode_to_code(r)
+            sage: [ c ] == D.decode_to_code(r)
             True
         """
         C = self.code()
@@ -778,7 +779,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: D.decoding_radius()
             97
 
-        Another one where tau is not a given input::
+        An example where tau is not one of the inputs to the constructor::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", parameters = (2,4))

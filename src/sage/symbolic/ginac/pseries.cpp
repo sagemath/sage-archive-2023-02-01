@@ -33,6 +33,7 @@
 #include "integral.h"
 #include "archive.h"
 #include "utils.h"
+#include "infinity.h"
 
 #include <numeric>
 #include <stdexcept>

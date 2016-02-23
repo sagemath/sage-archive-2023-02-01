@@ -55,17 +55,19 @@ def _convert_Q_representation(Q):
         sage: Pxy.<y> = Px[]
         sage: Q1 = (y - (x**2 + x + 1)) * (y**2 - x + 1) * (y - (x**3 + 4*x + 16))
         sage: _convert_Q_representation(Q1)
-        [16*x^6 + 13*x^4 + 2*x^3 + 4*x + 16,
+        ([16*x^6 + 13*x^4 + 2*x^3 + 4*x + 16,
          x^4 + 4*x^2 + 12*x,
          x^5 + x^4 + 5*x^3 + 3*x^2 + 2*x,
          16*x^3 + 16*x^2 + 12*x,
-         1]
+         1], Univariate Polynomial Ring in x over Finite Field of size 17)
     """
     if isinstance(Q, list):
+        if Q == []:
+            return ([], None)
         Rx = Q[0].parent()
         if not hasattr(Rx,'gen'):
             raise ValueError("Q must be given as F[x][y], F[x,y] or as F[x] list.")
-        return Q
+        return (Q, Rx)
     else:
         # Find out if Q is in F[x,y] or F[x][y]
         Qorig = Q
@@ -73,7 +75,7 @@ def _convert_Q_representation(Q):
         #TODO: Check Ryx is a polynomial ring over a field
         if len(Ryx.gens())==1:
             # Ok, Q is in F[x][y]
-            pass
+            Rx = Q.base_ring()
         elif len(Ryx.gens())==2:
             F = Ryx.base_ring()
             (xs,ys) = Ryx.variable_names()
@@ -84,7 +86,7 @@ def _convert_Q_representation(Q):
         else:
             raise ValueError("Q must be given as F[x][y], F[x,y] or as F[x] list.")
         # Then make sure Q is a list of F[x] elements
-        return Q.list()
+        return (Q.list(), Rx)
 
 def _sanitise_rootfinding_input(Q, maxd, precision):
     r"""
@@ -119,12 +121,10 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.rootfinding import _sanitise_rootfinding_input
-        sage: from sage.coding.guruswami_sudan.rootfinding import _convert_Q_representation
         sage: F = GF(17)
         sage: Px.<x> = F[]
         sage: Pxy.<y> = Px[]
         sage: Q = (y - (x**2 + x + 1)) * (y**2 - x + 1) * (y - (x**3 + 4*x + 16))
-        sage: Q = _convert_Q_representation(Q)
         sage: _sanitise_rootfinding_input(Q, None, None)
         ([16*x^6 + 13*x^4 + 2*x^3 + 4*x + 16,
           x^4 + 4*x^2 + 12*x,
@@ -141,9 +141,10 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
          x,
          3)
     """
-    Q = _convert_Q_representation(Q)
+    (Q, Rx) = _convert_Q_representation(Q)
+    if Q == []:
+        return ([],[],None,Rx,None,0) # Q == 0 so just bail
     Qinp = Q
-    Rx = Q[0].parent()
     F = Rx.base_ring()
     x = Rx.gen()
 
@@ -247,18 +248,16 @@ def _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision):
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.rootfinding import _sanitise_rootfinding_input
-        sage: from sage.coding.guruswami_sudan.rootfinding import _convert_Q_representation
         sage: from sage.coding.guruswami_sudan.rootfinding import _roth_ruckenstein_i
         sage: F = GF(17)
         sage: Px.<x> = F[]
         sage: Pxy.<y> = Px[]
         sage: Q = (y - (x**2 + x + 1)) * (y**2 - x + 1) * (y - (x**3 + 4*x + 16))
-        sage: Q = _convert_Q_representation(Q)
         sage: (Q, Qinp, F, Rx, x, maxd) = _sanitise_rootfinding_input(Q, None, None)
-        sage: _roth_ruckenstein_i(Q, F, Rx, x, maxd, None)
-        [x^3 + 4*x + 16, x^2 + x + 1]
-        sage: _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision=2)
-        [(4*x + 16, 2), (2*x + 13, 2), (15*x + 4, 2), (x + 1, 2)]
+        sage: set(_roth_ruckenstein_i(Q, F, Rx, x, maxd, None))
+        {x^2 + x + 1, x^3 + 4*x + 16}
+        sage: set(_roth_ruckenstein_i(Q, F, Rx, x, maxd, precision=2))
+        {(x + 1, 2), (2*x + 13, 2), (4*x + 16, 2), (15*x + 4, 2)}
     """
     solutions = []
     g = [F.zero()] * (maxd+1)
@@ -316,18 +315,19 @@ def rootfind_roth_ruckenstein(Q, maxd=None, precision=None):
     If ``precision = d`` for some integer ``d``, then all `f \in \mathbb{F}[x]`
     such that `Q(f) \equiv 0 \mod x^d` will be returned. This set is infinite,
     and so it will be returned as a list of pairs in `\mathbb{F}[x] \times
-    \mathbb{Z}_+`, where `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^d`
-    for any `h \in \mathbb{F}[x]`.
+    \mathbb{Z}_+`, where `(f, h)` denotes that `Q(f + x^h g) \equiv 0 \mod x^d`
+    for any `g \in \mathbb{F}[x]`.
 
     If ``maxd`` is given, then find only `f` with `deg f \leq maxd`. In case
     `precision=d` setting `maxd` means to only find the roots up to precision
-    `maxd`; otherwise, the precision will be `precision-1`.
+    `maxd`, i.e. `h \leq maxd` in the above; otherwise, this will be naturally
+    bounded at `precision-1`.
 
     INPUT:
 
-    - ``Q`` -- a bivariate polynomial,
+    - ``Q`` -- a bivariate polynomial, represented either over `F[x,y]`, `F[x][y]` or `F[x]` list.
 
-    - ``maxd`` -- (default: ``None``) an integer degree bound, as defined above, and
+    - ``maxd`` -- (default: ``None``) an non-negative integer degree bound, as defined above.
 
     - ``precision`` -- (default: ``None``) an integer, as defined above.
 
@@ -336,15 +336,38 @@ def rootfind_roth_ruckenstein(Q, maxd=None, precision=None):
         sage: from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
         sage: F = GF(17)
         sage: Px.<x> = F[]
-        sage: Pxy.<y> = Px[]
+        sage: Py.<y> = Px[]
         sage: Q = (y - (x**2 + x + 1)) * (y**2 - x + 1) * (y - (x**3 + 4*x + 16))
-        sage: rootfind_roth_ruckenstein(Q, None, None)
-        [x^3 + 4*x + 16, x^2 + x + 1]
+        sage: roots = rootfind_roth_ruckenstein(Q); set(roots)
+        {x^2 + x + 1, x^3 + 4*x + 16}
+        sage: Q(roots[0])
+        0
+        sage: set(rootfind_roth_ruckenstein(Q, maxd = 2))
+        {x^2 + x + 1}
+        sage: modroots = rootfind_roth_ruckenstein(Q, precision = 3); set(modroots)
+        {(4*x + 16, 3), (x^2 + x + 1, 3), (8*x^2 + 15*x + 4, 3), (9*x^2 + 2*x + 13, 3)}
+        sage: (f,h) = modroots[0]
+        sage: Q(f + x^h * Px.random_element()) % x^3
+        0
+        sage: modroots2 = rootfind_roth_ruckenstein(Q, maxd=1, precision = 3); set(modroots2)
+        {(x + 1, 2), (2*x + 13, 2), (4*x + 16, 2), (15*x + 4, 2)}
+
+    TESTS:
+
+    Test that if `Q = 0`, then the appropriate response is given
+
+        sage: F = GF(17)
+        sage: R.<x,y> = F[]
+        sage: rootfind_roth_ruckenstein(R.zero())
+        ValueError('The zero polynomial has infinitely many roots.',)
+        sage: rootfind_roth_ruckenstein(R.zero(), precision=1)
+        [(0, 0)]
+        
     """
     (Q, Qinp, F, Rx, x, maxd) = _sanitise_rootfinding_input(Q, maxd, precision)
     if all(p.is_zero() for p in Q):
         if precision:
-            return [(Rx.zero(), 0)]
+            return [(Rx.zero() if hasattr(Rx,'zero') else 0, 0)]
         else:
             return ValueError("The zero polynomial has infinitely many roots.")
     return _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision)

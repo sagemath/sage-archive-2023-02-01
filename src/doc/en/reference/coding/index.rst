@@ -26,8 +26,10 @@ Linear codes and related constructions
 
    sage/coding/binary_code
    sage/coding/grs
+   sage/coding/hamming_code
    sage/coding/linear_code
    sage/coding/code_constructions
+   sage/coding/subfield_subcode
    sage/coding/sd_codes
    sage/coding/guava
 
@@ -66,3 +68,11 @@ Canonical forms
    sage/coding/codecan/autgroup_can_label
 
 .. include:: ../footer.txt
+
+Other tools
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/coding/field_embedding

@@ -98,7 +98,7 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
     - ``maxd``, an integer, the maximal degree of a root of ``Q`` that we're
       interested in, possibly ``None``.
 
-    - ``precision``, an integer, the precision asked for all monomials of ``Q``, possibly ``None``.
+    - ``precision``, an integer, the precision asked for modular roots of ``Q``, possibly ``None``.
 
     OUTPUT:
 
@@ -170,30 +170,29 @@ def _sanitise_rootfinding_input(Q, maxd, precision):
 
 def _strip_x_pows(Q):
     r"""
-    Returns ``(Q', s)`` where ``Q'`` is ``Q`` whose all elements
-    have been divided by the largest power ``s`` of ``x`` possible
-    such that all these elements remain polynomials.
+    Returns ``(Q', s)`` where ``Q'`` is ``Q`` whose elements have all been
+    divided by the largest power ``s`` of ``x`` possible such that all these
+    elements remain polynomials.
 
     INPUT:
 
-    - ``Q`` -- a bivariate polynomial as a list of its monomial in its first variable
+    - ``Q`` -- a bivariate polynomial in `F[x][y]` as a list of `F[x]` polynomials.
 
     OUTPUT:
 
     - ``(Q', s)`` a list of two elements:
 
-        - ``Q'``, a polynomial and
-        - ``s``, an integer.
+        - ``Q'``, the reduced bivariate polynomial, as a list of univariate ones.
+        - ``s``, an integer, the power of `x` that was stripped from `Q`.
 
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.rootfinding import _strip_x_pows
         sage: F = GF(17)
         sage: Px.<x> = F[]
-        sage: Pxy.<y> = Px[]
-        sage: Q1 = (y - (x**2 + x + 1)) * (y**2 - x + 1) * (y - (x**3 + 4*x + 16))
-        sage: _strip_x_pows(Q1)
-        (y^4 + (16*x^3 + 16*x^2 + 12*x)*y^3 + (x^5 + x^4 + 5*x^3 + 3*x^2 + 2*x)*y^2 + (x^4 + 4*x^2 + 12*x)*y + 16*x^6 + 13*x^4 + 2*x^3 + 4*x + 16, 0)
+        sage: Q = [ Px(3*x^2 + 2*x),  Px(5*x^7 + x^6) ]
+        sage: _strip_x_pows(Q)
+        ([3*x + 2, 5*x^6 + x^5], 1)
     """
     def lead_zeroes(p):
         if p.is_zero():
@@ -211,30 +210,39 @@ def _strip_x_pows(Q):
 
 def _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision):
     r"""
-    Returns all polynomials which are a solution to the root-finding problem
+    Returns all polynomials which are a solution to the, possibly modular,
+    root-finding problem.
 
+    This is the core of Roth-Ruckenstein's algorithm where all conversions,
+    checks and parent-extraction have been done. Most of the inputs corresponds
+    to the output of ``_sanitise_rootfinding_input``.
 
-    This is the core of Roth-Ruckenstein's algorithm where all conversion,
-    checks and parent-extraction, is being processed.
+    INPUT::
 
-    INPUT:
+    - ``Q``, a modified version of ``Q``, where all monomials have been
+      truncated to ``precision``. Represented as an `F[x]` list.
 
-    - ``Q`` -- a bivariate polynomial given as a list of its monomials
-      in its first variable
+    - ``Qinp``,  the original ``Q`` passed in input, represented as an `F[x]` list.
 
-    - ``F``, the base ring of the coefficients in ``Q``'s first variable,
+    - ``F``, the base ring of the coefficients in ``Q``'s first variable.
 
-    - ``Rx``, the polynomial ring where live all monomial in ``Q``'s first variable,
+    - ``Rx``, the polynomial ring `F[x]`.
 
-    - ``x``, the generator of ``Rx``,
+    - ``x``, the generator of ``Rx``.
 
     - ``maxd``, the maximal degree of a root of ``Q`` that we're interested in,
+      possibly inferred according ``precision``.
 
-    - ``precision``, an integer, the precision asked for all monomials of ``Q``.
+    - ``precision``, a non-negative integer or `None`. If given, it is the
+      sought precision for modular roots of `Q`. Otherwise, we will find
+      unconditional roots.
 
-    OUTPUT:
+    OUTPUT::
 
-    - a list, containing all suitable polynomials
+    - a list, containing all `F[x]` roots of `Q(x,y)`, possibly modular. If
+    ``precision`` is given, we return a list of pairs `(f, h)`, where `f \in
+    F[x]` and `h` is a non-negative integer, and where `f + h*g \equiv 0 \mod
+    x^{d}` for any `g \in F[x]`, and where `d` is ``precision``.
 
     EXAMPLES::
 
@@ -246,9 +254,11 @@ def _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision):
         sage: Pxy.<y> = Px[]
         sage: Q = (y - (x**2 + x + 1)) * (y**2 - x + 1) * (y - (x**3 + 4*x + 16))
         sage: Q = _convert_Q_representation(Q)
-        sage: res = _sanitise_rootfinding_input(Q, None, None)
-        sage: _roth_ruckenstein_i(res[0], res[2], res[3], res[4], res[5], None)
+        sage: (Q, Qinp, F, Rx, x, maxd) = _sanitise_rootfinding_input(Q, None, None)
+        sage: _roth_ruckenstein_i(Q, F, Rx, x, maxd, None)
         [x^3 + 4*x + 16, x^2 + x + 1]
+        sage: _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision=2)
+        [(4*x + 16, 2), (2*x + 13, 2), (15*x + 4, 2), (x + 1, 2)]
     """
     solutions = []
     g = [F.zero()] * (maxd+1)
@@ -270,7 +280,6 @@ def _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision):
             if precision:
                 solutions.append((Rx(g[:lam]), lam))
             else:
-                assert all(p.is_zero() for p in Q) , ("Q is not zero but Ty is?:\nQ = %s" % Q)
                 solutions.append(Rx(g[:lam]))
             return
         roots = Ty.roots(multiplicities=False)

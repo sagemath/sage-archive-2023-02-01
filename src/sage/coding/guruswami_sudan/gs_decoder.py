@@ -36,7 +36,6 @@ from sage.coding.guruswami_sudan.utils import (johnson_radius,
                                                gilt,
                                                solve_degree2_to_integer_range)
 from sage.functions.other import binomial, floor, sqrt
-IMPOSSIBLE_PARAMETERS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
 def n_k_params(C, n_k):
     r"""
@@ -423,7 +422,6 @@ class GRSGuruswamiSudanDecoder(Decoder):
         s = floor(1 + smin)
         D = (s - smin) * (atau ** 2 - n * w) * s + (w**2) /4
         l = floor(atau / w * s + 0.5 - sqrt(D)/w)
-        assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau,s,l, n_k = (n, k)) , IMPOSSIBLE_PARAMETERS
         return (s, l)
 
     @staticmethod
@@ -527,11 +525,12 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 142, parameters=(1, 2))
             Traceback (most recent call last):
             ...
-            AssertionError: Impossible parameters for the Guruswami-Sudan algorithm
+            ValueError: Impossible parameters for the Guruswami-Sudan algorithm
         """
         n, k = code.length(), code.dimension()
         if tau and parameters:
-            assert GRSGuruswamiSudanDecoder.gs_satisfactory(tau, parameters[0], parameters[1], C = code), IMPOSSIBLE_PARAMETERS
+            if not GRSGuruswamiSudanDecoder.gs_satisfactory(tau, parameters[0], parameters[1], C = code):
+                raise ValueError("Impossible parameters for the Guruswami-Sudan algorithm")
             self._tau, self._s, self._ell = tau, parameters[0], parameters[1]
         elif tau:
             self._tau = tau

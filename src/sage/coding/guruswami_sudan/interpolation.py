@@ -24,7 +24,8 @@ from sage.matrix.constructor import matrix
 
 def _flatten_once(lstlst):
     r"""
-    Flattens``lstlst`` only once and returns a generator.
+    Flattens a list of list into a list, but only flattening one layer and
+    returns a generator.
 
     This is similar to Python's ``flatten`` method, except that here, if you
     provide a list of lists of lists (and so on), it returns a list of lists
@@ -38,8 +39,8 @@ def _flatten_once(lstlst):
 
     sage: from sage.coding.guruswami_sudan.interpolation import _flatten_once
     sage: ll = [[1,2], [3,4], [5,6]]
-    sage: _flatten_once(ll) #random
-    <generator object _flatten_once at 0x7fc1631cca50>
+    sage: list(_flatten_once(ll)) #random
+    [1,2,3,4,5,6]
     """
     for lst in lstlst:
         for e in lst:
@@ -47,8 +48,8 @@ def _flatten_once(lstlst):
 
 def _monomial_list(maxdeg, l, wy):
     r"""
-    Returns a list of the `(x,y)` powers of all monomials in `F[x,y]` whose
-    `(1, wy)`-weighted degree is less than ``maxdeg`` and whose ``y-degree <= l``.
+    Returns a list of all non-negative integer pairs `(i,j)` such that ``i + wy
+    * j < maxdeg`` and ``j \geq l``.
 
     INPUT:
 
@@ -61,7 +62,7 @@ def _monomial_list(maxdeg, l, wy):
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.interpolation import _monomial_list
-        sage: _monomial_list(8, 5, 4)
+        sage: _monomial_list(8, 1, 3)
         [(0, 0),
          (1, 0),
          (2, 0),
@@ -73,7 +74,8 @@ def _monomial_list(maxdeg, l, wy):
          (0, 1),
          (1, 1),
          (2, 1),
-         (3, 1)]
+         (3, 1),
+         (4, 1)]
     """
     monomials = []
     for y in range(0, l+1):
@@ -138,7 +140,7 @@ def _interpolation_max_weighted_deg(n, tau, s):
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_max_weighted_deg
-        sage: _interpolation_max_weighted_deg(10, 3, 5):
+        sage: _interpolation_max_weighted_deg(10, 3, 5)
         35
     """
     return (n-tau) * s

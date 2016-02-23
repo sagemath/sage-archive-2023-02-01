@@ -1370,7 +1370,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/3).rad().parent()
             Real Field with 30 bits of precision
 
-        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
+        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`, :meth:`diameter`
 
         TESTS::
 
@@ -1392,6 +1392,23 @@ cdef class RealBall(RingElement):
         sig_off()
         arf_clear(tmp)
         return rad
+
+    def diameter(self):
+        r"""
+        Return the diameter of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).diameter()
+            1.1102230e-16
+            sage: RBF(1/3).diameter().parent()
+            Real Field with 30 bits of precision
+            sage: RBF(RIF(1.02, 1.04)).diameter()
+            0.020000000
+
+        .. SEEALSO:: :meth:`rad`, :meth:`rad_as_ball`, :meth:`mid`
+        """
+        return 2 * self.rad()
 
     def squash(self):
         """

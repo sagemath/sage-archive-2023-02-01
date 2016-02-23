@@ -15,43 +15,88 @@ Crystal Of Mirković-Vilonen (MV) Polytopes
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.crystals.pbw_crystal import PBWCrystalElement, PBWCrystal
 
-
-class MVPolytope(Element):
-    def __init__(self, parent, long_word, lusztig_datum):
-        Element.__init__(self, parent)
-        self._initial_long_word = tuple(long_word)
-        self._lusztig_datum = tuple(lusztig_datum)
-        self._lusztig_data_dict = {self._initial_long_word: self._lusztig_datum}
-
-class MVPolytopes(UniqueRepresentation, Parent):
-    @staticmethod
-    def __classcall_private__(cls, cartan_type):
+class MVPolytope(PBWCrystalElement):
+    """
+    A Mirković-Vilonen (MV) polytope.
+    """
+    def _repr_(self):
         """
-        Normalize input to ensure a unique representation.
+        Return a string representation of ``self``.
         """
-        return super(MVPolytopes, cls).__classcall__(cls, CartanType(cartan_type))
+        pbw_datum = self._pbw_datum.convert_to_new_long_word(self.parent()._default_word)
+        return "MV polytope with Lusztig datum {}".format(pbw_datum.lusztig_datum)
 
-    def __init__(self, cartan_type):
+    def _latex_(self):
         """
-        Initialize ``self``.
+        Return a latex representation of ``self``.
         """
-        self._cartan_type = cartan_type
-        Parent.__init__(self, category=(HighestWeightCrystals(), InfiniteEnumeratedSets()))
-        if not cartan_type.is_finite():
-            raise NotImplementedError("only implemented for finite Cartan types")
+        from sage.misc.latex import latex
+        return latex(self.polytope())
 
-        # There must be a better way to do the following
-        i = self._cartan_type.index_set()[0]
-        self._default_word = self._pbw_datum_parent._long_word_begin_with(i)
-        zero_lusztig_datum = [0]*len(self._default_word)
-        self.module_generators = (self.element_class(self, 
-                                                     self._default_word,
-                                                     zero_lusztig_datum),)
+    def _polytope_vertices(self, P):
+        """
+        Return a list of the vertices of ``self`` in ``P``.
+        """
+        pbw_data = self._pbw_datum.parent
+        W = pbw_data.weyl_group
+        w0 = W.long_element()
+        al = P.simple_roots()
+
+        vertices = set([P.zero()])
+        for red in w0.reduced_words():
+            cur = P.zero()
+            red = tuple(red)
+            roots = [P.sum(c*al[a] for a,c in root)
+                     for root in pbw_data._root_list_from(red)]
+            datum = pbw_data.convert_to_new_long_word(self._pbw_datum, red)
+            for i,c in enumerate(datum.lusztig_datum):
+                cur = cur + roots[i] * c
+                vertices.add(cur)
+        return list(vertices)
+
+    def polytope(self, P=None):
+        """
+        Return a polytope of ``self``.
+
+        INPUT:
+
+        - ``P`` -- (optional) a space to realize the polytope; default is
+          the weight lattice realization of the crystal
+        """
+        if P is None:
+            P = self.parent().weight_lattice_realization()
+
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        return Polyhedron([v.to_vector() for v in self._polytope_vertices(P)])
+
+    def plot(self, P=None, **options):
+        """
+        Plot ``self``.
+
+        INPUT:
+
+        - ``P`` -- (optional) a space to realize the polytope; default is
+          the weight lattice realization of the crystal
+
+        .. SEEALSO::
+
+            :meth:`~sage.combiant.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods.plot_mv_polytope`
+        """
+        if P is None:
+            P = self.parent().weight_lattice_realization()
+        return P.plot_mv_polytope(self, **options)
+
+class MVPolytopes(PBWCrystal):
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+        """
+        return "MV polytopes of type {}".format(self._cartan_type)
 
     Element = MVPolytope
 

@@ -28,11 +28,17 @@ from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
 
 class PBWDatum(object):
     def __init__(self, parent, long_word, lusztig_datum):
+        """
+        Initialize ``self``.
+        """
         self.parent = parent
         self.long_word = tuple(long_word)
         self.lusztig_datum = tuple(lusztig_datum)
 
     def __repr__(self):
+        """
+        Return a string representation of ``self``.
+        """
         return_str = "PBW Datum element of type {cartan_type} with ".format(
                      cartan_type=self.parent.cartan_type)
         return_str += "long word {long_word} and Lusztig datum {lusztig_datum}".format(
@@ -42,11 +48,14 @@ class PBWDatum(object):
 
     def __eq__(self, other_PBWDatum):
         """
+        Check equality.
+
         EXAMPLES::
 
-            sage: P = PBWData(["A2"])
-            sage: L1 = P((1,2,1),(1,4,7))
-            sage: L2 = P((1,2,1),(1,4,7))
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
+            sage: P = PBWData("A2")
+            sage: L1 = PBWDatum(P, (1,2,1), (1,4,7))
+            sage: L2 = PBWDatum(P, (1,2,1), (1,4,7))
             sage: L1 == L2
             True
         """
@@ -61,11 +70,14 @@ class PBWDatum(object):
 
         EXAMPLES::
 
-            sage: P = PBWData(["A2"])
-            sage: L1 = P((1,2,1),(1,0,1))
-            sage: L2 = P((2,1,2),(0,1,0))
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
+            sage: P = PBWData("A2")
+            sage: L1 = PBWDatum(P, (1,2,1), (1,0,1))
+            sage: L2 = PBWDatum(P, (2,1,2), (0,1,0))
             sage: L1.is_equivalent_to(L2)
             True
+            sage: L1 == L2
+            False
         """
         other_long_word = other_pbw_datum.long_word
         other_lusztig_datum = other_pbw_datum.lusztig_datum
@@ -86,21 +98,27 @@ class PBWDatum(object):
 
         EXAMPLES::
 
-            sage: P = PBWData(["A2"])
-            sage: P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2)).long_word
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
+            sage: P = PBWData("A2")
+            sage: datum = PBWDatum(P, (1,2,1), (1,0,1))
+            sage: new_datum = P.convert_to_new_long_word(datum, (2,1,2))
+            sage: new_datum.long_word
             (2, 1, 2)
-            sage: P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2)).lusztig_datum
+            sage: new_datum.lusztig_datum
             (0, 1, 0)
         """
         return self.parent.convert_to_new_long_word(self, new_long_word)
 
-    def wt(self):
+    def weight(self):
         """
+        Return the weight of ``self``.
+
         EXAMPLES::
 
-            sage: P = PBWData(["A",2])
-            sage: L = P((1,2,1),(1,1,1))
-            sage: L.wt()
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
+            sage: P = PBWData("A2")
+            sage: L = PBWDatum(P, (1,2,1), (1,1,1))
+            sage: L.weight()
             -2*alpha[1] - 2*alpha[2]
         """
         root_list = self.parent._root_list_from(tuple(self.long_word))
@@ -115,9 +133,10 @@ class PBWDatum(object):
 
         EXAMPLES::
 
-            sage: P = PBWData(["A2"])
-            sage: L1 = P((1,2,1),(1,2,3))
-            sage: L1.star() == P((1,2,1),(3,2,1))
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
+            sage: P = PBWData("A2")
+            sage: L1 = PBWDatum(P, (1,2,1), (1,2,3))
+            sage: L1.star() == PBWDatum(P, (1,2,1), (3,2,1))
             True
         """
         reversed_long_word = reversed(self.long_word)
@@ -130,12 +149,13 @@ class PBWData(object): # UniqueRepresentation?
     Helper class for the set of PBW data.
     """
     def __init__(self, cartan_type):
+        """
+        Initialize ``self``.
+        """
         self.cartan_type = CartanType(cartan_type)
         self.root_system = RootSystem(self.cartan_type)
         self.root_lattice = self.root_system.root_lattice()
         self.weyl_group = self.root_lattice.weyl_group()
-        # Is there a more intelligent way to recover the Weyl group
-        # from cartan_type?
         self._braid_move_calc = BraidMoveCalculator(self.weyl_group)
 
     def convert_to_new_long_word(self, pbw_datum, new_long_word):
@@ -145,12 +165,16 @@ class PBWData(object): # UniqueRepresentation?
 
         EXAMPLES::
 
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
             sage: P = PBWData("A2")
-            sage: datum = P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2))
-            sage: datum
-            sage: datum.long_word
+            sage: datum = PBWDatum(P, (1,2,1), (1,0,1))
+            sage: new_datum = P.convert_to_new_long_word(datum,(2,1,2))
+            sage: new_datum
+            PBW Datum element of type ['A', 2] with long word (2, 1, 2)
+             and Lusztig datum (0, 1, 0)
+            sage: new_datum.long_word
             (2, 1, 2)
-            sage: datum.lusztig_datum
+            sage: new_datum.lusztig_datum
             (0, 1, 0)
         """
         assert pbw_datum.parent is self
@@ -178,6 +202,7 @@ class PBWData(object): # UniqueRepresentation?
 
         EXAMPLES::
 
+            sage: from sage.combinat.crystals.pbw_datum import PBWData
             sage: P = PBWData(["A",2])
             sage: P._root_list_from((1,2,1))
             [alpha[1], alpha[1] + alpha[2], alpha[2]]
@@ -209,10 +234,11 @@ def compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datum):
         sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
         sage: from sage.combinat.crystals.pbw_datum import enhance_braid_move_chain
         sage: from sage.combinat.crystals.pbw_datum import compute_new_lusztig_datum
-        sage: W = CoxeterGroup("A2")
+        sage: ct = CartanType(['A', 2])
+        sage: W = CoxeterGroup(ct)
         sage: B = BraidMoveCalculator(W)
         sage: chain = B.chain_of_reduced_words((1,2,1),(2,1,2))
-        sage: enhanced_braid_chain = enhance_braid_move_chain(chain,CartanType(["A",2]))
+        sage: enhanced_braid_chain = enhance_braid_move_chain(chain, ct)
         sage: compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1))    
         (0, 1, 0)
 
@@ -250,8 +276,10 @@ def tropical_plucker_relation(a, lusztig_datum):
 
     EXAMPLES::
 
+        sage: from sage.combinat.crystals.pbw_datum import tropical_plucker_relation
         sage: tropical_plucker_relation((0,0), (2,3))
         (3, 2)
+        # Add more doctests
     """
     n = lusztig_datum
     if a == (0, 0): # A1xA1
@@ -313,7 +341,7 @@ def enhance_braid_move_chain(braid_move_chain, cartan_type):
 
     TESTS::
 
-        sage: from sage.combinat.crystals.braid_move_calculator import enhance_braid_move_chain
+        sage: from sage.combinat.crystals.pbw_datum import enhance_braid_move_chain
         sage: braid_chain = [(1, 2, 1, 3, 2, 1),
         ....:                (1, 2, 3, 1, 2, 1),
         ....:                (1, 2, 3, 2, 1, 2),
@@ -361,6 +389,7 @@ def diff_interval(list1, list2):
 
     TESTS::
 
+        sage: from sage.combinat.crystals.pbw_datum import diff_interval
         sage: diff_interval([1,2,3,4], [1,2,3,4])
         sage: diff_interval([1,2,3,4], [1,3,2,4])
         (1, 3)

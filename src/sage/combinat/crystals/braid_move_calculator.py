@@ -22,7 +22,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.combinat.root_system.cartan_type import CartanType
 from sage.misc.cachefunc import cached_method
 
 class BraidMoveCalculator(object):
@@ -77,6 +76,15 @@ class BraidMoveCalculator(object):
 
     @cached_method
     def chain_of_reduced_words(self, start_word, end_word):
+        """
+        Compute the chain of reduced words from ``stard_word``
+        to ``end_word``.
+
+        INPUT:
+
+        - ``start_word``, ``end_word`` -- two reduced expressions
+          for the long word
+        """
         if start_word == end_word:
             return (start_word,)
         k = end_word[0]

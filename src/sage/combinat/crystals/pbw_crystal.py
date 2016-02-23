@@ -1,7 +1,5 @@
-r""" 
-The crystal of PBWData up to equivalence. A model of the crystal 
-`B(\infty)` whose elements are PBWDatum up to equivalence by the 
-tropical Plucker relations.
+r"""
+`\mathcal{B}(\infty)` Crystal Of PBW Monomials.
 
 AUTHORS:
 
@@ -75,20 +73,18 @@ class PBWCrystalElement(Element):
         """
         Check equality of ``self`` with ``other``.
         """
+        if other not in self.parent():
+            return False
         other_long_word = other._pbw_datum.long_word
         other_lusztig_datum = other._pbw_datum.lusztig_datum
         equiv_pbw_datum = self._pbw_datum.convert_to_new_long_word(other_long_word)
         return equiv_pbw_datum.lusztig_datum == other_lusztig_datum
 
-    def _cmp_(self, other):
+    def __ne__(self, other):
         """
-        Return comparison of ``self`` and ``other``.
+        Check inequality of ``self`` with ``other``.
         """
-        i = self.parent().index_set()[0]
-        word = self.parent()._pbw_datum_parent._long_word_begin_with(i)
-        lusztig_datum = tuple(self._pbw_datum.convert_to_new_long_word(word).lusztig_datum)
-        other_lusztig_datum = tuple(other._pbw_datum.convert_to_new_long_word(word).lusztig_datum)
-        return cmp(lusztig_datum, other_lusztig_datum)
+        return not (self == other)
 
     @cached_method
     def __hash__(self):
@@ -100,14 +96,37 @@ class PBWCrystalElement(Element):
         pbw_datum = self._pbw_datum.convert_to_new_long_word(word)
         return hash(tuple(pbw_datum.lusztig_datum))
 
+    def e(self, i):
+        """
+        Return the action of `e_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.PBW(['B', 3])
+            sage: b = B.highest_weight_vector()
+            sage: c = b.f_string([2,1,3,2,1,3,2,2]); c
+            PBW monomial with Lusztig datum (0, 1, 0, 1, 0, 0, 0, 1, 2)
+            sage: c.e(2)
+            PBW monomial with Lusztig datum (0, 1, 0, 1, 0, 0, 0, 1, 1)
+            sage: c.e_string([2,2,1,3,2,1,3,2]) == b
+            True
+        """
+        equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i) 
+        new_long_word = equiv_pbw_datum.long_word 
+        new_lusztig_datum = list(equiv_pbw_datum.lusztig_datum)
+        if new_lusztig_datum[0] == 0:
+            return None
+        new_lusztig_datum[0] -= 1
+        return type(self)(self.parent(), new_long_word, tuple(new_lusztig_datum))
+
     def f(self, i):
         """
         Return the action of `f_i` on ``self``.
 
         EXAMPLES::
 
-            sage: B = PBWCrystal("D4")
-            sage: b = B.module_generators[0]
+            sage: B = crystals.infinity.PBW("D4")
+            sage: b = B.highest_weight_vector()
             sage: c = b.f_string([1,2,3,1,2,3,4])
             sage: c == b.f_string([1,2,4,1,2,3,3])
             True
@@ -118,28 +137,18 @@ class PBWCrystalElement(Element):
         new_lusztig_datum[0] += 1
         return type(self)(self.parent(), new_long_word, tuple(new_lusztig_datum))
 
-    def e(self, i):
-        """
-        Return the action of `e_i` on ``self``.
-        """
-        equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i) 
-        new_long_word = equiv_pbw_datum.long_word 
-        new_lusztig_datum = list(equiv_pbw_datum.lusztig_datum)
-        if new_lusztig_datum[0] == 0:
-            return None
-        new_lusztig_datum[0] -= 1
-        return type(self)(self.parent(), new_long_word, tuple(new_lusztig_datum))
-
     def epsilon(self, i):
         r"""
         Return `\varepsilon_i` of ``self``.
 
         EXAMPLES::
 
-            sage: B = PBWCrystal(["A2"])
-            sage: s = B((1,2,1),(3,0,0))
+            sage: B = crystals.infinity.PBW(["A2"])
+            sage: s = B((1,2,1), (3,0,0))
             sage: s.epsilon(1)
             3
+            sage: s.epsilon(2)
+            0
         """
         equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i) 
         return equiv_pbw_datum.lusztig_datum[0]
@@ -150,8 +159,8 @@ class PBWCrystalElement(Element):
 
         EXAMPLES::
 
-            sage: B = PBWCrystal(["A2"])
-            sage: s = B((1,2,1),(3,0,0))
+            sage: B = crystals.infinity.PBW(['A', 2])
+            sage: s = B((1,2,1), (3,0,0))
             sage: s.phi(1)
             -3
             sage: s.phi(2)
@@ -167,14 +176,14 @@ class PBWCrystalElement(Element):
 
         EXAMPLES::
 
-            sage: B = PBWCrystal(["A",2])
-            sage: s = B((1,2,1),(2,2,2)) 
+            sage: B = crystals.infinity.PBW(['A', 2])
+            sage: s = B((1,2,1), (2,2,2)) 
             sage: s.weight()
-            -4*alpha[1] - 4*alpha[2]
+            (-4, 0, 4)
         """
         WLR = self.parent().weight_lattice_realization()
         al = WLR.simple_roots()
-        return WLR.sum(c*al[i] for i,c in self._pbw_datum.wt())
+        return WLR.sum(c*al[i] for i,c in self._pbw_datum.weight())
 
     def star(self):
         r"""
@@ -183,7 +192,7 @@ class PBWCrystalElement(Element):
 
         EXAMPLES::
 
-            sage: P = PBWCrystal(["A2"])
+            sage: P = crystals.infinity.PBW(['A', 2])
             sage: P((1,2,1),(1,2,3)).star() == P((1,2,1),(3,2,1))
             True
         """
@@ -193,19 +202,35 @@ class PBWCrystalElement(Element):
 
 
 class PBWCrystal(Parent, UniqueRepresentation):
-    """
-    Crystal of `B(\infty)` given by PBW monomials.
+    r"""
+    Crystal of `\mathcal{B}(\infty)` given by PBW monomials.
+
+    A model of the crystal  `\mathcal{B}(\infty)` whose elements are
+    PBW datum up to equivalence by the tropical Plucker relations.
     """
     @staticmethod
-    def __classcall_private__(cls, cartan_type):
+    def __classcall__(cls, cartan_type):
         """
         Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: B1 = crystals.infinity.PBW(['A', 2])
+            sage: B2 = crystals.infinity.PBW("A2")
+            sage: B3 = crystals.infinity.PBW(CartanType("A2"))
+            sage: B1 is B2 and B2 is B3
+            True
         """
         return super(PBWCrystal, cls).__classcall__(cls, CartanType(cartan_type))
 
     def __init__(self, cartan_type):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.PBW(['B', 2])
+            sage: TestSuite(B).run()
         """
         self._cartan_type = cartan_type
         self._pbw_datum_parent = PBWData(self._cartan_type)
@@ -223,19 +248,48 @@ class PBWCrystal(Parent, UniqueRepresentation):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: crystals.infinity.PBW(['G', 2])
+            Crystal of PBW data of type ['G', 2]
         """
         return "Crystal of PBW data of type {}".format(self._cartan_type)
 
     def default_long_word(self):
         """
         Return the default long word used to express elements of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.PBW(['E', 6])
+            sage: B.default_long_word()
+            [1, 3, 4, 5, 6, 2, 4, 5, 3, 4, 1, 3, 2, 4, 5, 6, 2, 4,
+             5, 3, 4, 1, 3, 2, 4, 5, 3, 4, 1, 3, 2, 4, 1, 3, 2, 1]
         """
-        return self._default_word
+        return list(self._default_word)
 
     def _check_is_long_word(self, word):
         """
         Check if ``word`` is a reduced expression of the long of the
         Coxeter group of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.PBW(['A', 3])
+            sage: B._check_is_long_word([1,2,1,3,2,1])
+            sage: B._check_is_long_word([1,3,2,3,2,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: not a reduced word of the long element
+            sage: B._check_is_long_word([1,2,1,3,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: not a reduced word of the long element
+            sage: B._check_is_long_word([1,2,1,3,2,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: not a reduced word of the long element
         """
         W = self._pbw_datum_parent.weyl_group
         if (len(word) != len(self._default_word)

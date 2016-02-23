@@ -81,7 +81,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
           code and the parameters.
 
       You can also supply your own function to perform the interpolation. See
-      NOTES section for details on the signature of this function.
+      NOTE section for details on the signature of this function.
 
     - ``root_finder`` -- (default: ``None``) the rootfinding algorithm that will
       be used. The following possibilities are currently available:
@@ -92,7 +92,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
           code and the parameters.
 
       You can also supply your own function to perform the interpolation. See
-      NOTES section for details on the signature of this function.
+      NOTE section for details on the signature of this function.
 
     .. NOTE::
 
@@ -331,7 +331,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         These parameters are not guaranteed to be the best ones possible
         for the provided ``tau``, but arise from easily-evaluated closed
-        expressions and are very good approximation of the best ones.
+        expressions and are very good approximations of the best ones.
 
         See [N13]_ pages 53-54, proposition 3.11 for details.
 

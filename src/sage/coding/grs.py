@@ -1178,7 +1178,7 @@ class GRSGaoDecoder(Decoder):
             sage: D._partial_xgcd(a, b, P)
             (10*x^2 + 3*x + 5, 1)
         """
-        stop = floor(self.code().dimension() + self.code().length()) / 2
+        stop = floor(self.code().dimension() + self.code().length()) // 2
         s = PolRing.one()
         prev_s = PolRing.zero()
 

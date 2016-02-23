@@ -732,7 +732,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             raise ValueError("The provided interpolation algorithm has a wrong signature. See decoder's doc for details")
         ## EXAMINE THE FACTORS AND CONVERT TO CODEWORDS
         try:
-            polynomials = self.rootfinding_algorithm()(Q, maxd = None)
+            polynomials = self.rootfinding_algorithm()(Q, maxd = wy)
         except TypeError:
             raise ValueError("The provided rootfinding algorithm has a wrong signature. See decoder's doc for details")
         if not polynomials:

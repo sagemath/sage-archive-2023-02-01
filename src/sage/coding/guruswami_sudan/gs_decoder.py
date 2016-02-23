@@ -30,7 +30,7 @@ from sage.coding.grs import GeneralizedReedSolomonCode
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 from sage.coding.decoder import Decoder
-from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg
+from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg
 from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
 from sage.coding.guruswami_sudan.utils import (johnson_radius,
                                                gilt,
@@ -156,8 +156,8 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         If one provides a function as ``interpolation_alg``, its signature has
         to be: ``my_inter(interpolation_points, tau, s_and_l, wy)``. See
-        :meth:`sage.coding.guruswami_sudan.interpolation.construct_Q_linalg` for
-        an example.
+        :meth:`sage.coding.guruswami_sudan.interpolation.gs_interpolation_linalg`
+        for an example.
 
     EXAMPLES::
 
@@ -544,7 +544,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         if hasattr(interpolation_alg, '__call__'):
             self._interpolation_alg = interpolation_alg
         elif interpolation_alg == None or interpolation_alg == "LinearAlgebra":
-            self._interpolation_alg = construct_Q_linalg
+            self._interpolation_alg = gs_interpolation_linalg
         else:
             raise ValueError("Please provide a method or one of the allowed strings for interpolation_alg")
         if hasattr(root_finder, '__call__'):
@@ -607,7 +607,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         Remember that its signature has to be:
         ``my_inter(interpolation_points, tau, s_and_l, wy)``.
-        See :meth:`sage.coding.guruswami_sudan.interpolation.construct_Q_linalg`
+        See :meth:`sage.coding.guruswami_sudan.interpolation.gs_interpolation_linalg`
         for an example.
 
         EXAMPLES::
@@ -615,7 +615,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: D.interpolation_algorithm() #random
-            <function construct_Q_linalg at 0x7f9d55753500>
+            <function gs_interpolation_linalg at 0x7f9d55753500>
         """
         return self._interpolation_alg
 

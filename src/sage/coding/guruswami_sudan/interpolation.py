@@ -130,6 +130,19 @@ def _interpolation_matrix_given_monomials(points, s, monomials):
         return eqs
     return _flatten_once([eqs_affine(*point) for point in points])
 
+def _interpolation_max_weighted_deg(n, tau, s):
+    """Return the maximal weighted degree allowed for an interpolation
+    polynomial over `n` points, correcting `tau` errors and with multiplicity
+    `s`
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_max_weighted_deg
+        sage: _interpolation_max_weighted_deg(10, 3, 5):
+        35
+    """
+    return (n-tau) * s
+
 def _interpolation_matrix_problem(points, tau, parameters, wy):
     r"""
     Returns the linear system of equations which ``Q`` should be a solution to.
@@ -171,14 +184,14 @@ def _interpolation_matrix_problem(points, tau, parameters, wy):
         )
     """
     s, l = parameters[0], parameters[1]
-    monomials = _monomial_list((len(points)-tau) * s, l, wy)
+    monomials = _monomial_list(_interpolation_max_weighted_deg(len(points), tau, s), l, wy)
     M = matrix(list(_interpolation_matrix_given_monomials(points, s, monomials)))
     return (M, monomials)
 
-def _construct_Q_from_matrix(M, monomials):
+def _gs_interpolation_from_matrix(M, monomials):
     r"""
-    Returns a satisfactory ``Q`` polynomial given the interpolation matrix problem
-    and the corresponding list of monomials.
+    Returns a satisfactory interpolation polynomial given the interpolation
+    matrix problem and the corresponding list of monomials.
 
     IMPUT:
 
@@ -188,7 +201,7 @@ def _construct_Q_from_matrix(M, monomials):
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.interpolation import _construct_Q_from_matrix
+        sage: from sage.coding.guruswami_sudan.interpolation import _gs_interpolation_from_matrix
         sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_problem
         sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
         sage: tau = 1
@@ -196,7 +209,7 @@ def _construct_Q_from_matrix(M, monomials):
         sage: wy = 1
         sage: res = _interpolation_matrix_problem(points, tau, params, wy)
         sage: M, monomials = res[0], res[1]
-        sage: _construct_Q_from_matrix(M, monomials)
+        sage: _gs_interpolation_from_matrix(M, monomials)
         4202026*x^6 - 5614235*x^5*y - 29351399*x^5 + 64635986*x^4*y + 41894587*x^4 - 273534229*x^3*y + 3*x^3 + 508264978*x^2*y + x^2 - 297101040*x*y + 2*x - 840*y + 1680
     """
     if M.nrows() >= M.ncols():
@@ -213,14 +226,22 @@ def _construct_Q_from_matrix(M, monomials):
     Q = sum([x**monomials[i][0] * y**monomials[i][1] * sol[i] for i in range(0, len(monomials))])
     return Q
 
-def construct_Q_linalg(points, tau, parameters, wy):
+def gs_interpolation_linalg(points, tau, parameters, wy):
     r"""
-    Returns an interpolation polynomial Q(x,y) for the given input.
+    Compute an interpolation polynomial Q(x,y) for the Guruswami-Sudan algorithm
+    by solving a linear system of equations.
+
+    ``Q`` is a bivariate polynomial over the field of the points, such that the
+    polynomial has a zero of multiplicity at least `s` at each of the points,
+    where `s` is the multiplicity parameter. Furthermore, its ``(1,
+    wy)``-weighted degree should be less than
+    ``_interpolation_max_weighted_deg(n, tau, wy)``, where ``n`` is the number
+    of points
 
     INPUT:
 
-    - ``points`` -- a list of tuples ``(xi, yi)`` such that
-      ``Q(xi,yi) = 0`` with multiplicity ``s``.
+    - ``points`` -- a list of tuples ``(xi, yi)`` such that we seek ``Q`` with 
+      ``(xi,yi)`` being a root of ``Q`` with multiplicity ``s``.
 
     - ``tau`` -- an integer, the number of errors one wants to decode.
 
@@ -228,17 +249,18 @@ def construct_Q_linalg(points, tau, parameters, wy):
         - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
         - the second integer is the list size parameter.
 
-    - ``wy`` -- an integer.
+    - ``wy`` -- an integer, the `y`-weight, where we seek ``Q`` of low
+      ``(1,wy)`` weighted degree.
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg
+        sage: from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg
         sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
         sage: tau = 1
         sage: params = (1, 1)
         sage: wy = 1
-        sage: construct_Q_linalg(points, tau, params, wy)
+        sage: gs_interpolation_linalg(points, tau, params, wy)
         4202026*x^6 - 5614235*x^5*y - 29351399*x^5 + 64635986*x^4*y + 41894587*x^4 - 273534229*x^3*y + 3*x^3 + 508264978*x^2*y + x^2 - 297101040*x*y + 2*x - 840*y + 1680
     """
-    return _construct_Q_from_matrix(
+    return _gs_interpolation_from_matrix(
                 *_interpolation_matrix_problem(points, tau, parameters, wy))

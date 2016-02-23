@@ -38,6 +38,55 @@ from sage.coding.guruswami_sudan.utils import (johnson_radius,
 from sage.functions.other import binomial, floor, sqrt
 IMPOSSIBLE_PARAMETERS = "Impossible parameters for the Guruswami-Sudan algorithm"
 
+def n_k_params(C, n_k):
+    r"""
+    Internal helper function for the GRSGuruswamiSudanDecoder class for allowing to
+    specify either a GRS code `C` or the length and dimensions `n, k` directly,
+    in all the static functions.
+
+    If neither `C` or `n,k` were specified to those functions, an appropriate
+    error should be raised. Otherwise, `n, k` of the code or the supplied tuple
+    directly is returned.
+
+    INPUT:
+
+    - ``C`` -- A GRS code or `None`
+
+    - ``n_k`` -- A tuple `(n,k)` being length and dimension of a GRS code, or `None`.
+
+    OUTPUT:
+
+    - ``n_k`` -- A tuple `(n,k)` being length and dimension of a GRS code.
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.gs_decoder import n_k_params
+        sage: n_k_params(None, (10, 5))
+        (10, 5)
+        sage: C = codes.GeneralizedReedSolomonCode(GF(11).list()[:10], 5)
+        sage: n_k_params(C,None)
+        (10, 5)
+        sage: n_k_params(None,None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Please provide either the code or its length and dimension
+        sage: n_k_params(C,(12, 2))
+        Traceback (most recent call last):
+        ...
+        ValueError: Please provide only the code or its length and dimension
+    """
+    if C is not None and n_k is not None:
+        raise ValueError("Please provide only the code or its length and dimension")
+    elif C is None and n_k is None:
+        raise ValueError("Please provide either the code or its length and dimension")
+    elif C is not None:
+        return C.length(), C.dimension()
+    elif n_k is not None and not isinstance(n_k, tuple):
+        raise ValueError("n_k has to be a tuple")
+    elif n_k is not None:
+        return n_k
+
+
 class GRSGuruswamiSudanDecoder(Decoder):
     r"""
     The Guruswami-Sudan list-decoding algorithm for decoding Generalized
@@ -187,16 +236,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             ...
             ValueError: The decoding radius must be less than the Johnson radius (which is 118.66)
         """
-        if C is not None and n_k is not None:
-            raise ValueError("Please provide only the code or its length and dimension")
-        elif C is None and n_k is None:
-            raise ValueError("Please provide either the code or its length and dimension")
-        elif C is not None:
-            n, k = C.length(), C.dimension()
-        elif n_k is not None and not isinstance(n_k, tuple):
-            raise ValueError("n_k has to be a tuple")
-        elif n_k is not None:
-            n, k = n_k
+        n,k = n_k_params(C, n_k)
 
         johnson = johnson_radius(n, n - k + 1)
         if tau >= johnson:
@@ -269,17 +309,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: codes.decoders.GRSGuruswamiSudanDecoder.guruswami_sudan_decoding_radius(n_k = (n, k), s=2, l=6)
             (92, (2, 6))
         """
-        if C is not None and n_k is not None:
-            raise ValueError("Please provide only the code or its length and dimension")
-        elif C is None and n_k is None:
-            raise ValueError("Please provide either the code or its length and dimension")
-        elif C is not None:
-            n, k = C.length(), C.dimension()
-        elif n_k is not None and not isinstance(n_k, tuple):
-            raise ValueError("n_k has to be a tuple")
-        elif n_k is not None:
-            n, k = n_k
-
+        n,k = n_k_params(C, n_k)
         def get_tau(s,l):
             "Return the decoding radius given this s and l"
             if s<=0 or l<=0:
@@ -386,17 +416,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: codes.decoders.GRSGuruswamiSudanDecoder._suitable_parameters_given_tau(118, C = C)
             (47, 89)
         """
-        if C is not None and n_k is not None:
-            raise ValueError("Please provide only the code or its length and dimension")
-        elif C is None and n_k is None:
-            raise ValueError("Please provide either the code or its length and dimension")
-        elif C is not None:
-            n, k = C.length(), C.dimension()
-        elif n_k is not None and not isinstance(n_k, tuple):
-            raise ValueError("n_k has to be a tuple")
-        elif n_k is not None:
-            n, k = n_k[0], n_k[1]
-
+        n,k = n_k_params(C, n_k)
         w = k - 1
         atau = n - tau
         smin = tau * w / (atau ** 2 - n * w)
@@ -465,16 +485,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             ...
             ValueError: Please provide either the code or its length and dimension
         """
-        if C is not None and n_k is not None:
-            raise ValueError("Please provide only the code or its length and dimension")
-        elif C is None and n_k is None:
-            raise ValueError("Please provide either the code or its length and dimension")
-        elif C is not None:
-            n, k = C.length(), C.dimension()
-        elif n_k is not None and not isinstance(n_k, tuple):
-            raise ValueError("n_k has to be a tuple")
-        elif n_k is not None:
-            n, k = n_k[0], n_k[1]
+        n,k = n_k_params(C, n_k)
         return l > 0 and s > 0 and n * s * (s+1) < (l+1) * (2*s*(n-tau) - (k-1) * l)
 
 

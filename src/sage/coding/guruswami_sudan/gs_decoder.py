@@ -96,7 +96,8 @@ class GRSGuruswamiSudanDecoder(Decoder):
     Johnson radius which is `n - \sqrt(n(n-d))`, where `n, d` is the length,
     respectively minimum distance of the RS code. See [GS99] for more details.
     It is a list-decoder meaning that it returns a list of all closest codewords
-    or their corresponding message polynomials.
+    or their corresponding message polynomials. Note that the output of the
+    ``decode_to_code`` and ``decode_to_message`` methods are therefore lists.
 
     The algorithm has two free parameters, the list size and the multiplicity,
     and these determine how many errors the method will correct: generally,
@@ -695,12 +696,15 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(17).list()[:15], 6)
             sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau=5)
             sage: F.<x> = GF(17)[]
-            sage: m = 9*x^5 + 10*x^4 + 9*x^3 + 7*x^2 + 15*x + 2
+            sage: m = 13*x^4 + 7*x^3 + 10*x^2 + 14*x + 3
             sage: c = D.connected_encoder().encode(m)
-            sage: r = vector(GF(17), [3,1,4,2,14,1,0,4,13,12,1,16,1,13,15])
+            sage: r = vector(GF(17), [3,13,12,0,0,7,5,1,8,11,15,12,14,7,10])
             sage: (c-r).hamming_weight()
             5
-            sage: [ m ] == D.decode_to_message(r)
+            sage: messages = D.decode_to_message(r)
+            sage: len(messages)
+            2
+            sage: c in messages
             True
 
         TESTS:
@@ -734,13 +738,16 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(17).list()[:15], 6)
             sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau=5)
-            sage: c = vector(GF(17), [2,1,2,1,14,1,11,4,13,0,1,16,1,13,15])
+            sage: c = vector(GF(17), [3,13,12,0,0,7,5,1,8,11,1,9,4,12,14])
             sage: c in C
             True
-            sage: r = vector(GF(17), [3,1,4,2,14,1,0,4,13,12,1,16,1,13,15])
+            sage: r = vector(GF(17), [3,13,12,0,0,7,5,1,8,11,15,12,14,7,10])
             sage: r in C
             False
-            sage: [ c ] == D.decode_to_code(r)
+            sage: codewords = D.decode_to_code(r)
+            sage: len(codewords)
+            2
+            sage: c in codewords
             True
         """
         C = self.code()

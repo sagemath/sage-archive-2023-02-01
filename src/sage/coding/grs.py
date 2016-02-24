@@ -1003,9 +1003,9 @@ class GRSBerlekampWelchDecoder(Decoder):
         Q0 = R(S.list_from_positions(xrange(0, l0+1)))
         Q1 = R(S.list_from_positions(xrange(l0+1 , l0+l1+2)))
 
-        if not Q1.divides(Q0):
+        f, rem = (-Q0).quo_rem(Q1)
+        if not rem.is_zero():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        f = (-Q0)//Q1
         if f not in R:
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         if (R(r.list()) - f).degree() < self.decoding_radius():
@@ -1279,10 +1279,9 @@ class GRSGaoDecoder(Decoder):
 
         (Q1, Q0) = self._partial_xgcd(G, R, PolRing)
 
-        if not Q0.divides(Q1):
+        h, rem = Q1.quo_rem(Q0)
+        if not rem.is_zero():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        h = Q1//Q0
-
         if h not in PolRing:
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         if (PolRing(r.list()) - h).degree() < self.decoding_radius():

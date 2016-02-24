@@ -80,7 +80,9 @@ from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
+from functools import total_ordering
 
+@total_ordering
 class Cube(SageObject):
     r"""
     Define a cube for use in constructing a cubical complex.
@@ -662,74 +664,31 @@ class Cube(SageObject):
 
             sage: from sage.homology.cubical_complex import Cube
             sage: C1 = Cube([[1,1], [2,3], [4,5]])
+            sage: C2 = Cube([[1], [2,3], [4,5]])
             sage: C3 = Cube([[0], [2,3], [4,5]])
-            sage: C1 < C3  # indirect doctest
+            sage: C1 < C1
             False
-            sage: C3 < C1  # indirect doctest
+            sage: C1 < C3
+            False
+            sage: C3 < C1
+            True
+
+        Test ``@total_ordering`` by testing other comparisons::
+
+            sage: C1 <= C1
+            True
+            sage: C1 <= C2
+            True
+            sage: C1 >= C2
+            True
+            sage: C1 > C2
+            False
+            sage: C3 <= C1
+            True
+            sage: C1 > C3
             True
         """
         return tuple(self) < tuple(other)
-
-    def __le__(self, other):
-        """
-        Return True iff the tuple for this cube is less than or equal to
-        that for ``other``.
-
-        :param other: another cube
-
-        EXAMPLES::
-
-            sage: from sage.homology.cubical_complex import Cube
-            sage: C1 = Cube([[1,1], [2,3], [4,5]])
-            sage: C2 = Cube([[1], [2,3], [4,5]])
-            sage: C1 <= C2  # indirect doctest
-            True
-            sage: C1 < C1  # indirect doctest
-            False
-            sage: C1 <= C1  # indirect doctest
-            True
-        """
-        return self < other or self == other
-
-    def __gt__(self, other):
-        """
-        Return True iff the tuple for this cube is greater than that for
-        ``other``.
-
-        :param other: another cube
-
-        EXAMPLES::
-
-            sage: from sage.homology.cubical_complex import Cube
-            sage: C1 = Cube([[1,1], [2,3], [4,5]])
-            sage: C2 = Cube([[1], [2,3], [4,5]])
-            sage: C1 > C2  # indirect doctest
-            False
-            sage: C1 > C1  # indirect doctest
-            False
-        """
-        return not self <= other
-
-    def __ge__(self, other):
-        """
-        Return True iff the tuple for this cube is greater than or equal
-        to that for ``other``.
-
-        :param other: another cube
-
-        EXAMPLES::
-
-            sage: from sage.homology.cubical_complex import Cube
-            sage: C1 = Cube([[1,1], [2,3], [4,5]])
-            sage: C2 = Cube([[1], [2,3], [4,5]])
-            sage: C1 >= C2  # indirect doctest
-            True
-            sage: C1 > C1  # indirect doctest
-            False
-            sage: C1 >= C1  # indirect doctest
-            True
-        """
-        return not self < other
 
     def __hash__(self):
         """
@@ -1300,9 +1259,9 @@ class CubicalComplex(GenericCellComplex):
 
         INPUT:
 
-        - ``cube`` -- a cube in this cubical complex.
+        - ``cube`` -- a cube in this cubical complex
         - ``dim`` -- integer between 0 and one more than the
-          dimension of this cube.
+          dimension of this cube
 
         OUTPUT: a list containing triples ``(coeff, left, right)``
 

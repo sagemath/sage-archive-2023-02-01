@@ -39,6 +39,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.misc.abstract_method import abstract_method
 
 class GenericCellComplex(SageObject):
     r"""
@@ -103,6 +104,7 @@ class GenericCellComplex(SageObject):
     # self.cells() and related methods
     ############################################################
 
+    @abstract_method
     def cells(self, subcomplex=None):
         """
         The cells of this cell complex, in the form of a dictionary:
@@ -129,9 +131,8 @@ class GenericCellComplex(SageObject):
             sage: A.cells()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method cells at ...>
         """
-        raise NotImplementedError
 
     def dimension(self):
         """
@@ -246,6 +247,7 @@ class GenericCellComplex(SageObject):
     # end of methods using self.cells()
     ############################################################
 
+    @abstract_method
     def product(self, right, rename_vertices=True):
         """
         The (Cartesian) product of this cell complex with another one.
@@ -261,15 +263,15 @@ class GenericCellComplex(SageObject):
             sage: A.product(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method product at ...>
         """
-        raise NotImplementedError
 
+    @abstract_method
     def disjoint_union(self, right):
         """
-        The disjoint union of this simplicial complex with another one.
+        The disjoint union of this cell complex with another one.
 
-        :param right: the other simplicial complex (the right-hand factor)
+        :param right: the other cell complex (the right-hand factor)
 
         Disjoint unions are not implemented for general cell complexes.
 
@@ -280,16 +282,16 @@ class GenericCellComplex(SageObject):
             sage: A.disjoint_union(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method disjoint_union at ...>
         """
-        raise NotImplementedError
 
+    @abstract_method
     def wedge(self, right):
         """
-        The wedge (one-point union) of this simplicial complex with
+        The wedge (one-point union) of this cell complex with
         another one.
 
-        :param right: the other simplicial complex (the right-hand factor)
+        :param right: the other cell complex (the right-hand factor)
 
         Wedges are not implemented for general cell complexes.
 
@@ -300,19 +302,19 @@ class GenericCellComplex(SageObject):
             sage: A.wedge(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method wedge at ...>
         """
-        raise NotImplementedError
 
     ############################################################
     # self.join() and related methods
     ############################################################
 
+    @abstract_method
     def join(self, right, **kwds):
         """
         The join of this cell complex with another one.
 
-        :param right: the other simplicial complex (the right-hand factor)
+        :param right: the other cell complex (the right-hand factor)
 
         Joins are not implemented for general cell complexes.  They
         may be implemented in some derived classes (like simplicial
@@ -325,9 +327,8 @@ class GenericCellComplex(SageObject):
             sage: A.join(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method join at ...>
         """
-        raise NotImplementedError
 
     # for some classes, you may want * to mean join:
     ###
@@ -361,6 +362,7 @@ class GenericCellComplex(SageObject):
     # chain complexes, homology
     ############################################################
 
+    @abstract_method
     def chain_complex(self, **kwds):
         """
         This is not implemented for general cell complexes.
@@ -390,9 +392,8 @@ class GenericCellComplex(SageObject):
             sage: A.chain_complex()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method chain_complex at ...>
         """
-        raise NotImplementedError
 
     def homology(self, dim=None, **kwds):
         r"""
@@ -930,6 +931,7 @@ class GenericCellComplex(SageObject):
             base_ring = QQ
         return CohomologyRing(base_ring, self)
 
+    @abstract_method
     def alexander_whitney(self, cell, dim_left):
         r"""
         The decomposition of ``cell`` in this complex into left and right
@@ -943,9 +945,9 @@ class GenericCellComplex(SageObject):
 
         INPUT:
 
-        - ``cell`` -- a cell in this complex.
+        - ``cell`` -- a cell in this complex
         - ``dim_left`` -- the dimension of the left-hand factors in
-          the decomposition.
+          the decomposition
 
         OUTPUT: a list containing triples ``(c, left, right)``.
         ``left`` and ``right`` should be cells in this complex, and
@@ -976,9 +978,8 @@ class GenericCellComplex(SageObject):
             sage: A.alexander_whitney(None, 2)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method alexander_whitney at ...>
         """
-        raise NotImplementedError
 
     ############################################################
     # end of chain complexes, homology
@@ -1039,6 +1040,7 @@ class GenericCellComplex(SageObject):
         """
         raise NotImplementedError
 
+    @abstract_method
     def n_skeleton(self, n):
         """
         The `n`-skeleton of this cell complex: the cell
@@ -1056,9 +1058,8 @@ class GenericCellComplex(SageObject):
             sage: A.n_skeleton(3)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method n_skeleton at ...>
         """
-        raise NotImplementedError
 
     def _string_constants(self):
         """

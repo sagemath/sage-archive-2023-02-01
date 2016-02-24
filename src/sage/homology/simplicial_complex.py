@@ -171,7 +171,7 @@ from sage.misc.misc import union
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
-from functools import reduce
+from functools import reduce, total_ordering
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 from sage.misc.cachefunc import cached_method
 
@@ -317,6 +317,7 @@ def rename_vertex(n, keep, left = True):
         else:
             return "R" + str(n)
 
+@total_ordering
 class Simplex(SageObject):
     """
     Define a simplex.
@@ -732,58 +733,23 @@ class Simplex(SageObject):
             True
             sage: Simplex([2,3]) < Simplex([1])
             False
-        """
-        if not isinstance(other, Simplex):
-            return False
-        return sorted(tuple(set(self))) < sorted(tuple(set(other)))
-
-    def __le__(self, other):
-        """
-        Return ``True`` iff the sorted tuple for this simplex is less than
-        or equal to that for ``other``.
-
-        :param other: the other simplex
-
-        EXAMPLES::
-
             sage: Simplex([0,1,2]) < Simplex([0,2,1])
             False
+
+        Test ``@total_ordering`` by testing other comparisons::
+
             sage: Simplex([0,1,2]) <= Simplex([0,2,1])
             True
             sage: Simplex([1]) <= Simplex([2])
             True
             sage: Simplex([2]) <= Simplex([1])
             False
-        """
-        return self < other or self == other
-
-    def __gt__(self, other):
-        """
-        Return ``True`` iff the sorted tuple for this simplex is greater
-        than that for ``other``.
-
-        :param other: the other simplex
-
-        EXAMPLES::
-
             sage: Simplex([0,1,2]) > Simplex([0,2,1])
             False
             sage: Simplex([1]) > Simplex([2])
             False
             sage: Simplex([2]) > Simplex([1])
             True
-        """
-        return not self <= other
-
-    def __ge__(self, other):
-        """
-        Return ``True`` iff the sorted tuple for this simplex is greater
-        than or equal to that for ``other``.
-
-        :param other: the other simplex
-
-        EXAMPLES::
-
             sage: Simplex([0,1,2]) > Simplex([0,2,1])
             False
             sage: Simplex([0,1,2]) >= Simplex([0,2,1])
@@ -793,7 +759,9 @@ class Simplex(SageObject):
             sage: Simplex([2]) >= Simplex([1])
             True
         """
-        return not self < other
+        if not isinstance(other, Simplex):
+            return False
+        return sorted(tuple(set(self))) < sorted(tuple(set(other)))
 
     def __hash__(self):
         """

@@ -716,7 +716,7 @@ class DeltaComplex(GenericCellComplex):
         - ``cell`` -- a simplex in this complex, given as a pair
           ``(idx, tuple)``, where ``idx`` is its index in the list of
           cells in the given dimension, and ``tuple`` is the tuple of
-          its faces.
+          its faces
 
         - ``dim_left`` -- integer between 0 and one more than the
           dimension of this simplex

@@ -89,30 +89,6 @@ nf_scalar_or_multable_to_alg(nf, z) = {
   if (type(z) == "t_MAT", nfbasistoalg(nf, z[,1]), z);
 }
 
-{
-\\
-\\ Usual global variables
-\\
-
-global(DEBUGLEVEL_ell, LIM1, LIM3, LIMTRIV):small;
-
-  DEBUGLEVEL_ell = 0; \\ From 0 to 5 : choose a higher value to have
-                      \\ more details printed.
-  LIM1 = 2;           \\ Limit for the search of trivial points on quartics
-  LIM3 = 4;           \\ Limit for the search of points on ELS quartics
-  LIMTRIV = 2;        \\ Limit for the search of trivial points on the elliptic curve
-
-\\
-\\  Technical global variables
-\\
-
-global(MAXPROB, LIMBIGPRIME):small;
-
-  MAXPROB = 20;
-  LIMBIGPRIME = 30; \\ for primes larger than this limit: use a probabilistic test
-                    \\ LIMBIGPRIME = 0 means: only deterministic tests
-}
-
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \\          SCRIPT                             \\
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\

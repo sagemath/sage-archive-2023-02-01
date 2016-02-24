@@ -1679,11 +1679,9 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         return (r, t)
 
-    def syndrome(self, r):
+    def _syndrome(self, r):
         r"""
         Returns the coefficients of the syndrome polynomial of ``r``.
-
-        This is a helper function, used in :meth:`decode_to_message`.
 
         INPUT:
 
@@ -1701,7 +1699,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
             sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
-            sage: D.syndrome(r)
+            sage: D._syndrome(r)
             [1, 10, 1, 10, 1]
         """
         C = self.code()
@@ -1718,11 +1716,9 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         return S
 
-    def forney_formula(self, error_evaluator, error_locator):
+    def _forney_formula(self, error_evaluator, error_locator):
         r"""
         Returns the error vector computed through Forney's formula.
-
-        This is a helper function, used in :meth:`decode_to_message`.
 
         INPUT:
 
@@ -1740,7 +1736,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             sage: R.<x> = F[]
             sage: evaluator, locator = R(10), R([10, 10])
-            sage: D.forney_formula(evaluator, locator)
+            sage: D._forney_formula(evaluator, locator)
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         """
         C = self.code()

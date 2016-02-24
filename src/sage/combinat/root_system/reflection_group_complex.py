@@ -1609,7 +1609,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             """
             W = self.parent()
             if W._reflection_representation is None:
-                Delta = W.simple_roots()
+                Delta = W.independent_roots()
                 Phi = W.roots()
                 M = Matrix([ Phi[self(Phi.index(alpha)+1)-1] for alpha in Delta ])
                 return W.base_change_matrix() * M

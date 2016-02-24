@@ -1403,6 +1403,12 @@ class GRSErrorErasureDecoder(Decoder):
         Decode ``word_and_erasure_vector`` to an element in message space
         of ``self``
 
+        INPUT:
+
+        - word_and_erasure_vector -- a tuple whose:
+          - first element is an element of the ambient space of the code
+          - second element is a vector over GF(2) whose length is the same as the code's
+
         .. NOTE::
 
             If the code associated to ``self`` has the same length as its
@@ -1425,29 +1431,52 @@ class GRSErrorErasureDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: F = GF(11)
-            sage: n, k = 10, 5
+            sage: F = GF(59)
+            sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSErrorErasureDecoder(C)
-            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 1))
-            sage: e = vector(GF(2), (0, 0, 0, 1, 0, 0, 0, 1, 0, 0))
-            sage: w_e = (r, e)
-            sage: D.decode_to_message(w_e)
-            (8, 9, 10, 7, 1)
+            sage: c = C.random_element()
+            sage: n_era = randint(0, C.minimum_distance() - 2)
+            sage: Chan = channels.ErrorErasureChannel(C.ambient_space(), D.decoding_radius(n_era), n_era)
+            sage: y = Chan(c)
+            sage: D.connected_encoder().unencode(c) == D.decode_to_message(y)
+            True
 
-        If we try to decode a word with too many erasures, it returns
+        TESTS:
+
+        If one tries to decode a word with too many erasures, it returns
         an exception::
 
-            sage: e = vector(GF(2), (1, 1, 1, 1, 1, 1, 1, 1, 1, 1))
-            sage: w_e = (r, e)
-            sage: D.decode_to_message(w_e)
+            sage: Chan = channels.ErrorErasureChannel(C.ambient_space(), 0, C.minimum_distance() + 1)
+            sage: y = Chan(c)
+            sage: D.decode_to_message(y)
             Traceback (most recent call last):
             ...
             DecodingError: Too many erasures in the received word
+
+        If one tries to decode something which is not in the ambient space of the code,
+        an exception is raised::
+
+            sage: D.decode_to_message((42, random_vector(GF(2), C.length())))
+            Traceback (most recent call last):
+            ...
+            ValueError: The word to decode has to be in the ambient space of the code
+
+        If one tries to pass an erasure_vector which is not a vector over GF(2) of the same length as code's,
+        an exception is raised::
+
+            sage: D.decode_to_message((C.random_element(), 42))
+            Traceback (most recent call last):
+            ...
+            ValueError: The erasure vector has to be a vector over GF(2) of the same length as the code
         """
         C = self.code()
-        n, k = C.length(), C.dimension()
         word, erasure_vector = word_and_erasure_vector
+        n, k = C.length(), C.dimension()
+        if word not in C.ambient_space():
+            raise ValueError("The word to decode has to be in the ambient space of the code")
+        if not erasure_vector in VectorSpace(GF(2), n):
+            raise ValueError("The erasure vector has to be a vector over GF(2) of the same length as the code")
         if erasure_vector.hamming_weight() >= self.code().minimum_distance():
             raise DecodingError("Too many erasures in the received word")
 

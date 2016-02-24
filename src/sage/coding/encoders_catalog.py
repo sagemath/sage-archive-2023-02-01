@@ -13,6 +13,11 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 - :class:`grs.GRSEvaluationVectorEncoder <sage.coding.grs.GRSEvaluationVectorEncoder>`
 - :class:`grs.GRSEvaluationPolynomialEncoder <sage.coding.grs.GRSEvaluationPolynomialEncoder>`
 
+**Cyclic code encoders**
+
+- :func:`cyclic_code.CyclicCodePolynomialEncoder <sage.coding.cyclic_code.CyclicCodePolynomialEncoder>`
+- :func:`cyclic_code.CyclicCodeVectorEncoder <sage.coding.cyclic_code.CyclicCodeVectorEncoder>`
+
 .. NOTE::
 
     To import these names into the global namespace, use:
@@ -34,3 +39,5 @@ _lazy_import('sage.coding.linear_code', ['LinearCodeGeneratorMatrixEncoder',
                                          'LinearCodeParityCheckEncoder'])
 _lazy_import('sage.coding.grs', ['GRSEvaluationVectorEncoder', 'GRSEvaluationPolynomialEncoder'])
 _lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeParityCheckEncoder')
+_lazy_import('sage.coding.cyclic_code', ['CyclicCodePolynomialEncoder',
+                                         'CyclicCodeVectorEncoder'])

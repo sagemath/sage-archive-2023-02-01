@@ -25,6 +25,7 @@ Linear codes and related constructions
    :maxdepth: 1
 
    sage/coding/binary_code
+   sage/coding/cyclic_code
    sage/coding/grs
    sage/coding/hamming_code
    sage/coding/linear_code

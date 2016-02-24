@@ -98,7 +98,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
     .. [MS14] Jennifer Morse and Anne Schilling.
        *Crystal approach to affine Schubert calculus*.
        Int. Math. Res. Not. (2015).
-       :doi:`10.1093/imrn/rnv194IMRN`, :arxiv:`1408.0320`.
+       :doi:`10.1093/imrn/rnv194`, :arxiv:`1408.0320`.
     """
     @staticmethod
     def __classcall_private__(cls, w, n, x = None, k = None):

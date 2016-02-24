@@ -987,14 +987,15 @@ class GRSBerlekampWelchDecoder(Decoder):
             return self.connected_encoder().unencode_nocheck(r)
         col_mults = C.column_multipliers()
 
-        r = [r[i]/col_mults[i] for i in range(0, C.length())]
+        r_list = copy(r)
+        r_list = [r[i]/col_mults[i] for i in range(0, C.length())]
 
         t  = (C.minimum_distance()-1) // 2
         l0 = n-1-t
         l1 = n-1-t-(k-1)
         S  = matrix(C.base_field(), n, l0+l1+2, lambda i,j :
                 (C.evaluation_points()[i])**j if j<(l0+1)
-                else r[i]*(C.evaluation_points()[i])**(j-(l0+1)))
+                else r_list[i]*(C.evaluation_points()[i])**(j-(l0+1)))
         S  = S.right_kernel()
         S  = S.basis_matrix().row(0)
         R = C.base_field()['x']
@@ -1005,8 +1006,9 @@ class GRSBerlekampWelchDecoder(Decoder):
         if not Q1.divides(Q0):
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         f = (-Q0)//Q1
-
         if f not in R:
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        if (R(r.list()) - f).degree() < self.decoding_radius():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
 
         return f
@@ -1283,7 +1285,8 @@ class GRSGaoDecoder(Decoder):
 
         if h not in PolRing:
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-
+        if (PolRing(r.list()) - h).degree() < self.decoding_radius():
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         return h
 
     def decoding_radius(self):
@@ -1724,7 +1727,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def _forney_formula(self, error_evaluator, error_locator):
         r"""
-        Returns the error vector computed through Forney's formula as a list.
+        Returns the error vector computed through Forney's formula.
 
         INPUT:
 
@@ -1743,7 +1746,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: R.<x> = F[]
             sage: evaluator, locator = R(10), R([10, 10])
             sage: D._forney_formula(evaluator, locator)
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         """
         C = self.code()
         alphas = C.evaluation_points()
@@ -1760,7 +1763,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             else:
                 e.append(zero)
 
-        return e
+        return vector(F, e)
 
     def decode_to_code(self, r):
         r"""
@@ -1827,11 +1830,10 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         (EEP, ELP) = self._partial_xgcd(a, S, PolRing)
 
         e = self._forney_formula(EEP, ELP)
-        dec = []
-        for i in range(len(r)):
-            dec.append(r[i] - e[i])
-        dec = vector(F, dec)
-        if not dec in C:
+        dec = r - e
+        if dec not in C:
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        if (r - dec).hamming_weight() > self.decoding_radius():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         return dec
 

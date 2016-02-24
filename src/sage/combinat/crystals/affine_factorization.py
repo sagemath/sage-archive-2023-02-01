@@ -500,7 +500,7 @@ class FactorizationToTableaux(CrystalMorphism):
         TESTS::
 
             sage: W = WeylGroup(['A',4,1], prefix='s')
-            sage: w = W.from_reduced_word([2,1,3,2,4,2,3,1])
+            sage: w = W.from_reduced_word([2,1,3,2,4,3,2,1])
             sage: B = crystals.AffineFactorization(w, 4)
             sage: phi = B._tableaux_isomorphism
             sage: all(phi(b).e(i) == phi(b.e(i)) and phi(b).f(i) == phi(b.f(i))

@@ -1718,7 +1718,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def _forney_formula(self, error_evaluator, error_locator):
         r"""
-        Returns the error vector computed through Forney's formula.
+        Returns the error vector computed through Forney's formula as a list.
 
         INPUT:
 
@@ -1737,7 +1737,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: R.<x> = F[]
             sage: evaluator, locator = R(10), R([10, 10])
             sage: D._forney_formula(evaluator, locator)
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
         """
         C = self.code()
         alphas = C.evaluation_points()
@@ -1754,7 +1754,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             else:
                 e.append(zero)
 
-        return vector(F, e)
+        return e
 
     def decode_to_code(self, r):
         r"""
@@ -1775,31 +1775,59 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: F = GF(11)
-            sage: n, k = 10, 5
+            sage: F = GF(59)
+            sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
             sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
-            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
-            sage: D.decode_to_code(r)
-            (8, 2, 6, 10, 6, 10, 7, 6, 7, 1)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: c == D.decode_to_code(y)
+            True
+
+        TESTS:
+
+        If one tries to decode a word with too many errors, it returns
+        an exception::
+
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
+            sage: y = Chan(c)
+            sage: D.decode_to_message(y)
+            Traceback (most recent call last):
+            ...
+            DecodingError: Decoding failed because the number of errors exceeded the decoding radius
+
+        If one tries to decode something which is not in the ambient space of the code,
+        an exception is raised::
+
+            sage: D.decode_to_code(42)
+            Traceback (most recent call last):
+            ...
+            ValueError: The word to decode has to be in the ambient space of the code
         """
         C = self.code()
+        if r not in C.ambient_space():
+            raise ValueError("The word to decode has to be in the ambient space of the code")
         F = C.base_field()
         PolRing = C.base_field()['x']
         x = PolRing.gen()
 
-        if C.length() == C.dimension():
-            return r
-        if r in C:
+        if C.length() == C.dimension() or r in C:
             return r
 
-        S = PolRing(self.syndrome(r))
+        S = PolRing(self._syndrome(r))
         a = x ** (C.minimum_distance() - 1)
 
         (EEP, ELP) = self._partial_xgcd(a, S, PolRing)
 
-        e = self.forney_formula(EEP, ELP)
-        return r - e
+        e = self._forney_formula(EEP, ELP)
+        dec = []
+        for i in range(len(r)):
+            dec.append(r[i] - e[i])
+        dec = vector(F, dec)
+        if not dec in C:
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        return dec
 
     def decode_to_message(self, r):
         r"""
@@ -1821,13 +1849,15 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: F = GF(11)
-            sage: n, k = 10, 5
+            sage: F = GF(59)
+            sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
             sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
-            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
-            sage: D.decode_to_message(r)
-            (3, 6, 6, 3, 1)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: D.connected_encoder().unencode(c) == D.decode_to_message(y)
+            True
         """
         C = self.code()
         if C.length() == C.dimension():

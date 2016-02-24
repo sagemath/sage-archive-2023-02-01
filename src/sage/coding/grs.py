@@ -1006,6 +1006,9 @@ class GRSBerlekampWelchDecoder(Decoder):
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         f = (-Q0)//Q1
 
+        if f not in R:
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+
         return f
 
     def decoding_radius(self):
@@ -1277,6 +1280,9 @@ class GRSGaoDecoder(Decoder):
         if not Q0.divides(Q1):
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         h = Q1//Q0
+
+        if h not in PolRing:
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
 
         return h
 

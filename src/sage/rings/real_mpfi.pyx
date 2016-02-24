@@ -5069,7 +5069,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: zeta(RIF(3))
-            1.202056903159595?
+            1.202056903159594?
             sage: _.parent()
             Real Interval Field with 53 bits of precision
             sage: RIF(3).zeta(1/2)

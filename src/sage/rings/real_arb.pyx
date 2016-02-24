@@ -460,7 +460,7 @@ class RealBallField(UniqueRepresentation, Field):
         Symbolic expressions are parsed ::
 
             sage: RBF(4*zeta(3))
-            [4.808227612638377 +/- 9.50e-16]
+            [4.808227612638377 +/- 9.42e-16]
         """
         try:
             return self.element_class(self, mid, rad)

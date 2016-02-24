@@ -752,6 +752,15 @@ class CyclicCode(AbstractLinearCode):
             sage: C2 = codes.CyclicCode(generator_pol = g, length = n)
             sage: C1.defining_set() == C2.defining_set()
             True
+
+        blah::
+
+            sage: F = GF(2)
+            sage: n = 15
+            sage: C1 = codes.CyclicCode(length = n , field = F, D = [1,3])
+            sage: C2 = codes.CyclicCode(generator_pol = C1.generator_polynomial(), length = n)
+            sage: C2.defining_set()
+
         """
         if hasattr(self, "_defining_set"):
             return self._defining_set
@@ -776,12 +785,12 @@ class CyclicCode(AbstractLinearCode):
             Rsplit = Fsplit['xx']
             for i in g.coefficients(sparse = False):
                 gsplit.append(F_to_Fsplit(i))
-            gsplit = Rsplit(gsplit) #WARNING: inverses order of coefficients !!
+            gsplit = Rsplit(gsplit)
             roots = gsplit.roots(multiplicities = False)
 
             #recovering defining set
             for i in roots:
-                D.append(discrete_log(beta, i))
+                D.append(discrete_log(i, beta))
 
             D.sort()
             self._defining_set = D

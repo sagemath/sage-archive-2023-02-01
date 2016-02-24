@@ -1226,34 +1226,46 @@ class GRSGaoDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: F = GF(11)
-            sage: n, k = 10, 5
+            sage: F = GF(59)
+            sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSGaoDecoder(C)
-            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 1))
-            sage: D.decode_to_message(r)
-            x^4 + 7*x^3 + 10*x^2 + 9*x + 8
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: D.connected_encoder().unencode(c) == D.decode_to_message(y)
+            True
 
-        If we try to decode a word with too many errors, it returns
+        TESTS:
+
+        If one tries to decode a word with too many errors, it returns
         an exception::
 
-            sage: r[0] = r[1] = r[2] = 3
-            sage: D.decode_to_message(r)
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
+            sage: y = Chan(c)
+            sage: D.decode_to_message(y)
             Traceback (most recent call last):
             ...
-            DecodingError
+            DecodingError: Decoding failed because the number of errors exceeded the decoding radius
+
+        If one tries to decode something which is not in the ambient space of the code,
+        an exception is raised::
+
+            sage: D.decode_to_message(42)
+            Traceback (most recent call last):
+            ...
+            ValueError: The word to decode has to be in the ambient space of the code
         """
         C = self.code()
+        if r not in C.ambient_space():
+            raise ValueError("The word to decode has to be in the ambient space of the code")
         alphas = C.evaluation_points()
         col_mults = C.column_multipliers()
         PolRing = C.base_field()['x']
         G = self._polynomial_vanishing_at_alphas(PolRing)
         n = C.length()
 
-        if n == C.dimension():
-            return self.connected_encoder().unencode_nocheck(r)
-
-        if r in C:
+        if n == C.dimension() or r in C:
             return self.connected_encoder().unencode_nocheck(r)
 
         points = [(alphas[i], r[i]/col_mults[i]) for i in
@@ -1263,7 +1275,7 @@ class GRSGaoDecoder(Decoder):
         (Q1, Q0) = self._partial_xgcd(G, R, PolRing)
 
         if not Q0.divides(Q1):
-            raise DecodingError()
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         h = Q1//Q0
 
         return h

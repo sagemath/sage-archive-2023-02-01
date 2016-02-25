@@ -252,7 +252,8 @@ export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
-export SAGE_DOC="$SAGE_SRC/doc"
+export SAGE_DOC_SRC="$SAGE_SRC/doc"
+export SAGE_DOC="$SAGE_SHARE/doc/sage"
 
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 

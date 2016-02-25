@@ -18,8 +18,8 @@ TESTS:
 Check that argspecs of extension function/methods appear correctly,
 see :trac:`12849`::
 
-    sage: from sage.env import SAGE_DOC_OUTPUT
-    sage: docfilename = os.path.join(SAGE_DOC_OUTPUT, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
+    sage: from sage.env import SAGE_DOC
+    sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: for line in open(docfilename):
     ....:     if "#sage.symbolic.expression.Expression.N" in line:
     ....:         print line
@@ -40,7 +40,7 @@ import pydoc
 from sage.misc.viewer import browser
 from sage.misc.temporary_file import tmp_dir
 import sage.version
-from sage.env import SAGE_DOC, SAGE_DOC_OUTPUT, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 
 # The detex function does two kinds of substitutions: math, which
 # should only be done on the command line -- in the notebook, these
@@ -431,7 +431,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``http://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in SAGE_DOC/common/conf.py.
+    the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -458,7 +458,7 @@ def process_extlinks(s, embedded=False):
     if embedded:
         return s
     oldpath = sys.path
-    sys.path = [os.path.join(SAGE_DOC, 'common')] + oldpath
+    sys.path = [os.path.join(SAGE_DOC_SRC, 'common')] + oldpath
     from conf import extlinks
     sys.path = oldpath
     for key in extlinks:
@@ -800,13 +800,13 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         module = ''
         exts = ['html']
         title = 'Documentation'
-        base_path = SAGE_DOC_OUTPUT
-        doc_path = SAGE_DOC
+        base_path = SAGE_DOC
+        doc_path = SAGE_DOC_SRC
 
         from sage_setup.docbuild.build_options import LANGUAGES, OMIT
         # List of languages
         lang = LANGUAGES
-        # Documents in SAGE_DOC/LANG/ to omit
+        # Documents in SAGE_DOC_SRC/LANG/ to omit
         omit = OMIT
 
         # List of documents, minus the omitted ones
@@ -819,9 +819,9 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         # Check to see if any documents are missing.  This just
         # checks to see if the appropriate output directory exists,
         # not that it contains a complete build of the docs.
-        missing = [os.path.join(SAGE_DOC_OUTPUT, 'html', doc)
+        missing = [os.path.join(SAGE_DOC, 'html', doc)
                    for doc in documents if not
-                   os.path.exists(os.path.join(SAGE_DOC_OUTPUT, 'html', doc))]
+                   os.path.exists(os.path.join(SAGE_DOC, 'html', doc))]
         num_missing = len(missing)
         if num_missing > 0:
             print("""Warning, the following Sage documentation hasn't been built,
@@ -1101,8 +1101,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     Search Sage HTML documentation for lines containing ``string``. The
     search is case-insensitive by default.
 
-    The file paths in the output are relative to
-    ``$SAGE_DOC_OUTPUT``.
+    The file paths in the output are relative to ``$SAGE_DOC``.
 
     INPUT: same as for :func:`search_src`.
 
@@ -1309,7 +1308,7 @@ class _sage_doc:
             'http://localhost:8000/doc/live/'
         """
         self._base_url = "http://localhost:8000/doc/live/"
-        self._base_path = os.path.join(SAGE_DOC_OUTPUT, "html", "en")
+        self._base_path = os.path.join(SAGE_DOC, "html", "en")
 
     def __call__(self, obj, output='html', view=True):
         r"""
@@ -1376,7 +1375,7 @@ class _sage_doc:
                 path = os.path.join(tmp_dir(), "temp.html")
                 filed = open(path, 'w')
 
-                static_path = os.path.join(SAGE_DOC_OUTPUT, "html", "en", "_static")
+                static_path = os.path.join(SAGE_DOC, "html", "en", "_static")
                 if os.path.exists(static_path):
                     title = obj_name + ' - Sage ' + sage.version.version + ' Documentation'
                     template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"

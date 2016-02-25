@@ -303,6 +303,7 @@ Let us see how one can explore this::
      'NearestNeighbor',
      'ErrorErasure',
      'Gao',
+     'GuruswamiSudan',
      'KeyEquationSyndrome',
      'BerlekampWelch']
 

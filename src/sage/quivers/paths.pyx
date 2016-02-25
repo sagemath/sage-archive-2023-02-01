@@ -19,7 +19,7 @@ Quiver Paths
 #*****************************************************************************
 
 from sage.data_structures.bounded_integer_sequences cimport *
-from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
+from cpython.slice cimport PySlice_GetIndicesEx
 
 include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
@@ -379,7 +379,7 @@ cdef class QuiverPath(MonoidElement):
         cdef int init, end
         cdef size_t i,ind
         cdef QuiverPath OUT
-        if PySlice_Check(index):
+        if isinstance(index, slice):
             PySlice_GetIndicesEx(index, self._path.length,
                                  &start, &stop, &step,
                                  &slicelength)

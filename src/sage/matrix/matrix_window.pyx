@@ -87,7 +87,7 @@ cdef class MatrixWindow:
 
     def __setitem__(self, ij, x):
         cdef Py_ssize_t i, j
-        if PyTuple_Check(ij):
+        if isinstance(ij, tuple):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
             if PyTuple_Size(ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
@@ -106,7 +106,7 @@ cdef class MatrixWindow:
         cdef Py_ssize_t i, j
         cdef object x
 
-        if PyTuple_Check(ij):
+        if isinstance(ij, tuple):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
             if PyTuple_Size(ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"

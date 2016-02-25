@@ -606,7 +606,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
     cdef Integer pshift_m
     cdef long aprec
     cdef ntl_ZZ py_tmp
-    if not PyList_Check(L):
+    if not isinstance(L, list):
         raise TypeError, "L must be a list"
     #print "before find_val_aprec"
     min_val, min_aprec, total_type = find_val_aprec(elt.prime_pow, L)

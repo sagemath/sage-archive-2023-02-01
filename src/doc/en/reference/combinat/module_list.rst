@@ -51,6 +51,7 @@ Comprehensive Module list
     sage/combinat/crystals/affinization
     sage/combinat/crystals/alcove_path
     sage/combinat/crystals/all
+    sage/combinat/crystals/braid_move_calculator
     sage/combinat/crystals/catalog
     sage/combinat/crystals/catalog_elementary_crystals
     sage/combinat/crystals/catalog_infinity_crystals
@@ -63,12 +64,15 @@ Comprehensive Module list
     sage/combinat/crystals/highest_weight_crystals
     sage/combinat/crystals/induced_structure
     sage/combinat/crystals/infinity_crystals
-    sage/combinat/crystals/polyhedral_realization
     sage/combinat/crystals/kirillov_reshetikhin
     sage/combinat/crystals/kyoto_path_model
     sage/combinat/crystals/letters
     sage/combinat/crystals/littelmann_path
     sage/combinat/crystals/monomial_crystals
+    sage/combinat/crystals/mv_polytopes
+    sage/combinat/crystals/pbw_crystal
+    sage/combinat/crystals/pbw_datum
+    sage/combinat/crystals/polyhedral_realization
     sage/combinat/crystals/spins
     sage/combinat/crystals/star_crystal
     sage/combinat/crystals/tensor_product

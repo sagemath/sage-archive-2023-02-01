@@ -30,7 +30,7 @@ class MVPolytope(PBWCrystalElement):
 
         EXAMPLES::
 
-            sage: MV = crystals.infinity.MVPolytopes(['E',6])
+            sage: MV = crystals.infinity.MVPolytopes(['E', 6])
             sage: b = MV.module_generators[0].f_string([1,2,6,4,3,2,5,2])
             sage: b
             MV polytope with Lusztig datum (0, 1, ..., 1, 0, 0, 0, 0, 0, 0, 3, 1)
@@ -44,7 +44,7 @@ class MVPolytope(PBWCrystalElement):
 
         EXAMPLES::
 
-            sage: MV = crystals.infinity.MVPolytopes(['C',2])
+            sage: MV = crystals.infinity.MVPolytopes(['C', 2])
             sage: b = MV.module_generators[0].f_string([1,2,1,2])
             sage: latex(b)
             \begin{tikzpicture}
@@ -104,6 +104,24 @@ class MVPolytope(PBWCrystalElement):
     def _polytope_vertices(self, P):
         """
         Return a list of the vertices of ``self`` in ``P``.
+
+        EXAMPLES::
+
+            sage: MV = crystals.infinity.MVPolytopes(['C', 3])
+            sage: b = MV.module_generators[0].f_string([1,2,1,2])
+            sage: sorted(b._polytope_vertices(MV.weight_lattice_realization()), key=list)
+            [(0, 0, 0), (2, 0, -2), (0, 2, -2)]
+
+            sage: MV = crystals.infinity.MVPolytopes(['D', 4])
+            sage: b = MV.module_generators[0].f_string([1,2,3,4])
+            sage: P = RootSystem(['D',4]).weight_lattice()
+            sage: sorted(b._polytope_vertices(P), key=list)  # long time
+            [0,
+             -Lambda[1] + Lambda[3] + Lambda[4],
+             Lambda[1] - Lambda[2] + Lambda[3] + Lambda[4],
+             -2*Lambda[2] + 2*Lambda[3] + 2*Lambda[4],
+             -Lambda[2] + 2*Lambda[3],
+             -Lambda[2] + 2*Lambda[4]]
         """
         pbw_data = self._pbw_datum.parent
         W = pbw_data.weyl_group
@@ -130,6 +148,20 @@ class MVPolytope(PBWCrystalElement):
 
         - ``P`` -- (optional) a space to realize the polytope; default is
           the weight lattice realization of the crystal
+
+        EXAMPLES::
+
+            sage: MV = crystals.infinity.MVPolytopes(['C', 3])
+            sage: b = MV.module_generators[0].f_string([3,2,3,2,1])
+            sage: P = b.polytope(); P
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 6 vertices
+            sage: P.vertices()
+            (A vertex at (0, 0, 0),
+             A vertex at (0, 1, -1),
+             A vertex at (0, 1, 1),
+             A vertex at (1, -1, 0),
+             A vertex at (1, 1, -2),
+             A vertex at (1, 1, 2))
         """
         if P is None:
             P = self.parent().weight_lattice_realization()
@@ -148,7 +180,24 @@ class MVPolytope(PBWCrystalElement):
 
         .. SEEALSO::
 
-            :meth:`~sage.combiant.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods.plot_mv_polytope`
+            :meth:`~sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods.plot_mv_polytope`
+
+        EXAMPLES::
+
+            sage: MV = crystals.infinity.MVPolytopes(['C', 2])
+            sage: b = MV.module_generators[0].f_string([1,2,1,2])
+            sage: b.plot()
+            Graphics object consisting of 10 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            MV = crystals.infinity.MVPolytopes(['C', 2])
+            b = MV.module_generators[0].f_string([1,2,1,2])
+            L = RootSystem(['C', 2, 1]).ambient_space()
+            p = L.plot(reflection_hyperplanes=False) + b.plot()
+            p.axes(False)
+            sphinx_plot(p)
         """
         if P is None:
             P = self.parent().weight_lattice_realization()
@@ -161,7 +210,7 @@ class MVPolytopes(PBWCrystal):
 
         EXAMPLES::
 
-            sage: MV = crystals.infinity.MVPolytopes(['B',2])
+            sage: MV = crystals.infinity.MVPolytopes(['B', 2])
             sage: TestSuite(MV).run()
         """
         PBWCrystal.__init__(self, cartan_type)
@@ -176,13 +225,13 @@ class MVPolytopes(PBWCrystal):
 
         EXAMPLES::
 
-            sage: crystals.infinity.MVPolytopes(['F',4])
+            sage: crystals.infinity.MVPolytopes(['F', 4])
             MV polytopes of type ['F', 4]
         """
         return "MV polytopes of type {}".format(self._cartan_type)
 
     def set_latex_options(self, **kwds):
-        """
+        r"""
         Set the latex options for the elements of ``self``.
 
         INPUT:
@@ -194,6 +243,36 @@ class MVPolytopes(PBWCrystal):
           weight lattice realization of ``self``)
         - ``mark_endpoints`` -- whether to mark the endpoints (initial: ``True``)
         - ``circle_size`` -- the size of the endpoint circles (initial: 0.1)
+
+        EXAMPLES::
+
+            sage: MV = crystals.infinity.MVPolytopes(['C', 2])
+            sage: P = RootSystem(['C', 2]).weight_lattice()
+            sage: b = MV.highest_weight_vector().f_string([1,2,1,2])
+            sage: latex(b)
+            \begin{tikzpicture}
+            \draw (0, 0) -- (-1, 1) -- (-1, 1) -- (-2, 0) -- (-2, -2);
+            \draw (0, 0) -- (0, -2) -- (-1, -3) -- (-1, -3) -- (-2, -2);
+            \draw[fill=black] (0, 0) circle (0.1);
+            \draw[fill=black] (-2, -2) circle (0.1);
+            \end{tikzpicture}
+            sage: MV.set_latex_options(P=P, circle_size=float(0.2))
+            sage: latex(b)
+            \begin{tikzpicture}
+            \draw (0, 0) -- (-2, 1) -- (-2, 1) -- (-2, 0) -- (0, -2);
+            \draw (0, 0) -- (2, -2) -- (2, -3) -- (2, -3) -- (0, -2);
+            \draw[fill=black] (0, 0) circle (0.2);
+            \draw[fill=black] (0, -2) circle (0.2);
+            \end{tikzpicture}
+            sage: MV.set_latex_options(mark_endpoints=False)
+            sage: latex(b)
+            \begin{tikzpicture}
+            \draw (0, 0) -- (-2, 1) -- (-2, 1) -- (-2, 0) -- (0, -2);
+            \draw (0, 0) -- (2, -2) -- (2, -3) -- (2, -3) -- (0, -2);
+            \end{tikzpicture}
+            sage: MV.set_latex_options(P=MV.weight_lattice_realization(),
+            ....:                      circle_size=0.2,
+            ....:                      mark_endpoints=True)
         """
         if "projection" in kwds:
             self._latex_options["projection"] = True
@@ -204,14 +283,14 @@ class MVPolytopes(PBWCrystal):
             del kwds['P']
 
         if "mark_endpoints" in kwds:
-            self._latex_options = kwds["mark_endpoints"]
+            self._latex_options["mark_endpoints"] = kwds["mark_endpoints"]
             del kwds["mark_endpoints"]
 
         if "circle_size" in kwds:
-            self._latex_options["circle_size"] = True
+            self._latex_options["circle_size"] = kwds["circle_size"]
             del kwds["circle_size"]
 
-        if not kwds:
+        if kwds:
             raise ValueError("invalid latex option")
 
     def latex_options(self):
@@ -220,7 +299,7 @@ class MVPolytopes(PBWCrystal):
 
         EXAMPLES::
 
-            sage: MV = crystals.infinity.MVPolytopes(['F',4])
+            sage: MV = crystals.infinity.MVPolytopes(['F', 4])
             sage: MV.latex_options()
             {'P': Ambient space of the Root system of type ['F', 4],
              'circle_size': 0.1,

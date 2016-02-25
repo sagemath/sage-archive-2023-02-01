@@ -1009,13 +1009,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         self._summands_.merge(reverse=True)
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this asymptotic expansion.
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -1029,12 +1030,63 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: (5*x^2-12*x) * (x^3+O(x))  # indirect doctest
             5*x^5 - 12*x^4 + O(x^3)
         """
-        s = ' + '.join(repr(elem) for elem in
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+        s = ' + '.join(f(elem) for elem in
                        self.summands.elements_topological(reverse=True))
         s = s.replace('+ -', '- ')
         if not s:
             return '0'
         return s
+
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this asymptotic expansion.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: latex((5*x^2+12*x) * (x^3+O(x)))  # indirect doctest
+            5 x^{5} + 12 x^{4} + O\!\left(x^{3}\right)
+            sage: latex((5*x^2-12*x) * (x^3+O(x)))  # indirect doctest
+            5 x^{5} - 12 x^{4} + O\!\left(x^{3}\right)
+        """
+        return self._repr_(latex=True)
+
+
+    def show(self):
+        r"""
+        Pretty-print this asymptotic expansion.
+
+        OUTPUT:
+
+        Nothing, the representation is printed directly on the
+        screen.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing('QQ^x * x^QQ * log(x)^QQ', SR.subring(no_variables=True))
+            sage: (pi/2 * 5^x * x^(42/17) - sqrt(euler_gamma) * log(x)^(-7/8)).show()
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2} \, \pi
+            5^{x} x^{\frac{42}{17}} - \sqrt{\gamma_E} \log\left(x\right)^{-\frac{7}{8}}</script></html>
+
+        TESTS::
+
+            sage: A.<x> = AsymptoticRing('(e^x)^QQ * x^QQ', SR.subring(no_variables=True))
+            sage: (zeta(3) * (e^x)^(-1/2) * x^42).show()
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\zeta(3)
+            \left(e^{x}\right)^{-\frac{1}{2}} x^{42}</script></html>
+        """
+        from sage.repl.rich_output.pretty_print import pretty_print
+        pretty_print(self)
 
 
     def _add_(self, other):

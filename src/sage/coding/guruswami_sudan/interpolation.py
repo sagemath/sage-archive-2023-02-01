@@ -39,8 +39,8 @@ def _flatten_once(lstlst):
 
     sage: from sage.coding.guruswami_sudan.interpolation import _flatten_once
     sage: ll = [[1,2], [3,4], [5,6]]
-    sage: list(_flatten_once(ll)) #random
-    [1,2,3,4,5,6]
+    sage: list(_flatten_once(ll))
+    [1, 2, 3, 4, 5, 6]
     """
     for lst in lstlst:
         for e in lst:
@@ -232,7 +232,7 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
 
     INPUT:
 
-    - ``points`` -- a list of tuples ``(xi, yi)`` such that we seek ``Q`` with 
+    - ``points`` -- a list of tuples ``(xi, yi)`` such that we seek ``Q`` with
       ``(xi,yi)`` being a root of ``Q`` with multiplicity ``s``.
 
     - ``tau`` -- an integer, the number of errors one wants to decode.

@@ -3699,7 +3699,6 @@ class ClusterSeed(SageObject):
         """
         mut_iter = self.mutation_class_iter( depth=depth,show_depth=False )
         var_class = set()
-        n = self._n
 
         for seed in mut_iter:
             if seed is self:

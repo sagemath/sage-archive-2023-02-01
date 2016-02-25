@@ -1,5 +1,5 @@
 r"""
-Finding `F[x]`-roots, or modular `F[x]` roots, in polynomials over `F[x][y]`, where `F` is a (finite) field.
+Finding `F[x]`-roots for polynomials over `F[x][y]`, with`F` is a (finite) field, as used in the Guruswami-Sudan decoding.
 
 This module contains functions for finding two types of `F[x]` roots in a
 polynomial over `F[x][y]`, where `F` is a field. Note that if `F` is an infinite
@@ -362,7 +362,7 @@ def rootfind_roth_ruckenstein(Q, maxd=None, precision=None):
         ValueError('The zero polynomial has infinitely many roots.',)
         sage: rootfind_roth_ruckenstein(R.zero(), precision=1)
         [(0, 0)]
-        
+
     """
     (Q, Qinp, F, Rx, x, maxd) = _sanitise_rootfinding_input(Q, maxd, precision)
     if all(p.is_zero() for p in Q):

@@ -1979,6 +1979,10 @@ class AbstractLinearCode(module.Module):
             The default encoder always has `F^{k}` as message space, with `k` the dimension
             of ``self`` and `F` the base ring of ``self``.
 
+        One can use the following shortcut to encode a word ::
+
+            C(word)
+
         OUTPUT:
 
         - a vector of ``self``.
@@ -2001,6 +2005,9 @@ class AbstractLinearCode(module.Module):
         """
         E = self.encoder(encoder_name, **kwargs)
         return E.encode(word)
+
+    #Alias for encode method
+    __call__ = encode
 
     @cached_method
     def encoder(self, encoder_name=None, **kwargs):

@@ -95,6 +95,7 @@ from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
+from sage.misc.all import verbose
 
 def is_SchemeMorphism(f):
     """
@@ -1391,6 +1392,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: H = End(P)
             sage: f = H([x^2+v*y^2, y^2])
             sage: f.change_ring(QQbar)
+            verbose 0 (1280: morphism.py, change_ring) Warning: coerce map not found,
+            choosing arbitrary embedding
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic
             Field
               Defn: Defined on coordinates by sending (x : y) to
@@ -1460,6 +1463,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                             G.append(phix(f.numerator())/phix(f.denominator()))
                         else:
                             G.append(phix(f))
+                    verbose("Warning: coerce map not found, choosing arbitrary embedding", level=0)
                 except (IndexError, ValueError, AttributeError):
                     #raise a better error
                     raise TypeError("unable to find an embedding of %s to %s"%(K,R))
@@ -1748,6 +1752,7 @@ class SchemeMorphism_point(SchemeMorphism):
                 try:
                     phi = K.embeddings(R)[0]
                     Q = [phi(t) for t in self]
+                    verbose("Warning: coerce map not found, choosing arbitrary embedding", level=0)
                 except (IndexError, ValueError, AttributeError):
                     #raise a better error
                     raise TypeError("unable to find an embedding of %s to %s"%(K,R))

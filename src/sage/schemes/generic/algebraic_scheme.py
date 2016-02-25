@@ -146,6 +146,7 @@ from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
 from sage.calculus.functions import jacobian
+from sage.misc.all import verbose
 
 import sage.schemes.projective
 import sage.schemes.affine
@@ -1605,9 +1606,12 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: P.<x,y> = ProjectiveSpace(O, 1)
             sage: X = P.subscheme([x^2+O(v)*y^2])
             sage: X.change_ring(CC)
-            Closed subscheme of Projective Space of dimension 1 over Complex Field with 53 bits of precision defined by:
+            Closed subscheme of Projective Space of dimension 1 over Complex Field
+            with 53 bits of precision defined by:
               x^2 + (0.623489801858734 + 0.781831482468030*I)*y^2
             sage: X.change_ring(K).change_ring(QQbar)
+            verbose 0 (1515: algebraic_scheme.py, change_ring) Warning: coerce map not found,
+            choosing arbitrary embedding
             Closed subscheme of Projective Space of dimension 1 over Algebraic Field defined by:
               x^2 + (-0.9009688679024191? - 0.4338837391175581?*I)*y^2
 
@@ -1641,6 +1645,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                     Rx = R[Kx.variable_names()]
                     phix = Kx.hom(phi,Rx)
                     I = [phix(f) for f in self.defining_polynomials()]
+                    verbose("Warning: coerce map not found, choosing arbitrary embedding", level=0)
                 except (IndexError, AttributeError, ValueError):
                     #raise a better error message
                     raise TypeError("unable to find an embedding of %s to %s"%(K,R))

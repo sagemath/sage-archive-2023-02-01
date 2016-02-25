@@ -1417,7 +1417,7 @@ cdef class CommutativeRing(Ring):
 
             sage: K.<i> = QuadraticField(-1)
             sage: R = K.maximal_order(); R
-            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
             sage: R.krull_dimension()
             1
             sage: R = K.order(2*i); R
@@ -1802,7 +1802,7 @@ cdef class DedekindDomain(IntegralDomain):
             sage: K = NumberField(x^2 + 1, 's')
             sage: OK = K.ring_of_integers()
             sage: OK.integral_closure()
-            Maximal Order in Number Field in s with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in s with defining polynomial x^2 + 1
             sage: OK.integral_closure() == OK
             True
 

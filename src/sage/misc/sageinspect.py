@@ -202,7 +202,7 @@ def _extract_embedded_position(docstring):
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: print open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read()
         <BLANKLINE>
-        include "interrupt.pxi"  # ctrl-c interrupt block support
+        include "cysignals/signals.pxi"  # ctrl-c interrupt block support
         include "stdsage.pxi"
         <BLANKLINE>
         include "cdefs.pxi"

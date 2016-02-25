@@ -1109,28 +1109,12 @@ an unsupported machine or an unusual compiler:
   directions: set :envvar:`SAGE_PORT` to something non-empty (and expect to
   run into problems).
 
-- :envvar:`SAGE_USE_OLD_GCC` - the Sage build process requires GCC with a
-  version number of at least 4.0.1.
-  If the most recent version of GCC on your system is the older 3.4.x series
-  and you want to build with ``SAGE_INSTALL_GCC=no``, then set
-  :envvar:`SAGE_USE_OLD_GCC` to something non-empty.
-  Expect the build to fail in this case.
-
 Environment variables dealing with specific Sage packages:
 
 - :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``
   for multiprecision integer arithmetic. Supported values are
 
     ``MPIR`` (default choice), ``GMP``.
-
-  The value used at installation time is stored in
-
-    :file:`$SAGE_LOCAL/share/mp_config`.
-
-  You should only set this environment variable before the installation process
-  starts.
-  Indeed, the only supported way to switch the library used is to restart the
-  installation process from start.
 
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment

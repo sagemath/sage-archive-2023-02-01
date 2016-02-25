@@ -11,7 +11,7 @@ Fast word datatype using an array of unsigned char.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 include "sage/data_structures/bitset.pxi"
 

@@ -48,7 +48,7 @@ from sage.graphs.graph import Graph
 
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 cdef inline int edge_map(int i):

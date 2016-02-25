@@ -3566,7 +3566,7 @@ class AbstractLinearCode(module.Module):
     @cached_method
     def zero(self):
         r"""
-        Return the zero vector.
+        Returns the zero vector of ``self``.
 
         EXAMPLES::
 
@@ -3578,9 +3578,7 @@ class AbstractLinearCode(module.Module):
             sage: C.sum((C.gens())) # indirect doctest
             (1, 1, 1, 1, 1, 1, 1)
         """
-        v = 0*self.gens()[0]
-        v.set_immutable()
-        return v
+        return self.ambient_space().zero()
 
     def zeta_polynomial(self, name="T"):
         r"""

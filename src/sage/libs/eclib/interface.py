@@ -1,5 +1,5 @@
 r"""
-Sage interface to Cremona's eclib library (also known as mwrank)
+Sage interface to Cremona's ``eclib`` library (also known as ``mwrank``)
 
 This is the Sage interface to John Cremona's ``eclib`` C++ library for
 arithmetic on elliptic curves.  The classes defined in this module

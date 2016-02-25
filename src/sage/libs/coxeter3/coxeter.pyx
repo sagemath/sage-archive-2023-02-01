@@ -799,7 +799,7 @@ cdef class CoxGroupElement:
         if i < 0:
             i += len(self)
         if i >= len(self):
-            raise IndexError, "The index (%d) is out of range."%i
+            raise IndexError("The index (%d) is out of range." % i)
 
         return self._parent_group.out_ordering[self.word.get_index(i)]
 

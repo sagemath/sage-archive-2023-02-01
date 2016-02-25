@@ -249,7 +249,7 @@ cdef class Lfunction:
         change in signs of areal valued function whose zeros coincide with
         the zeros of L-function.
 
-        Use find_zeros_via_N for slower but more rigorous computation.
+        Use :meth:`find_zeros_via_N` for slower but more rigorous computation.
 
         INPUT:
         
@@ -308,21 +308,20 @@ cdef class Lfunction:
 
         INPUT:
 
-         - ``count`` - number of zeros to be found
-         - ``do_negative`` - (default: False) False to ignore zeros below the
-           real axis.
-         - ``max_refine`` - when some zeros are found to be missing, the step
-           size used to find zeros is refined. max_refine gives an upper limit
-           on when lcalc should give up. Use default value unless you know
-           what you are doing.
-         - ``rank`` - integer (default: -1) analytic rank of the L-function.
-           If -1 is passed, then we attempt to compute it. (Use default if in
-           doubt)
-         - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
-           the explicit fomula for additional confidence that all the zeros
-           have been found and are accurate. This is still being tested, so
-           using the default is recommended.
-
+        - ``count`` - number of zeros to be found
+        - ``do_negative`` - (default: False) False to ignore zeros below the
+          real axis.
+        - ``max_refine`` - when some zeros are found to be missing, the step
+          size used to find zeros is refined. max_refine gives an upper limit
+          on when lcalc should give up. Use default value unless you know
+          what you are doing.
+        - ``rank`` - integer (default: -1) analytic rank of the L-function.
+          If -1 is passed, then we attempt to compute it. (Use default if in
+          doubt)
+        - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
+          the explicit fomula for additional confidence that all the zeros
+          have been found and are accurate. This is still being tested, so
+          using the default is recommended.
 
         OUTPUT:
         
@@ -407,32 +406,30 @@ cdef class Lfunction_I(Lfunction):
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
 
-
     See (23) in http://arxiv.org/abs/math/0412181
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``pole`` - List of the poles of L-function
 
-      - ``pole`` - List of the poles of L-function
-
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
 
@@ -550,28 +547,29 @@ cdef class Lfunction_D(Lfunction):
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``pole`` - List of the poles of L-function
+    - ``pole`` - List of the poles of L-function
 
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
+
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
@@ -688,28 +686,29 @@ cdef class Lfunction_C:
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``pole`` - List of the poles of L-function
+    - ``pole`` - List of the poles of L-function
 
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
+
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
@@ -868,13 +867,13 @@ def Lfunction_from_character(chi, type="complex"):
 
     INPUT:
 
-     - `chi` - A Dirichlet character
-     - `use_type` - string (default: "complex") type used for the Dirichlet
-       coefficients. This can be "int", "double" or "complex".
+    - ``chi`` - A Dirichlet character
+    - ``use_type`` - string (default: "complex") type used for the Dirichlet
+      coefficients. This can be "int", "double" or "complex".
 
     OUTPUT:
 
-    L-function object for `chi`.
+    L-function object for ``chi``.
 
     EXAMPLES::
 

@@ -686,7 +686,7 @@ class Gap(Parent):
             self.__dict__[name] = f
             return f
         else:
-            raise AttributeError, 'No such attribute: '+name+'.'
+            raise AttributeError('No such attribute: '+name+'.')
 
     def show(self):
         """

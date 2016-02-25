@@ -704,13 +704,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: messages = D.decode_to_message(r)
             sage: len(messages)
             2
-            sage: c in messages
+            sage: m in messages
             True
 
         TESTS:
 
         If one has provided a method as a ``root_finder`` or a ``interpolation_alg`` which
-        does not fits the allowed signature, an exception will be raised::
+        does not fit the allowed signature, an exception will be raised::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(17).list()[:15], 6)
             sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau=5, root_finder=next_prime)

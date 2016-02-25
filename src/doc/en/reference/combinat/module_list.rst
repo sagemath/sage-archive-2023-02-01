@@ -34,6 +34,7 @@ Comprehensive Module list
     sage/combinat/cluster_algebra_quiver/mutation_type
     sage/combinat/cluster_algebra_quiver/quiver
     sage/combinat/cluster_algebra_quiver/quiver_mutation_type
+    sage/combinat/cluster_complex
     sage/combinat/colored_permutations
     sage/combinat/combinat
     sage/combinat/combinat_cython

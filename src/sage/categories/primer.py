@@ -414,7 +414,7 @@ Applying an operation is generally done by *calling a method*::
     sage: R.<x> = PolynomialRing(QQ, sparse=True)
     sage: pQ = R ( p )
     sage: type(pQ)
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
+    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
     sage: pQ.factor()
     (6) * (x + 1)^2
 

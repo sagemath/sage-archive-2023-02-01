@@ -214,7 +214,7 @@ class SageKernelSpec(object):
                 os.path.join(self.kernel_dir, filename)
             )
         self.symlink(
-            os.path.join(SAGE_DOC, 'output', 'html', 'en'),
+            os.path.join(SAGE_DOC, 'html', 'en'),
             os.path.join(self.kernel_dir, 'doc')
         )
 

@@ -38,7 +38,6 @@ singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 
 aliases = dict(
         GSL_LIBRARIES=['gsl', BLAS, BLAS2],
-        INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"),
         )
 
 #########################################################
@@ -658,6 +657,14 @@ ext_modules = [
 
     ###################################
     ##
+    ## sage.libs.arb
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/arb/*.pyx"]),
+
+    ###################################
+    ##
     ## sage.libs.eclib
     ##
     ###################################
@@ -902,6 +909,11 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_window',
               sources = ['sage/matrix/matrix_window.pyx']),
+
+    OptionalExtension("sage.matrix.matrix_gfpn_dense",
+              sources = ['sage/matrix/matrix_gfpn_dense.pyx'],
+              libraries = ['mtx'],
+              package = 'meataxe'),
 
     Extension('sage.matrix.misc',
               sources = ['sage/matrix/misc.pyx'],
@@ -1429,6 +1441,11 @@ ext_modules = [
     Extension('sage.rings.polynomial.cyclotomic',
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
 
+    Extension('sage.rings.polynomial.evaluation',
+              libraries = ["flint", "gmp", "ntl", "mpfr", "mpfi"],
+              sources = ['sage/rings/polynomial/evaluation.pyx'],
+              language = 'c++'),
+
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
 
@@ -1530,6 +1547,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
+
 
     ################################
     ##
@@ -1678,7 +1696,3 @@ ext_modules = [
     Extension('sage.tests.cython',
               sources = ['sage/tests/cython.pyx']),
 ]
-
-# Add auto-generated modules
-import sage_setup.autogen.interpreters
-ext_modules += sage_setup.autogen.interpreters.modules

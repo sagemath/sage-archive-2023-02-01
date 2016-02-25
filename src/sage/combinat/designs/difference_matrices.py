@@ -12,7 +12,7 @@ Functions
 from sage.misc.unknown import Unknown
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.arith.all import is_prime_power, divisors
 from designs_pyx import is_difference_matrix
 from database import DM as DM_constructions

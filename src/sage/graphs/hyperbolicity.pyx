@@ -11,7 +11,7 @@ Hyperbolicity
 
       .. MATH::
 
-          S_1 = dist(a, b) + dist(b, c)\\
+          S_1 = dist(a, b) + dist(d, c)\\
           S_2 = dist(a, c) + dist(b, d)\\
           S_3 = dist(a, d) + dist(b, c)\\
 
@@ -153,6 +153,7 @@ AUTHORS:
   distribution, sampling
 - David Coudert (2014): improved exact algorithm using far-apart pairs
 - Michele Borassi (2015): cleaned the code and implemented the new algorithm
+- Karan Desai (2016): fixed  minor typo in documentation
 
 
 Methods
@@ -184,7 +185,7 @@ from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/data_structures/bitset.pxi"
 

@@ -50,7 +50,6 @@ to be aware of the modules described in this chapter.
    sage/libs/libecm
    sage/libs/lrcalc/lrcalc
    sage/libs/pari/handle_error
-   sage/libs/pari/gen_py
    sage/libs/pari/gen
    sage/libs/pari/pari_instance
    sage/libs/pari/closure
@@ -69,7 +68,6 @@ to be aware of the modules described in this chapter.
 
    sage/gsl/gsl_array
 
-   sage/ext/interrupt
    sage/ext/pselect
 
 .. Cannot be imported independently of mpmath: sage/libs/mpmath/ext_main sage/libs/mpmath/ext_impl sage/libs/mpmath/ext_libmp

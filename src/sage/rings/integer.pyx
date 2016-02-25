@@ -139,7 +139,7 @@ import sys
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.long cimport pyobject_to_long
 
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 from sage.ext.memory cimport check_malloc, check_allocarray
@@ -1732,7 +1732,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # we can't cimport rationals.
         return the_integer_ring._div(self, right)
 
-    def __floordiv__(x, y):
+    cpdef RingElement _floordiv_(self, RingElement right):
         r"""
         Computes the whole part of `\frac{x}{y}`.
 
@@ -1769,34 +1769,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: [int(a) // b for a,b in signs] == control
             True
         """
+        if not mpz_sgn((<Integer>right).value):
+            raise ZeroDivisionError("Integer division by zero")
+
         cdef Integer z = <Integer>PY_NEW(Integer)
-        cdef long yy, res
-        if type(x) is type(y):
-            if not mpz_sgn((<Integer>y).value):
-                raise ZeroDivisionError, "Integer division by zero"
-            if mpz_size((<Integer>x).value) > 100000:
-                sig_on()
-                mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
-                sig_off()
-            else:
-                mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
-            return z
-
-        elif PyInt_CheckExact(y):
-            yy = PyInt_AS_LONG(y)
-            if yy > 0:
-                mpz_fdiv_q_ui(z.value, (<Integer>x).value, yy)
-            elif yy == 0:
-                raise ZeroDivisionError, "Integer division by zero"
-            else:
-                res = mpz_fdiv_q_ui(z.value, (<Integer>x).value, -yy)
-                mpz_neg(z.value, z.value)
-                if res:
-                    mpz_sub_ui(z.value, z.value, 1)
-            return z
-
+        if mpz_size(self.value) > 1000:
+            sig_on()
+            mpz_fdiv_q(z.value, self.value, (<Integer>right).value)
+            sig_off()
         else:
-            return bin_op(x, y, operator.floordiv)
+            mpz_fdiv_q(z.value, self.value, (<Integer>right).value)
+        return z
 
     def __pow__(self, n, modulus):
         r"""
@@ -6353,7 +6336,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         For PARI, we try 10 interrupts with increasing intervals to
         check for reliable interrupting, see :trac:`18919`::
 
-            sage: from sage.ext.interrupt import AlarmInterrupt
+            sage: from cysignals import AlarmInterrupt
             sage: for i in [1..10]:  # long time (5s)
             ....:     try:
             ....:         alarm(i/11)

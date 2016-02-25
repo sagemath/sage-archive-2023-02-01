@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Dense matrices over the integer ring
 
@@ -80,7 +81,7 @@ include "sage/libs/pari/pari_err.pxi"
 
 #########################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 

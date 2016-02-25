@@ -31,7 +31,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from sage.ext.memory cimport check_calloc, check_allocarray, check_reallocarray, sage_free
 
 cdef extern from *:

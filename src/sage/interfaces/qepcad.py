@@ -612,6 +612,7 @@ import sys
 from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
 from sage.repl.preparse import implicit_mul
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 from expect import Expect, ExpectFunction, AsciiArtString
 
@@ -738,7 +739,7 @@ def _update_command_info():
 # Qepcad is a wrapper for Qepcad_expect, and is what the user interacts with.
 
 
-class Qepcad_expect(Expect):
+class Qepcad_expect(ExtraTabCompletion, Expect):
     r"""
     The low-level wrapper for QEPCAD.
     """
@@ -1128,7 +1129,7 @@ class Qepcad:
         """
         return AsciiArtString(self._parse_answer_stats()[1])
 
-    def trait_names(self):
+    def _tab_completion(self):
         r"""
         Return a list of the QEPCAD commands which are available as
         extra methods on a :class:`Qepcad` object.
@@ -1136,9 +1137,9 @@ class Qepcad:
         EXAMPLES::
 
             sage: qe = qepcad(x^2 < 0, interact=True) # optional - qepcad
-            sage: len(qe.trait_names()) # random, optional - qepcad
+            sage: len(qe._tab_completion()) # random, optional - qepcad
             97
-            sage: 'd_cell' in qe.trait_names() # optional - qepcad
+            sage: 'd_cell' in qe._tab_completion() # optional - qepcad
             True
         """
         _update_command_info()
@@ -1220,7 +1221,7 @@ class Qepcad:
         """
         if attrname[:1] == "_":
             raise AttributeError
-        if not attrname in self.trait_names():
+        if not attrname in self._tab_completion():
             raise AttributeError
         return QepcadFunction(self, attrname)
 
@@ -1667,6 +1668,9 @@ def qepcad_console(memcells=None):
         ...
         Enter an informal description  between '[' and ']':
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%qepcat magics instead.')
     # This will only spawn local processes
     os.system(_qepcad_cmd(memcells))
 

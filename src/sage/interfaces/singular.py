@@ -325,8 +325,8 @@ from time import sleep
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sequence import Sequence
-
 from sage.structure.element import RingElement
 
 import sage.rings.integer
@@ -343,7 +343,7 @@ class SingularError(RuntimeError):
     pass
 
 
-class Singular(Expect):
+class Singular(ExtraTabCompletion, Expect):
     r"""
     Interface to the Singular interpreter.
 
@@ -1139,13 +1139,13 @@ class Singular(Expect):
         else:
             return None
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
          Return a list of all Singular commands.
 
          EXAMPLES::
 
-             sage: singular.trait_names()
+             sage: singular._tab_completion()
              ['exteriorPower',
               ...
               'stdfglm']
@@ -1244,7 +1244,9 @@ class Singular(Expect):
         self._start()
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
-class SingularElement(ExpectElement):
+    
+class SingularElement(ExtraTabCompletion, ExpectElement):
+    
     def __init__(self, parent, type, value, is_name=False):
         """
         EXAMPLES::
@@ -2023,7 +2025,7 @@ class SingularElement(ExpectElement):
             return str(self)
         return [X.sage_structured_str_list() for X in self]
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Returns the possible tab-completions for self. In this case, we
         just return all the tab completions for the Singular object.
@@ -2031,12 +2033,12 @@ class SingularElement(ExpectElement):
         EXAMPLES::
 
             sage: R = singular.ring(0,'(x,y)','dp')
-            sage: R.trait_names()
+            sage: R._tab_completion()
             ['exteriorPower',
              ...
              'stdfglm']
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
     def type(self):
         """
@@ -2326,6 +2328,9 @@ def singular_console():
              by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
         FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%singular magics instead.')
     os.system('Singular')
 
 

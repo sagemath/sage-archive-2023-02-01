@@ -2974,7 +2974,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             (1/2*e, -1/2*e)
             sage: p = (-G.S()).fixed_points(embedded=True)[0]
             sage: p
-            1*I
+            I
             sage: (-G.S()).acton(p) == p
             True
             sage: (-G.V(2)).fixed_points()
@@ -2992,7 +2992,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             (1/2*e, -1/2*e)
             sage: p = (-G.S()).fixed_points(embedded=True)[1]
             sage: p
-            -1*I
+            -I
             sage: (-G.S()).acton(p) == p
             True
             sage: (G.U()^4).fixed_points()

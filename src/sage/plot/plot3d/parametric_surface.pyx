@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Parametric Surface
 
@@ -16,11 +17,11 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: from sage.plot.plot3d.parametric_surface import ParametricSurface, MobiusStrip
+    sage: from sage.plot.plot3d.parametric_surface import ParametricSurface, MoebiusStrip
     sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
     sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)))
     sage: show(P)
-    sage: S = MobiusStrip(1,.2)
+    sage: S = MoebiusStrip(1,.2)
     sage: S.is_enclosed()
     False
     sage: S.show()
@@ -82,7 +83,7 @@ Another colored example::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 include "point_c.pxi"
 
@@ -201,8 +202,8 @@ cdef class ParametricSurface(IndexFaceSet):
 
         TEST::
 
-            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-            sage: type(MobiusStrip(3,3).default_render_params())
+            sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+            sage: type(MoebiusStrip(3,3).default_render_params())
             <class 'sage.plot.plot3d.base.RenderParams'>
         """
         return RenderParams(ds=.075, crease_threshold=.35)
@@ -304,8 +305,8 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: Sphere(1).is_enclosed()
             True
 
-            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-            sage: MobiusStrip(1,0.2).is_enclosed()
+            sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+            sage: MoebiusStrip(1,0.2).is_enclosed()
             False
         """
         if self.fcount == 0:
@@ -336,8 +337,8 @@ cdef class ParametricSurface(IndexFaceSet):
 
         Surfaces which are not enclosed, though, should raise an exception::
 
-            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-            sage: M = MobiusStrip(3,1)
+            sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+            sage: M = MoebiusStrip(3,1)
             sage: M.is_enclosed()
             False
             sage: M.dual()
@@ -365,8 +366,8 @@ cdef class ParametricSurface(IndexFaceSet):
 
         EXAMPLES::
 
-            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-            sage: M = MobiusStrip(7,3,2)
+            sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+            sage: M = MoebiusStrip(7,3,2)
             sage: M.bounding_box()
             ((-10.0, -7.53907349250478..., -2.9940801852848145), (10.0, 7.53907349250478..., 2.9940801852848145))
         """
@@ -389,11 +390,11 @@ cdef class ParametricSurface(IndexFaceSet):
 
         TESTS::
 
-            sage: from sage.plot.plot3d.parametric_surface import ParametricSurface, MobiusStrip
+            sage: from sage.plot.plot3d.parametric_surface import ParametricSurface, MoebiusStrip
             sage: def f(x,y): return x+y, sin(x)*sin(y), x*y                        # indirect doctests
             sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)))  # indirect doctests
             sage: P.show()                                                          # indirect doctests
-            sage: S = MobiusStrip(1,.2)                                             # indirect doctests
+            sage: S = MoebiusStrip(1,.2)                                             # indirect doctests
             sage: S.show()                                                          # indirect doctests
         """
         cdef double u, v
@@ -673,9 +674,9 @@ cdef class ParametricSurface(IndexFaceSet):
         raise NotImplementedError
 
 
-class MobiusStrip(ParametricSurface):
+class MoebiusStrip(ParametricSurface):
     """
-    Base class for the :class:`MobiusStrip` graphics type. This sets the the
+    Base class for the :class:`MoebiusStrip` graphics type. This sets the the
     basic parameters of the object.
 
     INPUT:
@@ -687,30 +688,30 @@ class MobiusStrip(ParametricSurface):
       width of the object.
 
     - ``twists`` - (default: 1) An integer, giving the number of twists in the
-      object (where one twist is the 'traditional' Mobius strip).
+      object (where one twist is the 'traditional' Möbius strip).
 
     EXAMPLES::
 
-        sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-        sage: M = MobiusStrip(3,3)
+        sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+        sage: M = MoebiusStrip(3,3)
         sage: M.show() 
     """
 
     def __init__(self, r, width, twists=1, **kwds):
         """
-        Create the graphics primitive MobiusStrip. See the docstring of
+        Create the graphics primitive MoebiusStrip. See the docstring of
         this class for full documentation.
 
         EXAMPLES:
 
         ::
 
-            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-            sage: M = MobiusStrip(3,3); M # Same width and radius, roughly
+            sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+            sage: M = MoebiusStrip(3,3); M # Same width and radius, roughly
             Graphics3d Object
-            sage: N = MobiusStrip(7,3,2); N # two twists, lots of open area in the middle
+            sage: N = MoebiusStrip(7,3,2); N # two twists, lots of open area in the middle
             Graphics3d Object
-            sage: O = MobiusStrip(5,1,plot_points=200,color='red'); O # keywords get passed to plot3d
+            sage: O = MoebiusStrip(5,1,plot_points=200,color='red'); O # keywords get passed to plot3d
             Graphics3d Object
 
         """
@@ -721,7 +722,7 @@ class MobiusStrip(ParametricSurface):
 
     def get_grid(self, ds):
         """
-        Return appropriate `u` and `v` ranges for this MobiusStrip instance.
+        Return appropriate `u` and `v` ranges for this MoebiusStrip instance.
 
         This is intended for internal use in creating an actual plot.
 
@@ -729,12 +730,12 @@ class MobiusStrip(ParametricSurface):
 
         -  ``ds`` -- A number, typically coming from a RenderParams object,
            which helps determine the increment for the `v` range for the
-           MobiusStrip object.
+           MoebiusStrip object.
 
         EXAMPLE::
 
-            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-            sage: N = MobiusStrip(7,3,2) # two twists
+            sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+            sage: N = MoebiusStrip(7,3,2) # two twists
             sage: N.get_grid(N.default_render_params().ds)
             ([-1, 1], [0.0, 0.12566370614359174, 0.25132741228718347, 0.37699111843077515, ...])
         """
@@ -748,12 +749,12 @@ class MobiusStrip(ParametricSurface):
     def eval(self, u, v):
         """
         Return a tuple for `x,y,z` coordinates for the given ``u`` and ``v``
-        for this MobiusStrip instance.
+        for this MoebiusStrip instance.
 
         EXAMPLE::
 
-            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-            sage: N = MobiusStrip(7,3,2) # two twists
+            sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+            sage: N = MoebiusStrip(7,3,2) # two twists
             sage: N.eval(-1,0)
             (4.0, 0.0, -0.0)
         """

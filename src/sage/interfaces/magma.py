@@ -224,6 +224,7 @@ SAGE_REF_RE = re.compile('%s\d+'%SAGE_REF)
 from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 
@@ -249,7 +250,7 @@ def extcode_dir():
     return EXTCODE_DIR
 
 
-class Magma(Expect):
+class Magma(ExtraTabCompletion, Expect):
     r"""
     Interface to the Magma interpreter.
 
@@ -1408,7 +1409,7 @@ class Magma(Expect):
         """
         print self.eval('? %s'%s)
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         Return a list of all Magma commands.
 
@@ -1434,17 +1435,17 @@ class Magma(Expect):
 
         EXAMPLES::
 
-            sage: len(magma.trait_names(verbose=False))    # random, optional - magma
+            sage: len(magma._tab_completion(verbose=False))    # random, optional - magma
             7261
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(INTRINSIC_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(INTRINSIC_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose:
@@ -1475,7 +1476,7 @@ class Magma(Expect):
             print "Saving cache to '%s' for future instant use."%INTRINSIC_CACHE
             print "Delete the above file to force re-creation of the cache."
             sage.misc.persist.save(N, INTRINSIC_CACHE)
-            self.__trait_names = N
+            self.__tab_completion = N
             return N
 
     def ideal(self, L):
@@ -1804,7 +1805,7 @@ def is_MagmaElement(x):
     """
     return isinstance(x, MagmaElement)
 
-class MagmaElement(ExpectElement):
+class MagmaElement(ExtraTabCompletion, ExpectElement):
     def _ref(self):
         """
         Return a variable name that is a new reference to this particular
@@ -2461,7 +2462,7 @@ class MagmaElement(ExpectElement):
         return magma.eval('ListAttributes(Type(%s))'%\
                           self.name()).split()
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Return all Magma functions that have this Magma element as first
         input. This is used for tab completion.
@@ -2483,7 +2484,7 @@ class MagmaElement(ExpectElement):
         EXAMPLES::
 
             sage: R.<x> = ZZ[]                        # optional - magma
-            sage: v = magma(R).trait_names()          # optional - magma
+            sage: v = magma(R)._tab_completion()          # optional - magma
             sage: v                                   # optional - magma
             ["'*'", "'+'", "'.'", "'/'", "'eq'", "'in'", "'meet'", "'subset'", ...]
         """
@@ -2733,6 +2734,9 @@ def magma_console():
         >
         Total time: 2.820 seconds, Total memory usage: 3.95MB
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%magma magics instead.')
     console('sage-native-execute magma')
 
 def magma_version():

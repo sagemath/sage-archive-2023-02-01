@@ -60,7 +60,7 @@ from sage.rings.integer_ring import ZZ
 from sage.arith.all import binomial, integer_floor, is_prime_power
 from incidence_structures import IncidenceStructure
 from sage.misc.decorators import rename_keyword
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.matrix.matrix_space import MatrixSpace
@@ -551,8 +551,8 @@ def HughesPlane(q2, check=True):
     if q2%2 == 0:
         raise EmptySetError("No Hughes plane of even order exists.")
     q = q2.sqrt()
-    K = FiniteField(q2, prefix='x', conway=True)
-    F = FiniteField(q, prefix='y', conway=True)
+    K = FiniteField(q2, prefix='x')
+    F = FiniteField(q, prefix='y')
     A = q3_minus_one_matrix(F)
     A = A.change_ring(K)
     m = K.list()

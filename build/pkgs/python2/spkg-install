@@ -42,26 +42,31 @@ if [ "$SAGE_VALGRIND" = "yes" ]; then
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --without-pymalloc"
 fi
 
-if [ `uname` = "Darwin" ]; then
+# Use EXTRA_CFLAGS for user-defined CFLAGS since Python puts its own
+# default flags like -O3 after CFLAGS but before EXTRA_CFLAGS.
+# We also disable warnings about unused variables/functions which are
+# common in Cython-generated code.
+export EXTRA_CFLAGS="`testcflags.sh -Wno-unused` $CFLAGS"
+unset CFLAGS
+
+if [ "$UNAME" = Darwin ]; then
     PYTHON_CONFIGURE="--disable-toolbox-glue $PYTHON_CONFIGURE"
     # Workaround for El Capitan, Trac #19626
     xcode=$(xcode-select --print-path)
     mkdir "$CUR"/include
     cp -rp "${xcode}"/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr/include/openssl "$CUR"/include
-    export CFLAGS="$CFLAGS -I$CUR/include"
+    export CFLAGS="-I$CUR/include"
+elif [ "$UNAME" = SunOS ]; then
+    # Enable some C99 features on Solaris. This in particular enables
+    # the isinf() and isfinite() functions. It works both for C and
+    # C++ code (which is not true for -std=c99).
+    # See http://trac.sagemath.org/sage_trac/ticket/14265
+    export CFLAGS="-D__C99FEATURES__"
 fi
 
 if [ "$SAGE64" = yes ]; then
     echo "64 bit build of Python enabled"
     export CC="$CC -m64"
-fi
-
-# Enable some C99 features on Solaris. This in particular enables the
-# isinf() and isfinite() functions. It works both for C and C++ code
-# (which is not true for -std=c99).
-# See http://trac.sagemath.org/sage_trac/ticket/14265
-if [ "$UNAME" = SunOS ]; then
-    export CFLAGS="-D__C99FEATURES__ $CFLAGS"
 fi
 
 
@@ -108,13 +113,6 @@ build
 
 cd "$SAGE_LOCAL/lib"
 
-# If we are upgrading from Python-2.6, remove compiled Python files.
-# We do not care about still older Python versions, since upgrades
-# from such old Sage versions are not supported anyway.
-if [ -d python2.6 ]; then
-    rm -rf "$SAGE_ROOT"/devel/sage-*/build
-fi
-
 # Make symbolic link (after removing old link first)
 rm -f python
 ln -s python2.7 python
@@ -122,9 +120,6 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error creating symbolic link"
     exit 1
 fi
-
-# Remove previous Python installs
-rm -rf python2.6
 
 # On OS X with XCode 4, the presence of
 # $SAGE_LOCAL/lib/python/config/libpython2.7.a causes problems with

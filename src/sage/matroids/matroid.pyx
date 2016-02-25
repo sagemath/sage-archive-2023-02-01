@@ -136,6 +136,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`chow_ring() <sage.matroids.matroid.Matroid.chow_ring>`
     - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
     - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
+    - :meth:`orlik_solomon_algebra() <sage.matroids.matroid.Matroid.orlik_solomon_algebra>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -2583,12 +2584,61 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``self.full_rank()``
+
+        .. SEEALSO::
+
+            :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
+
         """
         cdef SetSystem res
         res = SetSystem(list(self.groundset()))
         for X in combinations(self.groundset(), self.full_rank()):
             if self._rank(X) == len(X):
                 res.append(X)
+        return res
+    
+    cpdef independent_sets(self):
+        r"""
+        Return the list of independent subsets of the matroid.
+
+        OUTPUT:
+
+        An iterable containing all independent subsets of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Pappus()
+            sage: I = M.independent_sets()
+            sage: len(I)
+            121
+
+        .. SEEALSO::
+
+            :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
+
+        """
+        cdef int r
+        cdef int full_rank = self.full_rank()
+        cdef list T = [set() for r in range(full_rank)]
+        cdef list I = [frozenset()] * (full_rank+1)
+        r = 0
+
+        res = [frozenset()]
+        T[0] = set(self.groundset()) - self.closure([])
+        while r >= 0:
+            if r + 1 == full_rank:
+                for x in T[r]:
+                    I[r+1] = I[r].union([x])
+                    res.append(I[r+1])
+                T[r] = set()
+                r -= 1
+            elif T[r]:
+                I[r+1] = I[r].union([T[r].pop()])
+                res.append(I[r+1])
+                T[r+1] = T[r] - self._closure(I[r+1])
+                r += 1
+            else:
+                r -= 1
         return res
 
     cpdef independent_r_sets(self, long r):
@@ -2615,6 +2665,11 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``r``
+
+        .. SEEALSO::
+
+            :meth:`M.independent_sets() <sage.matroids.matroid.Matroid.independent_sets>`
+            :meth:`M.bases() <sage.matroids.matroid.Matroid.bases>`
         """
         res = []
         for X in combinations(self.groundset(), r):
@@ -2813,9 +2868,10 @@ cdef class Matroid(SageObject):
         r"""
         Return the list of broken circuits of ``self``.
 
-        A *broken circuit* `B` for is a subset of the ground set under
-        some total ordering `<` such that `B \cup \{ u \}` is a circuit
-        and `u < b` for all `b \in B`.
+        Let `M` be a matroid with ground set `E`, and let `<` be a total
+        ordering on `E`. A *broken circuit* for `M` means a subset `B` of
+        `E` such that there exists a `u \in E` for which `B \cup \{ u \}`
+        is a circuit of `M` and `u < b` for all `b \in B`.
 
         INPUT:
 
@@ -2890,6 +2946,31 @@ cdef class Matroid(SageObject):
                 if add:
                     ret.append(I)
         return ret
+
+    def orlik_solomon_algebra(self, R, ordering=None):
+        """
+        Return the Orlik-Solomon algebra of ``self``.
+
+        INPUT:
+
+        - ``R`` -- the base ring
+        - ``ordering`` -- (optional) an ordering of the ground set
+
+        .. SEEALSO::
+
+            :class:`~sage.algebras.orlik_solomon.OrlikSolomonAlgebra`
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(3, 4)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS
+            Orlik-Solomon algebra of U(3, 4): Matroid of rank 3 on 4 elements
+             with circuit-closures
+             {3: {{0, 1, 2, 3}}}
+        """
+        from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
+        return OrlikSolomonAlgebra(R, self, ordering)
 
     # polytopes
 
@@ -2980,8 +3061,7 @@ cdef class Matroid(SageObject):
         vector_e = ambient.basis()
         convert = {ind: i for i, ind in enumerate(self.groundset())}
         vertices = [ambient.sum(vector_e[convert[i]] for i in IS)
-                    for r in range(self.full_rank() + 1)
-                    for IS in self.independent_r_sets(r)]
+                    for IS in self.independent_sets()]
         return Polyhedron(vertices)
 
     # isomorphism and equality

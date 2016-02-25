@@ -51,7 +51,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 from sage.ext.memory cimport check_allocarray
 

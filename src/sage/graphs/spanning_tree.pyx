@@ -71,7 +71,6 @@ Methods
 # http://www.gnu.org/licenses/
 ###########################################################################
 
-include "sage/ext/interrupt.pxi"
 
 cpdef kruskal(G, wfunction=None, bint check=False):
     r"""

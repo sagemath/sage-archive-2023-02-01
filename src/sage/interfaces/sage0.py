@@ -21,10 +21,11 @@ import os
 from expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
 
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sage_object import dumps, load
 
 
-class Sage(Expect):
+class Sage(ExtraTabCompletion, Expect):
     r"""
     Expect interface to the Sage interpreter itself.
 
@@ -184,11 +185,11 @@ class Sage(Expect):
             s = s[i+1:-1]
         return float(s)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: t = sage0.trait_names()
+            sage: t = sage0._tab_completion()
             sage: len(t) > 100
             True
             sage: 'gcd' in t
@@ -529,6 +530,9 @@ def sage0_console():
         ----------------------------------------------------------------------
         ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%sage0 magics instead.')
     os.system('sage')
 
 def sage0_version():

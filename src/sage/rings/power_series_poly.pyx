@@ -415,63 +415,28 @@ cdef class PowerSeries_poly(PowerSeries):
             ...
             IndexError: coefficient not known
             sage: f[1:4]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
             -17/5*t^3 + O(t^5)
 
             sage: R.<t> = ZZ[[]]
             sage: f = (2-t)^5; f
             32 - 80*t + 80*t^2 - 40*t^3 + 10*t^4 - t^5
-            sage: f[2:4]
-            80*t^2 - 40*t^3
-            sage: f[5:9]
-            -t^5
-            sage: f[2:7:2]
-            80*t^2 + 10*t^4
-            sage: f[10:20]
-            0
-            sage: f[10:]
-            0
             sage: f[:4]
             32 - 80*t + 80*t^2 - 40*t^3
-
             sage: f = 1 + t^3 - 4*t^4 + O(t^7) ; f
             1 + t^3 - 4*t^4 + O(t^7)
-            sage: f[2:4]
-            t^3 + O(t^7)
-            sage: f[4:9]
-            -4*t^4 + O(t^7)
-            sage: f[2:7:2]
-            -4*t^4 + O(t^7)
-            sage: f[10:20]
-            O(t^7)
-            sage: f[10:]
-            O(t^7)
             sage: f[:4]
             1 + t^3 + O(t^7)
         """
         if isinstance(n, slice):
-            # get values from slice object
-            start = n.start if n.start is not None else 0
-            stop = self.prec() if n.stop is None else n.stop
-            if stop is infinity: stop = self.degree()+1
-            step = 1 if n.step is None else n.step
-
-            # find corresponding polynomial
-            poly = self.__f[start:stop]
-            if step is not None:
-                coeffs = poly.padded_list(stop)
-                for i in range(start, stop):
-                    if (i-start) % step:
-                        coeffs[i] = 0
-                poly = self.__f.parent()(coeffs)
-
-            # return the power series
-            return PowerSeries_poly(self._parent, poly,
+            return PowerSeries_poly(self._parent, self.polynomial()[n],
                                     prec=self._prec, check=False)
         elif n < 0:
-            return self.base_ring()(0)
+            return self.base_ring().zero()
         elif n > self.__f.degree():
             if self._prec > n:
-                return self.base_ring()(0)
+                return self.base_ring().zero()
             else:
                 raise IndexError("coefficient not known")
         return self.__f[n]
@@ -1217,12 +1182,20 @@ cdef class PowerSeries_poly(PowerSeries):
             1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
             sage: _.is_terminating_series()
             True
+
+        TESTS:
+
+        Check that :trac:``18094`` is fixed::
+
+            sage: R.<x>=PolynomialRing(ZZ)
+            sage: SR(R(0).add_bigoh(20))
+            Order(x^20)
         """
         from sage.symbolic.ring import SR
         from sage.rings.infinity import PlusInfinity
         poly = self.polynomial()
         pex = SR(poly)
-        var = pex.variables()[0]
+        var = SR.var(self.variable())
         if not isinstance(self.prec(), PlusInfinity):
             # GiNaC does not allow manual addition of bigoh,
             # so we use a trick.

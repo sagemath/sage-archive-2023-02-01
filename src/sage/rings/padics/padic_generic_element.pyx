@@ -27,7 +27,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
 cimport sage.rings.padics.local_generic_element
@@ -269,7 +268,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (a // b) * b + a % b
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^16)
 
-            The alternative definition:
+        The alternative definition::
 
             sage: a
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)

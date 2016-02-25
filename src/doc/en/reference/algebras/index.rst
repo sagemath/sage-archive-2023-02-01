@@ -38,6 +38,8 @@ Algebras
    sage/algebras/hall_algebra
    sage/algebras/jordan_algebra
 
+   sage/algebras/orlik_solomon
+
    sage/algebras/quatalg/quaternion_algebra
 
    sage/algebras/schur_algebra
@@ -49,5 +51,7 @@ Algebras
    sage/algebras/steenrod/steenrod_algebra_mult
 
    sage/algebras/weyl_algebra
+
+   sage/algebras/yokonuma_hecke_algebra
 
 .. include:: ../footer.txt

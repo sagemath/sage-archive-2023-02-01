@@ -40,7 +40,7 @@ heavily modified:
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.flint.fmpz cimport *
 
@@ -1858,6 +1858,25 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             -2.18503986326152?*I
         """
         return self.sinh() / self.cosh()
+
+    def zeta(self, a=None):
+        """
+        Return the image of this interval by the Hurwitz zeta function.
+
+        For ``a = 1`` (or ``a = None``), this computes the Riemann zeta function.
+
+        EXAMPLES::
+
+            sage: zeta(CIF(2, 3))
+            0.7980219851462757? - 0.1137443080529385?*I
+            sage: _.parent()
+            Complex Interval Field with 53 bits of precision
+            sage: CIF(2, 3).zeta(1/2)
+            -1.955171567161496? + 3.123301509220897?*I
+        """
+        from sage.rings.complex_arb import ComplexBallField
+        return ComplexBallField(self.prec())(self).zeta(a).\
+            _complex_mpfi_(self._parent)
 
 
 def make_ComplexIntervalFieldElement0( fld, re, im ):

@@ -27,16 +27,79 @@ class MVPolytope(PBWCrystalElement):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: MV = crystals.infinity.MVPolytopes(['E',6])
+            sage: b = MV.module_generators[0].f_string([1,2,6,4,3,2,5,2])
+            sage: b
+            MV polytope with Lusztig datum (0, 1, ..., 1, 0, 0, 0, 0, 0, 0, 3, 1)
         """
         pbw_datum = self._pbw_datum.convert_to_new_long_word(self.parent()._default_word)
         return "MV polytope with Lusztig datum {}".format(pbw_datum.lusztig_datum)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: MV = crystals.infinity.MVPolytopes(['C',2])
+            sage: b = MV.module_generators[0].f_string([1,2,1,2])
+            sage: latex(b)
+            \begin{tikzpicture}
+            \draw (0, 0) -- (-1, 1) -- (-1, 1) -- (-2, 0) -- (-2, -2);
+            \draw (0, 0) -- (0, -2) -- (-1, -3) -- (-1, -3) -- (-2, -2);
+            \draw[fill=black] (0, 0) circle (0.1);
+            \draw[fill=black] (-2, -2) circle (0.1);
+            \end{tikzpicture}
+
+        ::
+
+            sage: MV = crystals.infinity.MVPolytopes(['D',4])
+            sage: b = MV.module_generators[0].f_string([1,2,1,2])
+            sage: latex(b)
+            \text{\texttt{MV{ }polytope{ }...}}
         """
-        from sage.misc.latex import latex
-        return latex(self.polytope())
+        latex_options = self.parent()._latex_options
+        P = latex_options['P']
+        plot_options = P.plot_parse_options(projection=latex_options["projection"])
+        proj = plot_options.projection
+        if proj(P.zero()).parent().dimension() != 2:
+            from sage.misc.latex import latex
+            return latex(repr(self))
+
+        # We need this to use tikz
+        from sage.graphs.graph_latex import setup_latex_preamble
+        setup_latex_preamble()
+
+        pbw_data = self._pbw_datum.parent
+        W = pbw_data.weyl_group
+        w0 = W.long_element()
+        al = P.simple_roots()
+        ret = "\\begin{tikzpicture}\n"
+
+        final = None
+        for red in w0.reduced_words():
+            ret += "\\draw "
+            cur = proj(P.zero())
+            red = tuple(red)
+            ret += str(cur)
+            roots = [proj(P.sum(c*al[a] for a,c in root))
+                     for root in pbw_data._root_list_from(red)]
+            datum = pbw_data.convert_to_new_long_word(self._pbw_datum, red)
+            for i in reversed(range(len(datum.lusztig_datum))):
+                cur -= roots[i] * datum.lusztig_datum[i]
+                ret += " -- " + str(cur)
+            final = cur
+            ret += ";\n"
+
+        if latex_options["mark_endpoints"]:
+            circle_size = latex_options["circle_size"]
+            ret += "\\draw[fill=black] {} circle ({});\n".format(proj(P.zero()), circle_size)
+            ret += "\\draw[fill=black] {} circle ({});\n".format(proj(final), circle_size)
+        ret += "\\end{tikzpicture}"
+        return ret
 
     def _polytope_vertices(self, P):
         """
@@ -92,11 +155,80 @@ class MVPolytope(PBWCrystalElement):
         return P.plot_mv_polytope(self, **options)
 
 class MVPolytopes(PBWCrystal):
+    def __init__(self, cartan_type):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: MV = crystals.infinity.MVPolytopes(['B',2])
+            sage: TestSuite(MV).run()
+        """
+        PBWCrystal.__init__(self, cartan_type)
+        self._latex_options = {"projection": True,
+                               "mark_endpoints": True,
+                               "P": self.weight_lattice_realization(),
+                               "circle_size": 0.1}
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: crystals.infinity.MVPolytopes(['F',4])
+            MV polytopes of type ['F', 4]
         """
         return "MV polytopes of type {}".format(self._cartan_type)
+
+    def set_latex_options(self, **kwds):
+        """
+        Set the latex options for the elements of ``self``.
+
+        INPUT:
+
+        - ``projection`` -- the projection; set to ``True`` to use the
+          default projection of the specified weight lattice realization
+          (initial: ``True``)
+        - ``P`` -- the weight lattice realization to use (initial: the
+          weight lattice realization of ``self``)
+        - ``mark_endpoints`` -- whether to mark the endpoints (initial: ``True``)
+        - ``circle_size`` -- the size of the endpoint circles (initial: 0.1)
+        """
+        if "projection" in kwds:
+            self._latex_options["projection"] = True
+            del kwds["projection"]
+
+        if 'P' in kwds:
+            self._latex_options['P'] = kwds['P']
+            del kwds['P']
+
+        if "mark_endpoints" in kwds:
+            self._latex_options = kwds["mark_endpoints"]
+            del kwds["mark_endpoints"]
+
+        if "circle_size" in kwds:
+            self._latex_options["circle_size"] = True
+            del kwds["circle_size"]
+
+        if not kwds:
+            raise ValueError("invalid latex option")
+
+    def latex_options(self):
+        """
+        Return the latex options of ``self``.
+
+        EXAMPLES::
+
+            sage: MV = crystals.infinity.MVPolytopes(['F',4])
+            sage: MV.latex_options()
+            {'P': Ambient space of the Root system of type ['F', 4],
+             'circle_size': 0.1,
+             'mark_endpoints': True,
+             'projection': True}
+        """
+        from copy import copy
+        return copy(self._latex_options)
 
     Element = MVPolytope
 

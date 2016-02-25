@@ -337,7 +337,8 @@ from sage.gsl.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
+from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator
+from sage.arith.srange import xsrange
 from sage.misc.sagedoc import detex
 from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
@@ -6495,8 +6496,8 @@ def aztec_sandpile(n):
     """
     aztec_sandpile = {}
     half = QQ(1)/2
-    for i in srange(n):
-        for j in srange(n-i):
+    for i in xsrange(n):
+        for j in xsrange(n-i):
             aztec_sandpile[(half+i,half+j)] = {}
             aztec_sandpile[(-half-i,half+j)] = {}
             aztec_sandpile[(half+i,-half-j)] = {}

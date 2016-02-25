@@ -21,3 +21,6 @@ from .misc import (algdep, bernoulli, is_prime, is_prime_power,
     Sigma, radical, Euler_Phi, binomial_coefficients, jacobi_symbol,
     Moebius, dedekind_sum,
     prime_factors, prime_range, valuation)
+
+from .srange import xsrange, srange, ellipsis_iter, ellipsis_range
+sxrange = xsrange

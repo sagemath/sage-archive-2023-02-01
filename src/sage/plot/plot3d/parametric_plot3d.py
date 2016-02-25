@@ -5,7 +5,7 @@ Parametric Plots
 
 from parametric_surface import ParametricSurface
 from shapes2 import line3d
-from sage.misc.misc import xsrange, srange
+from sage.arith.srange import xsrange, srange
 from sage.structure.element import is_Vector
 
 from sage.ext.fast_eval import fast_float, fast_float_constant

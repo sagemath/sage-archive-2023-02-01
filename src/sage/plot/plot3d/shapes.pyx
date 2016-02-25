@@ -52,7 +52,6 @@ cdef extern from "math.h":
 from sage.rings.real_double  import RDF
 from sage.modules.free_module_element import vector
 
-from sage.misc.all import srange
 from sage.plot.misc import rename_keyword
 
 from base import Graphics3dGroup, Graphics3d

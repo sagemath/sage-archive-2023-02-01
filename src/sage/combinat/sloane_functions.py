@@ -125,7 +125,7 @@ AUTHORS:
 
 import inspect
 from sage.structure.sage_object import SageObject
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 from sage.rings.integer_ring import ZZ
 from sage.functions.all import prime_pi
 import partition

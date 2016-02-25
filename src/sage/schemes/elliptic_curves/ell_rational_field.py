@@ -6554,7 +6554,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 #                       print "testing denominator ",de
 #                       print "numerator bounds = ",(n_min,n_max)
 
-                    for n in misc.xsrange(n_min,n_max+1):
+                    for n in arith.xsrange(n_min,n_max+1):
                         tmp = n/de  # to save time, do not check de is the exact denominator
                         if E.is_x_coord(tmp):
                             xs+=[tmp]

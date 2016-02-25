@@ -31,7 +31,7 @@ import wave
 
 from sage.plot.plot import list_plot
 from sage.structure.sage_object import SageObject
-from sage.misc.all import srange
+from sage.arith.srange import srange
 from sage.misc.html import html
 from sage.rings.all import RDF
 

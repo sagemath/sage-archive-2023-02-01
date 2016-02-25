@@ -70,7 +70,7 @@ def Krawtchouk(n,q,l,x,check=True):
         TypeError: no conversion of this rational to integer
     """
     from sage.arith.all import binomial
-    from sage.misc.misc import srange
+    from sage.arith.srange import srange
     # Use the expression in equation (55) of MacWilliams & Sloane, pg 151
     # We write jth term = some_factor * (j-1)th term
     if check:

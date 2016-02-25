@@ -34,7 +34,7 @@ from sage.ext.fast_eval import fast_callable
 
 from sage.rings.all import CDF
 
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 
 from sage.gsl.interpolation import spline
 

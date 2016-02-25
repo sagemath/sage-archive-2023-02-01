@@ -543,7 +543,7 @@ from functools import reduce
 #DEFAULT_FIGSIZE=(6, 3.70820393249937)
 EMBEDDED_MODE = False
 import sage.misc.misc
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 
 from sage.misc.randstate import current_randstate #for plot adaptive refinement
 from math import sin, cos, pi #for polar_plot

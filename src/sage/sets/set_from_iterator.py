@@ -1014,5 +1014,5 @@ class DummyExampleForPicklingTest:
             sage: d.f()
             {4, 5, 6, 7, 8, ...}
         """
-        from sage.misc.misc import xsrange
+        from sage.arith.srange import xsrange
         return xsrange(self.start, self.stop)

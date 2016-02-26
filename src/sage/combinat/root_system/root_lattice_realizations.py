@@ -3041,9 +3041,9 @@ class RootLatticeRealizations(Category_over_base_ring):
             - ``circle_size`` -- (default: 0.06) the size of the circles
             - ``circle_thickness`` -- (default: 1.6) the thinkness of the
               extra rings of circles
-            - ``wireframe`` -- (default=``'blue'``) color to draw the
+            - ``wireframe`` -- (default: ``'blue'``) color to draw the
               wireframe of the polytope with
-            - ``fill`` -- (default=``'green'``) color to fill the polytope with
+            - ``fill`` -- (default: ``'green'``) color to fill the polytope with
             - ``alpha`` -- (default: 1) the alpha value (opacity) of the fill
             - ``**options`` -- plotting options
 

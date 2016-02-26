@@ -23,6 +23,27 @@ from sage.combinat.crystals.pbw_crystal import PBWCrystalElement, PBWCrystal
 class MVPolytope(PBWCrystalElement):
     """
     A Mirković-Vilonen (MV) polytope.
+
+    EXAMPLES:
+
+    We can create an animation showing how the MV polytope changes
+    under a string of crystal operators::
+
+        sage: MV = crystals.infinity.MVPolytopes(['C', 2])
+        sage: u = MV.highest_weight_vector()
+        sage: L = RootSystem(['C',2,1]).ambient_space()
+        sage: s = [1,2,1,2,2,2,1,1,1,1,2,1,2,2,1,2]
+        sage: BB = [[-9, 2], [-10, 2]]
+        sage: p = L.plot(reflection_hyperplanes=False, bounding_box=BB)  # long time
+        sage: frames = [p + L.plot_mv_polytope(u.f_string(s[:i]),  # long time
+        ....:                                  circle_size=0.1,
+        ....:                                  wireframe='green',
+        ....:                                  fill='purple',
+        ....:                                  bounding_box=BB)
+        ....:           for i in range(len(s))]
+        sage: for f in frames:  # long time
+        ....:     f.axes(False)
+        sage: animate(frames).show(delay=60) # optional -- ImageMagick # long time
     """
     def _repr_(self):
         """
@@ -185,17 +206,21 @@ class MVPolytope(PBWCrystalElement):
         EXAMPLES::
 
             sage: MV = crystals.infinity.MVPolytopes(['C', 2])
-            sage: b = MV.module_generators[0].f_string([1,2,1,2])
+            sage: b = MV.highest_weight_vector().f_string([1,2,1,2,2,2,1,1,1,1,2,1])
             sage: b.plot()
-            Graphics object consisting of 10 graphics primitives
+            Graphics object consisting of 12 graphics primitives
+
+        Here is the above example placed inside the ambient space
+        of type `C_2`::
 
         .. PLOT::
             :width: 300 px
 
             MV = crystals.infinity.MVPolytopes(['C', 2])
-            b = MV.module_generators[0].f_string([1,2,1,2])
+            b = MV.highest_weight_vector().f_string([1,2,1,2,2,2,1,1,1,1,2,1])
             L = RootSystem(['C', 2, 1]).ambient_space()
-            p = L.plot(reflection_hyperplanes=False) + b.plot()
+            p = L.plot(reflection_hyperplanes=False, bounding_box=[[-8,2], [-8,2]])
+            p += b.plot()
             p.axes(False)
             sphinx_plot(p)
         """
@@ -204,6 +229,13 @@ class MVPolytope(PBWCrystalElement):
         return P.plot_mv_polytope(self, **options)
 
 class MVPolytopes(PBWCrystal):
+    """
+    The crystal of Mirković-Vilonen (MV) polytopes.
+
+    INPUT:
+
+    - ``cartan_type`` -- a Cartan type
+    """
     def __init__(self, cartan_type):
         """
         Initialize ``self``.

@@ -273,7 +273,8 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         _a6 = _bigint(a6)
         self.x = new Curvedata(_a1.x[0], _a2.x[0], _a3.x[0], _a4.x[0], _a6.x[0], min_on_init)
         if self.discriminant() == 0:
-            raise ArithmeticError("Invariants (= %s) do not describe an elliptic curve." % (a1,a2,a3,a4,a6))
+            msg = "Invariants (= {},{},{},{},{}) do not describe an elliptic curve."
+            raise ArithmeticError(msg.format(a1, a2, a3, a4, a6))
 
     def __dealloc__(self):
         """

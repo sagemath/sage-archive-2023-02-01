@@ -27,7 +27,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
 cimport sage.rings.padics.local_generic_element

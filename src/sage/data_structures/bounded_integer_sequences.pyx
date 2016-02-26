@@ -107,7 +107,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'sage/data_structures/bitset.pxi'
 
 from cpython.int cimport PyInt_FromSize_t

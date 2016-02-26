@@ -143,12 +143,13 @@ from sage.rings.fraction_field import FractionField
 
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
 from sage.calculus.functions import jacobian
 
-import sage.schemes.projective
 import sage.schemes.affine
 import ambient_space
 import scheme
@@ -2206,7 +2207,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         except AttributeError:
             pass
         sing_dim = self.Jacobian().dimension()
-        # We really test the affine cone here; the origin is always a singular point:
+        # We really test the affine cone here; the origin is always a
+        # singular point:
         self._smooth = (sing_dim <= 0)
         return self._smooth
 
@@ -2647,6 +2649,115 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         R = codom.coordinate_ring()
         dict = {R.gen(i): f[i] for i in range(codom.dimension_relative()+1)}
         return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))
+
+    def dual(self):
+        r"""
+        Return the projective dual of the given subscheme of projective space.
+
+        INPUT:
+
+        - ``X`` -- A subscheme of projective space. At present, ``X`` is
+          required to be an irreducible and reduced hypersurface defined
+          over `\QQ` or a finite field.
+
+        OUTPUT:
+
+        - The dual of ``X`` as a subscheme of the dual projective space.
+
+        EXAMPLES:
+
+        The dual of a smooth conic in the plane is also a smooth conic::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
+            sage: I = R.ideal(x^2 + y^2 + z^2)
+            sage: X = P.subscheme(I)
+            sage: X.dual()
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              y0^2 + y1^2 + y2^2
+
+        The dual of the twisted cubic curve in projective 3-space is a singular
+        quartic surface. In the following example, we compute the dual of this
+        surface, which by double duality is equal to the twisted cubic itself.
+        The output is the twisted cubic as an intersection of three quadrics::
+
+            sage: R.<x, y, z, w> = QQ[]
+            sage: P.<x, y, z, w> = ProjectiveSpace(3, QQ)
+            sage: I = R.ideal(y^2*z^2 - 4*x*z^3 - 4*y^3*w + 18*x*y*z*w - 27*x^2*w^2)
+            sage: X = P.subscheme(I)
+            sage: X.dual()
+            Closed subscheme of Projective Space of dimension 3 over
+            Rational Field defined by:
+              y2^2 - y1*y3,
+              y1*y2 - y0*y3,
+              y1^2 - y0*y2
+
+        The singular locus of the quartic surface in the last example
+        is itself supported on a twisted cubic::
+
+            sage: X.Jacobian().radical()
+            Ideal (z^2 - 3*y*w, y*z - 9*x*w, y^2 - 3*x*z) of Multivariate
+            Polynomial Ring in x, y, z, w over Rational Field
+
+        An example over a finite field::
+
+            sage: R = PolynomialRing(GF(61), 'a,b,c')
+            sage: P.<a, b, c> = ProjectiveSpace(2, R.base_ring())
+            sage: X = P.subscheme(R.ideal(a*a+2*b*b+3*c*c))
+            sage: X.dual()
+            Closed subscheme of Projective Space of dimension 2 over
+            Finite Field of size 61 defined by:
+            y0^2 - 30*y1^2 - 20*y2^2
+
+        TESTS::
+
+            sage: R = PolynomialRing(Qp(3), 'a,b,c')
+            sage: P.<a, b, c> = ProjectiveSpace(2, R.base_ring())
+            sage: X = P.subscheme(R.ideal(a*a+2*b*b+3*c*c))
+            sage: X.dual()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: base ring must be QQ or a finite field
+        """
+        from sage.libs.singular.function_factory import ff
+
+        K = self.base_ring()
+        if not(is_RationalField(K) or is_FiniteField(K)):
+            raise NotImplementedError("base ring must be QQ or a finite field")
+        I = self.defining_ideal()
+        m = I.ngens()
+        n = I.ring().ngens() - 1
+        if (m != 1 or (n < 1) or I.is_zero()
+            or I.is_trivial() or not I.is_prime()):
+            raise NotImplementedError("At the present, the method is only"
+                                      " implemented for irreducible and"
+                                      " reduced hypersurfaces and the given"
+                                      " list of generators for the ideal must"
+                                      " have exactly one element.")
+        R = PolynomialRing(K, 'x', n + 1)
+        Pd = sage.schemes.projective.projective_space.ProjectiveSpace(n, K, 'y')
+        Rd = Pd.coordinate_ring()
+        x = R.gens()
+        y = Rd.gens()
+        S = PolynomialRing(K, x + y + ('t',))
+        if S.has_coerce_map_from(I.ring()):
+            T = PolynomialRing(K, 'w', n + 1)
+            I_S = (I.change_ring(T)).change_ring(S)
+        else:
+            I_S = I.change_ring(S)
+        f_S = I_S.gens()[0]
+        z = S.gens()
+        J = I_S
+        for i in range(n + 1):
+            J = J + S.ideal(z[-1] * f_S.derivative(z[i]) - z[i + n + 1])
+
+        sat = ff.elim__lib.sat
+
+        max_ideal = S.ideal(z[n + 1: 2 * n + 2])
+        J_sat_gens = sat(J, max_ideal)[0]
+        J_sat = S.ideal(J_sat_gens)
+        L = J_sat.elimination_ideal(z[0: n + 1] + (z[-1],))
+        return Pd.subscheme(L.change_ring(Rd))
 
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 

@@ -171,6 +171,7 @@ from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from functools import reduce
+from itertools import combinations
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
@@ -623,7 +624,7 @@ class Simplex(SageObject):
 
         answer = []
         for x in lattice_paths(self.tuple(), other.tuple()):
-            new = tuple(["L" + str(v) + "R" + str(w) for (v,w) in x])
+            new = tuple(["L" + str(v) + "R" + str(w) for (v, w) in x])
             answer.append(Simplex(new))
         return answer
 
@@ -893,8 +894,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         vertex_set = []
         if from_characteristic_function is not None:
             from sage.combinat.subsets_hereditary import subsets_with_hereditary_property
-            f,X = from_characteristic_function
-            maximal_faces = subsets_with_hereditary_property(f,X)
+            f, X = from_characteristic_function
+            maximal_faces = subsets_with_hereditary_property(f, X)
 
         if maximal_faces is None:
             maximal_faces = []
@@ -949,7 +950,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         maximal_simplices = [Simplex(f) for f in maximal_faces]
 
         if maximality_check: # Sorting is useful to filter maximal faces
-            maximal_simplices.sort(key=lambda x:x.dimension(),reverse=True)
+            maximal_simplices.sort(key=lambda x: x.dimension(), reverse=True)
         for face in maximal_simplices:
             # check whether each given face is actually maximal
             if (maximality_check and
@@ -1026,7 +1027,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             raise ValueError("This simplicial complex must be immutable. Call set_immutable().")
         return hash(self._facets)
 
-    def __eq__(self,right):
+    def __eq__(self, right):
         """
         Two simplicial complexes are equal iff their vertex sets are
         equal and their sets of facets are equal.
@@ -1206,7 +1207,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             # sub_facets is the dictionary of facets in the subcomplex
             sub_facets = {}
             dimension = max([face.dimension() for face in self._facets])
-            for i in range(-1,dimension+1):
+            for i in range(-1, dimension+1):
                 Faces[i] = set([])
                 sub_facets[i] = set([])
             for f in self._facets:
@@ -1250,7 +1251,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             [(), (2,), (0,), (1,), (1, 2), (0, 2), (0, 1)]
         """
         Fs = self.faces()
-        dim_index = xrange(-1,self.dimension()+1)
+        dim_index = xrange(-1, self.dimension()+1)
         if not increasing:
             dim_index = reversed(dim_index)
         for i in dim_index:
@@ -1464,7 +1465,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 coF = tuple(F_tuple[:i]+F_tuple[i+1:])
                 if coF in edges:
                     for G in edges[coF]:
-                        flipG.add_edge((F,G))
+                        flipG.add_edge((F, G))
                 edges[coF].append(F)
         return flipG
 
@@ -1522,8 +1523,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # when two facets intersect in a (d-1)-simplex, and see
         # whether that graph is connected.
         V = [f.set() for f in self.facets()]
-        E = (lambda a,b: len(a.intersection(b)) == d)
-        g = Graph([V,E])
+        E = (lambda a, b: len(a.intersection(b)) == d)
+        g = Graph([V, E])
         return g.is_connected()
 
     def product(self, right, rename_vertices=True, is_mutable=True):
@@ -1711,11 +1712,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: T.suspension().vertices()  # 8 vertices
             (0, 1, 2, 3, 4, 5, 6, 7)
         """
-        if n<0:
+        if n < 0:
             raise ValueError("n must be non-negative.")
-        if n==0:
+        if n == 0:
             return self
-        if n==1:
+        if n == 1:
             if self.is_pseudomanifold():
                 # Use one-point compactification of Datta. The
                 # construction is a bit slower, but the resulting
@@ -2113,7 +2114,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         if verbose:
             print "Computing the chain complex..."
-        kwds['subcomplex']=L
+        kwds['subcomplex'] = L
         C = self.chain_complex(dimensions=dims, augmented=True,
                                cochain=cohomology, **kwds)
         if verbose:
@@ -2214,8 +2215,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
             if self._graph is not None:
                 d = new_face.dimension()+1
                 for i in range(d):
-                    for j in range(i+1,d):
-                        self._graph.add_edge(new_face[i],new_face[j])
+                    for j in range(i+1, d):
+                        self._graph.add_edge(new_face[i], new_face[j])
             self._complex = {}
             self.__contractible = None
             self.__enlarged = {}
@@ -2451,7 +2452,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         n = len(facs)
         facs_divided = [ [] for i in range(ncpus) ]
         for i in range(n):
-            facs_divided[i%ncpus].append(facs[i])
+            facs_divided[i % ncpus].append(facs[i])
 
         def all_homologies_vanish(F):
             S = self.link(F)
@@ -2464,7 +2465,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         return all( answer[1] for answer in all_homologies_in_list_vanish(facs_divided) )
 
-    def generated_subcomplex(self,sub_vertex_set, is_mutable=True):
+    def generated_subcomplex(self, sub_vertex_set, is_mutable=True):
         """
         Returns the largest sub-simplicial complex of ``self`` containing
         exactly ``sub_vertex_set`` as vertices.
@@ -2592,14 +2593,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         Set consisting of the minimal subsets of the vertex set of
         this simplicial complex which do not form faces.
 
-        Algorithm: first take the complement (within the vertex set)
-        of each facet, obtaining a set `(f_1, f_2, ...)` of simplices.
-        Now form the set of all simplices of the form `(v_1, v_2,
-        ...)` where vertex `v_i` is in face `f_i`.  This set will
-        contain the minimal nonfaces and may contain some non-minimal
-        nonfaces also, so loop through the set to find the minimal
-        ones.  (The last two steps are taken care of by the
-        ``_transpose_simplices`` routine.)
+        Algorithm: Proceeds through the faces of the complex increasing the
+        dimension, starting from dimension 0, and add the faces that are not
+        contained in the complex and that are not already contained in a
+        previously seen minimal non-face.
 
         This is used in computing the
         :meth:`Stanley-Reisner ring<stanley_reisner_ring>` and the
@@ -2613,9 +2610,40 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Y = SimplicialComplex([[0,1], [1,2], [2,3], [3,0]])
             sage: Y.minimal_nonfaces()
             {(1, 3), (0, 2)}
+
+        TESTS::
+
+            sage: SC = SimplicialComplex([(0,1,2),(0,2,3),(2,3,4),(1,2,4), \
+                                          (1,4,5),(0,3,6),(3,6,7),(4,5,7)])
+            sage: SC.minimal_nonfaces() #  This was taking a long time before :trac:`20078`
+            {(3, 4, 7), (0, 7), (0, 4), (0, 5), (3, 5), (1, 7), (2, 5), (5, 6),
+            (1, 3), (4, 6), (2, 7), (2, 6), (1, 6)}
+
         """
-        complements = [self._complement(facet) for facet in self._facets]
-        return Set(self._transpose_simplices(*complements))
+
+        face_dict = self.faces()
+        vertices = self.vertices()
+        dimension = self.dimension()
+        set_mnf = set()
+
+        for dim in range(dimension+1):
+            face_sets = frozenset(f.set() for f in face_dict[dim])
+            for candidate in combinations(vertices, dim + 1):
+                set_candidate = frozenset(candidate)
+                if set_candidate not in face_sets:
+                    new = not any(set_candidate.issuperset(mnf) for mnf in set_mnf)
+                    if new:
+                        set_mnf.add(set_candidate)
+
+        for candidate in combinations(vertices, dimension+2): #  Checks for minimal nonfaces in the remaining dimension
+            set_candidate = frozenset(candidate)
+            new = not any(set_candidate.issuperset(mnf) for mnf in set_mnf)
+            if new:
+                set_mnf.add(set_candidate)
+
+        min_non_faces = Set([Simplex(mnf) for mnf in set_mnf])
+
+        return min_non_faces
 
     def _stanley_reisner_base_ring(self, base_ring=ZZ):
         """
@@ -3079,11 +3107,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 cube = []
                 for n in range(1, embed+1):
                     if n == i:
-                        cube.append([0,])
+                        cube.append([0])
                     elif n not in J:
-                        cube.append([1,])
+                        cube.append([1])
                     else:
-                        cube.append([0,1])
+                        cube.append([0, 1])
                 cubes.append(cube)
         return CubicalComplex(cubes)
 
@@ -3681,4 +3709,3 @@ def facets_for_K3():
                          [(1,11,16),(2,10,14),(3,12,13),(4,9,15),(5,7,8)]])
     return ([tuple([g(i) for i in (1,2,3,8,12)]) for g in G]
             +[tuple([g(i) for i in (1,2,5,8,14)]) for g in G])
-

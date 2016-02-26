@@ -12,7 +12,7 @@ FLINT Arithmetic Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from .fmpz cimport *
 from .fmpq cimport *

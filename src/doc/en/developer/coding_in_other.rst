@@ -67,7 +67,8 @@ add the method ``matfrobenius``::
         sig_on()
         return self.new_gen(matfrobenius(self.g, flag, 0))
 
-Note the use of the :ref:`sig_on() statement <section_sig_on>`.
+Note the use of the
+`sig_on() statement <http://cysignals.readthedocs.org/en/latest/#using-sig-on-and-sig-off>`_.
 
 The ``matfrobenius`` call is just a call to the PARI C library
 function ``matfrobenius`` with the appropriate parameters.

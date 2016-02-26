@@ -69,7 +69,7 @@ TESTS::
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 from cpython.int cimport *

@@ -259,7 +259,7 @@ Hecke triangle groups and elements:
       sage: A.fixed_points()
       (1/2*e, -1/2*e)
       sage: A.fixed_points(embedded=True)
-      (1*I, -1*I)
+      (I, -I)
 
       sage: A = G.U()
       sage: A.fixed_points()

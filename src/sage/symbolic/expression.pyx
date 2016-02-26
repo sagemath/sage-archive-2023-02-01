@@ -132,7 +132,7 @@ Test if :trac:`9947` is fixed::
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/python.pxi"
 
 import operator

@@ -54,7 +54,7 @@ class SubwordComplexFacet(Simplex, Element):
         sage: F
         (0, 1)
         sage: type(F)
-        <class 'sage.combinat.subword_complex.SubwordComplexFacet'>
+        <class 'sage.combinat.subword_complex.SubwordComplex_with_category.element_class'>
     """
 
     # standard functions
@@ -82,6 +82,24 @@ class SubwordComplexFacet(Simplex, Element):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2])
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
             sage: TestSuite(SC).run(verbose=True)
+            running ._test_an_element() . . . pass
+            running ._test_cardinality() . . . pass
+            running ._test_category() . . . pass
+            running ._test_elements() . . .
+              Running the test suite of self.an_element()
+              running ._test_category() . . . pass
+              running ._test_eq() . . . pass
+              running ._test_not_implemented_methods() . . . pass
+              running ._test_pickling() . . . pass
+              pass
+            running ._test_elements_eq_reflexive() . . . pass
+            running ._test_elements_eq_symmetric() . . . pass
+            running ._test_elements_eq_transitive() . . . pass
+            running ._test_elements_neq() . . . pass
+            running ._test_eq() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
+            running ._test_some_elements() . . . pass
         """
         if facet_test and positions not in parent:
             raise ValueError("The given iterable %s is not a facet of the %s" % (positions, parent))
@@ -515,10 +533,11 @@ class SubwordComplexFacet(Simplex, Element):
             sage: F.flip(1, return_position=True)
             ((2, 3), 3)
         """
+        S = self.parent()
         F = set(list(self))
         R = list(self._extended_root_configuration_indices())
         j = _flip_c(self.parent().group(), F, R, i)  # F and R are changed here
-        new_facet = SubwordComplexFacet(self.parent(), F)
+        new_facet = S.element_class(self.parent(), F)
         new_facet._extended_root_conf_indices = tuple(R)
         if return_position:
             return new_facet, j
@@ -931,7 +950,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         """
         if hasattr(F,"parent") and F.parent() is self:
             return F
-        return SubwordComplexFacet(self, F, facet_test=facet_test)
+        return self.element_class(self, F, facet_test=facet_test)
 
     Element = SubwordComplexFacet
 
@@ -1092,7 +1111,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             sage: SC.greedy_facet(side="negative")
             (3, 4)
         """
-        return SubwordComplexFacet(self, _greedy_facet(self.word(),
+        return self.element_class(self, _greedy_facet(self.word(),
                                                        self.pi(), side=side))
 
     # topological properties

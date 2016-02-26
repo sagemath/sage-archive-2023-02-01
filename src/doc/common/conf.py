@@ -613,7 +613,7 @@ def call_intersphinx(app, env, node, contnode):
         # useful for debugging
         # import pdb
         # pdb.set_trace()
-        if res['refuri'].startswith(SAGE_DOC_SRC):
+        if res['refuri'].startswith(SAGE_DOC):
             here = os.path.dirname(os.path.join(builder.outdir,
                                                 node['refdoc']))
             res['refuri'] = os.path.relpath(res['refuri'], here)

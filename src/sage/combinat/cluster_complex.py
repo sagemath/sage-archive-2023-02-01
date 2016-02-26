@@ -199,7 +199,24 @@ class ClusterComplex(SubwordComplex):
 
             sage: S = ClusterComplex(['A', 2])
             sage: TestSuite(S).run(verbose = True)
-
+            running ._test_an_element() . . . pass
+            running ._test_cardinality() . . . pass
+            running ._test_category() . . . pass
+            running ._test_elements() . . .
+              Running the test suite of self.an_element()
+              running ._test_category() . . . pass
+              running ._test_eq() . . . pass
+              running ._test_not_implemented_methods() . . . pass
+              running ._test_pickling() . . . pass
+              pass
+            running ._test_elements_eq_reflexive() . . . pass
+            running ._test_elements_eq_symmetric() . . . pass
+            running ._test_elements_eq_transitive() . . . pass
+            running ._test_elements_neq() . . . pass
+            running ._test_eq() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
+            running ._test_some_elements() . . . pass
         """
 
         w = W.w0
@@ -237,7 +254,7 @@ class ClusterComplex(SubwordComplex):
         """
         if hasattr(F,"parent") and F.parent() is self:
             return F
-        return ClusterComplexFacet(self, F, facet_test=facet_test)
+        return self.element_class(self, F, facet_test=facet_test)
 
     Element = ClusterComplexFacet
 
@@ -293,10 +310,9 @@ class ClusterComplex(SubwordComplex):
         l = len(Q)
         S = W.simple_reflections()
         S_inv = {S[j]: j for j in W.index_set()}
-        Q += [S_inv[w * S[k] * w] for k in Q]
+        Q = Q + tuple(S_inv[w * S[k] * w] for k in Q)
         D = {i: (Q[i + 1:].index(Q[i]) + i + 1) % l for i in range(l)}
 
         def act(F):
             return Simplex(sorted([D[i] for i in F]))
         return act
-

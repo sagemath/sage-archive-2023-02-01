@@ -190,4 +190,4 @@ lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedL
 
 # Subword complex and cluster complex
 lazy_import('sage.combinat.subword_complex', 'SubwordComplex')
-lazy_import("sage.combinat.cluster_algebra_quiver.cluster_complex", "ClusterComplex")
+lazy_import("sage.combinat.cluster_complex", "ClusterComplex")

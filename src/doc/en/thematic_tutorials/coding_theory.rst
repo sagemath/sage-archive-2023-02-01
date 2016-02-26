@@ -122,7 +122,7 @@ II.1 Create specific codes in Sage
 ----------------------------------
 
 Now that we know how to create generic linear codes, we want to go deeper
-and created specific code families. In Sage, all codes families can be
+and create specific code families. In Sage, all codes families can be
 accessed by typing::
 
     codes.<tab>
@@ -143,7 +143,7 @@ By clicking on the link provided above, or typing::
 one can access the documentation page for GRS codes, find a definition
 of these and learn what is needed to build one in Sage.
 
-Here we choose to build the [12, 6] GRS code over :math:`\GF{13}`.
+Here we choose to build a [12, 6] GRS code over :math:`\GF{13}`.
 To do this, we need up to three elements:
 
 - The **list of evaluation points**,
@@ -152,8 +152,8 @@ To do this, we need up to three elements:
 
 We build our code as follows::
 
-    sage: F = GF(7)
-    sage: length, dimension = 6, 3
+    sage: F = GF(13)
+    sage: length, dimension = 12, 6
     sage: evaluation_pts = F.list()[:length]
     sage: column_mults = F.list()[1:length+1]
     sage: C = codes.GeneralizedReedSolomonCode(evaluation_pts, dimension, column_mults)
@@ -162,11 +162,11 @@ Our GRS code is now created. We can ask for its parameters, as we did in the
 previous section::
 
     sage: C.length()
-    6
+    12
     sage: C.dimension()
-    3
+    6
     sage: C.base_ring()
-    Finite Field of size 7
+    Finite Field of size 13
 
 It is also possible to ask for the evaluation points and
 the column multipliers by calling
@@ -183,13 +183,13 @@ search algorithm presented in section I to find ``C``'s minimum distance
 but use the operation introduced above. And you instantly get::
 
     sage: C.minimum_distance()
-    4
+    7
 
 All these parameters are summarized inside the string representation
 of our code::
 
     sage: C
-    [6, 3, 4] Generalized Reed-Solomon Code over Finite Field of size 7
+    [12, 6, 7] Generalized Reed-Solomon Code over Finite Field of size 13
 
 .. NOTE::
 
@@ -235,13 +235,13 @@ as abstractions for communication channels and for manipulation of
 data representation. In this case, we want to emulate a communication channel
 which adds some, but not too many, errors to a transmitted word::
 
-    sage: err = 2
+    sage: err = 3
     sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), err)
     sage: Chan
-    Static error rate channel creating 2 errors, of input and output space Vector space of dimension 6 over Finite Field of size 7
+    Static error rate channel creating 3 errors, of input and output space Vector space of dimension 12 over Finite Field of size 13
     sage: r = Chan.transmit(c)
     sage: len((c-r).nonzero_positions())
-    2
+    3
 
 If you want to learn more on Channels, please refer to section IV
 of this tutorial.
@@ -299,7 +299,13 @@ Let us see how one can explore this::
     sage: C.encoders_available()
     ['EvaluationPolynomial', 'EvaluationVector']
     sage: C.decoders_available()
-    ['GuruswamiSudan', 'Syndrome', 'NearestNeighbor']
+    ['Syndrome',
+     'NearestNeighbor',
+     'ErrorErasure',
+     'Gao',
+     'GuruswamiSudan',
+     'KeyEquationSyndrome',
+     'BerlekampWelch']
 
 We got a list of the available encoders and decoders for our GRS code.
 Rather than using the default ones as we did before,
@@ -329,7 +335,7 @@ you get the default encoder for the code.
 :meth:`sage.coding.linear_code.AbstractLinearCode.encoder`
 also has an important side-effect: **it caches the constructed encoder**
 before returning it. This means that each time one will access the same
-EvaluationVector encoder for C, which saves construction time.
+``EvaluationVector`` encoder for ``C``, which saves construction time.
 
 All the above things are similar for Decoders.
 This reinforces that Encoders and Decoders are rarely constructed but used
@@ -344,7 +350,7 @@ III.1 Message spaces
 
 The point of an Encoder is to encode messages into the code.
 These messages are often just vectors over the base field of the code
-and whose length match code's dimension.
+and whose length matches the code's dimension.
 But it could be anything: vectors over other fields, polynomials, or even
 something quite different.
 Therefore, each Encoder has a :meth:`sage.coding.encoder.Encoder.message_space`.
@@ -367,19 +373,19 @@ Notice that the message space of ``Epoly`` is all univariate polynomials:
 ``message_space`` is the ambient space of the messages, and sometimes an Encoder
 demands that the messages are actually picked from a subspace hereof.
 
-The default encoder for a code is always one with vector behaviour,
+The default encoder of a code always has a vector space as message space,
 so when we call
 :meth:`sage.coding.linear_code.AbstractLinearCode.decode_to_message` or
 :meth:`sage.coding.linear_code.AbstractLinearCode.unencode` on the code itself,
 as illustrated on the first example, this will always return
-vectors whose length are the dimension of the code.
+vectors whose length is the dimension of the code.
 
 
 III.2 Generator matrices
 ------------------------
 
 Whenever the message space of an Encoder is a vector space
-and it encodes using a linear map, then the Encoder will
+and it encodes using a linear map, the Encoder will
 possess a generator matrix (note that this notion does not
 make sense for other types of encoders), which specifies that linear map.
 
@@ -398,25 +404,48 @@ Let us see this in Sage, using the first encoder we constructed::
     sage: G == C.generator_matrix()
     True
 
-III.3 Decoders and introspection
---------------------------------
+III.3 Decoders and messages
+---------------------------
 
-Each Decoder uses his own decoding algorithm, amd these decoding algorithms
-can have quite different behaviours:
-some might return a list of codewords, while some just return one codeword,
-some cannot decode more than half the minimum distance, while some can etc...
+As we saw before, any code has two generic methods for decoding, called
+``decode_to_codeword`` and ``decode_to_message``.
+Every Decoder also has these two methods, and the methods on the code
+simply forward the calls to the default decoder of this code.
 
-When it comes to benchmarking, it can be useful to sort the decoders in order
-to compare decoders which share properties. And in any case, the user might like
-to know the properties of a given decoder.
+There are two reasons for having these two methods: convenience and speed.
+Convenience is clear: having both methods provides a useful shortcut
+depending on the user's needs.
+Concerning speed, some decoders naturally decode directly to a codeword,
+while others directly to a message space.
+Supporting both methods therefore avoids unnecessary work
+in encoding and unencoding.
 
-We call these properties *types*. One can access these for any decoders as
-follows::
+However, ``decode_to_message`` implies that there is a message space
+and an encoding from that space to the code behind the scenes.
+A Decoder has methods ``message_space`` and ``connected_encoder``
+to inform the user about this. Let us illustrate that by a long example::
 
-    sage: C = codes.RandomLinearCode(7, 4, GF(2))
-    sage: D = C.decoder('NearestNeighbor')
-    sage: D.decoder_type()
-    {'always-succeed', 'complete', 'hard-decision', 'unique'}
+    sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[1:41], 3, GF(59).list()[1:41])
+    sage: c = C.random_element()
+    sage: c in C
+    True
+
+    #Create two decoders: Syndrome and Gao
+    sage: Syn = C.decoder("KeyEquationSyndrome")
+    sage: Gao = C.decoder("Gao")
+
+    #Check their message spaces
+    sage: Syn.message_space()
+    Vector space of dimension 3 over Finite Field of size 59
+    sage: Gao.message_space()
+    Univariate Polynomial Ring in x over Finite Field of size 59
+
+    #and now we unencode
+    sage: Syn.decode_to_message(c) #random
+    (55,9,43)
+
+    sage: Gao.decode_to_message(c) #random
+    43*x^2 + 9*x + 55
 
 IV. A deeper look at channels
 =============================
@@ -512,8 +541,7 @@ As opposed to this channel though, the output of
 is not the same as its input space, i.e. the ambient space of C.
 Rather, it will return two vectors: the first is the transmitted word
 with the errors added and erased positions set to 0.
-The second one is the erasure vector over which has 1 on the erased positions
-and 0 elsewhere.
+The second one is the erasure vector whose erased positions contain ones.
 This is reflected in :meth:`sage.coding.channel_constructions.output_space`::
 
     sage: C = codes.RandomLinearCode(10, 5, GF(7))
@@ -554,7 +582,7 @@ and check if there's a subcategory which matches your needs.
 
 Despite all the hard work we put on it, there's always much to do!
 
-Maybe at some point you might want to create you own codes for Sage.
+Maybe at some point you might want to create your own codes for Sage.
 If it's the case and if you don't know how to do that, don't panic!
 We also wrote a tutorial for this specific case, which you can find here:
 :ref:`structures_in_coding_theory`.

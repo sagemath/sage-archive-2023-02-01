@@ -1,3 +1,7 @@
+"""
+Symmetrica library
+"""
+
 include "symmetrica.pxi"
 
 include "kostka.pxi"

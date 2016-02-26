@@ -15,11 +15,6 @@ REFERENCES:
     .. [HP03] W. Cary Huffman and Vera Pless, Fundamentals of Error Correcting Codes, Cambridge
        University Press
 
-.. TODO::
-
-    - Minimum distance lower and upper bound
-    - Decoding radius based on types
-    - Error-erasure management if all crappy stuff is located in the original part
 """
 
 #*****************************************************************************
@@ -164,6 +159,39 @@ class ExtendedCode(AbstractLinearCode):
         v = matrix(F, nr + 1, 1, [one] + [zero] * nr)
         return matrix(F, nr + 1, nc, [one] * nc + Hlist).augment(v)
 
+    def random_element(self):
+        r"""
+        Returns a random element of ``self``.
+
+        This random element is computed directly from the original code,
+        and does not compute a generator matrix of ``self`` in the process.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(9, 5, GF(7))
+            sage: Ce = codes.ExtendedCode(C)
+            sage: c = Ce.random_element() #random
+            sage: c in Ce
+            True
+        """
+        c = self.original_code().random_element()
+        c_list = c.list()
+        F = self.base_ring()
+        last_element = F.zero()
+        for i in c_list:
+            last_element += i
+        c_list.append(-last_element)
+        return vector(F, c_list)
+
+
+
+
+
+
+
+
+
+
 class ExtendedCodeExtendedMatrixEncoder(Encoder):
     r"""
     Encoder using original code's generator matrix to compute the extended code's one.
@@ -256,6 +284,15 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
         extra_col = [-sum(G.rows()[i]) for i in range(k)]
         extra_col = matrix(F, k, 1, extra_col)
         return G.augment(extra_col)
+
+
+
+
+
+
+
+
+
 
 class ExtendedCodeOriginalCodeDecoder(Decoder):
     r"""
@@ -367,6 +404,20 @@ class ExtendedCodeOriginalCodeDecoder(Decoder):
             False
             sage: D.decode_to_code(y) == c
             True
+
+        Another example, with a list decoder::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
+            sage: Ce = codes.ExtendedCode(C)
+            sage: Dgrs = C.decoder('GuruswamiSudan', tau = 4)
+            sage: D = codes.decoders.ExtendedCodeOriginalCodeDecoder(Ce, original_decoder = Dgrs)
+            sage: c = Ce.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(Ce.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: y in Ce
+            False
+            sage: c in D.decode_to_code(y)
+            True
         """
         D = self.original_decoder()
         C = self.code()
@@ -374,12 +425,24 @@ class ExtendedCodeOriginalCodeDecoder(Decoder):
         n = C.length()
         y_original = copy(y.list())
         y_original.pop(n - 1)
-        c_original = list(D.decode_to_code(y_original, **kwargs))
-        last = F.zero()
-        for i in c_original:
-            last += i
-        c_original.append(-last)
-        return vector(F, c_original)
+        decoded = D.decode_to_code(vector(y_original), **kwargs)
+        if 'list-decoder' in self.decoder_type():
+            l = []
+            for word in decoded:
+                last_pos = F.zero()
+                for i in word:
+                    last_pos += i
+                word_list = list(word)
+                word_list.append(last_pos)
+                l.append(vector(F, word_list))
+            return l
+        else:
+            last_pos = F.zero()
+            for i in decoded:
+                last_pos += i
+            decoded_list = list(decoded)
+            decoded_list.append(last_pos)
+            return vector(F, decoded_list)
 
     def decoding_radius(self, **kwargs):
         r"""

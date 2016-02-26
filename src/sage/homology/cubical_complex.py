@@ -75,10 +75,14 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
+from sage.misc.cachefunc import cached_method
+from functools import total_ordering
 
+@total_ordering
 class Cube(SageObject):
     r"""
     Define a cube for use in constructing a cubical complex.
@@ -609,7 +613,7 @@ class Cube(SageObject):
             result.append(((-1)**nu, Cube(left), Cube(right)))
         return result
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Return True iff this cube is the same as ``other``: that is,
         if they are the product of the same intervals in the same
@@ -628,10 +632,63 @@ class Cube(SageObject):
             sage: C1 == C3  # indirect doctest
             False
         """
-        if self.__tuple == other.__tuple:
-            return 0
-        else:
-            return -1
+        return tuple(self) == tuple(other)
+
+    def __ne__(self, other):
+        """
+        Return True iff this cube is not equal to ``other``.
+
+        :param other: another cube
+
+        EXAMPLES::
+
+            sage: from sage.homology.cubical_complex import Cube
+            sage: C1 = Cube([[1,1], [2,3], [4,5]])
+            sage: C2 = Cube([[1], [2,3], [4,5]])
+            sage: C3 = Cube([[0], [2,3], [4,5]])
+            sage: C1 != C2  # indirect doctest
+            False
+            sage: C1 != C3  # indirect doctest
+            True
+        """
+        return not self == other
+
+    def __lt__(self, other):
+        """
+        Return True iff the tuple for this cube is less than that for
+        ``other``.
+
+        :param other: another cube
+
+        EXAMPLES::
+
+            sage: from sage.homology.cubical_complex import Cube
+            sage: C1 = Cube([[1,1], [2,3], [4,5]])
+            sage: C2 = Cube([[1], [2,3], [4,5]])
+            sage: C3 = Cube([[0], [2,3], [4,5]])
+            sage: C1 < C1
+            False
+            sage: C1 < C3
+            False
+            sage: C3 < C1
+            True
+
+        Test ``@total_ordering`` by testing other comparisons::
+
+            sage: C1 <= C1
+            True
+            sage: C1 <= C2
+            True
+            sage: C1 >= C2
+            True
+            sage: C1 > C2
+            False
+            sage: C3 <= C1
+            True
+            sage: C1 > C3
+            True
+        """
+        return tuple(self) < tuple(other)
 
     def __hash__(self):
         """
@@ -749,8 +806,8 @@ class CubicalComplex(GenericCellComplex):
         {[0,0] x [2,3] x [-12,-12], [0,1] x [3,3] x [5,5], [0,1] x [2,2] x [3,3], [0,1] x [2,2] x [0,0], [0,1] x [3,3] x [6,6], [1,1] x [2,3] x [0,0], [0,1] x [2,2] x [-12,-12], [0,0] x [2,3] x [6,6], [1,1] x [2,3] x [-12,-12], [1,1] x [2,3] x [5,5], [0,1] x [2,2] x [5,5], [0,1] x [3,3] x [3,3], [1,1] x [2,3] x [3,3], [0,0] x [2,3] x [5,5], [0,1] x [3,3] x [0,0], [1,1] x [2,3] x [6,6], [0,1] x [2,2] x [6,6], [0,0] x [2,3] x [0,0], [0,0] x [2,3] x [3,3], [0,1] x [3,3] x [-12,-12]}
         sage: S1.cells()
         {-1: set(),
-         0: {[0,0] x [3,3], [1,1] x [3,3], [0,0] x [2,2], [1,1] x [2,2]},
-         1: {[0,1] x [2,2], [0,0] x [2,3], [1,1] x [2,3], [0,1] x [3,3]}}
+         0: {[0,0] x [2,2], [0,0] x [3,3], [1,1] x [2,2], [1,1] x [3,3]},
+         1: {[0,0] x [2,3], [0,1] x [2,2], [0,1] x [3,3], [1,1] x [2,3]}}
 
     Chain complexes, homology, and cohomology::
 
@@ -983,13 +1040,13 @@ class CubicalComplex(GenericCellComplex):
         EXAMPLES::
 
             sage: S2 = cubical_complexes.Sphere(2)
-            sage: S2.cells()[2]
-            {[0,1] x [0,1] x [0,0],
-             [0,1] x [0,1] x [1,1],
-             [0,0] x [0,1] x [0,1],
-             [0,1] x [1,1] x [0,1],
+            sage: sorted(S2.cells()[2])
+            [[0,0] x [0,1] x [0,1],
              [0,1] x [0,0] x [0,1],
-             [1,1] x [0,1] x [0,1]}
+             [0,1] x [0,1] x [0,0],
+             [0,1] x [0,1] x [1,1],
+             [0,1] x [1,1] x [0,1],
+             [1,1] x [0,1] x [0,1]]
         """
         if subcomplex not in self._cells:
             if subcomplex is not None and subcomplex.dimension() > -1:
@@ -1046,13 +1103,13 @@ class CubicalComplex(GenericCellComplex):
             sage: C = cubical_complexes.Cube(3)
             sage: C.n_cubes(3)
             {[0,1] x [0,1] x [0,1]}
-            sage: C.n_cubes(2)
-            {[0,1] x [0,1] x [0,0],
-             [0,1] x [0,1] x [1,1],
-             [0,0] x [0,1] x [0,1],
-             [0,1] x [1,1] x [0,1],
+            sage: sorted(C.n_cubes(2))
+            [[0,0] x [0,1] x [0,1],
              [0,1] x [0,0] x [0,1],
-             [1,1] x [0,1] x [0,1]}
+             [0,1] x [0,1] x [0,0],
+             [0,1] x [0,1] x [1,1],
+             [0,1] x [1,1] x [0,1],
+             [1,1] x [0,1] x [0,1]]
         """
         return set(self.n_cells(n, subcomplex))
 
@@ -1192,6 +1249,33 @@ class CubicalComplex(GenericCellComplex):
         else:
             return ChainComplex(data=differentials, base_ring=base_ring,
                                 degree=-1, check=check_diffs)
+
+    def alexander_whitney(self, cube, dim_left):
+        r"""
+        Subdivide ``cube`` in this cubical complex into pairs of cubes.
+
+        See :meth:`Cube.alexander_whitney` for more details. This
+        method just calls that one.
+
+        INPUT:
+
+        - ``cube`` -- a cube in this cubical complex
+        - ``dim`` -- integer between 0 and one more than the
+          dimension of this cube
+
+        OUTPUT: a list containing triples ``(coeff, left, right)``
+
+        EXAMPLES::
+
+            sage: C = cubical_complexes.Cube(3)
+            sage: c = list(C.n_cubes(3))[0]; c
+            [0,1] x [0,1] x [0,1]
+            sage: C.alexander_whitney(c, 1)
+            [(1, [0,1] x [0,0] x [0,0], [1,1] x [0,1] x [0,1]),
+             (-1, [0,0] x [0,1] x [0,0], [0,1] x [1,1] x [0,1]),
+             (1, [0,0] x [0,0] x [0,1], [0,1] x [0,1] x [1,1])]
+        """
+        return cube.alexander_whitney(dim_left)
 
     def n_skeleton(self, n):
         r"""
@@ -1515,6 +1599,67 @@ class CubicalComplex(GenericCellComplex):
             {[2,3] x [6,6]}
         """
         return CubicalComplex([f._translate(vec) for f in self.maximal_cells()])
+
+    # This is cached for speed reasons: it can be very slow to run
+    # this function.
+    @cached_method
+    def algebraic_topological_model(self, base_ring=None):
+        r"""
+        Algebraic topological model for this cubical complex with
+        coefficients in ``base_ring``.
+
+        The term "algebraic topological model" is defined by Pilarczyk
+        and Réal [PR]_.
+
+        INPUT:
+
+        - ``base_ring`` - coefficient ring (optional, default
+          ``QQ``). Must be a field.
+
+        Denote by `C` the chain complex associated to this cubical
+        complex. The algebraic topological model is a chain complex
+        `M` with zero differential, with the same homology as `C`,
+        along with chain maps `\pi: C \to M` and `\iota: M \to C`
+        satisfying `\iota \pi = 1_M` and `\pi \iota` chain homotopic
+        to `1_C`. The chain homotopy `\phi` must satisfy
+
+        - `\phi \phi = 0`,
+        - `\pi \phi = 0`,
+        - `\phi \iota = 0`.
+
+        Such a chain homotopy is called a *chain contraction*.
+
+        OUTPUT: a pair consisting of
+
+        - chain contraction ``phi`` associated to `C`, `M`, `\pi`, and
+          `\iota`
+        - the chain complex `M`
+
+        Note that from the chain contraction ``phi``, one can recover the
+        chain maps `\pi` and `\iota` via ``phi.pi()`` and
+        ``phi.iota()``. Then one can recover `C` and `M` from, for
+        example, ``phi.pi().domain()`` and ``phi.pi().codomain()``,
+        respectively.
+
+        EXAMPLES::
+
+            sage: RP2 = cubical_complexes.RealProjectivePlane()
+            sage: phi, M = RP2.algebraic_topological_model(GF(2))
+            sage: M.homology()
+            {0: Vector space of dimension 1 over Finite Field of size 2,
+             1: Vector space of dimension 1 over Finite Field of size 2,
+             2: Vector space of dimension 1 over Finite Field of size 2}
+            sage: T = cubical_complexes.Torus()
+            sage: phi, M = T.algebraic_topological_model(QQ)
+            sage: M.homology()
+            {0: Vector space of dimension 1 over Rational Field,
+             1: Vector space of dimension 2 over Rational Field,
+             2: Vector space of dimension 1 over Rational Field}
+        """
+        from algebraic_topological_model import algebraic_topological_model
+        if base_ring is None:
+            base_ring = QQ
+        return algebraic_topological_model(self, base_ring)
 
     def _chomp_repr_(self):
         r"""

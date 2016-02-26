@@ -54,7 +54,7 @@ fi
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
             --with-all="$SAGE_LOCAL" \
-            --enable-sage --enable-optimization --disable-static --enable-openmp
+            --enable-sage --disable-static --enable-openmp
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring LinBox."
     exit 1

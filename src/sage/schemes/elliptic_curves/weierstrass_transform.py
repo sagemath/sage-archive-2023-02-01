@@ -127,7 +127,7 @@ class WeierstrassTransformation(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        A polyomial. See the example below.
+        A polynomial. See the example below.
 
         EXAMPLES::
 

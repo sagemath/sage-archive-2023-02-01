@@ -271,7 +271,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     .. RUBRIC:: Nonsymmetric Macdonald polynomials
 
-    We can now finally define the nonsymmetric Macdonald polyomials.
+    We can now finally define the nonsymmetric Macdonald polynomials.
     Because the Cherednik operators commute (and there is no radical),
     they can be simultaneously diagonalized; namely, `K[L_0]` admits a
     `K`-basis of joint eigenvectors for the `Y_\lambda`.  For `\mu \in

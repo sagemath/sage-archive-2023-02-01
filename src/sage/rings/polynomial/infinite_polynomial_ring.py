@@ -920,7 +920,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
                         raise ValueError("Can't convert %s into an element of %s - variables aren't admissible"%(x,self))
                     xmaxind = max([int(v.split('_')[1]) for v in VarList])
                 try:
-                    # Apparently, in libsingular, the polyomial conversion is not done by
+                    # Apparently, in libsingular, the polynomial conversion is not done by
                     # name but by position, if the number of variables in the parents coincide.
                     # So, we shift self._P to achieve xmaxind, and if the number of variables is
                     # the same then we shift further. We then *must* be

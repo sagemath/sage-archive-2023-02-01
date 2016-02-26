@@ -1442,8 +1442,8 @@ class RijndaelGF(SageObject):
 
     def compose(self, f, g, algorithm='encrypt', f_attr=None, g_attr=None):
         r"""
-        Returns a ``Round_Component_Poly_Constr`` object corresponding to
-        `g \circ f` or the polnyomial output of this object's ``__call__``
+        Return a ``Round_Component_Poly_Constr`` object corresponding to
+        `g \circ f` or the polynomial output of this object's ``__call__``
         method.
 
         INPUT:

@@ -16,6 +16,7 @@ def is_MPolynomial(x):
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.categories.map cimport Map
+from sage.categories.morphism cimport Morphism
 
 cdef class MPolynomial(CommutativeRingElement):
 
@@ -818,12 +819,12 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def change_ring(self, R):
         """
-        Return a copy of this polynomial but with coefficients in R,
+        Return a copy of this polynomial but with coefficients in ``R``,
         if at all possible.
 
         INPUT:
 
-        - ``R`` -- a ring
+        - ``R`` -- a ring or morphism.
 
         EXAMPLES::
 
@@ -832,13 +833,27 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.change_ring(GF(7))
             x^3 + 2*y + 1
 
+        ::
+
             sage: R.<x,y> = GF(9,'a')[]
             sage: (x+2*y).change_ring(GF(3))
             x - y
+
+        ::
+
+            sage: K.<z> = CyclotomicField(3)
+            sage: R.<x,y> = K[]
+            sage: f = x^2 + z*y
+            sage: f.change_ring(K.embeddings(CC)[1])
+            x^2 + (-0.500000000000000 + 0.866025403784439*I)*y
         """
-        P = self._parent
-        P = P.change_ring(R)
-        return P(self)
+        if isinstance(R, Morphism):
+        #if we're given a hom of the base ring extend to a poly hom
+            if R.domain() == self.base_ring():
+                R = self.parent().hom(R, self.parent().change_ring(R.codomain()))
+            return R(self)
+        else:
+            return self.parent().change_ring(R)(self)
 
     def _magma_init_(self, magma):
         """

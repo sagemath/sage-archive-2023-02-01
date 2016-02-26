@@ -95,6 +95,7 @@ from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
+from sage.categories.morphism import Morphism
 
 def is_SchemeMorphism(f):
     """
@@ -1276,22 +1277,17 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         """
         return(self._polys[0].parent())
 
-    def change_ring(self, R, **kwds):
+    def change_ring(self, R, check=True):
         r"""
         Returns a new :class:`SchemeMorphism_polynomial` which is this map coerced to ``R``.
 
         If ``check`` is ``True``, then the initialization checks are performed.
-        The user may specify the embedding into ``R`` with a keyword.
 
         INPUT:
 
-        - ``R`` -- ring
-
-        kwds:
+        - ``R`` -- ring or morphism.
 
         - ``check`` -- Boolean
-
-        - ``embedding`` -- field embedding from the base ring of this map to ``R``
 
         OUTPUT:
 
@@ -1372,12 +1368,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: H = End(P)
             sage: f = H([x^2 + a*x*y + a^2*y^2, y^2])
             sage: emb = K.embeddings(QQbar)
-            sage: f.change_ring(QQbar, embedding=emb[0])
+            sage: f.change_ring(emb[0])
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic
             Field
                Defn: Defined on coordinates by sending (x : y) to
                      (x^2 + (-1.324717957244746?)*x*y + 1.754877666246693?*y^2 : y^2)
-            sage: f.change_ring(QQbar, embedding=emb[1])
+            sage: f.change_ring(emb[1])
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic
             Field
                Defn: Defined on coordinates by sending (x : y) to
@@ -1424,34 +1420,23 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               Defn: Defined on coordinates by sending (x, y) to
                     (1.122462048309373?*x/y, y + 1)
         """
-        check = kwds.get('check', True)
-        emb =  kwds.get('embedding', None)
         K = self.codomain().base_ring()
-        T = self.domain().change_ring(R, **kwds)
+        T = self.domain().change_ring(R)
         if self.is_endomorphism():
             H = End(T)
         else:
-            S = self.codomain().change_ring(R, **kwds)
+            S = self.codomain().change_ring(R)
             H = Hom(T,S)
 
-        if emb is None:
-            #try to coerce
-            G = []
-            for f in self:
-                if isinstance(f, FractionFieldElement):
-                    G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
-                else:
-                    G.append(f.change_ring(R))
-        else:
-            if emb.domain() == self.base_ring():
-                emb = self.coordinate_ring().hom(emb, T.ambient_space().coordinate_ring())
-            #else assume it is already polyring to polyring
-            G = []
-            for f in self._polys:
-                if isinstance(f,FractionFieldElement):
-                    G.append(emb(f.numerator()) / emb(f.denominator()))
-                else:
-                    G.append(emb(f))
+        if isinstance(R, Morphism):
+            if R.domain() == self.base_ring():
+                R = self.coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
+        G = []
+        for f in self:
+            if isinstance(f, FractionFieldElement):
+                G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
+            else:
+                G.append(f.change_ring(R))
         return(H(G, check))
 
 ############################################################################
@@ -1634,22 +1619,19 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         return self._codomain
 
-    def change_ring(self, R, **kwds):
+    def change_ring(self, R, check=True):
         r"""
         Returns a new :class:`SchemeMorphism_point` which is this point coerced to``R``.
 
         If ``check`` is true, then the initialization checks are performed.
-        The user may specify the embedding into ``R`` with a keyword.
 
         INPUT:
 
-        - ``R`` -- ring
+        - ``R`` -- ring or morphism.
 
         kwds:
 
         - ``check`` -- Boolean
-
-        - ``embedding`` -- field embedding from the base ring of this point to ``R``
 
         OUTPUT: :class:`SchemeMorphism_point`
 
@@ -1679,7 +1661,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: P.<x,y> = ProjectiveSpace(O, 1)
             sage: H = End(P)
             sage: F = H([x^2+O(v)*y^2, y^2])
-            sage: F.change_ring(K).change_ring(QQbar, embedding=K.embeddings(QQbar)[0])
+            sage: F.change_ring(K).change_ring(K.embeddings(QQbar)[0])
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + (-2.645751311064591?*I)*y^2 : y^2)
@@ -1691,9 +1673,9 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: Q = P([a+1,1])
             sage: emb = K.embeddings(QQbar)
-            sage: Q.change_ring(QQbar, embedding = emb[0])
+            sage: Q.change_ring(emb[0])
             (1.5000000000000000? - 0.866025403784439?*I : 1)
-            sage: Q.change_ring(QQbar, embedding=emb[1])
+            sage: Q.change_ring(emb[1])
             (1.5000000000000000? + 0.866025403784439?*I : 1)
 
         ::
@@ -1701,7 +1683,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: K.<v> = QuadraticField(2)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: Q = P([v,1])
-            sage: Q.change_ring(QQbar, embedding=K.embeddings(QQbar)[0])
+            sage: Q.change_ring(K.embeddings(QQbar)[0])
             (-1.414213562373095? : 1)
 
         ::
@@ -1714,15 +1696,8 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: P.change_ring(QQbar)
             (1.122462048309373?, 1)
         """
-        check = kwds.get('check', True)
-        emb = kwds.get('embedding', None)
-        K = self.codomain().base_ring()
-        S = self.codomain().change_ring(R, **kwds)
-        if emb is None:
-            #try to coerce
-            Q = [R(t) for t in self]
-        else:
-            Q = [emb(t) for t in self]
+        S = self.codomain().change_ring(R)
+        Q = [R(t) for t in self]
         return(S.point(Q, check=check))
 
     def __copy__(self):

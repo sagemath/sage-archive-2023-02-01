@@ -2804,7 +2804,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not K in _NumberFields and not K is QQbar:
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
 
-        F = self.change_ring(QQbar, embedding=embedding)
+        if embedding is None:
+            F = self.change_ring(QQbar)
+        else:
+            F = self.change_ring(embedding)
         crit_points = F.critical_points()
         pcf = True
         i = 0
@@ -2862,7 +2865,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if check:
             if not self.is_postcritically_finite():
                 raise TypeError("map be be post-critically finite")
-        F = self.change_ring(QQbar, embedding=embedding)
+        if embedding is None:
+            F = self.change_ring(QQbar)
+        else:
+            F = self.change_ring(embedding)
         crit_points = F.critical_points()
         N = len(crit_points)
         for i in range(N):
@@ -2937,7 +2943,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
         #doesn't really matter which we choose as Galois conjugates have the same height
         emb = kwds.get("embedding", K.embeddings(QQbar)[0])
-        F = self.change_ring(K).change_ring(QQbar, embedding=emb)
+        F = self.change_ring(K).change_ring(emb)
         crit_points = F.critical_points()
         n = len(crit_points)
         err_bound = kwds.get("error_bound", None)
@@ -3128,7 +3134,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
             raise NotImplementedError("self must be a map over a number field")
 
-        f = self.change_ring(QQbar, embedding=embedding)
+        if embedding is None:
+            f = self.change_ring(QQbar)
+        else:
+            f = self.change_ring(embedding)
 
         PS = f.domain()
 

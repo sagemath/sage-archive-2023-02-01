@@ -131,6 +131,7 @@ AUTHORS:
 #    class AlgebraicScheme_quasi
 
 from sage.categories.number_fields import NumberFields
+from sage.categories.morphism import Morphism
 
 from sage.rings.all import ZZ
 from sage.rings.ideal import is_Ideal
@@ -1512,7 +1513,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         except TypeError:
             raise TypeError("Unable to enumerate points over %s."%F)
 
-    def change_ring(self, R, **kwds):
+    def change_ring(self, R):
         r"""
         Returns a new algebraic subscheme which is this subscheme coerced to ``R``.
 
@@ -1520,11 +1521,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         INPUT:
 
-        - ``R`` -- ring
-
-        kwds:
-
-        - ``embedding`` -- field embedding from the base ring of this subscheme to ``R``
+        - ``R`` -- ring or morphism.
 
         OUTPUT:
 
@@ -1559,7 +1556,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: P.<x,y,z> = AffineSpace(L,3)
             sage: X = P.subscheme([x-w*y, z^2-v*x])
             sage: emb = L.embeddings(QQbar)
-            sage: X.change_ring(QQbar, embedding=emb[0])
+            sage: X.change_ring(emb[0])
             Closed subscheme of Affine Space of dimension 3 over Algebraic Field
             defined by:
               x + (-1.414213562373095? + 0.?e-16*I)*y,
@@ -1573,7 +1570,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: P.<x,y,z> = AffineSpace(L,3)
             sage: X = P.subscheme([x-w*y, z^2-v*x])
             sage: emb = L.embeddings(QQbar)
-            sage: X.change_ring(QQbar, embedding=emb[1])
+            sage: X.change_ring(emb[1])
             Closed subscheme of Affine Space of dimension 3 over Algebraic Field
             defined by:
               x + (-1.414213562373095? + 0.?e-16*I)*y,
@@ -1609,7 +1606,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             Closed subscheme of Projective Space of dimension 1 over Complex Field
             with 53 bits of precision defined by:
               x^2 + (0.623489801858734 + 0.781831482468030*I)*y^2
-            sage: X.change_ring(K).change_ring(QQbar, embedding=K.embeddings(QQbar)[0])
+            sage: X.change_ring(K).change_ring(K.embeddings(QQbar)[0])
             Closed subscheme of Projective Space of dimension 1 over Algebraic Field defined by:
               x^2 + (-0.9009688679024191? - 0.4338837391175581?*I)*y^2
 
@@ -1630,16 +1627,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         K = self.base_ring()
         AS = self.ambient_space()
         new_AS = AS.change_ring(R)
-        emb =  kwds.get('embedding', None)
-        if emb is None:
-            #try to coerce
-            I = [f.change_ring(R) for f in self.defining_polynomials()]
-        else:
-            #we're given an embedding
-            if emb.domain() == K:
-                emb = AS.coordinate_ring().hom(emb, new_AS.coordinate_ring())
-            #else assume it is already polyring to polyring
-            I = [emb(f) for f in self.defining_polynomials()]
+        I = [f.change_ring(R) for f in self.defining_polynomials()]
         return(new_AS.subscheme(I))
 
     def weil_restriction(self):

@@ -121,7 +121,7 @@ class mwrank_EllipticCurve(SageObject):
         sage: e = mwrank_EllipticCurve([0, 0])
         Traceback (most recent call last):
         ...
-        ArithmeticError: Invariants (= [0, 0, 0, 0, 0]) do not describe an elliptic curve.
+        ArithmeticError: Invariants (= 0,0,0,0,0) do not describe an elliptic curve.
     """
 
     def __init__(self, ainvs, verbose=False):

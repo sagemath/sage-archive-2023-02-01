@@ -740,13 +740,15 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         """
         return AlgebraicScheme_subscheme_product_projective(self, X)
 
-    def change_ring(self, R):
+    def change_ring(self, R, **kwds):
         r"""
         Return a product of projective spaces over a ring `R` and otherwise the same as ``self``.
 
         INPUT:
 
         - ``R`` -- commutative ring
+
+        - ``kwds`` -- no keywords used
 
         OUTPUT:
 

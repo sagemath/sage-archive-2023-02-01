@@ -146,7 +146,6 @@ from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
 from sage.calculus.functions import jacobian
-from sage.misc.all import verbose
 
 import sage.schemes.projective
 import sage.schemes.affine
@@ -1609,9 +1608,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             Closed subscheme of Projective Space of dimension 1 over Complex Field
             with 53 bits of precision defined by:
               x^2 + (0.623489801858734 + 0.781831482468030*I)*y^2
-            sage: X.change_ring(K).change_ring(QQbar)
-            verbose 0 (1515: algebraic_scheme.py, change_ring) Warning: coerce map not found,
-            choosing arbitrary embedding
+            sage: X.change_ring(K).change_ring(QQbar, embedding=K.embeddings(QQbar)[0])
             Closed subscheme of Projective Space of dimension 1 over Algebraic Field defined by:
               x^2 + (-0.9009688679024191? - 0.4338837391175581?*I)*y^2
 
@@ -1634,21 +1631,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         new_AS = AS.change_ring(R)
         emb =  kwds.get('embedding', None)
         if emb is None:
-            try:
-                #try to coerce
-                I = [f.change_ring(R) for f in self.defining_polynomials()]
-            except TypeError:
-                try:
-                    #try to construct an embedding
-                    phi = K.embeddings(R)[0]
-                    Kx = AS.coordinate_ring()
-                    Rx = R[Kx.variable_names()]
-                    phix = Kx.hom(phi,Rx)
-                    I = [phix(f) for f in self.defining_polynomials()]
-                    verbose("Warning: coerce map not found, choosing arbitrary embedding", level=0)
-                except (IndexError, AttributeError, ValueError):
-                    #raise a better error message
-                    raise TypeError("unable to find an embedding of %s to %s"%(K,R))
+            #try to coerce
+            I = [f.change_ring(R) for f in self.defining_polynomials()]
         else:
             #we're given an embedding
             if emb.domain() == K:

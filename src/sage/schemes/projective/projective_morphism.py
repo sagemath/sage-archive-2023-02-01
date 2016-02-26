@@ -2742,7 +2742,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         crit_points = X.rational_points()
         return crit_points
 
-    def is_postcritically_finite(self, err=0.01):
+    def is_postcritically_finite(self, err=0.01, embedding=None):
         r"""
         Determine if this map is post-critically finite.
 
@@ -2753,6 +2753,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         INPUT:
 
             - ``err`` - positive real number (optional, Default: 0.01).
+
+            - ``embedding`` - embedding of base ring into `\QQbar`
 
         OUTPUT: Boolean
 
@@ -2779,7 +2781,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: PS.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(PS)
             sage: f = H([x^3+v*y^3, y^3])
-            sage: f.is_postcritically_finite() # long time
+            sage: f.is_postcritically_finite(embedding=K.embeddings(QQbar)[0]) # long time
             True
 
         ::
@@ -2802,7 +2804,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not K in _NumberFields and not K is QQbar:
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
 
-        F = self.change_ring(QQbar)
+        F = self.change_ring(QQbar, embedding=embedding)
         crit_points = F.critical_points()
         pcf = True
         i = 0
@@ -2812,7 +2814,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             i += 1
         return(pcf)
 
-    def critical_point_portrait(self, check=True):
+    def critical_point_portrait(self, check=True, embedding=None):
         r"""
         If this map is post-critically finite, return it's critical point portrait.
 
@@ -2824,6 +2826,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             - check - Boolean.
 
+            - ``embedding`` - embedding of base ring into `\QQbar`
+
         OUTPUT: a digraph.
 
         Examples::
@@ -2833,7 +2837,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: PS.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(PS)
             sage: f = H([x^2+v*y^2, y^2])
-            sage: f.critical_point_portrait(check=False) # long time
+            sage: f.critical_point_portrait(check=False, embedding=K.embeddings(QQbar)[0]) # long time
             Looped digraph on 6 vertices
 
         ::
@@ -2858,7 +2862,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if check:
             if not self.is_postcritically_finite():
                 raise TypeError("map be be post-critically finite")
-        F = self.change_ring(QQbar)
+        F = self.change_ring(QQbar, embedding=embedding)
         crit_points = F.critical_points()
         N = len(crit_points)
         for i in range(N):
@@ -2893,6 +2897,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``error_bound`` - a positive real number. (optional)
 
+        - ``embedding`` - the embedding of the base field to `\QQbar` (optional)
+
         OUTPUT: Real number
 
         Examples::
@@ -2906,7 +2912,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         ::
 
             sage: K.<w> = QuadraticField(2)
-            sage: O = K.maximal_order()
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2+w*y^2, y^2])
@@ -2930,7 +2935,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         K = FractionField(PS.base_ring())
         if not K in _NumberFields and not K is QQbar:
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
-        F = self.change_ring(QQbar)
+        #doesn't really matter which we choose as Galois conjugates have the same height
+        emb = kwds.get("embedding", K.embeddings(QQbar)[0])
+        F = self.change_ring(K).change_ring(QQbar, embedding=emb)
         crit_points = F.critical_points()
         n = len(crit_points)
         err_bound = kwds.get("error_bound", None)
@@ -3042,7 +3049,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         break
             return points
 
-    def multiplier_spectra(self, n, formal=True):
+    def multiplier_spectra(self, n, formal=True, embedding=None):
         r"""
         Computes the formal ``n`` multiplier spectra of this map.
 
@@ -3059,6 +3066,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra
             of this map. False specifies to find the ``n`` multiplier spectra
             of this map. Default: True
+
+        - ``embedding`` - embedding of the base field into `\QQbar`
 
         OUTPUT:
 
@@ -3084,7 +3093,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: f = H([x^2 - w/4*y^2, y^2])
-            sage: f.multiplier_spectra(2, False)
+            sage: f.multiplier_spectra(2, False, embedding=K.embeddings(QQbar)[0])
             [0, 5.931851652578137? + 0.?e-17*I, 0.0681483474218635? - 1.930649271699173?*I,
             0.0681483474218635? + 1.930649271699173?*I]
 
@@ -3119,7 +3128,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
             raise NotImplementedError("self must be a map over a number field")
 
-        f = self.change_ring(QQbar)
+        f = self.change_ring(QQbar, embedding=embedding)
 
         PS = f.domain()
 
@@ -3168,7 +3177,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         return multipliers
 
-    def sigma_invariants(self,n,formal = True):
+    def sigma_invariants(self, n, formal=True, embedding=None):
         r"""
         Computes the values of the elementary symmetric polynomials of the formal ``n`` multilpier spectra
         of this map.
@@ -3186,6 +3195,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             corresponding to the formal ``n`` multiplier spectra of this map. False specifies to instead find
             the values corresponding to the ``n`` multiplier spectra of this map, which includes the multipliers
             of all periodic points of period ``n`` of this map. Default: True
+
+        - ``embedding`` - embedding of the base field into `\QQbar`
 
         OUTPUT:
 
@@ -3211,12 +3222,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2, y^2])
-            sage: f.sigma_invariants(2, False)
+            sage: f.sigma_invariants(2, False, embedding=K.embeddings(QQbar)[0])
             [13.00000000000000?, 11.00000000000000?, -25.00000000000000?, 0]
         """
         polys = []
 
-        multipliers = self.multiplier_spectra(n, formal)
+        multipliers = self.multiplier_spectra(n, formal, embedding=embedding)
 
         e = SymmetricFunctions(QQbar).e()
 

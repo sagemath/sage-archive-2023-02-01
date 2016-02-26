@@ -95,7 +95,6 @@ from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
-from sage.misc.all import verbose
 
 def is_SchemeMorphism(f):
     """
@@ -1387,27 +1386,25 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: K.<v> = QuadraticField(2)
+            sage: K.<v> = QuadraticField(2, embedding=QQbar(sqrt(2)))
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
             sage: f = H([x^2+v*y^2, y^2])
             sage: f.change_ring(QQbar)
-            verbose 0 (1280: morphism.py, change_ring) Warning: coerce map not found,
-            choosing arbitrary embedding
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic
             Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^2 + (-1.414213562373095?)*y^2 : y^2)
+                    (x^2 + 1.414213562373095?*y^2 : y^2)
 
         ::
 
             sage: set_verbose(None)
-            sage: K.<w> = QuadraticField(2)
+            sage: K.<w> = QuadraticField(2, embedding=QQbar(-sqrt(2)))
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: X = P.subscheme(x-y)
             sage: H = End(X)
             sage: f = H([6*x^2+2*x*y+16*y^2, -w*x^2-4*x*y-4*y^2])
-            sage: f.change_ring(QQbar, embedding=K.embeddings(QQbar)[0])
+            sage: f.change_ring(QQbar)
             Scheme endomorphism of Closed subscheme of Projective Space of dimension
             1 over Algebraic Field defined by:
               x - y
@@ -1430,43 +1427,21 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         check = kwds.get('check', True)
         emb =  kwds.get('embedding', None)
         K = self.codomain().base_ring()
-        T = self.domain().change_ring(R)
+        T = self.domain().change_ring(R, **kwds)
         if self.is_endomorphism():
             H = End(T)
         else:
-            S = self.codomain().change_ring(R)
+            S = self.codomain().change_ring(R, **kwds)
             H = Hom(T,S)
 
         if emb is None:
             #try to coerce
-            try:
-                G = []
-                for f in self:
-                    if isinstance(f, FractionFieldElement):
-                        G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
-                    else:
-                        G.append(f.change_ring(R))
-            except TypeError:
-                #see if one can be constructed
-                try:
-                    phi = K.embeddings(R)[0]
-                    Kx = self.coordinate_ring()
-                    #affine maps can be fraction field elements
-                    if Kx in Fields():
-                        Kx = Kx.ring()
-                    Rx = R[Kx.variable_names()]
-                    phix = Kx.hom(phi,Rx)
-                    G = []
-                    for f in self:
-                        #Affine maps map be rational
-                        if isinstance(f, FractionFieldElement):
-                            G.append(phix(f.numerator())/phix(f.denominator()))
-                        else:
-                            G.append(phix(f))
-                    verbose("Warning: coerce map not found, choosing arbitrary embedding", level=0)
-                except (IndexError, ValueError, AttributeError):
-                    #raise a better error
-                    raise TypeError("unable to find an embedding of %s to %s"%(K,R))
+            G = []
+            for f in self:
+                if isinstance(f, FractionFieldElement):
+                    G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
+                else:
+                    G.append(f.change_ring(R))
         else:
             if emb.domain() == self.base_ring():
                 emb = self.coordinate_ring().hom(emb, T.ambient_space().coordinate_ring())
@@ -1704,7 +1679,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: P.<x,y> = ProjectiveSpace(O, 1)
             sage: H = End(P)
             sage: F = H([x^2+O(v)*y^2, y^2])
-            sage: F.change_ring(K).change_ring(QQbar)
+            sage: F.change_ring(K).change_ring(QQbar, embedding=K.embeddings(QQbar)[0])
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + (-2.645751311064591?*I)*y^2 : y^2)
@@ -1718,7 +1693,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: emb = K.embeddings(QQbar)
             sage: Q.change_ring(QQbar, embedding = emb[0])
             (1.5000000000000000? - 0.866025403784439?*I : 1)
-            sage: Q.change_ring(QQbar, embedding = emb[1])
+            sage: Q.change_ring(QQbar, embedding=emb[1])
             (1.5000000000000000? + 0.866025403784439?*I : 1)
 
         ::
@@ -1726,7 +1701,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: K.<v> = QuadraticField(2)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: Q = P([v,1])
-            sage: Q.change_ring(QQbar)
+            sage: Q.change_ring(QQbar, embedding=K.embeddings(QQbar)[0])
             (-1.414213562373095? : 1)
 
         ::
@@ -1742,20 +1717,10 @@ class SchemeMorphism_point(SchemeMorphism):
         check = kwds.get('check', True)
         emb = kwds.get('embedding', None)
         K = self.codomain().base_ring()
-        S = self.codomain().change_ring(R)
+        S = self.codomain().change_ring(R, **kwds)
         if emb is None:
             #try to coerce
-            try:
-                Q = [R(t) for t in self]
-            except TypeError:
-                #see if one can be constructed
-                try:
-                    phi = K.embeddings(R)[0]
-                    Q = [phi(t) for t in self]
-                    verbose("Warning: coerce map not found, choosing arbitrary embedding", level=0)
-                except (IndexError, ValueError, AttributeError):
-                    #raise a better error
-                    raise TypeError("unable to find an embedding of %s to %s"%(K,R))
+            Q = [R(t) for t in self]
         else:
             Q = [emb(t) for t in self]
         return(S.point(Q, check=check))

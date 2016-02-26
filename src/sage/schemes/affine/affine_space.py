@@ -488,13 +488,15 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             raise ValueError("m must be an integer")
         return AffineSpace(self.dimension_relative() * mm, self.base_ring())
 
-    def change_ring(self, R):
+    def change_ring(self, R, **kwds):
         r"""
         Return an affine space over ring `R` and otherwise the same as self.
 
         INPUT:
 
         - ``R`` -- commutative ring
+
+        - ``kwds`` -- no keywords used
 
         OUTPUT:
 

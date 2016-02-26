@@ -659,13 +659,15 @@ class ProjectiveSpace_ring(AmbientSpace):
             v = self.gens()
         return '\\left(%s\\right)'%(" : ".join([str(latex(f)) for f in v]))
 
-    def change_ring(self, R):
+    def change_ring(self, R, **kwds):
         r"""
         Return a projective space over ring ``R``.
 
         INPUT:
 
         - ``R`` -- commutative ring.
+
+        - ``kwds` -- no keywords used
 
         OUTPUT:
 

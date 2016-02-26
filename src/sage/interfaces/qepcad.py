@@ -857,7 +857,7 @@ class Qepcad:
             raise ValueError("variables collide after stripping underscores")
         formula = formula.replace('_', '')
 
-        qex = Qepcad_expect(logfile=logfile)
+        qex = Qepcad_expect(logfile=logfile, memcells=memcells, server=server)
         qex._send('[ input from Sage ]')
         qex._send('(' + ','.join(varlist) + ')')
         qex._send(str(free_vars))

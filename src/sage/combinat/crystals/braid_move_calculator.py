@@ -1,12 +1,6 @@
 """
 Braid Move Calculator
 
-EXAMPLES::
-
-    sage: W = CoxeterGroup(['A',5])
-    sage: load('BraidMoveCalculator.sage'); B = BraidMoveCalculator(W)
-    sage: view(B.chain_of_reduced_words((1,2,1,3,2,1,4,3,2,1,5,4,3,2,1),(5,4,5,3,4,5,2,3,4,5,1,2,3,4,5)))
-
 AUTHORS:
 
 - Dinakar Muthiah (2014-06-03): initial version
@@ -31,11 +25,32 @@ class BraidMoveCalculator(object):
     def __init__(self, coxeter_group):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+            sage: W = CoxeterGroup(['C',3])
+            sage: B = BraidMoveCalculator(W)
+            sage: TestSuite(B).run(skip="_test_pickling")
         """
         self.coxeter_group = coxeter_group
         self.coxeter_matrix = coxeter_group.coxeter_matrix()
 
     def _apply_put_in_front_recur_step(self, k, input_word, coxeter_matrix_entry):        
+        """
+        Recurrence step for :meth:`put_in_front`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+            sage: W = CoxeterGroup(['C',3])
+            sage: B = BraidMoveCalculator(W)
+            sage: B.put_in_front(2, (3, 2, 3, 1, 2, 3, 1, 2, 1)) # indirect doctest
+            ((3, 2, 3, 1, 2, 3, 1, 2, 1),
+             (3, 2, 3, 1, 2, 1, 3, 2, 1),
+             (3, 2, 3, 2, 1, 2, 3, 2, 1),
+             (2, 3, 2, 3, 1, 2, 3, 2, 1))
+        """
         i = input_word[0]
         def partial_braid_word(length, swap=False, i=i, k=k):
             if swap:
@@ -64,9 +79,29 @@ class BraidMoveCalculator(object):
 
     def put_in_front(self, k, input_word):
         """
-        Return a list of reduced words beginning with 
-        ``input_word`` and ending with a reduced word whose first letter 
-        is ``k``. There still remains an issue with 0 indices.
+        Return a list of reduced words starting with ``input_word``
+        and ending with a reduced word whose first letter  is ``k``.
+        There still remains an issue with 0 indices.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+            sage: W = CoxeterGroup(['C',3])
+            sage: B = BraidMoveCalculator(W)
+            sage: B.put_in_front(2, (3, 2, 3, 1, 2, 3, 1, 2, 1))
+            ((3, 2, 3, 1, 2, 3, 1, 2, 1),
+             (3, 2, 3, 1, 2, 1, 3, 2, 1),
+             (3, 2, 3, 2, 1, 2, 3, 2, 1),
+             (2, 3, 2, 3, 1, 2, 3, 2, 1))
+            sage: B.put_in_front(1, (3, 2, 3, 1, 2, 3, 1, 2, 1))
+            ((3, 2, 3, 1, 2, 3, 1, 2, 1),
+             (3, 2, 1, 3, 2, 3, 1, 2, 1),
+             (3, 2, 1, 3, 2, 3, 2, 1, 2),
+             (3, 2, 1, 2, 3, 2, 3, 1, 2),
+             (3, 1, 2, 1, 3, 2, 3, 1, 2),
+             (1, 3, 2, 1, 3, 2, 3, 1, 2))
+            sage: B.put_in_front(1, (1, 3, 2, 3, 2, 1, 2, 3, 2))
+            ((1, 3, 2, 3, 2, 1, 2, 3, 2),)
         """
         i = input_word[0]
         if i == 0 or k == 0: # Is this for affine types? - Travis
@@ -84,6 +119,14 @@ class BraidMoveCalculator(object):
 
         - ``start_word``, ``end_word`` -- two reduced expressions
           for the long word
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+            sage: W = CoxeterGroup(['A',5])
+            sage: B = BraidMoveCalculator(W)
+            sage: B.chain_of_reduced_words((1,2,1,3,2,1,4,3,2,1,5,4,3,2,1), # not tested
+            ....:                          (5,4,5,3,4,5,2,3,4,5,1,2,3,4,5))
         """
         if start_word == end_word:
             return (start_word,)

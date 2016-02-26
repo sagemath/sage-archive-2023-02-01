@@ -27,9 +27,19 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
 
 class PBWDatum(object):
+    """
+    Helper class which represents a PBW datum.
+    """
     def __init__(self, parent, long_word, lusztig_datum):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
+            sage: P = PBWData("A2")
+            sage: L = PBWDatum(P, (1,2,1), (1,4,7))
+            sage: TestSuite(L).run(skip="_test_pickling")
         """
         self.parent = parent
         self.long_word = tuple(long_word)
@@ -38,6 +48,14 @@ class PBWDatum(object):
     def __repr__(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
+            sage: P = PBWData("A2")
+            sage: PBWDatum(P, (1,2,1), (1,4,7))
+            PBW Datum element of type ['A', 2] with long word (1, 2, 1)
+             and Lusztig datum (1, 4, 7)
         """
         return_str = "PBW Datum element of type {cartan_type} with ".format(
                      cartan_type=self.parent.cartan_type)
@@ -88,6 +106,21 @@ class PBWDatum(object):
         r"""
         Return a new PBWDatum equivalent to ``self``
         whose long word begins with ``i``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
+            sage: P = PBWData("A3")
+            sage: datum = PBWDatum(P, (1,2,1,3,2,1), (1,0,1,4,2,3))
+            sage: datum.convert_to_long_word_with_first_letter(1)
+            PBW Datum element of type ['A', 3] with long word (1, 2, 3, 1, 2, 1)
+             and Lusztig datum (1, 0, 4, 1, 2, 3)
+            sage: datum.convert_to_long_word_with_first_letter(2)
+            PBW Datum element of type ['A', 3] with long word (2, 1, 2, 3, 2, 1)
+             and Lusztig datum (0, 1, 0, 4, 2, 3)
+            sage: datum.convert_to_long_word_with_first_letter(3)
+            PBW Datum element of type ['A', 3] with long word (3, 1, 2, 3, 1, 2)
+             and Lusztig datum (8, 1, 0, 4, 1, 2)
         """
         return self.convert_to_new_long_word(self.parent._long_word_begin_with(i))
 
@@ -101,7 +134,7 @@ class PBWDatum(object):
             sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
             sage: P = PBWData("A2")
             sage: datum = PBWDatum(P, (1,2,1), (1,0,1))
-            sage: new_datum = P.convert_to_new_long_word(datum, (2,1,2))
+            sage: new_datum = datum.convert_to_new_long_word((2,1,2))
             sage: new_datum.long_word
             (2, 1, 2)
             sage: new_datum.lusztig_datum
@@ -151,6 +184,12 @@ class PBWData(object): # UniqueRepresentation?
     def __init__(self, cartan_type):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.pbw_datum import PBWData
+            sage: P = PBWData(["A",2])
+            sage: TestSuite(P).run(skip="_test_pickling")
         """
         self.cartan_type = CartanType(cartan_type)
         self.root_system = RootSystem(self.cartan_type)
@@ -217,6 +256,17 @@ class PBWData(object): # UniqueRepresentation?
     def _long_word_begin_with(self, i):
         """
         Return a reduced expression of the long word which begins with ``i``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.pbw_datum import PBWData
+            sage: P = PBWData(["C",3])
+            sage: P._long_word_begin_with(1)
+            (1, 3, 2, 3, 1, 2, 3, 1, 2)
+            sage: P._long_word_begin_with(2)
+            (2, 3, 2, 3, 1, 2, 3, 2, 1)
+            sage: P._long_word_begin_with(3)
+            (3, 2, 3, 1, 2, 3, 1, 2, 1)
         """
         si = self.weyl_group.simple_reflection(i)
         w0 = self.weyl_group.long_element()
@@ -279,7 +329,12 @@ def tropical_plucker_relation(a, lusztig_datum):
         sage: from sage.combinat.crystals.pbw_datum import tropical_plucker_relation
         sage: tropical_plucker_relation((0,0), (2,3))
         (3, 2)
-        # Add more doctests
+        sage: tropical_plucker_relation((-1,-1), (1,2,3))
+        (4, 1, 2)
+        sage: tropical_plucker_relation((-1,-2), (1,2,3,4))
+        (8, 1, 2, 3)
+        sage: tropical_plucker_relation((-2,-1), (1,2,3,4))
+        (6, 1, 2, 3)
     """
     n = lusztig_datum
     if a == (0, 0): # A1xA1

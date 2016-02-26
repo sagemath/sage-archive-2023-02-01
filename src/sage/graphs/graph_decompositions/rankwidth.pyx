@@ -124,7 +124,7 @@ Methods
 
 
 include 'sage/ext/stdsage.pxi'
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from libc.string cimport memset
 

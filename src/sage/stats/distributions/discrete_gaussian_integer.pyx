@@ -108,7 +108,7 @@ REFERENCES:
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
 
-include '../../ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN

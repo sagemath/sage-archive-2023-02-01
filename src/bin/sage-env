@@ -252,7 +252,8 @@ export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
-export SAGE_DOC="$SAGE_SRC/doc"
+export SAGE_DOC_SRC="$SAGE_SRC/doc"
+export SAGE_DOC="$SAGE_SHARE/doc/sage"
 
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
@@ -638,6 +639,12 @@ if [ -z "$SAGE_DOC_MATHJAX" ]; then
         SAGE_DOC_MATHJAX="True"
     fi
     export SAGE_DOC_MATHJAX
+fi
+
+# Set the cysignals crash logs directory
+if [ -z "$CYSIGNALS_CRASH_LOGS" ]; then
+    export CYSIGNALS_CRASH_LOGS="$DOT_SAGE/crash_logs"
+    export CYSIGNALS_CRASH_DAYS=7  # keep logs for 7 days
 fi
 
 # You can set environment variables in $SAGE_RC_FILE

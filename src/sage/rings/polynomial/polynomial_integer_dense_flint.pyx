@@ -30,7 +30,7 @@ We check that the buggy gcd is fixed (see :trac:`17816`)::
 ################################################################################
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
@@ -72,6 +72,13 @@ cdef extern from "flint/flint.h":
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via FLINT.
+
+    TESTS::
+
+        sage: f = ZZ['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
+        sage: isinstance(f, Polynomial_integer_dense_flint)
+        True
 
     .. automethod:: _add_
     .. automethod:: _sub_

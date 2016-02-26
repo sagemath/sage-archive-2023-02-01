@@ -25,7 +25,8 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
     EXAMPLES::
 
         sage: from sage.schemes.product_projective.homset import SchemeHomset_points_product_projective_spaces_ring
-        sage: SchemeHomset_points_product_projective_spaces_ring(Spec(QQ), ProductProjectiveSpaces([1,1],QQ,'z'))
+        sage: SchemeHomset_points_product_projective_spaces_ring(Spec(QQ), \
+        ProductProjectiveSpaces([1, 1], QQ, 'z'))
         Set of rational points of Product of projective spaces P^1 x P^1 over Rational Field
         """
 
@@ -43,12 +44,12 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
 
         EXAMPLES::
 
-            sage: P = ProductProjectiveSpaces([1,1],QQ,'z')
-            sage: Q = P([1,2,2,3]); Q
+            sage: P = ProductProjectiveSpaces([1, 1],QQ, 'z')
+            sage: Q = P([1, 2, 2, 3]); Q
             (1/2 : 1 , 2/3 : 1)
             sage: type(Q)
             <class 'sage.schemes.product_projective.point.ProductProjectiveSpaces_point_ring'>
-            sage: P(QQ)._element_constructor_([1,2,2,0])
+            sage: P(QQ)._element_constructor_([1, 2, 2,0])
             (1/2 : 1 , 1 : 0)
         """
         return self.codomain()._point(self, v, **kwds)

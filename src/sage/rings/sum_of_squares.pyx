@@ -20,7 +20,7 @@ AUTHORS:
 from libc.math cimport sqrt
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cimport integer
 import integer

@@ -15,6 +15,7 @@ Plane curves
    sage/schemes/plane_conics/con_rational_field
    sage/schemes/plane_conics/con_finite_field
    sage/schemes/plane_conics/con_prime_finite_field
+   sage/schemes/plane_conics/con_rational_function_field
 
    sage/schemes/jacobians/abstract_jacobian
 

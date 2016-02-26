@@ -104,9 +104,9 @@ def find_extra_files(packages, src_dir, cythonized_dir, site_packages, special_f
 
         sage: from sage_setup.find import find_extra_files
         sage: from sage.env import SAGE_SRC, SAGE_CYTHONIZED
-        sage: find_extra_files(["sage.ext.interrupt"], SAGE_SRC, SAGE_CYTHONIZED, ".")
-        [('./sage/ext/interrupt',
-          ['.../src/sage/ext/interrupt/interrupt.pxd', ...interrupt_api.h...])]
+        sage: find_extra_files(["sage.modular.arithgroup"], SAGE_SRC, SAGE_CYTHONIZED, ".")
+        [('./sage/modular/arithgroup',
+          ['.../src/sage/modular/arithgroup/farey.pxd', ...farey_symbol.h...])]
     """
     data_files = []
 

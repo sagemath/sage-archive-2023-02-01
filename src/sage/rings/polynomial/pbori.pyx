@@ -182,7 +182,7 @@ REFERENCES:
   http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 """
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 from cpython.object cimport Py_EQ, Py_NE
 

@@ -10,7 +10,7 @@ Standard C helper code for Cython modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.ext.stdsage cimport PY_NEW, HAS_DICTIONARY
 from sage.ext.memory cimport (

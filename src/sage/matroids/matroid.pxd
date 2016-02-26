@@ -89,6 +89,7 @@ cdef class Matroid(SageObject):
     cpdef circuit_closures(self)
     cpdef nonspanning_circuit_closures(self)
     cpdef bases(self)
+    cpdef independent_sets(self)
     cpdef independent_r_sets(self, long r)
     cpdef nonbases(self)
     cpdef dependent_r_sets(self, long r)

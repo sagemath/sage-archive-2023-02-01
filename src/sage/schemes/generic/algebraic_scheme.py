@@ -1517,8 +1517,6 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         r"""
         Returns a new algebraic subscheme which is this subscheme coerced to ``R``.
 
-        The user may specify the embedding into ``R`` with a keyword.
-
         INPUT:
 
         - ``R`` -- ring or morphism.

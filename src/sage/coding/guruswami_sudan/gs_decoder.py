@@ -147,7 +147,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
     .. NOTE::
 
-        One has to provide either ``C`` or ``parameters``. If neither are given,
+        One has to provide either ``tau`` or ``parameters``. If neither are given,
         an exception will be raised.
 
         If one provides a function as ``root_finder``, its signature has to be:

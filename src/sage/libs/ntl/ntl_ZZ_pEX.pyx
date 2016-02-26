@@ -23,7 +23,7 @@ AUTHORS:
 
 from __future__ import division
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'

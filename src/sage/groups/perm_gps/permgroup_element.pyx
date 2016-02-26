@@ -59,7 +59,6 @@ import random
 import sage.groups.old as group
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
 from sage.rings.all      import ZZ, Integer

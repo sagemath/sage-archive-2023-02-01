@@ -10,7 +10,7 @@ Cython were fixed.  Probably all this code should be moved into the
 relevant classes and this file deleted.
 """
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 
 from sage.ext.mod_int cimport *

@@ -15,7 +15,6 @@ AUTHOR:
 ###############################################################################
 
 include "sage/libs/ntl/decl.pxi"
-include "sage/ext/interrupt.pxi"
 
 cdef extern from "limits.h":
     long INT_MAX

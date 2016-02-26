@@ -28,7 +28,7 @@ method of univariate polynomial ring objects and the top-level
 import sys
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from libc.string cimport memset
 
 from sage.structure.element cimport parent_c

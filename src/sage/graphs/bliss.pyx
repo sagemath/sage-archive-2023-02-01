@@ -28,7 +28,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
 from cpython cimport PyObject
 from libc.limits cimport LONG_MAX

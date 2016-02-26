@@ -166,5 +166,5 @@ class SageKernel(IPythonKernel):
         ]
 
     def pre_handler_hook(self):
-        from sage.ext.interrupt.interrupt import init_interrupts
-        self.saved_sigint_handler = init_interrupts()
+        from cysignals import init_cysignals
+        self.saved_sigint_handler = init_cysignals()

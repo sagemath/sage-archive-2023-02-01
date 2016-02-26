@@ -2,7 +2,7 @@
 Eisenstein Series (optimized compiled functions)
 """
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from sage.rings.rational_field import QQ
 from sage.rings.power_series_ring import PowerSeriesRing

@@ -28,7 +28,7 @@ from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
 

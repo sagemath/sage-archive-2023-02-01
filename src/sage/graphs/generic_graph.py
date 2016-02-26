@@ -10935,7 +10935,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def degree_histogram(self):
         """
-        Returns a list, whose ith entry is the frequency of degree i.
+        Return a list, whose ith entry is the frequency of degree i.
 
         EXAMPLES::
 
@@ -10948,7 +10948,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.Grid2dGraph(9,12).to_directed()
             sage: G.degree_histogram()
             [0, 0, 0, 0, 4, 0, 34, 0, 70]
+
+        TESTS::
+
+            sage: Graph().degree_histogram()
+            []
         """
+        if self.order() == 0:
+            return []
         degree_sequence = self.degree()
         dmax = max(degree_sequence) + 1
         frequency = [0]*dmax

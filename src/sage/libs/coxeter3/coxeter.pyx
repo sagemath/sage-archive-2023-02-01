@@ -13,7 +13,6 @@ Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 from .decl cimport *
 
 initConstants()

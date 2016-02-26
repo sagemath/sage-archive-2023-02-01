@@ -15,7 +15,6 @@ set if element i belongs to the set.
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
 
 from libc.stdint cimport uint8_t
 

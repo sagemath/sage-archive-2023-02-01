@@ -57,7 +57,7 @@ class Polynomial_generic_sparse(Polynomial):
         sage: R.<x> = PolynomialRing(PolynomialRing(QQ, 'y'), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
         sage: loads(f.dumps()) == f
         True
 
@@ -71,6 +71,7 @@ class Polynomial_generic_sparse(Polynomial):
         s + Tbar
         sage: (s + T)**2
         s^2 + 2*Tbar*s + 4
+
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
@@ -704,7 +705,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ, sparse=True)
             sage: p = x^100000 + 2*x + 4
             sage: type(p)
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
             sage: p.shift(0)
              x^100000 + 2*x + 4
             sage: p.shift(-1)
@@ -1012,7 +1013,7 @@ class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_gene
         sage: R.<x> = PolynomialRing(Frac(RR['t']), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
         sage: loads(f.dumps()) == f
         True
     """

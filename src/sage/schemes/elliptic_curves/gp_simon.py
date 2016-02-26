@@ -36,8 +36,8 @@ def init():
         from sage.env import DOT_SAGE
         logfile = os.path.join(DOT_SAGE, 'gp-simon.log')
         gp = Gp(script_subdirectory='simon', logfile=logfile)
-        gp.read("ell.gp")
         gp.read("ellQ.gp")
+        gp.read("ell.gp")
         gp.read("qfsolve.gp")
         gp.read("resultant3.gp")
 

@@ -2,7 +2,7 @@ from number_field import (NumberField, NumberFieldTower, CyclotomicField, Quadra
                           is_fundamental_discriminant)
 from number_field_element import NumberFieldElement
 
-from order import EquationOrder
+from order import EquationOrder, GaussianIntegers, EisensteinIntegers
 
 from totallyreal import enumerate_totallyreal_fields_prim
 from totallyreal_data import hermite_constant

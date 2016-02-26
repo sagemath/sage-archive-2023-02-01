@@ -1042,8 +1042,8 @@ cdef class FiniteField(Field):
             ...
             TypeError: no canonical coercion from Rational Field to Finite Field in a of size 2^2
 
-            sage: FiniteField(16, 'a', conway=True, prefix='z')._coerce_(FiniteField(4, 'a', conway=True, prefix='z').0)
-            a^2 + a
+            sage: FiniteField(16)._coerce_(FiniteField(4).0)
+            z4^2 + z4
 
             sage: FiniteField(8, 'a')._coerce_(FiniteField(4, 'a').0)
             Traceback (most recent call last):
@@ -1082,7 +1082,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: v = GF(3^3, conway=True, prefix='z').construction(); v
+            sage: v = GF(3^3).construction(); v
             (AlgebraicExtensionFunctor, Finite Field of size 3)
             sage: v[0].polys[0]
             3
@@ -1093,10 +1093,10 @@ cdef class FiniteField(Field):
         if self.degree() == 1:
             # this is not of type FiniteField_prime_modn
             from sage.rings.integer import Integer
-            return AlgebraicExtensionFunctor([self.polynomial()], [None], [None], conway=1), self.base_ring()
+            return AlgebraicExtensionFunctor([self.polynomial()], [None], [None]), self.base_ring()
         elif hasattr(self, '_prefix'):
             return (AlgebraicExtensionFunctor([self.degree()], [self.variable_name()], [None],
-                                              conway=True, prefix=self._prefix),
+                                              prefix=self._prefix),
                     self.base_ring())
         else:
             return (AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None]),
@@ -1135,9 +1135,9 @@ cdef class FiniteField(Field):
             sage: R.<x> = k[]
             sage: k.extension(x^1000 + x^5 + x^4 + x^3 + 1, 'a')
             Finite Field in a of size 2^1000
-            sage: k = GF(3^4, conway=True, prefix='z')
+            sage: k = GF(3^4)
             sage: R.<x> = k[]
-            sage: k.extension(3, conway=True, prefix='z')
+            sage: k.extension(3)
             Finite Field in z12 of size 3^12
 
         An example using the ``map`` argument::
@@ -1231,28 +1231,28 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(2^21, conway=True, prefix='z')
+            sage: k = GF(2^21)
             sage: k.subfields()
             [(Finite Field of size 2,
               Ring morphism:
                   From: Finite Field of size 2
-                  To:   Finite Field in a of size 2^21
+                  To:   Finite Field in z21 of size 2^21
                   Defn: 1 |--> 1),
              (Finite Field in z3 of size 2^3,
               Ring morphism:
                   From: Finite Field in z3 of size 2^3
-                  To:   Finite Field in a of size 2^21
-                  Defn: z3 |--> a^20 + a^19 + a^17 + a^15 + a^11 + a^9 + a^8 + a^6 + a^2),
+                  To:   Finite Field in z21 of size 2^21
+                  Defn: z3 |--> z21^20 + z21^19 + z21^17 + z21^15 + z21^11 + z21^9 + z21^8 + z21^6 + z21^2),
              (Finite Field in z7 of size 2^7,
               Ring morphism:
                   From: Finite Field in z7 of size 2^7
-                  To:   Finite Field in a of size 2^21
-                  Defn: z7 |--> a^20 + a^19 + a^17 + a^15 + a^14 + a^6 + a^4 + a^3 + a),
+                  To:   Finite Field in z21 of size 2^21
+                  Defn: z7 |--> z21^20 + z21^19 + z21^17 + z21^15 + z21^14 + z21^6 + z21^4 + z21^3 + z21),
              (Finite Field in z21 of size 2^21,
               Ring morphism:
                   From: Finite Field in z21 of size 2^21
-                  To:   Finite Field in a of size 2^21
-                  Defn: z21 |--> a)]
+                  To:   Finite Field in z21 of size 2^21
+                  Defn: z21 |--> z21)]
         """
         from sage.rings.integer import Integer
         from finite_field_constructor import GF
@@ -1263,7 +1263,7 @@ cdef class FiniteField(Field):
             if not degree.divides(n):
                 return []
             elif hasattr(self, '_prefix'):
-                K = GF(p**degree, name=name, conway=True, prefix=self._prefix)
+                K = GF(p**degree, name=name, prefix=self._prefix)
                 return [(K, self.coerce_map_from(K))]
             elif degree == 1:
                 K = GF(p)

@@ -2584,12 +2584,61 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``self.full_rank()``
+
+        .. SEEALSO::
+
+            :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
+
         """
         cdef SetSystem res
         res = SetSystem(list(self.groundset()))
         for X in combinations(self.groundset(), self.full_rank()):
             if self._rank(X) == len(X):
                 res.append(X)
+        return res
+    
+    cpdef independent_sets(self):
+        r"""
+        Return the list of independent subsets of the matroid.
+
+        OUTPUT:
+
+        An iterable containing all independent subsets of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Pappus()
+            sage: I = M.independent_sets()
+            sage: len(I)
+            121
+
+        .. SEEALSO::
+
+            :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
+
+        """
+        cdef int r
+        cdef int full_rank = self.full_rank()
+        cdef list T = [set() for r in range(full_rank)]
+        cdef list I = [frozenset()] * (full_rank+1)
+        r = 0
+
+        res = [frozenset()]
+        T[0] = set(self.groundset()) - self.closure([])
+        while r >= 0:
+            if r + 1 == full_rank:
+                for x in T[r]:
+                    I[r+1] = I[r].union([x])
+                    res.append(I[r+1])
+                T[r] = set()
+                r -= 1
+            elif T[r]:
+                I[r+1] = I[r].union([T[r].pop()])
+                res.append(I[r+1])
+                T[r+1] = T[r] - self._closure(I[r+1])
+                r += 1
+            else:
+                r -= 1
         return res
 
     cpdef independent_r_sets(self, long r):
@@ -2616,6 +2665,11 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``r``
+
+        .. SEEALSO::
+
+            :meth:`M.independent_sets() <sage.matroids.matroid.Matroid.independent_sets>`
+            :meth:`M.bases() <sage.matroids.matroid.Matroid.bases>`
         """
         res = []
         for X in combinations(self.groundset(), r):
@@ -3007,8 +3061,7 @@ cdef class Matroid(SageObject):
         vector_e = ambient.basis()
         convert = {ind: i for i, ind in enumerate(self.groundset())}
         vertices = [ambient.sum(vector_e[convert[i]] for i in IS)
-                    for r in range(self.full_rank() + 1)
-                    for IS in self.independent_r_sets(r)]
+                    for IS in self.independent_sets()]
         return Polyhedron(vertices)
 
     # isomorphism and equality

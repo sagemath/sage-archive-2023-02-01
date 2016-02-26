@@ -35,7 +35,7 @@ Methods
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 
 

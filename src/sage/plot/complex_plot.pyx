@@ -19,7 +19,7 @@ Complex Plots
 
 # TODO: use NumPy buffers and complex fast_callable (when supported)
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cimport numpy as cnumpy
 

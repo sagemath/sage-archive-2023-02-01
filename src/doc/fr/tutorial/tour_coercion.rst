@@ -58,7 +58,7 @@ contre matrices creuses par exemple).
     sage: R.<c> = PolynomialRing(ZZ, implementation='NTL')
     sage: type(a); type(b); type(c)
     <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
+    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
     <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
 
 Deux problèmes se posent alors. D'une part, si deux éléments sont instances de

@@ -45,6 +45,21 @@ of `C_n` we have that
 contains a database of Conway polynomials which also can be queried
 independently of finite field construction.
 
+A pseudo-Conway polynomial satisfies all of the conditions required
+of a Conway polynomial except the condition that it is lexicographically
+first.  They are therefore not unique.  If no variable name is
+specified for an extension field, Sage will fit the finite field
+into a compatible lattice of field extensions defined by pseudo-Conway
+polynomials. This lattice is stored in an
+:class:`~sage.rings.algebraic_closure_finite_field.AlgebraicClosureFiniteField`
+object; different algebraic closure objects can be created by using
+a different ``prefix`` keyword to the finite field constructor.
+
+Note that the computation of pseudo-Conway polynomials is expensive
+when the degree is large and highly composite.  If a variable
+name is specified then a random polynomial is used instead, which
+will be much faster to find.
+
 While Sage supports basic arithmetic in finite fields some more
 advanced features for computing with finite fields are still not
 implemented. For instance, Sage does not calculate embeddings of
@@ -181,7 +196,13 @@ class FiniteFieldFactory(UniqueFactory):
 
     - ``order`` -- a prime power
 
-    - ``name`` -- string; must be specified unless ``order`` is prime.
+    - ``name`` -- string, optional.  Note that there can be a
+      substantial speed penalty (in creating extension fields) when
+      omitting the variable name, since doing so triggers the
+      computation of pseudo-Conway polynomials in order to define a
+      coherent lattice of extensions of the prime field.  The speed
+      penalty grows with the size of extension degree and with
+      the number of factors of the extension degree.
 
     - ``modulus`` -- (optional) either a defining polynomial for the
       field, or a string specifying an algorithm to use to generate
@@ -189,7 +210,8 @@ class FiniteFieldFactory(UniqueFactory):
       :meth:`~sage.rings.polynomial.irreducible_element()` as the
       parameter ``algorithm``; see there for the permissible values of
       this parameter. In particular, you can specify
-      ``modulus="primitive"`` to get a primitive polynomial.
+      ``modulus="primitive"`` to get a primitive polynomial.  You
+      may not specify a modulus if you do not specify a variable name.
 
     - ``impl`` -- (optional) a string specifying the implementation of
       the finite field. Possible values are:
@@ -374,15 +396,15 @@ class FiniteFieldFactory(UniqueFactory):
     The following demonstrate coercions for finite fields using Conway
     polynomials::
 
-        sage: k = GF(5^2, conway=True, prefix='z'); a = k.gen()
-        sage: l = GF(5^5, conway=True, prefix='z'); b = l.gen()
+        sage: k = GF(5^2); a = k.gen()
+        sage: l = GF(5^5); b = l.gen()
         sage: a + b
         3*z10^5 + z10^4 + z10^2 + 3*z10 + 1
 
     Note that embeddings are compatible in lattices of such finite
     fields::
 
-        sage: m = GF(5^3, conway=True, prefix='z'); c = m.gen()
+        sage: m = GF(5^3); c = m.gen()
         sage: (a+b)+c == a+(b+c)
         True
         sage: (a*b)*c == a*(b*c)
@@ -396,9 +418,31 @@ class FiniteFieldFactory(UniqueFactory):
 
     Another check that embeddings are defined properly::
 
-        sage: k = GF(3**10, conway=True, prefix='z')
-        sage: l = GF(3**20, conway=True, prefix='z')
+        sage: k = GF(3**10)
+        sage: l = GF(3**20)
         sage: l(k.gen()**10) == l(k.gen())**10
+        True
+
+    Using pseudo-Conway polynomials is slow for highly
+    composite extension degrees::
+
+        sage: k = GF(3^120) # long time -- about 3 seconds
+        sage: GF(3^40).gen().minimal_polynomial()(k.gen()^((3^120-1)/(3^40-1))) # long time because of previous line
+        0
+
+    Before :trac:`17569`, the boolean keyword argument ``conway``
+    was required when creating finite fields without a variable
+    name.  This keyword argument is now deprecated.  You
+    can still pass in ``prefix`` as an argument, which has the
+    effect of changing the variable name of the algebraic closure::
+
+        sage: K = GF(3^10, conway=True, prefix='w'); L = GF(3^10); K is L
+        doctest:...: DeprecationWarning: the 'conway' argument is deprecated, pseudo-conway polynomials are now used by default if no variable name is given
+        See http://trac.sagemath.org/17569 for details.
+        False
+        sage: K.variable_name(), L.variable_name()
+        ('w10', 'z10')
+        sage: list(K.polynomial()) == list(L.polynomial())
         True
 
     Check that :trac:`16934` has been fixed::
@@ -444,51 +488,23 @@ class FiniteFieldFactory(UniqueFactory):
                     name = normalize_names(1, name)
 
                 p, n = order.factor()[0]
-
-                # The following is a temporary solution that allows us
-                # to construct compatible systems of finite fields
-                # until algebraic closures of finite fields are
-                # implemented in Sage.  It requires the user to
-                # specify two parameters:
-                #
-                # - `conway` -- boolean; if True, this field is
-                #   constructed to fit in a compatible system using
-                #   a Conway polynomial.
-                # - `prefix` -- a string used to generate names for
-                #   automatically constructed finite fields
-                #
-                # See the docstring of FiniteFieldFactory for examples.
-                #
-                # Once algebraic closures of finite fields are
-                # implemented, this syntax should be superseded by
-                # something like the following:
-                #
-                #     sage: Fpbar = GF(5).algebraic_closure('z')
-                #     sage: F, e = Fpbar.subfield(3)  # e is the embedding into Fpbar
-                #     sage: F
-                #     Finite field in z3 of size 5^3
-                #
-                # This temporary solution only uses actual Conway
-                # polynomials (no pseudo-Conway polynomials), since
-                # pseudo-Conway polynomials are not unique, and until
-                # we have algebraic closures of finite fields, there
-                # is no good place to store a specific choice of
-                # pseudo-Conway polynomials.
                 if name is None:
-                    if not ('conway' in kwds and kwds['conway']):
-                        raise ValueError("parameter 'conway' is required if no name given")
                     if 'prefix' not in kwds:
-                        raise ValueError("parameter 'prefix' is required if no name given")
+                        kwds['prefix'] = 'z'
                     name = kwds['prefix'] + str(n)
-
-                if 'conway' in kwds and kwds['conway']:
-                    from conway_polynomials import conway_polynomial
-                    if 'prefix' not in kwds:
-                        raise ValueError("a prefix must be specified if conway=True")
                     if modulus is not None:
-                        raise ValueError("no modulus may be specified if conway=True")
-                    # The following raises a RuntimeError if no polynomial is found.
-                    modulus = conway_polynomial(p, n)
+                        raise ValueError("no modulus may be specified if variable name not given")
+                    if 'conway' in kwds:
+                        del kwds['conway']
+                        from sage.misc.superseded import deprecation
+                        deprecation(17569, "the 'conway' argument is deprecated, pseudo-conway polynomials are now used by default if no variable name is given")
+                    # Fpbar will have a strong reference, since algebraic_closure caches its results,
+                    # and the coefficients of modulus lie in GF(p)
+                    Fpbar = GF(p).algebraic_closure(kwds.get('prefix','z'))
+                    # This will give a Conway polynomial if p,n is small enough to be in the database
+                    # and a pseudo-Conway polynomial if it's not.
+                    modulus = Fpbar._get_polynomial(n)
+                    check_irreducible = False
 
                 if impl is None:
                     if order < zech_log_bound:

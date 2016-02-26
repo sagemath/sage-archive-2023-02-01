@@ -28,7 +28,7 @@ TESTS::
 #*****************************************************************************
 
 include "sage/ext/python.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent

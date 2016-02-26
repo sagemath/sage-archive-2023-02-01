@@ -21,7 +21,7 @@ import sage.arith.all
 
 import sage.misc.misc
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 
 from sage.libs.gmp.mpz cimport *

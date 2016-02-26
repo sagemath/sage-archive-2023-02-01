@@ -123,7 +123,7 @@ Classes and Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 import operator
@@ -1854,7 +1854,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(-1)**(1/2)
-            [+/- 2.84e-16] + [1.00000000000000 +/- 4.45e-16]*I
+            1.000000000000000*I
             sage: CBF(e)**CBF(i*pi)
             [-1.0000000000000 +/- 1.98e-15] + [+/- 2.32e-15]*I
             sage: CBF(0, 1)**AA(2)**(1/2)
@@ -1866,7 +1866,7 @@ cdef class ComplexBall(RingElement):
             1.000000000000000
 
             sage: CBF(0)^(1/3)
-            nan + nan*I
+            0
             sage: CBF(0)^(-1)
             [+/- inf]
             sage: CBF(0)^(-2)
@@ -1878,6 +1878,9 @@ cdef class ComplexBall(RingElement):
             [-1.0000000000000 +/- 5.48e-15] + [+/- 4.14e-15]*I
             sage: CBF(2*i)**10r
             -1024.000000000000
+            sage: CBF(1,1) ^ -1r
+            0.5000000000000000 - 0.5000000000000000*I
+
         """
         cdef fmpz_t tmpz
         if not isinstance(base, ComplexBall):
@@ -1886,7 +1889,7 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall res = self._new()
         if isinstance(expo, int):
             if _do_sig(prec(self)): sig_on()
-            acb_pow_ui(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
+            acb_pow_si(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
             if _do_sig(prec(self)): sig_off()
         elif isinstance(expo, sage.rings.integer.Integer):
             if _do_sig(prec(self)): sig_on()
@@ -1976,7 +1979,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1).rising_factorial(5)
             120.0000000000000
             sage: CBF(1/3, 1/2).rising_factorial(300)
-            [-3.87949484513701e+612 +/- 8.46e+597] + [-3.52042209762719e+612 +/- 7.70e+597]*I
+            [-3.87949484514e+612 +/- 5.24e+600] + [-3.52042209763e+612 +/- 5.56e+600]*I
 
             sage: CBF(1).rising_factorial(-1)
             Traceback (most recent call last):
@@ -2368,8 +2371,10 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1, pi).hypergeometric([1/4], [1/4])
             [-2.7182818284590 +/- 8.63e-14] + [+/- 3.69e-14]*I
 
+            sage: CBF(1000, 1000).hypergeometric([10], [AA(sqrt(2))])
+            [9.79300951360e+454 +/- 4.83e+442] + [5.522579106816e+455 +/- 3.39e+442]*I
             sage: CBF(1000, 1000).hypergeometric([100], [AA(sqrt(2))])
-            [1.2796735556e+590 +/- 4.04e+579] + [-9.3233349199e+590 +/- 3.30e+579]*I
+            [+/- 8.88e+596] + [+/- 8.88e+596]*I
 
             sage: CBF(0, 1).hypergeometric([], [1/2, 1/3, 1/4])
             [-3.7991962344383 +/- 4.98e-14] + [23.8780971778049 +/- 5.40e-14]*I

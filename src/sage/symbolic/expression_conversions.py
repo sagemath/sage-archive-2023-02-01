@@ -923,7 +923,7 @@ def algebraic(ex, field):
         sage: type(QQbar(a))
         <class 'sage.rings.qqbar.AlgebraicNumber'>
         sage: QQbar(i)
-        1*I
+        I
         sage: AA(golden_ratio)
         1.618033988749895?
         sage: QQbar(golden_ratio)

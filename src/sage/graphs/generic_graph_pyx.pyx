@@ -17,7 +17,7 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 from sage.ext.memory cimport check_allocarray, sage_malloc, sage_free
 include "sage/data_structures/binary_matrix.pxi"

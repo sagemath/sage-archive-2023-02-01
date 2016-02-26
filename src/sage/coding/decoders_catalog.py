@@ -10,10 +10,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 
 **Generalized Reed-Solomon code decoders**
 
-- :func:`grs.GRSBerlekampWelchDecoder <sage.coding.grs.GRSBerlekampWelchDecoder>`
-- :func:`grs.GRSErrorErasureDecoder <sage.coding.grs.GRSErrorErasureDecoder>`
-- :func:`grs.GRSGaoDecoder <sage.coding.grs.GRSGaoDecoder>`
-- :func:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationDecoder>`
+- :func:`guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder <sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder>`
 
 .. NOTE::
 
@@ -37,3 +34,4 @@ from grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,
                  GRSErrorErasureDecoder)
+from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder

@@ -15,7 +15,7 @@ elements. For general information about libGAP, you should read the
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from cpython.object cimport *
 
 from sage.misc.cachefunc import cached_method

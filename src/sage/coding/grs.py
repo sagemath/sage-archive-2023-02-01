@@ -14,11 +14,6 @@ This file contains the following elements:
     - :class:`GeneralizedReedSolomonCode`, the class for GRS codes
     - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message space
     - :class:`GRSEvaluationPolynomialEncoder`, an encoder with a polynomial message space
-    - :class:`GRSBerlekampWelchDecoder`, a decoder based on the Berlekamp-Welch decoding algorithm
-    - :class:`GRSGaoDecoder`, a decoder based on the Gao decoding algorithm
-    - :class:`GRSErrorErasureDecoder`, a decoder able to correct both errors and erasures
-    - :class:`GRSKeyEquationSyndromeDecoder`, a decoder using key equation decoding
-      based on syndrome polynomial
 """
 
 #*****************************************************************************
@@ -46,7 +41,7 @@ from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.rings.arith import xgcd
 from sage.misc.misc_c import prod
-from sage.functions.other import binomial, floor
+from sage.functions.other import binomial, floor, sqrt
 from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.rings.integer_ring import ZZ
@@ -522,6 +517,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 ####################### encoders ###############################
+
 
 class GRSEvaluationVectorEncoder(Encoder):
     r"""
@@ -1838,15 +1834,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
 GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluationVectorEncoder
 GeneralizedReedSolomonCode._registered_encoders["EvaluationPolynomial"] = GRSEvaluationPolynomialEncoder
-
-GeneralizedReedSolomonCode._registered_decoders["BerlekampWelch"] = GRSBerlekampWelchDecoder
-GRSBerlekampWelchDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
-GeneralizedReedSolomonCode._registered_decoders["Gao"] = GRSGaoDecoder
-GRSGaoDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
-GeneralizedReedSolomonCode._registered_decoders["ErrorErasure"] = GRSErrorErasureDecoder
-GRSErrorErasureDecoder._decoder_type = {"error-erasure", "unique", "always-succeed"}
-GeneralizedReedSolomonCode._registered_decoders["KeyEquationSyndrome"] = GRSKeyEquationSyndromeDecoder
-GRSKeyEquationSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
 
 GeneralizedReedSolomonCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 GeneralizedReedSolomonCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

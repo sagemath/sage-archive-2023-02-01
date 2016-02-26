@@ -15,7 +15,7 @@ Functions
 ---------
 """
 include "sage/data_structures/bitset.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.graphs.base.static_sparse_graph cimport *
 from libc.string cimport memset

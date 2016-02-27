@@ -40,6 +40,7 @@ Algebras
 
    sage/algebras/orlik_solomon
 
+   sage/algebras/quantum_matrix_coordinate_algebra
    sage/algebras/quatalg/quaternion_algebra
 
    sage/algebras/schur_algebra

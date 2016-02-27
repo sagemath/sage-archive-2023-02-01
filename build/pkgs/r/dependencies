@@ -1,4 +1,4 @@
-$(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE)
+$(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE) $(INST)/$(PKGCONF)
 
 ----------
 All lines of this file are ignored except the first.

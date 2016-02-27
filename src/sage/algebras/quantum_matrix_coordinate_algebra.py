@@ -51,11 +51,18 @@ class QuantumMatrixCoordinateAlgebra(CombinatorialFreeModule):
         \Delta(x_{ij}) = \sum_{k=1}^n x_{ik} \otimes x_{kj},
         \varepsilon(x_{ij}) = \delta_{ij}.
 
+    .. NOTE::
+
+        The `q` considered here is `q^{1/2}` in [FRT]_ or some books
+        such as *A guide to quantum groups* by Chari and Pressley or
+        *Quantum groups* by Kassel.
+
     INPUT:
 
     - ``m`` -- the integer `m`
     - ``n`` -- the integer `n`
-    - ``R`` -- (optional) the ring `R`; the default is `\ZZ`
+    - ``R`` -- (optional) the ring `R` if `q` is not specified (the
+      default is `\ZZ`); otherwise the ring containing `q`
     - ``q`` -- (optional) the variable `q`; the default is
       `q \in R[q, q^{-1}]`
     - ``bar`` -- (optional) the involution on the base ring; the
@@ -65,6 +72,10 @@ class QuantumMatrixCoordinateAlgebra(CombinatorialFreeModule):
 
     .. [DD91] R. Dipper and S. Donkin. *Quantum* `GL_n`.
        Proc. London Math. Soc. (3) **63** (1991), no. 1, pp. 165-211.
+
+    .. [FRT] Faddeev, Reshetikhin and Takhtajan.
+       *Quantization of Lie Groups and Lie Algebras*.
+       Leningrad Math. J. vol. **1** (1990), no. 1.
 
     .. [Karimipour93] Vahid Karimipour.
        *Representations of the coordinate ring of* `GL_q(n)`.
@@ -76,7 +87,7 @@ class QuantumMatrixCoordinateAlgebra(CombinatorialFreeModule):
        Lett. Math. Phys. **73** (2005), pp. 165-181. :arxiv:`math/0509651`.
     """
     @staticmethod
-    def __classcall_private__(cls, m, n=None, R=None, q=None, bar=None):
+    def __classcall_private__(cls, m, n=None, q=None, bar=None, R=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -86,18 +97,27 @@ class QuantumMatrixCoordinateAlgebra(CombinatorialFreeModule):
             sage: O1 = algebras.QuantumMatrixCoordinate(4)
             sage: O2 = algebras.QuantumMatrixCoordinate(4, 4, q=q)
             sage: O3 = algebras.QuantumMatrixCoordinate(4, R=ZZ)
-            sage: O1 is O2 and O2 is O3
+            sage: O4 = algebras.QuantumMatrixCoordinate(4, R=R, q=q)
+            sage: O1 is O2 and O2 is O3 and O3 is O4
             True
+            sage: O5 = algebras.QuantumMatrixCoordinate(4, R=QQ)
+            sage: O1 is O5
+            False
         """
         if n is None:
             n = m
         if R is None:
             R = ZZ
+        else:
+            if q is not None:
+                q = R(q)
         if q is None:
             q = LaurentPolynomialRing(R, 'q').gen()
-        return super(QuantumMatrixCoordinateAlgebra, cls).__classcall__(cls, m, n, q=q, bar=bar)
+        return super(QuantumMatrixCoordinateAlgebra, cls).__classcall__(cls, m, n,
+                                                                        q=q, bar=bar,
+                                                                        R=q.parent())
 
-    def __init__(self, m, n, q, bar):
+    def __init__(self, m, n, q, bar, R):
         """
         Initialize ``self``.
 
@@ -115,7 +135,6 @@ class QuantumMatrixCoordinateAlgebra(CombinatorialFreeModule):
         # Set the names
         gp_indices = [(i, j) for i in range(1, m+1) for j in range(1, n+1)]
         indices = IndexedFreeAbelianGroup(gp_indices)
-        R = q.parent()
         if m == n:
             cat = Bialgebras(R.category()).WithBasis()
         else:
@@ -463,6 +482,41 @@ class QuantumMatrixCoordinateAlgebra(CombinatorialFreeModule):
             return self.base_ring().one()
         else:
             return self.base_ring().zero()
+
+    # Antipode code for when the coordinate algebra of quantum SL is implemented
+    #@cached_method
+    #def _antipode_on_generator(self, i, j):
+    #    """
+    #    Return the antipode on the generator indexed by ``i``.
+    #
+    #    EXAMPLES::
+    #
+    #        sage: O = algebras.QuantumMatrixCoordinate(2, SL=True)
+    #    """
+    #    from sage.combinat.permutation import Permutations
+    #    q = self._q
+    #    I = range(1, i) + range(i+1, self._n+1)
+    #    lift = lambda p: [val if val < j else val + 1 for val in p]
+    #    gens = self.algebra_generators()
+    #    t_tilde = self.sum((-q)**p.length()
+    #                       * self.prod( gens[I[i],val] for i, val in enumerate(lift(p)) )
+    #                       for p in Permutations(self._n-1))
+    #    return (-q)**(i - j) * t_tilde
+    #
+    #def antipode_on_basis(self, x):
+    #    """
+    #    Return the antipode of the basis element indexed by ``x``.
+    #
+    #    EXAMPLES::
+    #
+    #        sage: O = algebras.QuantumMatrixCoordinate(2, SL=True)
+    #    """
+    #    if self._m != self._n:
+    #        raise ValueError("undefined for non-square quantum matrices")
+    #    ret = self.one()
+    #    for k,e in reversed(x._sorted_items()):
+    #        ret *= self._antipode_on_generator(*k)**e
+    #    return ret
 
     class Element(CombinatorialFreeModule.Element):
         def bar(self):

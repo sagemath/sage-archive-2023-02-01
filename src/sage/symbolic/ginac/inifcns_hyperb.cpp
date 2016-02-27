@@ -625,5 +625,75 @@ REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
                          conjugate_func(atanh_conjugate).
 			 set_name("arctanh"));
 
+//////////
+// inverse hyperbolic cotangent (trigonometric function)
+//////////
+
+static ex acoth_evalf(const ex & x, PyObject* parent)
+{
+        if (is_exactly_a<numeric>(x))
+                return acoth(ex_to<numeric>(x));
+
+        return acoth(x).hold();
+}
+
+static ex acoth_eval(const ex & x)
+{
+        if (is_exactly_a<numeric>(x)) {
+                // acoth(0) -> i*pi/2
+                if (x.is_zero())
+                        return _ex1_2*Pi*I;
+                // acoth(1) -> oo
+                if (x.is_equal(_ex1))
+                        return Infinity;
+                // acoth(-1) -> -oo
+                if (x.is_equal(_ex_1))
+                        return NegInfinity;
+                //acoth(float) -> float 
+                if (!x.info(info_flags::crational))
+                        return acoth(ex_to<numeric>(x));
+                // acoth() is odd
+                if (x.info(info_flags::negative))
+                        return -acoth(-x);
+        }
+       
+        // acoth(oo) -> 0
+        // acoth(-oo) -> 0
+        // acoth(UnsignedInfinity) -> error
+        if (x.info(info_flags::infinity)) {
+                if (x.is_equal(Infinity) || x.is_equal(NegInfinity))
+                        return _ex0;
+                // x is UnsignedInfinity
+                throw (std::runtime_error("arccoth_eval(): arccoth(unsigned_infinity) encountered"));
+        }
+        
+        return acoth(x).hold();
+}
+
+static ex acoth_deriv(const ex & x, unsigned deriv_param)
+{
+        GINAC_ASSERT(deriv_param==0);
+
+        // acoth(x) -> (1/2)*(ln(1 + 1/x) - ln(1 - 1/x))
+        // d/dx acoth(x) -> 1/(1-x^2)
+        return power(_ex1-power(x, _ex2), _ex_1);
+}
+
+static ex acoth_conjugate(const ex & x)
+{
+        // conjugate(acoth(x))==acoth(conjugate(x)) unless on the branch cuts which
+        // run along the real axis inside the interval [-1, +1].
+        if (is_exactly_a<numeric>(x) &&
+            (!x.imag_part().is_zero() || (x < *_num_1_p && x > *_num1_p))) {
+                return acoth(x.conjugate());
+        }
+        return conjugate_function(acoth(x)).hold();
+}
+
+REGISTER_FUNCTION(acoth, eval_func(acoth_eval).
+                         evalf_func(acoth_evalf).
+                         derivative_func(acoth_deriv).
+                         conjugate_func(acoth_conjugate).
+                         set_name("arccoth"));
 
 } // namespace GiNaC

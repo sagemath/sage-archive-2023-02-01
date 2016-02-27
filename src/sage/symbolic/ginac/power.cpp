@@ -730,14 +730,14 @@ ex power::eval(int level) const
 	}
 
 	// Reduce x^(c/log(x)) to exp(c)
-	if (is_exactly_a<mul>(eexponent)) {
+	if (eexponent.is_equal(1/log(ebasis)))
+		return exp(log(basis)*exponent);
+	else if (is_exactly_a<mul>(eexponent)) {
 		for (size_t i=0; i < eexponent.nops(); i++) {
 			if (eexponent.op(i).is_equal(1/log(ebasis)))
 				return exp(log(basis)*exponent);
 		}
 	}
-	else if (eexponent.is_equal(1/log(ebasis)))
-		return exp(log(basis)*exponent);
 	
 	if (are_ex_trivially_equal(ebasis,basis) &&
 	    are_ex_trivially_equal(eexponent,exponent)) {

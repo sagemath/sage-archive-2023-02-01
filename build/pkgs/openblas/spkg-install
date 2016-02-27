@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
+fi
+
+PKG_DIR=$(pwd)
+cd xianyi-OpenBLAS*
+
+COMPILE_ARGS=''
+
+if [ "x$SAGE_DEBUG" = "xyes" ]; then
+    COMPILE_ARGS="$COMPILE_ARGS DEBUG=1"
+fi
+
+if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
+    # See https://github.com/xianyi/OpenBLAS/issues/510
+    COMPILE_ARGS="$COMPILE_ARGS TARGET=PRESCOTT"
+fi
+
+echo "Building OpenBLAS: make $COMPILE_ARGS"
+
+$MAKE $COMPILE_ARGS
+if [ $? -ne 0 ]; then
+    echo "Error building OpenBLAS"
+fi
+
+$MAKE install PREFIX="$SAGE_LOCAL" NO_STATIC=1
+if [ $? -ne 0 ]; then
+    echo "Error installing OpenBLAS"
+    exit 1
+fi
+
+
+cd "$PKG_DIR"
+./write_pc_file.py

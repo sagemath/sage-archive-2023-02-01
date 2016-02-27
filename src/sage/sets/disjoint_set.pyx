@@ -165,6 +165,23 @@ cdef class DisjointSet_class(SageObject):
         res.sort()
         return '{%s}'% ', '.join(res)
 
+    def __iter__(self):
+        """
+        Iterate over elements of the set.
+
+        EXAMPLES::
+
+            sage: d = DisjointSet(4)
+            sage: d.union(2,0)
+            sage: sorted(d)
+            [[0, 2], [1], [3]]
+
+            sage: d = DisjointSet('abc')
+            sage: sorted(d)
+            [['a'], ['b'], ['c']]
+        """
+        return self.root_to_elements_dict().itervalues()
+
     def __cmp__(self, other):
         r"""
         Compare the disjoint sets ``self`` and ``other``.

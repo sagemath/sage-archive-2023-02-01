@@ -6951,6 +6951,9 @@ Graph.tutte_polynomial          = tutte_polynomial
 from sage.graphs.lovasz_theta import lovasz_theta
 Graph.lovasz_theta              = lovasz_theta
 
+from sage.graphs.partial_cube import is_partial_cube
+Graph.is_partial_cube           = is_partial_cube
+
 _additional_categories = {
     Graph.is_long_hole_free         : "Graph properties",
     Graph.is_long_antihole_free     : "Graph properties",
@@ -6965,6 +6968,7 @@ _additional_categories = {
     Graph.is_distance_regular       : "Graph properties",
     Graph.is_strongly_regular       : "Graph properties",
     Graph.is_line_graph             : "Graph properties",
+    Graph.is_partial_cube           : "Graph properties",
     Graph.tutte_polynomial          : "Algorithmically hard stuff",
     Graph.lovasz_theta              : "Leftovers",
     }

@@ -23,6 +23,8 @@
 import cPickle, os, sys, shutil, re, tempfile
 import sphinx
 from sphinx.util.console import bold
+from sage.env import SAGE_DOC_OUTPUT
+from sage.misc.misc import sage_makedirs
 
 
 CITE_FILENAME = 'citations.pickle'
@@ -195,10 +197,21 @@ def fix_path_html(app, pagename, templatename, ctx, event_arg):
 
 
 def citation_dir(app):
-    citedir = re.sub('/doc/output/[^/]*/', '/doc/output/inventory/', app.outdir)
-    if not os.path.isdir(citedir):
-        os.makedirs(os.path.abspath(citedir))
+    # Split app.outdir in 3 parts: SAGE_DOC_OUTPUT/TYPE/TAIL where TYPE
+    # is a single directory and TAIL can contain multiple directories.
+    # The citation dir is then SAGE_DOC_OUTPUT/inventory/TAIL.
+    assert app.outdir.startswith(SAGE_DOC_OUTPUT)
+    rel = app.outdir[len(SAGE_DOC_OUTPUT):]
+    dirs = rel.split(os.sep)
+    # If SAGE_DOC_OUTPUT does not end with a slash, rel will start with
+    # a slash giving an empty dirs[0]. Remove this:
+    if not dirs[0]:
+        dirs.pop(0)
+    dirs = [SAGE_DOC_OUTPUT, "inventory"] + dirs[1:]
+    citedir = os.path.join(*dirs)
+    sage_makedirs(citedir)
     return citedir
+
 
 def write_citations(app, citations):
     """

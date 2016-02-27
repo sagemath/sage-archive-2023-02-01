@@ -73,6 +73,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via FLINT.
 
+    TESTS::
+
+        sage: f = ZZ['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
+        sage: isinstance(f, Polynomial_integer_dense_flint)
+        True
+
     .. automethod:: _add_
     .. automethod:: _sub_
     .. automethod:: _lmul_

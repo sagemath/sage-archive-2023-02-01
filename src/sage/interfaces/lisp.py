@@ -257,18 +257,6 @@ class Lisp(Expect):
         """
         raise NotImplementedError
 
-    def trait_names(self):
-        """
-        EXAMPLES::
-
-            sage: lisp.trait_names()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        """
-        raise NotImplementedError
-
     def kill(self, var):
         """
         EXAMPLES::

@@ -1,4 +1,3 @@
-
 """
 Univariate Polynomial Rings
 
@@ -127,31 +126,6 @@ Check that :trac:`5562` has been fixed::
     sage: v1 * v2
     2.0*u
 
-These may change over time::
-
-    sage: x = var('x')
-    sage: type(ZZ['x'].0)
-    <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
-    sage: type(QQ['x'].0)
-    <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
-    sage: type(RR['x'].0)
-    <type 'sage.rings.polynomial.polynomial_real_mpfr_dense.PolynomialRealDense'>
-    sage: type(Integers(4)['x'].0)
-    <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
-    sage: type(Integers(5*2^100)['x'].0)
-    <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
-    sage: type(CC['x'].0)
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
-    sage: type(CC['t']['x'].0)
-    <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
-    sage: type(NumberField(x^2+1,'I')['x'].0)
-    <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_absolute_number_field_dense'>
-    sage: type(NumberField(x^2+1,'I')['x'])
-    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
-    sage: type(NumberField([x^2-2,x^2-3],'a')['x'].0)
-    <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
-    sage: type(NumberField([x^2-2,x^2-3],'a')['x'])
-    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
 """
 
 #*****************************************************************************
@@ -168,12 +142,9 @@ from sage.structure.element import Element
 from sage.structure.category_object import check_default_category
 import sage.algebras.algebra
 import sage.categories.basic as categories
-import sage.rings.commutative_ring as commutative_ring
 import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
 from sage.structure.element import is_RingElement
-import sage.rings.integral_domain as integral_domain
-import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
@@ -273,6 +244,15 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Join of Category of euclidean domains and
                     Category of commutative algebras over (finite fields and
                         subquotients of monoids and quotients of semigroups)
+
+        TESTS:
+
+        Verify that :trac:`15232` has been resolved::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: TestSuite(R).run()
+
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
@@ -287,6 +267,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             else:
                 from sage.rings.polynomial import polynomial_element
                 self._polynomial_class = polynomial_element.Polynomial_generic_dense
+        self.Element = self._polynomial_class
         self.__cyclopoly_cache = {}
         self._has_singular = False
         # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
@@ -295,7 +276,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         # But the attribute _no_generic_basering_coercion prevents that from happening,
         # since we want to use PolynomialBaseringInjection.
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
-        self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
+        self.__generator = self.element_class(self, [0,1], is_gen=True)
         self._populate_coercion_lists_(
                 #coerce_list = [base_inject],
                 #convert_list = [list, base_inject],
@@ -403,7 +384,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x + b^3 + b^2 + b + 3
 
         """
-        C = self._polynomial_class
+        C = self.element_class
         if isinstance(x, list):
             return C(self, x, check=check, is_gen=False,construct=construct)
         if isinstance(x, Element):
@@ -1508,7 +1489,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
         return DifferentialWeylAlgebra(self)
 
-class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
+class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
             element_class=None):
         """
@@ -1558,8 +1539,7 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,
-                           principal_ideal_domain.PrincipalIdealDomain,
-                           ):
+                           ring.PrincipalIdealDomain):
     def __init__(self, base_ring, name="x", sparse=False, element_class=None):
         """
         TESTS::
@@ -1572,11 +1552,11 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R = PRing(QQ, 'x', sparse=True); R
             Sparse Univariate Polynomial Ring in x over Rational Field
             sage: type(R.gen())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
             sage: R = PRing(CC, 'x'); R
             Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
             sage: type(R.gen())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
 
         Demonstrate that :trac:`8762` is fixed::
 
@@ -1980,7 +1960,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_finite_field
             sage: R = PolynomialRing_dense_finite_field(GF(5), implementation='generic')
             sage: type(R(0))
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_dense_finite_field_with_category.element_class'>
 
             sage: S = PolynomialRing_dense_finite_field(GF(25, 'a'), implementation='NTL')
             sage: type(S(0))
@@ -2069,7 +2049,7 @@ class PolynomialRing_dense_padic_ring_capped_relative(PolynomialRing_dense_padic
             sage: R = PRing(Zp(13), name='t'); R
             Univariate Polynomial Ring in t over 13-adic Ring with capped relative precision 20
             sage: type(R.gen())
-            <class 'sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense'>
+            <class 'sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense.PolynomialRing_dense_padic_ring_capped_relative_with_category.element_class'>
         """
         if element_class is None:
             from sage.rings.polynomial.padics.\
@@ -2088,7 +2068,7 @@ class PolynomialRing_dense_padic_ring_capped_absolute(PolynomialRing_dense_padic
             sage: R = PRing(Zp(13, type='capped-abs'), name='t'); R
             Univariate Polynomial Ring in t over 13-adic Ring with capped absolute precision 20
             sage: type(R.gen())
-            <class 'sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat'>
+            <class 'sage.rings.polynomial.padics.polynomial_padic_flat.PolynomialRing_dense_padic_ring_capped_absolute_with_category.element_class'>
         """
         if element_class is None:
             from sage.rings.polynomial.padics.polynomial_padic_flat import \
@@ -2107,7 +2087,7 @@ class PolynomialRing_dense_padic_ring_fixed_mod(PolynomialRing_dense_padic_ring_
             Univariate Polynomial Ring in t over 13-adic Ring of fixed modulus 13^20
 
             sage: type(R.gen())
-            <class 'sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat'>
+            <class 'sage.rings.polynomial.padics.polynomial_padic_flat.PolynomialRing_dense_padic_ring_fixed_mod_with_category.element_class'>
         """
         if element_class is None:
             from sage.rings.polynomial.padics.polynomial_padic_flat import \
@@ -2144,7 +2124,7 @@ class PolynomialRing_dense_padic_field_capped_relative(PolynomialRing_dense_padi
             sage: R = PRing(Qp(13), name='t'); R
             Univariate Polynomial Ring in t over 13-adic Field with capped relative precision 20
             sage: type(R.gen())
-            <class 'sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense'>
+            <class 'sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense.PolynomialRing_dense_padic_field_capped_relative_with_category.element_class'>
         """
         if element_class is None:
             from sage.rings.polynomial.padics.\

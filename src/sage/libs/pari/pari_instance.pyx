@@ -1018,7 +1018,7 @@ cdef class PariInstance(PariInstance_auto):
         try:
             return self(x)
         except (TypeError, AttributeError):
-            raise TypeError("no canonical coercion of %s into PARI"%x)
+            raise TypeError("no canonical coercion of %s into PARI" % x)
 
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO
@@ -1412,7 +1412,7 @@ cdef class PariInstance(PariInstance_auto):
         nth_prime(n): returns the n-th prime, where n is a C-int
         """
         if n <= 0:
-            raise ValueError, "nth prime meaningless for non-positive n (=%s)"%n
+            raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
         cdef GEN g
         pari_catch_sig_on()
         g = prime(n)
@@ -1639,8 +1639,8 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen v = self._empty_vector(n)
         if entries is not None:
             if len(entries) != n:
-                raise IndexError, "length of entries (=%s) must equal n (=%s)"%\
-                      (len(entries), n)
+                raise IndexError("length of entries (=%s) must equal n (=%s)"%\
+                      (len(entries), n))
             for i, x in enumerate(entries):
                 v[i] = x
         return v
@@ -1664,7 +1664,7 @@ cdef class PariInstance(PariInstance_auto):
         A = self.new_gen(zeromatcopy(m,n))
         if entries is not None:
             if len(entries) != m*n:
-                raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)
+                raise IndexError("len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n))
             k = 0
             A.refers_to = {}
             for i from 0 <= i < m:

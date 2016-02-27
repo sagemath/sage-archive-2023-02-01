@@ -40,9 +40,9 @@ cdef class ModularSymbols:
             Cremona Modular Symbols space of dimension 29 for Gamma_0(123) of weight 2 with sign 0
         """
         if not (sign == 0 or sign == 1 or sign == -1):
-            raise ValueError, "sign (= %s) is not supported; use 0, +1 or -1"%sign
+            raise ValueError("sign (= %s) is not supported; use 0, +1 or -1" % sign)
         if level <= 1:
-            raise ValueError, "the level (= %s) must be at least 2"%level
+            raise ValueError("the level (= %s) must be at least 2" % level)
         sig_on()
         self.H = new homspace(level, sign, cuspidal, verbose)
         sig_off()

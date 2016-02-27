@@ -606,7 +606,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
         sage: timeit("pw.is_prime()")    # random
         625 loops, best of 3: 854 ns per loop
 
-    And moreover, the next methods for the element does not exists::
+    And moreover, the next methods for the element does not exist::
 
         sage: pf.next()
         Traceback (most recent call last):

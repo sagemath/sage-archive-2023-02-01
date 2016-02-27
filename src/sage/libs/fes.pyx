@@ -336,8 +336,8 @@ def prepare_polynomials(f):
 
     m = matrix(R.base_ring(), [ [ g.monomial_coefficient(m) for m in monomials_in_s[:excess] ] for g in s ])
     # now find the linear combinations of the equations that kills the first `excess` monomials in all but `excess` equations
-    # todo, this is very likely suboptimal, but m.echelonize() does not returns the transformation...
-    P,L,U = m.LU()
+    # todo, this is very likely suboptimal, but m.echelonize() does not return the transformation...
+    P, L, U = m.LU()
     S = (P*L).I
     result = Sequence( S * vector(s) )
     result.reverse()

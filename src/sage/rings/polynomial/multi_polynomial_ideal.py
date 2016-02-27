@@ -889,9 +889,9 @@ class MPolynomialIdeal_singular_repr(
 
         -  ``algorithm`` - string:
 
-        -  ``'sy'`` - (default) use the shimoyama-yokoyama algorithm
+        -  ``'sy'`` - (default) use the Shimoyama-Yokoyama algorithm
 
-        -  ``'gtz'`` - use the gianni-trager-zacharias algorithm
+        -  ``'gtz'`` - use the Gianni-Trager-Zacharias algorithm
 
 
         OUTPUT:

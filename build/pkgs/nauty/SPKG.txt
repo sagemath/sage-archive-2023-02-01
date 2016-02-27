@@ -7,27 +7,40 @@ generating non-isomorphic graphs with certain properties, etc.
 
 == License ==
 
-The original source code is NOT GPL-compatible, as it is shared with the
-following restrictions:
+In Oct 2015 Brendan McKay provided the following GPL-compatible licence for
+distributing nauty with Sage.
 
-    nauty and traces is subject to the following usage restrictions:
+   Nauty is copyright (1984-2015) Brendan McKay.  All rights
+   reserved.  Permission is hereby given for the use, distribution and
+   modification of this software subject to the following.
 
-    nauty is copyright (1984-2014) Brendan McKay. All rights reserved. Traces is
-    copyright (2008-2014) Adolfo Piperno. All rights reserved. Permission is
-    hereby given for use and/or distribution with the exception of sale for
-    profit or application with nontrivial military significance. You must not
-    remove this copyright notice, and you must document any changes that you
-    make to this program. This software is subject to this copyright only,
-    irrespective of any copyright attached to any package of which this is a
-    part.  Absolutely no guarantees or warranties are made concerning the
-    suitability, correctness, or any other aspect of this program. Any use is at
-    your own risk.
+   You must not remove this section of the text, containing author
+   attribution, copyright notice, and legal disclaimer.
+   You must clearly mark modified versions of this software
+   as differing from the original.
 
-    The above does not apply to the file planarity.c, which is copyright to the
-    Magma project and distributed with nauty by permission, nor to the file
-    watercluster2.c, which is copyright to Gunnar Brinkmann.
+   This program is only provided "as is".  No responsibility will be
+   taken by the author, his employer or his pet rabbit* for any misfortune
+   which befalls you because of its use.  I don't think it will delete all
+   your files, burn down your computer room or turn your children against
+   you, but if it does: stiff cheddar.  On the other hand, I very much
+   welcome bug reports, or at least I would if there were any bugs.
+
+                                                       * RIP, 1989
+   Traces is copyright Adolfo Piperno (2011-).
+
+The file planarity.c is copyright to the Magma project and distributed with
+nauty by permission.
+The file watercluster2.c is copyright to Gunnar Brinkmann.
+Both Magma project and Gunnar Brinkmann have given Sagemath
+project permission to distribute the respective files under the terms
+of the licence above.
+
 
 == Special Packaging Instruction ==
+
+The sources with the appropriate copyright modifications are in
+https://github.com/dimpase/nauty_sagemath
 
 Upstream distribute tarball named nauty${version}.tar.gz. We cannot
 deal with that so rename it nauty-${version}.tar.gz (notice the "-")

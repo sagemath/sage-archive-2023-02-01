@@ -9,20 +9,18 @@ fi
 PKG_DIR=$(pwd)
 cd xianyi-OpenBLAS*
 
-COMPILE_ARGS=''
-
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
-    COMPILE_ARGS="$COMPILE_ARGS DEBUG=1"
+    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE DEBUG=1"
 fi
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     # See https://github.com/xianyi/OpenBLAS/issues/510
-    COMPILE_ARGS="$COMPILE_ARGS TARGET=PRESCOTT"
+    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=PRESCOTT"
 fi
 
-echo "Building OpenBLAS: make $COMPILE_ARGS"
+echo "Building OpenBLAS: make $OPENBLAS_CONFIGURE"
 
-$MAKE $COMPILE_ARGS
+$MAKE $OPENBLAS_CONFIGURE
 if [ $? -ne 0 ]; then
     echo "Error building OpenBLAS"
 fi

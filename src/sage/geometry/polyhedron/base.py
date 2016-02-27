@@ -3310,7 +3310,6 @@ class Polyhedron_base(Element):
 
         d = self.dim()
         n = len(vertices)
-        X = set(range(n))
 
         pairs = []
         for i,j in combinations(range(n),2):
@@ -3318,7 +3317,7 @@ class Polyhedron_base(Element):
             if not common_ineq: # or len(common_ineq) < d-2:
                 continue
 
-            if len(X.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
+            if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
                 pairs.append((i,j))
 
         from sage.graphs.graph import Graph

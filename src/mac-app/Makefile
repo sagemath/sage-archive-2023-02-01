@@ -41,7 +41,8 @@ $(APP): $(SOURCE)
 	    ARCHS=$(SAGE_APP_TARGET_ARCH) \
 	    ONLY_ACTIVE_ARCH=NO \
 	    SDKROOT=$(SDKROOT)
-	cp -pRL build/$(CONFIGURATION)/Sage.app $(APP)
+	mkdir -p $(APP)
+	cp -pRL build/$(CONFIGURATION)/Sage.app/ $(APP)
 	@# Info.plist is a binary plist, so convert it for processing with sed.
 	@# I would just change it to be an xml plist, but xcode changes it back.
 	plutil -convert xml1 $(APP)/Contents/Info.plist

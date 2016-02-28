@@ -22,55 +22,25 @@ import os, sys, platform, __builtin__
 from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
 from misc import SPYX_TMP
 from temporary_file import tmp_filename
+import pkgconfig
 
 
-def cblas():
-    """
-    Return the name of the cblas library on this system. If the environment
-    variable :envvar:`$SAGE_CBLAS` is set, just return its value. If not,
-    return ``'cblas'`` if :file:`/usr/lib/libcblas.so` or
-    :file:`/usr/lib/libcblas.dylib` exists, return ``'blas'`` if
-    :file:`/usr/lib/libblas.dll.a` exists, and return ``'gslcblas'`` otherwise.
+# CBLAS can be one of multiple implementations
+cblas_pc = pkgconfig.parse('cblas')
+cblas_libs = list(cblas_pc['libraries'])
+cblas_library_dirs = list(cblas_pc['library_dirs'])
+cblas_include_dirs = list(cblas_pc['include_dirs'])
 
-    EXAMPLES::
+# TODO: Remove Cygwin hack by installing a suitable cblas.pc
+if os.path.exists('/usr/lib/libblas.dll.a'):
+    cblas_libs = 'gslcblas'
 
-        sage: sage.misc.cython.cblas() # random -- depends on OS, etc.
-        'cblas'
-    """
-    if 'SAGE_CBLAS' in os.environ:
-        return os.environ['SAGE_CBLAS']
-    elif os.path.exists('/usr/lib/libcblas.dylib') or \
-         os.path.exists('/usr/lib/libcblas.so'):
-        return 'cblas'
-    elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested.
-        return 'blas'
-    else:
-        # This is very slow (?), but *guaranteed* to be available.
-        return 'gslcblas'
+standard_libs = [
+    'mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 
+    'ec', 'gsl',
+] + cblas_libs + [
+    'ntl']
 
-# In case of ATLAS we need to link against cblas as well as atlas
-# In the other cases we just return the same library name as cblas()
-# which is fine for the linker
-#
-# We should be using the Accelerate FrameWork on OS X, but that requires
-# some magic due to distutils having ridden on the short bus :)
-def atlas():
-    """
-    Returns the name of the ATLAS library to use. On Darwin or Cygwin, this is
-    ``'blas'``, and otherwise it is ``'atlas'``.
-
-    EXAMPLES::
-
-        sage: sage.misc.cython.atlas() # random -- depends on OS
-        'atlas'
-    """
-    if UNAME == "Darwin" or "CYGWIN" in UNAME:
-        return 'blas'
-    else:
-        return 'atlas'
-
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'ec', 'gsl', cblas(), atlas(), 'ntl']
 
 offset = 0
 

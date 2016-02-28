@@ -1249,7 +1249,7 @@ ext_modules = [
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
               extra_compile_args=["-std=c99", "-D_XPG6"],
-              libraries = (['m'])),
+              libraries = ['m']),
 
     Extension('sage.rings.complex_interval',
               sources = ['sage/rings/complex_interval.pyx'],

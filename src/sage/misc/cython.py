@@ -168,7 +168,6 @@ def pyx_preparse(s):
         'm',
         'ec',
         'gsl',
-        '...blas',
         ...,
         'ntl'],
         ['.../include',
@@ -190,7 +189,8 @@ def pyx_preparse(s):
         'pari',
         'm',
         'ec',
-        'gsl', '...blas', ...,
+        'gsl',
+        ...,
         'ntl']
         sage: libs[1:] == sage.misc.cython.standard_libs
         True

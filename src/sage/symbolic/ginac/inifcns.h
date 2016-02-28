@@ -104,6 +104,9 @@ DECLARE_FUNCTION_1P(cosh)
 /** Hyperbolic Tangent. */
 DECLARE_FUNCTION_1P(tanh)
 
+/** Hyperbolic Cotangent. */
+DECLARE_FUNCTION_1P(coth)
+
 /** Inverse hyperbolic Sine (area hyperbolic sine). */
 DECLARE_FUNCTION_1P(asinh)
 

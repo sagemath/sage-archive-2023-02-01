@@ -6905,6 +6905,85 @@ class Graph(GenericGraph):
                         T[2 * j + 1, 2 * i] = 1
         return T.charpoly('t').reverse()
 
+    @doc_index("Leftovers")
+    def perfect_matchings(self,labels=False):
+        """
+        Returns an interator over all perfect matchings of the graph.
+
+        .. SEEALSO::
+
+            :meth:`matching`
+
+        ALGORITHM:
+
+        Choose a vertex v, then recurse through all edges incident to v,
+        removing one edge at a time whenever an edge is added to a matching
+
+        INPUT:
+
+        - ``labels`` -- boolean (default: ``False``)
+
+          - When set to ``True``, the edges in each perfect matching
+            are triples (containing the label as the third element).
+
+          - When set to ``False``, the edges in each perfect matching
+            are pairs.
+
+        EXAMPLES::
+
+            sage: G=graphs.GridGraph([2,3])
+            sage: list(G.perfect_matchings())
+            [[((0, 0), (0, 1)), ((0, 2), (1, 2)), ((1, 0), (1, 1))],
+             [((0, 1), (0, 2)), ((1, 1), (1, 2)), ((0, 0), (1, 0))],
+             [((0, 1), (1, 1)), ((0, 2), (1, 2)), ((0, 0), (1, 0))]]
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: list(G.perfect_matchings(labels=True))
+            [[(0, 1, None), (2, 3, None)],
+             [(0, 2, None), (1, 3, None)],
+             [(0, 3, None), (1, 2, None)]]
+
+             sage: G = graphs.CompleteGraph(8)
+             sage: len(list(G.perfect_matchings())
+             ....: ) == G.matching_polynomial().coefficients(sparse=False)[0]
+             True
+
+            sage: G = graphs.PetersenGraph()
+            sage: list(G.perfect_matchings(labels=True))
+            [[(0, 1, None), (2, 3, None), (4, 9, None), (6, 8, None), (5, 7, None)],
+             [(0, 1, None), (2, 7, None), (3, 4, None), (5, 8, None), (6, 9, None)],
+             [(0, 4, None), (1, 2, None), (3, 8, None), (6, 9, None), (5, 7, None)],
+             [(0, 4, None), (1, 6, None), (2, 3, None), (5, 8, None), (7, 9, None)],
+             [(0, 5, None), (1, 2, None), (3, 4, None), (6, 8, None), (7, 9, None)],
+             [(0, 5, None), (1, 6, None), (2, 7, None), (3, 8, None), (4, 9, None)]]
+
+            sage: G = graphs.PetersenGraph().copy(immutable=True)
+            sage: list(G.perfect_matchings(labels=True))
+            [[(0, 1, None), (2, 3, None), (4, 9, None), (6, 8, None), (5, 7, None)],
+             [(0, 1, None), (2, 7, None), (3, 4, None), (5, 8, None), (6, 9, None)],
+             [(0, 4, None), (1, 2, None), (3, 8, None), (6, 9, None), (5, 7, None)],
+             [(0, 4, None), (1, 6, None), (2, 3, None), (5, 8, None), (7, 9, None)],
+             [(0, 5, None), (1, 2, None), (3, 4, None), (6, 8, None), (7, 9, None)],
+             [(0, 5, None), (1, 6, None), (2, 7, None), (3, 8, None), (4, 9, None)]]
+
+            sage: list(Graph().perfect_matchings())
+            [[]]
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: list(G.perfect_matchings())
+            []
+        """
+        if not self:
+            yield []
+        # if every connected component has an even number of vertices
+        elif all(len(cc)%2==0 for cc in self.connected_components()):
+            v = next(self.vertex_iterator())
+            for e in self.edges_incident(v,labels=labels):
+                Gp = self.copy(immutable=False)
+                Gp.delete_vertices([e[0],e[1]])
+                for mat in Gp.perfect_matchings(labels):
+                        yield [e]+mat
+
 
 # Aliases to functions defined in Cython modules
 import types

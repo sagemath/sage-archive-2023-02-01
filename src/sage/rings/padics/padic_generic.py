@@ -276,11 +276,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def residue_characteristic(self):
         """
-        Returns the prime, i.e., the characteristic of the residue field.
-
-        INPUT:
-
-        self -- a p-adic ring
+        Return the prime, i.e., the characteristic of the residue field.
 
         OUTPUT:
 

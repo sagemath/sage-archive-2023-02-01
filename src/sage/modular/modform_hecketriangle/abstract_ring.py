@@ -84,7 +84,7 @@ class FormsRing_abstract(Parent):
         #    raise NotImplementedError
 
         if (base_ring.characteristic() > 0):
-            raise NotImplementedError("Only characteristic 0 is supported.")
+            raise NotImplementedError("only characteristic 0 is supported")
         self._group               = group
         self._red_hom             = red_hom
         self._base_ring           = base_ring
@@ -1960,7 +1960,7 @@ class FormsRing_abstract(Parent):
         # TODO: the n = infinity case(s) (doable)
         # TODO: the n = 5 case (hard)
         if (not self.group().is_arithmetic() or n == infinity):
-            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases!")
+            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases")
 
         # The arithmetic cases
         prec = reduced_self._l1 + 1

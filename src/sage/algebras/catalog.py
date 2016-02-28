@@ -40,6 +40,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
+- :class:`algebras.Tensor <sage.algebras.tensor_algebra.TensorAlgebra>`
 """
 
 from sage.algebras.free_algebra import FreeAlgebra as Free
@@ -65,5 +66,6 @@ lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'Yok
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
+lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra', 'Tensor')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
 

@@ -359,6 +359,134 @@ REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
                         latex_name("\\tanh"));
 
 //////////
+// hyperbolic cotangent (trigonometric function)
+//////////
+
+static ex coth_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return tanh(ex_to<numeric>(x)).inverse();
+
+	return tanh(x).hold();
+}
+
+static ex coth_eval(const ex & x)
+{
+	if (is_exactly_a<numeric>(x)) {
+
+		// coth(0) -> zoo
+		if (x.is_zero())
+			return UnsignedInfinity;
+
+		// coth(float) -> float
+		if (!x.info(info_flags::crational))
+			return tanh(ex_to<numeric>(x)).inverse();
+
+		// coth() is odd
+		if (x.info(info_flags::negative))
+			return -coth(-x);
+	}
+
+	// coth(oo) -> 1
+	// coth(-oo) -> -1
+	// coth(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(Infinity))
+			return _ex1;
+		if (x.is_equal(NegInfinity))
+			return _ex_1;
+		// x is UnsignedInfinity
+		throw (std::runtime_error("tanh_eval(): tanh(unsigned_infinity) encountered"));
+	}
+
+        ex xoverpi = x/Pi;
+	if (is_exactly_a<numeric>(xoverpi)) {
+		numeric nxopi = ex_to<numeric>(xoverpi);
+		if (nxopi.real().is_zero()) { // coth(I*x) -> I*cot(x);
+                        numeric xoverpiI = (nxopi*2)/I;
+			if (not xoverpiI.is_integer())
+				return -I*cot(x/I);
+			else if (xoverpiI.is_odd())
+				return _ex0;
+			else
+				return UnsignedInfinity;
+		}
+		else
+			return coth(x).hold();
+	}
+
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+
+		// coth(acoth(x)) -> x
+		if (is_ex_the_function(x, acoth))
+			return t;
+
+		// coth(asinh(x)) -> sqrt(1+x^2)/x
+		if (is_ex_the_function(x, asinh))
+			return power(_ex1+power(t,_ex2),_ex1_2)/t;
+
+		// coth(acosh(x)) -> x/(sqrt(x-1)*sqrt(x+1))
+		if (is_ex_the_function(x, acosh))
+			return t/sqrt(t-_ex1)/sqrt(t+_ex1);
+	}
+
+	return coth(x).hold();
+}
+
+static ex coth_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+
+	// d/dx tanh(x) -> 1-tanh(x)^2
+	return -power(sinh(x),_ex_2);
+}
+
+static ex coth_series(const ex &x,
+                      const relational &rel,
+                      int order,
+                      unsigned options)
+{
+	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
+	// method:
+	// Taylor series where there is no pole falls back to tanh_deriv.
+	// On a pole simply expand sinh(x)/cosh(x).
+	const ex x_pt = x.subs(rel, subs_options::no_pattern);
+	if (!(2*I*x_pt/Pi).info(info_flags::even))
+		throw do_taylor();  // caught by function::series()
+	// if we got here we have to care for a simple pole
+	return (cosh(x)/sinh(x)).series(rel, order, options);
+}
+
+static ex coth_real_part(const ex & x)
+{
+	ex a = real_part(x);
+	ex b = imag_part(x);
+	return mul(sinh(a), cosh(a)) / (power(sin(b), _ex2) + power(sinh(a), _ex2));
+}
+
+static ex coth_imag_part(const ex & x)
+{
+	ex a = real_part(x);
+	ex b = imag_part(x);
+	return -mul(sin(b), cos(b)) / (power(sin(b), _ex2) + power(sinh(a), _ex2));
+}
+
+static ex coth_conjugate(const ex & x)
+{
+	return coth(x.conjugate());
+}
+
+REGISTER_FUNCTION(coth, eval_func(coth_eval).
+                        evalf_func(coth_evalf).
+                        derivative_func(coth_deriv).
+                        series_func(coth_series).
+                        real_part_func(coth_real_part).
+                        imag_part_func(coth_imag_part).
+                        conjugate_func(coth_conjugate).
+                        latex_name("\\coth"));
+
+//////////
 // inverse hyperbolic sine (trigonometric function)
 //////////
 
@@ -657,6 +785,14 @@ static ex acoth_eval(const ex & x)
                         return -acoth(-x);
         }
        
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+
+		// acoth(coth(x)) -> x
+		if (is_ex_the_function(x, coth))
+			return t;
+	}
+
         // acoth(oo) -> 0
         // acoth(-oo) -> 0
         // acoth(UnsignedInfinity) -> error

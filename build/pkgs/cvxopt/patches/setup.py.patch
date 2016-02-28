@@ -17,7 +17,7 @@
  # Default names of BLAS and LAPACK libraries
 -BLAS_LIB = ['blas']
 -LAPACK_LIB = ['lapack']
-+LAPACK_LIB = list(blas_pc['libraries'])
++LAPACK_LIB = list(lapack_pc['libraries'])
 +
  BLAS_EXTRA_LINK_ARGS = []
 +if os.environ['UNAME'] == 'CYGWIN':

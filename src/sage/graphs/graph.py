@@ -6944,8 +6944,8 @@ class Graph(GenericGraph):
              [(0, 3, None), (1, 2, None)]]
 
              sage: G = graphs.CompleteGraph(8)
-             sage: len(list(G.perfect_matchings())) == \
-             ....: G.matching_polynomial().coefficients(sparse=False)[0]
+             sage: len(list(G.perfect_matchings())
+             ....: ) == G.matching_polynomial().coefficients(sparse=False)[0]
              True
 
             sage: G = graphs.PetersenGraph()
@@ -6978,13 +6978,10 @@ class Graph(GenericGraph):
         # if every connected component has an even number of vertices
         elif all(len(cc)%2==0 for cc in self.connected_components()):
             v = next(self.vertex_iterator())
-            for e in self.edges_incident(v):
+            for e in self.edges_incident(v,labels=labels):
                 Gp = self.copy(immutable=False)
                 Gp.delete_vertices([e[0],e[1]])
                 for mat in Gp.perfect_matchings(labels):
-                    if not labels:
-                        yield [(e[0],e[1])]+mat
-                    else:
                         yield [e]+mat
 
 

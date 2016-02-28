@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting";
+    exit 1
+fi
+
+cd xianyi-OpenBLAS*
+
+$MAKE tests
+if [ $? -ne 0 ]; then
+    echo >&2 "Error while running the OpenBLAS testsuite ... exiting"
+    exit 1
+fi
+

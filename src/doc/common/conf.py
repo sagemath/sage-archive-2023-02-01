@@ -603,17 +603,29 @@ def debug_inf(app, message):
 
 def call_intersphinx(app, env, node, contnode):
     """
-    Call intersphinx and work around its misshandling of relative links
+    Call intersphinx and make links between Sage manuals relative.
+
+    TESTS:
+
+    Check that the link from the thematic tutorials to the reference
+    manual is relative, see :trac:`20118`::
+
+        sage: from sage.env import SAGE_DOC
+        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")
+        sage: for line in open(thematic_index).readlines():
+        ....:     if "padics" in line:
+        ....:         sys.stdout.write(line)
+        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics ...)"><em>Introduction to the p-adics</em></a></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s"%node['reftarget'])
     builder = app.builder
     res =  sphinx.ext.intersphinx.missing_reference(
         app, env, node, contnode)
-    if res: #workaround intersphinx misshandling of relative links
-        # useful for debugging
-        # import pdb
-        # pdb.set_trace()
-        if res['refuri'].startswith(SAGE_DOC_SRC):
+    if res:
+        # Replace absolute links to $SAGE_DOC by relative links: this
+        # allows to copy the whole documentation tree somewhere else
+        # without breaking links, see Trac #20118.
+        if res['refuri'].startswith(SAGE_DOC):
             here = os.path.dirname(os.path.join(builder.outdir,
                                                 node['refdoc']))
             res['refuri'] = os.path.relpath(res['refuri'], here)
@@ -735,8 +747,8 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     See sage.misc.sagedoc.skip_TESTS_block for more information.
     """
     from sage.misc.sagedoc import skip_TESTS_block as sagedoc_skip_TESTS
-    if len(docstringlines) == 0:
-        # No docstring, so don't do anything. See :trac:`19932`.
+    if not docstringlines:
+        # No docstring, so don't do anything. See Trac #19932.
         return
     s = sagedoc_skip_TESTS("\n".join(docstringlines))
     lines = s.split("\n")

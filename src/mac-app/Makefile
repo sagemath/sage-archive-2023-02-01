@@ -52,6 +52,7 @@ $(APP)/Contents/Resources/sage: $(APP)
 	mkdir -p $(APP)/Contents/Resources/sage
 	rsync -av --progress \
 	    $(SAGE_ROOT)/ $@ \
+	    --exclude .git/ \
 	    --exclude src/mac-app/build \
 	    --exclude src/mac-app/$(TARGET)
 	@# We touch the director here so that we don't keep rsyncing just

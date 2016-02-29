@@ -288,7 +288,7 @@ static ex cos_eval(const ex & x)
                 }
                 else if ((coef_pi / _ex2).info(info_flags::integer))
                         rem = Pi * coef_pi;
-                x_red = x - rem;
+                x_red = (x - rem).expand();
 
                 // cos(n/d*Pi) -> { all known radicals with nesting depth 2 }
                 const ex SixtyExOverPi = _ex60*x_red/Pi;
@@ -481,7 +481,7 @@ static ex tan_eval(const ex & x)
                 }
                 else if (coef_pi.info(info_flags::integer))
                         rem = Pi * coef_pi;
-                x_red = x - rem;
+                x_red = (x - rem).expand();
 
 
                 // tan(n/d*Pi) -> { all known non-nested radicals }

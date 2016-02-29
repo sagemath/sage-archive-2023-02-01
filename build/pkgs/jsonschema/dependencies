@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(VCVERSIONER) $(INST)/$(FUNCTOOLS32)
+$(PYTHON) setuptools vcversioner functools32
 
 ----------
 All lines of this file are ignored except the first.

@@ -3761,6 +3761,5 @@ class GraphicsArray(WithEqualityById, SageObject):
             sage: S = graphics_array([g1, g2], 2, 1)
             sage: S.plot() is S
             True
-
         """
         return self

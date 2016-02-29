@@ -7,6 +7,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 
 - :func:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
 - :func:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
+- :class:`linear_code.LinearCodeInformationSetDecoder <sage.coding.linear_code.LinearCodeInformationSetDecoder>`
 
 **Generalized Reed-Solomon code decoders**
 
@@ -28,5 +29,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
+from linear_code import (LinearCodeSyndromeDecoder,
+                         LinearCodeNearestNeighborDecoder,
+                         LinearCodeInformationSetDecoder)
 from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder

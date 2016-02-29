@@ -234,7 +234,7 @@ def pyx_preparse(s):
     s = """\ninclude "cysignals/signals.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)
     args = ['-w','-O2'] + args
-    libdirs = cblas_library_dirs()
+    libdirs = cblas_library_dirs
 
     # Add cysignals directory to includes
     for path in sys.path:

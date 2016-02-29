@@ -760,7 +760,7 @@ REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
 static ex acoth_evalf(const ex & x, PyObject* parent)
 {
         if (is_exactly_a<numeric>(x))
-                return acoth(ex_to<numeric>(x));
+                return atanh(ex_to<numeric>(x).inverse());
 
         return acoth(x).hold();
 }
@@ -768,9 +768,6 @@ static ex acoth_evalf(const ex & x, PyObject* parent)
 static ex acoth_eval(const ex & x)
 {
         if (is_exactly_a<numeric>(x)) {
-                // acoth(0) -> i*pi/2
-                if (x.is_zero())
-                        return _ex1_2*Pi*I;
                 // acoth(1) -> oo
                 if (x.is_equal(_ex1))
                         return Infinity;
@@ -779,7 +776,7 @@ static ex acoth_eval(const ex & x)
                         return NegInfinity;
                 //acoth(float) -> float 
                 if (!x.info(info_flags::crational))
-                        return acoth(ex_to<numeric>(x));
+                        return atanh(ex_to<numeric>(x).inverse());
                 // acoth() is odd
                 if (x.info(info_flags::negative))
                         return -acoth(-x);
@@ -795,12 +792,11 @@ static ex acoth_eval(const ex & x)
 
         // acoth(oo) -> 0
         // acoth(-oo) -> 0
-        // acoth(UnsignedInfinity) -> error
+        // acoth(UnsignedInfinity) -> 0
         if (x.info(info_flags::infinity)) {
-                if (x.is_equal(Infinity) || x.is_equal(NegInfinity))
-                        return _ex0;
+                return _ex0;
                 // x is UnsignedInfinity
-                throw (std::runtime_error("arccoth_eval(): arccoth(unsigned_infinity) encountered"));
+                //throw (std::runtime_error("arccoth_eval(): arccoth(unsigned_infinity) encountered"));
         }
         
         return acoth(x).hold();

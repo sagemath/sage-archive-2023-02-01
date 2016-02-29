@@ -3918,10 +3918,8 @@ class Graph(GenericGraph):
                     g.add_edge(u, v, attr_dict={"weight": weight(l)})
             else:
                 g = Graph(self.edges(labels=False))
-                #print g.edges()
                 g = g.networkx_graph(copy=False)
             d = networkx.max_weight_matching(g)
-            #print 'd={} and use_edge_labels={}'.format(d,use_edge_labels)
             if value_only:
                 if use_edge_labels:
                     return sum(weight(self.edge_label(u, v))
@@ -3939,9 +3937,14 @@ class Graph(GenericGraph):
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
             b = p.new_variable(binary = True)
-            p.set_objective(
-                p.sum(weight(w) * b[min(u, v),max(u, v)]
-                     for u, v, w in g.edges()))
+            if use_edge_labels:
+                p.set_objective(
+                    p.sum(weight(w) * b[min(u, v),max(u, v)]
+                         for u, v, w in g.edges()))
+            else:
+                p.set_objective(
+                    p.sum(b[min(u, v),max(u, v)]
+                         for u, v in g.edges(labels=False)))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():

@@ -1768,7 +1768,12 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         for i in range(len(objects)):
             x = objects[i]
             L = latex(x)
-            if not '\\begin{verbatim}' in L:
+            if '\\begin{pgfpicture}' in L:
+                latex.add_package_to_preamble_if_available('adjustbox')
+                s += '\n\\begin{adjustbox}{max width=\\textwidth}\n'
+                s += '%s'%L
+                s += '\n\\end{adjustbox}\n'
+            elif not '\\begin{verbatim}' in L:
                 s += '%s%s%s'%(math_left, L, math_right)
             else:
                 s += '%s'%L

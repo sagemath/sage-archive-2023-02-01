@@ -943,13 +943,13 @@ class AbstractLinearCode(module.Module):
 
             sage: C.add_decoder("MyDecoder", MyDecoder)
             sage: C.decoders_available()
-            ['MyDecoder', 'Syndrome', 'NearestNeighbor']
+            ['MyDecoder', 'InformationSet', 'Syndrome', 'NearestNeighbor']
 
         We can verify that any new code will not know MyDecoder::
 
             sage: C2 = codes.HammingCode(3, GF(3))
             sage: C2.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
 
         TESTS:
 
@@ -1649,7 +1649,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the decoder amongst the list of the available ones::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decode_to_code(w_err, 'NearestNeighbor')
             (1, 1, 0, 0, 1, 1, 0)
         """
@@ -1686,7 +1686,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the decoder amongst the list of the available ones::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decode_to_message(word, 'NearestNeighbor')
             (0, 1, 1, 0)
         """
@@ -1726,7 +1726,7 @@ class AbstractLinearCode(module.Module):
         an exception will be raised::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
@@ -1755,10 +1755,11 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
 
             sage: C.decoders_available(True)
-            {'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
+            {'InformationSet': <class 'sage.coding.linear_code.LinearCodeInformationSetDecoder'>,
+             'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
              'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>}
         """
         if classes == True:
@@ -3008,9 +3009,10 @@ class AbstractLinearCode(module.Module):
             True
 
         """
-        V = self.ambient_space()
-        S = V.subspace(self.basis())
-        c = S.random_element(*args, **kwds)
+        E = self.encoder()
+        M = E.message_space()
+        m = M.random_element(*args, **kwds)
+        c = E.encode(m)
         c.set_immutable()
         return c
 
@@ -4532,6 +4534,192 @@ class LinearCodeNearestNeighborDecoder(Decoder):
         """
         return (self.code().minimum_distance()-1) // 2
 
+
+
+
+
+
+
+
+
+
+class LinearCodeInformationSetDecoder(Decoder):
+    r"""
+    Construct a decoder for Linear Codes. This decoder use the probabilistic
+    information set decoding algorithm. Details follow.
+
+    This decoder is based on the Lee-Brickell refinement of the information set
+    decoding algorithm, as described in [P10]:
+
+    Let `p` and `w` be integers, such that `0\leq p\leq w`, let
+    `y` be a vector over some vector space `GF(q)^{n}` and let `C` be
+    a `[n, k]`-linear code over `GF(q)`.
+    Let `G` be a generator matrix of `C`, and `G_{I}` a matrix formed by
+    the columns of `G` indexed by `I`.
+    To correct exactly `w` errors in `y`, proceed as follows:
+
+        1. Choose a information set `I` of `C`.
+        2. Compute `yc = y - y_{I}\times G^{-1} \times G`
+        3. Consider every size-`p` subset of `I` `\{a_1, \dots, a_p\}`.
+           For each `m= (m_1, \dots, m_p) \in GF(q)^{p}`, compute
+           the error vector `e = yc - \sum_{i=1}^{p} m_i\times g_{a_i}`,
+        4. If `e` has a Hamming weight of `w`, it's the right error vector,
+           thus return `y-e`.
+           Else, go back to 1.
+
+
+
+    REFERENCES:
+
+    - [P10] Christiane Peters, Information-set decoding for linear codes over Fq, 2010
+
+    INPUT:
+
+    - ``code`` -- A code associated to this decoder
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C)
+            sage: D
+            Information set decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeInformationSetDecoder, self).__init__(code, code.ambient_space(), \
+                code._default_encoder_name)
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeInformationSetDecoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: D1 = codes.decoders.LinearCodeInformationSetDecoder(LinearCode(G))
+            sage: D2 = codes.decoders.LinearCodeInformationSetDecoder(LinearCode(G))
+            sage: D1 == D2
+            True
+        """
+        return isinstance(other, LinearCodeInformationSetDecoder)\
+                and self.code() == other.code()
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C)
+            sage: D
+            Information set decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Information set decoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C)
+            sage: latex(D)
+            \textnormal{Information set decoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Information set decoder for }%s" % self.code()._latex_()
+
+    def decode_to_code(self, r, p, w):
+        r"""
+        Decodes ``r`` to an element in the associated code of ``self``.
+
+        One has to provide ``w``, the number of errors which ``r`` contains.
+
+        INPUT:
+
+        - ``r`` -- a received word, i.e. a vector in the ambient space of
+          :meth:`decoder.Decoder.code`.
+
+        - ``p`` -- the window size parameter, i.e. an integer smaller than ``w``.
+
+        - ``w`` -- the number of errors, i.e. an integer smaller than
+          :meth:`sage.coding.decoder.Decoder.code`'s length.
+
+        OUTPUT:
+
+        - a codeword of the associated code of ``self``
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(2))
+            sage: D = C.decoder('InformationSet')
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 3)
+            sage: y = Chan(c)
+            sage: c == D.decode_to_code(y, 2, 3)
+            True
+        """
+        from sage.matrix.constructor import column_matrix
+        C = self.code()
+        n, k = C.length(), C.dimension()
+        if not isinstance(p, (Integer, int)) or p < 0:
+            raise ValueError("The window size parameter has to be either a positive Sage integer or a Python int")
+        if not isinstance(w, (Integer, int)) or w < 0:
+            raise ValueError("The provided number of errors has to be either a positive Sage integer or a Python int")
+        if p > w:
+            raise ValueError("The window size parameter has to be at most the provided number of errors")
+        if w > n:
+            raise ValueError("The provided number of errors has to be at most the code's length")
+        if w == 0:
+            return r
+        F = C.base_ring()
+        one = F.one()
+        G = C.generator_matrix()
+        columns = G.columns()
+        l = F.list()
+        #We define an iterator over the possible information sets
+        I = iter(Subsets(range(n), k))
+        while(True):
+            try:
+                information_set = list(I.next())
+                columns = [G.column(i) for i in information_set]
+                Gi = column_matrix(columns)
+                try:
+                    Gi_G = Gi.inverse() * G
+                    rc = copy(r)
+                    #At every iteration, we will need the row corresponding
+                    #to the index where Gi_G's i-th column has a one.
+                    #We store this in a dictionary to save later computation.
+                    gs = dict()
+                    for i in information_set:
+                        gs[i] = Gi_G.row(list(Gi_G.column(i)).index(one))
+
+                    m = iter(VectorSpace(F, p))
+                    for i in Subsets(information_set, p):
+                        ind = 0
+                        v = vector(F, n)
+                        while(True):
+                            try:
+                                j = m.next()
+                                v += j[ind] * gs[i[ind]]
+                                if (rc - v).hamming_weight() == w:
+                                    return r - (rc - v)
+                                ind = (ind + 1) % p
+                            except StopIteration:
+                                break
+                except ZeroDivisionError:
+                #in that case Gi was not invertible
+                #thus I was not an information set
+                    pass
+            except StopIteration:
+                raise DecodingError
+
+
 ####################### registration ###############################
 
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
@@ -4539,4 +4727,6 @@ LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEn
 LinearCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
 LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
+LinearCode._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}

@@ -195,7 +195,7 @@ class Function_tanh(GinacFunction):
 tanh = Function_tanh()
 
 
-class Function_coth(HyperbolicFunction):
+class Function_coth(GinacFunction):
     def __init__(self):
         r"""
         The hyperbolic cotangent function.
@@ -204,6 +204,18 @@ class Function_coth(HyperbolicFunction):
 
             sage: coth(pi)
             coth(pi)
+            sage: coth(0)
+            Infinity
+            sage: coth(pi*I)
+            Infinity
+            sage: coth(pi*I/2)
+            0
+            sage: coth(7*pi*I/2)
+            0
+            sage: coth(8*pi*I/2)
+            Infinity
+            sage: coth(7.*pi*I/2)
+            -I*cot(3.50000000000000*pi)
             sage: coth(3.1415)
             1.00374256795520
             sage: float(coth(pi))
@@ -211,38 +223,14 @@ class Function_coth(HyperbolicFunction):
             sage: RR(coth(pi))
             1.00374187319732
 
+            sage: bool(diff(coth(x), x) == diff(1/tanh(x), x))
+            True
+            sage: diff(coth(x), x)
+            -1/sinh(x)^2
             sage: latex(coth(x))
-            \coth\left(x\right)
+            \operatorname{coth}\left(x\right)
         """
-        HyperbolicFunction.__init__(self, "coth", latex_name=r"\coth",
-                                   evalf_float=lambda x: 1/math.tanh(x))
-
-    def _eval_(self, x):
-        """
-        EXAMPLES::
-
-            sage: coth(0)
-            +Infinity
-            sage: coth(pi*I)
-            +Infinity
-            sage: coth(pi*I/2)
-            0
-            sage: coth(7*pi*I/2)
-            0
-            sage: coth(8*pi*I/2)
-            +Infinity
-            sage: coth(7.*pi*I/2)
-            coth(3.50000000000000*I*pi)
-        """
-        if x.is_zero():
-            return Infinity
-        if isinstance(x, Expression):
-            y = 2 * x / pi / I
-            if y.is_integer():
-                if ZZ(y) % 2 == 1:
-                    return 0
-                else:
-                    return Infinity
+        GinacFunction.__init__(self, "coth", latex_name=r"\operatorname{coth}")
 
     def _eval_numpy_(self, x):
         """
@@ -254,18 +242,6 @@ class Function_coth(HyperbolicFunction):
             array([ 1.03731472,  1.00496982,  1.00067115])
         """
         return 1 / tanh(x)
-
-    def _derivative_(self, *args, **kwds):
-        """
-        EXAMPLES::
-
-            sage: bool(diff(coth(x), x) == diff(1/tanh(x), x))
-            True
-            sage: diff(coth(x), x)
-            -csch(x)^2
-        """
-        x = args[0]
-        return -csch(x)**2
 
 coth = Function_coth()
 
@@ -617,7 +593,7 @@ class Function_arctanh(GinacFunction):
 arctanh = atanh = Function_arctanh()
 
 
-class Function_arccoth(HyperbolicFunction):
+class Function_arccoth(GinacFunction):
     def __init__(self):
         r"""
         The inverse of the hyperbolic cotangent function.
@@ -633,6 +609,11 @@ class Function_arccoth(HyperbolicFunction):
             sage: arccoth(2).n(200)
             0.54930614433405484569762261846126285232374527891137472586735
 
+            sage: bool(diff(acoth(x), x) == diff(atanh(x), x))
+            True
+            sage: diff(acoth(x), x)
+            -1/(x^2 - 1)
+
         Using first the `.n(53)` method is slightly more precise than
         converting directly to a ``float``::
 
@@ -646,12 +627,11 @@ class Function_arccoth(HyperbolicFunction):
         TESTS::
 
             sage: latex(arccoth(x))
-            {\rm arccoth}\left(x\right)
+            \operatorname{arccoth}\left(x\right)
         """
-        HyperbolicFunction.__init__(self, "arccoth",
-                latex_name=r"{\rm arccoth}",
-                conversions=dict(maxima='acoth', sympy='acoth'),
-                evalf_float=lambda x: atanh(float(1/x)))
+        GinacFunction.__init__(self, "arccoth",
+                latex_name=r"\operatorname{arccoth}",
+                conversions=dict(maxima='acoth', sympy='acoth'))
 
     def _eval_numpy_(self, x):
         """
@@ -663,18 +643,6 @@ class Function_arccoth(HyperbolicFunction):
             array([ 0.54930614,  0.34657359,  0.25541281])
         """
         return arctanh(1.0 / x)
-
-    def _derivative_(self, *args, **kwds):
-        """
-        EXAMPLES::
-
-            sage: bool(diff(acoth(x), x) == diff(atanh(x), x))
-            True
-            sage: diff(acoth(x), x)
-            -1/(x^2 - 1)
-        """
-        x = args[0]
-        return -1/(x**2 - 1)
 
 arccoth = acoth = Function_arccoth()
 

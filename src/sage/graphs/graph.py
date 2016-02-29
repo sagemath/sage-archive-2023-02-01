@@ -3925,7 +3925,7 @@ class Graph(GenericGraph):
                     return sum(weight(self.edge_label(u, v))
                                 for u, v in d.iteritems()) * 0.5
                 else:
-                    return len(d)/2
+                    return int(len(d)/2)
             else:
                 return [(u, v, self.edge_label(u, v))
                         for u, v in d.iteritems() if u < v]

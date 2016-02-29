@@ -428,7 +428,7 @@ extra_compile_args = %s
 
 ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,
-                     library_dirs=[SAGE_LOCAL + '/lib/', '%s'],
+                     library_dirs=[SAGE_LOCAL + '/lib/'] + %s,
                      extra_compile_args = extra_compile_args,
                      language = '%s' )]
 

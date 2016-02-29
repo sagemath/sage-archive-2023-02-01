@@ -3266,6 +3266,8 @@ class Graphics(WithEqualityById, SageObject):
         self.save(filename=tmpfilename, **kwds)
         with open(tmpfilename, "r") as tmpfile:
                 latex_list = tmpfile.readlines()
+        from sage.misc.latex import latex
+        latex.add_package_to_preamble_if_available('pgf')
         return ''.join(latex_list)
 
     def description(self):

@@ -1,5 +1,3 @@
-#include 'gsl.pxi'
-
 include 'sage/ext/stdsage.pxi'
 
 cdef class GSLDoubleArray:

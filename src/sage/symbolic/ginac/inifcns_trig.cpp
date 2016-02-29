@@ -1409,11 +1409,16 @@ static ex asec_evalf(const ex & x, PyObject* parent)
 
 static ex asec_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x) and not x.info(info_flags::crational))
-		return acos(ex_to<numeric>(x).inverse());
-
-        if (x.is_zero()) {
-		throw (pole_error("asec_eval(): asec(0) encountered",0));
+	if (is_exactly_a<numeric>(x)) {
+                numeric num = ex_to<numeric>(x);
+                if (num.is_zero())
+                        throw (pole_error("asec_eval(): asec(0) encountered",0));
+                if (num.is_equal(*_num1_p))
+                        return _ex0;
+                if (num.is_equal(*_num_1_p))
+                        return Pi;
+                if (not num.info(info_flags::crational))
+                        return acos(num.inverse());
 	}
 
 	if (x.info(info_flags::infinity)) {
@@ -1468,12 +1473,17 @@ static ex acsc_evalf(const ex & x, PyObject* parent)
 
 static ex acsc_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x) and not x.info(info_flags::crational))
-		return asin(ex_to<numeric>(x).inverse());
-
-	if (x.is_zero()) {
-		throw (pole_error("acsc_eval(): asec(0) encountered",0));
-	}
+	if (is_exactly_a<numeric>(x)) {
+                numeric num = ex_to<numeric>(x);
+                if (num.is_zero())
+                        throw (pole_error("acsc_eval(): asec(0) encountered",0));
+                if (num.is_equal(*_num1_p))
+                        return Pi/_ex2;
+                if (num.is_equal(*_num_1_p))
+                        return -Pi/_ex2;
+                if (not num.info(info_flags::crational))
+                        return asin(num.inverse());
+        }
 
 	if (x.info(info_flags::infinity)) {
 		return _ex0;

@@ -38,7 +38,8 @@ Package types
 Not all packages are built by default, they are divided into standard,
 optional and experimental ones:
 
-- **standard** packages are built by default. They have stringent quality
+- **standard** packages are built by default unless ``configure``
+  determines that they are not needed. They have stringent quality
   requirements: they should work on all supported platforms. In order
   for a new standard package to be accepted, it should have been
   optional for a while, see :ref:`section-inclusion-procedure`.

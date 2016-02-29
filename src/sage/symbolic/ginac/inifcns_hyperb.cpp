@@ -828,4 +828,71 @@ REGISTER_FUNCTION(acoth, eval_func(acoth_eval).
                          conjugate_func(acoth_conjugate).
                          set_name("arccoth"));
 
+//////////
+// inverse hyperbolic Cosecant (trigonometric function)
+//////////
+
+static ex acsch_evalf(const ex & x, PyObject* parent)
+{
+        if (is_exactly_a<numeric>(x))
+                return asinh(ex_to<numeric>(x).inverse());
+
+        return acsch(x).hold();
+}
+
+static ex acsch_eval(const ex & x)
+{
+        if (is_exactly_a<numeric>(x)) {
+                // acsch(0) -> oo
+                if (x.is_zero())
+                        return Infinity;
+                //acsch(float) -> float 
+                if (!x.info(info_flags::crational))
+                        return asinh(ex_to<numeric>(x).inverse());
+                // acsch(-x) -> acsch(-x)
+                if (x.info(info_flags::negative))
+                        return -acsch(-x);
+        }
+       
+        // acsch(oo) -> 0
+        // acsch(-oo) -> 0
+        // acsch(UnsignedInfinity) -> 0
+        if (x.info(info_flags::infinity)) {
+                return _ex0;
+        }
+        
+        return acsch(x).hold();
+}
+
+static ex acsch_deriv(const ex & x, unsigned deriv_param)
+{
+        GINAC_ASSERT(deriv_param==0);
+
+        // acsch(x) -> ln(1/x + sqrt(1/x^2 + 1))
+        // d/dx acsch(x) ->  -1 / [x * sqrt(1 + x^2)];
+        return (_ex_1/x)*power(_ex1+power(x, _ex2), _ex_1_2);
+}
+
+static ex acsch_conjugate(const ex & x)
+{
+        // conjugate(acsch(x))==acsch(conjugate(x)) unless on the branch cuts which
+        // run along the imaginary axis inside the interval [-I, +I].
+        if (x.info(info_flags::real))
+		return acsch(x);
+	if (is_exactly_a<numeric>(x)) {
+		const numeric x_re = ex_to<numeric>(x.real_part());
+		const numeric x_im = ex_to<numeric>(x.imag_part());
+		if (!x_re.is_zero() ||
+		    (x_im < *_num_1_p && x_im > *_num1_p))
+			return acsch(x.conjugate());
+	}
+	return conjugate_function(acsch(x)).hold();
+}
+
+REGISTER_FUNCTION(acsch, eval_func(acsch_eval).
+                         evalf_func(acsch_evalf).
+                         derivative_func(acsch_deriv).
+                         conjugate_func(acsch_conjugate).
+                         set_name("arccsch"));
+
 } // namespace GiNaC

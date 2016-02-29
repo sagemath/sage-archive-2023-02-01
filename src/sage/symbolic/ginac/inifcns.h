@@ -119,6 +119,9 @@ DECLARE_FUNCTION_1P(atanh)
 /** Inverse hyperbolic Cotangent (area hyperbolic cotangent). */
 DECLARE_FUNCTION_1P(acoth)
 
+/** Inverse hyperbolic Cosecant (area hyperbolic cosecant). */
+DECLARE_FUNCTION_1P(acsch)
+
 /** Dilogarithm. */
 DECLARE_FUNCTION_1P(Li2)
 

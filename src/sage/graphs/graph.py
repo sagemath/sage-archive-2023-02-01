@@ -3801,7 +3801,7 @@ class Graph(GenericGraph):
         return ret
 
     @doc_index("Leftovers")
-    def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=True, solver=None, verbose=0):
+    def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=False, solver=None, verbose=0):
         r"""
         Returns a maximum weighted matching of the graph
         represented by the list of its edges. For more information, see the
@@ -3864,13 +3864,31 @@ class Graph(GenericGraph):
 
            sage: g = graphs.PappusGraph()
            sage: g.matching(value_only=True)
-           9.0
+           9
 
         Same test with the Linear Program formulation::
 
            sage: g = graphs.PappusGraph()
            sage: g.matching(algorithm="LP", value_only=True)
-           9.0
+           9
+
+        When ``use_edge_labels`` is set to the default value: ``False``,
+        with Edmonds' algorithm and LP formulation::
+
+            sage: g = Graph([(0,1,0),(1,2,999),(2,3,-5)])
+            sage: g.matching()
+            [(0, 1, 0), (2, 3, -5)]
+            sage: g.matching(algorithm="LP")
+            [(0, 1, 0), (2, 3, -5)]
+
+        When ``use_edge_labels`` is set to ``True``,
+        with Edmonds' algorithm and LP formulation::
+
+            sage: g = Graph([(0,1,0),(1,2,999),(2,3,-5)])
+            sage: g.matching(use_edge_labels=True)
+            [(1, 2, 999)]
+            sage: g.matching(algorithm="LP", use_edge_labels=True)
+            [(1, 2, 999)]
 
         .. PLOT::
 
@@ -3899,14 +3917,17 @@ class Graph(GenericGraph):
                 for u, v, l in self.edges():
                     g.add_edge(u, v, attr_dict={"weight": weight(l)})
             else:
-                g = self.networkx_graph(copy=False)
+                g = Graph(self.edges(labels=False))
+                #print g.edges()
+                g = g.networkx_graph(copy=False)
             d = networkx.max_weight_matching(g)
+            #print 'd={} and use_edge_labels={}'.format(d,use_edge_labels)
             if value_only:
                 if use_edge_labels:
                     return sum(weight(self.edge_label(u, v))
                                 for u, v in d.iteritems()) * 0.5
                 else:
-                    return Integer(len(d)/2)
+                    return len(d)/2
             else:
                 return [(u, v, self.edge_label(u, v))
                         for u, v in d.iteritems() if u < v]
@@ -4151,7 +4172,7 @@ class Graph(GenericGraph):
 
             # Computing a matching of maximum weight...
 
-            matching = g.matching()
+            matching = g.matching(use_edge_labels=True)
 
             # If the maximum matching has weight at most 1, we are done !
             if sum((x[2] for x in matching)) <= 1:

@@ -177,7 +177,7 @@ def pyx_preparse(s):
         '.../sage/ext',
         '.../cysignals'],
         'c',
-        [], ['-w', '-O2'])
+        [], ['-w', '-O2'],...)
         sage: s, libs, inc, lang, f, args, libdirs = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
         sage: lang
         'c++'

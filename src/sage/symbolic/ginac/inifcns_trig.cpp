@@ -90,7 +90,7 @@ static ex sin_eval(const ex & x)
                 }
                 else if ((coef_pi / _ex2).info(info_flags::integer))
                         rem = Pi * coef_pi;
-                x_red = x - rem;
+                x_red = (x - rem).expand();
 
                 // sin(n/d*Pi) -> { all known radicals with nesting depth 2 }
                 const ex SixtyExOverPi = _ex60*x_red/Pi;

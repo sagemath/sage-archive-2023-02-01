@@ -390,9 +390,14 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
         c_or = D.decode_to_code(y_or)
         return vector([FE.small_field_polynomial_representation(i) for i in c_or])
 
-    def decoding_radius(self):
+    def decoding_radius(self, **kwargs):
         r"""
         Returns maximal number of errors ``self`` can decode.
+
+        INPUT:
+
+        - ``kwargs`` -- Optional arguments are forwarded to original decoder's
+          :meth:`sage.coding.decoder.Decoder.decoding_radius` method.
 
         EXAMPLES::
 
@@ -402,7 +407,7 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
             sage: D.decoding_radius()
             4
         """
-        return self.original_decoder().decoding_radius()
+        return self.original_decoder().decoding_radius(**kwargs)
 
 ####################### registration ###############################
 

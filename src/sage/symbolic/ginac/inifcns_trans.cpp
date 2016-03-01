@@ -115,7 +115,7 @@ static ex exp_eval(const ex & x)
 		}
 		else if ((coef_pi / (_ex2 * I)).info(info_flags::integer))
 			rem = Pi * coef_pi;
-		x_red = x - rem;
+		x_red = (x - rem).expand();
 
 
 		ex res1 = sin(x_red/I);

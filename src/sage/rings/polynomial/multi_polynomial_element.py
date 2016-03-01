@@ -536,6 +536,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             3
             sage: R(0).degree()
             -1
+
+        Degree of zero polynomial for other implementation :trac:`20048` ::
+
+            sage: R.<x,y> = GF(3037000453)[]
+            sage: R.zero().degree(x)
+            -1
         """
         if x is None:
             if std_grading or not self.parent().term_order().is_weighted_degree_order():

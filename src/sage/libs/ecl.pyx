@@ -14,7 +14,7 @@ Library interface to Embeddable Common Lisp (ECL)
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 
 from libc.stdlib cimport abort
@@ -322,7 +322,7 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     Test interrupts::
 
         sage: from sage.libs.ecl import *
-        sage: from sage.ext.interrupt.tests import *
+        sage: from cysignals.tests import interrupt_after_delay
         sage: ecl_eval("(setf i 0)")
         <ECL: 0>
         sage: inf_loop = ecl_eval("(defun infinite() (loop (incf i)))")

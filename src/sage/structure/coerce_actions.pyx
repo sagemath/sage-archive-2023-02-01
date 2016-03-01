@@ -15,7 +15,7 @@ Coerce actions
 
 import operator
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
 from sage.structure.element cimport parent_c, coercion_model

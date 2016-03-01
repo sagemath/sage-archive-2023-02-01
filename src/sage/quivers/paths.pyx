@@ -21,7 +21,7 @@ Quiver Paths
 from sage.data_structures.bounded_integer_sequences cimport *
 from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
 
 cdef class QuiverPath(MonoidElement):

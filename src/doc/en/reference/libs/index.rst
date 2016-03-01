@@ -68,7 +68,6 @@ to be aware of the modules described in this chapter.
 
    sage/gsl/gsl_array
 
-   sage/ext/interrupt
    sage/ext/pselect
 
 .. Cannot be imported independently of mpmath: sage/libs/mpmath/ext_main sage/libs/mpmath/ext_impl sage/libs/mpmath/ext_libmp

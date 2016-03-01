@@ -38,6 +38,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Shuffle <sage.algebras.shuffle_algebra.ShuffleAlgebra>`
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
+- :class:`algebras.YokonumaHecke
+  <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
 """
 
 from sage.algebras.free_algebra import FreeAlgebra as Free
@@ -59,6 +61,7 @@ lazy_import('sage.algebras.orlik_solomon', 'OrlikSolomonAlgebra', 'OrlikSolomon'
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
+lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'YokonumaHecke')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')

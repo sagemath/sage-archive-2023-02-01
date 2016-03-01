@@ -23,7 +23,7 @@
 #
 ##############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 

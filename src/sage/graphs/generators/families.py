@@ -2577,7 +2577,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         from sage.matrix.constructor import circulant
         L = circulant(range(2*t+1)+map(lambda i: -2*t+i, range(2*t)))
     q = 4*t -1
-    K = GF(q,conway=True,prefix='x')
+    K = GF(q,prefix='x')
     K_pairs = set(frozenset([x,-x]) for x in K)
     K_pairs.discard(frozenset([0]))
     a = [None]*(q-1)    # order the non-0 elements of K as required 

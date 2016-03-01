@@ -24,7 +24,7 @@ import sys
 
 from sage.libs.eclib cimport bigint, Curvedata, mw, two_descent
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 
 cdef extern from "wrap.cpp":

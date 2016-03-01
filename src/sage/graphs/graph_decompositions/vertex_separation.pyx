@@ -270,7 +270,7 @@ Methods
 """
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t

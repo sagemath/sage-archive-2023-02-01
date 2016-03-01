@@ -62,7 +62,7 @@ from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 cimport cython
 

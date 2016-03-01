@@ -56,7 +56,7 @@ from sage.libs.ntl.ZZ_pX cimport *
 def make_element(parent, args):
     return parent(*args)
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 zz_p_max = NTL_SP_BOUND
 
@@ -87,6 +87,13 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         10*x
         sage: R({10:-1})
         7*x^10
+
+    TESTS::
+
+        sage: f = Integers(5*2^100)['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_n
+        sage: isinstance(f, Polynomial_dense_mod_n)
+        True
 
     """
     def __init__(self, parent, x=None, check=True,

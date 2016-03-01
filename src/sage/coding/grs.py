@@ -27,15 +27,21 @@ This file contains the following elements:
 #*****************************************************************************
 
 from sage.matrix.constructor import matrix, diagonal_matrix
+from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module_element import vector
+from sage.modules.free_module import VectorSpace
+from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 from copy import copy
 from linear_code import (AbstractLinearCode,
                          LinearCodeSyndromeDecoder,
                          LinearCodeNearestNeighborDecoder)
 from encoder import Encoder
+from decoder import Decoder, DecodingError
+from sage.rings.arith import xgcd
 from sage.misc.misc_c import prod
-from sage.functions.other import binomial
+from sage.functions.other import binomial, floor, sqrt
 from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.rings.integer_ring import ZZ
@@ -447,6 +453,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 
+
+
 class GRSEvaluationVectorEncoder(Encoder):
     r"""
     Encoder for Generalized Reed-Solomon codes which encodes vectors into codewords.
@@ -779,5 +787,6 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
 GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluationVectorEncoder
 GeneralizedReedSolomonCode._registered_encoders["EvaluationPolynomial"] = GRSEvaluationPolynomialEncoder
+
 GeneralizedReedSolomonCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 GeneralizedReedSolomonCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

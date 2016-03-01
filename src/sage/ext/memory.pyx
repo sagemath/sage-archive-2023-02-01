@@ -32,7 +32,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.libs.gmp.misc cimport mp_set_memory_functions
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef extern from "Python.h":
     # Declare as returning void without except value

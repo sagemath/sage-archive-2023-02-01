@@ -78,8 +78,8 @@ class NotebookJupyter(object):
         if not have_prerequisites():
             print(self.PREREQUISITE_ERROR)
             raise SystemExit(1)
-        from IPython import start_ipython
-        start_ipython(['notebook'] + argv)
+        from notebook.notebookapp import main
+        main(argv)
 
 
 description = \

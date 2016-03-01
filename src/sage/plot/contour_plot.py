@@ -568,7 +568,7 @@ def contour_plot(f, xrange, yrange, **options):
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
 
-@options(plot_points=150, contours=(0,0), fill=False, cmap=["blue"])
+@options(plot_points=150, contours=(0,), fill=False, cmap=["blue"])
 def implicit_plot(f, xrange, yrange, **options):
     r"""
     ``implicit_plot`` takes a function of two variables, `f(x,y)`
@@ -672,23 +672,24 @@ def implicit_plot(f, xrange, yrange, **options):
 
         sage: G = Graphics()
         sage: counter = 0
-        sage: for col in colors.keys(): # long time
-        ...       G += implicit_plot(x^2+y^2==1+counter*.1, (x,-4,4),(y,-4,4),color=col)
-        ...       counter += 1
-        sage: G.show(frame=False)
+        sage: for col in colors.keys():  # long time
+        ....:     G += implicit_plot(x^2+y^2==1+counter*.1, (x,-4,4),(y,-4,4),color=col)
+        ....:     counter += 1
+        sage: G  # long time
+        Graphics object consisting of 148 graphics primitives
 
     We can define a level-`n` approximation of the boundary of the
     Mandelbrot set::
 
         sage: def mandel(n):
-        ...       c = polygen(CDF, 'c')
-        ...       z = 0
-        ...       for i in range(n):
-        ...           z = z*z + c
-        ...       def f(x, y):
-        ...           val = z(CDF(x, y))
-        ...           return val.norm() - 4
-        ...       return f
+        ....:     c = polygen(CDF, 'c')
+        ....:     z = 0
+        ....:     for i in range(n):
+        ....:         z = z*z + c
+        ....:     def f(x, y):
+        ....:         val = z(CDF(x, y))
+        ....:         return val.norm() - 4
+        ....:     return f
 
     The first-level approximation is just a circle::
 

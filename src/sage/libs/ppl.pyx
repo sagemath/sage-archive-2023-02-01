@@ -155,7 +155,7 @@ from sage.libs.gmpxx cimport mpz_class
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from libcpp cimport bool as cppbool
 

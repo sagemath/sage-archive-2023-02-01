@@ -1,5 +1,5 @@
 import sys, os, sphinx
-from sage.env import SAGE_DOC, SAGE_DOC_OUTPUT, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 from datetime import date
 
 
@@ -45,7 +45,7 @@ plot_html_show_formats = False
 
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = [os.path.join(SAGE_DOC, 'common', 'templates'), 'templates']
+templates_path = [os.path.join(SAGE_DOC_SRC, 'common', 'templates'), 'templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -116,14 +116,14 @@ todo_include_todos = True
 # Cross-links to other project's online documentation.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC, "common", "python.inv"))}
+                os.path.join(SAGE_DOC_SRC, "common", "python.inv"))}
 
 def set_intersphinx_mappings(app):
     """
     Add precompiled inventory (the objects.inv)
     """
-    refpath = os.path.join(SAGE_DOC_OUTPUT, "html", "en", "reference")
-    invpath = os.path.join(SAGE_DOC_OUTPUT, "inventory", "en", "reference")
+    refpath = os.path.join(SAGE_DOC, "html", "en", "reference")
+    invpath = os.path.join(SAGE_DOC, "inventory", "en", "reference")
     if app.config.multidoc_first_pass == 1 or \
             not (os.path.exists(refpath) and os.path.exists(invpath)):
         app.config.intersphinx_mapping = {}
@@ -177,7 +177,7 @@ html_theme = 'sage'
 html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [os.path.join(SAGE_DOC, 'common/themes')]
+html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes')]
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding
 # setting.
@@ -202,7 +202,7 @@ html_favicon = 'favicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [os.path.join(SAGE_DOC, 'common', 'static'), 'static']
+html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), 'static']
 
 # We use MathJax to build the documentation unless the environment
 # variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
@@ -613,7 +613,7 @@ def call_intersphinx(app, env, node, contnode):
         # useful for debugging
         # import pdb
         # pdb.set_trace()
-        if res['refuri'].startswith(SAGE_DOC):
+        if res['refuri'].startswith(SAGE_DOC_SRC):
             here = os.path.dirname(os.path.join(builder.outdir,
                                                 node['refdoc']))
             res['refuri'] = os.path.relpath(res['refuri'], here)
@@ -758,11 +758,11 @@ def setup(app):
         app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
 
-    # When building the standard docs, app.srcdir is set to SAGE_DOC +
+    # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +
     # 'LANGUAGE/DOCNAME', but when doing introspection, app.srcdir is
     # set to a temporary directory.  We don't want to use intersphinx,
     # etc., when doing introspection.
-    if app.srcdir.startswith(SAGE_DOC):
+    if app.srcdir.startswith(SAGE_DOC_SRC):
         app.add_config_value('intersphinx_mapping', {}, False)
         app.add_config_value('intersphinx_cache_limit', 5, False)
         # We do *not* fully initialize intersphinx since we call it by hand

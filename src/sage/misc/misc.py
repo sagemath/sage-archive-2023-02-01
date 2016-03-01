@@ -30,10 +30,14 @@ Check the fix from :trac:`8323`::
 Test deprecation::
 
     sage: sage.misc.misc.mul([3,4])
-    doctest:...: DeprecationWarning: 
+    doctest:...: DeprecationWarning:
     Importing prod from here is deprecated. If you need to use it, please import it directly from sage.misc.all
     See http://trac.sagemath.org/17460 for details.
     12
+    sage: sage.misc.misc.cancel_alarm()
+    doctest:...: DeprecationWarning:
+    Importing cancel_alarm from here is deprecated. If you need to use it, please import it directly from cysignals.alarm
+    See http://trac.sagemath.org/20002 for details.
 """
 
 #*****************************************************************************
@@ -63,6 +67,7 @@ lazy_import('sage.misc.banner', ('version', 'banner'), deprecation=17460)
 lazy_import('sage.env', '*', deprecation=17460)
 lazy_import('sage.misc.decorators', ('infix_operator', 'decorator_defaults', 'sage_wraps'), deprecation=17460)
 lazy_import('sage.misc.all', ('prod', 'running_total', 'balanced_sum', 'is_64_bit', 'is_32_bit'), deprecation=17460)
+lazy_import('cysignals.alarm', ('alarm', 'cancel_alarm'), deprecation=20002)
 mul = prod
 
 
@@ -1980,50 +1985,6 @@ def sourcefile(object):
     Work out which source or compiled file an object was defined in.
     """
     return inspect.getfile(object)
-
-
-#################################################################
-# alarm
-#################################################################
-def alarm(seconds):
-    """
-    Raise an :class:`AlarmInterrupt` exception in a given number of
-    seconds. This is useful for automatically interrupting long
-    computations and can be trapped using exception handling.
-
-    Use :func:`cancel_alarm` to cancel a previously scheduled alarm.
-
-    INPUT:
-
-    -  ``seconds`` -- positive number, may be floating point
-
-    EXAMPLES::
-
-        sage: alarm(0.5); factor(2^1031-1)
-        Traceback (most recent call last):
-        ...
-        AlarmInterrupt
-        sage: alarm(0)
-        Traceback (most recent call last):
-        ...
-        ValueError: alarm() time must be positive
-    """
-    if seconds <= 0:
-        raise ValueError("alarm() time must be positive")
-    signal.setitimer(signal.ITIMER_REAL, seconds, 0)
-
-def cancel_alarm():
-    """
-    Cancel a previously scheduled alarm (if any) set by :func:`alarm`.
-
-    EXAMPLES::
-
-        sage: alarm(0.5)
-        sage: cancel_alarm()
-        sage: cancel_alarm()  # Calling more than once doesn't matter
-        sage: sleep(0.6)      # sleep succeeds
-    """
-    signal.setitimer(signal.ITIMER_REAL, 0, 0)
 
 
 #################################################################

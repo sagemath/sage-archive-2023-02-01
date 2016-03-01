@@ -52,4 +52,6 @@ Algebras
 
    sage/algebras/weyl_algebra
 
+   sage/algebras/yokonuma_hecke_algebra
+
 .. include:: ../footer.txt

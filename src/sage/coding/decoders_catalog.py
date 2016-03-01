@@ -8,6 +8,10 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :func:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
 - :func:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 
+**Generalized Reed-Solomon code decoders**
+
+- :func:`guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder <sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder>`
+
 .. NOTE::
 
     To import these names into the global namespace, use:
@@ -25,3 +29,4 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 #*****************************************************************************
 
 from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
+from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder

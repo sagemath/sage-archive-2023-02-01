@@ -64,5 +64,6 @@ Asymptotic Expansions --- Table of Contents
    sage/rings/asymptotic/growth_group_cartesian
    sage/rings/asymptotic/term_monoid
    sage/rings/asymptotic/misc
+   sage/rings/asymptotic/asymptotics_multivariate_generating_functions
 
 .. include:: ../footer.txt

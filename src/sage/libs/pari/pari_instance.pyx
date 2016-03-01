@@ -174,9 +174,9 @@ Sage (:trac:`9636`)::
 from .paridecl cimport *
 from .paripriv cimport *
 include 'pari_err.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 cdef extern from *:
-    int sig_on_count "_signals.sig_on_count"
+    int sig_on_count "cysigs.sig_on_count"
 
 import sys
 

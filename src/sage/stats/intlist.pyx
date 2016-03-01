@@ -31,7 +31,7 @@ from libc.string cimport memcpy
 from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from cpython.slice cimport PySlice_Check
 from cpython.string cimport *
 

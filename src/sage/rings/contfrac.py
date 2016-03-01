@@ -13,12 +13,16 @@ We can create matrices, polynomials, vectors, etc., over the continued fraction
 field::
 
     sage: a = random_matrix(CFF, 4)
+    doctest:...: DeprecationWarning: CFF (ContinuedFractionField) is deprecated, use QQ instead
+    See http://trac.sagemath.org/20012 for details.
     sage: a
     [    [-1; 2] [-1; 1, 94]      [0; 2]       [-12]]
     [       [-1]      [0; 2]  [-1; 1, 3]   [0; 1, 2]]
     [    [-3; 2]         [0]   [0; 1, 2]        [-1]]
     [        [1]        [-1]      [0; 3]         [1]]
     sage: f = a.charpoly()
+    doctest:...: DeprecationWarning: CFF (ContinuedFractionField) is deprecated, use QQ instead
+    See http://trac.sagemath.org/20012 for details.
     sage: f
     [1]*x^4 + ([-2; 3])*x^3 + [14; 1, 1, 1, 9, 1, 8]*x^2 + ([-13; 4, 1, 2, 1, 1, 1, 1, 1, 2, 2])*x + [-6; 1, 5, 9, 1, 5]
     sage: f(a)
@@ -40,6 +44,7 @@ from sage.rings.ring import Field
 from sage.structure.element import FieldElement
 
 from continued_fraction import ContinuedFraction_periodic, ZZ_0
+from sage.misc.superseded import deprecation
 
 class ContinuedFractionField(UniqueRepresentation,Field):
     """
@@ -94,6 +99,7 @@ class ContinuedFractionField(UniqueRepresentation,Field):
 
                 sage: TestSuite(CFF.an_element()).run()
             """
+            deprecation(20012, "CFF (ContinuedFractionField) is deprecated, use QQ instead")
             ContinuedFraction_periodic.__init__(self, x1)
             FieldElement.__init__(self, parent=CFF)
 

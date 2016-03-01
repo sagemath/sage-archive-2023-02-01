@@ -528,7 +528,7 @@ class ClusterAlgebra(Parent):
             #if comp == 'y':
             #    ...compute the F-polynomial...
             if g_vector in self._path_dict:
-                raise ValueError("The F-polynomial with g-vector %s has not been computed yet.  You probably explored the exchange tree with compute_F=False.  You can compute this F-polynomial by mutating from the initial seed along the sequence %s."%(str(g_vector),str(self._path_dict[g_vector]))
+                raise ValueError("The F-polynomial with g-vector %s has not been computed yet.  You probably explored the exchange tree with compute_F=False.  You can compute this F-polynomial by mutating from the initial seed along the sequence %s."%(str(g_vector),str(self._path_dict[g_vector])))
             else:
                 raise ValueError("The F-polynomial with g-vector %s has not been computed yet."%str(g_vector))
 

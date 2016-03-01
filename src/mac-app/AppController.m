@@ -152,18 +152,18 @@
     [jupyterTask setLaunchPath:@"/bin/bash"];
     [jupyterTask setArguments:[NSArray arrayWithObjects: @"-c", command, nil]];
     [jupyterTask setCurrentDirectoryPath:jupyterPath];
-    
+
     // set up std out to
     NSPipe *outputPipe = [NSPipe pipe];
     [jupyterTask setStandardOutput:outputPipe];
 
     NSFileHandle *fh = [outputPipe fileHandleForReading];
     [fh waitForDataInBackgroundAndNotify];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedData:) name:NSFileHandleDataAvailableNotification object:fh];
 
     [jupyterTask launch];
-    
+
     if (haveStatusItem)  [statusItem setImage:statusImageBlue];
 }
 
@@ -181,7 +181,7 @@
 
 
 -(IBAction)stopJupyter:(id)sender{
-    
+
     if (jupyterTask == nil ) {
         return;
     }
@@ -208,7 +208,7 @@
     }
 
     // Create a task to start the server
-    
+
     // Get any default options they might have for this session
     [defaults synchronize];
     NSString *defArgs = [[defaults dictionaryForKey:@"DefaultArguments"]
@@ -285,7 +285,7 @@
         [taskPipe release];
         taskPipe = nil;
     } else if (theObject == launchTask ) {
-        
+
         const int status = [theObject terminationStatus];
         if (status == 0) {
             if (haveStatusItem)  [statusItem setImage:statusImageGrey];
@@ -510,7 +510,7 @@ You can change it later in Preferences."];
     NSLog(@"Checking if sagenb exists %d.", [defaults boolForKey:@"askToUpgradeNB"]);
     if ( ! [filemgr fileExistsAtPath:@"~/.sage/sage_notebook.sagenb/users.pickle"]
         && [defaults boolForKey:@"askToUpgradeNB"]) {
-        
+
         NSAlert *alert = [NSAlert alertWithMessageText:@"Sage Notebook Upgrade"
                                          defaultButton:@"Upgrade"
                                        alternateButton:@"Ask me Later"
@@ -520,7 +520,7 @@ You can change it later in Preferences."];
                           "Unfortunately, they are not completely compatible.\n"
                           "We can attempt to upgrade, .\n"
                           ];
-        
+
         [alert setAlertStyle:NSWarningAlertStyle];
         NSInteger resp = [alert runModal];
         if (resp == NSAlertDefaultReturn) { // Upgrade

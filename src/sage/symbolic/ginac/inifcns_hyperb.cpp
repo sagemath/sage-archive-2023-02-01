@@ -828,4 +828,75 @@ REGISTER_FUNCTION(acoth, eval_func(acoth_eval).
                          conjugate_func(acoth_conjugate).
                          set_name("arccoth"));
 
+//////////
+// inverse hyperbolic Secant (trigonometric function)
+//////////
+
+static ex asech_evalf(const ex & x, PyObject* parent)
+{
+        if (is_exactly_a<numeric>(x))
+                return acosh(ex_to<numeric>(x).inverse());
+
+        return asech(x).hold();
+}
+
+static ex asech_eval(const ex & x)
+{
+        if (is_exactly_a<numeric>(x)) {
+                // asech(0) -> oo
+                if (x.is_zero())
+                        return Infinity;
+                // asech(1) -> 0
+                if (x.is_equal(_ex1))
+                        return _ex0;
+                //asech(-1) -> I*Pi
+                if (x.is_equal(_ex_1))
+                        return Pi*I;
+                //asech(float) -> float 
+                if (!x.info(info_flags::crational))
+                        return acosh(ex_to<numeric>(x).inverse());
+                // asech(-x) -> Pi*I-asech(-x)
+                if (x.info(info_flags::negative))
+                        return Pi*I-asech(-x);
+        }
+       
+        // asech(oo) -> Pi*I/2
+        // asech(-oo) -> Pi*I/2
+        // asech(UnsignedInfinity) -> error
+        if (x.info(info_flags::infinity)) {
+                if (x.is_equal(Infinity) || x.is_equal(NegInfinity))
+			return Pi*I*numeric(1,2);
+                // x is UnsignedInfinity
+                throw (std::runtime_error("arcsech_eval(): arcsech(unsigned_infinity) encountered"));
+        }
+        
+        return asech(x).hold();
+}
+
+static ex asech_deriv(const ex & x, unsigned deriv_param)
+{
+        GINAC_ASSERT(deriv_param==0);
+
+        // asech(x) -> ln(1/x + sqrt(1/x^2 - 1))
+        // d/dx asech(x) ->  -1 / [x * sqrt(1 - x^2)];
+        return (_ex_1/x)*power(_ex1-power(x, _ex2), _ex_1_2);
+}
+
+static ex asech_conjugate(const ex & x)
+{
+        // conjugate(asech(x))==asech(conjugate(x)) unless on the branch cuts which
+        // run along the real axis from 0 to -oo and 1 to oo.
+        if (is_exactly_a<numeric>(x) &&
+            (!x.imag_part().is_zero() || (x < *_num1_p && x > *_num0_p))) {
+                return asech(x.conjugate());
+        }
+        return conjugate_function(asech(x)).hold();
+}
+
+REGISTER_FUNCTION(asech, eval_func(asech_eval).
+                         evalf_func(asech_evalf).
+                         derivative_func(asech_deriv).
+                         conjugate_func(asech_conjugate).
+                         set_name("arcsech"));
+
 } // namespace GiNaC

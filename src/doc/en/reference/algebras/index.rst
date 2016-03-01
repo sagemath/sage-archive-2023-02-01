@@ -1,6 +1,6 @@
 Algebras
 ========
-	      
+
 Free associative algebras and quotients
 ---------------------------------------
 
@@ -52,7 +52,7 @@ Named associative algebras
    sage/algebras/steenrod/steenrod_algebra_mult
    sage/algebras/weyl_algebra
    sage/algebras/yokonuma_hecke_algebra
-	      
+
 Various associative algebras
 ----------------------------
 

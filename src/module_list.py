@@ -38,9 +38,9 @@ else:
 singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 
 aliases = dict(
-        FFLASFFPACK_CFLAGS =pkgconfig.cflags('fflas-ffpack').split(),
-        FFLASFFPACK_LIBRARIES =list(pkgconfig.parse('fflas-ffpack')['libraries']),
-        GIVARO_CFLAGS = pkgconfig.cflags('givaro').split(),
+        FFLASFFPACK_CFLAGS=pkgconfig.cflags('fflas-ffpack').split(),
+        FFLASFFPACK_LIBRARIES=list(pkgconfig.parse('fflas-ffpack')['libraries']),
+        GIVARO_CFLAGS=pkgconfig.cflags('givaro').split(),
         GSL_LIBRARIES=['gsl', BLAS, BLAS2],
         INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"),
         )

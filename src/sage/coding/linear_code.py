@@ -3007,10 +3007,19 @@ class AbstractLinearCode(module.Module):
             sage: c.is_immutable()
             True
 
+        Test that codeword returned has the same parent as any non-random codeword
+        (see :trac:`19653`)::
+
+            sage: C = codes.RandomLinearCode(10, 4, GF(16, 'a'))
+            sage: c1 = C.random_element()
+            sage: c2 = C[1]
+            sage: c1.parent() == c2.parent()
+            True
         """
-        V = self.ambient_space()
-        S = V.subspace(self.basis())
-        c = S.random_element(*args, **kwds)
+        E = self.encoder()
+        M = E.message_space()
+        m = M.random_element(*args, **kwds)
+        c = E.encode(m)
         c.set_immutable()
         return c
 

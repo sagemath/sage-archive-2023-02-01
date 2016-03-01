@@ -53,6 +53,7 @@ $(APP)/Contents/Resources/sage: $(APP)
 	rsync -av --progress \
 	    $(SAGE_ROOT)/ $@ \
 	    --exclude .git/ \
+	    --exclude upstream/ \
 	    --exclude src/mac-app/build \
 	    --exclude src/mac-app/$(TARGET)
 	@# We touch the director here so that we don't keep rsyncing just

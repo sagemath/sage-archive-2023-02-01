@@ -288,8 +288,13 @@ static ex multiply_lcm(const ex &e, const numeric &lcm)
 	} else if (is_exactly_a<power>(e)) {
 		if (is_exactly_a<symbol>(e.op(0)))
 			return e * lcm;
-		else
-			return pow(multiply_lcm(e.op(0), lcm.power(ex_to<numeric>(e.op(1)).inverse())), e.op(1));
+		else {
+			numeric root_of_lcm = lcm.power(ex_to<numeric>(e.op(1)).inverse());
+			if (root_of_lcm.is_rational())
+				return pow(multiply_lcm(e.op(0), root_of_lcm), e.op(1));
+			else
+				return e * lcm;
+		}
 	} else
 		return e * lcm;
 }
@@ -1727,7 +1732,7 @@ ex lcm(const ex &a, const ex &b, bool check_args)
  *  Yun's algorithm.  Used internally by sqrfree().
  *
  *  @param a  multivariate polynomial over Z[X], treated here as univariate
- *            polynomial in x.
+ *            polynomial in x (needs not be expanded).
  *  @param x  variable to factor in
  *  @return   vector of factors sorted in ascending degree */
 static exvector sqrfree_yun(const ex &a, const symbol &x)
@@ -1736,6 +1741,9 @@ static exvector sqrfree_yun(const ex &a, const symbol &x)
 	ex w = a;
 	ex z = w.diff(x);
 	ex g = gcd(w, z);
+	if (g.is_zero()) {
+		return res;
+	}
 	if (g.is_equal(_ex1)) {
 		res.push_back(a);
 		return res;
@@ -1743,6 +1751,9 @@ static exvector sqrfree_yun(const ex &a, const symbol &x)
 	ex y;
 	do {
 		w = quo(w, g, x);
+		if (w.is_zero()) {
+			return res;
+		}
 		y = quo(z, g, x);
 		z = y - w.diff(x);
 		g = gcd(w, z);
@@ -1754,7 +1765,7 @@ static exvector sqrfree_yun(const ex &a, const symbol &x)
 
 /** Compute a square-free factorization of a multivariate polynomial in Q[X].
  *
- *  @param a  multivariate polynomial over Q[X]
+ *  @param a  multivariate polynomial over Q[X] (needs not be expanded)
  *  @param l  lst of variables to factor in, may be left empty for autodetection
  *  @return   a square-free factorization of \p a.
  *

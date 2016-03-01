@@ -269,7 +269,8 @@ class FiniteField_givaro(FiniteField):
             sage: k(2) # indirect doctest
             0
 
-            Floats coerce in:
+        Floats are converted like integers::
+
             sage: k(float(2.0))
             0
 
@@ -343,7 +344,7 @@ class FiniteField_givaro(FiniteField):
             sage: k(pari('Mod(1,2)'))
             1
             sage: k(pari('Mod(2,3)'))
-            0
+            a
             sage: k(pari('Mod(1,3)*a^20'))
             a^7 + a^5 + a^4 + a^2
 

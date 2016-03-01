@@ -89,10 +89,13 @@ echo "*************************************************"
 echo " Using --with-blas=$LINBOX_BLAS"
 echo "*************************************************"
 
+# We disable openmp because of build failures, see
+# http://trac.sagemath.org/ticket/17635#comment:67
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
     --with-blas-libs="$LINBOX_BLAS" \
-    --enable-optimization --disable-static --enable-precompilation
+    --enable-optimization --disable-static --enable-precompilation \
+    --disable-openmp
 if [ $? -ne 0 ]; then
     echo "Error configuring fflas-ffpack"
     exit 1
@@ -101,6 +104,7 @@ fi
 $MAKE
 if [ $? -ne 0 ]; then
     echo "Error building fflas-ffpack"
+    exit 1
 fi
 
 $MAKE install

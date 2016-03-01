@@ -1,10 +1,12 @@
 # distutils: extra_compile_args = GIVARO_CFLAGS
 
-from sage.structure.element cimport Element, RingElement, ModuleElement
-from sage.rings.finite_rings.element_base cimport FinitePolyExtElement
+from libcpp.vector cimport vector
+ctypedef vector[int] intvec
 
-from sage.structure.parent  cimport Parent
+from sage.rings.finite_rings.element_base cimport FinitePolyExtElement
+from sage.structure.parent cimport Parent
 from sage.structure.sage_object cimport SageObject
+
 
 cdef extern from "givaro/givconfig.h":
     pass
@@ -15,16 +17,7 @@ cdef extern from "givaro/givrandom.h":
 
     GivRandom GivRandomSeeded  "Givaro::GivRandom"(unsigned long seed)
 
-cdef extern from "givaro/givgfq.h":
-    ctypedef struct intvec "std::vector<unsigned int>":
-        void (* push_back)(int elem)
-
-    ctypedef struct constintvec "const std::vector<unsigned int>"
-
-    intvec intvec_factory "std::vector<unsigned int>"(int len)
-
-cdef extern from "givaro/givgfq.h":
-
+cdef extern from "givaro/gfq.h":
     ctypedef struct GivaroGfq "Givaro::GFqDom<int>":
         #attributes
         unsigned int one
@@ -62,7 +55,12 @@ cdef extern from "givaro/givgfq.h":
     void delete "delete "(void *o)
     int gfq_element_factory "Givaro::GFqDom<int>::Element"()
 
-cdef class FiniteField_givaroElement(FinitePolyExtElement) #forward declaration
+
+cdef class FiniteField_givaroElement(FinitePolyExtElement):
+    cdef int element
+    cdef Cache_givaro _cache
+    cdef object _multiplicative_order
+    cdef FiniteField_givaroElement _new_c(self, int value)
 
 cdef class Cache_givaro(SageObject):
     cdef GivaroGfq *objectptr # C++ object
@@ -86,12 +84,5 @@ cdef class Cache_givaro(SageObject):
 cdef class FiniteField_givaro_iterator:
     cdef int iterator
     cdef Cache_givaro _cache
-
-cdef class FiniteField_givaroElement(FinitePolyExtElement):
-    cdef int element
-    cdef Cache_givaro _cache
-    cdef object _multiplicative_order
-    cdef FiniteField_givaroElement _new_c(self, int value)
-
 
 cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givaro cache, int x)

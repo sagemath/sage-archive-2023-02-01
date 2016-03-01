@@ -11,35 +11,7 @@ Since version 2.6, nauty license is GPL-compatible, see
 
 http://users.cecs.anu.edu.au/~bdm/nauty/COPYRIGHT.txt
 
-This is the copyright notice for the software package Nauty and
-Traces, versions 2.6 and later.
-
-Four categories of software are included in the package:
-A. All files not listed as B-D below, copyright Brendan McKay (1984-)
-B. Files traces.h, traces.h and dretodot.c, copyright Adolfo Piperno (2008-)
-C. File watercluster2.c, copyright Gunnar Brinkmann (2009-)
-D. Files planarity.h and planarity.c, copyright Magma project,
-   University of Sydney
-
-Permission is hereby given for the use, distribution and
-modification of this software subject to the following.
-  * You must include this copyright notice with all distributed
-    copies of this software, including modified copies.
-  * You must clearly mark modified versions of this software
-    as differing from the original.
-
-Regarding all the files in the package:
-   This software is only provided "as is". No guarantee is made
-   as to the suitability of this software for any purpose. No
-   responsibility will be taken by the authors or their employers
-   for any misfortune which befalls you because of its use. Your
-   use of this software implies your agreement with this notice.
-
-Brendan McKay: Australian National University;
-Brendan.McKay@anu.edu.au
-Adolfo Piperno: University of Rome "Sapienza"; piperno@di.uniroma1.it
-Gunnar Brinkmann: University of Ghent; Gunnar.Brinkmann@UGent.be
-Magma Administration: University of Sydney; admin@maths.usyd.edu.au
+(a copy of this file, called COPYRIGHT, is also present in the tarball)
 
 == Special Packaging Instruction ==
 

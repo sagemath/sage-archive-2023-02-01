@@ -429,7 +429,7 @@ class GraphGenerators():
     representatives. Iterates over distinct, exhaustive
     representatives.
 
-    Also: see the use of the optional nauty package for generating graphs
+    Also: see the use of the nauty package for generating graphs
     at the :meth:`nauty_geng` method.
 
     INPUT:

@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = FFLASFFPACK_CFLAGS
+
 r"""
 Linbox interface
 """

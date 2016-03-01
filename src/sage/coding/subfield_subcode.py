@@ -374,13 +374,11 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
-            sage: F = Cs.base_field()
-            sage: a = F.gen()
-            sage: c = vector(F, (a + 1, a, a + 1, 1, 1, a, 1, a + 1, 0, 0, 1, 0, a + 1))
-            sage: y = vector(F, (a + 1, a, a + 1, a, 1, a, 0, 0, 0, 0, 1, 0, 1))
-            sage: D.decode_to_code(y) == c
+            sage: Chan = channels.StaticErrorRateChannel(Cs.ambient_space(), D.decoding_radius())
+            sage: c = Cs.random_element()
+            sage: y = Chan(c)
+            sage: c == D.decode_to_code(y)
             True
-
         """
         C = self.code()
         D = self.original_decoder()
@@ -388,7 +386,11 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
         phi = FE.embedding()
         y_or = vector([phi(i) for i in y])
         c_or = D.decode_to_code(y_or)
-        return vector([FE.small_field_polynomial_representation(i) for i in c_or])
+        if 'list-decoder' in self.decoder_type():
+            return [vector([FE.small_field_polynomial_representation(i) for i in c])
+                    for c in c_or]
+        else:
+            return vector([FE.small_field_polynomial_representation(i) for i in c_or])
 
     def decoding_radius(self, **kwargs):
         r"""

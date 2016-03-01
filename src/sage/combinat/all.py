@@ -190,3 +190,7 @@ lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedL
 
 # Subword complex
 lazy_import('sage.combinat.subword_complex', 'SubwordComplex')
+
+# Constellations
+lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
+

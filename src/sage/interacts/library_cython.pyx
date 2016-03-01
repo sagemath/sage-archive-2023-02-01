@@ -18,7 +18,6 @@ AUTHORS:
 
 from sage.misc.all import prod
 
-include 'sage/ext/interrupt.pxi'
 
 cpdef julia(ff_j, z, int iterations):
     """

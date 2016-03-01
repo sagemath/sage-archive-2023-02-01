@@ -10,7 +10,7 @@
 
 
 import sage.modular.hecke.hecke_operator
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 import heilbronn
 
 class HeckeOperator(sage.modular.hecke.hecke_operator.HeckeOperator):

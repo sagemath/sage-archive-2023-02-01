@@ -28,7 +28,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
 from cpython cimport PyObject
 from libc.limits cimport LONG_MAX
@@ -118,7 +117,7 @@ cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
     - ``partition`` -- a partition of the vertex set.
 
     - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
-      dicitionary are later set to record the labeling of our graph. They are
+      dictionary are later set to record the labeling of our graph. They are
       taken as arguments to avoid technicalities of returning Python objects in
       Cython functions.
     """
@@ -151,7 +150,7 @@ cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
     - ``partition`` -- a partition of the vertex set.
 
     - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
-      dicitionary are later set to record the labeling of our graph. They are
+      dictionary are later set to record the labeling of our graph. They are
       taken as arguments to avoid technicalities of returning Python objects in
       Cython functions.
     """

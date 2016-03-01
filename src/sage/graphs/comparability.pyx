@@ -212,7 +212,6 @@ Methods
 
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
 
 from copy import copy
 

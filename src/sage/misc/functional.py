@@ -1575,7 +1575,7 @@ def squarefree_part(x):
         return x.squarefree_part()
     except AttributeError:
         pass
-    from sage.rings.arith import factor
+    from sage.arith.all import factor
     from sage.structure.all import parent
     F = factor(x)
     n = parent(x)(1)

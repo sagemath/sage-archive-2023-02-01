@@ -94,6 +94,7 @@ import os
 
 from expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 
 from sage.env import DOT_SAGE
@@ -102,7 +103,8 @@ COMMANDS_CACHE = '%s/mupad_commandlist_cache.sobj'%DOT_SAGE
 PROMPT = ">>"
 seq = 0
 
-class Mupad(Expect):
+
+class Mupad(ExtraTabCompletion, Expect):
     """
     Interface to the MuPAD interpreter.
     """
@@ -390,24 +392,24 @@ command-line version of MuPAD.
         v.sort()
         return v
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         EXAMPLES::
 
-            sage: names = mupad.trait_names() # optional - mupad
+            sage: names = mupad._tab_completion() # optional - mupad
             sage: len(names) > 100 # optional - mupad
             True
             sage: 'combinat' in names # optional - mupad
             True
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose:
@@ -415,7 +417,7 @@ command-line version of MuPAD.
                 print "a few seconds only the first time you do it)."
                 print "To force rebuild later, delete %s."%COMMANDS_CACHE
             v = self._commands()
-            self.__trait_names = v
+            self.__tab_completion = v
             if len(v) > 200:
                 # MuPAD is actually installed.
                 sage.misc.persist.save(v, COMMANDS_CACHE)
@@ -439,7 +441,8 @@ command-line version of MuPAD.
         return res if res != [''] else []
 
 
-class MupadFunction(ExpectFunction):
+class MupadFunction(ExtraTabCompletion, ExpectFunction):
+    
     def _sage_doc_(self):
         """
         EXAMPLES::
@@ -461,11 +464,11 @@ class MupadFunction(ExpectFunction):
             raise AttributeError
         return MupadFunction(self._parent, self._name+"::"+attrname)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: mupad.linalg.trait_names() # optional - mupad
+            sage: mupad.linalg._tab_completion() # optional - mupad
             ['addCol',
              'addRow',
              ...
@@ -473,10 +476,10 @@ class MupadFunction(ExpectFunction):
 
         """
         res = self._parent.completions(self._name+"::", strip=True)
-        return res if res != [] else self._parent.trait_names()
+        return res if res != [] else self._parent._tab_completion()
 
 
-class MupadFunctionElement(FunctionElement):
+class MupadFunctionElement(ExtraTabCompletion, FunctionElement):
     def _sage_doc_(self):
         """
         EXAMPLES::
@@ -513,17 +516,17 @@ class MupadFunctionElement(FunctionElement):
         else:
             return MupadFunctionElement(self._obj, name)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
             sage: three = mupad(3) # optional - mupad
-            sage: 'list' in three.combinat.tableaux.trait_names() # optional - mupad
+            sage: 'list' in three.combinat.tableaux._tab_completion() # optional - mupad
             True
         """
         P = self._obj.parent()
         res = P.completions(self._name+"::", strip=True)
-        return res if res != [] else P.trait_names()
+        return res if res != [] else P._tab_completion()
 
 
     def __call__(self, *args):
@@ -545,7 +548,9 @@ class MupadFunctionElement(FunctionElement):
         else:
             return P.function_call(self._name, [self._obj] + list(args))
 
-class MupadElement(ExpectElement):
+
+class MupadElement(ExtraTabCompletion, ExpectElement):
+
     def __getattr__(self, attrname):
         """
         EXAMPLES::
@@ -581,18 +586,17 @@ class MupadElement(ExpectElement):
             else:
                 raise err
 
-
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
             sage: mupad.package('"MuPAD-Combinat"')       # optional - mupad-Combinat
             sage: S = mupad.examples.SymmetricFunctions() # optional - mupad-Combinat
-            sage: 'HallLittlewood' in S.trait_names()     # optional - mupad-Combinat
+            sage: 'HallLittlewood' in S._tab_completion()     # optional - mupad-Combinat
             True
         """
         res = self.parent().completions(self.name()+"::", strip=True)
-        return res if res != [] else self.parent().trait_names()
+        return res if res != [] else self.parent()._tab_completion()
 
     def __repr__(self):
         """
@@ -680,6 +684,9 @@ def mupad_console():
          *----*      Licensed to:   ...
 
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%mupad magics instead.')
     os.system('mupkern')
 
 

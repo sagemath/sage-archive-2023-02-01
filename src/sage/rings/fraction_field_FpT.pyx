@@ -3,7 +3,7 @@
 import sys
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *

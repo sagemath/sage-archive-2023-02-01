@@ -39,6 +39,8 @@ class Function_exp(GinacFunction):
             12.182493960703473
             sage: exp(RDF('2.5'))
             12.182493960703473
+            sage: exp(I*pi/12)
+            1/12*sqrt(6)*(sqrt(3) + 3) - 1/12*I*sqrt(6)*(sqrt(3) - 3)
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 
@@ -117,6 +119,13 @@ class Function_exp(GinacFunction):
 
             sage: 2*sqrt(e)
             2*sqrt(e)
+
+        Check that :trac:`19918` is fixed::
+
+            sage: exp(-x^2).subs(x=oo)
+            0
+            sage: exp(-x).subs(x=-oo)
+            +Infinity
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))

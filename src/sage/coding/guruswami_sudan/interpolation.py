@@ -1,5 +1,5 @@
 """
-Interpolation algorithms for Guruswami-Sudan decoder
+Interpolation algorithms for the Guruswami-Sudan decoder
 
 AUTHORS:
 
@@ -26,7 +26,8 @@ from sage.misc.misc_c import prod
 ####################### Linear algebra system solving ###############################
 def _flatten_once(lstlst):
     r"""
-    Flattens``lstlst`` only once and returns a generator.
+    Flattens a list of list into a list, but only flattening one layer and
+    returns a generator.
 
     This is similar to Python's ``flatten`` method, except that here, if you
     provide a list of lists of lists (and so on), it returns a list of lists
@@ -40,17 +41,21 @@ def _flatten_once(lstlst):
 
     sage: from sage.coding.guruswami_sudan.interpolation import _flatten_once
     sage: ll = [[1,2], [3,4], [5,6]]
-    sage: _flatten_once(ll) #random
-    <generator object _flatten_once at 0x7fc1631cca50>
+    sage: list(_flatten_once(ll))
+    [1, 2, 3, 4, 5, 6]
     """
     for lst in lstlst:
         for e in lst:
             yield e
 
+#*************************************************************
+#  Linear algebraic Interpolation algorithm, helper functions
+#*************************************************************
+
 def _monomial_list(maxdeg, l, wy):
     r"""
-    Returns a list of the `(x,y)` powers of all monomials in `F[x,y]` whose
-    (1,wy)-weighted degree is less than ``maxdeg`` and whose ``y-degree <= l``.
+    Returns a list of all non-negative integer pairs `(i,j)` such that ``i + wy
+    * j < maxdeg`` and ``j \geq l``.
 
     INPUT:
 
@@ -63,7 +68,7 @@ def _monomial_list(maxdeg, l, wy):
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.interpolation import _monomial_list
-        sage: _monomial_list(8, 5, 4)
+        sage: _monomial_list(8, 1, 3)
         [(0, 0),
          (1, 0),
          (2, 0),
@@ -75,7 +80,8 @@ def _monomial_list(maxdeg, l, wy):
          (0, 1),
          (1, 1),
          (2, 1),
-         (3, 1)]
+         (3, 1),
+         (4, 1)]
     """
     monomials = []
     for y in range(0, l+1):
@@ -83,37 +89,45 @@ def _monomial_list(maxdeg, l, wy):
             monomials.append((x, y))
     return monomials
 
-def _interpol_matrix_by_mons(points, s, monomials):
+def _interpolation_matrix_given_monomials(points, s, monomials):
     r"""
-    Returns a generator of the interpolation matrix whose nullspace gives the coefficients
-    for all interpolation polynomials, given the list of monomials allowed.
+    Returns a matrix whose nullspace is a basis for all interpolation
+    polynomials, each polynomial having its coefficients laid out according to
+    the given list of monomials.
 
-    Its ``i``-th column will be the coefficients on the ``i``-th monomial
-    in ``monomials``.
+    The output is an `S \times T` matrix, where `T` is the length of
+    ``monomials``, and `S = s(s+1)/2`. Its ``i``-th column will be the
+    coefficients on the ``i``-th monomial in ``monomials``.
 
     INPUT:
 
-    - ``points`` -- a list of integers, the interpolation points.
+    - ``points`` -- a list of pairs of field elements, the interpolation points.
 
     - ``s`` -- an integer, the multiplicity parameter from Guruswami-Sudan algorithm.
 
-    - ``monomials`` -- a list of monomials.
+    - ``monomials`` -- a list of monomials, each represented by the powers as an integer pair `(i,j)`.
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.interpolation import _interpol_matrix_by_mons
-        sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
-        sage: s = 1
-        sage: monomials = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (0, 1), (1, 1)]
-        sage: _interpol_matrix_by_mons(points, s, monomials) #random
-        <generator object _flatten_once at 0x7fb5ff8cce10>
+        sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_given_monomials
+        sage: F = GF(11)
+        sage: points = [ (F(0), F(1)), (F(1), F(5)) ]
+        sage: s = 2
+        sage: monomials = [(0, 0), (1, 0), (1, 1), (0, 2) ]
+        sage: _interpolation_matrix_given_monomials(points, s, monomials)
+        [ 1  0  0  1]
+        [ 0  0  0  2]
+        [ 0  1  1  0]
+        [ 1  1  5  3]
+        [ 0  0  1 10]
+        [ 0  1  5  0]
     """
     n = len(points)
     def eqs_affine(x0,y0):
         r"""
         Make equation for the affine point x0, y0. Return a list of
         equations, each equation being a list of coefficients corresponding to
-        the monomials in mons.
+        the monomials in ``monomials``.
         """
         eqs = []
         for i in range(0, s):
@@ -123,27 +137,40 @@ def _interpol_matrix_by_mons(points, s, monomials):
                     ihat = monomial[0]
                     jhat = monomial[1]
                     if ihat >= i and jhat >= j:
-                        icoeff = binomial(ihat, i)*x0**(ihat-i) \
+                        icoeff = binomial(ihat, i) * x0**(ihat-i) \
                                     if ihat > i else 1
-                        jcoeff = binomial(jhat, j)*(y0**(jhat-j)) \
+                        jcoeff = binomial(jhat, j) * y0**(jhat-j) \
                                     if jhat > j else 1
-                        eq[monomial] = jcoeff*icoeff
+                        eq[monomial] = jcoeff * icoeff
                 eqs.append([eq.get(monomial, 0) for monomial in monomials])
         return eqs
-    return _flatten_once([ eqs_affine(*point) for point in points ])
+    return matrix(list(_flatten_once([eqs_affine(*point) for point in points])))
 
-def _interpol_matrix_problem(points, tau, parameters, wy):
+def _interpolation_max_weighted_deg(n, tau, s):
+    """Return the maximal weighted degree allowed for an interpolation
+    polynomial over `n` points, correcting `tau` errors and with multiplicity
+    `s`
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_max_weighted_deg
+        sage: _interpolation_max_weighted_deg(10, 3, 5)
+        35
+    """
+    return (n-tau) * s
+
+def _interpolation_matrix_problem(points, tau, parameters, wy):
     r"""
     Returns the linear system of equations which ``Q`` should be a solution to.
 
     This linear system is returned as a matrix ``M`` and a list of monomials ``monomials``,
     where a vector in the right nullspace of ``M`` corresponds to an
-    interpolation polynomial `Q`, by the `i`'th element
-    being the coefficient of the `i`'th monomial in ``monomials`` of `Q`.
+    interpolation polynomial `Q`, by mapping the `t`'th element of such a vector
+    to the coefficient to `x^iy^j`, where `(i,j)` is the `t`'th element of ``monomials``.
 
     INPUT:
 
-    - ``points`` -- a list of interpolation points.
+    - ``points`` -- a list of interpolation points, as pairs of field elements.
 
     - ``tau`` -- an integer, the number of errors one wants to decode.
 
@@ -151,100 +178,109 @@ def _interpol_matrix_problem(points, tau, parameters, wy):
         - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
         - the second integer is the list size parameter.
 
-    - ``wy`` -- an integer.
+    - ``wy`` -- an integer specifying the `y`-weighted degree that is to be
+      minimised in the interpolation polynomial. In Guruswami-Sudan, this is
+      `k-1`, where `k` is the dimension of the GRS code.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: from sage.coding.guruswami_sudan.interpolation import _interpol_matrix_problem
-        sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
-        sage: tau = 1
-        sage: params = (1, 1)
+    The following parameters arise from Guruswami-Sudan decoding of an [6,2,5]
+    GRS code over F(11) with multiplicity 2 and list size 4.
+
+        sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_problem
+        sage: F = GF(11)
+        sage: points = [ (F(x),F(y)) for (x,y) in (0, 5), (1, 1), (2, 4), (3, 6), (4, 3), (5, 3)]
+        sage: tau = 3
+        sage: params = (2, 4)
         sage: wy = 1
-        sage: _interpol_matrix_problem(points, tau, params, wy)
+        sage: _interpolation_matrix_problem(points, tau, params, wy)
         (
-        [     1      0      0      0      0      0      0      2      0      0      0      0      0]
-        [     1      1      1      1      1      1      1      5      5      5      5      5      5]
-        [     1      2      4      8     16     32     64      0      0      0      0      0      0]
-        [     1      3      9     27     81    243    729      4     12     36    108    324    972]
-        [     1      4     16     64    256   1024   4096      9     36    144    576   2304   9216]
-        [     1      5     25    125    625   3125  15625      1      5     25    125    625   3125]
-        [     1      6     36    216   1296   7776  46656      9     54    324   1944  11664  69984]
-        [     1      7     49    343   2401  16807 117649     10     70    490   3430  24010 168070], [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)]
+        [ 1  0  0  0  0  0  5  0  0  0  0  3  0  0  0  4  0  0  9  0]
+        [ 0  0  0  0  0  0  1  0  0  0  0 10  0  0  0  9  0  0  5  0]
+        [ 0  1  0  0  0  0  0  5  0  0  0  0  3  0  0  0  4  0  0  9]
+        [ 1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1]
+        [ 0  0  0  0  0  0  1  1  1  1  1  2  2  2  2  3  3  3  4  4]
+        [ 0  1  2  3  4  5  0  1  2  3  4  0  1  2  3  0  1  2  0  1]
+        [ 1  2  4  8  5 10  4  8  5 10  9  5 10  9  7  9  7  3  3  6]
+        [ 0  0  0  0  0  0  1  2  4  8  5  8  5 10  9  4  8  5  3  6]
+        [ 0  1  4  1 10  3  0  4  5  4  7  0  5  9  5  0  9  3  0  3]
+        [ 1  3  9  5  4  1  6  7 10  8  2  3  9  5  4  7 10  8  9  5]
+        [ 0  0  0  0  0  0  1  3  9  5  4  1  3  9  5  9  5  4  6  7]
+        [ 0  1  6  5  9  9  0  6  3  8 10  0  3  7  4  0  7  9  0  9]
+        [ 1  4  5  9  3  1  3  1  4  5  9  9  3  1  4  5  9  3  4  5]
+        [ 0  0  0  0  0  0  1  4  5  9  3  6  2  8 10  5  9  3  9  3]
+        [ 0  1  8  4  3  4  0  3  2  1  9  0  9  6  3  0  5  7  0  4]
+        [ 1  5  3  4  9  1  3  4  9  1  5  9  1  5  3  5  3  4  4  9]
+        [ 0  0  0  0  0  0  1  5  3  4  9  6  8  7  2  5  3  4  9  1]
+        [ 0  1 10  9  5  1  0  3  8  5  4  0  9  2  4  0  5  6  0  4], [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (0, 2), (1, 2), (2, 2), (3, 2), (0, 3), (1, 3), (2, 3), (0, 4), (1, 4)]
         )
     """
     s, l = parameters[0], parameters[1]
-    monomials = _monomial_list((len(points)-tau)*s, l, wy)
-    M = matrix(list(_interpol_matrix_by_mons(points, s, monomials)))
+    monomials = _monomial_list(_interpolation_max_weighted_deg(len(points), tau, s), l, wy)
+    M = _interpolation_matrix_given_monomials(points, s, monomials)
     return (M, monomials)
 
-def _construct_Q_from_matrix(M, monomials):
+def gs_interpolation_linalg(points, tau, parameters, wy):
     r"""
-    Returns a satisfactory ``Q`` polynomial given the interpolation matrix problem
-    and the corresponding list of monomials.
+    Compute an interpolation polynomial Q(x,y) for the Guruswami-Sudan algorithm
+    by solving a linear system of equations.
 
-    IMPUT:
+    ``Q`` is a bivariate polynomial over the field of the points, such that the
+    polynomial has a zero of multiplicity at least `s` at each of the points,
+    where `s` is the multiplicity parameter. Furthermore, its ``(1,
+    wy)``-weighted degree should be less than
+    ``_interpolation_max_weighted_deg(n, tau, wy)``, where ``n`` is the number
+    of points
 
-    - ``M`` -- a matrix.
+    INPUT:
 
-    - ``monomials`` -- a list of monomials.
+    - ``points`` -- a list of tuples ``(xi, yi)`` such that we seek ``Q`` with
+      ``(xi,yi)`` being a root of ``Q`` with multiplicity ``s``.
 
-    EXAMPLES::
+    - ``tau`` -- an integer, the number of errors one wants to decode.
 
-        sage: from sage.coding.guruswami_sudan.interpolation import _construct_Q_from_matrix
-        sage: from sage.coding.guruswami_sudan.interpolation import _interpol_matrix_problem
-        sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
-        sage: tau = 1
-        sage: params = (1, 1)
+    - ``parameters`` -- (default: ``None``) a pair of integers, where:
+        - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
+        - the second integer is the list size parameter.
+
+    - ``wy`` -- an integer, the `y`-weight, where we seek ``Q`` of low
+      ``(1,wy)`` weighted degree.
+
+    EXAMPLES:
+
+    The following parameters arise from Guruswami-Sudan decoding of an [6,2,5]
+    GRS code over F(11) with multiplicity 2 and list size 4.
+
+        sage: from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg
+        sage: F = GF(11)
+        sage: points = [ (F(x),F(y)) for (x,y) in (0, 5), (1, 1), (2, 4), (3, 6), (4, 3), (5, 3)]
+        sage: tau = 3
+        sage: params = (2, 4)
         sage: wy = 1
-        sage: res = _interpol_matrix_problem(points, tau, params, wy)
-        sage: M, monomials = res[0], res[1]
-        sage: _construct_Q_from_matrix(M, monomials)
-        4202026*x^6 - 5614235*x^5*y - 29351399*x^5 + 64635986*x^4*y + 41894587*x^4 - 273534229*x^3*y + 3*x^3 + 508264978*x^2*y + x^2 - 297101040*x*y + 2*x - 840*y + 1680
+        sage: Q = gs_interpolation_linalg(points, tau, params, wy); Q
+        4*x^5 - 4*x^4*y - 2*x^2*y^3 - x*y^4 + 3*x^4 - 4*x^2*y^2 + 5*y^4 - x^3 + x^2*y + 5*x*y^2 - 5*y^3 + 3*x*y - 2*y^2 + x - 4*y + 1
+
+    We verify that the interpolation polynomial has a zero of multiplicity at least 2 in each point:
+
+        sage: all( Q(x=a, y=b).is_zero() for (a,b) in points )
+        True
+        sage: x,y = Q.parent().gens()
+        sage: dQdx = Q.derivative(x)
+        sage: all( dQdx(x=a, y=b).is_zero() for (a,b) in points )
+        True
+        sage: dQdy = Q.derivative(y)
+        sage: all( dQdy(x=a, y=b).is_zero() for (a,b) in points )
+        True
     """
-    if M.nrows() >= M.ncols():
-        raise Exception("More rows than columns! This matrix is not satisfactory.")
-    Sp = M.right_kernel()
-    sol = Sp.an_element()
-    #TODO: Option to pick out minimal element?
-    while sol.is_zero():
-        # Picking out e.g. element 1 directly seems to run into an infinite
-        # loop for large matrices.
-        sol = Sp.random_element()
+    M, monomials = _interpolation_matrix_problem(points, tau, parameters, wy)
+    Ker = M.right_kernel()
+    # Pick a non-zero element from the right kernel
+    sol = Ker.basis()[0]
     # Construct the Q polynomial
     PF = M.base_ring()['x', 'y'] #make that ring a ring in <x>
     x, y = PF.gens()
     Q = sum([x**monomials[i][0] * y**monomials[i][1] * sol[i] for i in range(0, len(monomials))])
     return Q
-
-def construct_Q_linalg(points, tau, parameters, wy):
-    r"""
-    Returns an interpolation polynomial Q(x,y) for the given input.
-
-    INPUT:
-
-    - ``points`` -- a list of tuples ``(xi, yi)`` such that
-      ``Q(xi,yi) = 0`` with multiplicity ``s``.
-
-    - ``tau`` -- an integer, the number of errors one wants to decode.
-
-    - ``parameters`` -- (default: ``None``) a pair of integers, where:
-        - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
-        - the second integer is the list size parameter.
-
-    - ``wy`` -- an integer.
-
-    EXAMPLES::
-
-        sage: from sage.coding.guruswami_sudan.interpolation import construct_Q_linalg
-        sage: points = [(0, 2), (1, 5), (2, 0), (3, 4), (4, 9), (5, 1), (6, 9), (7, 10)]
-        sage: tau = 1
-        sage: params = (1, 1)
-        sage: wy = 1
-        sage: construct_Q_linalg(points, tau, params, wy)
-        4202026*x^6 - 5614235*x^5*y - 29351399*x^5 + 64635986*x^4*y + 41894587*x^4 - 273534229*x^3*y + 3*x^3 + 508264978*x^2*y + x^2 - 297101040*x*y + 2*x - 840*y + 1680
-    """
-    return _construct_Q_from_matrix(
-                *_interpol_matrix_problem(points, tau, parameters, wy))
 
 ####################### Lee-O'Sullivan's method ###############################
 

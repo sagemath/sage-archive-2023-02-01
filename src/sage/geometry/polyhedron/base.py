@@ -2,15 +2,18 @@ r"""
 Base class for polyhedra
 """
 
-
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
+
+from __future__ import division
 
 import itertools
 import six
@@ -2690,7 +2693,7 @@ class Polyhedron_base(Element):
         """
         return self.dilation(-1)
 
-    def __div__(self, scalar):
+    def __truediv__(self, scalar):
         """
         Divide by a scalar factor.
 
@@ -2701,8 +2704,12 @@ class Polyhedron_base(Element):
             sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(2,4)])
             sage: (p/5).Vrepresentation()
             (A vertex at (2/5, 4/5, 8/5), A vertex at (3/5, 9/5, 27/5))
+            sage: (p/int(5)).Vrepresentation()
+            (A vertex at (0.4, 0.8, 1.6), A vertex at (0.6, 1.8, 5.4))
         """
         return self.dilation(1/scalar)
+
+    __div__ = __truediv__
 
     @coerce_binop
     def convex_hull(self, other):
@@ -4414,8 +4421,8 @@ class Polyhedron_base(Element):
         Return the restricted automorphism group.
 
         First, let the linear automorphism group be the subgroup of
-        the Euclidean group `E(d) = GL(d,\RR) \ltimes \RR^d`
-        preserving the `d`-dimensional polyhedron. The Euclidean group
+        the affine group `AGL(d,\RR) = GL(d,\RR) \ltimes \RR^d`
+        preserving the `d`-dimensional polyhedron. The affine group
         acts in the usual way `\vec{x}\mapsto A\vec{x}+b` on the
         ambient space.
 
@@ -4455,8 +4462,8 @@ class Polyhedron_base(Element):
 
         Note that there are no translations that map the quadrant `Q`
         to itself, so the linear automorphism group is contained in
-        the subgroup of rotations of the whole Euclidean group. The
-        restricted automorphism group is
+        the general linear group (the subgroup of transformations
+        preserving the origin). The restricted automorphism group is
 
         .. MATH::
 
@@ -4524,7 +4531,7 @@ class Polyhedron_base(Element):
             sage: P.restricted_automorphism_group()
             Permutation Group with generators [(1,2)]
 
-        Translations do not change the restricted automorphism
+        Affine transformations do not change the restricted automorphism
         group. For example, any non-degenerate triangle has the
         dihedral group with 6 elements, `D_6`, as its automorphism
         group::
@@ -4615,9 +4622,7 @@ class Polyhedron_base(Element):
                 c_ij = rational_approximation( v_i * Qinv * v_j )
                 G.add_edge(i+1,j+1, edge_label(i,j,c_ij))
 
-        group = G.automorphism_group(edge_labels=True)
-        self._restricted_automorphism_group = group
-        return group
+        return G.automorphism_group(edge_labels=True)
 
     def is_full_dimensional(self):
         """

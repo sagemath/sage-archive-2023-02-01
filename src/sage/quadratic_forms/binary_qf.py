@@ -36,22 +36,18 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006--2009 William Stein and Jon Hanke
+#       Copyright (C) 2006-2009 William Stein and Jon Hanke
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.libs.pari.all import pari
-from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
+from sage.rings.all import ZZ, is_fundamental_discriminant
+from sage.arith.all import divisors, gcd
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -473,7 +469,6 @@ class BinaryQF(SageObject):
             4*x^2 + x*y + 13*y^2,
             8*x^2 + 7*x*y + 8*y^2]
         """
-        from sage.rings.arith import gcd
         return gcd([self._a, self._b, self._c])==1
 
     @cached_method
@@ -823,7 +818,6 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
     form_list = []
 
     from sage.misc.all import xsrange
-    from sage.rings.arith import gcd
 
     # Only iterate over positive a and over b of the same
     # parity as D such that 4a^2 + D <= b^2 <= a^2

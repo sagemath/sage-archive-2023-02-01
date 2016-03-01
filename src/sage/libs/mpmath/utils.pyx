@@ -165,14 +165,14 @@ cdef mpfr_from_mpfval(mpfr_t res, tuple x):
     cdef long bc
     sign, man, exp, bc = x
     if man:
-        mpfr_set_z(res, man.value, GMP_RNDZ)
+        mpfr_set_z(res, man.value, MPFR_RNDZ)
         if sign:
-            mpfr_neg(res, res, GMP_RNDZ)
-        mpfr_mul_2si(res, res, exp, GMP_RNDZ)
+            mpfr_neg(res, res, MPFR_RNDZ)
+        mpfr_mul_2si(res, res, exp, MPFR_RNDZ)
         return
     from mpmath.libmp import finf, fninf
     if exp == 0:
-        mpfr_set_ui(res, 0, GMP_RNDZ)
+        mpfr_set_ui(res, 0, MPFR_RNDZ)
     elif x == finf:
         mpfr_set_inf(res, 1)
     elif x == fninf:

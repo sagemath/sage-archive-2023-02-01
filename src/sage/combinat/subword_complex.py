@@ -496,7 +496,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: kappa = SC.kappa_preimages()
             sage: for F in SC: print F, [w.reduced_word() for w in kappa[F]]
             (0, 1) [[]]
-            (0, 4) [[2, 1], [2]]
+            (0, 4) [[2], [2, 1]]
             (1, 2) [[1]]
             (2, 3) [[1, 2]]
             (3, 4) [[1, 2, 1]]
@@ -948,8 +948,8 @@ class SubwordComplexFacet(Simplex, Element):
             (0, 4)
             sage: F.kappa_preimage()
             [
-            [-1  1]  [ 1  0]
-            [-1  0], [ 1 -1]
+            [ 1  0]  [-1  1]
+            [ 1 -1], [-1  0]
             ]
         """
         W = self.parent().group()

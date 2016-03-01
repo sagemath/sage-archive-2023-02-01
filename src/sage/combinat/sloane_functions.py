@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Functions that compute some of the sequences in Sloane's tables
 
@@ -300,7 +301,7 @@ class SloaneSequence(SageObject):
 ########################################################################
 
 # You may have to import more here when defining new sequences
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.combinat import combinat
@@ -6451,7 +6452,7 @@ class A001157(SloaneSequence):
 class A008683(SloaneSequence):
     def __init__(self):
         r"""
-        Moebius function `\mu(n)`.
+        Möbius function `\mu(n)`.
 
         INPUT:
 

@@ -118,7 +118,8 @@ from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
-from sage.rings.all import Integer, ZZ, QQ, gcd, lcm
+from sage.rings.all import Integer, ZZ, QQ
+from sage.arith.all import gcd, lcm
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sequence import Sequence_generic

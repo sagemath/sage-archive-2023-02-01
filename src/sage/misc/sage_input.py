@@ -1520,7 +1520,7 @@ class SageInputExpression(object):
         """
         return self._sie_binop('*', other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Compute an expression tree for ``self / other``.
 
@@ -1533,6 +1533,8 @@ class SageInputExpression(object):
             {binop:/ {atomic:3} {atomic:4}}
         """
         return self._sie_binop('/', other)
+
+    __div__ = __truediv__
 
     def __add__(self, other):
         r"""

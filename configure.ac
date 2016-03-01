@@ -1,7 +1,7 @@
 #*****************************************************************************
 #       Copyright (C) 2005-2007 William Stein
 #       Copyright (C) 2009-2011 David Kirkby
-#       Copyright (C) 2012-2015 Jeroen Demeyer
+#       Copyright (C) 2012-2016 Jeroen Demeyer
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -74,7 +74,6 @@ fi
 # configure options.
 #
 
-[
 ########################################################################
 # Set various environment variables
 ########################################################################
@@ -86,42 +85,6 @@ SAGE_LOCAL="$SAGE_ROOT/local"
 SAGE_SHARE="$SAGE_LOCAL/share"
 SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
-
-###############################################################################
-# Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
-###############################################################################
-
-mkdir -p "$SAGE_SHARE"
-if [ -z "$SAGE_MP_LIBRARY" ]; then
-    # Automatic detection of installed MP library.
-    if [ ! -f "$SAGE_SHARE/mp_config" ]; then
-        echo "MPIR" > "$SAGE_SHARE/mp_config"
-    fi
-    SAGE_MP_LIBRARY=`cat "$SAGE_SHARE/mp_config"`
-else
-    if [ -f "$SAGE_SHARE/mp_config" -a "$SAGE_MP_LIBRARY" != `cat "$SAGE_SHARE/mp_config"` ]; then
-        echo "SAGE_MP_LIBRARY differs from the value stored in"
-        echo "\"$SAGE_SHARE/mp_config\"."
-        echo "This is not supported; you should rebuild Sage from scratch"
-        echo "using the new SAGE_MP_LIBRARY value."
-        exit 1
-    fi
-
-    case "$SAGE_MP_LIBRARY" in
-        MPIR|GMP)
-            echo "Using $SAGE_MP_LIBRARY as default MP library."
-            echo $SAGE_MP_LIBRARY > "$SAGE_SHARE/mp_config"
-            ;;
-        *)
-            echo "Allowed values for SAGE_MP_LIBRARY are \"MPIR\" and \"GMP\"."
-            echo "If you did not set this variable, check the content of"
-            echo "\"$SAGE_SHARE/mp_config\"."
-            exit 1
-            ;;
-    esac
-fi
-]
-
 
 #---------------------------------------------------------
 AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unpriviledged user])], [])
@@ -768,7 +731,24 @@ fi
 ]
 
 # Sage MP library
-echo >&7 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
+AC_MSG_CHECKING([multiprecision library])
+AC_ARG_WITH([mp],
+[AS_HELP_STRING([--with-mp=mpir],
+    [use MPIR as multiprecision library (default)])]
+[AS_HELP_STRING([--with-mp=gmp],
+    [use GMP as multiprecision library])])
+
+case "$with_mp" in
+    MPIR|mpir) with_mp=MPIR;;
+    GMP|gmp) with_mp=GMP;;
+    "") with_mp=${SAGE_MP_LIBRARY:-MPIR};;
+    *)
+        AC_MSG_ERROR([allowed values for --with-mp are MPIR and GMP]) ;;
+esac
+
+AC_MSG_RESULT([$with_mp])
+
+echo >&7 "SAGE_MP_LIBRARY = \$($with_mp)"
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
 AS_ECHO_N(>&7 ['TOOLCHAIN ='])

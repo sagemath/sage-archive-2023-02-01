@@ -159,7 +159,7 @@ def pyx_preparse(s):
     r"""
     Preparse a pyx file:
 
-    * include ``cdefs.pxi``, ``interrupt.pxi``, ``stdsage.pxi``
+    * include ``cdefs.pxi``, ``signals.pxi`` from ``cysignals``, ``stdsage.pxi``
     * parse ``clang`` pragma (c or c++)
     * parse ``clib`` pragma (additional libraries to link in)
     * parse ``cinclude`` (additional include directories)
@@ -189,7 +189,7 @@ def pyx_preparse(s):
 
         sage: from sage.misc.cython import pyx_preparse
         sage: pyx_preparse("")
-        ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n\ninclude "cdefs.pxi"\n',
+        ('\ninclude "cysignals/signals.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n\ninclude "cdefs.pxi"\n',
         ['mpfr',
         'gmp',
         'gmpxx',
@@ -205,7 +205,8 @@ def pyx_preparse(s):
         '.../include/python...',
         '.../lib/python.../site-packages/numpy/core/include',
         '...',
-        '.../sage/ext'],
+        '.../sage/ext',
+        '.../cysignals'],
         'c',
         [], ['-w', '-O2'])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
@@ -230,7 +231,8 @@ def pyx_preparse(s):
         '.../include/python...',
         '.../lib/python.../site-packages/numpy/core/include',
         '...',
-        '.../sage/ext']
+        '.../sage/ext',
+        '.../cysignals']
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
@@ -259,9 +261,15 @@ def pyx_preparse(s):
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
     s = """\ninclude "cdefs.pxi"\n""" + s
-    s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
+    s = """\ninclude "cysignals/signals.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)
     args = ['-w','-O2'] + args
+
+    # Add cysignals directory to includes
+    for path in sys.path:
+        cysignals_path = os.path.join(path, "cysignals")
+        if os.path.isdir(cysignals_path):
+            inc.append(cysignals_path)
 
     return s, libs, inc, lang, additional_source_files, args
 

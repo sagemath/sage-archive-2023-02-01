@@ -342,8 +342,8 @@ from sage.misc.sagedoc import detex
 from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
-from sage.rings.arith import falling_factorial
-from sage.rings.all import Integer, PolynomialRing, QQ, ZZ, lcm
+from sage.arith.all import falling_factorial, lcm
+from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.symbolic.all import I, pi
 
 # TODO: remove the following line once 4ti2 functions are removed

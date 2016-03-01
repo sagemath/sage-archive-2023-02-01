@@ -1,5 +1,5 @@
 r"""
-Generalized Reed-Solomon Code
+Generalized Reed-Solomon code
 
 Given `n` different evaluation points `\alpha_1, \dots, \alpha_n` from some
 finite field `F`, and `n` column multipliers `\beta_1, \dots, \beta_n`, the
@@ -27,7 +27,7 @@ This file contains the following elements:
 #*****************************************************************************
 
 from sage.matrix.constructor import matrix, diagonal_matrix
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
@@ -454,6 +454,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 ####################### encoders ###############################
+
+
 
 class GRSEvaluationVectorEncoder(Encoder):
     r"""

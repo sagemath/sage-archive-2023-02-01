@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hyperbolic Isometries
 
@@ -653,7 +654,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
             sage: bool(UHP.dist(I2(p), p) < 10**-9)
             True
         """
-        return self.codomain().get_point(mobius_transform(self._matrix, p.coordinates()))
+        return self.codomain().get_point(moebius_transform(self._matrix, p.coordinates()))
 
     def preserves_orientation(self): #UHP
         r"""
@@ -910,7 +911,7 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
             sage: bool(PD.dist(I2(q), q) < 10**-9)
             True
         """
-        _image = mobius_transform(self._matrix, p.coordinates())
+        _image = moebius_transform(self._matrix, p.coordinates())
         return self.codomain().get_point(_image)
 
     def __mul__(self, other): #PD
@@ -1018,10 +1019,11 @@ class HyperbolicIsometryKM(HyperbolicIsometry):
 #####################################################################
 ## Helper functions
 
-def mobius_transform(A, z):
+from sage.misc.superseded import deprecated_function_alias
+def moebius_transform(A, z):
     r"""
     Given a matrix ``A`` in `GL(2, \CC)` and a point ``z`` in the complex
-    plane return the mobius transformation action of ``A`` on ``z``.
+    plane return the Möbius transformation action of ``A`` on ``z``.
 
     INPUT:
 
@@ -1034,21 +1036,21 @@ def mobius_transform(A, z):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import mobius_transform
-        sage: mobius_transform(matrix(2,[1,2,3,4]),2 + I)
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import moebius_transform
+        sage: moebius_transform(matrix(2,[1,2,3,4]),2 + I)
         2/109*I + 43/109
         sage: y = var('y')
-        sage: mobius_transform(matrix(2,[1,0,0,1]),x + I*y)
+        sage: moebius_transform(matrix(2,[1,0,0,1]),x + I*y)
         x + I*y
 
     The matrix must be square and `2 \times 2`::
 
-        sage: mobius_transform(matrix([[3,1,2],[1,2,5]]),I)
+        sage: moebius_transform(matrix([[3,1,2],[1,2,5]]),I)
         Traceback (most recent call last):
         ...
         TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
 
-        sage: mobius_transform(identity_matrix(3),I)
+        sage: moebius_transform(identity_matrix(3),I)
         Traceback (most recent call last):
         ...
         TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
@@ -1057,11 +1059,11 @@ def mobius_transform(A, z):
     or complex numbers, but must be provably invertible::
 
         sage: a,b,c,d = var('a,b,c,d');
-        sage: mobius_transform(matrix(2,[a,b,c,d]),I)
+        sage: moebius_transform(matrix(2,[a,b,c,d]),I)
         (I*a + b)/(I*c + d)
-        sage: mobius_transform(matrix(2,[1,b,c,b*c+1]),I)
+        sage: moebius_transform(matrix(2,[1,b,c,b*c+1]),I)
         (b + I)/(b*c + I*c + 1)
-        sage: mobius_transform(matrix(2,[0,0,0,0]),I)
+        sage: moebius_transform(matrix(2,[0,0,0,0]),I)
         Traceback (most recent call last):
         ...
         TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
@@ -1081,3 +1083,4 @@ def mobius_transform(A, z):
         return (a*w + b) / (c*w + d)
     raise TypeError("A must be an invertible 2x2 matrix over the"
                     " complex numbers or a symbolic ring")
+mobius_transform = deprecated_function_alias(19855, moebius_transform)

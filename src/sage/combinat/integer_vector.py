@@ -33,7 +33,7 @@ from __builtin__ import list as builtinlist
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.combinat.combinat import CombinatorialClass
 from sage.rings.integer import Integer
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.infinity import PlusInfinity
 import functools
 from sage.combinat.integer_lists import IntegerListsLex

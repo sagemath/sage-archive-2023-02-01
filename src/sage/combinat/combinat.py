@@ -57,7 +57,7 @@ docstrings.
 
 **Implemented in other modules (listed for completeness):**
 
-The ``sage.rings.arith`` module contains the following
+The ``sage.arith.all`` module contains the following
 combinatorial functions:
 
 -  binomial the binomial coefficient (wrapped from PARI)
@@ -146,7 +146,7 @@ Functions and classes
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
-from sage.rings.arith import bernoulli, binomial
+from sage.arith.all import bernoulli, binomial, factorial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.libs.all import pari
 from sage.misc.prandom import randint
@@ -2685,7 +2685,6 @@ def bell_polynomial(n, k):
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.combinat.partition import Partitions
-    from sage.rings.arith import factorial
     R = PolynomialRing(ZZ, 'x', n-k+1)
     vars = R.gens()
     result = R.zero()

@@ -16,6 +16,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import division
+
 include "algebra_elements.pxi"
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import repr_lincomb
@@ -1255,7 +1257,7 @@ cdef class PathAlgebraElement(RingElement):
             return self._new_(outnxt)
         return self._new_(out)
 
-    def __div__(self, x):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 
@@ -1290,6 +1292,9 @@ cdef class PathAlgebraElement(RingElement):
                 sample = sample._parent._semigroup.algebra(x.parent())(0)
             return sample._new_(homog_poly_scale((<PathAlgebraElement>self).data, x))
         raise TypeError("Don't know how to divide {} by {}".format(x, self))
+
+    def __div__(self, x):
+        return self / x
 
 ## Multiplication in the algebra
 

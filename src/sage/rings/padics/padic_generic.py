@@ -313,7 +313,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k
             Finite Field of size 3
         """
-        from sage.rings.finite_rings.constructor import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         return GF(self.prime())
 
     def residue_field(self):

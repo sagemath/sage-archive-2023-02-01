@@ -21,8 +21,8 @@ from copy import copy
 from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
-from sage.rings.arith import is_prime_power
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.arith.all import is_prime_power
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
@@ -1181,7 +1181,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
 
     """
     from sage.modules.free_module_element import free_module_element as vector
-    from sage.rings.finite_rings.constructor import GF
+    from sage.rings.finite_rings.finite_field_constructor import GF
     from itertools import combinations
 
     p, k = is_prime_power(q,get_data=True)
@@ -1219,4 +1219,107 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
         G.delete_edges(G.edge_boundary(I_ks[i],I_ks[j])) # edges on (I_i,I_j)
     G.add_edges(e for c in cliques for e in combinations(c,2))
     G.name('Haemers('+str(q)+')')
+    return G
+
+def CossidentePenttilaGraph(q):
+    r"""
+    Cossidente-Penttila `((q^3+1)(q+1)/2,(q^2+1)(q-1)/2,(q-3)/2,(q-1)^2/2)`-strongly regular graph
+
+    For each odd prime power `q`, one can partition the points of the `O_6^-(q)`-generalized
+    quadrange `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
+    the point graph of the GQ has parameters as above [CP05]_.
+
+    Directly follwing the construction in [CP05]_ is not efficient,
+    as one then needs to construct the dual `GQ(q^2,q)`. Thus we
+    describe here a more efficient approach that we came up with, following a suggestion by
+    T.Penttila. Namely, this partition is invariant
+    under the subgroup `H=\Omega_3(q^2)<O_6^-(q)`. We build the appropriate `H`, which
+    leaves the form `B(X,Y,Z)=XY+Z^2` invariant, and
+    pick up two orbits of `H` on the `F_q`-points. One them is `B`-isotropic, and we
+    take the representative `(1:0:0)`. The other one corresponds to the points of
+    `PG(2,q^2)` that have all the lines on them either missing the conic specified by `B`, or
+    intersecting the conic in two points. We take `(1:1:e)` as the representative. It suffices
+    to pick `e` so that `e^2+1` is not a square in `F_{q^2}`. Indeed,
+    The conic can be viewed as the union of `\{(0:1:0)\}` and `\{(1:-t^2:t) | t \in F_{q^2}\}`.
+    The coefficients of a generic line on `(1:1:e)` are `[1:-1-eb:b]`, for `-1\neq eb`.
+    Thus, to make sure the intersection with the conic is always even, we need that the
+    discriminant of `1+(1+eb)t^2+tb=0` never vanishes, and this is if and only if
+    `e^2+1` is not a square. Further, we need to adjust `B`, by multiplying it by appropriately
+    chosen `\nu`, so that `(1:1:e)` becomes isotropic under the relative trace norm
+    `\nu B(X,Y,Z)+(\nu B(X,Y,Z))^q`. The latter is used then to define the graph.
+
+    INPUT:
+
+    - ``q`` -- an odd prime power.
+
+    EXAMPLES:
+
+    For `q=3` one gets Sims-Gewirtz graph. ::
+
+        sage: G=graphs.CossidentePenttilaGraph(3)    # optional - gap_packages (grape)
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape)
+        (56, 10, 0, 2)
+
+    For `q>3` one gets new graphs. ::
+
+        sage: G=graphs.CossidentePenttilaGraph(5)    # optional - gap_packages (grape)
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape)
+        (378, 52, 1, 8)
+
+    TESTS::
+
+        sage: G=graphs.CossidentePenttilaGraph(7)    # optional - gap_packages (grape) # long time
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape) # long time
+        (1376, 150, 2, 18)
+        sage: graphs.CossidentePenttilaGraph(2)
+        Traceback (most recent call last):
+        ...
+        ValueError: q(=2) must be an odd prime power
+
+    REFERENCES:
+
+    .. [CP05] A.Cossidente and T.Penttila
+       Hemisystems on the Hermitian surface
+       Journal of London Math. Soc. 72(2005), 731-741
+    """
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p==2:
+        raise ValueError('q(={}) must be an odd prime power'.format(q))
+
+    from sage.libs.gap.libgap import libgap
+    from sage.misc.package import is_package_installed, PackageNotFoundError
+
+    if not is_package_installed('gap_packages'):
+        raise PackageNotFoundError('gap_packages')
+
+    adj_list=libgap.function_factory("""function(q)
+        local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
+        LoadPackage("grape");
+        G0:=SO(3,q^2);
+        so:=GeneratorsOfGroup(G0);
+        G1:=Group(Comm(so[1],so[2]),Comm(so[1],so[3]),Comm(so[2],so[3]));
+        B:=InvariantBilinearForm(G0).matrix;
+        z:=Z(q^2); e:=z; sqo:=(q^2-1)/2;
+        if IsInt(sqo/Order(e^2+z^0)) then
+            e:=z^First([2..q^2-2], x-> not IsInt(sqo/Order(z^(2*x)+z^0)));
+        fi;
+        nu:=z^First([0..q^2-2], x->z^x*(e^2+z^0)+(z^x*(e^2+z^0))^q=0*z);
+        T:=function(x)
+            local r;
+            r:=nu*x*B*x;
+            return r+r^q;
+        end;
+        s:=Group([Z(q)*IdentityMat(3,GF(q))]);
+        O1:=Orbit(G1, Set(Orbit(s,z^0*[1,0,0])), OnSets);
+        O2:=Orbit(G1, Set(Orbit(s,z^0*[1,1,e])), OnSets);
+        G:=Graph(G1,Concatenation(O1,O2),OnSets,
+            function(x,y) return x<>y and 0*z=T(x[1]+y[1]); end);
+        return List([1..OrderGraph(G)],x->Adjacency(G,x));
+        end;""")
+
+    adj = adj_list(q) # for each vertex, we get the list of vertices it is adjacent to
+    G = Graph(((i,int(j-1))
+               for i,ni in enumerate(adj) for j in ni),
+               format='list_of_edges', multiedges=False)
+    G.name('CossidentePenttila('+str(q)+')')
     return G

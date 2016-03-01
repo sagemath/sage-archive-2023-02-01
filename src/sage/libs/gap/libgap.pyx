@@ -630,7 +630,6 @@ class Gap(Parent):
         from sage.rings.integer_ring import ZZ
         Parent.__init__(self, base=ZZ)
 
-
     def __repr__(self):
         r"""
         Return a string representation of ``self``.
@@ -646,23 +645,18 @@ class Gap(Parent):
         """
         return 'C library interface to GAP'
 
-
-    def trait_names(self):
+    @cached_method
+    def __dir__(self):
         """
-        Return all Gap function names.
-
-        OUTPUT:
-
-        A list of strings.
+        Customize tab completion
 
         EXAMPLES::
 
-            sage: len(libgap.trait_names()) > 1000
-            True
+           sage: 'OctaveAlgebra' in dir(libgap)
+           True
         """
-        import gap_functions
-        return gap_functions.common_gap_functions
-
+        from sage.libs.gap.gap_functions import common_gap_functions
+        return dir(self.__class__) + list(common_gap_functions)
 
     def __getattr__(self, name):
         r"""
@@ -683,14 +677,16 @@ class Gap(Parent):
             sage: libgap.List
             <Gap function "List">
         """
-        if name in self.trait_names():
+        if name in dir(self.__class__):
+            return getattr(self.__class__, name)
+        from sage.libs.gap.gap_functions import common_gap_functions
+        if name in common_gap_functions:
             f = make_GapElement_Function(self, gap_eval(str(name)))
             assert f.is_function()
             self.__dict__[name] = f
             return f
         else:
             raise AttributeError, 'No such attribute: '+name+'.'
-
 
     def show(self):
         """
@@ -717,7 +713,6 @@ class Gap(Parent):
         print self.eval('GasmanStatistics()')
         # print_gasman_objects()
 
-
     def count_GAP_objects(self):
         """
         Return the number of GAP objects that are being tracked by
@@ -733,7 +728,6 @@ class Gap(Parent):
             5
         """
         return sum([1 for obj in get_owned_objects()])
-
 
     def mem(self):
         """
@@ -785,7 +779,6 @@ class Gap(Parent):
         """
         return memory_usage()
 
-
     def collect(self):
         """
         Manually run the garbage collector
@@ -797,11 +790,10 @@ class Gap(Parent):
             sage: libgap.collect()
         """
         libgap_enter()
-        rc = libGAP_CollectBags(0,1)
+        rc = libGAP_CollectBags(0, 1)
         libgap_exit()
         if rc != 1:
             raise RuntimeError('Garbage collection failed.')
-
 
 
 libgap = Gap()

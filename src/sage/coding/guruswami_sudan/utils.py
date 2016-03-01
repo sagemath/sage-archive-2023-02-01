@@ -25,8 +25,6 @@ from sage.rings.integer import Integer
 from sage.rings.arith import lcm
 from sage.combinat.permutation import Permutation
 
-IMPOSSIBLE_PARAMS = "Impossible parameters for the Guruswami-Sudan algorithm"
-
 def polynomial_to_list(p, len):
     r"""
     Returns ``p`` as a list of its coefficients of length ``len``.
@@ -48,27 +46,23 @@ def polynomial_to_list(p, len):
     """
     return list(p) + [0]*max(0, len-p.degree()-1)
 
-def list_decoding_range(n, d, q=None):
+def johnson_radius(n, d):
     r"""
-    Returns the minimal and maximal number of errors correctable by a
-    Johnson-distance list decoder beyond half the minimal distance.
+    Returns the Johnson-radius for the code length `n` and the minimum distance `d`.
+
+    The Johnson radius is defined as `n - \sqrt(n(n-d))`.
 
     INPUT:
 
     - ``n`` -- an integer, the length of the code
     - ``d`` -- an integer, the minimum distance of the code
-    - ``q`` -- (default: ``None``) an integer, the field characteristic
 
     EXAMPLES::
 
-        sage: sage.coding.guruswami_sudan.utils.list_decoding_range(250, 181)
-        (91, 118)
+        sage: sage.coding.guruswami_sudan.utils.johnson_radius(250, 181)
+        -5*sqrt(690) + 250
     """
-    if q is None:
-        return (ligt((d-1)/2), gilt(n - sqrt(n*(n-d))))
-    else:
-        f = (q-1.)/q
-        return (ligt((d-1)/2), gilt(f*(n-sqrt(n*(n-d/f)))))
+    return n - sqrt(n*(n-d))
 
 def ligt(x):
     r"""
@@ -113,7 +107,7 @@ def solve_degree2_to_integer_range(a,b,c):
     `i_1 > x_1` and `i_2 < x_2` where `x_1, x_2` are the two zeroes of the equation in `x`:
     `ax^2+bx+c=0`.
 
-    If there is no real solution to the equation, it returns an empty, range with negative coefficients.
+    If there is no real solution to the equation, it returns an empty range with negative coefficients.
 
     INPUT:
 

@@ -16,7 +16,6 @@ back to Python.
 #                   http://www.gnu.org/licenses/
 ########################################################################
 
-include "sage/ext/interrupt.pxi"
 include "sage/ext/python.pxi"
 
 from ginac cimport *

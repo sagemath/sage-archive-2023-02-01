@@ -2602,7 +2602,7 @@ class EllipticCurveIsogeny(Morphism):
         # thesis are wrong, the correct formulas
         # are coded below
 
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         for j  in xrange(0,n-1):
             psi_prpr = psi_prpr + \

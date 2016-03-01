@@ -1,5 +1,3 @@
-include "sage/ext/interrupt.pxi"
-
 include "symmetrica.pxi"
 
 include "kostka.pxi"

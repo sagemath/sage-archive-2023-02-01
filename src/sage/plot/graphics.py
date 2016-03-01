@@ -1964,19 +1964,19 @@ class Graphics(WithEqualityById, SageObject):
         be run or doctested::
 
             sage: p = ellipse((0,0),4,1)
-            sage: #p.show(figsize=[232,232],dpi=100) # not tested
+            sage: p.show(figsize=[232,232],dpi=100)  # not tested
             ------------------------------------------------------------------------
-            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage has a bug
+            Unhandled SIGSEGV: A segmentation fault occurred.
+            This probably occurred because a *compiled* module has a bug
             in it and is not properly wrapped with sig_on(), sig_off().
-            Sage will now terminate.
+            Python will now terminate.
             ------------------------------------------------------------------------
-            sage: #p.show(figsize=[327,181],dpi=100) # not tested
+            sage: p.show(figsize=[327,181],dpi=100)  # not tested
             ------------------------------------------------------------------------
-            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage has a bug
+            Unhandled SIGSEGV: A segmentation fault occurred.
+            This probably occurred because a *compiled* module has a bug
             in it and is not properly wrapped with sig_on(), sig_off().
-            Sage will now terminate.
+            Python will now terminate.
             ------------------------------------------------------------------------
 
         The following tests ensure we give a good error message for
@@ -3663,3 +3663,19 @@ class GraphicsArray(WithEqualityById, SageObject):
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
         dm.display_immediately(self, **kwds)
+
+    def plot(self):
+        """
+        Draw a 2D plot of this graphics object, which just returns this
+        object since this is already a 2D graphics object.
+
+        EXAMPLES::
+
+            sage: g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
+            sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
+            sage: S = graphics_array([g1, g2], 2, 1)
+            sage: S.plot() is S
+            True
+
+        """
+        return self

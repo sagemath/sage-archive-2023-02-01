@@ -13,7 +13,9 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -125,7 +127,7 @@ cdef class ntl_GF2(object):
         GF2_mul(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
@@ -146,6 +148,9 @@ cdef class ntl_GF2(object):
         r = ntl_GF2.__new__(ntl_GF2)
         GF2_div(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
+
+    def __div__(self, other):
+        return self / other
 
     def __sub__(self, other):
         """

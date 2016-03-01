@@ -18,8 +18,8 @@ The basic command syntax is as follows::
 """
 from constructor import random_matrix, Matrix
 from sage.rings.all import ZZ, QQ, GF
-from sage.misc.misc import alarm, cancel_alarm, cputime
-from sage.ext.interrupt import AlarmInterrupt
+from sage.misc.misc import cputime
+from cysignals.alarm import AlarmInterrupt, alarm, cancel_alarm
 
 from sage.interfaces.all import magma
 

@@ -1,6 +1,6 @@
 "Cremona modular symbols"
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from ..eclib cimport mat
 from .mat cimport MatrixFactory

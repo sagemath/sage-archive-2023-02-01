@@ -74,19 +74,19 @@ cdef extern from "fes_interface.h":
     void exhaustive_search_wrapper(int n, int n_eqs, int degree, int ***coeffs, solution_callback_t callback, void* callback_state, int verbose)
 
 
-include 'sage/ext/interrupt.pxi'  #sig_on(), sig_off()
-include 'sage/ext/stdsage.pxi'  #sage_calloc(), sage_free()
+include "cysignals/signals.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.pbori import BooleanPolynomial, BooleanPolynomialRing
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.combinat.subset import Subsets
 
 from sage.matrix.all import *

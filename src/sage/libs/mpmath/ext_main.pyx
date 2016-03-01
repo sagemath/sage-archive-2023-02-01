@@ -6,7 +6,7 @@ for interaction with other types. Also implements the main
 context class, and related utilities.
 """
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.long cimport *

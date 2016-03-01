@@ -1,6 +1,11 @@
 Algebras
 ========
 
+.. toctree::
+   :maxdepth: 1
+
+   sage/algebras/catalog
+
 Free associative algebras and quotients
 ---------------------------------------
 

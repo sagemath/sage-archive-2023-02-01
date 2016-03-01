@@ -288,8 +288,13 @@ static ex multiply_lcm(const ex &e, const numeric &lcm)
 	} else if (is_exactly_a<power>(e)) {
 		if (is_exactly_a<symbol>(e.op(0)))
 			return e * lcm;
-		else
-			return pow(multiply_lcm(e.op(0), lcm.power(ex_to<numeric>(e.op(1)).inverse())), e.op(1));
+		else {
+			numeric root_of_lcm = lcm.power(ex_to<numeric>(e.op(1)).inverse());
+			if (root_of_lcm.is_rational())
+				return pow(multiply_lcm(e.op(0), root_of_lcm), e.op(1));
+			else
+				return e * lcm;
+		}
 	} else
 		return e * lcm;
 }

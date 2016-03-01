@@ -1,4 +1,6 @@
 # distutils: libraries = GSL_LIBRARIES
+# distutils: library_dirs = gsl_library_dirs
+# distutils: include_dirs = gsl_include_dirs
 cdef extern from "gsl/gsl_interp.h":
 
   ctypedef struct gsl_interp_accel

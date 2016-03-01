@@ -502,9 +502,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('*', ['sage/gsl/*.pyx'],
-              library_dirs = gsl_library_dirs,
-              include_dirs = gsl_include_dirs),
+    Extension('*', ['sage/gsl/*.pyx']),
 
     ################################
     ##

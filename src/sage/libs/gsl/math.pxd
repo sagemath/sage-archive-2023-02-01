@@ -1,4 +1,6 @@
 # distutils: libraries = GSL_LIBRARIES
+# distutils: library_dirs = gsl_library_dirs
+# distutils: include_dirs = gsl_include_dirs
 from .types cimport *
 
 cdef extern from "gsl/gsl_math.h":

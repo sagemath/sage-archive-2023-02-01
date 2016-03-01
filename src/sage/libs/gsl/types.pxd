@@ -1,3 +1,4 @@
+# distutils: include_dirs = gsl_include_dirs
 from libc.stdio cimport FILE
 
 cdef enum:

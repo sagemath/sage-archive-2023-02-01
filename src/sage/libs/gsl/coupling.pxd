@@ -1,4 +1,6 @@
 # distutils: libraries = GSL_LIBRARIES
+# distutils: library_dirs = gsl_library_dirs
+# distutils: include_dirs = gsl_include_dirs
 # distutils: extra_compile_args = -DGSL_DISABLE_DEPRECATED
 from .types cimport *
 

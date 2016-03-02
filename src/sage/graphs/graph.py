@@ -3801,11 +3801,13 @@ class Graph(GenericGraph):
         return ret
 
     @doc_index("Leftovers")
-    def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=False, solver=None, verbose=0):
+    def matching(self, value_only=False, algorithm="Edmonds",
+                 use_edge_labels=False, solver=None, verbose=0):
         r"""
-        Returns a maximum weighted matching of the graph
-        represented by the list of its edges. For more information, see the
-        `Wikipedia article on matchings
+        Return a maximum weighted matching of the graph
+        represented by the list of its edges.
+
+        For more information, see the `Wikipedia article on matchings
         <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
 
         Given a graph `G` such that each edge `e` has a weight `w_e`,
@@ -3815,17 +3817,18 @@ class Graph(GenericGraph):
 
         As an optimization problem, it can be expressed as:
 
-        .. math::
+        .. MATH::
 
             \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
-            \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
+            \mbox{Such that : }&\forall v \in G,
+            \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
 
         INPUT:
 
-        - ``value_only`` -- boolean (default: ``False``). When set to
+        - ``value_only`` -- boolean (default: ``False``); when set to
           ``True``, only the cardinal (or the weight) of the matching is
-          returned.
+          returned
 
         - ``algorithm`` -- string (default: ``"Edmonds"``)
 
@@ -3835,22 +3838,23 @@ class Graph(GenericGraph):
 
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
-          - When set to ``True``, computes a weighted matching where each edge
-            is weighted by its label. (If an edge has no label, `1` is assumed.)
+          - when set to ``True``, computes a weighted matching where each edge
+            is weighted by its label (if an edge has no label, `1` is assumed)
 
-          - When set to ``False``, each edge has weight `1`.
+          - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
+          solver to be used; if set to ``None``, the default one is used
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
-          verbosity. Set to 0 by default, which means quiet.
-          Only useful when ``algorithm == "LP"``.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity: set to 0 by default, which means quiet
+          (only useful when ``algorithm == "LP"``)
+
+        For more information on LP solvers and which default solver is
+        used, see the method
+        :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+        of the class :class:`MixedIntegerLinearProgram
+        <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         ALGORITHM:
 
@@ -3872,10 +3876,17 @@ class Graph(GenericGraph):
            sage: g.matching(algorithm="LP", value_only=True)
            9
 
-        When ``use_edge_labels`` is set to the default value: ``False``,
+        .. PLOT::
+
+            g = graphs.PappusGraph()
+            sphinx_plot(g.plot(edge_colors={"red":g.matching()}))
+
+        TESTS:
+
+        When ``use_edge_labels`` is set to ``False``,
         with Edmonds' algorithm and LP formulation::
 
-            sage: g = Graph([(0,1,0),(1,2,999),(2,3,-5)])
+            sage: g = Graph([(0,1,0), (1,2,999), (2,3,-5)])
             sage: g.matching()
             [(0, 1, 0), (2, 3, -5)]
             sage: g.matching(algorithm="LP")
@@ -3884,16 +3895,11 @@ class Graph(GenericGraph):
         When ``use_edge_labels`` is set to ``True``,
         with Edmonds' algorithm and LP formulation::
 
-            sage: g = Graph([(0,1,0),(1,2,999),(2,3,-5)])
+            sage: g = Graph([(0,1,0), (1,2,999), (2,3,-5)])
             sage: g.matching(use_edge_labels=True)
             [(1, 2, 999)]
             sage: g.matching(algorithm="LP", use_edge_labels=True)
             [(1, 2, 999)]
-
-        .. PLOT::
-
-            g = graphs.PappusGraph()
-            sphinx_plot(g.plot(edge_colors={"red":g.matching()}))
 
         TESTS:
 
@@ -3912,20 +3918,20 @@ class Graph(GenericGraph):
 
         if algorithm == "Edmonds":
             import networkx
+            g = networkx.Graph()
             if use_edge_labels:
-                g = networkx.Graph()
-                for u, v, l in self.edges():
+                for u, v, l in self.edge_iterator():
                     g.add_edge(u, v, attr_dict={"weight": weight(l)})
             else:
-                g = Graph(self.edges(labels=False))
-                g = g.networkx_graph(copy=False)
+                for u, v in self.edge_iterator(labels=False):
+                    g.add_edge(u, v)
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
                     return sum(weight(self.edge_label(u, v))
-                                for u, v in d.iteritems()) * 0.5
+                               for u, v in d.iteritems()) / Integer(2)
                 else:
-                    return int(len(d)/2)
+                    return Integer(len(d)/2)
             else:
                 return [(u, v, self.edge_label(u, v))
                         for u, v in d.iteritems() if u < v]
@@ -3940,11 +3946,11 @@ class Graph(GenericGraph):
             if use_edge_labels:
                 p.set_objective(
                     p.sum(weight(w) * b[min(u, v),max(u, v)]
-                         for u, v, w in g.edges()))
+                         for u, v, w in g.edge_iterator()))
             else:
                 p.set_objective(
                     p.sum(b[min(u, v),max(u, v)]
-                         for u, v in g.edges(labels=False)))
+                         for u, v in g.edge_iterator(labels=False)))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
@@ -3960,7 +3966,7 @@ class Graph(GenericGraph):
                 p.solve(log=verbose)
                 b = p.get_values(b)
                 return [(u, v, w) for u, v, w in g.edges()
-                        if b[min(u, v),max(u, v)] == 1]
+                        if b[min(u, v), max(u, v)] == 1]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')

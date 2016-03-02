@@ -232,3 +232,21 @@ cdef class SymbolicSeries(Expression):
                 ret[c[1]] = c[0]
             return ret
 
+    def power_series(self, base_ring):
+        """
+        Return algebraic power series associated to this symbolic
+        series. The coefficients must be coercible to the base ring.
+
+        EXAMPLES::
+
+            sage: ex=(gamma(1-x)).series(x,3); ex
+            1 + (euler_gamma)*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + Order(x^3)
+            sage: g=ex.power_series(SR); g
+            1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + O(x^3)
+            sage: g.parent()
+            Power Series Ring in x over Symbolic Ring
+        """
+        from sage.rings.all import PowerSeriesRing
+        R = PowerSeriesRing(base_ring, names=str(self.default_variable()))
+        return R(self.list(), self.degree(self.default_variable()))
+

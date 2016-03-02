@@ -77,7 +77,7 @@ TESTS::
 
 from libc.string cimport memcpy
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.structure.sage_object cimport SageObject
 

@@ -38,7 +38,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/libs/ntl/decl.pxi"
 

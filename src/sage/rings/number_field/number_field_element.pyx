@@ -30,7 +30,7 @@ AUTHORS:
 
 import operator
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.int cimport *
 include "sage/ext/stdsage.pxi"
 include "sage/libs/ntl/decl.pxi"

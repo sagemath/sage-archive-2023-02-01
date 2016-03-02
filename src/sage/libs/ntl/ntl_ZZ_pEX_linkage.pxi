@@ -14,7 +14,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
 from sage.libs.ntl.ZZ_pEX cimport *

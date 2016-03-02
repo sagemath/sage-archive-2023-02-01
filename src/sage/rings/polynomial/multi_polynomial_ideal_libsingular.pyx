@@ -49,7 +49,7 @@ Two examples from the Mathematica documentation (done in Sage):
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.libs.singular.decl cimport tHomog, number, IDELEMS, p_Copy, rChangeCurrRing
 from sage.libs.singular.decl cimport idInit, id_Delete, currRing, currQuotient, Sy_bit, OPT_REDSB

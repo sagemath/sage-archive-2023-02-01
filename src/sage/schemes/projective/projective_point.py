@@ -1650,7 +1650,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: Q = P([-1/2*QQbar(sqrt(2)) + QQbar(I), 1])
             sage: S = Q._number_field_from_algebraics(); S
-            (-1/2*a^3 - a^2 + 1/2*a : 1)
+            (1/2*a^3 + a^2 - 1/2*a : 1)
             sage: S.codomain()
             Projective Space of dimension 1 over Number Field in a with defining polynomial y^4 + 1
         """

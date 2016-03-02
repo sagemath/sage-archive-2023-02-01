@@ -55,7 +55,7 @@ TESTS::
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction

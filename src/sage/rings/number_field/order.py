@@ -590,7 +590,7 @@ class Order(IntegralDomain):
 
             sage: K.<i> = NumberField(x^2 + 1)
             sage: O = K.maximal_order(); O
-            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
             sage: O.ring_generators()
             [i]
 
@@ -1346,9 +1346,27 @@ class AbsoluteOrder(Order):
             'Maximal Order in Number Field in a with defining polynomial x^4 - 5'
             sage: K.order(a)._repr_()
             'Order in Number Field in a with defining polynomial x^4 - 5'
+
+        We have special cases for Gaussian and Eisenstein integers::
+
+            sage: K = CyclotomicField(4)
+            sage: K.ring_of_integers()
+            Gaussian Integers in Cyclotomic Field of order 4 and degree 2
+            sage: K = QuadraticField(-3)
+            sage: K.ring_of_integers()
+            Eisenstein Integers in Number Field in a with defining polynomial x^2 + 3
         """
-        # (", ".join([str(b) for b in self.basis()]
-        return "%sOrder in %r" % ("Maximal " if self._is_maximal else "", self._K)
+        if self._is_maximal:
+            s = "Maximal Order"
+            if self.degree() == 2:
+                D = self.discriminant()
+                if D == -3:
+                    s = "Eisenstein Integers"
+                if D == -4:
+                    s = "Gaussian Integers"
+        else:
+            s = "Order"
+        return s + " in " + repr(self._K)
 
     def basis(self):
         r"""
@@ -1979,3 +1997,54 @@ def relative_order_from_ring_generators(gens,
                                                        check_rank=check_rank)
 
     return RelativeOrder(K, abs_order, check=False, is_maximal=is_maximal)
+
+
+def GaussianIntegers(names="I"):
+    """
+    Return the ring of Gaussian integers, that is all complex numbers
+    of the form `a + b I` with `a` and `b` integers and `I = \sqrt{-1}`.
+
+    EXAMPLES::
+
+        sage: ZZI.<I> = GaussianIntegers()
+        sage: ZZI
+        Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+        sage: factor(3 + I)
+        (-I) * (I + 1) * (2*I + 1)
+        sage: CC(I)
+        1.00000000000000*I
+        sage: I.minpoly()
+        x^2 + 1
+        sage: GaussianIntegers().basis()
+        [1, I]
+    """
+    from sage.rings.all import CDF, NumberField
+    f = ZZ['x']([1,0,1])
+    nf = NumberField(f, names, embedding=CDF(0, 1))
+    return nf.ring_of_integers()
+
+
+def EisensteinIntegers(names="omega"):
+    """
+    Return the ring of Eisenstein integers, that is all complex numbers
+    of the form `a + b \omega` with `a` and `b` integers and
+    `omega = (-1 + \sqrt{-3})/2`.
+
+    EXAMPLES::
+
+        sage: R.<omega> = EisensteinIntegers()
+        sage: R
+        Eisenstein Integers in Number Field in omega with defining polynomial x^2 + x + 1
+        sage: factor(3 + omega)
+        (omega) * (-3*omega - 2)
+        sage: CC(omega)
+        -0.500000000000000 + 0.866025403784439*I
+        sage: omega.minpoly()
+        x^2 + x + 1
+        sage: EisensteinIntegers().basis()
+        [1, omega]
+    """
+    from sage.rings.all import CDF, NumberField
+    f = ZZ['x']([1,1,1])
+    nf = NumberField(f, names, embedding=CDF(-0.5, 0.8660254037844386))
+    return nf.ring_of_integers()

@@ -15,7 +15,7 @@ AUTHOR:
 #*****************************************************************************
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 cdef extern from "bernmm/bern_rat.h":

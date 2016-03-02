@@ -494,7 +494,6 @@ cdef class Graphics3d(SageObject):
                 a_max[i] = a_max[i] + 1
         return a_min, a_max
 
-
     def bounding_box(self):
         """
         Return the lower and upper corners of a 3d bounding box for ``self``.
@@ -1735,6 +1734,12 @@ end_scene""" % (render_params.antialiasing,
         string_list += ['</volume></mesh></object></amf>']
         return "".join(string_list)
 
+    def plot(self):
+        """
+        Draw a 3D plot of this graphics object, which just returns this
+        object since this is already a 3D graphics object.
+        """
+        return self
 
 # if you add any default parameters you must update some code below
 SHOW_DEFAULTS = {'viewer': 'jmol',

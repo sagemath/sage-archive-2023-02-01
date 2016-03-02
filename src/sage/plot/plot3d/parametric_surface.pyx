@@ -518,7 +518,6 @@ cdef class ParametricSurface(IndexFaceSet):
 
         self.render_grid = urange, vrange
 
-
     def get_grid(self, ds):
         """
         TEST::
@@ -673,6 +672,12 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         raise NotImplementedError
 
+    def plot(self):
+        """
+        Draw a 3D plot of this graphics object, which just returns this
+        object since this is already a 3D graphics object.
+        """
+        return self
 
 class MoebiusStrip(ParametricSurface):
     """

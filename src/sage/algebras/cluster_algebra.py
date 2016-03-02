@@ -455,7 +455,7 @@ class ClusterAlgebra(Parent):
         # Add methods that are defined only for special cases
         if n == 2:
             self.greedy_element = MethodType(greedy_element, self, self.__class__)
-            self.greedy_coeff = MethodType(greedy_coeff, self, self.__class__)
+            self.greedy_coefficient = MethodType(greedy_coefficient, self, self.__class__)
             self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
 
         # TODO: understand if we need this
@@ -718,9 +718,7 @@ def greedy_element(self, d_vector):
     return self.retract(x1**(-a1)*x2**(-a2)*output)
 
 # Is this function something we want to make public or do we want to make this a
-# private method changing it to _greedy_coeff ?
-# Since we are giving long names to things we might want to change this into
-# greedy_coefficient
+# private method changing it to _greedy_coefficient ?
 def greedy_coefficient(self,d_vector,p,q):
     b = abs(self._B0[0,1])
     c = abs(self._B0[1,0])

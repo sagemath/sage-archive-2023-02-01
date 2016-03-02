@@ -1769,10 +1769,12 @@ def _latex_file_(objects, title='SAGE', debug=False, \
             x = objects[i]
             L = latex(x)
             if '\\begin{pgfpicture}' in L:
-                latex.add_package_to_preamble_if_available('adjustbox')
-                s += '\n\\begin{adjustbox}{max width=\\textwidth}\n'
+                # Resize the pgf figure to the text width if larger. 
+                s += r'\begingroup\makeatletter\@ifundefined{pgffigure}{\newsavebox{\pgffigure}}{}\makeatother\endgroup'
+                s += r'\begin{lrbox}{\pgffigure}' + '\n'
                 s += '%s'%L
-                s += '\n\\end{adjustbox}\n'
+                s += r'\end{lrbox}'
+                s += r'\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{\usebox{\pgffigure}}' + '\n'
             elif not '\\begin{verbatim}' in L:
                 s += '%s%s%s'%(math_left, L, math_right)
             else:

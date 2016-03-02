@@ -184,6 +184,16 @@ class GRSGuruswamiSudanDecoder(Decoder):
         sage: D
         Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
 
+    If one wants to use the native Sage algorithms for the root finding step,
+    one can directly pass the string given in the ``Input`` block of this class.
+    This works for ``interpolation_alg`` as well::
+
+
+        sage: from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
+        sage: rf = rootfind_roth_ruckenstein
+        sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2), root_finder="RothRuckenstein")
+        sage: D
+        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
 
     Actually, we can construct the decoder from ``C`` directly::
 
@@ -546,16 +556,16 @@ class GRSGuruswamiSudanDecoder(Decoder):
         else:
             raise ValueError("Specify either tau or parameters")
         if hasattr(interpolation_alg, '__call__'):
-            self.interpolation_alg = interpolation_alg
+            self._interpolation_alg = interpolation_alg
         elif interpolation_alg == None or interpolation_alg == "LeeOSullivan":
-            self.interpolation_alg = construct_Q_lee_osullivan
+            self._interpolation_alg = construct_Q_lee_osullivan
         elif interpolation_alg == "LinearAlgebra":
-            self.interpolation_alg = construct_Q_linalg
+            self._interpolation_alg = construct_Q_linalg
         else:
             raise ValueError("Please provide a method or one of the allowed strings for interpolation_alg")
         if hasattr(root_finder, '__call__'):
             self._root_finder = root_finder
-        elif root_finder == None or interpolation_alg == "RothRuckenstein":
+        elif root_finder == None or root_finder == "RothRuckenstein":
             self._root_finder = rootfind_roth_ruckenstein
         else:
             raise ValueError("Please provide a method or one of the allowed strings for root_finder")

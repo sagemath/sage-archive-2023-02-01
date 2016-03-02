@@ -825,6 +825,7 @@ class Polynomial_generic_sparse(Polynomial):
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
 
+    @coerce_binop
     def gcd(self,other,algorithm=None):
         """
         Return the gcd of this polynomial and ``other``
@@ -884,11 +885,6 @@ class Polynomial_generic_sparse(Polynomial):
                 algorithm = "generic"
         if algorithm=="dense":
             S = self.parent()
-            if other.parent() is not S:
-                from sage.structure.element import get_coercion_model
-                cm = get_coercion_model()
-                left, right = cm.canonical_coercion(self, other)
-                return left.gcd(right)
             # FLINT is faster but a bug makes the conversion extremely slow,
             # so NTL is used in those cases where the conversion is too slow. Cf
             # <https://groups.google.com/d/msg/sage-devel/6qhW90dgd1k/Hoq3N7fWe4QJ>

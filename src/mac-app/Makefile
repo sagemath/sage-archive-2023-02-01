@@ -30,8 +30,9 @@ endif
 OSX_VERSION:=$(shell sw_vers -productVersion)
 
 TARGET:=sage-$(SAGE_VERSION)-OSX_$(OSX_VERSION)_$(SAGE_APP_TARGET_ARCH)
-APP:=$(TARGET)/SageMath-$(SAGE_VERSION).app
-DMG:=sage-$(SAGE_VERSION)-OSX_$(OSX_VERSION)_$(SAGE_APP_TARGET_ARCH).app.dmg
+APP_NAME:=SageMath-$(SAGE_VERSION).app
+APP:=$(TARGET)/$(APP_NAME)
+DMG:=$(TARGET).app.dmg
 
 CONFIGURATION=Debug
 SDKROOT=
@@ -77,15 +78,38 @@ $(APP)/Contents/Resources/sage: $(APP)
 	@# because $(APP) is newer than (the rsync preserves time)
 	test -d $@ && touch $@
 
+# .DS_Store tells finder the icon position and background image to use
+# when opening the dmg.	
+$(TARGET)/.DS_Store: tools/createDSStore/createDSStore.py
+	@# On some old Mac OS X, createDSStore fails when there already
+	@# is an existing file
+	rm -f $(TARGET)/.DS_Store
+	tools/createDSStore/createDSStore.py $(TARGET) $(TARGET) $(APP_NAME)
+
+$(TARGET)/.background.png: sage-dmg-background.png
+	cp sage-dmg-background.png $(TARGET)/.background.png
+
+$(TARGET)/Applications:
+	rm -f $(TARGET)/Applications
+	ln -s /Applications/ $(TARGET)/Applications
+
 # Add the readme file
 $(TARGET)/README.txt: $(SAGE_ROOT)/src/bin/sage-README-osx.txt
 	cp $^ $@
 
-# Compress the built directory tree into a DMG 
-$(DMG): $(APP)/Contents/Resources/sage $(TARGET)/README.txt
-	hdiutil create -srcfolder $(TARGET) -format UDBZ $(DMG)
+non_app_files: $(TARGET)/README.txt $(TARGET)/.DS_Store $(TARGET)/.background.png $(TARGET)/Applications
 
-.PHONY: clean default debug app
+sage_symlink: $(APP)/Contents/Resources/sage/sage
+	rm -f $(APP)/sage
+	ln -s Contents/Resources/sage/sage $(APP)/sage
+
+# Compress the built directory into a DMG
+# Dependencies need to be in that order because non_app_files
+# needs the directory created by $(APP)/Contents/Resources/sage
+$(DMG): $(APP)/Contents/Resources/sage sage_symlink non_app_files
+	hdiutil create -srcfolder $(TARGET) -volname $(TARGET) -format UDBZ $(DMG)
+
+.PHONY: clean default debug app non_app_files
 
 clean:
 	rm -rf $(APP) build $(DMG)

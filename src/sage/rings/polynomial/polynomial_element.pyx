@@ -1501,7 +1501,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             See http://trac.sagemath.org/18420 for details.
             0
         """
-        from sage.misc.superseded import deprecation
         deprecation(18420, "_mul_trunc is deprecated, use _mul_trunc_ instead")
         return self._mul_trunc_(right, n)
 
@@ -7244,23 +7243,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def hamming_weight(self):
         """
+        Deprecated alias of :meth:`number_of_terms`.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: (x^2+x+1).hamming_weight()
+            doctest:...: DeprecationWarning: The use of hamming_weight() is deprecated, use number_of_terms() instead
+            See http://trac.sagemath.org/18617 for details.
+            3
+        """
+        deprecation(18617, "The use of hamming_weight() is deprecated, use number_of_terms() instead")
+        return self.number_of_terms()
+
+    def number_of_terms(self):
+        """
         Returns the number of non-zero coefficients of self.
 
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: f = x^3 - x
-            sage: f.hamming_weight()
+            sage: f.number_of_terms()
             2
-            sage: R(0).hamming_weight()
+            sage: R(0).number_of_terms()
             0
             sage: f = (x+1)^100
-            sage: f.hamming_weight()
+            sage: f.number_of_terms()
             101
             sage: S = GF(5)['y']
-            sage: S(f).hamming_weight()
+            sage: S(f).number_of_terms()
             5
-            sage: cyclotomic_polynomial(105).hamming_weight()
+            sage: cyclotomic_polynomial(105).number_of_terms()
             33
         """
         cdef long w = 0

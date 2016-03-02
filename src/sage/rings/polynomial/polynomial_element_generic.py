@@ -930,6 +930,19 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return self[:n]
 
+    def number_of_terms(self):
+        """
+        Return the number of nonzero terms.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: p = x^100 - 3*x^10 + 12
+            sage: p.number_of_terms()
+            3
+        """
+        return len(self.__coeffs)
+
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)

@@ -60,14 +60,14 @@ toolchain: $(TOOLCHAIN)
 # so this will not trigger useless rebuilds.
 # See #14168 and #14232.
 toolchain-deps:
-	$(MAKE) zlib
+	$(MAKE) $(inst_zlib)
 	$(MAKE) $(MP_LIBRARY)
-	$(MAKE) mpfr
-	$(MAKE) mpc
+	$(MAKE) $(inst_mpfr)
+	$(MAKE) $(inst_mpc)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = sagelib $(SCRIPTS) ipython pexpect
+SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect)
 
 
 # Start Sage at least once to check that it works
@@ -87,7 +87,7 @@ $(STARTED): $(STANDARD_PACKAGES)
 #
 # This consists of packages which are required for the Sage build system.
 ###############################################################################
-base: bzip2 patch pkgconf
+base: $(inst_bzip2) $(inst_patch) $(inst_pkgconf)
 
 ###############################################################################
 # Building normal packages
@@ -98,50 +98,50 @@ base: bzip2 patch pkgconf
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
 sagelib: \
-		arb \
-		atlas \
-		brial \
-		cephes \
-		cliquer \
-		cysignals \
-		cython \
-		ecl \
-		eclib \
-		ecm \
-		flint \
-		libfplll \
-		libgd \
-		givaro \
-		glpk \
-		gsl \
-		iml \
-		jinja2 \
-		jupyter_core \
-		lcalc \
-		lrcalc \
-		libgap \
-		libpng \
-		linbox \
-		m4ri \
-		m4rie \
-		mpc \
-		mpfi \
-		mpfr \
+		$(inst_arb) \
+		$(inst_atlas) \
+		$(inst_brial) \
+		$(inst_cephes) \
+		$(inst_cliquer) \
+		$(inst_cysignals) \
+		$(inst_cython) \
+		$(inst_ecl) \
+		$(inst_eclib) \
+		$(inst_ecm) \
+		$(inst_flint) \
+		$(inst_libfplll) \
+		$(inst_libgd) \
+		$(inst_givaro) \
+		$(inst_glpk) \
+		$(inst_gsl) \
+		$(inst_iml) \
+		$(inst_jinja2) \
+		$(inst_jupyter_core) \
+		$(inst_lcalc) \
+		$(inst_lrcalc) \
+		$(inst_libgap) \
+		$(inst_libpng) \
+		$(inst_linbox) \
+		$(inst_m4ri) \
+		$(inst_m4rie) \
+		$(inst_mpc) \
+		$(inst_mpfi) \
+		$(inst_mpfr) \
 		$(MP_LIBRARY) \
-		ntl \
-		numpy \
-		pari \
-		planarity \
-		ppl \
-		pynac \
+		$(inst_ntl) \
+		$(inst_numpy) \
+		$(inst_pari) \
+		$(inst_planarity) \
+		$(inst_ppl) \
+		$(inst_pynac) \
 		$(PYTHON) \
-		ratpoints \
-		readline \
-		rw \
-		singular \
-		six \
-		symmetrica \
-		zn_poly \
+		$(inst_ratpoints) \
+		$(inst_readline) \
+		$(inst_rw) \
+		$(inst_singular) \
+		$(inst_six) \
+		$(inst_symmetrica) \
+		$(inst_zn_poly) \
 		$(EXTCODE)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
@@ -184,9 +184,10 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 # Building the documentation has many dependencies, because all
 # documented modules are imported and because we use matplotlib to
 # produce plots.
-DOC_DEPENDENCIES = sagelib sphinx sagenb \
-	| $(SAGERUNTIME) maxima networkx scipy matplotlib pillow \
-	mathjax ipykernel jupyter_client conway_polynomials
+DOC_DEPENDENCIES = sagelib $(inst_sphinx) $(inst_sagenb) \
+	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) \
+	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) \
+	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials)
 
 doc: doc-html
 

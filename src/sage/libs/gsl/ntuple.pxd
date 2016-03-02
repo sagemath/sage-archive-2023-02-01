@@ -1,6 +1,6 @@
 # distutils: libraries = GSL_LIBRARIES
-# distutils: library_dirs = gsl_library_dirs
-# distutils: include_dirs = gsl_include_dirs
+# distutils: library_dirs = GSL_LIBDIR
+# distutils: include_dirs = GSL_INCDIR
 from .types cimport *
 
 cdef extern from "gsl/gsl_ntuple.h":

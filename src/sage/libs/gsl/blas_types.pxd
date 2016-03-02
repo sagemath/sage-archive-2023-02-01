@@ -1,4 +1,4 @@
-# distutils: include_dirs = gsl_include_dirs
+# distutils: include_dirs = GSL_INCDIR
 cdef extern from "gsl/gsl_cblas.h":
   cdef enum CBLAS_ORDER:
     CblasRowMajor=101

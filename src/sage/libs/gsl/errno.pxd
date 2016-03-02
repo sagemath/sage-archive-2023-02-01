@@ -1,6 +1,6 @@
 # distutils: libraries = GSL_LIBRARIES
-# distutils: library_dirs = gsl_library_dirs
-# distutils: include_dirs = gsl_include_dirs
+# distutils: library_dirs = GSL_LIBDIR
+# distutils: include_dirs = GSL_INCDIR
 from libc.stdio cimport FILE
 
 cdef extern from "gsl/gsl_errno.h":

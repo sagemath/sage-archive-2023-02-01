@@ -61,6 +61,8 @@ singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 
 aliases = dict(
     GSL_LIBRARIES=gsl_libs,
+    GSL_LIBDIR=gsl_library_dirs,
+    GSL_INCDIR=gsl_include_dirs,
 )
 
 #########################################################

@@ -1,6 +1,6 @@
 # distutils: libraries = GSL_LIBRARIES
-# distutils: library_dirs = gsl_library_dirs
-# distutils: include_dirs = gsl_include_dirs
+# distutils: library_dirs = GSL_LIBDIR
+# distutils: include_dirs = GSL_INCDIR
 
 cdef extern from "gsl/gsl_statistics_double.h":
   double gsl_stats_mean ( double data[],  size_t stride,  size_t n)

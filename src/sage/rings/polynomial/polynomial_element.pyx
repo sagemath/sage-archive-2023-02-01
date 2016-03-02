@@ -7241,24 +7241,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return RR(sum([abs(i)**p for i in coeffs]))**(1/p)
 
-    def hamming_weight(self):
-        """
-        Deprecated alias of :meth:`number_of_terms`.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: (x^2+x+1).hamming_weight()
-            doctest:...: DeprecationWarning: The use of hamming_weight() is deprecated, use number_of_terms() instead
-            See http://trac.sagemath.org/18617 for details.
-            3
-        """
-        deprecation(18617, "The use of hamming_weight() is deprecated, use number_of_terms() instead")
-        return self.number_of_terms()
-
     def number_of_terms(self):
         """
-        Returns the number of non-zero coefficients of self.
+        Returns the number of non-zero coefficients of self. Also called weight,
+        hamming weight or sparsity.
 
         EXAMPLES::
 
@@ -7282,6 +7268,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if a:
                 w += 1
         return w
+
+    # alias hamming_weight for number_of_terms:
+    hamming_weight = number_of_terms
 
     def map_coefficients(self, f, new_base_ring = None):
         """

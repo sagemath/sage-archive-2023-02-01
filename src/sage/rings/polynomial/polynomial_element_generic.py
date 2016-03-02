@@ -862,6 +862,16 @@ class Polynomial_generic_sparse(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: Unknown algorithm 'foobar'
+
+        TESTS:
+
+        Check that :trac:`19676` is fixed::
+
+            sage: S.<y> = R[]
+            sage: x.gcd(y)
+            1
+            sage: (6*x).gcd(9)
+            3
         """
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -874,6 +884,11 @@ class Polynomial_generic_sparse(Polynomial):
                 algorithm = "generic"
         if algorithm=="dense":
             S = self.parent()
+            if other.parent() is not S:
+                from sage.structure.element import get_coercion_model
+                cm = get_coercion_model()
+                left, right = cm.canonical_coercion(self, other)
+                return left.gcd(right)
             # FLINT is faster but a bug makes the conversion extremely slow,
             # so NTL is used in those cases where the conversion is too slow. Cf
             # <https://groups.google.com/d/msg/sage-devel/6qhW90dgd1k/Hoq3N7fWe4QJ>

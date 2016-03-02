@@ -22,7 +22,7 @@ AUTHORS:
 from sage.functions.other import binomial, floor, sqrt
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
-from sage.rings.arith import lcm
+from sage.arith.all import lcm
 from sage.combinat.permutation import Permutation
 
 def polynomial_to_list(p, len):
@@ -136,46 +136,13 @@ def solve_degree2_to_integer_range(a,b,c):
     else:
         return (mini,maxi)
 
-def find_minimal_satisfiable(f, startn=1, contiguous=True):
-    r"""
-    Returns the minimal integral ``n``, `n > 0` such that ``f(n) == True``.
-
-    `startn` can be given as a hint to a value that might be true.
-
-    INPUT:
-
-    - ``f`` -- a function
-
-    - ``startn`` -- (default: ``1``) the starting point of the algorithm.
-
-    EXAMPLES::
-
-        sage: def f(x):
-        ....:    return None if x > 10 or x == 1 else x + 1
-
-        sage: sage.coding.guruswami_sudan.utils.find_minimal_satisfiable(f)
-        2
-    """
-    maxn = startn
-    minn = 1
-    # Keep doubling n to find one that works and then switch to binary search
-    while not f(maxn):
-        minn = maxn + 1
-        maxn *= 2
-    while minn < maxn:
-        tryn = minn + floor((maxn - minn) * 0.5)
-        if f(tryn):
-            maxn = tryn
-        else:
-            minn = tryn + 1
-    return maxn
-
 def apply_weights(M, weights):
     r"""
     Applies column weights inplace to the matrix `M`.
 
-    If weights are all integers, then `M` is multiplied on the `n`th
+    If ``weights`` are all integers, then `M` is multiplied on the `n`th
     column with `x^{weights[n]}`.
+
     If weights are fractions, then `M` is appropriately column permuted and
     multiplied with the `x^t` where `t = int(weights[n])`. Afterwards, the
     permutation is returned if needed for reference.
@@ -213,7 +180,8 @@ def apply_weights(M, weights):
 
 def remove_weights(M, weights):
     r"""
-    Removes the weights as introduced by :func:`apply_weights`
+    Removes the weights inplace to the matrix ``M``
+    as they were introduced by :func:`apply_weights`.
 
     INPUT:
 
@@ -279,7 +247,9 @@ def fractional_weight_permutation(weights):
 
 def _leading_position(v, weights=None):
     r"""
-    Returns the leading position of v using ``weights``.
+    Returns the position of the highest-degree term of ``v``.
+
+    This methods can manage weighted degree, by providing ``weight`` to it.
 
     In case of several positions having the same, highest degree, the highest position is given.
 
@@ -315,10 +285,12 @@ def _leading_position(v, weights=None):
 
 def leading_term(v, weights=None):
     r"""
-    Returns the leading term of v using ``weights``.
+    Returns the term of ``v`` with the highest degree.
+
+    This methods can manage weighted degree, by providing ``weight`` to it.
 
     In case of several positions having the same, highest degree, the term with
-    the highest position is given.
+    the highest position is returned.
 
     INPUT:
 

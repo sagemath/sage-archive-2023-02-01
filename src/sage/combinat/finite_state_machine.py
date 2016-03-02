@@ -1509,7 +1509,7 @@ class FSMState(sage.structure.sage_object.SageObject):
             if final_word_out is not None:
                 raise ValueError("Only final states can have a "
                                  "final output word, but state %s is not final."
-                                 % (self.label()))
+                                 % (self.label(),))
             else:
                 self._final_word_out_ = None
         elif isinstance(final_word_out, list):
@@ -1591,7 +1591,7 @@ class FSMState(sage.structure.sage_object.SageObject):
                 raise ValueError("State %s cannot be non-final, because it "
                                  "has a final output word. Only final states "
                                  "can have a final output word. "
-                                 % self.label())
+                                 % (self.label(),))
 
 
     def label(self):

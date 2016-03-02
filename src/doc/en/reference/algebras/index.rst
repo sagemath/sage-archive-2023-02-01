@@ -39,13 +39,12 @@ Named associative algebras
 .. toctree::
    :maxdepth: 2
 
-   sage/algebras/catalog
-
    sage/algebras/affine_nil_temperley_lieb
    sage/algebras/clifford_algebra
    sage/algebras/hall_algebra
    sage/algebras/iwahori_hecke_algebra
    sage/combinat/posets/incidence_algebras
+   sage/algebras/group_algebra
    sage/combinat/posets/moebius_algebra
    sage/algebras/nil_coxeter_algebra
    sage/algebras/orlik_solomon
@@ -66,7 +65,6 @@ Various associative algebras
 
    sage/algebras/associated_graded
    sage/algebras/commutative_dga
-   sage/algebras/group_algebra
 
 Non-associative algebras
 ------------------------
@@ -80,4 +78,3 @@ Non-associative algebras
    sage/algebras/free_zinbiel_algebra
    
 .. include:: ../footer.txt
-

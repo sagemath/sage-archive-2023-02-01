@@ -1,4 +1,4 @@
-numpy atlas cephes gsl glpk | matplotlib
+numpy atlas cephes gsl glpk pkgconf | matplotlib
 
 matplotlib is needed to test cvxopt (i.e., if SAGE_CHECK=yes). See #12742.
 

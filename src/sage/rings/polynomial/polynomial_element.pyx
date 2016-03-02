@@ -7262,6 +7262,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             5
             sage: cyclotomic_polynomial(105).number_of_terms()
             33
+
+        The method :meth:`hamming_weight` is an alias::
+
+            sage: f.hamming_weight()
+            101
         """
         cdef long w = 0
         for a in self.coefficients(sparse=False):

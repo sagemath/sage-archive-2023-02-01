@@ -1,8 +1,11 @@
+# TODO: check that we import all we need and possibly move some import used
+# rarely close to where needed
 from types import MethodType
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import infinity
@@ -13,6 +16,8 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.categories.rings import Rings
 from sage.misc.misc_c import prod
 from copy import copy
+from sage.functions.other import binomial
+
 
 ################################################################################
 # Elements of a cluster algebra

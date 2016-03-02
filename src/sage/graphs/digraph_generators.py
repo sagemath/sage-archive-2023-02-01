@@ -455,22 +455,19 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: for g in digraphs.tournaments_nauty(4): # optional - nauty
-            ....:    print g.edges(labels = False)        # optional - nauty
+            sage: for g in digraphs.tournaments_nauty(4):
+            ....:    print g.edges(labels = False)
             [(1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
             [(1, 0), (1, 3), (2, 0), (2, 1), (3, 0), (3, 2)]
             [(0, 2), (1, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
             [(0, 2), (0, 3), (1, 0), (2, 1), (3, 1), (3, 2)]
             sage: tournaments = digraphs.tournaments_nauty
-            sage: [len(list(tournaments(x))) for x in range(1,8)] # optional - nauty
+            sage: [len(list(tournaments(x))) for x in range(1,8)]
             [1, 1, 2, 4, 12, 56, 456]
-            sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)] # optional - nauty
+            sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)]
             [1, 0, 1, 1, 6, 35, 353, 6008]
         """
         import subprocess
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("nauty"):
-            raise TypeError("The optional nauty spkg does not seem to be installed")
 
         nauty_input = options
 

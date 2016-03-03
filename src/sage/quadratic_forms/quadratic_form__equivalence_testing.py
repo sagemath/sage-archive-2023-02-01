@@ -487,3 +487,245 @@ def is_rationally_isometric(self, other):
                 return False
 
     return True
+
+
+
+def isometry(self, other):
+    r"""
+    Given two rationally equivalent quadratic forms, computes a 
+    transition matrix mapping from one to the other.
+
+    INPUT:
+
+    - ``self`` -- a quadratic form
+    - ``other`` -- a quadratic form
+
+    OUTPUT:
+    
+    - A matrix ``T`` representing the isometry transformation, such that if 
+      ``QM`` is the gram matrix of ``self`` and ``FM`` is the gram matrix of 
+      ``other``, then ``QM == T.transpose() * FM * T`` yields ``True``.
+
+    EXAMPLES::
+    
+        sage: Q = DiagonalQuadraticForm(QQ, [1, 1, 2])
+        sage: F = DiagonalQuadraticForm(QQ, [2, 2, 2])
+        sage: T = Q.isometry(F); T
+        [-1/2 -1/2    0]
+        [   0    0   -1]
+        [-1/2  1/2    0]
+        sage: Q.Gram_matrix() == T.transpose() * F.Gram_matrix() * T
+        True
+    
+        sage: T = F.isometry(Q); T
+        [-1/3 -4/3 -1/3]
+        [  -1    0    1]
+        [ 2/3 -1/3  2/3]
+        sage: F.Gram_matrix() == T.T * Q.Gram_matrix() * T
+        True
+
+    ::
+
+        sage: L = QuadraticForm(QQ, 3, [2, 2, 0, 2, 2, 5])
+        sage: M = QuadraticForm(QQ, 3, [2, 2, 0, 3, 2, 3])
+        sage: L.isometry(M)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Quadratic form in 3 variables over Rational Field with coefficients: 
+        [ 2 2 0 ]
+        [ * 2 2 ]
+        [ * * 5 ] is not rationally isometric to Quadratic form in 3 variables over Rational Field with coefficients: 
+        [ 2 2 0 ]
+        [ * 3 2 ]
+        [ * * 3 ]
+
+    ::
+    
+        sage: A = DiagonalQuadraticForm(QQ, [1, 5])
+        sage: B = QuadraticForm(QQ, 2, [1, 12, 81])
+        sage: T = A.isometry(B); T
+        [  1  -2]
+        [  0 1/3]
+        sage: A.Gram_matrix() == T.T * B.Gram_matrix() * T
+        True
+
+    ::
+    
+        sage: C = DiagonalQuadraticForm(QQ, [1, 5, 9])
+        sage: D = DiagonalQuadraticForm(QQ, [6, 30, 1])
+        sage: T = C.isometry(D); T
+        [ 7/18  5/18     0]
+        [-1/18  7/18     0]
+        [    0     0     3]
+        sage: C.Gram_matrix() == T.T * D.Gram_matrix() * T
+        True
+
+    ::
+    
+        sage: E = DiagonalQuadraticForm(QQ, [1, 1])
+        sage: F = QuadraticForm(QQ, 2, [17, 94, 130])
+        sage: T = F.isometry(E); T
+        [     -4 -189/17]
+        [     -1  -43/17]
+        sage: F.Gram_matrix() == T.T * E.Gram_matrix() * T
+        True
+    """
+    if not is_QuadraticForm(other):
+        raise TypeError("First argument must be a Quadratic Form.")
+
+    if not self.is_rationally_isometric(other):
+        raise ArithmeticError("{0} is not rationally isometric to {1}".format(self, other))
+
+    Q, F = self, other
+    n = Q.dim()
+
+    # If either form is not diagonal, diagonalize it.
+    Q, q_diagonal_transform = self.rational_diagonal_form(True)
+    F, f_diagonal_transform = other.rational_diagonal_form(True)
+        
+    # Call the method that does all the work to compute the isometry.
+    transform = _diagonal_isometry(Q,F)
+    
+    return f_diagonal_transform * transform * q_diagonal_transform.inverse()
+
+
+
+def _diagonal_isometry(V, W):
+    import copy
+    from sage.functions.other import sqrt 
+    from quadratic_form import DiagonalQuadraticForm
+    from sage.matrix.constructor import Matrix
+    from sage.modules.free_module_element import vector
+    
+    Q, F = copy.deepcopy(V), copy.deepcopy(W)
+    #QM, FM = Q.Gram_matrix(), F.Gram_matrix()
+    n = Q.dim()
+
+    change_of_basis_matrix = Matrix.identity(QQ, n)
+    #column_set? = [false for i in range(n)]
+
+    for i in range(n):
+        print "i: {0}".format(i)
+        print "F = {0}".format(F)
+        print "Q = {0}".format(Q)
+
+        if Q.Gram_matrix()[0][0] != F.Gram_matrix()[0][0]:
+
+            w = F.solve(Q.Gram_matrix()[0][0])
+            print "w: {0}".format(w)
+            change_of_basis_matrix.set_column(i, w)
+            print "matrix (before ortho):\n{0}".format(change_of_basis_matrix)
+
+            FM = _compute_gram_matrix_from_basis(W, change_of_basis_matrix)
+            print "gram:\n{0}".format(FM)
+
+            change_of_basis_matrix = _gram_schmidt(change_of_basis_matrix, i, W.bilinear_map)
+            print "matrix (after ortho):\n{0}".format(change_of_basis_matrix)
+            FM = _compute_gram_matrix_from_basis(W, change_of_basis_matrix)
+            print "gram:\n{0}".format(FM)
+        
+        F = DiagonalQuadraticForm(F.base_ring(), FM.diagonal())
+        F = F.extract_variables(range(i+1, F.dim()))
+        #Q = DiagonalQuadraticForm(Q.base_ring(), Q.Gram_matrix().diagonal())
+        Q = Q.extract_variables(range(1, Q.dim()))
+
+    return change_of_basis_matrix
+
+
+
+def _compute_gram_matrix_from_basis(Q, basis):
+    r"""
+    Computes the gram matrix of a quadratic form with respect to the given basis.
+
+    INPUT:
+
+    - ``Q`` -- a quadratic form of rank n
+    - ``basis`` -- an nxn matrix whose columns are treated as basis vectors
+
+    OUTPUT:
+
+    - A matrix representing the gram matrix of ``Q`` with respect to ``basis``
+    
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import _compute_gram_matrix_from_basis
+        
+        sage: Q = QuadraticForm(QQ, 3, [1, 2, 2, 1, 2, 0])
+        sage: std_basis = matrix.identity(3)
+        sage: QM = _compute_gram_matrix_from_basis(Q, std_basis)
+        sage: Q.Gram_matrix() == QM
+        True
+
+    ::
+
+        sage: Q = DiagonalQuadraticForm(QQ, [1, 2, 2])
+        sage: basis = matrix([[1, 1, 0], [2, 1, 0], [0, 0, 1]])
+        sage: QM = _compute_gram_matrix_from_basis(Q, basis); QM
+        [9 5 0]
+        [5 3 0]
+        [0 0 2]
+    """
+    from sage.matrix.constructor import matrix, Matrix
+
+    n = Q.dim()
+    rows = [];
+    for i in range(n):
+        rows.append([Q.bilinear_map(basis.column(i), basis.column(j)) for j in range(n)])
+    return Matrix(rows)
+
+
+
+def _gram_schmidt(m, fixed_vector_index, inner_product):
+    r"""
+    Orthogonalizes a set of vectors, starting at a fixed vector, with respect to a given 
+    inner product.
+
+    INPUT:
+
+    - ``m`` -- a square matrix whose columns represent vectors
+    - ``fixed_vector_index`` -- any vectors preceding the vector (i.e. to its left) 
+        at this index are not changed.
+    - ``inner_product`` - a function that takes two vector arguments and returns a scalar,
+        representing an inner product.
+
+    OUTPUT:
+
+    - A matrix consisting of orthogonal columns with respect to the given inner product
+    
+    EXAMPLES:: 
+
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import _gram_schmidt
+        sage: Q = QuadraticForm(QQ, 3, [1, 4, 6, 1, 2, 4]); Q
+        Quadratic form in 3 variables over Rational Field with coefficients: 
+        [ 1 4 6 ]
+        [ * 1 2 ]
+        [ * * 4 ]
+        sage: QM = Q.Gram_matrix(); QM
+        [1 2 3]
+        [2 1 1]
+        [3 1 4]
+        sage: om = _gram_schmidt(QM, 0, Q.bilinear_map); om
+        [     1 106/79 -50/51]
+        [     2 -25/79 -70/51]
+        [     3 -77/79  70/51]
+        sage: v0 = om.column(0); v1 = om.column(1); v2 = om.column(2)
+        sage: Q.bilinear_map(v0, v1) == 0
+        True
+        sage: Q.bilinear_map(v0, v2) == 0
+        True
+        sage: Q.bilinear_map(v1, v2) == 0
+        True
+    """
+    from sage.matrix.constructor import column_matrix
+      
+    n = m.dimensions()[0]
+    vectors = [0] * n
+    
+    for i in range(n):
+        vectors[i] = m.column(i)
+    for i in range(fixed_vector_index, n):
+        for j in range(i+1, n):
+            vectors[j] = vectors[j] - (inner_product(vectors[j], vectors[i]) / inner_product(vectors[i], vectors[i])) * vectors[i]
+
+    return column_matrix(vectors)
+            

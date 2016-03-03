@@ -373,7 +373,8 @@ class QuadraticForm(SageObject):
             is_globally_equivalent_to, \
             is_locally_equivalent_to, \
             has_equivalent_Jordan_decomposition_at_prime, \
-            is_rationally_isometric
+            is_rationally_isometric, \
+            isometry
 
     ## Routines for solving equations of the form Q(x) = c.
     from sage.quadratic_forms.qfsolve import solve

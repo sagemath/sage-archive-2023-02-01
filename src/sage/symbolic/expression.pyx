@@ -4058,6 +4058,15 @@ cdef class Expression(CommutativeRingElement):
             sage: zeta(s).residue(s == 1)
             1
 
+        We can also compute the residue at more general places,
+        given that the pole is recognized::
+
+            sage: k = var('k', domain='integer')
+            sage: (gamma(1+x)/(1 - exp(-x))).residue(x==2*I*pi*k)
+            gamma(2*I*pi*k + 1)
+            sage: csc(x).residue(x==2*pi*k)
+            1
+
         TESTS::
 
             sage: (exp(x)/sin(x)^4).residue(x == 0)

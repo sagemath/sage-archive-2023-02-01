@@ -780,7 +780,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return the linear variable `x_i`.
         
-        OUTPUT:
+        OUTPUT::
 
             sage: mip = MixedIntegerLinearProgram()
             sage: mip.gen(0)
@@ -2469,14 +2469,15 @@ cdef class MixedIntegerLinearProgram(SageObject):
         INPUT:
 
         - ``form`` -- (default: ``"standard"``) a string specifying return type: either
-          ``None``, or ``"std"`` or ``standard``, respectively returns an instance of
-          InteractiveLPProblem or an instance of InteractiveLPProblemStandardForm
+          ``None``, or ``"std"`` or ``"standard"``, respectively returns an instance of
+          :class:`InteractiveLPProblem` or of :class:`InteractiveLPProblemStandardForm`
 
         OUTPUT:
 
-        A 2-tuple consists of an instance of class InteractiveLPProblem or InteractiveLPProblemStandardForm
-        that is constructed based on a given MixedIntegerLinearProgram, and a list of basic
-        variables (the basis) if standard form is chosen (by default), otherwise a None.
+        A 2-tuple consists of an instance of class :class:`InteractiveLPProblem` or
+        :class:`InteractiveLPProblemStandardForm` that is constructed based on a given
+        :class:`MixedIntegerLinearProgram`, and a list of basic
+        variables (the basis) if standard form is chosen (by default), otherwise ``None``.
 
         All variables must have 0 as lower bound and no upper bound.
 

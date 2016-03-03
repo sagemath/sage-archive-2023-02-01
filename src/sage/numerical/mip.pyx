@@ -2508,6 +2508,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: view(d) #not tested
 
         TESTS::
+
             sage: b = p.get_backend()
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)

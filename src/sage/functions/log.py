@@ -66,6 +66,15 @@ class Function_exp(GinacFunction):
             sage: exp(7*pi*I/2)
             -I
 
+        For the sake of simplification, the argument is reduced the
+        period of the complex exponential function, `2\pi i`::
+
+            sage: k = var('k', domain='integer')
+            sage: exp(2*k*pi*I)
+            1
+            sage: exp(log(2) + 2*k*pi*I)
+            2
+
         The precision for the result is deduced from the precision of
         the input. Convert the input to a higher precision explicitly
         if a result with higher precision is desired::

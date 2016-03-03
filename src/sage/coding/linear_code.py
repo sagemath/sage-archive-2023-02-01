@@ -1694,7 +1694,7 @@ class AbstractLinearCode(module.Module):
         return self.unencode(self.decode_to_code(word, decoder_name, **kwargs), **kwargs)
 
     @cached_method
-    def decoder(self, decoder_name=None, **kwargs):
+    def decoder(self, decoder_name=None, *args, **kwargs):
         r"""
         Return a decoder of ``self``.
 
@@ -1737,7 +1737,7 @@ class AbstractLinearCode(module.Module):
             decoder_name = self._default_decoder_name
         if decoder_name in self._registered_decoders:
             decClass = self._registered_decoders[decoder_name]
-            D = decClass(self, **kwargs)
+            D = decClass(self, *args, **kwargs)
             return D
         else:
             raise ValueError("Passed Decoder name not known")
@@ -4591,6 +4591,13 @@ class LinearCodeInformationSetDecoder(Decoder):
         sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
         sage: D
         Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering 2 errors
+
+    It's also possible to pass ``number_errors`` as an interval of possible error weights::
+        sage: C = codes.RandomLinearCode(10, 5, GF(3))
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, (2, 3))
+        sage: D
+        Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering between 2 and 3 errors
+
     """
 
     def __init__(self, code, window_size, number_errors):
@@ -4636,7 +4643,7 @@ class LinearCodeInformationSetDecoder(Decoder):
             if not all(w <= code.length() for w in number_errors):
                 raise ValueError("The provided number of errors has to be at most the code's length")
         else:
-            raise ValueError("number_error must be a tuple, a list, an Integer or a Python int")
+            raise ValueError("number_errors must be a tuple, a list, an Integer or a Python int")
         if not isinstance(window_size, (Integer, int)) or window_size < 0:
             raise ValueError("The window size parameter has to be either a positive Sage integer or a Python int")
         if not all(window_size <= w for w in number_errors):
@@ -4691,35 +4698,38 @@ class LinearCodeInformationSetDecoder(Decoder):
         return "\\textnormal{Information set decoder for }%s {\\textnormal{, with a window-size of %s and considering %s errors }"\
                 % (self.code()._latex_(), self.window_size(), format_interval(self.number_errors()))
 
-    def decode_to_code(self, r):
+    def _lee_brickell_algorithm(self, r, p, w):
         r"""
-        Decodes ``r`` to an element in the associated code of ``self``.
-
-        One has to provide ``w``, the number of errors which ``r`` contains.
+        Runs Lee-Brickell algorithms as described in ``self``'s documentation
+        and returns the error vector.
 
         INPUT:
 
         - ``r`` -- a received word, i.e. a vector in the ambient space of
           :meth:`decoder.Decoder.code`.
 
-        OUTPUT:
+        - ``p`` -- the window_size parameter
 
-        - a codeword of the associated code of ``self``
+        - ``w`` -- the number of errors to look for
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(2))
-            sage: D = C.decoder('InformationSet')
+            sage: M = matrix(GF(2), [[1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],\
+                                     [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],\
+                                     [0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0],\
+                                     [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
+                                     [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
+            sage: C = codes.LinearCode(M)
+            sage: D = C.decoder('InformationSet', 2, 2)
             sage: c = C.random_element()
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 3)
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
             sage: y = Chan(c)
-            sage: D.decode_to_code(y, 2, 3) in C
+            sage: D._lee_brickell_algorithm(y, 2, 2).hamming_weight() == 2
             True
         """
         from sage.matrix.constructor import column_matrix
         C = self.code()
         n, k = C.length(), C.dimension()
-
         F = C.base_ring()
         one = F.one()
         G = C.generator_matrix()
@@ -4751,7 +4761,7 @@ class LinearCodeInformationSetDecoder(Decoder):
                                 j = m.next()
                                 v += j[ind] * gs[i[ind]]
                                 if (rc - v).hamming_weight() == w:
-                                    return r - (rc - v)
+                                    return (rc - v)
                                 ind = (ind + 1) % p
                             except StopIteration:
                                 break
@@ -4760,7 +4770,52 @@ class LinearCodeInformationSetDecoder(Decoder):
                 #thus I was not an information set
                     pass
             except StopIteration:
-                raise DecodingError
+                raise DecodingError("Decoding failed")
+
+
+    def decode_to_code(self, r):
+        r"""
+        Decodes ``r`` to an element in the associated code of ``self``.
+
+        INPUT:
+
+        - ``r`` -- a received word, i.e. a vector in the ambient space of
+          :meth:`decoder.Decoder.code`.
+
+        OUTPUT:
+
+        - a codeword of the associated code of ``self``
+
+        EXAMPLES::
+
+            sage: M = matrix(GF(2), [[1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],\
+                                     [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],\
+                                     [0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0],\
+                                     [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
+                                     [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
+            sage: C = codes.LinearCode(M)
+            sage: D = C.decoder('InformationSet', 2, 2)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
+            sage: y = Chan(c)
+            sage: D.decode_to_code(y) in C
+            True
+        """
+        C = self.code()
+        if r in C:
+            return r
+        w = self.number_errors()
+        p = self.window_size()
+        if w[0] == w[1]:
+            return r - self._lee_brickell_algorithm(r, p, w[0])
+        for number_errors in range(w[0], w[1]):
+            try:
+                e = self._lee_brickell_algorithm(r, p, number_errors)
+                c = r - e
+                return c
+            except:
+                pass
+        raise DecodingError("Decoding failed")
 
     def window_size(self):
         r"""

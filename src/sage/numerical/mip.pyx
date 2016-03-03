@@ -2462,7 +2462,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend.get_relative_objective_gap()
 
-    def construct_interactive_lp(self,form='standard'):
+    def interactive_lp_problem(self,form='standard'):
         r"""
         Returns an InteractiveLPProblem and its basis.
 
@@ -2491,7 +2491,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint( x[1] + 2*y[0] - v[0] <= 3 )
             sage: p.add_constraint( 5*x[0] + y[0] <= 21, name='L' )
             sage: p.set_objective( 2*x[0] + 3*x[1] + 4*y[0] + 5*v[0])
-            sage: lp, basis = p.construct_interactive_lp()
+            sage: lp, basis = p.interactive_lp_problem()
             sage: basis
             ['K', 'w_1', 'L']
             sage: lp.constraint_coefficients()
@@ -2515,7 +2515,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
             sage: b.solve()
             0
-            sage: lp2, basis2 = p.construct_interactive_lp()
+            sage: lp2, basis2 = p.interactive_lp_problem()
             sage: set(basis2)
             {'n_0', 'w_1', 'x_3'}
             sage: d2 = lp2.dictionary(*basis2)

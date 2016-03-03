@@ -1077,6 +1077,10 @@ const numeric numeric::div(const numeric &other) const {
 
                 case PYOBJECT:
 #if PY_MAJOR_VERSION < 3
+                        if (PyObject_Compare(other.v._pyobject, ONE) == 0
+                                and py_funcs.py_is_integer(other.v._pyobject) != 0) {
+                                return *this;
+                        }
                         if (PyInt_Check(v._pyobject)) {
                                 if (PyInt_Check(other.v._pyobject)) {
                                         // This branch happens at startup.

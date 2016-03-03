@@ -32,6 +32,17 @@ class Function_sin(GinacFunction):
             sage: a = sin(0,hold=True); a.simplify()
             0
 
+        If possible, the argument is also reduced modulo the
+        period length `2\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: sin(1 + 2*k*pi)
+            sin(1)
+            sage: sin(k*pi)
+            0
+
+
         TESTS::
 
             sage: conjugate(sin(x))
@@ -109,6 +120,19 @@ class Function_cos(GinacFunction):
             sage: a = cos(0,hold=True); a.simplify()
             1
 
+        If possible, the argument is also reduced modulo the
+        period length `2\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: cos(1 + 2*k*pi)
+            cos(1)
+            sage: cos(k*pi)
+            (-1)^k
+            sage: cos(pi/3 + 2*k*pi)
+            1/2
+
+
         TESTS::
 
             sage: conjugate(cos(x))
@@ -152,6 +176,16 @@ class Function_tan(GinacFunction):
 
             sage: a = tan(pi/4,hold=True); a.simplify()
             1
+
+        If possible, the argument is also reduced modulo the
+        period length `\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: tan(1 + 2*k*pi)
+            tan(1)
+            sage: tan(k*pi)
+            0
 
         TESTS::
 

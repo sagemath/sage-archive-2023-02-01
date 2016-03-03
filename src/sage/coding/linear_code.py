@@ -1619,7 +1619,7 @@ class AbstractLinearCode(module.Module):
         else:
             return self.decode_to_code(right, decoder_name=algorithm)
 
-    def decode_to_code(self, word, decoder_name=None, **kwargs):
+    def decode_to_code(self, word, decoder_name=None, *args, **kwargs):
         r"""
         Corrects the errors in ``word`` and returns a codeword.
 
@@ -1632,7 +1632,7 @@ class AbstractLinearCode(module.Module):
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
@@ -1657,7 +1657,7 @@ class AbstractLinearCode(module.Module):
         D = self.decoder(decoder_name, **kwargs)
         return D.decode_to_code(word)
 
-    def decode_to_message(self, word, decoder_name=None, **kwargs):
+    def decode_to_message(self, word, decoder_name=None, *args, **kwargs):
         r"""
         Correct the errors in word and decodes it to the message space.
 
@@ -1670,7 +1670,7 @@ class AbstractLinearCode(module.Module):
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
@@ -1704,7 +1704,7 @@ class AbstractLinearCode(module.Module):
           returned. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments will be forwarded to the constructor of the decoder
+        - ``args``, ``kwargs`` -- all additional arguments will be forwarded to the constructor of the decoder
           that will be returned by this method
 
         OUTPUT:
@@ -1961,7 +1961,7 @@ class AbstractLinearCode(module.Module):
         """
         return not self == other
 
-    def encode(self, word, encoder_name=None, **kwargs):
+    def encode(self, word, encoder_name=None, *args, **kwargs):
         r"""
         Transforms an element of a message space into a codeword.
 
@@ -1973,7 +1973,7 @@ class AbstractLinearCode(module.Module):
           to encode ``word``. The default encoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to the construction of the
           encoder that is used.
 
         .. NOTE::
@@ -2005,7 +2005,7 @@ class AbstractLinearCode(module.Module):
         return E.encode(word)
 
     @cached_method
-    def encoder(self, encoder_name=None, **kwargs):
+    def encoder(self, encoder_name=None, *args, **kwargs):
         r"""
         Returns an encoder of ``self``.
 
@@ -2021,7 +2021,7 @@ class AbstractLinearCode(module.Module):
           returned. The default encoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
           this method will return.
 
         OUTPUT:

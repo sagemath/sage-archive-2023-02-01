@@ -1508,8 +1508,8 @@ class FSMState(sage.structure.sage_object.SageObject):
         The exception is raised also when the initial state is a tuple
         (see :trac:`18990`)::
 
-            sage: A = Transducer(initial_states=[(0,0)])
-            sage: A.state((0,0)).final_word_out = []
+            sage: A = Transducer(initial_states=[(0, 0)])
+            sage: A.state((0, 0)).final_word_out = []
             Traceback (most recent call last):
             ...
             ValueError: Only final states can have a final output word,
@@ -1517,9 +1517,9 @@ class FSMState(sage.structure.sage_object.SageObject):
 
         No exception is raised if we set the state to be a final one::
 
-            sage: A.state((0,0)).is_final=True
-            sage: A.state((0,0)).final_word_out = []
-            sage: A.state((0,0)).final_word_out == []
+            sage: A.state((0, 0)).is_final=True
+            sage: A.state((0, 0)).final_word_out = []
+            sage: A.state((0, 0)).final_word_out == []
             True
         """
         if not self.is_final:
@@ -1598,9 +1598,9 @@ class FSMState(sage.structure.sage_object.SageObject):
         The exception is raised also when the final state is a tuple
         (see :trac:`18990`)::
 
-            sage: A = Transducer(final_states=[(0,0)])
-            sage: A.state((0,0)).final_word_out = [1]
-            sage: A.state((0,0)).is_final=False
+            sage: A = Transducer(final_states=[(0, 0)])
+            sage: A.state((0, 0)).final_word_out = [1]
+            sage: A.state((0, 0)).is_final = False
             Traceback (most recent call last):
             ...
             ValueError: State (0, 0) cannot be non-final, because it has
@@ -1610,9 +1610,9 @@ class FSMState(sage.structure.sage_object.SageObject):
         No exception is raised if we empty the final_word_out of the
         state::
 
-            sage: A.state((0,0)).final_word_out = []
-            sage: A.state((0,0)).is_final=False
-            sage: A.state((0,0)).is_final == False
+            sage: A.state((0, 0)).final_word_out = []
+            sage: A.state((0, 0)).is_final = False
+            sage: A.state((0, 0)).is_final == False
             True
 
             sage: A = FSMState('A', is_final=True, final_word_out=[])

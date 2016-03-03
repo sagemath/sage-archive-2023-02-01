@@ -2489,7 +2489,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint( x[0] + x[1] - 7*y[0] + v[0]<= 2, name='K' )
             sage: p.add_constraint( x[1] + 2*y[0] - v[0] <= 3 )
             sage: p.add_constraint( 5*x[0] + y[0] <= 21, name='L' )
-            sage: p.set_objective( 2*x[0] + 3*x[1] + 4*y[0] + 3*v[0])
+            sage: p.set_objective( 2*x[0] + 3*x[1] + 4*y[0] + 5*v[0])
             sage: lp, basis = p.construct_interactive_lp()
             sage: basis
             ['K', 'w_1', 'L']
@@ -2500,7 +2500,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: lp.b()
             (2.0, 3.0, 21.0)
             sage: lp.objective_coefficients()
-            (2.0, 3.0, 4.0, 3.0)
+            (2.0, 3.0, 4.0, 5.0)
             sage: lp.decision_variables()
             (m_0, m_1, n_0, x_3)
             sage: view(lp) #not tested
@@ -2515,8 +2515,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: b.solve()
             0
             sage: lp2, basis2 = p.construct_interactive_lp()
-            sage: basis2
-            ['m_1', 'n_0', 'x_3']
+            sage: set(basis2)
+            {'n_0', 'w_1', 'x_3'}
             sage: d2 = lp2.dictionary(*basis2)
             sage: d2.is_optimal()
             True

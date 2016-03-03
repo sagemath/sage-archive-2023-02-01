@@ -366,7 +366,7 @@ class MaximaFunction(BuiltinFunction):
 
         Here arccoth doesn't have 1 in its domain, so we just hold the expression:
 
-            sage: elliptic_e(arccoth(1), x^2*e)
+            sage: elliptic_e(arccoth(1, hold=True), x^2*e)
             elliptic_e(arccoth(1), x^2*e)
 
         Since Maxima works only with double precision, numerical

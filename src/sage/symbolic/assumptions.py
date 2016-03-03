@@ -79,8 +79,6 @@ class GenericDeclaration(SageObject):
         sage: decl = GenericDeclaration(x, 'integer')
         sage: decl.assume()
         sage: sin(x*pi)
-        sin(pi*x)
-        sage: sin(x*pi).simplify()
         0
         sage: decl.forget()
         sage: sin(x*pi)
@@ -115,8 +113,6 @@ class GenericDeclaration(SageObject):
             sage: decl = GenericDeclaration(x, 'integer')
             sage: decl.assume()
             sage: sin(x*pi)
-            sin(pi*x)
-            sage: sin(x*pi).simplify()
             0
             sage: decl.forget()
             sage: sin(x*pi)
@@ -425,8 +421,6 @@ def assume(*args):
     Simplifying certain well-known identities works as well::
 
         sage: sin(n*pi)
-        sin(pi*n)
-        sage: sin(n*pi).simplify()
         0
         sage: forget()
         sage: sin(n*pi).simplify()

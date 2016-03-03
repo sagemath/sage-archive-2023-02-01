@@ -238,6 +238,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
+from sage.coding.channel_constructions import format_interval
 from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
@@ -4587,9 +4588,9 @@ class LinearCodeInformationSetDecoder(Decoder):
     EXAMPLES::
 
         sage: C = codes.RandomLinearCode(10, 5, GF(3))
-        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C)
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
         sage: D
-        Information set decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering 2 errors
     """
 
     def __init__(self, code, window_size, number_errors):
@@ -4641,7 +4642,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         if not all(window_size <= w for w in number_errors):
             raise ValueError("The window size parameter has to be at most the smallest number of errors")
         self._window_size = window_size
-        self.number_errors = number_errors
+        self._number_errors = number_errors
         super(LinearCodeInformationSetDecoder, self).__init__(code, code.ambient_space(), \
                 code._default_encoder_name)
 
@@ -4668,13 +4669,13 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C)
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
             sage: D
-            Information set decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+            Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering 2 errors
         """
-        return "Information set decoder for %s" % self.code()
+        return "Information set decoder for %s, with a window-size of %s and considering %s errors "\
+                % (self.code(), self.window_size(), format_interval(self.number_errors()))
 
     def _latex_(self):
         r"""
@@ -4682,13 +4683,13 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C)
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
             sage: latex(D)
-            \textnormal{Information set decoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+            \textnormal{Information set decoder for }[10, 5]\textnormal{ Linear code over }\Bold{F}_{3} {\textnormal{, with a window-size of 2 and considering 2 errors }
         """
-        return "\\textnormal{Information set decoder for }%s" % self.code()._latex_()
+        return "\\textnormal{Information set decoder for }%s {\\textnormal{, with a window-size of %s and considering %s errors }"\
+                % (self.code()._latex_(), self.window_size(), format_interval(self.number_errors()))
 
     def decode_to_code(self, r):
         r"""
@@ -4772,7 +4773,7 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: D.window_size()
             2
         """
-        return self.window_size
+        return self._window_size
 
     def number_errors(self):
         r"""

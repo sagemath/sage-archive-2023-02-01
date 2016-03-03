@@ -97,8 +97,8 @@ def hilbert_class_polynomial(D, algorithm=None):
     TESTS::
 
         sage: all([hilbert_class_polynomial(d, algorithm="arb") == \
-        ...       hilbert_class_polynomial(d, algorithm="sage") \
-        ...          for d in range(-1,-100,-1) if d%4 in [0,1]])
+        ....:      hilbert_class_polynomial(d, algorithm="sage") \
+        ....:        for d in range(-1,-100,-1) if d%4 in [0,1]])
         True
 
     """

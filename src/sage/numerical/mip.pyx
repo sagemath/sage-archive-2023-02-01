@@ -2464,7 +2464,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def interactive_lp_problem(self,form='standard'):
         r"""
-        Returns an InteractiveLPProblem and its basis.
+        Returns an InteractiveLPProblem and, if available, a basis.
 
         INPUT:
 
@@ -2558,7 +2558,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 return prefix + '_' + str(index)
 
         # Construct 'x'
-        basic_names = [format(back_end.col_name(i), 'x', i) for i in range(back_end.ncols())]
+        var_names = [format(back_end.col_name(i), 'x', i) for i in range(back_end.ncols())]
 
         # Construct slack names
         slack_names = [format(back_end.row_name(i), 'w', i) for i in range(back_end.nrows())]
@@ -2566,7 +2566,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         A = coef_matrix
         b = upper_bound_vector
         c = objective_coefs_vector
-        x = basic_names
+        x = var_names
         w = slack_names
 
         if form == None:
@@ -2577,17 +2577,15 @@ cdef class MixedIntegerLinearProgram(SageObject):
             lp = InteractiveLPProblemStandardForm(A, b, c, x, slack_variables=w)
             basic_variables = []
             for i, e in enumerate(lp.x()):
-                import sage.numerical.backends.glpk_backend as glpk_backend 
-                # glp_bs: status that means "basic variable"
-                if back_end.get_col_stat(i) == glpk_backend.glp_bs:
+                if back_end.is_variable_basic(i):
                     basic_variables.append(str(e))
-                elif back_end.get_col_stat(i) != glpk_backend.glp_nl:
-                    raise ValueError('Invaild col status')
+                elif not back_end.is_variable_nonbasic_at_lower_bound(i):
+                    raise ValueError('Invalid column status')
             for i, e in enumerate(lp.slack_variables()):
-                if back_end.get_row_stat(i) == glpk_backend.glp_bs: 
+                if back_end.is_slack_variable_basic(i):
                     basic_variables.append(str(e))
-                elif back_end.get_row_stat(i) != glpk_backend.glp_nu:
-                    raise ValueError('Invaild row status')
+                elif not back_end.is_slack_variable_nonbasic_at_lower_bound(i):
+                    raise ValueError('Invalid row status')
             return lp, basic_variables
         else:
             raise ValueError('Form of construct_interactiveLPProblem() is either \'None\' or \'standard\'')

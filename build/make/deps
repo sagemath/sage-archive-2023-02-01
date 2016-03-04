@@ -131,6 +131,7 @@ sagelib: \
 		$(inst_ntl) \
 		$(inst_numpy) \
 		$(inst_pari) \
+		$(inst_pkgconfig) \
 		$(inst_planarity) \
 		$(inst_ppl) \
 		$(inst_pynac) \

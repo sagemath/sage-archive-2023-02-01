@@ -4213,6 +4213,14 @@ cdef class Expression(CommutativeRingElement):
             sage: expand((x+sin((x+y)^2))^2)
             x^2 + 2*x*sin(x^2 + 2*x*y + y^2) + sin(x^2 + 2*x*y + y^2)^2
 
+        Observe that :meth:`expand` also expands function arguments::
+
+            sage: f(x) = function('f')(x)
+            sage: fx = f(x*(x+1)); fx
+            f((x + 1)*x)
+            sage: fx.expand()
+            f(x^2 + x)
+
         We can expand individual sides of a relation::
 
             sage: a = (16*x-13)^2 == (3*x+5)^2/2

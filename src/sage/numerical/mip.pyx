@@ -2582,7 +2582,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         x = var_names
         w = slack_names
 
-        if form == None:
+        if form is None:
             from sage.numerical.interactive_simplex_method import InteractiveLPProblem
             return InteractiveLPProblem(A, b, c, x), None
         elif form == 'standard' or form == 'std':
@@ -2601,7 +2601,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     raise ValueError('Invalid row status')
             return lp, basic_variables
         else:
-            raise ValueError('Form of construct_interactiveLPProblem() is either \'None\' or \'standard\'')
+            raise ValueError('Form of interactive_lp_problem must be either None or \'standard\'')
 
 class MIPSolverException(RuntimeError):
     r"""

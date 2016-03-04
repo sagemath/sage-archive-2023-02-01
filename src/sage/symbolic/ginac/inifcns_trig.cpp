@@ -90,7 +90,7 @@ static ex sin_eval(const ex & x)
                 }
                 else if ((coef_pi / _ex2).info(info_flags::integer))
                         rem = Pi * coef_pi;
-                x_red = x - rem;
+                x_red = (x - rem).expand();
 
                 // sin(n/d*Pi) -> { all known radicals with nesting depth 2 }
                 const ex SixtyExOverPi = _ex60*x_red/Pi;
@@ -194,6 +194,24 @@ static ex sin_eval(const ex & x)
 		// sin(atan(x)) -> x/sqrt(1+x^2)
 		if (is_ex_the_function(x_red, atan))
 			return t*power(_ex1+power(t,_ex2),_ex_1_2);
+                
+                // sin(acot(x)) -> 1/sqrt(1+x^2)
+                if (is_ex_the_function(x_red, acot))
+                        return power(_ex1+power(t,_ex2),_ex_1_2);
+
+                // sin(acosec(x)) -> 1/x
+                if (is_ex_the_function(x_red, acsc))
+                        return _ex1/t;
+ 
+                // sin(asec(x)) -> sqrt(x^2-1)/x
+                if (is_ex_the_function(x_red, asec))
+                        return sqrt(power(t,_ex2)-_ex1)/t;
+                
+                // sin(atan2(y,x)) -> y/sqrt(x^2+y^2)
+                if (is_ex_the_function(x_red, atan2)) {
+                        const ex &t1 = x_red.op(1);
+                        return t*power(power(t,_ex2)+power(t1,_ex2),_ex_1_2);
+                }  
 	}
 
 	// sin(float) -> float
@@ -288,7 +306,7 @@ static ex cos_eval(const ex & x)
                 }
                 else if ((coef_pi / _ex2).info(info_flags::integer))
                         rem = Pi * coef_pi;
-                x_red = x - rem;
+                x_red = (x - rem).expand();
 
                 // cos(n/d*Pi) -> { all known radicals with nesting depth 2 }
                 const ex SixtyExOverPi = _ex60*x_red/Pi;
@@ -387,6 +405,25 @@ static ex cos_eval(const ex & x)
 		// cos(atan(x)) -> 1/sqrt(1+x^2)
 		if (is_ex_the_function(x_red, atan))
 			return power(_ex1+power(t,_ex2),_ex_1_2);
+
+                // cos(acot(x)) -> x/sqrt(1+x^2)
+		if (is_ex_the_function(x_red, acot))
+			return t*power(_ex1+power(t,_ex2),_ex_1_2);
+
+                // cos(acsc(x)) -> sqrt(x^2-1)/x
+		if (is_ex_the_function(x_red, acsc))
+			return sqrt(power(t,_ex2)-_ex1)/t;
+
+                // cos(asec(x)) -> 1/x
+		if (is_ex_the_function(x_red, asec))
+			return _ex1/t;
+
+                // cos(atan2(y,x)) -> x/sqrt(x^2+y^2)
+		if (is_ex_the_function(x_red, atan2)) {
+                        const ex &t1 = x_red.op(1);
+			return t1*power(power(t,_ex2)+power(t1,_ex2),_ex_1_2);
+                }
+                
 	}
 
 	// cos(float) -> float
@@ -481,7 +518,7 @@ static ex tan_eval(const ex & x)
                 }
                 else if (coef_pi.info(info_flags::integer))
                         rem = Pi * coef_pi;
-                x_red = x - rem;
+                x_red = (x - rem).expand();
 
 
                 // tan(n/d*Pi) -> { all known non-nested radicals }
@@ -578,13 +615,32 @@ static ex tan_eval(const ex & x)
 		if (is_ex_the_function(x_red, atan))
 			return t;
 
-		// tan(asin(x)) -> x/sqrt(1+x^2)
+		// tan(asin(x)) -> x/sqrt(1-x^2)
 		if (is_ex_the_function(x_red, asin))
 			return t*power(_ex1-power(t,_ex2),_ex_1_2);
 
 		// tan(acos(x)) -> sqrt(1-x^2)/x
 		if (is_ex_the_function(x_red, acos))
 			return power(t,_ex_1)*sqrt(_ex1-power(t,_ex2));
+  
+                // tan(acot(x)) -> 1/x
+                if (is_ex_the_function(x_red, acot))
+		        return _ex1/t;
+
+                // tan(acsc(x)) -> 1/sqrt(x^2-1)
+                if (is_ex_the_function(x_red, acsc))
+	           	return power(power(t,_ex2)-_ex1,_ex_1_2);
+ 
+                // tan(asec(x)) -> sqrt(x^2-1)
+                if (is_ex_the_function(x_red, asec))
+			return sqrt(power(t,_ex2)-_ex1);
+
+                // tan(atan2(y,x)) -> y/x
+		if (is_ex_the_function(x_red, atan2)) {
+                        const ex &t1 = x_red.op(1);
+			return t/t1;
+                }   
+                 
 	}
 
 	// tan(float) -> float
@@ -675,10 +731,36 @@ static ex cot_eval(const ex & x)
 
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
-
-		// tan(atan(x)) -> x
+                   
+		// cot(acot(x)) -> x
 		if (is_ex_the_function(x, acot))
 			return t;
+
+                // cot(asin(x)) -> sqrt(1-x^2)/x
+                if (is_ex_the_function(x, asin))
+                        return sqrt(_ex1-power(t,_ex2))/t;
+
+                // cot(acos(x)) -> x/sqrt(1-x^2)
+                if (is_ex_the_function(x, acos))
+                        return t*power(_ex1-power(t,_ex2),_ex_1_2);
+
+                // cot(atan(x)) -> 1/x;
+                if (is_ex_the_function(x, atan))
+                        return _ex1/t;
+
+                // cot(acsc(x)) -> sqrt(x^2-1)
+                if (is_ex_the_function(x, acsc))
+                        return sqrt(power(t,_ex2)-_ex1);
+
+                // cot(asec(x)) -> 1/sqrt(x^2-1)
+                if (is_ex_the_function(x, asec))
+                        return power(power(t,_ex2)-_ex1,_ex_1_2);
+
+                // cot(atan2(y,x)) -> x/y;
+                if (is_ex_the_function(x, atan2)) {
+                        const ex &t1 = x.op(1);
+                        return t1/t;
+                } 
 	}
 
 	// cot(float) -> float
@@ -767,6 +849,33 @@ static ex sec_eval(const ex & x)
 		// sec(asec(x)) -> x
 		if (is_ex_the_function(x, asec))
 			return t;
+
+                // sec(asin(x)) -> 1/sqrt(1-x^2)
+                if (is_ex_the_function(x, asin))
+                        return power(_ex1-power(t,_ex2),_ex_1_2);
+
+                // sec(acos(x)) -> 1/x
+                if (is_ex_the_function(x, acos))
+                        return _ex1/t;
+
+                // sec(atan(x)) -> sqrt(x^2+1)
+                if (is_ex_the_function(x, atan))
+                        return sqrt(power(t,_ex2)+_ex1);
+
+                // sec(acot(x)) -> sqrt(x^2+1)/x
+                if (is_ex_the_function(x, acot))
+                        return sqrt(power(t,_ex2)+_ex1)/t;
+
+                // sec(acsch(x)) -> x/sqrt(x^2-1)
+                if (is_ex_the_function(x, acsc))
+                        return t*power(power(t,_ex2)-_ex1,_ex_1_2);
+ 
+                // sec(atan2(y,x)) -> sqrt(x^2+y^2)/x
+                if (is_ex_the_function(x, atan2)) {
+                        const ex &t1 = x.op(1);
+                        return sqrt(power(t1,_ex1)+power(t,_ex2))/t1;
+                }
+
 	}
 
 	// sec(float) -> float
@@ -775,8 +884,12 @@ static ex sec_eval(const ex & x)
 	}
 
         ex res = cos_eval(x);
-	if (not is_ex_the_function(res, cos))
-                return power(res, _ex_1);
+	if (not is_ex_the_function(res, cos)) {
+                if (not res.is_zero())
+                        return power(res, _ex_1);
+                else
+                        return UnsignedInfinity;
+        }
 
 	return sec(x).hold();
 }
@@ -856,6 +969,33 @@ static ex csc_eval(const ex & x)
 		// csc(acsc(x)) -> x
 		if (is_ex_the_function(x, acsc))
 			return t;
+
+                // csc(asin(x)) -> 1/x
+                if (is_ex_the_function(x, asin))
+                        return _ex1/t;
+ 
+                // csc(acos(x)) -> 1/sqrt(1-x^2)
+                if (is_ex_the_function(x, acos))
+                        return power(_ex1-power(t,_ex2),_ex_1_2);
+
+                // csc(atan(x)) -> sqrt(x^2+1)/x;
+                if (is_ex_the_function(x, atan))
+                        return sqrt(power(t,_ex2)+_ex1)/t;
+
+                // csc(acot(x)) -> sqrt(x^2+1);
+                if (is_ex_the_function(x, acot))
+                        return sqrt(power(t,_ex2)+_ex1);
+
+                // csc(asec(x)) -> x/sqrt(x^2-1)
+                if (is_ex_the_function(x, asec))
+                        return t*power(power(t,_ex2)-_ex1,_ex_1_2);
+    
+                // csc(atan2(y,x)) -> sqrt(x^2+y^2)/y
+                if (is_ex_the_function(x, atan2)) {
+                        const ex &t1 = x.op(1);
+                        return sqrt(power(t1,_ex1)+power(t,_ex2))/t;
+                }
+
 	}
 
 	// csc(float) -> float
@@ -864,8 +1004,12 @@ static ex csc_eval(const ex & x)
 	}
 
         ex res = sin_eval(x);
-	if (not is_ex_the_function(res, sin))
-                return power(res, _ex_1);
+	if (not is_ex_the_function(res, sin)) {
+                if (not res.is_zero())
+                        return power(res, _ex_1);
+                else
+                        return UnsignedInfinity;
+        }
 
 	return csc(x).hold();
 }
@@ -1409,11 +1553,16 @@ static ex asec_evalf(const ex & x, PyObject* parent)
 
 static ex asec_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x) and not x.info(info_flags::crational))
-		return acos(ex_to<numeric>(x).inverse());
-
-        if (x.is_zero()) {
-		throw (pole_error("asec_eval(): asec(0) encountered",0));
+	if (is_exactly_a<numeric>(x)) {
+                numeric num = ex_to<numeric>(x);
+                if (num.is_zero())
+                        throw (pole_error("asec_eval(): asec(0) encountered",0));
+                if (num.is_equal(*_num1_p))
+                        return _ex0;
+                if (num.is_equal(*_num_1_p))
+                        return Pi;
+                if (not num.info(info_flags::crational))
+                        return acos(num.inverse());
 	}
 
 	if (x.info(info_flags::infinity)) {
@@ -1468,12 +1617,17 @@ static ex acsc_evalf(const ex & x, PyObject* parent)
 
 static ex acsc_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x) and not x.info(info_flags::crational))
-		return asin(ex_to<numeric>(x).inverse());
-
-	if (x.is_zero()) {
-		throw (pole_error("acsc_eval(): asec(0) encountered",0));
-	}
+	if (is_exactly_a<numeric>(x)) {
+                numeric num = ex_to<numeric>(x);
+                if (num.is_zero())
+                        throw (pole_error("acsc_eval(): asec(0) encountered",0));
+                if (num.is_equal(*_num1_p))
+                        return Pi/_ex2;
+                if (num.is_equal(*_num_1_p))
+                        return -Pi/_ex2;
+                if (not num.info(info_flags::crational))
+                        return asin(num.inverse());
+        }
 
 	if (x.info(info_flags::infinity)) {
 		return _ex0;

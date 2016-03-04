@@ -171,19 +171,45 @@ void symbol::do_print_python_repr(const print_python_repr & c, unsigned level) c
 void symbol::set_domain(unsigned d)
 {
         domain = d;
-        iflags.clear();
         switch (d) {
                 case domain::complex:
+                        iflags.set(info_flags::real, false);
+                        iflags.set(info_flags::positive, false);
+                        iflags.set(info_flags::nonnegative, false);
+                        iflags.set(info_flags::integer, false);
                         break;
                 case domain::real:
                         iflags.set(info_flags::real, true);
+                        if(iflags.get(info_flags::positive)) {
+                                iflags.set(info_flags::positive, true);
+                                iflags.set(info_flags::nonnegative, true);
+                        }  
+                        else {
+                                iflags.set(info_flags::positive, false);
+                                iflags.set(info_flags::nonnegative, false);
+                        }
+                        if(iflags.get(info_flags::integer)) {
+                                iflags.set(info_flags::integer, true);
+                        }
+                        else {
+                                iflags.set(info_flags::integer, false);
+                        }
                         break;
                 case domain::positive:
                         iflags.set(info_flags::real, true);
                         iflags.set(info_flags::positive, true);
                         iflags.set(info_flags::nonnegative, true);
+                        iflags.set(info_flags::integer, true);
                         break;
                 case domain::integer:
+                        if(iflags.get(info_flags::positive)) {
+                                iflags.set(info_flags::positive, true);
+                                iflags.set(info_flags::nonnegative, true);
+                        }
+                        else {
+                                iflags.set(info_flags::positive, false);
+                                iflags.set(info_flags::nonnegative, false);
+                        }
                         iflags.set(info_flags::real, true);
                         iflags.set(info_flags::integer, true);
                         break;

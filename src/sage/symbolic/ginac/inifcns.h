@@ -104,6 +104,15 @@ DECLARE_FUNCTION_1P(cosh)
 /** Hyperbolic Tangent. */
 DECLARE_FUNCTION_1P(tanh)
 
+/** Hyperbolic Cotangent. */
+DECLARE_FUNCTION_1P(coth)
+
+/** Hyperbolic Secant. */
+DECLARE_FUNCTION_1P(sech)
+
+/** Hyperbolic Cosecant. */
+DECLARE_FUNCTION_1P(csch)
+
 /** Inverse hyperbolic Sine (area hyperbolic sine). */
 DECLARE_FUNCTION_1P(asinh)
 
@@ -112,6 +121,17 @@ DECLARE_FUNCTION_1P(acosh)
 
 /** Inverse hyperbolic Tangent (area hyperbolic tangent). */
 DECLARE_FUNCTION_1P(atanh)
+
+/** Inverse hyperbolic Cotangent (area hyperbolic cotangent). */
+DECLARE_FUNCTION_1P(acoth)
+
+
+/** Inverse hyperbolic Cosecant (area hyperbolic cosecant). */
+DECLARE_FUNCTION_1P(acsch)
+
+/** Inverse hyperbolic Secant (area hyperbolic secant). */
+DECLARE_FUNCTION_1P(asech)
+
 
 /** Dilogarithm. */
 DECLARE_FUNCTION_1P(Li2)

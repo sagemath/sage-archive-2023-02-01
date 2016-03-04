@@ -2483,7 +2483,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         EXAMPLE::
 
-            sage: p = MixedIntegerLinearProgram(names=['m'])
+            sage: p = MixedIntegerLinearProgram(names=['m'], solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: y = p.new_variable(nonnegative=True, name='n')
             sage: v = p.new_variable(nonnegative=True)

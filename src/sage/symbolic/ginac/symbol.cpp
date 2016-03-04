@@ -180,7 +180,7 @@ void symbol::set_domain(unsigned d)
                         break;
                 case domain::real:
                         iflags.set(info_flags::real, true);
-                        if(iflags.to_string()=="positive") {
+                        if(iflags.get(info_flags::positive)) {
                                 iflags.set(info_flags::positive, true);
                                 iflags.set(info_flags::nonnegative, true);
                         }  
@@ -188,7 +188,7 @@ void symbol::set_domain(unsigned d)
                                 iflags.set(info_flags::positive, false);
                                 iflags.set(info_flags::nonnegative, false);
                         }
-                        if(iflags.to_string()=="integer") {
+                        if(iflags.get(info_flags::integer)) {
                                 iflags.set(info_flags::integer, true);
                         }
                         else {
@@ -202,7 +202,7 @@ void symbol::set_domain(unsigned d)
                         iflags.set(info_flags::integer, true);
                         break;
                 case domain::integer:
-                        if(iflags.to_string()=="positive") {
+                        if(iflags.get(info_flags::positive)) {
                                 iflags.set(info_flags::positive, true);
                                 iflags.set(info_flags::nonnegative, true);
                         }

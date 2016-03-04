@@ -825,6 +825,7 @@ class Polynomial_generic_sparse(Polynomial):
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
 
+    @coerce_binop
     def gcd(self,other,algorithm=None):
         """
         Return the gcd of this polynomial and ``other``
@@ -862,6 +863,16 @@ class Polynomial_generic_sparse(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: Unknown algorithm 'foobar'
+
+        TESTS:
+
+        Check that :trac:`19676` is fixed::
+
+            sage: S.<y> = R[]
+            sage: x.gcd(y)
+            1
+            sage: (6*x).gcd(9)
+            3
         """
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -929,6 +940,19 @@ class Polynomial_generic_sparse(Polynomial):
             x^1267650600228229401496703205376 + 1
         """
         return self[:n]
+
+    def number_of_terms(self):
+        """
+        Return the number of nonzero terms.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: p = x^100 - 3*x^10 + 12
+            sage: p.number_of_terms()
+            3
+        """
+        return len(self.__coeffs)
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):

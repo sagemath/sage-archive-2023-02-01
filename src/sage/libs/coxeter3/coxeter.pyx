@@ -301,7 +301,7 @@ cdef class CoxGroup(SageObject):
             sage: W._ordering_from_cartan_type(CartanType(['A',5]))                     # optional - coxeter3
             [1, 2, 3, 4, 5]
         """
-        from sage.misc.all import srange
+        from sage.arith.srange import srange
         t = cartan_type.type()
         r = cartan_type.rank()
         is_affine = cartan_type.is_affine()
@@ -798,7 +798,7 @@ cdef class CoxGroupElement:
         if i < 0:
             i += len(self)
         if i >= len(self):
-            raise IndexError, "The index (%d) is out of range."%i
+            raise IndexError("The index (%d) is out of range." % i)
 
         return self._parent_group.out_ordering[self.word.get_index(i)]
 

@@ -1098,8 +1098,8 @@ def py_is_crational_for_doctest(x):
     return py_is_crational(x)
 
 cdef bint py_is_real(object a) except +:
-    if PyInt_CheckExact(a) or isinstance(a, Integer) or\
-            PyLong_CheckExact(a) or type(a) is float:
+    if type(a) is int or isinstance(a, Integer) or\
+            type(a) is long or type(a) is float:
         return True
     return py_imag(a) == 0
 

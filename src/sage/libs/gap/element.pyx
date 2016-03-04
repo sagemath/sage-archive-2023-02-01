@@ -311,7 +311,7 @@ cdef class GapElement(RingElement):
 
         Users must use the ``libgap`` instance to construct instances
         of :class:`GapElement`. Cython programmers must use
-        :funct:`make_GapElement` factory function.
+        :func:`make_GapElement` factory function.
 
         TESTS::
 
@@ -741,7 +741,7 @@ cdef class GapElement(RingElement):
             sig_off()
         except RuntimeError as msg:
             libGAP_ClearError()
-            raise ValueError, 'libGAP: '+str(msg)
+            raise ValueError('libGAP: {}'.format(msg))
         finally:
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
@@ -774,7 +774,7 @@ cdef class GapElement(RingElement):
             sig_off()
         except RuntimeError as msg:
             libGAP_ClearError()
-            raise ValueError, 'libGAP: '+str(msg)
+            raise ValueError('libGAP: {}'.format(msg))
         finally:
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
@@ -812,7 +812,7 @@ cdef class GapElement(RingElement):
             sig_off()
         except RuntimeError as msg:
             libGAP_ClearError()
-            raise ValueError, 'libGAP: '+str(msg)
+            raise ValueError('libGAP: '+str(msg))
         finally:
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
@@ -843,7 +843,7 @@ cdef class GapElement(RingElement):
             sig_off()
         except RuntimeError as msg:
             libGAP_ClearError()
-            raise ValueError, 'libGAP: '+str(msg)
+            raise ValueError('libGAP: '+str(msg))
         finally:
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
@@ -883,7 +883,7 @@ cdef class GapElement(RingElement):
             sig_off()
         except RuntimeError as msg:
             libGAP_ClearError()
-            raise ValueError, 'libGAP: '+str(msg)
+            raise ValueError('libGAP: ' + str(msg))
         finally:
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
@@ -2097,7 +2097,7 @@ cdef class GapElement_Function(GapElement):
                 result = libGAP_CALL_XARGS(self.value, arg_list)
             sig_off()
         except RuntimeError as msg:
-            raise ValueError('libGAP: '+str(msg))
+            raise ValueError('libGAP: ' + str(msg))
         finally:
             libgap_exit()
 
@@ -2531,7 +2531,7 @@ cdef class GapElement_Record(GapElement):
             result = libGAP_ELM_REC(self.value, i)
             sig_off()
         except RuntimeError as msg:
-            raise IndexError('libGAP: '+str(msg))
+            raise IndexError('libGAP: ' + str(msg))
         return make_any_gap_element(self.parent(), result)
 
 

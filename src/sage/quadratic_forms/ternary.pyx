@@ -535,7 +535,8 @@ def pseudorandom_primitive_zero_mod_p(a, b, c, r, s, t, p):
 def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, long long s, long long t, long long p, v):
     """
     Find the zeros mod p, where p is an odd prime, of a ternary quadratic form given by its coefficients and a given zero of the form v.
-    The prime p doesn't divides the discriminant of the form.
+
+    The prime p does not divide the discriminant of the form.
 
     EXAMPLES::
 
@@ -604,8 +605,10 @@ def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, lo
 
 def _find_zeros_mod_p(a, b, c, r, s, t, p):
     """
-    Finds the zeros mod p of the ternary quadratic form given by the coefficients (a, b, c, r, s, t), where p is
-    a prime that doesn't divides the discriminant of the form.
+    Find the zeros mod `p` of the ternary quadratic form.
+
+    The quadratic form is given by the coefficients (a, b, c, r, s, t),
+    and `p` is a prime that does not divide the discriminant of the form.
 
     EXAMPLES::
 

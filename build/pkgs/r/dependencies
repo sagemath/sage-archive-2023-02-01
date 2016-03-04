@@ -1,4 +1,4 @@
-$(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE)
+atlas iconv readline pkgconf
 
 ----------
 All lines of this file are ignored except the first.

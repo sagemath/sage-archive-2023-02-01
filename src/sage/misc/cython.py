@@ -22,55 +22,25 @@ import os, sys, platform, __builtin__
 from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
 from misc import SPYX_TMP
 from temporary_file import tmp_filename
+import pkgconfig
 
 
-def cblas():
-    """
-    Return the name of the cblas library on this system. If the environment
-    variable :envvar:`$SAGE_CBLAS` is set, just return its value. If not,
-    return ``'cblas'`` if :file:`/usr/lib/libcblas.so` or
-    :file:`/usr/lib/libcblas.dylib` exists, return ``'blas'`` if
-    :file:`/usr/lib/libblas.dll.a` exists, and return ``'gslcblas'`` otherwise.
+# CBLAS can be one of multiple implementations
+cblas_pc = pkgconfig.parse('cblas')
+cblas_libs = list(cblas_pc['libraries'])
+cblas_library_dirs = list(cblas_pc['library_dirs'])
+cblas_include_dirs = list(cblas_pc['include_dirs'])
 
-    EXAMPLES::
+# TODO: Remove Cygwin hack by installing a suitable cblas.pc
+if os.path.exists('/usr/lib/libblas.dll.a'):
+    cblas_libs = 'gslcblas'
 
-        sage: sage.misc.cython.cblas() # random -- depends on OS, etc.
-        'cblas'
-    """
-    if 'SAGE_CBLAS' in os.environ:
-        return os.environ['SAGE_CBLAS']
-    elif os.path.exists('/usr/lib/libcblas.dylib') or \
-         os.path.exists('/usr/lib/libcblas.so'):
-        return 'cblas'
-    elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested.
-        return 'blas'
-    else:
-        # This is very slow (?), but *guaranteed* to be available.
-        return 'gslcblas'
+standard_libs = [
+    'mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 
+    'ec', 'gsl',
+] + cblas_libs + [
+    'ntl']
 
-# In case of ATLAS we need to link against cblas as well as atlas
-# In the other cases we just return the same library name as cblas()
-# which is fine for the linker
-#
-# We should be using the Accelerate FrameWork on OS X, but that requires
-# some magic due to distutils having ridden on the short bus :)
-def atlas():
-    """
-    Returns the name of the ATLAS library to use. On Darwin or Cygwin, this is
-    ``'blas'``, and otherwise it is ``'atlas'``.
-
-    EXAMPLES::
-
-        sage: sage.misc.cython.atlas() # random -- depends on OS
-        'atlas'
-    """
-    if UNAME == "Darwin" or "CYGWIN" in UNAME:
-        return 'blas'
-    else:
-        return 'atlas'
-
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'ec', 'gsl', cblas(), atlas(), 'ntl']
 
 offset = 0
 
@@ -84,6 +54,7 @@ def parse_keywords(kwd, s):
 
     EXAMPLES::
 
+        sage: import sage.misc.cython
         sage: sage.misc.cython.parse_keywords('clib', " clib foo bar baz\n #cinclude bar\n")
         (['foo', 'bar', 'baz'], ' #clib foo bar baz\n #cinclude bar\n')
 
@@ -198,7 +169,6 @@ def pyx_preparse(s):
         'm',
         'ec',
         'gsl',
-        '...blas',
         ...,
         'ntl'],
         ['.../include',
@@ -208,8 +178,8 @@ def pyx_preparse(s):
         '.../sage/ext',
         '.../cysignals'],
         'c',
-        [], ['-w', '-O2'])
-        sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
+        [], ['-w', '-O2'],...)
+        sage: s, libs, inc, lang, f, args, libdirs = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
         sage: lang
         'c++'
 
@@ -220,7 +190,8 @@ def pyx_preparse(s):
         'pari',
         'm',
         'ec',
-        'gsl', '...blas', ...,
+        'gsl',
+        ...,
         'ntl']
         sage: libs[1:] == sage.misc.cython.standard_libs
         True
@@ -234,7 +205,7 @@ def pyx_preparse(s):
         '.../sage/ext',
         '.../cysignals']
 
-        sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
+        sage: s, libs, inc, lang, f, args, libdirs = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
         ['-w', '-O2', '-O3', '-ggdb']
 
@@ -264,6 +235,7 @@ def pyx_preparse(s):
     s = """\ninclude "cysignals/signals.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)
     args = ['-w','-O2'] + args
+    libdirs = cblas_library_dirs
 
     # Add cysignals directory to includes
     for path in sys.path:
@@ -271,7 +243,7 @@ def pyx_preparse(s):
         if os.path.isdir(cysignals_path):
             inc.append(cysignals_path)
 
-    return s, libs, inc, lang, additional_source_files, args
+    return s, libs, inc, lang, additional_source_files, args, libdirs
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -413,7 +385,7 @@ def cython(filename, verbose=False, compile_message=False,
 
     F = open(filename).read()
 
-    F, libs, includes, language, additional_source_files, extra_args = pyx_preparse(F)
+    F, libs, includes, language, additional_source_files, extra_args, libdirs = pyx_preparse(F)
 
     # add the working directory to the includes so custom headers etc. work
     includes.append(os.path.split(os.path.splitext(filename)[0])[0])
@@ -453,19 +425,17 @@ from distutils.core import setup, Extension
 
 from sage.env import SAGE_LOCAL
 
-extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
 extra_compile_args = %s
 
 ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,
-                     library_dirs=[SAGE_LOCAL + '/lib/'],
+                     library_dirs=[SAGE_LOCAL + '/lib/'] + %s,
                      extra_compile_args = extra_compile_args,
-                     extra_link_args = extra_link_args,
                      language = '%s' )]
 
 setup(ext_modules = ext_modules,
       include_dirs = %s)
-    """%(extra_args, name, name, extension, additional_source_files, libs, language, includes)
+    """%(extra_args, name, name, extension, additional_source_files, libs, libdirs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
     cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
 

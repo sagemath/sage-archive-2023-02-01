@@ -87,7 +87,7 @@ from sage.rings.all import (
 from sage.misc.functional import log
 from math import sqrt
 from sage.misc.all import verbose
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.rings.padics.factory import Qp
 
 factor = arith.factor
@@ -522,10 +522,10 @@ class Sha(SageObject):
             4 + O(5)
             sage: EllipticCurve('448c5').sha().an_padic(7,prec=4, use_twists=False)  # long time (2s on sage.math, 2011)
             2 + 7 + O(7^6)
-            sage: EllipticCurve([-19,34]).sha().an_padic(5)  # see :trac: `6455`, long time (4s on sage.math, 2011)
+            sage: EllipticCurve([-19,34]).sha().an_padic(5)  # see trac #6455, long time (4s on sage.math, 2011)
             1 + O(5)
 
-        Test for :trac: `15737`::
+        Test for :trac:`15737`::
 
             sage: E = EllipticCurve([-100,0])
             sage: s = E.sha()

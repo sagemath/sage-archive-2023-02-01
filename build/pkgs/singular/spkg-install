@@ -73,6 +73,9 @@ export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 export CXXFLAGS="$CXXFLAGS -fPIC"
 export CFLAGS="$CFLAGS -fPIC"
 
+# Singular does not respect LDFLAGS; Ugly hack:
+# Used on Linux and Darwin (see singular-3.1.7-use_cxx_for_linking.patch)
+export CXX="$CXX $LDFLAGS"
 
 # The Sun assembler has problems with -pipe, so disable it.
 # This only affects compile time, not the compiled programs/libraries.
@@ -207,6 +210,11 @@ build_libsingular()
     export CFLAGS="$CFLAGS -DLIBSINGULAR"
     OLD_CXXFLAGS=$CXXFLAGS
     export CXXFLAGS="$CXXFLAGS -DLIBSINGULAR"
+
+    if [ "$UNAME" = "Darwin" ]; then
+        # on darwin we need to adjust the install name of the library
+	export LIBSINGULAR_LDFLAGS="-install_name ${SAGE_LOCAL}/lib/libsingular.dylib"
+    fi
 
     config || return $?
 

@@ -620,7 +620,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         if n not in IntegerRing():
             raise TypeError("exponent must be an integer")
         P = self.parent()
-        return P.element_class(P, self.gap().__pow__(n))
+        return P.element_class(P, self.gap() ** n)
 
     def __invert__(self):
         """

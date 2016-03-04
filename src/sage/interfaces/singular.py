@@ -325,14 +325,16 @@ from time import sleep
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sequence import Sequence
-
 from sage.structure.element import RingElement
 
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose
 from sage.misc.superseded import deprecation
+
+from six import reraise as raise_
 
 class SingularError(RuntimeError):
     """
@@ -341,7 +343,7 @@ class SingularError(RuntimeError):
     pass
 
 
-class Singular(Expect):
+class Singular(ExtraTabCompletion, Expect):
     r"""
     Interface to the Singular interpreter.
 
@@ -361,7 +363,7 @@ class Singular(Expect):
 
     - David Joyner and William Stein
     """
-    def __init__(self, maxread=1000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None,
                  seed=None):
         """
@@ -378,7 +380,6 @@ class Singular(Expect):
                         # no tty, fine grained cputime()
                         # and do not display CTRL-C prompt
                         command = "Singular -t --ticks-per-sec 1000 --cntrlc=a",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -785,20 +786,33 @@ class Singular(Expect):
 
         return SingularElement(self, type, x, False)
 
-    def has_coerce_map_from_impl(self, S):
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` if ``S`` admits a coercion map into the
+        Singular interface.
+
+        EXAMPLES::
+
+            sage: singular._coerce_map_from_(ZZ)
+            True
+            sage: singular.coerce_map_from(ZZ)
+            Call morphism:
+              From: Integer Ring
+              To:   Singular
+            sage: singular.coerce_map_from(float)
+        """
         # we want to implement this without coercing, since singular has state.
         if hasattr(S, 'an_element'):
             if hasattr(S.an_element(), '_singular_'):
                 return True
             try:
                 self._coerce_(S.an_element())
+                return True
             except TypeError:
-                return False
-            return True
+                pass
         elif S is int or S is long:
             return True
-        raise NotImplementedError
-
+        return None
 
     def cputime(self, t=None):
         r"""
@@ -1125,13 +1139,13 @@ class Singular(Expect):
         else:
             return None
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
          Return a list of all Singular commands.
 
          EXAMPLES::
 
-             sage: singular.trait_names()
+             sage: singular._tab_completion()
              ['exteriorPower',
               ...
               'stdfglm']
@@ -1230,7 +1244,9 @@ class Singular(Expect):
         self._start()
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
-class SingularElement(ExpectElement):
+    
+class SingularElement(ExtraTabCompletion, ExpectElement):
+    
     def __init__(self, parent, type, value, is_name=False):
         """
         EXAMPLES::
@@ -1248,7 +1264,7 @@ class SingularElement(ExpectElement):
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise TypeError, x, sys.exc_info()[2]
+                raise_(TypeError, x, sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise
@@ -1296,7 +1312,7 @@ class SingularElement(ExpectElement):
                 s = self.parent().get_using_file(self._name)
         except AttributeError:
             s = self.parent().get(self._name)
-        if s.__contains__(self._name):
+        if self._name in s:
             if hasattr(self, '__custom_name'):
                 s =  s.replace(self._name, self.__dict__['__custom_name'])
             elif self.type() == 'matrix':
@@ -2009,7 +2025,7 @@ class SingularElement(ExpectElement):
             return str(self)
         return [X.sage_structured_str_list() for X in self]
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Returns the possible tab-completions for self. In this case, we
         just return all the tab completions for the Singular object.
@@ -2017,12 +2033,12 @@ class SingularElement(ExpectElement):
         EXAMPLES::
 
             sage: R = singular.ring(0,'(x,y)','dp')
-            sage: R.trait_names()
+            sage: R._tab_completion()
             ['exteriorPower',
              ...
              'stdfglm']
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
     def type(self):
         """
@@ -2312,6 +2328,9 @@ def singular_console():
              by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
         FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%singular magics instead.')
     os.system('Singular')
 
 

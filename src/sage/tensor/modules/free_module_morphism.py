@@ -457,7 +457,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __cmp__(self, other):
         r"""
@@ -485,7 +485,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             -1
 
         """
-        if self.__eq__(other):
+        if self == other:
             return 0
         else:
             return -1
@@ -531,7 +531,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - ``other`` -- a free module morphism (same parent as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the addition of ``self`` and ``other``
 
@@ -607,7 +607,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - ``other`` -- a free module morphism (same parent as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the subtraction of ``other`` from
           ``self``
@@ -689,7 +689,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         - ``scalar`` -- element of the ring over which the parent of ``self``
           is a module.
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the multiphication of ``self`` by
           ``scalar``
@@ -826,7 +826,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: w.display()
             phi(v) = 3 f_0 + 13 f_1
 
-        Tests::
+        TESTS::
 
             sage: for i in range(2):
             ....:     print w[i] == sum( phi.matrix()[i,j]*v[j] for j in range(3) ),

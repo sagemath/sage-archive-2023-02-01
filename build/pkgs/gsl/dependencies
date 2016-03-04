@@ -1,4 +1,4 @@
-$(INST)/$(ATLAS)
+atlas
 
 ----------
 All lines of this file are ignored except the first.

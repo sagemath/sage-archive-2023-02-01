@@ -22,7 +22,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.composition import Composition
@@ -778,16 +778,18 @@ class AffinePermutationTypeA(AffinePermutation):
 
         EXAMPLES::
 
+            sage: import itertools
             sage: A=AffinePermutationGroup(['A',7,1])
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
-            sage: CP=CartesianProduct( ('increasing','decreasing'),('left','right') )
-            sage: for a in CP:
-            ....:   p.to_lehmer_code(a[0],a[1])
+            sage: orders = ('increasing','decreasing')
+            sage: sides = ('left','right')
+            sage: for o,s in itertools.product(orders, sides):
+            ....:   p.to_lehmer_code(o,s)
             [2, 3, 2, 0, 1, 2, 0, 0]
             [2, 2, 0, 0, 2, 1, 0, 3]
             [3, 1, 0, 0, 2, 1, 0, 3]
             [0, 3, 3, 0, 1, 2, 0, 1]
-            sage: for a in CP:
+            sage: for a in itertools.product(orders, sides):
             ....:   A.from_lehmer_code(p.to_lehmer_code(a[0],a[1]), a[0],a[1])==p
             True
             True
@@ -2198,15 +2200,17 @@ class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
 
         EXAMPLES::
 
+            sage: import itertools
             sage: A=AffinePermutationGroup(['A',7,1])
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
             sage: p.to_lehmer_code()
             [0, 3, 3, 0, 1, 2, 0, 1]
             sage: A.from_lehmer_code(p.to_lehmer_code())==p
             True
-            sage: CP=CartesianProduct( ('increasing','decreasing'),('left','right') )
-            sage: for a in CP:
-            ....:   A.from_lehmer_code(p.to_lehmer_code(a[0],a[1]),a[0],a[1])==p
+            sage: orders = ('increasing','decreasing')
+            sage: sides = ('left','right')
+            sage: for o,s in itertools.product(orders,sides):
+            ....:   A.from_lehmer_code(p.to_lehmer_code(o,s),o,s)==p
             True
             True
             True

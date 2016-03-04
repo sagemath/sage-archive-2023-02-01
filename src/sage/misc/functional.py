@@ -124,7 +124,8 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces with basis over quotient fields
+        Category of finite dimensional vector spaces with basis over
+         (quotient fields and metric spaces)
     """
     try:
         return x.category()
@@ -1574,7 +1575,7 @@ def squarefree_part(x):
         return x.squarefree_part()
     except AttributeError:
         pass
-    from sage.rings.arith import factor
+    from sage.arith.all import factor
     from sage.structure.all import parent
     F = factor(x)
     n = parent(x)(1)

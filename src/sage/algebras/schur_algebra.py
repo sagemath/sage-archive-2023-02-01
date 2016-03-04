@@ -21,20 +21,24 @@ REFERENCES:
 
 .. [GreenPoly] J. Green, Polynomial representations of `GL_n`, Springer Verlag.
 """
+
 #*****************************************************************************
-#  Copyright (C) 2010 Eric Webster
-#  Copyright (C) 2011 Hugh Thomas (hugh.ross.thomas@gmail.com)
+#       Copyright (C) 2010 Eric Webster
+#       Copyright (C) 2011 Hugh Thomas <hugh.ross.thomas@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
 
 from sage.categories.all import AlgebrasWithBasis
 from sage.categories.rings import Rings
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModule_Tensor
-from sage.combinat.cartesian_product import CartesianProduct
-from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.integer_lists import IntegerListsLex
 from sage.combinat.partition import Partitions, Partition
 from sage.combinat.permutation import Permutations
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -465,7 +469,7 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             B[1] # B[1] # B[2] + B[1] # B[2] # B[1] + B[2] # B[1] # B[1]
         """
         ret = []
-        for i in CartesianProduct(*[range(1, self._n + 1)] * self._r):
+        for i in itertools.product(range(1, self._n + 1), repeat=self._r):
             if schur_representative_from_index(i, v) == xi:
                 ret.append(tuple(i))
         return self.sum_of_monomials(ret)

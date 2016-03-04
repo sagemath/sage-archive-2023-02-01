@@ -78,6 +78,22 @@ class PolyhedronRepresentation(SageObject):
         """
         return self._vector[i]
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.representation import Hrepresentation
+            sage: pr = Hrepresentation(Polyhedron(vertices = [[1,2,3]]).parent())
+            sage: hash(pr)
+            1647257843           # 32-bit
+            4686581268940269811  # 64-bit
+        """
+        # TODO: ideally the argument self._vector of self should be immutable.
+        # So that we could change the line below by hash(self._vector). The
+        # mutability is kept because this argument might be reused (see e.g.
+        # Hrepresentation._set_data below).
+        return hash(tuple(self._vector))
+
     def __cmp__(self, other):
         """
         Compare two representation objects
@@ -119,9 +135,7 @@ class PolyhedronRepresentation(SageObject):
         """
         if not isinstance(other, PolyhedronRepresentation):
             return -1
-        type_cmp = cmp(type(self), type(other))
-        if (type_cmp != 0): return type_cmp
-        return cmp(self._vector, other._vector)
+        return cmp(type(self), type(other)) or cmp(self._vector, other._vector)
 
     def vector(self, base_ring=None):
         """

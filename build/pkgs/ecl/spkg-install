@@ -20,7 +20,6 @@ fi
 # See: http://trac.sagemath.org/sage_trac/ticket/10187#comment:117
 
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = "xyes" ]  ; then
@@ -50,7 +49,7 @@ echo "Using CPPFLAGS=$CPPFLAGS"
 echo "Using LDFLAGS=$LDFLAGS"
 echo "configure scripts and/or makefiles might override these later"
 echo ""
-echo "Note that the patches were applied by spkg-source"
+echo "Note that the patches were applied by spkg-src"
 echo ""
 
 # export everything. Probably not necessary in most cases.
@@ -71,6 +70,9 @@ if [ "`uname -sm`" = "SunOS i86pc" ] && [ "x$SAGE64" = xyes ]; then
     # 3) 64-bit build
     ECL_CONFIGURE="--with-dffi=no $ECL_CONFIGURE"
 fi
+
+# Use newer version of config.guess and config.sub (see Trac #19732)
+cp "$SAGE_ROOT"/config/config.* src
 
 ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix=$SAGE_LOCAL \
     --libdir="$SAGE_LOCAL/lib" --disable-threads \

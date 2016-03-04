@@ -766,7 +766,7 @@ class Cusp(Element):
         x = -x0 * ZZ(a/g)
         # now  x*v1*v2 + a = 0 (mod N)
 
-        # the rest is all added in trac 10926
+        # the rest is all added in trac #10926
         s1p = s1+x*v1
         M = N//g
 

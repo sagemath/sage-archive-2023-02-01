@@ -2,7 +2,7 @@ from lazy_attribute import lazy_attribute, lazy_class_attribute
 from lazy_import import lazy_import
 
 from misc import (alarm, cancel_alarm,
-                  ellipsis_range, ellipsis_iter, srange, xsrange, sxrange,
+                  ellipsis_range, ellipsis_iter, xsrange, sxrange,
                   BackslashOperator, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
@@ -15,11 +15,14 @@ from misc import (alarm, cancel_alarm,
                   newton_method_sizes, compose,
                   self_compose, nest)
 
+# Should be deprecated, but still needed in sagenb
+lazy_import('sage.arith.srange', 'srange')
+
 from banner import version, banner
 
 from temporary_file import tmp_dir, tmp_filename
 
-from misc_c import prod, running_total, balanced_sum
+from .misc_c import prod, running_total, balanced_sum
 lazy_import('sage.misc.misc_c', ['is_32_bit', 'is_64_bit'], deprecation=17460)
 mul = prod
 add = sum
@@ -50,7 +53,10 @@ from fpickle import pickle_function, unpickle_function
 
 from dist import install_scripts
 
-from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade, package_versions
+from package import (install_package,
+        installed_packages, is_package_installed,
+        standard_packages, optional_packages, experimental_packages,
+        upgrade, package_versions)
 
 from pager import pager
 

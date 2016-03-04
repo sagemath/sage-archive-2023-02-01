@@ -36,13 +36,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
+from sage.misc.latex import latex
+from sage.misc.prandom import choice
+from sage.misc.misc import is_iterator
+
 from sage.structure.element import Element
 from sage.structure.parent import Parent, Set_generic
-from sage.misc.latex import latex
-import sage.rings.infinity
-from sage.misc.misc import is_iterator
+
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
+
+import sage.rings.infinity
 
 def Set(X=frozenset()):
     r"""
@@ -224,7 +229,12 @@ class Set_object(Set_generic):
         if isinstance(X, (int,long)) or is_Integer(X):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
-        Parent.__init__(self, category=Sets())
+
+        category = Sets()
+        if X in Sets().Finite() or isinstance(X, (tuple,list,set,frozenset)):
+            category = Sets().Finite()
+
+        Parent.__init__(self, category=category)
         self.__object = X
 
     def __hash__(self):
@@ -294,7 +304,7 @@ class Set_object(Set_generic):
             sage: next(I)
             2
         """
-        return self.__object.__iter__()
+        return iter(self.__object)
 
     an_element = EnumeratedSets.ParentMethods.__dict__['_an_element_from_iterator']
 
@@ -613,7 +623,7 @@ class Set_object(Set_generic):
             sage: Set(QQ).is_empty()
             False
         """
-        return not self.__nonzero__()
+        return not self
 
     def is_finite(self):
         """
@@ -684,6 +694,21 @@ class Set_object_enumerated(Set_object):
             sage: TestSuite(S).run()
         """
         Set_object.__init__(self, X)
+
+    def random_element(self):
+        r"""
+        Return a random element in this set.
+
+        EXAMPLES::
+
+            sage: Set([1,2,3]).random_element() # random
+            2
+        """
+        try:
+            return self.object().random_element()
+        except AttributeError:
+            # TODO: this very slow!
+            return choice(self.list())
 
     def is_finite(self):
         r"""

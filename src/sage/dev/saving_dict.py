@@ -158,7 +158,7 @@ class SavingDict(collections.MutableMapping):
 
     def set_paired(self, other):
         r"""
-        Set another class:`SavingDict` to be updated with the reverse of this
+        Set another :class:`SavingDict` to be updated with the reverse of this
         one and vice versa.
 
         EXAMPLES::

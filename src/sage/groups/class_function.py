@@ -402,8 +402,7 @@ class ClassFunction_gap(SageObject):
             sage: (4 * chi).values()
             [12, 4, -4, 0, -4]
         """
-        return self.__mul__(other)
-
+        return self * other
 
     def __pos__(self):
         r"""

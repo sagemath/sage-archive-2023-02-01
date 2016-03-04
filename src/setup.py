@@ -324,6 +324,7 @@ def execute_list_of_commands(command_list):
 ########################################################################
 
 from distutils.command.build_ext import build_ext
+from distutils.command.install import install
 from distutils.dep_util import newer_group
 from distutils import log
 
@@ -634,6 +635,22 @@ print('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
 
 #########################################################
+### Install also Jupyter kernel spec
+#########################################################
+
+# We cannot just add the installation of the kernel spec to data_files
+# since the file is generated, not copied.
+class sage_install(install):
+    def run(self):
+        install.run(self)
+        self.install_kernel_spec()
+
+    def install_kernel_spec(self):
+        from sage.repl.ipython_kernel.install import SageKernelSpec
+        SageKernelSpec.update()
+
+
+#########################################################
 ### Distutils
 #########################################################
 
@@ -647,6 +664,5 @@ code = setup(name = 'sage',
       packages    = python_packages,
       data_files  = python_data_files,
       scripts = [],
-      cmdclass = { 'build_ext': sage_build_ext },
+      cmdclass = dict(build_ext=sage_build_ext, install=sage_install),
       ext_modules = ext_modules)
-

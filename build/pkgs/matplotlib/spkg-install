@@ -9,7 +9,7 @@ fi
 if [ "x$SAGE64" = xyes ]; then
    echo "Building a 64-bit version of matplotlib"
    CFLAGS="-O2 -g -m64 "; export CFLAGS
-   LDFLAGS="-m64 "; export LDFLAGS
+   LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
 fi
 
 # Write a configuration file to src/setup.cfg

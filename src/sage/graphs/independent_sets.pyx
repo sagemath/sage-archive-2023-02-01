@@ -338,7 +338,7 @@ cdef class IndependentSets:
 
         - ``S`` -- a set of vertices to be tested.
 
-        TESTS::
+        TESTS:
 
         All independent sets of PetersenGraph are... independent sets::
 

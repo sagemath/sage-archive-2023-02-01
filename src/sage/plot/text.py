@@ -105,7 +105,7 @@ class Text(GraphicPrimitive):
                               '\'bold,\', \'heavy\', \'extra bold\', \'black\'',
                 'rgbcolor':'The color as an RGB tuple.',
                 'background_color': 'The background color.',
-                'bounding_box': 'A dictionnary specifying a bounding box',
+                'bounding_box': 'A dictionary specifying a bounding box',
                 'hue':'The color given as a hue.',
                 'alpha': 'a float (0.0 transparent through 1.0 opaque)',
                 'axis_coords':'Uses axis coordinates -- (0,0) lower left and (1,1) upper right',
@@ -239,7 +239,7 @@ def text(string, xy, **options):
       (0,0) is the lower left and (1,1) upper right, regardless of the x and y
       range of plotted values.
 
-    - ``bounding_box`` - a dictionnary specifying a bounding box. See the
+    - ``bounding_box`` - a dictionary specifying a bounding box. See the
       examples (or the matplotlib documentation).
 
     EXAMPLES::

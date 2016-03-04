@@ -27,17 +27,18 @@ from sage.combinat.free_module import (CombinatorialFreeModule,
     CombinatorialFreeModuleElement)
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.combinat.combinat import bell_number, catalan_number
 from sage.structure.global_options import GlobalOptions
 from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.combinat.partition import Partitions
+from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
 from sage.combinat.permutation import Permutations
-from sage.combinat.combinat import (bell_number, catalan_number)
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.rings.all import ZZ
-import operator
 
 BrauerDiagramOptions = GlobalOptions(name='Brauer diagram',
     doc=r"""
@@ -330,7 +331,7 @@ class AbstractPartitionDiagram(SetPartition):
             sage: pd1 != ((-2,-1),(2,1))
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def base_diagram(self):
         r"""
@@ -1222,7 +1223,8 @@ class DiagramAlgebra(CombinatorialFreeModule):
         self._q = base_ring(q)
         self._k = k
         self._base_diagrams = diagrams
-        category = Algebras(base_ring).FiniteDimensional().WithBasis().or_subcategory(category)
+        category = Algebras(base_ring.category()).FiniteDimensional().WithBasis()
+        category = category.or_subcategory(category)
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
 
@@ -1244,10 +1246,21 @@ class DiagramAlgebra(CombinatorialFreeModule):
             True
             sage: D([{1,2},{-1,-2}]) == b_elt
             True
+            sage: S = SymmetricGroupAlgebra(R,2)
+            sage: D(S([2,1]))
+            P{{-2, 1}, {-1, 2}}
+            sage: D2 = da.DiagramAlgebra(2, x, R, 'P', da.PlanarDiagrams(2))
+            sage: D2(S([1,2]))
+            P{{-2, 2}, {-1, 1}}
+            sage: D2(S([2,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: {{-2, 1}, {-1, 2}} is not an index of a basis element
         """
         if self.basis().keys().is_parent_of(set_partition):
             return self.basis()[set_partition]
-
+        if isinstance(set_partition, SymmetricGroupAlgebra_n.Element):
+            return self._apply_module_morphism(set_partition, self._perm_to_Blst, self)
         sp = self._base_diagrams(set_partition) # attempt conversion
         if sp in self.basis().keys():
             return self.basis()[sp]
@@ -1271,6 +1284,27 @@ class DiagramAlgebra(CombinatorialFreeModule):
         if i in self.basis().keys():
             return self.basis()[i]
         raise ValueError("{0} is not an index of a basis element".format(i))
+
+    def _perm_to_Blst(self, w):
+        """
+        Convert the permutation ``w`` to an element of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S = SymmetricGroupAlgebra(R,2)
+            sage: import sage.combinat.diagram_algebras as da
+            sage: D2 = da.DiagramAlgebra(2, x, R, 'P', da.PlanarDiagrams(2))
+            sage: D2._perm_to_Blst([2,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: {{-2, 1}, {-1, 2}} is not an index of a basis element
+        """
+        ## 'perm' is a permutation in one-line notation
+        ## turns w into an expression suitable for the element constructor.
+        u = sorted(w)
+        p = [[u[i],-x] for i,x in enumerate(w)]
+        return self[p]
 
     def order(self):
         r"""
@@ -1625,6 +1659,14 @@ class PartitionAlgebra(DiagramAlgebra):
         sage: a*a
         17*P{{-1}, {1}}
 
+    Symmetric group algebra elements can also be coerced into the
+    partition algebra::
+
+        sage: S = SymmetricGroupAlgebra(SR, 2)
+        sage: A = PartitionAlgebra(2, x, SR)
+        sage: S([2,1])*A([[1,-1],[2,-2]])
+        P{{-2, 1}, {-1, 2}}
+
     REFERENCES:
 
     .. [HR2005] Tom Halverson and Arun Ram, *Partition algebras*. European
@@ -1679,6 +1721,31 @@ class PartitionAlgebra(DiagramAlgebra):
         return "Partition Algebra of rank {} with parameter {} over {}".format(
                 self._k, self._q, self.base_ring())
 
+    def _coerce_map_from_(self, R):
+        """
+        Return a coerce map from ``R`` if one exists and ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S = SymmetricGroupAlgebra(R, 4)
+            sage: A = PartitionAlgebra(4, x, R)
+            sage: A._coerce_map_from_(S)
+            Generic morphism:
+              From: Symmetric group algebra of order 4 over Univariate Polynomial Ring in x over Rational Field
+              To:   Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+            sage: Sp = SymmetricGroupAlgebra(QQ, 4)
+            sage: A._coerce_map_from_(Sp)
+            Generic morphism:
+              From: Symmetric group algebra of order 4 over Rational Field
+              To:   Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+        """
+        if isinstance(R, SymmetricGroupAlgebra_n):
+            if R.n == self._k and self.base_ring().has_coerce_map_from(R.base_ring()):
+                return R.module_morphism(self._perm_to_Blst, codomain=self)
+            return None
+        return super(PartitionAlgebra, self)._coerce_map_from_(R)
+
 class SubPartitionAlgebra(DiagramAlgebra):
     """
     A subalgebra of the partition algebra indexed by a subset of the diagrams.
@@ -1695,15 +1762,11 @@ class SubPartitionAlgebra(DiagramAlgebra):
             True
         """
         DiagramAlgebra.__init__(self, k, q, base_ring, prefix, diagrams, category)
-        amb = self.ambient()
-        self.module_morphism(self.lift, codomain=amb,
-                             category=self.category()).register_as_coercion()
 
-    #These methods allow for a sub algebra to be correctly identified in a partition algebra
+    #These methods allow for a subalgebra to be correctly identified in a partition algebra
     def ambient(self):
         r"""
         Return the partition algebra ``self`` is a sub-algebra of.
-        Generally, this method is not called directly.
 
         EXAMPLES::
 
@@ -1712,13 +1775,12 @@ class SubPartitionAlgebra(DiagramAlgebra):
             sage: BA.ambient()
             Partition Algebra of rank 2 with parameter x over Symbolic Ring
         """
-        return PartitionAlgebra(self._k, self._q, self.base_ring(), prefix=self._prefix)
+        return self.lift.codomain()
 
-    def lift(self, x):
+    @lazy_attribute
+    def lift(self):
         r"""
-        Lift a diagram subalgebra element to the corresponding element
-        in the ambient space. This method is not intended to be called
-        directly.
+        Return the lift map from diagram subalgebra to the ambient space.
 
         EXAMPLES::
 
@@ -1730,20 +1792,16 @@ class SubPartitionAlgebra(DiagramAlgebra):
             sage: lifted.parent() is BA.ambient()
             True
         """
-        if x not in self:
-            raise ValueError("{0} is not in {1}".format(x, self))
-        monomial_indices = x.support()
-        monomial_coefficients = x.coefficients()
-        result = 0
-        for i in xrange(len(monomial_coefficients)):
-            result += monomial_coefficients[i]*self.ambient().monomial(monomial_indices[i])
-        return result
+        amb = PartitionAlgebra(self._k, self._q, self.base_ring(), prefix=self._prefix)
+        phi = self.module_morphism(lambda d: amb.monomial(d),
+                                   codomain=amb, category=self.category())
+        phi.register_as_coercion()
+        return phi
 
     def retract(self, x):
         r"""
         Retract an appropriate partition algebra element to the
-        corresponding element in the partition subalgebra. This method
-        is not intended to be called directly.
+        corresponding element in the partition subalgebra.
 
         EXAMPLES::
 
@@ -1754,14 +1812,10 @@ class SubPartitionAlgebra(DiagramAlgebra):
             sage: BA.retract(E) in BA
             True
         """
-        if x not in self.ambient() or reduce(operator.mul, [(i in self._indices) for i in x.support()]) == 0:
+        if ( x not in self.ambient()
+                or any(i not in self._indices for i in x.support()) ):
             raise ValueError("{0} cannot retract to {1}".format(x, self))
-        monomial_indices = x.support()
-        monomial_coefficients = x.coefficients()
-        result = self.zero()
-        for i in xrange(len(monomial_coefficients)):
-            result += monomial_coefficients[i]*self.monomial(monomial_indices[i])
-        return result
+        return self._from_dict(x._monomial_coefficients, remove_zeros=False)
 
 class BrauerAlgebra(SubPartitionAlgebra):
     r"""
@@ -1789,8 +1843,8 @@ class BrauerAlgebra(SubPartitionAlgebra):
 
     EXAMPLES:
 
-    We now define the Brauer algebra of rank `2` with parameter ``x`` over
-    `\ZZ`::
+    We now define the Brauer algebra of rank `2` with parameter ``x``
+    over `\ZZ`::
 
         sage: R.<x> = ZZ[]
         sage: B = BrauerAlgebra(2, x, R)
@@ -1810,6 +1864,15 @@ class BrauerAlgebra(SubPartitionAlgebra):
         x*B{{-2, -1}, {1, 2}}
         sage: b[2]^5
         x^4*B{{-2, -1}, {1, 2}}
+
+    Note, also that since the symmetric group algebra is contained in
+    the Brauer algebra, there is also a conversion between the two. ::
+
+        sage: R.<x> = ZZ[]
+        sage: B = BrauerAlgebra(2, x, R)
+        sage: S = SymmetricGroupAlgebra(R, 2)
+        sage: S([2,1])*B([[1,-1],[2,-2]])
+        B{{-2, 1}, {-1, 2}}
     """
     global_options = BrauerDiagramOptions
 
@@ -1857,6 +1920,32 @@ class BrauerAlgebra(SubPartitionAlgebra):
         return "Brauer Algebra of rank {} with parameter {} over {}".format(
                 self._k, self._q, self.base_ring())
 
+    # TODO: Make a mixin class for diagram algebras that have coercions from SGA?
+    def _coerce_map_from_(self, R):
+        """
+        Return a coerce map from ``R`` if one exists and ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S = SymmetricGroupAlgebra(R, 4)
+            sage: A = BrauerAlgebra(4, x, R)
+            sage: A._coerce_map_from_(S)
+            Generic morphism:
+              From: Symmetric group algebra of order 4 over Univariate Polynomial Ring in x over Rational Field
+              To:   Brauer Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+            sage: Sp = SymmetricGroupAlgebra(QQ, 4)
+            sage: A._coerce_map_from_(Sp)
+            Generic morphism:
+              From: Symmetric group algebra of order 4 over Rational Field
+              To:   Brauer Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+        """
+        if isinstance(R, SymmetricGroupAlgebra_n):
+            if R.n == self._k and self.base_ring().has_coerce_map_from(R.base_ring()):
+                return R.module_morphism(self._perm_to_Blst, codomain=self)
+            return None
+        return super(BrauerAlgebra, self)._coerce_map_from_(R)
+
     def _element_constructor_(self, set_partition):
         r"""
         Construct an element of ``self``.
@@ -1877,6 +1966,45 @@ class BrauerAlgebra(SubPartitionAlgebra):
         """
         set_partition = to_Brauer_partition(set_partition, k = self.order())
         return DiagramAlgebra._element_constructor_(self, set_partition)
+
+    def jucys_murphy(self, j):
+        r"""
+        Return the ``j``-th generalized Jucys-Murphy element of ``self``.
+
+        The `j`-th Jucys-Murphy element of a Brauer algebra is simply
+        the `j`-th Jucys-Murphy element of the symmetric group algebra
+        with an extra `(z-1)/2` term, where ``z`` is the parameter
+        of the Brauer algebra. 
+
+        REFERENCES:
+
+        .. [Naz96] Maxim Nazarov, Young's Orthogonal Form for Brauer's
+           Centralizer Algebra. Journal of Algebra 182 (1996), 664--693.
+
+        EXAMPLES::
+
+            sage: z = var('z')
+            sage: B = BrauerAlgebra(3,z)
+            sage: B.jucys_murphy(1)
+            (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: B.jucys_murphy(3)
+            -B{{-3, -2}, {-1, 1}, {2, 3}} - B{{-3, -1}, {-2, 2}, {1, 3}}
+             + B{{-3, 1}, {-2, 2}, {-1, 3}} + B{{-3, 2}, {-2, 3}, {-1, 1}}
+             + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
+        """
+        if j < 1:
+            raise ValueError("Jucys-Murphy index must be positive")
+        k = self.order()
+        if j > k:
+            raise ValueError("Jucys-Murphy index cannot be greater than the order of the algebra")
+        I = lambda x: self._indices(to_Brauer_partition(x, k=k))
+        R = self.base_ring()
+        one = R.one()
+        d = {self.one_basis(): R( (self._q-1) / 2 )}
+        for i in range(1,j):
+            d[I([[i,-j],[j,-i]])] = one
+            d[I([[i,j],[-i,-j]])] = -one
+        return self._from_dict(d, remove_zeros=True)
 
 class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""
@@ -1987,7 +2115,16 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
             True
             sage: TL([{1,2},{-1,-2}]) == b_elt
             True
+            sage: S = SymmetricGroupAlgebra(R, 2)
+            sage: TL(S([1,2]))
+            T{{-2, 2}, {-1, 1}}
+            sage: TL(S([2,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: {{-2, 1}, {-1, 2}} is not an index of a basis element
         """
+        if isinstance(set_partition, SymmetricGroupAlgebra_n.Element):
+            return SubPartitionAlgebra._element_constructor_(self, set_partition)
         set_partition = to_Brauer_partition(set_partition, k = self.order())
         return SubPartitionAlgebra._element_constructor_(self, set_partition)
 
@@ -2146,7 +2283,7 @@ class PropagatingIdeal(SubPartitionAlgebra):
             sage: TestSuite(I).run() # Not tested -- needs non-unital algebras category
         """
         # This should be the category of non-unital fin-dim algebras with basis
-        category = Algebras(base_ring).FiniteDimensional().WithBasis()
+        category = Algebras(base_ring.category()).FiniteDimensional().WithBasis()
         SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix,
                                      IdealDiagrams(k), category)
 

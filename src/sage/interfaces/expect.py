@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Common Interface Functionality through Pexpect
 
@@ -24,20 +25,17 @@ AUTHORS:
   after a crash, when a command is executed in _eval_line. Allow
   synchronisation of the GAP interface.
 
+- François Bissey, Bill Page, Jeroen Demeyer (2015-12-09): Upgrade to
+  pexpect 4.0.1 + patches, see :trac:`10295`.
 """
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -51,21 +49,19 @@ import cleaner
 import six
 from random import randrange
 
-########################################################
-# Important note: We use Pexpect 2.0 *not* Pexpect 2.1.
-# For reasons I don't understand, pexpect2.1 is much
-# worse than pexpect 2.0 for everything Sage does.
-########################################################
 import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.sagespawn import SageSpawn
-from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement, AsciiArtString
+from sage.interfaces.interface import (Interface, InterfaceElement,
+        InterfaceFunction, InterfaceFunctionElement, AsciiArtString)
 
 from sage.structure.element import RingElement
 
 from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
+
+from six import reraise as raise_
 
 BAD_SESSION = -2
 
@@ -126,7 +122,7 @@ class Expect(Interface):
     """
     def __init__(self, name, prompt, command=None, server=None,
                  server_tmpdir=None,
-                 ulimit = None, maxread=100000,
+                 ulimit = None, maxread=None,
                  script_subdirectory=None, restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
@@ -158,7 +154,6 @@ class Expect(Interface):
         else:
             self._server = None
         self.__do_cleaner = do_cleaner
-        self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__command = command
         self._prompt = prompt
@@ -442,8 +437,6 @@ If this all works, you can then make calls like:
         if self._do_cleaner():
             cleaner.cleaner(self._expect.pid, cmd)
 
-        self._expect.maxread = self.__maxread
-        self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)
         except (pexpect.TIMEOUT, pexpect.EOF):
@@ -453,7 +446,7 @@ If this all works, you can then make calls like:
         self._expect.timeout = None
 
         # Calling tcsetattr earlier exposes bugs in various pty
-        # implementations, see :trac:`16474`. Since we haven't
+        # implementations, see trac #16474. Since we haven't
         # **written** anything so far it is safe to wait with
         # switching echo off until now.
         if not self._terminal_echo:
@@ -883,7 +876,7 @@ If this all works, you can then make calls like:
                         except (TypeError, RuntimeError):
                             pass
                         return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
-                raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2]
+                raise_(RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2])
 
             if len(line)>0:
                 try:
@@ -1055,7 +1048,7 @@ If this all works, you can then make calls like:
         ::
 
             sage: r._expect.before
-            'abc;\r\n[1] '
+            '...abc;\r\n[1] '
 
         We test interrupting ``_expect_expr`` using the GP interface,
         see #6661.  Unfortunately, this test doesn't work reliably using
@@ -1155,7 +1148,9 @@ If this all works, you can then make calls like:
 
             sage: r._synchronize()
 
-        TESTS: This illustrates a synchronization bug being fixed (thanks
+        TESTS:
+
+        This illustrates a synchronization bug being fixed (thanks
         to Simon King and David Joyner for tracking this down)::
 
             sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)
@@ -1329,7 +1324,7 @@ class ExpectElement(InterfaceElement):
             # coercion to work properly.
             except (RuntimeError, ValueError) as x:
                 self._session_number = -1
-                raise TypeError, x, sys.exc_info()[2]
+                raise_(TypeError, x, sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise

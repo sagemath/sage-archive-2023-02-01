@@ -1,4 +1,4 @@
-$(INST)/$(CYTHON) $(INST)/$(ZEROMQ) $(INST)/$(SETUPTOOLS)
+cython zeromq setuptools
 
 ----------
 All lines of this file are ignored except the first.

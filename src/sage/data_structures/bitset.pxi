@@ -80,9 +80,7 @@ cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
 
     bits.size = size
     bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
-    bits.bits = <mp_limb_t*>sage_calloc(bits.limbs, sizeof(mp_limb_t))
-    if bits.bits == NULL:
-        raise MemoryError
+    bits.bits = <mp_limb_t*>check_calloc(bits.limbs, sizeof(mp_limb_t))
 
 cdef inline bint bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     """
@@ -165,7 +163,7 @@ cdef inline bint mpn_equal_bits(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n):
     cdef mp_limb_t b2h = b2[nlimbs]
     return (b1h ^ b2h) & mask == 0
 
-cdef inline bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
+cdef bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
     """
     Return ``True`` iff the first n bits of *b1 and the bits ranging from
     offset to offset+n of *b2 agree.
@@ -623,7 +621,7 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     if n >= a.size:
         mpn_zero(r.bits, r.limbs)
         return
-    
+
     # Number of limbs on the right of a which will totally be shifted out
     cdef mp_size_t nlimbs = n >> index_shift
     # Number of limbs to be shifted assuming r is large enough

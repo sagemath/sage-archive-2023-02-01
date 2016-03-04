@@ -158,6 +158,7 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph, out_degree
 
+from sage.misc.decorators import rename_keyword
 
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short * predecessors,
@@ -739,7 +740,7 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
     done. This algorithm offers good running time reduction on scale-free graphs.
     """
     if G.is_directed():
-        raise ValueError("The 'bounds' method only works on undirected graphs.")
+        raise ValueError("The 'bounds' algorithm only works on undirected graphs.")
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors.  This data structure is well documented in the
@@ -804,7 +805,8 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
 
     return LB
 
-def eccentricity(G, method="standard"):
+@rename_keyword(deprecation=19559 , method='algorithm')
+def eccentricity(G, algorithm="standard"):
     r"""
     Return the vector of eccentricities in G.
 
@@ -815,10 +817,10 @@ def eccentricity(G, method="standard"):
 
     - ``G`` -- a Graph or a DiGraph.
 
-    - ``method`` -- (default: ``'standard'``) name of the method used to compute
-      the eccentricity of the vertices. Available methods are ``'standard'``
-      which performs a BFS from each vertex and ``'bounds'`` which uses the fast
-      algorithm proposed in [TK13]_ for undirected graphs.
+    - ``algorithm`` -- (default: ``'standard'``) name of the method used to
+      compute the eccentricity of the vertices. Available algorithms are
+      ``'standard'`` which performs a BFS from each vertex and ``'bounds'``
+      which uses the fast algorithm proposed in [TK13]_ for undirected graphs.
 
     EXAMPLE::
 
@@ -829,40 +831,40 @@ def eccentricity(G, method="standard"):
 
     TEST:
 
-    All methods are valid::
+    All algorithms are valid::
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
         sage: g = graphs.RandomGNP(50,.1)
-        sage: eccentricity(g, method='standard')==eccentricity(g, method='bounds')
+        sage: eccentricity(g, algorithm='standard')==eccentricity(g, algorithm='bounds')
         True
 
     Case of not (strongly) connected (directed) graph::
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
         sage: g = 2*graphs.PathGraph(2)
-        sage: eccentricity(g, method='bounds')
+        sage: eccentricity(g, algorithm='bounds')
         [+Infinity, +Infinity, +Infinity, +Infinity]
         sage: g = digraphs.Path(3)
-        sage: eccentricity(g, method='standard')
+        sage: eccentricity(g, algorithm='standard')
         [2, +Infinity, +Infinity]
 
-    The bounds method is for Graph only::
+    The bounds algorithm is for Graph only::
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
         sage: g = digraphs.Circuit(2)
-        sage: eccentricity(g, method='bounds')
+        sage: eccentricity(g, algorithm='bounds')
         Traceback (most recent call last):
         ...
-        ValueError: The 'bounds' method only works on undirected graphs.
+        ValueError: The 'bounds' algorithm only works on undirected graphs.
 
-    Asking for unknown method::
+    Asking for unknown algorithm::
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
         sage: g = graphs.PathGraph(2)
-        sage: eccentricity(g, method='Nice Jazz Festival')
+        sage: eccentricity(g, algorithm='Nice Jazz Festival')
         Traceback (most recent call last):
         ...
-        ValueError: Unknown method 'Nice Jazz Festival'. Please contribute.
+        ValueError: Unknown algorithm 'Nice Jazz Festival'. Please contribute.
     """
     from sage.rings.infinity import Infinity
     cdef int n = G.order()
@@ -870,18 +872,18 @@ def eccentricity(G, method="standard"):
     # Trivial cases
     if n == 0:
         return []
-    elif G.is_directed() and method=='bounds':
-        raise ValueError("The 'bounds' method only works on undirected graphs.")
+    elif G.is_directed() and algorithm=='bounds':
+        raise ValueError("The 'bounds' algorithm only works on undirected graphs.")
     elif not G.is_connected():
         return [Infinity]*n
 
     cdef uint32_t * ecc
-    if method=="bounds":
+    if algorithm=="bounds":
         ecc = c_eccentricity_bounding(G)
-    elif method=="standard":
+    elif algorithm=="standard":
         ecc = c_eccentricity(G)
     else:
-        raise ValueError("Unknown method '{}'. Please contribute.".format(method))
+        raise ValueError("Unknown algorithm '{}'. Please contribute.".format(algorithm))
 
     from sage.rings.integer import Integer
     cdef list l_ecc = [Integer(ecc[i]) if ecc[i]!=UINT32_MAX else +Infinity for i in range(n)]
@@ -910,7 +912,7 @@ cdef inline uint32_t simple_BFS(uint32_t n,
     either the last computed distance when all vertices are seen, or a very
     large number (UINT32_MAX) when the graph is not connected.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of vertices of the graph.
 
@@ -1007,7 +1009,7 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
     this method is linear in the size of the graph.
 
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of vertices of the graph.
 
@@ -1076,7 +1078,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     bound on the diameter, s is a vertex of eccentricity LB, d is a vertex at
     distance LB from s, and m is a vertex at distance LB/2 from both s and d.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of vertices of the graph.
 
@@ -1152,7 +1154,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     `O(nm)`, but it can be very fast in practice. See the code's documentation
     and [CGH+13]_ for more details.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of vertices of the graph.
 
@@ -1231,81 +1233,82 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     return LB
 
 
-def diameter(G, method='iFUB', source=None):
+@rename_keyword(deprecation=19559 , method='algorithm')
+def diameter(G, algorithm='iFUB', source=None):
     r"""
     Returns the diameter of `G`.
 
-    This method returns Infinity if the (di)graph is not connected. It can also
-    quickly return a lower bound on the diameter using the ``2sweep`` and
+    This algorithm returns Infinity if the (di)graph is not connected. It can
+    also quickly return a lower bound on the diameter using the ``2sweep`` and
     ``multi-sweep`` schemes.
 
-    INPUTS:
+    INPUT:
 
-    - ``method`` -- (default: 'iFUB') specifies the algorithm to use among:
+    - ``algorithm`` -- (default: 'iFUB') specifies the algorithm to use among:
 
-        - ``'standard'`` -- Computes the diameter of the input (di)graph as the
-          largest eccentricity of its vertices. This is the classical method
-          with time complexity in `O(nm)`.
+      - ``'standard'`` -- Computes the diameter of the input (di)graph as the
+        largest eccentricity of its vertices. This is the classical algorithm
+        with time complexity in `O(nm)`.
 
-        - ``'2sweep'`` -- Computes a lower bound on the diameter of an
-          unweighted undirected graph using 2 BFS, as proposed in [MLH08]_.  It
-          first selects a vertex `v` that is at largest distance from an initial
-          vertex source using BFS. Then it performs a second BFS from `v`. The
-          largest distance from `v` is returned as a lower bound on the diameter
-          of `G`.  The time complexity of this method is linear in the size of
-          `G`.
+      - ``'2sweep'`` -- Computes a lower bound on the diameter of an
+        unweighted undirected graph using 2 BFS, as proposed in [MLH08]_.  It
+        first selects a vertex `v` that is at largest distance from an initial
+        vertex source using BFS. Then it performs a second BFS from `v`. The
+        largest distance from `v` is returned as a lower bound on the diameter
+        of `G`.  The time complexity of this algorithm is linear in the size of
+        `G`.
 
-        - ``'multi-sweep'`` -- Computes a lower bound on the diameter of an
-          unweighted undirected graph using several iterations of the ``2sweep``
-          algorithms [CGH+13]_. Roughly, it first uses ``2sweep`` to identify
-          two vertices `u` and `v` that are far apart. Then it selects a vertex
-          `w` that is at same distance from `u` and `v`.  This vertex `w` will
-          serve as the new source for another iteration of the ``2sweep``
-          algorithm that may improve the current lower bound on the diameter.
-          This process is repeated as long as the lower bound on the diameter
-          is improved.
+      - ``'multi-sweep'`` -- Computes a lower bound on the diameter of an
+        unweighted undirected graph using several iterations of the ``2sweep``
+        algorithms [CGH+13]_. Roughly, it first uses ``2sweep`` to identify
+        two vertices `u` and `v` that are far apart. Then it selects a vertex
+        `w` that is at same distance from `u` and `v`.  This vertex `w` will
+        serve as the new source for another iteration of the ``2sweep``
+        algorithm that may improve the current lower bound on the diameter.
+        This process is repeated as long as the lower bound on the diameter
+        is improved.
 
-        - ``'iFUB'`` -- The iFUB (iterative Fringe Upper Bound) algorithm,
-          proposed in [CGI+10]_, computes the exact value of the diameter of an
-          unweighted undirected graph. It is based on the following observation:
+      - ``'iFUB'`` -- The iFUB (iterative Fringe Upper Bound) algorithm,
+        proposed in [CGI+10]_, computes the exact value of the diameter of an
+        unweighted undirected graph. It is based on the following observation:
 
-              The diameter of the graph is equal to the maximum eccentricity of
-              a vertex. Let `v` be any vertex, and let `V` be partitionned into
-              `A\cup B` where:
+            The diameter of the graph is equal to the maximum eccentricity of
+            a vertex. Let `v` be any vertex, and let `V` be partitionned into
+            `A\cup B` where:
 
-              .. MATH::
+            .. MATH::
 
-                  d(v,a)<=i, \forall a \in A\\
-                  d(v,b)>=i, \forall b \in B
+                d(v,a)<=i, \forall a \in A\\
+                d(v,b)>=i, \forall b \in B
 
-              As all vertices from `A` are at distance `\leq 2i` from each
-              other, a vertex `a\in A` with eccentricity `ecc(a)>2i` is at
-              distance `ecc(a)` from some vertex `b\in B`.
+            As all vertices from `A` are at distance `\leq 2i` from each
+            other, a vertex `a\in A` with eccentricity `ecc(a)>2i` is at
+            distance `ecc(a)` from some vertex `b\in B`.
 
-              Consequently, if we have already computed the maximum eccentricity
-              `m` of all vertices in `B` and if `m>2i`, then we do not need to
-              compute the eccentricity of the vertices in `A`.
+            Consequently, if we have already computed the maximum eccentricity
+            `m` of all vertices in `B` and if `m>2i`, then we do not need to
+            compute the eccentricity of the vertices in `A`.
 
-          Starting from a vertex `v` obtained through a multi-sweep computation
-          (which refines the 4sweep algorithm used in [CGH+13]_), we compute the
-          diameter by computing the eccentricity of all vertices sorted
-          decreasingly according to their distance to `v`, and stop as allowed
-          by the remark above. The worst case time complexity of the iFUB
-          algorithm is `O(nm)`, but it can be very fast in practice.
+        Starting from a vertex `v` obtained through a multi-sweep computation
+        (which refines the 4sweep algorithm used in [CGH+13]_), we compute the
+        diameter by computing the eccentricity of all vertices sorted
+        decreasingly according to their distance to `v`, and stop as allowed
+        by the remark above. The worst case time complexity of the iFUB
+        algorithm is `O(nm)`, but it can be very fast in practice.
 
-    - ``source`` -- (default: None) vertex from which to start the first BFS. If
-      ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
+    - ``source`` -- (default: None) vertex from which to start the first BFS.
+      If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
-      when ``method=='standard'``.
+      when ``algorithm=='standard'``.
 
     EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import diameter
         sage: G = graphs.PetersenGraph()
-        sage: diameter(G, method='iFUB')
+        sage: diameter(G, algorithm='iFUB')
         2
         sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
-        sage: diameter(G, method='iFUB')
+        sage: diameter(G, algorithm='iFUB')
         +Infinity
 
 
@@ -1313,21 +1316,21 @@ def diameter(G, method='iFUB', source=None):
     never be negative, we define it to be zero::
 
         sage: G = graphs.EmptyGraph()
-        sage: diameter(G, method='iFUB')
+        sage: diameter(G, algorithm='iFUB')
         0
 
-    Comparison of exact methods::
+    Comparison of exact algorithms::
 
         sage: G = graphs.RandomBarabasiAlbert(100, 2)
-        sage: d1 = diameter(G, method='standard')
-        sage: d2 = diameter(G, method='iFUB')
-        sage: d3 = diameter(G, method='iFUB', source=G.random_vertex())
+        sage: d1 = diameter(G, algorithm='standard')
+        sage: d2 = diameter(G, algorithm='iFUB')
+        sage: d3 = diameter(G, algorithm='iFUB', source=G.random_vertex())
         sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
 
-    Comparison of lower bound methods::
+    Comparison of lower bound algorithms::
 
-        sage: lb2 = diameter(G, method='2sweep')
-        sage: lbm = diameter(G, method='multi-sweep')
+        sage: lb2 = diameter(G, algorithm='2sweep')
+        sage: lbm = diameter(G, algorithm='multi-sweep')
         sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
 
     TEST:
@@ -1335,19 +1338,19 @@ def diameter(G, method='iFUB', source=None):
     This was causing a segfault. Fixed in :trac:`17873` ::
 
         sage: G = graphs.PathGraph(1)
-        sage: diameter(G, method='iFUB')
+        sage: diameter(G, algorithm='iFUB')
         0
     """
     cdef int n = G.order()
     if n==0:
         return 0
 
-    if method=='standard' or G.is_directed():
+    if algorithm=='standard' or G.is_directed():
         return max(G.eccentricity())
-    elif method is None:
-        method = 'iFUB'
-    elif not method in ['2sweep', 'multi-sweep', 'iFUB']:
-        raise ValueError("Unknown method for computing the diameter.")
+    elif algorithm is None:
+        algorithm = 'iFUB'
+    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB']:
+        raise ValueError("Unknown algorithm for computing the diameter.")
 
     if source is None:
         source = next(G.vertex_iterator())
@@ -1368,7 +1371,7 @@ def diameter(G, method='iFUB', source=None):
     cdef uint32_t * tab
     cdef int LB
 
-    if method=='2sweep':
+    if algorithm=='2sweep':
         # We need to allocate arrays and bitset
         bitset_init(seen, n)
         tab = <uint32_t *> sage_malloc(2* n * sizeof(uint32_t))
@@ -1382,10 +1385,10 @@ def diameter(G, method='iFUB', source=None):
         bitset_free(seen)
         sage_free(tab)
 
-    elif method=='multi-sweep':
+    elif algorithm=='multi-sweep':
         LB = diameter_lower_bound_multi_sweep(n, sd.neighbors, isource)[0]
 
-    else: # method=='iFUB'
+    else: # algorithm=='iFUB'
         LB = diameter_iFUB(n, sd.neighbors, isource)
 
 
@@ -1549,13 +1552,13 @@ def floyd_warshall(gg, paths = True, distances = False):
 
     INPUT:
 
-        - ``gg`` -- the graph on which to work.
+    - ``gg`` -- the graph on which to work.
 
-        - ``paths`` (boolean) -- whether to return the dictionary of shortest
-          paths. Set to ``True`` by default.
+    - ``paths`` (boolean) -- whether to return the dictionary of shortest
+      paths. Set to ``True`` by default.
 
-        - ``distances`` (boolean) -- whether to return the dictionary of
-          distances. Set to ``False`` by default.
+    - ``distances`` (boolean) -- whether to return the dictionary of
+      distances. Set to ``False`` by default.
 
     OUTPUT:
 

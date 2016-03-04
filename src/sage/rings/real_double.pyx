@@ -45,8 +45,7 @@ from cpython.float cimport *
 include "sage/ext/python_debug.pxi"
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/random.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from sage.libs.gsl.all cimport *
 cimport libc.math
 
@@ -66,6 +65,7 @@ from sage.rings.integer_ring import ZZ
 
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
+from sage.misc.randstate cimport randstate, current_randstate
 
 
 def is_RealDoubleField(x):
@@ -140,7 +140,7 @@ cdef class RealDoubleField_class(Field):
             sage: TestSuite(R).run()
         """
         from sage.categories.fields import Fields
-        Field.__init__(self, self, category = Fields())
+        Field.__init__(self, self, category=Fields().Metric().Complete())
         self._populate_coercion_lists_(element_constructor=RealDoubleElement,
                                        init_no_parent=True,
                                        convert_method_name='_real_double_')
@@ -1843,9 +1843,9 @@ cdef class RealDoubleElement(FieldElement):
             if GSL_IS_EVEN(n):
                 return self._complex_double_(sage.rings.complex_double.CDF).nth_root(n)
             else:
-                return - ( (-self).__pow__(float(1)/n) )
+                return - ( (-self) ** (float(1)/n) )
         else:
-            return self.__pow__(float(1)/n)
+            return self ** (float(1)/n)
 
     cdef RealDoubleElement __pow_float(self, double exponent):
         """
@@ -2533,7 +2533,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.algebraic_dependency(5)
             x^2 - 2
         """
-        return sage.rings.arith.algdep(self,n)
+        return sage.arith.all.algdep(self,n)
 
     algdep = algebraic_dependency
 
@@ -2775,28 +2775,6 @@ def time_alloc_list(n):
 
     return l
 
-def time_alloc(n):
-    """
-    Allocate ``n`` :class:`RealDoubleElement` instances.
-
-    EXAMPLES:
-
-    Since this does not store anything in a python object, the created
-    elements will not be sent to the garbage collector. Therefore they
-    remain in the pool::
-
-        sage: from sage.rings.real_double import time_alloc, pool_stats
-        sage: pool_stats()
-        Used pool 0 / 0 times
-        Pool contains 7 / 50 items
-        sage: time_alloc(25)
-        sage: pool_stats()
-        Used pool 0 / 0 times
-        Pool contains 7 / 50 items
-    """
-    cdef int i
-    for i from 0 <= i < n:
-        z = PY_NEW(RealDoubleElement)
 
 def pool_stats():
     """

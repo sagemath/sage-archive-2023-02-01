@@ -106,7 +106,7 @@ from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import random_vector, vector
 from sage.numerical.optimize import find_root
 from sage.rings.all import ZZ, RealField, IntegerModRing, RR
-from sage.rings.arith import next_prime, euler_phi
+from sage.arith.all import next_prime, euler_phi
 from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
 from sage.symbolic.constants import pi

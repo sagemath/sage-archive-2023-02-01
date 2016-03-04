@@ -651,7 +651,7 @@ class Crystals(Category_singleton):
                 sage: psi(Bp.highest_weight_vector())
                 [[1, 1], [2]]
 
-            We can also use a dictonary to specify the generators and
+            We can also use a dictionary to specify the generators and
             their images::
 
                 sage: psi = Bp.crystal_morphism({Bp.lowest_weight_vectors()[0]: x})

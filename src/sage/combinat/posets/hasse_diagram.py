@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hasse diagrams of posets
 
@@ -375,6 +376,8 @@ class HasseDiagram(DiGraph):
             sage: p.is_chain()
             False
         """
+        if self.cardinality() == 0:
+            return True
         return (self.num_edges()+1 == self.num_verts() and # Hasse Diagram is a tree
                 all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
                 all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
@@ -704,58 +707,61 @@ class HasseDiagram(DiGraph):
         """
         return self.order()
 
-    def mobius_function(self,i,j): # dumb algorithm
+    from sage.misc.superseded import deprecated_function_alias
+    def moebius_function(self,i,j): # dumb algorithm
         r"""
-        Returns the value of the M\"obius function of the poset
+        Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
 
         EXAMPLES::
 
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
             sage: H = P._hasse_diagram
-            sage: H.mobius_function(0,4)
+            sage: H.moebius_function(0,4)
             2
             sage: for u,v in P.cover_relations_iterator():
-            ...    if P.mobius_function(u,v) != -1:
-            ...        print "Bug in mobius_function!"
+            ....:     if P.moebius_function(u,v) != -1:
+            ....:         print "Bug in moebius_function!"
         """
         try:
-            return self._mobius_function_values[(i,j)]
+            return self._moebius_function_values[(i,j)]
         except AttributeError:
-            self._mobius_function_values = {}
-            return self.mobius_function(i,j)
+            self._moebius_function_values = {}
+            return self.moebius_function(i,j)
         except KeyError:
             if i == j:
-                self._mobius_function_values[(i,j)] = 1
+                self._moebius_function_values[(i,j)] = 1
             elif i > j:
-                self._mobius_function_values[(i,j)] = 0
+                self._moebius_function_values[(i,j)] = 0
             else:
                 ci = self.closed_interval(i,j)
                 if len(ci) == 0:
-                    self._mobius_function_values[(i,j)] = 0
+                    self._moebius_function_values[(i,j)] = 0
                 else:
-                    self._mobius_function_values[(i,j)] = \
-                     -sum([self.mobius_function(i,k) for k in ci[:-1]])
-        return self._mobius_function_values[(i,j)]
+                    self._moebius_function_values[(i,j)] = \
+                     -sum([self.moebius_function(i,k) for k in ci[:-1]])
+        return self._moebius_function_values[(i,j)]
+    mobius_function = deprecated_function_alias(19855, moebius_function)
 
-    def mobius_function_matrix(self):
+    from sage.misc.superseded import deprecated_function_alias
+    def moebius_function_matrix(self):
         r"""
-        Returns the matrix of the Mobius function of this poset
+        Returns the matrix of the Möbius function of this poset
 
         This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
-        is the value of the M\"obius function of ``self`` evaluated on
-        ``x`` and ``y``, and redefines :meth:`mobius_function` to use
+        is the value of the Möbius function of ``self`` evaluated on
+        ``x`` and ``y``, and redefines :meth:`moebius_function` to use
         it.
 
         .. NOTE::
 
-            The result is cached in :meth:`_mobius_function_matrix`.
+            The result is cached in :meth:`_moebius_function_matrix`.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
-            sage: H.mobius_function_matrix()
+            sage: H.moebius_function_matrix()
             [ 1 -1 -1 -1  1  0  1  0]
             [ 0  1  0  0 -1  0  0  0]
             [ 0  0  1  0 -1 -1 -1  2]
@@ -767,40 +773,43 @@ class HasseDiagram(DiGraph):
 
         TESTS::
 
-            sage: H.mobius_function_matrix().is_immutable()
+            sage: H.moebius_function_matrix().is_immutable()
             True
-            sage: hasattr(H,'_mobius_function_matrix')
+            sage: hasattr(H,'_moebius_function_matrix')
             True
 
-            sage: H.mobius_function == H._mobius_function_from_matrix
+            sage: H.moebius_function == H._moebius_function_from_matrix
             True
         """
-        if not hasattr(self,'_mobius_function_matrix'):
-            self._mobius_function_matrix = self.lequal_matrix().inverse().change_ring(ZZ)
-            self._mobius_function_matrix.set_immutable()
-            self.mobius_function = self._mobius_function_from_matrix
-        return self._mobius_function_matrix
+        if not hasattr(self,'_moebius_function_matrix'):
+            self._moebius_function_matrix = self.lequal_matrix().inverse().change_ring(ZZ)
+            self._moebius_function_matrix.set_immutable()
+            self.moebius_function = self._moebius_function_from_matrix
+        return self._moebius_function_matrix
+    mobius_function_matrix = deprecated_function_alias(19855, moebius_function_matrix)
 
-    # Redefine self.mobius_function
-    def _mobius_function_from_matrix(self, i,j):
+    # Redefine self.moebius_function
+    from sage.misc.superseded import deprecated_function_alias
+    def _moebius_function_from_matrix(self, i,j):
         r"""
-        Returns the value of the M\"obius function of the poset
+        Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
 
         EXAMPLES::
 
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
             sage: H = P._hasse_diagram
-            sage: H.mobius_function(0,4) # indirect doctest
+            sage: H.moebius_function(0,4) # indirect doctest
             2
             sage: for u,v in P.cover_relations_iterator():
-            ...    if P.mobius_function(u,v) != -1:
-            ...        print "Bug in mobius_function!"
+            ....:     if P.moebius_function(u,v) != -1:
+            ....:         print "Bug in moebius_function!"
 
-        This uses ``self._mobius_function_matrix``, as computed by
-        :meth:`mobius_function_matrix`.
+        This uses ``self._moebius_function_matrix``, as computed by
+        :meth:`moebius_function_matrix`.
         """
-        return self._mobius_function_matrix[i,j]
+        return self._moebius_function_matrix[i,j]
+    _mobius_function_from_matrix = deprecated_function_alias(19855, _moebius_function_from_matrix)
 
     @cached_method
     def coxeter_transformation(self):
@@ -824,7 +833,7 @@ class HasseDiagram(DiGraph):
             sage: M**8 == 1
             True
         """
-        return - self.lequal_matrix()*self.mobius_function_matrix().transpose()
+        return - self.lequal_matrix()*self.moebius_function_matrix().transpose()
 
     def order_filter(self, elements):
         """
@@ -1288,33 +1297,34 @@ class HasseDiagram(DiGraph):
 
     def is_complemented_lattice(self):
         r"""
-        Returns ``True`` if ``self`` is the Hasse diagram of a
+        Return ``True`` if ``self`` is the Hasse diagram of a
         complemented lattice, and ``False`` otherwise.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
             sage: H.is_complemented_lattice()
             True
 
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[3], 3:[4]})
             sage: H.is_complemented_lattice()
             False
         """
+        from itertools import izip
         try:
-            jn = self.join_matrix()
             mt = self.meet_matrix()
+            jn = self.join_matrix()
         except ValueError:
             return False
-        n = self.cardinality()
-        c = [-1 for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return all([c[x]!=-1 for x in range(n)])
+        n = self.cardinality() - 1
+        for row1, row2 in izip(mt, jn):
+            for c1, c2 in izip(row1, row2):
+                if c1 == 0 and c2 == n:
+                    break
+            else:
+                return False
+        return True
 
     def complements(self):
         r"""
@@ -1332,6 +1342,44 @@ class HasseDiagram(DiGraph):
                     c[x]=y
                     c[y]=x
         return c
+
+    def pseudocomplement(self, element):
+        """
+        Return the pseudocomplement of ``element``, if it exists.
+
+        The pseudocomplement is the greatest element whose
+        meet with given element is the bottom element. It may
+        not exist, and then the function returns ``None``.
+
+        INPUT:
+
+        - ``element`` -- an element of the lattice.
+
+        OUTPUT:
+
+        An element of the Hasse diagram, i.e. an integer, or
+        ``None`` if the pseudocomplement does not exist.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: H.pseudocomplement(2)
+            3
+
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.pseudocomplement(2) is None
+            True
+        """
+        e = self.order() - 1
+        while self._meet[e, element] != 0:
+            e -= 1
+        e1 = e
+        while e1 > 0:
+            if self._meet[e1, element] == 0 and not self.is_lequal(e1, e):
+                return None
+            e1 -= 1
+        return e
 
     def antichains_iterator(self):
         r"""
@@ -1535,7 +1583,7 @@ class HasseDiagram(DiGraph):
     def maximal_sublattices(self):
         """
         Return maximal sublattices of the lattice.
- 
+
         EXAMPLES::
 
             sage: L = Posets.PentagonPoset()
@@ -1636,6 +1684,25 @@ class HasseDiagram(DiGraph):
 
         return result
 
+    def frattini_sublattice(self):
+        """
+        Return the list of elements of the Frattini sublattice of the lattice.
+
+        EXAMPLES::
+
+            sage: H = Posets.PentagonPoset()._hasse_diagram
+            sage: H.frattini_sublattice()
+            [0, 4]
+        """
+        # Just a direct computation, no optimization at all.
+        n = self.cardinality()
+        if n == 0 or n == 2: return []
+        if n == 1: return [0]
+        max_sublats = self.maximal_sublattices()
+        return [e for e in range(self.cardinality()) if
+                all(e in ms for ms in max_sublats)]
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))
+

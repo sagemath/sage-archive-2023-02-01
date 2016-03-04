@@ -8,12 +8,13 @@ fi
 
 if [  "$SAGE64" = "yes" ]; then
    CFLAGS="-O2 -g -m64 "; export CFLAGS
-   LDFLAGS="-m64"; export LDFLAGS
+   LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
 fi
 
 cd src
 
-GNUMAKE=${MAKE} ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+# Disabling harfbuzz until upstream properly check for suitable version
+GNUMAKE=${MAKE} ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-harfbuzz=no
 
 if [ $? -ne 0 ]; then
     exit 1;

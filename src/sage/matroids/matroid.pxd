@@ -89,6 +89,7 @@ cdef class Matroid(SageObject):
     cpdef circuit_closures(self)
     cpdef nonspanning_circuit_closures(self)
     cpdef bases(self)
+    cpdef independent_sets(self)
     cpdef independent_r_sets(self, long r)
     cpdef nonbases(self)
     cpdef dependent_r_sets(self, long r)
@@ -173,6 +174,9 @@ cdef class Matroid(SageObject):
     cpdef intersection(self, other, weights=*)
     cpdef _intersection(self, other, weights)
     cpdef _intersection_augmentation(self, other, weights, Y)
+    cpdef intersection_unweighted(self, other)
+    cpdef _intersection_unweighted(self, other)
+    cpdef _intersection_augmentation_unweighted(self, other, Y)
     cpdef partition(self)
 
     # invariants

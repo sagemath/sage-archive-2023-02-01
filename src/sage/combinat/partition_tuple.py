@@ -256,7 +256,8 @@ subgroup::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartesian_product import CartesianProduct
+import itertools
+
 from combinat import CombinatorialElement
 from integer_vector import IntegerVectors
 from partition import Partition, Partitions, Partitions_n, _Partitions
@@ -526,10 +527,6 @@ class PartitionTuple(CombinatorialElement):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.global_options.reset()
         """
-        if compact is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16933, 'compact argument is deprecated.')
-
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _repr_diagram(self):
@@ -538,8 +535,10 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
-            '   **   ***   *\n   *    **    *\n              *'
+            sage: print PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
+               **   ***   *
+               *    **    *
+                          *
         """
         return self.diagram()
 
@@ -1485,7 +1484,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
         sage: ( [] ) in PartitionTuples()
         True
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in PartitionTuples()
         False
@@ -1562,7 +1561,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
         """
         # one way or another these two cases need to be treated separately
-        if mu==[] or mu==[[]]:
+        if mu == [] or mu == () or mu == [[]]:
             return Partition([])
 
         # As partitions are 1-tuples of partitions we need to treat them separately
@@ -1826,28 +1825,28 @@ class PartitionTuples_level(PartitionTuples):
 
         EXAMPLES::
 
-        sage: parts=PartitionTuples(3)
-        sage: [parts[k] for k in range(20)]
-        [([], [], []),
-         ([1], [], []),
-         ([], [1], []),
-         ([], [], [1]),
-         ([2], [], []),
-         ([1, 1], [], []),
-         ([1], [1], []),
-         ([1], [], [1]),
-         ([], [2], []),
-         ([], [1, 1], []),
-         ([], [1], [1]),
-         ([], [], [2]),
-         ([], [], [1, 1]),
-         ([3], [], []),
-         ([2, 1], [], []),
-         ([1, 1, 1], [], []),
-         ([2], [1], []),
-         ([1, 1], [1], []),
-         ([2], [], [1]),
-         ([1, 1], [], [1])]
+            sage: parts=PartitionTuples(3)
+            sage: [parts[k] for k in range(20)]
+            [([], [], []),
+             ([1], [], []),
+             ([], [1], []),
+             ([], [], [1]),
+             ([2], [], []),
+             ([1, 1], [], []),
+             ([1], [1], []),
+             ([1], [], [1]),
+             ([], [2], []),
+             ([], [1, 1], []),
+             ([], [1], [1]),
+             ([], [], [2]),
+             ([], [], [1, 1]),
+             ([3], [], []),
+             ([2, 1], [], []),
+             ([1, 1, 1], [], []),
+             ([2], [1], []),
+             ([1, 1], [1], []),
+             ([2], [], [1]),
+             ([1, 1], [], [1])]
         """
         for size in NN:
             for mu in PartitionTuples_level_size(self.level(),size):
@@ -2049,7 +2048,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         p = [Partitions(i) for i in range(self.size()+1)]
         for iv in IntegerVectors(self.size(),self.level()):
-            for cp in CartesianProduct(*[p[i] for i in iv]):
+            for cp in itertools.product(*[p[i] for i in iv]):
                 yield self._element_constructor_(cp)
 
 
@@ -2106,7 +2105,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         In order to maintain backwards compatibility and be able to unpickle a
         old pickle from PartitionTuples_nk we have to override the default
-        __setstate__.
+        ``__setstate__``.
 
         TESTS::
 

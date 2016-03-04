@@ -44,8 +44,7 @@ other types will also coerce to the integers, when it makes sense.
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "sage/ext/random.pxi"
+include "cysignals/signals.pxi"
 
 from cpython.int cimport *
 from cpython.list cimport *
@@ -64,6 +63,8 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.misc.misc_c import prod
+from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
+from sage.libs.ntl.convert cimport ZZ_to_mpz
 
 cimport integer
 cimport rational
@@ -75,8 +76,8 @@ cdef void late_import():
     # A hack to avoid circular imports.
     global arith
     if arith is None:
-        import sage.rings.arith
-        arith = sage.rings.arith
+        import sage.arith.all
+        arith = sage.arith.all
 
 cdef int number_of_integer_rings = 0
 
@@ -122,7 +123,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         False
         sage: Z.category()
         Join of Category of euclidean domains
-            and Category of infinite enumerated sets
+             and Category of infinite enumerated sets
+             and Category of metric spaces
         sage: Z(2^(2^5) + 1)
         4294967297
 
@@ -303,7 +305,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             True
         """
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
-                                category=(EuclideanDomains(), InfiniteEnumeratedSets()))
+                                category=(EuclideanDomains(), InfiniteEnumeratedSets().Metric()))
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
@@ -415,11 +417,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: A._div(12,0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
         if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError('Rational division by zero')
+            raise ZeroDivisionError('rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
         mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)
@@ -497,7 +499,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             start = PY_NEW(Integer) # 0
         if step is None:
             step = 1
-        if not PyInt_CheckExact(step):
+        if type(step) is not int:
             if not isinstance(step, integer.Integer):
                 step = integer.Integer(step)
             if mpz_fits_slong_p((<Integer>step).value):
@@ -514,7 +516,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer zstep, last
 
         L = []
-        if PyInt_CheckExact(step):
+        if type(step) is int:
             istep = PyInt_AS_LONG(step)
             step_sign = istep
         else:
@@ -525,7 +527,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         while mpz_cmp(a.value, b.value)*step_sign < 0:
             last = a
             a = PY_NEW(Integer)
-            if PyInt_CheckExact(step): # count on branch prediction...
+            if type(step) is int: # count on branch prediction...
                 if istep > 0:
                     mpz_add_ui(a.value, last.value, istep)
                 else:
@@ -1245,9 +1247,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         elif n == 2:
             return sage.rings.integer.Integer(-1)
         elif n < 1:
-            raise ValueError, "n must be positive in zeta()"
+            raise ValueError("n must be positive in zeta()")
         else:
-            raise ValueError, "no nth root of unity in integer ring"
+            raise ValueError("no nth root of unity in integer ring")
 
     def parameter(self):
         r"""

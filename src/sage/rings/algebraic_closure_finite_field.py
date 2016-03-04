@@ -700,7 +700,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         if n == 1:
             return self.base_ring()
         else:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             return FiniteField(self.base_ring().cardinality() ** n,
                                name=self.variable_name() + str(n),
                                modulus=self._get_polynomial(n),
@@ -896,7 +896,7 @@ class AlgebraicClosureFiniteField_generic(Field):
             ....:         assert p(r).is_zero(), "r={} is not a root of p={}".format(r,p)
 
         """
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         # first build a polynomial over some finite field

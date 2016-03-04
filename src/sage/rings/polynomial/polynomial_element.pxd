@@ -9,6 +9,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef char _is_gen
     cdef CompiledPolynomialFunction _compiled
     cpdef Polynomial truncate(self, long n)
+    cpdef Polynomial inverse_series_trunc(self, long prec)
     cdef long _hash_c(self) except -1
     cpdef constant_coefficient(self)
     cpdef Polynomial _new_constant_poly(self, a, Parent P)
@@ -21,6 +22,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace
     cdef _inplace_truncate(self, long n)
+
+    cdef get_unsafe(self, Py_ssize_t i)
 
 cdef class Polynomial_generic_dense(Polynomial):
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P)

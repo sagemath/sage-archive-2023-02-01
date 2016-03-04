@@ -40,6 +40,9 @@ from sage.rings.all import (Integer,
                             is_fundamental_discriminant,
                             PolynomialRing)
 
+from sage.misc.all import cached_function
+
+@cached_function
 def hilbert_class_polynomial(D, algorithm=None):
     r"""
     Returns the Hilbert class polynomial for discriminant `D`.
@@ -153,6 +156,7 @@ def hilbert_class_polynomial(D, algorithm=None):
     return IntegerRing()['x'](coeffs)
 
 
+@cached_function
 def cm_j_invariants(K, proof=None):
     r"""
     Return a list of all CM `j`-invariants in the field `K`.
@@ -192,6 +196,7 @@ def cm_j_invariants(K, proof=None):
     """
     return list(sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]))
 
+@cached_function
 def cm_j_invariants_and_orders(K, proof=None):
     r"""
     Return a list of all CM `j`-invariants in the field `K`, together with the associated orders.
@@ -240,6 +245,7 @@ def cm_j_invariants_and_orders(K, proof=None):
              for j in hilbert_class_polynomial(D*f*f).roots(K, multiplicities=False)]
 
 
+@cached_function
 def cm_orders(h, proof=None):
     """
     Return a list of all pairs `(D,f)` where there is a CM order of
@@ -363,6 +369,7 @@ def largest_fundamental_disc_with_class_number(h):
         # nobody knows, since I guess Watkins's is state of the art.
         raise NotImplementedError("largest discriminant not known for class number %s"%h)
 
+@cached_function
 def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     """
     Return dictionary with keys class numbers `h\le hmax` and values the
@@ -519,6 +526,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
 
     return T
 
+@cached_function
 def is_cm_j_invariant(j):
     """
     Returns whether or not this is a CM `j`-invariant.
@@ -572,11 +580,11 @@ def is_cm_j_invariant(j):
         raise NotImplementedError("is_cm_j_invariant() is only implemented for number field elements")
     if not j.is_integral():
         return False, None
-    h = 1 if j in QQ else j.absolute_minpoly().degree()
+    jpol = PolynomialRing(QQ,'x')([-j,1]) if j in QQ else j.absolute_minpoly()
+    h = jpol.degree()
     if h>100:
         raise NotImplementedError("CM data only available for class numbers up to 100")
     for d,f in cm_orders(h):
-        pol = hilbert_class_polynomial(d*f**2)
-        if pol(j)==0:
+        if jpol == hilbert_class_polynomial(d*f**2):
             return True, (d,f)
     return False, None

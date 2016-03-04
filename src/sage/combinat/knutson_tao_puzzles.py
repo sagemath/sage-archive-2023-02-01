@@ -599,7 +599,7 @@ class PuzzlePieces(object):
             sage: hash(x) == hash(x)
             True
         """
-        return hash((type(self), self.__repr__()))
+        return hash((type(self), repr(self)))
 
     def add_piece(self, piece, rotations=120):
         r"""

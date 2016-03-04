@@ -22,7 +22,7 @@ from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type
-from sage.structure.element import get_coercion_model
+from sage.structure.element cimport coercion_model
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -135,7 +135,7 @@ cdef class Function(SageObject):
         functions was broken. We check here that this is fixed
         (:trac:`11919`)::
 
-            sage: f = function('f', x)
+            sage: f = function('f')(x)
             sage: s = dumps(f)
             sage: loads(s)
             f(x)
@@ -255,7 +255,7 @@ cdef class Function(SageObject):
             evalf = self._evalf_  # catch AttributeError early
             if any(self._is_numerical(x) for x in args):
                 if not any(isinstance(x, Expression) for x in args):
-                    p = get_coercion_model().common_parent(*args)
+                    p = coercion_model.common_parent(*args)
                     return evalf(*args, parent=p)
         except Exception:
             pass
@@ -303,7 +303,8 @@ cdef class Function(SageObject):
 
     def __cmp__(self, other):
         """
-        TESTS:
+        TESTS::
+
             sage: foo = function("foo", nargs=2)
             sage: foo == foo
             True
@@ -755,7 +756,7 @@ cdef class Function(SageObject):
 
         To ensure that we actually can fall back to an implementation
         not using mpmath, we have to create a custom function which
-        will certainly never get created in mpmath.
+        will certainly never get created in mpmath. ::
 
             sage: import mpmath
             sage: from sage.symbolic.function import BuiltinFunction
@@ -819,14 +820,7 @@ cdef class GinacFunction(BuiltinFunction):
         Python ``int``s which are returned by Ginac to Sage Integers.
 
         This is needed to fix :trac:`10133`, where Ginac evaluates
-        ``sin(0)`` to the Python int ``0``::
-
-            sage: from sage.symbolic.function import BuiltinFunction
-            sage: out = BuiltinFunction.__call__(sin, 0)
-            sage: out, parent(out)
-            (0, <type 'int'>)
-
-        With this wrapper we have::
+        ``sin(0)`` to the Python int ``0``. With this wrapper we have::
 
             sage: out = sin(0)
             sage: out, parent(out)
@@ -1032,7 +1026,7 @@ cdef class BuiltinFunction(Function):
             sage: p3 = AFunction('p3', 3)
             sage: p3(x)
             x^3
-            sage: loads(dumps(cot)) == cot    # :trac:`15138`
+            sage: loads(dumps(cot)) == cot    # trac #15138
             True
         """
         # check if already defined

@@ -96,6 +96,12 @@ cdef extern from "cplex.h":
      # Get the objective value
      int CPXgetobjval (c_cpxlp *, c_cpxlp *, double *)
 
+     # Get the best objective value (i.e., best lower/upper bound)
+     int CPXgetbestobjval (c_cpxlp *, c_cpxlp *, double *)
+
+     # Get MIP relative gap
+     int CPXgetmiprelgap (c_cpxlp *, c_cpxlp *, double *)
+
      # Add columns
      int CPXnewcols(c_cpxlp * env, c_cpxlp * lp, int, double *, double *, double *, char *, char **)
 

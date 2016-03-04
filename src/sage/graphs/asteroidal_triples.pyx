@@ -67,7 +67,7 @@ Functions
 # http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
 
 from libc.stdint cimport uint32_t
@@ -240,7 +240,7 @@ cdef list is_asteroidal_triple_free_C(int n,
 
         # We now search for an unseen vertex
         v = bitset_first_in_complement(seen)
-        while v!=-1:
+        while v != <uint32_t>-1:
             # and add it to the queue
             waiting_list[0] = v
             waiting_beginning = 0

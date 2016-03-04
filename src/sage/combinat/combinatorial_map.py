@@ -264,14 +264,14 @@ class CombinatorialMap(object):
 
             sage: sage.combinat.combinatorial_map.combinatorial_map = sage.combinat.combinatorial_map.combinatorial_map_wrapper
             sage: import imp
-            sage: _ = imp.reload(sage.combinat.permutation);
+            sage: _ = imp.reload(sage.combinat.permutation)
             sage: p = Permutation([1,3,2,4])
             sage: cm = p.left_tableau; cm
             Combinatorial map: Robinson-Schensted insertion tableau
             sage: (src, lines) = cm._sage_src_lines_()
             sage: src[0]
             "    @combinatorial_map(name='Robinson-Schensted insertion tableau')\n"
-            sage: lines # random
+            sage: lines  # random
             2653
         """
         from sage.misc.sageinspect import sage_getsourcelines

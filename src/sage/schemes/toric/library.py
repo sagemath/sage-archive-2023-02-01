@@ -31,8 +31,10 @@ or immediately during assignment like this::
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -40,7 +42,8 @@ from sage.structure.sage_object import SageObject
 
 from sage.matrix.all import matrix, identity_matrix
 from sage.geometry.all import Fan, LatticePolytope, ToricLattice
-from sage.rings.all import ZZ, QQ, gcd
+from sage.rings.all import ZZ, QQ
+from sage.arith.all import gcd
 from sage.schemes.toric.variety import (DEFAULT_PREFIX,
                                         ToricVariety,
                                         normalize_names)
@@ -728,7 +731,7 @@ class ToricVarietyFactory(SageObject):
 
     def P1xA1(self, names='s t z', base_ring=QQ):
         r"""
-        Construct the cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
+        Construct the Cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
         a toric variety.
 
         INPUT:

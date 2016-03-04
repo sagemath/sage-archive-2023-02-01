@@ -172,7 +172,7 @@ cdef class ClonableElement(Element):
 
     - ``obj.__copy__()`` -- returns a fresh copy of obj
     - ``obj.check()`` -- returns nothing, raise an exception if ``obj``
-      doesn't satisfies the data structure invariants
+      doesn't satisfy the data structure invariants
 
     and ensure to call ``obj._require_mutable()`` at the beginning of any
     modifying method.
@@ -744,7 +744,7 @@ cdef class ClonableArray(ClonableElement):
             sage: list(iter(IncreasingArrays()([])))
             []
         """
-        return self._list.__iter__()
+        return iter(self._list)
 
     def __contains__(self, item):
         """
@@ -757,7 +757,7 @@ cdef class ClonableArray(ClonableElement):
             sage: 5 in c
             False
         """
-        return self._list.__contains__(item)
+        return item in self._list
 
     cpdef int index(self, x, start=None, stop=None) except -1:
         """
@@ -1366,7 +1366,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: list(I) == range(5)  # indirect doctest
             True
         """
-        return self.list().__iter__()
+        return iter(self.list())
 
     cpdef list list(self):
         """

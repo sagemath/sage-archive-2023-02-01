@@ -68,17 +68,18 @@ C. \code{all_children_are_equivalent}:
     indeed the case, it still may return False. This function is originally used
     as a consequence of Lemma 2.25 in [1].
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.double_coset
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 

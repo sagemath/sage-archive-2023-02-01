@@ -21,7 +21,6 @@ if [ "x$SAGE64" = xyes ]; then
     CFLAGS="$CFLAGS $CFLAG64"; export CFLAGS
 fi
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 
 cd src
 
@@ -42,6 +41,9 @@ for patch in ../patches/*.patch; do
     patch -p2 < "$patch" ||
       die "Error patching cddlib"
 done
+
+# Use newer version of config.guess and config.sub (see Trac #19718)
+cp "$SAGE_ROOT"/config/config.* .
 
 ./configure \
   --prefix="$SAGE_LOCAL" \

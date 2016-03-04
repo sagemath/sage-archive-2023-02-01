@@ -78,7 +78,7 @@ cdef class ArgumentFixer:
     For the purpose of cached functions, it is important not
     to distinguish between these uses.
 
-    INPUTS:
+    INPUT:
 
     - f           -- a function
     - classmethod -- boolean (default False) -- True if the function
@@ -113,13 +113,6 @@ cdef class ArgumentFixer:
         ((1, 2, 3), (('a', 31), ('b', 2), ('n', 3)))
 
     """
-    cdef public object f
-    cdef public int _ndefault
-    cdef public int _nargs
-    cdef tuple _arg_names
-    cdef bint _classmethod
-    cdef dict _defaults
-    cdef public tuple _default_tuple
     def __init__(self, f, classmethod = False):
         try:
             arg_names, varargs, varkw, defaults = sage_getargspec(f)
@@ -240,13 +233,6 @@ cdef class ArgumentFixer:
             ARGS.append((k,kwargs_[k]))
         return tuple(extra_args), tuple(ARGS)
 
-    cpdef tuple defaults_to_pos(self, tuple Args):
-        cdef int lenargs = len(Args)
-        cdef int nargs = self._nargs
-        if lenargs>=nargs:
-            return Args, ()
-        return Args+self._default_tuple[-nargs+lenargs:],()
-
     def fix_to_pos(self, *args, **kwds):
         """
         Normalize the arguments with a preference for positional arguments.
@@ -294,22 +280,26 @@ cdef class ArgumentFixer:
             sage: do_something(1,2,3,4,5,6,f=14,e=16)
             1 2 3 (4, 5, 6) {'e': 16, 'f': 14}
         """
-        cdef tuple Args = args
-        cdef dict kwargs = kwds
-        cdef int lenargs = len(Args)
-        cdef int nargs = self._nargs
+        return self.fix_to_pos_args_kwds(args, kwds)
+
+    cdef fix_to_pos_args_kwds(self, tuple args, dict kwds):
+        """
+        Fast Cython implementation of :meth:`fix_to_pos`.
+        """
+        cdef Py_ssize_t lenargs = len(args)
+        cdef Py_ssize_t nargs = self._nargs
         cdef tuple arg_names = self._arg_names
         cdef dict defaults = self._defaults
         # a shortpath for the case of no named arguments:
-        if not kwargs:
-            if lenargs>=nargs:
+        if not kwds:
+            if lenargs >= nargs:
                 return args, ()
             # we take the given arguments, plus the default arguments
-            return Args+self._default_tuple[-nargs+lenargs:],() #tuple(list(Args)+[defaults[k] for k in arg_names[lenargs:]]),()
-        cdef list Largs = list(Args)
-        cdef int i
-        for i from lenargs<=i<nargs:
-        #for name,val in defaults.iteritems():
+            return args + self._default_tuple[-nargs+lenargs:],()
+        cdef list Largs = list(args)
+        cdef dict kwargs = dict(kwds)
+        cdef Py_ssize_t i
+        for i in range(lenargs, nargs):
             # in addition to the positional arguments, we take the
             # ones with default values, unless they are overridded by
             # the named arguments.
@@ -319,9 +309,7 @@ cdef class ArgumentFixer:
                 del kwargs[name]
             else:
                 val = defaults[name]
-            Largs.append(val) #kwargs.pop(name,val))
+            Largs.append(val)
         cdef list Items = kwargs.items()
         Items.sort()
-        return tuple(Largs), tuple(Items) #(k,kwargs_[k]) for k in sorted(kwargs_.keys()))
-
-
+        return tuple(Largs), tuple(Items)

@@ -64,16 +64,19 @@ For more information on how to specify coercions, conversions, and actions,
 see the documentation for Parent.
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cpython.object cimport *
+from cpython.object cimport (PyObject, PyTypeObject,
+        PyObject_CallObject, PyObject_RichCompare)
+from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
 cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
@@ -81,21 +84,19 @@ import operator
 cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
-from sage_object cimport SageObject
+from .sage_object cimport SageObject, rich_to_bool
+from .parent cimport Set_PythonType
+from .element cimport arith_error_message, parent_c
+from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
-import sage.categories.morphism
 from sage.categories.morphism import IdentityMorphism
-from sage.categories.action import InverseAction, PrecomposedAction
-from parent cimport Set_PythonType
-from coerce_exceptions import CoercionException
-from element cimport arith_error_message, parent_c
-
-import sys, traceback
-
-from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+from sage.categories.action cimport InverseAction, PrecomposedAction
 
 from sage.misc.lazy_import import LazyImport
 parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
+
+import traceback
 
 
 cpdef py_scalar_parent(py_type):
@@ -276,7 +277,7 @@ cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return type(x) is _Integer or type(x) is int
+    return type(x) is _Integer
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     """
@@ -409,15 +410,35 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: maps, actions = cm.get_cache()
 
-        Now lets see what happens when we do a binary operations with
+        Now let us see what happens when we do a binary operations with
         an integer and a rational::
 
-            sage: left_morphism, right_morphism = maps[ZZ, QQ]
-            sage: print copy(left_morphism)
+            sage: left_morphism_ref, right_morphism_ref = maps[ZZ, QQ]
+
+        Note that by :trac:`14058` the coercion model only stores a weak
+        reference to the coercion maps in this case::
+
+            sage: left_morphism_ref
+            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...
+            (RingHomset_generic_with_category._abstract_element_class)>
+
+        Moreover, the weakly referenced coercion map uses only a weak
+        reference to the codomain::
+
+            sage: left_morphism_ref()
+            (map internal to coercion system -- copy before use)
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
-            sage: print right_morphism
+
+        To get an actual valid map, we simply copy the weakly referenced
+        coercion map::
+                
+            sage: print copy(left_morphism_ref())
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: print right_morphism_ref
             None
 
         We can see that it coerces the left operand from an integer to a
@@ -490,7 +511,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         The function _test_exception_stack is executing the following code::
 
             try:
-                raise TypeError, "just a test"
+                raise TypeError("just a test")
             except TypeError:
                 cm._record_exception()
         """
@@ -518,7 +539,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
         """
         try:
-            raise TypeError, "just a test"
+            raise TypeError("just a test")
         except TypeError:
             self._record_exception()
 
@@ -758,7 +779,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 all.append("Coercion on right operand via")
                 all.append(y_mor)
                 if res is not None and res is not y_mor.codomain():
-                    raise RuntimeError, ("BUG in coercion model: codomains not equal!", x_mor, y_mor)
+                    raise RuntimeError("BUG in coercion model: codomains not equal!", x_mor, y_mor)
                 res = y_mor.codomain()
             all.append("Arithmetic performed after coercions.")
             if op is div and isinstance(res, Parent):
@@ -1045,7 +1066,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         # We should really include the underlying error.
         # This causes so much headache.
-        raise TypeError, arith_error_message(x,y,op)
+        raise TypeError(arith_error_message(x,y,op))
 
     cpdef canonical_coercion(self, x, y):
         r"""
@@ -1095,6 +1116,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: canonical_coercion(vector([1, 2, 3]), 0)
             ((1, 2, 3), (0, 0, 0))
+            sage: canonical_coercion(GF(5)(0), float(0))
+            (0, 0)
         """
         xp = parent_c(x)
         yp = parent_c(y)
@@ -1177,13 +1200,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return self.canonical_coercion(x, y)
 
         # Allow coercion of 0 even if no coercion from Z
-        if is_Integer(x) and not x and type(yp) is not type:
+        if (x_numeric or is_Integer(x)) and not x and type(yp) is not type:
             try:
                 return yp(0), y
             except Exception:
                 self._record_exception()
 
-        if is_Integer(y) and not y and type(xp) is not type:
+        if (y_numeric or is_Integer(y)) and not y and type(xp) is not type:
             try:
                 return x, xp(0)
             except Exception:
@@ -1265,33 +1288,76 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
             sage: parent(w+v) is W
             True
+
+        TESTS:
+
+        We check that with :trac:`14058`, parents are still eligible for
+        garbage collection after being involved in binary operations::
+
+            sage: import gc
+            sage: gc.collect() #random
+            852
+            sage: T=type(GF(2))
+            sage: N0=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: L=[ZZ(1)+GF(p)(1) for p in prime_range(2,50)]
+            sage: N1=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: print N1 > N0
+            True
+            sage: del L
+            sage: gc.collect() #random
+            3939
+            sage: N2=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: print N2-N0
+            0
+
         """
         try:
-            return self._coercion_maps.get(R, S, None)
+            refs = self._coercion_maps.get(R, S, None)
+            if refs is None:
+                return None
+            R_map_ref, S_map_ref = refs
+            if R_map_ref is None:
+                S_map = <object>PyWeakref_GET_OBJECT(S_map_ref)
+                if S_map is not None:
+                    return None, S_map
+            elif S_map_ref is None:
+                R_map = <object>PyWeakref_GET_OBJECT(R_map_ref)
+                if R_map is not None:
+                    return R_map, None
+            else:
+                R_map = <object>PyWeakref_GET_OBJECT(R_map_ref)
+                S_map = <object>PyWeakref_GET_OBJECT(S_map_ref)
+                if R_map is not None and S_map is not None:
+                    return R_map, S_map
         except KeyError:
-            homs = self.discover_coercion(R, S)
-            if 0:
-                # This breaks too many things that are going to change
-                # in the new coercion model anyways.
-                # COERCE TODO: Enable it then.
-                homs = self.verify_coercion_maps(R, S, homs)
+            pass
+        homs = self.discover_coercion(R, S)
+        if 0:
+            # This breaks too many things that are going to change
+            # in the new coercion model anyways.
+            # COERCE TODO: Enable it then.
+            homs = self.verify_coercion_maps(R, S, homs)
+        else:
+            if homs is not None:
+                x_map, y_map = homs
+                if x_map is not None and not isinstance(x_map, Map):
+                    raise RuntimeError("BUG in coercion model: coerce_map_from must return a Map")
+                if y_map is not None and not isinstance(y_map, Map):
+                    raise RuntimeError("BUG in coercion model: coerce_map_from must return a Map")
+        if homs is None:
+            refs = None
+            swap = None
+        else:
+            R_map, S_map = homs
+            R_map_ref = None if R_map is None else PyWeakref_NewRef(R_map, None)
+            S_map_ref = None if S_map is None else PyWeakref_NewRef(S_map, None)
+            refs = R_map_ref, S_map_ref
+            if R_map is None and isinstance(S, Parent) and (<Parent>S).has_coerce_map_from(R):
+                swap = None, PyWeakref_NewRef((<Parent>S).coerce_map_from(R), None)
             else:
-                if homs is not None:
-                    x_map, y_map = homs
-                    if x_map is not None and not isinstance(x_map, Map):
-                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
-                    if y_map is not None and not isinstance(y_map, Map):
-                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
-            if homs is None:
-                swap = None
-            else:
-                R_map, S_map = homs
-                if R_map is None and isinstance(S, Parent) and (<Parent>S).has_coerce_map_from(R):
-                    swap = None, (<Parent>S)._internal_coerce_map_from(R)
-                else:
-                    swap = S_map, R_map
-            self._coercion_maps.set(R, S, None, homs)
-            self._coercion_maps.set(S, R, None, swap)
+                swap = S_map_ref, R_map_ref
+        self._coercion_maps.set(R, S, None, refs)
+        self._coercion_maps.set(S, R, None, swap)
         return homs
 
     cpdef verify_coercion_maps(self, R, S, homs, bint fix=False):
@@ -1334,14 +1400,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if connecting is not None:
                     R_map = R_map * connecting
             if R_map.domain() is not R:
-                raise RuntimeError, ("BUG in coercion model, left domain must be original parent", R, R_map)
+                raise RuntimeError("BUG in coercion model, left domain must be original parent", R, R_map)
         if S_map is not None and S_map.domain() is not S:
             if fix:
                 connecting = S_map.domain()._internal_coerce_map_from(S)
                 if connecting is not None:
                     S_map = S_map * connecting
             if S_map.domain() is not S:
-                raise RuntimeError, ("BUG in coercion model, right domain must be original parent", S, S_map)
+                raise RuntimeError("BUG in coercion model, right domain must be original parent", S, S_map)
         # Make sure the codomains are correct
         if R_map.codomain() is not S_map.codomain():
             if fix:
@@ -1353,7 +1419,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     if connecting is not None:
                         R_map = connecting * R_map
             if R_map.codomain() is not S_map.codomain():
-                raise RuntimeError, ("BUG in coercion model, codomains must be identical", R_map, S_map)
+                raise RuntimeError("BUG in coercion model, codomains must be identical", R_map, S_map)
         if isinstance(R_map, IdentityMorphism):
             R_map = None
         elif isinstance(S_map, IdentityMorphism):
@@ -1431,9 +1497,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 coerce_R = Z._internal_coerce_map_from(R)
                 coerce_S = Z._internal_coerce_map_from(S)
                 if coerce_R is None:
-                    raise TypeError, "No coercion from %s to pushout %s" % (R, Z)
+                    raise TypeError("No coercion from %s to pushout %s" % (R, Z))
                 if coerce_S is None:
-                    raise TypeError, "No coercion from %s to pushout %s" % (S, Z)
+                    raise TypeError("No coercion from %s to pushout %s" % (S, Z))
                 return coerce_R, coerce_S
             except Exception:
                 self._record_exception()
@@ -1688,6 +1754,67 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         return None
 
+    cpdef richcmp(self, x, y, int op):
+        """
+        Given two arbitrary objects ``x`` and ``y``, coerce them to
+        a common parent and compare them using rich comparison operator
+        ``op``.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import get_coercion_model
+            sage: from sage.structure.sage_object import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
+            sage: richcmp = get_coercion_model().richcmp
+            sage: richcmp(None, None, op_EQ)
+            True
+            sage: richcmp(None, 1, op_LT)
+            True
+            sage: richcmp("hello", None, op_LE)
+            False
+            sage: richcmp(-1, 1, op_GE)
+            False
+            sage: richcmp(int(1), float(2), op_GE)
+            False
+
+        If there is no coercion, compare types::
+
+            sage: x = QQ.one(); y = GF(2).one()
+            sage: richcmp(x, y, op_EQ)
+            False
+            sage: richcmp(x, y, op_NE)
+            True
+            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
+            True
+        """
+        # Some very special cases
+        if x is None or x is Ellipsis:
+            return rich_to_bool(op, 0 if x is y else -1)
+        if y is None or y is Ellipsis:
+            return rich_to_bool(op, 0 if x is y else 1)
+
+        # Coerce to a common parent
+        try:
+            x, y = self.canonical_coercion(x, y)
+        except (TypeError, NotImplementedError):
+            pass
+        else:
+            return PyObject_RichCompare(x, y, op)
+
+        # Comparing with coercion didn't work, try something else.
+
+        # If types are not equal: compare types
+        cdef int c = cmp(type(x), type(y))
+        if c:
+            return rich_to_bool(op, c)
+
+        # Final attempt: compare by id()
+        if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):
+            # It cannot happen that x is y, since they don't
+            # have the same parent.
+            return rich_to_bool(op, 1)
+        else:
+            return rich_to_bool(op, -1)
+
     def _coercion_error(self, x, x_map, x_elt, y, y_map, y_elt):
         """
         This function is only called when someone has incorrectly implemented
@@ -1716,5 +1843,3 @@ Original elements %r (parent %s) and %r (parent %s) and maps
 %s %r"""%( x_elt, y_elt, parent_c(x_elt), parent_c(y_elt),
             x, parent_c(x), y, parent_c(y),
             type(x_map), x_map, type(y_map), y_map)
-
-

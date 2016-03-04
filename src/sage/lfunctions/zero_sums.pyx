@@ -8,27 +8,22 @@ AUTHORS:
 
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2014 Simon Spicer <mlungu@uw.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import prime_powers
+from sage.arith.all import prime_powers, next_prime
 from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
@@ -1318,7 +1313,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # General case for n > 480
         else:
             from sage.rings.finite_rings.integer_mod import mod
-            from sage.rings.arith import next_prime
 
             modulus,p = 2,2
             small_primes,residue_list = [2],[1]
@@ -1552,7 +1546,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         specified by max_Delta. This computation can be run on curves with
         very large conductor (so long as the conductor is known or quickly
         computable) when Delta is not too large (see below).
-        Uses Bober's rank bounding method as described in [Bob-13].
+
+        Uses Bober's rank bounding method as described in [Bob-13]_.
 
         INPUT:
 

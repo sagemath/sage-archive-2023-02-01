@@ -85,8 +85,8 @@ NOTE:
 
 from sage.rings.all      import Integer
 from sage.interfaces.all import gap
-from sage.rings.finite_rings.constructor import FiniteField as GF
-from sage.rings.arith import factor
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+from sage.arith.all import factor, valuation
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method, weak_cached_function
@@ -1016,6 +1016,34 @@ class JankoGroup(PermutationGroup_unique):
             Janko group J1 of order 175560 as a permutation group
         """
         return "Janko group J%s of order %s as a permutation group"%(self._n,self.order())
+
+class SuzukiSporadicGroup(PermutationGroup_unique):
+    def __init__(self):
+        r"""
+        Suzuki Sporadic Group
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.SuzukiSporadic(); G # optional - gap_packages internet
+            Sporadic Suzuki group acting on 1782 points
+
+        TESTS::
+
+            sage: G.category() # optional - gap_packages internet
+            Category of finite permutation groups
+            sage: TestSuite(G).run(skip=["_test_enumerated_set_contains", "_test_enumerated_set_iter_list"]) # optional - gap_packages internet
+        """
+        gap.load_package("atlasrep")
+        PermutationGroup_generic.__init__(self, gap_group='AtlasGroup("Suz")')
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: G = groups.permutation.SuzukiSporadic(); G # optional - gap_packages internet
+            Sporadic Suzuki group acting on 1782 points
+        """
+        return "Sporadic Suzuki group acting on 1782 points"
 
 class QuaternionGroup(DiCyclicGroup):
     r"""
@@ -2174,9 +2202,8 @@ def PrimitiveGroups(d=None):
 
     .. attention::
 
-        PrimitiveGroups requires the optional GAP database
-        package. Please install it with
-        ``install_package(`database_gap')``.
+        PrimitiveGroups requires the optional GAP database package.
+        Please install it by running ``sage -i database_gap``.
 
     EXAMPLES::
 
@@ -2929,7 +2956,6 @@ class SuzukiGroup(PermutationGroup_unique):
         -  http://en.wikipedia.org/wiki/Group_of_Lie_type\#Suzuki-Ree_groups
         """
         q = Integer(q)
-        from sage.rings.arith import valuation
         t = valuation(q, 2)
         if 2**t != q or is_even(t):
             raise ValueError("The ground field size %s must be an odd power of 2." % q)

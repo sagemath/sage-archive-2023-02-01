@@ -93,7 +93,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             sage: y
             [[0], [1, 0, 3, 2], [2, 1], [3, 2, 1, 0, 3, 2], [0], [], [2]]
         """
-        return self.data.__repr__()
+        return repr(self.data)
 
     def __eq__(self,other):
         r"""
@@ -641,7 +641,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         return True
 
 
-class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
+class InfinityCrystalOfGeneralizedYoungWalls(UniqueRepresentation, Parent):
     r"""
     The crystal `\mathcal{Y}(\infty)` of generalized Young walls of
     type `A_n^{(1)}` as defined in [KS10]_.

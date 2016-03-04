@@ -2262,7 +2262,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 M._forget()
                 comp_chains[comp] = M._linear_extension_chains(FM, fundamentals)
 
-            chains = [{}]             # make cartesian product of component chains
+            chains = [{}]             # make Cartesian product of component chains
             for comp in comp_chains:
                 new_chains = []
                 for c in chains:
@@ -2422,7 +2422,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             ....:         reduced_matrix=[[-1, -1, 0], [1, 0, -1], [0, 1, 1]])
             sage: N.linear_coextension_cochains(F=[0, 1], cosimple=True,
             ....:                           fundamentals=set([1, -1, 1/2, 2]))
-            [{0: 2, 1: 1}, {0: 1/2, 1: 1}, {0: -1, 1: 1}]
+            [{0: 2, 1: 1}, {0: -1, 1: 1}, {0: 1/2, 1: 1}]
         """
         return self.dual().linear_extension_chains(F=F, simple=cosimple, fundamentals=fundamentals)
 

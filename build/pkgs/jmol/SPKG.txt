@@ -11,10 +11,6 @@ library jmol_lib.js or changes to Notebook or Sage code.
 
 GPLv2+
 
-== SPKG Maintainers ==
-
- * Jonathan Gutow
-
 == Upstream Contact ==
 
  * Jonathan Gutow

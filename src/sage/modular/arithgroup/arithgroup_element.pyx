@@ -137,19 +137,19 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         yield self.__x[1,1]
 
     def __repr__(self):
-        """
-        Return the string representation of self.
+        r"""
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
             sage: Gamma1(5)([6,1,5,1]).__repr__()
             '[6 1]\n[5 1]'
         """
-        return "%s"%self.__x
+        return "%s" % self.__x
 
     def _latex_(self):
-        """
-        Return latex representation of self.
+        r"""
+        Return latex representation of ``self``.
 
         EXAMPLES::
 

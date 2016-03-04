@@ -28,7 +28,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef extern from "math.h":
     double log(double)
@@ -196,7 +196,7 @@ cdef class HiddenMarkovModel:
 
 
     #########################################################
-    # Some internal funcitons used for various general
+    # Some internal functions used for various general
     # HMM algorithms.
     #########################################################
     cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):

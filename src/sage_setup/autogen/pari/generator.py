@@ -233,9 +233,9 @@ class PariFunctionGenerator(object):
         D = sorted(D.values(), key=lambda d: d['function'])
         sys.stdout.write("Generating PARI functions:")
 
-        self.gen_file = open(self.gen_filename, 'w')
+        self.gen_file = open(self.gen_filename + '.tmp', 'w')
         self.gen_file.write(gen_banner)
-        self.instance_file = open(self.instance_filename, 'w')
+        self.instance_file = open(self.instance_filename + '.tmp', 'w')
         self.instance_file.write(instance_banner)
 
         for v in D:
@@ -249,3 +249,7 @@ class PariFunctionGenerator(object):
 
         self.gen_file.close()
         self.instance_file.close()
+
+        # All done? Let's commit.
+        os.rename(self.gen_filename + '.tmp', self.gen_filename)
+        os.rename(self.instance_filename + '.tmp', self.instance_filename)

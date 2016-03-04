@@ -54,7 +54,7 @@ class LinearExtensionOfPoset(ClonableArray):
     - ``linear_extension`` -- a list of the elements of `P`
     - ``poset`` -- the underlying poset `P`
 
-    .. SEEALSO:: :class:`Poset`, :class:`LinearExtensionsOfPosets`
+    .. SEEALSO:: :class:`~sage.combinat.posets.posets.Poset`, :class:`LinearExtensionsOfPoset`
 
     EXAMPLES::
 
@@ -172,7 +172,7 @@ class LinearExtensionOfPoset(ClonableArray):
         Return the poset associated to the linear extension ``self``.
 
         This method returns the poset obtained from the original poset
-        `P` by relabelling the 'i'-th element of ``self`` to the
+        `P` by relabelling the `i`-th element of ``self`` to the
         `i`-th element of the original poset, while keeping the linear
         extension of the original poset.
 
@@ -237,9 +237,9 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: l.tau(1)
             [2, 1, 3, 4]
             sage: for p in L:
-            ...       for i in range(1,4):
-            ...           print i, p, p.tau(i)
-            ...
+            ....:     for i in range(1,4):
+            ....:         print i, p, p.tau(i)
+            ....:
             1 [1, 2, 3, 4] [2, 1, 3, 4]
             2 [1, 2, 3, 4] [1, 2, 3, 4]
             3 [1, 2, 3, 4] [1, 2, 4, 3]
@@ -335,7 +335,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     INPUT:
 
     - ``poset`` -- a poset `P` of size `n`
-    - ``facade`` -- a boolean (default: False)
+    - ``facade`` -- a boolean (default: ``False``)
 
     .. seealso::
 
@@ -573,7 +573,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
                 for i in R:
                     child = getattr(x, action)(i+1)
                     d[x][child]+=[i+1]
-        G = DiGraph(d)
+        G = DiGraph(d, format="dict_of_dicts")
         if have_dot2tex():
             G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = {1:"blue", 2:"red", 3:"green", 4:"yellow"})
             #G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = {1:"green", 2:"blue", 3:"brown", 4:"red"})

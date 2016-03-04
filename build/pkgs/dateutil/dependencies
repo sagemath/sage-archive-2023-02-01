@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(SIX) $(INST)/$(SETUPTOOLS)
+$(PYTHON) six setuptools
 
 ----------
 All lines of this file are ignored except the first.

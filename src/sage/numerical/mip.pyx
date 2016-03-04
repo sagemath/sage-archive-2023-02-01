@@ -2522,6 +2522,19 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: d2.is_optimal()
             True
             sage: view(d2) #not tested
+
+            sage: lp3, _ = p.interactive_lp_problem(form=None)
+            sage: lp3.constraint_coefficients()
+            [ 1.0  1.0 -7.0  1.0]
+            [ 0.0  1.0  2.0 -1.0]
+            [ 5.0  0.0  1.0  0.0]
+            sage: lp3.b()
+            (2.0, 3.0, 21.0)
+            sage: lp3.objective_coefficients()
+            (2.0, 3.0, 4.0, 5.0)
+            sage: lp3.decision_variables()
+            (m_0, m_1, n_0, x_3)
+            sage: view(lp3) #not tested
         """
         back_end = self.get_backend()
         for i in range(self.number_of_variables()):

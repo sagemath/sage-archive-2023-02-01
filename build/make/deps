@@ -186,7 +186,7 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 # produce plots.
 DOC_DEPENDENCIES = sagelib $(inst_sphinx) $(inst_sagenb) \
 	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) \
-	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) \
+	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials)
 
 doc: doc-html

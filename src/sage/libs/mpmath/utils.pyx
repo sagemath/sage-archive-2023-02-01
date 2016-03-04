@@ -1,5 +1,8 @@
-# Utilities for Sage-mpmath interaction
-# Also patches some mpmath functions for speed
+"""
+Utilities for Sage-mpmath interaction
+
+Also patches some mpmath functions for speed
+"""
 
 from sage.ext.stdsage cimport PY_NEW
 
@@ -73,7 +76,7 @@ cpdef isqrt(n):
     else:
         m = Integer(n)
     if mpz_sgn(m.value) < 0:
-        raise ValueError, "square root of negative integer not defined."
+        raise ValueError("square root of negative integer not defined.")
     y = PY_NEW(Integer)
     mpz_sqrt(y.value, m.value)
     return y
@@ -81,6 +84,7 @@ cpdef isqrt(n):
 cpdef from_man_exp(man, exp, long prec = 0, str rnd = 'd'):
     """
     Create normalized mpf value tuple from mantissa and exponent.
+
     With prec > 0, rounds the result in the desired direction
     if necessary.
 

@@ -47,7 +47,7 @@ cdef class ntl_GF2(object):
         """
         if isinstance(v, ntl_GF2):
             self.x = (<ntl_GF2>v).x
-        elif PyInt_Check(v) or PyLong_Check(v) or isinstance(v, Integer):
+        elif isinstance(v, int) or isinstance(v, long) or isinstance(v, Integer):
             GF2_conv_long(self.x, int(v) % 2)
         elif v is not None:
             v = str(v)

@@ -698,9 +698,9 @@ cdef class MIP_Problem(_mutable_or_immutable):
             elif mode == 'minimization':
                 self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MINIMIZATION)
             else:
-                raise ValueError, 'Unknown value: mode='+str(mode)+'.'
+                raise ValueError('Unknown value: mode='+str(mode)+'.')
         else:
-            raise ValueError, 'Cannot initialize with '+str(args)+'.'
+            raise ValueError('Cannot initialize with '+str(args)+'.')
 
     def __dealloc__(self):
         """
@@ -1025,7 +1025,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
         elif mode == 'maximization':
             self.thisptr.set_optimization_mode(MAXIMIZATION)
         else:
-            raise ValueError, 'Unknown value: mode='+str(mode)+'.'
+            raise ValueError('Unknown value: mode={}.'.format(mode))
 
     def is_satisfiable(self):
         """
@@ -1212,7 +1212,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             ...
             NotImplementedError: The Polyhedron class is abstract, you must not instantiate it.
         """
-        raise NotImplementedError, 'The Polyhedron class is abstract, you must not instantiate it.'
+        raise NotImplementedError('The Polyhedron class is abstract, you must not instantiate it.')
 
 
     def _repr_(self):
@@ -1561,7 +1561,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         if isinstance(arg, Constraint):
             return self._relation_with_constraint(arg)
         else:
-            raise TypeError, 'Argument must be Generator or a Constraint'
+            raise TypeError('Argument must be Generator or a Constraint')
 
 
     def is_empty(self):
@@ -3201,7 +3201,7 @@ cdef class C_Polyhedron(Polyhedron):
             dim = int(arg)
             assert dim>=0
         except ValueError:
-            raise ValueError, 'Cannot initialize C_Polyhedron with '+str(arg)+'.'
+            raise ValueError('Cannot initialize C_Polyhedron with '+str(arg)+'.')
         degenerate_element = degenerate_element.lower()
         if degenerate_element=='universe':
             self.thisptr = new PPL_C_Polyhedron(<PPL_dimension_type>dim, UNIVERSE)
@@ -3210,7 +3210,7 @@ cdef class C_Polyhedron(Polyhedron):
             self.thisptr = new PPL_C_Polyhedron(<PPL_dimension_type>dim, EMPTY)
             return
         else:
-            raise ValueError, 'Unknown value: degenerate_element='+str(degenerate_element)+'.'
+            raise ValueError('Unknown value: degenerate_element='+str(degenerate_element)+'.')
 
 
     def __init__(self, *args):
@@ -3381,7 +3381,7 @@ cdef class NNC_Polyhedron(Polyhedron):
             dim = int(arg)
             assert dim>=0
         except ValueError:
-            raise ValueError, 'Cannot initialize NNC_Polyhedron with '+str(arg)+'.'
+            raise ValueError('Cannot initialize NNC_Polyhedron with '+str(arg)+'.')
         degenerate_element = degenerate_element.lower()
         if degenerate_element=='universe':
             self.thisptr = new PPL_NNC_Polyhedron(<PPL_dimension_type>dim, UNIVERSE)
@@ -3390,7 +3390,7 @@ cdef class NNC_Polyhedron(Polyhedron):
             self.thisptr = new PPL_NNC_Polyhedron(<PPL_dimension_type>dim, EMPTY)
             return
         else:
-            raise ValueError, 'Unknown value: degenerate_element='+str(degenerate_element)+'.'
+            raise ValueError('Unknown value: degenerate_element='+str(degenerate_element)+'.')
 
 
     def __init__(self, *args):
@@ -3849,7 +3849,7 @@ cdef class Linear_Expression(object):
             self.thisptr = new PPL_Linear_Expression(PPL_Coefficient(c.value))
             return
         except ValueError:
-            raise ValueError, 'Cannot initialize with '+str(args)+'.'
+            raise ValueError('Cannot initialize with {}.'.format(args))
 
 
     def __dealloc__(self):
@@ -5095,7 +5095,7 @@ cdef class Generator_System(_mutable_or_immutable):
             for generator in arg:
                 self.insert(generator)
             return
-        raise ValueError, 'Cannot initialize with '+str(arg)+'.'
+        raise ValueError('Cannot initialize with '+str(arg)+'.')
 
 
     def __dealloc__(self):
@@ -6082,7 +6082,7 @@ cdef class Constraint_System(object):
             for constraint in arg:
                 self.insert(constraint)
             return
-        raise ValueError, 'Cannot initialize with '+str(arg)+'.'
+        raise ValueError('Cannot initialize with '+str(arg)+'.')
 
 
     def __dealloc__(self):

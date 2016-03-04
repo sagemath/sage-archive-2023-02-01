@@ -81,8 +81,10 @@ AUTHORS:
 from sage.structure.element import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
+from sage.categories.number_fields import NumberFields
 from sage.categories.fields import Fields
-from sage.rings.all import Integer
+from sage.rings.all import Integer, CIF
+from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
 from point import is_SchemeTopologicalPoint
@@ -90,6 +92,7 @@ from sage.rings.infinity import infinity
 import scheme
 
 from sage.categories.gcd_domains import GcdDomains
+from sage.rings.qqbar import QQbar
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
@@ -934,19 +937,18 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         if check:
             if not isinstance(polys, (list, tuple)):
                 raise TypeError("polys (=%s) must be a list or tuple"%polys)
-            source_ring = parent.domain().coordinate_ring()
+            source_ring = parent.domain().ambient_space().coordinate_ring()
             target = parent._codomain.ambient_space()
             if len(polys) != target.ngens():
                 raise ValueError("there must be %s polynomials"%target.ngens())
             try:
                 polys = [source_ring(poly) for poly in polys]
-            except TypeError:
-                raise TypeError("polys (=%s) must be elements of %s"%(polys,source_ring))
-            if isinstance(source_ring, QuotientRing_generic):
-                lift_polys = [f.lift() for f in polys]
-            else:
-                lift_polys = polys
-            polys = Sequence(lift_polys)
+            except TypeError: #we may have been given elements in the quotient
+                try:
+                    polys = [source_ring(poly.lift()) for poly in polys]
+                except (TypeError, AttributeError):
+                    raise TypeError("polys (=%s) must be elements of %s"%(polys, source_ring))
+            polys = Sequence(polys)
         self._polys = polys
         SchemeMorphism.__init__(self, parent)
 
@@ -1405,7 +1407,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             1 over Algebraic Field defined by:
               x - y
               Defn: Defined on coordinates by sending (x : y) to
-                    (24*y^2 : (-6.585786437626905?)*y^2)
+                     (6*x^2 + 2*x*y + 16*y^2 : 1.414213562373095?*x^2 + (-4)*x*y + (-4)*y^2)
 
         ::
 

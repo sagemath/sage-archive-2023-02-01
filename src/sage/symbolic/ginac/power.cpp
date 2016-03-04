@@ -729,13 +729,15 @@ ex power::eval(int level) const
 		}
 	}
 
-	// Reduce x^(c/log(x)) to exp(c)
-	if (eexponent.is_equal(1/log(ebasis)))
-		return exp(log(basis)*exponent);
-	else if (is_exactly_a<mul>(eexponent)) {
-		for (size_t i=0; i < eexponent.nops(); i++) {
-			if (eexponent.op(i).is_equal(1/log(ebasis)))
-				return exp(log(basis)*exponent);
+	// Reduce x^(c/log(x)) to exp(c) if x is positive
+	if (ebasis.info(info_flags::positive)) {
+		if (eexponent.is_equal(1/log(ebasis)))
+			return exp(log(basis)*exponent);
+		else if (is_exactly_a<mul>(eexponent)) {
+			for (size_t i=0; i < eexponent.nops(); i++) {
+				if (eexponent.op(i).is_equal(1/log(ebasis)))
+					return exp(log(basis)*exponent);
+			}
 		}
 	}
 	

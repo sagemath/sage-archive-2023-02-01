@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+# USAGE:
+#
+#   sage-uncompress-spkg PKG [FILE]
+#
+# With a single argument, unpack the file PKG to the current directory.
+#
+# If FILE is specified, extract FILE from PKG and send it to
+# stdout. (This option is present only for backwards compatibility:
+# printing the SPKG.txt file from an old-style spkg.)
+
+import sys
+import tarfile
+import zipfile
+
+if __name__ == '__main__':
+    filename = sys.argv[1]
+    if tarfile.is_tarfile(filename):
+        # tar file, possibly compressed:
+        with tarfile.open(filename, 'r:*') as archive:
+            if len(sys.argv) == 2:
+                archive.extractall()
+            else:
+                member = sys.argv[2]
+                if member in archive.getnames():
+                    SPKG_TXT = archive.extractfile(member)
+                    sys.stdout.write(SPKG_TXT.read())
+                else:
+                    exit(1)
+        exit(0)
+    if zipfile.is_zipfile(filename):
+        # zip file:
+        with zipfile.ZipFile(filename, 'r') as archive:
+            if len(sys.argv) == 1:
+                archive.extractall()
+            else:
+                member = sys.argv[2]
+                if member in archive.namelist():
+                    sys.stdout.write(archive.read(member))
+                else:
+                    exit(1)
+        exit(0)
+    else:
+        print ('Error: Unknown file type: {}'.format(filename))
+        exit(1)

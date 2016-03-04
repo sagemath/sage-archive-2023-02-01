@@ -26,7 +26,7 @@ cimport numpy as cnumpy
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
 from sage.rings.complex_double cimport ComplexDoubleElement
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 
 from libc.math cimport hypot, atan2, atan, log, sqrt
 

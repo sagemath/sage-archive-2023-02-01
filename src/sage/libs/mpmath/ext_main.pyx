@@ -117,13 +117,13 @@ cdef int MPF_set_any(MPF *re, MPF *im, x, MPopts opts, bint str_tuple_ok) except
         MPF_set(re, &(<mpc>x).re)
         MPF_set(im, &(<mpc>x).im)
         return 2
-    if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+    if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
         MPF_set_int(re, x)
         return 1
-    if PyFloat_Check(x):
+    if isinstance(x, float):
         MPF_set_double(re, x)
         return 1
-    if PyComplex_Check(x):
+    if isinstance(x, complex):
         MPF_set_double(re, x.real)
         MPF_set_double(im, x.imag)
         return 2
@@ -570,7 +570,7 @@ cdef class Context:
             s = (<mpc>x).re.special
             t = (<mpc>x).im.special
             return s == S_NAN or t == S_NAN
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return False
         typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
@@ -613,7 +613,7 @@ cdef class Context:
             s = (<mpc>x).re.special
             t = (<mpc>x).im.special
             return s == S_INF or s == S_NINF or t == S_INF or t == S_NINF
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return False
         typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
@@ -662,7 +662,7 @@ cdef class Context:
             if re == libmp.fzero: return im_normal
             if im == libmp.fzero: return re_normal
             return re_normal and im_normal
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return bool(x)
         x = ctx.convert(x)
@@ -700,7 +700,7 @@ cdef class Context:
         cdef MPF v
         cdef MPF w
         cdef int typ
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer):
+        if type(x) is int or type(x) is long or isinstance(x, Integer):
             return True
         if isinstance(x, mpf):
             v = (<mpf>x).value
@@ -985,7 +985,7 @@ cdef class Context:
         """
         cdef MPF v
         cdef bint ismpf, ismpc
-        if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+        if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
             return int(x), 'Z'
         if isinstance(x, tuple):
             p, q = x
@@ -1064,7 +1064,7 @@ cdef class Context:
 
         """
         cdef int typ
-        if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+        if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
             mpz_set_integer(tmp_opx_re.man, x)
             if mpz_sgn(tmp_opx_re.man) == 0:
                 return global_context.ninf

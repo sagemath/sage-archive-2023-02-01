@@ -2546,7 +2546,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         cdef long long_exp
         cdef int_fast32_t res
         cdef mpz_t res_mpz
-        if PyInt_CheckExact(exp) and -100000 < PyInt_AS_LONG(exp) < 100000:
+        if type(exp) is int and -100000 < PyInt_AS_LONG(exp) < 100000:
             long_exp = PyInt_AS_LONG(exp)
         elif type(exp) is Integer and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
             long_exp = mpz_get_si((<Integer>exp).value)
@@ -3374,7 +3374,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         cdef long long_exp
         cdef int_fast64_t res
         cdef mpz_t res_mpz
-        if PyInt_CheckExact(exp) and -100000 < PyInt_AS_LONG(exp) < 100000:
+        if type(exp) is int and -100000 < PyInt_AS_LONG(exp) < 100000:
             long_exp = PyInt_AS_LONG(exp)
         elif type(exp) is Integer and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
             long_exp = mpz_get_si((<Integer>exp).value)
@@ -3505,7 +3505,7 @@ cdef mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus):
     cdef bint invert = False
     cdef long long_exp
 
-    if PyInt_CheckExact(exp):
+    if type(exp) is int:
         long_exp = PyInt_AS_LONG(exp)
         if long_exp < 0:
             long_exp = -long_exp

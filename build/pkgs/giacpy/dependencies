@@ -1,4 +1,4 @@
-$(INST)/$(CYTHON) $(INST)/$(GIAC) | $(INST)/$(SYMPY) $(INST)/$(MAXIMA)
+cython giac | sympy maxima
 
 The doctest suite (SAGE_CHECK=yes)  also uses Sympy and Maxima
 ----------

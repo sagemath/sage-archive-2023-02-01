@@ -253,7 +253,7 @@ cdef class Spline:
         v.sort()
         n = len(v)
         if n < 3:
-            raise RuntimeError, "must have at least 3 points in order to interpolate."
+            raise RuntimeError("must have at least 3 points in order to interpolate")
         self.x = <double*> sage_malloc(n*sizeof(double))
         if self.x == <double*>0:
             raise MemoryError

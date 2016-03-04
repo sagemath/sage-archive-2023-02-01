@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(DECORATOR)
+$(PYTHON) decorator
 
 ----------
 All lines of this file are ignored except the first.

@@ -346,7 +346,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         elif style == 'polar':
             return self._plot_polar(xmin, xmax, **args)
         else:
-            raise ValueError, "unknown style '%s'"%style
+            raise ValueError("unknown style '%s'" % style)
 
     def forward_transform(self):
         """

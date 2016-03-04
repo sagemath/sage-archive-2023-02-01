@@ -884,8 +884,12 @@ static ex sec_eval(const ex & x)
 	}
 
         ex res = cos_eval(x);
-	if (not is_ex_the_function(res, cos))
-                return power(res, _ex_1);
+	if (not is_ex_the_function(res, cos)) {
+                if (not res.is_zero())
+                        return power(res, _ex_1);
+                else
+                        return UnsignedInfinity;
+        }
 
 	return sec(x).hold();
 }
@@ -1000,8 +1004,12 @@ static ex csc_eval(const ex & x)
 	}
 
         ex res = sin_eval(x);
-	if (not is_ex_the_function(res, sin))
-                return power(res, _ex_1);
+	if (not is_ex_the_function(res, sin)) {
+                if (not res.is_zero())
+                        return power(res, _ex_1);
+                else
+                        return UnsignedInfinity;
+        }
 
 	return csc(x).hold();
 }

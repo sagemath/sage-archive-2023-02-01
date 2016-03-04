@@ -110,6 +110,9 @@ DECLARE_FUNCTION_1P(coth)
 /** Hyperbolic Secant. */
 DECLARE_FUNCTION_1P(sech)
 
+/** Hyperbolic Cosecant. */
+DECLARE_FUNCTION_1P(csch)
+
 /** Inverse hyperbolic Sine (area hyperbolic sine). */
 DECLARE_FUNCTION_1P(asinh)
 

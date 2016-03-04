@@ -515,6 +515,11 @@ static ex sech_eval(const ex & x)
 			return sech(-x);
 	}
 
+        ex xoverpi = x/Pi;
+	if (is_exactly_a<numeric>(xoverpi) &&
+		ex_to<numeric>(xoverpi).real().is_zero())
+		return sec(x/I);
+
 	// sech(oo) -> 0
 	// sech(-oo) -> 0
 	// sech(UnsignedInfinity) -> error
@@ -595,6 +600,121 @@ REGISTER_FUNCTION(sech, eval_func(sech_eval).
                         imag_part_func(sech_imag_part).
                         conjugate_func(sech_conjugate).
                         latex_name("\\operatorname{sech}"));
+
+//////////
+// hyperbolic secant (trigonometric function)
+//////////
+
+static ex csch_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return sinh(ex_to<numeric>(x)).inverse();
+
+	return csch(x).hold();
+}
+
+static ex csch_eval(const ex & x)
+{
+	if (is_exactly_a<numeric>(x)) {
+
+		// csch(0) -> zoo
+		if (x.is_zero())
+			return UnsignedInfinity;
+
+		// csch(float) -> float
+		if (!x.info(info_flags::crational))
+			return sinh(ex_to<numeric>(x)).inverse();
+
+		// csch() is odd
+		if (x.info(info_flags::negative))
+			return -csch(-x);
+	}
+
+        ex xoverpi = x/Pi;
+	if (is_exactly_a<numeric>(xoverpi) &&
+		ex_to<numeric>(xoverpi).real().is_zero())
+		return -I*csc(x/I);
+
+	// csch(oo) -> 0
+	// csch(-oo) -> 0
+	// csch(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(Infinity) or x.is_equal(NegInfinity))
+			return _ex0;
+		// x is UnsignedInfinity
+		throw (std::runtime_error("csch_eval(): csch(unsigned_infinity) encountered"));
+	}
+
+	if (is_exactly_a<function>(x)) {
+		const ex &t = x.op(0);
+
+		// sech(asech(x)) -> x
+		if (is_ex_the_function(x, acsch))
+			return t;
+
+		// sech(acosh(x)) -> 1/sqrt(x^2-1)
+		if (is_ex_the_function(x, asinh))
+			return power(power(t,_ex2)-_ex1,_ex_1_2);
+
+		// csch(asinh(x)) -> 1/x
+		if (is_ex_the_function(x, asinh))
+			return power(t, _ex_1);
+	}
+
+	return csch(x).hold();
+}
+
+static ex csch_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+
+	// d/dx sech(x) -> -sech(x)*tanh(x)
+	return -mul(csch(x), coth(x));
+}
+
+static ex csch_series(const ex &x,
+                      const relational &rel,
+                      int order,
+                      unsigned options)
+{
+	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
+	// method:
+	// Taylor series where there is no pole falls back to tanh_deriv.
+	// On a pole simply expand sinh(x)/cosh(x).
+	const ex x_pt = x.subs(rel, subs_options::no_pattern);
+	if (!(2*I*x_pt/Pi).info(info_flags::even))
+		throw do_taylor();  // caught by function::series()
+	// if we got here we have to care for a simple pole
+	return (_ex1/sinh(x)).series(rel, order, options);
+}
+
+static ex csch_real_part(const ex & x)
+{
+	ex a = real_part(x);
+	ex b = imag_part(x);
+	return mul(cos(b), sinh(a)) / (power(mul(sin(b), cosh(a)), _ex2) + power(mul(cos(b), sinh(a)), _ex2));
+}
+
+static ex csch_imag_part(const ex & x)
+{
+	ex a = real_part(x);
+	ex b = imag_part(x);
+	return -mul(sin(b), cosh(a)) / (power(mul(sin(b), cosh(a)), _ex2) + power(mul(cos(b), sinh(a)), _ex2));
+}
+
+static ex csch_conjugate(const ex & x)
+{
+	return csch(x.conjugate());
+}
+
+REGISTER_FUNCTION(csch, eval_func(csch_eval).
+                        evalf_func(csch_evalf).
+                        derivative_func(csch_deriv).
+                        series_func(csch_series).
+                        real_part_func(csch_real_part).
+                        imag_part_func(csch_imag_part).
+                        conjugate_func(csch_conjugate).
+                        latex_name("\\operatorname{csch}"));
 
 //////////
 // inverse hyperbolic sine (trigonometric function)

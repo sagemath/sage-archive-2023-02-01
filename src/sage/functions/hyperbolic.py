@@ -261,38 +261,27 @@ class Function_sech(GinacFunction):
             0.0862667383340544...
             sage: RR(sech(pi))
             0.0862667383340544
-
-            sage: latex(sech(x))
-            \operatorname{sech}\left(x\right)
-        """
-        GinacFunction.__init__(self, "sech", latex_name=r"\operatorname{sech}",)
-
-    def _eval_(self, x):
-        """
-        EXAMPLES::
-
             sage: sech(0)
             1
             sage: sech(pi*I)
             -1
             sage: sech(pi*I/2)
-            +Infinity
+            Infinity
             sage: sech(7*pi*I/2)
-            +Infinity
+            Infinity
             sage: sech(8*pi*I/2)
             1
             sage: sech(8.*pi*I/2)
-            sech(4.00000000000000*I*pi)
+            sec(4.00000000000000*pi)
+
+            sage: bool(diff(sech(x), x) == diff(1/cosh(x), x))
+            True
+            sage: diff(sech(x), x)
+            -sech(x)*tanh(x)
+            sage: latex(sech(x))
+            \operatorname{sech}\left(x\right)
         """
-        if x.is_zero():
-            return 1
-        if isinstance(x, Expression):
-            y = 2 * x / pi / I
-            if y.is_integer():
-                if ZZ(y) % 2 == 1:
-                    return Infinity
-                else:
-                    return ZZ(-1) ** ZZ(y / 2)
+        GinacFunction.__init__(self, "sech", latex_name=r"\operatorname{sech}",)
 
     def _eval_numpy_(self, x):
         """
@@ -305,22 +294,10 @@ class Function_sech(GinacFunction):
         """
         return 1 / cosh(x)
 
-    def _derivative_(self, *args, **kwds):
-        """
-        EXAMPLES::
-
-            sage: bool(diff(sech(x), x) == diff(1/cosh(x), x))
-            True
-            sage: diff(sech(x), x)
-            -sech(x)*tanh(x)
-        """
-        x = args[0]
-        return -sech(x)*tanh(x)
-
 sech = Function_sech()
 
 
-class Function_csch(HyperbolicFunction):
+class Function_csch(GinacFunction):
     def __init__(self):
         r"""
         The hyperbolic cosecant function.
@@ -335,37 +312,25 @@ class Function_csch(HyperbolicFunction):
             0.0865895375300469...
             sage: RR(csch(pi))
             0.0865895375300470
-
-            sage: latex(csch(x))
-            {\rm csch}\left(x\right)
-        """
-        HyperbolicFunction.__init__(self, "csch", latex_name=r"{\rm csch}",
-                                   evalf_float=lambda x: 1/math.sinh(x))
-
-    def _eval_(self, x):
-        """
-        EXAMPLES::
-
             sage: csch(0)
-            +Infinity
+            Infinity
             sage: csch(pi*I)
-            +Infinity
+            Infinity
             sage: csch(pi*I/2)
             -I
             sage: csch(7*pi*I/2)
             I
             sage: csch(7.*pi*I/2)
-            csch(3.50000000000000*I*pi)
+            -I*csc(3.50000000000000*pi)
+
+            sage: bool(diff(csch(x), x) == diff(1/sinh(x), x))
+            True
+            sage: diff(csch(x), x)
+            -coth(x)*csch(x)
+            sage: latex(csch(x))
+            {\rm csch}\left(x\right)
         """
-        if x.is_zero():
-            return Infinity
-        if isinstance(x, Expression):
-            y = 2 * x / pi / I
-            if y.is_integer():
-                if ZZ(y) % 2 == 1:
-                    return ZZ(-1) ** ZZ((y + 1) / 2) * I
-                else:
-                    return Infinity
+        GinacFunction.__init__(self, "csch", latex_name=r"{\rm csch}")
 
     def _eval_numpy_(self, x):
         """
@@ -377,18 +342,6 @@ class Function_csch(HyperbolicFunction):
             array([ 0.27572056,  0.09982157,  0.03664357])
         """
         return 1 / sinh(x)
-
-    def _derivative_(self, *args, **kwds):
-        """
-        EXAMPLES::
-
-            sage: bool(diff(csch(x), x) == diff(1/sinh(x), x))
-            True
-            sage: diff(csch(x), x)
-            -coth(x)*csch(x)
-        """
-        x = args[0]
-        return -csch(x)*coth(x)
 
 csch = Function_csch()
 

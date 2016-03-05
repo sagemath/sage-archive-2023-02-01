@@ -342,9 +342,14 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         The reflections of a Coxeter group `W` are the conjugates of
         the simple reflections. They are in bijection with the positive
         roots, for given a positive root, we may have the reflection in
-        the hyperplane orthogonal to it. This method returns a dictionary
+        the hyperplane orthogonal to it. This method returns a family
         indexed by the positive roots taking values in the reflections.
         This requires ``self`` to be a finite Weyl group.
+
+        .. NOTE::
+
+            Prior to :trac:`20027`, the reflections were the keys
+            of the family and the values were the positive roots.
 
         EXAMPLES::
 

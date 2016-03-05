@@ -78,9 +78,10 @@ root. The reflections are just the conjugates of the simple reflections.
 
 The reflections are the keys in a finite family, which is a wrapper
 around a python dictionary. The keys are the positive roots, so
-given a reflection, you can look up the corresponding root. If you
-want a list of all reflections, use the method ``keys`` for the
-family of reflections::
+given a positive root, you can look up the corresponding reflection.
+If you want a list of all reflections, you can use the usual methods to
+construct a list (e.g., using the ``list`` function) or use the method
+``values`` for the family of reflections::
 
     sage: W = WeylGroup("B3",prefix="s")
     sage: ref = W.reflections(); ref
@@ -97,7 +98,7 @@ family of reflections::
     [s1*s2*s3*s2*s1, s3*s2*s3, s2, s3, s1, s2*s3*s1*s2*s3*s1*s2,
      s1*s2*s1, s3*s1*s2*s3*s1, s2*s3*s2]
 
-If instead you want a dictionary whose keys are the reflections
+If instead you want a family whose keys are the reflections
 and whose values are the roots, you may use the inverse family::
 
     sage: from pprint import pprint

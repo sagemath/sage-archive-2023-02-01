@@ -779,10 +779,20 @@ class IntegerVectors_nk(CombinatorialClass):
             yield [self.n]
             return
 
-        for nbar in range(self.n+1):
-            n = self.n-nbar
-            for rest in IntegerVectors_nk(nbar , self.k-1):
-                yield [n] + rest
+        s = self.n + 1 # Current sum
+        cur = [s]
+        while cur:
+            cur[-1] -= 1
+            s -= 1
+            if s == self.n:
+                yield cur + [Integer(0)] * (self.k - len(cur))
+            elif cur[-1] < 0:
+                s -= cur.pop()
+            elif len(cur) == self.k - 1:
+                yield cur + [Integer(self.n - s)]
+            else:
+                cur.append(self.n - s + 1)
+                s += self.n - s + 1
 
     def __repr__(self):
         """

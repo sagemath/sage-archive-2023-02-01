@@ -108,24 +108,6 @@ class SubwordComplexFacet(Simplex, Element):
         self._extended_root_conf_indices = None
         self._extended_weight_conf = None
 
-    def __eq__(self, other):
-        r"""
-        Compare the subword complexes facets ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- another subword complex facet.
-
-        EXAMPLE::
-
-            sage: W = CoxeterGroup(['A',2], index_set=[1,2])
-            sage: w = W.from_reduced_word([1,2,1])
-            sage: SC = SubwordComplex([1,2,1,2,1], w)
-            sage: F1 = SC([0,1]); F2 = SC([0,1]); F1 == F2
-            True
-        """
-        return hasattr(other,"parent") and self.parent() is other.parent() and self.tuple() == other.tuple()
-
     # roots
 
     def _extended_root_configuration_indices(self):
@@ -834,6 +816,17 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
 
     @staticmethod
     def __classcall__(cls, Q, w, algorithm="inductive"):
+        r"""
+        Making the input hashable.
+
+        TESTS::
+
+            sage: W = CoxeterGroup(['B',2])
+            sage: S = SubwordComplex((1,2)*3,W.w0)
+            sage: T = SubwordComplex([1,2]*3,W.w0)
+            sage: S is T
+            True
+        """
         Q = tuple(Q)
         return super(SubwordComplex, cls).__classcall__(cls, Q, w, algorithm=algorithm)
 

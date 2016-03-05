@@ -148,7 +148,7 @@ You will of course have to restart Sage.app
 Building
 --------
 
-To build Sage.appr yourself, you just have to run "make" in the
+To build Sage.app yourself, you just have to run "make" in the
 SAGE_ROOT/src/mac-app directory. This app will only work locally
 because the contained Sage is not relocatable. To build a binary
 distribution that can be installed to a different directory you must

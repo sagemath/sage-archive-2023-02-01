@@ -55,6 +55,7 @@ from sage.rings.all import Integer, CIF
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.rings.complex_field import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
+from sage.categories.finite_fields import FiniteFields
 from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field import FractionField
@@ -2716,7 +2717,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def critical_points(self, R=None):
         r"""
         Returns the critical points of this endomorphism defined over the ring ``R``
-        or its the base ring of this map.
+        or the base ring of this map.
 
         Must be dimension 1.
 
@@ -2965,11 +2966,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ch += P.canonical_height(F, **kwds)
         return(ch)
 
-    def periodic_points(self, n, minimal=True):
+    def periodic_points(self, n, minimal=True, R=None, algorithm='variety'):
         r"""
-        Computes the periodic points of period ``n`` of this map.
+        Computes the periodic points of period ``n`` of this map
+        defined over the ring ``R`` or the base ring of the map.
 
-        For now, this map must be a projective morphism over a number field.
+        This can be done either by finding the rational points on the variety
+        defining the points of period ``n``, or, for finite fields,
+        finding the cycle of appropriate length in the cyclegraph. For small
+        cardinality fields, the cyclegraph algorithm is effective for any
+        map and length cycle, but is slow when the cyclegraph is large.
+        The variety algorithm is good for small period, degree, and dimension,
+        but is slow as the defining equations of the variety get more
+        complicated.
+
+        The map must be a projective morphism.
 
         INPUT:
 
@@ -2977,6 +2988,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``minimal`` - Boolean. True specifies to find only the periodic points of minimal period ``n``.
             False specifies to find all periodic points of period ``n``. Default: True.
+
+        - ``R`` a commutative ring.
+
+        - ``algorithm`` - a string. Either ``variety`` to find the rational points
+          on the appropriate variety or ``cyclegraph`` to find the cycles from the
+          cycle graph. Default: ``variety``.
 
         OUTPUT:
 
@@ -3033,38 +3050,115 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
             sage: f.periodic_points(2)
             [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (1/4 : -1 : 1), (1/4 : 2 : 1)]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2,y^2])
+            sage: f.periodic_points(2, R=QQbar, minimal=False)
+            [(-0.500000000000000? - 1.322875655532296?*I : 1),
+             (-0.500000000000000? + 1.322875655532296?*I : 1),
+             (0.500000000000000? - 0.866025403784439?*I : 1),
+             (0.500000000000000? + 0.866025403784439?*I : 1),
+             (1 : 0)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(307), 1)
+            sage: H = End(P)
+            sage: f = H([x^10+y^10, y^10])
+            sage: f.periodic_points(16, minimal=True, algorithm='cyclegraph')
+            [(69 : 1), (185 : 1), (120 : 1), (136 : 1), (97 : 1), (183 : 1),
+             (170 : 1), (105 : 1), (274 : 1), (275 : 1), (154 : 1), (156 : 1),
+             (87 : 1), (95 : 1), (161 : 1), (128 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(13^2,'t'),1)
+            sage: H = End(P)
+            sage: f = H([x^3 + 3*y^3, x^2*y])
+            sage: f.periodic_points(30, minimal=True, algorithm='cyclegraph')
+            [(t + 3 : 1), (6*t + 6 : 1), (7*t + 1 : 1), (2*t + 8 : 1),
+             (3*t + 4 : 1), (10*t + 12 : 1), (8*t + 10 : 1), (5*t + 11 : 1),
+             (7*t + 4 : 1), (4*t + 8 : 1), (9*t + 1 : 1), (2*t + 2 : 1),
+             (11*t + 9 : 1), (5*t + 7 : 1), (t + 10 : 1), (12*t + 4 : 1),
+             (7*t + 12 : 1), (6*t + 8 : 1), (11*t + 10 : 1), (10*t + 7 : 1),
+             (3*t + 9 : 1), (5*t + 5 : 1), (8*t + 3 : 1), (6*t + 11 : 1),
+             (9*t + 12 : 1), (4*t + 10 : 1), (11*t + 4 : 1), (2*t + 7 : 1),
+             (8*t + 12 : 1), (12*t + 11 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([3*x^2+5*y^2,y^2])
+            sage: f.periodic_points(2, R=GF(3), minimal=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: must be a projective morphism
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
         if not self.is_endomorphism():
-            raise TypeError("self must be an endomorphism")
-        PS = self.domain().ambient_space()
-        if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
-            raise NotImplementedError("self must be a map over a number field")
-        if not self.is_morphism():
-           raise TypeError("self must be a projective morphism")
-
-        N = PS.dimension_relative() + 1
-        R = PS.coordinate_ring()
-        F = self.nth_iterate_map(n)
-        L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)]
-        X = PS.subscheme(L)
-
-        points = X.rational_points()
-
-        if not minimal:
-            return points
+            raise TypeError("must be an endomorphism")
+        if R is None:
+            f = self
+            R = self.base_ring()
         else:
-            rem_indices = []
-            for i in range(len(points)-1,-1,-1):
-                # iterate points to check if minimal
-                P = points[i]
-                for j in range(1,n):
-                    P = self(P)
-                    if P == points[i]:
-                        points.pop(i)
-                        break
-            return points
+            f = self.change_ring(R)
+        if not f.is_morphism():
+            # if not, the variety is not dimension 0 and
+            # can cannot construct the cyclegraph due to
+            #indeterminancies
+            raise NotImplementedError("must be a projective morphism")
+        PS = f.codomain()
+        if algorithm == 'variety':
+            if R in NumberFields() or R is QQbar or R in FiniteFields():
+                N = PS.dimension_relative() + 1
+                R = PS.coordinate_ring()
+                F = f.nth_iterate_map(n)
+                L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)]
+                X = PS.subscheme(L)
+                points = X.rational_points()
+
+                if not minimal:
+                    return points
+                else:
+                    #we want only the points with minimal period n
+                    #so we go through the list and remove any that
+                    #have smaller period by checking the iterates
+                    rem_indices = []
+                    for i in range(len(points)-1,-1,-1):
+                        # iterate points to check if minimal
+                        P = points[i]
+                        for j in range(1,n):
+                            P = f(P)
+                            if P == points[i]:
+                                points.pop(i)
+                                break
+                    return points
+            else:
+                raise NotImplementedError("ring must a number field or finite field")
+        elif algorithm == 'cyclegraph':
+            if R in FiniteFields():
+                g = f.cyclegraph()
+                points = []
+                for cycle in g.all_simple_cycles():
+                    m = len(cycle)-1
+                    if minimal:
+                        if m == n:
+                            points = points + cycle[:-1]
+                    else:
+                        if n % m == 0:
+                            points = points + cycle[:-1]
+                return(points)
+            else:
+                raise TypeError("ring must be finite to generate cyclegraph")
+        else:
+            raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
+
 
     def multiplier_spectra(self, n, formal=True):
         r"""

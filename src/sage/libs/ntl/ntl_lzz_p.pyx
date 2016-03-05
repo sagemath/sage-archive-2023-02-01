@@ -37,6 +37,7 @@ include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer

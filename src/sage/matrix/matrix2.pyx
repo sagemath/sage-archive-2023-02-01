@@ -27,7 +27,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 include "cysignals/signals.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate

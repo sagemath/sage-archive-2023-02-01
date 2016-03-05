@@ -22,10 +22,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/python.pxi"
-from cpython.list cimport *
-from cpython.object cimport *
-from cpython.tuple cimport *
+from cpython cimport *
 
 import sage.modules.free_module
 import sage.misc.latex

@@ -780,7 +780,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return the linear variable `x_i`.
         
-        OUTPUT::
+        EXAMPLE::
 
             sage: mip = MixedIntegerLinearProgram()
             sage: mip.gen(0)

@@ -2573,19 +2573,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
         # Construct 'x'
         var_names = [format(back_end.col_name(i), 'x', i) for i in range(back_end.ncols())]
 
-        # Construct slack names
-        slack_names = [format(back_end.row_name(i), 'w', i) for i in range(back_end.nrows())]
-
         A = coef_matrix
         b = upper_bound_vector
         c = objective_coefs_vector
         x = var_names
-        w = slack_names
 
         if form is None:
             from sage.numerical.interactive_simplex_method import InteractiveLPProblem
             return InteractiveLPProblem(A, b, c, x), None
         elif form == 'standard' or form == 'std':
+            # Construct slack names
+            slack_names = [format(back_end.row_name(i), 'w', i) for i in range(back_end.nrows())]
+            w = slack_names
             from sage.numerical.interactive_simplex_method import InteractiveLPProblemStandardForm
             lp = InteractiveLPProblemStandardForm(A, b, c, x, slack_variables=w)
             basic_variables = []

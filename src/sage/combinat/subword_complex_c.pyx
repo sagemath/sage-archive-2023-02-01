@@ -48,7 +48,7 @@ cpdef _flip_c(W, set positions, list extended_root_conf_indices,
             extended_root_conf_indices[k] = t.action_on_root_indices(extended_root_conf_indices[k])
     return j
 
-cpdef _construct_facets_c(list Q, w, int n=-1, int pos=0, int l=-1):
+cpdef _construct_facets_c(tuple Q, w, int n=-1, int pos=0, int l=-1):
     r"""
     Return the list of facets of the subword complex associated to the
     word `Q` and the element `w` in a Coxeter group `W`.

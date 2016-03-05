@@ -2625,7 +2625,7 @@ def TuranGraph(n,r):
     Returns the Turan graph with parameters `n, r`.
 
     Turan graphs are complete multipartite graphs with `n` vertices and
-    `r` subsets, denoted `T(n,r)`, wih the properity that the sizes of the
+    `r` subsets, denoted `T(n,r)`, with the property that the sizes of the
     subsets are as close to equal as possible. The graph `T(n,r)` will have
     `(n mod r)` subsets of size floor`(n/r)` and `r - (n mod r)` subsets of
     size ceil`(n/r)`. For more information about Turan graphs, see the
@@ -2646,8 +2646,16 @@ def TuranGraph(n,r):
         sage: g = graphs.TuranGraph(n,r)
         sage: len(g.edges()) == floor((r-1)*(n**2)/(2*r))
         True
+
+    TESTS::
+
+        sage: g = graphs.TuranGraph(3,6)
+        Traceback (most recent call last):
+        ...
+        ValueError: n should be at least r...
     """
     import math
+    from sage.graphs.generators.basic import CompleteMultipartiteGraph
 
     if n < r:
         raise ValueError('n should be at least r')
@@ -2656,82 +2664,11 @@ def TuranGraph(n,r):
     if r < 1:
         raise ValueError('r should be at least 1')
 
-    if r == 1:
-        g = Graph(name="Turan Graph with n: %d, r: %d"%(n,r))
-        g.add_vertices(range(n))
-        return g
-
-    if r == 2:
-        g = graphs.CompleteBipartiteGraph(int(math.floor(n/2)),int(math.ceil(n/2)))
-        g.name = 'Turan Graph with n: %d, r: %d' % (n,r)
-        return g
-
-    pos_dict = {}
-    
     vertex_sets = []
-    counter = 0
+    vertex_sets += [(n/r).ceil()]*(n%r)
+    vertex_sets += [(n/r).floor()]*(r-(n%r))
 
-    for i in range(n%r):    
-        vertex_sets.append([])
-        for j in range(int(math.ceil(n/r))):
-            vertex_sets[-1].append(counter)
-            counter += 1
-
-    for i in range(r-(n%r)):
-        vertex_sets.append([])
-        for j in range(int(math.floor(n/r))):
-            vertex_sets[-1].append(counter)
-            counter += 1
-
-    def calculate_positions(n,r,vertex_sets):
-        '''
-        Calculate the positions of each vertex.
-
-        This is done by constructing the vertices of an r-gon then
-        calculating the slope between adjacent vertices. We then 'walk'
-        around the r-gon placing graph vertices in regular intervals between 
-        adjacent vertices of the r-gon.
-
-        Makes a nicely organized graph like in this picture: 
-        https://commons.wikimedia.org/wiki/File:Turan_13-4.svg
-        Compare it to the plot of a complete multipartite graph.
-
-        Returns a dict containing the vertex name and its x and y position
-        as a tuple
-        '''
-
-        points = [[cos(2*pi*i/r),sin(2*pi*i/r)] for i in range(r)]
-        slopes = [[(points[(i+1)%r][0]-points[i%r][0]),
-                   (points[(i+1)%r][1]-points[i%r][1])] for i in range(r)]
-
-        positions = {}
-        counter = 0
-
-        for i in range(r):
-            vertex_set_size = len(vertex_sets[i])+1
-            for j in range(1,vertex_set_size):
-                x = points[i][0]+slopes[i][0]*j/(vertex_set_size+1)
-                y = points[i][1]+slopes[i][1]*j/(vertex_set_size+1)
-                positions[counter] = (x,y)
-                counter += 1
-
-        return positions
-
-    
-    pos_dict = calculate_positions(n,r,vertex_sets)
-    
-    g = Graph(name="Turan Graph with n: %d, r: %d"%(n,r),pos=pos_dict)
-
-    for s in vertex_sets:
-        g.add_vertices(s)
-
-    #add edges between vertices in different sets
-
-    for s in vertex_sets:
-        for t in vertex_sets:
-            if s is not t:
-                for v_0 in s:
-                    for v_1 in t:
-                        g.add_edge(v_0,v_1)
+    g = CompleteMultipartiteGraph(vertex_sets)
+    g.name('Turan Graph with n: %d, r: %d'%(n,r))
 
     return g

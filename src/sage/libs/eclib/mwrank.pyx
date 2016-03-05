@@ -141,7 +141,7 @@ def initprimes(filename, verb=False):
         IOError: No such file or directory: ...
     """
     if not os.path.exists(filename):
-        raise IOError, 'No such file or directory: %s'%filename
+        raise IOError('No such file or directory: %s' % filename)
     mwrank_initprimes(filename, verb)
     if verb:
         sys.stdout.flush()
@@ -170,13 +170,13 @@ cdef class _bigint:
 
         EXAMPLES::
 
-           sage: from sage.libs.eclib.mwrank import _bigint
-           sage: _bigint(123)
-           123
-           sage: _bigint('123')
-           123
-           sage: type(_bigint(123))
-           <type 'sage.libs.eclib.mwrank._bigint'>
+            sage: from sage.libs.eclib.mwrank import _bigint
+            sage: _bigint(123)
+            123
+            sage: _bigint('123')
+            123
+            sage: type(_bigint(123))
+            <type 'sage.libs.eclib.mwrank._bigint'>
         """
         s = str(x)
         if s.isdigit() or s[0] == "-" and s[1:].isdigit():
@@ -231,7 +231,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
 
         INPUT:
 
-        - ``a1``,``a2``,``a3``,``a4``,``a6`` (int) -- integer
+        - ``a1``, ``a2``, ``a3``, ``a4``, ``a6`` (int) -- integer
           coefficients of a Weierstrass equation (must be
           nonsingular).
 
@@ -273,7 +273,8 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         _a6 = _bigint(a6)
         self.x = new Curvedata(_a1.x[0], _a2.x[0], _a3.x[0], _a4.x[0], _a6.x[0], min_on_init)
         if self.discriminant() == 0:
-            raise ArithmeticError, "Invariants (= %s) do not describe an elliptic curve."%([a1,a2,a3,a4,a6])
+            msg = "Invariants (= {},{},{},{},{}) do not describe an elliptic curve."
+            raise ArithmeticError(msg.format(a1, a2, a3, a4, a6))
 
     def __dealloc__(self):
         """
@@ -282,7 +283,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         del self.x
 
     def __repr__(self):
-        """
+        r"""
         String representation of Curvedata
 
         OUTPUT:
@@ -316,10 +317,10 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         + B`, where `h(P)` is the naive height and `\hat{h}(P)` the
         canonical height.
 
-        TODO:
+        .. TODO::
 
-        Since eclib can compute this to arbitrary precision it would
-        make sense to return a Sage real.
+            Since eclib can compute this to arbitrary precision it would
+            make sense to return a Sage real.
 
         EXAMPLES::
 
@@ -343,10 +344,10 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         + B`, where `h(P)` is the naive height and `\hat{h}(P)` the
         canonical height.
 
-        TODO:
+        .. TODO::
 
-        Since eclib can compute this to arbitrary precision it would
-        make sense to return a Sage real.
+            Since eclib can compute this to arbitrary precision it would
+            make sense to return a Sage real.
 
         EXAMPLES::
 
@@ -380,10 +381,10 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         canonical height.  This is the minimum of the Silverman and
         Cremona_Prickett-Siksek height bounds.
 
-        TODO:
+        .. TODO::
 
-        Since eclib can compute this to arbitrary precision it would
-        make sense to return a Sage real.
+            Since eclib can compute this to arbitrary precision it would
+            make sense to return a Sage real.
 
         EXAMPLES::
 
@@ -425,7 +426,6 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         OUTPUT:
 
         (Integer) The conductor.
-
 
         EXAMPLES::
 
@@ -493,7 +493,7 @@ cdef class _mw:
 
         - ``curve`` (_Curvedata) -- an elliptic curve
 
-        - ``verb`` (bool, default False) -- verbosity flag (controls
+        - ``verb`` (bool, default ``False``) -- verbosity flag (controls
           amount of output produced in point searches)
 
         - ``pp`` (int, default 1) -- process points flag (if nonzero,
@@ -657,10 +657,9 @@ cdef class _mw:
             sage: EQ.search(2)
             sage: EQ
             [[1:-1:1], [-2:3:1], [-14:25:8]]
-            """
+        """
         sig_on()
         return string_sigoff(mw_getbasis(self.x))
-
 
     def process(self, point, sat=0):
         """
@@ -717,14 +716,14 @@ cdef class _mw:
 
         """
         if not isinstance(point, (tuple, list)) and len(point) == 3:
-            raise TypeError, "point must be a list or tuple of length 3."
+            raise TypeError("point must be a list or tuple of length 3.")
         cdef _bigint x,y,z
         sig_on()
         x,y,z = _bigint(point[0]), _bigint(point[1]), _bigint(point[2])
         r = mw_process(self.curve, self.x, x.x, y.x, z.x, sat)
         sig_off()
         if r != 0:
-            raise ArithmeticError, "point (=%s) not on curve."%point
+            raise ArithmeticError("point (=%s) not on curve." % point)
 
     def getbasis(self):
         """
@@ -759,10 +758,10 @@ cdef class _mw:
 
         (float) The current regulator.
 
-        TODO:
+        .. TODO::
 
-        ``eclib`` computes the regulator to arbitrary precision, and
-        the full precision value should be returned.
+            ``eclib`` computes the regulator to arbitrary precision, and
+            the full precision value should be returned.
 
         EXAMPLES::
 
@@ -819,7 +818,7 @@ cdef class _mw:
           saturate.  If -1 (default), compute a bound for the primes
           which may not be saturated, and use that.
 
-        - ``odd_primes_only`` (bool, default False) -- only do
+        - ``odd_primes_only`` (bool, default ``False``) -- only do
           saturation at odd primes.  (If the points have been found
           via 2-descent they should already be 2-saturated.)
 
@@ -1181,7 +1180,7 @@ cdef class _two_descent:
 
         OUTPUT:
 
-        (bool) True if the rank upper and lower bounds are equal.
+        (bool) ``True`` if the rank upper and lower bounds are equal.
 
         EXAMPLES::
 

@@ -157,6 +157,14 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.arith
+    ##
+    ################################
+
+    Extension('*', ['sage/arith/*.pyx']),
+
+    ################################
+    ##
     ## sage.calculus
     ##
     ################################
@@ -814,6 +822,9 @@ ext_modules = [
 
     Extension('sage.matrix.change_ring',
               sources = ['sage/matrix/change_ring.pyx']),
+
+    Extension('sage.matrix.constructor',
+              sources = ['sage/matrix/constructor.pyx']),
 
     Extension('sage.matrix.matrix',
               sources = ['sage/matrix/matrix.pyx']),

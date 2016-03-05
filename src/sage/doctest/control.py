@@ -542,12 +542,12 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC, SAGE_ROOT
+        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
         def all_files():
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
             self.files.append(opj(SAGE_SRC, 'sage_setup'))
-            self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
+            self.files.append(SAGE_DOC_SRC)
             self.options.sagenb = True
         DOT_GIT= opj(SAGE_ROOT, '.git')
         have_git = os.path.exists(DOT_GIT)

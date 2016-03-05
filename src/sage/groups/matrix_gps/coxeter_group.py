@@ -622,7 +622,52 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         return self.gen(self.index_set().index(i))
 
     @cached_method
-    def positive_roots(self, as_reflections=False):
+    def _positive_roots_reflections(self):
+        """
+        Return a family whose keys are the positive roots
+        and values are the reflections.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A', 2])
+            sage: F = W._positive_roots_reflections()
+            sage: F.keys()
+            [(1, 0), (1, 1), (0, 1)]
+            sage: list(F)
+            [
+            [-1  1]  [ 0 -1]  [ 1  0]
+            [ 0  1], [-1  0], [ 1 -1]
+            ]
+        """
+        if not self.is_finite():
+            raise NotImplementedError('not available for infinite groups')
+
+        word = self.long_element(as_word=True)
+        N = len(word)
+
+        from sage.modules.free_module import FreeModule
+        simple_roots = FreeModule(self.base_ring(), self.ngens()).gens()
+
+        refls = self.simple_reflections()
+        resu = []
+        d = {}
+        for i in range(1, N + 1):
+            segment = word[:i]
+            last = segment.pop()
+            ref = refls[last]
+            rt = simple_roots[last - 1]
+            while segment:
+                last = segment.pop()
+                cr = refls[last]
+                ref = cr * ref * cr
+                rt = refls[last] * rt
+            rt.set_immutable()
+            resu += [rt]
+            d[rt] = ref
+        from sage.sets.family import Family
+        return Family(resu, lambda rt: d[rt])
+
+    def positive_roots(self, as_reflections=None):
         """
         Return the positive roots.
 
@@ -630,8 +675,6 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         same norm. They are given by their coefficients in the
         base of simple roots, also taken to have all the same
         norm.
-
-        This can also be used to obtain the associated reflections.
 
         .. SEEALSO::
 
@@ -641,43 +684,20 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
             sage: W.positive_roots()
-            [(1, 0, 0), (1, 1, 0), (0, 1, 0), (1, 1, 1), (0, 1, 1), (0, 0, 1)]
+            ((1, 0, 0), (1, 1, 0), (0, 1, 0), (1, 1, 1), (0, 1, 1), (0, 0, 1))
             sage: W = CoxeterGroup(['I',5], implementation='reflection')
             sage: W.positive_roots()
-            [(1, 0),
+            ((1, 0),
              (-E(5)^2 - E(5)^3, 1),
              (-E(5)^2 - E(5)^3, -E(5)^2 - E(5)^3),
              (1, -E(5)^2 - E(5)^3),
-             (0, 1)]
+             (0, 1))
         """
-        if not self.is_finite():
-            raise NotImplementedError('not available for infinite groups')
+        if as_reflections is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(20027, "as_reflections is deprecated; instead, use reflections()")
+        return tuple(self._positive_roots_reflections().keys())
 
-        word = self.long_element(as_word=True)
-        N = len(word)
-
-        if not as_reflections:
-            from sage.modules.free_module import FreeModule
-            simple_roots = FreeModule(self.base_ring(), self.ngens()).gens()
-
-        refls = self.simple_reflections()
-        resu = []
-        for i in range(1, N + 1):
-            segment = word[:i]
-            if as_reflections:
-                rt = refls[segment.pop()]
-            else:
-                rt = simple_roots[segment.pop() - 1]
-            while segment:
-                if as_reflections:
-                    cr = refls[segment.pop()]
-                    rt = cr * rt * cr
-                else:
-                    rt = refls[segment.pop()] * rt
-            resu += [rt]
-        return resu
-
-    @cached_method
     def reflections(self):
         """
         Return the set of reflections.
@@ -687,15 +707,15 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         EXAMPLES::
 
             sage: W = CoxeterGroup(['A',2], implementation='reflection')
-            sage: W.reflections()
+            sage: list(W.reflections())
             [
             [-1  1]  [ 0 -1]  [ 1  0]
             [ 0  1], [-1  0], [ 1 -1]
             ]
         """
-        return self.positive_roots(as_reflections=True)
+        return self._positive_roots_reflections()
 
-    @cached_method    
+    @cached_method
     def roots(self):
         """
         Return the roots.
@@ -712,18 +732,18 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
             sage: W.roots()
-            [(1, 0, 0),
-            (1, 1, 0),
-            (0, 1, 0),
-            (1, 1, 1),
-            (0, 1, 1),
-            (0, 0, 1),
-            (-1, 0, 0),
-            (-1, -1, 0),
-            (0, -1, 0),
-            (-1, -1, -1),
-            (0, -1, -1),
-            (0, 0, -1)]
+            ((1, 0, 0),
+             (1, 1, 0),
+             (0, 1, 0),
+             (1, 1, 1),
+             (0, 1, 1),
+             (0, 0, 1),
+             (-1, 0, 0),
+             (-1, -1, 0),
+             (0, -1, 0),
+             (-1, -1, -1),
+             (0, -1, -1),
+             (0, 0, -1))
             sage: W = CoxeterGroup(['I',5], implementation='reflection')
             sage: len(W.roots())
             10
@@ -731,7 +751,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         if not self.is_finite():
             raise NotImplementedError('not available for infinite groups')
         positive = self.positive_roots()
-        return positive + [-v for v in positive]
+        return positive + tuple([-v for v in positive])
     
     def simple_root_index(self, i):
         r"""
@@ -836,3 +856,4 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             roots = self.parent().roots()
             rt = self * roots[i]
             return roots.index(rt)
+

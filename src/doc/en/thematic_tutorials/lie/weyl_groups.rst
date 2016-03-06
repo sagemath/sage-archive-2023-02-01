@@ -76,7 +76,7 @@ hyperplane that is orthogonal to `\alpha`. We reserve the notation `s_\alpha`
 for the simple reflections, that is, the case where `\alpha` is a simple
 root. The reflections are just the conjugates of the simple reflections.
 
-The reflections are the keys in a finite family, which is a wrapper
+The reflections are the values in a finite family, which is a wrapper
 around a python dictionary. The keys are the positive roots, so
 given a positive root, you can look up the corresponding reflection.
 If you want a list of all reflections, you can use the usual methods to

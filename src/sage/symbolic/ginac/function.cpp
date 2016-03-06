@@ -770,11 +770,7 @@ next_context:
 
 ex function::expand(unsigned options) const
 {
-	// Only expand arguments when asked to do so
-	if (options & expand_options::expand_function_args)
-		return inherited::expand(options);
-	else
-		return (options == 0) ? setflag(status_flags::expanded) : *this;
+	return inherited::expand(options);
 }
 
 ex function::eval(int level) const

@@ -23,6 +23,9 @@ ifndef SAGE_VERSION
     SAGE_VERSION:=$(shell source ../bin/sage-version.sh && echo $$SAGE_VERSION)
 endif
 
+# Meaningful values, on Intel, are "i386" and "x86_64". To prepare a
+# 64-bit binary distribution on an older 64-bit OSX machine that boots
+# into a 32-bit system, one would set SAGE_APP_TARGET_ARCH=x86_64
 ifndef SAGE_APP_TARGET_ARCH
     SAGE_APP_TARGET_ARCH:=$(shell uname -m)
 endif

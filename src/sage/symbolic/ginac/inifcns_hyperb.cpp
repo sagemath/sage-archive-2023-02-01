@@ -112,11 +112,10 @@ static ex sinh_eval(const ex & x)
 			throw (std::runtime_error("sinh_eval(): sinh(unsigned_infinity) encountered"));
 		return x;
 	}
-	
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())  // sinh(I*x) -> I*sin(x)
-		return I*sin(x/I);
+
+	// sinh(I*x) --> I*sin(x/I)
+	if (is_multiple_of_I(x.expand()))
+	    return I*sin(x/I);
 	
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
@@ -207,9 +206,8 @@ static ex cosh_eval(const ex & x)
 		return Infinity;
 	}
 
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())  // cosh(I*x) -> cos(x)
+	// cosh(I*x) --> cos(x)
+	if (is_multiple_of_I(x.expand()))
 		return cos(x/I);
 	
 	if (is_exactly_a<function>(x)) {
@@ -304,9 +302,8 @@ static ex tanh_eval(const ex & x)
 		throw (std::runtime_error("tanh_eval(): tanh(unsigned_infinity) encountered"));
 	}
 		
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())  // tanh(I*x) -> I*tan(x);
+	// tanh(I*x) --> I*tan(x)
+	if (is_multiple_of_I(x.expand()))
 		return I*tan(x/I);
 	
 	if (is_exactly_a<function>(x)) {
@@ -423,21 +420,9 @@ static ex coth_eval(const ex & x)
 		throw (std::runtime_error("coth_eval(): tanh(unsigned_infinity) encountered"));
 	}
 
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi)) {
-		numeric nxopi = ex_to<numeric>(xoverpi);
-		if (nxopi.real().is_zero()) { // coth(I*x) -> I*cot(x);
-                        numeric xoverpiI = (nxopi*2)/I;
-			if (not xoverpiI.is_integer())
-				return -I*cot(x/I);
-			else if (xoverpiI.is_odd())
-				return _ex0;
-			else
-				return UnsignedInfinity;
-		}
-		else
-			return coth(x).hold();
-	}
+	// coth(I*x) --> -I*cot(x)
+	if (is_multiple_of_I(x.expand()))
+		return -I*cot(x/I);
 
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
@@ -539,10 +524,9 @@ static ex sech_eval(const ex & x)
 			return sech(-x);
 	}
 
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())
-		return sec(x/I);
+	// sech(x*I) --> sec(x)
+	if (is_multiple_of_I(x.expand()))
+	    return sec(x/I);
 
 	// sech(oo) -> 0
 	// sech(-oo) -> 0
@@ -654,9 +638,8 @@ static ex csch_eval(const ex & x)
 			return -csch(-x);
 	}
 
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())
+	// csch(I*x) --> -I*csc(x)
+	if (is_multiple_of_I(x.expand()))
 		return -I*csc(x/I);
 
 	// csch(oo) -> 0

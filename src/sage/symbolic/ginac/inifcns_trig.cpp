@@ -204,6 +204,10 @@ static ex sin_eval(const ex & x)
         else
                 x_red = x;
 
+	// simplify sin(I*x) --> I*sinh(x)
+	if (is_multiple_of_I(x_red.expand()))
+		return I*sinh(x_red/I);
+
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);
 
@@ -414,6 +418,10 @@ static ex cos_eval(const ex & x)
 	}
         else
                 x_red = x;
+
+	// simplify cos(I*x) --> cosh(x)
+	if (is_multiple_of_I(x_red.expand()))
+		return cosh(x_red/I);
 
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);

@@ -140,6 +140,7 @@ import ring
 import sage.rings.integer
 import sage.rings.rational
 from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
 from sage.symbolic.complexity_measures import string_length
@@ -3459,28 +3460,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs(x=I*x).subs(x=0).is_positive()
             False
         """
-        return (<Element>left)._cmp(right)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        """
-        Compare ``left`` and ``right``.
-
-        INPUT:
-
-        - ``right`` -- A :class:`Expression` instance.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: a = sqrt(3)
-            sage: b = x^2+1
-            sage: a.__cmp__(b)   # indirect doctest
-            -1
-        """
-        return print_order_compare(left._gobj, (<Expression>right)._gobj)
+        return mixed_order(left, right)
 
     cpdef int _cmp_add(Expression left, Expression right) except -2:
         """
@@ -3508,7 +3488,7 @@ cdef class Expression(CommutativeRingElement):
             TypeError: Argument 'right' has incorrect type (expected
             sage.symbolic.expression.Expression, got sage.rings.integer.Integer)
         """
-        return sage.symbolic.comparison.print_order_c(left, right)
+        return mixed_order(left, right)
 
     cpdef int _cmp_mul(Expression left, Expression right) except -2:
         """

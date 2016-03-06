@@ -12,9 +12,9 @@ if not (os.environ['UNAME'] == 'Darwin'):
     conf_file.write('[blas]\n')
     conf_file.write('include_dirs = '+ ':'.join(list(pkgconfig.parse('cblas')['include_dirs']))+'\n')
     conf_file.write('library_dirs = '+ ':'.join(list(pkgconfig.parse('blas cblas')['library_dirs']))+'\n')
-    conf_file.write('blas_libs = '+ ','.join(list(pkgconfig.parse('blas cblas')['libraries']))+'\n')
+    conf_file.write('blas_libs    = '+', '.join(list(pkgconfig.parse('blas cblas')['libraries']))+'\n')
     conf_file.write('[lapack]\n')
     conf_file.write('library_dirs = '+ ':'.join(list(pkgconfig.parse('lapack')['library_dirs']))+'\n')
-    conf_file.write('lapack_libs = '+ ','.join(list(pkgconfig.parse('lapack')['libraries']))+'\n')
+    conf_file.write('lapack_libs  = '+', '.join(list(pkgconfig.parse('lapack')['libraries']))+'\n')
 
 conf_file.close()

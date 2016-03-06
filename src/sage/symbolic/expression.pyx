@@ -4539,6 +4539,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x^y)^z).find(w0^w1)
             [(x^y)^z]
         """
+        from sage.symbolic.comparison import print_sorted
         cdef Expression p = self.coerce_in(pattern)
         cdef GExList found
         self._gobj.find(p._gobj, found)
@@ -4547,7 +4548,7 @@ cdef class Expression(CommutativeRingElement):
         while itr.is_not_equal(found.end()):
             res.append(new_Expression_from_GEx(self._parent, itr.obj()))
             itr.inc()
-        res.sort(cmp)
+        res = print_sorted(res)
         return res
 
     def has(self, pattern):
@@ -4956,6 +4957,7 @@ cdef class Expression(CommutativeRingElement):
 
         """
         from sage.symbolic.ring import SR
+        from sage.symbolic.comparison import print_sorted
         cdef GExSet sym_set
         g_list_symbols(self._gobj, sym_set)
         res = []
@@ -4963,7 +4965,7 @@ cdef class Expression(CommutativeRingElement):
         while itr.is_not_equal(sym_set.end()):
             res.append(new_Expression_from_GEx(SR, itr.obj()))
             itr.inc()
-        res.sort(cmp=lambda x,y: -cmp(x,y))
+        res = print_sorted(res)[::-1]
         return tuple(res)
 
     def arguments(self):

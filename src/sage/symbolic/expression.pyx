@@ -144,6 +144,7 @@ from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
+cimport sage.symbolic.comparison
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.misc.superseded import deprecated_function_alias
@@ -151,6 +152,7 @@ from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_i
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
+
 
 # a small overestimate of log(10,2)
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
@@ -3457,6 +3459,27 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs(x=I*x).subs(x=0).is_positive()
             False
         """
+        return (<Element>left)._cmp(right)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        """
+        Compare ``left`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- A :class:`Expression` instance.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: a = sqrt(3)
+            sage: b = x^2+1
+            sage: a.__cmp__(b)   # indirect doctest
+            -1
+        """
         return print_order_compare(left._gobj, (<Expression>right)._gobj)
 
     cpdef int _cmp_add(Expression left, Expression right) except -2:
@@ -3485,7 +3508,7 @@ cdef class Expression(CommutativeRingElement):
             TypeError: Argument 'right' has incorrect type (expected
             sage.symbolic.expression.Expression, got sage.rings.integer.Integer)
         """
-        return print_order_compare(left._gobj, right._gobj)
+        return sage.symbolic.comparison.print_order_c(left, right)
 
     cpdef int _cmp_mul(Expression left, Expression right) except -2:
         """

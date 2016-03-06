@@ -29,6 +29,7 @@ cpdef _flip_c(W, set positions, list extended_root_conf_indices,
         3
     """
     cdef int r, nr_ref, r_minus, j, k
+    cdef list R
     r = extended_root_conf_indices[i]
     nr_ref = len(W.long_element(as_word=True))
     r_minus = (r + nr_ref) % (2 * nr_ref)  # get the negative root -r
@@ -42,8 +43,9 @@ cpdef _flip_c(W, set positions, list extended_root_conf_indices,
             break
     positions.remove(i)
     positions.add(j)
+    R = list(W.reflections())
     if j != i:
-        t = W.reflections()[min(r, r_minus)]
+        t = R[min(r, r_minus)]
         for k in range(min(i, j) + 1, max(i, j) + 1):
             extended_root_conf_indices[k] = t.action_on_root_indices(extended_root_conf_indices[k])
     return j

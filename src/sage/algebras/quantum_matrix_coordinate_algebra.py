@@ -555,7 +555,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
     The quantum coordinate algebra of `GL(n)`, or quantum `GL(n)` for
     short, is the quantum coordinate algebra of `M_R(n, n)` with the
     addition of the additional central group-like element `c` which
-    satisfies `c d = 1`, where `d` is the quantum determinant.
+    satisfies `c d = d c = 1`, where `d` is the quantum determinant.
 
     Quantum `GL(n)` is a Hopf algebra where `\varepsilon(c) = 1`, and
     the antipode `S` is given by the matrix inverse. That is to say,
@@ -607,7 +607,9 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         TESTS::
 
             sage: O = algebras.QuantumGL(2)
-            sage: TestSuite(O).run() # long time
+            sage: elts = list(O.algebra_generators())
+            sage: elts += [O.quantum_determinant(), O.an_element()]
+            sage: TestSuite(O).run(elements=elts)
         """
         self._n = n
         self._q = q
@@ -708,13 +710,28 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
             b = I(db)
         # a and b contain no powers of c
         p = super(QuantumGL, self).product_on_basis(a, b)
+        if c_exp == 0:
+            return p
         c = self._indices.monoid_generators()['c']
         ret = {}
         other = self.zero()
         for mon,coeff in p:
             try:
-                rem = mon // self._qdet_cancel_monomial
-                other += self.term(c**(c_exp-1), coeff) * self._qdet_remaining * self.monomial(rem)
+                # Given that cz = R and we have a monomial ab, we need to
+                #   rewrite zx in terms of ab plus lower order terms L:
+                # zx = X * ab + L
+                # c * zx = R * x = c * X * ab + c * L
+                # c * ab = (R * x - c * L) / X
+                rem = self.monomial(mon // self._qdet_cancel_monomial)
+                L = self.monomial(self._qdet_cancel_monomial) * rem
+                co = L[mon]
+                del L._monomial_coefficients[mon]
+                temp = self.term(c**(c_exp-1), coeff) * self._qdet_remaining * rem
+                if L != self.zero():
+                    temp -= self.term(c**c_exp, coeff) * L
+                for k in temp._monomial_coefficients:
+                    temp._monomial_coefficients[k] //= co
+                other += temp
             except ValueError: # We cannot cancel, so we just add on the correct power of c
                 ret[c**c_exp * mon] = coeff
         return self._from_dict(ret, remove_zeros=False) + other

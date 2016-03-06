@@ -722,11 +722,12 @@ static ex cot_evalf(const ex & x, PyObject* parent)
 
 static ex cot_eval(const ex & x)
 {
-	// cot(0) -> error
-	// This should be before the tests below, since multiplying infinity
-	// with other values raises runtime_errors
-	if (x.is_zero()) {
-		throw (std::runtime_error("cotan_eval(): cot(0) encountered"));
+	// cot(k*pi) -> Infinity
+	ex exoverpi = x/Pi;
+	if (is_exactly_a<numeric>(exoverpi)) {
+		if (ex_to<numeric>(exoverpi).is_integer()) {
+			return UnsignedInfinity;
+		}
 	}
 
 	if (is_exactly_a<function>(x)) {
@@ -956,11 +957,12 @@ static ex csc_evalf(const ex & x, PyObject* parent)
 
 static ex csc_eval(const ex & x)
 {
-	// csc(0) -> error
-	// This should be before the tests below, since multiplying infinity
-	// with other values raises runtime_errors
-	if (x.is_zero()) {
-		throw (std::runtime_error("csc_eval(): csc(0) encountered"));
+	// csc(k*pi) -> Infinity
+	ex exoverpi = x/Pi;
+	if (is_exactly_a<numeric>(exoverpi)) {
+		if (ex_to<numeric>(exoverpi).is_integer()) {
+			return UnsignedInfinity;
+		}
 	}
 
 	if (is_exactly_a<function>(x)) {

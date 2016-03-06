@@ -41,6 +41,30 @@ namespace GiNaC {
    below with each of the corresponding inverse trig function. */
 
 
+// helper function: returns whether the expression is a multiple of I
+static bool is_multiple_of_I(const ex & the_ex)
+{
+
+	if (is_exactly_a<numeric>(the_ex)
+	    and the_ex.real_part().is_zero())
+		return true;
+
+	if (is_exactly_a<mul>(the_ex)) {
+		for (size_t i=0; i < the_ex.nops(); ++i)
+			if (is_multiple_of_I(the_ex.op(i)))
+				return true;
+	}
+
+	if (is_exactly_a<add>(the_ex)) {
+		for (size_t i=0; i < the_ex.nops(); ++i)
+			if (!is_multiple_of_I(the_ex.op(i)))
+				return false;
+		return true;
+	}
+	return false;
+};
+
+
 //////////
 // sine (trigonometric function)
 //////////

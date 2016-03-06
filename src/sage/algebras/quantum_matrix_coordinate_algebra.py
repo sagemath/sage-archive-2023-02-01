@@ -563,7 +563,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
 
     .. MATH::
 
-        S(x_{ij}) = c * (-q)^{i-j} * \widetilde{t}_{ij},
+        S(x_{ij}) = c * (-q)^{i-j} * \widetilde{t}_{ji},
 
     where we have the quantum minor
 
@@ -609,7 +609,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
             sage: O = algebras.QuantumGL(2)
             sage: elts = list(O.algebra_generators())
             sage: elts += [O.quantum_determinant(), O.an_element()]
-            sage: TestSuite(O).run(elements=elts)
+            sage: TestSuite(O).run(elements=elts) # long time
         """
         self._n = n
         self._q = q
@@ -739,7 +739,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
     @cached_method
     def _antipode_on_generator(self, i, j):
         """
-        Return the antipode on the generator indexed by ``i``.
+        Return the antipode on the generator indexed by ``(i, j)``.
 
         EXAMPLES::
 
@@ -747,11 +747,11 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         """
         from sage.combinat.permutation import Permutations
         q = self._q
-        I = range(1, i) + range(i+1, self._n+1)
-        lift = lambda p: [val if val < j else val + 1 for val in p]
+        I = range(1, j) + range(j+1, self._n+1)
+        lift = lambda p: [val if val < i else val + 1 for val in p]
         gens = self.algebra_generators()
         t_tilde = self.sum((-q)**p.length() * gens['c']
-                           * self.prod( gens[I[i],val] for i, val in enumerate(lift(p)) )
+                           * self.prod( gens[I[k],val] for k, val in enumerate(lift(p)) )
                            for p in Permutations(self._n-1))
         return (-q)**(i - j) * t_tilde
 
@@ -762,21 +762,6 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         EXAMPLES::
 
             sage: O = algebras.QuantumGL(3)
-
-                S = O.antipode
-                IS = lambda x: O.sum(c * O.monomial(t1) * S(O.monomial(t2))
-                                     for ((t1, t2), c) in x.coproduct())
-                SI = lambda x: O.sum(c * S(O.monomial(t1)) * O.monomial(t2)
-                                     for ((t1, t2), c) in x.coproduct())
-                for x in tester.some_elements():
-                    # antipode is an anti-homomorphism
-                    for y in tester.some_elements():
-                        tester.assert_(S(x) * S(y) == S(y * x))
-
-                    # mu * (S # I) * delta == counit * unit
-                    tester.assert_(SI(x) == self.counit(x) * self.one())
-                    # mu * (I # S) * delta == counit * unit
-                    tester.assert_(IS(x) == self.counit(x) * self.one())
         """
         ret = self.one()
         for k,e in reversed(x._sorted_items()):

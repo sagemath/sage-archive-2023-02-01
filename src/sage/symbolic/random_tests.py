@@ -338,7 +338,7 @@ def assert_strict_weak_order(a,b,c, cmp_func):
         ....:         cmp[i,j] = x[i].__cmp__(x[j])
         sage: cmp
         [ 0 -1 -1]
-        [ 1  0  1]
+        [ 1  0 -1]
         [ 1 -1  0]
     """
     from sage.matrix.constructor import matrix

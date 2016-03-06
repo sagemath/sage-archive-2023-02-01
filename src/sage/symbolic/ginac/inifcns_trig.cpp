@@ -640,6 +640,9 @@ static ex tan_eval(const ex & x)
         else
                 x_red = x;
 
+	if (is_multiple_of_I(x_red.expand()))
+		return I*tanh(x_red/I);
+
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);
 
@@ -761,6 +764,9 @@ static ex cot_eval(const ex & x)
 		throw (std::runtime_error("cotan_eval(): cot(0) encountered"));
 	}
 
+	if (is_multiple_of_I(x.expand()))
+		return -I*coth(x/I);
+
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
                    
@@ -875,6 +881,9 @@ static ex sec_evalf(const ex & x, PyObject* parent)
 
 static ex sec_eval(const ex & x)
 {
+	if (is_multiple_of_I(x.expand()))
+		return sech(x/I);
+
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
@@ -994,6 +1003,9 @@ static ex csc_eval(const ex & x)
 	if (x.is_zero()) {
 		throw (std::runtime_error("csc_eval(): csc(0) encountered"));
 	}
+
+	if (is_multiple_of_I(x.expand()))
+		return -I*csch(x/I);
 
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);

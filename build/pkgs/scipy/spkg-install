@@ -50,9 +50,6 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-#create site.cfg
-python "${CUR}"/lapack_conf.py
-
 # Build:
 python setup.py build
 if [ $? -ne 0 ]; then

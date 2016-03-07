@@ -2824,7 +2824,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("dim must be 2 or 3")
 
     def _check_pos_validity(self, pos=None, dim = 2):
-        """
+        r"""
         Checks whether pos specifies two (resp. 3) coordinates for every vertex (and no more vertices).
 
         INPUT:
@@ -2846,7 +2846,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G._check_pos_validity(p)
             True
         """
-
         if pos is None:
             pos = self.get_pos(dim = dim)
         if pos is None:
@@ -4830,7 +4829,7 @@ class GenericGraph(GenericGraph_pyx):
         if (len(path) != 0): faces.append(path)
         return faces
 
-    def num_faces(self,embedding = None):
+    def num_faces(self,embedding=None):
         """
         Returns the number of faces of an embedded graph.
 
@@ -4841,18 +4840,15 @@ class GenericGraph(GenericGraph_pyx):
             4
 
         TESTS::
+
             sage: G = graphs.CompleteMultipartiteGraph([3,3])
             sage: G.num_faces()
             Traceback (most recent call last):
             ...
             ValueError: No embedding is provided and the graph is not planar.
-
         """
 
-        try:
-            return len(self.faces(embedding))
-        except ValueError as e:
-            raise ValueError(e)
+        return len(self.faces(embedding))
 
 
     ### Connectivity

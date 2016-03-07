@@ -39,14 +39,15 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0,
 
     INPUT:
 
-    -   coeffs  -- list of integer coefficients a_0, a_1, ..., a_n
+    - ``coeffs`` -- list of integer coefficients `a_0` , `a_1`, ..., `a_n`
 
-    -   H       -- the bound for the denominator and the absolute value of the
-        numerator of the x-coordinate
+    - ``H`` -- the bound for the denominator and the absolute value of the
+      numerator of the `x`-coordinate
 
-    -   verbose -- if True, ratpoints will print comments about its progress
+    - ``verbose`` -- if ``True``, ratpoints will print comments about
+      its progress
 
-    -   max     -- maximum number of points to find (if 0, find all of them)
+    - ``max`` -- maximum number of points to find (if 0, find all of them)
 
     OUTPUT:
 

@@ -122,11 +122,12 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
 
     INPUT:
 
-        - ``eqs`` -- list of boolean equations
+    - ``eqs`` -- list of boolean equations
 
-        - ``max_sols`` -- stop after this many solutions are found
+    - ``max_sols`` -- stop after this many solutions are found
 
-        - ``verbose`` -- whether the library should display information about its work
+    - ``verbose`` -- whether the library should display information about
+      its work
 
     NOTE:
 
@@ -175,12 +176,12 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
 
     """
     if eqs == []:
-        raise ValueError, "No equations, no solutions"
+        raise ValueError("No equations, no solutions")
 
     eqs = Sequence(eqs)
     R = eqs.ring()
     if R.base_ring() != GF(2):
-        raise ValueError, "FES only deals with equations over GF(2)"
+        raise ValueError("FES only deals with equations over GF(2)")
 
     degree = max( [f.degree() for f in eqs] )
     if degree <= 1:
@@ -245,7 +246,8 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
 
 
 def find_coordinate_change(As, max_tries=64):
-    """Tries to find a linear change of coordinates such that certain
+    """
+    Tries to find a linear change of coordinates such that certain
     coefficients of the quadratic forms As become zero. This in turn
     makes the exhaustive search faster
 
@@ -285,7 +287,7 @@ def find_coordinate_change(As, max_tries=64):
                 S.randomize()
             Bs = [ S.T*M*S for M in As ]
             print "trying again..."
-    raise ValueError, "Could not find suitable coordinate change"
+    raise ValueError("Could not find suitable coordinate change")
 
 
 
@@ -296,7 +298,7 @@ def prepare_polynomials(f):
 
     INPUT:
 
-         - ``f`` -- list of boolean equations
+    - ``f`` -- list of boolean equations
 
     EXAMPLES:
 
@@ -336,8 +338,8 @@ def prepare_polynomials(f):
 
     m = matrix(R.base_ring(), [ [ g.monomial_coefficient(m) for m in monomials_in_s[:excess] ] for g in s ])
     # now find the linear combinations of the equations that kills the first `excess` monomials in all but `excess` equations
-    # todo, this is very likely suboptimal, but m.echelonize() does not returns the transformation...
-    P,L,U = m.LU()
+    # todo, this is very likely suboptimal, but m.echelonize() does not return the transformation...
+    P, L, U = m.LU()
     S = (P*L).I
     result = Sequence( S * vector(s) )
     result.reverse()

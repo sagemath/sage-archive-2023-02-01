@@ -499,7 +499,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             start = PY_NEW(Integer) # 0
         if step is None:
             step = 1
-        if not PyInt_CheckExact(step):
+        if type(step) is not int:
             if not isinstance(step, integer.Integer):
                 step = integer.Integer(step)
             if mpz_fits_slong_p((<Integer>step).value):
@@ -516,7 +516,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer zstep, last
 
         L = []
-        if PyInt_CheckExact(step):
+        if type(step) is int:
             istep = PyInt_AS_LONG(step)
             step_sign = istep
         else:
@@ -527,7 +527,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         while mpz_cmp(a.value, b.value)*step_sign < 0:
             last = a
             a = PY_NEW(Integer)
-            if PyInt_CheckExact(step): # count on branch prediction...
+            if type(step) is int: # count on branch prediction...
                 if istep > 0:
                     mpz_add_ui(a.value, last.value, istep)
                 else:

@@ -2874,7 +2874,7 @@ class Graphics(WithEqualityById, SageObject):
             elif xscale == 'linear':
                 subplot.xaxis.set_minor_locator(AutoMinorLocator())
             else: # log scale
-                from sage.misc.misc import srange
+                from sage.arith.srange import srange
                 base_inv = 1.0/basex
                 subs = [float(_) for _ in srange(2*base_inv, 1, base_inv)]
                 subplot.xaxis.set_minor_locator(LogLocator(base=basex,
@@ -2884,7 +2884,7 @@ class Graphics(WithEqualityById, SageObject):
             elif yscale == 'linear':
                 subplot.yaxis.set_minor_locator(AutoMinorLocator())
             else: # log scale
-                from sage.misc.misc import srange
+                from sage.arith.srange import srange
                 base_inv = 1.0/basey
                 subs = [float(_) for _ in srange(2*base_inv, 1, base_inv)]
                 subplot.yaxis.set_minor_locator(LogLocator(base=basey,

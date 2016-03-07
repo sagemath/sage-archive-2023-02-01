@@ -115,23 +115,6 @@ class ClusterComplexFacet(SubwordComplexFacet):
         """
         return [ beta for beta in self.cluster() if sum(beta) > 0 ]
 
-    def product_of_upper_cluster(self):
-        """
-        Return the product of the upper cluster.
-        This map is the bijection between clusters and noncrossing partitions.
-
-        EXAMPLES::
-
-            sage: C = ClusterComplex(['A', 2])
-            sage: F = C((0, 1))
-            sage: F.product_of_upper_cluster()
-            [1 0]
-            [0 1]
-        """
-        W = self.parent().group()
-        return W.prod(W.reflections()[beta]
-                      for beta in reversed(self.upper_cluster()))
-
 class ClusterComplex(SubwordComplex):
     r"""
     Cluster complex (or generalized dual associahedron)

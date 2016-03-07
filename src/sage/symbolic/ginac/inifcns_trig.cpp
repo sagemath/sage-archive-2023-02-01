@@ -722,14 +722,6 @@ static ex cot_evalf(const ex & x, PyObject* parent)
 
 static ex cot_eval(const ex & x)
 {
-	// cot(k*pi) -> Infinity
-	ex exoverpi = x/Pi;
-	if (is_exactly_a<numeric>(exoverpi)) {
-		if (ex_to<numeric>(exoverpi).is_integer()) {
-			return UnsignedInfinity;
-		}
-	}
-
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
                    
@@ -770,8 +762,12 @@ static ex cot_eval(const ex & x)
 	}
 
         ex res = tan_eval(x);
-	if (not is_ex_the_function(res, tan))
-                return power(res, _ex_1);
+	if (not is_ex_the_function(res, tan)) {
+		if (not res.is_zero())
+			return power(res, _ex_1);
+		else
+			return UnsignedInfinity;
+	}
 
 	return cot(x).hold();
 }
@@ -957,14 +953,6 @@ static ex csc_evalf(const ex & x, PyObject* parent)
 
 static ex csc_eval(const ex & x)
 {
-	// csc(k*pi) -> Infinity
-	ex exoverpi = x/Pi;
-	if (is_exactly_a<numeric>(exoverpi)) {
-		if (ex_to<numeric>(exoverpi).is_integer()) {
-			return UnsignedInfinity;
-		}
-	}
-
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 

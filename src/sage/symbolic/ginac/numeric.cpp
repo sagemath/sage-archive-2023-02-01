@@ -485,7 +485,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                 if (PyInt_Check(o)) {
                         t = MPZ;
                         mpz_init(v._bigint);
-                        mpz_set_si(v._bigint, PyInt_AS_LONG(o));
+                        mpz_set_si(v._bigint, PyInt_AsLong(o));
                         hash = _mpz_pythonhash(v._bigint);
                         setflag(status_flags::evaluated | status_flags::expanded);
                         Py_DECREF(o);
@@ -1084,8 +1084,8 @@ const numeric numeric::div(const numeric &other) const {
                         if (PyInt_Check(v._pyobject)) {
                                 if (PyInt_Check(other.v._pyobject)) {
                                         // This branch happens at startup.
-                                        PyObject* o = PyNumber_TrueDivide(Integer(PyInt_AS_LONG(v._pyobject)),
-                                                Integer(PyInt_AS_LONG(other.v._pyobject)));
+                                        PyObject* o = PyNumber_TrueDivide(Integer(PyInt_AsLong(v._pyobject)),
+                                                Integer(PyInt_AsLong(other.v._pyobject)));
                                         // I don't 100% understand why I have to incref this, 
                                         // but if I don't, Sage crashes on exit.
                                         Py_INCREF(o);

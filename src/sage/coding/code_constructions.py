@@ -160,7 +160,7 @@ from linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence, Sequence_generic
-from sage.arith.all import GCD, LCM, divisors, quadratic_residues
+from sage.arith.all import GCD, LCM, divisors, quadratic_residues, gcd
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -259,8 +259,8 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
         sage: i2_sqrd = (i2^2).quo_rem(x^n-1)[1]
         sage: i2_sqrd  == i2
         True
-        sage: C1 = codes.CyclicCodeFromGeneratingPolynomial(n,i1)
-        sage: C2 = codes.CyclicCodeFromGeneratingPolynomial(n,1-i2)
+        sage: C1 = codes.CyclicCode(length = n, generator_pol = i1)
+        sage: C2 = codes.CyclicCode(length = n, generator_pol = 1-i2)
         sage: C1.dual_code() == C2
         True
 
@@ -510,22 +510,22 @@ def BCHCode(n,delta,F,b=0):
         sage: f = x^(8)-1
         sage: g.divides(f)
         True
-        sage: C = codes.CyclicCode(8,g); C
-        Linear code of length 8, dimension 4 over Finite Field of size 3
+        sage: C = codes.CyclicCode(generator_pol = g, length = 8); C
+        [8, 4] Cyclic Code over Finite Field of size 3 with x^4 + 2*x^3 + 2*x + 2 as generator polynomial
         sage: C.minimum_distance()
         4
         sage: C = codes.BCHCode(8,3,GF(3),1); C
-        Linear code of length 8, dimension 4 over Finite Field of size 3
+        [8, 4] Cyclic Code over Finite Field of size 3 with x^4 + 2*x^3 + 2*x + 2 as generator polynomial
         sage: C.minimum_distance()
         4
         sage: C = codes.BCHCode(8,3,GF(3)); C
-        Linear code of length 8, dimension 5 over Finite Field of size 3
+        [8, 5] Cyclic Code over Finite Field of size 3 with x^3 + x^2 + 1 as generator polynomial
         sage: C.minimum_distance()
         3
         sage: C = codes.BCHCode(26, 5, GF(5), b=1); C
-        Linear code of length 26, dimension 10 over Finite Field of size 5
-
+        [26, 10] Cyclic Code over Finite Field of size 5 with x^16 + 4*x^15 + 4*x^14 + x^13 + 4*x^12 + 3*x^10 + 3*x^9 + x^8 + 3*x^7 + 3*x^6 + 4*x^4 + x^3 + 4*x^2 + 4*x + 1 as generator polynomial
     """
+    from sage.coding.cyclic_code import CyclicCode
     q = F.order()
     R = IntegerModRing(n)
     m = R(q).multiplicative_order()
@@ -542,7 +542,7 @@ def BCHCode(n,delta,F,b=0):
     #print cosets, "\n", g, "\n", (x**n-1).factor(), "\n", L1, "\n", g.divides(x**n-1)
     if not(g.divides(x**n-1)):
         raise ValueError("BCH codes does not exist with the given input.")
-    return CyclicCodeFromGeneratingPolynomial(n,g)
+    return CyclicCode(generator_pol = g, length = n)
 
 
 def BinaryGolayCode():
@@ -624,9 +624,10 @@ def DuadicCodeEvenPair(F,S1,S2):
         sage: is_a_splitting(S1,S2,11)
         True
         sage: codes.DuadicCodeEvenPair(GF(q),S1,S2)
-        (Linear code of length 11, dimension 5 over Finite Field of size 3,
-         Linear code of length 11, dimension 5 over Finite Field of size 3)
+        ([11, 5] Cyclic Code over Finite Field of size 3 with x^6 + x^4 + 2*x^3 + 2*x^2 + 2*x + 1 as generator polynomial,
+         [11, 5] Cyclic Code over Finite Field of size 3 with x^6 + 2*x^5 + 2*x^4 + 2*x^3 + x^2 + 1 as generator polynomial)
     """
+    from cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -643,8 +644,8 @@ def DuadicCodeEvenPair(F,S1,S2):
     x = P2.gen()
     gg1 = P2([lift2smallest_field(c)[0] for c in g1.coefficients(sparse=False)])
     gg2 = P2([lift2smallest_field(c)[0] for c in g2.coefficients(sparse=False)])
-    C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
-    C2 = CyclicCodeFromGeneratingPolynomial(n,gg2)
+    C1 = CyclicCode(length = n, generator_pol = gg1)
+    C2 = CyclicCode(length = n, generator_pol = gg2)
     return C1,C2
 
 def DuadicCodeOddPair(F,S1,S2):
@@ -673,6 +674,7 @@ def DuadicCodeOddPair(F,S1,S2):
 
     This is consistent with Theorem 6.1.3 in [HP]_.
     """
+    from cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -692,8 +694,10 @@ def DuadicCodeOddPair(F,S1,S2):
     coeffs2 = [lift2smallest_field(c)[0] for c in (g2+j).coefficients(sparse=False)]
     gg1 = P2(coeffs1)
     gg2 = P2(coeffs2)
-    C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
-    C2 = CyclicCodeFromGeneratingPolynomial(n,gg2)
+    gg1 = gcd(gg1, x**n - 1)
+    gg2 = gcd(gg2, x**n - 1)
+    C1 = CyclicCode(length = n, generator_pol = gg1)
+    C2 = CyclicCode(length = n, generator_pol = gg2)
     return C1,C2
 
 

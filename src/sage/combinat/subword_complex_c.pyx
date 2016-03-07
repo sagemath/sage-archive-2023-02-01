@@ -1,6 +1,6 @@
 
-cpdef _flip_c(W, set positions, list extended_root_conf_indices,
-              int i, side="both"):
+cpdef int _flip_c(W, set positions, list extended_root_conf_indices,
+                  int i, side="both"):
     """
     Flip a facet.
 
@@ -50,7 +50,7 @@ cpdef _flip_c(W, set positions, list extended_root_conf_indices,
             extended_root_conf_indices[k] = t.action_on_root_indices(extended_root_conf_indices[k])
     return j
 
-cpdef _construct_facets_c(list Q, w, int n=-1, int pos=0, int l=-1):
+cpdef list _construct_facets_c(tuple Q, w, int n=-1, int pos=0, int l=-1):
     r"""
     Return the list of facets of the subword complex associated to the
     word `Q` and the element `w` in a Coxeter group `W`.
@@ -60,14 +60,14 @@ cpdef _construct_facets_c(list Q, w, int n=-1, int pos=0, int l=-1):
         sage: from sage.combinat.subword_complex_c import _construct_facets_c
         sage: W = CoxeterGroup(['A',2])
         sage: w = W.from_reduced_word([1,2])
-        sage: _construct_facets_c([2,1], w)
+        sage: _construct_facets_c((2,1), w)
         []
-        sage: _construct_facets_c([2,1,2], w)
+        sage: _construct_facets_c((2,1,2), w)
         [[0]]
-        sage: _construct_facets_c([2,1,2,1], w)
+        sage: _construct_facets_c((2,1,2,1), w)
         [[0, 3]]
         sage: w = W.from_reduced_word([1,2,1])
-        sage: _construct_facets_c([1,2,1,2,1], w)
+        sage: _construct_facets_c((1,2,1,2,1), w)
         [[0, 1], [0, 4], [1, 2], [2, 3], [3, 4]]
     """
     cdef int s

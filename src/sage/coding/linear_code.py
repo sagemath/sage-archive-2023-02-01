@@ -2416,8 +2416,8 @@ class AbstractLinearCode(module.Module):
 
             sage: P.<x> = PolynomialRing(GF(2),"x")
             sage: g = x^3+x+1
-            sage: C1 = codes.CyclicCodeFromGeneratingPolynomial(7,g); C1
-            Linear code of length 7, dimension 4 over Finite Field of size 2
+            sage: C1 = codes.CyclicCode(length = 7, generator_pol = g); C1
+            [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
             sage: C2 = codes.HammingCode(GF(2), 3); C2
             [7, 4] Hamming Code over Finite Field of size 2
             sage: C1.is_permutation_equivalent(C2)

@@ -752,15 +752,6 @@ class CyclicCode(AbstractLinearCode):
             sage: C2 = codes.CyclicCode(generator_pol = g, length = n)
             sage: C1.defining_set() == C2.defining_set()
             True
-
-        blah::
-
-            sage: F = GF(2)
-            sage: n = 15
-            sage: C1 = codes.CyclicCode(length = n , field = F, D = [1,3])
-            sage: C2 = codes.CyclicCode(generator_pol = C1.generator_polynomial(), length = n)
-            sage: C2.defining_set()
-
         """
         if hasattr(self, "_defining_set"):
             return self._defining_set

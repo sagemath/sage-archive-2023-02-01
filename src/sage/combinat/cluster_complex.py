@@ -115,6 +115,24 @@ class ClusterComplexFacet(SubwordComplexFacet):
         """
         return [ beta for beta in self.cluster() if sum(beta) > 0 ]
 
+    def product_of_upper_cluster(self):
+        """
+        Return the product of the upper cluster in reversed order.
+
+        EXAMPLES::
+
+            sage: C = ClusterComplex(['A', 2])
+            sage: for F in C: print F.product_of_upper_cluster().reduced_word()
+            []
+            [2]
+            [1]
+            [1, 2]
+            [1, 2]
+        """
+        W = self.parent().group()
+        return W.prod(W.reflections()[beta]
+                      for beta in reversed(self.upper_cluster()))
+
 class ClusterComplex(SubwordComplex):
     r"""
     Cluster complex (or generalized dual associahedron)

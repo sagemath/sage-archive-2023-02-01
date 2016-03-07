@@ -2341,12 +2341,12 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M = Matroid(groundset='abcd', bases=['ab', 'cd'])
             sage: M.is_valid()
             False
-            
+
         TESTS:
-        
-        Verify that Trac #20172 was fixed::
-        
-            sage: sage: M=Matroid(groundset='1234',bases=['12','13','23','34'])
+
+        Verify that :trac:`20172` was fixed::
+
+            sage: M=Matroid(groundset='1234',bases=['12','13','23','34'])
             sage: M.is_valid()
             False
         """

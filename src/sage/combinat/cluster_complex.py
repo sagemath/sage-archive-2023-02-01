@@ -102,41 +102,35 @@ class ClusterComplexFacet(SubwordComplexFacet):
         R = F.extended_root_configuration()
         return [-R[i] if i < len(list(F)) else R[i] for i in self]
 
-    # the following methods only make sense for the implementation using #11187:
+    def upper_cluster(self):
+        """
+        Return the part of the cluster that contains positive roots
 
-    #def upper_cluster(self):
-        #"""
-        #Return the part of the cluster that contains positive roots
-        #
-        #EXAMPLES::
+        EXAMPLES::
 
-            #sage: C = ClusterComplex(['A', 2])
-            #sage: F = C((0, 1))
-            #sage: F.upper_cluster()
-            #[]
-        #"""
-        #conf = self._root_configuration_indices()
-        #W = self.parent().group()
-        #N = len(W.roots()) / 2
-        #C = self.cluster()
-        #return [C[i] for i in xrange(len(conf)) if conf[i] >= N]
+            sage: C = ClusterComplex(['A', 2])
+            sage: F = C((0, 1))
+            sage: F.upper_cluster()
+            []
+        """
+        return [ beta for beta in self.cluster() if sum(beta) > 0 ]
 
-    #def product_of_upper_cluster(self):
-        #"""
-        #Return the product of the upper cluster.
-        #This map is the bijection between clusters and noncrossing partitions.
-        #
-        #EXAMPLES::
+    def product_of_upper_cluster(self):
+        """
+        Return the product of the upper cluster.
+        This map is the bijection between clusters and noncrossing partitions.
 
-            #sage: C = ClusterComplex(['A', 2])
-            #sage: F = C((0, 1))
-            #sage: F.product_of_upper_cluster()
-            #[1 0]
-            #[0 1]
-        #"""
-        #W = self.parent().group()
-        #return W.prod(W.root_to_reflection(beta)
-                      #for beta in reversed(self.upper_cluster()))
+        EXAMPLES::
+
+            sage: C = ClusterComplex(['A', 2])
+            sage: F = C((0, 1))
+            sage: F.product_of_upper_cluster()
+            [1 0]
+            [0 1]
+        """
+        W = self.parent().group()
+        return W.prod(W.root_to_reflection(beta)
+                      for beta in reversed(self.upper_cluster()))
 
 class ClusterComplex(SubwordComplex):
     r"""

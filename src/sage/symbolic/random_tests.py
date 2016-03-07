@@ -339,7 +339,7 @@ def assert_strict_weak_order(a,b,c, cmp_func):
         sage: cmp
         [ 0 -1 -1]
         [ 1  0 -1]
-        [ 1 -1  0]
+        [ 1  1  0]
     """
     from sage.matrix.constructor import matrix
     from sage.combinat.permutation import Permutations

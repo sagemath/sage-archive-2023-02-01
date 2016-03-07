@@ -1155,22 +1155,6 @@ Environment variables dealing with specific Sage packages:
   then Sage will attempt to build the graphical backend when it builds the
   matplotlib package.
 
-- :envvar:`INCLUDE_MPFR_PATCH` - this is used to add a patch to MPFR to bypass
-  a bug in the memset function affecting sun4v machines with versions of
-  Solaris earlier than Solaris 10 update 8 (10/09).
-  Earlier versions of Solaris 10 can be patched by applying Sun patch
-  142542-01.
-  Recognized values are:
-
-  - ``INCLUDE_MPFR_PATCH=0`` - never include the patch - useful if you know all
-    sun4v machines Sage will be used are running Solaris 10 update 8 or later,
-    or have been patched with Sun patch 142542-01.
-
-  - ``INCLUDE_MPFR_PATCH=1`` - always include the patch, so the binary will
-    work on a sun4v machine, even if created on an older sun4u machine.
-
-  - If this variable is unset, include the patch on sun4v machines only.
-
 - :envvar:`PARI_CONFIGURE` - use this to pass extra parameters to
   PARI's ``Configure`` script, for example to specify graphics
   support (which is disabled by default). See the file

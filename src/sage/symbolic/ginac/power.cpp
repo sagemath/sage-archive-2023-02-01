@@ -663,7 +663,7 @@ ex power::eval(int level) const
                                                         lead_coeff()).div(icont);
 
                                 const bool canonicalizable = lead_coeff.is_integer();
-                                const bool unit_normal = lead_coeff.is_pos_integer();
+                                const bool unit_normal = lead_coeff.is_pos_integer() || lead_coeff.is_parent_pos_char();
                                 if (canonicalizable && (! unit_normal))
                                         icont = icont.mul(*_num_1_p);
 

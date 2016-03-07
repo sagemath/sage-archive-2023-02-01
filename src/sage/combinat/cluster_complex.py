@@ -1,35 +1,6 @@
 r"""
 Cluster complex (or generalized dual associahedron)
 
-The cluster complex (or generalized dual associahedron) is a
-simplicial complex constructed from a cluster algebra.  Its
-vertices are the cluster variables and its facets are the
-clusters, i.e., maximal subsets of compatible cluster variables.
-
-The cluster complex of type `A_n` is the simplicial complex with
-vertices being (proper) diagonals in a convex `(n+3)`-gon and with
-facets being triangulations.
-
-The implementation of the cluster complex depends on its
-connection to subword complexes, see [CLS]_. Let `c` be a Coxeter
-element with reduced word `{\bf c}` in a finite Coxeter group `W`,
-and let `{\bf w}_\circ` be the `c`-sorting word for the longest
-element `w_\circ \in W`.
-
-The ``multi-cluster complex`` `\Delta(W,k)` has vertices in
-one-to-one correspondence with letters in the word `Q = {\bf c^k
-w}_\circ` and with facets being complements in `Q` of reduced
-expressions for `w_\circ`.
-
-For `k = 1`, the multi-cluster complex is isomorphic to the
-cluster complex as defined above.
-
-REFERENCES:
-
-.. [CLS] C. Ceballos, J.-P. Labbe, C. Stump, ``Subword complexes,
-   cluster complexes, and generalized multi-associahedra``,
-   :arxiv:`1108.1776`.
-
 EXAMPLES:
 
 A first example of a cluster complex::
@@ -45,7 +16,7 @@ Its vertices, facets, and minimal non-faces::
     sage: C.facets()
     [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
 
-    sage: for F in C.facets(): print F.cluster()
+    sage: for F in C.facets(): F.cluster()
     [(-1, 0), (0, -1)]
     [(-1, 0), (0, 1)]
     [(0, -1), (1, 0)]
@@ -61,11 +32,11 @@ e.g. computing its homology::
     sage: C.homology()
     {0: 0, 1: Z}
 
-
 AUTHORS:
 
 - Christian Stump (2011) Initial version
 """
+
 #*****************************************************************************
 #       Copyright (C) 2011      Christian Stump <christian.stump@gmail.com>
 #
@@ -75,6 +46,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.homology.simplicial_complex import Simplex
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
@@ -113,7 +85,7 @@ class ClusterComplexFacet(SubwordComplexFacet):
             sage: F.upper_cluster()
             []
         """
-        return [ beta for beta in self.cluster() if sum(beta) > 0 ]
+        return [beta for beta in self.cluster() if sum(beta) > 0]
 
     def product_of_upper_cluster(self):
         """
@@ -122,7 +94,7 @@ class ClusterComplexFacet(SubwordComplexFacet):
         EXAMPLES::
 
             sage: C = ClusterComplex(['A', 2])
-            sage: for F in C: print F.product_of_upper_cluster().reduced_word()
+            sage: for F in C: F.product_of_upper_cluster().reduced_word()
             []
             [2]
             [1]
@@ -135,7 +107,30 @@ class ClusterComplexFacet(SubwordComplexFacet):
 
 class ClusterComplex(SubwordComplex):
     r"""
-    Cluster complex (or generalized dual associahedron)
+    A cluster complex (or generalized dual associahedron).
+
+    The cluster complex (or generalized dual associahedron) is a
+    simplicial complex constructed from a cluster algebra.  Its
+    vertices are the cluster variables and its facets are the
+    clusters, i.e., maximal subsets of compatible cluster variables.
+
+    The cluster complex of type `A_n` is the simplicial complex with
+    vertices being (proper) diagonals in a convex `(n+3)`-gon and with
+    facets being triangulations.
+
+    The implementation of the cluster complex depends on its
+    connection to subword complexes, see [CLS]_. Let `c` be a Coxeter
+    element with reduced word `{\bf c}` in a finite Coxeter group `W`,
+    and let `{\bf w}_\circ` be the `c`-sorting word for the longest
+    element `w_\circ \in W`.
+
+    The ``multi-cluster complex`` `\Delta(W,k)` has vertices in
+    one-to-one correspondence with letters in the word
+    `Q = {\bf c^k w}_\circ` and with facets being complements
+    in `Q` of reduced expressions for `w_\circ`.
+
+    For `k = 1`, the multi-cluster complex is isomorphic to the
+    cluster complex as defined above.
 
     EXAMPLES:
 
@@ -160,19 +155,34 @@ class ClusterComplex(SubwordComplex):
 
         sage: C.homology()
         {0: 0, 1: Z}
+
+    We can also create a multi-cluster complex::
+
+        sage: ClusterComplex(['A', 2], k=2)
+        Multi-cluster complex of type ['A', 2] with 7 vertices and 14 facets
+
+    REFERENCES:
+
+    .. [CLS] C. Ceballos, J.-P. Labbe, C. Stump, *Subword complexes,
+       cluster complexes, and generalized multi-associahedra*,
+       J. Algebr. Comb. **39** (2014) pp. 17-51.
+       :doi:`10.1007/s10801-013-0437-x`, :arxiv:`1108.1776`.
     """
 
     @staticmethod
     def __classcall__(cls, W, k=1, coxeter_element=None, algorithm="inductive"):
         r"""
-        Making the input hashable.
+        Standardize input to ensure a unique representation.
 
         TESTS::
 
-            sage: S = ClusterComplex(['B',2])
+            sage: S1 = ClusterComplex(['B',2])
             sage: W = CoxeterGroup(['B',2])
-            sage: T = ClusterComplex(W)
-            sage: S is T
+            sage: S2 = ClusterComplex(W)
+            sage: S3 = ClusterComplex(CoxeterMatrix('B2'), coxeter_element=(1,2))
+            sage: w = W.from_reduced_word([1,2])
+            sage: S4 = ClusterComplex('B2', coxeter_element=w, algorithm="inductive")
+            sage: S1 is S2 and S2 is S3 and S3 is S4
             True
         """
         if not k in NN:
@@ -187,43 +197,24 @@ class ClusterComplex(SubwordComplex):
 
         if coxeter_element is None:
             coxeter_element = W.index_set()
-        elif hasattr(coxeter_element,"reduced_word"):
+        elif hasattr(coxeter_element, "reduced_word"):
             coxeter_element = coxeter_element.reduced_word()
         coxeter_element = tuple(coxeter_element)
 
-        return super(SubwordComplex, cls).__classcall__(cls, W=W, k=k, coxeter_element=coxeter_element, algorithm=algorithm)
+        return super(SubwordComplex, cls).__classcall__(cls, W=W, k=k,
+                                                        coxeter_element=coxeter_element,
+                                                        algorithm=algorithm)
 
     def __init__(self, W, k, coxeter_element, algorithm):
         """
-        EXAMPLES::
-
-            sage: ClusterComplex(['A', 2])
-            Cluster complex of type ['A', 2] with 5 vertices and 5 facets
-            sage: ClusterComplex(['A', 2], k=2)
-            Multi-cluster complex of type ['A', 2] with 7 vertices and 14 facets
+        Initialize ``self``.
 
         TESTS::
 
             sage: S = ClusterComplex(['A', 2])
-            sage: TestSuite(S).run(verbose = True)
-            running ._test_an_element() . . . pass
-            running ._test_cardinality() . . . pass
-            running ._test_category() . . . pass
-            running ._test_elements() . . .
-              Running the test suite of self.an_element()
-              running ._test_category() . . . pass
-              running ._test_eq() . . . pass
-              running ._test_not_implemented_methods() . . . pass
-              running ._test_pickling() . . . pass
-              pass
-            running ._test_elements_eq_reflexive() . . . pass
-            running ._test_elements_eq_symmetric() . . . pass
-            running ._test_elements_eq_transitive() . . . pass
-            running ._test_elements_neq() . . . pass
-            running ._test_eq() . . . pass
-            running ._test_not_implemented_methods() . . . pass
-            running ._test_pickling() . . . pass
-            running ._test_some_elements() . . . pass
+            sage: TestSuite(S).run()
+            sage: S = ClusterComplex(['A', 2], k=2)
+            sage: TestSuite(S).run()
         """
         w = W.w0
         Q = coxeter_element * k + tuple(w.coxeter_sorting_word(coxeter_element))
@@ -244,21 +235,28 @@ class ClusterComplex(SubwordComplex):
 
         INPUT:
 
-        - ``F`` -- an iterable of positions.
-        - ``facet_test`` -- boolean (default: ``True``) tells whether or
-          not the facet ``F`` should be tested before creation.
+        - ``F`` -- an iterable of positions
+        - ``facet_test`` -- boolean (default: ``True``); tells whether
+          or not the facet ``F`` should be tested before creation
 
         OUTPUT:
 
-        the facet of ``self`` at positions given by ``F``.
+        The facet of ``self`` at positions given by ``F``.
 
         EXAMPLES::
 
             sage: C = ClusterComplex(['A', 2])
-            sage: C((0, 1))
+            sage: F = C((0, 1)); F
             (0, 1)
+
+        TESTS::
+
+            sage: C = ClusterComplex(['A', 2])
+            sage: F = C((0, 1))
+            sage: C(F) is F
+            True
         """
-        if hasattr(F,"parent") and F.parent() is self:
+        if isinstance(F, ClusterComplexFacet) and F.parent() is self:
             return F
         return self.element_class(self, F, facet_test=facet_test)
 
@@ -274,9 +272,9 @@ class ClusterComplex(SubwordComplex):
             "Cluster complex of type ['A', 2] with 5 vertices and 5 facets"
         """
         name = self.__custom_name
-        name += ' of type %s with %s vertices and %s facets' \
-                % (self.cartan_type(), self.vertices().dimension() + 1,
-                   len(self._facets))
+        name += ( ' of type %s with %s vertices and %s facets' 
+                  % (self.cartan_type(), self.vertices().dimension() + 1,
+                     len(self._facets)) )
         return name
 
     def k(self):
@@ -325,3 +323,4 @@ class ClusterComplex(SubwordComplex):
         def act(F):
             return self.parent().element_class(sorted([D[i] for i in F]))
         return act
+

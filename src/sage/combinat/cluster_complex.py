@@ -129,7 +129,7 @@ class ClusterComplexFacet(SubwordComplexFacet):
             [0 1]
         """
         W = self.parent().group()
-        return W.prod(W.root_to_reflection(beta)
+        return W.prod(W.reflections()[beta]
                       for beta in reversed(self.upper_cluster()))
 
 class ClusterComplex(SubwordComplex):

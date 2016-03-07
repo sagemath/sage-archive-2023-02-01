@@ -453,28 +453,9 @@ fi
 # Handle --info
 ##################################################################
 
-# Usage: zip_to_tar $PKG_FILE_NAME
-# Outputs (to stdout) a .tar version of a .zip archive
-zip_to_tar()
-{
-    tmpdir="$(mktemp -d)"       &&
-	tmpfile="$(mktemp).tar" &&
-	cd "$tmpdir"            &&
-	sage-unzip "$1"         &&
-	tar -cf "$tmpfile" *    &&
-	cat "$tmpfile"
-}
-
-# Usage: uncompress_spkg $PKG_FILE_NAME
-# Uncompresses a spkg to stdout.
-uncompress_spkg()
-{
-    lbzip2 -d -c "$1" 2>/dev/null || bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || zip_to_tar "$1" || cat "$1"
-}
-
 if [ $INFO -ne 0 -a -z "$USE_LOCAL_SCRIPTS" ]; then
         cat "$PKG_SCRIPTS/SPKG.txt"
-    uncompress_spkg "$PKG_SRC" | tar Oxf - "$PKG_NAME/SPKG.txt"
+    sage-uncompress-spkg "$PKG_SRC" "$PKG_NAME/SPKG.txt"
     if [ $? -ne 0 ]; then
         echo >&2 "No file SPKG.txt in $PKG_NAME"
         exit 1
@@ -547,7 +528,7 @@ else
     ls -l "$PKG_SRC"
 fi
 
-uncompress_spkg "$PKG_SRC" | tar xf - --no-same-owner
+sage-uncompress-spkg "$PKG_SRC"
 if [ $? -ne 0 ]; then
     echo >&2 "Error: failed to extract $PKG_SRC"
     exit 1
@@ -604,8 +585,8 @@ if head -1 spkg-install | grep python >/dev/null; then
     # If there is no Python installed in local/bin, exit with an error.
     if [ ! -x "$SAGE_LOCAL"/bin/python ]; then
          echo >&2 "Error: The spkg-install script is written in Python, but the Python"
-         echo >&2 "package is not yet installed in Sage.  This is a bug in the file"
-         echo >&2 "$SAGE_ROOT/spkg/standard/deps"
+         echo >&2 'package is not yet installed in Sage.  You should add $(PYTHON)'
+         echo >&2 "as dependency in build/pkgs/$PKG_BASE/dependencies"
          exit 1
     fi
 fi

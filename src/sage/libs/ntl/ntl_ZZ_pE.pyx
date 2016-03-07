@@ -109,11 +109,11 @@ cdef class ntl_ZZ_pE(object):
                 # surely because the above call restore things and breaks the modulus
                 self.c.restore_c()
                 self.x = ZZ_pX_to_ZZ_pE(tmp_zzpx.x)
-            elif PyInt_Check(v):
+            elif isinstance(v, int):
                 self.x = long_to_ZZ_pE(v)
             elif isinstance(v, ntl_ZZ_p):
                 self.x = ZZ_p_to_ZZ_pE((<ntl_ZZ_p>v).x)
-            elif PyLong_Check(v):
+            elif isinstance(v, long):
                 PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_pE(temp)
             elif isinstance(v, ntl_ZZ):

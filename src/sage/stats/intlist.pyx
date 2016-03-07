@@ -32,7 +32,6 @@ from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
-from cpython.slice cimport PySlice_Check
 from cpython.string cimport *
 
 cdef class IntList:
@@ -201,7 +200,7 @@ cdef class IntList:
         """
         cdef Py_ssize_t start, stop, step, j
         cdef IntList t
-        if PySlice_Check(i):
+        if isinstance(i, slice):
             start = 0 if (i.start is None) else i.start
             stop = self._length if (i.stop is None) else i.stop
             step = 1 if (i.step is None) else i.step

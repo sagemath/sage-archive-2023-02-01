@@ -453,7 +453,7 @@ class AlgebraicScheme(scheme.Scheme):
                 raise hom[0]
             return hom
         ambient = self.ambient_space()
-        return self.hom(ambient.coordinate_ring().gens(), ambient)
+        return self.hom(self.coordinate_ring().gens(), ambient)
 
     def embedding_center(self):
         r"""
@@ -2840,8 +2840,8 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
               u1 - u3,
               u0 - u2
               Defn: Defined by sending (x : y : z , u : v , s : t) to
-                    (x*v*s : x*v*t : x*v*s : x*v*t : y*v*s : y*v*t : y*v*s : y*v*t :
-            z*v*s : z*v*t : z*v*s : z*v*t).
+                    (x*u*s : x*u*t : x*v*s : x*v*t : y*u*s : y*u*t : y*v*s : y*v*t :
+            z*u*s : z*u*t : z*v*s : z*v*t).
         """
         AS = self.ambient_space()
         CR = AS.coordinate_ring()
@@ -3164,9 +3164,10 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               s - t
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [s : t : x : y] to
-                    [t : t : x : y]
+                    [s : s : x : y]
 
-            sage: P1._morphism(H, [s, s, x, y])
+            sage: sbar, tbar, xbar, ybar = P1.coordinate_ring().gens()
+            sage: P1._morphism(H, [sbar, sbar, xbar, ybar])
             Scheme morphism:
               From: Closed subscheme of 2-d CPR-Fano toric variety
               covered by 4 affine patches defined by:
@@ -3531,9 +3532,11 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
                 phi.append(point[i])
         pullback_polys = [f(phi) for f in self.defining_polynomials()]
         patch = patch_cover.subscheme(pullback_polys)
+        S = patch.coordinate_ring()
+        phi_reduced = [S(t) for t in phi]
 
         patch._embedding_center = patch(point_preimage)
-        patch._embedding_morphism = patch.hom(phi,self)
+        patch._embedding_morphism = patch.hom(phi_reduced,self)
         return patch
 
     def dimension(self):

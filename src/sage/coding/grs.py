@@ -860,15 +860,18 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def __init__(self, code):
         r"""
-        EXAMPLES::
+        TESTS:
 
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: D = codes.decoders.GRSBerlekampWelchDecoder(C)
-            sage: D
-            Berlekamp-Welch decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        If ``code`` is not a GRS code, an error is raised::
+
+            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: codes.decoders.GRSBerlekampWelchDecoder(C)
+            Traceback (most recent call last):
+            ...
+            ValueError: code has to be a generalized Reed-Solomon code
         """
+        if not isinstance(code, GeneralizedReedSolomonCode):
+            raise ValueError("code has to be a generalized Reed-Solomon code")
         super(GRSBerlekampWelchDecoder, self).__init__(code, code.ambient_space(),
             "EvaluationPolynomial")
 
@@ -1072,15 +1075,18 @@ class GRSGaoDecoder(Decoder):
 
     def __init__(self, code):
         r"""
-        EXAMPLES::
+        TESTS:
 
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: D = codes.decoders.GRSGaoDecoder(C)
-            sage: D
-            Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        If ``code`` is not a GRS code, an error is raised::
+
+            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: codes.decoders.GRSGaoDecoder(C)
+            Traceback (most recent call last):
+            ...
+            ValueError: code has to be a generalized Reed-Solomon code
         """
+        if not isinstance(code, GeneralizedReedSolomonCode):
+            raise ValueError("code has to be a generalized Reed-Solomon code")
         super(GRSGaoDecoder, self).__init__(code, code.ambient_space(),
                 "EvaluationPolynomial")
 
@@ -1339,15 +1345,18 @@ class GRSErrorErasureDecoder(Decoder):
 
     def __init__(self, code):
         r"""
-        EXAMPLES::
+        TESTS:
 
-            sage: F = GF(59)
-            sage: n, k = 40, 12
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: D = codes.decoders.GRSErrorErasureDecoder(C)
-            sage: D
-            Error-Erasure decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+        If ``code`` is not a GRS code, an error is raised::
+
+            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: codes.decoders.GRSErrorErasureDecoder(C)
+            Traceback (most recent call last):
+            ...
+            ValueError: code has to be a generalized Reed-Solomon code
         """
+        if not isinstance(code, GeneralizedReedSolomonCode):
+            raise ValueError("code has to be a generalized Reed-Solomon code")
         input_space = cartesian_product([code.ambient_space(),
                 VectorSpace(GF(2), code.ambient_space().dimension())])
         super(GRSErrorErasureDecoder, self).__init__(code, input_space, "EvaluationVector")
@@ -1584,7 +1593,17 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: Impossible to use this decoder over a GRS code which contains 0 amongst its evaluation points
+
+        If ``code`` is not a GRS code, an error is raised::
+
+            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: codes.decoders.GRSKeyEquationSyndromeDecoder(C)
+            Traceback (most recent call last):
+            ...
+            ValueError: code has to be a generalized Reed-Solomon code
         """
+        if not isinstance(code, GeneralizedReedSolomonCode):
+            raise ValueError("code has to be a generalized Reed-Solomon code")
         if code.base_field().zero() in code.evaluation_points():
             raise ValueError("Impossible to use this decoder over a GRS code which contains 0 amongst its evaluation points")
         super(GRSKeyEquationSyndromeDecoder, self).__init__(code, code.ambient_space(),

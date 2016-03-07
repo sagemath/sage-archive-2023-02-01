@@ -69,7 +69,7 @@ from libcpp.vector cimport vector
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 
 cdef extern from "tdlib/sage_tdlib.cpp":

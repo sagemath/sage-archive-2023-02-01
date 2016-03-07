@@ -40,7 +40,7 @@ heavily modified:
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.flint.fmpz cimport *
 

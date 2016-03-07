@@ -167,7 +167,7 @@ Methods
 #*****************************************************************************
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, popcount32
 from sage.graphs.graph_decompositions.vertex_separation import is_valid_ordering

@@ -54,7 +54,6 @@ TESTS::
 #*****************************************************************************
 
 
-include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector

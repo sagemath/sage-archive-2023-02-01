@@ -1831,7 +1831,7 @@ class DirichletGroupFactory(UniqueFactory):
         sage: val = G.gens()[2].values_on_gens()[2] ; val
         zeta4
         sage: parent(val)
-        Maximal Order in Cyclotomic Field of order 4 and degree 2
+        Gaussian Integers in Cyclotomic Field of order 4 and degree 2
         sage: r4.residue_field(r4.ideal(29).factor()[0][0])(val)
         17
         sage: r4.residue_field(r4.ideal(29).factor()[0][0])(val) * GF(29)(3)
@@ -1844,9 +1844,9 @@ class DirichletGroupFactory(UniqueFactory):
     ::
 
         sage: DirichletGroup(60, integral=True)
-        Group of Dirichlet characters of modulus 60 over Maximal Order in Cyclotomic Field of order 4 and degree 2
+        Group of Dirichlet characters of modulus 60 over Gaussian Integers in Cyclotomic Field of order 4 and degree 2
         sage: parent(DirichletGroup(60, integral=True).gens()[2].values_on_gens()[2])
-        Maximal Order in Cyclotomic Field of order 4 and degree 2
+        Gaussian Integers in Cyclotomic Field of order 4 and degree 2
 
     TESTS:
 

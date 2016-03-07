@@ -1,5 +1,5 @@
 from sage.ext.memory cimport *
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 cdef class MemoryAllocator:
     r"""

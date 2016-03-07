@@ -1,3 +1,6 @@
+"""
+GSL arrays
+"""
 #include 'gsl.pxi'
 
 include 'sage/ext/stdsage.pxi'
@@ -5,9 +8,10 @@ include 'sage/ext/stdsage.pxi'
 cdef class GSLDoubleArray:
     r"""
     EXAMPLES::
+
         sage: a = WaveletTransform(128,'daubechies',4)
         sage: for i in range(1, 11):
-        ...    a[i] = 1
+        ....:     a[i] = 1
         sage: a[:6:2]
         [0.0, 1.0, 1.0]
     """

@@ -115,7 +115,7 @@ import math # for log
 import sys
 import re
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include 'sage/libs/pari/pari_err.pxi'
 

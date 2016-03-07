@@ -2620,16 +2620,21 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     return A
 
 def TuranGraph(n,r):
-
     r"""
     Returns the Turan graph with parameters `n, r`.
 
     Turan graphs are complete multipartite graphs with `n` vertices and
     `r` subsets, denoted `T(n,r)`, with the property that the sizes of the
     subsets are as close to equal as possible. The graph `T(n,r)` will have
-    `(n mod r)` subsets of size floor`(n/r)` and `r - (n mod r)` subsets of
-    size ceil`(n/r)`. For more information about Turan graphs, see the
+    `(n mod r)` subsets of size `\floor{n/r}` and `r - (n mod r)` subsets of
+    size `\ceil{n/r}`. For more information about Turan graphs, see the
     corresponding :wikipedia:`Wikipedia page <Turan_graph>`
+
+    INPUT:
+
+    - ``n`` (integer)-- the nuber of vertices in the graph.
+
+    - ``r`` (integer) -- the number of partitions of the graph.
 
     EXAMPLES:
 
@@ -2644,31 +2649,25 @@ def TuranGraph(n,r):
         sage: n = 13
         sage: r = 4
         sage: g = graphs.TuranGraph(n,r)
-        sage: len(g.edges()) == floor((r-1)*(n**2)/(2*r))
+        sage: g.size() == floor((r-1)*(n**2)/(2*r))
         True
 
-    TESTS::
+    TEST::
 
         sage: g = graphs.TuranGraph(3,6)
         Traceback (most recent call last):
         ...
-        ValueError: n should be at least r...
+        ValueError: Input parameters must satisfy "1 < r < n"....
     """
-    import math
+
+    if n<1 or n<r or r<1:
+        raise ValueError('Input parameters must satisfy "1 < r < n".')
+
     from sage.graphs.generators.basic import CompleteMultipartiteGraph
 
-    if n < r:
-        raise ValueError('n should be at least r')
-    if n < 1:
-        raise ValueError('n should be at least 1')
-    if r < 1:
-        raise ValueError('r should be at least 1')
-
-    vertex_sets = []
-    vertex_sets += [(n/r).ceil()]*(n%r)
-    vertex_sets += [(n/r).floor()]*(r-(n%r))
+    vertex_sets = [n//r]*(r-(n%r))+[n//r+1]*(n%r)
 
     g = CompleteMultipartiteGraph(vertex_sets)
-    g.name('Turan Graph with n: %d, r: %d'%(n,r))
+    g.name('Turan Graph with n: {}, r: {}'.format(n,r))
 
     return g

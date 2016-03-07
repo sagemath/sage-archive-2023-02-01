@@ -630,7 +630,7 @@ class AlgebraicClosureFiniteField_generic(Field):
 
     def _latex_(self):
         """
-        Returns latex representation of self.
+        Return a LaTeX representation of ``self``.
 
         EXAMPLES::
 
@@ -638,7 +638,7 @@ class AlgebraicClosureFiniteField_generic(Field):
             sage: latex(F)
             \overline{\Bold{F}_{3}}
         """
-        return "\\overline{%s}" % self.base_ring()._latex_()
+        return "\\overline{{{}}}".format(self.base_ring()._latex_())
 
     def _to_common_subfield(self, x, y):
         """

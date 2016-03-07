@@ -45,6 +45,13 @@ Its vertices, facets, and minimal non-faces::
     sage: C.facets()
     [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
 
+    sage: for F in C.facets(): print F.cluster()
+    [(-1, 0), (0, -1)]
+    [(-1, 0), (0, 1)]
+    [(0, -1), (1, 0)]
+    [(1, 0), (1, 1)]
+    [(1, 1), (0, 1)]
+
     sage: C.minimal_nonfaces()
     [[0, 2], [0, 3], [1, 3], [1, 4], [2, 4]]
 
@@ -76,10 +83,12 @@ from sage.rings.semirings.non_negative_integer_semiring import NN
 
 class ClusterComplexFacet(SubwordComplexFacet):
     r"""
-    A cluster or a facet of a cluster complex.
+    A cluster (i.e., a facet) of a cluster complex.
     """
     def cluster(self):
         """
+        Return this cluster as a set of almost positive roots.
+
         EXAMPLES::
 
             sage: C = ClusterComplex(['A', 2])
@@ -93,49 +102,41 @@ class ClusterComplexFacet(SubwordComplexFacet):
         R = F.extended_root_configuration()
         return [-R[i] if i < len(list(F)) else R[i] for i in self]
 
-    def upper_cluster(self):
-        """
-        EXAMPLES::
+    # the following methods only make sense for the implementation using #11187:
 
-            sage: C = ClusterComplex(['A', 2])
-            sage: F = C((0, 1))
-            sage: F.upper_cluster()
-            []
-        """
-        conf = self._root_configuration_indices()
-        W = self.parent().group()
-        N = len(W.roots()) / 2
-        C = self.cluster()
-        return [C[i] for i in xrange(len(conf)) if conf[i] >= N]
+    #def upper_cluster(self):
+        #"""
+        #Return the part of the cluster that contains positive roots
+        #
+        #EXAMPLES::
 
-    def modified_upper_cluster(self):
-        """
-        EXAMPLES::
+            #sage: C = ClusterComplex(['A', 2])
+            #sage: F = C((0, 1))
+            #sage: F.upper_cluster()
+            #[]
+        #"""
+        #conf = self._root_configuration_indices()
+        #W = self.parent().group()
+        #N = len(W.roots()) / 2
+        #C = self.cluster()
+        #return [C[i] for i in xrange(len(conf)) if conf[i] >= N]
 
-            sage: C = ClusterComplex(['A', 2])
-            sage: F = C((0, 1))
-            sage: F.modified_upper_cluster()
-            []
-        """
-        W = self.parent().group()
-        Upp = self.upper_cluster()
-        return [W.prod(W.root_to_reflection(beta)
-                       for beta in reversed(Upp[m + 1:])).act_on_root(Upp[m])
-                for m in range(len(Upp))]
+    #def product_of_upper_cluster(self):
+        #"""
+        #Return the product of the upper cluster.
+        #This map is the bijection between clusters and noncrossing partitions.
+        #
+        #EXAMPLES::
 
-    def product_of_upper_cluster(self):
-        """
-        EXAMPLES::
-
-            sage: C = ClusterComplex(['A', 2])
-            sage: F = C((0, 1))
-            sage: F.product_of_upper_cluster()
-            [1 0]
-            [0 1]
-        """
-        W = self.parent().group()
-        return W.prod(W.root_to_reflection(beta)
-                      for beta in reversed(self.upper_cluster()))
+            #sage: C = ClusterComplex(['A', 2])
+            #sage: F = C((0, 1))
+            #sage: F.product_of_upper_cluster()
+            #[1 0]
+            #[0 1]
+        #"""
+        #W = self.parent().group()
+        #return W.prod(W.root_to_reflection(beta)
+                      #for beta in reversed(self.upper_cluster()))
 
 class ClusterComplex(SubwordComplex):
     r"""
@@ -168,6 +169,17 @@ class ClusterComplex(SubwordComplex):
 
     @staticmethod
     def __classcall__(cls, W, k=1, coxeter_element=None, algorithm="inductive"):
+        r"""
+        Making the input hashable.
+
+        TESTS::
+
+            sage: S = ClusterComplex(['B',2])
+            sage: W = CoxeterGroup(['B',2])
+            sage: T = ClusterComplex(W)
+            sage: S is T
+            True
+        """
         if not k in NN:
             raise ValueError("the additional parameter must be a "
                              "nonnegative integer")
@@ -218,7 +230,6 @@ class ClusterComplex(SubwordComplex):
             running ._test_pickling() . . . pass
             running ._test_some_elements() . . . pass
         """
-
         w = W.w0
         Q = coxeter_element * k + tuple(w.coxeter_sorting_word(coxeter_element))
         SubwordComplex.__init__(self, Q, w, algorithm=algorithm)
@@ -297,11 +308,14 @@ class ClusterComplex(SubwordComplex):
         return [X for X in Combinations(self.vertices(), self.k() + 1)
                 if not any(set(X).issubset(F) for F in self.facets())]
 
-    def cyclic_action(self):
+    def cyclic_rotation(self):
         """
+        Return the operation on the facets of ``self`` obtained by the
+        cyclic rotation as defined in _[CLS].
+
         EXAMPLES::
 
-            sage: ClusterComplex(['A', 2]).cyclic_action()
+            sage: ClusterComplex(['A', 2]).cyclic_rotation()
             <function act at ...>
         """
         W = self._W
@@ -314,5 +328,5 @@ class ClusterComplex(SubwordComplex):
         D = {i: (Q[i + 1:].index(Q[i]) + i + 1) % l for i in range(l)}
 
         def act(F):
-            return Simplex(sorted([D[i] for i in F]))
+            return self.parent().element_class(sorted([D[i] for i in F]))
         return act

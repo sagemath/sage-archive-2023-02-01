@@ -56,7 +56,7 @@ from sage.libs.ntl.ZZ_pX cimport *
 def make_element(parent, args):
     return parent(*args)
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 zz_p_max = NTL_SP_BOUND
 

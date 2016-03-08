@@ -28,7 +28,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef extern from "math.h":
     double log(double)

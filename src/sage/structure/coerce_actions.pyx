@@ -15,7 +15,7 @@ Coerce actions
 
 import operator
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
 from sage.structure.element cimport parent_c, coercion_model
@@ -725,9 +725,9 @@ cdef class IntegerMulAction(Action):
         """
         if not self._is_left:
             a, nn = nn, a
-        if not PyInt_CheckExact(nn):
+        if type(nn) is not int:
             nn = PyNumber_Int(nn)
-            if not PyInt_CheckExact(nn):
+            if type(nn) is not int:
                 return fast_mul(a, nn)
         return fast_mul_long(a, PyInt_AS_LONG(nn))
 

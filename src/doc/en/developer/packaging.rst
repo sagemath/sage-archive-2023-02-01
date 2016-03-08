@@ -235,7 +235,7 @@ Many packages depend on other packages. Consider for example the
 PARI, NTL and FLINT. So the following is the ``dependencies`` file
 for ``eclib``::
 
-    $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(FLINT)
+    pari ntl flint
 
     ----------
     All lines of this file are ignored except the first.

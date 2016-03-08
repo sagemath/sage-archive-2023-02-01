@@ -276,15 +276,11 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def residue_characteristic(self):
         """
-        Returns the prime, i.e., the characteristic of the residue field.
-
-        INPUT:
-
-            self -- a p-adic ring
+        Return the prime, i.e., the characteristic of the residue field.
 
         OUTPUT:
 
-            integer -- the characteristic of the residue field
+        integer -- the characteristic of the residue field
 
         EXAMPLES::
 
@@ -751,7 +747,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         p = self.prime()
         if p == 2:
-            # the exponential of 2 does not exists, so we compute the
+            # the exponential of 2 does not exist, so we compute the
             # exponential of 4 instead.
             p = 4
         return self(p)._exp(self.precision_cap())

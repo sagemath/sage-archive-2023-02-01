@@ -34,7 +34,7 @@ cdef extern from "partitions_c.h":
     int part(mpz_t answer, unsigned int n)
     int test(bint longtest, bint forever)
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer
 

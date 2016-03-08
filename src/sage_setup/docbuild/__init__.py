@@ -22,7 +22,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC, SAGE_DOC_OUTPUT, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -39,6 +39,20 @@ def excepthook(*exc_info):
 Note: incremental documentation builds sometimes cause spurious
 error messages. To be certain that these are real errors, run
 "make doc-clean" first and try again.''')
+
+
+def delete_empty_directories(root_dir):
+    """
+    Delete all empty directories found under ``root_dir``
+
+    INPUT:
+
+    - ``root_dir`` -- string. A valid directory name.
+    """
+    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
+        if not dirnames + filenames:
+            logger.warning('Deleting empty directory {0}'.format(dirpath))
+            os.rmdir(dirpath)
 
 
 ##########################################
@@ -107,7 +121,7 @@ class DocBuilder(object):
         """
         INPUT:
 
-        - ``name`` - the name of a subdirectory in SAGE_DOC, such as
+        - ``name`` - the name of a subdirectory in SAGE_DOC_SRC, such as
           'tutorial' or 'bordeaux_2008'
 
         - ``lang`` - (default "en") the language of the document.
@@ -120,7 +134,7 @@ class DocBuilder(object):
 
         self.name = os.path.join(*doc)
         self.lang = lang
-        self.dir = os.path.join(SAGE_DOC, self.lang, self.name)
+        self.dir = os.path.join(SAGE_DOC_SRC, self.lang, self.name)
 
     def _output_dir(self, type):
         """
@@ -135,7 +149,7 @@ class DocBuilder(object):
             sage: b._output_dir('html')
             '.../html/en/tutorial'
         """
-        d = os.path.join(SAGE_DOC_OUTPUT, type, self.lang, self.name)
+        d = os.path.join(SAGE_DOC, type, self.lang, self.name)
         sage_makedirs(d)
         return d
 
@@ -152,7 +166,7 @@ class DocBuilder(object):
             sage: b._doctrees_dir()
             '.../doctrees/en/tutorial'
         """
-        d = os.path.join(SAGE_DOC_OUTPUT, 'doctrees', self.lang, self.name)
+        d = os.path.join(SAGE_DOC, 'doctrees', self.lang, self.name)
         sage_makedirs(d)
         return d
 
@@ -294,7 +308,7 @@ class AllBuilder(object):
     def get_all_documents(self):
         """
         Returns a list of all of the documents. A document is a directory within one of
-        the language subdirectories of SAGE_DOC specified by the global LANGUAGES
+        the language subdirectories of SAGE_DOC_SRC specified by the global LANGUAGES
         variable.
 
         EXAMPLES::
@@ -308,9 +322,9 @@ class AllBuilder(object):
         """
         documents = []
         for lang in LANGUAGES:
-            for document in os.listdir(os.path.join(SAGE_DOC, lang)):
+            for document in os.listdir(os.path.join(SAGE_DOC_SRC, lang)):
                 if (document not in OMIT
-                    and os.path.isdir(os.path.join(SAGE_DOC, lang, document))):
+                    and os.path.isdir(os.path.join(SAGE_DOC_SRC, lang, document))):
                     documents.append(os.path.join(lang, document))
 
         # Ensure that the reference guide is compiled first so that links from
@@ -360,7 +374,7 @@ class WebsiteBuilder(DocBuilder):
         reference_dir = os.path.abspath(os.path.join(self._output_dir('html'),
                                                      '..', 'reference'))
         reference_builder = ReferenceBuilder('reference')
-        refdir = os.path.join(os.environ['SAGE_DOC'], 'en', 'reference')
+        refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', 'reference')
         for document in reference_builder.get_all_documents(refdir):
             #path is the directory above reference dir
             path = os.path.abspath(os.path.join(reference_dir, '..'))
@@ -458,7 +472,7 @@ class ReferenceBuilder(AllBuilder):
             sage: b._output_dir('html')
             '.../html/en/reference'
         """
-        d = os.path.join(SAGE_DOC_OUTPUT, type, lang, self.name)
+        d = os.path.join(SAGE_DOC, type, lang, self.name)
         sage_makedirs(d)
         return d
 
@@ -468,7 +482,7 @@ class ReferenceBuilder(AllBuilder):
         top-level document and its components.
         """
         for lang in LANGUAGES:
-            refdir = os.path.join(SAGE_DOC, lang, self.name)
+            refdir = os.path.join(SAGE_DOC_SRC, lang, self.name)
             if not os.path.exists(refdir):
                 continue
             output_dir = self._output_dir(format, lang)
@@ -501,11 +515,11 @@ class ReferenceBuilder(AllBuilder):
                 # few seconds.)
                 getattr(get_builder('website'), 'html')()
                 # Copy the relevant pieces of
-                # SAGE_DOC_OUTPUT/html/en/website/_static to output_dir.
+                # SAGE_DOC/html/en/website/_static to output_dir.
                 # (Don't copy all of _static to save some space: we
                 # don't need all of the MathJax stuff, and in
                 # particular we don't need the fonts.)
-                website_dir = os.path.join(SAGE_DOC_OUTPUT, 'html',
+                website_dir = os.path.join(SAGE_DOC, 'html',
                                            'en', 'website')
                 static_files = ['COPYING.txt', 'basic.css', 'blank.gif',
                          'default.css', 'doctools.js', 'favicon.ico',
@@ -533,7 +547,7 @@ class ReferenceBuilder(AllBuilder):
                 html_bottom = html.rfind('</table>') + len('</table>')
                 # For the content, we modify doc/en/reference/index.rst,
                 # which has two parts: the body and the table of contents.
-                f = open(os.path.join(SAGE_DOC, lang, 'reference', 'index.rst'))
+                f = open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst'))
                 rst = f.read()
                 f.close()
                 # Replace rst links with html links.  There are two forms:
@@ -609,7 +623,7 @@ for a webpage listing all of the documents.''' % (output_dir,
 
             sage: from sage_setup.docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
-            sage: refdir = os.path.join(os.environ['SAGE_DOC'], 'en', b.name)
+            sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
             sage: sorted(b.get_all_documents(refdir))
             ['reference/algebras',
              'reference/arithgroup',
@@ -1087,7 +1101,7 @@ class SingleFileBuilder(DocBuilder):
 # This file is automatically generated by {}, do not edit!
 
 import sys, os
-sys.path.append(os.environ['SAGE_DOC'])
+sys.path.append(os.environ['SAGE_DOC_SRC'])
 sys.path.append({!r})
 from common.conf import *
 project = u'Documentation for {}'
@@ -1167,7 +1181,7 @@ def get_builder(name):
         return AllBuilder()
     elif name.endswith('reference'):
         return ReferenceBuilder(name)
-    elif 'reference' in name and os.path.exists(os.path.join(SAGE_DOC, 'en', name)):
+    elif 'reference' in name and os.path.exists(os.path.join(SAGE_DOC_SRC, 'en', name)):
         return ReferenceSubBuilder(name)
     elif name.endswith('website'):
         return WebsiteBuilder(name)
@@ -1271,7 +1285,7 @@ def help_documents(s=u""):
     s += "(!) Builds everything.\n\n"
     if 'reference' in docs:
         s+= "Other valid document names take the form 'reference/DIR', where\n"
-        s+= "DIR is a subdirectory of SAGE_DOC/en/reference/.\n"
+        s+= "DIR is a subdirectory of SAGE_DOC_SRC/en/reference/.\n"
         s+= "This builds just the specified part of the reference manual.\n"
     s += "DOCUMENT may also have the form 'file=/path/to/FILE', which builds\n"
     s += "the documentation for the specified file.\n"
@@ -1602,6 +1616,11 @@ def main():
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
     ABORT_ON_ERROR = not options.keep_going
+
+    # Delete empty directories. This is needed in particular for empty
+    # directories due to "git checkout" which never deletes empty
+    # directories it leaves behind. See Trac #20010.
+    delete_empty_directories(SAGE_DOC)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

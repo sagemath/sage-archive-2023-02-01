@@ -30,7 +30,7 @@ We check that the buggy gcd is fixed (see :trac:`17816`)::
 ################################################################################
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *

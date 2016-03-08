@@ -47,7 +47,6 @@ AUTHOR:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-from cpython.slice cimport PySlice_Check
 from cpython.string cimport *
 from libc.math cimport exp, floor, log, pow, sqrt
 from libc.string cimport memcpy
@@ -382,7 +381,7 @@ cdef class TimeSeries:
         """
         cdef Py_ssize_t start, stop, step, j
         cdef TimeSeries t
-        if PySlice_Check(i):
+        if isinstance(i, slice):
             start = 0 if (i.start is None) else i.start
             stop = self._length if (i.stop is None) else i.stop
             step = 1 if (i.step is None) else i.step

@@ -15,7 +15,7 @@ Low-level memory allocation functions
 
 cimport cython
 from libc.stdlib cimport malloc, calloc, realloc, free
-from sage.ext.interrupt.interrupt cimport sig_block, sig_unblock
+from cysignals.signals cimport sig_block, sig_unblock
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython

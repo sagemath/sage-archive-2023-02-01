@@ -360,7 +360,7 @@ class AsymptoticExpansionGenerators(SageObject):
         n = A.gen()
 
         from sage.arith.all import bernoulli
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
 
         result = sum((bernoulli(k) / k / (k-1) / n**(k-1)
                       for k in srange(2, 2*precision + 2, 2)),
@@ -457,7 +457,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision >= 3:
             result += 1 / (2 * n)
 
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
         from sage.arith.all import bernoulli
         for k in srange(2, 2*precision - 4, 2):
             result += -bernoulli(k) / k / n**k
@@ -897,7 +897,7 @@ class AsymptoticExpansionGenerators(SageObject):
         from sage.functions.other import binomial, gamma
         from sage.calculus.calculus import limit
         from sage.misc.cachefunc import cached_function
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
         from sage.rings.rational_field import QQ
         from sage.rings.integer_ring import ZZ
         from sage.symbolic.ring import SR

@@ -13,7 +13,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
@@ -81,9 +81,9 @@ cdef class ntl_ZZ(object):
         """
         if isinstance(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
-        elif PyInt_Check(v):
+        elif isinstance(v, int):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
-        elif PyLong_Check(v):
+        elif isinstance(v, long):
             PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, Integer):
             self.set_from_sage_int(v)

@@ -13,7 +13,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
@@ -106,9 +106,9 @@ cdef class ntl_ZZ_p(object):
             sig_on()
             if isinstance(v, ntl_ZZ_p):
                 self.x = (<ntl_ZZ_p>v).x
-            elif PyInt_Check(v):
+            elif isinstance(v, int):
                 self.x = int_to_ZZ_p(v)
-            elif PyLong_Check(v):
+            elif isinstance(v, long):
                 PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_p(temp)
             elif isinstance(v, Integer):

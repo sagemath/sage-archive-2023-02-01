@@ -101,9 +101,9 @@ class QuotientFields(Category_singleton):
                 sage: gcd(t, i)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: Maximal Order in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
+                NotImplementedError: Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
                 sage: q = t/(t+1); q.parent()
-                Fraction Field of Univariate Polynomial Ring in t over Maximal Order in Number Field in i with defining polynomial x^2 + 1
+                Fraction Field of Univariate Polynomial Ring in t over Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
                 sage: gcd(q, q)
                 1
                 sage: q.gcd(0)
@@ -199,9 +199,9 @@ class QuotientFields(Category_singleton):
                 sage: lcm(t, i)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: Maximal Order in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
+                NotImplementedError: Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
                 sage: q = t/(t+1); q.parent()
-                Fraction Field of Univariate Polynomial Ring in t over Maximal Order in Number Field in i with defining polynomial x^2 + 1
+                Fraction Field of Univariate Polynomial Ring in t over Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
                 sage: lcm(q, q)
                 1
                 sage: q.lcm(0)

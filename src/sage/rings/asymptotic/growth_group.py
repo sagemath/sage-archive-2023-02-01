@@ -272,6 +272,9 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
       will be displayed instead of ``var``. Use this to get
       e.g. ``log(x)^ZZ``: ``var`` is then used to specify the variable `x`.
 
+    - ``latex_name`` -- (default: ``None``) if specified, then this string
+      will be used as LaTeX-representation of ``var``.
+
     - ``ignore`` -- (default: ``None``) a tuple (or other iterable)
       of strings which are not variables.
 
@@ -326,7 +329,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         sage: v = Variable('(e^(n*log(n)))', ignore=('e',)); repr(v), v.variable_names()
         ('e^(n*log(n))', ('n',))
     """
-    def __init__(self, var, repr=None, ignore=None):
+    def __init__(self, var, repr=None, latex_name=None, ignore=None):
         r"""
         See :class:`Variable` for details.
 
@@ -359,24 +362,38 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         if ignore is None:
             ignore = tuple()
 
+        from sage.misc.latex import latex
+        from sage.symbolic.ring import SR
+
         if repr is None:
             var_bases = tuple(i for i in sum(iter(
                 self.extract_variable_names(v)
                 if not isidentifier(v) else (v,)
                 for v in var), tuple()) if i not in ignore)
             var_repr = ', '.join(var)
+            if latex_name is None:
+                latex_name = ', '.join(latex(SR(v)) for v in var if v)
         else:
             for v in var:
                 if not isidentifier(v):
                     raise ValueError("'%s' is not a valid name for a variable." % (v,))
             var_bases = var
             var_repr = str(repr).strip()
+            if latex_name is None:
+                try:
+                    latex_name = latex(SR(var_repr))
+                except TypeError:
+                    latex_name = latex(var_repr)
 
         if len(var_bases) != len(set(var_bases)):
             raise ValueError('Variable names %s are not pairwise distinct.' %
                              (var_bases,))
+
+
         self.var_bases = var_bases
         self.var_repr = var_repr
+
+        self.latex_name = latex_name
 
 
     def __hash__(self):
@@ -442,6 +459,10 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         r"""
         Return a representation string of this variable.
 
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import Variable
@@ -449,6 +470,27 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             blub
         """
         return self.var_repr
+
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX-representation string of this variable.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: latex(Variable('x'))  # indirect doctest
+            x
+            sage: latex(Variable('x1'))  # indirect doctest
+            x_{1}
+            sage: latex(Variable('x_1'))  # indirect doctest
+            x_{1}
+        """
+        return self.latex_name
 
 
     def variable_names(self):
@@ -2549,13 +2591,14 @@ class MonomialGrowthElement(GenericGrowthElement):
         return self._raw_element_
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this monomial growth element.
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -2579,18 +2622,56 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P(x^-42)  # indirect doctest
             x^(-42)
         """
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
         from sage.rings.integer_ring import ZZ
         from misc import repr_op
 
-        var = repr(self.parent()._var_)
+        var = f(self.parent()._var_)
         if self.exponent.is_zero():
             return '1'
         elif self.exponent.is_one():
             return var
+        elif latex:
+            return repr_op(var, '^', latex=True) + \
+                '{' + latex_repr(self.exponent)._latex_() + '}'
         elif self.exponent in ZZ and self.exponent > 0:
             return repr_op(var, '^') + str(self.exponent)
         else:
             return repr_op(var, '^') + '(' + str(self.exponent) + ')'
+
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this monomial growth element.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('x^QQ')
+            sage: latex(P(1))  # indirect doctest
+            1
+            sage: latex(P(x^5))  # indirect doctest
+            x^{5}
+            sage: latex(P(x^(1/2)))  # indirect doctest
+            x^{\frac{1}{2}}
+
+        ::
+
+            sage: latex(P(x^-1))  # indirect doctest
+            x^{-1}
+            sage: latex(P(x^-42))  # indirect doctest
+            x^{-42}
+        """
+        return self._repr_(latex=True)
 
 
     def _mul_(self, other):
@@ -3415,13 +3496,14 @@ class ExponentialGrowthElement(GenericGrowthElement):
         return self._raw_element_
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this exponential growth element.
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -3453,13 +3535,59 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: G('(1+x)^y')
             (x + 1)^y
         """
-        from sage.rings.integer_ring import ZZ
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
         from misc import repr_op
 
-        var = repr(self.parent()._var_)
+        var = f(self.parent()._var_)
         if self.base.is_one():
             return '1'
-        return repr_op(str(self.base), '^', var)
+        if latex:
+            return repr_op(latex_repr(self.base)._latex_(), '^', latex=True) + \
+                '{' + latex_repr(var)._latex_() + '}'
+        else:
+            return repr_op(str(self.base), '^', var)
+
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this exponential growth element.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('QQ^x')
+            sage: latex(P(1))
+            1
+            sage: latex(P(5^x))  # indirect doctest
+            5^{x}
+            sage: latex(P((1/2)^x))  # indirect doctest
+            \left(\frac{1}{2}\right)^{x}
+
+        ::
+
+            sage: latex(P((-1)^x))  # indirect doctest
+            \left(-1\right)^{x}
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: G = ExponentialGrowthGroup(ZZ['x'], 'y'); G
+            Growth Group ZZ[x]^y
+            sage: latex(G('(1-x)^y'))
+            \left(-x + 1\right)^{y}
+            sage: latex(G('(1+x)^y'))
+            \left(x + 1\right)^{y}
+        """
+        return self._repr_(latex=True)
 
 
     def _mul_(self, other):

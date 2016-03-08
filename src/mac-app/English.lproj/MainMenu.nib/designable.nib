@@ -592,37 +592,6 @@
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Packaging" id="1479">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Packaging" id="1480">
-                                    <items>
-                                        <menuItem title="bdist" id="1482">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="terminalSessionPromptForInput:" target="578" id="1488"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="sdist" id="1483">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="terminalSessionPromptForInput:" target="578" id="1490"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="pkg…" id="1484">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="terminalSessionPromptForFile:" target="578" id="1487"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="pkg_nc…" alternate="YES" id="1485">
-                                            <modifierMask key="keyEquivalentModifierMask" option="YES"/>
-                                            <connections>
-                                                <action selector="terminalSessionPromptForFile:" target="578" id="1491"/>
-                                            </connections>
-                                        </menuItem>
-                                    </items>
-                                </menu>
-                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>
@@ -1254,7 +1223,7 @@ Tip: Dragging a file to the Sage Executable text box will paste the path.</strin
                         <action selector="startJupyter:" target="578" id="KVw-0s-91A"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Stop Jupyter" tag="1" id="wZw-fz-7NL">
+                <menuItem title="Stop Jupyter" state="on" tag="1" id="wZw-fz-7NL">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="stopJupyter:" target="578" id="JzO-mW-VOd"/>
@@ -1375,37 +1344,6 @@ Tip: Dragging a file to the Sage Executable text box will paste the path.</strin
                                 <modifierMask key="keyEquivalentModifierMask" option="YES"/>
                                 <connections>
                                     <action selector="terminalSession:" target="578" id="1565"/>
-                                </connections>
-                            </menuItem>
-                        </items>
-                    </menu>
-                </menuItem>
-                <menuItem title="Packaging" id="1507">
-                    <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="Packaging" id="1508">
-                        <items>
-                            <menuItem title="bdist" id="1513">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="terminalSessionPromptForInput:" target="578" id="1549"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="sdist" id="1512">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="terminalSessionPromptForInput:" target="578" id="1557"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="pkg…" id="1511">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="terminalSessionPromptForFile:" target="578" id="1567"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="pkg_nc…" alternate="YES" id="1510">
-                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
-                                <connections>
-                                    <action selector="terminalSessionPromptForFile:" target="578" id="1548"/>
                                 </connections>
                             </menuItem>
                         </items>

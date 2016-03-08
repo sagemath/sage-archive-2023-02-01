@@ -1000,14 +1000,14 @@ class GRSBerlekampWelchDecoder(Decoder):
         R = C.base_field()['x']
 
         Q0 = R(S.list_from_positions(xrange(0, l0+1)))
-        Q1 = R(S.list_from_positions(xrange(l0+1 , l0+l1+2)))
+        Q1 = R(S.list_from_positions(xrange(l0+1, l0+l1+2)))
 
         f, rem = (-Q0).quo_rem(Q1)
         if not rem.is_zero():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         if f not in R:
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        if (R(r.list()) - f).degree() < self.decoding_radius():
+        if (self.connected_encoder().encode(f) - r).hamming_weight() > self.decoding_radius():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
 
         return f
@@ -1286,7 +1286,7 @@ class GRSGaoDecoder(Decoder):
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         if h not in PolRing:
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        if (PolRing(r.list()) - h).degree() < self.decoding_radius():
+        if (self.connected_encoder().encode(h) - r).hamming_weight() > self.decoding_radius():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         return h
 
@@ -1846,8 +1846,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         e = self._forney_formula(EEP, ELP)
         dec = r - e
         if dec not in C:
-            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        if (r - dec).hamming_weight() > self.decoding_radius():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
         return dec
 

@@ -159,8 +159,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         # Instead it is called here in the __init__ method of the element
         # (after the prelimenary checks).
         if check:
-            if self._matrix.determinant() != 1:
-                raise TypeError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self._matrix.determinant()))
+            if self.matrix().determinant() != 1:
+                raise TypeError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self.matrix().determinant()))
             self._word_S_T_data()
 
     @cached_method
@@ -199,10 +199,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             (((1, 1), (0, 1)), 1)
         """
         res = []
-        ID  = self.parent().I()._matrix
-        T   = self.parent().T()._matrix
-        S   = self.parent().S()._matrix
-        M   = self._matrix
+        ID  = self.parent().I().matrix()
+        T   = self.parent().T().matrix()
+        S   = self.parent().S().matrix()
+        M   = self.matrix()
         lam = self.parent().lam()
         zero = ZZ.zero()
         one = ZZ.one()
@@ -428,7 +428,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             S*T^3*S*T^(-2)
         """
         if   method == "default":
-            return super(MatrixGroupElement_generic, self)._repr_()
+            return MatrixGroupElement_generic._repr_(self)
         elif method == "basic":
             (L, sgn) = self._word_S_T_data()
 
@@ -1238,7 +1238,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             [-1  0]
             [ 0 -1]
         """
-        sgn = coerce_AA(self._matrix.trace()).sign()
+        sgn = coerce_AA(self.matrix().trace()).sign()
 
         if sgn > 0:
             return self.parent().I()
@@ -2070,7 +2070,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             [-lam    1]
             [  -1    0]
         """
-        return self.parent().element_class(self.parent(), -self._matrix, check=False)
+        return self.parent().element_class(self.parent(), -self.matrix(), check=False)
 
     def __getitem__(self, key):
         r"""
@@ -2089,7 +2089,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: U[1][0].parent()
             Maximal Order in Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1
         """
-        return self._matrix[key]
+        return self.matrix()[key]
 
     def a(self):
         r"""
@@ -2104,7 +2104,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: U.a().parent()
             Maximal Order in Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1
         """
-        return self._matrix[0][0]
+        return self.matrix()[0][0]
 
     def b(self):
         r"""
@@ -2119,7 +2119,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: U.b().parent()
             Maximal Order in Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1
         """
-        return self._matrix[0][1]
+        return self.matrix()[0][1]
 
     def c(self):
         r"""
@@ -2132,7 +2132,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: U.c()
             1
         """
-        return self._matrix[1][0]
+        return self.matrix()[1][0]
 
     def d(self):
         r"""
@@ -2145,7 +2145,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: U.d()
             0
         """
-        return self._matrix[1][1]
+        return self.matrix()[1][1]
 
     def trace(self):
         r"""
@@ -2160,7 +2160,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: G.S().trace()
             0
         """
-        return self._matrix.trace()
+        return self.matrix().trace()
 
     def discriminant(self):
         r"""
@@ -2194,7 +2194,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: (-HeckeTriangleGroup(n=7).I()).is_translation(exclude_one=True)
             False
         """
-        a,b,c,d = self._matrix.list()
+        a,b,c,d = self.matrix().list()
 
         if not (c.is_zero() and a == d and (a.is_one() or (-a).is_one())):
             return False
@@ -2476,7 +2476,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             return False
 
         # The last condition is/should be equivalent to:
-        a,b,c,d = self._matrix.list()
+        a,b,c,d = self.matrix().list()
         return (coerce_AA(a) > 0 and coerce_AA(b) > 0 and coerce_AA(c) > 0 and coerce_AA(d) > 0)
 
     def is_hecke_symmetric(self):
@@ -2669,12 +2669,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         L1 = []
         for v in self.simple_elements():
-            a,b,c,d = v._matrix.list()
+            a,b,c,d = v.matrix().list()
             Q = c*z**2 + (d - a)*z - b
             s += Q**(-k/ZZ(2))
 
         for v in self.inverse().simple_elements():
-            a,b,c,d = v._matrix.list()
+            a,b,c,d = v.matrix().list()
             Q = c*z**2 + (d - a)*z - b
             s -= ZZ(-1)**(k/ZZ(2)) * Q**(-k/ZZ(2))
 
@@ -3032,7 +3032,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             else:
                 e = self.root_extension_field().gen()
 
-            a,b,c,d = self._matrix.list()
+            a,b,c,d = self.matrix().list()
 
             if order == "none":
                 sgn = ZZ(1)
@@ -3147,7 +3147,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             model = tau.model()
             tau = tau.to_model('UHP').coordinates()
 
-        a,b,c,d = self._matrix.list()
+        a,b,c,d = self.matrix().list()
 
         if tau == infinity:
             if c.is_zero():

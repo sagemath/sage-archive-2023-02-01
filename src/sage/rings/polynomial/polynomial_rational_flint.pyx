@@ -1173,7 +1173,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             TypeError: cannot compute (1/3)^(1/2) in Univariate Polynomial
             Ring in R over Rational Field
         """
-        if fmpq_poly_degree(self.__poly) == 0:
+        if fmpq_poly_degree(self.__poly) == 0 and not is_Polynomial(exp):
             result = self[0]**exp
             try:
                 return self.parent()(result)

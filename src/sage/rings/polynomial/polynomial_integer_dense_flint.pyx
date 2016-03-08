@@ -1021,6 +1021,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             ...
             TypeError: cannot compute 3^(1/2) in Univariate Polynomial
             Ring in R over Integer Ring
+            sage: P(2)^P(2)
+            4
         """
         if fmpz_poly_degree(self.__poly) == 0:
             if is_Polynomial(exp) and exp.degree() == 0:

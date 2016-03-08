@@ -7074,18 +7074,7 @@ class ANBinaryExpr(ANDescr):
             left_value = gen(left._exact_value())
             right_value = gen(right._exact_value())
 
-            op = self._op
-
-            if op is operator.add:
-                value = left_value + right_value
-            elif op is operator.sub:
-                value = left_value - right_value
-            elif op is operator.mul:
-                value = left_value * right_value
-            elif op is operator.div:
-                value = left_value / right_value
-            else:
-                raise RuntimeError("op is {}".format(op))
+            value = self._op(left_value, right_value)
 
             if gen.is_trivial():
                 return ANRational(value)

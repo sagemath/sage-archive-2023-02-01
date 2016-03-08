@@ -1022,16 +1022,20 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             TypeError: cannot compute 3^(1/2) in Univariate Polynomial
             Ring in R over Integer Ring
         """
-        if fmpz_poly_degree(self.__poly) == 0 and not is_Polynomial(exp):
-            result = self[0]**exp
-            try:
-                return self.parent()(result)
-            except TypeError:
-                raise TypeError(
-                    "cannot compute {base}^({power}) in {parent}".format(
-                        base=self,
-                        power=exp,
-                        parent=self.parent()))
+        if fmpz_poly_degree(self.__poly) == 0:
+            if is_Polynomial(exp) and exp.degree() == 0:
+                result = self[0]**exp[0]
+            elif not is_Polynomial(exp):
+                result = self[0]**exp
+            if result is not None:
+                try:
+                    return self.parent()(result)
+                except TypeError:
+                    raise TypeError(
+                        "cannot compute {base}^({power}) in {parent}".format(
+                            base=self,
+                            power=exp,
+                            parent=self.parent()))
 
         cdef Polynomial_integer_dense_flint res = self._new()
         cdef long nn = pyobject_to_long(exp)

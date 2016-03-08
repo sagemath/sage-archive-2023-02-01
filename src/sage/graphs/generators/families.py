@@ -2632,7 +2632,7 @@ def TuranGraph(n,r):
 
     INPUT:
 
-    - ``n`` (integer)-- the nuber of vertices in the graph.
+    - ``n`` (integer)-- the number of vertices in the graph.
 
     - ``r`` (integer) -- the number of partitions of the graph.
 
@@ -2657,7 +2657,7 @@ def TuranGraph(n,r):
         sage: g = graphs.TuranGraph(3,6)
         Traceback (most recent call last):
         ...
-        ValueError: Input parameters must satisfy "1 < r < n"....
+        ValueError: Input parameters must satisfy "1 < r < n".
     """
 
     if n<1 or n<r or r<1:

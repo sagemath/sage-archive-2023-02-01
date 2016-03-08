@@ -926,6 +926,72 @@ class GRSBerlekampWelchDecoder(Decoder):
         return "\\textnormal{Berlekamp Welch decoder for }%s"\
                 % self.code()._latex_()
 
+    def _decode_to_code_and_message(self, r):
+        r"""
+        Decodes ``r`` to an element in message space of ``self`` and its
+        representation in the ambient space of the code associated to ``self``.
+
+        INPUT:
+
+        - ``r`` -- a codeword of ``self``
+
+        OUTPUT:
+
+        - ``(c, f)`` -- ``c`` is the representation of ``r`` decoded in the ambient
+          space of the associated code of ``self``, ``f`` its representation in
+          the message space of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: n, k = 40, 12
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: D = codes.decoders.GRSBerlekampWelchDecoder(C)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: c_dec, f_dec = D._decode_to_code_and_message(y)
+            sage: f_dec == D.connected_encoder().unencode(c)
+            True
+            sage: c_dec == c
+            True
+        """
+        C = self.code()
+        if r not in C.ambient_space():
+            raise ValueError("The word to decode has to be in the ambient space of the code")
+        n, k = C.length(), C.dimension()
+        if n == k:
+            return self.connected_encoder().unencode_nocheck(r)
+        if r in C:
+            return self.connected_encoder().unencode_nocheck(r)
+        col_mults = C.column_multipliers()
+
+        r_list = copy(r)
+        r_list = [r[i]/col_mults[i] for i in range(0, C.length())]
+
+        t  = (C.minimum_distance()-1) // 2
+        l0 = n-1-t
+        l1 = n-1-t-(k-1)
+        S  = matrix(C.base_field(), n, l0+l1+2, lambda i,j :
+                (C.evaluation_points()[i])**j if j<(l0+1)
+                else r_list[i]*(C.evaluation_points()[i])**(j-(l0+1)))
+        S  = S.right_kernel()
+        S  = S.basis_matrix().row(0)
+        R = C.base_field()['x']
+
+        Q0 = R(S.list_from_positions(xrange(0, l0+1)))
+        Q1 = R(S.list_from_positions(xrange(l0+1, l0+l1+2)))
+
+        f, rem = (-Q0).quo_rem(Q1)
+        if not rem.is_zero():
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        if f not in R:
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        c = self.connected_encoder().encode(f)
+        if (c - r).hamming_weight() > self.decoding_radius():
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        return c, f
+
     def decode_to_message(self, r):
         r"""
         Decodes ``r`` to an element in message space of ``self``.
@@ -976,41 +1042,58 @@ class GRSBerlekampWelchDecoder(Decoder):
             ...
             ValueError: The word to decode has to be in the ambient space of the code
         """
-        C = self.code()
-        if r not in C.ambient_space():
-            raise ValueError("The word to decode has to be in the ambient space of the code")
-        n, k = C.length(), C.dimension()
-        if n == k:
-            return self.connected_encoder().unencode_nocheck(r)
-        if r in C:
-            return self.connected_encoder().unencode_nocheck(r)
-        col_mults = C.column_multipliers()
+        return self._decode_to_code_and_message(r)[1]
 
-        r_list = copy(r)
-        r_list = [r[i]/col_mults[i] for i in range(0, C.length())]
+    def decode_to_code(self, r):
+        r"""
+        Corrects the errors in ``r`` and returns a codeword.
 
-        t  = (C.minimum_distance()-1) // 2
-        l0 = n-1-t
-        l1 = n-1-t-(k-1)
-        S  = matrix(C.base_field(), n, l0+l1+2, lambda i,j :
-                (C.evaluation_points()[i])**j if j<(l0+1)
-                else r_list[i]*(C.evaluation_points()[i])**(j-(l0+1)))
-        S  = S.right_kernel()
-        S  = S.basis_matrix().row(0)
-        R = C.base_field()['x']
+        .. NOTE::
 
-        Q0 = R(S.list_from_positions(xrange(0, l0+1)))
-        Q1 = R(S.list_from_positions(xrange(l0+1, l0+l1+2)))
+            If the code associated to ``self`` has the same length as its
+            dimension, ``r`` will be returned as is.
 
-        f, rem = (-Q0).quo_rem(Q1)
-        if not rem.is_zero():
-            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        if f not in R:
-            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        if (self.connected_encoder().encode(f) - r).hamming_weight() > self.decoding_radius():
-            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        INPUT:
 
-        return f
+        - ``r`` -- a vector of the ambient space of ``self.code()``
+
+        OUTPUT:
+
+        - a vector of ``self.code()``
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: n, k = 40, 12
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: D = codes.decoders.GRSBerlekampWelchDecoder(C)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: c == D.decode_to_code(y)
+            True
+
+        TESTS:
+
+        If one tries to decode a word with too many errors, it returns
+        an exception::
+
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
+            sage: y = Chan(c)
+            sage: D.decode_to_code(y)
+            Traceback (most recent call last):
+            ...
+            DecodingError: Decoding failed because the number of errors exceeded the decoding radius
+
+        If one tries to decode something which is not in the ambient space of the code,
+        an exception is raised::
+
+            sage: D.decode_to_code(42)
+            Traceback (most recent call last):
+            ...
+            ValueError: The word to decode has to be in the ambient space of the code
+        """
+        return self._decode_to_code_and_message(r)[0]
 
     def decoding_radius(self):
         r"""
@@ -1213,9 +1296,67 @@ class GRSGaoDecoder(Decoder):
 
         return (r, s)
 
+    def _decode_to_code_and_message(self, r):
+        r"""
+        Decodes ``r`` to an element in message space of ``self`` and its
+        representation in the ambient space of the code associated to ``self``.
+
+        INPUT:
+
+        - ``r`` -- a codeword of ``self``
+
+        OUTPUT:
+
+        - ``(c, h)`` -- ``c`` is the representation of ``r`` decoded in the ambient
+          space of the associated code of ``self``, ``h`` its representation in
+          the message space of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: n, k = 40, 12
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: D = codes.decoders.GRSGaoDecoder(C)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: c_dec, h_dec = D._decode_to_code_and_message(y)
+            sage: h_dec == D.connected_encoder().unencode(c)
+            True
+            sage: c_dec == c
+            True
+        """
+        C = self.code()
+        if r not in C.ambient_space():
+            raise ValueError("The word to decode has to be in the ambient space of the code")
+        alphas = C.evaluation_points()
+        col_mults = C.column_multipliers()
+        PolRing = C.base_field()['x']
+        G = self._polynomial_vanishing_at_alphas(PolRing)
+        n = C.length()
+
+        if n == C.dimension() or r in C:
+            return self.connected_encoder().unencode_nocheck(r)
+
+        points = [(alphas[i], r[i]/col_mults[i]) for i in
+                range(0, n)]
+        R = PolRing.lagrange_polynomial(points)
+
+        (Q1, Q0) = self._partial_xgcd(G, R, PolRing)
+
+        h, rem = Q1.quo_rem(Q0)
+        if not rem.is_zero():
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        if h not in PolRing:
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        c = self.connected_encoder().encode(h)
+        if (c - r).hamming_weight() > self.decoding_radius():
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        return c, h
+
     def decode_to_message(self, r):
         r"""
-        Decodes ``r`` to an element in message space of ``self``
+        Decodes ``r`` to an element in message space of ``self``.
 
         .. NOTE::
 
@@ -1263,32 +1404,58 @@ class GRSGaoDecoder(Decoder):
             ...
             ValueError: The word to decode has to be in the ambient space of the code
         """
-        C = self.code()
-        if r not in C.ambient_space():
-            raise ValueError("The word to decode has to be in the ambient space of the code")
-        alphas = C.evaluation_points()
-        col_mults = C.column_multipliers()
-        PolRing = C.base_field()['x']
-        G = self._polynomial_vanishing_at_alphas(PolRing)
-        n = C.length()
+        return self._decode_to_code_and_message(r)[1]
 
-        if n == C.dimension() or r in C:
-            return self.connected_encoder().unencode_nocheck(r)
+    def decode_to_code(self, r):
+        r"""
+        Corrects the errors in ``r`` and returns a codeword.
 
-        points = [(alphas[i], r[i]/col_mults[i]) for i in
-                range(0, n)]
-        R = PolRing.lagrange_polynomial(points)
+        .. NOTE::
 
-        (Q1, Q0) = self._partial_xgcd(G, R, PolRing)
+            If the code associated to ``self`` has the same length as its
+            dimension, ``r`` will be returned as is.
 
-        h, rem = Q1.quo_rem(Q0)
-        if not rem.is_zero():
-            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        if h not in PolRing:
-            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        if (self.connected_encoder().encode(h) - r).hamming_weight() > self.decoding_radius():
-            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
-        return h
+        INPUT:
+
+        - ``r`` -- a vector of the ambient space of ``self.code()``
+
+        OUTPUT:
+
+        - a vector of ``self.code()``
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: n, k = 40, 12
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: D = codes.decoders.GRSGaoDecoder(C)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: c == D.decode_to_code(y)
+            True
+
+        TESTS:
+
+        If one tries to decode a word with too many errors, it returns
+        an exception::
+
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
+            sage: y = Chan(c)
+            sage: D.decode_to_code(y)
+            Traceback (most recent call last):
+            ...
+            DecodingError: Decoding failed because the number of errors exceeded the decoding radius
+
+        If one tries to decode something which is not in the ambient space of the code,
+        an exception is raised::
+
+            sage: D.decode_to_code(42)
+            Traceback (most recent call last):
+            ...
+            ValueError: The word to decode has to be in the ambient space of the code
+        """
+        return self._decode_to_code_and_message(r)[0]
 
     def decoding_radius(self):
         r"""

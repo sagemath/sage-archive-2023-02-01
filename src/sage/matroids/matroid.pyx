@@ -6847,7 +6847,7 @@ cdef class Matroid(SageObject):
         # doubling step
         while True:
             p = PartitionMatroid([[(i,x) for i in range(hi)] for x in self.groundset()])
-            X = MatroidSum([self]*hi).intersection(p)
+            X = MatroidSum([self]*hi)._intersection_unweighted(p)
             if len(X)==self.size():
                 break
             lo = hi
@@ -6856,7 +6856,7 @@ cdef class Matroid(SageObject):
         while lo < hi:
             mid = (lo+hi)//2
             p = PartitionMatroid([[(i,x) for i in range(mid)] for x in self.groundset()])
-            X = MatroidSum([self]*mid).intersection(p)
+            X = MatroidSum([self]*mid)._intersection_unweighted(p)
             if len(X)!=self.size() : lo = mid+1
             else: hi = mid
 

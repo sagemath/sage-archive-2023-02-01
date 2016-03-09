@@ -5,7 +5,6 @@ AUTHORS:
 
 - Anna Haensch (2014-12-01): added test for rational isometry
 """
-
 from sage.arith.all import hilbert_symbol, prime_divisors, is_prime, valuation, GCD, legendre_symbol
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -489,7 +488,6 @@ def is_rationally_isometric(self, other):
     return True
 
 
-
 def isometry(self, other):
     r"""
     Given two rationally equivalent quadratic forms, computes a 
@@ -586,7 +584,6 @@ def isometry(self, other):
     return f_diagonal_transform * transform * q_diagonal_transform.inverse()
 
 
-
 def _diagonal_isometry(V, W):
     r"""
     Given two diagonal, rationally equivalent quadratic forms, computes a 
@@ -623,7 +620,6 @@ def _diagonal_isometry(V, W):
         [   0   -1   -1]
         [   1    0    0]
         [   0 -1/2  1/2]
-        sage: F.Gram_matrix() == T.T * Q.Gram_matrix() * T
         True
     """
     import copy
@@ -671,7 +667,6 @@ def _diagonal_isometry(V, W):
     return change_of_basis_matrix
 
 
-
 def _compute_gram_matrix_from_basis(Q, basis):
     r"""
     Computes the gram matrix of a quadratic form with respect to the given basis.
@@ -711,7 +706,6 @@ def _compute_gram_matrix_from_basis(Q, basis):
     for i in range(n):
         rows.append([Q.bilinear_map(basis.column(i), basis.column(j)) for j in range(n)])
     return Matrix(rows)
-
 
 
 def _gram_schmidt(m, fixed_vector_index, inner_product):
@@ -813,4 +807,3 @@ def _modify_basis(basis, v, pos):
         column += b.column(n + j) * v[j]
     b.set_column(pos, column)
     return b
-            

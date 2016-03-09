@@ -1098,19 +1098,19 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         Returns self raised to the power of exp.
 
-        The corner case of exp == 0 is handled by returning the constant
-        polynomial 1.  Note that this includes the case 0^0 == 1.
+        The corner case of ``exp == 0`` is handled by returning the constant
+        polynomial 1.  Note that this includes the case ``0^0 == 1``.
 
         This method only supports integral values for exp that fit into
         a signed long int (except when this is a constant polynomial).
 
         INPUT:
 
-        - exp - Exponent
+        - ``exp`` - Exponent
 
         OUTPUT:
 
-        - Polynomial; self raised to the power of exp
+        Polynomial; this polynomial raised to the power of ``exp``
 
         EXAMPLES::
 

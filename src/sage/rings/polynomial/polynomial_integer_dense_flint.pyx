@@ -1028,10 +1028,19 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: (R + 1)^R
             Traceback (most recent call last):
             ...
-            TypeError: 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'
-            object cannot be interpreted as an index
+            TypeError: cannot compute (R + 1)^(R) in Univariate Polynomial
+            Ring in R over Integer Ring
+            sage: 2^R
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot compute (2)^(R) in Univariate Polynomial
+            Ring in R over Integer Ring
         """
-        if is_Polynomial(exp) and exp.degree() == 0:
+        if is_Polynomial(exp):
+            if exp.degree() > 0:
+                raise TypeError(
+                    'cannot compute ({base})^({exponent}) in {parent}'.format(
+                        base=self, exponent=exp, parent=self.parent()))
             exp = exp[0]
 
         if fmpz_poly_degree(self.__poly) == 0:

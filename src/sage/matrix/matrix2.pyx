@@ -8124,7 +8124,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: m.is_one()
             False
         """
-        return self.is_scalar(1)
+        return self.is_scalar(self.base_ring().one())
 
     def is_scalar(self, a = None):
         """
@@ -8164,7 +8164,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             a = self.get_unsafe(0,0)
         else:
             a = self.base_ring()(a)
-        zero = self.base_ring()(0)
+        zero = self.base_ring().zero()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if i != j:

@@ -323,7 +323,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         M.set_immutable()
         return parent.element_class(parent, M, check=False, convert=False)
 
-    cpdef is_one(self):
+    def is_one(self):
         """
         Return whether ``self`` is the identity of the group.
 

@@ -3005,7 +3005,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``zeta`` -- location of the singularity
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
-          the default precision of the asymptotic ring is used.
+          the default precision of the parent of this expansion is used.
 
         OUTPUT:
 
@@ -3025,6 +3025,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: ex._singularity_analysis_(n, 1/4, precision=2)
             1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))
 
+        If the parameter ``precision`` is omitted, the default precision
+        of the parent of this expansion is used. ::
+
+            sage: C.<T> = AsymptoticRing('T^QQ', QQ, default_prec=1)
+            sage: ex = 2 - 2*T^(-1/2) + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))
+            sage: ex._singularity_analysis_('n', 1/4)
+            1/sqrt(pi)*4^n*n^(-3/2)  + O(4^n*n^(-5/2))
+
         .. SEEALSO::
 
             :meth:`AsymptoticRing.coefficients_of_generating_function`
@@ -3040,6 +3048,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         from misc import NotImplementedOZero
         OZeroEncountered = False
+
+        if precision is None:
+            precision = self.parent().default_prec
 
         result = 0
         for s in self.summands:

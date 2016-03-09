@@ -29,7 +29,7 @@ import sage.rings.all as rings
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from sage.rings.ring import is_Ring

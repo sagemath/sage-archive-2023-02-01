@@ -264,7 +264,7 @@ be negative. Use range to construct the list `[10, 7, 4, 1, -2]`.
 
     - :func:`xrange`: returns an iterator rather than building a list.
     - :func:`srange`: like range but with Sage integers; see below.
-    - :func:`sxrange`: like xrange but with Sage integers.
+    - :func:`xsrange`: like xrange but with Sage integers.
 
 Creating Lists III: list comprehensions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

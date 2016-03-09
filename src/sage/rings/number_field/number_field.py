@@ -192,7 +192,7 @@ import weakref
 
 from sage.misc.latex import latex
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.infinity as infinity
@@ -6202,7 +6202,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         # First check if the degree of K is compatible with an
         # inclusion QQ(\zeta_n) -> K.
-        if sage.rings.arith.euler_phi(n).divides(K.absolute_degree()):
+        if sage.arith.all.euler_phi(n).divides(K.absolute_degree()):
             # Factor the n-th cyclotomic polynomial over K.
             f = K.pari_polynomial('y')
             factors = pari.polcyclo(n).factornf(f).component(1)
@@ -6405,8 +6405,12 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal (2, a)
         """
         n = len(reslist)
+        try:
+            reslist = [self(x) for x in reslist]
+        except ValueError:
+            raise ValueError("solve_CRT requires a list of arguments in the field")
         if n==0:
-            return K.zero()
+            return self.zero()
         if n==1:
             return reslist[0]
         if n==2:
@@ -6420,7 +6424,7 @@ class NumberField_generic(number_field_base.NumberField):
                                [Ilist[0],prod(Ilist[1:])], check=check)
         if check and not all([x-xi in Ii for xi,Ii in zip(reslist, Ilist)]):
             raise RuntimeError("Error in number field solve_CRT()")
-        return x
+        return self(x)
 
 class NumberField_absolute(NumberField_generic):
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
@@ -7145,18 +7149,18 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in a0 with defining polynomial x
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
               Defn: 0 |--> 0, None),
-            (Number Field in a1 with defining polynomial x^2 + 4, Ring morphism:
-              From: Number Field in a1 with defining polynomial x^2 + 4
+            (Number Field in a1 with defining polynomial x^2 - 2, Ring morphism:
+              From: Number Field in a1 with defining polynomial x^2 - 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a1 |--> 2*a^3 + 7*a, None),
-            (Number Field in a2 with defining polynomial x^2 + 2, Ring morphism:
-              From: Number Field in a2 with defining polynomial x^2 + 2
+              Defn: a1 |--> a^2 + 3/2, None),
+            (Number Field in a2 with defining polynomial x^2 + 4, Ring morphism:
+              From: Number Field in a2 with defining polynomial x^2 + 4
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a2 |--> 2*a^3 + 5*a, None),
-            (Number Field in a3 with defining polynomial x^2 - 2, Ring morphism:
-              From: Number Field in a3 with defining polynomial x^2 - 2
+              Defn: a2 |--> 2*a^3 + 7*a, None),
+            (Number Field in a3 with defining polynomial x^2 + 2, Ring morphism:
+              From: Number Field in a3 with defining polynomial x^2 + 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a3 |--> a^2 + 3/2, None),
+              Defn: a3 |--> 2*a^3 + 5*a, None),
             (Number Field in a4 with defining polynomial x^4 + 1, Ring morphism:
               From: Number Field in a4 with defining polynomial x^4 + 1
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
@@ -7329,7 +7333,7 @@ class NumberField_absolute(NumberField_generic):
         polynomials are supported (:trac:`252`)::
 
             sage: K.<a> = NumberField(3*x^2 + 1)
-            sage: K.maximal_order().gens()
+            sage: K.maximal_order().basis()
             [3/2*a + 1/2, 3*a]
         """
         B = [self(b, check=False) for b in self._pari_integral_basis(v=v)]
@@ -7447,7 +7451,7 @@ class NumberField_absolute(NumberField_generic):
         if ret.ambient() is not self:
             return ret.ambient().order(gens, **kwds)
 
-        gens = ret.gens()
+        gens = ret.basis()
         if self._order.is_in_cache(gens):
             # different ways of specifying the same set of generators lead to
             # the same order - this is to make sure that orders are unique
@@ -8137,7 +8141,11 @@ class NumberField_absolute(NumberField_generic):
 
             sage: L = NumberField(x^4 + 1, 'a')
             sage: [L.relativize(h, 'c') for (f,h,i) in L.subfields()]
-            [Number Field in c with defining polynomial x^4 + 1 over its base field, Number Field in c with defining polynomial x^2 - 1/2*a1 over its base field, Number Field in c with defining polynomial x^2 - a2*x - 1 over its base field, Number Field in c with defining polynomial x^2 - a3*x + 1 over its base field, Number Field in c with defining polynomial x - a4 over its base field]
+            [Number Field in c with defining polynomial x^4 + 1 over its base field,
+             Number Field in c with defining polynomial x^2 - a1*x + 1 over its base field,
+             Number Field in c with defining polynomial x^2 - 1/2*a2 over its base field,
+             Number Field in c with defining polynomial x^2 - a3*x - 1 over its base field,
+             Number Field in c with defining polynomial x - a4 over its base field]
 
         We can relativize over a relative field::
 
@@ -9396,7 +9404,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##         # Find the smallest power r >= 1 of the generator g of K that is in self,
 ##         # i.e., find the smallest r such that g^r has order dividing m.
 
-##         d = sage.rings.arith.gcd(m,n)
+##         d = sage.arith.all.gcd(m,n)
 ##         r = n // d
 
 ##         # Since we use the power basis for cyclomotic fields, if every

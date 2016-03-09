@@ -596,6 +596,7 @@ class FileDocTestSource(DocTestSource):
         return (self.options.force_lib or
                 self.basename.startswith('sage.') or
                 self.basename.startswith('doc.') or
+                self.basename.startswith('sage_setup.docbuild') or
                 self.basename.startswith('sagenb.'))
 
     def create_doctests(self, namespace):

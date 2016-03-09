@@ -237,7 +237,7 @@ from sage.structure.global_options import GlobalOptions
 
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
@@ -4619,7 +4619,7 @@ class Permutation(CombinatorialElement):
         REFERENCES:
 
         .. [OkounkovVershik2] A. M. Vershik, A. Yu. Okounkov.
-           *A New Approach to the Representation Thoery of the Symmetric
+           *A New Approach to the Representation Theory of the Symmetric
            Groups. 2*. http://uk.arxiv.org/abs/math/0503040v3.
 
         .. [CST10] Tullio Ceccherini-Silberstein, Fabio Scarabotti,

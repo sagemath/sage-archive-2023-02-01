@@ -3242,7 +3242,7 @@ class DiGraph(GenericGraph):
 
             :meth:`is_aperiodic`
         """
-        from sage.rings.arith import gcd
+        from sage.arith.all import gcd
 
         g = 0
 

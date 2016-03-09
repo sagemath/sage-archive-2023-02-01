@@ -12,12 +12,11 @@ Utility classes for multi-modular algorithms
 ######################################################################
 
 
-include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import random_prime
+from sage.arith.all import random_prime
 from types import GeneratorType
 
 # should I have mod_int versions of these functions?

@@ -517,21 +517,28 @@ class SetPartition(ClonableArray):
 
     @combinatorial_map(name='to permutation')
     def to_permutation(self):
-        """
-        Convert ``self`` to a permutation by considering the partitions as
-        cycles.
+        r"""
+        Convert a set partition of `\{1,...,n\}` to a permutation by considering
+        the blocks of the partition as cycles.
+
+        The cycles are such that the number of excedences is maximised, that is,
+        each cycle is of the form `(a_1,a_2, ...,a_k)` with `a_1<a_2<...<a_k`.
 
         EXAMPLES::
 
             sage: s = SetPartition([[1,3],[2,4]])
             sage: s.to_permutation()
             [3, 4, 1, 2]
+
         """
         return Permutation(tuple( map(tuple, self.standard_form()) ))
 
     def standard_form(self):
         r"""
         Return ``self`` as a list of lists.
+
+        When the ground set is totally ordered, the elements of each
+        block are listed in increasing order.
 
         This is not related to standard set partitions (which simply
         means set partitions of `[n] = \{ 1, 2, \ldots , n \}` for some
@@ -541,8 +548,13 @@ class SetPartition(ClonableArray):
 
             sage: [x.standard_form() for x in SetPartitions(4, [2,2])]
             [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
+
+        TESTS::
+
+            sage: SetPartition([(1, 9, 8), (2, 3, 4, 5, 6, 7)]).standard_form()
+            [[1, 8, 9], [2, 3, 4, 5, 6, 7]]
         """
-        return [list(_) for _ in self]
+        return [sorted(_) for _ in self]
 
     def apply_permutation(self, p):
         r"""
@@ -1158,8 +1170,13 @@ class SetPartitions(UniqueRepresentation, Parent):
             return False
 
         for p in s:
-            if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
-                return False
+            x = p[0]
+            for t_ in t:
+                if x in t_:
+                    break
+            for p_ in p:
+                if p_ not in t_:
+                    return False
         return True
 
     lt = is_less_than

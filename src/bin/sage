@@ -927,7 +927,7 @@ fi
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
     shift
-    exec python "$SAGE_DOC/common/builder.py" "$@"
+    exec python -m "sage_setup.docbuild" "$@"
 fi
 
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then

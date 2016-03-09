@@ -67,7 +67,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``solver`` - a SAT-solver instance
 
-        - ``ring`` - a :class:`sage.rins.polynomial.pbori.BooleanPolynomialRing`
+        - ``ring`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomialRing`
 
         - ``max_vars_sparse`` - maximum number of variables for direct conversion
 

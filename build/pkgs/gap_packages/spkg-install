@@ -2,7 +2,7 @@
 
 # WARNING -- if you add a package here, also add it to
 # the gap_reset_workspace() command in 
-#    <SAGE_ROOT>/devel/sage/sage/interfaces/gap.py
+#    <SAGE_ROOT>/src/sage/interfaces/gap.py
 #
 
 if [ -z "$SAGE_LOCAL" ]; then 

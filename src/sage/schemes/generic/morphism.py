@@ -82,8 +82,8 @@ from sage.structure.element   import AdditiveGroupElement, RingElement, Element,
 from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
+from sage.categories.fields import Fields
 from sage.rings.all           import Integer, CIF
-from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
@@ -92,10 +92,8 @@ from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme
 
-from sage.rings.arith            import gcd, lcm
 from sage.categories.gcd_domains import GcdDomains
 from sage.rings.qqbar            import QQbar
-from sage.rings.quotient_ring    import QuotientRing_generic
 from sage.rings.rational_field   import QQ
 from sage.categories.map         import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
@@ -938,19 +936,18 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         if check:
             if not isinstance(polys, (list, tuple)):
                 raise TypeError("polys (=%s) must be a list or tuple"%polys)
-            source_ring = parent.domain().coordinate_ring()
+            source_ring = parent.domain().ambient_space().coordinate_ring()
             target = parent._codomain.ambient_space()
             if len(polys) != target.ngens():
                 raise ValueError("there must be %s polynomials"%target.ngens())
             try:
                 polys = [source_ring(poly) for poly in polys]
-            except TypeError:
-                raise TypeError("polys (=%s) must be elements of %s"%(polys,source_ring))
-            if isinstance(source_ring, QuotientRing_generic):
-                lift_polys = [f.lift() for f in polys]
-            else:
-                lift_polys = polys
-            polys = Sequence(lift_polys)
+            except TypeError: #we may have been given elements in the quotient
+                try:
+                    polys = [source_ring(poly.lift()) for poly in polys]
+                except (TypeError, AttributeError):
+                    raise TypeError("polys (=%s) must be elements of %s"%(polys, source_ring))
+            polys = Sequence(polys)
         self._polys = polys
         SchemeMorphism.__init__(self, parent)
 
@@ -1050,12 +1047,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: H=Hom(X,X)
             sage: f=H([x^2,y^2,z^2]);
             sage: f(P([4,4,1]))
-            Traceback (most recent call last):
-            ...
-            TypeError: (4 : 4 : 1) fails to convert into the map's domain
-            Closed subscheme of Projective Space of dimension 2 over Integer
-            Ring defined by:
-              x^2 - y^2, but a `pushforward` method is not properly implemented
+            (16 : 16 : 1)
         """
         # Checks were done in __call__
         P = [f(x._coords) for f in self.defining_polynomials()]
@@ -1134,16 +1126,16 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2]);
-            sage: f(P([4,4,1]))
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: P2.<u,v,w,t> = ProjectiveSpace(ZZ, 3)
+            sage: X = P.subscheme(x^2-y^2);
+            sage: H = Hom(X, X)
+            sage: f = H([x^2, y^2, z^2]);
+            sage: f(P2([4,4,1,1]))
             Traceback (most recent call last):
             ...
-            TypeError: (4 : 4 : 1) fails to convert into the map's domain
-            Closed subscheme of Projective Space of dimension 2 over
-            Integer Ring defined by:
+            TypeError: (4 : 4 : 1 : 1) fails to convert into the map's domain Closed subscheme of
+            Projective Space of dimension 2 over Integer Ring defined by:
               x^2 - y^2, but a `pushforward` method is not properly implemented
         """
         if args:

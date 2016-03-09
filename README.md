@@ -7,7 +7,7 @@
 
    http://www.sagemath.org
 
-The Sage Library is GPLv2+, included packages have compatible OSS
+The Sage Library is GPLv2+, and included packages have compatible OSS
 licenses (see COPYING.txt). Over 400 people have contributed code to
 Sage. Please see the following web page for a list:
 
@@ -207,22 +207,21 @@ __6. Optional__: Type "make ptest" to test all examples in the documentation
 __7.__ The HTML version of the documentation is built during the compilation  
    process of Sage and resides in the directory:
 
-         $SAGE_ROOT/src/doc/output/html/
+         $SAGE_ROOT/local/share/doc/sage/html/
 
    >* __Optional__: If you want to build the PDF version (requires LaTeX)  
    of the documentation, run:  
 
          make doc-pdf
 
-__8. Optional__: It is highly recommended that you install the optional GAP  
+__8. Optional__: It is recommended that you install the optional GAP
    database by typing:
 
-         ./sage --optional
+         ./sage -i database_gap
 
-   then installing (with "./sage -i") the package whose name begins with  
-   database_gap. This will download the package from a Sage Mirror  
-   and install it. While you're at it, you might install other databases  
-   of interest to you.  
+   This will download the package and install it. While you're at it,
+   you might install other optional packages of interest to you: type
+   "./sage --optional" to get a list.
 
 __9. Optional__: It is recommended that you have both LaTeX and the  
    ImageMagick tools (e.g. the "convert" command) installed since some  

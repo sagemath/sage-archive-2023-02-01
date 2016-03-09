@@ -26,7 +26,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense

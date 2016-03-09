@@ -1023,23 +1023,27 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             Ring in R over Integer Ring
             sage: P(2)^P(2)
             4
+            sage: (R + 1)^P(2)
+            R^2 + 2*R + 1
+            sage: (R + 1)^R
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'
+            object cannot be interpreted as an index
         """
+        if is_Polynomial(exp) and exp.degree() == 0:
+            exp = exp[0]
+
         if fmpz_poly_degree(self.__poly) == 0:
-            if is_Polynomial(exp) and exp.degree() == 0:
-                result = self[0]**exp[0]
-            elif not is_Polynomial(exp):
-                result = self[0]**exp
-            else:
-                result = None
-            if result is not None:
-                try:
-                    return self.parent()(result)
-                except TypeError:
-                    raise TypeError(
-                        "cannot compute {base}^({power}) in {parent}".format(
-                            base=self,
-                            power=exp,
-                            parent=self.parent()))
+            result = self[0]**exp
+            try:
+                return self.parent()(result)
+            except TypeError:
+                raise TypeError(
+                    "cannot compute {base}^({power}) in {parent}".format(
+                        base=self,
+                        power=exp,
+                        parent=self.parent()))
 
         cdef Polynomial_integer_dense_flint res = self._new()
         cdef long nn = pyobject_to_long(exp)

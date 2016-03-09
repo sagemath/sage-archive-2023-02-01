@@ -1174,23 +1174,27 @@ cdef class Polynomial_rational_flint(Polynomial):
             Ring in R over Rational Field
             sage: P(4)^P(1/2)
             2
+            sage: (R + 1)^P(2)
+            R^2 + 2*R + 1
+            sage: (R + 1)^R
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'
+            object cannot be interpreted as an index
         """
+        if is_Polynomial(exp) and exp.degree() == 0:
+            exp = exp[0]
+
         if fmpq_poly_degree(self.__poly) == 0:
-            if is_Polynomial(exp) and exp.degree() == 0:
-                result = self[0]**exp[0]
-            elif not is_Polynomial(exp):
-                result = self[0]**exp
-            else:
-                result = None
-            if result is not None:
-                try:
-                    return self.parent()(result)
-                except TypeError:
-                    raise TypeError(
-                        "cannot compute ({base})^({power}) in {parent}".format(
-                            base=self,
-                            power=exp,
-                            parent=self.parent()))
+            result = self[0]**exp[0]
+            try:
+                return self.parent()(result)
+            except TypeError:
+                raise TypeError(
+                    "cannot compute ({base})^({power}) in {parent}".format(
+                        base=self,
+                        power=exp,
+                        parent=self.parent()))
 
         cdef Polynomial_rational_flint res
 

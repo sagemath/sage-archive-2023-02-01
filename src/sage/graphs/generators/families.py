@@ -2626,8 +2626,8 @@ def TuranGraph(n,r):
     Turan graphs are complete multipartite graphs with `n` vertices and
     `r` subsets, denoted `T(n,r)`, with the property that the sizes of the
     subsets are as close to equal as possible. The graph `T(n,r)` will have
-    `(n mod r)` subsets of size `\floor{n/r}` and `r - (n mod r)` subsets of
-    size `\ceil{n/r}`. For more information about Turan graphs, see the
+    `n \pmod r` subsets of size `\lfloor n/r \rfloor` and `r - (n \pmod r)` subsets of
+    size `\lceil n/r \rceil`. For more information about Turan graphs, see the
     corresponding :wikipedia:`Wikipedia page <Turan_graph>`
 
     INPUT:
@@ -2645,7 +2645,8 @@ def TuranGraph(n,r):
         sage: g.is_isomorphic(k)
         True
 
-    The Turan graph, T(n,r) has floor((r-1)(n^2)/(2r)) edges.  ::
+    The Turan graph `T(n,r)` has `\lfloor \frac{(r-1)(n^2)}{2r} \rfloor` edges.  ::
+
         sage: n = 13
         sage: r = 4
         sage: g = graphs.TuranGraph(n,r)

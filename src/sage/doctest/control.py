@@ -259,6 +259,12 @@ class DocTestController(SageObject):
                         if versions[0] == versions[1]:
                             options.optional.add(pkg)
 
+                if 'nonpackages' in options.optional:
+                    options.optional.discard('nonpackages')
+                    from .nonpackages import available_nonpackages
+                    for pkg in available_nonpackages:
+                        options.optional.add(pkg)
+
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):

@@ -1008,8 +1008,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         (:trac:`20086`)::
 
             sage: P.<R> = ZZ[]
-            sage: P(1)^(1/3)
-            1
+            sage: P(8)^(1/3)
+            2
             sage: _.parent()
             Univariate Polynomial Ring in R over Integer Ring
             sage: P(4)^(1/2)

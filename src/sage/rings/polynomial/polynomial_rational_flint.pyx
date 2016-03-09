@@ -1158,8 +1158,8 @@ cdef class Polynomial_rational_flint(Polynomial):
         (:trac:`20086`)::
 
             sage: P.<R> = QQ[]
-            sage: P(1)^(1/3)
-            1
+            sage: P(8)^(1/3)
+            2
             sage: _.parent()
             Univariate Polynomial Ring in R over Rational Field
             sage: P(1/4)^(1/2)
@@ -1194,7 +1194,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             exp = exp[0]
 
         if fmpq_poly_degree(self.__poly) == 0:
-            result = self[0]**exp[0]
+            result = self[0]**exp
             try:
                 return self.parent()(result)
             except TypeError:

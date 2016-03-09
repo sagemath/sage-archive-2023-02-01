@@ -1180,6 +1180,8 @@ cdef class Polynomial_rational_flint(Polynomial):
                 result = self[0]**exp[0]
             elif not is_Polynomial(exp):
                 result = self[0]**exp
+            else:
+                result = None
             if result is not None:
                 try:
                     return self.parent()(result)

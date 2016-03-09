@@ -65,6 +65,7 @@ Various associative algebras
 
    sage/algebras/associated_graded
    sage/algebras/commutative_dga
+   sage/algebras/q_system
 
 Non-associative algebras
 ------------------------

@@ -125,7 +125,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         EXAMPLE::
 
-        sage: R.<x> = QQ[]
+            sage: R.<x> = QQ[]
             sage: x._new_constant_poly(2/1,R)
             2
             sage: x._new_constant_poly(2,R)
@@ -136,7 +136,6 @@ cdef class Polynomial_rational_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: invalid literal for int() with base 10: '2.1'
-
         """
         cdef Polynomial_rational_flint res = Polynomial_rational_flint.__new__(Polynomial_rational_flint)
         res._parent = P
@@ -407,7 +406,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _unsafe_mutate(self, unsigned long n, value):
         """
-        Sets the `n`th coefficient of self to value.
+        Sets the `n`-th coefficient of self to value.
 
         TESTS::
 
@@ -1414,7 +1413,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         -  Derivative as a ``Polynomial_rational_flint``
 
-        .. seealso:: :meth:`.derivative`
+        .. seealso:: :meth:`~Polynomial.derivative`
 
         EXAMPLES::
 

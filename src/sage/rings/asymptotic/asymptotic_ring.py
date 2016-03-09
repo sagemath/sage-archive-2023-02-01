@@ -2999,9 +2999,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``var`` -- a string, the variable for the growth of the coefficients
+        - ``var`` -- a string, the variable for the growth of the coefficients,
+          or the generator of an asymptotic ring.
 
-        - ``zeta`` -- singularity
+        - ``zeta`` -- location of the singularity
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
@@ -3010,11 +3011,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         An asymptotic expansion in ``var``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C.<T> = AsymptoticRing('T^QQ', QQ)
             sage: ex = 2 - 2*T^(-1/2) + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))
             sage: ex._singularity_analysis_('n', 1/4, precision=2)
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))
+
+        The parameter ``var`` can also be the generator of an asymptotic
+        ring::
+
+            sage: A.<n> = AsymptoticRing('n^QQ', QQ)
+            sage: ex._singularity_analysis_(n, 1/4, precision=2)
             1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))
 
         .. SEEALSO::

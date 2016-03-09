@@ -462,7 +462,7 @@ def split_index_keywords(kwds):
         sage: from sage.structure.indexed_generators import split_index_keywords
         sage: d = {'string_quotes': False, 'bracket': None, 'base': QQ}
         sage: split_index_keywords(d)
-        {'string_quotes': False, 'bracket': None}
+        {'bracket': None, 'string_quotes': False}
         sage: d
         {'base': Rational Field}
     """
@@ -509,7 +509,7 @@ def parse_indices_names(indices, names, prefix, kwds={}):
         sage: parse_indices_names(None, 'x,y,z', None, d)
         ({'x', 'y', 'z'}, ('x', 'y', 'z'), '')
         sage: d
-        {'string_quotes': False, 'bracket': False}
+        {'bracket': False, 'string_quotes': False}
         sage: d = {}
         sage: parse_indices_names(ZZ, None, None, d)
         (Integer Ring, None, None)
@@ -522,11 +522,11 @@ def parse_indices_names(indices, names, prefix, kwds={}):
         sage: parse_indices_names(ZZ, ['x','y','z'], 'x', d)
         (Integer Ring, ['x', 'y', 'z'], 'x')
         sage: d
-        {'string_quotes': True, 'bracket': '['}
+        {'bracket': '[', 'string_quotes': True}
         sage: parse_indices_names(None, 'x,y,z', 'A', d)
         ({'x', 'y', 'z'}, ('x', 'y', 'z'), 'A')
         sage: d
-        {'string_quotes': True, 'bracket': '['}
+        {'bracket': '[', 'string_quotes': True}
     """
     if indices is None:
         if names is None:

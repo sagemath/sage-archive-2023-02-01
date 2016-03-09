@@ -49,8 +49,8 @@ download-for-sdist: base
 	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
 		$(STANDARD_PACKAGES) gcc mpir python2
 
-# TOOLCHAIN consists of dependencies determined by build/make/install,
-# including for example the GCC package.
+# TOOLCHAIN consists of dependencies determined by configure.
+# These are built after the "base" target but before anything else.
 toolchain: $(TOOLCHAIN)
 
 # Build all packages that GCC links against serially, otherwise this

@@ -620,6 +620,7 @@ def _diagonal_isometry(V, W):
         [   0   -1   -1]
         [   1    0    0]
         [   0 -1/2  1/2]
+        sage: F.Gram_matrix() == T.T * Q.Gram_matrix() * T
         True
     """
     import copy

@@ -1024,12 +1024,11 @@ class GRSBerlekampWelchDecoder(Decoder):
 
         TESTS:
 
-        If one tries to decode a word with too many errors, it returns
-        an exception::
+        If one tries to decode a word which is too far from any codeword, an exception is raised::
 
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
-            sage: y = Chan(c)
-            sage: D.decode_to_message(y)
+            sage: e = vector(F,[0, 0, 54, 23, 1, 0, 0, 0, 53, 21, 0, 0, 0, 34, 6, 11, 0, 0, 16, 0, 0, 0, 9, 0, 10, 27, 35, 0, 0, 0, 0, 46, 0, 0, 0, 0, 0, 0, 44, 0]); e.hamming_weight()
+            15
+            sage: D.decode_to_message(c + e)
             Traceback (most recent call last):
             ...
             DecodingError: Decoding failed because the number of errors exceeded the decoding radius
@@ -1075,12 +1074,11 @@ class GRSBerlekampWelchDecoder(Decoder):
 
         TESTS:
 
-        If one tries to decode a word with too many errors, it returns
-        an exception::
+        If one tries to decode a word which is too far from any codeword, an exception is raised::
 
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
-            sage: y = Chan(c)
-            sage: D.decode_to_code(y)
+            sage: e = vector(F,[0, 0, 54, 23, 1, 0, 0, 0, 53, 21, 0, 0, 0, 34, 6, 11, 0, 0, 16, 0, 0, 0, 9, 0, 10, 27, 35, 0, 0, 0, 0, 46, 0, 0, 0, 0, 0, 0, 44, 0]); e.hamming_weight()
+            15
+            sage: D.decode_to_code(c + e)
             Traceback (most recent call last):
             ...
             DecodingError: Decoding failed because the number of errors exceeded the decoding radius
@@ -1386,12 +1384,11 @@ class GRSGaoDecoder(Decoder):
 
         TESTS:
 
-        If one tries to decode a word with too many errors, it returns
-        an exception::
+        If one tries to decode a word which is too far from any codeword, an exception is raised::
 
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
-            sage: y = Chan(c)
-            sage: D.decode_to_message(y)
+            sage: e = vector(F,[0, 0, 54, 23, 1, 0, 0, 0, 53, 21, 0, 0, 0, 34, 6, 11, 0, 0, 16, 0, 0, 0, 9, 0, 10, 27, 35, 0, 0, 0, 0, 46, 0, 0, 0, 0, 0, 0, 44, 0]); e.hamming_weight()
+            15
+            sage: D.decode_to_message(c + e)
             Traceback (most recent call last):
             ...
             DecodingError: Decoding failed because the number of errors exceeded the decoding radius
@@ -1437,12 +1434,12 @@ class GRSGaoDecoder(Decoder):
 
         TESTS:
 
-        If one tries to decode a word with too many errors, it returns
-        an exception::
 
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
-            sage: y = Chan(c)
-            sage: D.decode_to_code(y)
+        If one tries to decode a word which is too far from any codeword, an exception is raised::
+
+            sage: e = vector(F,[0, 0, 54, 23, 1, 0, 0, 0, 53, 21, 0, 0, 0, 34, 6, 11, 0, 0, 16, 0, 0, 0, 9, 0, 10, 27, 35, 0, 0, 0, 0, 46, 0, 0, 0, 0, 0, 0, 44, 0]); e.hamming_weight()
+            15
+            sage: D.decode_to_code(c + e)
             Traceback (most recent call last):
             ...
             DecodingError: Decoding failed because the number of errors exceeded the decoding radius

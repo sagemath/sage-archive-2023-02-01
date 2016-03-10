@@ -466,7 +466,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         return hash(self.matrix())
 
     def _repr_(self):
-        """
+        r"""
         Return string representation of this matrix.
 
         EXAMPLES::

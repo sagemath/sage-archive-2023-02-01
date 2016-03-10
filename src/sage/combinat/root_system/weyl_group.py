@@ -337,19 +337,26 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
 
     def reflections(self):
         """
-        The reflections of W are the conjugates of the simple reflections.
-        They are in bijection with the positive roots, for given a positive
-        root, we may have the reflection in the hyperplane orthogonal to it.
-        This method returns a dictionary indexed by the reflections taking
-        values in the positive roots. This requires self to be a finite
-        Weyl group.
+        Return the reflections of ``self``.
+
+        The reflections of a Coxeter group `W` are the conjugates of
+        the simple reflections. They are in bijection with the positive
+        roots, for given a positive root, we may have the reflection in
+        the hyperplane orthogonal to it. This method returns a family
+        indexed by the positive roots taking values in the reflections.
+        This requires ``self`` to be a finite Weyl group.
+
+        .. NOTE::
+
+            Prior to :trac:`20027`, the reflections were the keys
+            of the family and the values were the positive roots.
 
         EXAMPLES::
 
             sage: W = WeylGroup("B2", prefix="s")
             sage: refdict = W.reflections(); refdict
-            Finite family {s1: (1, -1), s2*s1*s2: (1, 1), s1*s2*s1: (1, 0), s2: (0, 1)}
-            sage: [refdict[r]+r.action(refdict[r]) for r in refdict.keys()]
+            Finite family {(1, -1): s1, (1, 1): s2*s1*s2, (1, 0): s1*s2*s1, (0, 1): s2}
+            sage: [r+refdict[r].action(r) for r in refdict.keys()]
             [(0, 0), (0, 0), (0, 0), (0, 0)]
 
         """
@@ -359,7 +366,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
                 m = Matrix([self.domain().reflection(alp)(x).to_vector()
                             for x in self.domain().basis()])
                 r = self(m)
-                ret[r] = alp
+                ret[alp] = r
             return Family(ret)
         except Exception:
             raise NotImplementedError("reflections are only implemented for finite Weyl groups")
@@ -573,7 +580,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             16
         """
         g = self.bruhat_interval(x, y)
-        ref = self.reflections().keys()
+        ref = self.reflections()
         d = {}
         for u in g:
             d[u] = [v for v in g if u.length() < v.length() and u*v.inverse() in ref]

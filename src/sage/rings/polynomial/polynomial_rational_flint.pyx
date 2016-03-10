@@ -1198,26 +1198,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         try:
             n = pyobject_to_long(exp)
-
-            if n < 0:
-                if fmpq_poly_is_zero(self.__poly):
-                    raise ZeroDivisionError("negative exponent in power of zero")
-                res = self._new()
-                sig_str("FLINT exception")
-                fmpq_poly_pow(res.__poly, self.__poly, -n)
-                sig_off()
-                return ~res
-            else:
-                res = self._new()
-                sig_str("FLINT exception")
-                if self._is_gen:
-                    fmpq_poly_set_coeff_si(res.__poly, n, 1)
-                else:
-                    fmpq_poly_pow(res.__poly, self.__poly, n)
-                sig_off()
-                return res
         except TypeError:
-            # pyobject_to_long(exp) failed
             r = QQ.coerce(exp)
 
             if fmpq_poly_degree(self.__poly) == 0:
@@ -1235,6 +1216,25 @@ cdef class Polynomial_rational_flint(Polynomial):
                 "{polynomial} is not implemented".format(
                     power=exp,
                     polynomial=self))
+
+        else:
+            if n < 0:
+                if fmpq_poly_is_zero(self.__poly):
+                    raise ZeroDivisionError("negative exponent in power of zero")
+                res = self._new()
+                sig_str("FLINT exception")
+                fmpq_poly_pow(res.__poly, self.__poly, -n)
+                sig_off()
+                return ~res
+            else:
+                res = self._new()
+                sig_str("FLINT exception")
+                if self._is_gen:
+                    fmpq_poly_set_coeff_si(res.__poly, n, 1)
+                else:
+                    fmpq_poly_pow(res.__poly, self.__poly, n)
+                sig_off()
+                return res
 
     def __floordiv__(Polynomial_rational_flint self, right):
         """

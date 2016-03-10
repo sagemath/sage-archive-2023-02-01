@@ -1048,6 +1048,25 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         try:
             nn = pyobject_to_long(exp)
+        except TypeError:
+            n = QQ.coerce(exp)
+
+            if fmpz_poly_degree(self.__poly) == 0:
+                result = self[0]**n
+                try:
+                    return self.parent()(result)
+                except TypeError:
+                    raise TypeError(
+                        "cannot compute {base}^({power}) in {parent}".format(
+                            base=self,
+                            power=exp,
+                            parent=self.parent()))
+            raise NotImplementedError(
+                "rational power {power} of non-constant polynomial "
+                "{polynomial} is not implemented".format(
+                    power=exp,
+                    polynomial=self))
+        else:
             res = self._new()
 
             if self.is_zero():
@@ -1073,25 +1092,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     fmpz_poly_pow(res.__poly, self.__poly, nn)
                     sig_off()
                 return res
-        except TypeError:
-            # pyobject_to_long(exp) failed
-            n = QQ.coerce(exp)
-
-            if fmpz_poly_degree(self.__poly) == 0:
-                result = self[0]**n
-                try:
-                    return self.parent()(result)
-                except TypeError:
-                    raise TypeError(
-                        "cannot compute {base}^({power}) in {parent}".format(
-                            base=self,
-                            power=exp,
-                            parent=self.parent()))
-            raise NotImplementedError(
-                "rational power {power} of non-constant polynomial "
-                "{polynomial} is not implemented".format(
-                    power=exp,
-                    polynomial=self))
 
     def __floordiv__(Polynomial_integer_dense_flint self, right):
         """

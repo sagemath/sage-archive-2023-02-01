@@ -1141,7 +1141,8 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            NotImplementedError: rational power 2/3 of non-constant
+            polynomial t + 1 is not implemented
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
@@ -1172,59 +1173,68 @@ cdef class Polynomial_rational_flint(Polynomial):
             TypeError: cannot compute (1/3)^(1/2) in Univariate Polynomial
             Ring in R over Rational Field
             sage: P(4)^P(1/2)
-            2
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
             sage: (R + 1)^P(2)
-            R^2 + 2*R + 1
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
             sage: (R + 1)^R
             Traceback (most recent call last):
             ...
-            TypeError: cannot compute (R + 1)^(R) in Univariate Polynomial
-            Ring in R over Rational Field
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
             sage: 2^R
             Traceback (most recent call last):
             ...
-            TypeError: cannot compute (2)^(R) in Univariate Polynomial
-            Ring in R over Rational Field
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
         """
-        if is_Polynomial(exp):
-            if exp.degree() > 0:
-                raise TypeError(
-                    'cannot compute ({base})^({exponent}) in {parent}'.format(
-                        base=self, exponent=exp, parent=self.parent()))
-            exp = exp[0]
-
-        if fmpq_poly_degree(self.__poly) == 0:
-            result = self[0]**exp
-            try:
-                return self.parent()(result)
-            except TypeError:
-                raise TypeError(
-                    "cannot compute ({base})^({power}) in {parent}".format(
-                        base=self,
-                        power=exp,
-                        parent=self.parent()))
-
         cdef Polynomial_rational_flint res
+        cdef long n
 
-        cdef long n = pyobject_to_long(exp)
+        try:
+            n = pyobject_to_long(exp)
 
-        if n < 0:
-            if fmpq_poly_is_zero(self.__poly):
-                raise ZeroDivisionError("negative exponent in power of zero")
-            res = self._new()
-            sig_str("FLINT exception")
-            fmpq_poly_pow(res.__poly, self.__poly, -n)
-            sig_off()
-            return ~res
-        else:
-            res = self._new()
-            sig_str("FLINT exception")
-            if self._is_gen:
-                fmpq_poly_set_coeff_si(res.__poly, n, 1)
+            if n < 0:
+                if fmpq_poly_is_zero(self.__poly):
+                    raise ZeroDivisionError("negative exponent in power of zero")
+                res = self._new()
+                sig_str("FLINT exception")
+                fmpq_poly_pow(res.__poly, self.__poly, -n)
+                sig_off()
+                return ~res
             else:
-                fmpq_poly_pow(res.__poly, self.__poly, n)
-            sig_off()
-            return res
+                res = self._new()
+                sig_str("FLINT exception")
+                if self._is_gen:
+                    fmpq_poly_set_coeff_si(res.__poly, n, 1)
+                else:
+                    fmpq_poly_pow(res.__poly, self.__poly, n)
+                sig_off()
+                return res
+        except TypeError:
+            # pyobject_to_long(exp) failed
+            r = QQ.coerce(exp)
+
+            if fmpq_poly_degree(self.__poly) == 0:
+                result = self[0]**r
+                try:
+                    return self.parent()(result)
+                except TypeError:
+                    raise TypeError(
+                        "cannot compute ({base})^({power}) in {parent}".format(
+                            base=self,
+                            power=exp,
+                            parent=self.parent()))
+            raise NotImplementedError(
+                "rational power {power} of non-constant polynomial "
+                "{polynomial} is not implemented".format(
+                    power=exp,
+                    polynomial=self))
 
     def __floordiv__(Polynomial_rational_flint self, right):
         """

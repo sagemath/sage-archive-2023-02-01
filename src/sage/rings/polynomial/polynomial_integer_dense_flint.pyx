@@ -998,7 +998,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            NotImplementedError: rational power 1/2 of non-constant
+            polynomial x is not implemented
             sage: x^(2^100)
             Traceback (most recent call last):
             ...
@@ -1022,64 +1023,75 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             TypeError: cannot compute 3^(1/2) in Univariate Polynomial
             Ring in R over Integer Ring
             sage: P(2)^P(2)
-            4
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Integer Ring to Rational Field
             sage: (R + 1)^P(2)
-            R^2 + 2*R + 1
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Integer Ring to Rational Field
             sage: (R + 1)^R
             Traceback (most recent call last):
             ...
-            TypeError: cannot compute (R + 1)^(R) in Univariate Polynomial
-            Ring in R over Integer Ring
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Integer Ring to Rational Field
             sage: 2^R
             Traceback (most recent call last):
             ...
-            TypeError: cannot compute (2)^(R) in Univariate Polynomial
-            Ring in R over Integer Ring
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Integer Ring to Rational Field
         """
-        if is_Polynomial(exp):
-            if exp.degree() > 0:
-                raise TypeError(
-                    'cannot compute ({base})^({exponent}) in {parent}'.format(
-                        base=self, exponent=exp, parent=self.parent()))
-            exp = exp[0]
+        cdef long nn
+        cdef Polynomial_integer_dense_flint res
 
-        if fmpz_poly_degree(self.__poly) == 0:
-            result = self[0]**exp
-            try:
-                return self.parent()(result)
-            except TypeError:
-                raise TypeError(
-                    "cannot compute {base}^({power}) in {parent}".format(
-                        base=self,
-                        power=exp,
-                        parent=self.parent()))
+        try:
+            nn = pyobject_to_long(exp)
+            res = self._new()
 
-        cdef Polynomial_integer_dense_flint res = self._new()
-        cdef long nn = pyobject_to_long(exp)
-
-        if self.is_zero():
-            if exp == 0:
-                fmpz_poly_set_coeff_si(res.__poly, 0, 1)
-                return res
-            elif exp < 0:
-                raise ZeroDivisionError("negative exponent in power of zero")
-            else:
-                return res
-        if exp < 0:
-            sig_on()
-            fmpz_poly_pow(res.__poly, self.__poly, -nn)
-            sig_off()
-            return ~res
-        else:
-            if self is self._parent.gen():
+            if self.is_zero():
+                if exp == 0:
+                    fmpz_poly_set_coeff_si(res.__poly, 0, 1)
+                    return res
+                elif exp < 0:
+                    raise ZeroDivisionError("negative exponent in power of zero")
+                else:
+                    return res
+            if exp < 0:
                 sig_on()
-                fmpz_poly_set_coeff_ui(res.__poly, nn, 1)
+                fmpz_poly_pow(res.__poly, self.__poly, -nn)
                 sig_off()
+                return ~res
             else:
-                sig_on()
-                fmpz_poly_pow(res.__poly, self.__poly, nn)
-                sig_off()
-            return res
+                if self is self._parent.gen():
+                    sig_on()
+                    fmpz_poly_set_coeff_ui(res.__poly, nn, 1)
+                    sig_off()
+                else:
+                    sig_on()
+                    fmpz_poly_pow(res.__poly, self.__poly, nn)
+                    sig_off()
+                return res
+        except TypeError:
+            # pyobject_to_long(exp) failed
+            n = QQ.coerce(exp)
+
+            if fmpz_poly_degree(self.__poly) == 0:
+                result = self[0]**n
+                try:
+                    return self.parent()(result)
+                except TypeError:
+                    raise TypeError(
+                        "cannot compute {base}^({power}) in {parent}".format(
+                            base=self,
+                            power=exp,
+                            parent=self.parent()))
+            raise NotImplementedError(
+                "rational power {power} of non-constant polynomial "
+                "{polynomial} is not implemented".format(
+                    power=exp,
+                    polynomial=self))
 
     def __floordiv__(Polynomial_integer_dense_flint self, right):
         """

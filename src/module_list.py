@@ -446,6 +446,8 @@ ext_modules = [
 
     Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
               sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
+    Extension('sage.groups.matrix_gps.group_element',
+              sources = ['sage/groups/matrix_gps/group_element.pyx']),
 
     ###################################
     ##

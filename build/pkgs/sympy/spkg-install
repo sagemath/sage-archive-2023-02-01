@@ -8,9 +8,6 @@ fi
 
 cd src/
 
-rm -rf sympy/mpmath
-rm -rf doc/src/modules/mpmath
-
 for patch in ../patches/*.patch; do
     [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
     patch -p1 <"$patch"

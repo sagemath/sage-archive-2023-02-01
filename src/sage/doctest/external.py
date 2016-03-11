@@ -27,22 +27,49 @@ from util import LazySet
 prefix = 'has_'   
 
 def has_internet():
+    """
+    Return ``True`` if internet is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_internet
+        sage: has_internet() # random
+        True
+    """
     from six.moves import urllib
     try:
-        urllib.request.urlopen("http://sagemath.org")
+        urllib.request.urlopen("http://www.sagemath.org")
         return True
     except Exception:
         return False
 
 def has_latex():
+    """
+    Return ``True`` if latex is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_latex
+        sage: has_latex() # random
+        True
+    """        
     from sage.misc.latex import view
     try:
-        view('$e^{\pi}+1=0$')
+        view('2+3')
         return True
     except Exception:
         return False
 
 def has_magma():
+    """
+    Return ``True`` if magma is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_magma
+        sage: has_magma() # random
+        True
+    """      
     from sage.interfaces.magma import magma
     try:
         magma('2+3')
@@ -51,6 +78,15 @@ def has_magma():
         return False 
 
 def has_matlab():
+    """
+    Return ``True`` if matlab is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_matlab
+        sage: has_matlab() # random
+        True
+    """
     from sage.interfaces.matlab import matlab
     try:
         matlab('2+3')
@@ -59,6 +95,15 @@ def has_matlab():
         return False 
 
 def has_mathematica():
+    """
+    Return ``True`` if mathematica is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_mathematica
+        sage: has_mathematica() # random
+        True
+    """      
     from sage.interfaces.mathematica import mathematica
     try:
         mathematica('2+3')
@@ -67,6 +112,15 @@ def has_mathematica():
         return False  
 
 def has_maple():
+    """
+    Return ``True`` if maple is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_maple
+        sage: has_maple() # random
+        True
+    """      
     from sage.interfaces.maple import maple
     try:
         maple('2+3')
@@ -75,6 +129,15 @@ def has_maple():
         return False   
 
 def has_macaulay2():
+    """
+    Return ``True`` if macaulay2 is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_macaulay2
+        sage: has_macaulay2() # random
+        True
+    """      
     from sage.interfaces.macaulay2 import macaulay2
     try:
         macaulay2('2+3')
@@ -83,6 +146,15 @@ def has_macaulay2():
         return False   
 
 def has_octave():
+    """
+    Return ``True`` if octave is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_octave
+        sage: has_octave() # random
+        True
+    """      
     from sage.interfaces.octave import octave
     try:
         octave('2+3')
@@ -91,6 +163,15 @@ def has_octave():
         return False  
 
 def has_scilab():
+    """
+    Return ``True`` if scilab is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_scilab
+        sage: has_scilab() # random
+        True
+    """      
     from sage.interfaces.scilab import scilab
     try:
         scilab('2+3')
@@ -99,6 +180,15 @@ def has_scilab():
         return False
 
 def has_cplex():
+    """
+    Return ``True`` if cplex is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_cplex
+        sage: has_cplex() # random
+        True
+    """      
     from sage.numerical.mip import MixedIntegerLinearProgram
     try:
         MixedIntegerLinearProgram(solver='cplex')
@@ -107,6 +197,15 @@ def has_cplex():
         return False
 
 def has_gurobi():
+    """
+    Return ``True`` if gurobi is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_gurobi
+        sage: has_gurobi() # random
+        True
+    """      
     from sage.numerical.mip import MixedIntegerLinearProgram
     try:
         MixedIntegerLinearProgram(solver='gurobi')

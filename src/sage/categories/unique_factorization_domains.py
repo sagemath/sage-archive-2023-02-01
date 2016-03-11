@@ -209,4 +209,46 @@ class UniqueFactorizationDomains(Category_singleton):
         # prime?
         # squareFree
         # factor
-        pass
+
+        def nth_root(self, n):
+            r"""
+            Return the `n`-th root of this element.
+
+            This generic method relies on factorization.
+
+            EXAMPLES::
+
+                sage: R.<x> = ZZ[]
+                sage: a = 27 * (x+3)**6 * (x+5)**3
+                sage: a.nth_root(3)
+                3*x^3 + 33*x^2 + 117*x + 135
+
+                sage: b = 25 * (x^2 + x + 1)
+                sage: b.nth_root(2)
+                Traceback (most recent call last):
+                ...
+                ValueError: 25*x^2 + 25*x + 25 is not a 2nd power
+            """
+            from sage.rings.integer_ring import ZZ
+
+            n = ZZ.coerce(n)
+
+            if n <= 0:
+                raise ValueError("n (={}) must be positive".format(n))
+            elif n == 1:
+                return self
+            else:
+                f = self.factor()
+                u = f.unit()
+
+                try:
+                    ans = u.nth_root(n)
+                except AttributeError:
+                    raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
+
+                for (v,exp) in f:
+                    if exp % n:
+                        raise ValueError("{} is not a {}nd power".format(self, n))
+                    ans *= v ** (exp // n)
+
+                return ans

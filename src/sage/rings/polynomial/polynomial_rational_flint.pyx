@@ -1141,8 +1141,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2/3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: rational power 2/3 of non-constant
-            polynomial t + 1 is not implemented
+            ValueError: t^2 + 2*t + 1 is not a 3nd power
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
@@ -1155,18 +1154,23 @@ cdef class Polynomial_rational_flint(Polynomial):
             ...
             RuntimeError: FLINT exception
 
-        If this polynomial is constant, hand over to the base ring
-        (:trac:`20086`)::
+        Test fractional powers (:trac:`20086`)::
 
             sage: P.<R> = QQ[]
-            sage: P(8)^(1/3)
-            2
+            sage: (1/27*R^3 + 2/3*R^2 + 4*R + 8)^(2/3)
+            1/9*R^2 + 4/3*R + 4
             sage: _.parent()
             Univariate Polynomial Ring in R over Rational Field
             sage: P(1/4)^(1/2)
             1/2
             sage: _.parent()
             Univariate Polynomial Ring in R over Rational Field
+
+            sage: (R+2)^(2/5)
+            Traceback (most recent call last):
+            ...
+            ValueError: R^2 + 4*R + 4 is not a 5nd power
+
             sage: P(1/3)^(1/2)
             Traceback (most recent call last):
             ...
@@ -1211,11 +1215,10 @@ cdef class Polynomial_rational_flint(Polynomial):
                             base=self,
                             power=exp,
                             parent=self.parent()))
-            raise NotImplementedError(
-                "rational power {power} of non-constant polynomial "
-                "{polynomial} is not implemented".format(
-                    power=exp,
-                    polynomial=self))
+
+            num = r.numerator()
+            den = r.denominator()
+            return (self ** num).nth_root(den)
 
         else:
             if n < 0:

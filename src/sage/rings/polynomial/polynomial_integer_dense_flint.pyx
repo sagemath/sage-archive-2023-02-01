@@ -965,7 +965,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
     def __pow__(Polynomial_integer_dense_flint self, exp, ignored):
         """
-
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
@@ -1005,22 +1004,23 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             ...
             OverflowError: Sage Integer too large to convert to C long
 
-        If this polynomial is constant, hand over to the base ring
-        (:trac:`20086`)::
+        Test fractional powers (:trac:`20086`)::
 
             sage: P.<R> = ZZ[]
-            sage: P(8)^(1/3)
-            2
+            sage: (R^3 + 6*R^2 + 12*R + 8)^(1/3)
+            R + 2
             sage: _.parent()
             Univariate Polynomial Ring in R over Integer Ring
             sage: P(4)^(1/2)
             2
             sage: _.parent()
             Univariate Polynomial Ring in R over Integer Ring
-            sage: P(3)^(1/2)
+
+            sage: (R^2 + 3)^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: cannot compute 3^(1/2) in Univariate Polynomial
+            ValueError: R^2 + 3 is not a 2nd power
+
             Ring in R over Integer Ring
             sage: P(2)^P(2)
             Traceback (most recent call last):
@@ -1061,11 +1061,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                             base=self,
                             power=exp,
                             parent=self.parent()))
-            raise NotImplementedError(
-                "rational power {power} of non-constant polynomial "
-                "{polynomial} is not implemented".format(
-                    power=exp,
-                    polynomial=self))
+
+            num = n.numerator()
+            den = n.denominator()
+            return (self ** num).nth_root(den)
         else:
             res = self._new()
 

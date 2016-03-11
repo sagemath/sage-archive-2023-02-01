@@ -213,7 +213,6 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
         # In certain trivial cases, PARI can sometimes return longer
         # vectors than requested.
         if length < len_bound:
-            v = parilist[i]
             sagevec = V(list(parilist[i]))
             vec_sorted_list[length].append(sagevec)
             if not up_to_sign_flag :

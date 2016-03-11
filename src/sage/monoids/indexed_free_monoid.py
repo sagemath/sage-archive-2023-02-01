@@ -572,9 +572,15 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             Traceback (most recent call last):
             ...
             ValueError: invalid cancellation
+            sage: elt // e^4
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid cancellation
         """
         d = copy(self._monomial)
         for k,v in elt._monomial.iteritems():
+            if k not in d:
+                raise ValueError("invalid cancellation")
             d[k] -= v
         for k,v in d.items():
             if v < 0:

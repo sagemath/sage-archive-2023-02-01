@@ -34,19 +34,8 @@ done
 ## INSTALLATION
 ###########################################
 
-UNAME=$(uname)
-if [[ $UNAME == 'Linux' ]]; then
-    if [[ $(uname -m) == 'x86_64' ]]; then
-        MAKE_COMMAND='x86linux-gcc64'
-    else
-        MAKE_COMMAND='x86linux-gcc'
-    fi;
-elif [[ $UNAME == 'Darwin' ]]; then
-        MAKE_COMMAND='macosx-gcc'
-fi
-
 cd src
-$MAKE $MAKE_COMMAND
+$MAKE
 cd ..
 
 echo "Installing (copying) files..."

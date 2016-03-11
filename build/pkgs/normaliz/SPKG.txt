@@ -12,26 +12,34 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
 
 == Upstream Contact ==
 
+ * normaliz@uos.de
  * Winfried Bruns <wbruns@uos.de>
- * Bogdan Ichim <bogdan_ichim@yahoo.com>
  * Christof Söger <csoeger@uos.de>
+ * see also https://www.normaliz.uni-osnabrueck.de/home/contact/
+   and https://github.com/Normaliz
 
 == Dependencies ==
 
 == Special Update/Build Instructions ==
 
-* Normaliz is now distributed as .zip archive. 
-  Download it from http://www.home.uni-osnabrueck.de/wbruns/normaliz/Normaliz2.12.1/
-  unzip  
+* Normaliz is now distributed as .zip archive.
+  get is from https://www.normaliz.uni-osnabrueck.de/download/, e.g.
+  https://www.normaliz.uni-osnabrueck.de/wp-content/uploads/2016/02/Normaliz3.1.0Source.zip
+  unzip
+  rename the top dir to normaliz-<version>
   tar cjf normaliz-<version>.tar.bz2
   put the latter in $SAGEROOT/upstream/, etc.
 
 === Patches ===
 
  *  no_static_stuff.patch - patching included into Makefile stuff that sets '-static' in CXXFLAGS 
- *  cstddef_include.patch - include <cstddef> before mpir/gmp, to work around the MPIR bug 
 
 == Changelog ==
+
+=== normaliz-3.1.0     (Dima Pasechnik, March 5 2016) ===
+
+ * removed an old patch
+ * added LDFLAGS to CXXFLAGS  (a hack...)
 
 === normaliz-2.12.1.p0 (Dima Pasechnik, December 5 2014) ===
 

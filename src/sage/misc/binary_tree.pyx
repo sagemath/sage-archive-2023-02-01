@@ -9,7 +9,7 @@ AUTHORS:
 """
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/python.pxi'
+from cpython.ref cimport PyObject, Py_INCREF, Py_XDECREF
 
 cdef binary_tree_node *BinaryTreeNode(int key, object value):
     cdef binary_tree_node *t
@@ -22,8 +22,7 @@ cdef binary_tree_node *BinaryTreeNode(int key, object value):
     return t
 
 cdef void free_binary_tree_node(binary_tree_node *self):
-    if self.value != NULL:
-        Py_DECREF(<object>self.value)
+    Py_XDECREF(<PyObject *>self.value)
     sage_free(self)
 
 cdef inline void binary_tree_dealloc(binary_tree_node *self):

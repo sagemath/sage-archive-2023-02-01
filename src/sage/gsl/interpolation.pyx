@@ -5,6 +5,7 @@ Real Interpolation using GSL
 include 'sage/ext/stdsage.pxi'
 include "cysignals/signals.pxi"
 
+
 cdef class Spline:
     """
     Create a spline interpolation object.

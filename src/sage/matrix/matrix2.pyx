@@ -27,7 +27,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 include "cysignals/signals.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -8504,10 +8504,17 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: img.save(filename)
             sage: open(filename).read().startswith('\x89PNG')
             True
+
+        TESTS:
+
+        Test :trac:`17341`::
+
+            sage: random_matrix(GF(2), 8, 586, sparse=True).visualize_structure()
+            512x6px 24-bit RGB image
         """
-        cdef int x, y, _x, _y, v, bi, bisq
-        cdef int ir,ic
-        cdef float b, fct
+        cdef Py_ssize_t x, y, _x, _y, v, bi, bisq
+        cdef Py_ssize_t ir, ic
+        cdef double b, fct
         mr, mc = self.nrows(), self.ncols()
         if maxsize is None:
             ir = mc
@@ -8522,20 +8529,20 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ir = mc
             ic = mr
             b = 1.0
-        bi = round(b)
+        bi = int(round(b))
         bisq = bi*bi
         fct = 255.0/bisq
         from sage.repl.image import Image
         img = Image('RGB', (ir, ic))
         pixel = img.pixels()
-        for x from 0 <= x < ic:
-            for y from 0 <= y < ir:
+        for x in range(ic):
+            for y in range(ir):
                 v = bisq
-                for _x from 0 <= _x < bi:
-                    for _y from 0 <= _y < bi:
-                        if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
-                            v-=1 #increase darkness
-                v = round(v*fct)
+                for _x in range(bi):
+                    for _y in range(bi):
+                        if not self.get_unsafe(<Py_ssize_t>(x*b + _x), <Py_ssize_t>(y*b + _y)).is_zero():
+                            v -= 1 #increase darkness
+                v = <Py_ssize_t>(v * fct + 0.5)
                 pixel[y, x] = (v, v, v)
         return img
 

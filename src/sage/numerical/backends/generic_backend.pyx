@@ -980,7 +980,125 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    cpdef bint is_variable_basic(self, int index):
+        """
+        Test whether the given variable is basic.
 
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: x = p.new_variable(nonnegative=True)           # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(-x[0] + x[1] <= 2)            # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)    # optional - Nonexistent_LP_solver
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])         # optional - Nonexistent_LP_solver
+            sage: b = p.get_backend()                            # optional - Nonexistent_LP_solver
+            sage: # Backend-specific commands to instruct solver to use simplex method here
+            sage: b.solve()                                      # optional - Nonexistent_LP_solver
+            0
+            sage: b.is_variable_basic(0)                         # optional - Nonexistent_LP_solver
+            True
+            sage: b.is_variable_basic(1)                         # optional - Nonexistent_LP_solver
+            False
+        """
+        raise NotImplementedError()
+
+    cpdef bint is_variable_nonbasic_at_lower_bound(self, int index):
+        """
+        Test whether the given variable is nonbasic at lower bound.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: x = p.new_variable(nonnegative=True)           # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(-x[0] + x[1] <= 2)            # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)    # optional - Nonexistent_LP_solver
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])         # optional - Nonexistent_LP_solver
+            sage: b = p.get_backend()                            # optional - Nonexistent_LP_solver
+            sage: # Backend-specific commands to instruct solver to use simplex method here
+            sage: b.solve()                                      # optional - Nonexistent_LP_solver
+            0
+            sage: b.is_variable_nonbasic_at_lower_bound(0)       # optional - Nonexistent_LP_solver
+            False
+            sage: b.is_variable_nonbasic_at_lower_bound(1)       # optional - Nonexistent_LP_solver
+            True
+        """
+        raise NotImplementedError()
+
+    cpdef bint is_slack_variable_basic(self, int index):
+        """
+        Test whether the slack variable of the given row is basic.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: x = p.new_variable(nonnegative=True)           # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(-x[0] + x[1] <= 2)            # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)    # optional - Nonexistent_LP_solver
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])         # optional - Nonexistent_LP_solver
+            sage: b = p.get_backend()                            # optional - Nonexistent_LP_solver
+            sage: # Backend-specific commands to instruct solver to use simplex method here
+            sage: b.solve()                                      # optional - Nonexistent_LP_solver
+            0
+            sage: b.is_slack_variable_basic(0)                   # optional - Nonexistent_LP_solver
+            True
+            sage: b.is_slack_variable_basic(1)                   # optional - Nonexistent_LP_solver
+            False
+        """
+        raise NotImplementedError()
+
+    cpdef bint is_slack_variable_nonbasic_at_lower_bound(self, int index):
+        """
+        Test whether the given variable is nonbasic at lower bound.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: x = p.new_variable(nonnegative=True)           # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(-x[0] + x[1] <= 2)            # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)    # optional - Nonexistent_LP_solver
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])         # optional - Nonexistent_LP_solver
+            sage: b = p.get_backend()                            # optional - Nonexistent_LP_solver
+            sage: # Backend-specific commands to instruct solver to use simplex method here
+            sage: b.solve()                                      # optional - Nonexistent_LP_solver
+            0
+            sage: b.is_slack_variable_nonbasic_at_lower_bound(0) # optional - Nonexistent_LP_solver
+            False
+            sage: b.is_slack_variable_nonbasic_at_lower_bound(1) # optional - Nonexistent_LP_solver
+            True
+        """
+        raise NotImplementedError()
 
 default_solver = None
 

@@ -2341,6 +2341,14 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M = Matroid(groundset='abcd', bases=['ab', 'cd'])
             sage: M.is_valid()
             False
+
+        TESTS:
+
+        Verify that :trac:`20172` was fixed::
+
+            sage: M=Matroid(groundset='1234',bases=['12','13','23','34'])
+            sage: M.is_valid()
+            False
         """
         cdef long pointerX, pointerY, x, y, ln
         cdef bint foundpair
@@ -2355,6 +2363,10 @@ cdef class BasisExchangeMatroid(Matroid):
                 bitset_difference(self._inside, self._current_basis, BB._subsets[pointerY])
                 bitset_difference(self._outside, BB._subsets[pointerY], self._current_basis)
                 self.__move(self._inside, self._outside)
+                if not bitset_eq(self._current_basis, BB._subsets[pointerY]):
+                    # We failed to set the current basis to Y through basis exchanges.
+                    # Therefore, the exchange axioms are violated!
+                    return False
                 bitset_difference(self._input, BB._subsets[pointerX], BB._subsets[pointerY])
                 bitset_difference(self._input2, BB._subsets[pointerY], BB._subsets[pointerX])
                 x = bitset_first(self._input)

@@ -49,8 +49,8 @@ download-for-sdist: base
 	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
 		$(STANDARD_PACKAGES) gcc mpir python2
 
-# TOOLCHAIN consists of dependencies determined by build/make/install,
-# including for example the GCC package.
+# TOOLCHAIN consists of dependencies determined by configure.
+# These are built after the "base" target but before anything else.
 toolchain: $(TOOLCHAIN)
 
 # Build all packages that GCC links against serially, otherwise this
@@ -131,6 +131,7 @@ sagelib: \
 		$(inst_ntl) \
 		$(inst_numpy) \
 		$(inst_pari) \
+		$(inst_pkgconfig) \
 		$(inst_planarity) \
 		$(inst_ppl) \
 		$(inst_pynac) \
@@ -186,7 +187,7 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 # produce plots.
 DOC_DEPENDENCIES = sagelib $(inst_sphinx) $(inst_sagenb) \
 	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) \
-	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) \
+	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials)
 
 doc: doc-html

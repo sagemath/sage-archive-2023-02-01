@@ -19,6 +19,7 @@ from __future__ import division
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_ZZ cimport ntl_ZZ
 from ntl_GF2 cimport ntl_GF2
 from ntl_GF2X cimport ntl_GF2X

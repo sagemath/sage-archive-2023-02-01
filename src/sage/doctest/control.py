@@ -68,7 +68,7 @@ class DocTestDefaults(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults
             sage: D = DocTestDefaults(); D.optional
-            set('sage')
+            {'sage'}
         """
         self.nthreads = 1
         self.serial = False

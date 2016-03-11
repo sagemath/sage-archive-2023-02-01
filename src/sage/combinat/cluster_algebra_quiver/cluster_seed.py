@@ -2465,7 +2465,7 @@ class ClusterSeed(SageObject):
             if sequence in V:
                 X = seed.cluster_index(sequence)
                 sequence = V.index(sequence)
-                if X and X != sequence:
+                if isinstance(X,int) and X != sequence:
                     print "Warning: Variable provided is both a cluster variable and a vertex lable. Mutating at the vertex by default."
             else:    
                 sequence = seed.cluster_index(sequence)
@@ -2491,7 +2491,10 @@ class ClusterSeed(SageObject):
         
             elif input_type == "cluster_vars":
                 # To do: copy the cluster seed, mutate the copy, replace if successful (copying naively doesn't quite work)
-                pass
+                try:
+                    return seed.mutate(seqq)
+                except:
+                    raise ValueError('input_type set to "cluster_vars" but the input sequence did not consist of cluster variables"')
             
             elif input_type not in ["vertices", "indices", "cluster_vars"]:
                 raise ValueError('Invalid input_type. Possible values for input_type are "vertices," "indices," and "cluster_vars.')
@@ -2501,7 +2504,6 @@ class ClusterSeed(SageObject):
                 if seed._nlist[x] != x:
                     print "Warning: Input is both an index and a vertex label. Mutating at vertices by default."
                     break
->>>>>>> a1a2be33e4d904eb17e2a43d3a6f6d479b4d1584
 
         if isinstance(seqq, tuple):
             seqq = list( seqq )
@@ -2519,7 +2521,7 @@ class ClusterSeed(SageObject):
         for k in seq:
             
             if input_type == "vertices":
-                k = self.nlist().index(k)
+                k = seed._nlist.index(k)
         
             elif input_type == "indices":
                 pass
@@ -2531,8 +2533,8 @@ class ClusterSeed(SageObject):
             
                 
             else:
-                if k in self.nlist():
-                    k = self.nlist().index(k)
+                if k in seed._nlist:
+                    k = seed._nlist.index(k)
                 elif k in xrange(n):
                     pass
                 elif seed._use_fpolys:

@@ -20,6 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from util import LazySet
 
 # Functions in this module whose name is of the form 'has_xxx' tests if the 
 # software xxx is available to Sage.
@@ -95,7 +96,7 @@ def has_scilab():
         scilab('2+3')
         return True
     except Exception:
-        return False      
+        return False
 
 def has_cplex():
     from sage.numerical.mip import MixedIntegerLinearProgram
@@ -135,13 +136,4 @@ def lookup(software):
     else:
         return False
 
-def lazyset(elements):
-    """
-    Return an instance of LazySet, availability of a software listed in which
-    is tested only when necessary.
-    """
-    from util import LazySet
-    s = LazySet(lookup)
-    for e in elements:
-        s.add(e)
-    return s
+available_softwares = LazySet(lookup)

@@ -30,6 +30,8 @@ import collections
 from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
+from external import available_softwares
+
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
@@ -563,7 +565,9 @@ class SageDocTestParser(doctest.DocTestParser):
                             optional_tags.remove('long time')
                         else:
                             continue
-                    if not (self.optional_tags is True or optional_tags.issubset(self.optional_tags)):
+                    if not (self.optional_tags is True or optional_tags.issubset(self.optional_tags)
+                            or ('external' in self.optional_tags 
+                                and available_softwares.issuperset(optional_tags))):
                         continue
                 elif self.optional_only:
                     self.optionals['sage'] += 1

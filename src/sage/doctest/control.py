@@ -31,7 +31,6 @@ from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
 from reporting import DocTestReporter
 from util import NestedName, Timer, count_noun, dict_difference
-from external import lazyset
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -79,7 +78,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = lazyset(["sage"])
+        self.optional = set(["sage"])
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -259,12 +258,6 @@ class DocTestController(SageObject):
                     for pkg, versions in optional_pkgs.items():
                         if versions[0] == versions[1]:
                             options.optional.add(pkg)
-
-                if 'external' in options.optional:
-                    options.optional.discard('external')
-                    from external import external_softwares                      
-                    for software in external_softwares:
-                        options.optional.add(software)
 
                 # Check that all tags are valid
                 for o in options.optional:

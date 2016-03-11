@@ -525,3 +525,11 @@ class LazySet(set):
             if item not in self:
                 return False
         return True
+
+#    def __reduce__(self):
+#        return (LazySet,(self.lookup,),[e for e in self if e not in self.seen])
+#
+#    def __setstate__(self, initial):
+#        for e in initial:
+#            self.add(e)
+#

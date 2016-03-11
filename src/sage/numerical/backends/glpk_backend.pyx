@@ -1986,6 +1986,129 @@ cdef class GLPKBackend(GenericBackend):
             raise ValueError("This parameter is not available.")
 
 
+    cpdef bint is_variable_basic(self, int index):
+        """
+        Test whether the given variable is basic.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: b.is_variable_basic(0)
+            True
+            sage: b.is_variable_basic(1)
+            False
+        """
+        return self.get_col_stat(index) == GLP_BS
+
+    cpdef bint is_variable_nonbasic_at_lower_bound(self, int index):
+        """
+        Test whether the given variable is nonbasic at lower bound.
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: b.is_variable_nonbasic_at_lower_bound(0)
+            False
+            sage: b.is_variable_nonbasic_at_lower_bound(1)
+            True
+        """
+        return self.get_col_stat(index) == GLP_NL
+
+    cpdef bint is_slack_variable_basic(self, int index):
+        """
+        Test whether the slack variable of the given row is basic.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: b.is_slack_variable_basic(0)
+            True
+            sage: b.is_slack_variable_basic(1)
+            False
+        """
+        return self.get_row_stat(index) == GLP_BS
+
+    cpdef bint is_slack_variable_nonbasic_at_lower_bound(self, int index):
+        """
+        Test whether the slack variable of the given row is nonbasic at lower bound.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: b.is_slack_variable_nonbasic_at_lower_bound(0)
+            False
+            sage: b.is_slack_variable_nonbasic_at_lower_bound(1)
+            True
+        """
+        return self.get_row_stat(index) == GLP_NU
+
     cpdef int print_ranges(self, char * filename = NULL) except -1:
         r"""
         Print results of a sensitivity analysis

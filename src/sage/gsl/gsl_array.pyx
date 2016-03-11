@@ -1,7 +1,6 @@
 """
 GSL arrays
 """
-#include 'gsl.pxi'
 
 include 'sage/ext/stdsage.pxi'
 

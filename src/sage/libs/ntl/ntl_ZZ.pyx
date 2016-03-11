@@ -24,6 +24,7 @@ from sage.rings.integer cimport Integer
 from sage.libs.ntl.convert cimport PyLong_to_ZZ
 from sage.misc.randstate cimport randstate, current_randstate
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.int cimport PyInt_AS_LONG
 
 ZZ_sage = IntegerRing()
 

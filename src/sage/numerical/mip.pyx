@@ -780,7 +780,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return the linear variable `x_i`.
         
-        OUTPUT:
+        EXAMPLE::
 
             sage: mip = MixedIntegerLinearProgram()
             sage: mip.gen(0)
@@ -2462,6 +2462,145 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend.get_relative_objective_gap()
 
+    def interactive_lp_problem(self,form='standard'):
+        r"""
+        Returns an InteractiveLPProblem and, if available, a basis.
+
+        INPUT:
+
+        - ``form`` -- (default: ``"standard"``) a string specifying return type: either
+          ``None``, or ``"std"`` or ``"standard"``, respectively returns an instance of
+          :class:`InteractiveLPProblem` or of :class:`InteractiveLPProblemStandardForm`
+
+        OUTPUT:
+
+        A 2-tuple consists of an instance of class :class:`InteractiveLPProblem` or
+        :class:`InteractiveLPProblemStandardForm` that is constructed based on a given
+        :class:`MixedIntegerLinearProgram`, and a list of basic
+        variables (the basis) if standard form is chosen (by default), otherwise ``None``.
+
+        All variables must have 0 as lower bound and no upper bound.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(names=['m'], solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: y = p.new_variable(nonnegative=True, name='n')
+            sage: v = p.new_variable(nonnegative=True)
+            sage: p.add_constraint( x[0] + x[1] - 7*y[0] + v[0]<= 2, name='K' )
+            sage: p.add_constraint( x[1] + 2*y[0] - v[0] <= 3 )
+            sage: p.add_constraint( 5*x[0] + y[0] <= 21, name='L' )
+            sage: p.set_objective( 2*x[0] + 3*x[1] + 4*y[0] + 5*v[0])
+            sage: lp, basis = p.interactive_lp_problem()
+            sage: basis
+            ['K', 'w_1', 'L']
+            sage: lp.constraint_coefficients()
+            [ 1.0  1.0 -7.0  1.0]
+            [ 0.0  1.0  2.0 -1.0]
+            [ 5.0  0.0  1.0  0.0]
+            sage: lp.b()
+            (2.0, 3.0, 21.0)
+            sage: lp.objective_coefficients()
+            (2.0, 3.0, 4.0, 5.0)
+            sage: lp.decision_variables()
+            (m_0, m_1, n_0, x_3)
+            sage: view(lp) #not tested
+            sage: d = lp.dictionary(*basis)
+            sage: view(d) #not tested
+
+        TESTS::
+
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: lp2, basis2 = p.interactive_lp_problem()
+            sage: set(basis2)
+            {'n_0', 'w_1', 'x_3'}
+            sage: d2 = lp2.dictionary(*basis2)
+            sage: d2.is_optimal()
+            True
+            sage: view(d2) #not tested
+
+            sage: lp3, _ = p.interactive_lp_problem(form=None)
+            sage: lp3.constraint_coefficients()
+            [ 1.0  1.0 -7.0  1.0]
+            [ 0.0  1.0  2.0 -1.0]
+            [ 5.0  0.0  1.0  0.0]
+            sage: lp3.b()
+            (2.0, 3.0, 21.0)
+            sage: lp3.objective_coefficients()
+            (2.0, 3.0, 4.0, 5.0)
+            sage: lp3.decision_variables()
+            (m_0, m_1, n_0, x_3)
+            sage: view(lp3) #not tested
+        """
+        back_end = self.get_backend()
+        for i in range(self.number_of_variables()):
+            if back_end.variable_lower_bound(i) != 0:
+                raise ValueError('Problem variables must have 0 as lower bound')
+            if back_end.variable_upper_bound(i) is not None:
+                raise ValueError('Problem variables must not have upper bound') 
+
+        # Construct 'A'
+        coef_matrix = []
+        for constraint in self.constraints():
+            coef_row = [0] * self.number_of_variables()
+            for index, value in zip(constraint[1][0],constraint[1][1]):
+                coef_row[index] = value
+            coef_matrix.append(coef_row)
+
+        # Construct 'b'
+        upper_bound_vector = [c[2] for c in self.constraints()]
+
+        # Raise exception if exist lower bound
+        for constraint in self.constraints():
+            if constraint[0] != None:
+                raise ValueError('Problem constraints cannot have lower bounds')
+
+        # Construct 'c'
+        def get_obj_coef(i):
+            return back_end.objective_coefficient(i)
+        objective_coefs_vector = [get_obj_coef(i) for i in range(self.number_of_variables())]
+
+        def format(name, prefix, index):
+            if name:
+                return name.replace('[','_').strip(']')
+            else:
+                return prefix + '_' + str(index)
+
+        # Construct 'x'
+        var_names = [format(back_end.col_name(i), 'x', i) for i in range(back_end.ncols())]
+
+        A = coef_matrix
+        b = upper_bound_vector
+        c = objective_coefs_vector
+        x = var_names
+
+        if form is None:
+            from sage.numerical.interactive_simplex_method import InteractiveLPProblem
+            return InteractiveLPProblem(A, b, c, x), None
+        elif form == 'standard' or form == 'std':
+            # Construct slack names
+            slack_names = [format(back_end.row_name(i), 'w', i) for i in range(back_end.nrows())]
+            w = slack_names
+            from sage.numerical.interactive_simplex_method import InteractiveLPProblemStandardForm
+            lp = InteractiveLPProblemStandardForm(A, b, c, x, slack_variables=w)
+            basic_variables = []
+            for i, e in enumerate(lp.x()):
+                if back_end.is_variable_basic(i):
+                    basic_variables.append(str(e))
+                elif not back_end.is_variable_nonbasic_at_lower_bound(i):
+                    raise ValueError('Invalid column status')
+            for i, e in enumerate(lp.slack_variables()):
+                if back_end.is_slack_variable_basic(i):
+                    basic_variables.append(str(e))
+                elif not back_end.is_slack_variable_nonbasic_at_lower_bound(i):
+                    raise ValueError('Invalid row status')
+            return lp, basic_variables
+        else:
+            raise ValueError('Form of interactive_lp_problem must be either None or \'standard\'')
 
 class MIPSolverException(RuntimeError):
     r"""

@@ -79,8 +79,8 @@ from sage_eval import sage_eval, sageobj
 
 from sage_input import sage_input
 
-from cython import cython_lambda, cython_create_local_so
-from cython_c import cython_compile as cython
+lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"]) 
+lazy_import("sage.misc.cython_c", "cython_compile", "cython")
 lazy_import("sage.misc.cython_c", "cython_compile", "pyrex", deprecation=9552)
 lazy_import("sage.misc.cython_c", "cython_compile", "sagex", deprecation=9552)
 

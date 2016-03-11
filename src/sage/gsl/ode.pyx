@@ -8,20 +8,23 @@ AUTHORS:
 - Robert Marik (2010 - fixed docstrings)
 
 """
-##############################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 
 include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
-include 'gsl.pxi'
-
-
+from sage.libs.gsl.all cimport *
 import sage.gsl.interpolation
+
 
 cdef class PyFunctionWrapper:
     cdef object the_function
@@ -306,7 +309,7 @@ class ode_solver(object):
           %cython
           cimport sage.gsl.ode
           import sage.gsl.ode
-          include 'gsl.pxi'
+          from sage.libs.gsl.all cimport *
 
           cdef class van_der_pol(sage.gsl.ode.ode_system):
               cdef int c_f(self,double t, double *y,double *dydt):

@@ -605,18 +605,19 @@ def _diagonal_isometry(V, W):
       ``W``, then ``VM == T.transpose() * WM * T`` yields ``True``.
 
     EXAMPLES::
-    
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import _diagonal_isometry
+
         sage: Q = DiagonalQuadraticForm(QQ, [1, 2, 4])
         sage: F = DiagonalQuadraticForm(QQ, [2, 2, 2])
         
-        sage: T = Q.isometry(F); T
+        sage: T = _diagonal_isometry(Q, F); T
         [   0    1    0]
         [-1/2    0    1]
         [ 1/2    0    1]
         sage: Q.Gram_matrix() == T.T * F.Gram_matrix() * T
         True
 
-        sage: T = F.isometry(Q); T
+        sage: T = _diagonal_isometry(F, Q); T
         [   0   -1   -1]
         [   1    0    0]
         [   0 -1/2  1/2]
@@ -627,22 +628,30 @@ def _diagonal_isometry(V, W):
     from quadratic_form import DiagonalQuadraticForm
     from sage.matrix.constructor import Matrix
     
+    # We need to modify V and W, so copy them into Q and F respectively.
     Q, F = copy.deepcopy(V), copy.deepcopy(W)
+    # Let FM denote the Gram matrix of F.
     FM = F.Gram_matrix()
     n = Q.dim()
 
+    # This matrix represents a new basis for W, where the columns of the 
+    # matrix are the vectors of the basis. We initialize it to the standard basis.
     change_of_basis_matrix = Matrix.identity(QQ, n)
 
+    # The goal of this loop is to obtain a new basis for W such that the 
+    # Gram matrix of V with respect to the standard basis equals the Gram matrix
+    # of W with respect to the new basis.
     for i in range(n):
         # If the first terms are not equal...
         if Q.Gram_matrix()[0][0] != F.Gram_matrix()[0][0]:
             # Find a vector w in F such that F(w) equals the first term of Q.
             w = F.solve(Q.Gram_matrix()[0][0])
 
+            # We want to extend the basis of W to include the vector w.
             # Find a non-fixed vector in the current basis to replace by w.
-            # The new set of vectors must still be linearly independent (i.e. the matrix is non-singular).
             j = i
             temp_matrix = _modify_basis(change_of_basis_matrix, w, j)
+            # The new set of vectors must still be linearly independent (i.e. the matrix is non-singular).
             while temp_matrix.is_singular():
                 j = j + 1
                 temp_matrix = _modify_basis(change_of_basis_matrix, w, j)
@@ -660,7 +669,8 @@ def _diagonal_isometry(V, W):
             # Obtain the diagonal gram matrix of F.
             FM = _compute_gram_matrix_from_basis(W, change_of_basis_matrix)
         
-        # Remove the first term from each quadratic form and continue.
+        # Now we have that QM[0][0] == FM[0][0] where QM and FM are the Gram matrices
+        # of Q and F respectively. We remove the first variable from each form and continue.
         F = DiagonalQuadraticForm(F.base_ring(), FM.diagonal())
         F = F.extract_variables(range(i+1, F.dim()))
         Q = Q.extract_variables(range(1, Q.dim()))
@@ -728,26 +738,31 @@ def _gram_schmidt(m, fixed_vector_index, inner_product):
     
     EXAMPLES:: 
 
-        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import _gram_schmidt
-        sage: Q = QuadraticForm(QQ, 3, [1, 4, 6, 1, 2, 4]); Q
+        sage: from sage.quadratic_forms.quadratic_form__equivalence_testing import _gram_schmidt, _compute_gram_matrix_from_basis
+        sage: Q = QuadraticForm(QQ, 3, [1, 2, 2, 2, 1, 3]); Q
         Quadratic form in 3 variables over Rational Field with coefficients: 
-        [ 1 4 6 ]
-        [ * 1 2 ]
-        [ * * 4 ]
+        [ 1 2 2 ]
+        [ * 2 1 ]
+        [ * * 3 ]
         sage: QM = Q.Gram_matrix(); QM
-        [1 2 3]
-        [2 1 1]
-        [3 1 4]
-        sage: om = _gram_schmidt(QM, 0, Q.bilinear_map); om
-        [     1 106/79 -50/51]
-        [     2 -25/79 -70/51]
-        [     3 -77/79  70/51]
-        sage: v0 = om.column(0); v1 = om.column(1); v2 = om.column(2)
-        sage: Q.bilinear_map(v0, v1) == 0
-        True
-        sage: Q.bilinear_map(v0, v2) == 0
-        True
+        [  1   1   1]
+        [  1   2 1/2]
+        [  1 1/2   3]
+        sage: std_basis = matrix.identity(3)
+        sage: ortho_basis = _gram_schmidt(std_basis, 0, Q.bilinear_map); ortho_basis
+        [   1   -1 -3/2]
+        [   0    1  1/2]
+        [   0    0    1]
+        sage: _compute_gram_matrix_from_basis(Q, ortho_basis)
+        [  1   0   0]
+        [  0   1   0]
+        [  0   0 7/4]
+        sage: v1 = ortho_basis.column(0); v2 = ortho_basis.column(1); v3 = ortho_basis.column(2);
         sage: Q.bilinear_map(v1, v2) == 0
+        True
+        sage: Q.bilinear_map(v1, v3) == 0
+        True
+        sage: Q.bilinear_map(v2, v3) == 0
         True
     """
     from sage.matrix.constructor import column_matrix

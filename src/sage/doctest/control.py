@@ -31,6 +31,7 @@ from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
 from reporting import DocTestReporter
 from util import NestedName, Timer, count_noun, dict_difference
+from external import lazyset
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -68,7 +69,7 @@ class DocTestDefaults(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults
             sage: D = DocTestDefaults(); D.optional
-            {'sage'}
+            LazySet(['sage'])
         """
         self.nthreads = 1
         self.serial = False
@@ -78,7 +79,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(["sage"])
+        self.optional = lazyset(["sage"])
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -259,11 +260,11 @@ class DocTestController(SageObject):
                         if versions[0] == versions[1]:
                             options.optional.add(pkg)
 
-                if 'nonpackages' in options.optional:
-                    options.optional.discard('nonpackages')
-                    from .nonpackages import available_nonpackages
-                    for pkg in available_nonpackages:
-                        options.optional.add(pkg)
+                if 'external' in options.optional:
+                    options.optional.discard('external')
+                    from external import external_softwares                      
+                    for software in external_softwares:
+                        options.optional.add(software)
 
                 # Check that all tags are valid
                 for o in options.optional:
@@ -602,7 +603,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: len(DC.sources)
-            10
+            11
             sage: DC.sources[0].options.optional
             True
 
@@ -703,6 +704,7 @@ class DocTestController(SageObject):
             sage.doctest.parsing
             sage.doctest.forker
             sage.doctest.fixtures
+            sage.doctest.external
             sage.doctest.control
             sage.doctest.all
             sage.doctest

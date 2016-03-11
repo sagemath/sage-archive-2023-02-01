@@ -1,8 +1,5 @@
-Set GAP_DIR and GAP_PRG in the startup script gap.sh.
-
-* GAP_DIR is set using the SAGE_LOCAL environment variable
-
-* GAP_PRG is determined at runtime based on `uname` and `uname -m`
+Adding the option to autodetect the system and running "make" without
+any options specifying the system.
 
 diff -ur src/src/Makefile.orig src/src/Makefile
 --- src/src/Makefile.orig	2016-03-11 08:57:35.111798050 +0100

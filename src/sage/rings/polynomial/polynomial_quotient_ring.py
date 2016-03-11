@@ -278,7 +278,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'euclidean_degree', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'powers', 'quo_rem', 'xgcd']
+        ['cartesian_product', 'euclidean_degree', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'nth_root', 'powers', 'quo_rem', 'xgcd']
 
     As one can see, the elements are now inheriting additional
     methods: lcm and gcd. Even though ``Q.an_element()`` belongs to

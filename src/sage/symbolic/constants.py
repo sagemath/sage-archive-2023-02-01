@@ -365,7 +365,7 @@ class Constant(object):
 
             sage: cmp(pi, 0)
             1
-            sage: cmp(pi, SR(0)
+            sage: cmp(pi, SR(0))
             1
         """
         return self.__float__() < other

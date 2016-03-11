@@ -1557,7 +1557,9 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.coordinates(L.elliptic_logarithm(E(e3,0)))
             (0.500000000000000, 0.000000000000000)
 
-        TESTS (see :trac:`10026` and :trac:`11767`)::
+        TESTS:
+
+        (see :trac:`10026` and :trac:`11767`)::
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])

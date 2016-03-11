@@ -218,7 +218,7 @@ class EllipticCurveFactory(UniqueFactory):
         Elliptic Curve defined by y^2 = x^3 + x + 1 over Multivariate Polynomial Ring in u, v
         over Integer Ring
 
-    We create a curve and a point over QQbar (see :trac:`6879`)::
+    We create a curve and a point over ``QQbar`` (see :trac:`6879`)::
 
         sage: E = EllipticCurve(QQbar,[0,1])
         sage: E(0)

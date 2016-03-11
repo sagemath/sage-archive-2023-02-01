@@ -3507,7 +3507,7 @@ cdef class Expression(CommutativeRingElement):
             TypeError: Argument 'right' has incorrect type (expected
             sage.symbolic.expression.Expression, got sage.rings.integer.Integer)
         """
-        return mixed_order(left, right)
+        return print_order_compare(left._gobj, right._gobj)
 
     cpdef int _cmp_mul(Expression left, Expression right) except -2:
         """

@@ -78,7 +78,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
 
     def _repr_term(self, m):
-        """
+        r"""
         Return a string representation of the term indexed by ``m``.
 
         EXAMPLES::
@@ -102,7 +102,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
                         for k,e in m._sorted_items())
 
     def _latex_term(self, m):
-        """
+        r"""
         Return a latex representation of the term indexed by ``m``.
 
         EXAMPLES::
@@ -131,12 +131,12 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: O = algebras.QuantumMatrixCoordinate(4,6)
-            sage: O.n()
-            6
             sage: O = algebras.QuantumMatrixCoordinate(4)
             sage: O.n()
             4
+            sage: O = algebras.QuantumMatrixCoordinate(4, 6)
+            sage: O.n()
+            6
         """
         return self._n
 
@@ -179,7 +179,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
 
     @cached_method
     def gens(self):
-        """
+        r"""
         Return the generators of ``self`` as a tuple.
 
         EXAMPLES::
@@ -194,7 +194,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
 
     @cached_method
     def quantum_determinant(self):
-        """
+        r"""
         Return the quantum determinant of ``self``.
 
         The quantum determinant is defined by
@@ -202,7 +202,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         .. MATH::
 
             \det_q = \sum_{\sigma \in S_n} (-q)^{\ell(\sigma)}
-            x_{1,\sigma(1)} x_{2,\sigma(2)} \cdots x_{n,\sigma(n)}.
+            x_{1, \sigma(1)} x_{2, \sigma(2)} \cdots x_{n, \sigma(n)}.
 
         EXAMPLES::
 
@@ -327,7 +327,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         return ret
 
     def counit_on_basis(self, x):
-        """
+        r"""
         Return the counit on the basis element indexed by ``x``.
 
         EXAMPLES::
@@ -347,6 +347,9 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             return self.base_ring().zero()
 
     class Element(CombinatorialFreeModule.Element):
+        """
+        An element of a quantum matrix coordinate algebra.
+        """
         def bar(self):
             r"""
             Return the image of ``self`` under the bar involution.
@@ -385,11 +388,11 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
     .. MATH::
 
         \begin{array}{ll}
-        x_{it} x_{ij} = q^{-1} x_{ij} x_{it}   & j < t, \\
-        x_{sj} x_{ij} = q^{-1} x_{ij} x_{sj}   & i < s, \\
-        x_{st} x_{ij} = x_{ij} x_{st}          & i < s, j > t, \\
+        x_{it} x_{ij} = q^{-1} x_{ij} x_{it}   & \text{if } j < t, \\
+        x_{sj} x_{ij} = q^{-1} x_{ij} x_{sj}   & \text{if } i < s, \\
+        x_{st} x_{ij} = x_{ij} x_{st}          & \text{if } i < s, j > t, \\
         x_{st} x_{ij} = x_{ij} x_{st} + (q^{-1} - q) x_{it} x_{sj}
-                                               & i < s, j < t. \\
+                                               & \text{if } i < s, j < t. \\
         \end{array}
 
     The quantum matrix coordinate algebra is denoted by
@@ -462,6 +465,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
         False
 
     REFERENCES:
+
     .. [FRT] Faddeev, Reshetikhin and Takhtajan.
        *Quantization of Lie Groups and Lie Algebras*.
        Leningrad Math. J. vol. **1** (1990), no. 1.
@@ -473,7 +477,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
     """
     @staticmethod
     def __classcall_private__(cls, m, n=None, q=None, bar=None, R=None):
-        """
+        r"""
         Normalize input to ensure a unique representation.
 
         EXAMPLES::
@@ -518,7 +522,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
         self._assign_names(names)
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -552,7 +556,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
 
         EXAMPLES::
 
-            sage: O = algebras.QuantumMatrixCoordinate(4,6)
+            sage: O = algebras.QuantumMatrixCoordinate(4, 6)
             sage: O.m()
             4
             sage: O = algebras.QuantumMatrixCoordinate(4)
@@ -579,7 +583,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
         return Family(l, lambda x: self.element_class(self, {G[x]:one}))
 
     def coproduct_on_basis(self, x):
-        """
+        r"""
         Return the coproduct on the basis element indexed by ``x``.
 
         EXAMPLES::
@@ -611,25 +615,26 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
     r"""
     Quantum coordinate algebra of `GL(n)`.
 
-    The quantum coordinate algebra of `GL(n)`, or quantum `GL(n)` for
-    short, is the quantum coordinate algebra of `M_R(n, n)` with the
-    addition of the additional central group-like element `c` which
-    satisfies `c d = d c = 1`, where `d` is the quantum determinant.
+    The quantum coordinate algebra of `GL(n)`, or quantum `GL(n)`
+    for short and denoted by `\mathcal{O}_q(GL(n))`, is the quantum
+    coordinate algebra of `M_R(n, n)` with the addition of the
+    additional central group-like element `c` which satisfies
+    `c d = d c = 1`, where `d` is the quantum determinant.
 
-    Quantum `GL(n)` is a Hopf algebra where `\varepsilon(c) = 1`, and
-    the antipode `S` is given by the matrix inverse. That is to say,
-    we have `S(c) = c^-1 = d` and
+    Quantum `GL(n)` is a Hopf algebra where `\varepsilon(c) = 1`
+    and the antipode `S` is given by the (quantum) matrix inverse.
+    That is to say, we have `S(c) = c^-1 = d` and
 
     .. MATH::
 
-        S(x_{ij}) = c * (-q)^{i-j} * \widetilde{t}_{ji},
+        S(x_{ij}) = c * (-q)^{i-j} * \tilde{t}_{ji},
 
     where we have the quantum minor
 
     .. MATH::
 
-        \widetilde{t}_{ij} = \sum_{\sigma} (-q)^{\ell(\sigma)}
-        x_{1,\sigma(1)} \cdots x_{i-1,\sigma(i-1)} x_{i+1,\sigma(i+1)
+        \tilde{t}_{ij} = \sum_{\sigma} (-q)^{\ell(\sigma)}
+        x_{1, \sigma(1)} \cdots x_{i-1, \sigma(i-1)} x_{i+1, \sigma(i+1)}
         \cdots x_{n, \sigma(n)}
 
     with the sum over permutations `\sigma \colon \{1, \ldots, i-1, i+1,
@@ -740,7 +745,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         self._assign_names(names)
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -799,7 +804,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
 
     @lazy_attribute
     def _qdet_remaining(self):
-        """
+        r"""
         Return the remaining terms when cancelling the leading term.
 
         Consider `d = m + L`, where `m` is the leading term of the
@@ -819,7 +824,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         return self._from_dict(ret, remove_zeros=False) + self.one()
 
     def product_on_basis(self, a, b):
-        """
+        r"""
         Return the product of basis elements indexed by ``a`` and ``b``.
 
         EXAMPLES::
@@ -904,7 +909,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         return (-q)**(i - j) * t_tilde
 
     def antipode_on_basis(self, x):
-        """
+        r"""
         Return the antipode of the basis element indexed by ``x``.
 
         EXAMPLES::
@@ -927,7 +932,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         return ret
 
     def coproduct_on_basis(self, x):
-        """
+        r"""
         Return the coproduct on the basis element indexed by ``x``.
 
         EXAMPLES::
@@ -949,7 +954,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
                       for t,e in x._sorted_items())
 
 def gcmp(x, y):
-    """
+    r"""
     Compare the indices ``x`` and ``y``.
 
     Helper function for comparison/sorting the generators in

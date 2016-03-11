@@ -28,16 +28,22 @@ diff -ur src/bin/gap.sh.orig src/bin/gap.sh
  
  #############################################################################
  ##
-@@ -31,7 +37,7 @@
+@@ -31,7 +37,13 @@
  ##  If you are not going to run  GAP  in parallel with other programs you may
  ##  want to set this value close to the  amount of memory your  computer has.
  ##
 -GAP_MEM=512m
-+GAP_MEM=1024m
++
++ARCH=`getconf LONG_BIT`
++if [[ "$ARCH" == '32' ]]; then
++   GAP_MEM=512m
++elif [[ "$ARCH" == '64' ]]; then
++   GAP_MEM=1024m
++fi
  
  #############################################################################
  ##
-@@ -44,7 +50,7 @@
+@@ -44,7 +56,7 @@
  ##        gap.mac for Mac OSX on powerPC
  ##        gap.macx86 for Mac OSX on X86 
  ##

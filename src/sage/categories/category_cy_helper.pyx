@@ -9,12 +9,14 @@ AUTHOR:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2014      Simon King <simon.king@uni-jena.de>
+#       Copyright (C) 2014 Simon King <simon.king@uni-jena.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/python.pxi'
 
 #######################################
 ## Sorting
@@ -278,10 +280,8 @@ cpdef inline get_axiom_index(AxiomContainer all_axioms, str axiom):
         sage: get_axiom_index(all_axioms, 'AdditiveCommutative') == all_axioms['AdditiveCommutative']
         True
     """
-    cdef PyObject* out = PyDict_GetItemString(all_axioms, PyString_AsString(axiom))
-    if out==NULL:
-        raise KeyError(axiom)
-    return <object>out
+    return (<dict>all_axioms)[axiom]
+
 
 cpdef tuple canonicalize_axioms(AxiomContainer all_axioms, axioms):
     r"""

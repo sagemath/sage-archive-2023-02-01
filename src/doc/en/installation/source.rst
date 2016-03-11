@@ -494,8 +494,8 @@ Running Sage from a directory with spaces in its name will also fail.
 
        make
 
-   or if your system is multithreaded and you want to use several threads to
-   build Sage::
+   or if your system supports multiprocessing and you want to use several
+   processes to build Sage::
 
        MAKE='make -jNUM' make
 
@@ -1055,37 +1055,12 @@ Here are some of the more commonly used variables affecting the build process:
       So you can set this variable to ``yes`` instead of using the ``-s`` flag
       for ``sage -i`` and ``sage -f``.
 
-- :envvar:`SAGE_FAT_BINARY` - to prepare a binary distribution that will run
-  on the widest range of target machines, set this variable to ``yes`` before
-  building Sage::
-
-      export SAGE_FAT_BINARY="yes"
-      make
-      ./sage --bdist x.y.z-fat
-
-The following :envvar:`SAGE_APP_*` -variables are specific to building a binary distribution on OSX:
-
-- :envvar:`SAGE_APP_BUNDLE` - OSX-specific; defaults to ``no``. Set to ``yes`` if you
-  want to build a Sage OSX application rather than a terminal version of Sage.
-
-- :envvar:`SAGE_APP_TARGET_ARCH` - OSX-specific; defaults to ``uname -m``. Meaningful
-  values, on Intel, are ``i386`` and ``x86_64``.
-  To prepare a 64-bit binary distribution on an older 64-bit OSX machine that boots
-  into a 32-bit system, one would do::
-
-      export SAGE_APP_TARGET_ARCH=x86_64
-      make
-      ./sage --bdist
-
-- :envvar:`SAGE_APP_DMG` - OSX-specific; defaults to ``yes``, can be set to ``no``
-  to create a tar file instead instead of a ``dmg`` image.
-
-- :envvar:`SAGE_APP_GZ` - OSX-specific; defaults to ``yes``, used for debugging of
-  ``sage -bdist`` to save time on the compression step. E.g.::
-
-      export SAGE_APP_GZ=no
-      export SAGE_APP_DMG=no
-      ./sage --bdist
+- :envvar:`SAGE_FAT_BINARY` - to build binaries that will run on the
+  widest range of target CPUs set this variable to ``yes`` before
+  building Sage. This does not make the binaries relocatable, it only
+  avoids newer CPU instruction set extensions. For relocatable (=can
+  be moved to a different directory) binaries, you must use
+  https://github.com/sagemath/binary-pkg
 
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
@@ -1179,22 +1154,6 @@ Environment variables dealing with specific Sage packages:
 - :envvar:`SAGE_MATPLOTLIB_GUI` - if set to anything non-empty except ``no``,
   then Sage will attempt to build the graphical backend when it builds the
   matplotlib package.
-
-- :envvar:`INCLUDE_MPFR_PATCH` - this is used to add a patch to MPFR to bypass
-  a bug in the memset function affecting sun4v machines with versions of
-  Solaris earlier than Solaris 10 update 8 (10/09).
-  Earlier versions of Solaris 10 can be patched by applying Sun patch
-  142542-01.
-  Recognized values are:
-
-  - ``INCLUDE_MPFR_PATCH=0`` - never include the patch - useful if you know all
-    sun4v machines Sage will be used are running Solaris 10 update 8 or later,
-    or have been patched with Sun patch 142542-01.
-
-  - ``INCLUDE_MPFR_PATCH=1`` - always include the patch, so the binary will
-    work on a sun4v machine, even if created on an older sun4u machine.
-
-  - If this variable is unset, include the patch on sun4v machines only.
 
 - :envvar:`PARI_CONFIGURE` - use this to pass extra parameters to
   PARI's ``Configure`` script, for example to specify graphics

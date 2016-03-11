@@ -724,7 +724,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         INPUT:
 
-        - ``R`` -- commutative ring.
+        - ``R`` -- commutative ring or morphism.
 
         OUTPUT:
 

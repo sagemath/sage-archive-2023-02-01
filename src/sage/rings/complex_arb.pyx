@@ -141,6 +141,7 @@ from sage.libs.mpfr cimport MPFR_RNDU
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
+from sage.libs.arb.acb_modular cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
@@ -1161,6 +1162,8 @@ cdef class ComplexBall(RingElement):
             sage: CBF(i/3).rad().parent()
             Real Field with 30 bits of precision
 
+        .. SEEALSO:: :meth:`diameter`, :meth:`mid`
+
         TESTS::
 
             sage: (CBF(0, 1/3) << (2^64)).rad()
@@ -1184,6 +1187,25 @@ cdef class ComplexBall(RingElement):
 
     # Should we implement rad_as_ball? If we do, should it return an enclosure
     # of the radius (which radius?), or an upper bound?
+
+    def diameter(self):
+        r"""
+        Return the diameter of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1 + i).diameter()
+            0.00000000
+            sage: CBF(i/3).diameter()
+            2.2204460e-16
+            sage: CBF(i/3).diameter().parent()
+            Real Field with 30 bits of precision
+            sage: CBF(CIF(RIF(1.02, 1.04), RIF(2.1, 2.2))).diameter()
+            0.20000000
+
+        .. SEEALSO:: :meth:`rad`, :meth:`mid`
+        """
+        return 2 * self.rad()
 
     # Precision and accuracy
 
@@ -1637,6 +1659,19 @@ cdef class ComplexBall(RingElement):
         """
         return acb_contains_zero(self.value)
 
+    def contains_integer(self):
+        """
+        Return ``True`` iff this ball contains any integer.
+
+        EXAMPLES::
+
+            sage: CBF(3, RBF(0.1)).contains_integer()
+            False
+            sage: CBF(3, RBF(0.1,0.1)).contains_integer()
+            True
+        """
+        return acb_contains_int(self.value)
+
     # Arithmetic
 
     def __neg__(self):
@@ -1974,6 +2009,8 @@ cdef class ComplexBall(RingElement):
 
         The `n`-th rising factorial of `x` is equal to `x (x+1) \cdots (x+n-1)`.
 
+        For complex `n`, it is a quotient of gamma functions.
+
         EXAMPLES::
 
             sage: CBF(1).rising_factorial(5)
@@ -1982,25 +2019,21 @@ cdef class ComplexBall(RingElement):
             [-3.87949484514e+612 +/- 5.24e+600] + [-3.52042209763e+612 +/- 5.56e+600]*I
 
             sage: CBF(1).rising_factorial(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: expected a nonnegative index
+            nan
             sage: CBF(1).rising_factorial(2**64)
-            Traceback (most recent call last):
-            ...
-            OverflowError: index too large
+            [+/- 2.30e+347382171305201370464]
+            sage: ComplexBallField(128)(1).rising_factorial(2**64)
+            [2.343691126796861348e+347382171305201285713 +/- 4.71e+347382171305201285694]
+            sage: CBF(1/2).rising_factorial(CBF(2,3))
+            [-0.123060451458124 +/- 4.46e-16] + [0.040641263167655 +/- 3.75e-16]*I
+
         """
-        cdef ComplexBall res = self._new()
-        cdef sage.rings.integer.Integer n_as_Integer = ZZ.coerce(n)
-        if mpz_fits_ulong_p(n_as_Integer.value):
-            if _do_sig(prec(self)): sig_on()
-            acb_rising_ui(res.value, self.value, mpz_get_ui(n_as_Integer.value), prec(self))
-            if _do_sig(prec(self)): sig_off()
-            return res
-        elif n_as_Integer < 0:
-            raise ValueError("expected a nonnegative index")
-        else:
-            raise OverflowError("index too large")
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        if _do_sig(prec(self)): sig_on()
+        acb_rising(result.value, self.value, my_n.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
 
     # Elementary functions
 
@@ -2160,6 +2193,36 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def arcsin(self):
+        """
+        Return the arcsine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arcsin()
+            [0.66623943249252 +/- 5.40e-15] + [1.06127506190504 +/- 5.04e-15]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_asin(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arccos(self):
+        """
+        Return the arccosine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arccos()
+            [0.90455689430238 +/- 2.18e-15] + [-1.06127506190504 +/- 5.04e-15]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_acos(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def arctan(self):
         """
         Return the arctangent of this ball.
@@ -2174,6 +2237,51 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         acb_atan(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arcsinh(self):
+        """
+        Return the hyperbolic arcsine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arcsinh()
+            [1.06127506190504 +/- 5.04e-15] + [0.66623943249252 +/- 5.40e-15]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_asinh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arccosh(self):
+        """
+        Return the hyperbolic arccosine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arccosh()
+            [1.061275061905035 +/- 8.44e-16] + [0.904556894302381 +/- 8.22e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_acosh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arctanh(self):
+        """
+        Return the hyperbolic arctangent of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1+i).arctanh()
+            [0.4023594781085251 +/- 8.52e-17] + [1.017221967897851 +/- 4.93e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_atanh(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 
@@ -2234,9 +2342,29 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    def psi(self):
+    def rgamma(self):
+        """
+        Compute the reciprocal gamma function with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(6).rgamma()
+            [0.00833333333333333 +/- 4.96e-18]
+            sage: CBF(-1).rgamma()
+            0
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_rgamma(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def psi(self, n=None):
         """
         Compute the digamma function with argument ``self``.
+
+        If ``n`` is provided, compute the polygamma function of order ``n``
+        and argument ``self``.
 
         EXAMPLES::
 
@@ -2244,12 +2372,21 @@ cdef class ComplexBall(RingElement):
             [0.0946503206224770 +/- 7.34e-17] + [1.076674047468581 +/- 2.63e-16]*I
             sage: CBF(-1).psi()
             nan
-        """
+            sage: CBF(1,1).psi(10)
+            [56514.8269344249 +/- 4.70e-11] + [56215.1218005823 +/- 5.70e-11]*I
 
+        """
+        cdef ComplexBall my_n
         cdef ComplexBall result = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_digamma(result.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if n is None:
+            if _do_sig(prec(self)): sig_on()
+            acb_digamma(result.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        else:
+            my_n = self._parent.coerce(n)
+            if _do_sig(prec(self)): sig_on()
+            acb_polygamma(result.value, my_n.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return result
 
     def zeta(self, a=None):
@@ -2318,6 +2455,42 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def barnes_g(self):
+        """
+        Return the Barnes G-function of ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(-4).barnes_g()
+            0
+            sage: CBF(8).barnes_g()
+            24883200.00000000
+            sage: CBF(500,10).barnes_g()
+            [4.54078781e+254873 +/- 5.43e+254864] + [8.65835455e+254873 +/- 7.27e+254864]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_barnes_g(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def log_barnes_g(self):
+        """
+        Return the logarithmic Barnes G-function of ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(10^100).log_barnes_g()
+            [1.14379254649702e+202 +/- 4.09e+187]
+            sage: CBF(0,1000).log_barnes_g()
+            [-2702305.04929258 +/- 2.60e-9] + [-790386.325561423 +/- 9.72e-10]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_log_barnes_g(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def agm1(self):
         """
         Return the arithmetic-geometric mean of 1 and ``self``.
@@ -2339,7 +2512,7 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    def hypergeometric(self, a, b):
+    def hypergeometric(self, a, b, bint regularized=False):
         r"""
         Return the generalized hypergeometric function of ``self``.
 
@@ -2350,6 +2523,9 @@ cdef class ComplexBall(RingElement):
 
         - ``b`` -- lower parameters, list of complex numbers that coerce into
           this ball's parent.
+
+        - ``regularized`` -- if True, the regularized generalized hypergeometric
+          function is computed.
 
         OUTPUT:
 
@@ -2363,10 +2539,20 @@ cdef class ComplexBall(RingElement):
         extended using analytic continuation or regularization when the sum
         does not converge.
 
+        The regularized generalized hypergeometric function
+
+        .. math::
+
+            {}_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;z)
+            = \sum_{k=0}^\infty \frac{(a_1)_k\dots(a_p)_k}{\Gamma(b_1+k)\dots\Gamma(b_q+k)} \frac {z^k} {k!}
+
+        is well-defined even when the lower parameters are nonpositive
+        integers. Currently, this is only supported for some `p` and `q`.
+
         EXAMPLES::
 
             sage: CBF(1, pi/2).hypergeometric([], [])
-            [+/- 2.99e-15] + [2.7182818284590 +/- 5.31e-14]*I
+            [+/- 7.72e-16] + [2.71828182845904 +/- 6.45e-15]*I
 
             sage: CBF(1, pi).hypergeometric([1/4], [1/4])
             [-2.7182818284590 +/- 8.63e-14] + [+/- 3.69e-14]*I
@@ -2382,25 +2568,70 @@ cdef class ComplexBall(RingElement):
             sage: CBF(0).hypergeometric([1], [])
             1.000000000000000
             sage: CBF(1, 1).hypergeometric([1], [])
-            [+/- inf] + [+/- inf]*I
+            1.000000000000000*I
+
+            sage: CBF(2+3*I).hypergeometric([1/4,1/3],[1/2])
+            [0.7871684267473 +/- 3.57e-14] + [0.2749254173721 +/- 6.45e-14]*I
+            sage: CBF(2+3*I).hypergeometric([1/4,1/3],[1/2],regularized=True)
+            [0.4441122268685 +/- 1.83e-14] + [0.1551100567338 +/- 4.07e-14]*I
+
+            sage: CBF(5).hypergeometric([2,3], [-5])
+            nan + nan*I
+            sage: CBF(5).hypergeometric([2,3], [-5], regularized=True)
+            [5106.925964355 +/- 5.41e-10]
+
+            sage: CBF(2016).hypergeometric([], [2/3])
+            [2.0256426923278e+38 +/- 8.90e+24]
+            sage: CBF(-2016).hypergeometric([], [2/3], regularized=True)
+            [-0.0005428550847 +/- 5.00e-14]
+
+            sage: CBF(-7).hypergeometric([4], [])
+            0.0002441406250000000
+
+            sage: CBF(0, 3).hypergeometric([CBF(1,1)], [-4], regularized=True)
+            [239.5140007528 +/- 5.01e-11] + [105.1751573490 +/- 2.36e-11]*I
 
         TESTS::
 
             sage: CBF(0, 1).hypergeometric([QQbar(sqrt(2)), RLF(pi)], [1r, 1/2])
             [-8.7029449215408 +/- 6.89e-14] + [-0.8499070546106 +/- 4.98e-14]*I
+
         """
-        cdef ComplexBall tmp, my_a, my_b
+        cdef ComplexBall tmp, my_a, my_b, my_c
         cdef ComplexBall res = self._new()
         cdef long p = len(a)
         cdef long q = len(b)
+        if p == q == 0:
+            return self.exp()
+        if p == 1 and q == 0:
+            my_a = self._parent.coerce(a[0])
+            return (1-self)**(-my_a)
+        if p == 0 and q == 1:
+            my_b = self._parent.coerce(b[0])
+            if _do_sig(prec(self)): sig_on()
+            acb_hypgeom_0f1(res.value, my_b.value, self.value,
+                regularized, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return res
         if p == q == 1:
             my_a = self._parent.coerce(a[0])
             my_b = self._parent.coerce(b[0])
             if _do_sig(prec(self)): sig_on()
-            acb_hypgeom_m(res.value, my_a.value, my_b.value, self.value, 0,
-                          prec(self))
+            acb_hypgeom_m(res.value, my_a.value, my_b.value, self.value,
+                regularized, prec(self))
             if _do_sig(prec(self)): sig_off()
             return res
+        if p == 2 and q == 1:
+            my_a = self._parent.coerce(a[0])
+            my_b = self._parent.coerce(a[1])
+            my_c = self._parent.coerce(b[0])
+            if _do_sig(prec(self)): sig_on()
+            acb_hypgeom_2f1(res.value, my_a.value, my_b.value, my_c.value,
+                self.value, regularized, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return res
+        if regularized:
+            raise NotImplementedError("regularized=True not yet supported in this case")
         cdef long i1 = -1
         cdef long s
         try:
@@ -2476,10 +2707,95 @@ cdef class ComplexBall(RingElement):
             sage: CBF(100, 100).erfc()
             [0.00065234366376858 +/- 6.52e-18] + [-0.00393572636292141 +/- 5.16e-18]*I
         """
-
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
         acb_hypgeom_erfc(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def airy(self):
+        """
+        Return the Airy functions Ai, Ai', Bi, Bi' with argument ``self``,
+        evaluated simultaneously.
+
+        EXAMPLES::
+
+            sage: CBF(10*pi).airy()
+            ([1.2408955946101e-52 +/- 5.50e-66],
+             [-6.965048886977e-52 +/- 5.23e-65],
+             [2.288295683344e+50 +/- 5.10e+37],
+             [1.2807602335816e+51 +/- 4.97e+37])
+            sage: ai, aip, bi, bip = CBF(1,2).airy()
+            sage: (ai * bip - bi * aip) * CBF(pi)
+            [1.0000000000000 +/- 1.25e-15] + [+/- 3.27e-16]*I
+
+        """
+        cdef ComplexBall ai = self._new()
+        cdef ComplexBall aip = self._new()
+        cdef ComplexBall bi = self._new()
+        cdef ComplexBall bip = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(ai.value, aip.value, bi.value, bip.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return (ai, aip, bi, bip)
+
+    def airy_ai(self):
+        """
+        Return the Airy function Ai with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1,2).airy_ai()
+            [-0.2193862549814276 +/- 7.47e-17] + [-0.1753859114081094 +/- 4.06e-17]*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(result.value, NULL, NULL, NULL, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def airy_ai_prime(self):
+        """
+        Return the Airy function derivative Ai' with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1,2).airy_ai_prime()
+            [0.1704449781789148 +/- 3.12e-17] + [0.387622439413295 +/- 1.06e-16]*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(NULL, result.value, NULL, NULL, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def airy_bi(self):
+        """
+        Return the Airy function Bi with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1,2).airy_bi()
+            [0.0488220324530612 +/- 1.30e-17] + [0.1332740579917484 +/- 6.25e-17]*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(NULL, NULL, result.value, NULL, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def airy_bi_prime(self):
+        """
+        Return the Airy function derivative Bi' with argument ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1,2).airy_bi_prime()
+            [-0.857239258605362 +/- 3.47e-16] + [0.4955063363095674 +/- 9.22e-17]*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_airy(NULL, NULL, NULL, result.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 
@@ -2499,6 +2815,67 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall my_nu = self._parent.coerce(nu)
         if _do_sig(prec(self)): sig_on()
         acb_hypgeom_bessel_j(result.value, my_nu.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def bessel_J_Y(self, nu):
+        """
+        Return the Bessel function of the first and second kind with argument
+        ``self`` and index ``nu``, computed simultaneously.
+
+        EXAMPLES::
+
+            sage: J, Y = CBF(1, 1).bessel_J_Y(1)
+            sage: J - CBF(1, 1).bessel_J(1)
+            [+/- 7.95e-16] + [+/- 6.84e-16]*I
+            sage: Y - CBF(1, 1).bessel_Y(1)
+            [+/- 2.31e-14] + [+/- 2.26e-14]*I
+
+        """
+        cdef ComplexBall result1 = self._new()
+        cdef ComplexBall result2 = self._new()
+        cdef ComplexBall my_nu = self._parent.coerce(nu)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_bessel_jy(result1.value, result2.value,
+            my_nu.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result1, result2
+
+    def bessel_Y(self, nu):
+        """
+        Return the Bessel function of the second kind with argument ``self``
+        and index ``nu``.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).bessel_Y(1)
+            [-0.6576945355913 +/- 5.62e-14] + [0.6298010039929 +/- 2.77e-14]*I
+            sage: CBF(100, -100).bessel_Y(1/3)
+            [-8.952577603125e+41 +/- 4.65e+28] + [-1.108431870251e+41 +/- 6.29e+28]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_nu = self._parent.coerce(nu)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_bessel_y(result.value, my_nu.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def bessel_I(self, nu):
+        """
+        Return the modified Bessel function of the first kind with argument ``self``
+        and index ``nu``.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).bessel_I(1)
+            [0.365028028827088 +/- 6.62e-16] + [0.614160334922903 +/- 8.48e-16]*I
+            sage: CBF(100, -100).bessel_I(1/3)
+            [5.4362189595644e+41 +/- 6.48e+27] + [7.1989436985321e+41 +/- 2.69e+27]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_nu = self._parent.coerce(nu)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_bessel_i(result.value, my_nu.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 
@@ -2650,6 +3027,476 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
         acb_hypgeom_li(result.value, self.value, offset, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def jacobi_theta(self, tau):
+        r"""
+        Return the four Jacobi theta functions evaluated at the argument
+        ``self`` (representing `z`) and the parameter ``tau`` which should lie
+        in the upper half plane.
+
+        The following definitions are used:
+
+        .. math ::
+
+            \theta_1(z,\tau) = 2 q_{1/4} \sum_{n=0}^{\infty} (-1)^n q^{n(n+1)} \sin((2n+1) \pi z)
+
+            \theta_2(z,\tau) = 2 q_{1/4} \sum_{n=0}^{\infty} q^{n(n+1)} \cos((2n+1) \pi z)
+
+            \theta_3(z,\tau) = 1 + 2 \sum_{n=1}^{\infty} q^{n^2} \cos(2n \pi z)
+
+            \theta_4(z,\tau) = 1 + 2 \sum_{n=1}^{\infty} (-1)^n q^{n^2} \cos(2n \pi z)
+
+        where `q = \exp(\pi i \tau)` and `q_{1/4} = \exp(\pi i \tau / 4)`.
+        Note that `z` is multiplied by `\pi`; some authors omit this factor.
+
+        EXAMPLES::
+
+            sage: CBF(3,-1/2).jacobi_theta(CBF(1/4,2))
+            ([-0.186580562274757 +/- 5.52e-16] + [0.93841744788594 +/- 2.48e-15]*I,
+             [-1.02315311037951 +/- 4.10e-15] + [-0.203600094532010 +/- 7.33e-16]*I,
+             [1.030613911309632 +/- 4.25e-16] + [0.030613917822067 +/- 1.89e-16]*I,
+             [0.969386075665498 +/- 4.65e-16] + [-0.030613917822067 +/- 1.89e-16]*I)
+
+            sage: CBF(3,-1/2).jacobi_theta(CBF(1/4,-2))
+            ([+/- inf] + [+/- inf]*I,
+             [+/- inf] + [+/- inf]*I,
+             [+/- inf] + [+/- inf]*I,
+             [+/- inf] + [+/- inf]*I)
+
+            sage: CBF(0).jacobi_theta(CBF(0,1))
+            (0,
+             [0.91357913815612 +/- 3.96e-15],
+             [1.086434811213308 +/- 8.16e-16],
+             [0.913579138156117 +/- 8.89e-16])
+
+        """
+
+        cdef ComplexBall res1 = self._new()
+        cdef ComplexBall res2 = self._new()
+        cdef ComplexBall res3 = self._new()
+        cdef ComplexBall res4 = self._new()
+        cdef ComplexBall my_tau = self._parent.coerce(tau)
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_theta(res1.value, res2.value, res3.value, res4.value,
+            self.value, my_tau.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res1, res2, res3, res4
+
+    def modular_j(self):
+        """
+        Return the modular j-invariant with *tau* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(0,1).modular_j()
+            [1728.0000000000 +/- 5.33e-11]
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_j(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def modular_eta(self):
+        """
+        Return the Dedekind eta function with *tau* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(0,1).modular_eta()
+            [0.768225422326057 +/- 9.18e-16]
+            sage: CBF(12,1).modular_eta()
+            [-0.768225422326057 +/- 9.18e-16]
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_eta(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def modular_lambda(self):
+        """
+        Return the modular lambda function with *tau* given by ``self``.
+
+        EXAMPLES::
+
+            sage: tau = CBF(sqrt(2),pi)
+            sage: tau.modular_lambda()
+            [-0.00022005123884157 +/- 6.64e-18] + [-0.0007978734645994 +/- 5.23e-17]*I
+            sage: (tau + 2).modular_lambda()
+            [-0.00022005123884157 +/- 6.64e-18] + [-0.0007978734645994 +/- 5.23e-17]*I
+            sage: (tau / (1 - 2*tau)).modular_lambda()
+            [-0.00022005123884 +/- 2.75e-15] + [-0.00079787346460 +/- 3.34e-15]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_lambda(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def modular_delta(self):
+        """
+        Return the modular discriminant with *tau* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(0,1).modular_delta()
+            [0.0017853698506421 +/- 6.15e-17]
+            sage: a, b, c, d = 2, 5, 1, 3
+            sage: tau = CBF(1,3)
+            sage: ((a*tau+b)/(c*tau+d)).modular_delta()
+            [0.20921376655 +/- 6.94e-12] + [1.5761192552 +/- 3.49e-11]*I
+            sage: (c*tau+d)^12 * tau.modular_delta()
+            [0.20921376654986 +/- 4.89e-15] + [1.5761192552253 +/- 4.45e-14]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_delta(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def eisenstein(self, long n):
+        r"""
+        Return the first ``n`` entries in the sequence of Eisenstein series
+        `G_4(\tau), G_6(\tau), G_8(\tau), \ldots` where *tau* is given
+        by ``self``. The output is a list.
+
+        EXAMPLES::
+
+            sage: a, b, c, d = 2, 5, 1, 3
+            sage: tau = CBF(1,3)
+            sage: tau.eisenstein(4)
+            [[2.1646498507193 +/- 6.30e-14],
+             [2.0346794456073 +/- 2.44e-14],
+             [2.0081609898081 +/- 3.67e-14],
+             [2.0019857082706 +/- 4.60e-14]]
+            sage: ((a*tau+b)/(c*tau+d)).eisenstein(3)[2]
+            [331011.200433 +/- 1.36e-7] + [-711178.165575 +/- 5.18e-7]*I
+            sage: (c*tau+d)^8 * tau.eisenstein(3)[2]
+            [331011.20043304 +/- 7.62e-9] + [-711178.1655746 +/- 1.34e-8]*I
+
+        """
+        if n < 0:
+            raise ValueError("n must be nonnegative")
+        cdef acb_ptr vec_r = _acb_vec_init(n)
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_eisenstein(vec_r, self.value, n, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        result = [self._new() for i in range(n)]
+        for i in range(n):
+            acb_swap((<ComplexBall>(result[i])).value, &(vec_r[i]))
+        _acb_vec_clear(vec_r, n)
+        return result
+
+    def elliptic_p(self, tau, n=None):
+        r"""
+        Return the Weierstrass elliptic function with lattice parameter ``tau``,
+        evaluated at ``self``. The function is doubly periodic in ``self``
+        with periods 1 and ``tau``, which should lie in the upper half plane.
+
+        If ``n`` is given, return a list containing the first ``n``
+        terms in the Taylor expansion at ``self``. In particular, with
+        ``n`` = 2, compute the Weierstrass elliptic function together
+        with its derivative, which generate the field of elliptic
+        functions with periods 1 and ``tau``.
+
+        EXAMPLES::
+
+            sage: tau = CBF(1,4)
+            sage: z = CBF(sqrt(2), sqrt(3))
+            sage: z.elliptic_p(tau)
+            [-3.28920996772709 +/- 7.68e-15] + [-0.000367376730293 +/- 3.58e-16]*I
+            sage: (z + tau).elliptic_p(tau)
+            [-3.28920996772709 +/- 8.87e-15] + [-0.00036737673029 +/- 4.37e-15]*I
+            sage: (z + 1).elliptic_p(tau)
+            [-3.28920996772709 +/- 7.68e-15] + [-0.000367376730293 +/- 3.58e-16]*I
+
+            sage: z.elliptic_p(tau, 3)
+            [[-3.28920996772709 +/- 7.66e-15] + [-0.000367376730293 +/- 3.45e-16]*I,
+             [0.00247305579431 +/- 2.06e-15] + [0.00385955404027 +/- 4.07e-15]*I,
+             [-0.0129908756171 +/- 2.12e-14] + [0.0072502752191 +/- 6.05e-14]*I]
+            sage: (z + 3 + 4*tau).elliptic_p(tau, 3)
+            [[-3.2892099677271 +/- 3.40e-14] + [-0.0003673767303 +/- 2.49e-14]*I,
+             [0.00247305579 +/- 6.04e-12] + [0.00385955404 +/- 1.86e-12]*I,
+             [-0.012990876 +/- 4.77e-10] + [0.007250275 +/- 3.20e-10]*I]
+
+        """
+        cdef ComplexBall my_tau = self._parent.coerce(tau)
+        cdef ComplexBall result
+        cdef long nn
+        cdef acb_ptr vec_r
+        if n is None:
+            result = self._new()
+            if _do_sig(prec(self)): sig_on()
+            acb_modular_elliptic_p(result.value, self.value,
+                my_tau.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return result
+        else:
+            nn = n
+            if nn < 0:
+                raise ValueError("n must be nonnegative")
+            vec_r = _acb_vec_init(nn)
+            if _do_sig(prec(self)): sig_on()
+            acb_modular_elliptic_p_zpx(vec_r, self.value, my_tau.value, nn, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            result_list = [self._new() for i in range(nn)]
+            for i in range(nn):
+                acb_swap((<ComplexBall>(result_list[i])).value, &(vec_r[i]))
+            _acb_vec_clear(vec_r, nn)
+            return result_list
+
+    def elliptic_k(self):
+        """
+        Return the complete elliptic integral of the first kind evaluated
+        at *m* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(2,3).elliptic_k()
+            [1.0429132919285 +/- 5.77e-14] + [0.6296824723086 +/- 7.16e-14]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_elliptic_k(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_e(self):
+        """
+        Return the complete elliptic integral of the second kind evaluated
+        at *m* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(2,3).elliptic_e()
+            [1.472797144959 +/- 5.13e-13] + [-1.231604783936 +/- 1.61e-13]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_modular_elliptic_e(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def chebyshev_T(self, n):
+        """
+        Return the Chebyshev function of the first kind of order ``n``
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1/3).chebyshev_T(20)
+            [0.8710045668809 +/- 6.15e-14]
+            sage: CBF(1/3).chebyshev_T(CBF(5,1))
+            [1.8429685451876 +/- 3.57e-14] + [0.20053614301799 +/- 7.05e-15]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_chebyshev_t(result.value, my_n.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def chebyshev_U(self, n):
+        """
+        Return the Chebyshev function of the second kind of order ``n``
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(1/3).chebyshev_U(20)
+            [0.6973126541184 +/- 2.83e-14]
+            sage: CBF(1/3).chebyshev_U(CBF(5,1))
+            [1.7588496489342 +/- 5.99e-14] + [0.7497317165104 +/- 4.35e-14]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_chebyshev_u(result.value, my_n.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def jacobi_P(self, n, a, b):
+        r"""
+        Return the Jacobi polynomial (or function) `P_n^{(a,b)}(z)`
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(5,-6).jacobi_P(8, CBF(1,2), CBF(2,3))
+            [-920983000.460 +/- 7.60e-4] + [6069919969.93 +/- 2.03e-3]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_a = self._parent.coerce(a)
+        cdef ComplexBall my_b = self._parent.coerce(b)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_jacobi_p(result.value, my_n.value,
+            my_a.value, my_b.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def gegenbauer_C(self, n, m):
+        r"""
+        Return the Gegenbauer polynomial (or function) `C_n^m(z)`
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(-10).gegenbauer_C(7, 1/2)
+            [-263813415.6250000 +/- 9.57e-8]
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_gegenbauer_c(result.value, my_n.value,
+            my_m.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def laguerre_L(self, n, m=0):
+        r"""
+        Return the Laguerre polynomial (or function) `L_n^m(z)`
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(10).laguerre_L(3)
+            [-45.6666666666666 +/- 9.28e-14]
+            sage: CBF(10).laguerre_L(3, 2)
+            [-6.666666666667 +/- 4.15e-13]
+            sage: CBF(5,7).laguerre_L(CBF(2,3), CBF(1,-2))
+            [5515.31503027 +/- 7.93e-9] + [-12386.94284527 +/- 8.00e-9]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_laguerre_l(result.value, my_n.value,
+            my_m.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def hermite_H(self, n):
+        """
+        Return the Hermite function (or polynomial) of order ``n``
+        evaluated at ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(10).hermite_H(1)
+            20.00000000000000
+            sage: CBF(10).hermite_H(30)
+            [8.05746709617e+37 +/- 1.32e+25]
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_hermite_h(result.value, my_n.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def legendre_P(self, n, m=0, type=2):
+        r"""
+        Return the Legendre function of the first kind `P_n^m(z)`
+        evaluated at ``self``.
+
+        The ``type`` parameter can be either 2 or 3. This selects between
+        different branch cut conventions. The definitions of the "type 2"
+        and "type 3" functions are the same as those used by *Mathematica*
+        and *mpmath*.
+
+        EXAMPLES::
+
+            sage: CBF(1/2).legendre_P(5)
+            0.08984375000000000
+            sage: CBF(1,2).legendre_P(CBF(2,3), CBF(0,1))
+            [0.10996180744 +/- 4.71e-12] + [0.14312767804 +/- 1.62e-12]*I
+            sage: CBF(-10).legendre_P(5, 325/100)
+            [-22104403.487377 +/- 6.81e-7] + [53364750.687392 +/- 7.25e-7]*I
+            sage: CBF(-10).legendre_P(5, 325/100, type=3)
+            [-57761589.914581 +/- 6.99e-7] + [+/- 5.14e-7]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef ComplexBall result = self._new()
+        cdef int my_type = type
+        if my_type != 2 and my_type != 3:
+            raise ValueError("expected type 2 or 3")
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_legendre_p(result.value, my_n.value,
+            my_m.value, self.value, my_type - 2, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def legendre_Q(self, n, m=0, type=2):
+        r"""
+        Return the Legendre function of the second kind `Q_n^m(z)`
+        evaluated at ``self``.
+
+        The ``type`` parameter can be either 2 or 3. This selects between
+        different branch cut conventions. The definitions of the "type 2"
+        and "type 3" functions are the same as those used by *Mathematica*
+        and *mpmath*.
+
+        EXAMPLES::
+
+            sage: CBF(1/2).legendre_Q(5)
+            [0.55508089057168 +/- 5.32e-15]
+            sage: CBF(1,2).legendre_Q(CBF(2,3), CBF(0,1))
+            [0.167678710 +/- 5.89e-10] + [-0.161558598 +/- 8.76e-10]*I
+            sage: CBF(-10).legendre_Q(5, 325/100)
+            [-83825154.36008 +/- 4.95e-6] + [-34721515.80396 +/- 5.40e-6]*I
+            sage: CBF(-10).legendre_Q(5, 325/100, type=3)
+            [-4.797306921692e-6 +/- 6.92e-19] + [-4.797306921692e-6 +/- 6.68e-19]*I
+
+        """
+        cdef ComplexBall my_n = self._parent.coerce(n)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef ComplexBall result = self._new()
+        cdef int my_type = type
+        if my_type != 2 and my_type != 3:
+            raise ValueError("expected type 2 or 3")
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_legendre_q(result.value, my_n.value,
+            my_m.value, self.value, my_type - 2, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def spherical_harmonic(self, phi, n, m):
+        r"""
+        Return the spherical harmonic `Y_n^m(\theta,\phi)`
+        evaluated at `\theta` given by ``self``.
+        In the current implementation, ``n`` and ``m`` must be small integers.
+
+        EXAMPLES::
+
+            sage: CBF(1+I).spherical_harmonic(1/2, -3, -2)
+            [0.80370071745224 +/- 4.02e-15] + [-0.07282031864711 +/- 4.69e-15]*I
+        """
+        cdef ComplexBall my_phi = self._parent.coerce(phi)
+        cdef long my_n = n
+        cdef long my_m = m
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_spherical_y(result.value, my_n, my_m,
+            self.value, my_phi.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 

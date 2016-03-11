@@ -4829,6 +4829,28 @@ class GenericGraph(GenericGraph_pyx):
         if (len(path) != 0): faces.append(path)
         return faces
 
+    def num_faces(self,embedding=None):
+        """
+        Returns the number of faces of an embedded graph.
+
+        EXAMPLES::
+
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.num_faces()
+            4
+
+        TESTS::
+
+            sage: G = graphs.CompleteMultipartiteGraph([3,3])
+            sage: G.num_faces()
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding is provided and the graph is not planar.
+        """
+
+        return len(self.faces(embedding))
+
+
     ### Connectivity
 
     def is_connected(self):

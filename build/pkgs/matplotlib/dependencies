@@ -1,4 +1,7 @@
-$(PYTHON) numpy freetype libpng dateutil pyparsing setuptools tornado six cycler
+$(PYTHON) numpy freetype libpng dateutil pyparsing tornado six cycler | sagenb setuptools
+
+The sagenb dependency is because of the "pytz" package. If that package
+is ever pulled out from sagenb, replace "sagenb" by "pytz" above.
 
 ----------
 All lines of this file are ignored except the first.

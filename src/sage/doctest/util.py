@@ -507,7 +507,7 @@ class LazySet(set):
         False
         sage: s.seen
         {1: True, 2: True, 3: False}
-    """      
+    """
     def __init__(self, lookup_func):
         self.lookup = lookup_func
         self.seen = dict()
@@ -525,11 +525,3 @@ class LazySet(set):
             if item not in self:
                 return False
         return True
-
-#    def __reduce__(self):
-#        return (LazySet,(self.lookup,),[e for e in self if e not in self.seen])
-#
-#    def __setstate__(self, initial):
-#        for e in initial:
-#            self.add(e)
-#

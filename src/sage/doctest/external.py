@@ -52,7 +52,7 @@ def has_latex():
         sage: from sage.doctest.external import has_latex
         sage: has_latex() # random
         True
-    """        
+    """
     from sage.misc.latex import view
     try:
         view('2+3')
@@ -69,7 +69,7 @@ def has_magma():
         sage: from sage.doctest.external import has_magma
         sage: has_magma() # random
         True
-    """      
+    """
     from sage.interfaces.magma import magma
     try:
         magma('2+3')
@@ -103,7 +103,7 @@ def has_mathematica():
         sage: from sage.doctest.external import has_mathematica
         sage: has_mathematica() # random
         True
-    """      
+    """
     from sage.interfaces.mathematica import mathematica
     try:
         mathematica('2+3')
@@ -120,7 +120,7 @@ def has_maple():
         sage: from sage.doctest.external import has_maple
         sage: has_maple() # random
         True
-    """      
+    """
     from sage.interfaces.maple import maple
     try:
         maple('2+3')
@@ -137,7 +137,7 @@ def has_macaulay2():
         sage: from sage.doctest.external import has_macaulay2
         sage: has_macaulay2() # random
         True
-    """      
+    """
     from sage.interfaces.macaulay2 import macaulay2
     try:
         macaulay2('2+3')
@@ -154,7 +154,7 @@ def has_octave():
         sage: from sage.doctest.external import has_octave
         sage: has_octave() # random
         True
-    """      
+    """
     from sage.interfaces.octave import octave
     try:
         octave('2+3')
@@ -171,7 +171,7 @@ def has_scilab():
         sage: from sage.doctest.external import has_scilab
         sage: has_scilab() # random
         True
-    """      
+    """
     from sage.interfaces.scilab import scilab
     try:
         scilab('2+3')
@@ -188,7 +188,7 @@ def has_cplex():
         sage: from sage.doctest.external import has_cplex
         sage: has_cplex() # random
         True
-    """      
+    """
     from sage.numerical.mip import MixedIntegerLinearProgram
     try:
         MixedIntegerLinearProgram(solver='cplex')
@@ -205,7 +205,7 @@ def has_gurobi():
         sage: from sage.doctest.external import has_gurobi
         sage: has_gurobi() # random
         True
-    """      
+    """
     from sage.numerical.mip import MixedIntegerLinearProgram
     try:
         MixedIntegerLinearProgram(solver='gurobi')

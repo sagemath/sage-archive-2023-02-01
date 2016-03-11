@@ -997,8 +997,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: rational power 1/2 of non-constant
-            polynomial x is not implemented
+            ValueError: x is not a 2nd power
             sage: x^(2^100)
             Traceback (most recent call last):
             ...
@@ -1050,21 +1049,14 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             nn = pyobject_to_long(exp)
         except TypeError:
             n = QQ.coerce(exp)
-
-            if fmpz_poly_degree(self.__poly) == 0:
-                result = self[0]**n
-                try:
-                    return self.parent()(result)
-                except TypeError:
-                    raise TypeError(
-                        "cannot compute {base}^({power}) in {parent}".format(
-                            base=self,
-                            power=exp,
-                            parent=self.parent()))
-
             num = n.numerator()
             den = n.denominator()
-            return (self ** num).nth_root(den)
+
+            if fmpz_poly_degree(self.__poly) == 0:
+                return self.parent()(self[0].nth_root(den) ** num)
+
+            return self.nth_root(den) ** num
+
         else:
             res = self._new()
 

@@ -1141,7 +1141,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2/3)
             Traceback (most recent call last):
             ...
-            ValueError: t^2 + 2*t + 1 is not a 3nd power
+            ValueError: t + 1 is not a 3nd power
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
@@ -1169,13 +1169,12 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (R+2)^(2/5)
             Traceback (most recent call last):
             ...
-            ValueError: R^2 + 4*R + 4 is not a 5nd power
+            ValueError: R + 2 is not a 5nd power
 
             sage: P(1/3)^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: cannot compute (1/3)^(1/2) in Univariate Polynomial
-            Ring in R over Rational Field
+            ValueError: not a perfect 2nd power
             sage: P(4)^P(1/2)
             Traceback (most recent call last):
             ...
@@ -1204,21 +1203,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             n = pyobject_to_long(exp)
         except TypeError:
             r = QQ.coerce(exp)
-
-            if fmpq_poly_degree(self.__poly) == 0:
-                result = self[0]**r
-                try:
-                    return self.parent()(result)
-                except TypeError:
-                    raise TypeError(
-                        "cannot compute ({base})^({power}) in {parent}".format(
-                            base=self,
-                            power=exp,
-                            parent=self.parent()))
-
             num = r.numerator()
             den = r.denominator()
-            return (self ** num).nth_root(den)
+
+            if fmpq_poly_degree(self.__poly) == 0:
+                return self.parent()(self[0].nth_root(den) ** num)
+
+            return self.nth_root(den) ** num
 
         else:
             if n < 0:

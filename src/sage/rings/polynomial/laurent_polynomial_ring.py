@@ -483,7 +483,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             sage: LaurentPolynomialRing(QQ,2,'x').is_integral_domain()
             True
 
-        The following used to fail; see #7530::
+        The following used to fail; see :trac:`7530`::
 
             sage: L = LaurentPolynomialRing(ZZ, 'X')
             sage: L['Y']

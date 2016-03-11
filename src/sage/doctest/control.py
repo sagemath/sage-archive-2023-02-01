@@ -68,7 +68,7 @@ class DocTestDefaults(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults
             sage: D = DocTestDefaults(); D.optional
-            LazySet(['sage'])
+            set('sage')
         """
         self.nthreads = 1
         self.serial = False
@@ -78,7 +78,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(["sage"])
+        self.optional = set(['sage'])
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0

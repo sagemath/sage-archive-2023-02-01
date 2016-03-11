@@ -565,10 +565,12 @@ class SageDocTestParser(doctest.DocTestParser):
                             optional_tags.remove('long time')
                         else:
                             continue
-                    if not (self.optional_tags is True or optional_tags.issubset(self.optional_tags)
-                            or ('external' in self.optional_tags 
-                                and available_softwares.issuperset(optional_tags))):
-                        continue
+                    if not self.optional_tags is True:
+                        extra = optional_tags - self.optional_tags # set difference
+                        if len(extra) > 0:
+                            if not('external' in self.optional_tags 
+                                   and available_softwares.issuperset(extra))):
+                                continue
                 elif self.optional_only:
                     self.optionals['sage'] += 1
                     continue

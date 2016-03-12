@@ -846,6 +846,33 @@ class Posets(object):
     import sage.combinat.tamari_lattices
     TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
 
+    @staticmethod
+    def CoxeterGroupAbsoluteOrderPoset(W, use_reduced_words=True):
+        r"""
+        Return the poset of elements of a Coxeter group with respect
+        to absolute order.
+
+        INPUT:
+
+        - ``W`` -- a Coxeter group
+        - ``use_reduced_words`` -- boolean (default: ``True``); if
+          ``True``, then the elements are labeled by their lexicographically
+          minimal reduced word
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['B', 3])
+            sage: Posets.CoxeterGroupAbsoluteOrderPoset(W)
+            Finite poset containing 48 elements
+
+            sage: W = WeylGroup(['B', 2], prefix='s')
+            sage: Posets.CoxeterGroupAbsoluteOrderPoset(W, False)
+            Finite poset containing 8 elements
+        """
+        if use_reduced_words:
+            element_labels = {s: tuple(s.reduced_word()) for s in W}
+            return Poset({s: s.absolute_covers() for s in W}, element_labels)
+        return Poset({s: s.absolute_covers() for s in W})
 
     @staticmethod
     def SymmetricGroupAbsoluteOrderPoset(n, labels="permutations"):
@@ -854,54 +881,38 @@ class Posets(object):
 
         INPUT:
 
-        - ``n`` --  a positive integer less than 10
+        - ``n`` --  a positive integer
 
         - ``label`` -- (default: ``'permutations'``) a label for the elements
-          of the poset
-          returned by the function. The options are ``'permutations'``, which 
-          labels the elements by their one-line notation, ``'reduced_words'``,
-          which labels the elements by the lexicographically minimal reduced
-          word, 
-          and ``'cycles'``, which labels the elements by their expression
-          as a product of cycles.
+          of the poset returned by the function; the options are
+
+          * ``'permutations'`` - labels the elements are given by their
+            one-line notation
+          * ``'reduced_words'`` - labels the elements by the
+            lexicographically minimal reduced word
+          * ``'cycles'`` - labels the elements by their expression
+            as a product of cycles
 
         EXAMPLES::
 
             sage: Posets.SymmetricGroupAbsoluteOrderPoset(4)
             Finite poset containing 24 elements
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3,labels="cycles")
+            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3, labels="cycles")
             Finite poset containing 6 elements
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3,labels="reduced_words")
+            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3, labels="reduced_words")
             Finite poset containing 6 elements
-
-        TESTS::
-
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(24)
-            Traceback (most recent call last):
-            ...
-            ValueError: index (24) is too large
-
-        .. TODO::
-
-            The same for all finite Coxeter groups.
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        if n >= 10:
-            raise ValueError('index ({}) is too large'.format(n))
         W = SymmetricGroup(n)
         if labels == "permutations":
-            element_labels = dict([[s, s.tuple()]
-                                   for s in W])
+            element_labels = {s: s.tuple() for s in W}
         if labels == "reduced_words":
-            element_labels = dict([[s, tuple(s.reduced_word())]
-                                   for s in W])
+            element_labels = {s: tuple(s.reduced_word()) for s in W}
         if labels == "cycles":
-            element_labels = dict([[s, "".join(filter(lambda x: x != ',',
-                                                      s.cycle_string()))]
-                                   for s in W])
+            element_labels = {s: "".join(x for x in s.cycle_string() if x != ',')
+                              for s in W}
 
-        return Poset(dict([[s, s.absolute_covers()]
-                           for s in W]), element_labels)
+        return Poset({s: s.absolute_covers() for s in W}, element_labels)
 
     @staticmethod
     def YoungDiagramPoset(lam):

@@ -1439,6 +1439,31 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print "         ",l5
         return l1,l2
 
+cdef class SymmetricGroupElement(PermutationGroupElement):
+    """
+    An element of the symmetric group.
+    """
+    def absolute_length(self):
+        """
+        Return the absolute length of ``self``.
+
+        The absolute length is the size minus the number of its disjoint
+        cycles. Alternatively, it is the length of the shortest
+        expression of the element as a product of reflections.
+
+        .. SEEALSO::
+
+            :meth:`absolute_le`
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroup(3)
+            sage: [x.absolute_length() for x in S]
+            [0, 1, 2, 2, 1, 1]
+        """
+        from sage.combinat.permutation import Permutation
+        return Permutation(self).absolute_length()
+
 cdef bint is_valid_permutation(int* perm, int n):
     """
     This is used in the __init__ method.

@@ -1245,7 +1245,7 @@ v            EXAMPLES::
 
             .. SEEALSO::
 
-                :meth:`absolute_le`.
+                :meth:`absolute_le`
 
             EXAMPLES::
 
@@ -1259,10 +1259,6 @@ v            EXAMPLES::
                 sage: (s[3]*s[2]*s[1]).absolute_length()
                 3
             """
-            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-            from sage.combinat.permutation import Permutation
-            if isinstance(self.parent(), SymmetricGroup):
-                return Permutation(self).absolute_length()
             M = self.canonical_matrix()
             return (M - 1).image().dimension()
 

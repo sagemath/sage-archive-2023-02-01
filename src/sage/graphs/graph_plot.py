@@ -525,6 +525,7 @@ class GraphPlot(SageObject):
         ::
 
             sage: GP.set_edges(edge_color='black')
+            sage: GP.plot()
             Graphics object consisting of 24 graphics primitives
 
         .. PLOT::

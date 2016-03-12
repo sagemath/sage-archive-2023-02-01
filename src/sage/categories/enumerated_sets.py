@@ -255,12 +255,97 @@ class EnumeratedSets(Category_singleton):
             else:
                 return False
 
-        def unrank_range(self, start=None, stop=None, step=None):
+        def iterator_range(self, start=None, stop=None, step=None):
             r"""
+            Iterate over the range of elements of ``self`` starting
+            at ``start``, ending at ``stop``, and stepping by ``step``.
+
+            .. SEEALSO::
+
+                ``unrank()``, ``unrank_range()``
+
+            EXAMPLES::
+
+                sage: P = Partitions()
+                sage: list(P.iterator_range(stop=5))
+                [[], [1], [2], [1, 1], [3]]
+                sage: list(P.iterator_range(0, 5))
+                [[], [1], [2], [1, 1], [3]]
+                sage: list(P.iterator_range(3, 5))
+                [[1, 1], [3]]
+                sage: list(P.iterator_range(3, 10))
+                [[1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
+                sage: list(P.iterator_range(3, 10, 2))
+                [[1, 1], [2, 1], [4], [2, 2]]
+                sage: it = P.iterator_range(3)
+                sage: [it.next() for x in range(10)]
+                [[1, 1],
+                 [3], [2, 1], [1, 1, 1],
+                 [4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1],
+                 [5]]
+                sage: it = P.iterator_range(3, step=2)
+                sage: [it.next() for x in range(5)]
+                [[1, 1],
+                 [2, 1],
+                 [4], [2, 2], [1, 1, 1, 1]]
+                sage: P.iterator_range(stop=-3).next()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite list
+                sage: P.iterator_range(start=-3).next()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite list
+            """
+            if stop is None:
+                if start is None:
+                    if step is None:
+                        for x in self:
+                            yield x
+                        return
+                    start = 0
+                elif start < 0:
+                    for x in self.list()[start::step]:
+                        yield x
+                    return
+                if step is None:
+                    step = 1
+                while True:
+                    try:
+                        yield self.unrank(start)
+                    except ValueError:
+                        return
+                    start += step
+
+            elif stop < 0:
+                for x in self.list()[start:stop:step]:
+                    yield x
+                return
+
+            if start is None:
+                if step is None:
+                    it = self.__iter__()
+                    for j in range(stop):
+                        yield it.next()
+                    return
+                start = 0
+            elif start < 0:
+                for x in self.list()[start:stop:step]:
+                    yield x
+                return
+            if step is None:
+                step = 1
+            for j in range(start, stop, step):
+                yield self.unrank(j)
+
+        def unrank_range(self, start=None, stop=None, step=None):
+            """
             Return the range of elements of ``self`` starting at ``start``,
             ending at ``stop``, and stepping by ``step``.
 
-            See also ``unrank()``.
+            .. SEEALSO::
+
+                ``unrank()``, ``iterator_range()``
 
             EXAMPLES::
 
@@ -294,16 +379,10 @@ class EnumeratedSets(Category_singleton):
             if stop < 0:
                 return self.list()[start:stop:step]
 
-            if start is None:
-                if step is None:
-                    it = self.__iter__()
-                    return [it.next() for j in range(stop)]
-                start = 0
-            if start < 0:
+            if start is not None and start < 0:
                 return self.list()[start:stop:step]
-            if step is None:
-                step = 1
-            return [self.unrank(j) for j in range(start, stop, step)]
+
+            return list(self.iterator_range(start, stop, step))
 
         def __getitem__(self, i):
             r"""
@@ -340,6 +419,10 @@ class EnumeratedSets(Category_singleton):
                 NotImplementedError: infinite list
                 sage: P[3]
                 [1, 1]
+                sage: P[-1]
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite list
 
             ::
 
@@ -367,6 +450,8 @@ class EnumeratedSets(Category_singleton):
             """
             if isinstance(i, slice):
                 return self.unrank_range(i.start, i.stop, i.step)
+            if i < 0:
+                return self.list()[i]
             return self.unrank(i)
 
         def list(self):

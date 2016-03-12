@@ -391,6 +391,58 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 return self.list()
             return self.list()[start:stop:step]
 
+        def iterator_range(self, start=None, stop=None, step=None):
+            r"""
+            Iterate over the range of elements of ``self`` starting
+            at ``start``, ending at ``stop``, and stepping by ``step``.
+
+            .. SEEALSO::
+
+                ``unrank()``, ``unrank_range()``
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: list(F.iterator_range(1))
+                [2, 3]
+                sage: list(F.iterator_range(stop=2))
+                [1, 2]
+                sage: list(F.iterator_range(stop=2, step=2))
+                [1]
+                sage: list(F.iterator_range(start=1, step=2))
+                [2]
+                sage: list(F.iterator_range(stop=-1))
+                [1, 2]
+
+                sage: F = FiniteEnumeratedSet([1,2,3,4])
+                sage: list(F.iterator_range(stop=10))
+                [1, 2, 3, 4]
+            """
+            L = None
+            try:
+                L = self._list
+            except AttributeError:
+                pass
+            if L is None and start is None and stop is not None and stop > 0 and step is None:
+                card = self.cardinality() # This may set the list
+                try:
+                    L = self._list
+                except AttributeError:
+                    pass
+                if L is None:
+                    if stop < card:
+                        it = self.__iter__()
+                        for j in range(stop):
+                            yield it.next()
+                        return
+                    for x in self:
+                        yield x
+                    return
+            if L is None:
+                L = self.list()
+            for x in L[start:stop:step]:
+                yield x
+
         def _random_element_from_unrank(self):
             """
             A random element in ``self``.

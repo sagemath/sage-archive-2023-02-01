@@ -350,9 +350,9 @@ class GraphPlot(SageObject):
 
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
-            ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            ...                (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
-            ...    edge_style='dashed')
+            ...                    edge_style='dashed')
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
             Graphics object consisting of 22 graphics primitives
@@ -364,9 +364,9 @@ class GraphPlot(SageObject):
 
                 g = Graph({}, loops=True, multiedges=True, sparse=True)
                 g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),(0,1,'e'),(0,1,'f'),
-                    (0,1,'f'),(2,1,'g'),(2,2,'h')])
+                             (0,1,'f'),(2,1,'g'),(2,2,'h')])
                 GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, 
-                    edge_style='dashed')
+                                 edge_style='dashed')
                 GP.set_vertices(talk=True)
                 sphinx_plot(GP)
 
@@ -374,9 +374,9 @@ class GraphPlot(SageObject):
 
                 g = Graph({}, loops=True, multiedges=True, sparse=True)
                 g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),(0,1,'e'),(0,1,'f'),
-                    (0,1,'f'),(2,1,'g'),(2,2,'h')])
+                            (0,1,'f'),(2,1,'g'),(2,2,'h')])
                 GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
-                    edge_style='dashed')
+                                 edge_style='dashed')
                 GP.set_vertices(talk=True)
                 GP.set_vertices(vertex_colors='pink', vertex_shape='^')
                 sphinx_plot(GP)
@@ -426,12 +426,15 @@ class GraphPlot(SageObject):
             voptions['facecolor'] = vertex_colors
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(center,
-                    self._vertex_radius, fill=True, facecolor=vertex_colors,
-                        edgecolor='black', clip=False)
-                    for center in self._pos.values()]
+                                                            self._vertex_radius,
+                                                            fill=True,
+                                                            facecolor=vertex_colors,
+                                                            edgecolor='black',
+                                                            clip=False)
+                                                     for center in self._pos.values()]
             else:
-                self._plot_components['vertices'] = scatter_plot(
-                    self._pos.values(), clip=False, **voptions)
+                self._plot_components['vertices'] = scatter_plot(self._pos.values(),
+                                                                 clip=False, **voptions)
         else:
             # Color list must be ordered:
             pos = []
@@ -453,12 +456,16 @@ class GraphPlot(SageObject):
 
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(pos[i],
-                    self._vertex_radius, fill=True, facecolor=colors[i],
-                        edgecolor='black', clip=False)
-                    for i in range(len(pos))]
+                                                            self._vertex_radius,
+                                                            fill=True,
+                                                            facecolor=colors[i],
+                                                            edgecolor='black',
+                                                            clip=False)
+                                                     for i in range(len(pos))]
             else:
                 self._plot_components['vertices'] = scatter_plot(pos,
-                    facecolor=colors, clip=False, **voptions)
+                                                                 facecolor=colors,
+                                                                 clip=False, **voptions)
 
         if self._options['vertex_labels']:
             self._plot_components['vertex_labels'] = []
@@ -974,7 +981,8 @@ class GraphPlot(SageObject):
                 for i in range(5):
                     if u[i] != v[i]:
                         edge_colors[R[i]].append((u,v,l))
-            sphinx_plot(C.graphplot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors))
+            sphinx_plot(C.graphplot(vertex_labels=False, vertex_size=0,
+                edge_colors=edge_colors))
 
         With the ``partition`` option, we can separate out same-color groups
         of vertices::

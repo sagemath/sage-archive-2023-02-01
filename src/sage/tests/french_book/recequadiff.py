@@ -379,7 +379,7 @@ Sage example in ./recequadiff.tex, line 1197::
 
 Sage example in ./recequadiff.tex, line 1208::
 
-  sage: f = u(n+2)-u(n+1)*(3/2)+u(n)*(1/2)
+  sage: f = u(n+2)-(3/2)*u(n+1)+(1/2)*u(n)
 
 Sage example in ./recequadiff.tex, line 1214::
 

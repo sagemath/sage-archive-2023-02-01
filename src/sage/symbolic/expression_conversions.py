@@ -752,7 +752,7 @@ class SympyConverter(Converter):
         g = ex.operands()
         import sympy
 
-        f_sympy = getattr(sympy, f, None) or isinstance(f, sympy.core.function.UndefinedFunction)
+        f_sympy = getattr(sympy, f, None)
         if f_sympy:
             return f_sympy(*sympy.sympify(g, evaluate=False))
         else:

@@ -5967,7 +5967,7 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2.delete('a'))
             True
 
-        Check that trac ticket #17316 was fixed::
+        Check that :trac:`17316` was fixed::
 
             sage: from sage.matroids.advanced import *
             sage: Mnew = RegularMatroid(groundset=range(12), matrix=Matrix(ZZ,

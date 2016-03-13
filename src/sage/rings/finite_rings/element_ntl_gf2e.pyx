@@ -414,7 +414,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         TESTS:
 
-        We test that #17027 is fixed::
+        We test that :trac:`17027` is fixed::
 
             sage: K.<a> = GF(2^16)
             sage: K._cache.fetch_int(0r)

@@ -383,7 +383,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
         TEST:
 
-        Check that ticket #9345 is fixed::
+        Check that :trac:`9345` is fixed::
 
             sage: A = random_matrix(ZZ, 3, 3, sparse = True)
             sage: A.rational_reconstruction(0)
@@ -600,7 +600,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [0 2]
             [0 0]
 
-        The examples above show that Trac ticket #10626 has been implemented.
+        The examples above show that :trac:`10626` has been implemented.
 
 
         .. seealso::

@@ -812,7 +812,7 @@ cdef class GLPKBackend(GenericBackend):
 
             Sage uses GLPK's ``glp_intopt`` to find solutions.
             This routine sometimes FAILS CATASTROPHICALLY
-            when given a system it cannot solve. (Ticket #12309.)
+            when given a system it cannot solve. (:trac:`12309`.)
             Here, "catastrophic" can mean either "infinite loop" or
             segmentation fault. Upstream considers this behavior
             "essentially innate" to their design, and suggests

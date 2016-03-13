@@ -1140,7 +1140,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
 
-        Trac 10839 made this routine available for rectangular matrices.  ::
+        :trac:`10839` made this routine available for rectangular matrices.  ::
 
             sage: A = matrix(RDF, 5, 6, range(30)); A
             [ 0.0  1.0  2.0  3.0  4.0  5.0]

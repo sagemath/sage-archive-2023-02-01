@@ -303,7 +303,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: latex(f)
             \frac{\frac{17}{2}}{x^{2}} + x + x^{2} + 3x^{4} + O(x^{7})
 
-        Verify that trac #6656 has been fixed::
+        Verify that :trac:`6656` has been fixed::
 
             sage: R.<a,b>=PolynomialRing(QQ)
             sage: T.<x>=LaurentSeriesRing(R)

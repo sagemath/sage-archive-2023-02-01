@@ -345,7 +345,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             ...
             ValueError: length must be nonnegative
 
-        Example in which the starting state is 0 (see trac 11452)::
+        Example in which the starting state is 0 (see :trac:`11452`)::
 
             sage: set_random_seed(23);  m.generate_sequence(2)
             ([0.6501, -2.0151], [0, 1])

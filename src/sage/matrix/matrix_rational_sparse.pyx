@@ -517,7 +517,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             [      0       0       1 238/157]
             [      0       0       0       0]
 
-        Trac #10319 has been fixed:
+        :trac:`10319` has been fixed::
 
             sage: m = Matrix(QQ, [1], sparse=True); m.echelonize()
             sage: m = Matrix(QQ, [1], sparse=True); m.echelonize(); m

@@ -61,6 +61,16 @@ Coxeter groups
 
     The categories :class:`CoxeterGroups` and :class:`WeylGroups`
 
+Finite reflection groups
+------------------------
+
+- :ref:`sage.combinat.root_system.reflection_group_complex`
+- :ref:`sage.combinat.root_system.reflection_group_real`
+
+.. SEEALSO::
+
+    The category :class:`ComplexReflectionGroups`
+
 Representation theory
 ---------------------
 

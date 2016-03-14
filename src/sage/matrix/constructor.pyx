@@ -21,6 +21,7 @@ from sage.arith.srange import srange
 from sage.structure.coerce cimport is_numpy_type, py_scalar_parent
 from sage.structure.element cimport Vector
 from sage.structure.sequence import Sequence
+from sage.misc.long cimport pyobject_to_long
 
 
 class MatrixFactory(object):
@@ -269,10 +270,13 @@ class MatrixFactory(object):
         [1 0]
         [0 1]
         Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
-        sage: m = matrix(QQ,2,2,1); m; m.parent()
-        [1 0]
-        [0 1]
+        sage: m = matrix(QQ,2,2,5); m; m.parent()
+        [5 0]
+        [0 5]
         Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+    For non-square matrices, only zero works::
+
         sage: m = matrix(2,3,0); m; m.parent()
         [0 0 0]
         [0 0 0]
@@ -281,6 +285,14 @@ class MatrixFactory(object):
         [0 0 0]
         [0 0 0]
         Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+        sage: matrix(QQ,2,3,1)
+        Traceback (most recent call last):
+        ...
+        TypeError: identity matrix must be square
+        sage: matrix(QQ,2,3,5)
+        Traceback (most recent call last):
+        ...
+        TypeError: nonzero scalar matrix must be square
 
     Matrices specified by a list of entries::
 
@@ -476,6 +488,13 @@ class MatrixFactory(object):
         [0 0 0]
         [0 0 0]
 
+    The dimensions of a matrix must have an integral type::
+
+        sage: matrix(RR, 2.0, 2.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: invalid matrix constructor: type matrix? for help
+
     More tests::
 
         sage: v = vector(ZZ, [1, 10, 100])
@@ -582,7 +601,7 @@ class MatrixFactory(object):
                     import numpy
                     if isinstance(arg, numpy.ndarray):
                         raise TypeError
-                nrows = int(arg)
+                nrows = pyobject_to_long(arg)
             except TypeError:
                 pass
             else:
@@ -596,7 +615,7 @@ class MatrixFactory(object):
                     import numpy
                     if isinstance(arg, numpy.ndarray):
                         raise TypeError
-                ncols = int(arg)
+                ncols = pyobject_to_long(arg)
             except TypeError:
                 pass
             else:

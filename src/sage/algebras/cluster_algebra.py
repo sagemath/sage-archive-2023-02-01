@@ -245,27 +245,6 @@ class ClusterAlgebraSeed(SageObject):
         # wrap up
         if not inplace:
             return seed
-    
-    # I am perplexed by this (yet unfinished) function. I was expecting
-    # mutate_initial do be a function of ClusterAlgebra: if we change the
-    # initial seed all the g-vectors, F_polynomials and paths need to mutate
-    # accordingly. Am I right?
-    def mutate_initial(self, k, inplace=True, mutating_F=True):
-        if inplace:
-            seed = self
-        else:
-            seed = copy(self)
-
-        n = seed.parent().rk
-
-        if k not in xrange(n):
-            raise ValueError('Cannot mutate in direction ' + str(k) + '.')
-
-        #store mutation path
-        if seed._path != [] and seed._path[0] == k:
-            seed._path.pop(0)
-        else:
-            seed._path.insert(0,k)
 
     def _mutated_F(self, k, old_g_vector):
         alg = self.parent()
@@ -716,6 +695,23 @@ class ClusterAlgebra(Parent):
     def reset_exploring_iterator(self, mutating_F=True):
         self._sd_iter = self.seeds(mutating_F=mutating_F)
         self._explored_depth = 0
+
+    def mutate_initial(self, k, inplace=True, mutating_F=True):
+        if inplace:
+            algebra = self
+        else:
+            algebra = copy(self)
+
+        n = algebra.rk
+
+        if k not in xrange(n):
+            raise ValueError('Cannot mutate in direction ' + str(k) + '.')
+
+        #modify algebra._path_dict
+        #modify algebra._F_poly_dict
+        #modify algebra._B0
+        #modify algebra._M0
+        #modify algebra._yhat
 
     def explore_to_depth(self, depth):
         while self._explored_depth <= depth:

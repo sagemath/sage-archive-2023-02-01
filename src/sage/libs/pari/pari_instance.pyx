@@ -195,10 +195,6 @@ from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport _pari_init_error_handling
 from sage.misc.superseded import deprecated_function_alias
 
-# so Galois groups are represented in a sane way
-# See the polgalois section of the PARI users manual.
-new_galois_format = 1
-
 # real precision in decimal digits: see documentation for
 # get_real_precision() and set_real_precision().  This variable is used
 # in gp to set the precision of input quantities (e.g. sqrt(2)), and for
@@ -503,6 +499,16 @@ cdef class PariInstance(PariInstance_auto):
         # (which is want we want for the PARI library interface).
         GP_DATA.flags = gpd_TEST
 
+        # Ensure that Galois groups are represented in a sane way,
+        # see the polgalois section of the PARI users manual.
+        global new_galois_format
+        new_galois_format = 1
+
+        # By default, factor() should prove primality of returned
+        # factors. This not only influences the factor() function, but
+        # also many functions indirectly using factoring.
+        global factor_proven
+        factor_proven = 1
 
     def debugstack(self):
         r"""

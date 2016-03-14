@@ -69,9 +69,6 @@ include "cysignals/signals.pxi"
 
 cimport cython
 
-cdef extern from "misc.h":
-    int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
-
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.pari.closure cimport objtoclosure
@@ -9045,11 +9042,7 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(matfrobenius(self.g, flag, 0))
 
-
-    ###########################################
-    # polarit2.c
-    ###########################################
-    def factor(gen self, limit=-1, bint proof=1):
+    def factor(gen self, long limit=-1, proof=None):
         """
         Return the factorization of x.
 
@@ -9060,19 +9053,19 @@ cdef class gen(gen_auto):
            set return partial factorization, using primes up to limit (up to
            primelimit if limit=0).
 
-        - ``proof`` -- (default: True) optional. If False (not the default),
+        - ``proof`` -- optional flag. If ``False`` (not the default),
           returned factors larger than `2^{64}` may only be pseudoprimes.
-
-        .. note::
-
-           In the standard PARI/GP interpreter and C-library the
-           factor command *always* has proof=False, so beware!
+          If ``True``, always check primality. If not given, use the
+          global PARI default ``factor_proven`` which is ``True`` by
+          default in Sage.
 
         EXAMPLES::
 
             sage: pari('x^10-1').factor()
             [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
             sage: pari(2^100-1).factor()
+            [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
+            sage: pari(2^100-1).factor(proof=True)
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
             sage: pari(2^100-1).factor(proof=False)
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
@@ -9090,22 +9083,15 @@ cdef class gen(gen_auto):
             ...
             PariError: sorry, factor for general polynomials is not yet implemented
         """
-        cdef int r
-        cdef GEN t0
-        cdef GEN cutoff
-        if limit == -1 and typ(self.g) == t_INT and proof:
+        global factor_proven
+        cdef int saved_factor_proven = factor_proven
+        try:
+            if proof is not None:
+                factor_proven = 1 if proof else 0
             pari_catch_sig_on()
-            # cutoff for checking true primality: 2^64 according to the
-            # PARI documentation ??ispseudoprime.
-            cutoff = mkintn(3, 1, 0, 0)  # expansion of 2^64 in base 2^32: (1,0,0)
-            r = factorint_withproof_sage(&t0, self.g, cutoff)
-            z = P.new_gen(t0)
-            if not r:
-                return z
-            else:
-                return _factor_int_when_pari_factor_failed(self, z)
-        pari_catch_sig_on()
-        return P.new_gen(factor0(self.g, limit))
+            return P.new_gen(factor0(self.g, limit))
+        finally:
+            factor_proven = saved_factor_proven
 
 
     ###########################################
@@ -9952,38 +9938,3 @@ cdef GEN _Vec_append(GEN v, GEN a, long n):
         return w
     else:
         return v
-
-
-cdef _factor_int_when_pari_factor_failed(x, failed_factorization):
-    """
-    This is called by factor when PARI's factor tried to factor, got
-    the failed_factorization, and it turns out that one of the factors
-    in there is not proved prime. At this point, we don't care too much
-    about speed (so don't write everything below using the PARI C
-    library), since the probability this function ever gets called is
-    infinitesimal. (That said, we of course did test this function by
-    forcing a fake failure in the code in misc.h.)
-    """
-    P = failed_factorization[0]  # 'primes'
-    E = failed_factorization[1]  # exponents
-    if len(P) == 1 and E[0] == 1:
-        # Major problem -- factor can't split the integer at all, but it's composite.  We're stuffed.
-        print "BIG WARNING: The number %s wasn't split at all by PARI, but it's definitely composite."%(P[0])
-        print "This is probably an infinite loop..."
-    w = []
-    for i in range(len(P)):
-        p = P[i]
-        e = E[i]
-        if not p.isprime():
-            # Try to factor further -- assume this works.
-            F = p.factor(proof=True)
-            for j in range(len(F[0])):
-                w.append((F[0][j], F[1][j]))
-        else:
-            w.append((p, e))
-    m = P.matrix(len(w), 2)
-    for i in range(len(w)):
-        m[i,0] = w[i][0]
-        m[i,1] = w[i][1]
-    return m
-

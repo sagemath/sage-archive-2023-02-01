@@ -553,6 +553,12 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class() is UnsignedInfinityRing
             True
+        
+        Sage can understand SymPy's complex infinity (:trac:`17493`)::
+        
+            sage: import sympy
+            sage: SR(sympy.zoo)
+            Infinity
         """
         ParentWithGens.__init__(self, self, names=('oo',), normalize=False)
 
@@ -902,6 +908,23 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         if isinstance(other, UnsignedInfinity):
             return self
         raise ValueError("unsigned oo times smaller number not defined")
+
+    def _sympy_(self):
+        """
+        Converts ``unsigned_infinity`` to sympy ``zoo``.
+
+        EXAMPLE::
+
+            sage: import sympy
+            sage: sympy.sympify(unsigned_infinity)
+            zoo
+            sage: gamma(-3)._sympy_() is sympy.factorial(-2)
+            True
+            sage: gamma(-3) is sympy.factorial(-2)._sage_()
+            True
+        """
+        import sympy
+        return sympy.zoo
 
 
 unsigned_infinity = UnsignedInfinityRing.gen(0)

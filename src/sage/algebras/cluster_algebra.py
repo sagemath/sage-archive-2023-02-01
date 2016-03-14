@@ -127,7 +127,8 @@ class ClusterAlgebraSeed(SageObject):
         # It looks like the idea was to consider seeds up to simultaneous permutation of rows and columns,
         # the relation P between the c-matrices determines if there could exist such a permutation,
         # the remaining checks then ask about the remaining data
-        
+        # We should still check that parents are the same, right?  Then equality of g-vectors guarantees everything is the same (up to permutation).
+
         #P = self.c_matrix().inverse()*other.c_matrix()
         #return frozenset(P.columns()) == frozenset(identity_matrix(self.parent().rk).columns()) and self.g_matrix()*P == other.g_matrix() and P.inverse()*self.b_matrix()*P == other.b_matrix() and self.parent() == other.parent()
 

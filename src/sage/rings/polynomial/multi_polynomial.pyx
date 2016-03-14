@@ -1539,44 +1539,44 @@ cdef class MPolynomial(CommutativeRingElement):
         raise NotImplementedError
 
     def inverse_mod(self, I):
-       """
-       Returns an inverse of self modulo the polynomial ideal `I`,
-       namely a multivariate polynomial `f` such that
-       ``self * f - 1`` belongs to `I`.
+        """
+        Returns an inverse of self modulo the polynomial ideal `I`,
+        namely a multivariate polynomial `f` such that
+        ``self * f - 1`` belongs to `I`.
 
-       INPUT:
-        - ``I`` -- an ideal of the polynomial ring in which self lives
+        INPUT:
+         - ``I`` -- an ideal of the polynomial ring in which self lives
 
-       OUTPUT:
+        OUTPUT:
 
-        - a multivariate polynomial representing the inverse of ``f`` modulo ``I``
+         - a multivariate polynomial representing the inverse of ``f`` modulo ``I``
 
-       EXAMPLES::
+        EXAMPLES::
 
-          sage: R.<x1,x2> = QQ[]
-          sage: I = R.ideal(x2**2 + x1 - 2, x1**2 - 1)
-          sage: f = x1 + 3*x2^2; g = f.inverse_mod(I); g
-          1/16*x1 + 3/16
-          sage: (f*g).reduce(I)
-          1
+           sage: R.<x1,x2> = QQ[]
+           sage: I = R.ideal(x2**2 + x1 - 2, x1**2 - 1)
+           sage: f = x1 + 3*x2^2; g = f.inverse_mod(I); g
+           1/16*x1 + 3/16
+           sage: (f*g).reduce(I)
+           1
 
-       Test a non-invertible element::
+        Test a non-invertible element::
 
-          sage: R.<x1,x2> = QQ[]
-          sage: I = R.ideal(x2**2 + x1 - 2, x1**2 - 1)
-          sage: f = x1 + x2
-          sage: f.inverse_mod(I)
-          Traceback (most recent call last):
-          ...
-          ArithmeticError: element is non-invertible
-       """
-       P = self.parent()
-       B  = I.gens()
-       try:
-           XY = P.one().lift((self,) + tuple(B))
-           return P(XY[0])
-       except ValueError:
-           raise ArithmeticError, "element is non-invertible"
+           sage: R.<x1,x2> = QQ[]
+           sage: I = R.ideal(x2**2 + x1 - 2, x1**2 - 1)
+           sage: f = x1 + x2
+           sage: f.inverse_mod(I)
+           Traceback (most recent call last):
+           ...
+           ArithmeticError: element is non-invertible
+        """
+        P = self.parent()
+        B  = I.gens()
+        try:
+            XY = P.one().lift((self,) + tuple(B))
+            return P(XY[0])
+        except ValueError:
+            raise ArithmeticError, "element is non-invertible"
 
     def weighted_degree(self, *weights):
         """

@@ -822,6 +822,10 @@ class Function_gamma(GinacFunction):
 
             sage: loads(dumps(gamma(x)))
             gamma(x)
+
+        .. SEEALSO::
+
+            :meth:`sage.functions.other.gamma`
         """
         GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
                 ginac_name='tgamma',
@@ -927,7 +931,13 @@ log_gamma = Function_log_gamma()
 class Function_gamma_inc(BuiltinFunction):
     def __init__(self):
         r"""
-        The incomplete gamma function.
+        The upper incomplete gamma function.
+
+        It is defined by the integral
+
+        .. math::
+
+            \Gamma(a,z)=\int_z^\infty t^{a-1}e^{-t}\,\mathrm{d}t
 
         EXAMPLES::
 
@@ -947,6 +957,15 @@ class Function_gamma_inc(BuiltinFunction):
             0.70709210 - 0.42035364*I
             sage: gamma_inc(2., 5)
             0.0404276819945128
+            sage: x,y=var('x,y')
+            sage: gamma_inc(x,y).diff(x)
+            D[0](gamma)(x, y)
+            sage: (gamma_inc(x,x+1).diff(x)).simplify()
+            -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
+
+    .. SEEALSO::
+
+        :meth:`sage.functions.other.gamma`
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
@@ -983,7 +1002,7 @@ class Function_gamma_inc(BuiltinFunction):
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
-    def _evalf_(self, x, y, parent=None, algorithm=None):
+    def _evalf_(self, x, y, parent=None, algorithm='pari'):
         """
         EXAMPLES::
 
@@ -991,6 +1010,10 @@ class Function_gamma_inc(BuiltinFunction):
             -Ei(-2)
             sage: gamma_inc(0,2.)
             0.0489005107080611
+            sage: gamma_inc(0,2).n(algorithm='pari')
+            0.0489005107080611
+            sage: gamma_inc(0,2).n(200)
+            0.048900510708061119567239835228...
             sage: gamma_inc(3,2).n()
             1.35335283236613
 
@@ -1006,11 +1029,11 @@ class Function_gamma_inc(BuiltinFunction):
 
         Check that :trac:`17328` is fixed::
 
-            sage: incomplete_gamma(float(-1), float(-1))
+            sage: gamma_inc(float(-1), float(-1))
             (-0.8231640121031085+3.141592653589793j)
-            sage: incomplete_gamma(RR(-1), RR(-1))
+            sage: gamma_inc(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
-            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2))) # abs tol 1e-15
+            sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))
             (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
@@ -1035,109 +1058,281 @@ class Function_gamma_inc(BuiltinFunction):
                 C = R.complex_field()
             except AttributeError:
                 C = R
-        v = ComplexField(prec)(x).gamma_inc(y)
+
+        if algorithm == 'pari':
+            v = ComplexField(prec)(x).gamma_inc(y)
+        else:
+            import mpmath
+            v = ComplexField(prec)(mpmath_utils.call(mpmath.gammainc, x, y, parent=R))
         if v.is_real():
             return R(v)
         else:
             return C(v)
 
+# synonym.
+gamma_inc = Function_gamma_inc()
+
+class Function_gamma_inc_lower(BuiltinFunction):
+    def __init__(self):
+        r"""
+        The lower incomplete gamma function.
+
+        It is defined by the integral
+
+        .. math::
+
+            \Gamma(a,z)=\int_0^z t^{a-1}e^{-t}\,\mathrm{d}t
+
+        EXAMPLES::
+
+            sage: gamma_inc_lower(CDF(0,1), 3)
+            -0.1581584032951798 - 0.5104218539302277*I
+            sage: gamma_inc_lower(RDF(1), 3)
+            0.950212931632136
+            sage: gamma_inc_lower(3, 2, hold=True)
+            gamma_inc_lower(3, 2)
+            sage: gamma_inc_lower(3, 2)
+            -10*e^(-2) + 2
+            sage: gamma_inc_lower(x, 0)
+            0
+            sage: latex(gamma_inc_lower(x, x))
+            \gamma\left(x, x\right)
+            sage: loads(dumps((gamma_inc_lower(x, x))))
+            gamma_inc_lower(x, x)
+            sage: i = ComplexField(30).0; gamma_inc_lower(2, 1 + i)
+            0.29290790 + 0.42035364*I
+            sage: gamma_inc_lower(2., 5)
+            0.959572318005487
+
+        Interfaces to other software::
+
+            sage: import sympy
+            sage: sympy.sympify(gamma_inc_lower(x,x))
+            lowergamma(x, x)
+            sage: maxima(gamma_inc_lower(x,x))
+            gamma_greek(_SAGE_VAR_x,_SAGE_VAR_x)
+
+    .. SEEALSO::
+
+        :meth:`sage.functions.other.Function_gamma_inc`
+        """
+        BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
+                conversions={'maxima':'gamma_greek', 'mathematica':'Gamma',
+                    'maple':'GAMMA', 'sympy':'lowergamma'})
+
+    def _eval_(self, x, y):
+        """
+        EXAMPLES::
+
+            sage: gamma_inc_lower(2.,0)
+            0.000000000000000
+            sage: gamma_inc_lower(2,0)
+            0
+            sage: gamma_inc_lower(1/2,2)
+            sqrt(pi)*erf(sqrt(2))
+            sage: gamma_inc_lower(1/2,1)
+            sqrt(pi)*erf(1)
+            sage: gamma_inc_lower(1/2,0)
+            0
+            sage: gamma_inc_lower(x,0)
+            0
+            sage: gamma_inc_lower(1,2)
+            -e^(-2) + 1
+            sage: gamma_inc_lower(0,2)
+            +Infinity
+            sage: gamma_inc_lower(2,377/79)
+            -456/79*e^(-377/79) + 1
+            sage: gamma_inc_lower(3,x)
+            -x^2*e^(-x) - 2*x*e^(-x) - 2*e^(-x) + 2
+            sage: gamma_inc_lower(9/2,37/7)
+            105/16*sqrt(pi)*erf(1/7*sqrt(259)) - 836473/19208*sqrt(259)*e^(-37/7)
+        """
+        if y == 0:
+            return 0
+        if x == 0:
+            from sage.rings.infinity import Infinity
+            return Infinity
+        elif x == 1:
+            return 1-exp(-y)
+        elif (2*x).is_integer():
+            return self(x,y,hold=True)._sympy_()
+        else:
+            return None
+
+    def _evalf_(self, x, y, parent=None, algorithm='mpmath'):
+        """
+        EXAMPLES::
+
+            sage: gamma_inc_lower(3,2.)
+            0.646647167633873
+            sage: gamma_inc_lower(3,2).n(200)
+            0.646647167633873081060005050275155...
+            sage: gamma_inc_lower(0,2.)
+            +infinity
+        """
+        R = parent or s_parent(x)
+        # C is the complex version of R
+        # prec is the precision of R
+        if R is float:
+            prec = 53
+            C = complex
+        else:
+            try:
+                prec = R.precision()
+            except AttributeError:
+                prec = 53
+            try:
+                C = R.complex_field()
+            except AttributeError:
+                C = R
+        if algorithm == 'pari':
+            try:
+                v = ComplexField(prec)(x).gamma() - ComplexField(prec)(x).gamma_inc(y)
+            except AttributeError:
+                if not (is_ComplexNumber(x)):
+                    if is_ComplexNumber(y):
+                        C = y.parent()
+                    else:
+                        C = ComplexField()
+                        x = C(x)
+            v = ComplexField(prec)(x).gamma() - ComplexField(prec)(x).gamma_inc(y)
+        else:
+            import mpmath
+            v = ComplexField(prec)(mpmath_utils.call(mpmath.gammainc, x, 0, y, parent=R))
+        if v.is_real():
+            return R(v)
+        else:
+            return C(v)
+
+    def _derivative_(self, x, y, diff_param=None):
+        """
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: gamma_inc_lower(x,y).diff(y)
+            y^(x - 1)*e^(-y)
+            sage: gamma_inc_lower(x,y).diff(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot differentiate gamma_inc_lower in the first parameter
+        """
+        if diff_param == 0:
+            raise NotImplementedError("cannot differentiate gamma_inc_lower in the"
+                                      " first parameter")
+        else:
+            return exp(-y)*y**(x - 1)
 
 # synonym.
-incomplete_gamma = gamma_inc=Function_gamma_inc()
+gamma_inc_lower = Function_gamma_inc_lower()
 
 def gamma(a, *args, **kwds):
     r"""
-    Gamma and incomplete gamma functions.
-    This is defined by the integral
+    Gamma and upper incomplete gamma functions in one symbol.
 
-    .. math::
+    Recall that `\Gamma(n)` is `n-1` factorial::
 
-        \Gamma(a, z) = \int_z^\infty t^{a-1}e^{-t} dt
+        sage: gamma(11) == factorial(10)
+        True
+        sage: gamma(6)
+        120
+        sage: gamma(1/2)
+        sqrt(pi)
+        sage: gamma(-4/3)
+        gamma(-4/3)
+        sage: gamma(-1)
+        Infinity
+        sage: gamma(0)
+        Infinity
 
-    EXAMPLES::
+    ::
 
-        Recall that `\Gamma(n)` is `n-1` factorial::
+        sage: gamma_inc(3,2)
+        gamma(3, 2)
+        sage: gamma_inc(x,0)
+        gamma(x)
 
-            sage: gamma(11) == factorial(10)
-            True
-            sage: gamma(6)
-            120
-            sage: gamma(1/2)
-            sqrt(pi)
-            sage: gamma(-4/3)
-            gamma(-4/3)
-            sage: gamma(-1)
-            Infinity
-            sage: gamma(0)
-            Infinity
+    ::
 
-        ::
+        sage: gamma(5, hold=True)
+        gamma(5)
+        sage: gamma(x, 0, hold=True)
+        gamma(x, 0)
 
-            sage: gamma_inc(3,2)
-            gamma(3, 2)
-            sage: gamma_inc(x,0)
-            gamma(x)
+    ::
 
-        ::
+        sage: gamma(CDF(I))
+        -0.15494982830181067 - 0.49801566811835607*I
+        sage: gamma(CDF(0.5,14))
+        -4.0537030780372815e-10 - 5.773299834553605e-10*I
 
-            sage: gamma(5, hold=True)
-            gamma(5)
-            sage: gamma(x, 0, hold=True)
-            gamma(x, 0)
+    Use ``numerical_approx`` to get higher precision from
+    symbolic expressions::
 
-        ::
+        sage: gamma(pi).n(100)
+        2.2880377953400324179595889091
+        sage: gamma(3/4).n(100)
+        1.2254167024651776451290983034
 
-            sage: gamma(CDF(0.5,14))
-            -4.0537030780372815e-10 - 5.773299834553605e-10*I
-            sage: gamma(CDF(I))
-            -0.15494982830181067 - 0.49801566811835607*I
+    The precision for the result is also deduced from the precision of the
+    input. Convert the input to a higher precision explicitly if a result
+    with higher precision is desired.::
 
-        The precision for the result is deduced from the precision of the
-        input. Convert the input to a higher precision explicitly if a result
-        with higher precision is desired.::
+        sage: t = gamma(RealField(100)(2.5)); t
+        1.3293403881791370204736256125
+        sage: t.prec()
+        100
 
-            sage: t = gamma(RealField(100)(2.5)); t
-            1.3293403881791370204736256125
-            sage: t.prec()
-            100
+    The gamma function only works with input that can be coerced to the
+    Symbolic Ring::
 
-            sage: gamma(6)
-            120
+        sage: Q.<i> = NumberField(x^2+1)
+        sage: gamma(i)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot coerce arguments: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 to Symbolic Ring
 
-            sage: gamma(pi).n(100)
-            2.2880377953400324179595889091
+    We make an exception for elements of AA or QQbar, which cannot be
+    coerced into symbolic expressions to allow this usage::
 
-            sage: gamma(3/4).n(100)
-            1.2254167024651776451290983034
-            
-        The gamma function only works with input that can be coerced to the
-        Symbolic Ring::
+        sage: t = QQbar(sqrt(2)) + sqrt(3); t
+        3.146264369941973?
+        sage: t.parent()
+        Algebraic Field
 
-            sage: Q.<i> = NumberField(x^2+1)
-            sage: gamma(i)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce arguments: no canonical coercion...
+    Symbolic functions convert the arguments to symbolic expressions if they
+    are in QQbar or AA::
 
-        We make an exception for elements of AA or QQbar, which cannot be
-        coerced into symbolic expressions to allow this usage::
+        sage: gamma(QQbar(I))
+        -0.154949828301811 - 0.498015668118356*I
 
-            sage: t = QQbar(sqrt(2)) + sqrt(3); t
-            3.146264369941973?
-            sage: t.parent()
-            Algebraic Field
+    .. SEEALSO::
 
-        Symbolic functions convert the arguments to symbolic expressions if they
-        are in QQbar or AA::
+        :meth:`sage.functions.other.Function_gamma`
 
-            sage: gamma(QQbar(I))
-            -0.154949828301811 - 0.498015668118356*I
-    """
+    .. SEEALSO::
+
+        :meth:`sage.functions.other.Function_gamma_inc`
+        """
     if not args:
         return gamma1(a, **kwds)
     if len(args) > 1:
         raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1))
-    return incomplete_gamma(a,args[0],**kwds)
+    return gamma_inc(a,args[0],**kwds)
+
+def incomplete_gamma(*args, **kwds):
+    """
+        Deprecated name for :meth:`sage.functions.other.Function_gamma_inc`.
+
+    TESTS::
+
+        sage: incomplete_gamma(1,1)
+        doctest:...: DeprecationWarning: Please use gamma_inc().
+        See http://trac.sagemath.org/16697 for details.
+        e^(-1)
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(16697, 'Please use gamma_inc().')
+    return gamma_inc(*args, **kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
 # two functions with different number of arguments and the same name

@@ -1341,24 +1341,6 @@ cdef class PariInstance(PariInstance_auto):
         pari_catch_sig_on()
         return self.new_gen(gp_read_file(filename))
 
-
-    ##############################################
-
-    def _primelimit(self):
-        """
-        Return the number of primes already computed by PARI.
-
-        EXAMPLES::
-
-            sage: pari._primelimit()
-            499979
-            sage: pari.init_primes(600000)
-            sage: pari._primelimit()
-            599999
-        """
-        from sage.rings.all import ZZ
-        return ZZ(maxprime())
-
     def prime_list(self, long n):
         """
         prime_list(n): returns list of the first n primes

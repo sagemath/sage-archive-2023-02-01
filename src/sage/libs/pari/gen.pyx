@@ -5575,10 +5575,10 @@ cdef class gen(gen_auto):
             0
             sage: pari(500509).primepi()
             41581
+            sage: pari(10^7).primepi()
+            664579
         """
         pari_catch_sig_on()
-        if self > P._primelimit():
-            P.init_primes(self + 10)
         if signe(self.g) != 1:
             pari_catch_sig_off()
             return P.PARI_ZERO
@@ -9042,7 +9042,7 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(matfrobenius(self.g, flag, 0))
 
-    def factor(gen self, long limit=-1, proof=None):
+    def factor(self, long limit=-1, proof=None):
         """
         Return the factorization of x.
 
@@ -9050,8 +9050,7 @@ cdef class gen(gen_auto):
 
         -  ``limit`` -- (default: -1) is optional and can be set
            whenever x is of (possibly recursive) rational type. If limit is
-           set return partial factorization, using primes up to limit (up to
-           primelimit if limit=0).
+           set, return partial factorization, using primes up to limit.
 
         - ``proof`` -- optional flag. If ``False`` (not the default),
           returned factors larger than `2^{64}` may only be pseudoprimes.
@@ -9075,6 +9074,13 @@ cdef class gen(gen_auto):
             sage: pari(next_prime(10^50)*next_prime(10^60)*next_prime(10^4)).factor(10^5)
             [10007, 1; 100000000000000000000000000000000000000000000000151000000000700000000000000000000000000000000000000000000001057, 1]
 
+        Setting a limit is invalid when factoring polynomials::
+
+            sage: pari('x^11 + 1').factor(limit=17)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in boundfact (t_POL)
+
         PARI doesn't have an algorithm for factoring multivariate
         polynomials::
 
@@ -9082,14 +9088,29 @@ cdef class gen(gen_auto):
             Traceback (most recent call last):
             ...
             PariError: sorry, factor for general polynomials is not yet implemented
+
+        TESTS::
+
+            sage: pari(2^1000+1).factor(limit=0)
+            doctest:...: DeprecationWarning: factor(..., lim=0) is deprecated, use an explicit limit instead
+            See http://trac.sagemath.org/20205 for details.
+            [257, 1; 1601, 1; 25601, 1; 76001, 1; 133842787352016..., 1]
         """
+        cdef GEN g
+        if limit == 0:
+            deprecation(20205, "factor(..., lim=0) is deprecated, use an explicit limit instead")
+            limit = maxprime()
         global factor_proven
         cdef int saved_factor_proven = factor_proven
         try:
             if proof is not None:
                 factor_proven = 1 if proof else 0
             pari_catch_sig_on()
-            return P.new_gen(factor0(self.g, limit))
+            if limit >= 0:
+                g = boundfact(self.g, limit)
+            else:
+                g = factor(self.g)
+            return P.new_gen(g)
         finally:
             factor_proven = saved_factor_proven
 

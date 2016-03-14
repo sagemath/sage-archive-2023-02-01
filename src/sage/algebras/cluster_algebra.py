@@ -231,6 +231,16 @@ class ClusterAlgebraSeed(SageObject):
         # B-matrix
         seed._B.mutate(k)
 
+        # exchange relation
+        if self.parent()._store_exchange_relations:
+            ex_pair = frozenset([g_vector,old_g_vector])
+            if ex_pair not in self.parent()._exchange_relations:
+                coefficient = self.coefficient(k).lift()
+                variables = zip(self.g_vectors(), self.b_matrix().column(k))
+                Mp = [ (g,p) for (g,p) in variables if p > 0 ]
+                Mm = [ (g,-p) for (g,p) in variables if p < 0 ]
+                self.parent()._exchange_relations[ex_pair] = ( (Mp,coefficient.numerator()), (Mm,coefficient.denominator()) )
+
         # wrap up
         if not inplace:
             return seed
@@ -339,6 +349,23 @@ class ClusterAlgebraSeed(SageObject):
             element = tuple(element)
             cluster = self.g_vectors()
         return element in cluster
+
+    def Y(self, j):
+        r"""
+        The j-th element of the Y-pattern in the universal coefficient semifield
+        C.f. CA4 definition 3.10
+        Uses CA4 Proposition 3.13
+        """
+        Y = prod(map(lambda y,c: y**c, self.parent()._U.gens(), self.c_vector(j)))
+        for i in range(self.parent()._n):
+            Y *= self.F_polynomial(i)**self.b_matrix()[i,j]
+        return self.parent()._U.fraction_field()(Y)
+
+    def coefficient(self, j):
+        # TODO: the name of this function can be confusing: what this returns is the ration of the two coefficients in the exchange relations or, if you prefer, the j-th column of the bottom part of the extended exchange matrix at this seed
+        ev = self.Y(j).subs(self.parent()._y)
+        #ev = self.parent().ambient_field()(ev)
+        return self.parent().retract(tropical_evaluation(ev))
 
 ################################################################################
 # Cluster algebras
@@ -464,6 +491,19 @@ class ClusterAlgebra(Parent):
 
         # Internal data for exploring the exchange graph
         self.reset_exploring_iterator()
+
+        # Internal data to store exchange relations
+        # This is a dictionary indexed by a frozen set of two g-vectors (the g-vectors of the exchanged variables)
+        # Exchange relations are, for the moment, a frozen set of precisely two entries (one for each term in the exchange relation's RHS). 
+        # Each of them contains two things
+        # 1) a list of pairs (g-vector, exponent) one for each cluster variable appearing in the term
+        # 2) the coefficient part of the term
+        # TODO: possibly refactor this producing a class ExchangeRelation with some pretty printing feature
+        self._exchange_relations = dict()
+        if 'store_exchange_relations' in kwargs and kwargs['store_exchange_relations']:
+            self._store_exchange_relations = True
+        else:
+            self._store_exchange_relations = False
 
         # Add methods that are defined only for special cases
         if n == 2:
@@ -685,6 +725,8 @@ class ClusterAlgebra(Parent):
                 break
 
     def cluster_fan(self, depth=infinity):
+        from sage.geometry.cone import Cone
+        from sage.geometry.fan import Fan
         seeds = self.seeds(depth=depth, mutating_F=False)
         cones = map(lambda s: Cone(s.g_vectors()), seeds)
         return Fan(cones)
@@ -764,3 +806,17 @@ def greedy_coefficient(self,d_vector,p,q):
 # I asked about the code and it seems Greg has very little confidence in the code he has so far...
 def theta_basis_element(self, g_vector):
     pass
+
+################################################################################
+# helper functions
+################################################################################
+def tropical_evaluation(f):
+    try:
+        # This is an hack to use the same code on polynomials, laurent polynomials and rational expressions
+        f = f.parent().fraction_field()(f)
+        num_exponents = map(min, zip(*f.numerator().exponents()))
+        den_exponents = map(min, zip(*f.denominator().exponents()))
+        variables = f.parent().gens()
+        return prod(map(lambda x,p: x**p, variables,num_exponents))*prod(map(lambda x,p: x**(-p), variables,den_exponents))
+    except: # This should only happen when f is a constant
+        return 1

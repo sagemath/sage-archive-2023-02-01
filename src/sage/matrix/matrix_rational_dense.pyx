@@ -91,8 +91,6 @@ import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
-
 #########################################################
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
@@ -2516,7 +2514,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage rational
         cdef Rational e = <Rational>Rational.__new__(Rational)
@@ -2533,7 +2531,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,3,[1..9])._rank_pari()
             2
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef long r = rank(pari_GEN(self))
         pari.clear_stack()
         return r
@@ -2562,7 +2560,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
             return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))
         A = new_matrix_from_pari_GEN(self.matrix_space(self._nrows, right._ncols), M)
         pari.clear_stack()
@@ -2586,7 +2584,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             raise ValueError("self must be a square matrix")
         cdef GEN M, d
 
-        pari_catch_sig_on()
+        sig_on()
         M = pari_GEN(self)
         d = ginv(M)
 

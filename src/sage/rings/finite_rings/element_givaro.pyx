@@ -53,7 +53,6 @@ AUTHORS:
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
@@ -447,7 +446,7 @@ cdef class Cache_givaro(SageObject):
         cdef GEN t
         cdef long c
         if isinstance(e, gen):
-            pari_catch_sig_on()
+            sig_on()
             t = (<gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
@@ -456,7 +455,7 @@ cdef class Cache_givaro(SageObject):
 
             if typ(t) == t_INT:
                 res = self.int_to_log(itos(t))
-                pari_catch_sig_off()
+                sig_off()
             elif typ(t) == t_POL:
                 res = self._zero_element
 
@@ -467,7 +466,7 @@ cdef class Cache_givaro(SageObject):
                     c = gtolong(gel(t, i+2))
                     res = self.objectptr.axpyin(res, self.int_to_log(c), x)
                     x = self.objectptr.mul(x,x,g)
-                pari_catch_sig_off()
+                sig_off()
             else:
                 raise TypeError("bad PARI type %r" % e.type())
 

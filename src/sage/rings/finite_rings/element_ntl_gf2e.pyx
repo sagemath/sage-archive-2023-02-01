@@ -23,7 +23,6 @@ include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -368,7 +367,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         cdef GEN t
         if isinstance(e, gen):
-            pari_catch_sig_on()
+            sig_on()
             t = (<gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
@@ -377,7 +376,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             if typ(t) == t_INT:
                 GF2E_conv_long(res.x, itos(t))
-                pari_catch_sig_off()
+                sig_off()
             elif typ(t) == t_POL:
                 g = self._gen
                 x = self._new()
@@ -387,7 +386,7 @@ cdef class Cache_ntl_gf2e(SageObject):
                     if gtolong(gel(t, i+2)):
                         GF2E_add(res.x, res.x, x.x)
                     GF2E_mul(x.x, x.x, g.x)
-                pari_catch_sig_off()
+                sig_off()
             else:
                 raise TypeError("bad PARI type %r" % e.type())
 

@@ -1,7 +1,7 @@
 """
 Available External Softwares
 
-This module makes up a list of external softwares that Sage interfaces. Availability 
+This module makes up a list of external softwares that Sage interfaces. Availability
 of each software is tested only when necessary.
 
 AUTHORS:
@@ -20,11 +20,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from multiprocessing import Array   
+from multiprocessing import Array
 
-# Functions in this module whose name is of the form 'has_xxx' tests if the 
+# Functions in this module whose name is of the form 'has_xxx' tests if the
 # software xxx is available to Sage.
-prefix = 'has_'   
+prefix = 'has_'
 
 def has_internet():
     """
@@ -75,7 +75,7 @@ def has_magma():
         magma('2+3')
         return True
     except Exception:
-        return False 
+        return False
 
 def has_matlab():
     """
@@ -92,7 +92,7 @@ def has_matlab():
         matlab('2+3')
         return True
     except Exception:
-        return False 
+        return False
 
 def has_mathematica():
     """
@@ -109,7 +109,7 @@ def has_mathematica():
         mathematica('2+3')
         return True
     except Exception:
-        return False  
+        return False
 
 def has_maple():
     """
@@ -126,7 +126,7 @@ def has_maple():
         maple('2+3')
         return True
     except Exception:
-        return False   
+        return False
 
 def has_macaulay2():
     """
@@ -143,7 +143,7 @@ def has_macaulay2():
         macaulay2('2+3')
         return True
     except Exception:
-        return False   
+        return False
 
 def has_octave():
     """
@@ -160,7 +160,7 @@ def has_octave():
         octave('2+3')
         return True
     except Exception:
-        return False  
+        return False
 
 def has_scilab():
     """
@@ -211,7 +211,7 @@ def has_gurobi():
         MixedIntegerLinearProgram(solver='gurobi')
         return True
     except Exception:
-        return False   
+        return False
 
 def external_softwares():
     """
@@ -280,12 +280,12 @@ class AvailableSoftwares(object):
         elif self.seen[idx] == -1:
             return False
         else:
-            raise Exception # should not happen!
+            raise AssertionError("Invalid value for self.seen")
 
     def issuperset(self, other):
         for item in other:
             if item not in self:
                 return False
-        return True    
+        return True
 
 available_softwares = AvailableSoftwares()

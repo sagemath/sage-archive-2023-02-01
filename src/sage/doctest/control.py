@@ -1045,7 +1045,7 @@ class DocTestController(SageObject):
 
             if self.options.optional is True or 'external' in self.options.optional:
                 self.log("Available external softwares detected: " 
-                    + ','.join([s for s in external_softwares if s in available_softwares]))  
+                    + ','.join([s for s in external_softwares if s in available_softwares]))
             return self.reporter.error_status
 
 def run_doctests(module, options=None):

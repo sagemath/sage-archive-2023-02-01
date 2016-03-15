@@ -20,7 +20,6 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.structure.sage_object import SageObject
 from sage.misc.misc import walltime, cputime
 
 def count_noun(number, noun, plural=None, pad_number=False, pad_noun=False):

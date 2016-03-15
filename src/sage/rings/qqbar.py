@@ -3756,7 +3756,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         TESTS:
 
-        Check that trac:`20209` is fixed::
+        Check that :trac:`20209` is fixed::
 
             sage: RIF(QQbar(2).sqrt())
             1.414213562373095?

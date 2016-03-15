@@ -309,10 +309,7 @@ OTHER Examples::
     ...       return mathematica(nu).BesselK(x).N(20)
     ...
     sage: math_bessel_K(2,I)                      # optional - mathematica
-    0.180489972066962*I - 2.592886175491197             # 32-bit
-    -2.592886175491196978167660670189023282493657813238337213057 +   # 64-bit
-     0.180489972066962026629620880838378650496225703515410936432*I   # 64-bit
-
+    -2.5928861754911969782 + 0.1804899720669620266 I
 
 ::
 
@@ -637,10 +634,9 @@ class MathematicaElement(ExpectElement):
             raise AttributeError
         return MathematicaFunctionElement(self, attrname)
 
-    def __float__(self):
+    def __float__(self, pres=16):
         P = self.parent()
-        # TODO: Is 16 enough?
-        return float(P.eval('N[%s,16]'%self.name()))
+        return float(P.eval('N[%s,%s]'%(self.name(),pres)))
 
     def _reduce(self):
         return self.parent().eval('InputForm[%s]'%self.name())
@@ -890,7 +886,7 @@ class MathematicaElement(ExpectElement):
                 return
             if dmp == 'latex' and OutputLatex in display_manager.supported_output():
                 return OutputLatex(self._latex_())
-        
+
     def show(self, ImageSize=600):
         r"""
         Show a mathematica expression immediately.
@@ -921,8 +917,8 @@ class MathematicaElement(ExpectElement):
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
-        dm.display_immediately(self, ImageSize=ImageSize) 
-        
+        dm.display_immediately(self, ImageSize=ImageSize)
+
     def str(self):
         return str(self)
 
@@ -940,20 +936,51 @@ class MathematicaElement(ExpectElement):
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
 
-    def N(self, *args):
-        """
+    def N(self, precision=None):
+        r"""
+        Numerical approximation by calling Mathematica's `N[]`
+
+        Calling Mathematica's `N[]` function, with optional precision in decimal digits.
+
+        A workaround for :trac:`18888` backtick issue, stripped away by `get()`,
+        is included.
+
+        .. note::
+
+            The base class way up the hierarchy defines an `N` (modeled
+            after Mathematica's)  which overwrites the Mathematica one,
+            and doesn't work at all. We restore it here.
+
         EXAMPLES::
 
-            sage: mathematica('Pi').N(10)    # optional -- mathematica
-            3.1415926535897932384626433832795028842
+            sage: mathematica('Pi/2').N(10)    # optional -- mathematica
+            1.570796327
             sage: mathematica('Pi').N(50)    # optional -- mathematica
-            3.14159265358979323846264338327950288419716939937510582097494459230781638604904
+            3.1415926535897932384626433832795028841971693993751
+            sage: mathematica('Pi*x^2-1/2').N()
+                            2
+            -0.5 + 3.14159 x
         """
-        # The base class way up the hierarchy defines an "N" (modeled
-        # after Mathematica's!)  which overwrites the Mathematica one,
-        # and doesn't work at all. We restore it here.
-        return self.parent().N(self, *args)
+        P = self.parent()
+        if precision is None:
+            return P.eval('N[%s]'%self.name())
+        return P.eval('N[%s,%s]'%(self.name(),precision))
 
+    def n(self, *args):
+        r"""
+        Numerical approximation by converting to Sage object first
+
+        Convert the object into a Sage object and return its numerical
+        approximation.
+
+        EXAMPLES::
+
+            sage: mathematica('Pi').n(10)    # optional -- mathematica
+            3.1
+            sage: mathematica('Pi').n()      # optional -- mathematica
+            3.14159265358979
+        """
+        return self._sage_().n(*args)
 
 class MathematicaFunction(ExpectFunction):
     def _sage_doc_(self):

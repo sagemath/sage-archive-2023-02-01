@@ -86,15 +86,7 @@ def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
     In particular, this function can be used for strictly convex cones and
     complete fans.
 
-    REFERENCES:
-
-    ..  [KP2002]
-        Volker Kaibel and Marc E. Pfetsch,
-        "Computing the Face Lattice of a Polytope from its Vertex-Facet
-        Incidences", Computational Geometry: Theory and Applications,
-        Volume 23, Issue 3 (November 2002), 281-290.
-        Available at http://portal.acm.org/citation.cfm?id=763203
-        and free of charge at http://arxiv.org/abs/math/0106043
+    REFERENCES: [KP2002]_
 
     AUTHORS:
 

@@ -27,15 +27,39 @@ Check the fix from :trac:`8323`::
     sage: 'func' in globals()
     False
 
+Test deprecation::
+
+    sage: sage.misc.misc.srange(5)
+    doctest:...: DeprecationWarning:
+    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
+    See http://trac.sagemath.org/20094 for details.
+    [0, 1, 2, 3, 4]
+    sage: sage.misc.misc.sxrange(5)
+    doctest:...: DeprecationWarning:
+    Importing sxrange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
+    See http://trac.sagemath.org/20094 for details.
+    <generator object at 0x...>
+    sage: sage.misc.misc.mul([3,4])
+    doctest:...: DeprecationWarning:
+    Importing prod from here is deprecated. If you need to use it, please import it directly from sage.misc.all
+    See http://trac.sagemath.org/17460 for details.
+    12
+    sage: sage.misc.misc.cancel_alarm()
+    doctest:...: DeprecationWarning:
+    Importing cancel_alarm from here is deprecated. If you need to use it, please import it directly from cysignals.alarm
+    See http://trac.sagemath.org/20002 for details.
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
+
 
 __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "generic_cmp", "to_gmp_hex", "todo",
@@ -43,16 +67,23 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "assert_attribute", "LOGFILE"]
 
 from warnings import warn
-import operator, os, stat, socket, sys, signal, time, weakref, resource, math
+import os, stat, sys, signal, time, resource, math
 import sage.misc.prandom as random
 from lazy_string import lazy_string
 
-from sage.misc.temporary_file import tmp_dir, tmp_filename, delete_tmpfiles
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.srange', ('xsrange', 'srange', 'ellipsis_range', 'ellipsis_iter'), deprecation=20094)
+lazy_import('sage.arith.srange', 'xsrange', 'sxrange', deprecation=20094)
+lazy_import('sage.misc.temporary_file', ('tmp_dir', 'tmp_filename', 'delete_tmpfiles'), deprecation=17460)
+lazy_import('sage.misc.banner', ('version', 'banner'), deprecation=17460)
+lazy_import('sage.env', '*', deprecation=17460)
+lazy_import('sage.misc.decorators', ('infix_operator', 'decorator_defaults', 'sage_wraps'), deprecation=17460)
+lazy_import('sage.misc.all', ('prod', 'running_total', 'balanced_sum', 'is_64_bit', 'is_32_bit'), deprecation=17460)
+lazy_import('cysignals.alarm', ('alarm', 'cancel_alarm'), deprecation=20002)
+mul = prod
 
-from banner import version, banner
 
-# for backwards compatiblity
-from sage.env import *
+from sage.env import DOT_SAGE, HOSTNAME
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
 
@@ -127,6 +158,7 @@ def SAGE_TMP():
 def SPYX_TMP():
     """
     EXAMPLES::
+
         sage: from sage.misc.misc import SPYX_TMP
         sage: SPYX_TMP
         l'.../temp/.../spyx'
@@ -570,53 +602,6 @@ def cmp_props(left, right, props):
         if c: return c
     return 0
 
-from sage.misc.misc_c import prod, running_total, balanced_sum, is_64_bit, is_32_bit
-
-# alternative name for prod
-mul = prod
-
-add = sum
-
-## def add(x, z=0):
-##     """
-##     Return the sum of the elements of x.  If x is empty,
-##     return z.
-
-##     INPUT:
-##         x -- iterable
-##         z -- the "0" that will be returned if x is empty.
-
-##     OUTPUT:
-##         object
-
-##     EXAMPLES:
-
-##     A very straightforward usage:
-##         sage: add([1,2,3])
-##         6
-
-##     In the following example, xrange is an iterator:
-##         sage: add(xrange(101))
-##         5050
-
-##     Append two sequences.
-##         sage: add([[1,1], [-1,0]])
-##         [1, 1, -1, 0]
-
-##     The zero can be anything:
-##         sage: add([], "zero")
-##         'zero'
-##     """
-##     if len(x) == 0:
-##         return z
-##     if not isinstance(x, list):
-##         m = x.__iter__()
-##         y = m.next()
-##         return reduce(operator.add, m, y)
-##     else:
-##         return reduce(operator.add, x[1:], x[0])
-
-
 def union(x, y=None):
     """
     Return the union of x and y, as a list. The resulting list need not
@@ -792,12 +777,10 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
 
     s = ""
     first = True
-    i = 0
 
     if scalar_mult is None:
         scalar_mult = "" if is_latex else "*"
 
-    all_atomic = True
     for (monomial,c) in terms:
         if c != 0:
             coeff = coeff_repr(c)
@@ -954,6 +937,7 @@ def compose(f, g):
         3*x + 3
 
     ::
+
         sage: _ = function('f g')
         sage: _ = var ('x')
         sage: compose(f,g)(x)
@@ -1054,542 +1038,6 @@ def nest(f, n, x):
     for i in xrange(n):
         x = f(x)
     return x
-
-
-#################################################################
-# Ranges and [1,2,..,n] notation.
-#################################################################
-
-def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=False, endpoint_tolerance=1e-5):
-    r"""
-    Return list of numbers ``a, a+step, ..., a+k*step``,
-    where ``a+k*step < b`` and ``a+(k+1)*step >= b`` over
-    exact rings, and makes a best attempt for inexact rings
-    (see note below).
-
-    This provides one way to iterate over Sage integers as opposed to
-    Python int's.  It also allows you to specify step sizes for such
-    an iteration.  Note, however, that what is returned is a full list
-    of Integers and not an iterator.  It is potentially much slower
-    than the Python range function, depending on the application.  The
-    function xsrange() provides an iterator with similar functionality
-    which would usually be more efficient than using srange().
-
-    INPUT:
-
-    - ``a`` - number
-    - ``b`` - number (default: None)
-    - ``step`` - number (default: 1)
-    - ``universe`` - Parent or type where all the elements should live (default: deduce from inputs)
-    - ``check`` - make sure a, b, and step all lie in the same universe
-    - ``include_endpoint`` - whether or not to include the endpoint (default: False)
-    - ``endpoint_tolerance`` - used to determine whether or not the endpoint is hit for inexact rings (default 1e-5)
-
-    OUTPUT:
-
-    - list
-
-    If b is None, then b is set equal to a and a is
-    set equal to the 0 in the parent of b.
-
-    Unlike range, a and b can be any type of numbers, and the
-    resulting list involves numbers of that type.
-
-    .. note::
-
-       The list elements are computed via repeated addition
-       rather than multiplication, which may produce slightly
-       different results with inexact rings. For example::
-
-           sage: sum([1.1] * 10) == 1.1 * 10
-           False
-
-       Also, the question of whether the endpoint is hit exactly for
-       a given ``a + k*step`` is fuzzy for an inexact ring. If
-       ``a + k*step = b`` for some k within ``endpoint_tolerance`` of
-       being integral, it is considered an exact hit, thus avoiding spurious
-       values falling just below the endpoint.
-
-    .. note::
-
-       This function is called ``srange`` to distinguish
-       it from the built-in Python ``range`` command.  The s
-       at the beginning of the name stands for "Sage".
-
-    .. seealso: :func:`xsrange` -- iterator version
-
-    EXAMPLES::
-
-        sage: v = srange(5); v
-        [0, 1, 2, 3, 4]
-        sage: type(v[2])
-        <type 'sage.rings.integer.Integer'>
-        sage: srange(1, 10)
-        [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        sage: srange(10, 1, -1)
-        [10, 9, 8, 7, 6, 5, 4, 3, 2]
-        sage: srange(10,1,-1, include_endpoint=True)
-        [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-        sage: srange(1, 10, universe=RDF)
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
-
-        sage: srange(1, 10, 1/2)
-        [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
-        sage: srange(1, 5, 0.5)
-        [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
-        sage: srange(0, 1, 0.4)
-        [0.000000000000000, 0.400000000000000, 0.800000000000000]
-        sage: srange(1.0, 5.0, include_endpoint=True)
-        [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000]
-        sage: srange(1.0, 1.1)
-        [1.00000000000000]
-        sage: srange(1.0, 1.0)
-        []
-        sage: V = VectorSpace(QQ, 2)
-        sage: srange(V([0,0]), V([5,5]), step=V([2,2]))
-        [(0, 0), (2, 2), (4, 4)]
-
-    Including the endpoint::
-
-        sage: srange(0, 10, step=2, include_endpoint=True)
-        [0, 2, 4, 6, 8, 10]
-        sage: srange(0, 10, step=3, include_endpoint=True)
-        [0, 3, 6, 9]
-
-    Try some inexact rings::
-
-        sage: srange(0.5, 1.1, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999]
-        sage: srange(0.5, 1, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999]
-        sage: srange(0.5, 0.9, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.7999999999999999]
-        sage: srange(0, 1.1, 0.1, universe=RDF, include_endpoint=True)
-        [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999, 1.1]
-        sage: srange(0, 0.2, 0.1, universe=RDF, include_endpoint=True)
-        [0.0, 0.1, 0.2]
-        sage: srange(0, 0.3, 0.1, universe=RDF, include_endpoint=True)
-        [0.0, 0.1, 0.2, 0.3]
-
-    TESTS:
-
-    These are doctests from :trac:`6409`::
-
-        sage: srange(1,0,include_endpoint=True)
-        []
-        sage: srange(1,QQ(0),include_endpoint=True)
-        []
-        sage: srange(3,0,-1,include_endpoint=True)
-        [3, 2, 1, 0]
-        sage: srange(1,1,0) # trac ticket #11753
-        Traceback (most recent call last):
-        ...
-        ValueError: srange() step argument must not be zero
-    """
-    from sage.structure.sequence import Sequence
-    from sage.rings.all import ZZ
-
-    if end is None:
-        end = start
-        start = 0
-
-    if check:
-        if universe is None:
-            universe = Sequence([start, end, step]).universe()
-        start, end, step = universe(start), universe(end), universe(step)
-
-    if step == Sequence([step]).universe()(0):
-        raise ValueError("srange() step argument must not be zero")
-
-    if universe in [int, long, ZZ]:
-        if include_endpoint and (end-start) % step == 0:
-            end += step
-        if universe is ZZ:
-            return ZZ.range(start, end, step)
-        else: # universe is int or universe is long:
-            return range(start, end, step)
-
-    L = list(xsrange(start,end,step,universe,check,include_endpoint,endpoint_tolerance))
-    return L
-
-
-def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint=False, endpoint_tolerance=1e-5):
-    """
-    Return an iterator over numbers
-    ``a, a+step, ...,  a+k*step``, where ``a+k*step < b`` and
-    ``a+(k+1)*step > b``.
-
-    INPUT:
-        universe -- Parent or type where all the elements should live (default: deduce from inputs)
-        check -- make sure a, b, and step all lie in the same universe
-        include_endpoint -- whether or not to include the endpoint (default: False)
-        endpoint_tolerance -- used to determine whether or not the endpoint is hit for inexact rings (default 1e-5)
-
-
-    -  ``a`` - number
-
-    -  ``b`` - number
-
-    -  ``step`` - number (default: 1)
-
-
-    OUTPUT: iterator
-
-    Unlike range, a and b can be any type of numbers, and the resulting
-    iterator involves numbers of that type.
-
-    .. seealso::
-
-       :func:`srange`
-
-    .. note::
-
-       This function is called ``xsrange`` to distinguish it from the
-       builtin Python ``xrange`` command.
-
-    EXAMPLES::
-
-        sage: list(xsrange(1,10))
-        [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        sage: Q = RationalField()
-        sage: list(xsrange(1, 10, Q('1/2')))
-        [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
-        sage: list(xsrange(1, 5, 0.5))
-        [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
-        sage: list(xsrange(0, 1, 0.4))
-        [0.000000000000000, 0.400000000000000, 0.800000000000000]
-
-    Negative ranges are also allowed::
-
-        sage: list(xrange(4,1,-1))
-        [4, 3, 2]
-        sage: list(sxrange(4,1,-1))
-        [4, 3, 2]
-        sage: list(sxrange(4,1,-1/2))
-        [4, 7/2, 3, 5/2, 2, 3/2]
-
-    TESTS:
-
-    These are doctests from trac ticket #6409::
-
-        sage: list(xsrange(1,QQ(0),include_endpoint=True))
-        []
-        sage: list(xsrange(1,QQ(0),-1,include_endpoint=True))
-        [1, 0]
-        sage: xsrange(1,1,0) # trac ticket #11753
-        Traceback (most recent call last):
-        ...
-        ValueError: xsrange() step argument must not be zero
-    """
-    from sage.structure.sequence import Sequence
-    from sage.rings.all import ZZ
-
-    if end is None:
-        end = start
-        start = 0
-
-    if check:
-        if universe is None:
-            universe = Sequence([start, end, step]).universe()
-        start, end, step = universe(start), universe(end), universe(step)
-
-    if step == Sequence([step]).universe()(0):
-        raise ValueError("xsrange() step argument must not be zero")
-
-    if universe in [int, long, ZZ]:
-        if include_endpoint and (end-start) % step == 0:
-            end += step
-            include_endpoint = False
-        if universe is not ZZ:
-            return xrange(start, end, step)
-
-    count = (end-start)/step
-    if not isinstance(universe, type) and universe.is_exact():
-        icount = int(math.ceil(float(count)))
-        if icount != count:
-            include_endpoint = False
-    else:
-        icount = int(math.ceil(float(count) - endpoint_tolerance))
-        if abs(float(count) - icount) > endpoint_tolerance:
-            include_endpoint = False
-
-    def generic_xsrange():
-        if icount >=0:
-            cur = start
-            for k in xrange(icount):
-                yield cur
-                cur += step
-            if include_endpoint:
-                yield end
-
-    return generic_xsrange()
-
-
-sxrange = xsrange
-
-
-def ellipsis_range(*args, **kwds):
-    """
-    Return arithmetic sequence determined by the numeric arguments and
-    ellipsis. Best illustrated by examples.
-
-    Use [1,2,..,n] notation.
-
-    EXAMPLES::
-
-        sage: ellipsis_range(1,Ellipsis,11,100)
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 100]
-        sage: ellipsis_range(0,2,Ellipsis,10,Ellipsis,20)
-        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-        sage: ellipsis_range(0,2,Ellipsis,11,Ellipsis,20)
-        [0, 2, 4, 6, 8, 10, 11, 13, 15, 17, 19]
-        sage: ellipsis_range(0,2,Ellipsis,11,Ellipsis,20, step=3)
-        [0, 2, 5, 8, 11, 14, 17, 20]
-        sage: ellipsis_range(10,Ellipsis,0)
-        []
-
-    TESTS: These were carefully chosen tests, only to be changed if the
-    semantics of ellipsis ranges change. In other words, if they don't
-    pass it's probably a bug in the implementation, not in the
-    doctest.
-
-    Note 10 only appears once (though it is in both ranges).
-
-    ::
-
-        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=2)
-        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-
-    Sometimes one or more ranges is empty.
-
-    ::
-
-        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=2)
-        [10, 12, 14, 16, 18, 20]
-        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=2)
-        [0, 2, 4, 6, 8, 10]
-        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,-20,step=2)
-        []
-
-    We always start on the leftmost point of the range.
-
-    ::
-
-        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=3)
-        [0, 3, 6, 9, 10, 13, 16, 19]
-        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=3)
-        [10, 13, 16, 19]
-        sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=3)
-        [0, 3, 6, 9]
-        sage: ellipsis_range(100,Ellipsis,10,Ellipsis,-20,step=3)
-        []
-        sage: ellipsis_range(0,1,Ellipsis,-10)
-        []
-        sage: ellipsis_range(0,1,Ellipsis,-10,step=1)
-        [0]
-        sage: ellipsis_range(100,0,1,Ellipsis,-10)
-        [100]
-
-    Note the duplicate 5 in the output.
-
-    ::
-
-        sage: ellipsis_range(0,Ellipsis,5,5,Ellipsis,10)
-        [0, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10]
-
-    Examples in which the step determines the parent of the elements::
-
-        sage: [1..3, step=0.5]
-        [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000]
-        sage: v = [1..5, step=1/1]; v
-        [1, 2, 3, 4, 5]
-        sage: parent(v[2])
-        Rational Field
-    """
-    # Use kwds so step not absorbed into *args
-    step_magic = 0
-    if len(kwds) == 0:
-        step = 1
-        if Ellipsis in args:
-            i = list(args).index(Ellipsis)
-            if i > 1:
-                step = args[i-1]-args[i-2]
-                step_magic = i
-    else:
-        step = kwds.pop('step')
-        if len(kwds) != 0:
-            TypeError, "Unexpected keywords", kwds
-
-    from sage.structure.sequence import Sequence
-    S = Sequence([a for a in args if a is not Ellipsis] + [step])
-    universe = S.universe()
-    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
-    step = universe(step)
-
-    skip = False
-    last_end = None
-    L = []
-    for i in range(len(args)):
-        if skip:
-            skip = False
-        elif args[i] is Ellipsis:
-            if len(args) == i+1:
-                raise IndexError("Ellipsis range must have an endpoint, use (n..) for infinite sequence.")
-            start, end = args[i-1], args[i+1]
-            if i < 2 or args[i-2] is not Ellipsis:
-                L.pop()
-                if i == step_magic:
-                    L.pop()
-                    start = args[i-2]
-            more = srange(start, end, step, universe=universe, check=False, include_endpoint=True)
-            if len(more) > 0:
-                if last_end == more[0]:
-                    L.pop()
-                last_end = more[-1]
-                L += more
-            else:
-                last_end = None
-            skip = True
-        else:
-            L.append(args[i])
-            last_end = None
-    return L
-
-
-def ellipsis_iter(*args, **kwds):
-    """
-    Same as ellipsis_range, but as an iterator (and may end with an
-    Ellipsis).
-
-    See also ellipsis_range.
-
-    Use (1,2,...) notation.
-
-    EXAMPLES::
-
-        sage: A = ellipsis_iter(1,2,Ellipsis)
-        sage: [A.next() for _ in range(10)]
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        sage: A.next()
-        11
-        sage: A = ellipsis_iter(1,3,5,Ellipsis)
-        sage: [A.next() for _ in range(10)]
-        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
-        sage: A = ellipsis_iter(1,2,Ellipsis,5,10,Ellipsis)
-        sage: [A.next() for _ in range(10)]
-        [1, 2, 3, 4, 5, 10, 11, 12, 13, 14]
-
-    TESTS:
-
-    These were carefully chosen tests, only to be changed if the
-    semantics of ellipsis ranges change. In other words, if they don't
-    pass it's probably a bug in the implementation, not in the
-    doctest.
-
-    ::
-
-        sage: list(1,..,10)
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        sage: list(1,3,..,10)
-        [1, 3, 5, 7, 9]
-        sage: list(1,..,10,..,20)
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-        sage: list(1,3,..,10,..,20)
-        [1, 3, 5, 7, 9, 10, 12, 14, 16, 18, 20]
-        sage: list(1,3,..,10,10,..,20)
-        [1, 3, 5, 7, 9, 10, 12, 14, 16, 18, 20]
-        sage: list(0,2,..,10,10,..,20,20,..,25)
-        [0, 2, 4, 6, 8, 10, 10, 12, 14, 16, 18, 20, 20, 22, 24]
-        sage: list(10,..,1)
-        []
-        sage: list(10,11,..,1)
-        []
-        sage: list(10,9,..,1)
-        [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-        sage: list(100,..,10,..,20)
-        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-        sage: list(0,..,10,..,-20)
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        sage: list(100,..,10,..,-20)
-        []
-        sage: list(100,102,..,10,..,20)
-        [10, 12, 14, 16, 18, 20]
-    """
-    # Use kwds so step not absorbed into *args
-    step_magic = 0
-    if len(kwds) == 0:
-        step = 1
-        if Ellipsis in args:
-            i = list(args).index(Ellipsis)
-            if i > 1:
-                step = args[i-1]-args[i-2]
-                step_magic = i
-    else:
-        step = kwds.pop('step')
-        if len(kwds) != 0:
-            TypeError, "Unexpected keywords", kwds
-
-    from sage.structure.sequence import Sequence
-    S = Sequence([a for a in args if a is not Ellipsis] + [step])
-    universe = S.universe()
-    args = [Ellipsis if a is Ellipsis else universe(a) for a in args]
-    step = universe(step)
-
-    # this is a bit more complicated because we can't pop what's already been yielded
-    next = None
-    skip = False
-    last_end = None
-    # first we handle step_magic (which may require two pops if the range is empty)
-    if step_magic:
-        for i in range(step_magic-2):
-            yield args[i]
-        if len(args) > step_magic+1:
-            i = step_magic
-            more = xsrange(args[i-2], args[i+1], step, universe=universe, check=False, include_endpoint=True)
-            a = None
-            for a in more:
-                yield a
-            last_end = a
-            skip = True
-            next = None
-            step_magic += 1
-        else:
-            yield args[step_magic-2]
-
-    # now onto the rest
-    L = []
-    for i in range(step_magic, len(args)):
-        if skip:
-            skip = False
-        elif args[i] is Ellipsis:
-            if i == len(args)-1:
-                # continue forever
-                cur = args[i-1]
-                if last_end != cur:
-                    yield cur
-                while True:
-                    cur += step
-                    yield cur
-            start, end = args[i-1], args[i+1]
-            if i < 2 or args[i-2] is not Ellipsis:
-                next = None # L.pop()
-            more = xsrange(start, end, step, universe=universe, check=False, include_endpoint=True)
-            try:
-                first = more.next()
-                if last_end != first:
-                    yield first
-                for a in more:
-                    yield a
-                last_end = a
-            except StopIteration: # len(more) == 0
-                last_end = None
-            skip = True
-            next = None
-        else:
-            if next is not None:
-                yield next
-            next = args[i]
-            last_end = None
 
 
 #################################################################
@@ -1712,24 +1160,6 @@ def is_iterator(it):
 #################################################################
 
 
-def _xsrange(a,b=None,step=1):
-    if b is None:
-        b = a
-        try:
-            a = b.parent()(0)
-        except AttributeError:
-            a = type(b)(0)
-    cur = a
-    if step > 0:
-        while cur < b:
-            yield cur
-            cur += step
-    elif step < 0:
-        while cur > b:
-            yield cur
-            cur += step
-    return
-
 def random_sublist(X, s):
     """
     Return a pseudo-random sublist of the list X where the probability
@@ -1756,7 +1186,33 @@ def random_sublist(X, s):
     return [a for a in X if random.random() <= s]
 
 
+def some_tuples(elements, repeat, bound):
+    r"""
+    Return an iterator over at most ``bound`` number of ``repeat``-tuples of
+    ``elements``.
 
+    TESTS::
+
+        sage: from sage.misc.misc import some_tuples
+        sage: l = some_tuples([0,1,2,3], 2, 3)
+        sage: l
+        <itertools.islice object at ...>
+        sage: len(list(l))
+        3
+
+        sage: l = some_tuples(range(50), 3, 10)
+        sage: len(list(l))
+        10
+
+    .. TODO::
+
+        Currently, this only return an iterator over the first element of the
+        Cartesian product. It would be smarter to return something more
+        "random like" as it is used in tests. However, this should remain
+        deterministic.
+    """
+    from itertools import islice, product
+    return islice(product(elements, repeat=repeat), bound)
 
 def powerset(X):
     r"""
@@ -1849,14 +1305,6 @@ class cached_attribute(object):
         result = self.method(inst)
         setattr(inst, self.name, result)
         return result
-
-class cached_class_attribute(cached_attribute):
-    """
-    Computes attribute value and caches it in the class.
-    """
-    def __get__(self, inst, cls):
-        # just delegate to CachedAttribute, with 'cls' as ``instance''
-        return super(CachedClassAttribute, self).__get__(cls, cls)
 
 class lazy_prop(object):
     def __init__(self, calculate_function):
@@ -1994,50 +1442,6 @@ def sourcefile(object):
     Work out which source or compiled file an object was defined in.
     """
     return inspect.getfile(object)
-
-
-#################################################################
-# alarm
-#################################################################
-def alarm(seconds):
-    """
-    Raise an :class:`AlarmInterrupt` exception in a given number of
-    seconds. This is useful for automatically interrupting long
-    computations and can be trapped using exception handling.
-
-    Use :func:`cancel_alarm` to cancel a previously scheduled alarm.
-
-    INPUT:
-
-    -  ``seconds`` -- positive number, may be floating point
-
-    EXAMPLES::
-
-        sage: alarm(0.5); factor(2^1031-1)
-        Traceback (most recent call last):
-        ...
-        AlarmInterrupt
-        sage: alarm(0)
-        Traceback (most recent call last):
-        ...
-        ValueError: alarm() time must be positive
-    """
-    if seconds <= 0:
-        raise ValueError("alarm() time must be positive")
-    signal.setitimer(signal.ITIMER_REAL, seconds, 0)
-
-def cancel_alarm():
-    """
-    Cancel a previously scheduled alarm (if any) set by :func:`alarm`.
-
-    EXAMPLES::
-
-        sage: alarm(0.5)
-        sage: cancel_alarm()
-        sage: cancel_alarm()  # Calling more than once doesn't matter
-        sage: sleep(0.6)      # sleep succeeds
-    """
-    signal.setitimer(signal.ITIMER_REAL, 0, 0)
 
 
 #################################################################
@@ -2474,7 +1878,3 @@ def inject_variable_test(name, value, depth):
         inject_variable(name, value)
     else:
         inject_variable_test(name, value, depth - 1)
-
-#For backward compatibility -- see #9907.
-from sage.misc.decorators import infix_operator, decorator_defaults, sage_wraps
-

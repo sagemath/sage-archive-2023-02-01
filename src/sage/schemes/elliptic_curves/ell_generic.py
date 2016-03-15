@@ -13,8 +13,8 @@ EXAMPLES:
 We construct an elliptic curve over an elaborate base ring::
 
     sage: p = 97; a=1; b=3
-    sage: R, u = PolynomialRing(GF(p), 'u').objgen()
-    sage: S, v = PolynomialRing(R, 'v').objgen()
+    sage: R.<u> = GF(p)[]
+    sage: S.<v> = R[]
     sage: T = S.fraction_field()
     sage: E = EllipticCurve(T, [a, b]); E
     Elliptic Curve defined by y^2  = x^3 + x + 3 over Fraction Field of Univariate Polynomial Ring in v over Univariate Polynomial Ring in u over Finite Field of size 97
@@ -35,19 +35,15 @@ AUTHORS:
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
-#                     2014 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import math
 
@@ -58,10 +54,10 @@ import sage.groups.generic as generic
 import sage.plot.all as plot
 from sage.plot.plot import generate_plot_points
 
-import sage.rings.arith as arith
+from sage.arith.all import lcm
 import sage.rings.all as rings
 from sage.rings.number_field.number_field_base import is_NumberField
-import sage.misc.misc as misc
+from sage.misc.all import prod as mul
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.fast_methods import WithEqualityById
 
@@ -76,11 +72,8 @@ import formal_group
 import weierstrass_morphism as wm
 
 
-factor = arith.factor
 sqrt = math.sqrt
 exp = math.exp
-mul = misc.mul
-next_prime = arith.next_prime
 
 oo = rings.infinity       # infinity
 O = rings.O         # big oh
@@ -559,23 +552,28 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
     def _reduce_point(self, R, p):
         r"""
-        Reduces a point R on an ellipitc curve to the corresponding point on
-        the elliptic curve reduced modulo p. Used to coerce points between
+        Reduces a point R on an elliptic curve to the corresponding point on
+        the elliptic curve reduced modulo p.
+
+        Used to coerce points between
         curves when p is a factor of the denominator of one of the
         coordinates.
 
-        This functionality is used internally in the \code{call} method for
+        This functionality is used internally in the ``call`` method for
         elliptic curves.
 
         INPUT:
-            R -- a point on an elliptic curve
-            p -- a prime
+
+        - R -- a point on an elliptic curve
+        - p -- a prime
 
         OUTPUT:
-            S -- the corresponding point of the elliptic curve containing R, but
-                 reduced modulo p
+
+        S -- the corresponding point of the elliptic curve containing
+           R, but reduced modulo p
 
         EXAMPLES:
+
         Suppose we have a point with large height on a rational elliptic curve
         whose denominator contains a factor of 11::
 
@@ -604,7 +602,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         if R.is_zero():
             return R.curve().change_ring(rings.GF(p))(0)
         x, y = R.xy()
-        d = arith.LCM(x.denominator(), y.denominator())
+        d = lcm(x.denominator(), y.denominator())
         return R.curve().change_ring(rings.GF(p))([x*d, y*d, d])
 
     def is_x_coord(self, x):
@@ -2779,10 +2777,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
         Epi = iter(Ep) # used to iterate through Ep
         # Find P1,P2 which generate the p-torsion:
-        P1 = Epi.next()
-        while P1.is_zero(): P1 = Epi.next()
-        P2 = Epi.next()
-        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
+        P1 = next(Epi)
+        while P1.is_zero(): P1 = next(Epi)
+        P2 = next(Epi)
+        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = next(Epi)
 
         k = 1
         log_order = 2

@@ -21,6 +21,8 @@ from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport *
 
 include "sage/ext/stdsage.pxi"
+include "cysignals/signals.pxi"
+
 
 cdef inline celement *celement_new(unsigned long n):
     cdef celement *g = <celement *>sage_malloc(sizeof(nmod_poly_t))

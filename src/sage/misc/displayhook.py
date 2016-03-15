@@ -1,28 +1,49 @@
+# -*- encoding: utf-8 -*-
 """
-Old Displayhook
+Entrypoint for the SageNB Display System
 
 Just for compatibility with the notebook, you should not use this any
-more. Look into ``sage/repl/display`` instead.
+more. Look into ``sage/repl/`` instead.
 """
 
-from sage.repl.display.python_hook import DoctestDisplayHook
-from sage.repl.display.formatter import SageNBTextFormatter
+#*****************************************************************************
+#       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.repl.rich_output import get_display_manager
+from sage.repl.rich_output.backend_sagenb import BackendSageNB
 
 
-class DisplayHook(DoctestDisplayHook):
+def DisplayHook():
+    """
+    This function is called by SageNB to set up its displayhook.
 
-    def __init__(self):
-        """
-        Python constructor
+    OUTPUT:
 
-        EXAMPLES::
+    The new displayhook that will be used by SageNB
 
-            sage: from sage.repl.display.python_hook import DoctestDisplayHook
-            sage: d = DoctestDisplayHook()
-            sage: d(set([1, 2, 3]))       # Sage commandline output
-            {1, 2, 3}
-            sage: print(set([1, 2, 3]))   # Plain Python output
-            set([1, 2, 3])
-        """
-        # do not call super, we set our own formatter
-        self.formatter = SageNBTextFormatter()
+    EXAMPLES::
+
+        sage: from sage.misc.displayhook import DisplayHook
+        sage: d = DisplayHook()
+        sage: d
+        <bound method DisplayManager.displayhook of The 
+        Sage display manager using the SageNB backend>
+
+        sage: d(set([1, 2, 3]))       # Sage commandline output
+        {1, 2, 3}
+
+        sage: from sage.repl.rich_output import get_display_manager
+        sage: get_display_manager()
+        The Sage display manager using the SageNB backend
+    """
+    display_manager = get_display_manager()
+    backend = BackendSageNB()
+    display_manager.switch_backend(backend)
+    return display_manager.displayhook
+

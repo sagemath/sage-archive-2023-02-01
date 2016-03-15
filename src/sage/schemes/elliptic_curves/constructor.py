@@ -23,17 +23,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+import six
 import sage.rings.all as rings
 
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from sage.rings.ring import is_Ring
-from sage.rings.ring_element import is_RingElement
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -403,7 +402,7 @@ class EllipticCurveFactory(UniqueFactory):
             else:
                 x = coefficients_from_cubic(x, y, morphism=False)
 
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             # Interpret x as a Cremona or LMFDB label.
             from sage.databases.cremona import CremonaDatabase
             x, data = CremonaDatabase().coefficients_and_data(x)
@@ -965,7 +964,7 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
 
     # Construct the morphism
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    P2 = ProjectiveSpace(2, K, names=map(str, R.gens()))
+    P2 = ProjectiveSpace(2, K, names=[str(_) for _ in R.gens()])
     cubic = P2.subscheme(F)
     from sage.schemes.elliptic_curves.weierstrass_transform import \
         WeierstrassTransformationWithInverse

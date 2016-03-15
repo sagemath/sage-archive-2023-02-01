@@ -27,10 +27,13 @@ AUTHORS:
 #*****************************************************************************
 
 from cpython.int cimport *
+from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 import sage.rings.finite_rings.integer_mod
+from sage.libs.pari.types cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.rings.infinity import infinity
 
@@ -38,8 +41,6 @@ cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 # The following Integer is used so that the functions here don't need to initialize an mpz_t.
 cdef Integer tmp = PY_NEW(Integer)
 
-include "sage/libs/pari/decl.pxi"
-include "sage/ext/stdsage.pxi"
 
 cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     """
@@ -74,7 +75,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     cdef long k, n, p
     cdef Integer value
     cdef GEN pari_tmp
-    if PyInt_Check(x):
+    if isinstance(x, int):
         if x == 0:
             return maxordp
         try:
@@ -90,19 +91,19 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             while n % p == 0:
                 k += 1
                 n = n / p
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         if mpz_sgn((<Integer>x).value) == 0:
             return maxordp
         k = mpz_remove(tmp.value, (<Integer>x).value, prime_pow.prime.value)
-    elif PY_TYPE_CHECK(x, Rational):
+    elif isinstance(x, Rational):
         if mpq_sgn((<Rational>x).value) == 0:
             return maxordp
         k = mpz_remove(tmp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
         if k == 0:
             k = -mpz_remove(tmp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
-    elif PY_TYPE_CHECK(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
+    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
         k = (<pAdicGenericElement>x).valuation_c()
-    elif PY_TYPE_CHECK(x, pari_gen):
+    elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         if typ(pari_tmp) == t_PADIC:
             k = valp(pari_tmp)
@@ -151,14 +152,14 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
     cdef long k
     cdef Integer prec
     cdef GEN pari_tmp
-    if PyInt_Check(x) or PY_TYPE_CHECK(x, Integer) or PY_TYPE_CHECK(x, Rational):
+    if isinstance(x, int) or isinstance(x, Integer) or isinstance(x, Rational):
         return maxordp
-    elif PY_TYPE_CHECK(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
+    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
         if (<pAdicGenericElement>x)._is_exact_zero():
             return maxordp
         prec = <Integer>x.precision_absolute()
         k = mpz_get_si(prec.value)
-    elif PY_TYPE_CHECK(x, pari_gen):
+    elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         # since get_ordp has been called typ(x.g) == t_PADIC
         k = valp(pari_tmp) + precp(pari_tmp)
@@ -183,7 +184,7 @@ cdef long comb_prec(iprec, long prec) except? -10000:
     """
     if iprec is infinity: return prec
     cdef Integer intprec
-    if PY_TYPE_CHECK(iprec, Integer):
+    if isinstance(iprec, Integer):
         intprec = <Integer>iprec
         if mpz_cmp_si(intprec.value, prec) >= 0:
             return prec

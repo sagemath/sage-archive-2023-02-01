@@ -29,25 +29,15 @@ EXAMPLES::
 #*****************************************************************************
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
-include 'sage/libs/pari/decl.pxi' # also declares diffptr (as extern char* [sic!])
+include "cysignals/signals.pxi"
+from sage.libs.pari.paridecl cimport *
 
 from libc.stdint cimport int_fast8_t, uint_fast16_t, uint8_t, uint32_t, uint64_t
 from sage.rings.integer cimport Integer
 from sage.libs.pari.all import pari
 from sage.symbolic.function cimport BuiltinFunction
+from sage.libs.gmp.mpz cimport *
 
-cdef extern from "pari/pari.h":
-    cdef void NEXT_PRIME_VIADIFF(uint32_t, uint8_t *)
-    # Note that this is a generic (i.e. polymorphic) and somewhat ill-defined
-    # PARI macro (as it uses some kind of "call by name"), whose true signature
-    # cannot be expressed by a C prototype declaration, since its first para-
-    # meter can be of any (integral) number type, and both parameters are
-    # effectively passed *by reference* (i.e., get altered).
-    # We here use uint32_t for the first argument, while in effect a reference
-    # to a uint32_t is passed. Declaring it more correctly with uint32_t* as
-    # the type of its first parameter (and uint8_t** as the type of the second)
-    # would require changing the macro definition.
 
 cdef uint64_t arg_to_uint64(x, str s1, str s2) except -1:
     if not isinstance(x, Integer):
@@ -146,10 +136,11 @@ cdef class PrimePi(BuiltinFunction):
         super(PrimePi, self).__init__('prime_pi', latex_name=r"\pi",
                 conversions={'mathematica':'PrimePi', 'pari':'primepi'})
 
-    cdef uint32_t *__primes, __numPrimes, __maxSieve, __primeBound
+    cdef uint32_t *__primes
+    cdef uint32_t __numPrimes, __maxSieve, __primeBound
     cdef int_fast8_t *__tabS
     cdef uint_fast16_t *__smallPi
-    cdef uint8_t *__pariPrimePtr
+    cdef byteptr __pariPrimePtr
 
     def __dealloc__(self):
         if self.__smallPi != NULL:
@@ -158,7 +149,7 @@ cdef class PrimePi(BuiltinFunction):
 
     cdef void _init_tables(self):
         pari.init_primes(0xffffu)
-        self.__pariPrimePtr = <uint8_t *>diffptr
+        self.__pariPrimePtr = diffptr
         self.__smallPi = <uint_fast16_t *>sage_malloc(
                 0x10000u * sizeof(uint_fast16_t))
         cdef uint32_t p=0u, i=0u, k=0u
@@ -322,9 +313,10 @@ cdef class PrimePi(BuiltinFunction):
         """
         Populates ``self.__primes`` with all primes < b
         """
-        cdef uint32_t *prime, newNumPrimes, i
+        cdef uint32_t *prime
+        cdef uint32_t newNumPrimes, i
         pari.init_primes(b+1u)
-        self.__pariPrimePtr = <uint8_t *>diffptr
+        self.__pariPrimePtr = diffptr
         newNumPrimes = self._pi(b, 0ull)
         if self.__numPrimes:
             prime = <uint32_t *>sage_realloc(self.__primes,
@@ -414,7 +406,8 @@ cdef class PrimePi(BuiltinFunction):
         # Laigle-Chapuy
         if i == 5u: return ((x/77u)<<4u) + self.__tabS[x%2310u]
         cdef uint32_t s = ((x/77u)<<4u) + self.__tabS[x%2310u]
-        cdef uint32_t y=x/13u, j=5u, *prime=self.__primes+5
+        cdef uint32_t y = x/13u, j = 5u
+        cdef uint32_t *prime = self.__primes+5
         while y > self.__maxSieve:
             s -= self._phi32(y, j)
             j += 1u

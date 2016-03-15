@@ -13,23 +13,13 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
-cdef extern from "math.h":
-    double log(double)
-    double sqrt(double)
-    double exp(double)
-    int isnormal(double)
-    int isfinite(double)
-
-import math
+from libc.math cimport log, sqrt, exp, isnormal, isfinite, M_PI
+cdef double sqrt2pi = sqrt(2*M_PI)
 
 from sage.misc.flatten  import flatten
 from sage.matrix.matrix import is_Matrix
-
-cdef double sqrt2pi = sqrt(2*math.pi)
 
 from sage.finance.time_series cimport TimeSeries
 from sage.stats.intlist cimport IntList
@@ -153,7 +143,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         matrix A, normal emissions given by B, and initial state
         probability distribution pi.
 
-        INPUT::
+        INPUT:
 
            - A -- a list of lists or a square N x N matrix, whose
              (i,j) entry gives the probability of transitioning from
@@ -1518,7 +1508,7 @@ def unpickle_gaussian_hmm_v1(A, B, pi, prob, n_out):
         sage: loads(dumps(m)) == m   # indirect test
         True
     """
-    cdef GaussianHiddenMarkovModel m = PY_NEW(GaussianHiddenMarkovModel)
+    cdef GaussianHiddenMarkovModel m = GaussianHiddenMarkovModel.__new__(GaussianHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi
@@ -1534,7 +1524,7 @@ def unpickle_gaussian_mixture_hmm_v1(A, B, pi, mixture):
         sage: loads(dumps(m)) == m   # indirect test
         True
     """
-    cdef GaussianMixtureHiddenMarkovModel m = PY_NEW(GaussianMixtureHiddenMarkovModel)
+    cdef GaussianMixtureHiddenMarkovModel m = GaussianMixtureHiddenMarkovModel.__new__(GaussianMixtureHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi

@@ -52,7 +52,6 @@ cdef extern from "math.h":
 from sage.rings.real_double  import RDF
 from sage.modules.free_module_element import vector
 
-from sage.misc.all import srange
 from sage.plot.misc import rename_keyword
 
 from base import Graphics3dGroup, Graphics3d
@@ -165,10 +164,10 @@ def ColorCube(size, colors, opacity=1, **kwds):
 
     INPUT:
 
-    - size -- 3-tuple of sizes (same as for box and frame)
-    - colors -- a list of either 3 or 6 colors
-    - opacity -- (default: 1) opacity of cube sides
-    - **kwds -- passed to the face constructor
+    - ``size`` -- 3-tuple of sizes (same as for box and frame)
+    - ``colors`` -- a list of either 3 or 6 colors
+    - ``opacity`` -- (default: 1) opacity of cube sides
+    - ``**kwds`` -- passed to the face constructor
 
     OUTPUT:
 
@@ -182,7 +181,7 @@ def ColorCube(size, colors, opacity=1, **kwds):
         sage: c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
         sage: c.show()
         sage: list(c.texture_set())[0].opacity
-        0.500000000000000
+        0.5
 
     If you omit the last 3 colors then the first three are repeated (with
     repeated colors on opposing faces)::
@@ -211,11 +210,11 @@ cdef class Cone(ParametricSurface):
 
     INPUT:
 
-    - ``radius`` - positive real number
+    - ``radius`` -- positive real number
 
-    - ``height`` - positive real number
+    - ``height`` -- positive real number
 
-    - ``closed`` - whether or not to include the base (default True)
+    - ``closed`` -- whether or not to include the base (default ``True``)
 
     - ``**kwds`` -- passed to the ParametricSurface constructor
 
@@ -303,11 +302,11 @@ cdef class Cylinder(ParametricSurface):
 
     INPUT:
 
-    - ``radius`` - positive real number
+    - ``radius`` -- positive real number
 
-    - ``height`` - positive real number
+    - ``height`` -- positive real number
 
-    - ``closed`` - whether or not to include the ends (default True)
+    - ``closed`` -- whether or not to include the ends (default ``True``)
 
     - ``**kwds`` -- passed to the ParametricSurface constructor
 
@@ -366,7 +365,7 @@ cdef class Cylinder(ParametricSurface):
                                                         self.height)
 
     def tachyon_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Cylinder
@@ -404,7 +403,7 @@ cdef class Cylinder(ParametricSurface):
             return cyl
 
     def jmol_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Cylinder
@@ -520,13 +519,13 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         sage: from sage.plot.plot3d.shapes import LineSegment, Sphere
         sage: P = (0,0,0.1)
         sage: Q = (0.5,0.6,0.7)
-        sage: S = Sphere(.2, color='red').translate(P) + \
-                  Sphere(.2, color='blue').translate(Q) + \
-                  LineSegment(P, Q, .05, color='black')
+        sage: S = Sphere(.2, color='red').translate(P)
+        sage: S += Sphere(.2, color='blue').translate(Q)
+        sage: S += LineSegment(P, Q, .05, color='black')
         sage: S.show()
-        sage: S = Sphere(.1, color='red').translate(P) + \
-                  Sphere(.1, color='blue').translate(Q) + \
-                  LineSegment(P, Q, .15, color='black')
+        sage: S = Sphere(.1, color='red').translate(P)
+        sage: S += Sphere(.1, color='blue').translate(Q)
+        sage: S += LineSegment(P, Q, .15, color='black')
         sage: S.show()
 
     AUTHOR:
@@ -587,13 +586,13 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
         sage: arrow3d((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1])
         Graphics3d Object
 
-    Many arrow arranged in a circle (flying spears?)::
+    Many arrows arranged in a circle (flying spears?)::
 
         sage: sum([arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
         Graphics3d Object
 
     Change the width of the arrow. (Note: for an arrow that scales with zoom, please consider
-    the 'line3d' function with the option 'arrow_head=True')::
+    the ``line3d`` function with the option ``arrow_head=True``)::
 
         sage: arrow3d((0,0,0), (1,1,1), width=1)
         Graphics3d Object
@@ -620,13 +619,6 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
         sage: a = arrow3d((0,0,0), (0,0,-1))
         sage: a.all[0].get_transformation().transform_point((0,0,1))
         (0.0, 0.0, -1.0)
-
-    The thickness option is now deprecated.  It has been replaced by the width option. ::
-
-        sage: arrow3d((0,0,0), (1,1,1), thickness=1)
-        doctest:...: DeprecationWarning: use the option 'width' instead of 'thickness'
-        See http://trac.sagemath.org/7154 for details.
-        Graphics3d Object
     """
     if radius is None:
         radius = width/50.0
@@ -710,7 +702,7 @@ cdef class Sphere(ParametricSurface):
         return "<Sphere radius='%s'/>"%(self.radius)
 
     def tachyon_repr(self, render_params):
-        """
+        r"""
         Tachyon can natively handle spheres. Ellipsoids rendering is done
         as a parametric surface.
 
@@ -743,7 +735,7 @@ cdef class Sphere(ParametricSurface):
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
     def jmol_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Sphere
@@ -756,7 +748,7 @@ cdef class Sphere(ParametricSurface):
             sage: S.translate(10, 100, 1000).jmol_repr(S.default_render_params())
             [['isosurface sphere_1  center {10.0 100.0 1000.0} sphere 2.0\ncolor isosurface  [102,102,255]']]
 
-        It can't natively handle ellipsoids::
+        It cannot natively handle ellipsoids::
 
             sage: Sphere(1).scale(2, 3, 4).jmol_repr(S.testing_render_params())
             [['pmesh obj_2 "obj_2.pmesh"\ncolor pmesh  [102,102,255]']]
@@ -913,7 +905,7 @@ class Text(PrimitiveObject):
 
     def obj_repr(self, render_params):
         """
-        The obj file format doesn't support text strings::
+        The obj file format does not support text strings::
 
             sage: from sage.plot.plot3d.shapes import Text
             sage: Text("Hi").obj_repr(None)

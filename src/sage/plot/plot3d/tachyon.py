@@ -96,7 +96,6 @@ Image files in the ``ppm`` format can be used to tile planes or cover
 cylinders or spheres. In this example an image is created and then
 used to tile the plane::
 
-    sage: from sage.misc.misc import tmp_filename
     sage: T = Tachyon(xres=800, yres=600, camera_center=(-2.0,-.1,.3), projection='fisheye', frustum=(-1.0, 1.0, -1.0, 1.0))
     sage: T.texture('t1',color=(0,0,1))
     sage: for ed in cedges:
@@ -140,12 +139,13 @@ from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
 
 from sage.interfaces.tachyon import tachyon_rt
 
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 
 from sage.misc.misc import SAGE_TMP
 from sage.misc.misc import get_verbose
 from sage.misc.viewer import png_viewer
-from sage.misc.temporary_file import tmp_filename, graphics_filename
+from sage.misc.temporary_file import tmp_filename
 
 #from sage.ext import fast_tachyon_routines
 
@@ -154,7 +154,7 @@ import os
 from math import sqrt
 
 
-class Tachyon(SageObject):
+class Tachyon(WithEqualityById, SageObject):
     r"""
     Create a scene the can be rendered using the Tachyon ray tracer.
 
@@ -335,6 +335,11 @@ class Tachyon(SageObject):
         ....:         tt = 't1'
         ....:     T.sphere((q, q/3+.3*sin(3*q), .1+.3*cos(3*q)), .1, tt)
         sage: T.show()
+
+    TESTS::
+
+        sage: hash(Tachyon()) # random
+        140658972348064
     """
     def __init__(self,
                  xres=350, yres=350,
@@ -380,7 +385,7 @@ class Tachyon(SageObject):
                 raise ValueError('camera_center and look_at coincide')
         else:
             self._viewdir = viewdir
-
+    
     def save_image(self, filename=None, *args, **kwds):
         r"""
         Save an image representation of ``self``.
@@ -419,14 +424,16 @@ class Tachyon(SageObject):
             ....:     return q
 
             sage: a = animate([tw_cubic(t) for t in srange(-1,1,.3)])
-            sage: a
+            sage: a        # optional -- ImageMagick
             Animation with 7 frames
             sage: a.show() # optional -- ImageMagick
         """
         self.save(filename, *args, **kwds)
 
-    def save(self, filename='sage.png', verbose=None, block=True, extra_opts=''):
+    def save(self, filename='sage.png', verbose=None, extra_opts=''):
         r"""
+        Save rendering of the tachyon scene
+
         INPUT:
 
         -  ``filename`` - (default: 'sage.png') output
@@ -453,9 +460,6 @@ class Tachyon(SageObject):
 
         -  ``2`` - very verbose output
 
-        -  ``block`` - bool (default: True); if False, run the
-           rendering command in the background.
-
         -  ``extra_opts`` - passed directly to tachyon command
            line. Use tachyon_rt.usage() to see some of the possibilities.
 
@@ -467,17 +471,51 @@ class Tachyon(SageObject):
             sage: q.sphere((0,0,0),1,'s')
             sage: tempname = tmp_filename()
             sage: q.save(tempname)
-            sage: os.system('rm ' + tempname)
-            0
         """
         if verbose is None:
             verbose = get_verbose()
+        tachyon_rt(self.str(), filename, verbose, extra_opts)
 
-        tachyon_rt(self.str(), filename, verbose, block, extra_opts)
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
 
-    def show(self, verbose=None, extra_opts=''):
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: q = Tachyon()
+            sage: q.light((1,1,11), 1,(1,1,1))
+            sage: q.texture('s')
+            sage: q.sphere((0,0,0),1,'s')
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: q._rich_repr_(dm)
+            OutputImagePng container
+        """
+        OutputImagePng = display_manager.types.OutputImagePng
+        if OutputImagePng not in display_manager.supported_output():
+            return
+        filename = tmp_filename(ext='.png')
+        self.save(filename, **kwds)
+        from sage.repl.rich_output.buffer import OutputBuffer
+        buf = OutputBuffer.from_file(filename)
+        return OutputImagePng(buf)
+        
+    def show(self, **kwds):
         r"""
         Create a PNG file of the scene.
+
+        This method attempts to display the graphics immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
+
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
 
         EXAMPLES:
         
@@ -487,7 +525,7 @@ class Tachyon(SageObject):
         and we are simply shown the plot.
         
         ::
-            
+
             sage: h = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: h.light((4.4,-4.4,4.4), 0.2, (1,1,1))
             sage: def f(x,y): return float(sin(x*y))
@@ -501,7 +539,7 @@ class Tachyon(SageObject):
         displays our graph.
         
         ::
-            
+
             sage: s = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: s.light((4.4,-4.4,4.4), 0.2, (1,1,1))
             sage: def f(x,y): return float(sin(x*y))
@@ -520,7 +558,7 @@ class Tachyon(SageObject):
         the plot.
         
         ::
-            
+
             sage: set_verbose(0)
             sage: d = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: d.light((4.4,-4.4,4.4), 0.2, (1,1,1))
@@ -536,13 +574,9 @@ class Tachyon(SageObject):
             Scene contains 1 non-gridded objects
             ...
         """
-        filename = graphics_filename()
-        self.save(filename, verbose=verbose, extra_opts=extra_opts)
-
-        from sage.doctest import DOCTEST_MODE
-        from sage.plot.plot import EMBEDDED_MODE
-        if not DOCTEST_MODE and not EMBEDDED_MODE:
-            os.system('%s %s 2>/dev/null 1>/dev/null &'%(png_viewer(), filename))
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
+        dm.display_immediately(self, **kwds)
 
     def _res(self):
         r"""
@@ -612,8 +646,8 @@ class Tachyon(SageObject):
             sage: t.sphere((0,0.5,0), 0.2, 't2')
             sage: t.sphere((0.5,0,0), 0.2, 't3')
             sage: t.sphere((0,0,0.5), 0.2, 't4')
-            sage: t.str().find('PLASTIC')
-            595
+            sage: 'PLASTIC' in t.str()
+            True
         """
         return r"""
         begin_scene
@@ -720,7 +754,7 @@ class Tachyon(SageObject):
             sage: t.sphere((0,-1,1), 1, 'mirror')
             sage: t.sphere((2,-1,1), 0.5, 'mirror')
             sage: t.sphere((2,1,1), 0.5, 'mirror')
-            sage: show(t)  # known bug (:trac:`7232`)
+            sage: show(t)  # known bug (trac #7232)
         """
         if texfunc and not isinstance(texfunc, Texfunc):
             texfunc = self.texfunc(int(texfunc), imagefile=imagefile)
@@ -739,7 +773,7 @@ class Tachyon(SageObject):
             sage: t.texture('s')
             sage: q = t.texture_recolor('s',[(0,0,1)])
             sage: t._objects[1]._color
-            (0, 0, 1)
+            (0.0, 0.0, 1.0)
         """
         base_tex = None
         names = []
@@ -783,7 +817,7 @@ class Tachyon(SageObject):
             sage: t = Tachyon()
             sage: t.ring([0,0,0], [0,0,1], 1.0, 2.0, 's')
             sage: t._objects[0]._center
-            [0, 0, 0]
+            (0.0, 0.0, 0.0)
         """
         self._objects.append(Ring(center, normal, inner, outer, texture))
 
@@ -992,32 +1026,25 @@ class Tachyon(SageObject):
             Scene contains 514 objects.
             ...
         """
+        self._objects.append(
+            ParametricPlot(
+                f, t_0, t_f, tex, r=r, cylinders=cylinders,
+                min_depth=min_depth, max_depth=max_depth,
+                e_rel=.01,e_abs=.01
+            )
+        )
 
-        self._objects.append(ParametricPlot(f, t_0, t_f, tex, r=r, cylinders=cylinders,min_depth=min_depth,max_depth=max_depth,e_rel=.01,e_abs=.01))
 
-#Doesn't seem to be used:
-#    def collect(self, objects):
-#        """
-#        Add a set of objects to the scene from a collection.
-#
-#        EXAMPLES::
-#
-#            sage: t = Tachyon()
-#            sage: t.texture('s')
-#            sage: for i in range(10): t.sphere((0,0,i),i,'s')
-#        """
-#        self._objects.extend(objects)
-
-class Light:
+class Light(object):
     r"""
     Represents lighting objects.
 
     EXAMPLES::
 
         sage: from sage.plot.plot3d.tachyon import Light
-        sage: q = Light((1,1,1),1,(1,1,1))
+        sage: q = Light((1,1,1), 1, (1,1,1))
         sage: q._center
-        (1, 1, 1)
+        (1.0, 1.0, 1.0)
     """
     def __init__(self, center, radius, color):
         r"""
@@ -1026,13 +1053,15 @@ class Light:
         EXAMPLES::
 
             sage: from sage.plot.plot3d.tachyon import Light
-            sage: q = Light((1,1,1),1,(1,1,1))
+            sage: q = Light((1,1,1), 1, (1,1,1))
             sage: q._color
-            (1, 1, 1)
+            (1.0, 1.0, 1.0)
         """
-        self._center = center
-        self._radius = radius
-        self._color = color
+        x, y, z = center
+        self._center = (float(x), float(y), float(z))
+        self._radius = float(radius)
+        r, g, b = color
+        self._color = (float(r), float(g), float(b))
 
     def str(self):
         r"""
@@ -1041,19 +1070,21 @@ class Light:
         EXAMPLES::
 
             sage: from sage.plot.plot3d.tachyon import Light
-            sage: q = Light((1,1,1),1,(1,1,1))
+            sage: q = Light((1,1,1), 1, (1,1,1))
             sage: q._radius
-            1
+            1.0
         """
         return r"""
         light center %s
               rad %s
               color %s
-        """%(tostr(self._center), float(self._radius),
+        """%(tostr(self._center), self._radius,
              tostr(self._color))
 
-class Texfunc:
-    def __init__(self, ttype=0,center=(0,0,0), rotate=(0,0,0), scale=(1,1,1), imagefile=''):
+    
+class Texfunc(object):
+
+    def __init__(self, ttype=0, center=(0,0,0), rotate=(0,0,0), scale=(1,1,1), imagefile=''):
         r"""
         Creates a texture function.
 
@@ -1065,9 +1096,12 @@ class Texfunc:
             0
         """
         self._ttype = ttype
-        self._center = center
-        self._rotate = rotate
-        self._scale = scale
+        x, y, z = center
+        self._center = (float(x), float(y), float(z))
+        x, y, z = rotate
+        self._rotate = (float(x), float(y), float(z))
+        x, y, z = scale
+        self._scale = (float(x), float(y), float(z))
         self._imagefile = imagefile
 
     def str(self):
@@ -1084,25 +1118,33 @@ class Texfunc:
         if self._ttype == 0:
             return "0"
         elif self._ttype < 7 and self._ttype > 0:
-            return r"""%d center %s rotate %s scale %s"""%(self._ttype,
-                                                      tostr(self._center),
-                                                      tostr(self._rotate),
-                                                      tostr(self._scale))
+            return r"""%d center %s rotate %s scale %s"""%(
+                self._ttype,
+                tostr(self._center),
+                tostr(self._rotate),
+                tostr(self._scale))
         elif self._ttype < 9:
-            return r"""%d %s center %s rotate %s scale %s"""%(self._ttype, self._imagefile,tostr(self._center),tostr(self._rotate),tostr(self._scale))
+            return r"""%d %s center %s rotate %s scale %s"""%(
+                self._ttype,
+                self._imagefile,
+                tostr(self._center),
+                tostr(self._rotate),
+                tostr(self._scale))
         elif self._ttype == 9:
             return r"""%d %s center %s rotate %s scale %s
             uaxis 1.0 0.0 0.0 
-            vaxis 0.0 1.0 0.0"""%(self._ttype,
-                                                      self._imagefile,
-                                                      tostr(self._center),
-                                                      tostr(self._rotate),
-                                                      tostr(self._scale))
+            vaxis 0.0 1.0 0.0"""%(
+                self._ttype,
+                self._imagefile,
+                tostr(self._center),
+                tostr(self._rotate),
+                tostr(self._scale))
         else:
             raise ValueError
 
 
-class Texture:
+class Texture(object):
+    
     def __init__(self, name, ambient=0.2, diffuse=0.8,
                  specular=0.0, opacity=1.0,
                  color=(1.0,0.0, 0.5), texfunc=0,
@@ -1117,17 +1159,18 @@ class Texture:
             sage: t.str().split()[2:6]
             ['ambient', '0.2', 'diffuse', '0.8']
         """
-        self._name = name
-        self._ambient = ambient
-        self._diffuse = diffuse
-        self._specular = specular
-        self._opacity = opacity
-        self._color = color
+        self._name = str(name)
+        self._ambient = float(ambient)
+        self._diffuse = float(diffuse)
+        self._specular = float(specular)
+        self._opacity = float(opacity)
+        r, g, b = color
+        self._color = (float(r), float(g), float(b))
         self._texfunc = texfunc
-        self._phong = phong
-        self._phongsize = phongsize
-        self._phongtype = phongtype
-        self._imagefile = imagefile
+        self._phong = float(phong)
+        self._phongsize = float(phongsize)
+        self._phongtype = str(phongtype)
+        self._imagefile = str(imagefile)
 
     def recolor(self, name, color):
         r"""
@@ -1156,7 +1199,6 @@ class Texture:
             sage: t = Texture('w')
             sage: t.str().split()[2:6]
             ['ambient', '0.2', 'diffuse', '0.8']
-
         """
         return r"""
         texdef %s ambient %s diffuse %s specular %s opacity %s
@@ -1173,7 +1215,8 @@ class Texture:
              tostr(self._color),
              self._texfunc)
 
-class Sphere:
+    
+class Sphere(object):
     r"""
     A class for creating spheres in tachyon.
     """
@@ -1185,13 +1228,14 @@ class Sphere:
 
             sage: t = Tachyon()
             sage: from sage.plot.plot3d.tachyon import Sphere
-            sage: t.texture('r', color=(.8,0,0), ambient = .1)
-            sage: s = Sphere((1,1,1),1,'r')
+            sage: t.texture('r', color=(.8,0,0), ambient=.1)
+            sage: s = Sphere((1,1,1), 1, 'r')
             sage: s._radius
-            1
+            1.0
         """
-        self._center = center
-        self._radius = radius
+        x, y, z = center
+        self._center = (float(x), float(y), float(z))
+        self._radius = float(radius)
         self._texture = texture
 
     def str(self):
@@ -1203,15 +1247,16 @@ class Sphere:
             sage: t = Tachyon()
             sage: from sage.plot.plot3d.tachyon import Sphere
             sage: t.texture('r', color=(.8,0,0), ambient = .1)
-            sage: s = Sphere((1,1,1),1,'r')
+            sage: s = Sphere((1,1,1), 1, 'r')
             sage: s.str()
             '\n        sphere center  1.0 1.0 1.0  rad 1.0 r\n        '
         """
         return r"""
         sphere center %s rad %s %s
-        """%(tostr(self._center), float(self._radius), self._texture)
+        """%(tostr(self._center), self._radius, self._texture)
 
-class Ring:
+    
+class Ring(object):
     r"""
     An annulus of zero thickness.
     """
@@ -1225,12 +1270,14 @@ class Ring:
             sage: from sage.plot.plot3d.tachyon import Ring
             sage: r = Ring((1,1,1), (1,1,0), 1.0, 2.0, 's')
             sage: r._center
-            (1, 1, 1)
+            (1.0, 1.0, 1.0)
         """
-        self._center = center
-        self._normal = normal
-        self._inner = inner
-        self._outer = outer
+        x, y, z = center
+        self._center = (float(x), float(y), float(z))
+        x, y, z = normal
+        self._normal = (float(x), float(y), float(z))
+        self._inner = float(inner)
+        self._outer = float(outer)
         self._texture = texture
 
     def str(self):
@@ -1246,9 +1293,11 @@ class Ring:
         """
         return r"""
         ring center %s normal %s inner %s outer %s %s
-        """%(tostr(self._center), tostr(self._normal), float(self._inner), float(self._outer), self._texture)
+        """%(tostr(self._center), tostr(self._normal),
+             self._inner, self._outer, self._texture)
 
-class FractalLandscape:
+
+class FractalLandscape(object):
     r"""
     Axis-aligned fractal landscape.
     Does not seem very useful at the moment, but perhaps will be improved in the future.
@@ -1262,11 +1311,14 @@ class FractalLandscape:
             sage: from sage.plot.plot3d.tachyon import FractalLandscape
             sage: fl = FractalLandscape([20,20],[30,30],[1,2,3],'s')
             sage: fl._center
-            [1, 2, 3]
+            (1.0, 2.0, 3.0)
         """
-        self._res = res
-        self._scale = scale
-        self._center = center
+        x, y = res
+        self._res = (int(x), int(y))
+        x, y = scale
+        self._scale = (int(x), int(y))
+        x, y, z = center
+        self._center = (float(x), float(y), float(z))
         self._texture = texture
 
     def str(self):
@@ -1284,7 +1336,8 @@ class FractalLandscape:
         scape res %s scale %s center %s %s
         """%(tostr(self._res, 2, int), tostr(self._scale, 2, int), tostr(self._center), self._texture)
 
-class Cylinder:
+    
+class Cylinder(object):
     r"""
     An infinite cylinder.
     """
@@ -1300,9 +1353,11 @@ class Cylinder:
             sage: c.str()
             '\n        cylinder center  0.0 0.0 0.0  axis  1.0 1.0 1.0  rad 0.1 s\n        '
         """
-        self._center = center
-        self._axis = axis
-        self._radius = radius
+        x, y, z = center
+        self._center = (float(x), float(y), float(z))
+        x, y, z = axis
+        self._axis = (float(x), float(y), float(z))
+        self._radius = float(radius)
         self._texture = texture
 
     def str(self):
@@ -1319,9 +1374,10 @@ class Cylinder:
             """
         return r"""
         cylinder center %s axis %s rad %s %s
-        """%(tostr(self._center), tostr(self._axis), float(self._radius), self._texture)
+        """%(tostr(self._center), tostr(self._axis), self._radius, self._texture)
 
-class Plane:
+
+class Plane(object):
     r"""
     An infinite plane.
     """
@@ -1332,12 +1388,14 @@ class Plane:
         EXAMPLES::
 
             sage: from sage.plot.plot3d.tachyon import Plane
-            sage: p = Plane((1,2,3),(1,2,4),'s')
+            sage: p = Plane((1,2,3), (1,2,4), 's')
             sage: p.str()
             '\n        plane center  1.0 2.0 3.0  normal  1.0 2.0 4.0  s\n        '
         """
-        self._center = center
-        self._normal = normal
+        x, y, z = center
+        self._center = (float(x), float(y), float(z))
+        x, y, z = normal
+        self._normal = (float(x), float(y), float(z))
         self._texture = texture
 
     def str(self):
@@ -1355,7 +1413,8 @@ class Plane:
         plane center %s normal %s %s
         """%(tostr(self._center), tostr(self._normal), self._texture)
 
-class FCylinder:
+    
+class FCylinder(object):
     r"""
     A finite cylinder.
     """
@@ -1370,9 +1429,11 @@ class FCylinder:
             sage: fc.str()
             '\n        fcylinder base  0.0 0.0 0.0  apex  1.0 1.0 1.0  rad 0.1 s\n        '
         """
-        self._center = base
-        self._axis = apex
-        self._radius = radius
+        x, y, z = base
+        self._center = (float(x), float(y), float(z))
+        x, y, z = apex
+        self._axis = (float(x), float(y), float(z))
+        self._radius = float(radius)
         self._texture = texture
 
     def str(self):
@@ -1388,9 +1449,10 @@ class FCylinder:
         """
         return r"""
         fcylinder base %s apex %s rad %s %s
-        """%(tostr(self._center), tostr(self._axis), float(self._radius), self._texture)
+        """%(tostr(self._center), tostr(self._axis), self._radius, self._texture)
 
-class Axis_aligned_box():
+
+class Axis_aligned_box(object):
     r"""
     Box with axis-aligned edges with the given min and max coordinates.
     """
@@ -1405,8 +1467,10 @@ class Axis_aligned_box():
             sage: aab.str()
             '\n        box min  0.0 0.0 0.0  max  1.0 1.0 1.0  s\n        '
         """
-        self._min_p = min_p
-        self._max_p = max_p
+        x, y, z = min_p
+        self._min_p = (float(x), float(y), float(z))
+        x, y, z = max_p
+        self._max_p =  (float(x), float(y), float(z))
         self._texture = texture
 
     def str(self):
@@ -1423,6 +1487,7 @@ class Axis_aligned_box():
         return r"""
         box min %s max %s %s
         """%(tostr(self._min_p), tostr(self._max_p), self._texture)
+
 
 class TachyonTriangle(Triangle):
     r"""
@@ -1442,7 +1507,7 @@ class TachyonTriangle(Triangle):
         return r"""
         TRI V0 %s  V1 %s   V2 %s
             %s
-        """%(tostr(self._a), tostr(self._b),tostr(self._c), self._color)
+        """%(tostr(self._a), tostr(self._b), tostr(self._c), self._color)
 
 
 class TachyonSmoothTriangle(SmoothTriangle):
@@ -1536,254 +1601,13 @@ class TachyonTriangleFactory(TriangleFactory):
             sage: t = Tachyon()
             sage: t.texture('s')
             sage: ttf = TachyonTriangleFactory(t, 's')
-            sage: ttf.get_colors([1])
+            sage: ttf.get_colors([(1,1,1)])
             ['SAGETEX1_0']
         """
         return self._tachyon.texture_recolor(self._texture, list)
 
-# following classes TachyonPlot and PlotBlock seems broken and not used anywhere, so commented out.  Please write to the sage-devel google-group if you are the author of these classes to comment.
 
-#class TachyonPlot:
-    #Recursively plots a function of two variables by building squares of 4 triangles, checking at
-    # every stage whether or not each square should be split into four more squares.  This way,
-    # more planar areas get fewer triangles, and areas with higher curvature get more triangles
-
-#    def str(self):
-#        return "".join([o.str() for o in self._objects])
-
-#    def __init__(self, tachyon, f, (min_x, max_x), (min_y, max_y), tex, g = None,
-#                              min_depth=4, max_depth=8, e_rel = .01, e_abs = .01, num_colors = None):
-#        self._tachyon = tachyon
-#        self._f = f
-#        self._g = g
-#        self._tex = tex
-#        self._min_depth = min_depth
-#        self._max_depth = max_depth
-#        self._e_rel = e_rel
-#        self._e_abs = e_abs
-#        self._objects = []
-#        self._eps = min(max_x - min_x, max_y - min_y)/(2**max_depth)
-#        if self._eps == 0:
-#            raise ValueError, 'Plot rectangle is really a line.  Make sure min_x != #max_x and min_y != max_y.'
-#        self._num_colors = num_colors
-#        if g is None:
-#            def fcn(x,y):
-#                return [self._f(x,y)]
-#        else:
-#            def fcn(x,y):
-#                return [self._f(x,y), self._g(x,y)]
-
-#        self._fcn = fcn
-
-
-#        # generate the necessary data to kick-start the recursion
-#        mid_x = (min_x + max_x)/2
-#        mid_y = (min_y + max_y)/2
-#        sw_z = fcn(min_x,min_y)
-#        nw_z = fcn(min_x,max_y)
-#        se_z = fcn(max_x,min_y)
-#        ne_z = fcn(max_x,max_y)
-#        mid_z = fcn(mid_x,mid_y)
-
-#        self._min = min(sw_z[0], nw_z[0], se_z[0], ne_z[0], mid_z[0])
-#        self._max = max(sw_z[0], nw_z[0], se_z[0], ne_z[0], mid_z[0])
-
-#        # jump in and start building blocks
-#        outer = self.plot_block(min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, 0)
-#
-#        # build the boundary triangles
-#        self.triangulate(outer.left, outer.left_c)
-#        self.triangulate(outer.top, outer.top_c)
-#        self.triangulate(outer.right, outer.right_c)
-#        self.triangulate(outer.bottom, outer.bottom_c)
-
-#        zrange = self._max - self._min
-#        if num_colors is not None and zrange != 0:
-#            colors = tachyon.texture_recolor(tex, [hue(float(i/num_colors)) for i in range(num_colors)])
-
-#            for o in self._objects:
-#                avg_z = (o._vertex_1[2] + o._vertex_2[2] + o._vertex_3[2])/3
-#                o._texture = colors[int(num_colors * (avg_z - self._min) / zrange)]
-
-#    def plot_block(self, min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, depth):
-
-#        if depth < self._max_depth:
-#            # recursion is still an option -- step in one last level if we're within tolerance
-#            # and just keep going if we're not.
-#            # assumption: it's cheap to build triangles, so we might as well use all the data
-#            # we calculate
-
-#            # big square boundary midpoints
-#            mid_w_z = self._fcn(min_x, mid_y)
-#            mid_n_z = self._fcn(mid_x, max_y)
-#            mid_e_z = self._fcn(max_x, mid_y)
-#            mid_s_z = self._fcn(mid_x, min_y)
-
-#            # midpoints locations of sub_squares
-#            qtr1_x = (min_x + mid_x)/2
-#            qtr1_y = (min_y + mid_y)/2
-#            qtr3_x = (mid_x + max_x)/2
-#           qtr3_y = (mid_y + max_y)/2
-
-#            # function evaluated at these midpoints
-#            mid_sw_z = self._fcn(qtr1_x,qtr1_y)
-#            mid_nw_z = self._fcn(qtr1_x,qtr3_y)
-#            mid_se_z = self._fcn(qtr3_x,qtr1_y)
-#            mid_ne_z = self._fcn(qtr3_x,qtr3_y)
-
-#            # linearization estimates of midpoints
-#            est_sw_z = (mid_z[0] + sw_z[0])/2
-#            est_nw_z = (mid_z[0] + nw_z[0])/2
-#            est_se_z = (mid_z[0] + se_z[0])/2
-#           est_ne_z = (mid_z[0] + ne_z[0])/2
-
-#            self.extrema([mid_w_z[0], mid_n_z[0], mid_e_z[0], mid_s_z[0], mid_sw_z[0], mid_se_z[0], mid_nw_z[0], mid_sw_z[0]])
-
-#            tol_check = [(est_sw_z, mid_sw_z[0]), (est_nw_z, mid_nw_z[0]), (est_se_z, mid_se_z[0]), (est_ne_z, mid_ne_z[0])]
-
-#            if depth < self._min_depth or not self.tol_list(tol_check):
-#                next_depth = depth + 1
-#            else:
-#                #lie about the depth to halt recursion
-#                next_depth = self._max_depth
-
-#            # recurse into the sub-squares
-#            sw = self.plot_block(min_x, qtr1_x, mid_x, min_y, qtr1_y, mid_y, sw_z, mid_w_z, mid_s_z, mid_z, mid_sw_z, next_depth)
-#            nw = self.plot_block(min_x, qtr1_x, mid_x, mid_y, qtr3_y, max_y, mid_w_z, nw_z, mid_z, mid_n_z, mid_nw_z, next_depth)
-#            se = self.plot_block(mid_x, qtr3_x, max_x, min_y, qtr1_y, mid_y, mid_s_z, mid_z, se_z, mid_e_z, mid_se_z, next_depth)
-#            ne = self.plot_block(mid_x, qtr3_x, max_x, mid_y, qtr3_y, max_y, mid_z, mid_n_z, mid_e_z, ne_z, mid_ne_z, next_depth)
-
-#            # join the sub-squares
-#            self.interface(1, sw.right, sw.right_c, se.left, se.left_c)
-#            self.interface(1, nw.right, nw.right_c, ne.left, ne.left_c)
-#            self.interface(0, sw.top, sw.top_c, nw.bottom, nw.bottom_c)
-#            self.interface(0, se.top, se.top_c, ne.bottom, ne.bottom_c)
-
-#            #get the boundary information about the subsquares
-#            left     = sw.left     + nw.left[1:]
-#            left_c   = sw.left_c   + nw.left_c
-#            right    = se.right    + ne.right[1:]
-#            right_c  = se.right_c  + ne.right_c
-#            top      = nw.top      + ne.top[1:]
-#            top_c    = nw.top_c    + ne.top_c
-#            bottom   = sw.bottom   + se.bottom[1:]
-#            bottom_c = sw.bottom_c + se.bottom_c
-
-#        else:
-#            # just build the square we're in
-#            if self._g is None:
-#                sw = [(min_x,min_y,sw_z[0])]
-#                nw = [(min_x,max_y,nw_z[0])]
-#                se = [(max_x,min_y,se_z[0])]
-#                ne = [(max_x,max_y,ne_z[0])]
-#                c  = [[(mid_x,mid_y,mid_z[0])]]
-#            else:
-#                sw = [(min_x,min_y,sw_z[0]),sw_z[1]]
-#                nw = [(min_x,max_y,nw_z[0]),nw_z[1]]
-#               se = [(max_x,min_y,se_z[0]),se_z[1]]
-#               ne = [(max_x,max_y,ne_z[0]),ne_z[1]]
-#               c  = [[(mid_x,mid_y,mid_z[0]),mid_z[1]]]
-
-
-#            left = [sw,nw]
-#            left_c = c
-#            top = [nw,ne]
-#            top_c = c
-#            right = [se,ne]
-#            right_c = c
-#           bottom = [sw,se]
-#            bottom_c = c
-
-#        return PlotBlock(left, left_c, top, top_c, right, right_c, bottom, bottom_c)
-
-#    def tol(self, (est, val)):
-#        # Check relative, then absolute tolerance.  If both fail, return False
-#        # This is a zero-safe error checker
-
-#        if abs(est - val) < self._e_rel*abs(val):
-#            return True
-#        if abs(est - val) < self._e_abs:
-#            return True
-#        return False
-
-#    def tol_list(self, l):
-#        # Pass in a list of pairs of numbers, (est, val) to be passed to self.tol
-#        # returns False if any pair does not fall within tolerance level
-
-#        for p in l:
-#            if not self.tol(p):
-#                return False
-#        return True
-
-#    def interface(self, n, p, p_c, q, q_c):
-#        # Takes a pair of lists of points, and compares the (n)th coordinate, and
-#        # "zips" the lists together into one.  The "centers", supplied in p_c and
-#        # q_c are matched up such that the lists describe triangles whose sides
-#       # are "perfectly" aligned.  This algorithm assumes that p and q start and
-#        # end at the same point, and are sorted smallest to largest.
-
-#        m   = [p[0]] # a sorted union of p and q
-#        mpc = [p_c[0]] # centers from p_c corresponding to m
-#        mqc = [q_c[0]] # centers from q_c corresponding to m
-
-#        i = 1
-#        j = 1
-
-#        while i < len(p_c) or j < len(q_c):
-#            if abs(p[i][0][n] - q[j][0][n]) < self._eps:
-#                m.append(p[i])
-#                mpc.append(p_c[i])
-#                mqc.append(q_c[j])
-#               i += 1
-#               j += 1
-#            elif p[i][0][n] < q[j][0][n]:
-#                m.append(p[i])
-#                mpc.append(p_c[i])
-#                mqc.append(mqc[-1])
-#                i += 1
-#            else:
-#                m.append(q[j])
-#               mpc.append(mpc[-1])
-#                mqc.append(q_c[j])
-#                j += 1
-
-#        m.append(p[-1])
-
-#        self.triangulate(m, mpc)
-#        self.triangulate(m, mqc)
-
-
-#    def triangulate(self, p, c):
-#        # Pass in a list of edge points (p) and center points (c).
-#        # Triangles will be rendered between consecutive edge points and the
-#        # center point with the same index number as the earlier edge point.
-
-#        if self._g is None:
-#            for i in range(0,len(p)-1):
-#                self._objects.append(Triangle(p[i][0], p[i+1][0], c[i][0], self._tex))
-#        else:
-#            for i in range(0,len(p)-1):
-#                self._objects.append(SmoothTriangle(p[i][0], p[i+1][0], c[i][0],p[i][1], p[i+1][1], c[i][1], self._tex))
-
-
-#    def extrema(self, list):
-#        if self._num_colors is not None:
-#            self._min = min(list+[self._min])
-#            self._max = max(list+[self._max])
-
-
-#class PlotBlock:
-#   def __init__(self, left, left_c, top, top_c, right, right_c, bottom, bottom_c):
-#       self.left = left
-#       self.left_c = left_c
-#       self.top = top
-#      self.top_c = top_c
-#       self.right = right
-#       self.right_c = right_c
-#       self.bottom = bottom
-#       self.bottom_c = bottom_c
-
-class ParametricPlot:
+class ParametricPlot(object):
     r"""
     Parametric plotting routines.
     """
@@ -1887,7 +1711,8 @@ class ParametricPlot:
 
         return False
 
-def tostr(s, length = 3, out_type = float):
+
+def tostr(s, length=3, out_type=float):
     r"""
     Converts vector information to a space-separated string.
 

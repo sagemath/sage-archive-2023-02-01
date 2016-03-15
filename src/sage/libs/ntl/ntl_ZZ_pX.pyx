@@ -13,34 +13,37 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
-
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
+from sage.misc.randstate cimport randstate, current_randstate
+from sage.libs.gmp.mpz cimport *
 
 cdef inline make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_p y
     sig_off()
     y = ntl_ZZ_p(modulus = ctx)
     y.x = x[0]
-    ZZ_p_delete(x)
+    del x
     return y
 
 cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_pX y
-    y = <ntl_ZZ_pX>PY_NEW(ntl_ZZ_pX)
+    y = <ntl_ZZ_pX>ntl_ZZ_pX.__new__(ntl_ZZ_pX)
     y.c = ctx
     y.x = x[0]
-    ZZ_pX_delete(x)
+    del x
     sig_off()
     return y
 
@@ -50,7 +53,7 @@ cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
 #
 ##############################################################################
 
-cdef class ntl_ZZ_pX:
+cdef class ntl_ZZ_pX(object):
     r"""
     The class \class{ZZ_pX} implements polynomial arithmetic modulo $p$.
 
@@ -87,12 +90,12 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_p cc
         cdef Py_ssize_t i
 
-        if PY_TYPE_CHECK(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
+        if isinstance(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
             self.x = (<ntl_ZZ_pX>v).x
-        elif PY_TYPE_CHECK(v, list) or PY_TYPE_CHECK(v, tuple):
+        elif isinstance(v, list) or isinstance(v, tuple):
             for i from 0 <= i < len(v):
                 x = v[i]
-                if not PY_TYPE_CHECK(x, ntl_ZZ_p):
+                if not isinstance(x, ntl_ZZ_p):
                     cc = ntl_ZZ_p(x,self.c)
                 else:
                     cc = x
@@ -110,7 +113,7 @@ cdef class ntl_ZZ_pX:
         ## the error checking in __init__ will prevent##
         ## you from constructing an ntl_ZZ_p          ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_ZZ_p) without      ##
+        ## could do r = ntl_ZZ_p.__new__(ntl_ZZ_p) without
         ## first restoring a ZZ_pContext, which could ##
         ## have unfortunate consequences.  See _new   ##
         ## defined below for an example of the right  ##
@@ -118,25 +121,18 @@ cdef class ntl_ZZ_pX:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            ZZ_pX_construct(&self.x)
             return
-        if PY_TYPE_CHECK( modulus, ntl_ZZ_pContext_class ):
+        if isinstance(modulus, ntl_ZZ_pContext_class):
             self.c = <ntl_ZZ_pContext_class>modulus
             self.c.restore_c()
-            ZZ_pX_construct(&self.x)
         elif modulus is not None:
             self.c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(ntl_ZZ(modulus))
             self.c.restore_c()
-            ZZ_pX_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZ_pX_destruct(&self.x)
 
     cdef ntl_ZZ_pX _new(self):
         cdef ntl_ZZ_pX r
         self.c.restore_c()
-        r = PY_NEW(ntl_ZZ_pX)
-        #ZZ_pX_construct(&r.x)
+        r = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         r.c = self.c
         return r
 
@@ -255,7 +251,7 @@ cdef class ntl_ZZ_pX:
             3
         """
         cdef ntl_ZZ_p r
-        r = PY_NEW(ntl_ZZ_p)
+        r = ntl_ZZ_p.__new__(ntl_ZZ_p)
         r.c = self.c
         self.c.restore_c()
         if i < 0:
@@ -377,7 +373,7 @@ cdef class ntl_ZZ_pX:
         sig_off()
         return r
 
-    def __div__(ntl_ZZ_pX self, ntl_ZZ_pX other):
+    def __truediv__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -410,6 +406,9 @@ cdef class ntl_ZZ_pX:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return r
 
+    def __div__(self, other):
+        return self / other
+
     def __mod__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
         Given polynomials a, b in ZZ_p[X], if p is prime, then there exist polynomials q, r
@@ -434,8 +433,7 @@ cdef class ntl_ZZ_pX:
             sage: f % g
             Traceback (most recent call last):
             ...
-            RuntimeError: ZZ_p: division by non-invertible element
-
+            NTLError: ZZ_p: division by non-invertible element
         """
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
@@ -509,9 +507,9 @@ cdef class ntl_ZZ_pX:
         sig_off()
         return r
 
-    def __cmp__(ntl_ZZ_pX self, ntl_ZZ_pX other):
+    def __richcmp__(ntl_ZZ_pX self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
         EXAMPLES::
 
@@ -521,13 +519,23 @@ cdef class ntl_ZZ_pX:
             sage: f == g
             True
             sage: g = ntl.ZZ_pX([0,1,2,3],c)
-            sage: f == g
-            False
+            sage: f != g
+            True
+            sage: f != 0
+            True
         """
         self.c.restore_c()
-        if ZZ_pX_equal(self.x, other.x):
-            return 0
-        return -1
+
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("polynomials are not ordered")
+
+        cdef ntl_ZZ_pX b
+        try:
+            b = <ntl_ZZ_pX?>other
+        except TypeError:
+            b = ntl_ZZ_pX(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def is_zero(self):
         """
@@ -661,11 +669,11 @@ cdef class ntl_ZZ_pX:
         """
         Multiplies all coefficients by n and the context by n.
         """
-        cdef ntl_ZZ new_c_p = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ new_c_p = ntl_ZZ.__new__(ntl_ZZ)
         ZZ_mul(new_c_p.x, (<ntl_ZZ>self.c.p).x, n.x)
         cdef ntl_ZZ_pContext_class new_c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(new_c_p)
         new_c.restore_c()
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ans.c = new_c
         ZZ_pX_left_pshift(ans.x, self.x, n.x, new_c.x)
         return ans
@@ -674,11 +682,11 @@ cdef class ntl_ZZ_pX:
         """
         Divides all coefficients by n and the context by n.  Only really makes sense when n divides self.c.p
         """
-        cdef ntl_ZZ new_c_p = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ new_c_p = ntl_ZZ.__new__(ntl_ZZ)
         ZZ_div(new_c_p.x, (<ntl_ZZ>self.c.p).x, n.x)
         cdef ntl_ZZ_pContext_class new_c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(new_c_p)
         new_c.restore_c()
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ans.c = new_c
         ZZ_pX_right_pshift(ans.x, self.x, n.x, new_c.x)
         return ans
@@ -874,12 +882,10 @@ cdef class ntl_ZZ_pX:
             [1 9 8 24 6]
         """
         c.restore_c()
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
-        ZZ_pX_construct(&ans.x)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ZZ_pX_conv_modulus(ans.x, self.x, c.x)
         ans.c = c
         return ans
-
 
     def derivative(self):
         """
@@ -910,7 +916,7 @@ cdef class ntl_ZZ_pX:
         These computations use pseudo-random numbers, so we set the
         seed for reproducible testing. ::
 
-            sage: set_random_seed(0)
+            sage: set_random_seed(12)
             sage: ntl.ZZ_pX([-1,0,0,0,0,1],5).factor()
             [([4 1], 5)]
             sage: ls = ntl.ZZ_pX([-1,0,0,0,1],5).factor()
@@ -944,7 +950,7 @@ cdef class ntl_ZZ_pX:
             F.append((r, e[i]))
             #F.append((make_ZZ_pX(v[i], self.c), e[i]))
         for i from 0 <= i < n:
-            ZZ_pX_delete(v[i])
+            del v[i]
         sage_free(v)
         sage_free(e)
         return F
@@ -984,13 +990,13 @@ cdef class ntl_ZZ_pX:
         sig_off()
         F = []
         for i from 0 <= i < n:
-            r = PY_NEW(ntl_ZZ_p)
+            r = ntl_ZZ_p.__new__(ntl_ZZ_p)
             r.c = self.c
             r.x = v[i][0]
             F.append(r)
             #F.append(make_ZZ_p(v[i], self.c))
         for i from 0 <= i < n:
-            ZZ_p_delete(v[i])
+            del v[i]
         sage_free(v)
         return F
 
@@ -1158,7 +1164,7 @@ cdef class ntl_ZZ_pX:
                 raise ValueError, "not eisenstein or unramified"
         else:
             ctx = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(p)
-            mod_prime = PY_NEW(ntl_ZZ_pX)
+            mod_prime = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
             ZZ_pX_conv_modulus(mod_prime.x, modulus.x, ctx.x)
             mod_prime.c = ctx
             F = mod_prime.factor()
@@ -1206,7 +1212,7 @@ cdef class ntl_ZZ_pX:
             3
         """
         self.c.restore_c()
-        cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
+        cdef ntl_ZZ_p r = ntl_ZZ_p.__new__(ntl_ZZ_p)
         r.c = self.c
         sig_on()
         ZZ_pX_TraceMod(r.x, self.x, modulus.x)
@@ -1257,7 +1263,7 @@ cdef class ntl_ZZ_pX:
             0
         """
         self.c.restore_c()
-        cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
+        cdef ntl_ZZ_p r = ntl_ZZ_p.__new__(ntl_ZZ_p)
         r.c = self.c
         sig_on()
         ZZ_pX_resultant(r.x, self.x, other.x)
@@ -1284,7 +1290,7 @@ cdef class ntl_ZZ_pX:
             [11 1 8 14 1]
         """
         self.c.restore_c()
-        cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
+        cdef ntl_ZZ_p r = ntl_ZZ_p.__new__(ntl_ZZ_p)
         r.c = self.c
         sig_on()
         ZZ_pX_NormMod(r.x, self.x, modulus.x)
@@ -1311,7 +1317,7 @@ cdef class ntl_ZZ_pX:
 
         c = ~self.leading_coefficient()
         m = self.degree()
-        if (m*(m-1)/2) % 2:
+        if (m*(m-1) // 2) % 2:
             c = -c
         return c*self.resultant(self.derivative())
 
@@ -1403,20 +1409,13 @@ cdef class ntl_ZZ_pX:
         #ZZ_pX_preallocate_space(&self.x, n)
         sig_off()
 
-cdef class ntl_ZZ_pX_Modulus:
+cdef class ntl_ZZ_pX_Modulus(object):
     """
     Thin holder for ZZ_pX_Moduli.
     """
     def __cinit__(self, ntl_ZZ_pX poly):
-        ZZ_pX_Modulus_construct(&self.x)
         ZZ_pX_Modulus_build(self.x, poly.x)
         self.poly = poly
-
-    def __init__(self, ntl_ZZ_pX poly):
-        pass
-
-    def __dealloc__(self):
-        ZZ_pX_Modulus_destruct(&self.x)
 
     def __repr__(self):
         return "NTL ZZ_pXModulus %s (mod %s)"%(self.poly, self.poly.c.p)

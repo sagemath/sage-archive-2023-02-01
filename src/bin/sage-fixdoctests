@@ -29,7 +29,7 @@ parser.add_option('-l','--long',dest='long', action="store_true", default=False)
 options, args = parser.parse_args()
 
 if not (len(args) in [1,2]) :
-    print usage
+    print(usage)
     sys.exit(1)
 
 # set input and output files
@@ -130,7 +130,7 @@ if test_file != test_output:
 else:
     from sage.env import SAGE_ROOT
     relative = os.path.relpath(test_output, SAGE_ROOT)
-    print relative
+    print(relative)
     if relative.startswith('..'):
         print('Fixed source file is not part of Sage.')
     else:

@@ -25,12 +25,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 import sage.rings.integer
 from sage.sets.set import Set, is_Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.misc import prod
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.all import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
@@ -65,7 +65,7 @@ class OrderedSetPartition(ClonableArray):
     function is
     
     .. MATH::
-    
+
         \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
 
     (See sequence A000670 in OEIS.)
@@ -126,7 +126,7 @@ class OrderedSetPartition(ClonableArray):
 
     :wikipedia:`Ordered_partition_of_a_set`
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, parts):
@@ -159,7 +159,7 @@ class OrderedSetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
-        ClonableArray.__init__(self, parent, map(Set, s))
+        ClonableArray.__init__(self, parent, [Set(_) for _ in s])
 
     def check(self):
         """
@@ -189,9 +189,9 @@ class OrderedSetPartition(ClonableArray):
             sage: y.to_composition()
             [2, 1, 2]
         """
-        return Composition(map(len, self))
+        return Composition([len(_) for _ in self])
 
-class OrderedSetPartitions(Parent, UniqueRepresentation):
+class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
     Return the combinatorial class of ordered set partitions of ``s``.
 
@@ -501,7 +501,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
             12
         """
-        return OrderedSetPartitions.__contains__(self, x) and map(len, x) == self.c
+        return OrderedSetPartitions.__contains__(self, x) and [len(_) for _ in x] == self.c
 
     def cardinality(self):
         r"""

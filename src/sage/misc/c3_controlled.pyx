@@ -1,5 +1,5 @@
 """
-The ``C3`` algorithm, under control of a total order.
+The C3 algorithm, under control of a total order
 
 Abstract
 ========
@@ -316,9 +316,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    66
+    67
     sage: x.all_bases_controlled_len()
-    69
+    70
 
     sage: C = GradedHopfAlgebrasWithBasis(QQ)
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
@@ -326,9 +326,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    82
+    92
     sage: x.all_bases_controlled_len()
-    89
+    100
 
 The following can be used to search through the Sage named categories
 for any that requires the addition of some bases::
@@ -338,11 +338,12 @@ for any that requires the addition of some bases::
     ....:         if len(C._super_categories_for_classes) != len(C.super_categories())],
     ....:        key=str)
     [Category of affine weyl groups,
+     Category of coxeter groups,
      Category of fields,
      Category of finite dimensional algebras with basis over Rational Field,
      Category of finite dimensional hopf algebras with basis over Rational Field,
-     Category of graded hopf algebras with basis over Rational Field,
-     Category of hopf algebras with basis over Rational Field]
+     Category of finite permutation groups,
+     Category of graded hopf algebras with basis over Rational Field]
 
 AUTHOR:
 

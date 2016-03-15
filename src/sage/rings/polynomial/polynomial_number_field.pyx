@@ -103,8 +103,9 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         EXAMPLES::
 
             sage: f = QQ[I][x].random_element()
-            sage: type(f)
-            <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_absolute_number_field_dense'>
+            sage: from sage.rings.polynomial.polynomial_number_field import Polynomial_absolute_number_field_dense
+            sage: isinstance(f, Polynomial_absolute_number_field_dense)
+            True
             sage: a = QQ[I][x](x)
             sage: a.is_gen()
             True
@@ -190,7 +191,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         elif other.is_zero():
             return self.monic()
         elif self.degree() == 0 or other.degree() == 0:
-            return self.parent().one_element()
+            return self.parent().one()
 
         # If the extension is of degree one, use the gcd from QQ[x]
         if self.base_ring().degree().is_one():
@@ -235,8 +236,9 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         EXAMPLES::
 
             sage: f = NumberField([x^2-2, x^2-3], 'a')['x'].random_element()
-            sage: type(f)
-            <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
+            sage: from sage.rings.polynomial.polynomial_number_field import Polynomial_relative_number_field_dense
+            sage: isinstance(f, Polynomial_relative_number_field_dense)
+            True
         """
         Polynomial_generic_dense_field.__init__(self, parent, x, check, is_gen, construct)
 
@@ -318,7 +320,7 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         elif other.is_zero():
             return self.monic()
         elif self.degree() == 0 or other.degree() == 0:
-            return self.parent().one_element()
+            return self.parent().one()
 
         L = self.parent()
         x = L.variable_name()

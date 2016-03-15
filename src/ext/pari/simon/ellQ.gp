@@ -162,7 +162,6 @@
 
 */
 
-{
 \\
 \\ Usual global variables
 \\
@@ -187,7 +186,6 @@ global(MAXPROB, LIMBIGPRIME):small;
   MAXPROB = 20;
   LIMBIGPRIME = 30; \\ for primes larger than this limit: use a probabilistic test
                     \\ LIMBIGPRIME = 0 means: only deterministic tests
-}
 
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \\          SCRIPT                             \\
@@ -384,23 +382,23 @@ return([]);
 {redquartic(pol) =
 \\ reduction of the quartic polynomial.
 \\ (also works with other degrees)
-my(localprec,prec0,d,disc2,test,r,normderiv,disc2v,q,M);
+my(local_prec,prec0,d,disc2,test,r,normderiv,disc2v,q,M);
 
 if( DEBUGLEVEL_ell >= 4, print("    starting redquartic"));
 if( DEBUGLEVEL_ell >= 3, print("   reduction of the quartic ",pol));
 
 \\ choice of the real precision used in the computation
-  localprec = prec0 = default(realprecision);
+  local_prec = prec0 = default(realprecision);
   d = poldegree(pol);
   disc2 = poldisc(pol)^2;
   test = 0;
   while( test == 0,
-if( DEBUGLEVEL_ell >= 4, print("    precision = ",localprec));
+if( DEBUGLEVEL_ell >= 4, print("    precision = ",local_prec));
     r = polroots(pol);
     normderiv = vector( d, i, norm(subst(pol',variable(pol),r[i])));
     disc2v = prod( i = 1, d, normderiv[i]) * pollead(pol)^(2*d-4);
-    test = abs(disc2v-disc2) < 10^(-localprec\2);
-    if( !test, default(realprecision, localprec *= 2))
+    test = abs(disc2v-disc2) < 10^(-local_prec\2);
+    if( !test, default(realprecision, local_prec *= 2))
   );
 
 \\ former choice of the quadratic form
@@ -410,7 +408,7 @@ if( DEBUGLEVEL_ell >= 4, print("    precision = ",localprec));
   M = qfbreduce([q[1],q[2]/2;q[2]/2,q[3]]);
   pol = subst(pol,variable(pol),Pol(M[1,])/Pol(M[2,]))*Pol(M[2,])^poldegree(pol);
 
-  if( localprec != prec0, default(realprecision,prec0));
+  if( local_prec != prec0, default(realprecision,prec0));
 
 if( DEBUGLEVEL_ell >= 3, print("   reduced quartic = ",pol));
 if( DEBUGLEVEL_ell >= 4, print("    end of redquartic"));
@@ -669,7 +667,7 @@ my(gx,gpx,lambda,mu);
   gpx = subst( pol', variable(pol), xx);
   lambda = valuation(gx,p); mu = valuation(gpx,p);
 
-  if( lambda > 2*mu, return(1));
+  if( gpx != 0 && lambda > 2*mu, return(1));
 \\  if( (lambda >= mu+nu) && (nu > mu), return(1));
   if( (lambda >= 2*nu) && (mu >= nu), return(0));
   return(-1);
@@ -683,7 +681,7 @@ my(gx,gpx,lambda,mu,q);
   if( psquare(gx,2), return(1));
   gpx = subst( pol', variable(pol), xx);
   lambda = valuation(gx,2); mu = valuation(gpx,2);
-  if( lambda > 2*mu, return(1));
+  if( gpx != 0 && lambda > 2*mu, return(1));
   if( nu > mu,
     if( lambda%2, return(-1));
     q = mu+nu-lambda;
@@ -1253,7 +1251,7 @@ if( DEBUGLEVEL_ell >= 4, print("    ker = ",lift(kern)));
 \\ E(Qp)/2E(Qp) in Kp/Kp^2.
 \\ The algorithm consists of choosing random p-adic points in E(Qp)
 \\ until the number of images is equal to #E(Qp)[2] / |2|_p
-my(X,p,prank,rac,pts,bound,essai,mrank,r,xx,delta,ph,delta2,localprec,ival);
+my(X,p,prank,rac,pts,bound,essai,mrank,r,xx,delta,ph,delta2,local_prec,ival);
 
 if( DEBUGLEVEL_ell >= 4, print("    starting elllocalimage"));
 
@@ -1277,8 +1275,8 @@ if( DEBUGLEVEL_ell >= 5, print("     rac = ",rac));
       bound *= p;
     );
 
-    r = random(#rac)+1; localprec = random(rac[r][2]+3)-2;
-    xx = rac[r][1]+p^localprec*random(bound);
+    r = random(#rac)+1; local_prec = random(rac[r][2]+3)-2;
+    xx = rac[r][1]+p^local_prec*random(bound);
 if( DEBUGLEVEL_ell >= 5, print("     xx = ",xx));
     delta = K*(xx-X);
 
@@ -1484,7 +1482,7 @@ if( DEBUGLEVEL_ell >= 4,print("    sol = ",sol));
 
 \\ Parametrizing the solutions of q2=0
 
-    param = qfparam(q2,sol)*['x^2,'x,1]~;
+    param = qfparam(q2,sol,3)*['x^2,'x,1]~;
     param /= content(param);
 
 \\ Construction of the quartic

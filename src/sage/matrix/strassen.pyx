@@ -17,7 +17,7 @@ multiplication algorithms.
 
 from matrix_window cimport MatrixWindow
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 def strassen_window_multiply(C, A,B, cutoff):
@@ -653,16 +653,16 @@ class int_range:
             sage: from sage.matrix.strassen import int_range
             sage: I = int_range([6,20,21,4,5,22,23])
             sage: it = iter(I)
-            sage: it.next()
+            sage: next(it)
             (4, 3)
-            sage: it.next()
+            sage: next(it)
             (20, 4)
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
         """
-        return self._intervals.__iter__()
+        return iter(self._intervals)
 
     def __len__(self):
         r"""

@@ -1,8 +1,12 @@
+r"""
+Cunningham table
+"""
+
 import os
 from sage.misc.cachefunc import cached_function
 from sage.rings.integer import Integer
 from sage.structure.sage_object import load
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 
 @cached_function
 def cunningham_prime_factors():
@@ -13,7 +17,7 @@ def cunningham_prime_factors():
     """
     file = os.path.join(SAGE_SHARE,'cunningham_tables','cunningham_prime_factors.sobj')
     if os.path.exists(file):
-        return map(Integer,load(file))
+        return [Integer(_) for _ in load(file)]
     else:
         from warnings import warn
         warn("You might consider installing the optional package for factoring Cunningham numbers with the following command: ``sage -i cunningham_tables``")

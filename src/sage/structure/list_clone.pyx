@@ -143,13 +143,13 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
+from sage.ext.memory cimport check_reallocarray
 from cpython.list cimport *
 from cpython.int cimport *
 from cpython.ref cimport *
 
 import sage
 from sage.structure.element cimport Element
-from sage.structure.element import Element
 from sage.structure.parent cimport Parent
 
 ############################################################################
@@ -172,7 +172,7 @@ cdef class ClonableElement(Element):
 
     - ``obj.__copy__()`` -- returns a fresh copy of obj
     - ``obj.check()`` -- returns nothing, raise an exception if ``obj``
-      doesn't satisfies the data structure invariants
+      doesn't satisfy the data structure invariants
 
     and ensure to call ``obj._require_mutable()`` at the beginning of any
     modifying method.
@@ -648,7 +648,7 @@ cdef class ClonableArray(ClonableElement):
             sage: type(IncreasingArrays()([1,2,3])[:])
             <type 'list'>
         """
-        if PY_TYPE_CHECK(key, slice):
+        if isinstance(key, slice):
             self._list[key.start:key.stop:key.step]
         return self._list[key]
 
@@ -744,7 +744,7 @@ cdef class ClonableArray(ClonableElement):
             sage: list(iter(IncreasingArrays()([])))
             []
         """
-        return self._list.__iter__()
+        return iter(self._list)
 
     def __contains__(self, item):
         """
@@ -757,7 +757,7 @@ cdef class ClonableArray(ClonableElement):
             sage: 5 in c
             False
         """
-        return self._list.__contains__(item)
+        return item in self._list
 
     cpdef int index(self, x, start=None, stop=None) except -1:
         """
@@ -800,8 +800,6 @@ cdef class ClonableArray(ClonableElement):
         """
         return self._list.count(key)
 
-    # __hash__ is not properly inherited if comparison is changed
-    # see <http://groups.google.com/group/cython-users/t/e89a9bd2ff20fd5a>
     def __hash__(self):
         """
         Returns the hash value of ``self``.
@@ -824,7 +822,8 @@ cdef class ClonableArray(ClonableElement):
                 self._hash = self._hash_()
         return self._hash
 
-    def __richcmp__(left, right, int op):
+    # See protocol in comment in sage/structure/element.pyx
+    cpdef int _cmp_(left, Element right) except -2:
         """
         TESTS::
 
@@ -833,13 +832,8 @@ cdef class ClonableArray(ClonableElement):
             sage: elc = copy(el)
             sage: elc == el             # indirect doctest
             True
-        """
-        return (<Element>left)._richcmp(right, op)
 
-    # See protocol in comment in sage/structure/element.pyx
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        """
-        TEST::
+        ::
 
             sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el1 = IncreasingArrays()([1,2,4])
@@ -888,8 +882,8 @@ cdef class ClonableArray(ClonableElement):
             2
         """
         cdef ClonableArray res
-        #res = type(self).__new__(type(self), self._parent)
-        res = PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        res = t.__new__(t)
         res._parent = self._parent
         res._list = self._list[:]
         if HAS_DICTIONARY(self):
@@ -984,7 +978,7 @@ def _make_array_clone(clas, parent, list, needs_check, is_immutable, dic):
         2
     """
     cdef ClonableArray res
-    res = <ClonableArray> PY_NEW(clas)
+    res = <ClonableArray> clas.__new__(clas)
     res._parent = parent
     res._list = list
     res._needs_check = needs_check
@@ -1316,12 +1310,8 @@ cdef class ClonableIntArray(ClonableElement):
         """
         assert size >= 0, "Negative size is forbidden"
         self._is_immutable = False
-        if self._list is NULL:
-            self._len = size
-            self._list = <int *>sage_malloc(sizeof(int) * self._len)
-        else:
-            self._len = size
-            self._list = <int *>sage_realloc(self._list, sizeof(int) * self._len)
+        self._list = <int *>check_reallocarray(self._list, size, sizeof(int))
+        self._len = size
 
     def __dealloc__(self):
         if self._list is not NULL:
@@ -1376,7 +1366,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: list(I) == range(5)  # indirect doctest
             True
         """
-        return self.list().__iter__()
+        return iter(self.list())
 
     cpdef list list(self):
         """
@@ -1431,14 +1421,14 @@ cdef class ClonableIntArray(ClonableElement):
             <type 'list'>
             sage: list(el)
             [1, 2, 3]
-            sage: it = iter(el); it.next(), it.next()
+            sage: it = iter(el); next(it), next(it)
             (1, 2)
         """
         cdef int start, stop, step, keyi
         cdef list res
         cdef slice keysl
         # print key
-        if PY_TYPE_CHECK(key, slice):
+        if isinstance(key, slice):
             keysl = <slice> key
             start, stop, step = keysl.indices(self._len)
             res = []
@@ -1584,7 +1574,8 @@ cdef class ClonableIntArray(ClonableElement):
                 self._hash = self._hash_()
         return self._hash
 
-    def __richcmp__(left, right, int op):
+    # See protocol in comment in sage/structure/element.pyx
+    cpdef int _cmp_(left, Element right) except -2:
         """
         TESTS::
 
@@ -1593,13 +1584,8 @@ cdef class ClonableIntArray(ClonableElement):
             sage: elc = copy(el)
             sage: elc == el             # indirect doctest
             True
-        """
-        return (<Element>left)._richcmp(right, op)
 
-    # See protocol in comment in sage/structure/element.pyx
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        """
-        TEST::
+        ::
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el1 = IncreasingIntArrays()([1,2,4])
@@ -1673,7 +1659,8 @@ cdef class ClonableIntArray(ClonableElement):
             2
         """
         cdef ClonableIntArray res
-        res = PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        res = t.__new__(t)
         res._parent = self._parent
         if self:
             res._alloc_(self._len)
@@ -1774,7 +1761,7 @@ def _make_int_array_clone(clas, parent, lst, needs_check, is_immutable, dic):
         2
     """
     cdef ClonableIntArray res
-    res = <ClonableIntArray> PY_NEW(clas)
+    res = <ClonableIntArray> clas.__new__(clas)
     ClonableIntArray.__init__(res, parent, lst, needs_check, is_immutable)
     if dic is not None:
         res.__dict__ = dic

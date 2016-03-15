@@ -60,7 +60,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
+import six
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
@@ -113,23 +113,23 @@ def _lexi_gen(zeroes=False):
     OUTPUT:
 
     Python generator object which outputs a character from the alphabet on each
-    ``.next()`` call in lexicographical order. The integer `i` is appended
+    ``next()`` call in lexicographical order. The integer `i` is appended
     to the output string on the `i^{th}` iteration through the alphabet.
 
     EXAMPLES::
 
         sage: from sage.groups.free_group import _lexi_gen
         sage: itr = _lexi_gen()
-        sage: F = FreeGroup([itr.next() for i in [1..10]]); F
+        sage: F = FreeGroup([next(itr) for i in [1..10]]); F
         Free Group on generators {a, b, c, d, e, f, g, h, i, j}
         sage: it = _lexi_gen()
-        sage: [it.next() for i in range(10)]
+        sage: [next(it) for i in range(10)]
         ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
         sage: itt = _lexi_gen(True)
-        sage: [itt.next() for i in range(10)]
+        sage: [next(itt) for i in range(10)]
         ['a0', 'b0', 'c0', 'd0', 'e0', 'f0', 'g0', 'h0', 'i0', 'j0']
         sage: test = _lexi_gen()
-        sage: ls = [test.next() for i in range(3*26)]
+        sage: ls = [next(test) for i in range(3*26)]
         sage: ls[2*26:3*26]
         ['a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2', 'i2', 'j2', 'k2', 'l2', 'm2',
          'n2', 'o2', 'p2', 'q2', 'r2', 's2', 't2', 'u2', 'v2', 'w2', 'x2', 'y2', 'z2']
@@ -138,7 +138,7 @@ def _lexi_gen(zeroes=False):
 
         sage: from sage.groups.free_group import _lexi_gen
         sage: test = _lexi_gen()
-        sage: ls = [test.next() for i in range(500)]
+        sage: ls = [next(test) for i in range(500)]
         sage: ls[234], ls[260]
         ('a9', 'a10')
 
@@ -226,6 +226,17 @@ class FreeGroupElement(ElementLibGAP):
             AbstractWordTietzeWord = libgap.eval('AbstractWordTietzeWord')
             x = AbstractWordTietzeWord(l, parent._gap_gens())
         ElementLibGAP.__init__(self, parent, x)
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: hash(a*b*b*~a)
+            -485698212495963022 # 64-bit
+            -1876767630         # 32-bit
+        """
+        return hash(self.Tietze())
 
     def _latex_(self):
         """
@@ -622,13 +633,13 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
             n = None
     # derive n from counting names
     if n is None:
-        if isinstance(names, basestring):
+        if isinstance(names, six.string_types):
             n = len(names.split(','))
         else:
             names = list(names)
             n = len(names)
-    from sage.structure.parent import normalize_names
-    names = tuple(normalize_names(n, names))
+    from sage.structure.category_object import normalize_names
+    names = normalize_names(n, names)
     if index_set is not None or abelian:
         if abelian:
             from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
@@ -904,4 +915,4 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         from sage.groups.finitely_presented import FinitelyPresentedGroup
         return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
-    __div__ = quotient
+    __truediv__ = quotient

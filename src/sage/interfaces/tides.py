@@ -1,4 +1,6 @@
 r"""
+Interface to TIDES
+
 This module contains tools to write the .c files needed for TIDES [TI]_ .
 
 Tides is an integration engine based on the Taylor method. It is implemented
@@ -8,14 +10,16 @@ library. The reulting binary will produce the desired output. The tools in this
 module can be used to automate the generation of these files from the symbolic
 expression of the differential equation.
 
-##########################################################################
-#  Copyright (C) 2014 Miguel Marco <mmarco@unizar.es>, Marcos Rodriguez
-#   <marcos@uunizar.es>
-#
-#  Distributed under the terms of the GNU General Public License (GPL):
-#
-#                  http://www.gnu.org/licenses/
-##########################################################################
+::
+
+    ##########################################################################
+    #  Copyright (C) 2014 Miguel Marco <mmarco@unizar.es>, Marcos Rodriguez
+    #   <marcos@uunizar.es>
+    #
+    #  Distributed under the terms of the GNU General Public License (GPL):
+    #
+    #                  http://www.gnu.org/licenses/
+    ##########################################################################
 
 AUTHORS:
 
@@ -29,12 +33,12 @@ AUTHORS:
 
 REFERENCES:
 
-.. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
-Transactions on Mathematical Software*, *39*(1), 1-28.
+.. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM Transactions on Mathematical Software*, *39* (1), 1-28.
 
-.. [TI](http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
-A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
-TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+.. [TI]
+   A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+   TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+   <http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm>
 """
 
 
@@ -60,17 +64,17 @@ def subexpressions_list(f, pars=None):
     - ``f`` -- a symbolic function of several components.
 
     - ``pars`` -- a list of the parameters that appear in the function
-    this should be the symbolic constants that appear in f but are not
-    arguments.
+      this should be the symbolic constants that appear in f but are not
+      arguments.
 
-    OTUPUT:
+    OUTPUT:
 
     - a list of the intermediate subexpressions that appear in the evaluation
-    of f.
+      of f.
 
     - a list with the operations used to construct each of the subexpressions.
-    each element of this list is a tuple, formed by a string describing the
-    operation made, and the operands.
+      each element of this list is a tuple, formed by a string describing the
+      operation made, and the operands.
 
     For the trigonometric functions, some extra expressions will be added.
     These extra expressions will be used later to compute their derivatives.
@@ -158,7 +162,6 @@ def subexpressions_list(f, pars=None):
     varpar = list(parameters) + list(variables)
     F = symbolic_expression([i(*variables) for i in f]).function(*varpar)
     lis = flatten([fast_callable(i,vars=varpar).op_list() for i in F], max_level=1)
-    deflist = []
     stack = []
     const =[]
     stackcomp=[]
@@ -661,10 +664,10 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     - ``delta`` -- the step of the output.
 
     - ``parameters`` -- the variables inside the function that should be treated
-    as parameters.
+       as parameters.
 
     - ``parameter_values`` -- the values of the parameters for the particular
-    initial value problem.
+       initial value problem.
 
     - ``dig`` -- the number of digits of precission that will be used in the integration
 

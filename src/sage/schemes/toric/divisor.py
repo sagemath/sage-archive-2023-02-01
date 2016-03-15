@@ -173,7 +173,7 @@ from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.matrix.constructor import matrix
-from sage.misc.all import latex, flatten, prod
+from sage.misc.all import cached_method, flatten, latex, prod
 from sage.modules.all import vector
 from sage.modules.free_module import (FreeModule_ambient_field,
                                       FreeModule_ambient_pid)
@@ -185,6 +185,9 @@ from sage.schemes.toric.variety import CohomologyRing, is_ToricVariety
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import is_Vector
 
+# forward declaration
+class ToricDivisor_generic(Divisor_generic):
+    pass
 
 #********************************************************
 class ToricDivisorGroup(DivisorGroup_generic):
@@ -294,6 +297,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
         """
         return self.scheme().fan().nrays()
 
+    @cached_method
     def gens(self):
         r"""
         Return the generators of the divisor group.
@@ -305,12 +309,9 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: TDiv.gens()
             (V(x), V(y), V(z))
         """
-        # Note: self._gens is originally incorrectly set by the parent class
-        if self._gens is None:
-            one = self.base_ring().one()
-            self._gens = tuple(ToricDivisor_generic([(one, c)], self)
-                               for c in self.scheme().gens())
-        return self._gens
+        one = self.base_ring().one()
+        return tuple(ToricDivisor_generic([(one, c)], self)
+                     for c in self.scheme().gens())
 
     def gen(self,i):
         r"""
@@ -401,6 +402,9 @@ class ToricDivisorGroup(DivisorGroup_generic):
         else:
             raise ValueError("the base of %s cannot be extended to %s!"
                              % ( self, R))
+
+    Element = ToricDivisor_generic
+
 
 #********************************************************
 def is_ToricDivisor(x):
@@ -1164,16 +1168,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
+            sage: from itertools import product
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: def D(a,b): return a*F2.divisor(2) + b*F2.divisor(3)
-            ...
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_ample() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_ample() ]
             [(1, 1), (1, 2), (2, 1), (2, 2)]
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_nef() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
@@ -1242,16 +1246,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
+            sage: from itertools import product
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: def D(a,b): return a*F2.divisor(2) + b*F2.divisor(3)
-            ...
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_ample() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_ample() ]
             [(1, 1), (1, 2), (2, 1), (2, 2)]
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_nef() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
         """
@@ -2050,10 +2054,9 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
             x = self._projection_matrix * vector(x)
         if is_Vector(x):
             x = list(x)
-        return ToricRationalDivisorClass(self, x)
+        return self.element_class(self, x)
 
-    # parent does not conform to the new-style coercion model
-    __call__ = _element_constructor_
+    Element = ToricRationalDivisorClass
 
 
 class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
@@ -2099,7 +2102,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
         self._variety = group._variety
         self._lift_matrix = group._lift_matrix
         super(ToricRationalDivisorClassGroup_basis_lattice, self).__init__(
-            ZZ, group.dimension())
+            ZZ, group.dimension(), coordinate_ring=QQ)
 
     def _repr_(self):
         r"""
@@ -2137,4 +2140,4 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
         """
         return r"\text{{Basis lattice of }} {}".format(latex(self._group))
 
-    _element_class = ToricRationalDivisorClass
+    Element = ToricRationalDivisorClass

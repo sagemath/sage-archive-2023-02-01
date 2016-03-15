@@ -131,6 +131,19 @@ class PolyhedronFace(SageObject):
         self._ambient_Vrepresentation = tuple( polyhedron.Vrepresentation(i) for i in V_indices )
         self._ambient_Hrepresentation = tuple( polyhedron.Hrepresentation(i) for i in H_indices )
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: P = Polyhedron([[0,0],[0,1],[23,3],[9,12]])
+            sage: map(hash, P.faces(1))  # random
+            [2377119663630407734,
+             2377136578164722109,
+             5966674064902575359,
+             4795242501625591634]
+        """
+        return hash((self._polyhedron, self._ambient_Vrepresentation_indices))
+
     def vertex_generator(self):
         """
         Return a generator for the vertices of the face.
@@ -175,7 +188,7 @@ class PolyhedronFace(SageObject):
 
             sage: pi = Polyhedron(ieqs = [[1,1,0],[1,0,1]])
             sage: face = pi.faces(1)[0]
-            sage: face.ray_generator().next()
+            sage: next(face.ray_generator())
             A ray in the direction (1, 0)
         """
         for V in self.ambient_Vrepresentation():
@@ -208,7 +221,7 @@ class PolyhedronFace(SageObject):
 
             sage: pr = Polyhedron(rays = [[1,0],[-1,0],[0,1]], vertices = [[-1,-1]])
             sage: face = pr.faces(1)[0]
-            sage: face.line_generator().next()
+            sage: next(face.line_generator())
             A line in the direction (1, 0)
         """
         for V in self.ambient_Vrepresentation():
@@ -248,7 +261,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: f = square.faces(1)
             sage: matrix(4,4, lambda i,j: cmp(f[i], f[j]))
             [ 0 -1 -1 -1]
@@ -284,7 +297,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: for face in square.face_lattice():
             ...       print face.ambient_Hrepresentation()
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0,
@@ -325,7 +338,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: for fl in square.face_lattice():
             ...       print fl.ambient_Vrepresentation()
             ...
@@ -444,7 +457,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: a_face = list( square.face_lattice() )[8]
             sage: a_face.__repr__()
             '<1,3>'

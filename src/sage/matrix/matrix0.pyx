@@ -12,22 +12,17 @@ EXAMPLES::
     [3 4]
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/python.pxi"
-from cpython.list cimport *
-from cpython.object cimport *
-from cpython.slice cimport PySlice_Check
-from cpython.tuple cimport *
+from cpython cimport *
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -49,8 +44,6 @@ import sage.modules.free_module
 
 import matrix_misc
 
-cdef extern from "Python.h":
-    bint PySlice_Check(PyObject* ob)
 
 cdef class Matrix(sage.structure.element.Matrix):
     r"""
@@ -539,7 +532,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         EXAMPLES::
 
             sage: m=matrix(2,[1,2,3,4])
-            sage: m.__iter__().next()
+            sage: next(m.__iter__())
             (1, 2)
         """
 
@@ -850,7 +843,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # single number
         cdef int single_row = 0, single_col = 0
 
-        if PyTuple_CheckExact(key):
+        if type(key) is tuple:
             key_tuple = <tuple>key
             #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
@@ -859,8 +852,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             row_index = <object>PyTuple_GET_ITEM(key_tuple, 0)
             col_index = <object>PyTuple_GET_ITEM(key_tuple, 1)
 
-            if PyList_CheckExact(row_index) or PyTuple_CheckExact(row_index):
-                if PyTuple_CheckExact(row_index):
+            if type(row_index) is list or type(row_index) is tuple:
+                if type(row_index) is tuple:
                     row_list = list(row_index)
                 else:
                     row_list = row_index
@@ -879,7 +872,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                     if ind < 0 or ind >= nrows:
                         raise IndexError("matrix index out of range")
-            elif PySlice_Check(<PyObject *>row_index):
+            elif isinstance(row_index, slice):
                 row_list = range(*row_index.indices(nrows))
             else:
                 if not PyIndex_Check(row_index):
@@ -891,8 +884,8 @@ cdef class Matrix(sage.structure.element.Matrix):
                     raise IndexError("matrix index out of range")
                 single_row = 1
 
-            if PyList_CheckExact(col_index) or PyTuple_CheckExact(col_index):
-                if PyTuple_CheckExact(col_index):
+            if type(col_index) is list or type(col_index) is tuple:
+                if type(col_index) is tuple:
                     col_list = list(col_index)
                 else:
                     col_list = col_index
@@ -911,7 +904,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                     if ind < 0 or ind >= ncols:
                         raise IndexError("matrix index out of range")
-            elif PySlice_Check(<PyObject *>col_index):
+            elif isinstance(col_index, slice):
                 col_list =  range(*col_index.indices(ncols))
             else:
                 if not PyIndex_Check(col_index):
@@ -942,8 +935,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
 
         row_index = key
-        if PyList_CheckExact(row_index) or PyTuple_CheckExact(row_index):
-            if PyTuple_CheckExact(row_index):
+        if type(row_index) is list or type(row_index) is tuple:
+            if type(row_index) is tuple:
                 row_list = list(row_index)
             else:
                 row_list = row_index
@@ -963,7 +956,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 if ind < 0 or ind >= nrows:
                     raise IndexError("matrix index out of range")
             r = self.matrix_from_rows(row_list)
-        elif PySlice_Check(<PyObject *>row_index):
+        elif isinstance(row_index, slice):
             row_list = range(*row_index.indices(nrows))
             r = self.matrix_from_rows(row_list)
         else:
@@ -1332,7 +1325,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # exception.
         self.check_mutability()
 
-        if PyTuple_CheckExact(key):
+        if type(key) is tuple:
             key_tuple = <tuple>key
             #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
@@ -1382,21 +1375,21 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(row, col, self._coerce_element(value))
             return
 
-        if PyList_CheckExact(value):
+        if type(value) is list:
             if single_row and no_col_index:
                 # A convenience addition, so we can set a row by
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]
                 value_list_one_dimensional = 1
             value_list = value
-        elif  PyTuple_CheckExact(value):
+        elif type(value) is tuple:
             if single_row and no_col_index:
                 # A convenience addition, so we can set a row by
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]
                 value_list_one_dimensional = 1
             value_list = list(value)
-        elif IS_INSTANCE(value, Matrix):
+        elif isinstance(value, Matrix):
             value_list = list(value)
-        elif IS_INSTANCE(value, Vector):
+        elif isinstance(value, Vector):
             if single_row or single_col:
                 value_list_one_dimensional = 1
                 value_list = list(value)
@@ -1482,7 +1475,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Return coercion of x into the base ring of self.
         """
-        if PY_TYPE_CHECK(x, Element) and (<Element> x)._parent is self._base_ring:
+        if isinstance(x, Element) and (<Element> x)._parent is self._base_ring:
             return x
         return self._base_ring(x)
 
@@ -1675,8 +1668,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             s = 'dense'
         return "{} x {} {} matrix over {}".format(self._nrows, self._ncols, s, self.base_ring())
 
-    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None):
-        r"""
+    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None,
+            *, unicode=False, shape=None):
+        ur"""
         Return a nice string representation of the matrix.
 
         INPUT:
@@ -1709,6 +1703,17 @@ cdef class Matrix(sage.structure.element.Matrix):
           use the value of ``minus_one`` as the representation of the
           negative of the one element.
 
+        - ``unicode`` - boolean (default: ``False``).
+          Whether to use Unicode symbols instead of ASCII symbols
+          for brackets and subdivision lines.
+
+        - ``shape`` - one of ``"square"`` or ``"round"`` (default: ``None``).
+          Switches between round and square brackets.
+          The default depends on the setting of the ``unicode`` keyword
+          argument. For Unicode symbols, the default is round brackets
+          in accordance with the TeX rendering,
+          while the ASCII rendering defaults to square brackets.
+
         EXAMPLES::
 
             sage: R = PolynomialRing(QQ,6,'z')
@@ -1736,9 +1741,25 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M.str(repr)
             '[ 1  0]\n[ 2 -1]'
 
+            sage: M = matrix([[1,2,3],[4,5,6],[7,8,9]])
+            sage: M.subdivide(None, 2)
+            sage: print(M.str(unicode=True))
+            ⎛1 2│3⎞
+            ⎜4 5│6⎟
+            ⎝7 8│9⎠
+            sage: M.subdivide([0,1,1,3], [0,2,3,3])
+            sage: print(M.str(unicode=True, shape="square"))
+            ⎡┼───┼─┼┼⎤
+            ⎢│1 2│3││⎥
+            ⎢┼───┼─┼┼⎥
+            ⎢┼───┼─┼┼⎥
+            ⎢│4 5│6││⎥
+            ⎢│7 8│9││⎥
+            ⎣┼───┼─┼┼⎦
+
         TESTS:
 
-        Prior to Trac #11544 this could take a full minute to run (2011). ::
+        Prior to :trac:`11544` this could take a full minute to run (2011). ::
 
             sage: A = matrix(QQ, 4, 4, [1, 2, -2, 2, 1, 0, -1, -1, 0, -1, 1, 1, -1, 2, 1/2, 0])
             sage: e = A.eigenvalues()[3]
@@ -1746,17 +1767,90 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: P = K.basis_matrix()
             sage: P.str()
             '[             1.000000000000000? + 0.?e-17*I -2.116651487479748? + 0.0255565807096352?*I -0.2585224251020429? + 0.288602340904754?*I -0.4847545623533090? - 1.871890760086142?*I]'
+
+        Use single-row delimiters where appropriate::
+
+            sage: print(matrix([[1]]).str(unicode=True))
+            (1)
+            sage: print(matrix([[],[]]).str(unicode=True))
+            ()
+            sage: M = matrix([[1]])
+            sage: M.subdivide([0,1], [])
+            sage: print(M.str(unicode=True))
+            ⎛─⎞
+            ⎜1⎟
+            ⎝─⎠
         """
-        #x = self.fetch('repr')  # too confusing!!
-        #if not x is None: return x
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
         nc = self._ncols
 
+        # symbols is a string with 11 elements:
+        # - top left bracket         (tlb)
+        # - middle left bracket      (mlb)
+        # - bottom left bracket      (blb)
+        # - single-row left bracket  (slb)
+        # - top right bracket        (trb)
+        # - middle right bracket     (mrb)
+        # - bottom right bracket     (brb)
+        # - single-row right bracket (srb)
+        # - vertical line            (vl)
+        # - horizontal line          (hl)
+        # - crossing lines           (cl)
+        if shape is None:
+            shape = "round" if unicode else "square"
+        if unicode:
+            import unicodedata
+            hl = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
+            cl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+        else:
+            hl = '-'        # - horizontal line
+            vl = '|'        # - vertical line
+            cl = '+'        # - crossing lines
+        if shape == "square":
+            if unicode:
+                from sage.typeset.symbols import (
+                    unicode_left_square_bracket as left,
+                    unicode_right_square_bracket as right
+                )
+            else:
+                from sage.typeset.symbols import (
+                    ascii_left_square_bracket as left,
+                    ascii_right_square_bracket as right
+                )
+        elif shape == "round":
+            if unicode:
+                from sage.typeset.symbols import (
+                    unicode_left_parenthesis as left,
+                    unicode_right_parenthesis as right
+                )
+            else:
+                from sage.typeset.symbols import (
+                    ascii_left_parenthesis as left,
+                    ascii_right_parenthesis as right
+                )
+        else:
+            raise ValueError("No such shape")
+        tlb = left.top              # - top left bracket
+        mlb = left.extension        # - extension piece left bracket
+        blb = left.bottom           # - bottom left bracket
+        slb = left.character        # - single-row left bracket
+        trb = right.top             # - top right bracket
+        mrb = right.extension       # - extension piece right bracket
+        brb = right.bottom          # - bottom right bracket
+        srb = right.character       # - single-row right bracket
+
         if nr == 0 or nc == 0:
-            return "[]"
+            return slb + srb
 
         row_divs, col_divs = self.subdivisions()
+        row_div_counts = [0] * (nr + 1)
+        for r in row_divs:
+            row_div_counts[r] += 1
+        col_div_counts = [0] * (nc + 1)
+        for c in col_divs:
+            col_div_counts[c] += 1
 
         # Set the mapping based on keyword arguments
         if rep_mapping is None:
@@ -1782,78 +1876,69 @@ cdef class Matrix(sage.structure.element.Matrix):
                 rep = repr(x)
             S.append(rep)
 
-        tmp = []
-        for x in S:
-            tmp.append(len(x))
-
-        width = max(tmp)
+        width = max(map(len, S))
         rows = []
         m = 0
 
-        left_bracket = "["
-        right_bracket = "]"
-        while nc in col_divs:
-            right_bracket = "|" + right_bracket
-            col_divs.remove(nc)
-        while 0 in col_divs:
-            left_bracket += "|"
-            col_divs.remove(0)
-        line = '+'.join(['-'*((width+1)*(b-a)-1) for a,b in zip([0] + col_divs, col_divs + [nc])])
-        hline = (left_bracket + line + right_bracket).replace('|', '+')
+        hline = cl.join(hl * ((width + 1)*(b - a) - 1)
+                       for a,b in zip([0] + col_divs, col_divs + [nc]))
 
         # compute rows
         for r from 0 <= r < nr:
             rows += [hline] * row_divs.count(r)
             s = ""
             for c from 0 <= c < nc:
-                if c+1 in col_divs:
-                    sep = "|"*col_divs.count(c+1)
-                elif c == nc - 1:
-                    sep=""
+                if col_div_counts[c]:
+                    sep = vl * col_div_counts[c]
+                elif c == 0:
+                    sep = ""
                 else:
-                    sep=" "
-                entry = S[r*nc+c]
-                if c == 0:
-                    m = max(m, len(entry))
-                entry = " "*(width-len(entry)) + entry
-                s = s + entry + sep
-            rows.append(left_bracket + s + right_bracket)
-
+                    sep = " "
+                entry = S[r * nc + c]
+                entry = " " * (width - len(entry)) + entry
+                s = s + sep + entry
+            s = s + vl * col_div_counts[nc]
+            rows.append(s)
         rows += [hline] * row_divs.count(nr)
 
+        last_row = len(rows) - 1
+        if last_row == 0:
+            return slb + rows[0] + srb
+        rows[0] = tlb + rows[0] + trb
+        for r from 1 <= r < last_row:
+            rows[r] = mlb + rows[r] + mrb
+        rows[last_row] = blb + rows[last_row] + brb
         s = "\n".join(rows)
-        #self.cache('repr',s)
         return s
 
-##     def _latex_sparse(self, variable="x"):
-##         r"""
-##         Return a latex string that represents this matrix as a sparse
-##         matrix.  The rows are printed as sums $\sum a_i x_i$, where
-##         $x$ is the variable.
+    def _unicode_art_(self):
+        """
+        Unicode art representation of matrices
 
-##         EXAMPLES:
+        EXAMPLES::
 
-##         """
-##         cdef Py_ssize_t nr, nc, i, j
-##         nr = self._nrows
-##         nc = self._ncols
-##         s = "\\left(\\begin{align*}\n"
-##         for i from 0 <= i < nr:
-##             v = []
-##             for j from 0 <= j < nc:
-##                 x = self.get_unsafe(i, j)
-##                 if x != 0:
-##                     v.append((j, x))
-##             for j from 0 <= j < len(v):
-##                 s  = s + "%s*%s_{%s}"%(v[j][1], variable, v[j][0])
-##                 if j == 0:
-##                     s = s + "& + "
-##                 elif j < len(v) - 1:
-##                     s =  s + " + "
-##                 else:
-##                     s =  s + "\\\\\n"
-##         s = s + "\n\\end{align*}"
-##         return s
+            sage: A = matrix([[1,2], [3,4], [5,6]])
+            sage: A._unicode_art_()
+            ⎛1 2⎞
+            ⎜3 4⎟
+            ⎝5 6⎠
+            sage: unicode_art(A)    # indirect doctest
+            ⎛1 2⎞
+            ⎜3 4⎟
+            ⎝5 6⎠
+
+        If the matrix is too big, don't print all of the elements::
+
+            sage: A = random_matrix(ZZ, 100)
+            sage: unicode_art(A)
+            100 x 100 dense matrix over Integer Ring
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        if self._nrows < max_rows and self._ncols < max_cols:
+            output = self.str(unicode=True)
+        else:
+            output = repr(self)
+        return UnicodeArt(output.splitlines())
 
     def _latex_(self):
         r"""
@@ -3561,6 +3646,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Returns True if this is a symmetric matrix.
 
+        A symmetric matrix is necessarily square.
+
         EXAMPLES::
 
             sage: m=Matrix(QQ,2,range(0,4))
@@ -3966,6 +4053,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         return self.is_square() and self.determinant().is_unit()
 
+    is_unit = is_invertible
+
     def is_singular(self):
         r"""
         Returns ``True`` if ``self`` is singular.
@@ -4171,11 +4260,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def rank(self):
         """
+        Return the rank of this matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(GF(7),5,range(25))
+            sage: m.rank()
+            2
+
+        Rank is not implemented over the integers modulo a composite yet.::
+
+            sage: m = matrix(Integers(4), 2, [2,2,2,2])
+            sage: m.rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
 
         TESTS:
 
         We should be able to compute the rank of a matrix whose
-        entries are polynomials over a finite field (trac #5014)::
+        entries are polynomials over a finite field (trac:`5014`)::
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],
@@ -4655,7 +4759,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             MS = self.matrix_space(n, m)
             return MS(X).transpose()
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement _right):
         """
         Add two matrices with the same parent.
 
@@ -4671,13 +4775,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         cdef Py_ssize_t i, j
         cdef Matrix A
+        cdef Matrix right = _right
         A = self.new_matrix()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                A.set_unsafe(i,j, self.get_unsafe(i,j) + (<Matrix>right).get_unsafe(i,j))
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                A.set_unsafe(i,j,self.get_unsafe(i,j)._add_(right.get_unsafe(i,j)))
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
         Subtract two matrices with the same parent.
 
@@ -4693,22 +4798,22 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         cdef Py_ssize_t i, j
         cdef Matrix A
+        cdef Matrix right = _right
         A = self.new_matrix()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                A.set_unsafe(i,j, self.get_unsafe(i,j) - (<Matrix>right).get_unsafe(i,j))
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                A.set_unsafe(i,j,self.get_unsafe(i,j)._sub_(right.get_unsafe(i,j)))
         return A
-
 
     def __mod__(self, p):
         r"""
         Return matrix mod `p`, returning again a matrix over the
         same base ring.
 
-        .. note::
+        .. NOTE::
 
-           Use ``A.Mod(p)`` to obtain a matrix over the residue class
-           ring modulo `p`.
+           Use :meth:`mod` to obtain a matrix over the residue class ring
+           modulo `p`.
 
         EXAMPLES::
 
@@ -4719,11 +4824,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: parent(M % 7)
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
         """
-        cdef Py_ssize_t i
-        v = self.list()
-        for i from 0 <= i < len(v):
-            v[i] = v[i] % p
-        return self.new_matrix(entries = v, copy=False, coerce=True)
+        cdef Py_ssize_t i, j
+        cdef Matrix s = self
+        cdef Matrix A = s.new_matrix()
+        for i in range(A._nrows):
+            for j in range(A._ncols):
+                A[i,j] = s.get_unsafe(i,j) % p
+        return A
 
     def mod(self, p):
         """
@@ -4767,7 +4874,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
         """
         # derived classes over a commutative base *just* overload _lmul_ (!!)
-        if PY_TYPE_CHECK(self._base_ring, CommutativeRing):
+        if isinstance(self._base_ring, CommutativeRing):
             return self._lmul_(left)
         cdef Py_ssize_t r,c
         x = self._base_ring(left)
@@ -5247,7 +5354,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef long _hash(self) except -1:
         raise NotImplementedError
 
-    cdef int _cmp_c_impl(left,Element right) except -2:
+    cpdef int _cmp_(left,Element right) except -2:
         """
         Compare two matrices.
 

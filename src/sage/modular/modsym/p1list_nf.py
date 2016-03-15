@@ -294,7 +294,7 @@ class MSymbol(SageObject):
         INPUT:
 
         - ``n`` -- integer (0 or 1, since the list defined by an M-symbol has
-        length 2)
+          length 2)
 
         EXAMPLES::
 
@@ -992,7 +992,7 @@ def p1NFlist(N):
     #N.residues() = iterator through the residues mod N
     L = L+[MSymbol(N, k(1), r, check=False) for r in N.residues()]
 
-    from sage.rings.arith import divisors
+    from sage.arith.all import divisors
     for D in divisors(N):
         if not D.is_trivial() and D!=N:
             #we find Dp ideal coprime to N, in inverse class to D
@@ -1001,9 +1001,9 @@ def p1NFlist(N):
                 c = D.gens_reduced()[0]
             else:
                 it = k.primes_of_degree_one_iter()
-                Dp = it.next()
+                Dp = next(it)
                 while not Dp.is_coprime(N) or not (Dp*D).is_principal():
-                    Dp = it.next()
+                    Dp = next(it)
                 c = (D*Dp).gens_reduced()[0]
             #now we find all the (c,d)'s which have associated divisor D
             I = D + N/D
@@ -1039,7 +1039,7 @@ def lift_to_sl2_Ok(N, c, d):
 
         sage: from sage.modular.modsym.p1list_nf import lift_to_sl2_Ok
         sage: k.<a> = NumberField(x^2 + 23)
-        sage: Ok = k.ring_of_integers(k)
+        sage: Ok = k.ring_of_integers()
         sage: N = k.ideal(3)
         sage: M = Matrix(Ok, 2, lift_to_sl2_Ok(N, 1, a))
         sage: det(M)
@@ -1057,7 +1057,7 @@ def lift_to_sl2_Ok(N, c, d):
     ::
 
         sage: k.<a> = NumberField(x^3 + 11)
-        sage: Ok = k.ring_of_integers(k)
+        sage: Ok = k.ring_of_integers()
         sage: N = k.ideal(3, a - 1)
         sage: M = Matrix(Ok, 2, lift_to_sl2_Ok(N, 2*a, 0))
         sage: det(M)
@@ -1073,7 +1073,7 @@ def lift_to_sl2_Ok(N, c, d):
     ::
 
         sage: k.<a> = NumberField(x^4 - x^3 -21*x^2 + 17*x + 133)
-        sage: Ok = k.ring_of_integers(k)
+        sage: Ok = k.ring_of_integers()
         sage: N = k.ideal(7, a)
         sage: M = Matrix(Ok, 2, lift_to_sl2_Ok(N, 0, a^2 - 1))
         sage: det(M)
@@ -1100,7 +1100,7 @@ def lift_to_sl2_Ok(N, c, d):
         it = k.primes_of_degree_one_iter()
         q = k.ideal(1)
         while not (q.is_coprime(d) and (q*N).is_principal()):
-            q = it.next()
+            q = next(it)
         m = (q*N).gens_reduced()[0]
         B = k.ideal(m).element_1_mod(k.ideal(d))
         return [(1-B)/d, -B/m, m, d]
@@ -1108,7 +1108,7 @@ def lift_to_sl2_Ok(N, c, d):
         it = k.primes_of_degree_one_iter()
         q = k.ideal(1)
         while not (q.is_coprime(c) and (q*N).is_principal()):
-            q = it.next()
+            q = next(it)
         m = (q*N).gens_reduced()[0]
         B = k.ideal(c).element_1_mod(k.ideal(m))
         return [(1-B)/m, -B/c, c, m]
@@ -1162,7 +1162,7 @@ def make_coprime(N, c, d):
         r = k.ideal(1)
         qN = q*N
         while not (r.is_coprime(c) and (r*qN).is_principal()):
-            r = it.next()
+            r = next(it)
         m = (r*qN).gens_reduced()[0]
         d1 = d + m
         return c, d1
@@ -1191,7 +1191,7 @@ def psi(N):
     if not N.is_integral():
         raise ValueError("psi only defined for integral ideals")
 
-    from sage.misc.misc import prod
+    from sage.misc.all import prod
     return prod([(np+1)*np**(e-1) \
                      for np,e in [(p.absolute_norm(),e) \
                                   for p,e in N.factor()]])

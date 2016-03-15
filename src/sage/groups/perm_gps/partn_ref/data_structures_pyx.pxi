@@ -19,16 +19,19 @@ REFERENCES:
 #*****************************************************************************
 #      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from libc.math cimport log, ceil
+from libc.string cimport memcpy, memset
 
 include 'sage/data_structures/bitset.pxi'
 
-cdef extern from "math.h":
-    float log(float x)
-    float ceil(float x)
-
+from sage.libs.gmp.mpz cimport *
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.rings.integer cimport Integer
 from sage.groups.perm_gps.partn_ref2.refinement_generic cimport PartitionRefinement_generic
@@ -665,10 +668,12 @@ def PS_represent(partition, splits):
         Done.
 
     """
-    cdef int i, n = sum([len(cell) for cell in partition]), *gamma
+    cdef int i, n = sum([len(cell) for cell in partition])
+    cdef int *gamma
     cdef bitset_t b
     print "Allocating PartitionStack..."
-    cdef PartitionStack *PS = PS_new(n, 1), *PS2
+    cdef PartitionStack *PS = PS_new(n, 1)
+    cdef PartitionStack *PS2
     if PS is NULL:
         print "Allocation failed!"
         return
@@ -763,7 +768,9 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     cdef int i
     cdef StabilizerChain *SC = <StabilizerChain *> \
                                 sage_calloc(1, sizeof(StabilizerChain))
-    cdef int *array1, *array2, *array3
+    cdef int *array1
+    cdef int *array2
+    cdef int *array3
     cdef bint mem_err = 0
     if SC is NULL:
         return NULL
@@ -918,7 +925,8 @@ cdef inline int SC_realloc_gens(StabilizerChain *SC, int level, int size):
 
     Returns 1 in case of an allocation failure.
     """
-    cdef int *temp, n = SC.degree
+    cdef int *temp
+    cdef int n = SC.degree
 
     temp = <int *> sage_realloc( SC.generators[level],   n * size * sizeof(int) )
     if temp is NULL: return 1
@@ -1213,7 +1221,8 @@ cdef inline SC_compose_up_to_base(StabilizerChain *SC, int level, int x, int *pe
     with x, until the base is reached. The composition is stored to perm.
     """
     cdef int b = SC.base_orbits[level][0], n = SC.degree
-    cdef int *label, label_no
+    cdef int *label
+    cdef int label_no
     while x != b:
         label_no = SC.labels[level][x]
         if label_no < 0:
@@ -1248,7 +1257,8 @@ cdef int SC_re_tree(StabilizerChain *SC, int level, int *perm, int x):
     0 - No errors.
     1 - Allocation failure.
     """
-    cdef int *gen, *gen_inv
+    cdef int *gen
+    cdef int *gen_inv
     cdef int i, b, gen_index, error, n = SC.degree
 
     # make sure we have room for the new generator:
@@ -1515,7 +1525,8 @@ cdef bint SC_is_giant(int n, int num_perms, int *perms, float p, bitset_t suppor
     """
     cdef int i, j, num_steps, m = 1, support_root
     cdef unsigned long q
-    cdef int *gen, *perm = <int *> sage_malloc(n*sizeof(int))
+    cdef int *gen
+    cdef int *perm = <int *> sage_malloc(n*sizeof(int))
     cdef OrbitPartition *OP = OP_new(n)
     if OP is NULL or perm is NULL:
         OP_dealloc(OP)
@@ -1715,7 +1726,10 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
     """
     if gap:
         from sage.all import PermutationGroup, PermutationGroupElement, shuffle
-    cdef StabilizerChain *SC, *SCC, *SCCC, *SC_nb
+    cdef StabilizerChain *SC
+    cdef StabilizerChain *SCC
+    cdef StabilizerChain *SCCC
+    cdef StabilizerChain *SC_nb
     cdef Integer order, order2
     cdef int i, j, m, SC_says
     cdef bitset_t giant_support
@@ -1772,7 +1786,7 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
         if SC_is_giant(n, len(L), perm, 0.9, giant_support):
             giant = True
             m = bitset_len(giant_support)
-            from sage.rings.arith import factorial
+            from sage.arith.all import factorial
             if not (order == factorial(m) or order == factorial(m)/2):
                 print "SC_is_giant failed: %s %s"%(str(L), order)
                 raise AssertionError
@@ -1891,7 +1905,7 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
                     perm[n*j + i] = Lperm[i]
                 j += 1
             if SC_is_giant(n, len(L), perm, 0.9, giant_support):
-                from sage.rings.arith import factorial
+                from sage.arith.all import factorial
                 m = bitset_len(giant_support)
                 if order != factorial(m) and order != factorial(m)/2:
                     print "SC_is_giant failed: %s %s"%(str(L), order)
@@ -1979,7 +1993,8 @@ cdef int sort_by_function(PartitionStack *PS, int start, int *degrees):
     """
     cdef int n = PS.degree
     cdef int i, j, max, max_location
-    cdef int *counts = degrees + n, *output = degrees + 2*n + 1
+    cdef int *counts = degrees + n
+    cdef int *output = degrees + 2*n + 1
     for i from 0 <= i <= n:
         counts[i] = 0
     i = 0
@@ -2054,7 +2069,9 @@ cdef int refine_by_orbits(PartitionStack *PS, StabilizerChain *SC, int *perm_sta
     their minimal cell representatives in the orbit of the group.
     """
     cdef int start, level, gen_index, i, j, k, x, n = SC.degree
-    cdef int *gen, *min_cell_reps = SC.perm_scratch, *perm = perm_stack + n*PS.depth
+    cdef int *gen
+    cdef int *min_cell_reps = SC.perm_scratch
+    cdef int *perm = perm_stack + n*PS.depth
     cdef OrbitPartition *OP = SC.OP_scratch
     cdef int invariant = 1
     OP_clear(OP)

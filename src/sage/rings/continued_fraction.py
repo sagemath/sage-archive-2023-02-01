@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Continued fractions
 
@@ -105,17 +106,17 @@ quotients (seen as a finite or infinite list) you can use the methods
     sage: cf.value()
     pi
 
-The method ``value`` is currently not supported for continued fractions built
-from an infinite sequence::
-
     sage: w = words.FibonacciWord([1,2])
     sage: cf = continued_fraction(w)
     sage: cf.quotients()
     word: 1211212112112121121211211212112112121121...
-    sage: cf.value()
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: Real numbers built from continued fractions are not yet implemented
+    sage: v = cf.value()
+    sage: v
+    1.387954587967143?
+    sage: v.n(digits=100)
+    1.387954587967142336919313859873185477878152452498532271894917289826418577622648932169885237034242967
+    sage: v.continued_fraction()
+    [1; 2, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 1, 2, 1, 2...]
 
 Recall that quadratic numbers correspond to ultimately periodic continued
 fractions. For them special methods give access to preperiod and period::
@@ -173,8 +174,6 @@ Nevertheless, the tail is preserved under invertible integer homographies::
 
 .. TODO::
 
-    - Interactions with integer/rational and reals.
-
     - Gosper's algorithm to compute the continued fraction of (ax + b)/(cx + d)
       knowing the one of x (see Gosper (1972,
       http://www.inwap.com/pdp10/hbaker/hakmem/cf.html), Knuth (1998, TAOCP vol
@@ -216,6 +215,8 @@ def last_two_convergents(x):
     This function is principally used to compute the value of a ultimately
     periodic continued fraction.
 
+    OUTPUT: a 4-tuple of Sage integers
+
     EXAMPLES::
 
         sage: from sage.rings.continued_fraction import last_two_convergents
@@ -225,9 +226,14 @@ def last_two_convergents(x):
         (1, 0, 0, 1)
         sage: last_two_convergents([-1,1,3,2])
         (-1, 4, -2, 9)
+
+    TESTS::
+
+        sage: all(type(x) is Integer for x in last_two_convergents([]))
+        True
     """
-    p0, p1 = 0, 1
-    q0, q1 = 1, 0
+    p0, p1 = ZZ_0, ZZ_1
+    q0, q1 = ZZ_1, ZZ_0
     for a in x:
         p0, p1 = p1, a*p1+p0
         q0, q1 = q1, a*q1+q0
@@ -235,11 +241,16 @@ def last_two_convergents(x):
 
 def rat_interval_cf_list(r1, r2):
     r"""
-    Return the common prefix of r1 and r2 seen as continued fractions.
+    Return the common prefix of the rationals ``r1`` and ``r2`` seen as
+    continued fractions.
+
+    OUTPUT: a list of Sage integers.
 
     EXAMPLES::
 
         sage: from sage.rings.continued_fraction import rat_interval_cf_list
+        sage: rat_interval_cf_list(257/113, 5224/2297)
+        [2, 3, 1, 1, 1, 4]
         sage: for prec in xrange(10,54):
         ....:     R = RealIntervalField(20)
         ....:     for _ in xrange(100):
@@ -260,10 +271,10 @@ def rat_interval_cf_list(r1, r2):
     while c1 == c2:
         l.append(c1)
         r1 -= c1
-        if r1 == 0:
+        if not r1:
             break
         r2 -= c2
-        if r2 == 0:
+        if not r2:
             break
 
         r1 = ~r1
@@ -319,6 +330,161 @@ class ContinuedFraction_base(SageObject):
         self._pn = [ZZ_0, ZZ_1]
         self._qn = [ZZ_1, ZZ_0]
 
+    def str(self, nterms=10, unicode=False, join=True):
+        r"""
+        Return a string representing this continued fraction.
+
+        INPUT:
+
+        - ``nterms`` -- the maximum number of terms to use
+
+        - ``unicode`` -- (default ``False``) whether to use unicode character
+
+        - ``join`` -- (default ``True``) if ``False`` instead of returning a
+          string return a list of string, each of them representing a line
+
+        EXAMPLES::
+
+            sage: print continued_fraction(pi).str()
+                                         1                          
+            3 + ----------------------------------------------------
+                                            1                       
+                 7 + -----------------------------------------------
+                                               1                    
+                      15 + -----------------------------------------
+                                                 1                  
+                            1 + ------------------------------------
+                                                     1              
+                                 292 + -----------------------------
+                                                       1            
+                                        1 + ------------------------
+                                                          1         
+                                             1 + -------------------
+                                                            1       
+                                                  1 + --------------
+                                                               1    
+                                                       2 + ---------
+                                                            1 + ... 
+            sage: print continued_fraction(pi).str(nterms=1)
+            3 + ...
+            sage: print continued_fraction(pi).str(nterms=2)
+                    1    
+            3 + ---------
+                 7 + ... 
+
+            sage: print continued_fraction(243/354).str()
+                       1           
+            -----------------------
+                         1         
+             1 + ------------------
+                            1      
+                  2 + -------------
+                              1    
+                       5 + --------
+                                 1 
+                            3 + ---
+                                 2 
+            sage: continued_fraction(243/354).str(join=False)
+            ['           1           ',
+             '-----------------------',
+             '             1         ',
+             ' 1 + ------------------',
+             '                1      ',
+             '      2 + -------------',
+             '                  1    ',
+             '           5 + --------',
+             '                     1 ',
+             '                3 + ---',
+             '                     2 ']
+
+            sage: print continued_fraction(243/354).str(unicode=True)
+                       1           
+            ───────────────────────
+                         1         
+             1 + ──────────────────
+                            1      
+                  2 + ─────────────
+                              1    
+                       5 + ────────
+                                 1 
+                            3 + ───
+                                 2 
+        """
+        nterms = int(nterms)
+        if nterms < 0:
+            raise ValueError("nterms must be positive")
+
+        if unicode:
+            import unicodedata
+            frac = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+        else:
+            frac = '-'
+
+        # get the partial quotients
+        cf = [self.quotient(i) for i in range(nterms)]
+        continued = self.quotient(nterms) is not Infinity
+        while cf[-1] is Infinity:
+            cf.pop()
+
+        # write the lines starting from the end
+        a = cf.pop()
+        lines = [' {} + ... '.format(a) if continued else ' {} '.format(a)]
+        w = len(lines[0])
+        for a in reversed(cf):
+            s = ' {} + '.format(a) if a else ' '
+            w1 = len(s)
+            s += frac * w
+            lines.append(s)
+            lines.append(' ' * w1  + '{:^{width}}'.format(1, width=w))
+            w += w1
+
+        # change the order
+        lines.reverse()
+
+        # remove extra whitespaces and equalize the width
+        if len(lines) == 1:
+            lines[0] = lines[0].strip()
+        else:
+            lines[0] = lines[0][1:]
+            lines[1] = lines[1][1:]
+            w = len(lines[0])
+            for i,l in enumerate(lines):
+                lines[i] = ' ' * (w-len(l)) + l
+
+        return '\n'.join(lines) if join else lines
+
+    def _ascii_art_(self):
+        r"""
+        EXAMPLES::
+
+            sage: ascii_art(continued_fraction(43/30))
+                      1      
+            1 + -------------
+                        1    
+                 2 + --------
+                           1 
+                      3 + ---
+                           4 
+        """
+        from sage.typeset.ascii_art import AsciiArt
+        return AsciiArt(self.str(unicode=False, join=False))
+
+    def _unicode_art_(self):
+        r"""
+        EXAMPLES::
+
+            sage: unicode_art(continued_fraction(43/30))
+                      1      
+            1 + ─────────────
+                        1    
+                 2 + ────────
+                           1 
+                      3 + ───
+                           4 
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(self.str(unicode=True, join=False))
+
     def __abs__(self):
         """
         Return absolute value of self.
@@ -334,7 +500,7 @@ class ContinuedFraction_base(SageObject):
         """
         if self.quotient(0) >= 0:
             return self
-        return self.__neg__()
+        return -self
 
     def __cmp__(self, other):
         """
@@ -367,12 +533,8 @@ class ContinuedFraction_base(SageObject):
 
     def _mpfr_(self, R):
         r"""
-        Return a numerical approximation of ``self`` in the real mpfr ring ``R``.
-
-        The output result is accurate: when the rounding mode of
-        ``R`` is 'RNDN' then the result is the nearest binary number of ``R`` to
-        ``self``. The other rounding mode are 'RNDD' (toward +infinity), 'RNDU'
-        (toward -infinity) and 'RNDZ' (toward zero).
+        Return a correctly-rounded numerical approximation of ``self``
+        in the real mpfr ring ``R``.
 
         EXAMPLES::
 
@@ -423,43 +585,38 @@ class ContinuedFraction_base(SageObject):
             sage: cf.n(digits=11)
             8.9371541378
 
-        TESTS::
+        TESTS:
 
-        We check that the rounding works as expected, at least in the rational
-        case::
+        Check that the rounding works as expected (at least in the
+        rational case)::
 
-            sage: for _ in xrange(100):
-            ....:     a = QQ.random_element(num_bound=1<<64)
+            sage: fields = []
+            sage: for prec in [17, 24, 53, 128, 256]:
+            ....:     for rnd in ['RNDN', 'RNDD', 'RNDU', 'RNDZ', 'RNDA']:
+            ....:         fields.append(RealField(prec=prec, rnd=rnd))
+            sage: for n in range(3000):  # long time
+            ....:     a = QQ.random_element(num_bound=2^(n%100))
             ....:     cf = continued_fraction(a)
-            ....:     for prec in 17,24,53,128,256:
-            ....:         for rnd in 'RNDN','RNDD','RNDU','RNDZ':
-            ....:             R = RealField(prec=prec, rnd=rnd)
-            ....:             assert R(cf) == R(a)
+            ....:     for R in fields:
+            ....:         assert R(cf) == R(a)
         """
         # 1. integer case
         if self.quotient(1) is Infinity:
             return R(self.quotient(0))
 
-        # 2. negative numbers
-        # TODO: it is possible to deal with negative values. The only problem is
-        # that we need to find the good value for N (which involves
-        # self.quotient(k) for k=0,1,2)
+        rnd = R.rounding_mode()
+
+        # 2. negative numbers: reduce to the positive case
         if self.quotient(0) < 0:
-            rnd = R.rounding_mode()
-            if rnd == 'RNDN' or rnd == 'RNDZ':
-                return -R(-self)
-            elif rnd == 'RNDD':
-                r = R(-self)
-                s,m,e = r.sign_mantissa_exponent()
-                if e < 0:
-                    return -(R(m+1) >> (-e))
-                return -(R(m+1) << e)
-            else:
-                r = R(-self)
-                s,m,e = r.sign_mantissa_exponent()
-                if e < 0:
-                    return -(R(m-1) >> (-e))
-                return -(R(m-1) << e)
+            sgn = -1
+            self = -self
+            # Adjust rounding for change in sign
+            if rnd == 'RNDD':
+                rnd = 'RNDA'
+            elif rnd == 'RNDU':
+                rnd = 'RNDZ'
+        else:
+            sgn = 1
 
         # 3. positive non integer
         if self.quotient(0) == 0:  # 0 <= self < 1
@@ -489,8 +646,8 @@ class ContinuedFraction_base(SageObject):
 
         assert m_odd.nbits() == R.prec() or m_even.nbits() == R.prec()
 
-        if m_even == m_odd:  # no need to worry (we have a decimal number)
-            return R(m_even) >> N
+        if m_even == m_odd:  # no need to worry (we have an exact number)
+            return R(sgn * m_even) >> N
 
         # check ordering
         # m_even/2^N <= p_even/q_even <= self <= p_odd/q_odd <= m_odd/2^N
@@ -499,30 +656,24 @@ class ContinuedFraction_base(SageObject):
         assert p_even / q_even <= p_odd / q_odd
         assert p_odd / q_odd <= m_odd / (ZZ_1 << N)
 
-        rnd = R.rounding_mode()
         if rnd == 'RNDN':  # round to the nearest
             # in order to find the nearest approximation we possibly need to
             # augment our precision on convergents.
             while True:
                 assert not(p_odd << (N+1) <= (2*m_odd-1) * q_odd) or not(p_even << (N+1) >= (2*m_even+1) * q_even)
                 if p_odd << (N+1) <= (2*m_odd-1) * q_odd:
-                    return R(m_even) >> N
+                    return R(sgn * m_even) >> N
                 if p_even << (N+1) >= (2*m_even+1) * q_even:
-                    return R(m_odd) >> N
+                    return R(sgn * m_odd) >> N
                 k += 1
                 p_even = self.numerator(2*k)
                 p_odd = self.numerator(2*k+1)
                 q_even = self.denominator(2*k)
                 q_odd = self.denominator(2*k+1)
-        elif rnd == 'RNDU':  # round up (toward +infinity)
-            return R(m_odd) >> N
-        elif rnd == 'RNDD':  # round down (toward -infinity)
-            return R(m_even) >> N
-        elif rnd == 'RNDZ':  # round toward zero
-            if m_even.sign() == 1:
-                return R(m_even) >> N
-            else:
-                return R(m_odd) >> N
+        elif rnd == 'RNDU' or rnd == 'RNDA':  # round up
+            return R(sgn * m_odd) >> N
+        elif rnd == 'RNDD' or rnd == 'RNDZ':  # round down
+            return R(sgn * m_even) >> N
         else:
             raise ValueError("%s unknown rounding mode" % rnd)
 
@@ -652,8 +803,8 @@ class ContinuedFraction_base(SageObject):
         Return the list of partial convergents of ``self``.
 
         If ``self`` is an infinite continued fraction, then the object returned
-        is a :class:`~sage.misc.lazy_list.lazy_list` which behave like an
-        infinite list.
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which
+        behave like an infinite list.
 
         EXAMPLES::
 
@@ -675,7 +826,7 @@ class ContinuedFraction_base(SageObject):
         Return the list of partial quotients of ``self``.
 
         If ``self`` is an infinite continued fraction, the the object returned
-        is a :class:``~sage.misc.lazy_list.lazy_list`` which behave like an
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which behave like an
         infinite list.
 
         EXAMPLES::
@@ -720,7 +871,7 @@ class ContinuedFraction_base(SageObject):
             7
         """
         if isinstance(n, slice):
-            quots = self.quotients().__getitem__(n)
+            quots = self.quotients()[n]
             if n.stop is not None:
                 quots = list(quots)
             return continued_fraction(quots)
@@ -745,11 +896,11 @@ class ContinuedFraction_base(SageObject):
 
             sage: cf = continued_fraction(pi)
             sage: i = iter(cf)
-            sage: [i.next() for _ in xrange(10)]
+            sage: [next(i) for _ in xrange(10)]
             [3, 7, 15, 1, 292, 1, 1, 1, 2, 1]
-            sage: [i.next() for _ in xrange(10)]
+            sage: [next(i) for _ in xrange(10)]
             [3, 1, 14, 2, 1, 1, 2, 2, 2, 2]
-            sage: [i.next() for _ in xrange(10)]
+            sage: [next(i) for _ in xrange(10)]
             [1, 84, 2, 1, 1, 15, 3, 13, 1, 4]
         """
         yield self.quotient(0)
@@ -1260,22 +1411,6 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             return '[%d; ' % self._x1[0] + period + ']'
         return '[%d; ' % self._x1[0] + ', '.join(str(a) for a in self._x1[1:]) + ', ' + period + ']'
 
-#    def __reduce__(self):
-#        r"""
-#        Pickling support.
-#
-#        EXAMPLES::
-#
-#            sage: a = CFF([1,2,3])
-#            sage: loads(dumps(a)) == a
-#            True
-#
-#            sage: a = CFF([(-1,2),(3,1,4)])
-#            sage: loads(dumps(a)) == a
-#            True
-#        """
-#        return self.parent(),((self._x1,self._x2),)
-
     def __len__(self):
         """
         Return the number of terms in this continued fraction.
@@ -1284,6 +1419,11 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
 
             sage: len(continued_fraction([1,2,3,4,5]) )
             5
+
+            sage: len(continued_fraction(([],[1])))
+            Traceback (most recent call last):
+            ...
+            ValueError: the length is infinite
         """
         if self._x2[0] is Infinity: # rational case
             return len(self._x1)
@@ -1299,6 +1439,16 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             -17/389
             sage: QQ(a)
             -17/389
+
+            sage: a = continued_fraction([2,3,4,5,2])
+            sage: QQ(a)
+            344/149
+
+            sage: a = continued_fraction(([2,3],[1]))
+            sage: QQ(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: this is not a rational!
         """
         if self._x2[0] is not Infinity:
             raise ValueError("this is not a rational!")
@@ -1306,7 +1456,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         return self.numerator(n-1) / self.denominator(n-1)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: a = continued_fraction(-17/389)
@@ -1357,10 +1507,10 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             1
         """
         if not self:
-            raise ZeroDivisionError("Rational division by 0")
+            raise ZeroDivisionError("rational division by zero")
         if self._x1:
             if self._x1[0] < 0:
-                return -(-self).__invert__()
+                return -~-self
             if self._x1[0] == 0:
                 return self.__class__(self._x1[1:], self._x2)
         return self.__class__((0,) + self._x1, self._x2)
@@ -1487,18 +1637,6 @@ class ContinuedFraction_real(ContinuedFraction_base):
         """
         raise ValueError("the length is infinite!")
 
-#    def __reduce__(self):
-#        r"""
-#        Pickling support.
-#
-#        TESTS::
-#
-#            sage: cf = continued_fraction(pi)
-#            sage: loads(dumps(cf)) == cf
-#            True
-#        """
-#        return self.parent(),(self.value(),)
-
     def __cmp__(self, other):
         r"""
         Comparison.
@@ -1522,7 +1660,7 @@ class ContinuedFraction_real(ContinuedFraction_base):
             if self.value() - other.value() > 0:
                 return 1
             return -1
-        except StandardError:
+        except Exception:
             return ContinuedFraction_base.__cmp__(self, other)
 
     def _repr_(self):
@@ -1654,7 +1792,6 @@ class ContinuedFraction_real(ContinuedFraction_base):
         """
         return self._x0
 
-
 class ContinuedFraction_infinite(ContinuedFraction_base):
     r"""
     A continued fraction defined by an infinite sequence of partial quotients.
@@ -1715,9 +1852,16 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             ValueError: the sequence must consist of integers
 
             sage: from itertools import count
-            sage: w = Word(count())
+            sage: w = Word(count(), length="infinite")
             sage: continued_fraction(w)
             [0; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19...]
+
+            sage: w = Word(count(), length="unknown")
+            sage: continued_fraction(w)
+            Traceback (most recent call last):
+            ...
+            ValueError: word with unknown length can not be converted to
+            continued fractions
 
             sage: continued_fraction(words.FibonacciWord([0,1]))
             Traceback (most recent call last):
@@ -1829,7 +1973,8 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
         r"""
         The value of ``self``.
 
-        The method only works if a value was provided in the constructor.
+        If this value was provided on initialization, just return this value
+        otherwise return an element of the real lazy field.
 
         EXAMPLES::
 
@@ -1844,10 +1989,19 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             [1; 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1...]
             sage: cf.value()
             e - 1
+
+            sage: w = words.FibonacciWord([2,5])
+            sage: cf = continued_fraction(w)
+            sage: cf
+            [2; 5, 2, 2, 5, 2, 5, 2, 2, 5, 2, 2, 5, 2, 5, 2, 2, 5, 2, 5...]
+            sage: cf.value()
+            2.184951302409338?
         """
         if self._value is not None:
             return self._value
-        raise NotImplementedError("Real numbers built from continued fractions are not yet implemented")
+        else:
+            from sage.rings.real_lazy import RLF
+            return RLF(self)
 
 def check_and_reduce_pair(x1,x2=None):
     r"""
@@ -2027,6 +2181,19 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
         [1, 100000000000000000000, 2688, 8, 1]
         sage: continued_fraction_list(1 + 10^-20 - e^-100, nterms=5)
         [1, 100000000000000000000, 2688, 8, 1]
+
+    Fixed :trac:`18901`::
+
+        sage: a = 1.575709393346379
+        sage: type(a)
+        <type 'sage.rings.real_mpfr.RealLiteral'>
+        sage: continued_fraction_list(a)
+        [1, 1, 1, 2, 1, 4, 18, 1, 5, 2, 25037802, 7, 1, 3, 1, 28, 1, 8, 2]
+
+    Check that this works for arb elements (:trac:`20069`)::
+
+        sage: continued_fraction(RBF(e))
+        [2; 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12]
     """
     from rational_field import QQ
 
@@ -2063,8 +2230,12 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
 
     cf = None
 
-    from sage.rings.real_mpfi import is_RealIntervalField
-    if is_RealIntervalField(x.parent()):
+    from sage.rings.real_arb import RealBallField
+    from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
+    from sage.rings.real_mpfr import RealLiteral
+    if isinstance(x, RealLiteral):
+        x = RealIntervalField(x.prec())(x)
+    if isinstance(x.parent(), (RealIntervalField_class, RealBallField)):
         cf = continued_fraction(rat_interval_cf_list(
                  x.lower().exact_rational(),
                  x.upper().exact_rational()))
@@ -2202,6 +2373,14 @@ def continued_fraction(x, value=None):
         ....:     cff = continued_fraction(x)
         ....:     cfe = QQ(x).continued_fraction()
         ....:     assert cff == cfe, "%s %s %s"%(x,cff,cfe)
+
+    TESTS:
+
+    Fixed :trac:`18901`. For RealLiteral, continued_fraction calls
+    continued_fraction_list::
+
+        sage: continued_fraction(1.575709393346379)
+        [1; 1, 1, 2, 1, 4, 18, 1, 5, 2, 25037802, 7, 1, 3, 1, 28, 1, 8, 2]
     """
 
     if isinstance(x, ContinuedFraction_base):
@@ -2227,16 +2406,27 @@ def continued_fraction(x, value=None):
         return ContinuedFraction_periodic(x1, x2)
 
     # input for infinite partial quotient expansion
-    from sage.misc.lazy_list import lazy_list
+    from sage.misc.lazy_list import lazy_list_generic
     from sage.combinat.words.infinite_word import InfiniteWord_class
-    if isinstance(x, (lazy_list, InfiniteWord_class)):
+    if isinstance(x, (lazy_list_generic, InfiniteWord_class)):
         return ContinuedFraction_infinite(x, value)
+
+    from sage.combinat.words.abstract_word import Word_class
+    if isinstance(x, Word_class):
+        raise ValueError("word with unknown length can not be converted to continued fractions")
 
     # input for numbers
     #TODO: the approach used below might be not what the user expects as we
-    # have currently in sage (version 6.2)
-    # sage: RR.random_element() in QQ
-    # True
+    # have currently in sage (version 6.8)
+    #
+    #     sage: RR.random_element() in QQ
+    #     True
+    #
+    # But, be careful with real literals
+    #
+    #     sage: a = 1.575709393346379
+    #     sage: a in QQ
+    #     False
     from rational_field import QQ
     if x in QQ:
         return QQ(x).continued_fraction()
@@ -2247,10 +2437,10 @@ def continued_fraction(x, value=None):
     except AttributeError:
         pass
 
+    from real_mpfi import RealIntervalField, RealIntervalFieldElement
     if is_real is False:
         # we can not rely on the answer of .is_real() for elements of the
         # symbolic ring. The thing below is a dirty temporary hack.
-        from real_mpfi import RealIntervalField
         RIF = RealIntervalField(53)
         try:
             RIF(x)
@@ -2270,7 +2460,7 @@ def continued_fraction(x, value=None):
     if x.parent() == SR:
         return ContinuedFraction_real(x)
 
-    raise ValueError("does not know how to compute the continued fraction of %s, try the function continued_fraction_list instead"%x)
+    return continued_fraction(continued_fraction_list(x))
 
 def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
     r"""

@@ -1,28 +1,25 @@
+"""
+Helper code for ternary quadratic forms
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2012 Gustavo Rama
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, identity_matrix, diagonal_matrix
 from sage.modules.free_module_element import vector
-from sage.rings.arith import inverse_mod
+from sage.arith.all import inverse_mod, xgcd, gcd
 from sage.quadratic_forms.extras import extend_to_primitive
 from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.prandom import randint
-from sage.rings.arith import xgcd,gcd
 from sage.functions.other import ceil, floor
 from __builtin__ import max
 
@@ -33,9 +30,11 @@ def red_mfact(a,b):
     Auxiliar function for reduction that finds the reduction factor of a, b integers.
 
     INPUT:
+
         - a, b integers
 
     OUTPUT:
+
         Integer
 
     EXAMPLES::
@@ -536,7 +535,8 @@ def pseudorandom_primitive_zero_mod_p(a, b, c, r, s, t, p):
 def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, long long s, long long t, long long p, v):
     """
     Find the zeros mod p, where p is an odd prime, of a ternary quadratic form given by its coefficients and a given zero of the form v.
-    The prime p doesn't divides the discriminant of the form.
+
+    The prime p does not divide the discriminant of the form.
 
     EXAMPLES::
 
@@ -605,8 +605,10 @@ def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, lo
 
 def _find_zeros_mod_p(a, b, c, r, s, t, p):
     """
-    Finds the zeros mod p of the ternary quadratic form given by the coefficients (a, b, c, r, s, t), where p is
-    a prime that doesn't divides the discriminant of the form.
+    Find the zeros mod `p` of the ternary quadratic form.
+
+    The quadratic form is given by the coefficients (a, b, c, r, s, t),
+    and `p` is a prime that does not divide the discriminant of the form.
 
     EXAMPLES::
 

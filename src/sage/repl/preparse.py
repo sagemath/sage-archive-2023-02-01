@@ -220,6 +220,7 @@ Behind the scenes what happens is the following::
 
 import os
 import re
+import six
 
 from sage.repl.load import load_wrap
 
@@ -521,6 +522,14 @@ def parse_ellipsis(code, preparse_step=True):
         'for i in (ellipsis_iter(f(x) ,Ellipsis, L[10])):'
         sage: [1.0..2.0]
         [1.00000000000000, 2.00000000000000]
+
+    TESTS:
+
+    Check that nested ellipsis is processed correctly (:trac:`17378`)::
+
+        sage: preparse('[1,..,2,..,len([1..3])]')
+        '(ellipsis_range(Integer(1),Ellipsis,Integer(2),Ellipsis,len((ellipsis_range(Integer(1),Ellipsis,Integer(3))))))'
+
     """
     ix = code.find('..')
     while ix != -1:
@@ -534,6 +543,16 @@ def parse_ellipsis(code, preparse_step=True):
             code = code[:ix] + "Ellipsis" + code[ix+3:]
         else:
             start_list, end_list = containing_block(code, ix, ['()','[]'])
+
+            #search the current containing block for other '..' occurrences that may
+            #be contained in proper subblocks. Those need to be processed before
+            #we can deal with the present level of ellipses.
+            ix = code.find('..',ix+2,end_list)
+            while ix != -1:
+                if code[ix-1]!='.' and code[ix+2]!='.':
+                    start_list,end_list = containing_block(code,ix,['()','[]'])
+                ix = code.find('..',ix+2,end_list)
+
             arguments = code[start_list+1:end_list-1].replace('...', ',Ellipsis,').replace('..', ',Ellipsis,')
             arguments = re.sub(r',\s*,', ',', arguments)
             if preparse_step:
@@ -1207,7 +1226,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         _sage_const_100 = Integer(100)
         type(100 ), type(_sage_const_100 )
     """
-    if not isinstance(contents, basestring):
+    if not isinstance(contents, six.string_types):
         raise TypeError("contents must be a string")
 
     if globals is None:
@@ -1441,24 +1460,24 @@ def handle_encoding_declaration(contents, out):
         '#!/usr/local/bin/python\nimport os, sys'
 
 
-    NOTES::
+    NOTES:
 
-        PEP 263: http://www.python.org/dev/peps/pep-0263/
+    - PEP 263: http://www.python.org/dev/peps/pep-0263/
 
-        PEP 263 says that Python will interpret a UTF-8 byte order mark
-        as a declaration of UTF-8 encoding, but I don't think we do
-        that; this function only sees a Python string so it can't
-        account for a BOM.
+    - PEP 263 says that Python will interpret a UTF-8 byte order mark
+      as a declaration of UTF-8 encoding, but I don't think we do
+      that; this function only sees a Python string so it can't
+      account for a BOM.
 
-        We default to UTF-8 encoding even though PEP 263 says that
-        Python files should default to ASCII.
+    - We default to UTF-8 encoding even though PEP 263 says that
+      Python files should default to ASCII.
 
-        Also see http://docs.python.org/ref/encodings.html.
+    - Also see http://docs.python.org/ref/encodings.html.
 
-    AUTHORS::
+    AUTHORS:
 
-        - Lars Fischer
-        - Dan Drake (2010-12-08, rewrite for ticket #10440)
+    - Lars Fischer
+    - Dan Drake (2010-12-08, rewrite for ticket #10440)
     """
     lines = contents.splitlines()
     for num, line in enumerate(lines[:2]):
@@ -1491,7 +1510,7 @@ def preparse_file_named(name):
     Preparse file named \code{name} (presumably a .sage file), outputting to a
     temporary file.  Returns name of temporary file.
     """
-    from sage.misc.misc import tmp_filename
+    from sage.misc.temporary_file import tmp_filename
     tmpfilename = tmp_filename(os.path.basename(name)) + '.py'
     out = open(tmpfilename, 'w')
     preparse_file_named_to_stream(name, out)

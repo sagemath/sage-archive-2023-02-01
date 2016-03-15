@@ -21,7 +21,7 @@ from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElem
 from sage.combinat.set_partition import SetPartition, SetPartitions, SetPartitions_set
 from sage.sets.set import Set, is_Set
 from sage.graphs.graph import Graph
-from sage.rings.arith import factorial, binomial
+from sage.arith.all import factorial, binomial
 from permutation import Permutations
 from sage.rings.all import Integer
 from sage.rings.real_mpfr import is_RealNumber
@@ -49,6 +49,7 @@ def create_set_partition_function(letter, k):
 
     raise ValueError("k must be an integer or an integer + 1/2")
 
+
 class SetPartitionsXkElement(SetPartition):
     """
     An element for the classes of ``SetPartitionXk`` where ``X`` is some
@@ -58,11 +59,15 @@ class SetPartitionsXkElement(SetPartition):
         """
         Check to make sure this is a set partition.
 
-        EXAMLPLES::
+        EXAMPLES::
 
             sage: A2p5 = SetPartitionsAk(2.5)
-            sage: A2p5.first() # random
+            sage: x = A2p5.first(); x # random
             {{1, 2, 3, -1, -3, -2}}
+            sage: x.check()
+            sage: y = A2p5.next(x); y
+            {{-3, -2, -1, 2, 3}, {1}}
+            sage: y.check()
         """
         #Check to make sure each element of x is a set
         for s in self:
@@ -115,7 +120,7 @@ class SetPartitionsAk_k(SetPartitions_set):
             True
         """
         self.k = k
-        SetPartitions_set.__init__(self, frozenset(range(1,k+1) + map(lambda x: -1*x,range(1,k+1))))
+        SetPartitions_set.__init__(self, frozenset(list(range(1,k+1)) + [-1*x for x in range(1,k+1)]))
 
     Element = SetPartitionsXkElement
 
@@ -139,7 +144,7 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
             True
         """
         self.k = k
-        SetPartitions_set.__init__( self, frozenset(range(1,k+2) + map(lambda x: -1*x, range(1,k+1))) )
+        SetPartitions_set.__init__( self, frozenset(list(range(1,k+2)) + [-1*x for x in range(1,k+1)]) )
 
     Element = SetPartitionsXkElement
 
@@ -747,7 +752,7 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
              {{1, 3}, {-3, -1}, {2, -2}, {4, -4}},
              {{1, 2}, {-3, -1}, {4, -4}, {3, -2}}]
         """
-        set = range(1,self.k+1) + map(lambda x: -1*x, range(1,self.k+1))
+        set = list(range(1,self.k+1)) + [-1*x for x in range(1,self.k+1)]
         for sp in SetPartitions(set, [2]*(len(set)//2) ):
             yield self.element_class(self, Set(list(sp)) + Set([Set([self.k+1, -self.k -1])]))
 
@@ -1577,10 +1582,8 @@ def is_planar(sp):
         sage: pa.is_planar( pa.to_set_partition([[1,-1],[2,-2]]))
         True
     """
-    to_consider = map(list, sp)
-
     #Singletons don't affect planarity
-    to_consider = [x for x in to_consider if len(x) > 1]
+    to_consider = [x for x in map(list, sp) if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):
@@ -1636,7 +1639,7 @@ def is_planar(sp):
                             if row is ap:
                                 sr = Set(rng)
                             else:
-                                sr = Set(map(lambda x: -1*x, rng))
+                                sr = Set([-1*x for x in rng])
 
 
                             sj = Set(to_consider[j])
@@ -1794,9 +1797,9 @@ def to_set_partition(l,k=None):
         if l == []:
             return Set([])
         else:
-            k = max( map( lambda x: max( map(abs, x) ), l) )
+            k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = Set( range(1, k+1) + map(lambda x: -1*x, range(1, k+1) ) )
+    to_be_added = Set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
 
     sp = []
     for part in l:
@@ -1852,7 +1855,7 @@ def set_partition_composition(sp1, sp2):
             if len(cc) > 1:
                 total_removed += 1
         else:
-            res.append( Set(map(lambda x: x[0], new_cc)) )
+            res.append( Set([x[0] for x in new_cc]) )
 
 
     return ( Set(res), total_removed )

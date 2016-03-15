@@ -40,14 +40,14 @@ class NotebookSageNB(object):
                 logger.debug('keyword argument %s = %s', key, value)
                 try:
                     value = ast.literal_eval(value)
-                except StandardError:
+                except Exception:
                     logger.debug('cannot evaluate, treat as string')
                 kwds[key] = value
             else:
                 logger.debug('positional argument %s', x)
                 try:
                     value = ast.literal_eval(x)
-                except StandardError:
+                except Exception:
                     value = x
                     logger.debug('cannot evaluate, treat as string')
                 args.append(value)
@@ -65,22 +65,21 @@ class NotebookSageNB(object):
             notebook(*self.args, **self.kwds)
 
 
-class NotebookIPython(object):
+class NotebookJupyter(object):
 
     PREREQUISITE_ERROR = textwrap.dedent("""
-    The IPython notebook requires ssl, even if you do not use
+    The Jupyter notebook requires ssl, even if you do not use
     https. Install the openssl development packages in your system and
-    then rebuild Python (sage -f python).
+    then rebuild Python (sage -f python2).
     """)
 
     def __init__(self, argv):
-        from sage.repl.notebook_ipython import have_prerequisites, SageNotebookApp
+        from sage.repl.ipython_kernel.install import have_prerequisites
         if not have_prerequisites():
             print(self.PREREQUISITE_ERROR)
             raise SystemExit(1)
-        app = SageNotebookApp.instance()
-        app.initialize(argv)
-        app.start()
+        from notebook.notebookapp import main
+        main(argv)
 
 
 description = \
@@ -108,16 +107,17 @@ EXAMPLES:
       sage -n -- port=1234      # equivalent
       sage -n port=1234         # ERROR: invalid notebook name
 
-* Run IPython notebook in custom directory:
+* Run Jupyter notebook in custom directory:
 
-      sage --notebook=ipython --notebook-dir=/home/foo/bar
+      sage --notebook=jupyter --notebook-dir=/home/foo/bar
 """
 
 
 notebook_launcher = {
     'default': NotebookSageNB,   # change this to change the default
     'sagenb': NotebookSageNB,
-    'ipython': NotebookIPython,
+    'ipython': NotebookJupyter,
+    'jupyter': NotebookJupyter,
 } 
 
 notebook_names = ', '.join(notebook_launcher.keys())
@@ -180,8 +180,8 @@ if __name__ == '__main__':
             parser.print_help()
         elif launcher == NotebookSageNB:
             NotebookSageNB([], help=True)
-        elif launcher == NotebookIPython:
-            NotebookIPython(['help'])
+        elif launcher == NotebookJupyter:
+            NotebookJupyter(['help'])
         else:
             parser.print_help()
         sys.exit(0)

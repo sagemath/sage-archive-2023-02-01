@@ -96,7 +96,6 @@ REFERENCES:
    2013/164. 2013.  2013/164. http://eprint.iacr.org/2013/164
 """
 
-from sage.calculus.var import var
 from sage.functions.log import exp, log
 from sage.functions.other import sqrt, floor, ceil
 from sage.misc.functional import cyclotomic_polynomial
@@ -107,11 +106,11 @@ from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import random_vector, vector
 from sage.numerical.optimize import find_root
 from sage.rings.all import ZZ, RealField, IntegerModRing, RR
-from sage.rings.arith import next_prime, euler_phi
+from sage.arith.all import next_prime, euler_phi
 from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
 from sage.symbolic.constants import pi
-
+from sage.symbolic.ring import SR
 from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
 
@@ -428,7 +427,7 @@ class LindnerPeikert(LWE):
         #            2*n*(log(c)+(1-c**2)/2) == -40*log(2)
         #              2*n*log(c)+n*(1-c**2) == -40*log(2)
         #  2*n*log(c)+n*(1-c**2) + 40*log(2) == 0
-        c = var('c')
+        c = SR.var('c')
         c = find_root(2*n*log(c)+n*(1-c**2) + 40*log(2) == 0, 1, 10)
         # Upper bound on s**2/t
         s_t_bound = (sqrt(2) * pi / c / sqrt(2*n*log(2/delta))).n()
@@ -627,7 +626,7 @@ class RingLindnerPeikert(RingLWE):
             m = 3*n
         # Find c>=1 such that c*exp((1-c**2)/2))**(2*n) == 2**-40
         #  i.e c>=1 such that 2*n*log(c)+n*(1-c**2) + 40*log(2) == 0
-        c = var('c')
+        c = SR.var('c')
         c = find_root(2*n*log(c)+n*(1-c**2) + 40*log(2) == 0, 1, 10)
         # Upper bound on s**2/t
         s_t_bound = (sqrt(2) * pi / c / sqrt(2*n*log(2/delta))).n()

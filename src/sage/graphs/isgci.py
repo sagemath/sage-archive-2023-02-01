@@ -184,7 +184,7 @@ Predefined classes
 
    * - Interval
 
-     - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomInterval`,
+     - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomIntervalGraph`,
        :meth:`~sage.graphs.graph_generators.GraphGenerators.IntervalGraph`,
        :meth:`~sage.graphs.generic_graph.GenericGraph.is_interval`
 
@@ -373,7 +373,7 @@ Methods
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 
 #*****************************************************************************
 #      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -462,7 +462,7 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal <= graph_classes.Tree
             Unknown
         """
-        return other.__ge__(self)
+        return other >= self
 
     def __ge__(self, other):
         r"""
@@ -489,7 +489,7 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal == graph_classes.Tree
             Unknown
         """
-        return self.__ge__(other) and other.__ge__(self)
+        return self >= other and other >= self
 
     def __lt__(self, other):
         r"""
@@ -802,11 +802,12 @@ class GraphClasses(UniqueRepresentation):
 
             sage: graph_classes._download_db() # Not tested -- requires internet
         """
+        # import compatible with py2 and py3
+        from six.moves.urllib.request import urlopen
 
         from sage.misc.misc import SAGE_TMP
-        import urllib2
         import os.path
-        u = urllib2.urlopen('http://www.graphclasses.org/data.zip')
+        u = urlopen('http://www.graphclasses.org/data.zip')
         localFile = open(os.path.join(SAGE_TMP,'isgci.zip'), 'w')
         localFile.write(u.read())
         localFile.close()
@@ -833,8 +834,7 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLE::
 
-            sage: import os
-            sage: from sage.misc.misc import SAGE_SHARE
+            sage: from sage.env import SAGE_SHARE
             sage: graph_classes._parse_db(os.path.join(SAGE_SHARE,'graphs'))
         """
         import xml.etree.cElementTree as ET
@@ -978,7 +978,7 @@ class GraphClasses(UniqueRepresentation):
 
         # Computing te max of each field with the database
         for key in MAX:
-            MAX[key] = len(max(map(lambda x:str(x.get(key,"")),classes_list), key = len))
+            MAX[key] = len(max((str(x.get(key,"")) for x in classes_list), key = len))
 
         # At most MAX characters per field
         for key, length in MAX.iteritems():
@@ -1036,6 +1036,7 @@ def _XML_to_dict(root):
 graph_classes = GraphClasses()
 
 # Any object added to this list should also appear in the class' documentation, at the top of the file.
+graph_classes.AT_free = GraphClass("AT-free", "gc_61", recognition_function = lambda x:x.is_asteroidal_triple_free())
 graph_classes.BinaryTrees = GraphClass("BinaryTrees", "gc_847")
 graph_classes.Bipartite = GraphClass("Bipartite", "gc_69", recognition_function = lambda x:x.is_bipartite())
 graph_classes.Block = GraphClass("Block", "gc_93")

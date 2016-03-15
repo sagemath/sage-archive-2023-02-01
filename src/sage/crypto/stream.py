@@ -5,8 +5,10 @@ Stream Cryptosystems
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -15,9 +17,8 @@ from stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
 
 from sage.crypto.util import random_blum_prime
 from sage.monoids.string_monoid import BinaryStrings
-from sage.rings.arith import gcd
-from sage.rings.arith import power_mod
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.arith.all import gcd, power_mod
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModFactory
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -62,7 +63,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
         self._field = field
 
     def __eq__(self,right):
-        return isinstance(self, type(right)) and self._field == right._field
+        return type(self) is type(right) and self._field == right._field
 
     def __call__(self, key):
         """

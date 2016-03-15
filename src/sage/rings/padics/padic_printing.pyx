@@ -22,8 +22,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
+from sage.libs.gmp.mpz cimport *
 
 
 import sys
@@ -299,7 +299,7 @@ cdef class pAdicPrinter_class(SageObject):
         """
         Initializes a pAdicPrinter.
 
-        INPUTS::
+        INPUT:
 
             - ring -- the ring or field to which this pAdicPrinter is
               attached.
@@ -470,7 +470,7 @@ cdef class pAdicPrinter_class(SageObject):
             sage: R = Zp(5); S = Zp(5,print_mode='bars'); R._printer == S._printer
             False
         """
-        if not PY_TYPE_CHECK(other, pAdicPrinter_class):
+        if not isinstance(other, pAdicPrinter_class):
             return 1
         return self.cmp_modes(other)
 
@@ -766,7 +766,7 @@ cdef class pAdicPrinter_class(SageObject):
             sage: P._base_p_list(1298734,False)
             [2, -2, 6, -8, -1, 1]
         """
-        if PY_TYPE_CHECK(value, Integer):
+        if isinstance(value, Integer):
             from sage.rings.padics.padic_capped_relative_element import base_p_list
             return base_p_list(value, pos, self.prime_pow)
         elif pos:
@@ -1190,7 +1190,7 @@ cdef class pAdicPrinter_class(SageObject):
         """
         Takes a list L of coefficients and returns a list with at most max_terms nonzero terms.
 
-        INPUTS::
+        INPUT:
 
             - L -- a list
 
@@ -1224,7 +1224,7 @@ cdef class pAdicPrinter_class(SageObject):
         """
         Returns a string representation of L when considered as a polynomial, truncating to at most max_unram_terms nonzero terms.
 
-        INPUTS::
+        INPUT:
 
             - L -- A list of coefficients.
 
@@ -1317,7 +1317,7 @@ cdef class pAdicPrinter_class(SageObject):
         """
         Prints a list L as a polynomial.
 
-        INPUTS::
+        INPUT:
 
             - L -- A list of coefficients.
 

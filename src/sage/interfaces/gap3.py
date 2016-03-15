@@ -171,7 +171,7 @@ Common Pitfalls
     ``RequirePackage`` method (note that one can instead use the
     ``load_package`` method)::
 
-        sage: gap3.RequirePackage('"chevie"')             #optional - gap3chevie
+        sage: gap3.RequirePackage('"chevie"')             #optional - gap3 chevie
         W...  to  the  CHEVIE  package, ...
 
 Examples
@@ -179,7 +179,7 @@ Examples
 
 Load a GAP3 package::
 
-    sage: gap3.load_package("chevie")                      #optional - gap3chevie
+    sage: gap3.load_package("chevie")                      #optional - gap3 chevie
     sage: gap3.version() # random                          #optional - gap3
     'lib: v3r4p4 1997/04/18, src: v3r4p0 1994/07/10, sys: usg gcc ansi'
 
@@ -233,6 +233,8 @@ Controlling variable names used by GAP3::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.misc.cachefunc import cached_method
 from sage.interfaces.expect import Expect
 from sage.interfaces.gap import Gap_generic, GapElement_generic
 
@@ -254,7 +256,7 @@ class Gap3(Gap_generic):
         False
         sage: gap3(2) == gap3(2)                           #optional - gap3
         True
-        sage: gap3.trait_names()                           #optional - gap3
+        sage: gap3._tab_completion()                       #optional - gap3
         []
 
     We test the interface behaves correctly after a keyboard interrupt::
@@ -262,10 +264,9 @@ class Gap3(Gap_generic):
         sage: gap3(2)                                      #optional - gap3
         2
         sage: try:
-        ...     gap3._keyboard_interrupt()
-        ... except KeyboardInterrupt:
-        ...     pass                                       #optional - gap3
-        Interrupting Gap3...
+        ....:     gap3._keyboard_interrupt()
+        ....: except KeyboardInterrupt:
+        ....:     pass
         sage: gap3(2)                                      #optional - gap3
         2
 
@@ -283,6 +284,8 @@ class Gap3(Gap_generic):
 
     - Franco Saliola (Feb 2010)
     """
+    _identical_function = "IsIdentical"
+
     def __init__(self, command=gap3_cmd):
         r"""
         Initialize the GAP3 interface and start a session.
@@ -317,7 +320,6 @@ class Gap3(Gap_generic):
              command=self.__gap3_command_string + " -p -y 500",
              server=None,
              ulimit=None,
-             maxread=100000,
              script_subdirectory=None,
              restart_on_ctrlc=True,
              verbose_start=False,
@@ -341,7 +343,6 @@ class Gap3(Gap_generic):
             True
             sage: gap3.quit()                              #optional - gap3
         """
-        n = self._session_number
         Expect._start(self)
         # The -p command-line option to GAP3 produces the following
         # funny-looking patterns in the interface. We compile the patterns
@@ -356,6 +357,7 @@ class Gap3(Gap_generic):
         Return the class used for constructing GAP3 elements.
 
         TESTS::
+
             sage: gap3._object_class()
             <class 'sage.interfaces.gap3.GAP3Element'>
         """
@@ -490,8 +492,8 @@ class Gap3(Gap_generic):
         # merge the help text into one string and print it.
         helptext = "".join(helptext).strip()
         if pager is True:
-            import sage.misc.pager
-            pager.pager()(helptext)
+            from sage.misc.pager import pager as pag
+            pag()(helptext)
         else:
             print helptext
 
@@ -561,7 +563,7 @@ class Gap3(Gap_generic):
             sage: gap3('3+2')
             Traceback (most recent call last):
             ...
-            TypeError: unable to start gap3 because the command ... failed
+            TypeError: unable to start gap3 because the command '/wrongpath/gap3 -p -y 500' failed: The command was not found or was not executable: /wrongpath/gap3.
             <BLANKLINE>
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.
@@ -607,6 +609,25 @@ class Gap3(Gap_generic):
           gap3 = Gap3(command='/usr/local/bin/gap3')
         """ % self.__gap3_command_string
 
+    @cached_method
+    def _tab_completion(self):
+        """
+        Return additional tab completion entries
+
+        Currently this is empty
+
+        OUTPUT:
+
+        List of strings
+
+        EXAMPLES::
+
+            sage: gap3._tab_completion()
+            []
+        """
+        return []
+
+    
 gap3 = Gap3()
 
 class GAP3Element(GapElement_generic):
@@ -822,7 +843,7 @@ class GAP3Record(GAP3Element):
             return gap3_session.new('%s.%s' % (self.name(), attrname))
         return gap3_session._function_element_class()(self, attrname)
 
-    def trait_names(self):
+    def _tab_completion(self):
         r"""
         Defines the list of methods and attributes that will appear for tab
         completion.
@@ -835,15 +856,14 @@ class GAP3Record(GAP3Element):
         EXAMPLES::
 
             sage: S5 = gap3.SymmetricGroup(5)              #optional - gap3
-            sage: S5.trait_names()                         #optional - gap3
+            sage: S5._tab_completion()                     #optional - gap3
             [..., 'ConjugacyClassesTry', 'ConjugateSubgroup', 'ConjugateSubgroups',
             'Core', 'DegreeOperation', 'DerivedSeries', 'DerivedSubgroup',
             'Difference', 'DimensionsLoewyFactors', 'DirectProduct', ...]
         """
-        if not hasattr(self, "__trait_names"):
-            self.__trait_names = self.recfields() + self.operations()
-            self.__trait_names.sort()
-        return self.__trait_names
+        names = self.recfields() + self.operations()
+        names.sort()
+        return names
 
 
 import os
@@ -879,6 +899,9 @@ def gap3_console():
                                 For help enter: ?<return>
         gap>
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gap3 magics instead.')
     os.system(gap3_cmd)
 
 def gap3_version():

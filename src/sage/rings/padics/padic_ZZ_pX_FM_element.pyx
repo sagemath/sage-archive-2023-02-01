@@ -121,7 +121,8 @@ AUTHORS:
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport Element
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
@@ -192,14 +193,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
         """
         pAdicZZpXElement.__init__(self, parent)
-        ZZ_pX_construct(&self.value)
         if empty:
             return
         cdef mpz_t tmp
         cdef ZZ_c tmp_z
         cdef Integer tmp_Int
         cdef Py_ssize_t i
-        if PY_TYPE_CHECK(x, pAdicGenericElement):
+        if isinstance(x, pAdicGenericElement):
             if x.valuation() < 0:
                 raise ValueError, "element has negative valuation"
             if x._is_base_elt(self.prime_pow.prime):
@@ -238,7 +238,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             z = parent.gen()
             poly = x.polynomial().list()
             x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
-        elif PY_TYPE_CHECK(x, ntl_ZZ_p):
+        elif isinstance(x, ntl_ZZ_p):
             ctx_prec = ZZ_remove(tmp_z, (<ntl_ZZ>x.modulus()).x, self.prime_pow.pow_ZZ_tmp(1)[0])
             if ZZ_IsOne(tmp_z):
                 x = x.lift()
@@ -247,21 +247,21 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 x = tmp_Int
             else:
                 raise TypeError, "cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)"
-        elif PY_TYPE_CHECK(x, ntl_ZZ):
+        elif isinstance(x, ntl_ZZ):
             tmp_Int = PY_NEW(Integer)
             ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
-        if PY_TYPE_CHECK(x, Integer):
+        if isinstance(x, Integer):
             self._set_from_mpz((<Integer>x).value)
-        elif PY_TYPE_CHECK(x, Rational):
+        elif isinstance(x, Rational):
             self._set_from_mpq((<Rational>x).value)
-        elif PY_TYPE_CHECK(x, ntl_ZZ_pX):
+        elif isinstance(x, ntl_ZZ_pX):
             self._set_from_ZZ_pX(&(<ntl_ZZ_pX>x).x, (<ntl_ZZ_pX>x).c)
-        elif PY_TYPE_CHECK(x, ntl_ZZX):
+        elif isinstance(x, ntl_ZZX):
             self._set_from_ZZX((<ntl_ZZX>x).x)
-        elif PY_TYPE_CHECK(x, pAdicExtElement):
+        elif isinstance(x, pAdicExtElement):
             if x.parent() is parent:
                 self._set_from_ZZ_pX(&(<pAdicZZpXFMElement>x).value, self.prime_pow.get_top_context())
             else:
@@ -405,25 +405,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             True
         """
         self.prime_pow.restore_top_context()
-        cdef ntl_ZZ_pX holder = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX holder = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         holder.c = self.prime_pow.get_top_context()
         holder.x = self.value
         return make_ZZpXFMElement, (self.parent(), holder)
-
-    def __dealloc__(self):
-        """
-        Deallocates ``self.value``.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = W(17)
-            sage: del z # indirect doctest
-        """
-        ZZ_pX_destruct(&self.value)
 
     cdef pAdicZZpXFMElement _new_c(self):
         """
@@ -439,32 +424,12 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             1 + w^5 + O(w^25)
         """
         self.prime_pow.restore_top_context()
-        cdef pAdicZZpXFMElement ans = PY_NEW(pAdicZZpXFMElement)
+        cdef pAdicZZpXFMElement ans = pAdicZZpXFMElement.__new__(pAdicZZpXFMElement)
         ans._parent = self._parent
-        ZZ_pX_construct(&ans.value)
         ans.prime_pow = self.prime_pow
         return ans
 
-    def __richcmp__(left, right, op):
-        """
-        Compares ``left`` and ``right`` under the operation ``op``.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: w == 1 # indirect doctest
-            False
-            sage: y = 1 + w
-            sage: z = 1 + w + w^27
-            sage: y == z
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         First compare valuations, then compare the values.
 
@@ -493,39 +458,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             _left.prime_pow.restore_top_context()
             if x_ordp == left.prime_pow.ram_prec_cap:
                 return 0 # since both are zero
-            elif ZZ_pX_equal(_left.value, _right.value):
+            elif _left.value == _right.value:
                 return 0
             else:
                 # for now just return 1
                 return 1
 
     def __invert__(self):
-        """
-        Returns the inverse of ``self``, as long as ``self`` is a
-        unit.
-
-        If ``self`` is not a unit, raises a ``ValueError``.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = (1 + w)^5
-            sage: y = ~z; y # indirect doctest
-            1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
-            sage: y.parent()
-            Eisenstein Extension of 5-adic Ring of fixed modulus 5^5 in w defined by (1 + O(5^5))*x^5 + (O(5^5))*x^4 + (3*5^2 + O(5^5))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x^2 + (5^3 + O(5^5))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))
-            sage: z = z - 1
-            sage: ~z
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot invert non-unit
-        """
-        return self._invert_c_impl()
-
-    cpdef RingElement _invert_c_impl(self):
         """
         Returns the inverse of ``self``, as long as ``self`` is a
         unit.
@@ -611,7 +550,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             w^4 + w^5 + 2*w^6 + 4*w^7 + 3*w^9 + w^11 + 4*w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^19 + w^20 + 4*w^23 + 4*w^24 + O(w^25)
         """
         cdef pAdicZZpXFMElement ans
-        if not PY_TYPE_CHECK(shift, Integer):
+        if not isinstance(shift, Integer):
             shift = Integer(shift)
         if mpz_fits_slong_p((<Integer>shift).value) == 0:
             ans = self._new_c()
@@ -701,7 +640,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             w^4 + w^9 + w^10 + 2*w^11 + 4*w^12 + 3*w^14 + w^16 + 4*w^17 + 4*w^18 + 4*w^19 + 4*w^20 + 4*w^21 + 4*w^24 + O(w^25)
         """
         cdef pAdicZZpXFMElement ans
-        if not PY_TYPE_CHECK(shift, Integer):
+        if not isinstance(shift, Integer):
             shift = Integer(shift)
         if mpz_fits_slong_p((<Integer>shift).value) == 0:
             ans = self._new_c()
@@ -771,12 +710,12 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             True
 
         """
-        if not PY_TYPE_CHECK(right, Integer):
+        if not isinstance(right, Integer):
             right = Integer(right)
         if right == 0 and self == 0:
             return self.parent(1)
         cdef pAdicZZpXFMElement ans = self._new_c()
-        cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ rZZ = ntl_ZZ.__new__(ntl_ZZ)
         mpz_to_ZZ(&rZZ.x, (<Integer>right).value)
         if mpz_sgn((<Integer>right).value) < 0:
             if self.valuation_c() > 0:
@@ -948,7 +887,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         if absprec is None:
             ans = ZZ_pX_IsZero(self.value)
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             if mpz_fits_slong_p((<Integer>absprec).value) == 0:
                 if mpz_sgn((<Integer>absprec).value) < 0:
@@ -980,7 +919,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: a.add_bigoh(1)
             1 + O(7^4)
         """
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
             return self
@@ -1189,7 +1128,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             [89 9 4 1]
         """
         self.prime_pow.restore_top_context()
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ans.c = self.prime_pow.get_top_context()
         ans.x = self.value
         return ans

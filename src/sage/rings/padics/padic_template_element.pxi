@@ -24,12 +24,12 @@ AUTHORS:
 #*****************************************************************************
 
 from cpython.int cimport *
-include "sage/libs/pari/decl.pxi"
 
+from sage.libs.gmp.all cimport *
 import sage.rings.finite_rings.integer_mod
+from sage.libs.pari.types cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
-cdef extern from "convert.h":
-    cdef void t_INT_to_ZZ( mpz_t value, GEN g )
+from sage.libs.pari.pari_instance cimport INT_to_mpz
 from sage.rings.padics.common_conversion cimport get_ordp, get_preccap
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
@@ -96,17 +96,17 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         cdef GEN pari_tmp
         if isinstance(x, (int, long)):
             x = Integer(x)
-        elif PY_TYPE_CHECK(x, pari_gen):
+        elif isinstance(x, pari_gen):
             pari_tmp = (<pari_gen>x).g
             if typ(pari_tmp) == t_INT:
                 x = PY_NEW(Integer)
-                t_INT_to_ZZ((<Integer>x).value, pari_tmp)
+                INT_to_mpz((<Integer>x).value, pari_tmp)
             elif typ(pari_tmp) == t_FRAC:
                 x = Rational(x)
-        elif not (PY_TYPE_CHECK(x, Integer) or \
-                  PY_TYPE_CHECK(x, Rational) or \
-                  PY_TYPE_CHECK(x, pAdicGenericElement) or \
-                  PY_TYPE_CHECK(x, pari_gen) or \
+        elif not (isinstance(x, Integer) or \
+                  isinstance(x, Rational) or \
+                  isinstance(x, pAdicGenericElement) or \
+                  isinstance(x, pari_gen) or \
                   sage.rings.finite_rings.integer_mod.is_IntegerMod(x)):
             x = Rational(x)
         val = get_ordp(x, self.prime_pow)
@@ -185,10 +185,10 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         # TODO: move this up the hierarchy, perhaps this should go all the way to element?
         # The "verify that shift is an integer" part could be shared
         cdef long s
-        if PyInt_Check(shift):
+        if isinstance(shift, int):
             s = PyInt_AS_LONG(shift)
         else:
-            if not PY_TYPE_CHECK(shift, Integer):
+            if not isinstance(shift, Integer):
                 shift = Integer(shift)
             if mpz_fits_slong_p((<Integer>shift).value) == 0:
                 raise ValueError("valuation overflow")
@@ -233,10 +233,10 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             2*5^5 + 3*5^6 + O(5^25)
         """
         cdef long s
-        if PyInt_Check(shift):
+        if isinstance(shift, int):
             s = PyInt_AS_LONG(shift)
         else:
-            if not PY_TYPE_CHECK(shift, Integer):
+            if not isinstance(shift, Integer):
                 shift = Integer(shift)
             if mpz_fits_slong_p((<Integer>shift).value) == 0:
                 raise ValueError, "valuation overflow"
@@ -304,7 +304,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         if absprec is None:
             absprec = maxordp
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_fits_slong_p((<Integer>absprec).value) == 0:
             raise PrecisionError("Precision higher than allowed by the precision cap")
@@ -422,10 +422,10 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
     cdef bint isbase
     if isinstance(_right, (int, long)):
         _right = Integer(_right)
-    if PY_TYPE_CHECK(_right, Integer):
+    if isinstance(_right, Integer):
         right = <Integer> _right
         exp_val = mpz_get_si((<Integer>right.valuation(p)).value)
-    elif PY_TYPE_CHECK(_right, Rational):
+    elif isinstance(_right, Rational):
         raise NotImplementedError
     ansrelprec[0] = relprec + exp_val
     if exp_val > 0 and mpz_cmp_ui(p.value, 2) == 0 and relprec == 1:

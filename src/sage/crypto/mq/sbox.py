@@ -7,7 +7,7 @@ from sage.matrix.constructor import Matrix
 from sage.misc.misc_c import prod as mul
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.ideal import FieldIdeal, Ideal
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
@@ -197,7 +197,7 @@ class SBox(SageObject):
             swp = lambda x: list(reversed(x))
         else:
             swp = lambda x: x
-        return swp(self._rpad( map(self._F,ZZ(x).digits(2)), n ))
+        return swp(self._rpad([self._F(_) for _ in ZZ(x).digits(2)], n))
 
     def from_bits(self, x, n=None):
         """
@@ -228,7 +228,7 @@ class SBox(SageObject):
         else:
             swp = lambda x: x
 
-        return ZZ( map(ZZ, self._rpad(swp(x), n)), 2)
+        return ZZ( [ZZ(_) for _ in self._rpad(swp(x), n)], 2)
 
     def _rpad(self,x, n=None):
         """
@@ -310,7 +310,7 @@ class SBox(SageObject):
                 X = list(reversed(X))
             else:
                 X = list(X)
-            X = ZZ(map(ZZ,X),2)
+            X = ZZ([ZZ(_) for _ in X], 2)
             out =  self.to_bits(self._S[X], self.n)
             if self._big_endian:
                 out = list(reversed(out))
@@ -322,7 +322,7 @@ class SBox(SageObject):
             if len(X) == self.m:
                 if self._big_endian:
                     X = list(reversed(X))
-                X = ZZ(map(ZZ,X),2)
+                X = ZZ([ZZ(_) for _ in X], 2)
                 out =  self._S[X]
                 return self.to_bits(out,self.n)
         except TypeError:

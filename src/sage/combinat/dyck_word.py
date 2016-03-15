@@ -58,25 +58,22 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialObject, catalan_number
+from combinat import CombinatorialElement, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from backtrack import GenericBacktracker
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.all import Posets
 
-from sage.rings.all import QQ
+from sage.rings.all import ZZ, QQ
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
 from sage.misc.latex import latex
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
 
 
 DyckWordOptions = GlobalOptions(name='Dyck words',
@@ -240,7 +237,7 @@ def replace_symbols(x):
         raise ValueError
 
 
-class DyckWord(CombinatorialObject, Element):
+class DyckWord(CombinatorialElement):
     r"""
     A Dyck word.
 
@@ -268,6 +265,12 @@ class DyckWord(CombinatorialObject, Element):
     Equivalently, the path may be represented with steps in
     the `NE = (1,1)` and the `SE = (1,-1)` direction such that it does not
     pass below the horizontal axis.
+
+    .. PLOT::
+        :width: 400 px
+
+        d = DyckWord([1,0,1,1,1,1,0,1,0,0,1,0,1,1,0,1,0,1,1,0,0,0,0,0])
+        sphinx_plot(d.plot(aspect_ratio=1))
 
     A path representing a Dyck word (either using `N` and `E` steps, or
     using `NE` and `SE` steps) is called a Dyck path.
@@ -334,8 +337,6 @@ class DyckWord(CombinatorialObject, Element):
          _|  .
         |  . .
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, dw=None, noncrossing_partition=None,
                               area_sequence=None, heights_sequence=None,
@@ -369,7 +370,7 @@ class DyckWord(CombinatorialObject, Element):
             raise ValueError("You have not specified a Dyck word.")
 
         if isinstance(dw, str):
-            l = map(replace_parens, dw)
+            l = [replace_parens(_) for _ in dw]
         else:
             l = dw
 
@@ -403,8 +404,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DW = DyckWords().from_area_sequence([])
             sage: TestSuite(DW).run()
         """
-        Element.__init__(self, parent)
-        CombinatorialObject.__init__(self, l)
+        CombinatorialElement.__init__(self, parent, l)
         self._latex_options = dict(latex_options)
 
     _has_2D_print = False
@@ -587,19 +587,6 @@ class DyckWord(CombinatorialObject, Element):
         else:
             raise ValueError("The given type (=\s) is not valid." % type)
 
-    @staticmethod
-    def set_ascii_art(rep="path"):
-        r"""
-        TESTS::
-
-            sage: DyckWord.set_ascii_art("path")
-            doctest:...: DeprecationWarning: set_ascii_art is deprecated. Use DyckWords.global_options instead.
-            See http://trac.sagemath.org/14875 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'set_ascii_art is deprecated. Use DyckWords.global_options instead.')
-        DyckWords.global_options(ascii_art=rep)
-
     def _ascii_art_(self):
         r"""
         Return an ASCII art representation of ``self``.
@@ -611,13 +598,27 @@ class DyckWord(CombinatorialObject, Element):
             [            /\    /\      /\/\    /  \  ]
             [ /\/\/\, /\/  \, /  \/\, /    \, /    \ ]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         rep = self.parent().global_options['ascii_art']
         if rep == "path":
             ret = self.to_path_string()
         elif rep == "pretty_output":
             ret = self._repr_lattice()
         return AsciiArt(ret.splitlines(), baseline=0)
+
+    def _unicode_art_(self):
+        r"""
+        Return an unicode art representation of this Dyck word.
+
+        EXAMPLES::
+
+            sage: unicode_art(list(DyckWords(3)))
+            ⎡                                   ╱╲   ⎤
+            ⎢            ╱╲    ╱╲      ╱╲╱╲    ╱  ╲  ⎥
+            ⎣ ╱╲╱╲╱╲, ╱╲╱  ╲, ╱  ╲╱╲, ╱    ╲, ╱    ╲ ⎦
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(self.to_path_string(unicode=True).splitlines())
 
     def __str__(self):
         r"""
@@ -636,7 +637,7 @@ class DyckWord(CombinatorialObject, Element):
         else:
             return "".join(map(replace_symbols, [x for x in self]))
 
-    def to_path_string(self):
+    def to_path_string(self, unicode=False):
         r"""
         A path representation of the Dyck word consisting of steps
         ``/`` and ``\`` .
@@ -653,15 +654,25 @@ class DyckWord(CombinatorialObject, Element):
              /\/  \/\/\
             /          \
         """
-        res = [([" "]*len(self)) for _ in range(self.height())]
+        if unicode:
+            import unicodedata
+            space = u' '
+            up    = unicodedata.lookup('BOX DRAWINGS LIGHT DIAGONAL UPPER RIGHT TO LOWER LEFT')
+            down  = unicodedata.lookup('BOX DRAWINGS LIGHT DIAGONAL UPPER LEFT TO LOWER RIGHT')
+        else:
+            space = ' '
+            up    = '/'
+            down  = '\\'
+
+        res = [([space]*len(self)) for _ in range(self.height())]
         h = 1
         for i, p in enumerate(self):
             if p == open_symbol:
-                res[-h][i] = "/"
+                res[-h][i] = up
                 h += 1
             else:
                 h -= 1
-                res[-h][i] = "\\"
+                res[-h][i] = down
         return "\n".join("".join(l) for l in res)
 
     def pretty_print(self, type=None, labelling=None, underpath=True):
@@ -831,7 +842,7 @@ class DyckWord(CombinatorialObject, Element):
         r"""
         A latex representation of ``self`` using the tikzpicture package.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: D = DyckWord([1,0,1,1,1,0,1,1,0,0,0,1,0,0])
             sage: D.set_latex_options({"valleys":True, "peaks":True, "bounce path":True})
@@ -903,12 +914,31 @@ class DyckWord(CombinatorialObject, Element):
         if diagonal:
             res += "  \\draw (0,0) -- %s;\n" % str((self.number_of_open_symbols(), self.number_of_open_symbols()))
         res += "  \\draw[rounded corners=1, color=%s, line width=%s] (0, 0)" % (latex_options['color'], str(latex_options['line width']))
-        ht.next()
+        next(ht)
         for i, j in ht:
             res += " -- (%s, %s)" % (i, j)
         res += ";\n"
         res += "\\end{tikzpicture}$}}"
         return res
+
+    def plot(self, **kwds):
+        """
+        Plot a Dyck word as a continuous path.
+
+        EXAMPLES::
+
+            sage: w = DyckWords(100).random_element()
+            sage: w.plot()
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.plot import list_plot
+        step = [-1, 1]
+        sigma = 0
+        list_sigma = [0]
+        for l in self:
+            sigma += step[l]
+            list_sigma.append(sigma)
+        return list_plot(list_sigma, plotjoined=True, **kwds)
 
     def length(self):
         r"""
@@ -1066,42 +1096,6 @@ class DyckWord(CombinatorialObject, Element):
             heights[i + 1] = height
         return tuple(heights)
 
-    @classmethod
-    def from_heights(cls, heights):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :class:`DyckWords_all().from_heights()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord
-            sage: DyckWord.from_heights((0,))
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords(complete=False).from_heights instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords(complete=False).from_heights instead.')
-        return DyckWords_all().from_heights(heights)
-
-    @classmethod
-    def min_from_heights(cls, heights):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :class:`DyckWords_all.min_from_heights()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord
-            sage: DyckWord.min_from_heights((0,))
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords(complete=False).from_min_heights instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords(complete=False).from_min_heights instead.')
-        return DyckWords_all().from_heights(heights)
-
     def associated_parenthesis(self, pos):
         r"""
         Report the position for the parenthesis in ``self`` that matches the
@@ -1166,7 +1160,7 @@ class DyckWord(CombinatorialObject, Element):
         r"""
         Return the length of the initial run of ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - a non--negative integer indicating the length of the initial rise
 
@@ -1616,7 +1610,7 @@ class DyckWord(CombinatorialObject, Element):
 
             sage: dw = DyckWord([1, 1, 0, 1, 0, 0, 1, 0])
             sage: ip = dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 1, 0, 0])); ip
-            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
             sage: ip.lower_dyck_word()
             [1, 1, 0, 1, 0, 0, 1, 0]
             sage: ip.upper_dyck_word()
@@ -1793,7 +1787,7 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord(area_sequence=[0,0,0]).number_of_parking_functions()
             6
         """
-        from sage.rings.arith import multinomial
+        from sage.arith.all import multinomial
         return multinomial(list(self.rise_composition()))
 
     def list_parking_functions(self):
@@ -2291,42 +2285,6 @@ class DyckWord_complete(DyckWord):
         res.append(returns.index(cut-1))
         return res
 
-    @classmethod
-    def from_Catalan_code(cls, code):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_Catalan_code()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_Catalan_code([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_Catalan_code instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_Catalan_code instead.')
-        return CompleteDyckWords_all().from_Catalan_code(code)
-
-    @classmethod
-    def from_area_sequence(cls, code):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_area_sequence()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_area_sequence([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_area_sequence instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_area_sequence instead.')
-        return CompleteDyckWords_all().from_area_sequence(code)
-
     @combinatorial_map(name="To Ordered tree")
     def to_ordered_tree(self):
         r"""
@@ -2488,24 +2446,6 @@ class DyckWord_complete(DyckWord):
         """
         from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
         return NonDecreasingParkingFunction.from_dyck_word(self)
-
-    @classmethod
-    def from_non_decreasing_parking_function(cls, pf):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_non_decreasing_parking_function()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_non_decreasing_parking_function([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_non_decreasing_parking_function instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_non_decreasing_parking_function instead.')
-        return CompleteDyckWords_all().from_area_sequence([i - pf[i] + 1 for i in range(len(pf))])
 
     def major_index(self):
         r"""
@@ -3083,7 +3023,7 @@ class DyckWord_complete(DyckWord):
         return A.from_monotone_triangle(monotone_triangle)
 
 
-class DyckWords(Parent, UniqueRepresentation):
+class DyckWords(UniqueRepresentation, Parent):
     r"""
     Dyck words.
 
@@ -3173,8 +3113,15 @@ class DyckWords(Parent, UniqueRepresentation):
                 if complete:
                     return CompleteDyckWords_all()
                 return DyckWords_all()
-            return CompleteDyckWords_size(k1)
 
+            k1 = ZZ(k1)
+            if k1 < 0:
+                raise ValueError("k1 (= %s) must be nonnegative" % k1)
+            return CompleteDyckWords_size(k1)
+        else:
+            k1 = ZZ(k1)
+
+        k2 = ZZ(k2)
         if k1 < 0 or (k2 is not None and k2 < 0):
             raise ValueError("k1 (= %s) and k2 (= %s) must be nonnegative, with k1 >= k2." % (k1, k2))
         if k1 < k2:
@@ -3392,7 +3339,7 @@ class DyckWords_all(DyckWords):
         EXAMPLES::
 
             sage: it = DyckWords(complete=False).__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [1],
              [1, 0],
@@ -3448,6 +3395,8 @@ class DyckWordBacktracker(GenericBacktracker):
         # Dyck paths, not words; having k1 opening parens and k2 closing
         # parens corresponds to paths of length k1 + k2 ending at height
         # k1 - k2.
+        k1 = ZZ(k1)
+        k2 = ZZ(k2)
         self.n = k1 + k2
         self.endht = k1 - k2
 
@@ -3494,12 +3443,18 @@ class DyckWords_size(DyckWords):
     """
     def __init__(self, k1, k2):
         r"""
-        TESTS::
+        TESTS:
 
+        Check that :trac:`18244` is fixed::
+
+            sage: DyckWords(13r, 8r).cardinality()
+            87210
+            sage: parent(_)
+            Integer Ring
             sage: TestSuite(DyckWords(4,2)).run()
         """
-        self.k1 = k1
-        self.k2 = k2
+        self.k1 = ZZ(k1)
+        self.k2 = ZZ(k2)
         DyckWords.__init__(self, category=FiniteEnumeratedSets())
 
     def _repr_(self):
@@ -3581,7 +3536,7 @@ class DyckWords_size(DyckWords):
             ....:      for p in range(7))
             True
         """
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return (self.k1 - self.k2 + 1) * binomial(self.k1 + self.k2, self.k2) // (self.k1 + 1)
 
 ################################################################
@@ -3779,7 +3734,7 @@ class CompleteDyckWords_all(CompleteDyckWords, DyckWords_all):
         EXAMPLES::
 
             sage: it = DyckWords().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [1, 0],
              [1, 0, 1, 0],
@@ -4083,25 +4038,6 @@ def is_a(obj, k1=None, k2=None):
             return False
 
     return (k1 is None and k2 is None) or (n_opens == k1 and n_closes == k2)
-
-is_a_prefix = deprecated_function_alias(14875, is_a)
-
-
-def from_noncrossing_partition(ncp):
-    r"""
-    This is deprecated in :trac:`14875`. Instead use
-    :meth:`CompleteDyckWords.from_noncrossing_partition()`.
-
-    TESTS::
-
-        sage: sage.combinat.dyck_word.from_noncrossing_partition([[1,2]])
-        doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_noncrossing_partition instead.
-        See http://trac.sagemath.org/14875 for details.
-        [1, 1, 0, 0]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14875, 'this method is deprecated. Use DyckWords().from_noncrossing_partition instead.')
-    return CompleteDyckWords_all().from_noncrossing_partition(ncp)
 
 
 def from_ordered_tree(tree):

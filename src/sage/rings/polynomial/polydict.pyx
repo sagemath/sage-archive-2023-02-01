@@ -28,22 +28,18 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein (wstein@ucsd.edu)
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 include "sage/ext/stdsage.pxi"
-include 'sage/ext/cdefs.pxi'
+from libc.string cimport memcpy
 from cpython.dict cimport *
 
 import copy
@@ -52,7 +48,6 @@ from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
 
-import sage.rings.ring_element as ring_element
 
 cdef class PolyDict:
     def __init__(PolyDict self, pdict, zero=0, remove_zero=False, force_int_exponents=True, force_etuples=True):
@@ -135,7 +130,7 @@ cdef class PolyDict:
 
         for m in left:
             try:
-                n = right.next()
+                n = next(right)
             except StopIteration:
                 return 1 # left has terms, right doesn't
             ret =  fn(m,n)
@@ -147,7 +142,7 @@ cdef class PolyDict:
             #try next pair
 
         try:
-            n = right.next()
+            n = next(right)
         except StopIteration:
             return 0 # both have no terms
 
@@ -256,7 +251,7 @@ cdef class PolyDict:
         _max = []
         for v in self.__repn.keys():
             _max.append(v[i])
-        return max(_max)
+        return max(_max or [-1])
 
     def valuation(PolyDict self, PolyDict x = None):
         L = x.__repn.keys()
@@ -912,8 +907,8 @@ cdef class ETuple:
         Quickly creates a new initialized ETuple with the
         same length as self.
         """
-        cdef ETuple x
-        x = <ETuple>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef ETuple x = <ETuple>t.__new__(t)
         x._length = self._length
         return x
 
@@ -936,12 +931,12 @@ cdef class ETuple:
             return
         cdef size_t ind
         cdef int v
-        if PY_TYPE_CHECK(data,ETuple):
+        if isinstance(data, ETuple):
             self._length = (<ETuple>data)._length
             self._nonzero = (<ETuple>data)._nonzero
             self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
             memcpy(self._data,(<ETuple>data)._data,sizeof(int)*self._nonzero*2)
-        elif PY_TYPE_CHECK(data,dict) and PY_TYPE_CHECK(length,int):
+        elif isinstance(data, dict) and isinstance(length, int):
             self._length = length
             self._nonzero = len(data)
             self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
@@ -951,7 +946,7 @@ cdef class ETuple:
                 self._data[2*ind] = index
                 self._data[2*ind+1] = exp
                 ind += 1
-        elif PY_TYPE_CHECK(data,list) or PY_TYPE_CHECK(data,tuple):
+        elif isinstance(data, list) or isinstance(data, tuple):
             self._length = len(data)
             self._nonzero = 0
             for v in data:
@@ -990,7 +985,7 @@ cdef class ETuple:
             (1, 1, 0, 0, 2, 0)
         """
         cdef size_t index = 0
-        cdef ETuple result = <ETuple>PY_NEW(ETuple)
+        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
         result._length = self._length+other._length
         result._nonzero = self._nonzero+other._nonzero
         result._data = <int*>sage_malloc(sizeof(int)*result._nonzero*2)
@@ -1013,7 +1008,7 @@ cdef class ETuple:
             (1, 2, 3, 1, 2, 3)
         """
         cdef int _factor = factor
-        cdef ETuple result = <ETuple>PY_NEW(ETuple)
+        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
         if factor <= 0:
             result._length = 0
             result._nonzero = 0
@@ -1212,7 +1207,7 @@ cdef class ETuple:
         return ETupleIter(d,self._length)
 
     def __str__(ETuple self):
-        return self.__repr__()
+        return repr(self)
 
     def __repr__(ETuple self):
         res = [0,]*self._length

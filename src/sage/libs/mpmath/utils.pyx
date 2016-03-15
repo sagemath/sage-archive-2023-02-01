@@ -1,7 +1,10 @@
-# Utilities for Sage-mpmath interaction
-# Also patches some mpmath functions for speed
+"""
+Utilities for Sage-mpmath interaction
 
-include "sage/ext/stdsage.pxi"
+Also patches some mpmath functions for speed
+"""
+
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber
@@ -39,7 +42,7 @@ cpdef int bitcount(n):
 
     """
     cdef Integer m
-    if PY_TYPE_CHECK(n, Integer):
+    if isinstance(n, Integer):
         m = <Integer>n
     else:
         m = Integer(n)
@@ -68,12 +71,12 @@ cpdef isqrt(n):
 
     """
     cdef Integer m, y
-    if PY_TYPE_CHECK(n, Integer):
+    if isinstance(n, Integer):
         m = <Integer>n
     else:
         m = Integer(n)
     if mpz_sgn(m.value) < 0:
-        raise ValueError, "square root of negative integer not defined."
+        raise ValueError("square root of negative integer not defined.")
     y = PY_NEW(Integer)
     mpz_sqrt(y.value, m.value)
     return y
@@ -81,6 +84,7 @@ cpdef isqrt(n):
 cpdef from_man_exp(man, exp, long prec = 0, str rnd = 'd'):
     """
     Create normalized mpf value tuple from mantissa and exponent.
+
     With prec > 0, rounds the result in the desired direction
     if necessary.
 
@@ -164,15 +168,15 @@ cdef mpfr_from_mpfval(mpfr_t res, tuple x):
     cdef long exp
     cdef long bc
     sign, man, exp, bc = x
-    if man.__nonzero__():
-        mpfr_set_z(res, man.value, GMP_RNDZ)
+    if man:
+        mpfr_set_z(res, man.value, MPFR_RNDZ)
         if sign:
-            mpfr_neg(res, res, GMP_RNDZ)
-        mpfr_mul_2si(res, res, exp, GMP_RNDZ)
+            mpfr_neg(res, res, MPFR_RNDZ)
+        mpfr_mul_2si(res, res, exp, MPFR_RNDZ)
         return
     from mpmath.libmp import finf, fninf
     if exp == 0:
-        mpfr_set_ui(res, 0, GMP_RNDZ)
+        mpfr_set_ui(res, 0, MPFR_RNDZ)
     elif x == finf:
         mpfr_set_inf(res, 1)
     elif x == fninf:
@@ -318,23 +322,23 @@ def sage_to_mpmath(x, prec):
     """
     cdef RealNumber y
     if isinstance(x, Element):
-        if PY_TYPE_CHECK(x, Integer):
+        if isinstance(x, Integer):
             return int(<Integer>x)
         try:
-            if PY_TYPE_CHECK(x, RealNumber):
+            if isinstance(x, RealNumber):
                 return x._mpmath_()
             else:
                 x = RealField(prec)(x)
                 return x._mpmath_()
         except TypeError:
-            if PY_TYPE_CHECK(x, ComplexNumber):
+            if isinstance(x, ComplexNumber):
                 return x._mpmath_()
             else:
                 x = ComplexField(prec)(x)
                 return x._mpmath_()
-    if PY_TYPE_CHECK(x, tuple) or PY_TYPE_CHECK(x, list):
+    if isinstance(x, tuple) or isinstance(x, list):
         return type(x)([sage_to_mpmath(v, prec) for v in x])
-    if PY_TYPE_CHECK(x, dict):
+    if isinstance(x, dict):
         return dict([(k, sage_to_mpmath(v, prec)) for (k, v) in x.items()])
     return x
 

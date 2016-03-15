@@ -55,9 +55,18 @@ def is_mutation_finite(M, nr_of_checks=None):
         sage: M = Q.b_matrix()
         sage: is_mutation_finite(M) # random
         (False, [9, 6, 9, 8, 9, 4, 0, 4, 5, 2, 1, 0, 1, 0, 7, 1, 9, 2, 5, 7, 8, 6, 3, 0, 2, 5, 4, 2, 6, 9, 2, 7, 3, 5, 3, 7, 9, 5, 9, 0, 2, 7, 9, 2, 4, 2, 1, 6, 9, 4, 3, 5, 0, 8, 2, 9, 5, 3, 7, 0, 1, 8, 3, 7, 2, 7, 3, 4, 8, 0, 4, 9, 5, 2, 8, 4, 8, 1, 7, 8, 9, 1, 5, 0, 8, 7, 4, 8, 9, 8, 0, 7, 4, 7, 1, 2, 8, 6, 1, 3, 9, 3, 9, 1, 3, 2, 4, 9, 5, 1, 2, 9, 4, 8, 5, 3, 4, 6, 8, 9, 2, 5, 9, 4, 6, 2, 1, 4, 9, 6, 0, 9, 8, 0, 4, 7, 9, 2, 1, 6])
+        
+    Check that :trac:`19495` is fixed::
+    
+        sage: dg = DiGraph(); dg.add_vertex(0); S = ClusterSeed(dg); S
+        A seed for a cluster algebra of rank 1
+        sage: S.is_mutation_finite()
+        True
     """
     import random
     n, m = M.ncols(), M.nrows()
+    if n == 1:
+        return True, None
     if nr_of_checks is None:
         nr_of_checks = 1000 * n
     k = 0
@@ -138,13 +147,13 @@ def _all_induced_cycles_iter( dg ):
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _all_induced_cycles_iter
         sage: Q = ClusterQuiver(['A',[6,0],1]); Q
         Quiver on 6 vertices of type ['D', 6]
-        sage: _all_induced_cycles_iter(Q.digraph()).next()
+        sage: next(_all_induced_cycles_iter(Q.digraph()))
         ([(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)], True)
         sage: Q.mutate(0)
-        sage: _all_induced_cycles_iter(Q.digraph()).next()
+        sage: next(_all_induced_cycles_iter(Q.digraph()))
         ([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1)], True)
         sage: Q2 = ClusterQuiver(['A',[2,3],1])
-        sage: _all_induced_cycles_iter(Q2.digraph()).next()
+        sage: next(_all_induced_cycles_iter(Q2.digraph()))
         ([(1, 0), (1, 2), (3, 2), (3, 4), (4, 0)], False)
     """
     dg_new = DiGraph(dg)
@@ -657,7 +666,7 @@ def _connected_mutation_type(dg):
                     dg.remove_multiple_edges()
                     dg = DiGraph( dg )
                     _reset_dg( dg, vertices, dict_in_out, [v] )
-                    if dict_in_out[v1][0] == dict_in_out[v1][1] == dict_in_out[v2][0] == dict_in_out[v2][1] == 1 and dg.neighbor_out_iterator(v1).next() == dg.neighbor_in_iterator(v2).next():
+                    if dict_in_out[v1][0] == dict_in_out[v1][1] == dict_in_out[v2][0] == dict_in_out[v2][1] == 1 and next(dg.neighbor_out_iterator(v1)) == next(dg.neighbor_in_iterator(v2)):
                         if label1 == (2,-1) and label2 == (1,-2):
                             return _check_special_BC_cases( dg, n, ['CD'],[1],['A'] )
                         elif label1 == (1,-2) and label2 == (2,-1):
@@ -789,7 +798,9 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
 
     INPUT:
 
-    - ``ret_conn_vert`` (boolean; default:``False``). If ``True, returns 'connecting vertices', technical information that is used in the algorithm.
+    - ``ret_conn_vert`` -- boolean (default: ``False``). If ``True``,
+      returns 'connecting vertices', technical information that is
+      used in the algorithm.
 
     A brief description of the algorithm::
 
@@ -1193,7 +1204,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
                 else:
                     cycle.remove(edge)
                     cycle.append( (edge[0],edge[1], 1 ) )
-        r = sum ( map( lambda x: x[2], cycle ) )
+        r = sum ((x[2] for x in cycle))
         r = max ( r, n-r )
         if ret_conn_vert:
             return [ QuiverMutationType( ['A',[r,n-r],1] ), connecting_vertices ]
@@ -1227,7 +1238,7 @@ def load_data(n):
     """
     import os.path
     import cPickle
-    from sage.misc.misc import DOT_SAGE, SAGE_SHARE
+    from sage.env import DOT_SAGE, SAGE_SHARE
     relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
     getfilename = lambda path: os.path.join(path,relative_filename)
     # we check

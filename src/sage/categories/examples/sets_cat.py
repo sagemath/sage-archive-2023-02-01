@@ -13,7 +13,7 @@ from sage.structure.element import Element
 from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer, IntegerWrapper
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 from sage.structure.unique_representation import UniqueRepresentation
 
 
@@ -58,6 +58,7 @@ class PrimeNumbers(UniqueRepresentation, Parent):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -285,7 +286,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: P = Sets().example("inherits")
-                sage: P.an_element().next()
+                sage: next(P.an_element())
                 53
             """
             return self.parent().next(self)
@@ -340,6 +341,7 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -604,7 +606,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
         sage: timeit("pw.is_prime()")    # random
         625 loops, best of 3: 854 ns per loop
 
-    And moreover, the next methods for the element does not exists::
+    And moreover, the next methods for the element does not exist::
 
         sage: pf.next()
         Traceback (most recent call last):
@@ -613,15 +615,16 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
 
     whereas::
 
-        sage: pw.next()
+        sage: next(pw)
         53
-        sage: pi.next()
+        sage: next(pi)
         53
 
     TESTS::
 
         sage: TestSuite(P).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()

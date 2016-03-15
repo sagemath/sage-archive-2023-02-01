@@ -56,21 +56,14 @@ We verify Lagrange's four squares identity::
 
 
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
-
-
-import sage.misc.misc as misc
+from sage.misc.all import prod
 import sage.rings.integer
-
 import polydict
-
 from sage.structure.factorization import Factorization
-
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
-
 from sage.structure.sequence import Sequence
-
-
 from multi_polynomial import MPolynomial
+from sage.categories.morphism import Morphism
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -153,7 +146,7 @@ class MPolynomial_element(MPolynomial):
             K = self.parent().base_ring()
         y = K(0)
         for (m,c) in self.element().dict().iteritems():
-            y += c*misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0])
+            y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
     def __cmp__(self, right):
@@ -205,7 +198,7 @@ class MPolynomial_element(MPolynomial):
             return codomain._coerce_(self)
         y = codomain(0)
         for (m,c) in self.element().dict().iteritems():
-            y += codomain(c)*misc.mul([ im_gens[i]**m[i] for i in range(n) if m[i] ])
+            y += codomain(c)*prod([ im_gens[i]**m[i] for i in range(n) if m[i] ])
         return y
 
 
@@ -302,38 +295,38 @@ class MPolynomial_element(MPolynomial):
         return self.__element
 
     def change_ring(self, R):
-        return self.parent().change_ring(R)(self)
+        r"""
+        Change the base ring of this polynomial to ``R``.
 
+        INPUT:
 
-#class MPolynomial_macaulay2_repr:
-#    """
-#    Multivariate polynomials that are representable in Macaulay2.
-#    """
-#    def _macaulay2_(self, macaulay2=macaulay2):
-#        """
-#        Return corresponding Macaulay2 polynomial.
-#
-#        EXAMPLES:
-#            sage: R.<x,y> = ZZ[]
-#            sage: f = (x^3 + 2*y^2*x)^7; f
-#            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
-#            sage: macaulay2(R)                      # optional - M2
-#            ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
-#            sage: h = f._macaulay2_()               # optional
-#            sage: R(h)                              # optional
-#            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
-#            sage: R(h^20) == f^20                   # optional
-#            True
-#        """
-#        try:
-#            if self.__macaulay2.parent() is macaulay2:
-#                return self.__macaulay2
-#        except AttributeError:
-#            pass
-#        self.parent()._macaulay2_set_ring(macaulay2)
-#        self.__macaulay2 = macaulay2(repr(self))
-#        return self.__macaulay2
-#
+        - ``R`` -- ring or morphism.
+
+        OUTPUT: a new polynomial converted to ``R``.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = x^2 + 5*y
+            sage: f.change_ring(GF(5))
+            x^2
+
+        ::
+
+            sage: K.<w> = CyclotomicField(5)
+            sage: R.<x,y> = K[]
+            sage: f = x^2 + w*y
+            sage: f.change_ring(K.embeddings(QQbar)[1])
+            x^2 + (-0.8090169943749474? + 0.5877852522924731?*I)*y
+        """
+        if isinstance(R, Morphism):
+            #if we're given a hom of the base ring extend to a poly hom
+            if R.domain() == self.base_ring():
+                R = self.parent().hom(R, self.parent().change_ring(R.codomain()))
+            return R(self)
+        else:
+            return self.parent().change_ring(R)(self)
+
 
 class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
     r"""
@@ -470,7 +463,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         else:
             return self._MPolynomial_element__element.max_exp()
 
-    def degree(self, x=None):
+    def degree(self, x=None, std_grading=False):
         """
         Return the degree of self in x, where x must be one of the
         generators for the parent of self.
@@ -480,7 +473,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         - ``x`` - multivariate polynomial (a generator of the parent
            of self). If ``x`` is not specified (or is None), return
            the total degree, which is the maximum degree of any
-           monomial.
+           monomial. Note that a weighted term ordering alters the
+           grading of the generators of the ring; see the tests below.
+           To avoid this behavior, set the optional argument ``std_grading=True``.
 
         OUTPUT: integer
 
@@ -496,6 +491,29 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             3
             sage: (y^10*x - 7*x^2*y^5 + 5*x^3).degree(y)
             10
+
+        Note that total degree takes into account if we are working in a polynomial
+        ring with a weighted term order.
+
+        ::
+
+            sage: R = PolynomialRing(QQ,'x,y',order=TermOrder('wdeglex',(2,3)))
+            sage: x,y = R.gens()
+            sage: x.degree()
+            2
+            sage: y.degree()
+            3
+            sage: x.degree(y),x.degree(x),y.degree(x),y.degree(y)
+            (0, 1, 0, 1)
+            sage: f = (x^2*y+x*y^2)
+            sage: f.degree(x)
+            2
+            sage: f.degree(y)
+            2
+            sage: f.degree()
+            8
+            sage: f.degree(std_grading=True)
+            3
 
         Note that if ``x`` is not a generator of the parent of self,
         for example if it is a generator of a polynomial algebra which
@@ -519,9 +537,39 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             Traceback (most recent call last):
             ...
             TypeError: x must be one of the generators of the parent
+
+        TEST::
+
+            sage: R = PolynomialRing(GF(2)['t'],'x,y',order=TermOrder('wdeglex',(2,3)))
+            sage: x,y = R.gens()
+            sage: x.degree()
+            2
+            sage: y.degree()
+            3
+            sage: x.degree(y),x.degree(x),y.degree(x),y.degree(y)
+            (0, 1, 0, 1)
+            sage: f = (x^2*y+x*y^2)
+            sage: f.degree(x)
+            2
+            sage: f.degree(y)
+            2
+            sage: f.degree()
+            8
+            sage: f.degree(std_grading=True)
+            3
+            sage: R(0).degree()
+            -1
+
+        Degree of zero polynomial for other implementation :trac:`20048` ::
+
+            sage: R.<x,y> = GF(3037000453)[]
+            sage: R.zero().degree(x)
+            -1
         """
         if x is None:
-            return self.element().degree(None)
+            if std_grading or not self.parent().term_order().is_weighted_degree_order():
+                return self.element().degree(None)
+            return self.weighted_degree(self.parent().term_order().weights())
         if isinstance(x, MPolynomial):
             if not x.parent() is self.parent():
                 try:
@@ -1336,7 +1384,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
             one = R.base_ring()(1)
-            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero_element(),force_int_exponents=False,  force_etuples=False))
+            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero(),force_int_exponents=False,  force_etuples=False))
             return self.__lm
 
     def lc(self):
@@ -1395,36 +1443,23 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.dict()
             res = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
-            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero_element(),force_int_exponents=False, force_etuples=False))
+            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero(),force_int_exponents=False, force_etuples=False))
             return self.__lt
 
     def __eq__(self,right):
-        """
-
-        """
-        if not isinstance(right,MPolynomial_polydict):
+        if not isinstance(right, MPolynomial_polydict):
             # we want comparison with zero to be fast
-            if right == 0:
-                if self._MPolynomial_element__element.dict()=={}:
-                    return True
-                else:
-                    return False
-            return self._richcmp_(right,2)
+            if not right:
+                return not self._MPolynomial_element__element.dict()
+            return CommutativeRingElement.__eq__(self, right)
         return self._MPolynomial_element__element == right._MPolynomial_element__element
 
     def __ne__(self,right):
-        """
-
-        """
-        if not isinstance(right,MPolynomial_polydict):
+        if not isinstance(right, MPolynomial_polydict):
             # we want comparison with zero to be fast
-            if right == 0:
-                if self._MPolynomial_element__element.dict()=={}:
-                    return False
-                else:
-                    return True
-            # maybe add constant elements as well
-            return self._richcmp_(right,3)
+            if not right:
+                return not not self._MPolynomial_element__element.dict()
+            return CommutativeRingElement.__ne__(self, right)
         return self._MPolynomial_element__element != right._MPolynomial_element__element
 
     def __nonzero__(self):
@@ -1437,7 +1472,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return self._MPolynomial_element__element.dict()!={}
 
-    def __floordiv__(self,right):
+    def _floordiv_(self, right):
         r"""
         Quotient of division of self by other. This is denoted //.
 
@@ -1458,14 +1493,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: type(0//y)
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
-        if not isinstance(self, type(right)) or self.parent() is not right.parent():
-            self, right = canonical_coercion(self, right)
-            return self // right  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         # handle division by monomials without using Singular
         if len(right.dict()) == 1:
             P = self.parent()
             ret = P(0)
-            denC,denM = iter(right).next()
+            denC,denM = next(iter(right))
             for c,m in self:
                 t = c*m
                 if denC.divides(c) and P.monomial_divides(denM, m):
@@ -1705,8 +1737,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 unit = unit * v[i][0]
                 del v[i]
                 break
-        F = Factorization(v, unit=unit)
-        F.sort()
+        F = sorted(Factorization(v, unit=unit))
         return F
 
     def lift(self,I):

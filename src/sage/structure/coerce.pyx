@@ -64,38 +64,40 @@ For more information on how to specify coercions, conversions, and actions,
 see the documentation for Parent.
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-from cpython.object cimport *
+from cpython.object cimport (PyObject, PyTypeObject,
+        PyObject_CallObject, PyObject_RichCompare)
+from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
+from libc.string cimport strncmp
 
-cdef add, sub, mul, div, iadd, isub, imul, idiv
+cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
 import operator
-operator_dict = operator.__dict__
-from operator import add, sub, mul, div, iadd, isub, imul, idiv
+cdef dict operator_dict = operator.__dict__
+from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
-from sage_object cimport SageObject
+from .sage_object cimport SageObject, rich_to_bool
+from .parent cimport Set_PythonType
+from .element cimport arith_error_message, parent_c
+from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
-import sage.categories.morphism
 from sage.categories.morphism import IdentityMorphism
-from sage.categories.action import InverseAction, PrecomposedAction
-from parent cimport Set_PythonType
-from coerce_exceptions import CoercionException
-from element cimport arith_error_message, parent_c
-
-import sys, traceback
-
-from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+from sage.categories.action cimport InverseAction, PrecomposedAction
 
 from sage.misc.lazy_import import LazyImport
 parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
+
+import traceback
+
 
 cpdef py_scalar_parent(py_type):
     """
@@ -113,30 +115,169 @@ cpdef py_scalar_parent(py_type):
         Real Double Field
         sage: py_scalar_parent(complex)
         Complex Double Field
+        sage: py_scalar_parent(bool)
+        Integer Ring
         sage: py_scalar_parent(dict),
         (None,)
+
+        sage: import numpy
+        sage: py_scalar_parent(numpy.int16)
+        Integer Ring
+        sage: py_scalar_parent(numpy.int32)
+        Integer Ring
+        sage: py_scalar_parent(numpy.uint64)
+        Integer Ring
+
+        sage: py_scalar_parent(numpy.float)
+        Real Double Field
+        sage: py_scalar_parent(numpy.double)
+        Real Double Field
+
+        sage: py_scalar_parent(numpy.complex)
+        Complex Double Field
     """
-    if py_type is int or py_type is long:
+    if issubclass(py_type, int) or issubclass(py_type, long):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
-    elif py_type is float:
+    elif issubclass(py_type, float):
         import sage.rings.real_double
         return sage.rings.real_double.RDF
-    elif py_type is complex:
+    elif issubclass(py_type, complex):
         import sage.rings.complex_double
         return sage.rings.complex_double.CDF
+    elif is_numpy_type(py_type):
+        import numpy
+        if issubclass(py_type, numpy.integer):
+            import sage.rings.integer_ring
+            return sage.rings.integer_ring.ZZ
+        elif issubclass(py_type, numpy.floating):
+            import sage.rings.real_double
+            return sage.rings.real_double.RDF
+        elif issubclass(py_type, numpy.complexfloating):
+            import sage.rings.complex_double
+            return sage.rings.complex_double.CDF
+        else:
+            return None
     else:
         return None
 
-cdef object _native_coercion_ranks_inv = (bool, int, long, float, complex)
-cdef object _native_coercion_ranks = dict([(t, k) for k, t in enumerate(_native_coercion_ranks_inv)])
+cpdef py_scalar_to_element(x):
+    """
+    Convert ``x`` to a Sage :class:`~sage.structure.element.Element` if possible.
+
+    If ``x`` was already an :class:`~sage.structure.element.Element` or if there is no obvious
+    conversion possible, just return ``x`` itself.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import py_scalar_to_element
+        sage: x = py_scalar_to_element(42)
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(int(42))
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(long(42))
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(float(42))
+        sage: x, parent(x)
+        (42.0, Real Double Field)
+        sage: x = py_scalar_to_element(complex(42))
+        sage: x, parent(x)
+        (42.0, Complex Double Field)
+        sage: py_scalar_to_element('hello')
+        'hello'
+
+    Note that bools are converted to 0 or 1::
+
+        sage: py_scalar_to_element(False), py_scalar_to_element(True)
+        (0, 1)
+
+    Test compatibility with :func:`py_scalar_parent`::
+
+        sage: from sage.structure.coerce import py_scalar_parent
+        sage: elt = [True, int(42), long(42), float(42), complex(42)]
+        sage: for x in elt:
+        ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
+
+        sage: import numpy
+        sage: elt = [numpy.int8('-12'),  numpy.uint8('143'),
+        ....:        numpy.int16('-33'), numpy.uint16('122'),
+        ....:        numpy.int32('-19'), numpy.uint32('44'),
+        ....:        numpy.int64('-3'),  numpy.uint64('552'),
+        ....:        numpy.float16('-1.23'), numpy.float32('-2.22'),
+        ....:        numpy.float64('-3.412'), numpy.complex64(1.2+I),
+        ....:         numpy.complex128(-2+I)]
+        sage: for x in elt:
+        ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
+    """
+    if isinstance(x, Element):
+        return x
+    elif isinstance(x, int):
+        from sage.rings.integer import Integer
+        return Integer(x)
+    elif isinstance(x, float):
+        from sage.rings.real_double import RDF
+        return RDF(x)
+    elif isinstance(x, long):
+        from sage.rings.integer import Integer
+        return Integer(x)
+    elif isinstance(x, complex):
+        from sage.rings.complex_double import CDF
+        return CDF(x)
+    elif is_numpy_type(type(x)):
+        import numpy
+        if isinstance(x, numpy.integer):
+            from sage.rings.integer import Integer
+            return Integer(x)
+        elif isinstance(x, numpy.floating):
+            from sage.rings.real_double import RDF
+            return RDF(x)
+        elif isinstance(x, numpy.complexfloating):
+            from sage.rings.complex_double import CDF
+            return CDF(x)
+        else:
+            return x
+    else:
+        return x
+
+
+cpdef bint is_numpy_type(t):
+    """
+    Return ``True`` if and only if `t` is a type whose name starts
+    with ``numpy.``
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import is_numpy_type
+        sage: import numpy
+        sage: is_numpy_type(numpy.int16)
+        True
+        sage: is_numpy_type(numpy.floating)
+        True
+        sage: is_numpy_type(numpy.float)  # Alias for Python float
+        False
+        sage: is_numpy_type(int)
+        False
+        sage: is_numpy_type(Integer)
+        False
+        sage: is_numpy_type(Sudoku)
+        False
+        sage: is_numpy_type(None)
+        False
+    """
+    if not isinstance(t, type):
+        return False
+    return strncmp((<PyTypeObject*>t).tp_name, "numpy.", 6) == 0
+
 
 cdef object _Integer
 cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return PY_TYPE_CHECK_EXACT(x, _Integer) or PY_TYPE_CHECK_EXACT(x, int)
+    return type(x) is _Integer
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     """
@@ -160,6 +301,46 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         sage: ZZ['x,y,z'].0 + ZZ['w,x,z,a'].1
         2*x
 
+    TESTS:
+
+    Check that :trac:`8426` is fixed (see also :trac:`18076`)::
+
+        sage: import numpy
+        sage: x = polygen(RR)
+        sage: numpy.float32('1.5') * x
+        1.50000000000000*x
+        sage: x * numpy.float32('1.5')
+        1.50000000000000*x
+        sage: p = x**3 + 2*x - 1
+        sage: p(numpy.float('1.2'))
+        3.12800000000000
+        sage: p(numpy.int('2'))
+        11.0000000000000
+
+    This used to fail (see :trac:`18076`)::
+
+        sage: 1/3 + numpy.int8('12')
+        37/3
+        sage: -2/3 + numpy.int16('-2')
+        -8/3
+        sage: 2/5 + numpy.uint8('2')
+        12/5
+
+    The numpy types do not interact well with the Sage coercion framework. More
+    precisely, if a numpy type is the first operand in a binary operation then
+    this operation is done in numpy. The result is hence a numpy type::
+
+        sage: numpy.uint8('2') + 3
+        5
+        sage: type(_)
+        <type 'numpy.int32'>  # 32-bit
+        <type 'numpy.int64'>  # 64-bit
+
+        sage: numpy.int8('12') + 1/3
+        12.333333333333334
+        sage: type(_)
+        <type 'numpy.float64'>
+
     AUTHOR:
 
     - Robert Bradshaw
@@ -178,7 +359,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: from sage.structure.coerce import CoercionModel_cache_maps
             sage: cm = CoercionModel_cache_maps(4, .95)
-            sage: A = cm.get_action(ZZ, NumberField(x^2-2, 'a'), operator.mul)
+            sage: K = NumberField(x^2-2, 'a')
+            sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
 
@@ -228,15 +410,35 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: maps, actions = cm.get_cache()
 
-        Now lets see what happens when we do a binary operations with
+        Now let us see what happens when we do a binary operations with
         an integer and a rational::
 
-            sage: left_morphism, right_morphism = maps[ZZ, QQ]
-            sage: print copy(left_morphism)
+            sage: left_morphism_ref, right_morphism_ref = maps[ZZ, QQ]
+
+        Note that by :trac:`14058` the coercion model only stores a weak
+        reference to the coercion maps in this case::
+
+            sage: left_morphism_ref
+            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...
+            (RingHomset_generic_with_category._abstract_element_class)>
+
+        Moreover, the weakly referenced coercion map uses only a weak
+        reference to the codomain::
+
+            sage: left_morphism_ref()
+            (map internal to coercion system -- copy before use)
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
-            sage: print right_morphism
+
+        To get an actual valid map, we simply copy the weakly referenced
+        coercion map::
+                
+            sage: print copy(left_morphism_ref())
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: print right_morphism_ref
             None
 
         We can see that it coerces the left operand from an integer to a
@@ -309,7 +511,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         The function _test_exception_stack is executing the following code::
 
             try:
-                raise TypeError, "just a test"
+                raise TypeError("just a test")
             except TypeError:
                 cm._record_exception()
         """
@@ -337,7 +539,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
         """
         try:
-            raise TypeError, "just a test"
+            raise TypeError("just a test")
         except TypeError:
             self._record_exception()
 
@@ -415,7 +617,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Rational Field
             Rational Field
 
-            sage: cm.explain(ZZ['x'], QQ)
+            sage: R = ZZ['x']
+            sage: cm.explain(R, QQ)
             Action discovered.
                 Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
             Result lives in Univariate Polynomial Ring in x over Rational Field
@@ -441,10 +644,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Sometimes with non-sage types there is not enough information to deduce
         what will actually happen::
 
-            sage: cm.explain(RealField(100), float, operator.add)
+            sage: R100 = RealField(100)
+            sage: cm.explain(R100, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
-            sage: parent(RealField(100)(1) + float(1))
+            sage: parent(R100(1) + float(1))
             <type 'float'>
             sage: cm.explain(QQ, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
@@ -460,7 +664,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Rational Field
             Rational Field
 
-            sage: cm.explain(ZZ['x'], QQ['x'], operator.div)
+            sage: ZZx = ZZ['x']
+            sage: QQx = QQ['x']
+            sage: cm.explain(ZZx, QQx, operator.div)
             Coercion on left operand via
                 Ring morphism:
                   From: Univariate Polynomial Ring in x over Integer Ring
@@ -482,7 +688,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Rational Field
             Rational Field
 
-            sage: cm.explain(ZZ['x'], ZZ, operator.div)
+            sage: cm.explain(ZZx, ZZ, operator.div)
             Action discovered.
                 Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
                 with precomposition on right by Natural morphism:
@@ -522,7 +728,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: steps, res = cm.analyse(GF(7), ZZ)
+            sage: GF7 = GF(7)
+            sage: steps, res = cm.analyse(GF7, ZZ)
             sage: print steps
             ['Coercion on right operand via', Natural morphism:
               From: Integer Ring
@@ -533,18 +740,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             <type 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
             sage: f(100)
             2
-            """
+        """
+        if op is truediv:
+            op = div
         self._exceptions_cleared = False
         res = None
-        if not PY_TYPE_CHECK(xp, type) and not PY_TYPE_CHECK(xp, Parent):
+        if not isinstance(xp, type) and not isinstance(xp, Parent):
             xp = parent_c(xp)
-        if not PY_TYPE_CHECK(yp, type) and not PY_TYPE_CHECK(yp, Parent):
+        if not isinstance(yp, type) and not isinstance(yp, Parent):
             yp = parent_c(yp)
 
         all = []
         if xp is yp:
             all.append("Identical parents, arithmetic performed immediately." % xp)
-            if op is div and PY_TYPE_CHECK(xp, Parent):
+            if op is div and isinstance(xp, Parent):
                 xp = self.division_parent(xp)
             return all, xp
         if xp == yp:
@@ -570,33 +779,33 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 all.append("Coercion on right operand via")
                 all.append(y_mor)
                 if res is not None and res is not y_mor.codomain():
-                    raise RuntimeError, ("BUG in coercion model: codomains not equal!", x_mor, y_mor)
+                    raise RuntimeError("BUG in coercion model: codomains not equal!", x_mor, y_mor)
                 res = y_mor.codomain()
             all.append("Arithmetic performed after coercions.")
-            if op is div and PY_TYPE_CHECK(res, Parent):
+            if op is div and isinstance(res, Parent):
                 res = self.division_parent(res)
             return all, res
 
-        if PY_TYPE_CHECK(yp, Parent) and xp in [int, long, float, complex, bool]:
+        if isinstance(yp, Parent) and xp in [int, long, float, complex, bool]:
             mor = yp._internal_coerce_map_from(xp)
             if mor is not None:
                 mor = mor.__copy__()
                 all.append("Coercion on numeric left operand via")
                 all.append(mor)
-                if op is div and PY_TYPE_CHECK(yp, Parent):
+                if op is div and isinstance(yp, Parent):
                     yp = self.division_parent(yp)
                 return all, yp
             all.append("Left operand is numeric, will attempt coercion in both directions.")
         elif type(xp) is type:
             all.append("Left operand is not Sage element, will try _sage_.")
 
-        if PY_TYPE_CHECK(xp, Parent) and yp in [int, long, float, complex, bool]:
+        if isinstance(xp, Parent) and yp in [int, long, float, complex, bool]:
             mor = xp._internal_coerce_map_from(yp)
             if mor is not None:
                 mor = mor.__copy__()
                 all.append("Coercion on numeric right operand via")
                 all.append(mor)
-                if op is div and PY_TYPE_CHECK(xp, Parent):
+                if op is div and isinstance(xp, Parent):
                     xp = self.division_parent(xp)
                 return all, xp
             all.append("Right operand is numeric, will attempt coercion in both directions.")
@@ -630,23 +839,29 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Rational Field
             sage: cm.common_parent(ZZ, QQ, RR)
             Real Field with 53 bits of precision
-            sage: cm.common_parent(ZZ[['T']], QQ['T'], RDF)
+            sage: ZZT = ZZ[['T']]
+            sage: QQT = QQ['T']
+            sage: cm.common_parent(ZZT, QQT, RDF)
             Power Series Ring in T over Real Double Field
             sage: cm.common_parent(4r, 5r)
             <type 'int'>
             sage: cm.common_parent(int, float, ZZ)
             <type 'float'>
-            sage: cm.common_parent(*[RealField(prec) for prec in [10,20..100]])
+            sage: real_fields = [RealField(prec) for prec in [10,20..100]]
+            sage: cm.common_parent(*real_fields)
             Real Field with 10 bits of precision
 
         There are some cases where the ordering does matter, but if a parent
         can be found it is always the same::
 
-            sage: cm.common_parent(QQ['x,y'], QQ['y,z']) == cm.common_parent(QQ['y,z'], QQ['x,y'])
+            sage: QQxy = QQ['x,y']
+            sage: QQyz = QQ['y,z']
+            sage: cm.common_parent(QQxy, QQyz) == cm.common_parent(QQyz, QQxy)
             True
-            sage: cm.common_parent(QQ['x,y'], QQ['y,z'], QQ['z,t'])
+            sage: QQzt = QQ['z,t']
+            sage: cm.common_parent(QQxy, QQyz, QQzt)
             Multivariate Polynomial Ring in x, y, z, t over Rational Field
-            sage: cm.common_parent(QQ['x,y'], QQ['z,t'], QQ['y,z'])
+            sage: cm.common_parent(QQxy, QQzt, QQyz)
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Multivariate Polynomial Ring in x, y over Rational Field' and 'Multivariate Polynomial Ring in z, t over Rational Field'
@@ -670,7 +885,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     cpdef Parent division_parent(self, Parent parent):
         r"""
         Deduces where the result of division in parent lies by calculating
-        the inverse of ``parent.one_element()`` or ``parent.an_element()``.
+        the inverse of ``parent.one()`` or ``parent.an_element()``.
 
         The result is cached.
 
@@ -681,13 +896,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Rational Field
             sage: cm.division_parent(QQ)
             Rational Field
-            sage: cm.division_parent(ZZ['x'])
+            sage: ZZx = ZZ['x']
+            sage: cm.division_parent(ZZx)
             Fraction Field of Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.division_parent(GF(41))
+            sage: K = GF(41)
+            sage: cm.division_parent(K)
             Finite Field of size 41
-            sage: cm.division_parent(Integers(100))
+            sage: Zmod100 = Integers(100)
+            sage: cm.division_parent(Zmod100)
             Ring of integers modulo 100
-            sage: cm.division_parent(SymmetricGroup(5))
+            sage: S5 = SymmetricGroup(5)
+            sage: cm.division_parent(S5)
             Symmetric group of order 5! as a permutation group
         """
         try:
@@ -695,7 +914,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         except KeyError:
             pass
         try:
-            ret = parent_c(~parent.one_element())
+            ret = parent_c(~parent.one())
         except Exception:
             self._record_exception()
             ret = parent_c(~parent.an_element())
@@ -707,7 +926,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         Execute the operation op on x and y. It first looks for an action
         corresponding to op, and failing that, it tries to coerces x and y
-        into the a common parent and calls op on them.
+        into a common parent and calls op on them.
 
         If it cannot make sense of the operation, a TypeError is raised.
 
@@ -839,7 +1058,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             op_name = op.__name__
             if op_name[0] == 'i':
                 op_name = op_name[1:]
-            mul_method = getattr3(y, '__r%s__'%op_name, None)
+            mul_method = getattr(y, '__r%s__'%op_name, None)
             if mul_method is not None:
                 res = mul_method(x)
                 if res is not None and res is not NotImplemented:
@@ -847,7 +1066,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         # We should really include the underlying error.
         # This causes so much headache.
-        raise TypeError, arith_error_message(x,y,op)
+        raise TypeError(arith_error_message(x,y,op))
 
     cpdef canonical_coercion(self, x, y):
         r"""
@@ -897,6 +1116,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: canonical_coercion(vector([1, 2, 3]), 0)
             ((1, 2, 3), (0, 0, 0))
+            sage: canonical_coercion(GF(5)(0), float(0))
+            (0, 0)
         """
         xp = parent_c(x)
         yp = parent_c(y)
@@ -916,9 +1137,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             else:
                 y_elt = y
             if x_elt is None:
-                raise RuntimeError, "BUG in map, returned None %s %s %s" % (x, type(x_map), x_map)
+                raise RuntimeError("BUG in map, returned None %s %s %s" % (x, type(x_map), x_map))
             elif y_elt is None:
-                raise RuntimeError, "BUG in map, returned None %s %s %s" % (y, type(y_map), y_map)
+                raise RuntimeError("BUG in map, returned None %s %s %s" % (y, type(y_map), y_map))
             if x_elt._parent is y_elt._parent:
                 # We must verify this as otherwise we are prone to
                 # getting into an infinite loop in c, and the above
@@ -932,17 +1153,19 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     return x_elt,y_elt
             self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
 
+        cdef bint x_numeric = isinstance(x, (int, long, float, complex))
+        cdef bint y_numeric = isinstance(y, (int, long, float, complex))
 
-        cdef bint x_numeric = PY_IS_NUMERIC(x)
-        cdef bint y_numeric = PY_IS_NUMERIC(y)
+        if not x_numeric and is_numpy_type(type(x)):
+            import numpy
+            x_numeric = isinstance(x, numpy.number)
+        if not y_numeric and is_numpy_type(type(y)):
+            import numpy
+            y_numeric = isinstance(y, numpy.number)
 
         if x_numeric and y_numeric:
-            x_rank = _native_coercion_ranks[type(x)]
-            y_rank = _native_coercion_ranks[type(y)]
-            ty = _native_coercion_ranks_inv[max(x_rank, y_rank)]
-            x = ty(x)
-            y = ty(y)
-            return x, y
+            ty = type(x + y)
+            return ty(x), ty(y)
 
         # Now handle the native python + sage object cases
         # that were not taken care of above.
@@ -967,7 +1190,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 self._record_exception()
 
         # See if the non-objects define a _sage_ method.
-        if not PY_TYPE_CHECK(x, SageObject) or not PY_TYPE_CHECK(y, SageObject):
+        if not isinstance(x, SageObject) or not isinstance(y, SageObject):
             try:
                 x = x._sage_()
                 y = y._sage_()
@@ -977,19 +1200,19 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return self.canonical_coercion(x, y)
 
         # Allow coercion of 0 even if no coercion from Z
-        if is_Integer(x) and not x and not PY_TYPE_CHECK_EXACT(yp, type):
+        if (x_numeric or is_Integer(x)) and not x and type(yp) is not type:
             try:
                 return yp(0), y
             except Exception:
                 self._record_exception()
 
-        if is_Integer(y) and not y and not PY_TYPE_CHECK_EXACT(xp, type):
+        if (y_numeric or is_Integer(y)) and not y and type(xp) is not type:
             try:
                 return x, xp(0)
             except Exception:
                 self._record_exception()
 
-        raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
+        raise TypeError("no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp))
 
 
     cpdef coercion_maps(self, R, S):
@@ -1022,7 +1245,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print g
             None
 
-            sage: f, g = cm.coercion_maps(ZZ['x'], QQ)
+            sage: ZZx = ZZ['x']
+            sage: f, g = cm.coercion_maps(ZZx, QQ)
             sage: print f
             (map internal to coercion system -- copy before use)
             Ring morphism:
@@ -1034,7 +1258,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
 
-            sage: cm.coercion_maps(QQ, GF(7)) is None
+            sage: K = GF(7)
+            sage: cm.coercion_maps(QQ, K) is None
             True
 
         Note that to break symmetry, if there is a coercion map in both
@@ -1049,12 +1274,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.coercion_maps(V, W)
             (None, (map internal to coercion system -- copy before use)
-            Call morphism:
+            Conversion map:
               From: Vector space of dimension 3 over Rational Field
               To:   Vector space of dimension 3 over Rational Field)
             sage: cm.coercion_maps(W, V)
             (None, (map internal to coercion system -- copy before use)
-            Call morphism:
+            Conversion map:
               From: Vector space of dimension 3 over Rational Field
               To:   Vector space of dimension 3 over Rational Field)
             sage: v = V([1,2,3])
@@ -1063,33 +1288,76 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
             sage: parent(w+v) is W
             True
+
+        TESTS:
+
+        We check that with :trac:`14058`, parents are still eligible for
+        garbage collection after being involved in binary operations::
+
+            sage: import gc
+            sage: gc.collect() #random
+            852
+            sage: T=type(GF(2))
+            sage: N0=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: L=[ZZ(1)+GF(p)(1) for p in prime_range(2,50)]
+            sage: N1=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: print N1 > N0
+            True
+            sage: del L
+            sage: gc.collect() #random
+            3939
+            sage: N2=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: print N2-N0
+            0
+
         """
         try:
-            return self._coercion_maps.get(R, S, None)
+            refs = self._coercion_maps.get(R, S, None)
+            if refs is None:
+                return None
+            R_map_ref, S_map_ref = refs
+            if R_map_ref is None:
+                S_map = <object>PyWeakref_GET_OBJECT(S_map_ref)
+                if S_map is not None:
+                    return None, S_map
+            elif S_map_ref is None:
+                R_map = <object>PyWeakref_GET_OBJECT(R_map_ref)
+                if R_map is not None:
+                    return R_map, None
+            else:
+                R_map = <object>PyWeakref_GET_OBJECT(R_map_ref)
+                S_map = <object>PyWeakref_GET_OBJECT(S_map_ref)
+                if R_map is not None and S_map is not None:
+                    return R_map, S_map
         except KeyError:
-            homs = self.discover_coercion(R, S)
-            if 0:
-                # This breaks too many things that are going to change
-                # in the new coercion model anyways.
-                # COERCE TODO: Enable it then.
-                homs = self.verify_coercion_maps(R, S, homs)
+            pass
+        homs = self.discover_coercion(R, S)
+        if 0:
+            # This breaks too many things that are going to change
+            # in the new coercion model anyways.
+            # COERCE TODO: Enable it then.
+            homs = self.verify_coercion_maps(R, S, homs)
+        else:
+            if homs is not None:
+                x_map, y_map = homs
+                if x_map is not None and not isinstance(x_map, Map):
+                    raise RuntimeError("BUG in coercion model: coerce_map_from must return a Map")
+                if y_map is not None and not isinstance(y_map, Map):
+                    raise RuntimeError("BUG in coercion model: coerce_map_from must return a Map")
+        if homs is None:
+            refs = None
+            swap = None
+        else:
+            R_map, S_map = homs
+            R_map_ref = None if R_map is None else PyWeakref_NewRef(R_map, None)
+            S_map_ref = None if S_map is None else PyWeakref_NewRef(S_map, None)
+            refs = R_map_ref, S_map_ref
+            if R_map is None and isinstance(S, Parent) and (<Parent>S).has_coerce_map_from(R):
+                swap = None, PyWeakref_NewRef((<Parent>S).coerce_map_from(R), None)
             else:
-                if homs is not None:
-                    x_map, y_map = homs
-                    if x_map is not None and not isinstance(x_map, Map):
-                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
-                    if y_map is not None and not isinstance(y_map, Map):
-                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
-            if homs is None:
-                swap = None
-            else:
-                R_map, S_map = homs
-                if R_map is None and PY_TYPE_CHECK(S, Parent) and (<Parent>S).has_coerce_map_from(R):
-                    swap = None, (<Parent>S)._internal_coerce_map_from(R)
-                else:
-                    swap = S_map, R_map
-            self._coercion_maps.set(R, S, None, homs)
-            self._coercion_maps.set(S, R, None, swap)
+                swap = S_map_ref, R_map_ref
+        self._coercion_maps.set(R, S, None, refs)
+        self._coercion_maps.set(S, R, None, swap)
         return homs
 
     cpdef verify_coercion_maps(self, R, S, homs, bint fix=False):
@@ -1117,9 +1385,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             return None
         cdef Map x_map, y_map
         R_map, S_map = homs
-        if PY_TYPE_CHECK(R, type):
+        if isinstance(R, type):
             R = Set_PythonType(R)
-        elif PY_TYPE_CHECK(S, type):
+        elif isinstance(S, type):
             S = Set_PythonType(S)
         if R_map is None:
             R_map = IdentityMorphism(R)
@@ -1132,14 +1400,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if connecting is not None:
                     R_map = R_map * connecting
             if R_map.domain() is not R:
-                raise RuntimeError, ("BUG in coercion model, left domain must be original parent", R, R_map)
+                raise RuntimeError("BUG in coercion model, left domain must be original parent", R, R_map)
         if S_map is not None and S_map.domain() is not S:
             if fix:
                 connecting = S_map.domain()._internal_coerce_map_from(S)
                 if connecting is not None:
                     S_map = S_map * connecting
             if S_map.domain() is not S:
-                raise RuntimeError, ("BUG in coercion model, right domain must be original parent", S, S_map)
+                raise RuntimeError("BUG in coercion model, right domain must be original parent", S, S_map)
         # Make sure the codomains are correct
         if R_map.codomain() is not S_map.codomain():
             if fix:
@@ -1151,10 +1419,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     if connecting is not None:
                         R_map = connecting * R_map
             if R_map.codomain() is not S_map.codomain():
-                raise RuntimeError, ("BUG in coercion model, codomains must be identical", R_map, S_map)
-        if PY_TYPE_CHECK(R_map, IdentityMorphism):
+                raise RuntimeError("BUG in coercion model, codomains must be identical", R_map, S_map)
+        if isinstance(R_map, IdentityMorphism):
             R_map = None
-        elif PY_TYPE_CHECK(S_map, IdentityMorphism):
+        elif isinstance(S_map, IdentityMorphism):
             S_map = None
         return R_map, S_map
 
@@ -1188,7 +1456,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         Otherwise, try and compute an appropriate cover::
 
-            sage: cm.discover_coercion(ZZ['x,y'], RDF)
+            sage: ZZxy = ZZ['x,y']
+            sage: cm.discover_coercion(ZZxy, RDF)
             ((map internal to coercion system -- copy before use)
             Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
@@ -1209,28 +1478,28 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             return None, None
 
         # See if there is a natural coercion from R to S
-        if PY_TYPE_CHECK(R, Parent):
+        if isinstance(R, Parent):
             mor = (<Parent>R)._internal_coerce_map_from(S)
             if mor is not None:
                 return None, mor
 
         # See if there is a natural coercion from S to R
-        if PY_TYPE_CHECK(S, Parent):
+        if isinstance(S, Parent):
             mor = (<Parent>S)._internal_coerce_map_from(R)
             if mor is not None:
                 return mor, None
 
         # Try base extending
-        if PY_TYPE_CHECK(R, Parent) and PY_TYPE_CHECK(S, Parent):
+        if isinstance(R, Parent) and isinstance(S, Parent):
             from sage.categories.pushout import pushout
             try:
                 Z = pushout(R, S)
                 coerce_R = Z._internal_coerce_map_from(R)
                 coerce_S = Z._internal_coerce_map_from(S)
                 if coerce_R is None:
-                    raise TypeError, "No coercion from %s to pushout %s" % (R, Z)
+                    raise TypeError("No coercion from %s to pushout %s" % (R, Z))
                 if coerce_S is None:
-                    raise TypeError, "No coercion from %s to pushout %s" % (S, Z)
+                    raise TypeError("No coercion from %s to pushout %s" % (S, Z))
                 return coerce_R, coerce_S
             except Exception:
                 self._record_exception()
@@ -1247,24 +1516,26 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: cm.get_action(ZZ['x'], ZZ, operator.mul)
+            sage: ZZx = ZZ['x']
+            sage: cm.get_action(ZZx, ZZ, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.get_action(ZZ['x'], ZZ, operator.imul)
+            sage: cm.get_action(ZZx, ZZ, operator.imul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.get_action(ZZ['x'], QQ, operator.mul)
+            sage: cm.get_action(ZZx, QQ, operator.mul)
             Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.get_action(QQ['x'], int, operator.mul)
+            sage: QQx = QQ['x']
+            sage: cm.get_action(QQx, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Rational Field
             with precomposition on right by Native morphism:
               From: Set of Python objects of type 'int'
               To:   Integer Ring
 
-            sage: R.<x> = QQ['x']
-            sage: A = cm.get_action(R, ZZ, operator.div); A
+            sage: A = cm.get_action(QQx, ZZ, operator.div); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
+            sage: x = QQx.gen()
             sage: A(x+10, 5)
             1/5*x + 2
 
@@ -1303,20 +1574,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         if action is None:
             return action
-        elif PY_TYPE_CHECK(action, IntegerMulAction):
+        elif isinstance(action, IntegerMulAction):
             return action
         cdef bint ok = True
         try:
             if action.left_domain() is not R:
-                ok &= PY_TYPE_CHECK(R, type) and action.left_domain()._type is R
+                ok &= isinstance(R, type) and action.left_domain()._type is R
             if action.right_domain() is not S:
-                ok &= PY_TYPE_CHECK(S, type) and action.right_domain()._type is S
+                ok &= isinstance(S, type) and action.right_domain()._type is S
         except AttributeError:
             ok = False
         if not ok:
-            if PY_TYPE_CHECK(R, type):
+            if isinstance(R, type):
                 R = Set_PythonType(R)
-            if PY_TYPE_CHECK(S, type):
+            if isinstance(S, type):
                 S = Set_PythonType(S)
 
             # Non-unique parents
@@ -1386,36 +1657,59 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
-        """
-        #print "looking", R, <int><void *>R, op, S, <int><void *>S
 
-        if PY_TYPE_CHECK(R, Parent):
+        Check that :trac:`17740` is fixed::
+
+            sage: R = GF(5)['x']
+            sage: cm.discover_action(R, ZZ, operator.div)
+            Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Finite Field of size 5
+            sage: cm.bin_op(R.gen(), 7, operator.div).parent()
+            Univariate Polynomial Ring in x over Finite Field of size 5
+
+        Check that :trac:`18221` is fixed::
+
+            sage: F.<x> = FreeAlgebra(QQ)
+            sage: x / 2
+            1/2*x
+            sage: cm.discover_action(F, ZZ, operator.div)
+            Right inverse action by Rational Field on Free Algebra on 1 generators (x,) over Rational Field
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+        """
+        if op is truediv:
+            op = div
+
+        if isinstance(R, Parent):
             action = (<Parent>R).get_action(S, op, True, r, s)
             if action is not None:
                 #print "found2", action
                 return action
 
-        if PY_TYPE_CHECK(S, Parent):
+        if isinstance(S, Parent):
             action = (<Parent>S).get_action(R, op, False, s, r)
             if action is not None:
                 #print "found1", action
                 return action
 
-        if PY_TYPE(R) == <void *>type:
+        if type(R) is type:
             sageR = py_scalar_parent(R)
             if sageR is not None:
                 action = self.discover_action(sageR, S, op, s=s)
                 if action is not None:
-                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                    if not isinstance(action, IntegerMulAction):
                         action = PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
                     return action
 
-        if PY_TYPE(S) == <void *>type:
+        if type(S) is type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action(R, sageS, op, r=r)
                 if action is not None:
-                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                    if not isinstance(action, IntegerMulAction):
                         action = PrecomposedAction(action, None, sageS._internal_coerce_map_from(S))
                     return action
 
@@ -1426,10 +1720,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if a is not None:
                     is_inverse = isinstance(a, InverseAction)
                     if is_inverse: a = ~a
-                    if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
+                    if a is not None and isinstance(a, RightModuleAction):
                         # We want a new instance so that we don't alter the (potentially cached) original
                         a = RightModuleAction(S, R, s, r)
-                        a.is_inplace = 1
                     if is_inverse: a = ~a
                 return a
             except KeyError:
@@ -1437,32 +1730,90 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         if op is div:
             # Division on right is the same acting on right by inverse, if it is so defined.
-            # To return such an action, we need to verify that it would be an action for the mul
-            # operator, but the action must be over a parent containing inverse elements.
-            from sage.rings.ring import is_Ring
-            if is_Ring(S):
+            right_mul = self.get_action(R, S, mul)
+            if right_mul and not right_mul.is_left():
                 try:
-                    K = S._pseudo_fraction_field()
-                except (TypeError, AttributeError, NotImplementedError):
-                    K = None
-            elif PY_TYPE_CHECK(S, Parent):
-                K = S
-            else:
-                # python scalar case handled recursively above
-                K = None
+                    action = ~right_mul
+                    if action.right_domain() != S:
+                        action = PrecomposedAction(action, None,
+                                                   action.right_domain()._internal_coerce_map_from(S))
+                    return action
+                except TypeError: # action may not be invertible
+                    self._record_exception()
 
-            if K is not None:
-                action = self.get_action(R, K, mul)
-                if action is not None and action.actor() is K:
-                    try:
-                        action = ~action
-                        if K is not S:
-                            action = PrecomposedAction(action, None, K._internal_coerce_map_from(S))
-                        return action
-                    except TypeError: # action may not be invertible
-                        self._record_exception()
+            # It's possible an action is defined on the fraction field itself.
+            if hasattr(S, '_pseudo_fraction_field'):
+                K = S._pseudo_fraction_field()
+                if K is not S:
+                    right_mul = self.get_action(R, K, mul)
+                    if right_mul and not right_mul.is_left():
+                        try:
+                            return PrecomposedAction(~right_mul, None, K.coerce_map_from(S))
+                        except TypeError: # action may not be invertible
+                            self._record_exception()
 
         return None
+
+    cpdef richcmp(self, x, y, int op):
+        """
+        Given two arbitrary objects ``x`` and ``y``, coerce them to
+        a common parent and compare them using rich comparison operator
+        ``op``.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import get_coercion_model
+            sage: from sage.structure.sage_object import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
+            sage: richcmp = get_coercion_model().richcmp
+            sage: richcmp(None, None, op_EQ)
+            True
+            sage: richcmp(None, 1, op_LT)
+            True
+            sage: richcmp("hello", None, op_LE)
+            False
+            sage: richcmp(-1, 1, op_GE)
+            False
+            sage: richcmp(int(1), float(2), op_GE)
+            False
+
+        If there is no coercion, compare types::
+
+            sage: x = QQ.one(); y = GF(2).one()
+            sage: richcmp(x, y, op_EQ)
+            False
+            sage: richcmp(x, y, op_NE)
+            True
+            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
+            True
+        """
+        # Some very special cases
+        if x is None or x is Ellipsis:
+            return rich_to_bool(op, 0 if x is y else -1)
+        if y is None or y is Ellipsis:
+            return rich_to_bool(op, 0 if x is y else 1)
+
+        # Coerce to a common parent
+        try:
+            x, y = self.canonical_coercion(x, y)
+        except (TypeError, NotImplementedError):
+            pass
+        else:
+            return PyObject_RichCompare(x, y, op)
+
+        # Comparing with coercion didn't work, try something else.
+
+        # If types are not equal: compare types
+        cdef int c = cmp(type(x), type(y))
+        if c:
+            return rich_to_bool(op, c)
+
+        # Final attempt: compare by id()
+        if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):
+            # It cannot happen that x is y, since they don't
+            # have the same parent.
+            return rich_to_bool(op, 1)
+        else:
+            return rich_to_bool(op, -1)
 
     def _coercion_error(self, x, x_map, x_elt, y, y_map, y_elt):
         """
@@ -1492,5 +1843,3 @@ Original elements %r (parent %s) and %r (parent %s) and maps
 %s %r"""%( x_elt, y_elt, parent_c(x_elt), parent_c(y_elt),
             x, parent_c(x), y, parent_c(y),
             type(x_map), x_map, type(y_map), y_map)
-
-

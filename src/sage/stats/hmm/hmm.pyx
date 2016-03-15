@@ -28,9 +28,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef extern from "math.h":
     double log(double)
@@ -198,7 +196,7 @@ cdef class HiddenMarkovModel:
 
 
     #########################################################
-    # Some internal funcitons used for various general
+    # Some internal functions used for various general
     # HMM algorithms.
     #########################################################
     cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):
@@ -1329,7 +1327,7 @@ def unpickle_discrete_hmm_v1(A, B, pi, n_out, emission_symbols, emission_symbols
         sage: loads(dumps(m)) == m   # indirect test
         True
     """
-    cdef DiscreteHiddenMarkovModel m = PY_NEW(DiscreteHiddenMarkovModel)
+    cdef DiscreteHiddenMarkovModel m = DiscreteHiddenMarkovModel.__new__(DiscreteHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi

@@ -8,8 +8,6 @@ either equalities or less-or-equal. For example::
 
     sage: p = MixedIntegerLinearProgram()
     sage: x = p.new_variable()
-    doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
-    See http://trac.sagemath.org/15521 for details.
     sage: f = 1 + x[1] + 2*x[2];  f     #  a linear function
     1 + x_0 + 2*x_1
     sage: type(f)
@@ -75,14 +73,9 @@ See :trac:`12091` ::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
+from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, Element
 from sage.misc.cachefunc import cached_function
@@ -295,12 +288,12 @@ cdef class LinearFunctionsParent_class(Parent):
 
         - ``free_module`` -- vector space or matrix space over the
           same base ring.
-        
+
         OUTPUT:
 
         Instance of
         :class:`sage.numerical.linear_tensor.LinearTensorParent_class`.
-        
+
         EXAMPLES::
 
             sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
@@ -707,7 +700,7 @@ cdef class LinearFunction(ModuleElement):
            [x_0 0  ]
            [0   x_0]
            sage: tf.parent()
-           Tensor product of Full MatrixSpace of 2 by 2 dense matrices over 
+           Tensor product of Full MatrixSpace of 2 by 2 dense matrices over
            Rational Field and Linear functions over Rational Field
        """
        R = self.base_ring()
@@ -847,12 +840,7 @@ cdef class LinearFunction(ModuleElement):
 
     def __richcmp__(left, right, int op):
         """
-        Override the rich comparison.
-
-        The Sage framework sometimes expects that rich comparison
-        results in a boolean value, but we want to return
-        :class:`~sage.numerical.linear_functions.LinearConstraint`
-        objects.
+        Create an inequality or equality object.
 
         EXAMPLES::
 
@@ -860,14 +848,8 @@ cdef class LinearFunction(ModuleElement):
             sage: x = p.new_variable()
             sage: x[0].__le__(x[1])    # indirect doctest
             x_0 <= x_1
-        """
-        return (<LinearFunction>left)._richcmp(right, op)
 
-    cdef _richcmp(left, right, int op):
-        """
-        Create a inequality or equality object.
-
-        EXAMPLE::
+        ::
 
             sage: p = MixedIntegerLinearProgram()
             sage: from sage.numerical.linear_functions import LinearFunction
@@ -913,24 +895,20 @@ cdef class LinearFunction(ModuleElement):
             1 <= x_0
             sage: 1 >= x[0]
             x_0 <= 1
-       """
-        LF = left.parent()
+        """
+        LF = (<LinearFunction?>left)._parent
         LC = LinearConstraintsParent(LF)
         equality = (op == Py_EQ)
         cdef LinearConstraint  left_constraint = LC(left,  equality=equality)
         cdef LinearConstraint right_constraint = LC(right, equality=equality)
-        if op == Py_LT:
+        if op == Py_EQ or op == Py_LE or op == Py_GE:
+            return PyObject_RichCompare(left_constraint, right_constraint, op)
+        elif op == Py_LT:
             raise ValueError("strict < is not allowed, use <= instead.")
-        elif op == Py_EQ:
-            return left_constraint._richcmp(right_constraint, op)
         elif op == Py_GT:
             raise ValueError("strict > is not allowed, use >= instead.")
-        elif op == Py_LE:
-            return left_constraint._richcmp(right_constraint, op)
         elif op == Py_NE:
             raise ValueError("inequality != is not allowed, use one of <=, ==, >=.")
-        elif op == Py_GE:
-            return left_constraint._richcmp(right_constraint, op)
         else:
             assert(False)   # unreachable
 
@@ -947,23 +925,10 @@ cdef class LinearFunction(ModuleElement):
             sage: d = {}
             sage: d[f] = 3
         """
-        # see _cmp_c_impl() if you want to change the hash function
-        return id(self) % LONG_MAX
+        # see __cmp__() if you want to change the hash function
+        return hash_by_id(<void *> self)
 
     def __cmp__(left, right):
-        """
-        Part of the comparison framework.
-
-        EXAMPLES::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: f = p({2 : 5, 3 : 2})
-            sage: cmp(f, f)
-            0
-        """
-        return (<Element>left)._cmp(right)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Implement comparison of two linear functions.
 
@@ -1001,7 +966,7 @@ cdef class LinearConstraintsParent_class(Parent):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`. Also, use the
         :func:`LinearConstraintsParent` factory function.
@@ -1190,7 +1155,7 @@ cdef class LinearConstraint(Element):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`.
 
@@ -1270,9 +1235,7 @@ cdef class LinearConstraint(Element):
         """
         Evil hack to allow chained constraints
 
-        Python translates ``x < y < z`` into:
-
-        .. code-block:: python
+        Python translates ``x < y < z`` into::
 
              temp = x <= y      # calls x.__richcmp__(y)
              if temp:           # calls temp.__nonzero__()
@@ -1425,12 +1388,12 @@ cdef class LinearConstraint(Element):
         if not self.is_equation() or self.is_trivial():
             raise StopIteration
         term_iter = iter(self)
-        lhs = term_iter.next()
-        rhs = term_iter.next()
+        lhs = next(term_iter)
+        rhs = next(term_iter)
         while True:
             yield (lhs, rhs)
             lhs = rhs
-            rhs = term_iter.next()
+            rhs = next(term_iter)
 
     def inequalities(self):
         """
@@ -1458,12 +1421,12 @@ cdef class LinearConstraint(Element):
         if not self.is_less_or_equal() or self.is_trivial():
             raise StopIteration
         term_iter = iter(self)
-        lhs = term_iter.next()
-        rhs = term_iter.next()
+        lhs = next(term_iter)
+        rhs = next(term_iter)
         while True:
             yield (lhs, rhs)
             lhs = rhs
-            rhs = term_iter.next()
+            rhs = next(term_iter)
 
     def _repr_(self):
         r"""
@@ -1507,14 +1470,9 @@ cdef class LinearConstraint(Element):
         self._chained_comparator_hack_part2()
         return True
 
-    def __richcmp__(left, right, int op):
+    def __richcmp__(py_left, py_right, int op):
         """
-        Override the rich comparison.
-
-        The Sage framework sometimes expects that rich comparison
-        results in a boolean value, but we want to return
-        :class:`~sage.numerical.linear_functions.LinearConstraint`
-        objects.
+        Chain (in)equalities
 
         EXAMPLES::
 
@@ -1525,20 +1483,18 @@ cdef class LinearConstraint(Element):
             sage: b[0] <= 1 <= b[1] <= 2 <= b[2] <= 3
             x_0 <= 1 <= x_1 <= 2 <= x_2 <= 3
         """
-        return (<LinearConstraint>left)._richcmp(right, op)
+        cdef LinearConstraint left = <LinearConstraint?>py_left
+        LC = left._parent
+        cdef LinearConstraint right
+        try:
+            right = <LinearConstraint?>py_right
+        except TypeError:
+            right = <LinearConstraint>LC(py_right, equality=left.is_equation())
 
-    cdef _richcmp(py_left, py_right, int op):
-        """
-        Chain (in)equalities
-        """
-        #  print 'richcmp', py_left, ', ', py_right
-        LC = py_left.parent()
-        if not is_LinearConstraint(py_right):
-            py_right = LC(py_right, equality=py_left.is_equation())
-        elif py_right.parent() is not LC:
-            py_right = LC(py_right.constraints, equality=py_left.is_equation())
-        cdef LinearConstraint right = <LinearConstraint>py_right
-        cdef LinearConstraint left = py_left._chained_comparator_hack_part1(right)
+        if right._parent is not LC:
+            right = <LinearConstraint>LC(right.constraints, equality=left.is_equation())
+
+        left = left._chained_comparator_hack_part1(right)
         if op == Py_LT:
             raise ValueError("strict < is not allowed, use <= instead.")
         elif op == Py_EQ:

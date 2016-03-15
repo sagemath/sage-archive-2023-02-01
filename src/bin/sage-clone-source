@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ########################################################################
-# Helper script for sdist/bdist
+# Helper script for sdist
 #
 # Usage: sage-clone-source SRC DST
 #

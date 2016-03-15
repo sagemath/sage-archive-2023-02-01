@@ -20,9 +20,9 @@
 +        *) echo "*** Unrecognized graphic lib \"$which_graphic_lib.\"" >&2
 +           error=true;;
 +      esac;;
- 
+   --with-runtime-perl=*)
+       runtime_perl=`echo "$1" | sed -e 's/[-a-z]*=//'` ;;
    --without-readline|--with-readline=no) without_readline=yes ;;
-   --with-readline) with_readline=yes ;;
 @@ -139,7 +139,7 @@
  Build Options:
    --host=<arch-osname>  target achitecture

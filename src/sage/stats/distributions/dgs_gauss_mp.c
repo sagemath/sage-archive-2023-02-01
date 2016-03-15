@@ -37,7 +37,7 @@
 
 /** SIGMA2 **/
 
-dgs_disc_gauss_sigma2p_t *dgs_disc_gauss_sigma2p_init() {
+dgs_disc_gauss_sigma2p_t *dgs_disc_gauss_sigma2p_init(void) {
   dgs_disc_gauss_sigma2p_t *self = (dgs_disc_gauss_sigma2p_t*)calloc(sizeof(dgs_disc_gauss_sigma2p_t),1);
   if (!self) dgs_die("out of memory");
   self->B = dgs_bern_uniform_init(0);

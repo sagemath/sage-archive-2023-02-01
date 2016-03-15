@@ -35,8 +35,15 @@ Methods
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
+
+
+cdef extern from "sage/graphs/cliquer/cl.c":
+     cdef int sage_clique_max(graph_t *g, int ** list)
+     cdef int sage_all_clique_max(graph_t *g, int ** list)
+     cdef int sage_clique_number(graph_t *g)
+
 
 def max_clique(graph):
     """

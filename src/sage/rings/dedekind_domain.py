@@ -17,6 +17,9 @@ Base class for Dedekind domains
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(20011, "the module sage.rings.dedekind_domain is deprecated and will be removed")
+
 from sage.rings.ring import DedekindDomain
 
 def is_DedekindDomain(R):
@@ -25,6 +28,9 @@ def is_DedekindDomain(R):
 
     EXAMPLES::
 
+        sage: import sage.rings.dedekind_domain
+        doctest:...: DeprecationWarning: the module sage.rings.dedekind_domain is deprecated and will be removed
+        See http://trac.sagemath.org/20011 for details.
         sage: sage.rings.dedekind_domain.is_DedekindDomain(DedekindDomain(QQ))
         True
     """

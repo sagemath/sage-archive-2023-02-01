@@ -63,8 +63,8 @@ either parents or have a parent. Typically whenever one sees the word
     sage: parent(f)
     Univariate Polynomial Ring in t over 5-adic Field with capped relative precision 20
     sage: f = EllipticCurve('37a').lseries().taylor_series(10); f
-    0.997997869801216 + 0.00140712894524925*z - 0.000498127610960097*z^2 + 0.000118835596665956*z^3 - 0.0000215906522442707*z^4 + (3.20363155418419e-6)*z^5 + O(z^6) # 32-bit
-    0.997997869801216 + 0.00140712894524925*z - 0.000498127610960098*z^2 + 0.000118835596665956*z^3 - 0.0000215906522442713*z^4 + (3.20363155418461e-6)*z^5 + O(z^6) # 64-bit
+    0.990010459847588 + 0.0191338632530789*z - 0.0197489006172923*z^2 + 0.0137240085327618*z^3 - 0.00703880791607153*z^4 + 0.00280906165766519*z^5 + O(z^6)           # 32-bit
+    0.997997869801216 + 0.00140712894524925*z - 0.000498127610960097*z^2 + 0.000118835596665956*z^3 - 0.0000215906522442707*z^4 + (3.20363155418419e-6)*z^5 + O(z^6)  # 64-bit
     sage: parent(f)
     Power Series Ring in z over Complex Field with 53 bits of precision
 
@@ -672,5 +672,10 @@ Modules
     sage/structure/coerce_actions
     sage/structure/coerce_maps
 
+    sage/categories/pushout
+    sage/categories/action
+
+    sage/structure/coerce_dict
+    sage/structure/coerce_exceptions
 
 .. include:: ../footer.txt

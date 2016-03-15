@@ -1,7 +1,8 @@
 """
 Partition backtrack functions for lists -- a simple example of using partn_ref.
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_lists
 
 """
@@ -30,7 +31,8 @@ def is_isomorphic(self, other):
     """
     cdef int i, n = len(self)
     cdef PartitionStack *part
-    cdef int *output, *ordering
+    cdef int *output
+    cdef int *ordering
     part = PS_new(n, 1)
     ordering = <int *> sage_malloc((len(self)) * sizeof(int))
     output = <int *> sage_malloc((len(self)) * sizeof(int))

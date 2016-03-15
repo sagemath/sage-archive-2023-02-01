@@ -94,7 +94,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: I.category()
         Category of facade infinite enumerated sets
         sage: p = iter(I)
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p))
         (54, 57, 60, 63, 66, 69)
 
         sage: I = IntegerRange(54,-Infinity,-3); I
@@ -102,7 +102,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: I.category()
         Category of facade infinite enumerated sets
         sage: p = iter(I)
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p))
         (54, 51, 48, 45, 42, 39)
 
     When ``begin`` and ``end`` are both infinite, you will have to specify the
@@ -120,7 +120,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: -15 in I
         False
         sage: p = iter(I)
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p))
         (-12, 25, -49, 62, -86, 99, -123, 136)
 
     It is also possible to use the argument ``middle_point`` for other cases, finite
@@ -360,7 +360,7 @@ class IntegerRangeFinite(IntegerRange):
                 elt = x
             except (ValueError, TypeError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+        if abs(self._step).divides(Integer(elt)-self._begin):
             return (self._begin <= elt < self._end and self._step > 0) or \
                    (self._begin >= elt > self._end and self._step < 0)
         return False
@@ -483,11 +483,11 @@ class IntegerRangeFinite(IntegerRange):
 
             sage: I = IntegerRange(123,12,-4)
             sage: p = iter(I)
-            sage: [p.next() for i in range(8)]
+            sage: [next(p) for i in range(8)]
             [123, 119, 115, 111, 107, 103, 99, 95]
             sage: I = IntegerRange(-57,12,8)
             sage: p = iter(I)
-            sage: [p.next() for i in range(8)]
+            sage: [next(p) for i in range(8)]
             [-57, -49, -41, -33, -25, -17, -9, -1]
         """
         n = self._begin
@@ -577,7 +577,7 @@ class IntegerRangeInfinite(IntegerRange):
                 elt = Integer(elt)
             except (TypeError, ValueError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+        if abs(self._step).divides(Integer(elt)-self._begin):
             return (self._step > 0 and elt >= self._begin) or \
                    (self._step < 0 and elt <= self._begin)
         return False
@@ -633,12 +633,12 @@ class IntegerRangeInfinite(IntegerRange):
 
             sage: I = IntegerRange(-57,Infinity,8)
             sage: p = iter(I)
-            sage: [p.next() for i in range(8)]
+            sage: [next(p) for i in range(8)]
             [-57, -49, -41, -33, -25, -17, -9, -1]
 
             sage: I = IntegerRange(-112,-Infinity,-13)
             sage: p = iter(I)
-            sage: [p.next() for i in range(8)]
+            sage: [next(p) for i in range(8)]
             [-112, -125, -138, -151, -164, -177, -190, -203]
         """
         n = self._begin
@@ -737,7 +737,7 @@ class IntegerRangeFromMiddle(IntegerRange):
                 elt = Integer(elt)
             except (TypeError, ValueError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._middle_point):
+        if abs(self._step).divides(Integer(elt)-self._middle_point):
             return (self._begin <= elt and elt < self._end) or \
                    (self._begin >= elt and elt > self._end)
         return False
@@ -789,11 +789,11 @@ class IntegerRangeFromMiddle(IntegerRange):
             sage: from sage.sets.integer_range import IntegerRangeFromMiddle
             sage: I = IntegerRangeFromMiddle(Infinity,-Infinity,-37,0)
             sage: p = iter(I)
-            sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+            sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p))
             (0, -37, 37, -74, 74, -111, 111, -148)
             sage: I = IntegerRangeFromMiddle(-12,214,10,0)
             sage: p = iter(I)
-            sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+            sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p))
             (0, 10, -10, 20, 30, 40, 50, 60)
         """
         n = self._middle_point

@@ -36,24 +36,24 @@ AUTHOR:
 - William Stein
 """
 
-include "sage/ext/cdefs.pxi"
+#*****************************************************************************
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 include "sage/ext/stdsage.pxi"
-include "sage/ext/random.pxi"
-from cpython.slice cimport PySlice_Check
 from cpython.string cimport *
-
-cdef extern from "math.h":
-    double exp(double)
-    double floor(double)
-    double log(double)
-    double pow(double, double)
-    double sqrt(double)
-
-cdef extern from "string.h":
-    void* memcpy(void* dst, void* src, size_t len)
+from libc.math cimport exp, floor, log, pow, sqrt
+from libc.string cimport memcpy
 
 cimport numpy as cnumpy
 
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
 from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
@@ -128,8 +128,8 @@ cdef class TimeSeries:
         if isinstance(values, (int, long, Integer)):
             self._length = values
             values = None
-        elif PY_TYPE_CHECK(values, Vector_real_double_dense) or PY_TYPE_CHECK(values, cnumpy.ndarray):
-            if PY_TYPE_CHECK(values, Vector_real_double_dense):
+        elif isinstance(values, Vector_real_double_dense) or isinstance(values, cnumpy.ndarray):
+            if isinstance(values, Vector_real_double_dense):
                 np  = values._vector_numpy
             else:
                 np = values
@@ -381,7 +381,7 @@ cdef class TimeSeries:
         """
         cdef Py_ssize_t start, stop, step, j
         cdef TimeSeries t
-        if PySlice_Check(i):
+        if isinstance(i, slice):
             start = 0 if (i.start is None) else i.start
             stop = self._length if (i.stop is None) else i.stop
             step = 1 if (i.step is None) else i.step
@@ -997,7 +997,7 @@ cdef class TimeSeries:
             sage: v.add_entries([3,4,7,18.5])
             [4.0000, 6.0000, 2.0000, 18.5000]
         """
-        if not PY_TYPE_CHECK(t, TimeSeries):
+        if not isinstance(t, TimeSeries):
             t = TimeSeries(t)
         cdef Py_ssize_t i, n
         cdef TimeSeries T = t, shorter, longer
@@ -2556,7 +2556,7 @@ cdef new_time_series(Py_ssize_t length):
     """
     if length < 0:
         raise ValueError, "length must be nonnegative"
-    cdef TimeSeries t = PY_NEW(TimeSeries)
+    cdef TimeSeries t = TimeSeries.__new__(TimeSeries)
     t._length = length
     t._values = <double*> sage_malloc(sizeof(double)*length)
     return t

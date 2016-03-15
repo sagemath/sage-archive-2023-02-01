@@ -1,5 +1,5 @@
 """
-Finite Extension Fields implemented via PARI POLMODs (deprecated).
+Finite Extension Fields implemented via PARI POLMODs (deprecated)
 
 AUTHORS:
 
@@ -176,32 +176,27 @@ class FiniteField_ext_pari(FiniteField_generic):
         deprecation(17297, 'The "pari_mod" finite field implementation is deprecated')
 
         if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
-        from constructor import FiniteField as GF
+        from finite_field_constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError("q must be a prime power")
-        from sage.structure.proof.all import arithmetic
-        proof = arithmetic()
-        if proof:
-            F = q.factor()
-        else:
-            from sage.rings.arith import is_pseudoprime_small_power
-            F = is_pseudoprime_small_power(q, get_data=True)
-        if len(F) != 1:
-            raise ArithmeticError("q must be a prime power")
 
-        if F[0][1] > 1:
-            base_ring = GF(F[0][0])
+        # note: the following call takes care of the fact that
+        # proof.arithmetic() is True or False.
+        p, n = q.is_prime_power(get_data=True)
+        if n > 1:
+            base_ring = GF(p)
+        elif n == 0:
+            raise ArithmeticError("q must be a prime power")
         else:
             raise ValueError("The size of the finite field must not be prime.")
-            #base_ring = self
 
         FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
         self._kwargs = {}
-        self.__char = F[0][0]
+        self.__char = p
         self.__pari_one = pari.pari(1).Mod(self.__char)
-        self.__degree = integer.Integer(F[0][1])
+        self.__degree = n
         self.__order = q
         self.__is_field = True
 
@@ -394,7 +389,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         the polynomial at the field's generator::
 
             sage: R.<x> = QQ[]
-            sage: k, a = FiniteField(5^2, 'a', impl='pari_mod').objgen()
+            sage: k.<a> = FiniteField(5^2, impl='pari_mod')
             sage: k(R(2/3))
             4
             sage: k(x^2)
@@ -407,7 +402,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k(x^25)
             a
 
-            sage: Q, q = FiniteField(5^7, 'q', impl='pari_mod').objgen()
+            sage: Q.<q> = FiniteField(5^7, impl='pari_mod')
             sage: L = GF(5)
             sage: LL.<xx> = L[]
             sage: Q(xx^2 + 2*xx + 4)

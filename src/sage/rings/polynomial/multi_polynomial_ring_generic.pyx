@@ -2,12 +2,9 @@ r"""
 Base class for multivariate polynomial rings
 """
 
-include 'sage/ext/stdsage.pxi'
-
-
-from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
 import multi_polynomial_ideal
+from sage.structure.parent cimport Parent
 from term_order import TermOrder
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polydict import PolyDict
@@ -21,10 +18,10 @@ from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default
 from sage.misc.misc_c import prod
 from sage.combinat.integer_vector import IntegerVectors
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 
 def is_MPolynomialRing(x):
-    return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
+    return isinstance(x, MPolynomialRing_generic)
 
 cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
@@ -335,9 +332,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return D
 
     def __richcmp__(left, right, int op):
-        return (<ParentWithGens>left)._richcmp(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Parent right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         if not is_MPolynomialRing(right):
             return cmp(type(left),type(right))
         else:
@@ -610,7 +607,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             3
 
         """
-        from sage.rings.arith import binomial
         C = [1]  #d = 0
         for dbar in xrange(1, d+1):
             C.append(binomial(n+dbar-1, dbar))
@@ -643,8 +639,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             We do not check if the provided index/rank is within the allowed
             range. If it is not an infinite loop will occur.
         """
-        from sage.combinat import choose_nk
-        comb = choose_nk.from_rank(i, n+d-1, n-1)
+        from sage.combinat import combination
+        comb = combination.from_rank(i, n+d-1, n-1)
         if comb == []:
             return (d,)
         monomial = [ comb[0] ]
@@ -675,7 +671,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             (0, 0, 0, 3, 0)
             """
         # bug: doesn't handle n=1
-        from sage.rings.arith import binomial
         #Select random degree
         d = ZZ.random_element(0,degree+1)
         total = binomial(n+d-1, d)
@@ -828,7 +823,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
 
         from sage.combinat.integer_vector import IntegerVectors
-        from sage.rings.arith import binomial
 
         #total is 0. Just return
         if total == 0:
@@ -905,6 +899,24 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         from polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(base_ring, self.ngens(), names, order=order)
+
+    def monomial(self,*exponents):
+        """
+        Return the monomial with given exponents.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(ZZ, 3)
+            sage: R.monomial(1,1,1)
+            x*y*z
+            sage: e=(1,2,3)
+            sage: R.monomial(*e)
+            x*y^2*z^3
+            sage: m = R.monomial(1,2,3)
+            sage: R.monomial(*m.degrees()) == m
+            True
+        """
+        return self({exponents:self.base_ring().one()})
 
     def _macaulay_resultant_getS(self,mon_deg_tuple,dlist):
         r"""

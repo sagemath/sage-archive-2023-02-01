@@ -1,5 +1,5 @@
 """
-Finite residue fields.
+Finite residue fields
 
 We can take the residue field of maximal ideals in the ring of integers
 of number fields. We can also take the residue field of irreducible
@@ -146,14 +146,13 @@ And now over a large prime field::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
-from sage.rings.field import Field
-from sage.rings.integer import Integer
-from sage.rings.rational import Rational
+from sage.rings.ring cimport Field
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
 from sage.rings.all import ZZ, QQ, Integers
-from sage.rings.finite_rings.constructor import zech_log_bound, FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import zech_log_bound, FiniteField as GF
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
@@ -172,6 +171,7 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.factory import UniqueFactory
+from sage.structure.element cimport parent_c
 
 
 class ResidueFieldFactory(UniqueFactory):
@@ -542,16 +542,11 @@ class ResidueField_generic(Field):
             4
         """
         K = OK = self.p.ring()
+        R = parent_c(x)
         if OK.is_field():
             OK = OK.ring_of_integers()
         else:
             K = K.fraction_field()
-        if PY_TYPE_CHECK(x, Element):
-            R = (<Element>x)._parent
-        elif hasattr(x, 'parent'):
-            R = x.parent()
-        else:
-            R = type(x)
         if OK.has_coerce_map_from(R):
             x = OK(x)
         elif K.has_coerce_map_from(R):
@@ -1744,7 +1739,7 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
 
     def _element_constructor_(self, x):
         """
-        INPUT::
+        INPUT:
 
             - ``x`` -- Something to cast into ``self``.
 

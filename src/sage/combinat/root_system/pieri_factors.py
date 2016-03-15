@@ -12,16 +12,16 @@ Pieri Factors
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.misc import prod, attrcall
+from sage.misc.all import prod, attrcall
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 import sage.combinat.ranker
-from sage.combinat.backtrack import TransitiveIdeal
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.root_system import RootSystem
 from sage.combinat.root_system.dynkin_diagram import DynkinDiagram
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -137,7 +137,7 @@ class PieriFactors(UniqueRepresentation, Parent):
         Those are constructed as the elements below the maximal
         elements of ``self`` in Bruhat order.
 
-        OUTPUT: a :class:`TransitiveIdeal` object
+        OUTPUT: a :class:`RecursivelyEnumeratedSet_generic` object
 
         EXAMPLES::
 
@@ -150,9 +150,11 @@ class PieriFactors(UniqueRepresentation, Parent):
         .. TODO::
 
             Possibly remove this method and instead have this class
-            inherit from :class:`TransitiveIdeal`.
+            inherit from :class:`RecursivelyEnumeratedSet_generic`.
         """
-        return TransitiveIdeal(attrcall('bruhat_lower_covers'), self.maximal_elements())
+        return RecursivelyEnumeratedSet(self.maximal_elements(),
+                attrcall('bruhat_lower_covers'), structure=None,
+                enumeration='naive')
 
     def __iter__(self):
         r"""
@@ -162,7 +164,7 @@ class PieriFactors(UniqueRepresentation, Parent):
 
             sage: PF = WeylGroup(['A',3,1]).pieri_factors()
             sage: f = PF.__iter__()
-            sage: [f.next().reduced_word() for i in range(5)]
+            sage: [next(f).reduced_word() for i in range(5)]
             [[], [0], [1], [2], [3]]
         """
         return iter(self.elements())
@@ -765,13 +767,13 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             sage: W = WeylGroup(['A',4,1])
             sage: PF = W.pieri_factors()
             sage: f = PF.__iter__()
-            sage: f.next()
+            sage: next(f)
             [1 0 0 0 0]
             [0 1 0 0 0]
             [0 0 1 0 0]
             [0 0 0 1 0]
             [0 0 0 0 1]
-            sage: [f.next().reduced_word() for i in range(6)]
+            sage: [next(f).reduced_word() for i in range(6)]
             [[0], [1], [2], [3], [4], [1, 0]]
         """
         from sage.combinat.subset import Subsets

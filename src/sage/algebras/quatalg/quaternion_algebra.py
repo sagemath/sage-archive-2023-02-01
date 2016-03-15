@@ -20,38 +20,33 @@ Pickling test::
     True
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
-#       Copyright (C) 2009 Jonathon Bober <jwbober@gmail.com>
+#       Copyright (C) 2009 Jonathan Bober <jwbober@gmail.com>
 #       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 
-from sage.rings.arith import (GCD,
-                              hilbert_conductor_inverse, hilbert_conductor,
-                              factor, gcd, lcm, kronecker_symbol, valuation)
+from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
+        factor, gcd, lcm, kronecker_symbol, valuation)
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 from sage.rings.ring import Algebra
 from sage.rings.ideal import Ideal_fractional
 from sage.rings.rational_field import is_RationalField, QQ
 from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import is_NumberField
-from sage.structure.parent_gens import ParentWithGens, normalize_names
+from sage.structure.category_object import normalize_names
+from sage.structure.parent_gens import ParentWithGens
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence
@@ -1740,7 +1735,17 @@ class QuaternionOrder(Algebra):
             return Q
 
 class QuaternionFractionalIdeal(Ideal_fractional):
-    pass
+    def __hash__(self):
+        r"""
+        Stupid constant hash function!
+
+        TESTS::
+
+            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
+            sage: hash(R.right_ideal(R.basis()))
+            0
+        """
+        return 0
 
 class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
     """
@@ -2500,6 +2505,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         Returns whether x is in self.
 
         EXAMPLES::
+
             sage: R.<i,j,k> = QuaternionAlgebra(-3, -13)
             sage: I = R.ideal([2+i, 3*i, 5*j, j+k])
             sage: 2+i in I
@@ -2692,10 +2698,10 @@ def intersection_of_row_modules_over_ZZ(v):
         sage: v = [a,b,c]
         sage: from sage.algebras.quatalg.quaternion_algebra import intersection_of_row_modules_over_ZZ
         sage: M = intersection_of_row_modules_over_ZZ(v); M
-        [  -2    0    1    1]
-        [  -4    1    1   -3]
-        [  -3 19/2   -1   -4]
-        [   2   -3   -8    4]
+        [    2     0    -1    -1]
+        [   -4     1     1    -3]
+        [    3 -19/2     1     4]
+        [    2    -3    -8     4]
         sage: M2 = a.row_module(ZZ).intersection(b.row_module(ZZ)).intersection(c.row_module(ZZ))
         sage: M.row_module(ZZ) == M2
         True

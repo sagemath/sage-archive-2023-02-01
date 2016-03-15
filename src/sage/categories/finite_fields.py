@@ -12,6 +12,7 @@ Finite Fields
 #******************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.enumerated_sets import EnumeratedSets
 
 class FiniteFields(CategoryWithAxiom):
     """
@@ -19,14 +20,16 @@ class FiniteFields(CategoryWithAxiom):
 
     EXAMPLES::
 
-        sage: K = FiniteFields()
-        sage: K
+        sage: K = FiniteFields(); K
         Category of finite fields
 
-    A finite field is a finite monoid with the structure of a field::
+    A finite field is a finite monoid with the structure of a field;
+    it is currently assumed to be enumerated::
 
         sage: K.super_categories()
-        [Category of fields, Category of finite commutative rings]
+        [Category of fields,
+         Category of finite commutative rings,
+         Category of finite enumerated sets]
 
     Some examples of membership testing and coercion::
 
@@ -41,10 +44,23 @@ class FiniteFields(CategoryWithAxiom):
 
     TESTS::
 
-        sage: TestSuite(FiniteFields()).run()
-        sage: FiniteFields().is_subcategory(FiniteEnumeratedSets())
+        sage: K is Fields().Finite()
         True
+        sage: TestSuite(K).run()
     """
+
+    def extra_super_categories(self):
+        r"""
+        Any finite field is assumed to be endowed with an enumeration.
+
+        TESTS::
+
+            sage: Fields().Finite().extra_super_categories()
+            [Category of finite enumerated sets]
+            sage: FiniteFields().is_subcategory(FiniteEnumeratedSets())
+            True
+        """
+        return [EnumeratedSets().Finite()]
 
     def __contains__(self, x):
         """

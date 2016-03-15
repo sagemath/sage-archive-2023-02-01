@@ -33,7 +33,7 @@ from base import PrimitiveObject, point_list_bounding_box
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.misc.decorators import options, rename_keyword
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 
 from texture import Texture
 
@@ -227,10 +227,10 @@ def bezier3d(path, **options):
     """
     import parametric_plot3d as P3D
     from sage.modules.free_module_element import vector
-    from sage.calculus.calculus import var
+    from sage.symbolic.ring import SR
 
     p0 = vector(path[0][-1])
-    t = var('t')
+    t = SR.var('t')
     if len(path[0]) > 2:
         B = (1-t)**3*vector(path[0][0])+3*t*(1-t)**2*vector(path[0][1])+3*t**2*(1-t)*vector(path[0][-2])+t**3*p0
         G = P3D.parametric_plot3d(list(B), (0, 1), color=options['color'], aspect_ratio=options['aspect_ratio'], thickness=options['thickness'], opacity=options['opacity'])
@@ -674,10 +674,10 @@ def text3d(txt, x_y_z, **kwds):
         sage: text3d("Sage is...",(2,12,1), color=(1,0,0)) + text3d("quite powerful!!",(4,10,0), color=(0,0,1))
         Graphics3d Object
     """
-    (x, y, z) = x_y_z 
+    (x, y, z) = x_y_z
     if 'color' not in kwds and 'rgbcolor' not in kwds:
-        kwds['color'] = (0,0,0)
-    G = Text(txt, **kwds).translate((x,y,z))
+        kwds['color'] = (0, 0, 0)
+    G = Text(txt, **kwds).translate((x, y, z))
     G._set_extra_kwds(kwds)
 
     return G
@@ -799,16 +799,22 @@ class Line(PrimitiveObject):
 
     INPUT:
 
-    -  ``points`` -- list of points to pass through
+    - ``points`` -- list of points to pass through
 
-    -  ``thickness`` -- diameter of the line
+    - ``thickness`` -- (optional, default 5) diameter of the line
 
-    -  ``corner_cutoff`` -- threshold for smoothing (see
-       the corners() method) this is the minimum cosine between adjacent
-       segments to smooth
+    - ``corner_cutoff`` -- (optional, default 0.5) threshold for
+      smoothing (see :meth:`corners`).
 
-    -  ``arrow_head`` -- if True make this curve into an
-       arrow
+    - ``arrow_head`` -- (optional, default ``False``) if ``True`` make
+      this curve into an arrow
+
+    The parameter ``corner_cutoff`` is a bound for the cosine of the
+    angle made by two successive segments. This angle is close to `0`
+    (and the cosine close to 1) if the two successive segments are
+    almost aligned and close to `\pi` (and the cosine close to -1) if
+    the path has a strong peak. If the cosine is smaller than the
+    bound (which means a sharper peak) then no smoothing is done.
 
     EXAMPLES::
 
@@ -820,8 +826,19 @@ class Line(PrimitiveObject):
 
         sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0)
         Graphics3d Object
+
+    Make sure that the ``corner_cutoff`` keyword works (:trac:`3859`)::
+
+        sage: N = 11
+        sage: c = 0.4
+        sage: sum([Line([(i,1,0), (i,0,0), (i,cos(2*pi*i/N), sin(2*pi*i/N))],
+        ....:     corner_cutoff=c,
+        ....:     color='red' if -cos(2*pi*i/N)<=c else 'blue')
+        ....:     for i in range(N+1)])
+        Graphics3d Object
     """
-    def __init__(self, points, thickness=5, corner_cutoff=.5, arrow_head=False, **kwds):
+    def __init__(self, points, thickness=5, corner_cutoff=0.5,
+                 arrow_head=False, **kwds):
         """
         Create the graphics primitive :class:`Line` in 3-D.
 
@@ -855,14 +872,14 @@ class Line(PrimitiveObject):
             sage: from sage.plot.plot3d.shapes2 import Line
             sage: L = Line([(i,i^2-1,-2*ln(i)) for i in [10,20,30]])
             sage: L.bounding_box()
-            ((10.0, 99.0, -6.802394763324311), (30.0, 899.0, -4.605170185988092))
+            ((10.0, 99.0, -6.802394763324311),
+            (30.0, 899.0, -4.605170185988092))
         """
         try:
             return self.__bounding_box
         except AttributeError:
             self.__bounding_box = point_list_bounding_box(self.points)
         return self.__bounding_box
-
 
     def tachyon_repr(self, render_params):
         """
@@ -927,7 +944,7 @@ class Line(PrimitiveObject):
             'draw line_1 diameter 1 curve {1.0 0.0 0.0}'
         """
         T = render_params.transform
-        corners = self.corners(max_len=255) # hardcoded limit in jmol
+        corners = self.corners(max_len=255)  # hardcoded limit in jmol
         last_corner = corners[-1]
         corners = set(corners)
         cmds = []
@@ -954,8 +971,23 @@ class Line(PrimitiveObject):
 
         INPUT:
 
-        Maximum cosine of angle between adjacent line segments before
-        adding a corner
+        - ``corner_cutoff`` -- (optional, default ``None``) If the
+          cosine of the angle between adjacent line segments is smaller than
+          this bound, then there will be a sharp corner in the path. 
+          Otherwise, the path is smoothed. If ``None``,
+          then the default value 0.5 is used.
+
+        - ``max_len`` -- (optional, default ``None``) Maximum number
+          of points allowed in a single path. If this is set, this
+          creates corners at smooth points in order to break the path
+          into smaller pieces.
+
+        The parameter ``corner_cutoff`` is a bound for the cosine of the
+        angle made by two successive segments. This angle is close to `0`
+        (and the cosine close to 1) if the two successive segments are
+        almost aligned and close to `\pi` (and the cosine close to -1) if
+        the path has a strong peak. If the cosine is smaller than the
+        bound (which means a sharper peak) then there must be a corner.
 
         OUTPUT:
 
@@ -964,39 +996,40 @@ class Line(PrimitiveObject):
 
         EXAMPLES:
 
-        Every point::
+        No corners, always smooth::
 
             sage: from sage.plot.plot3d.shapes2 import Line
-            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=1).corners()
-            [(0, 0, 0), (1, 0, 0), (2, 1, 0)]
+            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1).corners()
+            [(0, 0, 0)]
 
-        Greater than 90 degrees::
+        Smooth if the angle is greater than 90 degrees::
 
             sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0).corners()
             [(0, 0, 0), (2, 1, 0)]
 
-        No corners::
+        Every point (corners everywhere)::
 
-            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1).corners()
-            (0, 0, 0)
-
-        An intermediate value::
-
-            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=.5).corners()
-            [(0, 0, 0), (2, 1, 0)]
+            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=1).corners()
+            [(0, 0, 0), (1, 0, 0), (2, 1, 0)]
         """
         if corner_cutoff is None:
             corner_cutoff = self.corner_cutoff
+
         if corner_cutoff >= 1:
-            if max_len:
-                self.points[:-1][::max_len-1]
-            else:
-                return self.points[:-1]
+            # corners everywhere
+            return self.points[:-1]
+
         elif corner_cutoff <= -1:
-            return self.points[0]
+            # no corners
+            if not(max_len is None):
+                # forced by the maximal number of consecutive smooth points
+                return self.points[:-1][::max_len - 1]
+            else:
+                return [self.points[0]]
+
         else:
-            if not max_len:
-                max_len = len(self.points)+1
+            if max_len is None:
+                max_len = len(self.points) + 1
             count = 2
             # ... -- prev -- cur -- next -- ...
             cur  = self.points[0]
@@ -1009,7 +1042,7 @@ class Line(PrimitiveObject):
             def dot(x0_y0_z0, x1_y1_z1):
                 (x0, y0, z0) = x0_y0_z0
                 (x1, y1, z1) = x1_y1_z1
-                return x0*x1 + y0*y1 + z0*z1
+                return x0 * x1 + y0 * y1 + z0 * z1
 
             for next in self.points[2:]:
                 if next == cur:
@@ -1018,8 +1051,10 @@ class Line(PrimitiveObject):
                     count = 1
                     continue
                 next_dir = [next[i] - cur[i] for i in range(3)]
-                cos_angle = dot(prev_dir, next_dir) / math.sqrt(dot(prev_dir, prev_dir) * dot(next_dir, next_dir))
-                if cos_angle <= corner_cutoff or count > max_len-1:
+                cos_angle = (dot(prev_dir, next_dir) /
+                             math.sqrt(dot(prev_dir, prev_dir) *
+                                       dot(next_dir, next_dir)))
+                if cos_angle <= corner_cutoff or count > max_len - 1:
                     corners.append(cur)
                     count = 1
                 cur, prev_dir = next, next_dir
@@ -1055,7 +1090,7 @@ def point3d(v, size=5, **kwds):
         sage: print point(vector((2,3,4)))
         Graphics3d Object
 
-        sage: c = polytopes.n_cube(3)
+        sage: c = polytopes.hypercube(3)
         sage: v = c.vertices()[0];  v
         A vertex at (-1, -1, -1)
         sage: print point(v)
@@ -1075,8 +1110,28 @@ def point3d(v, size=5, **kwds):
         sage: point3d(numpy.array([[1,2,3], [4,5,6], [7,8,9]]))
         Graphics3d Object
 
+    We check that iterators of points are accepted (:trac:`13890`)::
+
+        sage: point3d(iter([(1,1,2),(2,3,4),(3,5,8)]),size=20,color='red')
+        Graphics3d Object
+
+    TESTS::
+
+        sage: point3d([])
+        Graphics3d Object
     """
-    if len(v) == 3:
+    try:
+        l = len(v)
+    except TypeError:
+        # argument is an iterator
+        v = list(v)
+        l = len(v)
+
+    if l == 0:
+        from sage.plot.plot3d.base import Graphics3d
+        return Graphics3d()
+
+    if l == 3:
         try:
             # check if the first element can be changed to a float
             tmp = RDF(v[0])

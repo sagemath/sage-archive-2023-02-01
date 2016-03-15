@@ -1,27 +1,32 @@
 """
 Partition backtrack functions for matrices
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_matrices
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from libc.string cimport memcmp
 include 'data_structures_pyx.pxi' # includes bitsets
 
 from sage.misc.misc import uniq
@@ -218,7 +223,8 @@ cdef class MatrixStruct:
 
         """
         cdef int i, j, n = self.degree
-        cdef int *output, *ordering
+        cdef int *output
+        cdef int *ordering
         cdef PartitionStack *part
         cdef NonlinearBinaryCodeStruct S_temp
         for i from 0 <= i < self.nsymbols:
@@ -311,8 +317,8 @@ def random_tests(n=10, nrows_max=50, ncols_max=50, nsymbols_max=10, perms_per_ma
     from sage.misc.prandom import random, randint
     from sage.combinat.permutation import Permutations
     from sage.matrix.constructor import random_matrix, matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
-    from sage.rings.arith import next_prime
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+    from sage.arith.all import next_prime
     cdef int h, i, j, nrows, k, num_tests = 0, num_matrices = 0
     cdef MatrixStruct M, N
     for m in range(n):

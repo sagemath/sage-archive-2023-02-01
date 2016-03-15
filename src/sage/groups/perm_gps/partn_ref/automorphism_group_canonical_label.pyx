@@ -88,25 +88,29 @@ C. \code{all_children_are_equivalent}:
     indeed the case, it still may return False. This function is originally used
     as a consequence of Lemma 2.25 in [1].
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from libc.string cimport memcmp, memcpy
 include 'data_structures_pyx.pxi' # includes bitsets
-include 'sage/ext/interrupt.pxi'
 
 cdef inline int agcl_cmp(int a, int b):
     if a < b: return -1
@@ -432,18 +436,24 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
     pointer to a aut_gp_and_can_lab struct
 
     """
-    cdef PartitionStack *current_ps, *first_ps, *label_ps
+    cdef PartitionStack *current_ps
+    cdef PartitionStack *first_ps
+    cdef PartitionStack *label_ps
     cdef int first_meets_current = -1
     cdef int label_meets_current
     cdef int current_kids_are_same = 1
     cdef int first_kids_are_same
 
-    cdef int *current_indicators, *first_indicators, *label_indicators
+    cdef int *current_indicators
+    cdef int *first_indicators
+    cdef int *label_indicators
     cdef int first_and_current_indicator_same
     cdef int label_and_current_indicator_same = -1
     cdef int compared_current_and_label_indicators
 
-    cdef OrbitPartition *orbits_of_subgroup, *orbits_of_permutation, *orbits_of_supergroup
+    cdef OrbitPartition *orbits_of_subgroup
+    cdef OrbitPartition *orbits_of_permutation
+    cdef OrbitPartition *orbits_of_supergroup
     cdef int subgroup_primary_orbit_size = 0
     cdef int minimal_in_primary_orbit
 
@@ -453,10 +463,15 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
 
     cdef bitset_t *vertices_to_split
     cdef bitset_t *vertices_have_been_reduced
-    cdef int *permutation, *label_perm, *id_perm, *cells_to_refine_by
+    cdef int *permutation
+    cdef int *label_perm
+    cdef int *id_perm
+    cdef int *cells_to_refine_by
     cdef int *vertices_determining_current_stack
     cdef int *perm_stack
-    cdef StabilizerChain *group = NULL, *old_group, *tmp_gp
+    cdef StabilizerChain *group = NULL
+    cdef StabilizerChain *old_group
+    cdef StabilizerChain *tmp_gp
 
     cdef int i, j, k, ell, b
     cdef bint discrete, automorphism, update_label

@@ -749,8 +749,17 @@ def ideal_to_gfan_format(input_ring, polys):
             sage: from sage.rings.polynomial.groebner_fan import ideal_to_gfan_format
             sage: ideal_to_gfan_format(R, polys)
             'Q[x, y, z]{x^2*y-z,y^2*z-x,x*z^2-y}'
+
+        TESTS:
+
+        Test that #20146 is fixed::
+
+            sage: P = PolynomialRing(QQ,"x11,x12,x13,x14,x15,x21,x22,x23,x24,x25,x31,x32,x33,x34,x35"); x = P.gens(); M = Matrix(3,x)
+            sage: I = P.ideal(M.minors(2))
+            sage: ideal_to_gfan_format(P,I.gens())
+            'Q[x11, x12, x13, x14, x15, x21, x22, x23, x24, x25, x31, x32, x33, x34, x35]{-x12*x21+x11*x22,-x13*x21+x11*x23,-x14*x21+x11*x24,-x15*x21+x11*x25,-x13*x22+x12*x23,-x14*x22+x12*x24,-x15*x22+x12*x25,-x14*x23+x13*x24,-x15*x23+x13*x25,-x15*x24+x14*x25,-x12*x31+x11*x32,-x13*x31+x11*x33,-x14*x31+x11*x34,-x15*x31+x11*x35,-x13*x32+x12*x33,-x14*x32+x12*x34,-x15*x32+x12*x35,-x14*x33+x13*x34,-x15*x33+x13*x35,-x15*x34+x14*x35,-x22*x31+x21*x32,-x23*x31+x21*x33,-x24*x31+x21*x34,-x25*x31+x21*x35,-x23*x32+x22*x33,-x24*x32+x22*x34,-x25*x32+x22*x35,-x24*x33+x23*x34,-x25*x33+x23*x35,-x25*x34+x24*x35}'
     """
-    ideal_gen_str = '{' + (str(polys).replace(' ', '').replace("'",""))[1:-1] + '}'
+    ideal_gen_str = "{" + ",".join(str(poly).replace(" ","").replace("'","") for poly in polys) + "}"
     ring_str = ring_to_gfan_format(input_ring)
     output = ring_str + ideal_gen_str
     return output
@@ -851,7 +860,7 @@ class GroebnerFan(SageObject):
             sage: gf.__eq__(gf2)
             True
         """
-        return isinstance(self, type(right)) and self.ideal() == right.ideal()
+        return type(self) is type(right) and self.ideal() == right.ideal()
 
     def ideal(self):
         """
@@ -1118,7 +1127,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([x^3-y,y^3-x-1]).groebner_fan()
             sage: a = gf.__iter__()
-            sage: a.next()
+            sage: next(a)
             [y^9 - 3*y^6 + 3*y^3 - y - 1, -y^3 + x + 1]
         """
         for x in self.reduced_groebner_bases():
@@ -1690,7 +1699,7 @@ class GroebnerFan(SageObject):
                 allvars = self.ring().gens()
                 truevars = [q for q in allvars if not q in parameters]
                 base_ring = self.ring().base_ring()
-                new_ring = PolynomialRing(base_ring, len(truevars), string.join([str(q) for q in truevars], sep=','))
+                new_ring = PolynomialRing(base_ring, len(truevars), ",".join(str(q) for q in truevars))
                 old_polys = self.ideal().gens()
                 new_polys = []
                 sub = dict([[v,1] for v in parameters])

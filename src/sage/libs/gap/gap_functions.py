@@ -1,3 +1,5 @@
+"Gap functions"
+
 ###############################################################################
 #       Copyright (C) 2009, William Stein <wstein@gmail.com>
 #       Copyright (C) 2012, Volker Braun <vbraun.name@gmail.com>
@@ -36,6 +38,7 @@ common_gap_functions = [
   'Apply',
   'AsGroup',
   'Assert',
+  'AtlasGroup',
   'AutomorphismGroup',
   'BaseOfGroup',
   'Basis',
@@ -198,6 +201,7 @@ common_gap_functions = [
   'FreeProduct',
   'FreeSemigroup',
   'FrobeniusAutomorphism',
+  'FullRowSpace',
   'GF',
   'GL',
   'GQuotients',

@@ -6,7 +6,7 @@ AUTHORS:
 - Volker Braun, Jeroen Demeyer (2012-10-18): move these functions here
   from sage/misc/misc.py and make them secure, see :trac:`13579`.
 
-- Jeroen Demeyer (2013-03-17): add class:`atomic_write`,
+- Jeroen Demeyer (2013-03-17): add :class:`atomic_write`,
   see :trac:`14292`.
 """
 
@@ -149,6 +149,10 @@ def tmp_filename(name="tmp_", ext=""):
 
 def graphics_filename(ext='.png'):
     """
+    Deprecated SageNB graphics filename
+    
+    You should just use :meth:`tmp_filename`.
+
     When run from the Sage notebook, return the next available canonical
     filename for a plot/graphics file in the current working directory.
     Otherwise, return a temporary file inside ``SAGE_TMP``.
@@ -191,11 +195,11 @@ def graphics_filename(ext='.png'):
         sage: fn.endswith('.jpeg')
         True
     """
+    import sage.plot.plot
+    from sage.misc.superseded import deprecation
     if ext[0] not in '.-':
-        from sage.misc.superseded import deprecation
         deprecation(16640, "extension must now include the dot")
         ext = '.' + ext
-    import sage.plot.plot
     if sage.plot.plot.EMBEDDED_MODE:
         # Don't use this unsafe function except in the notebook, #15515
         i = 0
@@ -204,6 +208,7 @@ def graphics_filename(ext='.png'):
         filename = 'sage%d%s'%(i,ext)
         return filename
     else:
+        deprecation(17234,'use tmp_filename instead')
         return tmp_filename(ext=ext)
 
 

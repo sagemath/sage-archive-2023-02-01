@@ -4,8 +4,6 @@ Deprecated preparser module
 TESTS::
 
     sage: import sage.misc.preparser
-    sage: sage.misc.preparser.preparse('1')
-    'Integer(1)'
     sage: sage.misc.preparser.is_loadable_filename('foo.sage')
     doctest:...: DeprecationWarning: 
     Importing is_loadable_filename from here is deprecated. If you need to use it, please import it directly from sage.repl.load
@@ -17,6 +15,3 @@ from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.repl.preparse', '*', deprecation=17396)
 lazy_import('sage.repl.load', '*', deprecation=17396)
-
-# To support sagenb, import these *without* deprecation
-lazy_import('sage.repl.preparse', ['strip_string_literals', 'preparse', 'preparse_file'])

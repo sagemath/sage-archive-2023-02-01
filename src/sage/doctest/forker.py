@@ -42,6 +42,7 @@ from sources import DictAsObject
 from parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from parsing import SageOutputChecker, pre_hash, get_source
+from sage.repl.user_globals import set_globals
 
 
 def init_sage():
@@ -101,8 +102,12 @@ def init_sage():
     sage.doctest.DOCTEST_MODE=True
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
-    import sage.repl.display.python_hook
-    sys.displayhook = sage.repl.display.python_hook.DoctestDisplayHook()
+
+    # Use the rich output backend for doctest 
+    from sage.repl.rich_output import get_display_manager
+    dm = get_display_manager()
+    from sage.repl.rich_output.backend_doctest import BackendDoctest
+    dm.switch_backend(BackendDoctest())
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -129,7 +134,7 @@ def warning_function(file):
 
     - ``file`` -- an open file handle.
 
-    OUPUT:
+    OUTPUT:
 
     - a function that prings warnings to the given file.
 
@@ -422,6 +427,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.run(doctests[0], clear_globs=False) # indirect doctest
             TestResults(failed=0, attempted=4)
         """
+        # Ensure that injecting globals works as expected in doctests
+        set_globals(test.globs)
+
         # Keep track of the number of failures and tries.
         failures = tries = 0
 
@@ -1564,7 +1572,7 @@ class DocTestDispatcher(SageObject):
                     # Start new workers if possible
                     while source_iter is not None and len(workers) < opt.nthreads:
                         try:
-                            source = source_iter.next()
+                            source = next(source_iter)
                         except StopIteration:
                             source_iter = None
                         else:
@@ -2065,7 +2073,7 @@ class DocTestTask(object):
         - ``result_queue`` -- an instance of :class:`multiprocessing.Queue`
           to store the doctest result. For testing, this can also be None.
 
-        OUPUT:
+        OUTPUT:
 
         - ``(doctests, result_dict)`` where ``doctests`` is the number of
           doctests and and ``result_dict`` is a dictionary annotated with

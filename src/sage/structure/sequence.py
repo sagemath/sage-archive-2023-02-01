@@ -1,5 +1,5 @@
 r"""
-Sequences
+Finite Homogenous Sequences
 
 A mutable sequence of elements with a common guaranteed category,
 which can be set immutable.
@@ -14,7 +14,7 @@ canonical parent at the end.  (Note that canonical coercion is very
 restrictive.)  The sequence then has a function ``universe()``
 which returns either the common canonical parent (if the coercion
 succeeded), or the category of all objects (Objects()).  So if you
-have a list `v` and type
+have a list `v` and type::
 
     sage: v = [1, 2/3, 5]
     sage: w = Sequence(v)
@@ -30,7 +30,7 @@ elements of `w` are rationals::
     Rational Field
 
 If you do assignment to `w` this property of being rationals is guaranteed
-to be preserved.
+to be preserved::
 
     sage: w[0] = 2
     sage: w[0].parent()
@@ -145,11 +145,6 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         [1, 2, 1]
         sage: v.universe()
         Rational Field
-        sage: v.parent()
-        Category of sequences in Rational Field
-        sage: v.parent()([3,4/3])
-        [3, 4/3]
-
 
     Note that assignment coerces if possible,::
 
@@ -210,17 +205,6 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         sage: w
         [0, 2/3, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    Sequences themselves live in a category, the category of all sequences
-    in the given universe.::
-
-        sage: w.category()
-        Category of sequences in Rational Field
-
-    This is also the parent of any sequence::
-
-        sage: w.parent()
-        Category of sequences in Rational Field
-
     The default universe for any sequence, if no compatible parent structure
     can be found, is the universe of all Sage objects.
 
@@ -231,10 +215,6 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         [1, 2, 1, 3]
         sage: v.universe()
         Finite Field of size 5
-        sage: v.parent()
-        Category of sequences in Finite Field of size 5
-        sage: v.parent()([7,8,9])
-        [2, 3, 4]
     """
     from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -353,11 +333,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         [1, 2, 1]
         sage: v.universe()
         Rational Field
-        sage: v.parent()
-        Category of sequences in Rational Field
-        sage: v.parent()([3,4/3])
-        [3, 4/3]
-
 
     Note that assignment coerces if possible,
 
@@ -424,19 +399,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         sage: w
         [0, 2/3, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    Sequences themselves live in a category, the category of all sequences
-    in the given universe.
-
-    ::
-
-        sage: w.category()
-        Category of sequences in Rational Field
-
-    This is also the parent of any sequence::
-
-        sage: w.parent()
-        Category of sequences in Rational Field
-
     The default universe for any sequence, if no compatible parent structure
     can be found, is the universe of all Sage objects.
 
@@ -449,11 +411,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         [1, 2, 1, 3]
         sage: v.universe()
         Finite Field of size 5
-        sage: v.parent()
-        Category of sequences in Finite Field of size 5
-        sage: v.parent()([7,8,9])
-        [2, 3, 4]
-
 
     """
     def __init__(self, x, universe=None, check=True, immutable=False,
@@ -583,7 +540,8 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
     def append(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = Sequence([1,2,3,4], immutable=True)
             sage: v.append(34)
             Traceback (most recent call last):
@@ -660,7 +618,13 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         """
         Sort this list *IN PLACE*.
 
-        cmp(x, y) -> -1, 0, 1
+        INPUT:
+
+        - ``cmp`` - see Python ``list sort``
+        
+        - ``key`` - see Python ``list sort``
+        
+        - ``reverse`` - see Python ``list sort``
 
         EXAMPLES::
 
@@ -752,26 +716,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
         else:
             return list.__str__(self)
-
-    def category(self):
-        """
-        EXAMPLES::
-
-            sage: Sequence([1,2/3,-2/5]).category()
-            Category of sequences in Rational Field
-        """
-        import sage.categories.all
-        return sage.categories.all.Sequences(self.universe())
-
-    def parent(self):
-        """
-
-        EXAMPLES::
-
-            sage: Sequence([1,2/3,-2/5]).parent()
-            Category of sequences in Rational Field
-        """
-        return self.category()
 
     def universe(self):
         """
@@ -878,8 +822,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: t.is_immutable == s.is_immutable
             True
             sage: t.is_mutable == s.is_mutable
-            True
-            sage: t.parent() == s.parent()
             True
 
         """

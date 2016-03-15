@@ -9,6 +9,7 @@ Examples of graded modules with basis
 #*****************************************************************************
 
 from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
+from sage.categories.filtered_modules_with_basis import FilteredModulesWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.partition import Partitions
 
@@ -20,7 +21,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
     INPUT:
 
-    - ``R`` - base ring
+    - ``R`` -- base ring
 
     The implementation involves the following:
 
@@ -106,7 +107,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
     # FIXME: this is currently required, because the implementation of ``basis``
     # in CombinatorialFreeModule overrides that of GradedModulesWithBasis
-    basis = GradedModulesWithBasis.ParentMethods.__dict__['basis']
+    basis = FilteredModulesWithBasis.ParentMethods.__dict__['basis']
 
     # This could be a default implementation
     def degree_on_basis(self, t):

@@ -5,10 +5,10 @@ In order to support latex formatting, an object should define a
 special method ``_latex_(self)`` that returns a string, which will be typeset
 in a mathematical mode (the exact mode depends on circumstances).
 
-    AUTHORS:
+AUTHORS:
 
-    - William Stein: original implementation
-    - Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
+- William Stein: original implementation
+- Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
 """
 
 #*****************************************************************************
@@ -59,7 +59,7 @@ import random
 import subprocess
 import types
 
-from sage.misc.temporary_file import tmp_dir, graphics_filename
+from sage.misc.temporary_file import tmp_dir
 import sage_eval
 from sage.misc.sage_ostools import have_program
 from sage.misc.cachefunc import cached_function, cached_method
@@ -1081,10 +1081,8 @@ class Latex(LatexCall):
             sage: latex.eval("\\ZZ[x]", locals(), filename="/path/to/test") # not tested
             ''
             sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
-            An error
-            ...
-            No pages of output.
-            <BLANKLINE>
+            An error occurred...
+            No pages of output...
         """
         MACROS = latex_extra_preamble()
 
@@ -1770,7 +1768,14 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         for i in range(len(objects)):
             x = objects[i]
             L = latex(x)
-            if not '\\begin{verbatim}' in L:
+            if '\\begin{pgfpicture}' in L:
+                # Resize the pgf figure to the text width if larger. 
+                s += r'\begingroup\makeatletter\@ifundefined{pgffigure}{\newsavebox{\pgffigure}}{}\makeatother\endgroup'
+                s += r'\begin{lrbox}{\pgffigure}' + '\n'
+                s += '%s'%L
+                s += r'\end{lrbox}'
+                s += r'\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{\usebox{\pgffigure}}' + '\n'
+            elif not '\\begin{verbatim}' in L:
                 s += '%s%s%s'%(math_left, L, math_right)
             else:
                 s += '%s'%L
@@ -1917,8 +1922,10 @@ class MathJax:
         -  ``locals`` - extra local variables used when
            evaluating Sage code in ``x``.
 
-        -  ``mode`` - string (optional, default ``'display'``): ``'display'``
-           for displaymath or ``'inline'`` for inline math
+        - ``mode`` - string (optional, default ``'display'``):
+           ``'display'`` for displaymath, ``'inline'`` for inline
+           math, or ``'plain'`` for just the LaTeX code without the
+           surrounding html and script tags.
 
         - ``combine_all`` - boolean (Default: ``False``): If ``combine_all`` is
           ``True`` and the input is a tuple, then it does not return a tuple
@@ -1987,24 +1994,21 @@ class MathJax:
                 subparts.append(spacer % "x")
             subparts.append(part[closing + 1:])
             parts[i] = "".join(subparts)
-        x = "".join(parts)
-
-        # In MathJax:
-        #   inline math: <script type="math/tex">...</script>
-        #   displaymath: <script type="math/tex; mode=display">...</script>
         from sage.misc.latex_macros import sage_configurable_latex_macros
+        latex_string = ''.join(
+            sage_configurable_latex_macros +
+            [_Latex_prefs._option['macros']] +
+            parts
+        )
         if mode == 'display':
-            modecode = '; mode=display'
+            html = '<html><script type="math/tex; mode=display">{0}</script></html>'
         elif mode == 'inline':
-            modecode = ''
+            html = '<html><script type="math/tex">{0}</script></html>'
+        elif mode == 'plain':
+            return latex_string
         else:
-            # what happened here?
-            raise ValueError("mode must be either 'display' or 'inline'")
-
-        return MathJaxExpr('<html><script type="math/tex{}">'.format(modecode)
-                         + ''.join(sage_configurable_latex_macros)
-                         + _Latex_prefs._option['macros']
-                         + '{}</script></html>'.format(x))
+            raise ValueError("mode must be either 'display', 'inline', or 'plain'")
+        return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
         pdflatex=None, engine=None, viewer = None, tightpage = None,
@@ -2177,6 +2181,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
+            from sage.misc.temporary_file import graphics_filename
             png_file = graphics_filename()
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
@@ -2331,6 +2336,26 @@ def repr_lincomb(symbols, coeffs):
 
         sage: repr_lincomb([1,5,-3],[2,8/9,7])
         '2\\cdot 1 + \\frac{8}{9}\\cdot 5 + 7\\cdot -3'
+
+    Verify that :trac:`17299` (latex representation of modular symbols)
+    is fixed::
+
+        sage: x = EllipticCurve('64a1').modular_symbol_space(sign=1).basis()[0]
+        sage: from sage.misc.latex import repr_lincomb
+        sage: latex(x.modular_symbol_rep())
+        \left\{\frac{-1}{3}, \frac{-1}{4}\right\} - \left\{\frac{1}{5}, \frac{1}{4}\right\}
+
+    Verify that it works when the symbols are numbers::
+
+        sage: x = FormalSum([(1,2),(3,4)])
+        sage: latex(x)
+        2 + 3\cdot 4
+
+    Verify that it works when ``bv in CC`` raises an error::
+
+        sage: x = FormalSum([(1,'x'),(2,'y')])
+        sage: latex(x)
+        \text{\texttt{x}} + 2\text{\texttt{y}}
     """
     s = ""
     first = True
@@ -2346,21 +2371,25 @@ def repr_lincomb(symbols, coeffs):
                 if first:
                     s += b
                 else:
-                    s += " + %s"%b
+                    s += " + %s" % b
             else:
                 coeff = coeff_repr(c)
+                if coeff == "-1":
+                    coeff = "-"
                 if first:
                     coeff = str(coeff)
                 else:
-                    coeff = " + %s"%coeff
+                    coeff = " + %s" % coeff
                 # this is a hack: i want to say that if the symbol
                 # happens to be a number, then we should put a
                 # multiplication sign in
                 try:
                     if bv in CC:
-                        s += "%s\cdot %s"%(coeff, b)
+                        s += "%s\cdot %s" % (coeff, b)
+                    else:
+                        s += "%s%s" % (coeff, b)
                 except Exception:
-                    s += "%s%s"%(coeff, b)
+                    s += "%s%s" % (coeff, b)
             first = False
         i += 1
     if first:
@@ -2368,97 +2397,6 @@ def repr_lincomb(symbols, coeffs):
     s = s.replace("+ -","- ")
     return s
 
-def print_or_typeset(object):
-    r"""
-    'view' or 'print' the object depending on the situation.
-
-    In particular, if in notebook mode with the typeset box checked,
-    view the object. Otherwise, print the object.
-
-    INPUT:
-
-    - ``object`` -- Anything
-
-    EXAMPLES::
-
-        sage: sage.misc.latex.print_or_typeset(3)
-        3
-        sage: sage.misc.latex.EMBEDDED_MODE=True
-        sage: sage.misc.latex.print_or_typeset(3)
-        3
-        sage: TEMP = sys.displayhook
-        sage: sys.displayhook = sage.misc.latex.pretty_print
-        sage: sage.misc.latex.print_or_typeset(3)
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
-        sage: sage.misc.latex.EMBEDDED_MODE=False
-        sage: sys.displayhook = TEMP
-    """
-    import sys
-    if EMBEDDED_MODE and sys.displayhook == pretty_print:
-        view(object)
-    else:
-        print(object)
-
-def pretty_print (*args):
-    r"""
-    Try to pretty print the arguments in an intelligent way. For graphics
-    objects, this returns their default representation. For other
-    objects, in the notebook, this calls the :func:`view` command,
-    while from the command line, this produces an html string suitable
-    for processing by MathJax.
-
-    INPUT:
-
-    - ``objects`` -- The input can be any Sage object, a list or tuple of
-      Sage objects, or Sage objects passed in as separate arguments.
-
-    This function is used in the notebook when the "Typeset" button is
-    checked.
-
-    EXAMPLES::
-
-        sage: pretty_print(ZZ)  # indirect doctest
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}</script></html>
-        sage: pretty_print("Integers = ", ZZ) # trac 11775
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|Integers|\phantom{\verb!x!}\verb|=| \Bold{Z}</script></html>
-
-    To typeset LaTeX code as-is, use :class:`LatexExpr`::
-
-        sage: pretty_print(LatexExpr(r"\frac{x^2 + 1}{x - 2}"))
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{x^2 + 1}{x - 2}</script></html>
-    """
-    # view s if it is not empty. Used twice.
-    def _show_s(s):
-        if s != []:
-            if EMBEDDED_MODE:
-                view(tuple(s), combine_all=True)
-            else:
-                print(MathJax().eval(tuple(s), mode='inline',
-                        combine_all=True))
-
-    import __builtin__
-    in_ipython = hasattr(__builtin__, 'get_ipython')
-    s = []
-    for object in args:
-        if object is None:
-            continue
-        if in_ipython:
-            get_ipython().displayhook.update_user_ns(object)
-        else:
-            __builtin__._ = object
-
-        from sage.plot.plot import Graphics
-        from sage.plot.plot3d.base import Graphics3d
-        if isinstance(object, (Graphics, Graphics3d)):
-            _show_s(s)
-            s = []
-            print(repr(object))
-
-        else:
-            s.append(object)
-
-    _show_s(s)
-    return
 
 def pretty_print_default(enable=True):
     r"""
@@ -2478,13 +2416,14 @@ def pretty_print_default(enable=True):
 
         sage: pretty_print_default(True)
         sage: 'foo'
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|foo|</script></html>
+        \newcommand{\Bold}[1]{\mathbf{#1}}\verb|foo|
         sage: pretty_print_default(False)
         sage: 'foo'
         'foo'
     """
-    import sys
-    sys.displayhook.formatter.set_display('typeset' if enable else 'simple')
+    from sage.repl.rich_output import get_display_manager
+    dm = get_display_manager()
+    dm.preferences.text = 'latex' if enable else None
 
 
 common_varnames = ['alpha',
@@ -2629,8 +2568,8 @@ def latex_variable_name(x, is_fname=False):
         'x_{\\ast}'
 
     TESTS::
-    
-        sage: latex_variable_name('_C')  # :trac:`16007`
+
+        sage: latex_variable_name('_C')  # trac #16007
         'C'
         sage: latex_variable_name('_K1')
         'K_{1}'
@@ -2735,7 +2674,7 @@ a picture of a graph.  In the notebook, it still won't work.  Finally,
 run 'latex.add_to_mathjax_avoid_list("tikzpicture")' and try again
 from the notebook -- you should get a nice picture.
 
-(LaTeX code taken from http://altermundus.com/pages/graph.html)
+(LaTeX code taken from http://altermundus.com/pages/tkz/)
 """
 
         def _latex_(self):

@@ -20,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 include "sage/ext/cdefs.pxi"
 from cpython.list cimport *
 include "sage/libs/ntl/decl.pxi"
@@ -238,7 +238,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         Note that zeros are truncated from the returned list, so you
         must use the valuation() function to completely recover self.
 
-        INPUTS:
+        INPUT:
 
         - ``pos`` -- ``bint``.  If ``True``, all integers will be in
           the range `[0,p-1]`, otherwise they will be in the range
@@ -388,8 +388,6 @@ cdef class pAdicZZpXElement(pAdicExtElement):
            1 + 5^2 + O(5^5)
            sage: ((1+2*w)).norm()^5
            1 + 5^2 + O(5^5)
-
-        TESTS:
 
         Check that #11586 has been resolved::
 
@@ -552,7 +550,7 @@ def _test_preprocess_list(R, L):
     Given a list of elements convertible to ``ntl_ZZ_p``s, finds the
     appropriate absolute precision and returns a list of either ``ntl_ZZs`` or ``ntl_ZZ_ps``.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- a `p`-adic extension ring
 
@@ -608,7 +606,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
     cdef Integer pshift_m
     cdef long aprec
     cdef ntl_ZZ py_tmp
-    if not PyList_Check(L):
+    if not isinstance(L, list):
         raise TypeError, "L must be a list"
     #print "before find_val_aprec"
     min_val, min_aprec, total_type = find_val_aprec(elt.prime_pow, L)
@@ -620,56 +618,56 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
         raise ValueError, "negative valuation"
     if total_type == one:
         # rationals and integers
-        py_tmp = PY_NEW(ntl_ZZ)
+        py_tmp = ntl_ZZ.__new__(ntl_ZZ)
         py_tmp.x = elt.prime_pow.pow_ZZ_top()[0]
         ctx = ntl_ZZ_pContext(py_tmp)
     else:
         # integers, rationals and things with finite precision
         # note that min_val will be non-positive since things with finite precision return non-positive valuation from get_val_prec
-        py_tmp = PY_NEW(ntl_ZZ)
+        py_tmp = ntl_ZZ.__new__(ntl_ZZ)
         py_tmp.x = elt.prime_pow.pow_ZZ_tmp(mpz_get_ui((<Integer>(min_aprec - min_val)).value))[0]
         ctx = ntl_ZZ_pContext(py_tmp)
     if min_val < 0:
-        pshift_z = PY_NEW(ntl_ZZ)
+        pshift_z = ntl_ZZ.__new__(ntl_ZZ)
         pshift_z.x = elt.prime_pow.pow_ZZ_tmp(-mpz_get_si((<Integer>min_val).value))[0]
         pshift_m = elt.prime_pow.pow_Integer(-mpz_get_si((<Integer>min_val).value))
         for i from 0 <= i < len(L):
-            if PY_TYPE_CHECK(L[i], ntl_ZZ):
+            if isinstance(L[i], ntl_ZZ):
                 L[i] = ntl_ZZ_p(L[i]*pshift_z, ctx)
-            elif PY_TYPE_CHECK(L[i], Integer) or PY_TYPE_CHECK(L[i], Rational) or isinstance(L[i], (int, long)):
+            elif isinstance(L[i], Integer) or isinstance(L[i], Rational) or isinstance(L[i], (int, long)):
                 L[i] = ntl_ZZ_p(L[i]*pshift_m, ctx)
-            elif PY_TYPE_CHECK(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime):
+            elif isinstance(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime):
                 L[i] = ntl_ZZ_p((L[i] << min_val).lift(), ctx)
             elif is_IntegerMod(L[i]):
                 L[i] = ntl_ZZ_p(L[i].lift()*pshift_m, ctx)
             elif (L[i].modulus_context() is not ctx) or min_val != zero:
                 L[i] = ntl_ZZ_p(L[i].lift()*pshift_z, ctx)
     elif elt.parent().is_capped_relative() and min_val > 0:
-        pshift_z = PY_NEW(ntl_ZZ)
+        pshift_z = ntl_ZZ.__new__(ntl_ZZ)
         pshift_z.x = elt.prime_pow.pow_ZZ_tmp(mpz_get_ui((<Integer>min_val).value))[0]
         pshift_m = elt.prime_pow.pow_Integer(mpz_get_ui((<Integer>min_val).value))
         for i from 0 <= i < len(L):
-            if PY_TYPE_CHECK(L[i], ntl_ZZ):
+            if isinstance(L[i], ntl_ZZ):
                 ZZ_div(tmp, (<ntl_ZZ>L[i]).x, pshift_z.x)
-                py_tmp = PY_NEW(ntl_ZZ)
+                py_tmp = ntl_ZZ.__new__(ntl_ZZ)
                 py_tmp.x = tmp
                 L[i] = ntl_ZZ_p(py_tmp, ctx)
-            elif PY_TYPE_CHECK(L[i], Integer) or PY_TYPE_CHECK(L[i], Rational) or isinstance(L[i], (int, long)):
+            elif isinstance(L[i], Integer) or isinstance(L[i], Rational) or isinstance(L[i], (int, long)):
                 L[i] = ntl_ZZ_p(L[i]//pshift_m, ctx)
-            elif PY_TYPE_CHECK(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime):
+            elif isinstance(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime):
                 L[i] = ntl_ZZ_p((L[i] << min_val).lift(), ctx)
             elif is_IntegerMod(L[i]):
                 L[i] = ntl_ZZ_p(L[i].lift()//pshift_m, ctx)
             elif (L[i].modulus_context() is not ctx) or min_val != zero:
                 ZZ_div(tmp, (<ntl_ZZ>L[i].lift()).x, pshift_z.x)
-                py_tmp = PY_NEW(ntl_ZZ)
+                py_tmp = ntl_ZZ.__new__(ntl_ZZ)
                 py_tmp.x = tmp
                 L[i] = ntl_ZZ_p(py_tmp, ctx)
     else:
         for i from 0 <= i < len(L):
-            if PY_TYPE_CHECK(L[i], ntl_ZZ) or PY_TYPE_CHECK(L[i], Integer) or PY_TYPE_CHECK(L[i], Rational) or isinstance(L[i], (int, long)):
+            if isinstance(L[i], ntl_ZZ) or isinstance(L[i], Integer) or isinstance(L[i], Rational) or isinstance(L[i], (int, long)):
                 L[i] = ntl_ZZ_p(L[i], ctx)
-            elif (PY_TYPE_CHECK(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime)) or is_IntegerMod(L[i]) or (L[i].modulus_context() is not ctx):
+            elif (isinstance(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime)) or is_IntegerMod(L[i]) or (L[i].modulus_context() is not ctx):
                 L[i] = ntl_ZZ_p(L[i].lift(), ctx)
     return L, min_val, ctx
 
@@ -678,7 +676,7 @@ def _find_val_aprec_test(R, L):
     Given a list ``L``, finds the minimum valuation, minimum absolute
     precision and minimum common type of the elements.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- a `p`-adic extension
     - ``L`` -- a list of integers, rationals, ``IntegerMods``, etc.
@@ -720,7 +718,7 @@ cdef find_val_aprec(PowComputer_ext pp, L):
     Given a list ``L``, finds the minimum valuation, minimum absolute
     precision and minimum common type of the elements.
 
-    INPUTS:
+    INPUT:
 
     - ``pp`` -- a PowComputer_ext for the element that this list is
       being initialized into.
@@ -754,7 +752,7 @@ def _test_get_val_prec(R, a):
     Returns valuation, absolute precision and type of an input
     element.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- A `p`-adic extension ring to provide a ``PowComputer_ext``
 
@@ -825,7 +823,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
     """
     Returns valuation, absolute precision and type of an input element.
 
-    INPUTS:
+    INPUT:
 
     - ``pp`` -- A ``PowComputer_ext``
 
@@ -836,15 +834,15 @@ cdef get_val_prec(PowComputer_ext pp, a):
     """
     cdef ntl_ZZ py_tmp
     #print "pre Integer check"
-    if PY_TYPE_CHECK(a, Integer):
+    if isinstance(a, Integer):
         if a == 0:
             return (big, big, two)
         return (a.valuation(pp.prime), big, two)
     #print "pre ntl_ZZ check"
-    if PY_TYPE_CHECK(a, ntl_ZZ):
+    if isinstance(a, ntl_ZZ):
         if ZZ_IsZero((<ntl_ZZ>a).x):
             return (big, big, two)
-        py_tmp = PY_NEW(ntl_ZZ)
+        py_tmp = ntl_ZZ.__new__(ntl_ZZ)
         py_tmp.x = pp.pow_ZZ_tmp(1)[0]
         return (Integer(a.valuation(py_tmp)), big, two)
     #print "pre int/long check"
@@ -858,13 +856,13 @@ cdef get_val_prec(PowComputer_ext pp, a):
             return (big, big, two)
         return (Integer(a).valuation(pp.prime), big, two)
     #print "pre Rational check"
-    if PY_TYPE_CHECK(a, Rational):
+    if isinstance(a, Rational):
         if a == 0:
             return (big, big, one)
         val = a.valuation(pp.prime)
         return (val, big, one)
     #print "pre padic-base check"
-    if PY_TYPE_CHECK(a, pAdicGenericElement) and a._is_base_elt(pp.prime):
+    if isinstance(a, pAdicGenericElement) and a._is_base_elt(pp.prime):
         if a.parent().prime() == pp.prime:
             if a._is_exact_zero():
                 return (big, big, one)
@@ -890,7 +888,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
             raise TypeError, "modulus must be a positive power of the appropriate prime"
     cdef ZZ_c leftover_z
     #print "pre ntl_ZZ_p check"
-    if PY_TYPE_CHECK(a, ntl_ZZ_p):
+    if isinstance(a, ntl_ZZ_p):
         long_val = ZZ_remove(leftover_z, (<ntl_ZZ_p>a).c.p.x, pp.pow_ZZ_tmp(1)[0])
         if long_val > 0 and ZZ_IsOne(leftover_z):
             Integer_val = PY_NEW(Integer)
@@ -899,7 +897,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
             return (zero, Integer_val, zero)
         else:
             print long_val
-            py_tmp = PY_NEW(ntl_ZZ)
+            py_tmp = ntl_ZZ.__new__(ntl_ZZ)
             py_tmp.x = (<ntl_ZZ_p>a).c.p.x
             print py_tmp
             py_tmp.x = leftover_z

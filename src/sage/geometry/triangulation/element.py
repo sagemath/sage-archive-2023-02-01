@@ -346,11 +346,11 @@ class Triangulation(Element):
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: triangulation = pc.triangulate()
             sage: iter = triangulation.__iter__()
-            sage: iter.next()
+            sage: next(iter)
             (1, 3, 4)
-            sage: iter.next()
+            sage: next(iter)
             (2, 3, 4)
-            sage: iter.next()
+            sage: next(iter)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -390,7 +390,7 @@ class Triangulation(Element):
 
             sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
-            sage: triangulation = pc.triangulations().next()
+            sage: triangulation = next(pc.triangulations())
             sage: triangulation.__len__()
             2
             sage: len(triangulation)    # equivalent
@@ -408,7 +408,7 @@ class Triangulation(Element):
             sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1],[2,2]])
             sage: t = pc.triangulations()
-            sage: t.next()._repr_()
+            sage: next(t)._repr_()
             '(<1,4,5>, <2,4,5>)'
         """
         #s = 'A triangulation'
@@ -616,7 +616,7 @@ class Triangulation(Element):
 
         TESTS::
 
-            sage: triangulation = polytopes.n_cube(2).triangulate(engine='internal')
+            sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
             {(0, 1): ((0, 1, 3),),
              (0, 2): ((0, 2, 3),),
@@ -624,7 +624,7 @@ class Triangulation(Element):
              (1, 3): ((0, 1, 3),),
              (2, 3): ((0, 2, 3),)}
 
-            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
             {(0, 1, 2): ((0, 1, 2, 7),),
              (0, 1, 4): ((0, 1, 4, 7),),
@@ -666,7 +666,7 @@ class Triangulation(Element):
 
         EXAMPLES::
 
-            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation
             (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
             sage: triangulation.boundary()
@@ -702,7 +702,7 @@ class Triangulation(Element):
 
         EXAMPLES::
 
-            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation
             (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
             sage: triangulation.boundary()
@@ -750,7 +750,7 @@ class Triangulation(Element):
 
         EXAMPLES::
 
-            sage: triangulation = polytopes.n_cube(2).triangulate(engine='internal')
+            sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation
             (<0,1,3>, <0,2,3>)
             sage: N = triangulation.normal_cone();  N
@@ -772,7 +772,7 @@ class Triangulation(Element):
 
         TESTS::
 
-            sage: polytopes.n_simplex(2).triangulate().normal_cone()
+            sage: polytopes.simplex(2).triangulate().normal_cone()
             3-d cone in 3-d lattice
             sage: _.dual().is_trivial()
             True
@@ -782,7 +782,7 @@ class Triangulation(Element):
         from sage.libs.ppl import Variable, Constraint, Constraint_System, Linear_Expression, C_Polyhedron
         from sage.matrix.constructor import matrix
         from sage.misc.misc import uniq
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         pc = self.point_configuration()
         cs = Constraint_System()
         for facet in self.interior_facets():
@@ -841,7 +841,7 @@ class Triangulation(Element):
             Graph on 8 vertices
 
         """
-        vertices = map(Set,list(self))
+        vertices = [Set(_) for _ in list(self)]
         return Graph([vertices,
                   lambda x,y: len(x-y)==1])
 

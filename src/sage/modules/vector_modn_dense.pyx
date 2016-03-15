@@ -1,10 +1,8 @@
 """
 Vectors with integer mod n entries, with n small.
 
-AUTHOR:
-    -- William Stein (2007)
+EXAMPLES::
 
-EXAMPLES:
     sage: v = vector(Integers(8),[1,2,3,4,5])
     sage: type(v)
     <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
@@ -37,20 +35,23 @@ EXAMPLES:
     sage: u - v
     (0, 0, 0, 0, 4)
 
-We make a large zero vector:
+We make a large zero vector::
+
     sage: k = Integers(8)^100000; k
     Ambient free module of rank 100000 over Ring of integers modulo 8
     sage: v = k(0)
     sage: v[:10]
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-We multiply a vector by a matrix:
+We multiply a vector by a matrix::
+
     sage: a = (GF(97)^5)(range(5))
     sage: m = matrix(GF(97),5,range(25))
     sage: a*m
     (53, 63, 73, 83, 93)
 
-TESTS:
+TESTS::
+
     sage: v = vector(Integers(8), [1,2,3,4,5])
     sage: loads(dumps(v)) == v
     True
@@ -72,17 +73,29 @@ TESTS:
     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
     sage: ~v[0]
     1482786336
+
+    sage: w = vector(GF(11), [-1,0,0,0])
+    sage: w.set_immutable()
+    sage: isinstance(hash(w), int)
+    True
+
+AUTHOR:
+
+- William Stein (2007)
 """
 
-###############################################################################
-#   Sage: System for Algebra and Geometry Experimentation
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
+from sage.ext.memory cimport check_allocarray
 
 from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT64_LIMIT
 
@@ -93,9 +106,9 @@ from sage.rings.finite_rings.integer_mod cimport (
     IntegerMod_abstract, use_32bit_type)
 
 cdef mod_int ivalue(IntegerMod_abstract x) except -1:
-    if PY_TYPE_CHECK_EXACT(x, IntegerMod_int):
+    if type(x) is IntegerMod_int:
         return (<IntegerMod_int>x).ivalue
-    elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int64):
+    elif type(x) is IntegerMod_int64:
         return (<IntegerMod_int64>x).ivalue
     else:
         raise TypeError, "non-fixed size integer"
@@ -108,7 +121,7 @@ from free_module_element import vector
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):
         cdef Vector_modn_dense y
-        y = PY_NEW(Vector_modn_dense)
+        y = Vector_modn_dense.__new__(Vector_modn_dense)
         y._init(self._degree, self._parent, self._p)
         return y
 
@@ -130,9 +143,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         self._degree = degree
         self._parent = parent
         self._p = p
-        self._entries = <mod_int *> sage_malloc(sizeof(mod_int) * degree)
-        if self._entries == NULL:
-            raise MemoryError
+        self._entries = <mod_int *>check_allocarray(degree, sizeof(mod_int))
 
     def __cinit__(self, parent=None, x=None, coerce=True, copy=True):
         self._entries = NULL
@@ -163,13 +174,12 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                 self._entries[i] = 0
 
     def __dealloc__(self):
-        cdef Py_ssize_t i
-        if self._entries:
-            sage_free(self._entries)
+        sage_free(self._entries)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(GF(5), [0,0,0,0])
             sage: v == 0
             True
@@ -177,11 +187,9 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             False
             sage: v == v
             True
-            sage: w = vector(GF(11), [1,0,0,0])
-            sage: w < v
+            sage: w = vector(GF(11), [-1,0,0,0])
+            sage: w == w
             True
-            sage: w > v
-            False
         """
         cdef Py_ssize_t i
         cdef mod_int l, r
@@ -193,55 +201,11 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             elif l > r:
                 return 1
         return 0
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
+
+    cdef get_unsafe(self, Py_ssize_t i):
         """
-        TEST::
+        EXAMPLES::
 
-            sage: w = vector(GF(11), [-1,0,0,0])
-            sage: w == w
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TEST::
-
-            sage: w = vector(GF(11), [-1,0,0,0])
-            sage: w.set_immutable()
-            sage: isinstance(hash(w), int)
-            True
-        """
-        return free_module_element.FreeModuleElement.__hash__(self)
-
-    def __setitem__(self, i, value):
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef Py_ssize_t k, d, n
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self[k] = R(value[n])
-                    n = n + 1
-        else:
-            if i < 0 or i >= self._degree:
-                raise IndexError
-            else:
-                self._entries[i] = ivalue(self.base_ring()(value))
-
-    def __getitem__(self, i):
-        """
-        Returns `i`-th entry or slice of self.
-
-        EXAMPLES:
             sage: R = Integers(7)
             sage: v = vector(R, [1,2,3]); v
             (1, 2, 3)
@@ -256,33 +220,39 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             sage: v[5]
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            IndexError: vector index out of range
             sage: v[-5]
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            IndexError: vector index out of range
         """
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return vector(self.base_ring(), self.list()[start:stop])
-
-        if i < 0:
-            i += self._degree
-        if i < 0 or i >= self._degree:
-            raise IndexError('index out of range')
         cdef IntegerMod_int n
         cdef IntegerMod_int64 m
 
         if use_32bit_type(self._p):
-            n =  IntegerMod_int.__new__(IntegerMod_int)
+            n = IntegerMod_int.__new__(IntegerMod_int)
             IntegerMod_abstract.__init__(n, self.base_ring())
             n.ivalue = self._entries[i]
             return n
         else:
-            m =  IntegerMod_int64.__new__(IntegerMod_int64)
+            m = IntegerMod_int64.__new__(IntegerMod_int64)
             IntegerMod_abstract.__init__(m, self.base_ring())
             m.ivalue = self._entries[i]
             return m
+
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
+        """
+        EXAMPLES::
+
+            sage: R = Integers(7)
+            sage: v = vector(R, [1,2,3]); v
+            (1, 2, 3)
+            sage: v[0] = 7^7
+            sage: v
+            (0, 2, 3)
+        """
+        self._entries[i] = ivalue(<IntegerMod_abstract>value)
+
 
     def __reduce__(self):
         return unpickle_v1, (self._parent, self.list(), self._degree, self._p, self._is_mutable)
@@ -367,7 +337,7 @@ def unpickle_v0(parent, entries, degree, p):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     cdef Vector_modn_dense v
-    v = PY_NEW(Vector_modn_dense)
+    v = Vector_modn_dense.__new__(Vector_modn_dense)
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]
@@ -375,7 +345,7 @@ def unpickle_v0(parent, entries, degree, p):
 
 def unpickle_v1(parent, entries, degree, p, is_mutable):
     cdef Vector_modn_dense v
-    v = PY_NEW(Vector_modn_dense)
+    v = Vector_modn_dense.__new__(Vector_modn_dense)
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]

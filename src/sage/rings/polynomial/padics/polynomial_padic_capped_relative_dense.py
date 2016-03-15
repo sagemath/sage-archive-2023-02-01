@@ -104,7 +104,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
                 x = [parentbr(a) for a in x.list()]
                 check = False
         elif isinstance(x, dict):
-            zero = parentbr.zero_element()
+            zero = parentbr.zero()
             n = max(x.keys()) if x else 0
             v = [zero for _ in xrange(n + 1)]
             for i, z in x.iteritems():
@@ -120,7 +120,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         # In contrast to other polynomials, the zero element is not distinguished
         # by having its list empty. Instead, it has list [0]
         if not x:
-            x = [parentbr.zero_element()]
+            x = [parentbr.zero()]
         if check:
             x = [parentbr(z) for z in x]
 
@@ -203,14 +203,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
 
             sage: K = Qp(13,7)
             sage: R.<t> = K[]
-            sage: a = t[0:1]
+            sage: a = t[:1]
             sage: a._comp_list()
             sage: a
             0
         """
         if self.degree() == -1 and self._valbase == infinity:
             self._list = []
-            return self._list
         polylist = self._poly.list()
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
@@ -403,8 +402,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
 
     def __getitem__(self, n):
         """
-        Returns the coefficient of x^n if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         EXAMPLES::
 
@@ -413,40 +411,53 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: a = 13^7*t^3 + K(169,4)*t - 13^4
             sage: a[1]
             13^2 + O(13^4)
-            sage: a[1:2]
+
+        Slices can be used to truncate polynomials::
+
+            sage: a[:2]
+            (13^2 + O(13^4))*t + (12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + 12*13^10 + O(13^11))
+
+        Any other kind of slicing is deprecated or an error, see
+        :trac:`18940`::
+
+            sage: a[1:3]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
             (13^2 + O(13^4))*t
+            sage: a[1:3:2]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomial slicing with a step is not defined
         """
+        d = len(self._relprecs)  # = degree + 1
         if isinstance(n, slice):
-            start, stop = n.start, n.stop
+            start, stop, step = n.start, n.stop, n.step
+            if step is not None:
+                raise NotImplementedError("polynomial slicing with a step is not defined")
             if start is None:
                 start = 0
-            elif start < 0:
-                start = len(self._relprecs) + start
-                if start < 0:
-                    raise IndexError("list index out of range")
-            if stop > len(self._relprecs) or stop is None:
-                stop = len(self._relprecs)
-            elif stop < 0:
-                stop = len(self._relprecs) + stop
-                if stop < 0:
-                    raise IndexError("list index out of range")
-            if start >= stop:
-                return Polynomial_padic_capped_relative_dense(self.parent(), [])
             else:
-                return Polynomial_padic_capped_relative_dense(self.parent(),
-                    (self._poly[start:stop], self._valbase,
-                    [infinity]*start + self._relprecs[start:stop], False,
-                    None if self._valaddeds is None else [infinity]*start
-                    + self._valaddeds[start:stop],
-                    None if self._list is None else [self.base_ring()(0)]
-                    * start + self._list[start:stop]), construct = True)
-        else:
-            if n >= len(self._relprecs):
-                return self.base_ring()(0)
-            if not self._list is None:
-                return self._list[n]
-            return self.base_ring()(self.base_ring().prime_pow(self._valbase)
-                * self._poly[n], absprec = self._valbase + self._relprecs[n])
+                if start < 0:
+                    start = 0
+                from sage.misc.superseded import deprecation
+                deprecation(18940, "polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead")
+            if stop is None or stop > d:
+                stop = d
+            values = ([self.base_ring().zero()] * start
+                      + [self[i] for i in xrange(start, stop)])
+            return self.parent()(values)
+
+        try:
+            n = n.__index__()
+        except AttributeError:
+            raise TypeError("list indices must be integers, not {0}".format(type(n).__name__))
+
+        if n < 0 or n >= d:
+            return self.base_ring().zero()
+        if self._list is not None:
+            return self._list[n]
+        return self.base_ring()(self.base_ring().prime_pow(self._valbase)
+            * self._poly[n], absprec = self._valbase + self._relprecs[n])
 
     def _add_(self, right):
         """
@@ -934,7 +945,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: K = Zp(13, 5)
             sage: R.<t> = K[]
             sage: f = t^3 + K(13, 3) * t
-            sage: f.rescale(2)    # todo: not tested -- in fact, is broken!
+            sage: f.rescale(2)  # not implemented
         """
         negval = False
         try:
@@ -1019,13 +1030,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: R.<x> = Qp(3,3)[]
             sage: f = 3*x + 7
             sage: g = 5*x + 9
-            sage: f.xgcd(f*g) # not tested - currently we get the incorrect result ((O(3^2))*x^2 + (O(3))*x + (1 + O(3^3)), (3^-2 + 2*3^-1 + O(3))*x, (3^-2 + 3^-1 + O(3)))
+            sage: f.xgcd(f*g)  # known bug
             ((3 + O(3^4))*x + (1 + 2*3 + O(3^3)), (1 + O(3^3)), 0)
 
             sage: R.<x> = Qp(3)[]
             sage: f = 490473657*x + 257392844/729
             sage: g = 225227399/59049*x - 8669753175
-            sage: f.xgcd(f*g) # not tested - currently we get the incorrect result ((O(3^18))*x^2 + (O(3^9))*x + (1 + O(3^20)), (3^-5 + 2*3^-1 + 3 + 2*3^2 + 3^4 + 2*3^6 + 3^7 + 3^8 + 2*3^9 + 2*3^11 + 3^13 + O(3^15))*x, (3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 3^13 + 2*3^14 + 3^17 + 3^18 + 3^20 + 3^21 + 3^23 + 2*3^24 + O(3^25)))
+            sage: f.xgcd(f*g)  # known bug
             ((3^3 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + 2*3^10 + 2*3^11 + 3^12 + 3^13 + 3^15 + 2*3^16 + 3^18 + O(3^23))*x + (2*3^-6 + 2*3^-5 + 3^-3 + 2*3^-2 + 3^-1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 3^11 + O(3^14)), (1 + O(3^20)), 0)
 
         """

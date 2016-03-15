@@ -3,23 +3,33 @@
 Elements of modular forms spaces
 """
 
-#########################################################################
-#       Copyright (C) 2004--2008 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
+
+from sage.rings.fast_arith import prime_range
+from sage.rings.morphism import RingHomomorphism
+from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
+from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose
+from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
+from sage.arith.all import lcm, divisors, moebius, sigma, factor
+from sage.structure.element import get_coercion_model
 
 
 def is_ModularFormElement(x):
@@ -132,30 +142,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return str(self.q_expansion())
 
-    def _ensure_is_compatible(self, other):
-        """
-        Make sure self and other are compatible for arithmetic or
-        comparison operations. Raise an error if incompatible,
-        do nothing otherwise.
-
-        EXAMPLES::
-
-            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
-            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
-            sage: h = ModularForms(17,4).0
-
-            sage: f._ensure_is_compatible(g)
-
-            sage: f._ensure_is_compatible(h)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: Modular forms must be in the same ambient space.
-        """
-        if not isinstance(other, ModularForm_abstract):
-            raise TypeError("Second argument must be a modular form.")
-        if self.parent().ambient() != other.parent().ambient():
-            raise ArithmeticError("Modular forms must be in the same ambient space.")
-
     def __call__(self, x, prec=None):
         """
         Evaluate the q-expansion of this modular form at x.
@@ -213,7 +199,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return self.q_expansion(prec)
 
-
     def __eq__(self, other):
         """
         Compare self to other.
@@ -235,28 +220,27 @@ class ModularForm_abstract(ModuleElement):
         else:
             return self.element() == other.element()
 
-    def __cmp__(self, other):
+    def __ne__(self, other):
         """
-        Compare self to other. If they are not the same object, but
-        are of the same type, compare them as vectors.
+        Return True if ``self != other``.
 
         EXAMPLES::
 
-            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
-            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
-            sage: f == g ## indirect doctest
-            False
-            sage: f == f
+            sage: f = Newforms(Gamma1(30), 2, names='a')[1]
+            sage: g = ModularForms(23, 2).0
+            sage: f != g
             True
+            sage: f != f
+            False
+
+        TESTS:
+
+        The following used to fail (see :trac:`18068`)::
+
+            sage: f != loads(dumps(f))
+            False
         """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
-            return self.parent().__cmp__(other.parent())
-        if self.element() == other.element():
-            return 0
-        else:
-            return -1
+        return not (self == other)
 
     def _compute(self, X):
         """
@@ -488,17 +472,19 @@ class ModularForm_abstract(ModuleElement):
             O(q^1)
             sage: f.q_expansion(0)
             O(q^0)
+            sage: f.q_expansion(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: prec (= -1) must be non-negative
         """
         if prec is None:
             prec = self.parent().prec()
         prec = rings.Integer(prec)
-        if prec < 0:
-            raise ValueError("prec (=%s) must be at least 0"%prec)
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
             current_prec = 0
-            f = self.parent()._q_expansion_ring()(0, -1)
+            f = self.parent()._q_expansion_ring()(0, 0)
 
         if current_prec == prec:
             return f
@@ -664,7 +650,7 @@ class ModularForm_abstract(ModuleElement):
         # coefficients of the matrix M
         (b, c, d) = (M.b(), M.c() / N, M.d())
         if d == 0:
-            return R.zero_element()
+            return R.zero()
         if d < 0:
             (b, c, d) = (-b, -c, -d)
 
@@ -694,81 +680,115 @@ class ModularForm_abstract(ModuleElement):
                      + mu_dN ** n * (mu_d ** (n * b) - eps * mu_d ** (n * c)))
                    for n in range(1, numterms + 1))
 
-    def lseries(self, conjugate=0, prec=53,
+    def lseries(self, embedding=0, prec=53,
                          max_imaginary_part=0,
-                         max_asymp_coeffs=40):
+                         max_asymp_coeffs=40,
+                         conjugate=None):
         r"""
         Return the L-series of the weight k cusp form
-        f on `\Gamma_0(N)`.
+        `f` on `\Gamma_0(N)`.
 
-        This actually returns an interface to Tim Dokchitser's program
-        for computing with the L-series of the cusp form.
+        This actually returns an interface to Tim Dokchitser's program for
+        computing with the L-series of the cusp form.
 
         INPUT:
 
-        - ``conjugate`` - (default: 0), integer between 0 and degree-1
+        - ``embedding`` - either an embedding of the coefficient field of self
+          into `\CC`, or an integer `i` between 0 and D-1 where D is the degree
+          of the coefficient field (meaning to pick the `i`-th embedding).
+          (Default: 0)
 
-        - ``prec`` - integer (bits precision)
+        - ``prec`` - integer (bits precision). Default: 53.
 
-        - ``max_imaginary_part`` - real number
+        - ``max_imaginary_part`` - real number. Default: 0.
 
-        - ``max_asymp_coeffs`` - integer
+        - ``max_asymp_coeffs`` - integer. Default: 40.
+
+        - ``conjugate`` -- deprecated synonym for ``embedding``.
+
+        For more information on the significance of the last three arguments,
+        see :mod:`~sage.lfunctions.dokchitser`.
+
+        .. note::
+
+            If an explicit embedding is given, but this embedding is specified
+            to smaller precision than ``prec``, it will be automatically
+            refined to precision ``prec``.
 
         OUTPUT:
 
-        The L-series of the cusp form.
+        The L-series of the cusp form, as a
+        :class:`sage.lfunctions.dokchitser.Dokchitser` object.
 
         EXAMPLES::
 
-           sage: f = CuspForms(2,8).newforms()[0]
-           sage: L = f.lseries()
-           sage: L(1)
-           0.0884317737041015
-           sage: L(0.5)
-           0.0296568512531983
+            sage: f = CuspForms(2,8).newforms()[0]
+            sage: L = f.lseries()
+            sage: L
+            L-series associated to the cusp form q - 8*q^2 + 12*q^3 + 64*q^4 - 210*q^5 + O(q^6)
+            sage: L(1)
+            0.0884317737041015
+            sage: L(0.5)
+            0.0296568512531983
 
-        For non-rational newforms we can specify a conjugate::
+        As a consistency check, we verify that the functional equation holds::
 
-           sage: f = Newforms(43, names='a')[1]
-           sage: L = f.lseries(conjugate=0)
-           sage: L(1)
-           0.620539857407845
-           sage: L = f.lseries(conjugate=1)
-           sage: L(1)
-           0.921328017272472
+            sage: abs(L.check_functional_equation()) < 1.0e-20
+            True
+
+        For non-rational newforms we can specify an embedding of the coefficient field::
+
+            sage: f = Newforms(43, names='a')[1]
+            sage: K = f.hecke_eigenvalue_field()
+            sage: phi1, phi2 = K.embeddings(CC)
+            sage: L = f.lseries(embedding=phi1)
+            sage: L
+            L-series associated to the cusp form q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6), a1=-1.41421356237310
+            sage: L(1)
+            0.620539857407845
+            sage: L = f.lseries(embedding=1)
+            sage: L(1)
+            0.921328017272472
+
+        For backward-compatibility, ``conjugate`` is accepted as a synonym for ``embedding``::
+
+            sage: f.lseries(conjugate=1)
+            doctest:...: DeprecationWarning: The argument 'conjugate' for 'lseries' is deprecated -- use the synonym 'embedding'
+            See http://trac.sagemath.org/19668 for details.
+            L-series associated to the cusp form q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6), a1=1.41421356237310
 
         We compute with the L-series of the Eisenstein series `E_4`::
 
-           sage: f = ModularForms(1,4).0
-           sage: L = f.lseries()
-           sage: L(1)
-           -0.0304484570583933
-           sage: L = eisenstein_series_lseries(4)
-           sage: L(1)
-           -0.0304484570583933
+            sage: f = ModularForms(1,4).0
+            sage: L = f.lseries()
+            sage: L(1)
+            -0.0304484570583933
+            sage: L = eisenstein_series_lseries(4)
+            sage: L(1)
+            -0.0304484570583933
 
         Consistency check with delta_lseries (which computes coefficients in pari)::
 
-           sage: delta = CuspForms(1,12).0
-           sage: L = delta.lseries()
-           sage: L(1)
-           0.0374412812685155
-           sage: L = delta_lseries()
-           sage: L(1)
-           0.0374412812685155
+            sage: delta = CuspForms(1,12).0
+            sage: L = delta.lseries()
+            sage: L(1)
+            0.0374412812685155
+            sage: L = delta_lseries()
+            sage: L(1)
+            0.0374412812685155
 
-        We check that #5262 is fixed::
+        We check that :trac:`5262` is fixed::
 
-            sage: E=EllipticCurve('37b2')
-            sage: h=Newforms(37)[1]
+            sage: E = EllipticCurve('37b2')
+            sage: h = Newforms(37)[1]
             sage: Lh = h.lseries()
-            sage: LE=E.lseries()
+            sage: LE = E.lseries()
             sage: Lh(1), LE(1)
             (0.725681061936153, 0.725681061936153)
             sage: CuspForms(1, 30).0.lseries().eps
             -1
 
-        We can change the precision (in bits)
+        We can change the precision (in bits)::
 
             sage: f = Newforms(389, names='a')[0]
             sage: L = f.lseries(prec=30)
@@ -786,6 +806,11 @@ class ModularForm_abstract(ModuleElement):
             sage: L(1)
             0.588879583428483
         """
+
+        if conjugate is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(19668, "The argument 'conjugate' for 'lseries' is deprecated -- use the synonym 'embedding'")
+            embedding=conjugate
         from sage.lfunctions.all import Dokchitser
         # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
@@ -818,16 +843,192 @@ class ModularForm_abstract(ModuleElement):
             coeffs = (invb*c for c in coeffs)
 
         # compute the requested embedding
-        emb = self.base_ring().embeddings(rings.ComplexField(prec))[conjugate]
-        s = 'coeff = %s;'% map(emb, coeffs)
+        K = self.base_ring()
+        if isinstance(embedding, RingHomomorphism):
+            # Target of embedding might have precision less than desired, so
+            # need to refine
+            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
+        else:
+            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
+
+        s = 'coeff = %s;' % [emb(_) for _ in coeffs]
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
         L.check_functional_equation()
-        L.rename('L-series associated to the cusp form %s'%self)
+        if K == rings.QQ:
+            L.rename('L-series associated to the cusp form %s'%self)
+        else:
+            L.rename('L-series associated to the cusp form %s, %s=%s' \
+                % (self, K.variable_name(), emb(K.gen())))
         return L
 
     cuspform_lseries = deprecated_function_alias(16917, lseries)
+
+    def symsquare_lseries(self, chi=None, embedding=0, prec=53):
+        """
+        Compute the symmetric square L-series of this modular form, twisted by
+        the character `\chi`.
+
+        INPUT:
+
+        - ``chi`` -- Dirichlet character to twist by, or None (default None,
+          interpreted as the trivial character).
+        - ``embedding`` -- embedding of the coefficient field into `\RR` or
+          `\CC`, or an integer `i` (in which case take the `i`-th embedding)
+        - ``prec`` -- The desired precision in bits (default 53).
+
+        OUTPUT: The symmetric square L-series of the cusp form, as a
+        :class:`sage.lfunctions.dokchitser.Dokchitser` object.
+
+        EXAMPLES::
+
+            sage: CuspForms(1, 12).0.symsquare_lseries()(22)
+            0.999645711124771
+
+        An example twisted by a nontrivial character::
+
+            sage: psi = DirichletGroup(7).0^2
+            sage: L = CuspForms(1, 16).0.symsquare_lseries(psi)
+            sage: L(22)
+            0.998407750967420 - 0.00295712911510708*I
+
+        An example with coefficients not in `\QQ`::
+
+            sage: F = Newforms(1, 24, names='a')[0]
+            sage: K = F.hecke_eigenvalue_field()
+            sage: phi = K.embeddings(RR)[0]
+            sage: L = F.symsquare_lseries(embedding=phi)
+            sage: L(5)
+            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
+            -3.57698266793901e19
+
+        TESTS::
+
+            sage: CuspForms(1,16).0.symsquare_lseries(prec=200).check_functional_equation().abs() < 1.0e-80
+            True
+            sage: CuspForms(1, 12).0.symsquare_lseries(prec=1000)(22) # long time (20s)
+            0.999645711124771397835729622033153189549796658647254961493709341358991830134499267117001769570658192128781135161587571716303826382489492569725002840546129937149159065273765309218543427544527498868033604310899372849565046516553245752253255585377793879866297612679545029546953895098375829822346290125161
+
+        AUTHORS:
+
+        - Martin Raum (2011) -- original code posted to sage-nt
+        - David Loeffler (2015) -- added support for twists, integrated into
+          Sage library
+        """
+        from sage.lfunctions.all import Dokchitser
+        weight = self.weight()
+        C = rings.ComplexField(prec)
+        if self.level() != 1:
+            raise NotImplementedError("Symmetric square L-functions only implemented for level 1")
+
+        # compute the requested embedding
+        if isinstance(embedding, RingHomomorphism):
+            # Target of embedding might have precision less than desired, so
+            # need to refine
+            K = self.base_ring()
+            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
+        else:
+            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
+
+        if chi is None:
+            eps = 1
+            N = 1
+        else:
+            assert chi.is_primitive()
+            chi = chi.change_ring(C)
+            eps = chi.gauss_sum()**3 / chi.base_ring()(chi.conductor())**rings.QQ( (3, 2) )
+            N = chi.conductor()**3
+
+        L = Dokchitser(N, [0, 1, -weight + 2], 2 * weight - 1, eps, prec=prec)
+        lcoeffs_prec = L.num_coeffs()
+
+        t = verbose("Computing %s coefficients of F" % lcoeffs_prec, level=1)
+        F_series = [u**2 for u in self.qexp(lcoeffs_prec + 1).list()[1:]]
+        verbose("done", t, level=1)
+
+        # utility function for Dirichlet convolution of series
+        def dirichlet_convolution(A, B):
+            return [sum(A[d-1] * B[n/d - 1] for d in divisors(n))
+                for n in xrange(1, 1 + min(len(A), len(B)))]
+
+        # The Dirichlet series for \zeta(2 s - 2 k + 2)
+        riemann_series = [ n**(weight - 1) if n.is_square() else 0
+                       for n in xsrange(1, lcoeffs_prec + 1) ]
+        # The Dirichlet series for 1 / \zeta(s - k + 1)
+        mu_series = [ moebius(n) * n**(weight - 1) for n in xsrange(1, lcoeffs_prec + 1) ]
+        conv_series = dirichlet_convolution(mu_series, riemann_series)
+
+        dirichlet_series = dirichlet_convolution(conv_series, F_series)
+
+        # If the base ring is QQ we pass the coefficients to GP/PARI as exact
+        # rationals. Otherwise, need to use the embedding.
+        if self.base_ring() != rings.QQ:
+            dirichlet_series = map(emb, dirichlet_series)
+
+        if chi is not None:
+            pari_precode_chi = str(chi.values()) + "[n%" + str(chi.conductor()) + "+1]; "
+        else:
+            pari_precode_chi = "1"
+
+        pari_precode = "hhh(n) = " + str(dirichlet_series) + "[n] * " + pari_precode_chi
+
+        L.init_coeffs( "hhh(k)", w="conj(hhh(k))",
+            pari_precode=pari_precode)
+
+        return L
+
+    def petersson_norm(self, embedding=0, prec=53):
+        r"""
+        Compute the Petersson scalar product of f with itself:
+
+        .. math::
+
+            \langle f, f \rangle = \int_{\Gamma_0(N) \backslash \mathbb{H}} |f(x + iy)|^2 y^k\, \mathrm{d}x\, \mathrm{d}y.
+
+        Only implemented for N = 1 at present. It is assumed that `f` has real
+        coefficients. The norm is computed as a special value of the symmetric
+        square L-function, using the identity
+
+        .. math::
+
+            \langle f, f \rangle = \frac{(k-1)! L(\mathrm{Sym}^2 f, k)}{2^{2k-1} \pi^{k+1}}
+
+        INPUT:
+
+        - ``embedding``: embedding of the coefficient field into `\RR` or
+          `\CC`, or an integer `i` (interpreted as the `i`-th embedding)
+          (default: 0)
+        - ``prec`` (integer, default 53): precision in bits
+
+        EXAMPLE::
+
+            sage: CuspForms(1, 16).0.petersson_norm()
+            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
+            2.16906134759063e-6
+
+        The Petersson norm depends on a choice of embedding::
+
+            sage: set_verbose(-2, "dokchitser.py") # disable precision-loss warnings
+            sage: F = Newforms(1, 24, names='a')[0]
+            sage: F.petersson_norm(embedding=0)
+            0.000107836545077234
+            sage: F.petersson_norm(embedding=1)
+            0.000128992800758160
+
+        TESTS:
+
+        Verify that the Petersson norm is a quadratic form::
+
+            sage: F, G = CuspForms(1, 24).basis()
+            sage: X = lambda u: u.petersson_norm(prec=100)
+            sage: (X(F + G) + X(F - G) - 2*X(F) - 2*X(G)).abs() < 1e-25
+            True
+        """
+        pi = rings.RealField(prec).pi()
+        L = self.symsquare_lseries(prec=prec, embedding=embedding)
+        k = self.weight()
+        return (rings.ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()
 
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):
@@ -914,50 +1115,43 @@ class Newform(ModularForm_abstract):
             True
             sage: f1.__eq__(f2)
             False
+
+        We test comparison of equal newforms with different parents
+        (see :trac:`18478`)::
+
+            sage: f = Newforms(Gamma1(11), 2)[0]; f
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: g = Newforms(Gamma0(11), 2)[0]; g
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: f == g
+            True
+
+            sage: f = Newforms(DirichletGroup(4)[1], 5)[0]; f
+            q - 4*q^2 + 16*q^4 - 14*q^5 + O(q^6)
+            sage: g = Newforms(Gamma1(4), 5)[0]; g
+            q - 4*q^2 + 16*q^4 - 14*q^5 + O(q^6)
+            sage: f == g
+            True
+
         """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
+        if (not isinstance(other, ModularForm_abstract)
+            or self.weight() != other.weight()):
             return False
         if isinstance(other, Newform):
-            if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
-                return True
-            else:
+            if (self.level() != other.level() or
+                self.character() != other.character()):
                 return False
-        if is_ModularFormElement(other):
-            if self.element() == other.element():
-                return True
-            else:
-                return False
-
-    def __cmp__(self, other):
-        """
-        Compare self with other.
-
-        EXAMPLES::
-
-            sage: f1, f2 = Newforms(19,4,names='a')
-            sage: f1.__cmp__(f1)
-            0
-            sage: f1.__cmp__(f2)
-            -1
-            sage: f2.__cmp__(f1)
-            -1
-        """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
-            return self.parent().__cmp__(other.parent())
-        if isinstance(other, Newform):
-            if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
-                return 0
-            else:
-                return -1
-        if is_ModularFormElement(other):
-            if self.element() == other.element():
-                return 0
-            else:
-                return -1
+            # The two parents may have different Sturm bounds in case
+            # one of them is a space of cusp forms with character
+            # (possibly trivial, i.e. for the group Gamma0(n)) and the
+            # other is a space of cusp forms for Gamma1(n).  It is
+            # safe to take the smaller bound because we have checked
+            # that the characters agree.
+            bound = min(self.parent().sturm_bound(),
+                        other.parent().sturm_bound())
+            return self.q_expansion(bound) == other.q_expansion(bound)
+        # other is a ModularFormElement
+        return self.element() == other
 
     def abelian_variety(self):
         """
@@ -1043,7 +1237,7 @@ class Newform(ModularForm_abstract):
             q - 2*q^2 + (-a1 - 2)*q^3 + 4*q^4 + (2*a1 + 10)*q^5 + O(q^6),
             q + 2*q^2 + (1/2*a2 - 1)*q^3 + 4*q^4 + (-3/2*a2 + 12)*q^5 + O(q^6)]
             sage: type(ls2[0])
-            <class 'sage.modular.modform.element.ModularFormElement'>
+            <class 'sage.modular.modform.element.CuspidalSubmodule_g0_Q_with_category.element_class'>
             sage: ls2[2][3].minpoly()
             x^2 - 9*x + 2
         """
@@ -1140,6 +1334,140 @@ class Newform(ModularForm_abstract):
             ValueError: Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)
         """
         return self.modular_symbols(sign=1).atkin_lehner_operator(d).matrix()[0,0]
+
+    def twist(self, chi, level=None, check=True):
+        r"""
+        Return the twist of the newform ``self`` by the Dirichlet
+        character ``chi``.
+
+        If ``self`` is a newform `f` with character `\epsilon` and
+        `q`-expansion
+
+        .. math::
+
+            f(q) = \sum_{n=1}^\infty a_n q^n,
+
+        then the twist by `\chi` is the unique newform `f\otimes\chi`
+        with character `\epsilon\chi^2` and `q`-expansion
+
+        .. math::
+
+            (f\otimes\chi)(q) = \sum_{n=1}^\infty b_n q^n
+
+        satisfying `b_n = \chi(n) a_n` for all but finitely many `n`.
+
+        INPUT:
+
+        - ``chi`` -- a Dirichlet character. Note that Sage must be able to
+          determine a common base field into which both the Hecke eigenvalue
+          field of self, and the field of values of ``chi``, can be embedded.
+
+        - ``level`` -- (optional) the level `N` of the twisted form.
+          By default, the algorithm tries to compute `N` using
+          [Atkin-Li]_, Theorem 3.1.
+
+        - ``check`` -- (optional) boolean; if ``True`` (default), ensure that
+          the space of modular symbols that is computed is genuinely simple and
+          new. This makes it less likely that a wrong result is returned if an
+          incorrect ``level`` is specified.
+
+        OUTPUT:
+
+        The form `f\otimes\chi` as an element of the set of newforms
+        for `\Gamma_1(N)` with character `\epsilon\chi^2`.
+
+        EXAMPLES::
+
+            sage: G = DirichletGroup(3, base_ring=QQ)
+            sage: Delta = Newforms(SL2Z, 12)[0]; Delta
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            sage: Delta.twist(G[0]) == Delta
+            True
+            sage: Delta.twist(G[1])  # long time (about 5 s)
+            q + 24*q^2 - 1472*q^4 - 4830*q^5 + O(q^6)
+
+            sage: M = CuspForms(Gamma1(13), 2)
+            sage: f = M.newforms('a')[0]; f
+            q + a0*q^2 + (-2*a0 - 4)*q^3 + (-a0 - 1)*q^4 + (2*a0 + 3)*q^5 + O(q^6)
+            sage: f.twist(G[1])
+            q - a0*q^2 + (-a0 - 1)*q^4 + (-2*a0 - 3)*q^5 + O(q^6)
+
+            sage: f = Newforms(Gamma1(30), 2, names='a')[1]; f
+            q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6)
+            sage: f.twist(f.character())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot calculate 5-primary part of the level of the twist of q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6) by Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1
+            sage: f.twist(f.character(), level=30)
+            q - a1*q^2 + a1*q^3 - q^4 + (-a1 - 2)*q^5 + O(q^6)
+
+        TESTS:
+
+        We test that feeding inappropriate values of the ``level`` parameter is handled gracefully::
+
+            sage: chi = DirichletGroup(1)[0]
+            sage: Delta.twist(chi, level=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: twist of q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6) by Dirichlet character modulo 1 of conductor 1 is not a newform of level 3
+
+        Twisting and twisting back works::
+
+            sage: f = Newforms(11)[0]
+            sage: chi = DirichletGroup(5).0
+            sage: f.twist(chi).twist(~chi, level=11) == f
+            True
+
+        AUTHORS:
+
+        - Peter Bruin (April 2015)
+
+        """
+        from sage.modular.all import CuspForms
+        coercion_model = get_coercion_model()
+        R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
+        N = self.level()
+        epsilon = self.character()
+        chi = chi.primitive_character()
+        if level is None:
+            N_epsilon = epsilon.conductor()
+            N_chi = chi.conductor()
+            G = DirichletGroup(N_epsilon.lcm(N_chi), base_ring=R)
+            epsilon_chi = G(epsilon) * G(chi)
+            N_epsilon_chi = epsilon_chi.conductor()
+            for q in N_chi.prime_divisors():
+                # See [Atkin-Li], Theorem 3.1.
+                alpha = N_epsilon.valuation(q)
+                beta = N_chi.valuation(q)
+                gamma = N.valuation(q)
+                delta = max(alpha + beta, 2*beta, gamma)
+                if delta == gamma and max(alpha + beta, 2*beta) < gamma:
+                    continue
+                if delta > gamma and N_epsilon_chi.valuation(q) == max(alpha, beta):
+                    continue
+                raise NotImplementedError('cannot calculate %s-primary part of the level of the twist of %s by %s'
+                                          % (q, self, chi))
+            level = lcm([N, N_epsilon * N_chi, N_chi**2])
+
+        # determine the character of the twisted form
+        G = DirichletGroup(lcm([N, chi.modulus(), level]), base_ring=R)
+        eps_new = (G(epsilon) * G(chi)**2).restrict(level)
+
+        # create an ambient space
+        D = ModularSymbols(eps_new, self.weight(), base_ring=R, sign=1).new_submodule()
+        S = CuspForms(eps_new, self.weight(), base_ring=R)
+
+        # pull out the eigenspace
+        for p in prime_range(500):
+            if p.divides(N) or p.divides(chi.level()):
+                continue
+            D = (D.hecke_operator(p) - self[p]*chi(p)).kernel()
+            if D.rank() == 1: break
+            if D.is_zero():
+                raise ValueError('twist of %s by %s is not a newform of level %s' % (self, chi, level))
+        else:
+            raise RuntimeError('unable to identify modular symbols for twist of %s by %s' % (self, chi))
+        return Newform(S, D, names='_', check=check)
 
 class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
     def __init__(self, parent, x, check=True):
@@ -1320,6 +1648,122 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             return -1
         else:
             return None
+
+    def twist(self, chi, level=None):
+        r"""
+        Return the twist of the modular form ``self`` by the Dirichlet
+        character ``chi``.
+
+        If ``self`` is a modular form `f` with character `\epsilon`
+        and `q`-expansion
+
+        .. math::
+
+            f(q) = \sum_{n=0}^\infty a_n q^n,
+
+        then the twist by `\chi` is a modular form `f_\chi` with
+        character `\epsilon\chi^2` and `q`-expansion
+
+        .. math::
+
+            f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
+
+        INPUT:
+
+        - ``chi`` -- a Dirichlet character
+
+        - ``level`` -- (optional) the level `N` of the twisted form.
+          By default, the algorithm chooses some not necessarily
+          minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
+          (See also [Koblitz]_, Proposition III.3.17, for a simpler
+          but slightly weaker bound.)
+
+        OUTPUT:
+
+        The form `f_\chi` as an element of the space of modular forms
+        for `\Gamma_1(N)` with character `\epsilon\chi^2`.
+
+        EXAMPLES::
+
+            sage: f = CuspForms(11, 2).0
+            sage: f.parent()
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+            sage: f.q_expansion(6)
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: eps = DirichletGroup(3).0
+            sage: eps.parent()
+            Group of Dirichlet characters of modulus 3 over Cyclotomic Field of order 2 and degree 1
+            sage: f_eps = f.twist(eps)
+            sage: f_eps.parent()
+            Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Cyclotomic Field of order 2 and degree 1
+            sage: f_eps.q_expansion(6)
+            q + 2*q^2 + 2*q^4 - q^5 + O(q^6)
+
+        Modular forms without character are supported::
+
+            sage: M = ModularForms(Gamma1(5), 2)
+            sage: f = M.gen(0); f
+            1 + 60*q^3 - 120*q^4 + 240*q^5 + O(q^6)
+            sage: chi = DirichletGroup(2)[0]
+            sage: f.twist(chi)
+            60*q^3 + 240*q^5 + O(q^6)
+
+        The base field of the twisted form is extended if necessary::
+
+            sage: E4 = ModularForms(1, 4).gen(0)
+            sage: E4.parent()
+            Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field
+            sage: chi = DirichletGroup(5)[1]
+            sage: chi.base_ring()
+            Cyclotomic Field of order 4 and degree 2
+            sage: E4_chi = E4.twist(chi)
+            sage: E4_chi.parent()
+            Modular Forms space of dimension 10, character [-1] and weight 4 over Cyclotomic Field of order 4 and degree 2
+
+        REFERENCES:
+
+        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
+           of newforms and pseudo-eigenvalues of `W`-operators.
+           Inventiones math. 48 (1978), 221-243.
+
+        .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
+           Modular Forms.  Springer GTM 97, 1993.
+
+        AUTHORS:
+
+        - \L. J. P. Kilford (2009-08-28)
+
+        - Peter Bruin (2015-03-30)
+
+        """
+        from sage.modular.all import CuspForms, ModularForms
+        from sage.rings.all import PowerSeriesRing
+        coercion_model = get_coercion_model()
+        R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
+        N = self.level()
+        Q = chi.modulus()
+        try:
+            epsilon = self.character()
+        except ValueError:
+            epsilon = None
+        constructor = CuspForms if self.is_cuspidal() else ModularForms
+        if epsilon is not None:
+            if level is None:
+                # See [Atkin-Li], Proposition 3.1.
+                level = lcm([N, epsilon.conductor() * Q, Q**2])
+            G = DirichletGroup(level, base_ring=R)
+            M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
+        else:
+            from sage.modular.arithgroup.all import Gamma1
+            if level is None:
+                # See [Atkin-Li], Proposition 3.1.
+                level = lcm([N, Q]) * Q
+            M = constructor(Gamma1(level), self.weight(), base_ring=R)
+        bound = M.sturm_bound() + 1
+        S = PowerSeriesRing(R, 'q')
+        f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)
+        return M(f_twist)
+
 
 class ModularFormElement_elliptic_curve(ModularFormElement):
     """
@@ -1552,9 +1996,9 @@ class EisensteinSeries(ModularFormElement):
             elif n == 0:
                 v.append(F(t-1)/F(24))
             else:
-                an = rings.sigma(n,1)
-                if n%t==0:
-                    an -= t*rings.sigma(n/t,1)
+                an = sigma(n,1)
+                if n%t == 0:
+                    an -= t * sigma(n/t,1)
                 v.append(an)
         return v
 
@@ -1601,7 +2045,7 @@ class EisensteinSeries(ModularFormElement):
             else:
                 m = i // t
                 v.append(sum([psi(d) * chi(m / d) * d ** (k - 1)
-                              for d in rings.divisors(m)]))
+                              for d in divisors(m)]))
         return v
 
     def __defining_parameters(self):
@@ -1745,8 +2189,5 @@ class EisensteinSeries(ModularFormElement):
             [[60, 2], [60, 3], [60, 2], [60, 5], [60, 2], [60, 2], [60, 2], [60, 3], [60, 2], [60, 2], [60, 2]]
         """
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
-            return rings.factor(self.__t)[0][0]
+            return factor(self.__t)[0][0]
         return self.L()*self.M()
-
-
-

@@ -23,7 +23,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
 
@@ -83,7 +82,8 @@ cdef class FunctionFieldElement(FieldElement):
                 (self._parent, type(self), self._x))
 
     cdef FunctionFieldElement _new_c(self):
-        cdef FunctionFieldElement x = <FunctionFieldElement>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef FunctionFieldElement x = <FunctionFieldElement>t.__new__(t)
         x._parent = self._parent
         return x
 
@@ -331,7 +331,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: f.element()
             1/x^2*y + x/(x^2 + 1)
             sage: type(f.element())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
         """
         return self._x
 
@@ -361,7 +361,18 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return not not self._x
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) == 25
+            True
+        """
+        return hash(self._x)
+
+    cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
 
@@ -563,7 +574,20 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return not not self._x
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    def __hash__(self):
+        """
+        TESTS:
+
+        It would be nice if the following would produce a list of
+        15 distinct hashes::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})
+            10
+        """
+        return hash(self._x)
+
+    cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
 

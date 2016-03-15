@@ -1,3 +1,5 @@
+"Interpreter reset"
+
 import sys
 
 # Exclude these from the reset command.

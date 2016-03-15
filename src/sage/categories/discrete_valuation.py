@@ -1,9 +1,5 @@
 r"""
-This module implements the two following categories :
-
- -  Discrete Valuation Rings (DVR)
-
- -  Discrete Valuation Fields (DVF)
+Discrete Valuation Rings (DVR) and Fields (DVF)
 """
 #**************************************************************************
 #  Copyright (C) 2013 Xavier Caruso <xavier.caruso@normalesup.org>

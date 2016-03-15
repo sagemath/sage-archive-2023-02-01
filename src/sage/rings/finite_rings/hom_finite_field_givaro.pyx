@@ -1,4 +1,6 @@
 """
+Finite field morphisms using Givaro
+
 Special implementation for givaro finite fields of:
 
 - embeddings between finite fields
@@ -22,9 +24,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-include "../../ext/stdsage.pxi"
 
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 from hom_finite_field cimport SectionFiniteFieldHomomorphism_generic
 from hom_finite_field cimport FiniteFieldHomomorphism_generic
@@ -259,7 +260,7 @@ cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givar
     if cache._has_array:
         return <FiniteField_givaroElement>cache._array[x]
     else:
-        y = PY_NEW(FiniteField_givaroElement)
+        y = FiniteField_givaroElement.__new__(FiniteField_givaroElement)
         y._parent = <Parent> cache.parent
         y._cache = cache
         y.element = x

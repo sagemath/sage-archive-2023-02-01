@@ -187,7 +187,7 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
             ...    == NonDecreasingParkingFunctions(4))
             True
             sage: it = iter(NonDecreasingParkingFunctions()) # indirect doctest
-            sage: [it.next() for i in range(8)]
+            sage: [next(it) for i in range(8)]
             [[], [1], [1, 1], [1, 2], [1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 2, 2]]
          """
         return NonDecreasingParkingFunctions_n(n)
@@ -328,14 +328,6 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
 
         Complexity: constant amortized time.
         """
-# FIXME : currently composition is extremenly slow.
-# Activate the following code as soon as compositions use
-# the integer_list_lex machinery
-#         for i in range(self.n, self.n*(self.n+1)/2+1):
-#             for z in Compositions(i, length=self.n, outer=range(1, self.n+1),
-#                                   min_slope=0).__iter__():
-#                 yield NonDecreasingParkingFunction(z._list)
-#         return
         def iterator_rec(n):
             """
             TESTS::

@@ -2,8 +2,8 @@
 Saturation over ZZ
 """
 
-from sage.rings.all import ZZ, gcd, GF
-from sage.rings.arith import binomial
+from sage.rings.all import ZZ, GF
+from sage.arith.all import binomial, gcd
 from sage.matrix.constructor import identity_matrix, random_matrix
 from sage.misc.misc import verbose
 from sage.misc.randstate import current_randstate
@@ -14,15 +14,18 @@ from copy import copy
 def p_saturation(A, p, proof=True):
     """
     INPUT:
-        A -- a matrix over ZZ
-        p -- a prime
-        proof -- bool (default: True)
+
+    - A -- a matrix over ZZ
+    - p -- a prime
+    - proof -- bool (default: True)
 
     OUTPUT:
-        The p-saturation of the matrix A, i.e., a new matrix in Hermite form
-        whose row span a ZZ-module that is p-saturated.
 
-    EXAMPLES:
+    The p-saturation of the matrix A, i.e., a new matrix in Hermite form
+    whose row span a ZZ-module that is p-saturated.
+
+    EXAMPLES::
+
         sage: from sage.matrix.matrix_integer_dense_saturation import p_saturation
         sage: A = matrix(ZZ, 2, 2, [3,2,3,4]); B = matrix(ZZ, 2,3,[1,2,3,4,5,6])
         sage: A.det()
@@ -66,13 +69,16 @@ def p_saturation(A, p, proof=True):
 def random_sublist_of_size(k, n):
     """
     INPUT:
-        k -- an integer
-        n -- an integer
+
+    - k -- an integer
+    - n -- an integer
 
     OUTPUT:
-        a randomly chosen sublist of range(k) of size n.
 
-    EXAMPLES:
+    a randomly chosen sublist of range(k) of size n.
+
+    EXAMPLES::
+
         sage: import sage.matrix.matrix_integer_dense_saturation as s
         sage: s.random_sublist_of_size(10,3)
         [0, 1, 5]
@@ -107,12 +113,16 @@ def solve_system_with_difficult_last_row(B, A):
     contains huge entries.
 
     INPUT:
-        B -- a square n x n nonsingular matrix with painful big bottom row.
-        A -- an n x k matrix.
-    OUTPUT:
-        the unique solution to B*Z = A.
 
-    EXAMPLES:
+    - B -- a square n x n nonsingular matrix with painful big bottom row.
+    - A -- an n x k matrix.
+
+    OUTPUT:
+
+    the unique solution to B*Z = A.
+
+    EXAMPLES::
+
         sage: from sage.matrix.matrix_integer_dense_saturation import solve_system_with_difficult_last_row
         sage: B = matrix(ZZ, 3, [1,2,3, 3,-1,2,939239082,39202803080,2939028038402834]); A = matrix(ZZ,3,2,[1,2,4,3,-1,0])
         sage: X = solve_system_with_difficult_last_row(B, A); X
@@ -170,17 +180,20 @@ def saturation(A, proof=True, p=0, max_dets=5):
     Compute a saturation matrix of A.
 
     INPUT:
-        A     -- a matrix over ZZ
-        proof -- bool (default: True)
-        p     -- int (default: 0); if not 0
-                 only guarantees that output is p-saturated
-        max_dets -- int (default: 4) max number of dets of
-                 submatrices to compute.
+
+    - A     -- a matrix over ZZ
+    - proof -- bool (default: True)
+    - p     -- int (default: 0); if not 0 only guarantees that output is
+      p-saturated
+    - max_dets -- int (default: 4) max number of dets of submatrices to
+      compute.
 
     OUTPUT:
-        matrix -- saturation of the matrix A.
 
-    EXAMPLES:
+    matrix -- saturation of the matrix A.
+
+    EXAMPLES::
+
         sage: from sage.matrix.matrix_integer_dense_saturation import saturation
         sage: A = matrix(ZZ, 2, 2, [3,2,3,4]); B = matrix(ZZ, 2,3,[1,2,3,4,5,6]); C = A*B
         sage: C
@@ -269,7 +282,7 @@ def index_in_saturation(A, proof=True):
     r"""
     The index of A in its saturation.
 
-    INPUT::
+    INPUT:
 
     - ``A`` -- matrix over `\ZZ`
 

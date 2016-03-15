@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Boolean functions
 
@@ -26,13 +27,14 @@ AUTHOR:
 
 """
 
-from sage.structure.sage_object cimport SageObject
+from libc.string cimport memcpy
 
+from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.polynomial.pbori import BooleanPolynomial
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
@@ -107,7 +109,7 @@ cdef long yellow_code(unsigned long a):
 
 cdef reed_muller(mp_limb_t* f, int ldn):
     r"""
-    The Reed Muller transform (also known as binary Moebius transform)
+    The Reed Muller transform (also known as binary Möbius transform)
     is an orthogonal transform. For a function `f` defined by
 
     .. math:: f(x) = \bigoplus_{I\subset\{1,\ldots,n\}} \left(a_I \prod_{i\in I} x_i\right)
@@ -284,7 +286,7 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: the length of the truth table must be a power of 2
         """
-        if PyString_Check(x):
+        if isinstance(x, str):
             L = ZZ(len(x))
             if L.is_power_of(2):
                 x = ZZ("0x"+x).digits(base=2,padto=4*L)
@@ -959,10 +961,10 @@ cdef class BooleanFunction(SageObject):
         s = vector(self.truth_table()).support()
 
         from sage.combinat.combination import Combinations
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
 
         from sage.matrix.constructor import Matrix
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
 
         for i in xrange(1,d+1):
@@ -1060,7 +1062,7 @@ cdef class BooleanFunction(SageObject):
             sage: [ int(B[i]) for i in range(len(B)) ]
             [0, 1, 1, 1]
         """
-        return self.__call__(i)
+        return self(i)
 
     def _clear_cache(self):
         """
@@ -1149,7 +1151,7 @@ cdef class BooleanFunctionIterator:
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(1)
             sage: I = B.__iter__()
-            sage: I.next()
+            sage: next(I)
             False
         """
         if self.index == self.last:

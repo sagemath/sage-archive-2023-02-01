@@ -175,15 +175,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
-from sage.misc.misc import is_64_bit, is_in_string
+from sage.misc.misc import is_in_string
+from sage.misc.superseded import deprecation
+from sage.misc.cachefunc import cached_method
+from sage.interfaces.tab_completion import ExtraTabCompletion
 import re
 import os
 import pexpect
 import time
 import platform
+import string
 
 GAP_DIR = os.path.join(DOT_SAGE, 'gap')
 
@@ -296,7 +299,7 @@ def _get_gap_memory_pool_size_MB():
 
 ############ Classes with methods for both the GAP3 and GAP4 interface
 
-class Gap_generic(Expect):
+class Gap_generic(ExtraTabCompletion, Expect):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
 
@@ -308,6 +311,7 @@ class Gap_generic(Expect):
       code
 
     """
+    _identical_function = "IsIdenticalObj"
 
     def _synchronize(self, timeout=0.5, cmd='%s;'):
         """
@@ -413,9 +417,8 @@ class Gap_generic(Expect):
             # the following input prompt is now the current input prompt
             E.expect('@i', timeout=timeout)
             success = True
-        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
+        except (pexpect.TIMEOUT, pexpect.EOF):
             # GAP died or hangs indefinitely
-            # print 'GAP interrupt:', msg
             success = False
 
         if not success and quit_on_fail:
@@ -498,14 +501,14 @@ class Gap_generic(Expect):
             sage: gap.load_package("chevie")
             Traceback (most recent call last):
             ...
-            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages SPKG.
+            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages and/or database_gap SPKGs.
         """
         if verbose:
             print "Loading GAP package %s"%pkg
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
-                               "You may want to install the gap_packages SPKG.")
+                               "You may want to install the gap_packages and/or database_gap SPKGs.")
 
     def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""
@@ -647,17 +650,14 @@ class Gap_generic(Expect):
 
             sage: gap(2)
             2
-            sage: import sage.tests.interrupt
             sage: try:
-            ...     sage.tests.interrupt.interrupt_after_delay()
-            ...     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
-            ... except KeyboardInterrupt:
-            ...     pass
-            Interrupting Gap...
+            ....:     alarm(0.5)
+            ....:     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
+            ....: except KeyboardInterrupt:
+            ....:     pass
             sage: gap(2)
             2
         """
-        print "Interrupting %s..."%self
         self.quit()
         raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
@@ -881,6 +881,26 @@ class Gap_generic(Expect):
             <class 'sage.interfaces.interface.AsciiArtString'>
             sage: s.startswith('CT')
             True
+
+        TESTS:
+
+        If the function call is too long, two ``gap.eval`` calls are made
+        since returned values from commands in a file cannot be handled
+        properly::
+
+            sage: g = Gap()
+            sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name'))
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
+
+        When the command itself is so long that it warrants use of a temporary
+        file to be communicated to GAP, this does not cause problems since
+        the file will contain a single command::
+
+            sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
+
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -892,28 +912,22 @@ class Gap_generic(Expect):
         #is in the 'last' variable in GAP.  If the function returns a
         #value, then that value will be in 'last', otherwise it will
         #be the marker.
-        marker = '"__SAGE_LAST__"'
-        self.eval('__SAGE_LAST__ := %s;;'%marker)
-        res = self.eval("%s(%s)"%(function, ",".join([s.name() for s in args]+
-                  ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
-        if self.eval('last') != marker:
-            return self.new('last')
+        marker = '__SAGE_LAST__:="__SAGE_LAST__";;'
+        cmd = "%s(%s);;"%(function, ",".join([s.name() for s in args]+
+                ['%s=%s'%(key,value.name()) for key, value in kwds.items()]))
+        if len(marker) + len(cmd) <= self._eval_using_file_cutoff:
+            # We combine the two commands so we only run eval() once and the
+            #   only output would be from the second command
+            res = self.eval(marker+cmd)
+        else:
+            self.eval(marker)
+            res = self.eval(cmd)
+        if self.eval(self._identical_function + '(last,__SAGE_LAST__)') != 'true':
+            return self.new('last2;')
         else:
             if res.strip():
                 from sage.interfaces.expect import AsciiArtString
                 return AsciiArtString(res)
-
-    def trait_names(self):
-        """
-        EXAMPLES::
-
-            sage: c = gap.trait_names()
-            sage: len(c) > 100
-            True
-            sage: 'Order' in c
-            True
-        """
-        return []
 
     def get_record_element(self, record, name):
         r"""
@@ -945,7 +959,7 @@ class Gap_generic(Expect):
         return self('%s.%s' % (record.name(), name))
 
 
-class GapElement_generic(ExpectElement):
+class GapElement_generic(ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
 
@@ -1015,6 +1029,20 @@ class GapElement_generic(ExpectElement):
         else:
             return int(self.Length())
 
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: gap('"abc"').is_string()
+            True
+            sage: gap('[1,2,3]').is_string()
+            False
+
+        """
+        return bool(self.IsString())
+
     def _matrix_(self, R):
         r"""
         Return matrix over the (Sage) ring R determined by self, where self
@@ -1045,7 +1073,6 @@ class GapElement_generic(ExpectElement):
             [  a a^2]
             [a^3   a]
         """
-        P = self.parent()
         v = self.DimensionsMat()
         n = int(v[1])
         m = int(v[2])
@@ -1066,11 +1093,12 @@ class Gap(Gap_generic):
     - William Stein and David Joyner
     """
     def __init__(self, max_workspace_size=None,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  use_workspace_cache=True,
                  server=None,
                  server_tmpdir=None,
-                 logfile=None):
+                 logfile=None,
+                 seed=None):
         """
         EXAMPLES::
 
@@ -1099,6 +1127,27 @@ class Gap(Gap_generic):
                         logfile=logfile,
                         eval_using_file_cutoff=100)
         self.__seq = 0
+        self._seed = seed
+
+    def set_seed(self,seed=None):
+        """
+        Sets the seed for gap interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: g = Gap()
+            sage: g.set_seed(0)
+            0
+            sage: [g.Random(1,10) for i in range(5)]
+            [2, 3, 3, 4, 2]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("Reset(GlobalMersenneTwister,%d)" % seed)
+        self.eval("Reset(GlobalRandomSource,%d)" % seed)
+        self._seed = seed
+        return seed
 
     def __reduce__(self):
         """
@@ -1167,8 +1216,7 @@ class Gap(Gap_generic):
         except Exception:
             if self.__use_workspace_cache and first_try:
                 first_try = False
-                self.quit(timeout=0)
-                expect.failed_to_start.remove(self.name())
+                self.quit()
                 gap_reset_workspace(verbose=False)
                 Expect._start(self, "Failed to start GAP.")
                 self._session_number = n
@@ -1184,6 +1232,9 @@ class Gap(Gap_generic):
                 '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
         # read everything up to the first "ready" prompt
         self._expect.expect("@i")
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def _function_class(self):
         """
@@ -1301,8 +1352,8 @@ class Gap(Gap_generic):
             sage: gap.get('x')
             '2'
         """
-        cmd = ('%s:=%s;;'%(var,value)).replace('\n','')
-        out = self._eval_line(cmd, allow_use_file=True)
+        cmd = ('%s:=%s;;' % (var, value)).replace('\n','')
+        self._eval_line(cmd, allow_use_file=True)
 
     def get(self, var, use_file=False):
         """
@@ -1354,9 +1405,7 @@ class Gap(Gap_generic):
             line0 = 'Print( %s );'%line.rstrip().rstrip(';')
             try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
                 return Expect._eval_line_using_file(self, line0)
-            except RuntimeError as msg:
-                #if not ("Function call: <func> must return a value" in msg):
-                #    raise RuntimeError, msg
+            except RuntimeError:
                 return ''
         return Expect._eval_line_using_file(self, line)
 
@@ -1404,22 +1453,28 @@ class Gap(Gap_generic):
         """
         return GapFunctionElement
 
-    def trait_names(self):
+    @cached_method
+    def _tab_completion(self):
         """
+        Return additional tab completion entries
+
+        OUTPUT:
+
+        List of strings
+
         EXAMPLES::
 
-            sage: c = gap.trait_names()
+            sage: '{}' in gap._tab_completion()
+            False
+            sage: c = gap._tab_completion()
             sage: len(c) > 100
             True
             sage: 'Order' in c
             True
         """
-        try:
-            return self.__trait_names
-        except AttributeError:
-            self.__trait_names = eval(self.eval('NamesSystemGVars()')) + \
-                                 eval(self.eval('NamesUserGVars()'))
-        return self.__trait_names
+        names = eval(self.eval('NamesSystemGVars()')) + \
+                eval(self.eval('NamesUserGVars()'))
+        return [n for n in names if n[0] in string.ascii_letters]
 
 
 ############
@@ -1539,20 +1594,6 @@ class GapElement(GapElement_generic):
         else:
             return self.parent().new('%s%s'%(self._name, ''.join(['[%s]'%x for x in n])))
 
-    def __reduce__(self):
-        """
-        Note that GAP elements cannot be pickled.
-
-        EXAMPLES::
-
-            sage: gap(2).__reduce__()
-            (<function reduce_load at 0x...>, ())
-            sage: f, args = _
-            sage: f(*args)
-            <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-        """
-        return reduce_load, ()  # default is an invalid object
-
     def str(self, use_file=False):
         """
         EXAMPLES::
@@ -1564,7 +1605,7 @@ class GapElement(GapElement_generic):
             P = self._check_valid()
             return P.get(self.name(), use_file=True)
         else:
-            return self.__repr__()
+            return repr(self)
 
     def _latex_(self):
         r"""
@@ -1583,17 +1624,21 @@ class GapElement(GapElement_generic):
         except RuntimeError:
             return str(self)
 
-    def trait_names(self):
+    @cached_method
+    def _tab_completion(self):
         """
+        Return additional tab completion entries
+
+        OUTPUT:
+
+        List of strings
+
         EXAMPLES::
 
             sage: s5 = gap.SymmetricGroup(5)
-            sage: 'Centralizer' in s5.trait_names()
+            sage: 'Centralizer' in s5._tab_completion()
             True
         """
-        if '__trait_names' in self.__dict__:
-            return self.__trait_names
-        import string
         from sage.misc.misc import uniq
         P = self.parent()
         v = P.eval('$SAGE.OperationsAdmittingFirstArgument(%s)'%self.name())
@@ -1602,7 +1647,6 @@ class GapElement(GapElement_generic):
         v = [ oper.split('"')[1] for oper in v ]
         v = [ oper for oper in v if all(ch in string.ascii_letters for ch in oper) ]
         v = uniq(v)
-        self.__trait_names = v
         return v
 
 
@@ -1661,13 +1705,11 @@ def gfq_gap_to_sage(x, F):
     """
     INPUT:
 
+    - ``x`` -- GAP finite field element
 
-    -  ``x`` - gap finite field element
+    - ``F`` -- Sage finite field
 
-    -  ``F`` - Sage finite field
-
-
-    OUTPUT: element of F
+    OUTPUT: element of ``F``
 
     EXAMPLES::
 
@@ -1687,31 +1729,39 @@ def gfq_gap_to_sage(x, F):
         sage: F.multiplicative_generator()^3
         12*a + 11
 
+    TESTS:
+
+    Check that :trac:`18048` is fixed::
+
+        sage: K.<a> = GF(16)
+        sage: b = a^2 + a
+        sage: K(b._gap_())
+        a^2 + a
+
     AUTHOR:
 
     - David Joyner and William Stein
     """
-    from sage.rings.finite_rings.constructor import FiniteField
-
     s = str(x)
     if s[:2] == '0*':
         return F(0)
     i1 = s.index("(")
     i2 = s.index(")")
     q  = eval(s[i1+1:i2].replace('^','**'))
-    if q == F.order():
-        K = F
-    else:
-        K = FiniteField(q, F.variable_name())
+    if not F.cardinality().is_power_of(q):
+        raise ValueError('%r has no subfield of size %r' % (F, q))
     if s.find(')^') == -1:
         e = 1
     else:
         e = int(s[i2+2:])
     if F.degree() == 1:
-        g = int(gap.eval('Int(Z(%s))'%q))
+        g = F(gap.eval('Int(Z(%s))' % q))
+    elif F.is_conway():
+        f = (F.cardinality() - 1) // (q - 1)
+        g = F.multiplicative_generator() ** f
     else:
-        g = K.multiplicative_generator()
-    return F(K(g**e))
+        raise ValueError('%r is not prime or defined by a Conway polynomial' % F)
+    return g**e
 
 def intmod_gap_to_sage(x):
     r"""
@@ -1733,14 +1783,14 @@ def intmod_gap_to_sage(x):
         sage: b = sage.interfaces.gap.intmod_gap_to_sage(a); b
         3
         sage: b.parent()
-        Ring of integers modulo 17
+        Finite Field of size 17
 
         sage: a = gap(Mod(0, 17)); a
         0*Z(17)
         sage: b = sage.interfaces.gap.intmod_gap_to_sage(a); b
         0
         sage: b.parent()
-        Ring of integers modulo 17
+        Finite Field of size 17
 
         sage: a = gap(Mod(3, 65537)); a
         ZmodpZObj( 3, 65537 )
@@ -1749,12 +1799,12 @@ def intmod_gap_to_sage(x):
         sage: b.parent()
         Ring of integers modulo 65537
     """
+    from sage.rings.finite_rings.all import FiniteField
     from sage.rings.finite_rings.integer_mod import Mod
-    from sage.rings.finite_rings.integer_mod_ring import Zmod
     s = str(x)
     m = re.search(r'Z\(([0-9]*)\)', s)
     if m:
-        return gfq_gap_to_sage(x, Zmod(m.group(1)))
+        return gfq_gap_to_sage(x, FiniteField(m.group(1)))
     m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
     if m:
         return Mod(m.group(1), m.group(2))
@@ -1776,19 +1826,31 @@ def reduce_load_GAP():
     """
     return gap
 
+# This is only for backwards compatibility, in order to be able
+# to unpickle the invalid objects that are in the pickle jar.
 def reduce_load():
     """
-    Returns an invalid GAP element. Note that this is the object
-    returned when a GAP element is unpickled.
+    This is for backwards compatibility only.
+
+    To be precise, it only serves at unpickling the invalid
+    gap elements that are stored in the pickle jar.
 
     EXAMPLES::
 
         sage: from sage.interfaces.gap import reduce_load
         sage: reduce_load()
-        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-        sage: loads(dumps(gap(2)))
-        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
+        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
+        See http://trac.sagemath.org/18848 for details.
+        <repr(<sage.interfaces.gap.GapElement at ...>) failed:
+        ValueError: The session in which this object was defined is no longer running.>
+
+    By :trac:`18848`, pickling actually often works::
+
+        sage: loads(dumps(gap([1,2,3])))
+        [ 1, 2, 3 ]
+
     """
+    deprecation(18848, "This function is only used to unpickle invalid objects")
     return GapElement(None, None)
 
 def gap_console():
@@ -1822,7 +1884,10 @@ def gap_console():
         True
         sage: 'sorry' not in gap_startup
         True
-     """
+    """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gap magics instead.')
     cmd, _ = gap_command(use_workspace_cache=False)
     cmd += ' ' + os.path.join(SAGE_EXTCODE,'gap','console.g')
     os.system(cmd)

@@ -24,11 +24,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
-include 'gsl.pxi'
-
+include "cysignals/signals.pxi"
+from sage.libs.gsl.all cimport *
 from sage.ext.fast_eval cimport FastDoubleFunc
+
 
 cdef class PyFunctionWrapper:
    cdef object the_function

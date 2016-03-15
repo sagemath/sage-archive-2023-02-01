@@ -25,10 +25,13 @@ design catalog:
 - :ref:`sage.combinat.designs.difference_family`
 - :ref:`sage.combinat.designs.difference_matrices`
 - :ref:`sage.combinat.designs.steiner_quadruple_systems`
+- :ref:`sage.combinat.designs.twographs`
 - :ref:`sage.combinat.designs.database`
 
 **Technical things**
 
 - :ref:`sage.combinat.designs.ext_rep`
 - :ref:`sage.combinat.designs.designs_pyx`
+- :ref:`sage.combinat.designs.subhypergraph_search`
+- :ref:`sage.combinat.designs.evenly_distributed_sets`
 """

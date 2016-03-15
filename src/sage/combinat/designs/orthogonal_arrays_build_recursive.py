@@ -1,11 +1,11 @@
 r"""
 Orthogonal arrays (build recursive constructions)
 
-This module implements several constructions of :mod:`Orthogonal Arrays
-<sage.combinat.designs.orthogonal_arrays>`. As their input can be complex, they
-all have a counterpart in the
-:mod:`~sage.combinat.designs.orthogonal_arrays_find_recursive` module that
-automatically computes it.
+This module implements several constructions of
+:mod:`Orthogonal Arrays<sage.combinat.designs.orthogonal_arrays>`.
+As their input can be complex, they all have a counterpart in the
+:mod:`~sage.combinat.designs.orthogonal_arrays_find_recursive` module
+that automatically computes it.
 
 All these constructions are automatically queried when the
 :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array` function is
@@ -353,7 +353,7 @@ def OA_and_oval(q):
         sage: _ = OA_and_oval
 
     """
-    from sage.rings.arith import is_prime_power
+    from sage.arith.all import is_prime_power
     from sage.combinat.designs.block_design import projective_plane
     from orthogonal_arrays import OA_relabel
 
@@ -670,8 +670,8 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
       Charles J.Colbourn, Jeffrey H. Dinitz, Mieczyslaw Wojtas.
       Designs, Codes and Cryptography 5, no. 3 (1995): 189-197.
     """
-    from sage.rings.arith import is_prime_power
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.arith.all import is_prime_power
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
     if complement:
         a,b,c = n-a,n-b,n-c
@@ -686,7 +686,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     assert a<=n and b<=n and c<=n and d<=n, "a,b,c,d (={},{},{},{}) must be <=n(={})".format(a,b,c,d,n)
     assert a+b+c<=n+1, "{}={}+{}+{}=a+b+c>n+1={}+1 violates the assumptions".format(a+b+c,a,b,c,n)
     assert k+3+bool(d) <= n+1, "There exists no OA({},{}).".format(k+3+bool(d),n)
-    G = GF(n,prefix='x',conway=True)
+    G = GF(n,prefix='x')
     G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
     assert G_set[0] == G.zero() and G_set[1] == G.one(), "problem with the ordering of {}".format(G)
     G_to_int = {v:i for i,v in enumerate(G_set)}
@@ -700,8 +700,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     # Adding the first two trivial columns
     OA.insert(0,[j for i in range(n) for j in range(n)])
     OA.insert(0,[i for i in range(n) for j in range(n)])
-    OA=zip(*OA)
-    OA.sort()
+    OA=sorted(zip(*OA))
 
     # Moves the first three columns to the end
     OA = [list(B[3:]+B[:3]) for B in OA]
@@ -721,7 +720,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     if complement:
         last_sets = [set(range(n)).difference(s) for s in last_sets]
 
-    sizes = map(len,last_sets)
+    sizes = [len(_) for _ in last_sets]
     last_sets_dict = [{v:i for i,v in enumerate(s)} for s in last_sets]
 
     # Truncating the OA
@@ -785,8 +784,8 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
       Canad. Math. Bull vol7 num.4 (1964)
     """
     from sage.combinat.designs.designs_pyx import is_orthogonal_array
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.rings.arith import is_prime_power
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
+    from sage.arith.all import is_prime_power
     from block_design import DesarguesianProjectivePlaneDesign
     from itertools import chain
 
@@ -802,7 +801,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
     q = n
     K = FiniteField(q, 'x')
     relabel = {x:i for i,x in enumerate(K)}
-    PG = DesarguesianProjectivePlaneDesign(q,check=False).blocks(copy=False)
+    PG = DesarguesianProjectivePlaneDesign(q,check=False,point_coordinates=False).blocks(copy=False)
 
     if q % 3 == 0:
         t = K.one()
@@ -818,7 +817,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
     # - (1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t),
     #   (0,1,1), (1,0,-t)
     points = [(1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t), (0,1,1), (1,0,-t)]
-    points = [map(K,t) for t in points] # triples of K^3
+    points = [[K(_) for _ in t] for t in points] # triples of K^3
     AG_2_3 = []
     for x,y,z in points:
         if z!=0:
@@ -1061,7 +1060,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
                 for i,x2 in enumerate(B2):
                     count[i][x2] += 1
 
-            new_parallel_classes.extend(map(list,izip(*copies_of_OA1)))
+            new_parallel_classes.extend([list(_) for _ in izip(*copies_of_OA1)])
 
         # New g1-parallel classes, each one built from the product of a parallel
         # class with a OA1
@@ -1089,8 +1088,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
     #
     # OA1 and resolvable OA2 and OA3
     OA1 = orthogonal_array(k,n1)
-    OA3 = orthogonal_array(k+1,n3)
-    OA3.sort()
+    OA3 = sorted(orthogonal_array(k+1,n3))
     OA3 = [B[1:] for B in OA3]
     OA2 = orthogonal_array(k+1,n2)
     OA2.sort()
@@ -1146,6 +1144,7 @@ def _reorder_matrix(matrix):
 
     The input must be a `N \times k` matrix with entries in `\{0,\ldots,N-1\}`
     such that:
+
     - the symbols on each row are distinct (and hence can be identified with
       subsets of `\{0,\ldots,N-1\}`),
     - each symbol appear exactly `k` times.
@@ -1378,7 +1377,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
     from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
     from difference_family import difference_family
     from orthogonal_arrays import incomplete_orthogonal_array
-    from sage.rings.arith import is_prime_power
+    from sage.arith.all import is_prime_power
 
     if explain_construction:
         return ("Brouwer's separable design construction with t={},q={},x={} from:\n"+

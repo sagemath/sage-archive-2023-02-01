@@ -264,7 +264,7 @@ be negative. Use range to construct the list `[10, 7, 4, 1, -2]`.
 
     - :func:`xrange`: returns an iterator rather than building a list.
     - :func:`srange`: like range but with Sage integers; see below.
-    - :func:`sxrange`: like xrange but with Sage integers.
+    - :func:`xsrange`: like xrange but with Sage integers.
 
 Creating Lists III: list comprehensions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1111,22 +1111,22 @@ How does this work?
     sage: it = iter(GF(5)); it
     <generator object __iter__ at 0x...>
 
-    sage: it.next()
+    sage: next(it)
     0
 
-    sage: it.next()
+    sage: next(it)
     1
 
-    sage: it.next()
+    sage: next(it)
     2
 
-    sage: it.next()
+    sage: next(it)
     3
 
-    sage: it.next()
+    sage: next(it)
     4
 
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration

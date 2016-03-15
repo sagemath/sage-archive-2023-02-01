@@ -146,7 +146,7 @@ class FiniteField_givaro(FiniteField):
         if q >= 1<<16:
             raise ValueError("q must be < 2^16")
 
-        from constructor import GF
+        from finite_field_constructor import GF
         FiniteField.__init__(self, GF(p), name, normalize=False)
 
         self._kwargs['repr'] = repr
@@ -305,7 +305,7 @@ class FiniteField_givaro(FiniteField):
         the polynomial at the field's generator::
 
             sage: R.<x> = QQ[]
-            sage: k, a = FiniteField(5^2, 'a', impl='givaro').objgen()
+            sage: k.<a> = FiniteField(5^2, 'a', impl='givaro')
             sage: k(R(2/3))
             4
             sage: k(x^2)
@@ -318,7 +318,7 @@ class FiniteField_givaro(FiniteField):
             sage: k(x^25)
             a
 
-            sage: Q, q = FiniteField(5^3, 'q', impl='givaro').objgen()
+            sage: Q.<q> = FiniteField(5^3, 'q', impl='givaro')
             sage: L = GF(5)
             sage: LL.<xx> = L[]
             sage: Q(xx^2 + 2*xx + 4)
@@ -378,8 +378,8 @@ class FiniteField_givaro(FiniteField):
             sage: k(48771/1225)
             28
 
-            sage: F9 = FiniteField(9, impl='givaro', conway=True, prefix='a')
-            sage: F81 = FiniteField(81, impl='givaro', conway=True, prefix='a')
+            sage: F9 = FiniteField(9, impl='givaro', prefix='a')
+            sage: F81 = FiniteField(81, impl='givaro', prefix='a')
             sage: F81(F9.gen())
             2*a4^3 + 2*a4^2 + 1
         """
@@ -441,7 +441,7 @@ class FiniteField_givaro(FiniteField):
         try:
             return self._prime_subfield
         except AttributeError:
-            from constructor import GF
+            from finite_field_constructor import GF
             self._prime_subfield = GF(self.characteristic())
             return self._prime_subfield
 

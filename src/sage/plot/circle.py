@@ -190,7 +190,7 @@ class Circle(GraphicPrimitive):
             sage: c = C[0]
             sage: d = c.plot3d(z=2)
             sage: d.texture.opacity
-            0.300000000000000
+            0.3
 
         ::
 

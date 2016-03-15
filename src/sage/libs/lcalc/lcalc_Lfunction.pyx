@@ -10,26 +10,21 @@ AUTHORS:
 - Yann Laigle-Chapuy (2009): refactored
 - Rishikesh (2009): initial version
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/libs/mpfr.pxd"
 
+from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer
 
 from sage.rings.complex_number cimport ComplexNumber
@@ -73,27 +68,27 @@ cdef class Lfunction:
         tmpi = Integer(period)
         cdef int Period = mpz_get_si(tmpi.value)
         tmpr = RRR(Q)
-        cdef double q=mpfr_get_d(tmpr.value,GMP_RNDN)
+        cdef double q=mpfr_get_d(tmpr.value, MPFR_RNDN)
         tmpc = CCC(OMEGA)
-        cdef c_Complex w=new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+        cdef c_Complex w=new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
 
         cdef int A=len(gamma)
         cdef double *g=new_doubles(A+1)
         cdef c_Complex *l=new_Complexes(A+1)
         for i from 0 <= i < A:
             tmpr = RRR(gamma[i])
-            g[i+1] = mpfr_get_d(tmpr.value,GMP_RNDN)
+            g[i+1] = mpfr_get_d(tmpr.value, MPFR_RNDN)
             tmpc = CCC(lambd[i])
-            l[i+1] = new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+            l[i+1] = new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
 
         cdef int n_poles = len(pole)
         cdef c_Complex *p = new_Complexes(n_poles +1)
         cdef c_Complex *r = new_Complexes(n_poles +1)
         for i from 0 <= i < n_poles:
             tmpc=CCC(pole[i])
-            p[i+1] = new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+            p[i+1] = new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
             tmpc=CCC(residue[i])
-            r[i+1] = new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+            r[i+1] = new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
 
         self.__init_fun(NAME, what_type, dirichlet_coefficient, Period, q,  w,  A, g, l, n_poles, p, r)
 
@@ -140,14 +135,14 @@ cdef class Lfunction:
             sage: chi=DirichletGroup(5)[2] #This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: L=Lfunction_from_character(chi, type="int")
-            sage: L.value(.5)
-            0.231750947504... + 5.75329642226...e-18*I
+            sage: L.value(.5)  # abs tol 3e-15
+            0.231750947504016 + 5.75329642226136e-18*I
             sage: L.value(.2+.4*I)
             0.102558603193... + 0.190840777924...*I
 
             sage: L=Lfunction_from_character(chi, type="double")
-            sage: L.value(.6)
-            0.274633355856... + 6.59869267328...e-18*I
+            sage: L.value(.6)  # abs tol 3e-15
+            0.274633355856345 + 6.59869267328199e-18*I
             sage: L.value(.6+I)
             0.362258705721... + 0.433888250620...*I
 
@@ -165,7 +160,7 @@ cdef class Lfunction:
             -0.450728958517... - 0.780511403019...*I
         """
         cdef ComplexNumber complexified_s = CCC(s)
-        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re,GMP_RNDN), mpfr_get_d(complexified_s.__im, GMP_RNDN))
+        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re, MPFR_RNDN), mpfr_get_d(complexified_s.__im, MPFR_RNDN))
         cdef c_Complex result = self.__value(z, derivative)
         return CCC(result.real(),result.imag())
 
@@ -203,7 +198,7 @@ cdef class Lfunction:
         """
         #This takes s -> .5 + I*s
         cdef ComplexNumber complexified_s = CCC(0.5)+ CCC(0,1)*CCC(s)
-        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re,GMP_RNDN), mpfr_get_d(complexified_s.__im, GMP_RNDN))
+        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re, MPFR_RNDN), mpfr_get_d(complexified_s.__im, MPFR_RNDN))
         cdef c_Complex result = self.__hardy_z_function(z)
         return CCC(result.real(),result.imag())
 
@@ -242,7 +237,7 @@ cdef class Lfunction:
             3.17043978326...
         """
         cdef RealNumber real_T=RRR(T)
-        cdef double double_T = mpfr_get_d(real_T.value, GMP_RNDN)
+        cdef double double_T = mpfr_get_d(real_T.value, MPFR_RNDN)
         cdef double res_d = self.__typedN(double_T)
         return RRR(res_d)
 
@@ -254,7 +249,7 @@ cdef class Lfunction:
         change in signs of areal valued function whose zeros coincide with
         the zeros of L-function.
 
-        Use find_zeros_via_N for slower but more rigorous computation.
+        Use :meth:`find_zeros_via_N` for slower but more rigorous computation.
 
         INPUT:
         
@@ -294,7 +289,7 @@ cdef class Lfunction:
         cdef RealNumber real_T2 = RRR(T2)
         cdef RealNumber real_stepsize = RRR(stepsize)
         sig_on()
-        self.__find_zeros_v( mpfr_get_d(real_T1.value, GMP_RNDN), mpfr_get_d(real_T2.value, GMP_RNDN), mpfr_get_d(real_stepsize.value, GMP_RNDN),&result)
+        self.__find_zeros_v( mpfr_get_d(real_T1.value, MPFR_RNDN), mpfr_get_d(real_T2.value, MPFR_RNDN), mpfr_get_d(real_stepsize.value, MPFR_RNDN),&result)
         sig_off()
         i=result.size()
         returnvalue = []
@@ -313,21 +308,20 @@ cdef class Lfunction:
 
         INPUT:
 
-         - ``count`` - number of zeros to be found
-         - ``do_negative`` - (default: False) False to ignore zeros below the
-           real axis.
-         - ``max_refine`` - when some zeros are found to be missing, the step
-           size used to find zeros is refined. max_refine gives an upper limit
-           on when lcalc should give up. Use default value unless you know
-           what you are doing.
-         - ``rank`` - integer (default: -1) analytic rank of the L-function.
-           If -1 is passed, then we attempt to compute it. (Use default if in
-           doubt)
-         - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
-           the explicit fomula for additional confidence that all the zeros
-           have been found and are accurate. This is still being tested, so
-           using the default is recommended.
-
+        - ``count`` - number of zeros to be found
+        - ``do_negative`` - (default: False) False to ignore zeros below the
+          real axis.
+        - ``max_refine`` - when some zeros are found to be missing, the step
+          size used to find zeros is refined. max_refine gives an upper limit
+          on when lcalc should give up. Use default value unless you know
+          what you are doing.
+        - ``rank`` - integer (default: -1) analytic rank of the L-function.
+          If -1 is passed, then we attempt to compute it. (Use default if in
+          doubt)
+        - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
+          the explicit fomula for additional confidence that all the zeros
+          have been found and are accurate. This is still being tested, so
+          using the default is recommended.
 
         OUTPUT:
         
@@ -361,7 +355,7 @@ cdef class Lfunction:
         cdef Integer test_explicit_I = Integer(test_explicit_formula)
         cdef doublevec result
         sig_on()
-        self.__find_zeros_via_N_v(mpz_get_si(count_I.value), mpz_get_si(do_negative_I.value), mpfr_get_d(max_refine_R.value, GMP_RNDN), mpz_get_si(rank_I.value), mpz_get_si(test_explicit_I.value), &result)
+        self.__find_zeros_via_N_v(mpz_get_si(count_I.value), mpz_get_si(do_negative_I.value), mpfr_get_d(max_refine_R.value, MPFR_RNDN), mpz_get_si(rank_I.value), mpz_get_si(test_explicit_I.value), &result)
         sig_off()
         returnvalue = []
         for i in range(result.size()):
@@ -412,32 +406,30 @@ cdef class Lfunction_I(Lfunction):
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
 
-
     See (23) in http://arxiv.org/abs/math/0412181
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``pole`` - List of the poles of L-function
 
-      - ``pole`` - List of the poles of L-function
-
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
 
@@ -555,28 +547,29 @@ cdef class Lfunction_D(Lfunction):
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``pole`` - List of the poles of L-function
+    - ``pole`` - List of the poles of L-function
 
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
+
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
@@ -604,7 +597,7 @@ cdef class Lfunction_D(Lfunction):
         cdef double * coeffs = new_doubles(N+1)#lcalc ignores 0th position
         for i from 0 <= i< N by 1:
             tmpr=RRR(dirichlet_coeff[i])
-            coeffs[i+1] = mpfr_get_d(tmpr.value, GMP_RNDN)
+            coeffs[i+1] = mpfr_get_d(tmpr.value, MPFR_RNDN)
         self.thisptr=new_c_Lfunction_D(NAME, what_type,  N, coeffs, Period, q,  w,  A, g, l, n_poles, p, r)
         del_doubles(coeffs)
 
@@ -693,28 +686,29 @@ cdef class Lfunction_C:
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``pole`` - List of the poles of L-function
+    - ``pole`` - List of the poles of L-function
 
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
+
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
@@ -745,7 +739,7 @@ cdef class Lfunction_C:
         coeffs[0]=new_Complex(0,0)
         for i from 0 <= i< N by 1:
             tmpc=CCC(dirichlet_coeff[i])
-            coeffs[i+1] = new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
+            coeffs[i+1] = new_Complex(mpfr_get_d(tmpc.__re, MPFR_RNDN), mpfr_get_d(tmpc.__im, MPFR_RNDN))
 
         self.thisptr = new_c_Lfunction_C(NAME, what_type,  N, coeffs, Period, q,  w,  A, g, l, n_poles, p, r)
 
@@ -873,13 +867,13 @@ def Lfunction_from_character(chi, type="complex"):
 
     INPUT:
 
-     - `chi` - A Dirichlet character
-     - `use_type` - string (default: "complex") type used for the Dirichlet
-       coefficients. This can be "int", "double" or "complex".
+    - ``chi`` - A Dirichlet character
+    - ``use_type`` - string (default: "complex") type used for the Dirichlet
+      coefficients. This can be "int", "double" or "complex".
 
     OUTPUT:
 
-    L-function object for `chi`.
+    L-function object for ``chi``.
 
     EXAMPLES::
 

@@ -2,10 +2,12 @@
 Sparse integer matrices.
 
 AUTHORS:
-    -- William Stein (2007-02-21)
-    -- Soroosh Yazdani (2007-02-21)
 
-TESTS:
+- William Stein (2007-02-21)
+- Soroosh Yazdani (2007-02-21)
+
+TESTS::
+
     sage: a = matrix(ZZ,2,range(4), sparse=True)
     sage: TestSuite(a).run()
     sage: Matrix(ZZ,0,0,sparse=True).inverse()
@@ -28,7 +30,8 @@ from cpython.sequence cimport *
 
 include 'sage/ext/stdsage.pxi'
 
-from sage.rings.integer  cimport Integer
+from sage.libs.gmp.mpz cimport *
+from sage.rings.integer cimport Integer
 from matrix cimport Matrix
 
 from matrix_modn_sparse cimport Matrix_modn_sparse
@@ -49,7 +52,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
@@ -79,14 +81,24 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         Create a sparse matrix over the integers.
 
         INPUT:
-            parent -- a matrix space
-            entries -- * a Python list of triples (i,j,x), where 0 <= i < nrows,
-                         0 <= j < ncols, and x is coercible to an int.  The i,j
-                         entry of self is set to x.  The x's can be 0.
-                       * Alternatively, entries can be a list of *all* the entries
-                         of the sparse matrix (so they would be mostly 0).
-            copy -- ignored
-            coerce -- ignored
+
+        - ``parent`` -- a matrix space
+
+        - ``entries`` -- can be one of the following:
+
+          * a Python dictionary whose items have the
+            form ``(i, j): x``, where ``0 <= i < nrows``,
+            ``0 <= j < ncols``, and ``x`` is coercible to
+            an integer.  The ``i,j`` entry of ``self`` is
+            set to ``x``.  The ``x``'s can be ``0``.
+          * Alternatively, entries can be a list of *all*
+            the entries of the sparse matrix, read
+            row-by-row from top to bottom (so they would
+            be mostly 0).
+
+        - ``copy`` -- ignored
+
+        - ``coerce`` -- ignored
         """
         cdef Py_ssize_t i, j, k
         cdef Integer z
@@ -142,12 +154,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
-
     def __hash__(self):
         return self._hash()
-
 
     ########################################################################
     # LEVEL 2 functionality
@@ -156,7 +164,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     #   * cdef _add_
     #   * cdef _sub_
     #   * cdef _mul_
-    #   * cdef _cmp_c_impl
+    #   * cpdef _cmp_
     #   * __neg__
     #   * __invert__
     #   * __copy__
@@ -169,7 +177,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     # def _unpickle(self, data, int version):   # use version >= 0
     # cpdef ModuleElement _add_(self, ModuleElement right):
     # cdef _mul_(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
+    # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):
@@ -186,7 +194,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [ 9 12 15]
         """
         cdef Py_ssize_t i
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
         cdef Integer _x
         _x = Integer(right)
@@ -199,7 +208,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         cdef Py_ssize_t i, j
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
 
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)
@@ -213,7 +223,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Py_ssize_t i, j
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
 
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)
@@ -262,6 +273,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         It is safe to change the resulting list (unless you give the option copy=False).
 
         EXAMPLE::
+
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
@@ -293,6 +305,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         It is safe to change the resulting list (unless you give the option copy=False).
 
         EXAMPLE::
+
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
@@ -360,7 +373,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         rational numbers (if possible), where we view self as a matrix
         modulo N.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(ZZ, 3, 4, [(1/3)%500, 2, 3, (-4)%500, 7, 2, 2, 3, 4, 3, 4, (5/7)%500], sparse=True)
             sage: A.rational_reconstruction(500)
             [1/3   2   3  -4]
@@ -418,8 +432,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             sage: result[0]
             'computed-pari-int'
             sage: X = result[1]; X
-            [-26  31 -30  21   2 -10]
-            [-47 -13  48 -14 -11  18]
+            [ 26 -31  30 -21  -2  10]
+            [ 47  13 -48  14  11 -18]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 
@@ -469,7 +483,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         TESTS:
 
         We test three trivial cases. PARI is used for small matrices,
-        but we let the heuristic decide that.  ::
+        but we let the heuristic decide that. ::
 
             sage: A = matrix(ZZ, 0, 2, sparse=True)
             sage: A._right_kernel_matrix()[1]
@@ -496,29 +510,34 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         this matrix.  They are ordered in reverse by divisibility.
 
         INPUT:
-            self -- matrix
-            algorithm -- (default: 'pari')
-                 'pari': works robustly, but is slower.
-                 'linbox' -- use linbox (currently off, broken)
+
+        - self -- matrix
+        - algorithm -- (default: 'pari')
+
+          * 'pari': works robustly, but is slower.
+          * 'linbox' -- use linbox (currently off, broken)
 
         OUTPUT:
-            list of integers
 
-        EXAMPLES:
+        list of integers
+
+        EXAMPLES::
+
             sage: matrix(3, range(9),sparse=True).elementary_divisors()
             [1, 3, 0]
             sage: M = matrix(ZZ, 3, [1,5,7, 3,6,9, 0,1,2], sparse=True)
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        This returns a copy, which is safe to change:
+        This returns a copy, which is safe to change::
+
             sage: edivs = M.elementary_divisors()
             sage: edivs.pop()
             6
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        SEE ALSO: smith_form
+        ..SEEALSO:: :meth:`smith_form`
         """
         return self.dense_matrix().elementary_divisors(algorithm=algorithm)
 

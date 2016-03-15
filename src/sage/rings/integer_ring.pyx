@@ -32,29 +32,19 @@ other types will also coerce to the integers, when it makes sense.
 """
 
 #*****************************************************************************
-#
-#   Sage
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-###########################################################################
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "sage/ext/random.pxi"
+include "cysignals/signals.pxi"
 
 from cpython.int cimport *
 from cpython.list cimport *
@@ -68,10 +58,13 @@ import sage.libs.pari.all
 import sage.rings.ideal
 from sage.categories.basic import EuclideanDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.structure.coerce cimport is_numpy_type
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
-
 from sage.structure.sequence import Sequence
+from sage.misc.misc_c import prod
+from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
+from sage.libs.ntl.convert cimport ZZ_to_mpz
 
 cimport integer
 cimport rational
@@ -83,8 +76,8 @@ cdef void late_import():
     # A hack to avoid circular imports.
     global arith
     if arith is None:
-        import sage.rings.arith
-        arith = sage.rings.arith
+        import sage.arith.all
+        arith = sage.arith.all
 
 cdef int number_of_integer_rings = 0
 
@@ -111,9 +104,7 @@ def is_IntegerRing(x):
         sage: is_IntegerRing(parent(1/3))
         False
     """
-    return PY_TYPE_CHECK(x, IntegerRing_class)
-
-import integer_ring_python
+    return isinstance(x, IntegerRing_class)
 
 cdef class IntegerRing_class(PrincipalIdealDomain):
     r"""
@@ -132,7 +123,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         False
         sage: Z.category()
         Join of Category of euclidean domains
-            and Category of infinite enumerated sets
+             and Category of infinite enumerated sets
+             and Category of metric spaces
         sage: Z(2^(2^5) + 1)
         4294967297
 
@@ -291,6 +283,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     TESTS::
 
         sage: TestSuite(ZZ).run()
+        sage: list(ZZ)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: len() of an infinite set
     """
 
     def __init__(self):
@@ -309,7 +305,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             True
         """
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
-                                category=(EuclideanDomains(), InfiniteEnumeratedSets()))
+                                category=(EuclideanDomains(), InfiniteEnumeratedSets().Metric()))
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
@@ -368,9 +364,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: cmp(ZZ,QQ)
             -1
         """
-        return (<Parent>left)._richcmp_helper(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
-    def _cmp_(left, right):
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` and ``right``.
 
@@ -382,7 +378,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: IntegerRing_class._cmp_(ZZ,QQ)
             -1
         """
-
         if isinstance(right,IntegerRing_class):
             return 0
         if isinstance(right, sage.rings.rational_field.RationalField):
@@ -411,21 +406,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return "\\Bold{Z}"
 
-    def __len__(self):
-        r"""
-        Return the length of the integers `\ZZ`. This throws a ``TypeError``
-        since `\ZZ` is an infinite set.
-
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: IntegerRing_class().__len__()
-            Traceback (most recent call last):
-            ...
-            TypeError: len() of unsized object
-        """
-        raise TypeError, 'len() of unsized object'
-
     def _div(self, integer.Integer left, integer.Integer right):
         """
         TESTS::
@@ -437,11 +417,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: A._div(12,0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
-        cdef rational.Rational x = PY_NEW(rational.Rational)
+        cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
         if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError('Rational division by zero')
+            raise ZeroDivisionError('rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
         mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)
@@ -519,14 +499,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             start = PY_NEW(Integer) # 0
         if step is None:
             step = 1
-        if not PyInt_CheckExact(step):
-            if not PY_TYPE_CHECK(step, integer.Integer):
+        if type(step) is not int:
+            if not isinstance(step, integer.Integer):
                 step = integer.Integer(step)
             if mpz_fits_slong_p((<Integer>step).value):
                 step = int(step)
-        if not PY_TYPE_CHECK(start, integer.Integer):
+        if not isinstance(start, integer.Integer):
             start = integer.Integer(start)
-        if not PY_TYPE_CHECK(end, integer.Integer):
+        if not isinstance(end, integer.Integer):
             end = integer.Integer(end)
         cdef integer.Integer a = <Integer>start
         cdef integer.Integer b = <Integer>end
@@ -536,7 +516,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer zstep, last
 
         L = []
-        if PyInt_CheckExact(step):
+        if type(step) is int:
             istep = PyInt_AS_LONG(step)
             step_sign = istep
         else:
@@ -547,7 +527,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         while mpz_cmp(a.value, b.value)*step_sign < 0:
             last = a
             a = PY_NEW(Integer)
-            if PyInt_CheckExact(step): # count on branch prediction...
+            if type(step) is int: # count on branch prediction...
                 if istep > 0:
                     mpz_add_ui(a.value, last.value, istep)
                 else:
@@ -565,15 +545,21 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: for n in ZZ:
-            ...    if n < 3: print n
-            ...    else: break
+            ....:  if n < 3: print n
+            ....:  else: break
             0
             1
             -1
             2
             -2
         """
-        return integer_ring_python.iterator(self)
+        yield self(0)
+        n = self(1)
+        while True:
+            sig_check()
+            yield n
+            yield -n
+            n += 1
 
     cdef Integer _coerce_ZZ(self, ZZ_c *z):
         cdef integer.Integer i
@@ -612,6 +598,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ...
             TypeError: no canonical coercion from Rational Field to Integer Ring
 
+        Coercions are available from numpy integer types::
+
+            sage: import numpy
+            sage: ZZ.coerce(numpy.int8('1'))
+            1
+            sage: ZZ.coerce(numpy.int32('32'))
+            32
+            sage: ZZ.coerce(numpy.int64('-12'))
+            -12
+            sage: ZZ.coerce(numpy.uint64('11'))
+            11
+
         TESTS::
 
             sage: 5r + True
@@ -642,6 +640,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return sage.rings.integer.long_to_Z()
         elif S is bool:
             return True
+        elif is_numpy_type(S):
+            import numpy
+            if issubclass(S, numpy.integer):
+                return True
+            else:
+                return None
         else:
             None
 
@@ -811,11 +815,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 if x is None:
                     mpz_set_si(value, rstate.c_random()%5 - 2)
                 else:
-                    n_max = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
+                    n_max = x if isinstance(x, integer.Integer) else self(x)
                     mpz_urandomm(value, rstate.gmp_state, n_max.value)
             else:
-                n_min = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
-                n_max = y if PY_TYPE_CHECK(y, integer.Integer) else self(y)
+                n_min = x if isinstance(x, integer.Integer) else self(x)
+                n_max = y if isinstance(y, integer.Integer) else self(y)
                 n_width = n_max - n_min
                 if mpz_sgn(n_width.value) <= 0:
                     n_min = self(-2)
@@ -1243,9 +1247,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         elif n == 2:
             return sage.rings.integer.Integer(-1)
         elif n < 1:
-            raise ValueError, "n must be positive in zeta()"
+            raise ValueError("n must be positive in zeta()")
         else:
-            raise ValueError, "no nth root of unity in integer ring"
+            raise ValueError("no nth root of unity in integer ring")
 
     def parameter(self):
         r"""
@@ -1328,7 +1332,6 @@ def IntegerRing():
     """
     return ZZ
 
-import sage.misc.misc
 def crt_basis(X, xgcd=None):
     r"""
     Compute and return a Chinese Remainder Theorem basis for the list ``X``
@@ -1391,16 +1394,16 @@ def crt_basis(X, xgcd=None):
     if len(X) == 0:
         return []
 
-    P = sage.misc.misc.prod(X)
+    P = prod(X)
 
     Y = []
     # 2. Compute extended GCD's
     ONE=X[0].parent()(1)
     for i in range(len(X)):
         p = X[i]
-        prod = P//p
-        g,s,t = p.xgcd(prod)
+        others = P//p
+        g,s,t = p.xgcd(others)
         if g != ONE:
-            raise ArithmeticError, "The elements of the list X must be coprime in pairs."
-        Y.append(t*prod)
+            raise ArithmeticError("the elements of the list X must be coprime in pairs")
+        Y.append(t*others)
     return Y

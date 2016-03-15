@@ -100,11 +100,13 @@ from copy import copy
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
+from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 
 class NakajimaYMonomial(Element):
@@ -160,6 +162,18 @@ class NakajimaYMonomial(Element):
                     return_str += "Y(%s,%s) "%(L[x][0][0],L[x][0][1])
             return return_str
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: M = crystals.infinity.NakajimaMonomials(['C',5])
+            sage: m1 = M.module_generators[0].f(1)
+            sage: hash(m1)
+            4715601665014767730  # 64-bit
+            -512614286           # 32-bit
+        """
+        return hash(frozenset(tuple(self._dict.iteritems())))
+
     def __eq__(self,other):
         r"""
         EXAMPLES::
@@ -189,7 +203,7 @@ class NakajimaYMonomial(Element):
             sage: m.__ne__(m)
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __lt__(self,other):
         r"""
@@ -227,21 +241,21 @@ class NakajimaYMonomial(Element):
                     return_str += "Y_{%s,%s} "%(L[x][0][0],L[x][0][1])
             return return_str
 
-    def weight(self):
+    def _classical_weight(self):
         r"""
-        Return the weight of ``self`` as an element of
+        Return the weight of ``self`` as an element of the classical version of
         ``self.parent().weight_lattice_realization``.
 
         EXAMPLES::
 
             sage: M = crystals.infinity.NakajimaMonomials(['D',4,2])
             sage: m = M.module_generators[0].f_string([0,3,2,0,1])
-            sage: m.weight()
+            sage: m._classical_weight()
             -2*Lambda[0] + Lambda[1]
 
             sage: M = crystals.infinity.NakajimaMonomials(['E',6])
             sage: m = M.module_generators[0].f_string([1,5,2,6,3])
-            sage: m.weight()
+            sage: m._classical_weight()
             (-1/2, -3/2, 3/2, 1/2, -1/2, 1/2, 1/2, -1/2)
         """
         P = self.parent().weight_lattice_realization()
@@ -270,6 +284,20 @@ class NakajimaYMonomial(Element):
         path = self.to_highest_weight()
         return Q(sum(-alpha[j] for j in path[1]))
 
+    def weight(self):
+        r"""
+        Return the weight of ``self`` as an element of the weight lattice.
+
+        EXAMPLES::
+
+            sage: C = crystals.infinity.NakajimaMonomials(['A',1,1])
+            sage: v=C.highest_weight_vector()
+            sage: v.f(1).weight()+v.f(0).weight()
+            -delta
+        """
+        P = self.parent().weight_lattice_realization()
+        return P(self.weight_in_root_lattice())
+
     def epsilon(self,i):
         r"""
         Return the value of `\varepsilon_i` on ``self``.
@@ -288,7 +316,7 @@ class NakajimaYMonomial(Element):
         if i not in self.parent().index_set():
             raise ValueError("i must be an element of the index set")
         h = self.parent().weight_lattice_realization().simple_coroots()
-        return self.phi(i) - self.weight().scalar(h[i])
+        return self.phi(i) - self._classical_weight().scalar(h[i])
 
     def phi(self,i):
         r"""
@@ -626,7 +654,7 @@ class NakajimaAMonomial(NakajimaYMonomial):
             sage: M = crystals.infinity.NakajimaMonomials(['A',4,2],use_Y=False)
             sage: m = M.module_generators[0].f_string([1,2,0,1])
             sage: m.weight()
-            2*Lambda[0] - Lambda[1]
+            2*Lambda[0] - Lambda[1] - delta
         """
         return self.to_Y_monomial().weight()
 
@@ -743,7 +771,7 @@ class NakajimaAMonomial(NakajimaYMonomial):
         d[(i,kf)] = d.get((i,kf),0) - 1
         return self.__class__(self.parent(), d)
 
-class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
+class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
     r"""
     Let `Y_{i,k}`, for `i \in I` and `k \in \ZZ`, be a commuting set of
     variables, and let `\boldsymbol{1}` be a new variable which commutes with
@@ -910,6 +938,30 @@ class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
         """
         return Infinity
 
+    def weight_lattice_realization(self):
+        r"""
+        Return the weight lattice realization of ``self``.
+
+        EXAMPLES::
+
+            sage: M = crystals.infinity.NakajimaMonomials(['A',3,2])
+            sage: M.weight_lattice_realization()
+            Extended weight lattice of the Root system of type ['B', 2, 1]^*
+            sage: M = crystals.infinity.NakajimaMonomials(['A',2])
+            sage: M.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 2]
+            sage: A = CartanMatrix([[2,-3],[-3,2]])
+            sage: M = crystals.infinity.NakajimaMonomials(A)
+            sage: M.weight_lattice_realization()
+            Weight lattice of the Root system of type Dynkin diagram of rank 2
+        """
+        F = self.cartan_type().root_system()
+        if self.cartan_type().is_finite() and F.ambient_space() is not None:
+            return F.ambient_space()
+        if self.cartan_type().is_affine():
+            return F.weight_lattice(extended=True)
+        return F.weight_lattice()
+
 class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
     r"""
     Element class for
@@ -927,7 +979,7 @@ class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
 
     EXAMPLES::
 
-        sage: La = RootSystem(['A',5,2]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',5,2]).weight_lattice(extended=True).fundamental_weights()
         sage: M = crystals.NakajimaMonomials(['A',5,2],3*La[0])
         sage: m = M.module_generators[0].f(0); m
         Y(0,0)^2 Y(0,1)^-1 Y(2,0)
@@ -943,7 +995,7 @@ class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',5,2]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',5,2]).weight_lattice(extended=True).fundamental_weights()
             sage: M = crystals.NakajimaMonomials(['A',5,2],3*La[0])
             sage: m = M.module_generators[0]
             sage: [m.f(i) for i in M.index_set()]
@@ -952,6 +1004,20 @@ class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
         if self.phi(i) == 0:
             return None
         return super(CrystalOfNakajimaMonomialsElement, self).f(i)
+
+    def weight(self):
+        r"""
+        Return the weight of ``self`` as an element of the weight lattice.
+
+        EXAMPLES::
+
+            sage: La = RootSystem("A2").weight_lattice().fundamental_weights()
+            sage: M = crystals.NakajimaMonomials("A2",La[1]+La[2])
+            sage: M.module_generators[0].weight()
+            (2, 1, 0)
+        """
+        P = self.parent().weight_lattice_realization()
+        return P(self.weight_in_root_lattice()) + P(self.parent().hw)
 
 class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
     r"""
@@ -1001,7 +1067,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         sage: GM.is_isomorphic(GB,edge_labels=True)
         True
 
-        sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
         sage: M = crystals.NakajimaMonomials(['A',3,1],La[0]+La[2])
         sage: B = crystals.GeneralizedYoungWalls(3,La[0]+La[2])
         sage: SM = M.subcrystal(max_depth=4)
@@ -1011,7 +1077,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         sage: GM.is_isomorphic(GB,edge_labels=True) # long time
         True
 
-        sage: La = RootSystem(['A',5,2]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',5,2]).weight_lattice(extended=True).fundamental_weights()
         sage: LA = RootSystem(['A',5,2]).weight_space().fundamental_weights()
         sage: M = crystals.NakajimaMonomials(['A',5,2],3*La[0])
         sage: B = crystals.LSPaths(3*LA[0])
@@ -1029,7 +1095,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['E',8,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['E',8,1]).weight_lattice(extended=True).fundamental_weights()
             sage: M = crystals.NakajimaMonomials(['E',8,1],La[0]+La[8])
             sage: M1 = crystals.NakajimaMonomials(CartanType(['E',8,1]),La[0]+La[8])
             sage: M2 = crystals.NakajimaMonomials(['E',8,1],M.Lambda()[0] + M.Lambda()[8])
@@ -1037,7 +1103,10 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
             True
         """
         cartan_type = CartanType(cartan_type)
-        La = RootSystem(cartan_type).weight_lattice()(La)
+        if cartan_type.is_affine():
+            La = RootSystem(cartan_type).weight_lattice(extended=True)(La)
+        else:
+            La = RootSystem(cartan_type).weight_lattice()(La)
         return super(CrystalOfNakajimaMonomials, cls).__classcall__(cls, cartan_type, La)
 
     def __init__(self, ct, La):
@@ -1045,11 +1114,19 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
-            sage: M = crystals.NakajimaMonomials(['A',2],La[1]+La[2])
+            sage: M = crystals.NakajimaMonomials(['A',2], La[1]+La[2])
             sage: TestSuite(M).run()
+
+            sage: La = RootSystem(['C',2,1]).weight_lattice(extended=True).fundamental_weights()
+            sage: M = crystals.NakajimaMonomials(['C',2,1], La[0])
+            sage: TestSuite(M).run(max_runs=100)
         """
-        InfinityCrystalOfNakajimaMonomials.__init__( self, ct,
-                (RegularCrystals(), HighestWeightCrystals()), CrystalOfNakajimaMonomialsElement )
+        if ct.is_finite():
+            cat = ClassicalCrystals()
+        else:
+            cat = (RegularCrystals(), HighestWeightCrystals(), InfiniteEnumeratedSets())
+        InfinityCrystalOfNakajimaMonomials.__init__( self, ct, cat,
+                CrystalOfNakajimaMonomialsElement )
         self._cartan_type = ct
         self.hw = La
         gen = {}
@@ -1063,7 +1140,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['C',3,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['C',3,1]).weight_lattice(extended=True).fundamental_weights()
             sage: M = crystals.NakajimaMonomials(['C',3,1],La[0]+5*La[3])
             sage: M
             Highest weight crystal of modified Nakajima monomials of Cartan type ['C', 3, 1] and highest weight Lambda[0] + 5*Lambda[3]
@@ -1077,16 +1154,16 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
-            sage: M = crystals.NakajimaMonomials(['A',2],La[1])
+            sage: M = crystals.NakajimaMonomials(['A',2], La[1])
             sage: M.cardinality()
             3
 
-            sage: La = RootSystem(['D',4,2]).weight_lattice().fundamental_weights()
-            sage: M = crystals.NakajimaMonomials(['D',4,2],La[1])
+            sage: La = RootSystem(['D',4,2]).weight_lattice(extended=True).fundamental_weights()
+            sage: M = crystals.NakajimaMonomials(['D',4,2], La[1])
             sage: M.cardinality()
             +Infinity
         """
         if not self.cartan_type().is_finite():
             return Infinity
-        return len(list(self.subcrystal(generators=[self.module_generators[0]])))
+        return super(InfinityCrystalOfNakajimaMonomials, self).cardinality()
 

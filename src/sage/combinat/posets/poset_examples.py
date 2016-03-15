@@ -27,10 +27,14 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` vertices according to a probability `p`.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
+    :meth:`~Posets.ShardPoset` | Return the shard intersection order.
     :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
+    :meth:`~Posets.StandardExample` | Return the standard example of a poset with dimension `n`.
     :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
+    :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
+    :meth:`~Posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
 
 Constructions
 -------------
@@ -157,7 +161,7 @@ class Posets(object):
 
         TESTS:
 
-        Check that #8422 is solved::
+        Check that :trac:`8422` is solved::
 
             sage: Posets.ChainPoset(0)
             Finite lattice containing 0 elements
@@ -195,7 +199,7 @@ class Posets(object):
 
         TESTS:
 
-        Check that #8422 is solved::
+        Check that :trac:`8422` is solved::
 
             sage: Posets.AntichainPoset(0)
             Finite poset containing 0 elements
@@ -459,15 +463,20 @@ class Posets(object):
     @staticmethod
     def SSTPoset(s,f=None):
         """
-        The poset on semistandard tableaux of shape s and largest entry f that is ordered by componentwise comparison of the entries.
+        The poset on semistandard tableaux of shape ``s`` and largest
+        entry ``f`` that is ordered by componentwise comparison of the
+        entries.
 
         INPUT:
 
         - ``s`` - shape of the tableaux
 
-        - ``f`` - maximum fill number.  This is an optional argument.  If no maximal number is given, it will use the number of cells in the shape.
+        - ``f`` - maximum fill number.  This is an optional
+          argument.  If no maximal number is given, it will use
+          the number of cells in the shape.
 
-        NOTE: This is basic implementation and most certainly not the most efficient.
+        NOTE: This is a basic implementation and most certainly
+        not the most efficient.
 
         EXAMPLES::
 
@@ -490,24 +499,79 @@ class Posets(object):
         def tableaux_is_less_than(a,b):
             atstring = []
             btstring = []
-            c=0
-            for i in range(len(a)):
-                atstring=atstring+a[i]
-            for i in range(len(b)):
-                btstring=btstring+b[i]
+            for i in a:
+                atstring += i
+            for i in b:
+                btstring += i
             for i in range(len(atstring)):
                 if atstring[i] > btstring[i]:
-                    c = c+1
-            if c == 0:
-                return True
-            else:
-                return False
+                    return False
+            return True
         if f is None:
             f=0
-            for i in range(len(s)):
-                f = f+s[i]
-        E = SemistandardTableaux(s,max_entry=f)
-        return Poset((E, tableaux_is_less_than ))
+            for i in s:
+                f += i
+        E = SemistandardTableaux(s, max_entry=f)
+        return Poset((E, tableaux_is_less_than))
+
+    @staticmethod
+    def StandardExample(n, facade=None):
+        r"""
+        Return the partially ordered set on ``2n`` elements with
+        dimension ``n``.
+
+        Let `P` be the poset on `\{0, 1, 2, \ldots, 2n-1\}` whose defining
+        relations are that `i < j` for every `0 \leq i < n \leq j < 2n`
+        except when `i + n = j`. The poset `P` is the so-called
+        *standard example* of a poset with dimension `n`.
+
+        INPUT:
+
+        - ``n`` -- an integer `\ge 2`, dimension of the constructed poset
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
+
+        OUTPUT:
+
+        The standard example of a poset of dimension `n`.
+
+        EXAMPLES::
+
+            sage: A = Posets.StandardExample(3); A
+            Finite poset containing 6 elements
+            sage: A.dimension()
+            3
+
+        REFERENCES:
+
+        .. [Rosen] K. Rosen *Handbook of Discrete and Combinatorial
+           Mathematics* (1999), Chapman and Hall.
+
+        .. [Garg] V. Garg *Introduction to Lattice Theory with Computer
+           Science Applications* (2015), Wiley.
+
+        TESTS::
+
+            sage: A = Posets.StandardExample(10); A
+            Finite poset containing 20 elements
+            sage: len(A.cover_relations())
+            90
+
+            sage: P = Posets.StandardExample(5, facade=False)
+            sage: P(4) < P(3), P(4) > P(3)
+            (False, False)
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("dimension must be an integer, not {0}".format(n))
+        if n < 2:
+            raise ValueError("dimension must be at least 2, not {0}".format(n))
+        return Poset((range(2*n), [[i, j+n] for i in range(n)
+                                   for j in range(n) if i != j]),
+                     facade=facade)
 
     @staticmethod
     def SymmetricGroupBruhatOrderPoset(n):
@@ -609,5 +673,107 @@ class Posets(object):
                 return [v for v in s.bruhat_succ() if
                     s.length() + (s.inverse().left_action_product(v)).length() == v.length()]
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
+        
+    @staticmethod
+    def TetrahedralPoset(n, *colors, **labels):
+        r"""
+        Return the tetrahedral poset based on the input colors. 
+        
+        This method will return the tetrahedral poset with n-1 layers and 
+        covering relations based on the input colors of 'green', 'red', 
+        'orange', 'silver', 'yellow' and 'blue' as defined in [Striker2011]_.  
+        For particular color choices, the order ideals of the resulting 
+        tetrahedral poset will be isomorphic to known combinatorial objects.
+        
+        For example, for the colors 'blue', 'yellow', 'orange', and 'green', 
+        the order ideals will be in bijection with alternating sign matrices.
+        For the colors 'yellow', 'orange', and 'green', the order ideals will 
+        be in bijection with semistandard Young tableaux of staircase shape.
+        For the colors 'red', 'orange', 'green', and optionally 'yellow', the 
+        order ideals will be in bijection with totally symmetric 
+        self-complementary plane partitions in a `2n \times 2n \times 2n` box.
+
+        INPUT:
+
+        - ``n`` - Defines the number (n-1) of layers in the poset.
+
+        - ``colors`` - The colors that define the covering relations of the 
+          poset. Colors used are 'green', 'red', 'yellow', 'orange', 'silver', 
+          and 'blue'.
+          
+        - ``labels`` - Keyword variable used to determine whether the poset
+          is labeled with integers or tuples.  To label with integers, the
+          method should be called with ``labels='integers'``.  Otherwise, the 
+          labeling will default to tuples.
+
+        EXAMPLES::
+
+            sage: Posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange')
+            Finite poset containing 10 elements
+            
+            sage: Posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange', labels='integers')
+            Finite poset containing 10 elements
+            
+            sage: A = AlternatingSignMatrices(3)
+            sage: p = A.lattice()
+            sage: ji = p.join_irreducibles_poset()
+            sage: tet = Posets.TetrahedralPoset(3, 'green','yellow','blue','orange')
+            sage: ji.is_isomorphic(tet)
+            True
+        
+        REFERENCES:
+
+        .. [Striker2011] J. Striker. *A unifying poset perpective on 
+           alternating sign matrices, plane partitions, Catalan objects, 
+           tournaments, and tableaux*, Advances in Applied Mathematics 46 
+           (2011), no. 4, 583-609. :arXiv:`1408.5391`
+        """
+        n=n-1
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("n must be an integer.")
+        if n < 2:
+            raise ValueError("n must be greater than 2.")
+        for c in colors:
+            if(c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue')):
+                raise ValueError("Color input must be from the following: 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.")
+        elem=[(i,j,k) for i in range (n) for j in range (n-i) for k in range (n-i-j)]
+        rels = []
+        elem_labels = {}
+        if 'labels' in labels:
+            if labels['labels'] == 'integers':
+                labelcount = 0
+                for (i,j,k) in elem:
+                    elem_labels[(i,j,k)] = labelcount
+                    labelcount += 1
+        for c in colors:
+            for (i,j,k) in elem:
+                if(i+j+k < n-1):
+                    if(c=='green'):
+                        rels.append([(i,j,k),(i+1,j,k)])
+                    if(c=='red'):
+                        rels.append([(i,j,k),(i,j,k+1)])
+                    if(c=='yellow'):
+                        rels.append([(i,j,k),(i,j+1,k)])
+                if(j<n-1 and k>0):
+                    if(c=='orange'):
+                        rels.append([(i,j,k),(i,j+1,k-1)])
+                if(i<n-1 and j>0):
+                    if(c=='silver'):
+                        rels.append([(i,j,k),(i+1,j-1,k)])
+                if(i<n-1 and k>0):
+                    if(c=='blue'):
+                        rels.append([(i,j,k),(i+1,j,k-1)])
+        return Poset([elem,rels], elem_labels)
+
+    # shard intersection order
+    import sage.combinat.shard_order
+    ShardPoset = staticmethod(sage.combinat.shard_order.shard_poset)
+
+    # Tamari lattices
+    import sage.combinat.tamari_lattices
+    TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
+
 
 posets = Posets

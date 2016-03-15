@@ -628,6 +628,18 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         return 'Algebraic closure of %s' % self.base_ring()
 
+    def _latex_(self):
+        """
+        Return a LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(3).algebraic_closure()
+            sage: latex(F)
+            \overline{\Bold{F}_{3}}
+        """
+        return "\\overline{{{}}}".format(self.base_ring()._latex_())
+
     def _to_common_subfield(self, x, y):
         """
         Coerce `x` and `y` to a common subfield of ``self``.
@@ -700,7 +712,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         if n == 1:
             return self.base_ring()
         else:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             return FiniteField(self.base_ring().cardinality() ** n,
                                name=self.variable_name() + str(n),
                                modulus=self._get_polynomial(n),
@@ -896,7 +908,7 @@ class AlgebraicClosureFiniteField_generic(Field):
             ....:         assert p(r).is_zero(), "r={} is not a root of p={}".format(r,p)
 
         """
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         # first build a polynomial over some finite field
@@ -922,7 +934,7 @@ class AlgebraicClosureFiniteField_generic(Field):
                 FF, pphi = self.subfield(ll)
                 # note: there is no coercion from the l-th subfield to the ll-th
                 # subfield. The line below does the conversion manually.
-                g = PolynomialRing(FF, 'x')(map(psi, g))
+                g = PolynomialRing(FF, 'x')([psi(_) for _ in g])
                 polys.extend((gg,m,ll,pphi) for gg,_ in g.factor())
 
         if multiplicities:
@@ -1072,7 +1084,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         """
         p = self.characteristic()
         if m == 1:
-            return self._subfield(n).one_element()
+            return self._subfield(n).one()
         return self._subfield(n).gen() ** ((p**n - 1)//(p**m - 1))
 
 

@@ -67,7 +67,8 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.is_lattice()
                 False
             """
-            return self.is_meet_semilattice() and self.is_join_semilattice()
+            return (self.cardinality() == 0 or
+                     (self.has_bottom() and self.is_join_semilattice()))
 
         def is_selfdual(self):
             r"""
@@ -909,7 +910,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: t1 = V.birational_toggle(1, t)
                 Traceback (most recent call last):
                 ...
-                ZeroDivisionError: Rational division by zero
+                ZeroDivisionError: rational division by zero
 
             We don't get into zero-division issues in the tropical
             semiring (unless the zero of the tropical semiring appears
@@ -1011,7 +1012,7 @@ class FinitePosets(CategoryWithAxiom):
                 x = FF.one() / b
             else:
                 x = FF.sum(FF.one() / newdict[j] for j in uppers)
-                # ``FF.sum``, not ``sum``, see :trac:`15591`.
+                # ``FF.sum``, not ``sum``, see trac #15591.
             x = FF.one() / x
             # Construct the sum ``y`` of the labels at the elements
             # covered by ``v``:
@@ -1285,7 +1286,7 @@ class FinitePosets(CategoryWithAxiom):
                     if A not in AC: break
                     orbit.append( A )
                     AC.remove( A )
-                orbits.append(map(element_constructor, orbit))
+                orbits.append([element_constructor(_) for _ in orbit])
             return orbits
 
         def rowmotion_orbits(self, element_constructor = set):
@@ -1379,7 +1380,7 @@ class FinitePosets(CategoryWithAxiom):
                     if A not in OI: break
                     orbit.append( A )
                     OI.remove( A )
-                orbits.append(map(element_constructor, orbit))
+                orbits.append([element_constructor(_) for _ in orbit])
             return orbits
 
         def panyushev_orbit_iter(self, antichain, element_constructor=set, stop=True, check=True):
@@ -1444,13 +1445,13 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.panyushev_orbit_iter([2], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {2}
-                sage: Piter.next()
+                sage: next(Piter)
                 {3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {2}
-                sage: Piter.next()
+                sage: next(Piter)
                 {3}
             """
             # TODO: implement a generic function taking a set and
@@ -1533,15 +1534,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.rowmotion_orbit_iter([1, 2, 3], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3, 4}
-                sage: Piter.next()
+                sage: next(Piter)
                 set()
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
 
                 sage: P = Poset({ 1: [4], 2: [4, 5], 3: [5] })
@@ -1646,15 +1647,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.toggling_orbit_iter([1, 2, 4, 3], [1, 2, 3], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
-                sage: Piter.next()
+                sage: next(Piter)
                 set()
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
             """
             # TODO: implement a generic function taking a set and
@@ -1677,7 +1678,7 @@ class FinitePosets(CategoryWithAxiom):
                     next = self.order_ideal_toggles(next, vs)
                     yield element_constructor(next)
 
-        def order_ideals_lattice(self, as_ideals=True, facade=False):
+        def order_ideals_lattice(self, as_ideals=True, facade=None):
             r"""
             Return the lattice of order ideals of a poset ``self``,
             ordered by inclusion.
@@ -1699,10 +1700,13 @@ class FinitePosets(CategoryWithAxiom):
             - ``as_ideals`` -- Boolean, if ``True`` (default) returns
               a poset on the set of order ideals, otherwise on the set
               of antichains
+            - ``facade`` -- Boolean or ``None`` (default). Whether to
+              return a facade lattice or not. By default return facade
+              lattice if the poset is a facade poset.
 
             EXAMPLES::
 
-                sage: P = Posets.PentagonPoset(facade = True)
+                sage: P = Posets.PentagonPoset()
                 sage: P.cover_relations()
                 [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
                 sage: J = P.order_ideals_lattice(); J
@@ -1726,10 +1730,15 @@ class FinitePosets(CategoryWithAxiom):
                 sage: J.cover_relations()
                 [[{}, {0}], [{0}, {0, 2}], [{0}, {0, 1}], [{0, 2}, {0, 1, 2}], [{0, 1}, {0, 1, 2}], [{0, 1, 2}, {0, 1, 2, 3}]]
 
-            .. NOTE:: we use facade posets in the examples above just
-               to ensure a nicer ordering in the output.
+                sage: P = Poset({1:[2]})
+                sage: J_facade = P.order_ideals_lattice()
+                sage: J_nonfacade = P.order_ideals_lattice(facade=False)
+                sage: type(J_facade[0]) == type(J_nonfacade[0])
+                False
             """
             from sage.combinat.posets.lattices import LatticePoset
+            if facade is None:
+                facade = self._is_facade
             if as_ideals:
                 from sage.misc.misc import attrcall
                 from sage.sets.set import Set

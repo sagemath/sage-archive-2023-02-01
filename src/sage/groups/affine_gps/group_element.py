@@ -357,7 +357,7 @@ class AffineGroupElement(MatrixGroupElement_base):
             True
         """
         if self_on_left:
-            return self.__call__(x)
+            return self(x)
 
     def inverse(self):
         """

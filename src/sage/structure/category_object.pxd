@@ -17,14 +17,10 @@ cdef class CategoryObject(SageObject):
     cdef _generators
     cdef _category
     cdef public _base
-    cdef public _cdata
     cdef public _names # will be _printer
     cdef public _factory_data
     cdef object __weakref__
     cdef long _hash_value
 
-#    cpdef Generators gens(self, category = *)
-#    cpdef gen(self, index = *, category = *)
-#    cpdef ngens(self, category = *)
-#    cpdef base(self, category = *)
-#    cpdef base_extend(self, other, category = *)
+cpdef normalize_names(Py_ssize_t ngens, names)
+cpdef bint certify_names(names) except -1

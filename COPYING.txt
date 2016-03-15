@@ -28,12 +28,15 @@ the licenses of the components of Sage are included below as well.
 
 SOFTWARE                    LICENSE
 -----------------------------------------------------------------------
+arb                         GPLv2+
 atlas                       Modified BSD
 boehm_gc                    MIT-like license (see below)
+backports_ssl_match_hostname  Python License
 boost_cropped               Boost Software License (see below)
 bzip2                       BSD-ish (see below)
 cddlib                      GPLv2+
 cephes                      "may be used freely" (see below)
+certifi                     ISC
 cliquer                     GPLv2+
 conway_polynomials          None (database)
 cvxopt                      GPLv2+
@@ -52,7 +55,6 @@ freetype                    FreeType License (similar to BSD; see below)
 gap                         GPLv2+
 gcc                         GPLv3+
 gd                          Custom (BSD-ish)
-gdmodule                    Custom (BSD-ish)
 genus2reduction             GPLv2+
 gfan                        GPLv2 or GPLv3
 gf2x                        GPLv2+
@@ -65,6 +67,7 @@ iml                         COPYING is GPLv2, source files state modified BSD
 ipython                     Modified BSD
 jinja2                      Modified BSD
 jmol                        LGPLv2.1+
+jsonschema                  MIT License
 lcalc                       GPLv2+
 libfplll                    LGPLv2.1+
 libgap                      GPLv3+
@@ -73,8 +76,11 @@ linbox                      LGPLv2.1+
 lrcalc                      GPLv2+
 m4ri                        GPLv2+
 m4rie                       GPLv2+
+markupsafe                  Simplified BSD
+mathjax                     Apache License 2.0
 matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below
+mistune                     Modified BSD
 mpc                         LGPLv3+
 mpfi                        COPYING is GPLv2, source files state LGPLv2.1+
 mpfr                        LGPLv3+
@@ -83,6 +89,7 @@ mpmath                      Modified BSD
 networkx                    Modified BSD
 ntl                         GPLv2+
 numpy                       Modified BSD
+openblas                    Modified BSD
 palp                        GPLv3
 pari                        GPLv2+
 patch                       GPLv2+
@@ -91,6 +98,7 @@ pillow                      Apache License 2.0
 pip                         MIT License
 pkgconf                     ISC License (equivalent to Simplified BSD)
 pkgconfig                   MIT License
+planarity                   Modified BSD
 polybori                    GPLv2+
 polytopes_db                None (database)
 ppl                         GPLv3+
@@ -123,6 +131,7 @@ sympow                      Modified BSD
 sympy                       Modified BSD
 tachyon                     Modified BSD
 termcap                     GPLv2+
+threejs                     MIT License
 tornado                     Apache License
 zlib                        Custom (Modified BSD)
 zn_poly                     GPLv2 or GPLv3 (no later versions, see below)
@@ -940,19 +949,6 @@ all warranties, either express or implied, including but not
 limited to implied warranties of merchantability and fitness for a
 particular purpose, with respect to this code and accompanying
 documentation.
-
-================================================================================
-
-gdmodule:
-(http://newcenturycomputers.net/projects/gdmodule.html)
-
-Permission granted for unlimited use, provided that the Quest Center
-at Cold Spring Harbor Labs is given credit for the library in the
-user-visible documentation of your software. If you modify gd, we ask
-that you share the modifications with us so they can be added to the
-distribution. See gd.html for details.  (The rest of the notice is in
-the package gdmodule spkg, which is a bzip2'd tarball included in the
-Sage source distribution.)
 
 ================================================================================
 

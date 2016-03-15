@@ -36,22 +36,18 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006--2009 William Stein and Jon Hanke
+#       Copyright (C) 2006-2009 William Stein and Jon Hanke
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.libs.pari.all import pari
-from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
+from sage.rings.all import ZZ, is_fundamental_discriminant
+from sage.arith.all import divisors, gcd
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -240,6 +236,19 @@ class BinaryQF(SageObject):
             args = args[0]
         x, y = args
         return (self._a * x + self._b * y) * x + self._c * y**2
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(BinaryQF([2,2,3]))
+            802
+            sage: hash(BinaryQF([2,3,2]))
+            562
+            sage: hash(BinaryQF([3,2,2]))
+            547
+        """
+        return hash(self._a) ^ (hash(self._b) << 4) ^ (hash(self._c) << 8)
 
     def __cmp__(self, right):
         """
@@ -460,7 +469,6 @@ class BinaryQF(SageObject):
             4*x^2 + x*y + 13*y^2,
             8*x^2 + 7*x*y + 8*y^2]
         """
-        from sage.rings.arith import gcd
         return gcd([self._a, self._b, self._c])==1
 
     @cached_method
@@ -599,8 +607,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
-        cx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
+        bx+dy)`.
 
         EXAMPLES::
 
@@ -622,8 +630,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
-        bx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
+        cx+dy)`.
 
         EXAMPLES::
 
@@ -664,13 +672,12 @@ class BinaryQF(SageObject):
             [47, 2, 2, 3, 3]
         """
         from sage.sets.all import Set
-        from sage.misc.all import srange
+        from sage.arith.srange import xsrange
         d = self.discriminant()
         B = 10
         while True:
-            llist = list(Set([self(x,y) for x in srange(-B,B) for y in srange(B)]))
-            llist = [l for l in llist if l.is_prime()]
-            llist.sort()
+            llist = list(Set([self(x,y) for x in xsrange(-B,B) for y in xsrange(B)]))
+            llist = sorted([l for l in llist if l.is_prime()])
             if llist:
                 return llist[0]
             if B >= Bmax:
@@ -713,8 +720,8 @@ class BinaryQF(SageObject):
         ad = -d
         an4 = 4*a*n
         a2 = 2*a
-        from sage.misc.all import srange
-        for y in srange(0, 1+an4//ad):
+        from sage.arith.srange import xsrange
+        for y in xsrange(0, 1+an4//ad):
             z2 = an4 + d*y**2
             for z in z2.sqrt(extend=False, all=True):
                 if a2.divides(z-b*y):
@@ -810,8 +817,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
 
     form_list = []
 
-    from sage.misc.all import xsrange
-    from sage.rings.arith import gcd
+    from sage.arith.srange import xsrange
 
     # Only iterate over positive a and over b of the same
     # parity as D such that 4a^2 + D <= b^2 <= a^2

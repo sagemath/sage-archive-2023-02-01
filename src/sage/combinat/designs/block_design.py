@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Block designs
 
@@ -15,10 +16,15 @@ REFERENCES:
   External Representation of Block Designs' by Peter J. Cameron, Peter
   Dobcsanyi, John P. Morgan, Leonard H. Soicher)
 
+.. [Hu57] Daniel R. Hughes, "A class of non-Desarguesian projective planes",
+   The Canadian Journal of Mathematics (1957), http://cms.math.ca/cjm/v9/p378
+
 .. [We07] Charles Weibel, "Survey of Non-Desarguesian planes" (2007), notices of
    the AMS, vol. 54 num. 10, pages 1294--1303
 
 AUTHORS:
+
+- Quentin Honoré (2015): construction of Hughes plane :trac:`18527`
 
 - Vincent Delecroix (2014): rewrite the part on projective planes :trac:`16281`
 
@@ -30,34 +36,35 @@ AUTHORS:
 
 .. TODO::
 
-    Implement finite non-Desarguesian plane as in [We07]_ and
+    Implement more finite non-Desarguesian plane as in [We07]_ and
     :wikipedia:`Non-Desarguesian_plane`.
 
 Functions and methods
 ---------------------
 """
-#***************************************************************************
-#                              Copyright (C) 2007                          #
-#                                                                          #
-#                Peter Dobcsanyi       and         David Joyner            #
-#           <peter@designtheory.org>          <wdjoyner@gmail.com>         #
-#                                                                          #
-#                                                                          #
-#    Distributed under the terms of the GNU General Public License (GPL)   #
-#    as published by the Free Software Foundation; either version 2 of     #
-#    the License, or (at your option) any later version.                   #
-#                    http://www.gnu.org/licenses/                          #
-#***************************************************************************
+
+#*****************************************************************************
+#       Copyright (C) 2007 Peter Dobcsanyi <peter@designtheory.org>
+#       Copyright (C) 2007 David Joyner <wdjoyner@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import binomial, integer_floor
+from sage.arith.all import binomial, integer_floor, is_prime_power
 from incidence_structures import IncidenceStructure
 from sage.misc.decorators import rename_keyword
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
+from sage.matrix.matrix_space import MatrixSpace
+
 
 BlockDesign = IncidenceStructure
 
@@ -70,7 +77,7 @@ def tdesign_params(t, v, k, L):
 
     EXAMPLES::
 
-        sage: BD = designs.BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+        sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
         sage: from sage.combinat.designs.block_design import tdesign_params
         sage: tdesign_params(2,7,3,1)
         (2, 7, 7, 3, 3, 1)
@@ -87,7 +94,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
     r"""
     Return ``True`` if the parameters ``(v,k,lmbda)`` are the one of hyperplanes in
     a (finite Desarguesian) projective space.
-    
+
     In other words, test whether there exists a prime power ``q`` and an integer
     ``d`` greater than two such that:
 
@@ -136,7 +143,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
         ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l+1) is False
         ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l-1) is False
     """
-    import sage.rings.arith as arith
+    import sage.arith.all as arith
 
     q1 = Integer(v - k)
     q2 = Integer(k - lmbda)
@@ -157,7 +164,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
 
     return (True, (q,d)) if return_parameters else True
 
-def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
+def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, check=True):
     """
     Return a projective geometry design.
 
@@ -180,6 +187,10 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
       GAP's "design" package must be available in this case, and that it can be
       installed with the ``gap_packages`` spkg.
 
+    - ``point_coordinates`` -- ``True`` by default. Ignored and assumed to be ``False`` if
+      ``algorithm="gap"``. If ``True``, the ground set is indexed by coordinates in `F^{n+1}`.
+      Otherwise the ground set is indexed by integers,
+
     EXAMPLES:
 
     The set of `d`-dimensional subspaces in a `n`-dimensional projective space
@@ -194,6 +205,18 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
         sage: PG = designs.ProjectiveGeometryDesign(3,1,GF(4,'z'))
         sage: PG.is_t_design(return_parameters=True)
         (True, (2, 85, 5, 1))
+
+    Use coordinates::
+
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3))
+        sage: PG.blocks()[0]
+        [(1, 0, 0), (1, 0, 1), (1, 0, 2), (0, 0, 1)]
+
+    Use indexing by integers::
+
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3),point_coordinates=0)
+        sage: PG.blocks()[0]
+        [0, 1, 2, 12]
 
     Check that the constructor using gap also works::
 
@@ -216,7 +239,10 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
                 m.set_immutable()
                 b.append(points[m])
             blocks.append(b)
-        return BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
+        B = BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
+        if point_coordinates:
+            B.relabel({i:p[0] for p,i in points.iteritems()})
+        return B
     if algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
         gap.load_package("design")
@@ -228,7 +254,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign", check=check)
 
-def DesarguesianProjectivePlaneDesign(n, check=True):
+def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     r"""
     Return the Desarguesian projective plane of order ``n`` as a 2-design.
 
@@ -239,6 +265,9 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     INPUT:
 
     - ``n`` -- an integer which must be a power of a prime number
+
+    - ``point_coordinates`` (boolean) -- whether to label the points with their
+      homogeneous coordinates (default) or with integers.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -252,19 +281,20 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     EXAMPLES::
 
         sage: designs.DesarguesianProjectivePlaneDesign(2)
-        Incidence structure with 7 points and 7 blocks
+        (7,3,1)-Balanced Incomplete Block Design
         sage: designs.DesarguesianProjectivePlaneDesign(3)
-        Incidence structure with 13 points and 13 blocks
+        (13,4,1)-Balanced Incomplete Block Design
         sage: designs.DesarguesianProjectivePlaneDesign(4)
-        Incidence structure with 21 points and 21 blocks
+        (21,5,1)-Balanced Incomplete Block Design
         sage: designs.DesarguesianProjectivePlaneDesign(5)
-        Incidence structure with 31 points and 31 blocks
+        (31,6,1)-Balanced Incomplete Block Design
         sage: designs.DesarguesianProjectivePlaneDesign(6)
         Traceback (most recent call last):
         ...
         ValueError: the order of a finite field must be a prime power
+
     """
-    K = FiniteField(n, 'x')
+    K = FiniteField(n, 'a')
     n2 = n**2
     relabel = {x:i for i,x in enumerate(K)}
     Kiter = relabel  # it is much faster to iterate throug a dict than through
@@ -303,8 +333,255 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
 
     # the line at infinity "z = 0"
     blcks.append(range(n2,n2+n+1))
+    if check:
+        from designs_pyx import is_projective_plane
+        if not is_projective_plane(blcks):
+            raise RuntimeError('There is a problem in the function DesarguesianProjectivePlane')
+    from bibd import BalancedIncompleteBlockDesign
+    B = BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
 
-    return BlockDesign(n2+n+1, blcks, name="Desarguesian projective plane of order %d"%n, check=check)
+    if point_coordinates:
+        zero = K.zero()
+        one  = K.one()
+        d = {affine_plane(x,y): (x,y,one)
+             for x in Kiter
+             for y in Kiter}
+        d.update({line_infinity(x): (x,one,zero)
+                  for x in Kiter})
+        d[n2+n]=(one,zero,zero)
+        B.relabel(d)
+
+    return B
+
+def q3_minus_one_matrix(K):
+    r"""
+    Return a companion matrix in `GL(3, K)` whose multiplicative order is `q^3 - 1`.
+
+    This function is used in :func:`HughesPlane`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.block_design import q3_minus_one_matrix
+        sage: m = q3_minus_one_matrix(GF(3))
+        sage: m.multiplicative_order() == 3**3 - 1
+        True
+
+        sage: m = q3_minus_one_matrix(GF(4,'a'))
+        sage: m.multiplicative_order() == 4**3 - 1
+        True
+
+        sage: m = q3_minus_one_matrix(GF(5))
+        sage: m.multiplicative_order() == 5**3 - 1
+        True
+
+        sage: m = q3_minus_one_matrix(GF(9,'a'))
+        sage: m.multiplicative_order() == 9**3 - 1
+        True
+    """
+    q = K.cardinality()
+    M = MatrixSpace(K, 3)
+
+    if q.is_prime():
+        from sage.rings.finite_rings.conway_polynomials import conway_polynomial
+        try:
+            a,b,c,_ = conway_polynomial(q, 3)
+        except RuntimeError:  # the polynomial is not in the database
+            pass
+        else:
+            return M([0,0,-a,1,0,-b,0,1,-c])
+
+    m = M()
+    m[1,0] = m[2,1] = K.one()
+    while True:
+        m[0,2] = K._random_nonzero_element()
+        m[1,2] = K.random_element()
+        m[2,2] = K.random_element()
+        if m.multiplicative_order() == q**3 - 1:
+            return m
+
+def normalize_hughes_plane_point(p, q):
+    r"""
+    Return the normalized form of point ``p`` as a 3-tuple.
+
+    In the Hughes projective plane over the finite field `K`, all triples `(xk,
+    yk, zk)` with `k \in K` represent the same point (where the multiplication
+    is over the nearfield built from `K`). This function chooses a canonical
+    representative among them.
+
+    This function is used in :func:`HughesPlane`.
+
+    INPUT:
+
+    - ``p`` - point with the coordinates (x,y,z) (a list, a vector, a tuple...)
+
+    - ``q`` - cardinality of the underlying finite field
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.block_design import normalize_hughes_plane_point
+        sage: K = FiniteField(9,'x')
+        sage: x = K.gen()
+        sage: normalize_hughes_plane_point((x, x+1, x), 9)
+        (1, x, 1)
+        sage: normalize_hughes_plane_point(vector((x,x,x)), 9)
+        (1, 1, 1)
+        sage: zero = K.zero()
+        sage: normalize_hughes_plane_point((2*x+2, zero, zero), 9)
+        (1, 0, 0)
+        sage: one = K.one()
+        sage: normalize_hughes_plane_point((2*x, one, zero), 9)
+        (2*x, 1, 0)
+    """
+    for i in [2,1,0]:
+        if p[i].is_one():
+            return tuple(p)
+        elif not p[i].is_zero():
+            k = ~p[i]
+            if k.is_square():
+                return (p[0] * k,p[1] * k,p[2] * k)
+            else:
+                return ((p[0] * k)**q,(p[1]*k)**q,(p[2]*k)**q)
+
+def HughesPlane(q2, check=True):
+    r"""
+    Return the Hughes projective plane of order ``q2``.
+
+    Let `q` be an odd prime, the Hughes plane of order `q^2` is a finite
+    projective plane of order `q^2` introduced by D. Hughes in [Hu57]_. Its
+    construction is as follows.
+
+    Let `K = GF(q^2)` be a finite field with `q^2` elements and `F = GF(q)
+    \subset K` be its unique subfield with `q` elements. We define a twisted
+    multiplication on `K` as
+
+    .. MATH::
+
+        x \circ y =
+        \begin{cases}
+        x\ y & \text{if y is a square in K}\\
+        x^q\ y & \text{otherwise}
+        \end{cases}
+
+    The points of the Hughes plane are the triples `(x, y, z)` of points in `K^3
+    \backslash \{0,0,0\}` up to the equivalence relation `(x,y,z) \sim (x \circ
+    k, y \circ k, z \circ k)` where `k \in K`.
+
+    For `a = 1` or `a \in (K \backslash F)` we define a block `L(a)` as the set of
+    triples `(x,y,z)` so that `x + a \circ y + z = 0`. The rest of the blocks
+    are obtained by letting act the group `GL(3, F)` by its standard action.
+
+    For more information, see :wikipedia:`Hughes_plane` and [We07].
+
+    .. SEEALSO::
+
+        :func:`DesarguesianProjectivePlaneDesign` to build the Desarguesian
+        projective planes
+
+    INPUT:
+
+    - ``q2`` -- an even power of an odd prime number
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
+
+    EXAMPLES::
+
+        sage: H = designs.HughesPlane(9)
+        sage: H
+        (91,10,1)-Balanced Incomplete Block Design
+
+    We prove in the following computations that the Desarguesian plane ``H`` is
+    not Desarguesian. Let us consider the two triangles `(0,1,10)` and `(57, 70,
+    59)`. We show that the intersection points `D_{0,1} \cap D_{57,70}`,
+    `D_{1,10} \cap D_{70,59}` and `D_{10,0} \cap D_{59,57}` are on the same line
+    while `D_{0,70}`, `D_{1,59}` and `D_{10,57}` are not concurrent::
+
+        sage: blocks = H.blocks()
+        sage: line = lambda p,q: (b for b in blocks if p in b and q in b).next()
+
+        sage: b_0_1 = line(0, 1)
+        sage: b_1_10 = line(1, 10)
+        sage: b_10_0 = line(10, 0)
+        sage: b_57_70 = line(57, 70)
+        sage: b_70_59 = line(70, 59)
+        sage: b_59_57 = line(59, 57)
+
+        sage: set(b_0_1).intersection(b_57_70)
+        {2}
+        sage: set(b_1_10).intersection(b_70_59)
+        {73}
+        sage: set(b_10_0).intersection(b_59_57)
+        {60}
+
+        sage: line(2, 73) == line(73, 60)
+        True
+
+        sage: b_0_57 = line(0, 57)
+        sage: b_1_70 = line(1, 70)
+        sage: b_10_59 = line(10, 59)
+
+        sage: p = set(b_0_57).intersection(b_1_70)
+        sage: q = set(b_1_70).intersection(b_10_59)
+        sage: p == q
+        False
+
+    TESTS:
+
+    Some wrong input::
+
+        sage: designs.HughesPlane(5)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: No Hughes plane of non-square order exists.
+
+        sage: designs.HughesPlane(16)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: No Hughes plane of even order exists.
+
+    Check that it works for non-prime `q`::
+
+        sage: designs.HughesPlane(3**4)    # not tested - 10 secs
+        (6643,82,1)-Balanced Incomplete Block Design
+    """
+    if not q2.is_square():
+        raise EmptySetError("No Hughes plane of non-square order exists.")
+    if q2%2 == 0:
+        raise EmptySetError("No Hughes plane of even order exists.")
+    q = q2.sqrt()
+    K = FiniteField(q2, prefix='x')
+    F = FiniteField(q, prefix='y')
+    A = q3_minus_one_matrix(F)
+    A = A.change_ring(K)
+    m = K.list()
+    V = VectorSpace(K, 3)
+    zero = K.zero()
+    one = K.one()
+    points = [(x, y, one) for x in m for y in m] + \
+             [(x, one, zero) for x in m] + \
+             [(one, zero, zero)]
+    relabel = {tuple(p):i for i,p in enumerate(points)}
+    blcks = []
+    for a in m:
+        if a not in F or a == 1:
+            # build L(a)
+            aa = ~a
+            l = []
+            l.append(V((-a, one, zero)))
+            for x in m:
+                y = - aa * (x+one)
+                if not y.is_square():
+                    y *= aa**(q-1)
+                l.append(V((x, y, one)))
+            # compute the orbit of L(a)
+            blcks.append([relabel[normalize_hughes_plane_point(p,q)] for p in l])
+            for i in range(q2 + q):
+                l = [A*j for j in l]
+                blcks.append([relabel[normalize_hughes_plane_point(p,q)] for p in l])
+    from bibd import BalancedIncompleteBlockDesign
+    return BalancedIncompleteBlockDesign(q2**2+q2+1, blcks, check=check)
 
 def projective_plane_to_OA(pplane, pt=None, check=True):
     r"""
@@ -330,10 +607,10 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.designs.block_design import projective_plane_to_OA
-        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2)
+        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2,point_coordinates=False)
         sage: projective_plane_to_OA(p2)
         [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
-        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3)
+        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3,point_coordinates=False)
         sage: projective_plane_to_OA(p3)
         [[0, 0, 0, 0],
          [0, 1, 2, 1],
@@ -345,7 +622,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
          [2, 1, 0, 2],
          [2, 2, 2, 0]]
 
-        sage: pp = designs.DesarguesianProjectivePlaneDesign(16)
+        sage: pp = designs.DesarguesianProjectivePlaneDesign(16,point_coordinates=False)
         sage: _ = projective_plane_to_OA(pp, pt=0)
         sage: _ = projective_plane_to_OA(pp, pt=3)
         sage: _ = projective_plane_to_OA(pp, pt=7)
@@ -390,13 +667,13 @@ def projective_plane(n, check=True, existence=False):
     EXAMPLES::
 
         sage: designs.projective_plane(2)
-        Incidence structure with 7 points and 7 blocks
+        (7,3,1)-Balanced Incomplete Block Design
         sage: designs.projective_plane(3)
-        Incidence structure with 13 points and 13 blocks
+        (13,4,1)-Balanced Incomplete Block Design
         sage: designs.projective_plane(4)
-        Incidence structure with 21 points and 21 blocks
+        (21,5,1)-Balanced Incomplete Block Design
         sage: designs.projective_plane(5)
-        Incidence structure with 31 points and 31 blocks
+        (31,6,1)-Balanced Incomplete Block Design
         sage: designs.projective_plane(6)
         Traceback (most recent call last):
         ...
@@ -425,7 +702,6 @@ def projective_plane(n, check=True, existence=False):
         sage: designs.projective_plane(12, existence=True)
         Unknown
     """
-    from sage.rings.arith import is_prime_power
     from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
 
     if n <= 1:
@@ -455,7 +731,7 @@ def projective_plane(n, check=True, existence=False):
     if existence:
         return True
     else:
-        return DesarguesianProjectivePlaneDesign(n, check=check)
+        return DesarguesianProjectivePlaneDesign(n, point_coordinates=False, check=check)
 
 def AffineGeometryDesign(n, d, F):
     r"""
@@ -518,6 +794,34 @@ def AffineGeometryDesign(n, d, F):
        gB.append([x-1 for x in b])
     return BlockDesign(v, gB, name="AffineGeometryDesign")
 
+def CremonaRichmondConfiguration():
+    r"""
+    Return the Cremona-Richmond configuration
+
+    The Cremona-Richmond configuration is a set system whose incidence graph
+    is equal to the
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.TutteCoxeterGraph`. It
+    is a generalized quadrangle of parameters `(2,2)`.
+
+    For more information, see the
+    :wikipedia:`Cremona-Richmond_configuration`.
+
+    EXAMPLE::
+
+        sage: H = designs.CremonaRichmondConfiguration(); H
+        Incidence structure with 15 points and 15 blocks
+        sage: g = graphs.TutteCoxeterGraph()
+        sage: H.incidence_graph().is_isomorphic(g)
+        True
+    """
+    from sage.graphs.generators.smallgraphs import TutteCoxeterGraph
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    g = TutteCoxeterGraph()
+    H = IncidenceStructure([g.neighbors(v)
+                            for v in g.bipartite_sets()[0]])
+    H.relabel()
+    return H
+
 def WittDesign(n):
     """
     INPUT:
@@ -542,7 +846,7 @@ def WittDesign(n):
         sage: BD                             # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
         sage: print BD                       # optional - gap_packages (design package)
-        WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
+        Incidence structure with 9 points and 12 blocks
     """
     from sage.interfaces.gap import gap, GapElement
     gap.load_package("design")
@@ -565,11 +869,11 @@ def HadamardDesign(n):
         sage: designs.HadamardDesign(7)
         Incidence structure with 7 points and 7 blocks
         sage: print designs.HadamardDesign(7)
-        HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+        Incidence structure with 7 points and 7 blocks
 
     For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
     We verify that `NJ = 5J` for this design. ::
-     
+
         sage: D = designs.HadamardDesign(11); N = D.incidence_matrix()
         sage: J = matrix(ZZ, 11, 11, [1]*11*11); N*J
         [5 5 5 5 5 5 5 5 5 5 5]

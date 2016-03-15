@@ -7,7 +7,7 @@
 #*******************************************************************************
 
 from c_graph cimport CGraph
-include 'sage/ext/stdsage.pxi'
+from c_graph cimport CGraphBackend
 
 cdef struct SparseGraphLLNode:
     int label
@@ -39,4 +39,7 @@ cdef class SparseGraph(CGraph):
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
     cdef list out_arcs_unsafe(self, int u, bint labels)
 
-cdef int new_edge_label(object l, dict edge_labels)
+cdef class SparseGraphBackend(CGraphBackend):
+    cdef int edge_labels_max
+    cdef list edge_labels_available_ids
+    cdef inline int new_edge_label(self, object l)

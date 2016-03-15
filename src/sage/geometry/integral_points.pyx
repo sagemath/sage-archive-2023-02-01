@@ -5,17 +5,22 @@ Cython helper methods to compute integral points in polyhedra.
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
-from sage.rings.all import QQ, RR, ZZ, gcd, lcm
-from sage.combinat.permutation import Permutation
-from sage.combinat.cartesian_product import CartesianProduct
-from sage.misc.all import prod, uniq
 import copy
+import itertools
+
+from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
+from sage.rings.all import QQ, RR, ZZ
+from sage.rings.integer cimport Integer
+from sage.arith.all import gcd, lcm
+from sage.combinat.permutation import Permutation
+from sage.misc.all import prod, uniq
 
 ##############################################################################
 # The basic idea to enumerate the lattice points in the parallelotope
@@ -185,7 +190,7 @@ cpdef loop_over_parallelotope_points(e, d, VDinv, R, lattice, A=None, b=None):
     The points of the half-open parallelotope as a tuple of lattice
     points.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: e = [3]
         sage: d = prod(e)
@@ -205,10 +210,10 @@ cpdef loop_over_parallelotope_points(e, d, VDinv, R, lattice, A=None, b=None):
     cdef int dim = VDinv.nrows()
     cdef int ambient_dim = R.nrows()
     gens = []
-    s = ZZ.zero() # summation variable
+    s = ZZ.zero()  # summation variable
     gen = lattice(0)
     q_times_d = vector(ZZ, dim)
-    for base in CartesianProduct(*[ range(0,i) for i in e ]):
+    for base in itertools.product(*[ range(0,i) for i in e ]):
         for i in range(0, dim):
             s = ZZ.zero()
             for j in range(0, dim):
@@ -493,7 +498,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
 
     Optionally, return the information about the saturated inequalities as well::
 
-        sage: cube = polytopes.n_cube(3)
+        sage: cube = polytopes.cube()
         sage: cube.Hrepresentation(0)
         An inequality (0, 0, -1) x + 1 >= 0
         sage: cube.Hrepresentation(1)
@@ -533,7 +538,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
         for p in loop_over_rectangular_box_points(box_min, box_max, inequalities, d, count_only):
             #  v = vector(ZZ, orig_perm.action(p))   # too slow
             for i in range(0,d):
-                v.set(i, p[orig_perm_list[i]])
+                v.set(i, Integer(p[orig_perm_list[i]]))
             v_copy = copy.copy(v)
             v_copy.set_immutable()
             points.append(v_copy)
@@ -541,7 +546,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
         for p, saturated in \
                 loop_over_rectangular_box_points_saturated(box_min, box_max, inequalities, d):
             for i in range(0,d):
-                v.set(i, p[orig_perm_list[i]])
+                v.set(i, Integer(p[orig_perm_list[i]]))
             v_copy = copy.copy(v)
             v_copy.set_immutable()
             points.append( (v_copy, saturated) )
@@ -935,7 +940,7 @@ cdef class InequalityCollection:
 
     - ``polyhedron`` -- a polyhedron defining the inequalities.
 
-    - ``permutation`` -- a permution of the coordinates. Will be used
+    - ``permutation`` -- a permutation of the coordinates. Will be used
       to permute the coordinates of the inequality.
 
     - ``box_min``, ``box_max`` -- the (not permuted) minimal and maximal
@@ -1010,7 +1015,7 @@ cdef class InequalityCollection:
 
         A pair ``(A,b)``.
 
-        EXAXMPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.integral_points import InequalityCollection
             sage: line = Polyhedron(eqns=[(2,3,7)])
@@ -1161,7 +1166,7 @@ cdef class InequalityCollection:
 
         .. math::
 
-            c = b + sum_{i=2} A_i x_i
+            c = b + \sum_{i=2} A_i x_i
 
         and only compute `A x-A_0 x_0+b = A_1 x_1 +c \geq 0` in the
         next-to-inner loop.
@@ -1198,7 +1203,7 @@ cdef class InequalityCollection:
 
         .. math::
 
-            c = A x - A_0 x_0 +b = b + sum_{i=1} A_i x_i
+            c = A x - A_0 x_0 +b = b + \sum_{i=1} A_i x_i
 
         and only test `A_0 x_0 +c \geq 0` in the inner loop.
 

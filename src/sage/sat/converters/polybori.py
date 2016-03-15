@@ -67,7 +67,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``solver`` - a SAT-solver instance
 
-        - ``ring`` - a :class:`sage.rins.polynomial.pbori.BooleanPolynomialRing`
+        - ``ring`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomialRing`
 
         - ``max_vars_sparse`` - maximum number of variables for direct conversion
 
@@ -154,7 +154,7 @@ class CNFEncoder(ANF2CNFConverter):
         INPUT:
 
         - ``m`` - something the new variables maps to, usually a monomial
-        - ``decision`` - is this variable a deicison variable?
+        - ``decision`` - is this variable a decision variable?
 
         EXAMPLE::
 
@@ -236,7 +236,7 @@ class CNFEncoder(ANF2CNFConverter):
             res = self.one_set
             for i in reversed(indices):
                 res = ite(i, res, self.empty_set)
-            return iter(res).next()
+            return next(iter(res))
 
         while not rest.empty():
             l = choose(rest)

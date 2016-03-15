@@ -1,4 +1,4 @@
-"""
+r"""
 Graph Plotting
 
 *(For LaTeX drawings of graphs, see the* :mod:`~sage.graphs.graph_latex` *module.)*
@@ -15,7 +15,7 @@ the special graph constructors, which you get using ``graphs.[tab]``, the
 positions are preset. For example, consider the Petersen graph with default node
 positioning vs. the Petersen graph constructed by this database::
 
-    sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
+    sage: petersen_spring = Graph(':I`ES@obGkqegW~')
     sage: petersen_spring.show() # long time
     sage: petersen_database = graphs.PetersenGraph()
     sage: petersen_database.show() # long time
@@ -28,13 +28,74 @@ the spring-layout algorithm.
 
 Here is the list of options accepted by
 :meth:`~sage.graphs.generic_graph.GenericGraph.plot` and the constructor of
-:class:`GraphPlot`.
+:class:`GraphPlot`. Those two functions also accept all options of
+:meth:`sage.plot.graphics.Graphics.show`.
 
 .. csv-table::
     :class: contentstable
     :widths: 30, 70
     :delim: |
 
+{PLOT_OPTIONS_TABLE}
+
+**Default options**
+
+This module defines two dictionaries containing default options for the
+:meth:`~sage.graphs.generic_graph.GenericGraph.plot` and
+:meth:`~sage.graphs.generic_graph.GenericGraph.show` methods. These two dictionaries are
+``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS`` and
+``sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS``, respectively.
+
+Obviously, these values are overruled when arguments are given explicitly.
+
+Here is how to define the default size of a graph drawing to be ``[6,6]``. The
+first two calls to :meth:`~sage.graphs.generic_graph.GenericGraph.show` use this
+option, while the third does not (a value for ``figsize`` is explicitly given)::
+
+    sage: import sage.graphs.graph_plot
+    sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [6,6]
+    sage: graphs.PetersenGraph().show() # long time
+    sage: graphs.ChvatalGraph().show()  # long time
+    sage: graphs.PetersenGraph().show(figsize=[4,4]) # long time
+
+We can now reset the default to its initial value, and now display graphs as
+previously::
+
+    sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [4,4]
+    sage: graphs.PetersenGraph().show() # long time
+    sage: graphs.ChvatalGraph().show()  # long time
+
+.. NOTE::
+
+    * While ``DEFAULT_PLOT_OPTIONS`` affects both ``G.show()`` and ``G.plot()``,
+      settings from ``DEFAULT_SHOW_OPTIONS`` only affects ``G.show()``.
+
+    * In order to define a default value permanently, you can add a couple of
+      lines to `Sage's startup scripts <../../../repl/startup.html>`_. Example ::
+
+       sage: import sage.graphs.graph_plot
+       sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [4,4]
+
+**Index of methods and functions**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`GraphPlot.set_pos` | Sets the position plotting parameters for this GraphPlot.
+    :meth:`GraphPlot.set_vertices` | Sets the vertex plotting parameters for this GraphPlot.
+    :meth:`GraphPlot.set_edges` | Sets the edge (or arrow) plotting parameters for the GraphPlot object.
+    :meth:`GraphPlot.show` | Shows the (Di)Graph associated with this GraphPlot object.
+    :meth:`GraphPlot.plot` | Returns a graphics object representing the (di)graph.
+    :meth:`GraphPlot.layout_tree` | Compute a nice layout of a tree.
+    :meth:`~sage.graphs.graph_plot._circle_embedding` | Sets some vertices on a circle in the embedding of a graph G.
+    :meth:`~sage.graphs.graph_plot._line_embedding` | Sets some vertices on a line in the embedding of a graph G.
+
+Methods and classes
+-------------------
+.. autofunction:: _circle_embedding
+.. autofunction:: _line_embedding
 """
 
 layout_options =   {
@@ -86,70 +147,11 @@ graphplot_options.update(
                         '(larger and white).',
                     'graph_border': 'Whether or not to draw a frame around the graph.'})
 
+_PLOT_OPTIONS_TABLE = ""
 for key, value in graphplot_options.iteritems():
-    __doc__ += "    ``"+str(key)+"`` | "+str(value)+"\n"
+    _PLOT_OPTIONS_TABLE += "    ``"+str(key)+"`` | "+str(value)+"\n"
+__doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 
-
-__doc__ += """
-**Default options**
-
-This module defines two dictionaries containing default options for the
-:meth:`~sage.graphs.generic_graph.GenericGraph.plot` and
-:meth:`~sage.graphs.generic_graph.GenericGraph.show` methods. These two dictionaries are
-``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS`` and
-``sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS``, respectively.
-
-
-Obviously, these values are overruled when arguments are given explicitly.
-
-Here is how to define the default size of a graph drawing to be ``[6,6]``. The
-first two calls to :meth:`~sage.graphs.generic_graph.GenericGraph.show` use this
-option, while the third does not (a value for ``figsize`` is explicitly given)::
-
-    sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [6,6]
-    sage: graphs.PetersenGraph().show() # long time
-    sage: graphs.ChvatalGraph().show()  # long time
-    sage: graphs.PetersenGraph().show(figsize=[4,4]) # long time
-
-We can now reset the default to its initial value, and now display graphs as
-previously::
-
-    sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [4,4]
-    sage: graphs.PetersenGraph().show() # long time
-    sage: graphs.ChvatalGraph().show()  # long time
-
-.. NOTE::
-
-    * While ``DEFAULT_PLOT_OPTIONS`` affects both ``G.show()`` and ``G.plot()``,
-      settings from ``DEFAULT_SHOW_OPTIONS`` only affects ``G.show()``.
-
-    * In order to define a default value permanently, you can add a couple of
-      lines to `Sage's startup scripts <../../../repl/startup.html>`_. Example ::
-
-       sage: import sage.graphs.graph_plot
-       sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [4,4]
-
-**Index of methods and functions**
-
-.. csv-table::
-    :class: contentstable
-    :widths: 30, 70
-    :delim: |
-
-    :meth:`GraphPlot.set_pos` | Sets the position plotting parameters for this GraphPlot.
-    :meth:`GraphPlot.set_vertices` | Sets the vertex plotting parameters for this GraphPlot.
-    :meth:`GraphPlot.set_edges` | Sets the edge (or arrow) plotting parameters for the GraphPlot object.
-    :meth:`GraphPlot.show` | Shows the (Di)Graph associated with this GraphPlot object.
-    :meth:`GraphPlot.plot` | Returns a graphics object representing the (di)graph.
-    :meth:`GraphPlot.layout_tree` | Compute a nice layout of a tree.
-    :meth:`~sage.graphs.graph_plot._circle_embedding` | Sets some vertices on a circle in the embedding of a graph G.
-    :meth:`~sage.graphs.graph_plot._line_embedding` | Sets some vertices on a line in the embedding of a graph G.
-
-Methods and classes
--------------------
-.. autofunction:: _circle_embedding
-.. autofunction:: _line_embedding
-"""
 
 #*****************************************************************************
 #      Copyright (C) 2009   Emily Kirkman
@@ -355,17 +357,6 @@ class GraphPlot(SageObject):
                 vertex_colors = {}
                 for i in range(l):
                     vertex_colors[R[i]] = partition[i]
-            elif len(self._graph._boundary) != 0:
-                vertex_colors = {}
-                bdy_verts = []
-                int_verts = []
-                for v in self._graph.vertex_iterator():
-                    if v in self._graph._boundary:
-                        bdy_verts.append(v)
-                    else:
-                        int_verts.append(v)
-                vertex_colors['#fec7b8'] = int_verts
-                vertex_colors['#b3e8ff'] = bdy_verts
             elif not vertex_colors:
                 vertex_colors='#fec7b8'
         else:
@@ -766,7 +757,7 @@ class GraphPlot(SageObject):
 
         The options for plotting also work with directed graphs::
 
-            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []}, implementation='networkx' )
+            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []})
             sage: for u,v,l in D.edges():
             ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.graphplot(edge_labels=True, layout='circular').show()
@@ -894,6 +885,14 @@ class GraphPlot(SageObject):
             ...
             ValueError: Invalid input 'egabrag=garbage'
 
+        Make sure that no graphics primitive is clipped::
+
+            sage: tadpole = Graph({0:[0,1]}).plot()
+            sage: bbox = tadpole.get_minmax_data()
+            sage: for part in tadpole:
+            ....:      part_bbox = part.get_minmax_data()
+            ....:      assert bbox['xmin'] <= part_bbox['xmin'] <= part_bbox['xmax'] <= bbox['xmax']
+            ....:      assert bbox['ymin'] <= part_bbox['ymin'] <= part_bbox['ymax'] <= bbox['ymax']
         """
         G = Graphics()
         options = self._options.copy()
@@ -912,7 +911,6 @@ class GraphPlot(SageObject):
                 for item in comp:
                     G += item
 
-        G.set_axes_range(*(self._graph._layout_bounding_box(self._pos)))
         if self._options['graph_border']:
             xmin = G.xmin()
             xmax = G.xmax()
@@ -925,7 +923,6 @@ class GraphPlot(SageObject):
             G += border
         G.set_aspect_ratio(1)
         G.axes(False)
-        G._extra_kwds['axes_pad']=.05
         return G
 
     def layout_tree(self,root,orientation):

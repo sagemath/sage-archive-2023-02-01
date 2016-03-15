@@ -64,6 +64,23 @@ cdef extern from "zn_poly/zn_poly.h":
 from sage.libs.flint.fmpz_poly cimport *
 
 cdef class Polynomial_zmod_flint(Polynomial_template):
+    r"""
+    Polynomial on `\ZZ/n\ZZ` implemented via FLINT.
+
+    TESTS::
+
+        sage: f = Integers(4)['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_zmod_flint import Polynomial_zmod_flint
+        sage: isinstance(f, Polynomial_zmod_flint)
+        True
+
+    .. automethod:: _add_
+    .. automethod:: _sub_
+    .. automethod:: _lmul_
+    .. automethod:: _rmul_
+    .. automethod:: _mul_
+    .. automethod:: _mul_trunc_
+    """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
         EXAMPLE::
@@ -73,7 +90,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef long nlen
 
-        if PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
+        if isinstance(x, list) or isinstance(x, tuple):
             k = parent._base
             if check:
                 lst = [k(i) for i in x]
@@ -87,12 +104,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             Polynomial_template.__init__(self, parent, 0, check, is_gen, construct)
             self._set_list(lst)
             return
-        elif PY_TYPE_CHECK(x, Polynomial_integer_dense_flint):
+        elif isinstance(x, Polynomial_integer_dense_flint):
             Polynomial_template.__init__(self, parent, 0, check, is_gen, construct)
             self._set_fmpz_poly((<Polynomial_integer_dense_flint>x).__poly)
             return
         else:
-            if PY_TYPE_CHECK(x, ntl_zz_pX):
+            if isinstance(x, ntl_zz_pX):
                 x = x.list()
             try:
                 if x.parent() is parent.base_ring() or x.parent() == parent.base_ring():
@@ -109,7 +126,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: (2*x+1).monic() #indirect doctest
             x + 3
         """
-        cdef Polynomial_template e = <Polynomial_template>PY_NEW(self.__class__)
+        cdef type t = type(self)
+        cdef Polynomial_template e = <Polynomial_template>t.__new__(t)
         nmod_poly_init(&e.x, self._parent.modulus())
         e._parent = self._parent
         e._cparent = self._cparent
@@ -139,7 +157,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             ValueError: invalid literal for int() with base 10: '4.1'
 
         """
-        cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
+        cdef type t = type(self)
+        cdef Polynomial_template r = <Polynomial_template>t.__new__(t)
         r._parent = P
         r._cparent = get_cparent(P)
         nmod_poly_init(&r.x, nmod_poly_modulus(&self.x))
@@ -216,8 +235,10 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         sig_off()
         return 0
 
-    def __getitem__(self, i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: P.<x> = GF(32003)[]
@@ -230,29 +251,13 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             2252
             sage: f[-1]
             0
-            sage: f[1:3]
-            24998*x^2 + 29761*x
-            sage: f[-5:50] == f
+            sage: f[:2]
+            29761*x + 2252
+            sage: f[:50] == f
             True
         """
-        cdef unsigned long c = 0
-        cdef Polynomial_template r
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            if start < 0:
-                start = 0
-            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
-                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
-            x = (<Polynomial_template>self)._parent.gen()
-            v = [self[t] for t from start <= t < stop]
-
-            r = <Polynomial_template>PY_NEW(self.__class__)
-            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-            return r << start
-        else:
-            if 0 <= i < nmod_poly_length(&self.x):
-                c = nmod_poly_get_coeff_ui(&self.x, i)
-            return self._parent.base_ring()(c)
+        cdef unsigned long c = nmod_poly_get_coeff_ui(&self.x, i)
+        return self._parent.base_ring()(c)
 
     def __call__(self, *x, **kwds):
         """
@@ -438,7 +443,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef Polynomial_zmod_flint _other = <Polynomial_zmod_flint>self._parent._coerce_(other)
 
-        cdef Polynomial_zmod_flint r = <Polynomial_zmod_flint>PY_NEW(self.__class__)
+        cdef type t = type(self)
+        cdef Polynomial_zmod_flint r = <Polynomial_zmod_flint>t.__new__(t)
         r._parent = (<Polynomial_zmod_flint>self)._parent
         r._cparent = (<Polynomial_zmod_flint>self)._cparent
 
@@ -457,7 +463,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         zn_mod_clear(&zn_mod)
         return r
 
-    cpdef _mul_trunc(self, Polynomial_zmod_flint other, n):
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
         """
         Return the product of this polynomial and other truncated to the
         given length `n`.
@@ -471,23 +477,24 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
             sage: P.<a>=GF(7)[]
             sage: a = P(range(10)); b = P(range(5, 15))
-            sage: a._mul_trunc(b, 5)
+            sage: a._mul_trunc_(b, 5)
             4*a^4 + 6*a^3 + 2*a^2 + 5*a
 
         TESTS::
 
-            sage: a._mul_trunc(b, 0)
+            sage: a._mul_trunc_(b, 0)
             Traceback (most recent call last):
             ...
             ValueError: length must be > 0
         """
-        cdef Polynomial_zmod_flint res = self._new()
         if n <= 0:
             raise ValueError("length must be > 0")
-        nmod_poly_mullow(&res.x, &self.x, &other.x, n)
+        cdef Polynomial_zmod_flint op2 = <Polynomial_zmod_flint> right
+        cdef Polynomial_zmod_flint res = self._new()
+        nmod_poly_mullow(&res.x, &self.x, &op2.x, n)
         return res
 
-    _mul_short = _mul_trunc
+    _mul_short = _mul_trunc_
 
     cpdef _mul_trunc_opposite(self, Polynomial_zmod_flint other, n):
         """
@@ -502,10 +509,14 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
             sage: P.<a>=GF(7)[]
             sage: b = P(range(10)); c = P(range(5, 15))
-            sage: (b._mul_trunc_opposite(c, 10))[10:18]
-            5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10
-            sage: (b._mul_trunc_opposite(c, 18))[18:]
-            0
+            sage: b._mul_trunc_opposite(c, 10)
+            5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10 + 2*a^9 + 5*a^8 + 4*a^5 + 4*a^4 + 6*a^3 + 2*a^2 + 5*a
+            sage: list(b._mul_trunc_opposite(c, 10))[10:18]
+            [5, 0, 0, 4, 4, 6, 2, 5]
+            sage: list(b*c)[10:18]
+            [5, 0, 0, 4, 4, 6, 2, 5]
+            sage: list(b._mul_trunc_opposite(c, 18))[18:]
+            []
 
         TESTS::
 
@@ -546,7 +557,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         P = self._parent
 
         cdef Polynomial_zmod_flint s0 = self._new()
-        cdef Polynomial_zmod_flint t0 = P.one_element()
+        cdef Polynomial_zmod_flint t0 = P.one()
         cdef Polynomial_zmod_flint s1 = m
         cdef Polynomial_zmod_flint t1 = self%m
 
@@ -608,7 +619,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             ...
             NotImplementedError: checking irreducibility of polynomials over rings with composite characteristic is not implemented
         """
-        if self.is_zero():
+        if not self:
             return False
         if self.is_unit():
             return False
@@ -616,9 +627,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         if not self.base_ring().is_field():
             raise NotImplementedError("checking irreducibility of polynomials over rings with composite characteristic is not implemented")
 
+        sig_on()
         if 1 == nmod_poly_is_irreducible(&self.x):
+            sig_off()
             return True
         else:
+            sig_off()
             return False
 
     def squarefree_decomposition(self):

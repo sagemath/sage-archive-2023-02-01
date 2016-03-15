@@ -851,7 +851,7 @@ cdef class FrozenBitset:
             sage: repr(FrozenBitset('110' * 32))
             '110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110110'
         """
-        return self.__str__()
+        return str(self)
 
     cpdef _union(self, FrozenBitset other):
         """

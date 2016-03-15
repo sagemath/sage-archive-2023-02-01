@@ -71,12 +71,11 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/stdsage.pxi'
 include 'sage/data_structures/bitset.pxi'
 from matroid cimport Matroid
 from basis_exchange_matroid cimport BasisExchangeMatroid
 from itertools import permutations
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from set_system cimport SetSystem
 from itertools import combinations
 
@@ -949,6 +948,85 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             ot = other
         return self.bases_count() == (<BasisMatroid>ot).bases_count() and self._is_relaxation(ot, morphism)
 
+    cpdef _isomorphism(self, other):
+        """
+        Return isomorphism from ``self`` to ``other``, if one exists.
+
+        INPUT:
+
+        - ``other`` -- a matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``
+
+        .. NOTE::
+
+            Internal version that does no input checking.
+
+        EXAMPLES::
+        
+            sage: from sage.matroids.advanced import *
+            sage: M = BasisMatroid(matroids.Wheel(3))
+            sage: N = BasisMatroid(matroids.CompleteGraphic(4))
+            sage: morphism = M._isomorphism(N)
+            sage: M._is_isomorphism(N, morphism)
+            True
+            sage: M = BasisMatroid(matroids.named_matroids.NonFano())
+            sage: N = BasisMatroid(matroids.named_matroids.Fano())
+            sage: M._isomorphism(N) is not None
+            False
+        """
+        if not isinstance(other, BasisMatroid):
+            return BasisExchangeMatroid._is_isomorphic(self, other)
+        if self is other:
+            return {e:e for e in self.groundset()}
+        if len(self) != len(other):
+            return None
+        if self.full_rank() != other.full_rank():
+            return None
+        if self.full_rank() == 0:
+            return {self.groundset_list()[i]: other.groundset_list()[i] for i in xrange(len(self))}        
+        if self.bases_count() != other.bases_count():
+            return None
+
+        if self._bases_invariant() != other._bases_invariant():
+            return None
+        PS = self._bases_partition()
+        PO = other._bases_partition()
+        if len(PS) == len(self) and len(PO) == len(other):
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PS[i])] = min(PO[i])
+            if self._is_relaxation(other, morphism):
+                return morphism
+            else:
+                return None
+
+        if self._bases_invariant2() != other._bases_invariant2():
+            return None
+        PS = self._bases_partition2()
+        PO = other._bases_partition2()
+        if len(PS) == len(self) and len(PO) == len(other):
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PS[i])] = min(PO[i])
+            if self._is_relaxation(other, morphism):
+                return morphism
+            else:
+                return None
+
+        if self._bases_invariant3() == other._bases_invariant3():
+            PHS = self._bases_partition3()
+            PHO = other._bases_partition3()
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PHS[i])] = min(PHO[i])
+            if self._is_relaxation(other, morphism):
+                return morphism
+
+        return self.nonbases()._isomorphism(other.nonbases(), PS, PO)
+        
     cpdef _is_isomorphic(self, other):
         """
         Return if this matroid is isomorphic to the given matroid.

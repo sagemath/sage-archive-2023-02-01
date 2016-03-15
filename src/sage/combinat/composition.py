@@ -33,18 +33,19 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.structure.element import Element
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
-from combinat import CombinatorialObject
-from cartesian_product import CartesianProduct
-from integer_list import IntegerListsLex
+from combinat import CombinatorialElement
+from sage.categories.cartesian_product import cartesian_product
+
+from integer_lists import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
-class Composition(CombinatorialObject, Element):
+class Composition(CombinatorialElement):
     r"""
     Integer compositions
 
@@ -106,9 +107,12 @@ class Composition(CombinatorialObject, Element):
         [1, 1, 2, 1]
         sage: Composition(descents=({0,1,3},5))
         [1, 1, 2, 1]
-    """
-    __metaclass__ = ClasscallMetaclass
 
+    EXAMPLES::
+
+        sage: C = Composition([3,1,2])
+        sage: TestSuite(C).run()
+    """
     @staticmethod
     def __classcall_private__(cls, co=None, descents=None, code=None, from_subset=None):
         """
@@ -143,18 +147,6 @@ class Composition(CombinatorialObject, Element):
         else:
             return Compositions()(list(co))
 
-    def __init__(self, parent, lst):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: C = Composition([3,1,2])
-            sage: TestSuite(C).run()
-        """
-        CombinatorialObject.__init__(self, lst)
-        Element.__init__(self, parent)
-
     def _ascii_art_(self):
         """
         TESTS::
@@ -171,7 +163,7 @@ class Composition(CombinatorialObject, Element):
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
         """
-        from sage.misc.ascii_art import ascii_art
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
 
     def __setstate__(self, state):
@@ -476,7 +468,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(Compositions()(current_factor))
                         return (tuple(factors), tuple(signs))
@@ -608,7 +600,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         return Compositions()(factors)
                 if current_factor_size + i <= j:
@@ -728,7 +720,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(current_part)
                         return Compositions()(factors)
@@ -758,10 +750,16 @@ class Composition(CombinatorialObject, Element):
             sage: C = Composition([3,2]).finer()
             sage: C.cardinality()
             8
-            sage: list(C)
+            sage: C.list()
             [[1, 1, 1, 1, 1], [1, 1, 1, 2], [1, 2, 1, 1], [1, 2, 2], [2, 1, 1, 1], [2, 1, 2], [3, 1, 1], [3, 2]]
+
+            sage: Composition([]).finer()
+            {[]}
         """
-        return CartesianProduct(*[Compositions(i) for i in self]).map(Composition.sum)
+        if not self:
+            return FiniteEnumeratedSet([self])
+        else:
+            return cartesian_product([Compositions(i) for i in self]).map(Composition.sum)
 
     def is_finer(self, co2):
         """
@@ -947,7 +945,7 @@ class Composition(CombinatorialObject, Element):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Compositions()(map(len,self.refinement_splitting(J)))
+        return Compositions()([len(_) for _ in self.refinement_splitting(J)])
 
     def major_index(self):
         """
@@ -1318,7 +1316,7 @@ class Composition(CombinatorialObject, Element):
 
 ##############################################################
 
-class Compositions(Parent, UniqueRepresentation):
+class Compositions(UniqueRepresentation, Parent):
     r"""
     Set of integer compositions.
 
@@ -1396,10 +1394,10 @@ class Compositions(Parent, UniqueRepresentation):
         sage: [4,1] in Compositions(5, inner=[2,1], max_slope = 0)
         True
 
-    Note that the given constraints should be compatible::
+    An example with incompatible constraints::
 
         sage: [4,2] in Compositions(6, inner=[2,2], min_part=3)
-        True
+        False
 
     The options ``length``, ``min_length``, and ``max_length`` can be used
     to set length constraints on the compositions. For example, the
@@ -1838,7 +1836,7 @@ class Compositions_all(Compositions):
 
             sage: C = Compositions()
             sage: it = C.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [1, 1], [2], [1, 1, 1], [1, 2], [2, 1], [3], [1, 1, 1, 1], [1, 1, 2]]
         """
         n = 0
@@ -1962,13 +1960,40 @@ class Compositions_n(Compositions):
             sage: Compositions(0).list()
             [[]]
         """
-        if self.n == 0:
-            yield self.element_class(self, [])
-            return
+        for c in composition_iterator_fast(self.n):
+            yield self.element_class(self, c)
 
-        for i in range(1,self.n+1):
-            for c in Compositions_n(self.n-i):
-                yield self.element_class(self, [i]+list(c))
+def composition_iterator_fast(n):
+    """
+    Iterator over compositions of ``n`` yielded as lists.
+
+    TESTS::
+
+        sage: from sage.combinat.composition import composition_iterator_fast
+        sage: L = list(composition_iterator_fast(4)); L
+        [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
+        sage: type(L[0])
+        <type 'list'>
+    """
+    # Special cases
+    if n < 0:
+        return
+    if n == 0:
+        yield []
+        return
+
+    s = Integer(0) # Current sum
+    cur = [Integer(0)]
+    while cur:
+        cur[-1] += 1
+        s += 1
+        # Note that because we are adding 1 every time,
+        #   we will never have s > n
+        if s == n:
+            yield list(cur)
+            s -= cur.pop()
+        else:
+            cur.append(Integer(0))
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)

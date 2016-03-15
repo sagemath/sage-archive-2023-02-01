@@ -117,15 +117,26 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
     EXAMPLES::
 
         sage: F = GF(3); MS = MatrixSpace(F,2,2)
-               sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
+        sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
         sage: G = MatrixGroup(gens)
         sage: g = G.random_element()
         sage: type(g)
         <class 'sage.groups.matrix_gps.group_element.FinitelyGeneratedMatrixGroup_gap_with_category.element_class'>
     """
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: MS = MatrixSpace(GF(3), 2)
+            sage: G = MatrixGroup([MS([1,1,0,1]), MS([1,0,1,1])])
+            sage: g = G.an_element()
+            sage: hash(g)
+            0
+        """
+        return hash(self.matrix())
 
     def _repr_(self):
-        """
+        r"""
         Return string representation of this matrix.
 
         EXAMPLES::
@@ -182,7 +193,7 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
             except TypeError:
                 return None
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 
@@ -197,6 +208,8 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
             False
         """
         return cmp(self.matrix(), other.matrix())
+
+    __cmp__ = _cmp_
 
     def list(self):
         """
@@ -214,7 +227,7 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
             sage: g.list()
             [[1, 0], [0, 1]]
         """
-        return map(list, self.matrix().rows())
+        return [list(_) for _ in self.matrix().rows()]
 
 
 ###################################################################
@@ -338,28 +351,6 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
 
     inverse = __invert__
 
-    def conjugacy_class(self):
-        r"""
-        Return the conjugacy class of ``self``.
-
-        OUTPUT:
-
-        The conjugacy class of ``g`` in the group ``self``. If ``self`` is the
-        group denoted by `G`, this method computes the set
-        `\{x^{-1}gx\ \vert\ x\in G\}`.
-
-        EXAMPLES::
-
-            sage: G = SL(2, GF(2))
-            sage: g = G.gens()[0]
-            sage: g.conjugacy_class()
-            Conjugacy class of [1 1]
-            [0 1] in Special Linear Group of degree 2 over Finite Field of size 2
-        """
-        from sage.groups.conjugacy_classes import ConjugacyClass
-        return ConjugacyClass(self.parent(), self)
-
-
 ###################################################################
 #
 # Matrix group elements implemented in GAP
@@ -446,26 +437,4 @@ class MatrixGroupElement_gap(GroupElementMixinLibGAP, MatrixGroupElement_base, E
         m = g.matrix(self.base_ring())
         m.set_immutable()
         return m
-
-    def conjugacy_class(self):
-        r"""
-        Return the conjugacy class of ``self``.
-
-        OUTPUT:
-
-        The conjugacy class of ``g`` in the group ``self``. If ``self`` is the
-        group denoted by `G`, this method computes the set
-        `\{x^{-1}gx\ \vert\ x\in G\}`.
-
-        EXAMPLES::
-
-            sage: G = SL(2, QQ)
-            sage: g = G([[1,1],[0,1]])
-            sage: g.conjugacy_class()
-            Conjugacy class of [1 1]
-            [0 1] in Special Linear Group of degree 2 over Rational Field
-        """
-        from sage.groups.conjugacy_classes import ConjugacyClassGAP
-        return ConjugacyClassGAP(self.parent(), self)
-
 

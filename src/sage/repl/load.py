@@ -1,5 +1,5 @@
 """
-Load Python, Sage, Cython and Magma files in Sage
+Load Python, Sage, Cython, Fortran and Magma files in Sage
 """
 
 #*****************************************************************************
@@ -20,8 +20,8 @@ def is_loadable_filename(filename):
     """
     Returns whether a file can be loaded into Sage.  This checks only
     whether its name ends in one of the supported extensions ``.py``,
-    ``.pyx``, ``.sage``, ``.spyx``, and ``.m``.  Note: :func:`load`
-    assumes the latter signifies a Magma file.
+    ``.pyx``, ``.sage``, ``.spyx``, ``.f``, ``.f90`` and ``.m``.
+    Note: :func:`load` assumes the latter signifies a Magma file.
 
     INPUT:
 
@@ -39,12 +39,13 @@ def is_loadable_filename(filename):
         False
         sage: sage.repl.load.is_loadable_filename('foo.sage')
         True
+        sage: sage.repl.load.is_loadable_filename('FOO.F90')
+        True
         sage: sage.repl.load.is_loadable_filename('foo.m')
         True
     """
-    if filename.endswith(('.py', '.pyx', '.sage', '.spyx', '.m')):
-        return True
-    return False
+    ext = os.path.splitext(filename)[1].lower()
+    return ext in ('.py', '.pyx', '.sage', '.spyx', '.f', '.f90', '.m')
 
 
 def load_cython(name):
@@ -68,9 +69,8 @@ def load_cython(name):
 
 
 def load(filename, globals, attach=False):
-    """
-    Executes a file in the scope given by ``globals``.  The
-    ``filename`` itself is also evaluated in the scope.  If the name
+    r"""
+    Executes a file in the scope given by ``globals``.  If the name
     starts with ``http://``, it is treated as a URL and downloaded.
 
     .. NOTE::
@@ -83,14 +83,13 @@ def load(filename, globals, attach=False):
 
     INPUT:
 
-    - ``filename`` -- a string; a .py, .sage, .pyx, etc., filename,
-      URL, or expression that evaluates to one
+    - ``filename`` -- a string denoting a filename or URL.
 
     - ``globals`` -- a string:object dictionary; the context in which
-      to evaluate the ``filename`` and exec its contents
+      to execute the file contents.
 
     - ``attach`` -- a boolean (default: False); whether to add the
-      file to the list of attached files
+      file to the list of attached files.
 
     EXAMPLES:
 
@@ -128,17 +127,10 @@ def load(filename, globals, attach=False):
     If the file isn't a Cython, Python, or a Sage file, a ValueError
     is raised::
 
-        sage: sage.repl.load.load('a.foo',globals())
+        sage: sage.repl.load.load(tmp_filename(ext=".foo"), globals())
         Traceback (most recent call last):
         ...
-        ValueError: argument (='a.foo') to load or attach must have extension py, pyx, sage, spyx, or m
-
-    A filename given as an expression get evaluated.  This ensures
-    that ``load DATA+'foo.sage'`` works in the Notebook, say::
-
-        sage: t=tmp_filename(ext='.py'); open(t,'w').write("print 'hello world'")
-        sage: sage.repl.load.load(t, globals())
-        hello world
+        ValueError: unknown file extension '.foo' for load or attach (supported extensions: .py, .pyx, .sage, .spyx, .f, .f90, .m)
 
     We load a file given at a remote URL::
 
@@ -189,34 +181,68 @@ def load(filename, globals, attach=False):
         sage: load_attach_path()          # not tested
         ['.', '/path/to/my/library', '/path/to/utils']
 
+    TESTS:
+
     Make sure that load handles filenames with spaces in the name or path::
 
         sage: t = tmp_filename(ext=' b.sage'); open(t,'w').write("print 2")
         sage: sage.repl.load.load(t, globals())
         2
+
+    Non-existing files with spaces give correct messages::
+
+        sage: sage.repl.load.load("this file should not exist", globals())
+        Traceback (most recent call last):
+        ...
+        IOError: did not find file 'this file should not exist' to load or attach
+
+    Evaluating a filename is deprecated::
+
+        sage: sage.repl.load.load("tmp_filename(ext='.py')", globals())
+        doctest:...: DeprecationWarning: using unevaluated expressions as argument to load() is dangerous and deprecated
+        See http://trac.sagemath.org/17654 for details.
+
+    Test filenames separated by spaces (deprecated)::
+
+        sage: t = tmp_filename(ext='.py')
+        sage: with open(t, 'w') as f:
+        ....:     f.write("print 'hello'\n")
+        sage: sage.repl.load.load(t + " " + t, globals())
+        hello
+        hello
+        doctest:...: DeprecationWarning: using multiple filenames separated by spaces as load() argument is dangerous and deprecated
+        See http://trac.sagemath.org/17654 for details.
     """
     if attach:
         from sage.repl.attach import add_attached_file
 
-    try:
-        filename = eval(filename, globals)
-    except Exception:
-        # First check if the file exists. The filename may have spaces in
-        # its name, but more importantly modified_attached_files calls load
-        # with the absolute file path and that may contain spaces in the path
-        # As a side effect, this also allows file names with spaces in
-        # them, but currently I don't see a way to disallow this case.
-        if not os.path.exists(filename) and not os.path.isabs(filename):
-            # handle multiple input files separated by spaces, which was
+    filename = os.path.expanduser(filename)
+    if not os.path.exists(filename):
+        try:
+            # Try *evaluating* the filename
+            filename = eval(filename, globals).strip()
+        except Exception:
+            # Handle multiple input files separated by spaces, which was
             # maybe a bad idea, but which we have to handle for backwards
             # compatibility.
             v = filename.split()
             if len(v) > 1:
-                for file in v:
-                    load(file, globals, attach=attach)
-                return
-
-    filename = filename.strip()
+                try:
+                    for f in v:
+                        load(f, globals, attach=attach)
+                except IOError:
+                    # Splitting the filename didn't work, pretend it
+                    # didn't happen :-)
+                    pass
+                else:
+                    # Only show deprecation message if the filename
+                    # splitting worked.
+                    from sage.misc.superseded import deprecation
+                    deprecation(17654, 'using multiple filenames separated by spaces as load() argument is dangerous and deprecated')
+                    return
+        else:
+            from sage.misc.superseded import deprecation
+            deprecation(17654, 'using unevaluated expressions as argument to load() is dangerous and deprecated')
 
     if filename.lower().startswith(('http://', 'https://')):
         if attach:
@@ -224,34 +250,26 @@ def load(filename, globals, attach=False):
             # we will do this.
             # http://www.diveintopython.net/http_web_services/etags.html
             raise NotImplementedError("you can't attach a URL")
-        from remote_file import get_remote_file
+        from sage.misc.remote_file import get_remote_file
         filename = get_remote_file(filename, verbose=False)
 
-    if not is_loadable_filename(filename):
-        raise ValueError('argument (=%r) to load or attach must have extension py, pyx, sage, spyx, or m' % filename)
-
-    fpath = os.path.expanduser(filename)
-    if os.path.isabs(fpath):
-        if not os.path.exists(fpath):
-            raise IOError('did not find file %r to load or attach' % filename)
+    from sage.repl.attach import load_attach_path
+    for path in load_attach_path():
+        fpath = os.path.join(path, filename)
+        fpath = os.path.expanduser(fpath)
+        if os.path.isfile(fpath):
+            break
     else:
-        from sage.repl.attach import load_attach_path
-        for path in load_attach_path():
-            fpath = os.path.join(path, filename)
-            fpath = os.path.expanduser(fpath)
-            if os.path.exists(fpath):
-                break
-        else:
-            raise IOError('did not find file %r in load / attach search path' \
-                % filename)
+        raise IOError('did not find file %r to load or attach' % filename)
 
-    if fpath.endswith('.py'):
+    ext = os.path.splitext(fpath)[1].lower()
+    if ext == '.py':
         if attach:
             add_attached_file(fpath)
         with open(fpath) as f:
             code = compile(f.read(), fpath, 'exec')
             exec(code, globals)
-    elif fpath.endswith('.sage'):
+    elif ext == '.sage':
         from sage.repl.attach import load_attach_mode
         from sage.repl.preparse import preparse_file_named, preparse_file
         load_debug_mode, attach_debug_mode = load_attach_mode()
@@ -270,17 +288,23 @@ def load(filename, globals, attach=False):
             if attach:
                 add_attached_file(fpath)
             exec(preparse_file(open(fpath).read()) + "\n", globals)
-    elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
+    elif ext == '.spyx' or ext == '.pyx':
         if attach:
             add_attached_file(fpath)
         exec(load_cython(fpath), globals)
-    elif fpath.endswith('.m'):
+    elif ext == '.f' or ext == '.f90':
+        from sage.misc.inline_fortran import fortran
+        with open(fpath) as f:
+            fortran(f.read(), globals)
+    elif ext == '.m':
         # Assume magma for now, though maybe .m is used by maple and
         # mathematica too, and we should really analyze the file
         # further.
         s = globals['magma'].load(fpath)
         i = s.find('\n'); s = s[i+1:]
         print(s)
+    else:
+        raise ValueError('unknown file extension %r for load or attach (supported extensions: .py, .pyx, .sage, .spyx, .f, .f90, .m)' % ext)
 
 
 def load_wrap(filename, attach=False):

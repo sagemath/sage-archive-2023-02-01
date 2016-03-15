@@ -1,8 +1,8 @@
 """
-Miscellaneous functions
+Miscellaneous functions (Cython)
 
-This file contains support for products, running totals, balanced sums, and
-bitset tests.
+This file contains support for products, running totals and balanced
+sums.
 
 AUTHORS:
 
@@ -12,27 +12,22 @@ AUTHORS:
 - Robert Bradshaw (2008-03-26): Balanced product tree for generators and iterators
 - Stefan van Zwam (2013-06-06): Added bitset tests, some docstring cleanup
 """
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 import sys
 
-include "sage/ext/stdsage.pxi"
 from cpython.sequence cimport *
 from cpython.list cimport *
 from cpython.tuple cimport *
-from cpython.slice cimport PySlice_Check
 from cpython.number cimport *
 
 cdef extern from *:
@@ -105,7 +100,7 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff=5):
     """
     cdef Py_ssize_t n
 
-    if not PyList_CheckExact(x) and not PyTuple_CheckExact(x):
+    if type(x) is not list and type(x) is not tuple:
 
         if not PyGen_Check(x):
 
@@ -126,7 +121,7 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff=5):
             except TypeError:
                 pass
 
-        if not PyList_CheckExact(x):
+        if type(x) is not list:
             try:
                 return iterator_prod(x, z)
             except StopIteration:
@@ -210,7 +205,7 @@ cpdef iterator_prod(L, z=None):
     # TODO: declaring sub_prods as a list should speed much of this up.
     L = iter(L)
     if z is None:
-        sub_prods = [L.next()] * 10
+        sub_prods = [next(L)] * 10
     else:
         sub_prods = [z] * 10
 
@@ -361,12 +356,12 @@ def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff=5):
     if recursion_cutoff < 3:
         raise ValueError("recursion_cutoff must be at least 3")
 
-    if not PyList_CheckExact(x) and not PyTuple_CheckExact(x):
+    if type(x) is not list and type(x) is not tuple:
 
         if PyGen_Check(x):
             # lazy list, do lazy product
             try:
-                sum = copy(x.next()) if z is None else z + x.next()
+                sum = copy(next(x)) if z is None else z + next(x)
                 for a in x:
                     sum += a
                 return sum
@@ -590,11 +585,11 @@ cpdef list normalize_index(object key, int size):
         if index < 0 or index >= size:
             raise IndexError("index out of range")
         return [index]
-    elif PySlice_Check(key):
+    elif isinstance(key, slice):
         return range(*key.indices(size))
-    elif PyTuple_CheckExact(key):
+    elif type(key) is tuple:
         index_tuple = key
-    elif PyList_CheckExact(key):
+    elif type(key) is list:
         index_tuple = PyList_AsTuple(key)
     else:
         raise TypeError("index must be an integer or slice or a tuple/list of integers and slices")
@@ -610,7 +605,7 @@ cpdef list normalize_index(object key, int size):
             if index < 0 or index >= size:
                 raise IndexError("index out of range")
             return_list.append(index)
-        elif PySlice_Check(index_obj):
+        elif isinstance(index_obj, slice):
             return_list.extend(range(*index_obj.indices(size)))
         else:
             raise TypeError("index must be an integer or slice")

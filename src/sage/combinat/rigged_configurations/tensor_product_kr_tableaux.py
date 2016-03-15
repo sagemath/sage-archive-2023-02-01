@@ -329,15 +329,16 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
             sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[2,1], [1,1]])
             sage: g = KRT.__iter__()
-            sage: g.next()
+            sage: next(g)
             [[2], [3]] (X) [[1]]
-            sage: g.next()
+            sage: next(g)
             [[2], [4]] (X) [[1]]
         """
         index_set = self._cartan_type.classical().index_set()
-        from sage.combinat.backtrack import TransitiveIdeal
-        return TransitiveIdeal(lambda x: [x.f(i) for i in index_set],
-                               self.module_generators).__iter__()
+        from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+        return RecursivelyEnumeratedSet(self.module_generators,
+                    lambda x: [x.f(i) for i in index_set],
+                    structure=None).naive_search_iterator()
 
     def _test_bijection(self, **options):
         r"""
@@ -492,23 +493,3 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         return super(TensorProductOfKirillovReshetikhinTableaux, self).tensor(*crystals, **options)
 
 TensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovReshetikhinTableauxElement
-
-def HighestWeightTensorProductOfKirillovReshetikhinTableaux(cartan_type, B):
-    """
-    Deprecated in :trac:`13872`. Use instead the attribute
-    ``module_generators`` of
-    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
-
-    EXAMPLES::
-
-        sage: HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',2,1], [[1,1]])
-        doctest:...: DeprecationWarning: this class is deprecated.
-         Use TensorProductOfKirillovReshetikhinTableaux(cartan_type, B).module_generators instead
-        See http://trac.sagemath.org/13872 for details.
-        Highest weight elements of Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 2, 1] and factor(s) ((1, 1),)
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13872, 'this class is deprecated. Use TensorProductOfKirillovReshetikhinTableaux('
-                       'cartan_type, B).module_generators instead')
-    return TensorProductOfKirillovReshetikhinTableaux(cartan_type, B).module_generators
-

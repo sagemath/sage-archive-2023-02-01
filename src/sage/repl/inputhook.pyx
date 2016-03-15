@@ -17,24 +17,20 @@ disable Ctrl-C.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 cdef extern from 'pythonrun.h':
-    int (*PyOS_InputHook)() nogil except *
+    int (*PyOS_InputHook)() nogil except -1
 
 cdef extern from 'intrcheck.h':
     int PyOS_InterruptOccurred() nogil
 
-### See https://github.com/cython/cython/pull/313
-# from cpython.exc cimport PyErr_SetInterrupt
-### workaround
-    void PyErr_SetInterrupt() nogil
+from cpython.exc cimport PyErr_SetInterrupt
 
 from sage.repl.attach import reload_attached_files_if_modified
 
 
-cdef int c_sage_inputhook() nogil except *:
+cdef int c_sage_inputhook() nogil except -1:
     """
     This is the C function that is installed as PyOS_InputHook
     """
@@ -44,7 +40,6 @@ cdef int c_sage_inputhook() nogil except *:
         with gil:
             sage_inputhook()
             sig_check()
-    return 0
 
 def install():
     """
@@ -72,7 +67,7 @@ def uninstall():
 
 
 def sage_inputhook():
-    """
+    r"""
     The input hook.
 
     This function will be called every 100ms when IPython is idle at
@@ -103,6 +98,7 @@ def sage_inputhook():
         sage: shell.run_cell('detach({0})'.format(repr(tmp)))
         sage: shell.run_cell('attached_files()')
         []
+        sage: shell.quit()
     """
     reload_attached_files_if_modified()
     return 0

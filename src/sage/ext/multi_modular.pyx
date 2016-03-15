@@ -1,5 +1,5 @@
 """
-Utility classes for multi-modular algorithms.
+Utility classes for multi-modular algorithms
 """
 
 ######################################################################
@@ -12,12 +12,11 @@ Utility classes for multi-modular algorithms.
 ######################################################################
 
 
-include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
-
+from sage.libs.gmp.mpz cimport *
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import random_prime
+from sage.arith.all import random_prime
 from types import GeneratorType
 
 # should I have mod_int versions of these functions?
@@ -199,7 +198,7 @@ cdef class MultiModularBasis_base:
             try:
                 self.extend_with_primes(val, check=True)
             except ArithmeticError:
-                #See :trac:`10217`
+                # See trac #10217
                 raise ValueError("the values provided are not relatively prime")
         else:
             self._extend_moduli_to_height(val)
@@ -284,7 +283,7 @@ cdef class MultiModularBasis_base:
             sage: mm == 1
             False
         """
-        if not PY_TYPE_CHECK(other, MultiModularBasis_base):
+        if not isinstance(other, MultiModularBasis_base):
             return cmp(type(other), MultiModularBasis_base)
         return cmp((self.list(), self._u_bound, self._l_bound),
                 (other.list(), (<MultiModularBasis_base>other)._u_bound,
@@ -835,7 +834,7 @@ cdef class MultiModularBasis_base:
             [10007, 10009]
 
         """
-        return self.list().__iter__()
+        return iter(self.list())
 
     def __getitem__(self, ix):
         """

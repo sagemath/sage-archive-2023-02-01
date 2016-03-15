@@ -566,8 +566,8 @@ class EllipticCurveIsogeny(Morphism):
 
     - ``model`` -- a string (default:``None``).  Only supported
       variable is ``minimal``, in which case if ``E`` is a curve over
-      the rationals, then the codomain is set to be the unique global
-      minimum model.
+      the rationals or over a number field, then the codomain is a
+      global minimum model where this exists.
 
     - ``check`` (default: ``True``) checks if the input is valid to
       define an isogeny
@@ -986,7 +986,7 @@ class EllipticCurveIsogeny(Morphism):
         if not is_EllipticCurve(E):
             raise ValueError("E parameter must be an EllipticCurve.")
 
-        if not isinstance(kernel, type([1,1])) and kernel in E :
+        if not isinstance(kernel, list) and kernel in E :
             # a single point was given, we put it in a list
             # the first condition assures that [1,1] is treated as x+1
             kernel = [kernel]
@@ -1224,18 +1224,17 @@ class EllipticCurveIsogeny(Morphism):
         this_hash = 0
 
         for a in ker_poly_list:
-            this_hash = this_hash.__xor__(hash(a))
+            this_hash ^= hash(a)
 
-        this_hash = this_hash.__xor__(hash(self.__E1))
-        this_hash = this_hash.__xor__(hash(self.__E2))
-        this_hash = this_hash.__xor__(hash(self.__base_field))
+        this_hash ^= hash(self.__E1)
+        this_hash ^= hash(self.__E2)
+        this_hash ^= hash(self.__base_field)
 
         self.__this_hash = this_hash
 
         return self.__this_hash
 
-
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         r"""
         Function that implements comparisons between isogeny objects.
 
@@ -1265,14 +1264,11 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.dual() == psi.dual()
             True
         """
-        if (not isinstance(other, EllipticCurveIsogeny)):
-            return -1
-
         if (self.__kernel_polynomial is None):
             self.__init_kernel_polynomial()
 
         # We cannot just compare kernel polynomials, as was done until
-        # :trac:`11327`, as then phi and -phi compare equal, and
+        # Trac #11327, as then phi and -phi compare equal, and
         # similarly with phi and any composition of phi with an
         # automorphism of its codomain, or any post-isomorphism.
         # Comparing domains, codomains and rational maps seems much
@@ -1282,7 +1278,9 @@ class EllipticCurveIsogeny(Morphism):
         if t: return t
         t = cmp(self.codomain(), other.codomain())
         if t: return t
-        return  cmp(self.rational_maps(), other.rational_maps())
+        return cmp(self.rational_maps(), other.rational_maps())
+
+    __cmp__ = _cmp_
 
     def __neg__(self):
         r"""
@@ -1357,9 +1355,8 @@ class EllipticCurveIsogeny(Morphism):
             'Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y = x^3 + x + 9 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - 59*x + 165 over Rational Field'
 
         """
-        return 'Isogeny of degree ' + self.__degree.__repr__() + ' from ' + \
-                 self.__E1.__repr__() + ' to ' + self.__E2.__repr__()
-
+        return 'Isogeny of degree %r from %r to %r' % (
+                self.__degree, self.__E1, self.__E2)
 
     def _latex_(self):
         r"""
@@ -1439,8 +1436,7 @@ class EllipticCurveIsogeny(Morphism):
         self.__rational_maps_initialized = False
         self.__X_coord_rational_map = None
         self.__Y_coord_rational_map = None
-        self.__dual
-
+        self.__dual = None
 
     # performs the inheritance house keeping
     def __perform_inheritance_housekeeping(self):
@@ -1809,10 +1805,10 @@ class EllipticCurveIsogeny(Morphism):
 
             if ('minimal' == model):
 
-                if (not is_RationalField(oldE2.base_field())):
-                    raise ValueError("specifying minimal for model flag only valid with curves over the rational numbers.")
+                if (not is_NumberField(oldE2.base_field())):
+                    raise ValueError("specifying minimal for model flag only valid with curves over number fields.")
 
-                newE2 = oldE2.minimal_model()
+                newE2 = oldE2.global_minimal_model(semi_global=True)
                 post_isom = oldE2.isomorphism_to(newE2)
 
             else:
@@ -2606,7 +2602,7 @@ class EllipticCurveIsogeny(Morphism):
         # thesis are wrong, the correct formulas
         # are coded below
 
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         for j  in xrange(0,n-1):
             psi_prpr = psi_prpr + \
@@ -3305,12 +3301,12 @@ class EllipticCurveIsogeny(Morphism):
 
         .. NOTE::
 
-           If `\varphi\colon E \to E_2` is the given isogeny, then the
-           dual is by definition the unique isogeny `\hat\varphi\colon
-           E_2\to E` such that the compositions
-           `\hat\varphi\circ\varphi` and `\varphi\circ\hat\varphi` are
-           the multiplication `[n]` by the degree of `\varphi` on `E`
-           and `E_2` respectively.
+           If `\varphi\colon E \to E_2` is the given isogeny and `n`
+           is its degree, then the dual is by definition the unique
+           isogeny `\hat\varphi\colon E_2\to E` such that the
+           compositions `\hat\varphi\circ\varphi` and
+           `\varphi\circ\hat\varphi` are the multiplication-by-`n`
+           maps on `E` and `E_2`, respectively.
 
         EXAMPLES::
 
@@ -3384,6 +3380,17 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.dual()
             Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 + 84*x + 34 over Finite Field of size 103 to Elliptic Curve defined by y^2 + x*y = x^3 + x + 102 over Finite Field of size 103
 
+        Check that :trac:`17293` is fixed:
+
+            sage: k.<s> = QuadraticField(2)
+            sage: E = EllipticCurve(k, [-3*s*(4 + 5*s), 2*s*(2 + 14*s + 11*s^2)])
+            sage: phi = E.isogenies_prime_degree(3)[0]
+            sage: (-phi).dual() == -(phi.dual())
+            True
+            sage: phi._EllipticCurveIsogeny__clear_cached_values()  # forget the dual
+            sage: -(phi.dual()) == (-phi).dual()
+            True
+
         """
         if (self.__base_field.characteristic() in [2,3]):
             raise NotImplementedError("Computation of dual isogenies not yet implemented in characteristics 2 and 3")
@@ -3439,7 +3446,7 @@ class EllipticCurveIsogeny(Morphism):
             aut = [a for a in auts if a.u == sc]
             if len(aut) != 1:
                 raise ValueError("There is a bug in dual().")
-            phi_hat.set_post_isomorphism(WeierstrassIsomorphism(E0,aut[0],E0))
+            phi_hat.set_post_isomorphism(aut[0])
 
         self.__dual = phi_hat
 

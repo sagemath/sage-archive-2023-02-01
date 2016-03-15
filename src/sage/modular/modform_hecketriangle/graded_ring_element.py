@@ -21,10 +21,12 @@ from sage.functions.all import exp
 from sage.symbolic.all import pi, i
 from sage.structure.parent_gens import localvars
 from sage.modules.free_module_element import vector
+from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 from constructor import rational_type, FormsSpace, FormsRing
 from series_constructor import MFSeriesConstructor
@@ -38,6 +40,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     r"""
     Element of a FormsRing.
     """
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     from analytic_type import AnalyticType
     AT = AnalyticType()
@@ -711,6 +714,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             2 - 32*q + 736*q^2 - 896*q^3 + 6368*q^4 + O(q^5)
             sage: (MF.E4() + MF.f_i()^2).parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).Delta() + MF.E4()*MF.E6()
+            sage: el
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3 + 4096*E4^2*f_i)/4096
+            sage: el.parent()
+            ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
         return self.parent()(self._rat+other._rat)
@@ -761,6 +770,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             64*q - 512*q^2 + 1792*q^3 - 4096*q^4 + O(q^5)
             sage: (MF.E4() - MF.f_i()^2).parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).Delta() - MF.E4()
+            sage: el
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3 - 4096*E4)/4096
+            sage: el.parent()
+            ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
         #reduce at the end? See example "sage: ((E4+E6)-E6).parent()"
@@ -836,6 +851,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             q + 8*q^2 + 12*q^3 - 64*q^4 + O(q^5)
             sage: (MF.E4()*MF.f_inf()).parent()
             ModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).E2()*MF.E6()
+            sage: el
+            1 - 8*q - 272*q^2 - 1760*q^3 - 2560*q^4 + O(q^5)
+            sage: el.parent()
+            QuasiModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
         """
 
         res = self.parent().rat_field()(self._rat*other._rat)
@@ -916,6 +937,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             1/2 - 4*q - 236*q^2 - 2128*q^3 + 49428*q^4 + O(q^5)
             sage: (MF.f_i()/(MF.E4() + MF.f_i()^2)).parent()
             MeromorphicModularForms(n=+Infinity, k=-2, ep=-1) over Integer Ring
+
+            sage: el = ModularForms(n=3).E2()/MF.E2()
+            sage: el
+            1 + 8*q + 48*q^2 + 480*q^3 + 4448*q^4 + O(q^5)
+            sage: el.parent()
+            QuasiMeromorphicModularForms(n=+Infinity, k=0, ep=1) over Integer Ring
         """
 
         res = self.parent().rat_field()(self._rat/other._rat)
@@ -1070,7 +1097,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     # note that this is qd/dq, resp 1/(2*pi*i)*d/dtau
     def derivative(self):
         r"""
-        Return the derivative ``d/dq = 1/(2*pi*i) d/dtau`` of ``self``.
+        Return the derivative ``d/dq = lambda/(2*pi*i) d/dtau`` of ``self``.
 
         Note that the parent might (probably will) change.
         In particular its analytic type will be extended
@@ -1205,6 +1232,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         Return the (overall) order of ``self`` at ``tau`` if easily possible:
         Namely if ``tau`` is ``infinity`` or congruent to ``i`` resp. ``rho``.
 
+        It is possible to determine the order of points from ``HyperbolicPlane()``.
+        In this case the coordinates of the upper half plane model are used.
+
         If ``self`` is homogeneous and modular then the rational function
         ``self.rat()`` is used. Otherwise only ``tau=infinity`` is supported
         by using the Fourier expansion with increasing precision
@@ -1279,7 +1309,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             3
             sage: (1/MR.f_inf()^2).order_at(-1)
             0
+
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: MR((x-y)^10).order_at(p)
+            10
+            sage: MR.zero().order_at(p)
+            +Infinity
         """
+
+        # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
+        if (tau in HyperbolicPlane()):
+            tau = tau.to_model('UHP').coordinates()
 
         if self.is_zero():
             return infinity
@@ -1484,7 +1524,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (fix_prec == False):
             #if (prec <1):
-            #    print "Warning: non-positiv precision!"
+            #    print "Warning: non-positive precision!"
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
                 from warnings import warn
                 warn("precision too low to determine any coefficient!")
@@ -1720,6 +1760,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         determined by the corresponding Laurent series coefficients.
 
         EXAMPLES::
+
             sage: from sage.modular.modform_hecketriangle.graded_ring import WeakModularFormsRing
             sage: f = WeakModularFormsRing(red_hom=True).j_inv()^3
             sage: f.q_expansion(prec=3)
@@ -1775,6 +1816,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         Note that this interpretation might not make sense
         (and fail) for certain (many) choices of
         (``base_ring``, ``tau.parent()``).
+
+        It is possible to evalutate at points of ``HyperbolicPlane()``.
+        In this case the coordinates of the upper half plane model are used.
 
         To obtain a precise and fast result the parameters
         ``prec`` and ``num_prec`` both have to be considered/balanced.
@@ -1919,7 +1963,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_rho(az)
             -2.29216470688... - 1.46235057536...*I
             sage: k = f_rho.weight()
-            sage: aut_fact = f_rho.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f_rho.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f_rho.parent().aut_factor(A, z)) < 1e-12
             True
             sage: aut_fact * f_rho(z)
@@ -1937,7 +1981,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_i(az)
             14.5845388476... - 28.4604652892...*I
             sage: k = f_i.weight()
-            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f_i.parent().aut_factor(A, z)) < 1e-12
             True
             sage: aut_fact * f_i(z)
@@ -1956,11 +2000,11 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f(az)
             -15.9978074989... - 29.2775758341...*I
             sage: k = f.weight()
-            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f.parent().aut_factor(A, z)) < 1e-12
             True
             sage: k2 = f_rho.weight()
-            sage: aut_fact2 = f_rho.ep() * (((T*S)**2*T).acton(z)/i)**k2 * (((T*S)*T).acton(z)/i)**k2 * (T.acton(z)/i)**k2
+            sage: aut_fact2 = f_rho.ep() * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k2 * (((T*S)*T).acton(z)/AlgebraicField()(i))**k2 * (T.acton(z)/AlgebraicField()(i))**k2
             sage: abs(aut_fact2 - f_rho.parent().aut_factor(A, z)) < 1e-12
             True
             sage: cor_term = (4 * G.n() / (G.n()-2) * A.c() * (A.c()*z+A.d())) / (2*pi*i).n(1000) * G.lam()
@@ -2024,7 +2068,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_i(az)
             6.103314419... + 20.42678597...*I
             sage: k = f_i.weight()
-            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f_i.parent().aut_factor(A, z)) < 1e-12
             True
             sage: aut_fact * f_i(z)
@@ -2043,11 +2087,11 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f(az)
             -140.4711702... + 469.0793692...*I
             sage: k = f.weight()
-            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f.parent().aut_factor(A, z)) < 1e-12
             True
             sage: k2 = f_i.weight()
-            sage: aut_fact2 = f_i.ep() * (((T*S)**2*T).acton(z)/i)**k2 * (((T*S)*T).acton(z)/i)**k2 * (T.acton(z)/i)**k2
+            sage: aut_fact2 = f_i.ep() * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k2 * (((T*S)*T).acton(z)/AlgebraicField()(i))**k2 * (T.acton(z)/AlgebraicField()(i))**k2
             sage: abs(aut_fact2 - f_i.parent().aut_factor(A, z)) < 1e-12
             True
             sage: cor_term = (4 * A.c() * (A.c()*z+A.d())) / (2*pi*i).n(1000) * G.lam()
@@ -2061,7 +2105,24 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
             sage: (f.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             -140.471170232432551196978... + 469.079369280804086032719...*I
+
+        It is possible to evaluate at points of ``HyperbolicPlane()``::
+
+            sage: p = HyperbolicPlane().PD().get_point(-I/2)
+            sage: bool(p.to_model('UHP').coordinates() == I/3)
+            True
+            sage: E4(p) == E4(I/3)
+            True
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: f_inf(p, check=True) == 0
+            True
+            sage: (1/(E2^2-E4))(p) == infinity
+            True
         """
+
+        # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
+        if (tau in HyperbolicPlane()):
+           tau = tau.to_model('UHP').coordinates()
 
         if (prec == None):
             prec = self.parent().default_prec()
@@ -2096,15 +2157,15 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (self.is_homogeneous() and self.is_modular()):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
-            A, w = self.group().get_FD(tau)
+            (A, w) = self.group().get_FD(tau)
             aut_factor = self.reduce(force=True).parent().aut_factor(A, w)
-            if (type(q_exp) == LaurentSeries):
+            if (type(q_exp) is LaurentSeries):
                 return q_exp.laurent_polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
             else:
                 return q_exp.polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
         elif (self._rat == z):
             E2 = self.parent().graded_ring().E2().reduce(force=True)
-            A, w = self.group().get_FD(tau)
+            (A, w) = self.group().get_FD(tau)
             aut_factor = E2.parent().aut_factor(A, w)
             E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w))
             if (self.hecke_n() == infinity):

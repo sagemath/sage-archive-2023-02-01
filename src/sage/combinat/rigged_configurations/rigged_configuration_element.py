@@ -148,6 +148,14 @@ class RiggedConfigurationElement(ClonableArray):
         r"""
         Construct a rigged configuration element.
 
+        .. WARNING::
+
+            This changes the vacancy numbers of the rigged partitions, so
+            if the rigged partitions comes from another rigged configuration,
+            a deep copy should be made before being passed here. We do not
+            make a deep copy here because the crystal operators generate
+            their own rigged partitions. See :trac:`17054`.
+
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
@@ -237,13 +245,13 @@ class RiggedConfigurationElement(ClonableArray):
 
             # Setup the first block
             block_len = partition[0]
-            vac_num = parent._calc_vacancy_number(nu, a, 0)
+            vac_num = parent._calc_vacancy_number(nu, a, block_len)
 
             for i, row_len in enumerate(partition):
                 # If we've gone to a different sized block, then update the
                 #   values which change when moving to a new block size
                 if block_len != row_len:
-                    vac_num = parent._calc_vacancy_number(nu, a, i)
+                    vac_num = parent._calc_vacancy_number(nu, a, row_len)
                     block_len = row_len
 
                 partition.vacancy_numbers[i] = vac_num
@@ -343,7 +351,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: print RC(partition_list=[[],[],[],[]])._repr_horizontal()
             (/)   (/)   (/)   (/)
         """
-        tab_str = map(lambda x: repr(x).splitlines(), self)
+        tab_str = [repr(x).splitlines() for x in self]
         height = max(len(t) for t in tab_str)
         widths = [max(len(x) for x in t) for t in tab_str]
         ret_str = ''
@@ -448,7 +456,7 @@ class RiggedConfigurationElement(ClonableArray):
             baseline = lambda s: 0
         else:
             baseline = lambda s: len(s)
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         s = repr(self[0]).splitlines()
         ret = AsciiArt(s, baseline=baseline(s))
         for tableau in self[1:]:
@@ -579,10 +587,11 @@ class RiggedConfigurationElement(ClonableArray):
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
         ret_RC = self.__class__(self.parent(), new_partitions)
+        nu = ret_RC.nu()
         if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
             # Update that row's vacancy number
             ret_RC[a].vacancy_numbers[rigging_index] = \
-              self.parent()._calc_vacancy_number(ret_RC.nu(), a, rigging_index)
+              self.parent()._calc_vacancy_number(nu, a, nu[a][rigging_index])
         return(ret_RC)
 
     def _generate_partition_e(self, a, b, k):
@@ -721,7 +730,8 @@ class RiggedConfigurationElement(ClonableArray):
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
         new_partitions[a].vacancy_numbers[add_index] = \
-          self.parent()._calc_vacancy_number(new_partitions, a, add_index)
+          self.parent()._calc_vacancy_number(new_partitions, a,
+                                             new_partitions[a][add_index])
 
         # Note that we do not need to sort the rigging since if there was a
         #   smaller rigging in a larger row, then `k` would be larger.
@@ -790,8 +800,8 @@ class RiggedConfigurationElement(ClonableArray):
         """
         a = self.parent()._rc_index.index(a)
         if not self[a]:
-            return 0
-        return -min(0, min(self[a].rigging))
+            return Integer(0)
+        return Integer(-min(0, min(self[a].rigging)))
 
     def phi(self, a):
         r"""
@@ -813,30 +823,12 @@ class RiggedConfigurationElement(ClonableArray):
             [1 1]
         """
         a = self.parent()._rc_index.index(a)
-        p_inf = self.parent()._calc_vacancy_number(self, a, None)
+        p_inf = self.parent()._calc_vacancy_number(self, a, float("inf"))
         if not self[a]:
-            return p_inf
-        return p_inf - min(0, min(self[a].rigging))
+            return Integer(p_inf)
+        return Integer(p_inf - min(0, min(self[a].rigging)))
 
-    def get_vacancy_numbers(self, a):
-        r"""
-        Return the list of all vacancy numbers of the rigged partition
-        `\nu^{(a)}` (with duplicates).
-
-        INPUT:
-
-        - ``a`` -- the index of the rigged partition
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[1], [2,1], [1], []]).get_vacancy_numbers(2)
-            [-2, -1]
-        """
-        a = self.parent()._rc_index.index(a)
-        return self[a].vacancy_numbers
-
-    def get_vacancy_number(self, a, i):
+    def vacancy_number(self, a, i):
         r"""
         Return the vacancy number `p_i^{(a)}`.
 
@@ -850,20 +842,23 @@ class RiggedConfigurationElement(ClonableArray):
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: elt = RC(partition_list=[[1], [2,1], [1], []])
-            sage: elt.get_vacancy_number(2, 3)
-            sage: elt.get_vacancy_number(2, 2)
+            sage: elt.vacancy_number(2, 3)
             -2
-            sage: elt.get_vacancy_number(2, 1)
+            sage: elt.vacancy_number(2, 2)
+            -2
+            sage: elt.vacancy_number(2, 1)
             -1
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,1], [2,1]])
+            sage: x = RC(partition_list=[[3], [3,1,1], [2], [3,1]]); ascii_art(x)
+            -1[ ][ ][ ]-1  1[ ][ ][ ]1  0[ ][ ]0  -3[ ][ ][ ]-3
+                           0[ ]0                  -1[ ]-1
+                           0[ ]0
+            sage: x.vacancy_number(2,2)
+            1
         """
-        a = self.parent()._rc_index.index(a)
-        partition = self[a]
-        for k, val in enumerate(partition):
-            if val == i:
-                return partition.vacancy_numbers[k]
-            elif val < i:
-                return None
-        return None
+        a = self.cartan_type().classical().index_set().index(a)
+        return self.parent()._calc_vacancy_number(self.nu(), a, i)
 
     def partition_rigging_lists(self):
         """
@@ -1012,7 +1007,7 @@ class RCHighestWeightElement(RiggedConfigurationElement):
 
     TESTS::
 
-        sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
         sage: RC = crystals.RiggedConfigurations(['A',2,1], La[0])
         sage: elt = RC(partition_list=[[1,1],[1],[2]]); elt
         <BLANKLINE>
@@ -1032,7 +1027,7 @@ class RCHighestWeightElement(RiggedConfigurationElement):
 
         TESTS::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
             sage: RC = crystals.RiggedConfigurations(['A',2,1], La[0])
             sage: elt = RC(partition_list=[[1,1],[1],[2]])
             sage: elt.check()
@@ -1066,7 +1061,7 @@ class RCHighestWeightElement(RiggedConfigurationElement):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
             sage: RC = crystals.RiggedConfigurations(['A',2,1], La[0])
             sage: elt = RC(partition_list=[[1,1],[1],[2]])
             sage: elt.f(0)
@@ -1094,13 +1089,29 @@ class RCHighestWeightElement(RiggedConfigurationElement):
             return None
         return RiggedConfigurationElement.f(self, a)
 
+    def weight(self):
+        """
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
+            sage: B = crystals.RiggedConfigurations(['A',2,1], La[0])
+            sage: mg = B.module_generators[0]
+            sage: mg.f_string([0,1,2,0]).weight()
+            -Lambda[0] + Lambda[1] + Lambda[2] - 2*delta
+        """
+        P = self.parent().weight_lattice_realization()
+        alpha = list(P.simple_roots())
+        return self.parent()._wt - sum(sum(x) * alpha[i] for i,x in enumerate(self))
+
 class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
     """
     Rigged configurations in highest weight crystals.
 
     TESTS::
 
-        sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['C',2,1]).weight_lattice(extended=True).fundamental_weights()
         sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
         sage: elt = RC(partition_list=[[1,1],[2],[2]]); ascii_art(elt)
         -1[ ]-1  2[ ][ ]2  -2[ ][ ]-2
@@ -1114,7 +1125,7 @@ class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
 
         TESTS::
 
-            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['C',2,1]).weight_lattice(extended=True).fundamental_weights()
             sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
             sage: elt = RC(partition_list=[[1,1],[2],[2]])
             sage: elt.check()
@@ -1138,7 +1149,7 @@ class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['C',2,1]).weight_lattice(extended=True).fundamental_weights()
             sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
             sage: elt = RC(partition_list=[[1,1],[2],[2]])
             sage: elt.f(0)
@@ -1150,6 +1161,23 @@ class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
         if not self.phi(a):
             return None
         return RCNonSimplyLacedElement.f(self, a)
+
+    # FIXME: Do not duplicate with the simply-laced HW RC element class
+    def weight(self):
+        """
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['C',2,1]).weight_lattice(extended=True).fundamental_weights()
+            sage: B = crystals.RiggedConfigurations(['C',2,1], La[0])
+            sage: mg = B.module_generators[0]
+            sage: mg.f_string([0,1,2]).weight()
+            2*Lambda[1] - Lambda[2] - delta
+        """
+        P = self.parent().weight_lattice_realization()
+        alpha = list(P.simple_roots())
+        return self.parent()._wt - sum(sum(x) * alpha[i] for i,x in enumerate(self))
 
 ##############################################
 ## KR crystal rigged configuration elements ##
@@ -1420,16 +1448,11 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
              -2*Lambda[0] + Lambda[4], -4*Lambda[0] + 2*Lambda[2],
              -2*Lambda[0] + Lambda[2], 0]
         """
-        try:
-            return super(KRRiggedConfigurationElement, self).weight()
-        except NotImplementedError:
-            # The error gets raised from the bijection not being implemented.
-            # Maybe we want to do this for all types for speed?
-            WLR = self.parent().weight_lattice_realization()
-            La = WLR.fundamental_weights()
-            cl_index = self.parent()._cartan_type.classical().index_set()
-            wt = WLR.sum((self.phi(i) - self.epsilon(i)) * La[i] for i in cl_index)
-            return -wt.level() * La[0] + wt
+        WLR = self.parent().weight_lattice_realization()
+        La = WLR.fundamental_weights()
+        cl_index = self.parent()._cartan_type.classical().index_set()
+        wt = WLR.sum((self.phi(i) - self.epsilon(i)) * La[i] for i in cl_index)
+        return -wt.level() * La[0] + wt
 
     @cached_method
     def classical_weight(self):
@@ -1782,6 +1805,125 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
     delta = left_box
 
+    def left_column_box(self):
+        r"""
+        Return the image of ``self`` under the left column box splitting
+        map `\gamma`.
+
+        Consider the map `\gamma : RC(B^{r,1} \otimes B) \to RC(B^{1,1}
+        \otimes B^{r-1,1} \otimes B)` for `r > 1`, which is a natural strict
+        classical crystal injection. On rigged configurations, the map
+        `\gamma` adds a singular string of length `1` to `\nu^{(a)}`.
+
+        We can extend `\gamma` when the left-most factor is not a single
+        column by precomposing with a :meth:`left_split()`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[3,1], [2,1]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.left_column_box())
+            0[ ]0  0[ ][ ]0  0[ ]0
+            0[ ]0  0[ ]0     0[ ]0
+                   0[ ]0
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[2,1], [1,1], [3,1]])
+            sage: mg = RC.module_generators[7]
+            sage: ascii_art(mg)
+            1[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.left_column_box())
+            1[ ]1  0[ ][ ]0  0[ ]0
+            1[ ]0  0[ ]0     0[ ]0
+        """
+        P = self.parent()
+        r = P.dims[0][0]
+        if r == 1:
+            raise ValueError("cannot split a single box")
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[0][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[0][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
+        if P.dims[0][1] > 1:
+            return self.left_split().left_column_box()
+
+        B = [[1,1], [r-1,1]]
+        B.extend(P.dims[1:])
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, B)
+        parts = [x._clone() for x in self] # Make a deep copy
+        for nu in parts[:r-1]:
+            nu._list.append(1)
+        for a, nu in enumerate(parts[:r-1]):
+            vac_num = RC._calc_vacancy_number(parts, a, 1)
+            i = nu._list.index(1)
+            nu.vacancy_numbers.insert(i, vac_num)
+            nu.rigging.insert(i, vac_num)
+        return RC(*parts)
+
+    def right_column_box(self):
+        r"""
+        Return the image of ``self`` under the right column box splitting
+        map `\gamma^*`.
+
+        Consider the map `\gamma^* : RC(B \otimes B^{r,1}) \to RC(B \otimes
+        B^{r-1,1} \otimes B^{1,1})` for `r > 1`, which is a natural strict
+        classical crystal injection. On rigged configurations, the map
+        `\gamma` adds a string of length `1` with rigging 0 to `\nu^{(a)}`
+        for all `a < r` to a classically highest weight element and extended
+        as a classical crystal morphism.
+
+        We can extend `\gamma^*` when the right-most factor is not a single
+        column by precomposing with a :meth:`right_split()`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[2,1], [1,1], [3,1]])
+            sage: mg = RC.module_generators[7]
+            sage: ascii_art(mg)
+            1[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.right_column_box())
+            1[ ]0  0[ ][ ]0  0[ ]0
+            1[ ]0  0[ ]0     0[ ]0
+                   0[ ]0
+        """
+        P = self.parent()
+        r = P.dims[-1][0]
+        if r == 1:
+            raise ValueError("cannot split a single box")
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[-1][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[-1][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
+        if P.dims[-1][1] > 1:
+            return self.right_split().right_column_box()
+
+        rc, e_string = self.to_highest_weight(P.cartan_type().classical().index_set())
+
+        B = P.dims[:-1] + ([r-1,1], [1,1])
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, B)
+        parts = [x._clone() for x in rc] # Make a deep copy
+        for nu in parts[:r-1]:
+            nu._list.append(1)
+        for a, nu in enumerate(parts[:r-1]):
+            vac_num = RC._calc_vacancy_number(parts, a, -1)
+            nu.vacancy_numbers.append(vac_num)
+            nu.rigging.append(0)
+        return RC(*parts).f_string(reversed(e_string))
+
     def complement_rigging(self, reverse_factors=False):
         r"""
         Apply the complement rigging morphism `\theta` to ``self``.
@@ -1837,6 +1979,19 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             ....:     c = mg.complement_rigging(True)
             ....:     hwc = c.to_tensor_product_of_kirillov_reshetikhin_tableaux()
             ....:     assert hw == hwc
+
+        TESTS:
+
+        We check that :trac:`18898` is fixed::
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,1], [2,1], [2,3]])
+            sage: x = RC(partition_list=[[1], [1,1], [1], [1]], rigging_list=[[0], [2,1], [0], [0]])
+            sage: ascii_art(x)
+            0[ ]0  2[ ]2  0[ ]0  0[ ]0
+                   2[ ]1
+            sage: ascii_art(x.complement_rigging())
+            0[ ]0  2[ ]1  0[ ]0  0[ ]0
+                   2[ ]0
         """
         P = self.parent()
         if reverse_factors:
@@ -1848,8 +2003,16 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         rig = []
         for a,p in enumerate(mg):
             nu.append(list(p))
-            vac_nums = mg.get_vacancy_numbers(a+1)
-            rig.append( [vac - p.rigging[i] for i,vac in enumerate(vac_nums)] )
+            vac_nums = p.vacancy_numbers
+            riggings = [vac - p.rigging[i] for i,vac in enumerate(vac_nums)]
+            block = 0
+            for j,i in enumerate(p):
+                if p[block] != i:
+                    riggings[block:j] = sorted(riggings[block:j], reverse=True)
+                    block = j
+            riggings[block:] = sorted(riggings[block:], reverse=True)
+            rig.append(riggings)
+
         rc = P(partition_list=nu, rigging_list=rig)
         return rc.f_string(reversed(e_str))
 
@@ -1929,7 +2092,7 @@ class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
         """
         B = self.parent()
         if not hasattr(B, "_max_charge"):
-            B._max_charge = max(b.cocharge() for b in B)
+            B._max_charge = max(b.cocharge() for b in B.module_generators)
         return B._max_charge - self.cocharge()
 
 class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedElement):
@@ -2106,9 +2269,13 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
         if a == self.parent()._cartan_type.special_node():
             return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().epsilon(a)
 
-        epsilon = KRRCNonSimplyLacedElement.epsilon(self, a)
+        a = self.parent()._rc_index.index(a)
+        if not self[a]:
+            epsilon = 0
+        else:
+            epsilon = -min(0, min(self[a].rigging))
         n = self.parent().cartan_type().classical().rank()
-        if self.parent()._rc_index.index(a) == n-1: # -1 for indexing
+        if a == n-1: # -1 for indexing
             epsilon *= 2
         return Integer(epsilon)
 
@@ -2135,9 +2302,14 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
         if a == self.parent()._cartan_type.special_node():
             return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().phi(a)
 
-        phi = KRRCNonSimplyLacedElement.phi(self, a)
+        a = self.parent()._rc_index.index(a)
+        p_inf = self.parent()._calc_vacancy_number(self, a, float("inf"))
+        if not self[a]:
+            phi = p_inf
+        else:
+            phi = p_inf - min(0, min(self[a].rigging))
         n = self.parent().cartan_type().classical().rank()
-        if self.parent()._rc_index.index(a) == n-1: # -1 for indexing
+        if a == n-1: # -1 for indexing
             phi *= 2
         return Integer(phi)
 

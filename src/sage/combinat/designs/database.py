@@ -21,6 +21,9 @@ This module implements:
 
 - :func:`RBIBD(120,8,1) <RBIBD_120_8_1>`
 
+- `(v,k,\lambda)`-BIBD:
+{LIST_OF_BIBD}
+
 - `(v,k,\lambda)`-difference families:
 {LIST_OF_DF}
 
@@ -29,6 +32,9 @@ This module implements:
 
 - `(n,k;\lambda,\mu;u)`-quasi-difference matrices:
     {LIST_OF_QDM}
+
+- `(q,k)` evenly distributed sets
+{LIST_OF_EDS}
 
 REFERENCES:
 
@@ -49,7 +55,6 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
                                                      OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
 from orthogonal_arrays import wilson_construction
-from string import join
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
@@ -75,7 +80,7 @@ def _MOLS_from_string(s,k):
     for i,l in enumerate(s.split()):
         l = [ord(x) - 97 for x in l]
         matrices[i%k].append(l)
-    return map(Matrix, matrices)
+    return [Matrix(_) for _ in matrices]
 
 def MOLS_10_2():
     r"""
@@ -292,9 +297,8 @@ MOLS_constructions = {
 }
 
 # Add this data to the module's doc
-LIST_OF_MOLS_CONSTRUCTIONS = join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
-                                for n,(k,_) in MOLS_constructions.items()],
-                               ", ")
+LIST_OF_MOLS_CONSTRUCTIONS = ", ".join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
+                                        for n,(k,_) in MOLS_constructions.items()])
 
 def OA_7_18():
     r"""
@@ -331,7 +335,7 @@ def OA_7_18():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
     G = cartesian_product([AdditiveCyclic(2),AdditiveCyclic(3),AdditiveCyclic(3)])
-    M = [G(map(int,xxx)) for xxx in M.split()]
+    M = [G([int(_) for _ in xx]) for xx in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(7)]
 
     Mb = []
@@ -374,7 +378,7 @@ def OA_9_40():
         sage: designs.orthogonal_arrays.is_available(9,40)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None)],
@@ -674,7 +678,7 @@ def OA_11_80():
         sage: designs.orthogonal_arrays.is_available(11,80)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None)],
@@ -716,7 +720,7 @@ def OA_15_112():
         sage: designs.orthogonal_arrays.is_available(15,112)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -895,7 +899,7 @@ def OA_11_160():
         sage: designs.orthogonal_arrays.is_available(11,160)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
          [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
@@ -938,7 +942,7 @@ def OA_16_176():
         sage: designs.orthogonal_arrays.is_available(16,176)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(1 ,None),(4 ,None),(9 ,None)],
@@ -1137,7 +1141,7 @@ def OA_16_208():
         sage: designs.orthogonal_arrays.is_available(16,208)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (1 ,None)],
@@ -1196,7 +1200,7 @@ def OA_15_224():
         sage: designs.orthogonal_arrays.is_available(15,224)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -1282,7 +1286,7 @@ def OA_20_352():
         sage: designs.orthogonal_arrays.is_available(20,352)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     # Column 8, line 6 : 4,25 became 4,27
     #           line 17: 3,0  became 3,None
@@ -1341,7 +1345,7 @@ def OA_20_416():
         sage: designs.orthogonal_arrays.is_available(20,416)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     Z = None
     A=[
@@ -1401,7 +1405,7 @@ def OA_20_544():
         sage: designs.orthogonal_arrays.is_available(20,544)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     Z = None
 
@@ -1465,7 +1469,7 @@ def OA_17_560():
         sage: designs.orthogonal_arrays.is_available(17,560)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     alpha = 5
     beta  = 4
     p     = 2
@@ -1473,7 +1477,7 @@ def OA_17_560():
     m     = 16
     n     = p**alpha
 
-    G = GF(p**alpha,prefix='x',conway=True)
+    G = GF(p**alpha,prefix='x')
     G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
     G_to_int = {v:i for i,v in enumerate(G_set)}
     # Builds an OA(n+1,n) whose last n-1 colums are
@@ -1529,7 +1533,7 @@ def OA_11_640():
         sage: designs.orthogonal_arrays.is_available(11,640)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
@@ -1856,7 +1860,7 @@ def OA_15_896():
         sage: designs.orthogonal_arrays.is_available(15,896)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -2048,9 +2052,8 @@ OA_constructions = {
     1620 : (10, OA_10_1620),
 }
 # Add this data to the module's doc
-LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
-                                for n,(k,_) in OA_constructions.items()),
-                               ", ")
+LIST_OF_OA_CONSTRUCTIONS = ", ".join(":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
+                                      for n,(k,_) in OA_constructions.items())
 
 def QDM_19_6_1_1_1():
     r"""
@@ -2463,11 +2466,10 @@ for ((n,k,lmbda,mu,u),f) in [((19,6,1,1,1), QDM_19_6_1_1_1),
     QDM[n+u,lmbda][n,lmbda,mu,u] = (k,f)
 
 # Create the list of QDM matrices for the doc
-LIST_OF_QDM = join(("`({},{};{},{};{})`".format(n,k,lmbda,mu,u)
-                    for n,k,lmbda,mu,u in
-                    sorted((n,k,lmbda,mu,u) for entry in QDM.values()
-                           for (n,lmbda,mu,u),(k,_) in sorted(entry.items()))),
-                   ", ")
+LIST_OF_QDM = ", ".join("`({},{};{},{};{})`".format(n,k,lmbda,mu,u)
+                         for n,k,lmbda,mu,u in
+                          sorted((n,k,lmbda,mu,u) for entry in QDM.values()
+                            for (n,lmbda,mu,u),(k,_) in sorted(entry.items())))
 
 _ref_Handbook = """Handbook of Combinatorial Designs (2ed),
     C. Colbourn, J. Dinitz, 2010 CRC Press"""
@@ -2698,9 +2700,9 @@ for (m,t),(vec,source) in Vmt_vectors.iteritems():
 
 # Create the list of V(m,t) vectors for the doc
 _all_m = sorted(set(m for m,_ in Vmt_vectors.keys()))
-LIST_OF_VMT_VECTORS = join(("    - `m={}` and `t=` ".format(m)+
-                           join(("`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m),", ")
-                           for m in _all_m), "\n")
+LIST_OF_VMT_VECTORS = "\n".join("    - `m={}` and `t=` ".format(m) +
+                                ", ".join("`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m)
+                                for m in _all_m)
 
 r""""
 Tests for the Vmt vectors
@@ -2789,6 +2791,10 @@ DF = {
            [0,11,31,35],[0,12,26,34,],[0,5,30,33]]},
 ( 91, 6, 1):
   {(91,): [[0,1,3,7,25,38], [0,16,21,36,48,62], [0,30,40,63,74,82]]},
+
+( 91, 7, 1): # from the La Jolla covering repository, attributed to Jan de Heer and Steve Muir
+  {(91,): [[8, 9, 14, 25, 58, 81, 85], [5, 33, 35, 42, 45, 67, 88], [4, 17, 30, 43, 56, 69, 82]]},
+
 (121, 5, 1):
   {(121,): [[0,14,26,51,60],[0,15,31,55,59],[0,10,23,52,58],
             [0,3,36,56,57],[0,7,18,45,50],[0,8,30,47,49]]},
@@ -3110,9 +3116,9 @@ DF = {
 
 # Create the list of DF for the documentation
 _all_l = sorted(set(l for v,k,l in DF.keys()))
-LIST_OF_DF = join(("    - `\lambda={}`:\n       ".format(l)+
-                  join(("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l),", ")
-                  for l in _all_l), "\n")
+LIST_OF_DF = "\n".join("    - `\lambda={}`:\n       ".format(l) +
+                       ", ".join("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l)
+                       for l in _all_l)
 
 def DM_12_6_1():
     r"""
@@ -3221,7 +3227,7 @@ def DM_24_8_1():
 
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
-    G = cartesian_product(map(AdditiveCyclic,[2,2,6]))
+    G = cartesian_product([AdditiveCyclic(_) for _ in [2, 2, 6]])
     rlabel = {(x%2,x%3):x for x in range(6)}
     M = [G([int(c),int(d),rlabel[int(b),int(a)]]) for a,b,c,d in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(8)]
@@ -3533,7 +3539,7 @@ def DM_45_7_1():
 
         sage: _ = designs.difference_matrix(45,7)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
 
     G533 = cartesian_product((FiniteField(5),FiniteField(3),FiniteField(3)))
@@ -3586,7 +3592,7 @@ def DM_48_9_1():
 
         sage: _ = designs.difference_matrix(48,9)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F16 = FiniteField(16,'x')
     F3 = FiniteField(3)
     F3F16 = F3.cartesian_product(F16)
@@ -3678,7 +3684,7 @@ def DM_52_6_1():
         sage: _ = designs.difference_matrix(52,6)
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F4  = FiniteField(4,'z')
     G13 = FiniteField(13)
     G = F4.cartesian_product(G13)
@@ -3790,7 +3796,7 @@ def DM_56_8_1():
 
         sage: _ = designs.difference_matrix(56,8)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F8  = FiniteField(8,'z')
     F7  = FiniteField(7)
     G   = F8.cartesian_product(F7)
@@ -3917,7 +3923,7 @@ def DM_75_8_1():
 
         sage: _ = designs.difference_matrix(75,8)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
 
     F3 = FiniteField(3)
@@ -4030,9 +4036,9 @@ DM = {
 
 # Create the list of DM for the documentation
 _all_l = sorted(set(l for v,l in DM.keys()))
-LIST_OF_DM = join(("    - `\lambda={}`:\n       ".format(l)+
-                   join(("`({},{},{})`".format(v,k,l) for (v,_),(k,__) in sorted(DM.items()) if _ == l),", ")
-                   for l in _all_l), "\n")
+LIST_OF_DM = "\n".join("    - `\lambda={}`:\n       ".format(l)+
+                       ", ".join("`({},{},{})`".format(v,k,l) for (v,_),(k,__) in sorted(DM.items()) if _ == l)
+                       for l in _all_l)
 
 def RBIBD_120_8_1():
     r"""
@@ -4115,6 +4121,438 @@ def RBIBD_120_8_1():
     equiv = [[M.nonzero_positions_in_row(x) for x in S] for S in equiv]
     return [B for S in equiv for B in S]
 
+def BIBD_45_9_8(from_code=False):
+    r"""
+    Return a `(45,9,1)`-BIBD.
+
+    This BIBD is obtained from the codewords of minimal weight in the
+    :func:`~sage.coding.code_constructions.ExtendedQuadraticResidueCode` of
+    length 48. This construction appears in VII.11.2 from [DesignHandbook]_,
+    which cites [HT95]_.
+
+    INPUT:
+
+    - ``from_code`` (boolean) -- whether to build the design from hardcoded data
+      (default) or from the code object (much longer).
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_45_9_8
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: B = BalancedIncompleteBlockDesign(45, BIBD_45_9_8(),lambd=8); B
+        (45,9,8)-Balanced Incomplete Block Design
+
+    TESTS:
+
+    From the definition (takes around 12s)::
+
+        sage: B2 = Hypergraph(BIBD_45_9_8(from_code=True)) # not tested
+        sage: B2.is_isomorphic(B)                          # not tested
+        True
+
+    REFERENCE:
+
+    .. [HT95] W. Huffman and V. Tonchev,
+       The existence of extremal self-dual `[50, 25, 10]` codes and
+       quasi-symmetric `2-(49, 9, 6)` designs,
+       Designs, Codes and Cryptography
+       September 1995, Volume 6, Issue 2, pp 97-106
+    """
+    if from_code:
+        from sage.coding.code_constructions import ExtendedQuadraticResidueCode
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        C = ExtendedQuadraticResidueCode(47,FiniteField(2))
+        min_weight = [map(int,x)[3:] for x in C
+                      if x.hamming_weight() == 12 and
+                      x[0]==1 and x[1]==1 and x[2]==1]
+
+        return [[i for i,v in enumerate(x) if v] for x in min_weight]
+
+    from sage.rings.integer import Integer
+    B = ['acs1v', 'l8lsx', '4ga1vw', '6q9amr', 'nb3ui8', 'sgjocw', '11vsoy2', '28791ts', '30tm1z8', '38ktnwh',
+         '3saz8jk', '41qkwme', '4g3jxmt', '56qhwuc', '711w45k', '8nz2gx4', '903uha8', '957z8dc', '9wejz7k', 'fs905ic',
+         'ftzzh28', 'gb4g448', 'hvreal0', 'nqlhxu8', 'rmluazm', 'vlyqayx', 'w52detk', 'zisjk02', 'zw9811c', '10i7qfl1',
+         '13ibtse8', '1rbsbvvc', '1sdy0o5c', '1z14s09e', '2nbz5a80', '2uuhib2a', '2wkn4r9d', '3iaaat5w', '3iiwq53s',
+         '3j9ubv43', '3mpxpngz', '3qamndc0', '3saomh3t', '3uhhi5cw', '4334rx4x', '4dxy3xts', '4tn9w2z1', '4vlr2h00',
+         '59f1meqm', '59h6udc1', '5cep4nc0', '5ddcxsw2', '70msua7k', '70ofjm82', '70p8jig0', '721o664h', '72jutmfk',
+         '74jowaad', '78ihrfgo', '7meufihs', '7wv5mtxj', '84akgj0w', '8m9vyb60', '8s0c6p04', '8soi6m8g', '9kawy0ow',
+         'awnpg9a8', 'biu8xww0', 'e1lptwxx', 'e79x2we8', 'eh0t1q9y', 'eh65daci', 'ehxytwjk', 'extc1udk', 'f4toqhpg',
+         'fgeqg214', 'ftiem9lk', 'fw77kcnc', 'h5kt9cf4', 'hjwhwym8', 'hz8d60xs', 'jb6bp0g0', 'l22bzw1w', 'l3pj9hq8',
+         'lbj1fubp', 'lxal1lk2', 's27vq70q', 's2bb5mki', 's2w95y0w', 's3cek9og', 's4703jk4', 's67g5qf5', 's8kgdkat',
+         'sckruupw', 'se4vzkao', 'si57d0vl', 'sjhd20i8', 'sqne2mf6', 'sxtju9ds', 'ttd710kw', 'ttkayw5e', 'u96baslc',
+         'vtdhrbj5', 'y79i706c', 'zycu7tsa', '10uwf8sh4', '11boo6mmc', '12sxyeebs', '163xyccg3', '16cpesdfk',
+         '18q18bpc0', '1k4hvvgq4', '1k5f63ok4', '1k5olig3u', '1k6fsqalm', '1kacr2gi8', '1kcc6rzu1', '1kkpot632',
+         '1kwdghpts', '1l2644l68', '1l3yxmj9s', '1m04wgmyo', '1mtm16z5s', '1np6u1q0w', '1nuo1tbfk', '1oy4n1mo0',
+         '1r5lsxju0', '1sx57vdfq', '1v4j675ds', '1y5oldkzm', '1ydfr4jno', '1ylc38ah4', '1z14mw0td', '223vcx1xc',
+         '26xq9hn29', '2c7wa6r0w', '2cbc8qbcw', '2jn9ojll5', '2qjlkoz69', '2tr1zn5ds', '348vfurgh', '348vlaoc0',
+         '348ynt0qx', '34ahl37ds', '34b3cgc8y', '34ooa1ix0', '34r4ejl82', '35p5m8r28', '360i7uazl', '36289j761',
+         '3650mzlzg', '36aev2c00', '36noxmex2', '36vlw3k3k', '37rw4rghs', '37t554ikq', '387avhseb', '3b9o5lbwi',
+         '3ewmteale', '3ibz0r8n4', '3id5iv5ky', '3ihxwcvvc', '3k5k1k174', '3pau9ujnl', '3wf1e2dck', '43rfm4du8',
+         '47pqff6yo', '4e2i4y684', '4hio30v0o', '4odb0lr5s', '4odcmkvt0', '4p94elixc', '4p9zffz0k', '4qciqf9mp',
+         '4ywafln9c', '5hf4nw08w', '68ijggco4', '68jq73cxs', '68maap98g', '68prdfhqg', '68qm8divl', '691ibd2ps',
+         '69dbnd8ur', '69esd0djg', '69w6eo0sh', '6ad6zcetk', '6aonwwkjk', '6aozhe8zl', '6cvyitslw', '6dr7i6olg',
+         '6fibvzxtw', '6fmd4bv28', '6gmqtkr9e', '6j14n6n7k', '6miukvtc1', '6mjvifon4', '6mormb3fm', '6mr9hvhna',
+         '6q533lm6w', '6rsie7cbk', '6tjgpxic0', '70k7ao9m0', '7103zqlvk', '71i1x52bm', '7447g0dfw', '7sogja9z4',
+         '7up5z9m9u', '7w7esu6fm', '7zmqtlrpd', '81tsbnzsw', '8kofgi1he', '8mhi35nc1', '9cv1pjiaw', '9d6ef1dah',
+         '9dftsor9c', '9du8c1vcw', '9jr5vsnj4', 'a8b405mps', 'ajqhmxkj4', 'ax2xsvfic']
+    B = [Integer(x,base=36) for x in B]
+    return [[i for i in range(45) if x&(1<<i)]
+            for x in B]
+
+def BIBD_66_6_1():
+    r"""
+    Return a (66,6,1)-BIBD.
+
+    This BIBD was obtained from La Jolla covering repository
+    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_66_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(66, BIBD_66_6_1())
+        (66,6,1)-Balanced Incomplete Block Design
+    """
+    BIBD = [frozenset([(x+i*5)%65 if x<65 else x for x in b])
+            for i in range(65)
+            for b in
+            [6, 38, 42, 46, 53, 62], [9, 11, 21, 49, 56, 60], [18, 31, 37, 44, 52, 60],
+            [0, 12, 29, 46, 51, 63], [0, 6, 21, 30, 43, 48], [4, 17, 22, 36, 47, 59],
+            [0, 1, 2, 3, 4, 65], [23, 39, 44, 53, 59, 63], [12, 22, 28, 48, 55, 60],
+            [19, 22, 25, 40, 49, 50], [4, 30, 37, 50, 58, 61]]
+    return map(list,frozenset(BIBD))
+
+def BIBD_76_6_1():
+    r"""
+    Return a (76,6,1)-BIBD.
+
+    This BIBD was obtained from La Jolla covering repository
+    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_76_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(76, BIBD_76_6_1())
+        (76,6,1)-Balanced Incomplete Block Design
+    """
+    BIBD = [frozenset([(x+i*4)%76 if x<76 else x for x in b])
+            for i in range(76)
+            for b in
+            [[3, 5, 21, 33, 72, 73], [4, 37, 57, 58, 64, 75], [7, 14, 44, 47, 59, 63],
+             [10, 20, 61, 63, 71, 72], [13, 26, 30, 39, 45, 67], [11, 21, 25, 30, 55, 58],
+             [2, 5, 34, 52, 54, 70], [6, 8, 29, 48, 70, 71], [10, 15, 36, 41, 44, 56],
+             [0, 6, 13, 27, 44, 72]]]
+    return map(list,frozenset(BIBD))
+
+def BIBD_96_6_1():
+    r"""
+    Return a (96,6,1)-BIBD.
+
+    This BIBD was obtained from La Jolla covering repository
+    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_96_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(96, BIBD_96_6_1())
+        (96,6,1)-Balanced Incomplete Block Design
+    """
+    BIBD = [frozenset([(x+i*2)%96 if x<96 else x for x in b])
+            for i in range(96)
+            for b in
+            [[3, 13, 32, 47, 68, 87], [9, 36, 70, 75, 81, 88], [22, 52, 72, 76, 78, 79],
+             [15, 23, 41, 43, 46, 58], [7, 8, 21, 57, 66, 94], [8, 22, 30, 51, 55, 93],
+             [15, 31, 47, 63, 79, 95], [2, 18, 34, 50, 66, 82]]]
+    return map(list,frozenset(BIBD))
+
+def BIBD_106_6_1():
+    r"""
+    Return a (106,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_106_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(106, BIBD_106_6_1())
+        (106,6,1)-Balanced Incomplete Block Design
+    """
+    bibd = [((0,0), ( 1,0), ( 3,0), (11,0), (38,0), ( 0,1)),
+            ((0,0), (13,0), (30,0), (23,1), (35,1), (51,1)),
+            ((0,0), ( 5,0), (19,0), (25,0), (36,1), (39,1)),
+            ((0,0), ( 4,0), (28,1), (30,1), (37,1), (47,1)),
+            ((0,0), ( 7,0), (29,0), ( 8,1), (16,1), (48,1)),
+            ((0,0), ( 2,1), ( 7,1), (25,1), (29,1), (49,1)),
+            ((0,0), ( 9,0), (21,0), (12,1), (13,1), (27,1))]
+
+    return [[((x+i)%53+y*53) for x,y in B] for i in range(53) for B in bibd]
+
+def BIBD_111_6_1():
+    r"""
+    Return a (111,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_111_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(111, BIBD_111_6_1())
+        (111,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    bibd = [(( 0,0), ( 1,0), ( 3,0), ( 7,0), (17,0), ( 0,1)),
+            (( 0,0), ( 5,0), (19,1), (28,1), (10,2), (30,2)),
+            (( 5,0), (33,0), (13,1), (34,1), (19,2), ( 7,2)),
+            (( 9,0), (27,0), (16,1), (11,1), (12,2), (36,2)),
+            ((10,0), (23,0), (26,1), ( 8,1), ( 1,2), ( 6,2)),
+            ((13,0), (24,0), (19,1), (18,1), ( 5,2), (32,2)),
+            ((26,0), (34,0), ( 1,1), ( 7,1), (10,2), (33,2))]
+    gens = lambda B: [frozenset(((x*10)%37,(y+1)%3) for x,y in B),
+                      frozenset(((x+1) %37,      y) for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+def BIBD_126_6_1():
+    r"""
+    Return a (126,6,1)-BIBD.
+
+    This constructions appears in VI.16.92 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_126_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(126, BIBD_126_6_1())
+        (126,6,1)-Balanced Incomplete Block Design
+    """
+    from itertools import product
+    bibd = [[((x+xx)%5, (y+yy)%5, (z+zz)%5) for x,y,z in B]
+            for xx,yy,zz in product(range(5),repeat=3)
+            for B in
+            [[(0,0,1),(0,0,4),(1,2,2),(1,3,3),(4,2,1),(4,3,4)],
+             [(0,0,2),(0,0,3),(1,4,4),(1,1,1),(4,4,2),(4,1,3)],
+             [(0,4,3),(0,1,2),(2,2,0),(2,3,0),(3,3,2),(3,2,3)],
+             [(0,3,1),(0,2,4),(2,4,0),(2,1,0),(3,1,4),(3,4,1)]]]
+
+    bibd.extend([[(125,0,0), (0,x,y),(1,x,y),(2,x,y),(3,x,y),(4,x,y)]
+                 for x,y in product(range(5),repeat=2)])
+    return [[x+y*5+z*25 for x,y,z in B]
+            for B in bibd]
+
+def BIBD_136_6_1():
+    r"""
+    Return a (136,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_136_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(136, BIBD_136_6_1())
+        (136,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    inf=(None,None)
+    bibd = [((0,0), ( 3,0), (15,0), (35,0), ( 6,2), (10,2)),
+            ((0,0), (22,0), (11,1), (30,1), ( 1,2), (18,2)),
+            ((0,0), ( 5,0), (18,1), (41,1), (13,2), (42,2)),
+            ((0,0), (11,0), (17,0), ( 4,2), ( 5,2), (28,2)),
+            ((0,0), ( 1,0), ( 0,1), (16,1), ( 0,2), (31,2)),
+            ( inf ,( 0,0), ( 9,0), (18,0), (27,0), (36,0))]
+    gens = lambda B: [frozenset(((x*16)%45,(y+1)%3) if (x,y)!=inf else inf for x,y in B),
+                      frozenset(((x+1) %45,y)       if (x,y)!=inf else inf for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+
+def BIBD_141_6_1():
+    r"""
+    Return a (141,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_141_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(141, BIBD_141_6_1())
+        (141,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    a = 'a'
+    inf = (None,None)
+    bibd = [((0,0), (16,0), (24,0), (24,1), (15,2), (25,2)),
+            ((0,0), ( 3,0), (26,0), (13,1), (33,1), (34,a)),
+            ((0,0), (13,0), (18,0), (15,1), ( 7,2), ( 0,a)),
+            ((0,0), ( 2,0), (14,1), (23,1), (26,a), (32,a)),
+            ((0,0), ( 4,0), (29,1), ( 6,2), ( 9,a), (20,a)),
+            ((0,0), ( 1,0), (12,2), ( 2,a), ( 4,a), (19,a)),
+            ( inf ,( 0,0), ( 7,0), (14,0), (21,0), (28,0)),
+            ( inf ,( 0,a), ( 7,a), (14,a), (21,a), (28,a))]
+
+    gens = lambda B: [frozenset(((x*16)%35,(y+1)%3 if y!=a else a) if (x,y)!=inf else inf for x,y in B),
+                      frozenset(((x+1) %35, y )                    if (x,y)!=inf else inf for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+def BIBD_171_6_1():
+    r"""
+    Return a (171,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_171_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(171, BIBD_171_6_1())
+        (171,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    bibd = [(( 0,0), (19,0), (39,0), (41,0), (14,1), (38,2)),
+            (( 0,0), (21,0), (44,0), (48,0), (26,1), (11,2)),
+            (( 0,0), ( 1,0), (43,0), ( 8,2), (15,2), (44,2)),
+            (( 0,0), ( 3,0), (31,0), (23,1), (43,1), (36,2)),
+            (( 0,0), (40,0), (50,0), (11,1), (25,2), (34,2)),
+            (( 0,0), (12,0), ( 0,1), (27,1), ( 0,2), (18,2)),
+            ((37,0), (42,0), (31,1), ( 9,1), (46,2), ( 6,2))]
+
+    gens = lambda B: [frozenset(((x*7) %57,(y+1)%3) for x,y in B),
+                      frozenset(((x+1) %57,      y) for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+def HigmanSimsDesign():
+    r"""
+    Return the Higman-Sims designs, which is a `(176, 50, 14)`-BIBD.
+
+    This design is built from a from the :func:`WittDesign
+    <sage.combinat.designs.block_design.WittDesign>` `W` on 24 points. We define
+    two points `a,b`, and consider:
+
+    - The collection `W_a` of all blocks of `W` containing `a` but not
+      containing `b`.
+
+    - The collection `W_b` of all blocks of `W` containing `b` but not
+      containing `a`.
+
+    The design is then obtained from the incidence structure produced by the
+    blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
+    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
+
+    EXAMPLE::
+
+        sage: H = designs.HigmanSimsDesign(); H  # optional - gap_packages
+        Incidence structure with 176 points and 176 blocks
+        sage: H.is_t_design(return_parameters=1) # optional - gap_packages
+        (True, (2, 176, 50, 14))
+
+    Make sure that the automorphism group of this designs is isomorphic to the
+    automorphism group of the
+    :func:`~sage.graphs.generators.smallgraphs.HigmanSimsGraph`. Note that the
+    first of those permutation groups acts on 176 points, while the second acts
+    on 100::
+
+        sage: gH = H.automorphism_group()                        # optional - gap_packages
+        sage: gG = graphs.HigmanSimsGraph().automorphism_group() # optional - gap_packages
+        sage: gG.is_isomorphic(gG)                   # long time # optional - gap_packages
+        True
+
+    REFERENCE:
+
+    .. [KY04] S. Klee and L. Yates,
+       Tight Subdesigns of the Higman-Sims Design,
+       Rose-Hulman Undergraduate Math. J 5.2 (2004).
+       https://www.rose-hulman.edu/mathjournal/archives/2004/vol5-n2/paper9/v5n2-9pd.pdf
+    """
+    from sage.combinat.designs.block_design import WittDesign
+    from incidence_structures import IncidenceStructure
+    W = WittDesign(24)
+    a,b = 0,1
+    Wa = [set(B) for B in W
+          if (a     in B and
+              b not in B)]
+    Wb = [set(B) for B in W
+          if (b     in B and
+              a not in B)]
+
+    H = [[i for i,A in enumerate(Wa) if len(A&B) != 2]
+         for B in Wb]
+
+    H = IncidenceStructure(H)
+
+    return H
+
+def BIBD_196_6_1():
+    r"""
+    Return a (196,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_196_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(196, BIBD_196_6_1())
+        (196,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    a = 'a'
+    bibd = [((0,0), ( 2,0), (12,0), (45,0), ( 3,1), (11,a)),
+            ((0,0), ( 3,0), ( 8,0), ( 5,1), (17,1), (39,a)),
+            ((0,0), ( 9,0), (36,0), (24,1), (44,1), (37,a)),
+            ((0,0), (15,0), (34,1), (41,1), (47,2), (18,a)),
+            ((0,0), ( 7,0), (31,0), (13,1), (35,2), (41,a)),
+            ((0,0), (14,0), (32,1), (10,2), (22,a), (44,a)),
+            ((0,0), (23,0), (21,1), (39,1), (19,a), (25,a)),
+            ((0,0), (33,1), ( 0,a), ( 5,a), (29,a), (47,a)),
+            ((0,0), ( 1,0), ( 0,1), (30,1), ( 0,2), (18,2)),
+            ((8,0), (19,0), (44,1), (31,1), (46,2), (48,2))]
+
+    gens = lambda B: [frozenset(((x*30)%49,(y+1)%3 if y!=a else a) for x,y in B),
+                      frozenset(((x+1) %49,   y)                   for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+def BIBD_201_6_1():
+    r"""
+    Return a (201,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_201_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(201, BIBD_201_6_1())
+        (201,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    bibd = [((0,0), ( 1,0), ( 4,2), ( 9,2), (34,2), (62,2)),
+            ((0,1), ( 2,1), (15,1), ( 8,2), (27,2), (49,2)),
+            ((0,0), ( 3,0), (22,0), (54,1), (13,2), (40,2)),
+            ((0,0), (36,0), (40,0), (31,1), (34,1), ( 5,2)),
+            ((0,0), (50,0), (55,0), ( 6,1), (24,1), (26,2)),
+            ((0,0), ( 2,0), ( 3,1), (14,1), (35,1), (25,2)),
+            ((3,1), (20,1), (44,1), (36,2), (39,2), (59,2)),
+            ((0,0), ( 0,1), (30,1), (38,1), (66,1), ( 0,2))]
+
+    gens = lambda B: [frozenset(((x*29)%67,y) for x,y in B),
+                      frozenset(((x+1) %67,y) for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
 # Index of the BIBD constructions
 #
 # Associates to triple (v,k,lambda) a function that return a
@@ -4123,15 +4561,324 @@ def RBIBD_120_8_1():
 # This dictionary is used by designs.BalancedIncompleteBlockDesign
 
 BIBD_constructions = {
+    ( 45,9,8): BIBD_45_9_8,
+    ( 66,6,1): BIBD_66_6_1,
+    ( 76,6,1): BIBD_76_6_1,
+    ( 96,6,1): BIBD_96_6_1,
     (120,8,1): RBIBD_120_8_1,
+    (106,6,1): BIBD_106_6_1,
+    (111,6,1): BIBD_111_6_1,
+    (126,6,1): BIBD_126_6_1,
+    (136,6,1): BIBD_136_6_1,
+    (141,6,1): BIBD_141_6_1,
+    (171,6,1): BIBD_171_6_1,
+    (176,50,14): HigmanSimsDesign,
+    (196,6,1): BIBD_196_6_1,
+    (201,6,1): BIBD_201_6_1,
 }
 
+# Create the list of DF for the documentation
+_all_l = sorted(set(l for v,k,l in BIBD_constructions.keys()))
+LIST_OF_BIBD = "\n".join("    - `\lambda={}`:\n       ".format(l) +
+                       ", ".join("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(BIBD_constructions) if _ == l)
+                       for l in _all_l)
+
+# Evenly Distributed Sets (EDS)
+#
+# For the definition see the documentation of the class
+# EvenlyDistributedSetsBacktracker in the file evenly_distributed_sets.pyx
+#
+# EDS is a dictionary of dictionaries whose keys are the integers
+# 4, 5,..., 10. For each k in {4,...,10} the keys of EDS[k] are the prime powers
+# `q` so that `q = 1 modulo k(k-1)`.
+# The value at position EDS[k][q] is one of:
+#   - ``(None, B)`` if `q` is prime and `B` is an evenly distributed set in Z/pZ
+#   - ``(poly, B)`` if `q=p^k` is a prime power (but not a prime). The
+#     polynomial ``poly`` is such that GF(p)[x] / (poly) is a finite field of
+#     cardinality q. The set `B` is then given in terms of the canonical
+#     generator `x`.
+
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer_ring import ZZ
+R = PolynomialRing(ZZ,'a')
+a = R.gen()
+
+EDS={
+4:{
+      13: (None, [0, 1, 11, 5]),
+      25: (a**2 + 4*a + 2, [0, 1, a, 3*a + 4]),
+      37: (None, [0, 1, 17, 30]),
+      49: (a**2 + 6*a + 3, [0, 1, a + 6, 4*a + 1]),
+      61: (None, [0, 1, 6, 37]),
+      73: (None, [0, 1, 5, 18]),
+      97: (None, [0, 1, 5, 24]),
+     109: (None, [0, 1, 6, 60]),
+     121: (a**2 + 7*a + 2, [0, 1, 2*a, 3*a + 7]),
+     157: (None, [0, 1, 20, 132]),
+     169: (a**2 + 12*a + 2, [0, 1, a + 12, a + 6]),
+     181: (None, [0, 1, 10, 87]),
+     193: (None, [0, 1, 5, 11]),
+     229: (None, [0, 1, 6, 13]),
+     241: (None, [0, 1, 11, 24]),
+     277: (None, [0, 1, 11, 228]),
+     289: (a**2 + 16*a + 3, [0, 1, a, 6*a + 13]),
+     313: (None, [0, 1, 10, 121]),
+     337: (None, [0, 1, 10, 21]),
+     349: (None, [0, 1, 7, 19]),
+     361: (a**2 + 18*a + 2, [0, 1, a + 3, 9*a + 5]),
+     373: (None, [0, 1, 5, 231]),
+     397: (None, [0, 1, 18, 11]),
+     409: (None, [0, 1, 21, 60]),
+     421: (None, [0, 1, 14, 31]),
+     433: (None, [0, 1, 10, 97]),
+     457: (None, [0, 1, 13, 195]),
+     529: (a**2 + 21*a + 5, [0, 1, a + 5, 3*a + 11]),
+     541: (None, [0, 1, 11, 45]),
+     577: (None, [0, 1, 5, 115]),
+     601: (None, [0, 1, 7, 69]),
+     613: (None, [0, 1, 6, 88]),
+     625: (a**4 + 4*a**2 + 4*a + 2, [0, 1, a + 3, 2*a**2 + a]),
+     661: (None, [0, 1, 6, 66]),
+     673: (None, [0, 1, 5, 46]),
+     709: (None, [0, 1, 17, 256]),
+     733: (None, [0, 1, 6, 49]),
+     757: (None, [0, 1, 5, 224]),
+     769: (None, [0, 1, 11, 79]),
+     829: (None, [0, 1, 19, 44]),
+     841: (a**2 + 24*a + 2, [0, 1, a + 8, 4*a + 27]),
+     853: (None, [0, 1, 6, 58]),
+     877: (None, [0, 1, 5, 46]),
+     937: (None, [0, 1, 5, 160]),
+     961: (a**2 + 29*a + 3, [0, 1, a + 16, 3*a + 8]),
+     997: (None, [0, 1, 7, 102]),
+    1009: (None, [0, 1, 11, 131]),
+    1021: (None, [0, 1, 19, 153]),
+    1033: (None, [0, 1, 5, 15]),
+    1069: (None, [0, 1, 6, 36]),
+    1093: (None, [0, 1, 15, 25]),
+    1117: (None, [0, 1, 6, 23]),
+    1129: (None, [0, 1, 11, 37]),
+    1153: (None, [0, 1, 5, 151]),
+    1201: (None, [0, 1, 17, 48]),
+    1213: (None, [0, 1, 20, 217]),
+    1237: (None, [0, 1, 7, 199]),
+    1249: (None, [0, 1, 7, 36]),
+    1297: (None, [0, 1, 10, 103]),
+    1321: (None, [0, 1, 7, 112]),
+    1369: (a**2 + 33*a + 2, [0, 1, a + 33, a + 9]),
+    1381: (None, [0, 1, 19, 84]),
+    1429: (None, [0, 1, 14, 116]),
+    1453: (None, [0, 1, 5, 377]),
+    1489: (None, [0, 1, 14, 44]),
+    1549: (None, [0, 1, 22, 89]),
+    1597: (None, [0, 1, 33, 228]),
+    1609: (None, [0, 1, 7, 95]),
+    1621: (None, [0, 1, 6, 165]),
+    1657: (None, [0, 1, 11, 121]),
+    1669: (None, [0, 1, 6, 155]),
+    1681: (a**2 + 38*a + 6, [0, 1, a, 6*a + 6]),
+    1693: (None, [0, 1, 5, 50]),
+    1741: (None, [0, 1, 19, 341]),
+    1753: (None, [0, 1, 7, 146]),
+    1777: (None, [0, 1, 10, 100]),
+    1789: (None, [0, 1, 6, 238]),
+    1801: (None, [0, 1, 11, 79]),
+    1849: (a**2 + 42*a + 3, [0, 1, a + 5, 2*a + 35]),
+    1861: (None, [0, 1, 18, 110]),
+    1873: (None, [0, 1, 10, 40]),
+    1933: (None, [0, 1, 14, 100]),
+    1993: (None, [0, 1, 5, 34]),
+    2017: (None, [0, 1, 10, 57]),
+    2029: (None, [0, 1, 6, 25]),
+    2053: (None, [0, 1, 14, 95]),
+    2089: (None, [0, 1, 7, 66]),
+    2113: (None, [0, 1, 7, 117]),
+    2137: (None, [0, 1, 10, 60]),
+    2161: (None, [0, 1, 31, 78]),
+    2197: (a**3 + 2*a + 11, [0, 1, 2*a + 9, 11*a + 3]),
+    2209: (a**2 + 45*a + 5, [0, 1, a + 5, 2*a + 12]),
+    2221: (None, [0, 1, 18, 201]),
+    2269: (None, [0, 1, 6, 99]),
+    2281: (None, [0, 1, 7, 212]),
+    2293: (None, [0, 1, 5, 116]),
+    2341: (None, [0, 1, 7, 99]),
+    2377: (None, [0, 1, 5, 214]),
+    2389: (None, [0, 1, 18, 29]),
+    2401: (a**4 + 5*a**2 + 4*a + 3, [0, 1, a, 2*a**2 + 6]),
+    2437: (None, [0, 1, 5, 45]),
+    2473: (None, [0, 1, 5, 298]),
+    2521: (None, [0, 1, 17, 150]),
+    2557: (None, [0, 1, 5, 68]),
+    2593: (None, [0, 1, 7, 255]),
+    2617: (None, [0, 1, 5, 11]),
+    2677: (None, [0, 1, 7, 57]),
+    2689: (None, [0, 1, 19, 115]),
+    2713: (None, [0, 1, 5, 139]),
+    2749: (None, [0, 1, 13, 243]),
+    2797: (None, [0, 1, 5, 95]),
+    2809: (a**2 + 49*a + 2, [0, 1, a, 3*a + 22])},
+
+5: {
+      41: (None, [0, 1, 13, 38, 31]),
+      61: (None, [0, 1, 26, 11, 7]),
+     101: (None, [0, 1, 12, 43, 81]),
+     121: (a**2 + 7*a + 2, [0, 1, a, 9*a + 5, 3*a + 1]),
+     181: (None, [0, 1, 21, 47, 123]),
+     241: (None, [0, 1, 7, 51, 189]),
+     281: (None, [0, 1, 3, 143, 74]),
+     361: (a**2 + 18*a + 2, [0, 1, a, 2*a + 14, 18*a + 9]),
+     401: (None, [0, 1, 3, 128, 133]),
+     421: (None, [0, 1, 40, 132, 8]),
+     461: (None, [0, 1, 28, 53, 287]),
+     521: (None, [0, 1, 3, 9, 217]),
+     541: (None, [0, 1, 30, 124, 370]),
+     601: (None, [0, 1, 7, 10, 545]),
+     641: (None, [0, 1, 12, 79, 185]),
+     661: (None, [0, 1, 6, 36, 286]),
+     701: (None, [0, 1, 12, 97, 365]),
+     761: (None, [0, 1, 11, 4, 260]),
+     821: (None, [0, 1, 13, 62, 571]),
+     841: (a**2 + 24*a + 2, [0, 1, a, 2*a + 5, 5*a + 19]),
+     881: (None, [0, 1, 3, 9, 836]),
+     941: (None, [0, 1, 7, 49, 96]),
+     961: (a**2 + 29*a + 3, [0, 1, a, 3, 3*a]),
+    1021: (None, [0, 1, 30, 6, 171]),
+    1061: (None, [0, 1, 15, 51, 60]),
+    1181: (None, [0, 1, 7, 90, 87]),
+    1201: (None, [0, 1, 11, 14, 621]),
+    1301: (None, [0, 1, 7, 19, 138]),
+    1321: (None, [0, 1, 13, 5, 1168]),
+    1361: (None, [0, 1, 3, 9, 159]),
+    1381: (None, [0, 1, 26, 35, 547]),
+    1481: (None, [0, 1, 3, 9, 730]),
+    1601: (None, [0, 1, 3, 17, 1077]),
+    1621: (None, [0, 1, 14, 4, 1380]),
+    1681: (a**2 + 38*a + 6, [0, 1, a, a + 15, 40*a + 22]),
+    1721: (None, [0, 1, 3, 121, 687]),
+    1741: (None, [0, 1, 7, 29, 32]),
+    1801: (None, [0, 1, 11, 51, 142]),
+    1861: (None, [0, 1, 10, 62, 643]),
+    1901: (None, [0, 1, 12, 4, 477])
+    },
+
+6: {
+      31: (None, [0, 1, 3, 12, 18, 8]),
+     151: (None, [0, 1, 69, 36, 57, 89]),
+     181: (None, [0, 1, 14, 4, 59, 139]),
+     211: (None, [0, 1, 24, 141, 128, 202]),
+     241: (None, [0, 1, 7, 151, 232, 136]),
+     271: (None, [0, 1, 6, 15, 81, 225]),
+     331: (None, [0, 1, 29, 113, 21, 69]),
+     361: (a**2 + 18*a + 2, [0, 1, a, 3*a + 2, 14*a, 10*a + 9]),
+     421: (None, [0, 1, 11, 4, 111, 394]),
+     541: (None, [0, 1, 5, 42, 157, 322]),
+     571: (None, [0, 1, 3, 52, 549, 137]),
+     601: (None, [0, 1, 6, 114, 490, 359]),
+     631: (None, [0, 1, 3, 73, 144, 466]),
+     661: (None, [0, 1, 6, 73, 182, 44]),
+     691: (None, [0, 1, 3, 9, 554, 425]),
+     751: (None, [0, 1, 3, 9, 314, 226]),
+     811: (None, [0, 1, 3, 9, 504, 341]),
+     841: (a**2 + 24*a + 2, [0, 1, a, 3*a + 11, 12*a + 24, 22*a + 10]),
+     961: (a**2 + 29*a + 3, [0, 1, 11, 28, 15*a + 25, 4*a + 3]),
+     991: (None, [0, 1, 6, 36, 234, 834]),
+    1021: (None, [0, 1, 30, 6, 476, 154]),
+    1051: (None, [0, 1, 7, 23, 324, 266]),
+    1171: (None, [0, 1, 37, 4, 1163, 302]),
+    1201: (None, [0, 1, 11, 5, 130, 146]),
+    1231: (None, [0, 1, 3, 9, 768, 476]),
+    1291: (None, [0, 1, 45, 79, 320, 390]),
+    1321: (None, [0, 1, 13, 33, 445, 894]),
+    1381: (None, [0, 1, 26, 56, 474, 839]),
+    1471: (None, [0, 1, 6, 36, 425, 676]),
+    1531: (None, [0, 1, 38, 8, 465, 1376]),
+    1621: (None, [0, 1, 5, 20, 117, 1486]),
+    1681: (a**2 + 38*a + 6, [0, 1, a, a + 5, 2*a + 28, 2*a + 34]),
+    1741: (None, [0, 1, 9, 4, 301, 420]),
+    1801: (None, [0, 1, 6, 4, 1263, 260]),
+    1831: (None, [0, 1, 3, 9, 452, 1532]),
+    1861: (None, [0, 1, 10, 4, 188, 1405]),
+    1951: (None, [0, 1, 3, 7, 27, 1032]),
+    },
+
+7: {
+     169: (a**2 + 12*a + 2, [0, 1, a, 5*a + 3, 11*a + 10, 11*a + 6, 5*a + 6]),
+     337: (None, [0, 1, 10, 28, 80, 224, 129]),
+     379: (None, [0, 1, 9, 175, 287, 14, 271]),
+     421: (None, [0, 1, 26, 4, 191, 250, 298]),
+     463: (None, [0, 1, 3, 9, 310, 243, 415]),
+     547: (None, [0, 1, 25, 4, 430, 9, 210]),
+     631: (None, [0, 1, 3, 104, 303, 257, 447]),
+     673: (None, [0, 1, 5, 25, 405, 476, 131]),
+     757: (None, [0, 1, 6, 36, 232, 557, 274]),
+     841: (a**2 + 24*a + 2, [0, 1, a + 28, 2*a + 1, 7*a + 22, 25*a + 20, 11*a + 10]),
+     883: (None, [0, 1, 54, 4, 870, 638, 310]),
+     967: (None, [0, 1, 5, 22, 775, 577, 819]),
+    1009: (None, [0, 1, 5, 36, 911, 650, 412]),
+    1051: (None, [0, 1, 7, 49, 274, 1012, 213]),
+    1093: (None, [0, 1, 5, 25, 274, 214, 735]),
+    1303: (None, [0, 1, 30, 70, 1107, 39, 1271]),
+    1429: (None, [0, 1, 6, 15, 289, 975, 314]),
+    1471: (None, [0, 1, 6, 36, 216, 947, 568]),
+    1597: (None, [0, 1, 7, 38, 266, 223, 1316]),
+    1681: (a**2 + 38*a + 6, [0, 1, a, 2*a + 12, 7*a + 9, 35*a + 29, 33*a + 2]),
+    1723: (None, [0, 1, 3, 9, 1169, 420, 1651]),
+    1849: (a**2 + 42*a + 3, [0, 1, 13, 3, 39, 19, 5*a + 13]),
+    1933: (None, [0, 1, 5, 25, 319, 1607, 1782])
+    },
+
+8: {
+     449: (None, [0, 1, 3, 332, 8, 104, 381, 61]),
+     617: (None, [0, 1, 3, 610, 397, 318, 465, 84]),
+     673: (None, [0, 1, 20, 355, 92, 491, 315, 478]),
+     729: (a**6 + 2*a**4 + a**2 + 2*a + 2, [0, 1, a,
+              a**2, 2*a**4 + a**3 + a**2 + a + 1,
+              a**4, a**3 + 2*a**2 + 2, 2*a**5 + a**4 + 2*a**2 + 2*a]),
+     841: (a**2 + 24*a + 2, [0, 1, a, 27, 27*a + 25, 5*a + 18,
+              11*a + 14, 14*a + 2]),
+     953: (None, [0, 1, 3, 36, 727, 636, 899, 448]),
+    1009: (None, [0, 1, 11, 20, 202, 283, 698, 629]),
+    1289: (None, [0, 1, 6, 133, 579, 793, 361, 658]),
+    1681: (a**2 + 38*a + 6, [0, 1, a, 3*a + 25, 5*a + 33, 34*a + 12,
+              23*a + 31, 38*a + 14]),
+    1849: (a**2 + 42*a + 3, [0, 1, a, a + 2, 4*a + 36, 5*a,
+              20*a + 22, 18*a + 5]),
+    },
+
+9: {
+      73: (None, [0, 1, 5, 21, 59, 18, 12, 51, 49]),
+     433: (None, [0, 1, 5, 145, 347, 248, 57, 267, 110]),
+     937: (None, [0, 1, 5, 265, 828, 773, 328, 587, 866]),
+    1009: (None, [0, 1, 11, 251, 944, 497, 700, 99, 545]),
+    1153: (None, [0, 1, 5, 522, 1116, 495, 215, 859, 167]),
+    1297: (None, [0, 1, 10, 244, 30, 1111, 392, 1183, 123]),
+    1369: (a**2 + 33*a + 2, [0, 1, a, 8*a + 34, 36*a + 33, 2*a + 21, 20,
+              32*a + 15, 25*a + 20]),
+    1657: (None, [0, 1, 11, 121, 396, 269, 266, 873, 345]),
+    1801: (None, [0, 1, 11, 105, 603, 966, 746, 1585, 1298]),
+    1873: (None, [0, 1, 10, 32, 1837, 1823, 1040, 1826, 1496]),
+    },
+
+10:{
+    1171: (None, [0, 1, 817, 856, 143, 881, 833, 82, 870, 564]),
+    1531: (None, [0, 1, 61, 1109, 417, 590, 1273, 11, 1445, 326]),
+    1621: (None, [0, 1, 52, 111, 779, 365, 1225, 378, 535, 1012]),
+    1801: (None, [0, 1, 6, 369, 80, 1717, 138, 1782, 1301, 82]),
+    }
+}
+
+LIST_OF_EDS = "\n".join("    - `k = {}`: {}".format(
+                        k, ', '.join('`{}`'.format(q) for q in sorted(EDS[k]) if EDS[k][q] is not False))
+                        for k in sorted(EDS))
 
 __doc__ = __doc__.format(
     LIST_OF_OA_CONSTRUCTIONS   = LIST_OF_OA_CONSTRUCTIONS,
     LIST_OF_MOLS_CONSTRUCTIONS = LIST_OF_MOLS_CONSTRUCTIONS,
     LIST_OF_VMT_VECTORS        = LIST_OF_VMT_VECTORS,
+    LIST_OF_BIBD               = LIST_OF_BIBD,
     LIST_OF_DF                 = LIST_OF_DF,
     LIST_OF_DM                 = LIST_OF_DM,
-    LIST_OF_QDM                = LIST_OF_QDM)
-del LIST_OF_OA_CONSTRUCTIONS, LIST_OF_MOLS_CONSTRUCTIONS, LIST_OF_VMT_VECTORS, LIST_OF_DF, LIST_OF_DM, LIST_OF_QDM
+    LIST_OF_QDM                = LIST_OF_QDM,
+    LIST_OF_EDS                = LIST_OF_EDS)
+del LIST_OF_OA_CONSTRUCTIONS, LIST_OF_MOLS_CONSTRUCTIONS, LIST_OF_VMT_VECTORS,LIST_OF_DF, LIST_OF_DM, LIST_OF_QDM, LIST_OF_EDS, LIST_OF_BIBD
+del PolynomialRing, ZZ, a,

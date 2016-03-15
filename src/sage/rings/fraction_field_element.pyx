@@ -67,11 +67,12 @@ cdef class FractionFieldElement(FieldElement):
     """
     EXAMPLES::
 
-        sage: K, x = FractionField(PolynomialRing(QQ, 'x')).objgen()
+        sage: K = FractionField(PolynomialRing(QQ, 'x'))
         sage: K
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: loads(K.dumps()) == K
         True
+        sage: x = K.gen()
         sage: f = (x^3 + x)/(17 - x^19); f
         (x^3 + x)/(-x^19 + 17)
         sage: loads(f.dumps()) == f
@@ -90,9 +91,9 @@ cdef class FractionFieldElement(FieldElement):
 
         sage: P.<n> = QQ[]
         sage: F = P.fraction_field()
-        sage: P.one_element()//F.one_element()
+        sage: P.one()//F.one()
         1
-        sage: F.one_element().quo_rem(F.one_element())
+        sage: F.one().quo_rem(F.one())
         (1, 0)
     """
     cdef object __numerator
@@ -190,7 +191,7 @@ cdef class FractionFieldElement(FieldElement):
             if not den.is_one() and den.is_unit():
                 try:
                     num *= den.inverse_of_unit()
-                    den  = den.parent().one_element()
+                    den  = den.parent().one()
                 except Exception:
                     pass
             self.__numerator   = num
@@ -529,7 +530,7 @@ cdef class FractionFieldElement(FieldElement):
                     tnum = rnum * sden + rden * snum
                     if tnum.is_zero():
                         return self.__class__(self._parent, tnum,
-                            self._parent.ring().one_element(), coerce=False,
+                            self._parent.ring().one(), coerce=False,
                             reduce=False)
                     else:
                         tden = self.__denominator * sden
@@ -540,7 +541,7 @@ cdef class FractionFieldElement(FieldElement):
                         if not tden.is_one() and tden.is_unit():
                             try:
                                 tnum = tnum * tden.inverse_of_unit()
-                                tden = self._parent.ring().one_element()
+                                tden = self._parent.ring().one()
                             except AttributeError:
                                 pass
                             except NotImplementedError:
@@ -608,7 +609,7 @@ cdef class FractionFieldElement(FieldElement):
         sden = (<FractionFieldElement> right).__denominator
 
         if (rnum.is_zero() or snum.is_zero()):
-            return self._parent.zero_element()
+            return self._parent.zero()
 
         if self._parent.is_exact():
             try:
@@ -625,7 +626,7 @@ cdef class FractionFieldElement(FieldElement):
                 if not tden.is_one() and tden.is_unit():
                     try:
                         tnum = tnum * tden.inverse_of_unit()
-                        tden = self._parent.ring().one_element()
+                        tden = self._parent.ring().one()
                     except AttributeError:
                         pass
                     except NotImplementedError:
@@ -780,7 +781,7 @@ cdef class FractionFieldElement(FieldElement):
         if right == 0:
             R = self.parent().ring()
             return self.__class__(self.parent(),
-                R.one_element(), R.one_element(),
+                R.one(), R.one(),
                 coerce=False, reduce=False)
         elif right > 0:
             return self.__class__(self.parent(),
@@ -840,19 +841,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return float(self.__numerator) / float(self.__denominator)
 
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: K.<x,y> = Frac(ZZ['x,y'])
-            sage: x > y
-            True
-            sage: 1 > y
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
 
@@ -862,6 +851,14 @@ cdef class FractionFieldElement(FieldElement):
             sage: t+1/t == (t^2+1)/t
             True
             sage: t == t/5
+            False
+
+        ::
+
+            sage: K.<x,y> = Frac(ZZ['x,y'])
+            sage: x > y
+            True
+            sage: 1 > y
             False
         """
         return cmp(self.__numerator * \
@@ -972,6 +969,36 @@ cdef class FractionFieldElement(FieldElement):
         return (make_element,
                 (self._parent, self.__numerator, self.__denominator))
 
+    def _evaluate_polynomial(self, pol):
+        """
+        Evaluate a univariate polynomial on this fraction.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: pol = x^3 + 1
+            sage: pol(1/x)
+            (x^3 + 1)/x^3
+
+        TESTS::
+
+            sage: R.<y,z> = ZZ[]
+            sage: (~(y+z))._evaluate_polynomial(pol)
+            (y^3 + 3*y^2*z + 3*y*z^2 + z^3 + 1)/(y^3 + 3*y^2*z + 3*y*z^2 + z^3)
+            sage: rat = (y+z)/y
+            sage: rat._evaluate_polynomial(pol)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: pol(rat)
+            (2*y^3 + 3*y^2*z + 3*y*z^2 + z^3)/y^3
+        """
+        inverse = ~self
+        if inverse.denominator().is_one():
+            num = inverse.numerator()
+            return pol.reverse()(num)/num**pol.degree()
+        else:
+            raise NotImplementedError
 
 class FractionFieldElement_1poly_field(FractionFieldElement):
     """

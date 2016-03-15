@@ -2,29 +2,22 @@
 Hecke modules
 """
 
-##########################################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##########################################################################################
+#*****************************************************************************
 
 import sage.rings.all
-from sage.rings.commutative_ring import is_CommutativeRing
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 import sage.modules.module
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
-from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent import Parent
 
 import sage.misc.prandom as random
@@ -51,7 +44,7 @@ def is_HeckeModule(x):
     """
     return isinstance(x, HeckeModule_generic)
 
-class HeckeModule_generic(sage.modules.module.Module_old):
+class HeckeModule_generic(sage.modules.module.Module):
     r"""
     A very general base class for Hecke modules.
 
@@ -66,7 +59,10 @@ class HeckeModule_generic(sage.modules.module.Module_old):
     operators `T_m` for `m` not assumed to be coprime to the level, and
     *anemic* Hecke modules, for which this does not hold.
     """
-    def __init__(self, base_ring, level, category = None):
+
+    Element = element.HeckeModuleElement
+
+    def __init__(self, base_ring, level, category=None):
         r"""
         Create a Hecke module. Not intended to be called directly.
 
@@ -77,7 +73,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             sage: ModularForms(3, 3).category()
             Category of Hecke modules over Rational Field
         """
-        if not is_CommutativeRing(base_ring):
+        if not isinstance(base_ring, sage.rings.all.CommutativeRing):
             raise TypeError("base_ring must be commutative ring")
 
         from sage.categories.hecke_modules import HeckeModules
@@ -87,7 +83,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         else:
             assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
 
-        ParentWithGens.__init__(self, base_ring, category = category)
+        sage.modules.module.Module.__init__(self, base_ring, category=category)
 
         level = sage.rings.all.ZZ(level)
         if level <= 0:
@@ -108,7 +104,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         if not self._is_category_initialized():
             from sage.categories.hecke_modules import HeckeModules
             self._init_category_(HeckeModules(state['_base']))
-        sage.modules.module.Module_old.__setstate__(self, state)
+        sage.modules.module.Module.__setstate__(self, state)
 
     def __hash__(self):
         r"""
@@ -509,7 +505,7 @@ class HeckeModule_free_module(HeckeModule_generic):
     """
     A Hecke module modeled on a free module over a commutative ring.
     """
-    def __init__(self, base_ring, level, weight):
+    def __init__(self, base_ring, level, weight, category=None):
         r"""
         Initialise a module.
 
@@ -529,7 +525,7 @@ class HeckeModule_free_module(HeckeModule_generic):
                                            "_test_zero",\
                                            "_test_eq"]) # is this supposed to be an abstract parent without elements?
         """
-        HeckeModule_generic.__init__(self, base_ring, level)
+        HeckeModule_generic.__init__(self, base_ring, level, category=category)
         self.__weight = weight
 
 #    def __cmp__(self, other):
@@ -977,6 +973,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             ]
 
         TESTS::
+
             sage: M = ModularSymbols(1000,2,sign=1).new_subspace().cuspidal_subspace()
             sage: M.decomposition(3, sort_by_basis = True)
             [
@@ -1362,6 +1359,17 @@ class HeckeModule_free_module(HeckeModule_generic):
             return self.__factor_number
         except AttributeError:
             return -1
+
+    def gens(self):
+        """
+        Return a tuple of basis elements of ``self``.
+
+        EXAMPLE::
+
+            sage: ModularSymbols(23).gens()
+            ((1,0), (1,17), (1,19), (1,20), (1,21))
+        """
+        return tuple(self(x) for x in self.free_module().gens())
 
     def gen(self, n):
         r"""

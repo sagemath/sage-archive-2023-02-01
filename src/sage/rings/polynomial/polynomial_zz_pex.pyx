@@ -2,6 +2,7 @@
 Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
 
 AUTHOR:
+
 - Yann Laigle-Chapuy (2010-01) initial implementation
 """
 
@@ -9,14 +10,13 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
-from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport ZZ_pEContext_c
-from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_to_PyString
-from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_to_ZZ_pX
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_to_PyString
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_deg, ZZ_pX_coeff
+from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_PyString
+from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_ZZ_pX
+from sage.libs.ntl.ZZ_pX cimport ZZ_pX_to_PyString
+from sage.libs.ntl.ZZ_pX cimport ZZ_pX_deg, ZZ_pX_coeff
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_to_PyString
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
+from sage.libs.ntl.ZZ_p cimport ZZ_p_to_PyString
+from sage.libs.ntl.ZZ_p cimport ZZ_p_rep
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 # We need to define this stuff before including the templating stuff
@@ -131,7 +131,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         if isinstance(x, Polynomial):
             x = x.list()
 
-        if PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
+        if isinstance(x, list) or isinstance(x, tuple):
             Polynomial.__init__(self, parent, is_gen=is_gen)
             (<Polynomial_template>self)._cparent = get_cparent(parent)
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)
@@ -147,8 +147,10 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
 
-    def __getitem__(self,i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
@@ -160,31 +162,14 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             2*a + 1
             sage: f[2]
             0
-            sage: f[1:4]
-            x^3 + (2*a + 1)*x
-            sage: f[-5:50] == f
+            sage: f[:2]
+            (2*a + 1)*x + a
+            sage: f[:50] == f
             True
         """
-        cdef ZZ_pE_c c_pE
-        cdef Polynomial_template r
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            if start < 0:
-                start = 0
-            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
-                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
-            x = (<Polynomial_template>self)._parent.gen()
-            v = [self[t] for t from start <= t < stop]
-
-            r = <Polynomial_template>PY_NEW(self.__class__)
-            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-            return r << start
-        else:
-            self._parent._modulus.restore()
-            c_pE = ZZ_pEX_coeff(self.x, i)
-
-            K = self._parent.base_ring()
-            return K(ZZ_pE_c_to_list(c_pE))
+        self._parent._modulus.restore()
+        cdef ZZ_pE_c c_pE = ZZ_pEX_coeff(self.x, i)
+        return self._parent._base(ZZ_pE_c_to_list(c_pE))
 
     def list(self):
         """
@@ -218,7 +203,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         cdef ntl_ZZ_pE d
         cdef Polynomial_ZZ_pEX r
-        r = PY_NEW(Polynomial_ZZ_pEX)
+        r = Polynomial_ZZ_pEX.__new__(Polynomial_ZZ_pEX)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
         r._cparent = (<Polynomial_template>self)._cparent
@@ -248,7 +233,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: P.<y> = F[]
             sage: p = y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
             sage: SR(p)      #indirect doctest
-            (((y + x)*y + 1)*y + x + 1)*y + x + 1
+            y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
             sage: p(2)
             x + 1
             sage: p(y=2)
@@ -382,7 +367,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             raise ValueError("unknown algorithm")
         return res != 0
 
-    cdef int _cmp_c_impl(left,Element right) except -2:
+    cpdef int _cmp_(left,Element right) except -2:
         """
         EXAMPLE::
 
@@ -438,7 +423,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         self._parent._modulus.restore()
         cdef Polynomial_ZZ_pEX r
-        r = PY_NEW(Polynomial_ZZ_pEX)
+        r = Polynomial_ZZ_pEX.__new__(Polynomial_ZZ_pEX)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
         r._cparent = (<Polynomial_template>self)._cparent

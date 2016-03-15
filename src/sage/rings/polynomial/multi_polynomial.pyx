@@ -2,14 +2,13 @@ r"""
 Base class for elements of multivariate polynomial rings
 """
 
-import sage.misc.misc as misc
-
-include "sage/ext/stdsage.pxi"
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
-
+from sage.structure.element cimport coercion_model
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import infinity
+
+from sage.misc.all import prod
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -17,6 +16,7 @@ def is_MPolynomial(x):
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.categories.map cimport Map
+from sage.categories.morphism cimport Morphism
 
 cdef class MPolynomial(CommutativeRingElement):
 
@@ -287,7 +287,7 @@ cdef class MPolynomial(CommutativeRingElement):
         n = len(x)
         expr = fast_float_constant(0)
         for (m,c) in self.dict().iteritems():
-            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
+            monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
             expr = expr + monom
         return expr
 
@@ -329,7 +329,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         expr = etb.constant(self.base_ring()(0))
         for (m, c) in self.dict().iteritems():
-            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0],
+            monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0],
                              etb.constant(c))
             expr = expr + monom
         return expr
@@ -733,7 +733,7 @@ cdef class MPolynomial(CommutativeRingElement):
         if self.is_homogeneous():
             return self
 
-        if PY_TYPE_CHECK(var, basestring):
+        if isinstance(var, basestring):
             V = list(P.variable_names())
             try:
                 i = V.index(var)
@@ -742,7 +742,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 P = PolynomialRing(P.base_ring(), len(V)+1, V + [var], order=P.term_order())
                 return P(self)._homogenize(len(V))
 
-        elif PY_TYPE_CHECK(var, MPolynomial) and \
+        elif isinstance(var, MPolynomial) and \
              ((<MPolynomial>var)._parent is P or (<MPolynomial>var)._parent == P):
             V = list(P.gens())
             try:
@@ -752,7 +752,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 P = P.change_ring(names=P.variable_names() + [str(var)])
                 return P(self)._homogenize(len(V))
 
-        elif PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+        elif isinstance(var, int) or isinstance(var, Integer):
             if 0 <= var < P.ngens():
                 return self._homogenize(var)
             else:
@@ -819,12 +819,12 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def change_ring(self, R):
         """
-        Return a copy of this polynomial but with coefficients in R,
+        Return a copy of this polynomial but with coefficients in ``R``,
         if at all possible.
 
         INPUT:
 
-        - ``R`` -- a ring
+        - ``R`` -- a ring or morphism.
 
         EXAMPLES::
 
@@ -833,13 +833,27 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.change_ring(GF(7))
             x^3 + 2*y + 1
 
+        ::
+
             sage: R.<x,y> = GF(9,'a')[]
             sage: (x+2*y).change_ring(GF(3))
             x - y
+
+        ::
+
+            sage: K.<z> = CyclotomicField(3)
+            sage: R.<x,y> = K[]
+            sage: f = x^2 + z*y
+            sage: f.change_ring(K.embeddings(CC)[1])
+            x^2 + (-0.500000000000000 + 0.866025403784439*I)*y
         """
-        P = self._parent
-        P = P.change_ring(R)
-        return P(self)
+        if isinstance(R, Morphism):
+        #if we're given a hom of the base ring extend to a poly hom
+            if R.domain() == self.base_ring():
+                R = self.parent().hom(R, self.parent().change_ring(R.codomain()))
+            return R(self)
+        else:
+            return self.parent().change_ring(R)(self)
 
     def _magma_init_(self, magma):
         """
@@ -983,8 +997,7 @@ cdef class MPolynomial(CommutativeRingElement):
             Rational Field
 
         """
-        from sage.rings.arith import gcd
-        from sage.rings.all import ZZ
+        from sage.arith.all import gcd
         return gcd(self.coefficients())
 
     def is_generator(self):
@@ -1091,7 +1104,6 @@ cdef class MPolynomial(CommutativeRingElement):
         p = k.characteristic()
         e = k.degree()
         v = [self] + [self.map_coefficients(k.hom([k.gen()**(p**i)])) for i in range(1,e)]
-        from sage.misc.misc_c import prod
         return prod(v).change_ring(k.prime_subfield())
 
     def sylvester_matrix(self, right, variable = None):
@@ -1209,8 +1221,6 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.matrix.constructor import matrix
 
         if self.parent() != right.parent():
-            from sage.structure.element import get_coercion_model
-            coercion_model = get_coercion_model()
             a, b = coercion_model.canonical_coercion(self,right)
             if variable:
                 variable = a.parent()(variable)
@@ -1449,7 +1459,7 @@ cdef class MPolynomial(CommutativeRingElement):
             True
         """
         if self.degree() == -1:
-            return self.base_ring().one_element()
+            return self.base_ring().one()
         x = self.coefficients()
         try:
             d = x[0].denominator()
@@ -1457,7 +1467,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 d = d.lcm(y.denominator())
             return d
         except(AttributeError):
-            return self.base_ring().one_element()
+            return self.base_ring().one()
 
     def numerator(self):
         """

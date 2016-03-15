@@ -160,7 +160,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
                 mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(self.ordp))
             return ans
         else:
-            ansr = PY_NEW(Rational)
+            ansr = Rational.__new__(Rational)
             if self.relprec == 0:
                 mpq_set_si(ansr.value, 0, 1)
                 return self
@@ -225,44 +225,65 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
     def residue(self, absprec=1):
         """
-        Reduces this element modulo `p^{\mbox{absprec}}`.
+        Reduces this element modulo `p^{\mathrm{absprec}}`.
 
         INPUT:
 
-        - ``absprec`` - an integer (default: ``1``)
+        - ``absprec`` - a non-negative integer (default: ``1``)
 
         OUTPUT:
 
-        Element of `\ZZ/(p^{\mbox{absprec}} \ZZ)` -- the reduction modulo
-        `p^{\mbox{absprec}}`
+        This element reduced modulo `p^\mathrm{absprec}` as an element of
+        `\ZZ/p^\mathrm{absprec}\ZZ`
 
         EXAMPLES::
 
-            sage: R = Zp(7,4,'capped-rel'); a = R(8); a.residue(1)
+            sage: R = Zp(7,4)
+            sage: a = R(8)
+            sage: a.residue(1)
             1
-            sage: R = Qp(7,4,'capped-rel'); a = R(8); a.residue(1)
+            sage: a.residue(2)
+            8
+
+            sage: K = Qp(7,4)
+            sage: a = K(8)
+            sage: a.residue(1)
             1
-            sage: a.residue(6)
+            sage: a.residue(2)
+            8
+            sage: b = K(1/7)
+            sage: b.residue()
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision known in order to compute residue.
-            sage: b = a/7
-            sage: b.residue(1)
+            ValueError: element must have non-negative valuation in order to compute residue.
+
+        TESTS::
+
+            sage: R = Zp(7,4)
+            sage: a = R(8)
+            sage: a.residue(0)
+            0
+            sage: a.residue(-1)
             Traceback (most recent call last):
             ...
-            ValueError: Element must have non-negative valuation in order to compute residue.
+            ValueError: cannot reduce modulo a negative power of p.
+            sage: a.residue(5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision known in order to compute residue.
+
         """
         cdef Integer selfvalue, modulus
         cdef long aprec
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if absprec > self.precision_absolute():
-            raise PrecisionError, "Not enough precision known in order to compute residue."
+            raise PrecisionError("not enough precision known in order to compute residue.")
         elif absprec < 0:
-            raise ValueError, "cannot reduce modulo a negative power of p"
+            raise ValueError("cannot reduce modulo a negative power of p.")
         aprec = mpz_get_ui((<Integer>absprec).value)
         if self.ordp < 0:
-            raise ValueError, "Element must have non-negative valuation in order to compute residue."
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)

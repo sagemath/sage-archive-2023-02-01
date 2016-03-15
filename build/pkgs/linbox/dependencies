@@ -1,0 +1,5 @@
+$(MP_LIBRARY) ntl givaro mpfr libfplll iml m4ri m4rie fflas_ffpack
+
+----------
+All lines of this file are ignored except the first.
+It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.

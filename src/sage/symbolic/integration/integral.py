@@ -2,15 +2,16 @@
 Symbolic Integration
 """
 
-##############################################################################
-#
+#*****************************************************************************
 #       Copyright (C) 2009 Golam Mortuza Hossain <gmhossain@gmail.com>
 #       Copyright (C) 2010 Burcin Erocal <burcin@erocal.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL v2+)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##############################################################################
+#*****************************************************************************`
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction, Function
@@ -27,6 +28,7 @@ import sage.symbolic.integration.external as external
 available_integrators['maxima'] = external.maxima_integrator
 available_integrators['sympy'] = external.sympy_integrator
 available_integrators['mathematica_free'] = external.mma_free_integrator
+available_integrators['fricas'] = external.fricas_integrator
 
 ######################################################
 #
@@ -191,7 +193,7 @@ class DefiniteIntegral(BuiltinFunction):
 
         TESTS:
 
-        Check if #3863 is fixed::
+        Check if :trac:`3863` is fixed::
 
             sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
             0.154572952320790
@@ -267,7 +269,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
 
     It is also possible to pass last three parameters in ``v`` as a triple.
 
-    OUPUT:
+    OUTPUT:
 
     - a tuple of ``f``, ``v``, ``a``, and ``b``.
 
@@ -343,6 +345,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
        - 'sympy' - use sympy (also in Sage)
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
+
+       - 'fricas' - use FriCAS (the optional fricas spkg has to be installed) 
 
     To prevent automatic evaluation use the ``hold`` argument.
 
@@ -518,6 +522,28 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integral(e^(-x^2),(x, 0, 0.1))
         0.05623145800914245*sqrt(pi)
 
+    An example of an integral that fricas can integrate, but the
+    default integrator cannot::
+
+        sage: f(x) = sqrt(x+sqrt(1+x^2))/x
+        sage: integrate(f(x), x, algorithm="fricas")      # optional - fricas
+        2*sqrt(x + sqrt(x^2 + 1)) + log(sqrt(x + sqrt(x^2 + 1)) - 1)
+        - log(sqrt(x + sqrt(x^2 + 1)) + 1) - 2*arctan(sqrt(x + sqrt(x^2 + 1)))
+
+    The following definite integral is not found with the
+    default integrator::
+
+        sage: f(x) = (x^4 - 3*x^2 + 6) / (x^6 - 5*x^4 + 5*x^2 + 4)
+        sage: integrate(f(x), x, 1, 2)
+        integrate((x^4 - 3*x^2 + 6)/(x^6 - 5*x^4 + 5*x^2 + 4), x, 1, 2)
+
+    Both fricas and sympy give the correct result::
+
+        sage: integrate(f(x), x, 1, 2, algorithm="fricas")  # optional - fricas
+        -1/2*pi + arctan(1/2) + arctan(2) + arctan(5) + arctan(8)
+        sage: integrate(f(x), x, 1, 2, algorithm="sympy")
+        -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
+
     ALIASES: integral() and integrate() are the same.
 
     EXAMPLES:
@@ -573,7 +599,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         Is 50015104*y^2-50015103 positive, negative or zero?
         sage: assume(y>1)
         sage: res = integral(f,x,0.0001414, 1.); res
-        -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.9993959999999997e-08) - 1.9997172
+        2*y*arctan(1.0/y) - 2*y*arctan(0.0001414/y) + 1.0*log(1.0*y^2 + 1.0) - 0.0001414*log(1.0*y^2 + 1.9993959999999997e-08) - 1.9997172
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
         (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()
@@ -690,7 +716,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     Check that :trac:`11737` is fixed::
 
-        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity), prec=54)
+        0.285736646322853
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))  # known bug (non-zero imag part)
         0.285736646322853
 
     Check that :trac:`14209` is fixed::
@@ -718,6 +746,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         48481/1247400*pi
         193359161/6227020800*pi
         5799919/227026800*pi
+
+    Check that :trac:`12628` is fixed::
+
+        sage: integrate(1/(sqrt(x)*((1+sqrt(x))^2)),x,1,9)
+        1/2
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

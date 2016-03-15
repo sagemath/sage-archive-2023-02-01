@@ -48,7 +48,7 @@ def find_python_sources(src_dir, modules=('sage',)):
         1 loops, best of 1: 18.8 ms per loop
 
         sage: find_python_sources(SAGE_SRC, modules=['sage_setup'])
-        (['sage_setup'], [...'sage_setup.find'...])
+        (['sage_setup', ...], [...'sage_setup.find'...])
     """
     PYMOD_EXT = os.path.extsep + 'py'
     INIT_FILE = '__init__' + PYMOD_EXT
@@ -72,6 +72,59 @@ def find_python_sources(src_dir, modules=('sage',)):
     finally:
         os.chdir(cwd)
     return python_packages, python_modules
+
+
+def find_extra_files(packages, src_dir, cythonized_dir, site_packages, special_filenames=[]):
+    """
+    Find all extra files which should be installed.
+
+    These are:
+
+    1. From ``src_dir``: all .pxd and .pxi files and files listed in
+       ``special_filenames``.
+    2. From ``cythonized_dir``: all .h files (these are both the .h files
+       from the Sage sources, as well as all Cython-generated .h files).
+
+    INPUT:
+
+    - ``packages`` -- a list of Python packages to be considered
+
+    - ``src_dir`` -- the directory where to look for source files
+
+    - ``cythonized_dir`` -- the directory where the Cython-generated
+      files are
+
+    - ``site_packages`` -- the directory where the files should be
+      installed
+
+    - ``special_filenames`` -- a list of filenames to be installed from
+      ``src_dir``
+
+    EXAMPLES::
+
+        sage: from sage_setup.find import find_extra_files
+        sage: from sage.env import SAGE_SRC, SAGE_CYTHONIZED
+        sage: find_extra_files(["sage.modular.arithgroup"], SAGE_SRC, SAGE_CYTHONIZED, ".")
+        [('./sage/modular/arithgroup',
+          ['.../src/sage/modular/arithgroup/farey.pxd', ...farey_symbol.h...])]
+    """
+    data_files = []
+
+    for package in packages:
+        dir = package.replace('.', os.path.sep)
+        sdir = os.path.join(src_dir, dir)
+        cydir = os.path.join(cythonized_dir, dir)
+
+        files = [os.path.join(sdir, f) for f in os.listdir(sdir)
+                if f.endswith((".pxd", ".pxi")) or f in special_filenames]
+        if os.path.isdir(cydir):  # Not every directory contains Cython files
+            files += [os.path.join(cydir, f) for f in os.listdir(cydir)
+                    if f.endswith(".h")]
+
+        if files:
+            data_files.append((os.path.join(site_packages, dir), files))
+
+    return data_files
 
 
 def installed_files_by_module(site_packages, modules=('sage',)):
@@ -100,8 +153,10 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         sage: from site import getsitepackages
         sage: site_packages = getsitepackages()[0]
         sage: files_by_module = installed_files_by_module(site_packages)
-        sage: files_by_module['sage.structure.sage_object']
-        {'sage/structure/sage_object.so'}
+        sage: from sage.misc.sageinspect import loadable_module_extension
+        sage: 'sage/structure/sage_object' + loadable_module_extension() in \
+        ....:     files_by_module['sage.structure.sage_object']
+        True
         sage: sorted(files_by_module['sage.structure'])
         ['sage/structure/__init__.py', 'sage/structure/__init__.pyc']
 

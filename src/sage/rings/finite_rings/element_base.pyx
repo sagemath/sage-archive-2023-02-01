@@ -6,7 +6,6 @@ AUTHORS::
 - David Roe (2010-1-14) -- factored out of sage.structure.element
 
 """
-include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
@@ -181,7 +180,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         Return a vector in self.parent().vector_space() matching
         self. The most significant bit is to the right.
 
-        INPUT::
+        INPUT:
 
         - ``reverse`` -- reverse the order of the bits
           from little endian to big endian.
@@ -210,7 +209,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1)
         """
         #vector(foo) might pass in ZZ
-        if PY_TYPE_CHECK(reverse, Parent):
+        if isinstance(reverse, Parent):
             raise TypeError, "Base field is fixed to prime subfield."
 
         k = self.parent()
@@ -343,7 +342,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         TESTS:
 
-        The following tests against a bug fixed in trac:`11530`::
+        The following tests against a bug fixed in :trac:`11530`::
 
             sage: F.<d> = GF(3^4)
             sage: F.modulus()
@@ -487,7 +486,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             raise ArithmeticError("Multiplicative order of 0 not defined.")
         n = self._parent.order() - 1
         F = self._parent.factored_unit_order()[0]
-        order = 1
+        order = Integer(1)
         for p, e in F:
             # Determine the power of p that divides the order.
             a = self**(n//(p**e))

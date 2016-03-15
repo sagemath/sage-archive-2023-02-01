@@ -15,7 +15,7 @@ Basic enumerated sets
 - :class:`~sage.combinat.subset.Subsets`, :class:`~sage.combinat.combination.Combinations`
 - :class:`~sage.combinat.permutation.Arrangements`, :class:`~sage.combinat.tuple.Tuples`
 - :class:`~sage.sets.finite_enumerated_set.FiniteEnumeratedSet`
-- :class:`~DisjointUnionEnumeratedSets`, :class:`~CartesianProduct`
+- :class:`~DisjointUnionEnumeratedSets`
 
 Integer lists
 -------------
@@ -24,6 +24,7 @@ Integer lists
   (see also: :ref:`sage.combinat.catalog_partitions`)
 - :ref:`sage.combinat.composition`
 - :class:`~sage.combinat.composition_signed.SignedCompositions`
+- :class:`IntegerListsLex`
 
 - :class:`~sage.combinat.integer_vector.IntegerVectors`
 - :func:`~sage.combinat.integer_vector_weighted.WeightedIntegerVectors`
@@ -49,9 +50,11 @@ Permutations, ...
 -----------------
 
 - :ref:`sage.combinat.permutation`
+- :ref:`sage.combinat.permutation_cython`
 - :ref:`sage.combinat.affine_permutation`
 - :class:`~sage.combinat.permutation.Arrangements`
 - :ref:`sage.combinat.derangements`
+- :ref:`sage.combinat.baxter_permutations`
 
 .. SEEALSO::
 
@@ -97,6 +100,7 @@ Trees
 - :ref:`sage.combinat.abstract_tree`
 - :ref:`sage.combinat.ordered_tree`
 - :ref:`sage.combinat.binary_tree`
+- :ref:`sage.combinat.rooted_tree`
 
 Enumerated sets related to graphs
 ---------------------------------
@@ -113,24 +117,18 @@ Backtracking solvers and generic enumerated sets
     Do we want a separate section, possibly more proeminent, for
     backtracking solvers?
 
+- :func:`~sage.sets.recursively_enumerated_set.RecursivelyEnumeratedSet`
 - :class:`~sage.combinat.backtrack.GenericBacktracker`
-- :class:`~sage.combinat.backtrack.TransitiveIdeal`
-- :class:`~sage.combinat.backtrack.TransitiveIdealGraded`
-- :func:`~sage.combinat.tools.transitive_ideal`
-- :class:`~sage.combinat.backtrack.SearchForest`
 - :ref:`sage.combinat.tiling`
 - :ref:`sage.combinat.dlx`
 - :ref:`sage.combinat.matrices.dlxcpp`
 - :ref:`sage.combinat.species`
-- :class:`~sage.combinat.integer_list.IntegerListsLex`
+- :class:`~sage.combinat.integer_lists.IntegerListsLex`
 - :class:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup`
 
 Low level enumerated sets
 -------------------------
 
-- :ref:`sage.combinat.permutation_nk`
-- :ref:`sage.combinat.split_nk`
-- :ref:`sage.combinat.choose_nk`
 - :ref:`sage.combinat.multichoose_nk`
 - :ref:`sage.combinat.gray_codes`
 

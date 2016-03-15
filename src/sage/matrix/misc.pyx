@@ -10,9 +10,8 @@ Cython were fixed.  Probably all this code should be moved into the
 relevant classes and this file deleted.
 """
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
-include 'sage/ext/stdsage.pxi'
 
 from sage.ext.mod_int cimport *
 from sage.libs.mpfr cimport *
@@ -36,7 +35,7 @@ from sage.rings.integer_ring   import ZZ
 from sage.rings.rational_field import QQ
 
 from sage.rings.integer cimport Integer
-from sage.rings.arith import previous_prime, CRT_basis
+from sage.arith.all import previous_prime, CRT_basis
 
 from sage.rings.real_mpfr import  is_RealField
 from sage.rings.real_mpfr cimport RealNumber
@@ -52,10 +51,12 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
     large common factor dividing the denominators.
 
     INPUT:
+
         A -- matrix
         N -- an integer
 
     EXAMPLES:
+
         sage: B = ((matrix(ZZ, 3,4, [1,2,3,-4,7,2,18,3,4,3,4,5])/3)%500).change_ring(ZZ)
         sage: sage.matrix.misc.matrix_integer_dense_rational_reconstruction(B, 500)
         [ 1/3  2/3    1 -4/3]
@@ -72,7 +73,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         ...
         ZeroDivisionError: The modulus cannot be zero
     """
-    if not N.__nonzero__():
+    if not N:
         raise ZeroDivisionError("The modulus cannot be zero")
     cdef Matrix_rational_dense R
     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
@@ -138,6 +139,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
     numbers mod N.
 
     EXAMPLES:
+
         sage: A = matrix(ZZ, 3, 4, [(1/3)%500, 2, 3, (-4)%500, 7, 2, 2, 3, 4, 3, 4, (5/7)%500], sparse=True)
         sage: sage.matrix.misc.matrix_integer_sparse_rational_reconstruction(A, 500)
         [1/3   2   3  -4]
@@ -154,7 +156,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
         ...
         ZeroDivisionError: The modulus cannot be zero
     """
-    if not N.__nonzero__():
+    if not N:
         raise ZeroDivisionError("The modulus cannot be zero")
     cdef Matrix_rational_sparse R
     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
@@ -234,12 +236,13 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     REFERENCE: Chapter 7 of Stein's "Explicitly Computing Modular Forms".
 
     INPUT:
-        height_guess -- integer or None
-        proof -- boolean or None (default: None, see proof.linear_algebra or
-                               sage.structure.proof).
-                        Note that the global Sage default is proof=True
+
+    - height_guess -- integer or None
+    - proof -- boolean or None (default: None, see proof.linear_algebra or
+      sage.structure.proof). Note that the global Sage default is proof=True
 
     ALGORITHM:
+
     The following is a modular algorithm for computing the echelon
     form.  Define the height of a matrix to be the max of the
     absolute values of the entries.
@@ -277,6 +280,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         a few more primes.
 
     EXAMPLES:
+
         sage: A = matrix(QQ, 3, 7, [1..21])
         sage: sage.matrix.misc.matrix_rational_echelon_form_multimodular(A)
         [ 1  0 -1 -2 -3 -4 -5]
@@ -437,10 +441,13 @@ def cmp_pivots(x,y):
     one being strictly less.
 
     INPUT:
-        x, y -- list of integers
+
+    - x, y -- list of integers
 
     EXAMPLES:
-    We illustrate each of the above comparisons.
+
+    We illustrate each of the above comparisons. ::
+
         sage: sage.matrix.misc.cmp_pivots([1,2,3], [4,5,6,7])
         -1
         sage: sage.matrix.misc.cmp_pivots([1,2,3,5], [4,5,6])
@@ -476,16 +483,20 @@ def hadamard_row_bound_mpfr(Matrix A):
     Hadamard bound on the determinant.
 
     INPUT:
+
         A -- a matrix over RR
 
     OUTPUT:
+
         integer -- an integer n such that the absolute value of the
                    determinant of this matrix is at most $10^n$.
 
     EXAMPLES:
+
     We create a very large matrix, compute the row Hadamard bound,
     and also compute the row Hadamard bound of the transpose, which
-    happens to be sharp.
+    happens to be sharp. ::
+
         sage: a = matrix(ZZ, 2, [2^10000,3^10000,2^50,3^19292])
         sage: import sage.matrix.misc
         sage: sage.matrix.misc.hadamard_row_bound_mpfr(a.change_ring(RR))
@@ -495,7 +506,8 @@ def hadamard_row_bound_mpfr(Matrix A):
         sage: sage.matrix.misc.hadamard_row_bound_mpfr(a.transpose().change_ring(RR))
         12215
 
-    Note that in the above example using RDF would overflow:
+    Note that in the above example using RDF would overflow::
+
         sage: b = a.change_ring(RDF)
         sage: b._hadamard_row_bound()
         Traceback (most recent call last):
@@ -512,18 +524,18 @@ def hadamard_row_bound_mpfr(Matrix A):
     mpfr_init(s)
     mpfr_init(d)
     mpfr_init(pr)
-    mpfr_set_si(d, 0, GMP_RNDU)
+    mpfr_set_si(d, 0, MPFR_RNDU)
 
     for i from 0 <= i < A._nrows:
-        mpfr_set_si(s, 0, GMP_RNDU)
+        mpfr_set_si(s, 0, MPFR_RNDU)
         for j from 0 <= j < A._ncols:
             a = A.get_unsafe(i, j)
-            mpfr_mul(pr, a.value, a.value, GMP_RNDU)
-            mpfr_add(s, s, pr, GMP_RNDU)
-        mpfr_log10(s, s, GMP_RNDU)
-        mpfr_add(d, d, s, GMP_RNDU)
+            mpfr_mul(pr, a.value, a.value, MPFR_RNDU)
+            mpfr_add(s, s, pr, MPFR_RNDU)
+        mpfr_log10(s, s, MPFR_RNDU)
+        mpfr_add(d, d, s, MPFR_RNDU)
     b = a._new()
-    mpfr_set(b.value, d, GMP_RNDU)
+    mpfr_set(b.value, d, MPFR_RNDU)
     b /= 2
     mpfr_clear(s)
     mpfr_clear(d)

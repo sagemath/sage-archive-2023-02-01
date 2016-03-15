@@ -1,5 +1,5 @@
-"""
-Descent on elliptic curves over QQ with a 2-isogeny.
+r"""
+Descent on elliptic curves over `\QQ` with a 2-isogeny.
 """
 
 #*****************************************************************************
@@ -13,11 +13,11 @@ from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_ring import polygen
 cdef object x_ZZ = polygen(ZZ)
 from sage.rings.polynomial.real_roots import real_roots
-from sage.rings.arith import prime_divisors
+from sage.arith.all import prime_divisors
 from sage.all import ntl
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.libs.gmp.mpz cimport *
@@ -54,7 +54,7 @@ def test_valuation(a, p):
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_valuation as tv
         sage: for i in [1..20]:
-        ...    print '%10s'%factor(i), tv(i,2), tv(i,3), tv(i,5)
+        ....:     print '%10s'%factor(i), tv(i,2), tv(i,3), tv(i,5)
                  1 0 0 0
                  2 1 0 0
                  3 0 1 0
@@ -113,9 +113,9 @@ def test_padic_square(a, p):
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_padic_square as ps
         sage: for i in [1..300]:
-        ...    for p in prime_range(100):
-        ...        if not Qp(p)(i).is_square()==bool(ps(i,p)):
-        ...            print i, p
+        ....:     for p in prime_range(100):
+        ....:          if not Qp(p)(i).is_square()==bool(ps(i,p)):
+        ....:              print i, p
 
     """
     cdef Integer A = Integer(a)
@@ -855,7 +855,8 @@ def test_qpls(a,b,c,d,e,p):
     """
     Testing function for Qp_soluble.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_qpls as tq
         sage: tq(1,2,3,4,5,7)
         1
@@ -919,13 +920,13 @@ def test_els(a,b,c,d,e):
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_els
         sage: from sage.libs.ratpoints import ratpoints
         sage: for _ in range(1000):
-        ...    a,b,c,d,e = randint(1,1000), randint(1,1000), randint(1,1000), randint(1,1000), randint(1,1000)
-        ...    if len(ratpoints([e,d,c,b,a], 1000)) > 0:
-        ...        try:
-        ...            if not test_els(a,b,c,d,e):
-        ...                print "This never happened", a,b,c,d,e
-        ...        except ValueError:
-        ...            continue
+        ....:     a,b,c,d,e = randint(1,1000), randint(1,1000), randint(1,1000), randint(1,1000), randint(1,1000)
+        ....:     if len(ratpoints([e,d,c,b,a], 1000)) > 0:
+        ....:         try:
+        ....:             if not test_els(a,b,c,d,e):
+        ....:                 print "This never happened", a,b,c,d,e
+        ....:         except ValueError:
+        ....:             continue
 
     """
     cdef Integer A,B,C,D,E,Delta
@@ -1137,17 +1138,14 @@ def two_descent_by_two_isogeny(E,
     to a very high bound, it will still be working when we simulate a ``CTRL-C``::
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import two_descent_by_two_isogeny
-        sage: import sage.tests.interrupt
         sage: E = EllipticCurve('960d'); E
         Elliptic Curve defined by y^2 = x^3 - x^2 - 900*x - 10098 over Rational Field
         sage: E.sha().an()
         4
-        sage: try:
-        ...     sage.tests.interrupt.interrupt_after_delay(1000)
-        ...     two_descent_by_two_isogeny(E, global_limit_large=10^8)
-        ... except KeyboardInterrupt:
-        ...     print "Caught!"
-        Caught!
+        sage: alarm(0.5); two_descent_by_two_isogeny(E, global_limit_large=10^8)
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
     """
     cdef Integer a1, a2, a3, a4, a6, s2, s4, s6
     cdef Integer c, d, x0

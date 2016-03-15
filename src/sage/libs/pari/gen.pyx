@@ -69,9 +69,6 @@ include "cysignals/signals.pxi"
 
 cimport cython
 
-cdef extern from "misc.h":
-    int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
-
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.pari.closure cimport objtoclosure
@@ -5578,10 +5575,10 @@ cdef class gen(gen_auto):
             0
             sage: pari(500509).primepi()
             41581
+            sage: pari(10^7).primepi()
+            664579
         """
         pari_catch_sig_on()
-        if self > P._primelimit():
-            P.init_primes(self + 10)
         if signe(self.g) != 1:
             pari_catch_sig_off()
             return P.PARI_ZERO
@@ -9045,11 +9042,7 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(matfrobenius(self.g, flag, 0))
 
-
-    ###########################################
-    # polarit2.c
-    ###########################################
-    def factor(gen self, limit=-1, bint proof=1):
+    def factor(self, long limit=-1, proof=None):
         """
         Return the factorization of x.
 
@@ -9057,22 +9050,21 @@ cdef class gen(gen_auto):
 
         -  ``limit`` -- (default: -1) is optional and can be set
            whenever x is of (possibly recursive) rational type. If limit is
-           set return partial factorization, using primes up to limit (up to
-           primelimit if limit=0).
+           set, return partial factorization, using primes up to limit.
 
-        - ``proof`` -- (default: True) optional. If False (not the default),
+        - ``proof`` -- optional flag. If ``False`` (not the default),
           returned factors larger than `2^{64}` may only be pseudoprimes.
-
-        .. note::
-
-           In the standard PARI/GP interpreter and C-library the
-           factor command *always* has proof=False, so beware!
+          If ``True``, always check primality. If not given, use the
+          global PARI default ``factor_proven`` which is ``True`` by
+          default in Sage.
 
         EXAMPLES::
 
             sage: pari('x^10-1').factor()
             [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
             sage: pari(2^100-1).factor()
+            [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
+            sage: pari(2^100-1).factor(proof=True)
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
             sage: pari(2^100-1).factor(proof=False)
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
@@ -9082,6 +9074,13 @@ cdef class gen(gen_auto):
             sage: pari(next_prime(10^50)*next_prime(10^60)*next_prime(10^4)).factor(10^5)
             [10007, 1; 100000000000000000000000000000000000000000000000151000000000700000000000000000000000000000000000000000000001057, 1]
 
+        Setting a limit is invalid when factoring polynomials::
+
+            sage: pari('x^11 + 1').factor(limit=17)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in boundfact (t_POL)
+
         PARI doesn't have an algorithm for factoring multivariate
         polynomials::
 
@@ -9089,23 +9088,31 @@ cdef class gen(gen_auto):
             Traceback (most recent call last):
             ...
             PariError: sorry, factor for general polynomials is not yet implemented
+
+        TESTS::
+
+            sage: pari(2^1000+1).factor(limit=0)
+            doctest:...: DeprecationWarning: factor(..., lim=0) is deprecated, use an explicit limit instead
+            See http://trac.sagemath.org/20205 for details.
+            [257, 1; 1601, 1; 25601, 1; 76001, 1; 133842787352016..., 1]
         """
-        cdef int r
-        cdef GEN t0
-        cdef GEN cutoff
-        if limit == -1 and typ(self.g) == t_INT and proof:
+        cdef GEN g
+        if limit == 0:
+            deprecation(20205, "factor(..., lim=0) is deprecated, use an explicit limit instead")
+            limit = maxprime()
+        global factor_proven
+        cdef int saved_factor_proven = factor_proven
+        try:
+            if proof is not None:
+                factor_proven = 1 if proof else 0
             pari_catch_sig_on()
-            # cutoff for checking true primality: 2^64 according to the
-            # PARI documentation ??ispseudoprime.
-            cutoff = mkintn(3, 1, 0, 0)  # expansion of 2^64 in base 2^32: (1,0,0)
-            r = factorint_withproof_sage(&t0, self.g, cutoff)
-            z = P.new_gen(t0)
-            if not r:
-                return z
+            if limit >= 0:
+                g = boundfact(self.g, limit)
             else:
-                return _factor_int_when_pari_factor_failed(self, z)
-        pari_catch_sig_on()
-        return P.new_gen(factor0(self.g, limit))
+                g = factor(self.g)
+            return P.new_gen(g)
+        finally:
+            factor_proven = saved_factor_proven
 
 
     ###########################################
@@ -9952,38 +9959,3 @@ cdef GEN _Vec_append(GEN v, GEN a, long n):
         return w
     else:
         return v
-
-
-cdef _factor_int_when_pari_factor_failed(x, failed_factorization):
-    """
-    This is called by factor when PARI's factor tried to factor, got
-    the failed_factorization, and it turns out that one of the factors
-    in there is not proved prime. At this point, we don't care too much
-    about speed (so don't write everything below using the PARI C
-    library), since the probability this function ever gets called is
-    infinitesimal. (That said, we of course did test this function by
-    forcing a fake failure in the code in misc.h.)
-    """
-    P = failed_factorization[0]  # 'primes'
-    E = failed_factorization[1]  # exponents
-    if len(P) == 1 and E[0] == 1:
-        # Major problem -- factor can't split the integer at all, but it's composite.  We're stuffed.
-        print "BIG WARNING: The number %s wasn't split at all by PARI, but it's definitely composite."%(P[0])
-        print "This is probably an infinite loop..."
-    w = []
-    for i in range(len(P)):
-        p = P[i]
-        e = E[i]
-        if not p.isprime():
-            # Try to factor further -- assume this works.
-            F = p.factor(proof=True)
-            for j in range(len(F[0])):
-                w.append((F[0][j], F[1][j]))
-        else:
-            w.append((p, e))
-    m = P.matrix(len(w), 2)
-    for i in range(len(w)):
-        m[i,0] = w[i][0]
-        m[i,1] = w[i][1]
-    return m
-

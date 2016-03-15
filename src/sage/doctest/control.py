@@ -1034,7 +1034,7 @@ class DocTestController(SageObject):
                     pass
 
             self.log("Using --optional=" + self._optional_tags_string())
-            if 'external' in self.options.optional:
+            if self.options.optional is True or 'external' in self.options.optional:
                 self.log("External softwares to be detected: " + ','.join(external_softwares))
 
             self.add_files()
@@ -1043,9 +1043,8 @@ class DocTestController(SageObject):
             self.sort_sources()
             self.run_doctests()
 
-            if 'external' in self.options.optional:
-                print(available_softwares.seen)
-                self.log("Detected external softwares as available: " 
+            if self.options.optional is True or 'external' in self.options.optional:
+                self.log("Available external softwares detected: " 
                     + ','.join([s for s in external_softwares if s in available_softwares]))  
             return self.reporter.error_status
 

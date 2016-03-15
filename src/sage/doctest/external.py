@@ -259,13 +259,11 @@ class AvailableSoftwares(object):
          'matlab']
         sage: 'internet' in available_softwares # random
         True
-        sage: 'latex' in available_softwares # random
-        True
-        sage: 'magma' in available_softwares # random
+        sage: available_softwares.issuperset(set(['internet','latex','magma'])) # random
         True
     """
     def __init__(self):
-        self.seen = Array('i', len(external_softwares))
+        self.seen = Array('i', len(external_softwares)) # initialized to zeroes
 
     def __contains__(self, item):
         try:

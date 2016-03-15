@@ -1686,6 +1686,64 @@ cdef class MPolynomial(CommutativeRingElement):
                 deg = l
         return deg
 
+    def gcd(self, other):
+        """
+        Return a greatest common divisor of this polynomial and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a polynomial with the same parent as this polynomial
+
+        EXAMPLES::
+
+            sage: Q.<z> = Frac(QQ['z'])
+            sage: R.<x,y> = Q[]
+            sage: r = x*y - (2*z-1)/(z^2+z+1) * x + y/z
+            sage: p = r * (x + z*y - 1/z^2)
+            sage: q = r * (x*y*z + 1)
+            sage: gcd(p,q)
+            z*x*y + ((-2*z^2 + z)/(z^2 + z + 1))*x + y
+
+        Polynomials over polynomial rings are converted to a simpler polynomial
+        ring with all variables to compute the gcd::
+
+            sage: A.<z,t> = ZZ[]
+            sage: B.<x,y> = A[]
+            sage: r = x*y*z*t+1
+            sage: p = r * (x - y + z - t + 1)
+            sage: q = r * (x*z - y*t)
+            sage: gcd(p,q)
+            z*t*x*y + 1
+            sage: _.parent()
+            Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring in z, t over Integer Ring
+
+        Some multivariate polynomial rings have no gcd implementation::
+
+            sage: R.<x,y> =GaussianIntegers()[]
+            sage: x.gcd(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+        """
+        variables = self._parent.variable_names_recursive()
+        if len(variables) > self._parent.ngens():
+            base = self._parent._mpoly_base_ring()
+            d1 = self._mpoly_dict_recursive()
+            d2 = other._mpoly_dict_recursive()
+            ring = PolynomialRing(base, variables)
+            try:
+                return self._parent(ring(d1).gcd(ring(d2)))
+            except (AttributeError, NotImplementedError):
+                pass
+
+        x = self._parent.gens()[-1]
+        uniself = self.polynomial(x)
+        unibase = uniself.base_ring()
+        if hasattr(unibase, "_gcd_univariate_polynomial"):
+            return self._parent(unibase._gcd_univariate_polynomial(uniself, other.polynomial(x)))
+        else:
+            raise NotImplementedError("GCD is not implemented for multivariate polynomials over {}".format(self._parent._mpoly_base_ring()))
+
 cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]

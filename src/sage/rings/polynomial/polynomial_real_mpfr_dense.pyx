@@ -100,7 +100,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: (a*x).complex_roots()
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert x (='a') to real number.
+            TypeError: unable to convert 'a' to a real number
 
         Check that :trac:`17190` is fixed::
 

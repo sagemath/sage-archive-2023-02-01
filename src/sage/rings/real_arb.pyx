@@ -479,7 +479,7 @@ class RealBallField(UniqueRepresentation, Field):
             return self.element_class(self, mid, rad)
         except TypeError:
             pass
-        raise TypeError("unable to convert {} to a RealBall".format(mid))
+        raise TypeError("unable to convert {!r} to a RealBall".format(mid))
 
     def _repr_option(self, key):
         """

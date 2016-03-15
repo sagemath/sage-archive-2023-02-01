@@ -1034,7 +1034,7 @@ cdef class LazyWrapper(LazyFieldElement):
         if mor is not None and self.parent() not in mor.domains():
             return mor(self._value)
         else:
-            raise TypeError("unable to convert {} to an element of {}".format(self._value, R))
+            raise TypeError("unable to convert {!r} to an element of {}".format(self._value, R))
 
     def __reduce__(self):
         """

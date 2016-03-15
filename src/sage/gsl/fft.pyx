@@ -106,7 +106,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         """
         self.n = n
         self.stride = stride
-        self.data = <double*> sage_malloc(sizeof(double)*(2*n))
+        self.data = <double*> sig_malloc(sizeof(double)*(2*n))
         cdef int i
         for i from 0 <= i < 2*n:
             self.data[i] = 0
@@ -121,7 +121,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: del a
 
         """
-        sage_free(self.data)
+        sig_free(self.data)
 
     def __len__(self):
         """

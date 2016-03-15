@@ -164,7 +164,7 @@ cdef class PolynomialRealDense(Polynomial):
         if self._coeffs != NULL:
             for i from 0 <= i <= self._degree:
                 mpfr_clear(self._coeffs[i])
-            sage_free(self._coeffs)
+            sig_free(self._coeffs)
 
     def __reduce__(self):
         """

@@ -72,7 +72,7 @@ cdef object string_sigoff(char* s):
     sig_off()
     # Makes a python string and deletes what is pointed to by s.
     t = str(s)
-    sage_free(s)
+    sig_free(s)
     return t
 
 # set the default

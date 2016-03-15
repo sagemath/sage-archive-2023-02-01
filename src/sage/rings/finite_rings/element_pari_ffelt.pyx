@@ -169,7 +169,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         Cython deconstructor.
         """
         if self.block:
-            sage_free(self.block)
+            sig_free(self.block)
 
     cdef FiniteFieldElement_pari_ffelt _new(FiniteFieldElement_pari_ffelt self):
         """

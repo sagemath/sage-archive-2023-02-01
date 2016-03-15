@@ -442,13 +442,13 @@ cdef class Cache_ntl_gf2e(SageObject):
         else:
             raise TypeError, "number %s is not an integer"%number
 
-        p = <unsigned char*>sage_malloc(n)
+        p = <unsigned char*>sig_malloc(n)
         for i from 0 <= i < n:
             p[i] = (number%256)
             number = number >> 8
         GF2XFromBytes(_a, p, n)
         GF2E_conv_GF2X(a.x, _a)
-        sage_free(p)
+        sig_free(p)
         return a
 
     def polynomial(self):

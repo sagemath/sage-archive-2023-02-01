@@ -1315,7 +1315,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __dealloc__(self):
         if self._list is not NULL:
-            sage_free(self._list)
+            sig_free(self._list)
             self._len = -1
             self._list = NULL
 

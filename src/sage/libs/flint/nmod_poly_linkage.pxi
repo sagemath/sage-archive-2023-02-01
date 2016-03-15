@@ -25,13 +25,13 @@ include "cysignals/signals.pxi"
 
 
 cdef inline celement *celement_new(unsigned long n):
-    cdef celement *g = <celement *>sage_malloc(sizeof(nmod_poly_t))
+    cdef celement *g = <celement *>sig_malloc(sizeof(nmod_poly_t))
     nmod_poly_init(g, n)
     return g
 
 cdef inline int celement_delete(nmod_poly_t e, unsigned long n):
     nmod_poly_clear(e)
-    sage_free(e)
+    sig_free(e)
 
 cdef inline int celement_construct(nmod_poly_t e, unsigned long n):
     """

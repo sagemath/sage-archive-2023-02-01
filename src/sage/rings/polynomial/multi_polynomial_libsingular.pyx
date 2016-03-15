@@ -2777,7 +2777,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef int i
         cdef int flag
         cdef int gens = self._parent.ngens()
-        cdef int *exps = <int*>sage_malloc(sizeof(int)*gens)
+        cdef int *exps = <int*>sig_malloc(sizeof(int)*gens)
         for i from 0<=i<gens:
             exps[i] = -1
 
@@ -2823,7 +2823,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 newp = p_Add_q(newp,newptemp,r)
             p = pNext(p)
 
-        sage_free(exps)
+        sig_free(exps)
         return new_MP(self._parent, newp)
 
     def monomial_coefficient(self, MPolynomial_libsingular mon):

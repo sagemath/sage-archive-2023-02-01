@@ -55,7 +55,7 @@ cdef void* sage_sig_malloc(size_t size) nogil:
 
     Out-of-memory errors are handled using the ``sig_error`` mechanism.
     """
-    cdef void* p = sage_malloc(size)
+    cdef void* p = sig_malloc(size)
     if unlikely(p == NULL):
         alloc_error(size)
     return p
@@ -67,7 +67,7 @@ cdef void* sage_sig_realloc(void *ptr, size_t old_size, size_t new_size) nogil:
 
     Out-of-memory errors are handled using the ``sig_error`` mechanism.
     """
-    cdef void* p = sage_realloc(ptr, new_size)
+    cdef void* p = sig_realloc(ptr, new_size)
     if unlikely(p == NULL):
         alloc_error(new_size)
     return p
@@ -77,7 +77,7 @@ cdef void sage_sig_free(void *ptr, size_t size) nogil:
     """
     ``free()`` function for the MPIR/GMP library.
     """
-    sage_free(ptr)
+    sig_free(ptr)
 
 
 def init_memory_functions():

@@ -306,11 +306,11 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         free_short_digraph(bfs_dag)
         bitset_free(seen)
         bitset_free(next_layer)
-        sage_free(queue)
-        sage_free(n_paths_from_source)
-        sage_free(degrees)
-        sage_free(betweenness_source)
-        sage_free(betweenness)
+        sig_free(queue)
+        sig_free(n_paths_from_source)
+        sig_free(degrees)
+        sig_free(betweenness_source)
+        sig_free(betweenness)
 
     if not G.is_directed():
         betweenness_list = [x/2 for x in betweenness_list]

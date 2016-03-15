@@ -106,7 +106,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         bitset_free(self.active_vertices)
         free_short_digraph(self.g)
-        sage_free(self.number_of_loops)
+        sig_free(self.number_of_loops)
         if self.g_rev != NULL:
             free_short_digraph(self.g_rev)
 

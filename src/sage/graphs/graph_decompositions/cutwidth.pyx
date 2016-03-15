@@ -492,7 +492,7 @@ def cutwidth_dyn(G, lower_bound=0):
                     return k, [g.int_to_vertices[i] for i in order]
         sig_off()
     finally:
-        sage_free(neighborhoods)
+        sig_free(neighborhoods)
 
     order = find_order(g, neighborhoods, k)
     return k, [g.int_to_vertices[i] for i in order]

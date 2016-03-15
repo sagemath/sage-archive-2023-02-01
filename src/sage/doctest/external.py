@@ -221,13 +221,13 @@ def has_gurobi():
 
 def external_softwares():
     """
-    Return the list of external softwares supported by this module.
+    Return the alphabetical list of external softwares supported by this module.
     """
     supported = list()
     for func in globals():
         if func.startswith(prefix):
             supported.append(func[len(prefix):])
-    return supported
+    return sorted(supported)
 
 external_softwares = external_softwares()
 
@@ -253,16 +253,16 @@ class AvailableSoftwares(object):
         sage: from sage.doctest.external import external_softwares,available_softwares
         sage: external_softwares
         ['cplex',
-         'mathematica',
          'gurobi',
-         'octave',
-         'scilab',
-         'latex',
          'internet',
-         'magma',
+         'latex',
          'macaulay2',
+         'magma',
          'maple',
-         'matlab']
+         'mathematica',
+         'matlab',
+         'octave',
+         'scilab']
         sage: 'internet' in available_softwares # random
         True
         sage: available_softwares.issuperset(set(['internet','latex','magma'])) # random

@@ -37,7 +37,7 @@ from sage.rings.integer cimport Integer
 from sage.misc.all import prod
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *

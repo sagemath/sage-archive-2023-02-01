@@ -265,7 +265,7 @@ Checking the consistency of enumeration and test::
 
 from libc.string cimport memset
 from sage.rings.integer cimport Integer
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 

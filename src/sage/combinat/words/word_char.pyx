@@ -12,7 +12,7 @@ Fast word datatype using an array of unsigned char.
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "sage/data_structures/bitset.pxi"
 
 cimport cython

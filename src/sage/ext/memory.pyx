@@ -32,11 +32,12 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.libs.gmp.misc cimport mp_set_memory_functions
-include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
 cdef extern from "Python.h":
     # Declare as returning void without except value
     void PyErr_Format(object exception, char *format, ...)
+    int unlikely(int) nogil  # Defined by Cython
 
 
 cdef void alloc_error(size_t size) nogil:

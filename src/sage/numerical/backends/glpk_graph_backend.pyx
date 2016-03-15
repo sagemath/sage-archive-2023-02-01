@@ -73,7 +73,7 @@ from sage.libs.glpk.constants cimport *
 from sage.libs.glpk.graph cimport *
 from sage.numerical.mip import MIPSolverException
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 cdef class GLPKGraphBackend(object):
     """

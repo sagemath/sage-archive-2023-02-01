@@ -41,7 +41,7 @@ REFERENCES:
 #*****************************************************************************
 
 import sage.plot.plot
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 from sage.libs.gsl.all cimport *
 import sage.misc.prandom as random
 import sys

@@ -25,7 +25,7 @@ AUTHORS:
 
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.arith.all import binomial, gcd
 from sage.rings.rational_field import RationalField

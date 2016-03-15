@@ -2,7 +2,7 @@ r"""
 Real Interpolation using GSL
 """
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 

@@ -9,7 +9,7 @@
 
 
 include 'vector_rational_sparse_h.pxi'
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from sage.libs.gmp.mpq cimport *
 
 

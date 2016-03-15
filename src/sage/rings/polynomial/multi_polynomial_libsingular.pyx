@@ -164,7 +164,7 @@ Check if #6160 is fixed::
 #   * pNext and pIter don't need currRing
 #   * p_Normalize apparently needs currRing
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 # singular types

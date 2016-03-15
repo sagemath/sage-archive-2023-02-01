@@ -1,7 +1,7 @@
 # distutils: depends = NTL/ZZ.h
 
 include "cysignals/signals.pxi"
-from sage.ext.memory cimport sage_free
+include "cysignals/memory.pxi"
 
 # Unset the signal handler and create a string from the buffer,
 # then free the memory in the buffer.

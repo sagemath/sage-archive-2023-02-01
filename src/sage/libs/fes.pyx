@@ -75,7 +75,7 @@ cdef extern from "fes_interface.h":
 
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity

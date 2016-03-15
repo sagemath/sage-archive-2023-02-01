@@ -143,7 +143,7 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_reallocarray
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 from cpython.int cimport *
 from cpython.ref cimport *

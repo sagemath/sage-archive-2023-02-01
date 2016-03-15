@@ -22,7 +22,7 @@ from libc.string cimport memset
 from libc.stdint cimport uint32_t
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
-from sage.ext.memory cimport check_malloc, check_calloc
+include "cysignals/memory.pxi"
 from sage.ext.memory_allocator cimport MemoryAllocator
 
 ctypedef fused numerical_type:

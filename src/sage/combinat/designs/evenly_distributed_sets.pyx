@@ -16,14 +16,12 @@ Classes and methods
 -------------------
 """
 
-include "sage/ext/stdsage.pxi"
-
 cimport cython
 
 from libc.limits cimport UINT_MAX
 from libc.string cimport memset, memcpy
 
-from sage.ext.memory cimport check_malloc, check_calloc
+include "cysignals/memory.pxi"
 
 from sage.rings.integer cimport Integer,smallInteger
 

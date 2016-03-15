@@ -25,7 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 from libc.string cimport strlen
 from sage.libs.gmp.mpn cimport *
 from sage.data_structures.bitset cimport *

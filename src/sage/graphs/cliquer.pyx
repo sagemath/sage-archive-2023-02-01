@@ -36,7 +36,7 @@ Methods
 
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 
 cdef extern from "sage/graphs/cliquer/cl.c":

@@ -20,7 +20,7 @@ AUTHOR:
 from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport *
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 

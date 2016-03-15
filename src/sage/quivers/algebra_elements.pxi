@@ -17,7 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "sage/data_structures/bitset.pxi"
 
 from cpython.ref cimport *

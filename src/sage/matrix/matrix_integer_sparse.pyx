@@ -28,7 +28,7 @@ include 'sage/modules/vector_modn_sparse_h.pxi'
 include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer

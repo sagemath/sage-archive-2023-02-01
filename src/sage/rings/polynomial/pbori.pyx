@@ -183,7 +183,7 @@ REFERENCES:
 """
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from cpython.object cimport Py_EQ, Py_NE
 
 import operator

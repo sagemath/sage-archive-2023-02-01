@@ -123,7 +123,7 @@ Methods
 #*****************************************************************************
 
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from libc.string cimport memset

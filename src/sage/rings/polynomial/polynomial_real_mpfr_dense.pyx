@@ -22,9 +22,8 @@ Check that operations with numpy elements work well (see :trac:`18076` and
     1.50000000000000*x
 """
 
-include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
-from sage.ext.memory cimport check_reallocarray, check_allocarray, sage_free
+include "cysignals/memory.pxi"
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 

@@ -18,7 +18,7 @@ functions are for internal use by routines elsewhere in the Sage library.
 #
 ################################################################################
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 import random
 from congroup_gamma1 import Gamma1_constructor as Gamma1

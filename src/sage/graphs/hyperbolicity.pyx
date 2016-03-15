@@ -179,14 +179,13 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.functions.other import floor
 from sage.data_structures.bitset import Bitset
-from sage.ext.memory cimport check_allocarray, check_calloc
+include "cysignals/memory.pxi"
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/data_structures/bitset.pxi"
 
 

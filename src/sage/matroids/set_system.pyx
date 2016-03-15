@@ -26,7 +26,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
 
 # SetSystem

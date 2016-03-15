@@ -2,7 +2,7 @@
 GSL arrays
 """
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 cdef class GSLDoubleArray:
     r"""

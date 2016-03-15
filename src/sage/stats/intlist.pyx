@@ -30,7 +30,7 @@ max_print = 10
 from libc.string cimport memcpy
 from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from cpython.string cimport *
 

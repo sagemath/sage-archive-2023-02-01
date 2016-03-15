@@ -7,7 +7,7 @@ Functions
 ---------
 """
 include "sage/data_structures/bitset.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from libc.string cimport memset
 from sage.misc.unknown import Unknown

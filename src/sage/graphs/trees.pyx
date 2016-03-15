@@ -18,7 +18,7 @@ REFERENCES:
 cdef extern from "limits.h":
     cdef int INT_MAX
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 # from networkx import MultiGraph
 

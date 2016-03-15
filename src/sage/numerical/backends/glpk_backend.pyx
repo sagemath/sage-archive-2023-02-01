@@ -27,7 +27,7 @@ from sage.libs.glpk.lp cimport *
 from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):

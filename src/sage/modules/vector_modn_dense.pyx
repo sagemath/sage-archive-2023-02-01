@@ -94,8 +94,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 
 from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT64_LIMIT
 

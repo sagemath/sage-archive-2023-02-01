@@ -18,7 +18,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.paripriv cimport *

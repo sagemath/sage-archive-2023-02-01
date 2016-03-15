@@ -8,7 +8,7 @@ AUTHORS:
 - Tom Boothby (2007-02-15).  Initial version free for any use (public domain).
 """
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 from cpython.ref cimport PyObject, Py_INCREF, Py_XDECREF
 
 cdef binary_tree_node *BinaryTreeNode(int key, object value):

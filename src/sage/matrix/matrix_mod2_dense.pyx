@@ -101,7 +101,7 @@ TODO:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 cimport matrix_dense
 from libc.stdio cimport *

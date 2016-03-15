@@ -90,7 +90,7 @@ AUTHORS:
 
 from sage.ext.fast_callable import fast_callable, Wrapper
 
-include "stdsage.pxi"
+include "cysignals/memory.pxi"
 
 cimport cython
 from cpython.ref cimport Py_INCREF

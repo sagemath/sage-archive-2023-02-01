@@ -142,7 +142,7 @@ from sage.misc.long cimport pyobject_to_long
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_malloc, check_allocarray
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *

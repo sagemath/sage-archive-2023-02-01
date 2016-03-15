@@ -14,7 +14,7 @@ arith_llong = sage.rings.fast_arith.arith_llong()
 ctypedef long long llong
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 ###############################################################
 #

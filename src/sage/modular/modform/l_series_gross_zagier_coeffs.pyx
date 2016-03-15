@@ -1,4 +1,4 @@
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from sage.rings.fast_arith cimport arith_llong

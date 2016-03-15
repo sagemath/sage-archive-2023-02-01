@@ -32,7 +32,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-from sage.ext.memory cimport check_calloc, check_allocarray, check_reallocarray, sage_free
+include "cysignals/memory.pxi"
 
 cdef extern from *:
     void memset(void *, int, Py_ssize_t)

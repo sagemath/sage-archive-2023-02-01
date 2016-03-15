@@ -16,7 +16,7 @@ from sage.rings.polynomial.real_roots import real_roots
 from sage.arith.all import prime_divisors
 from sage.all import ntl
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer

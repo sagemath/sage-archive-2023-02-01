@@ -166,13 +166,12 @@ Methods
 #                        http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, popcount32
 from sage.graphs.graph_decompositions.vertex_separation import is_valid_ordering
 from libc.stdint cimport uint8_t
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 from sage.rings.integer_ring import ZZ
 
 

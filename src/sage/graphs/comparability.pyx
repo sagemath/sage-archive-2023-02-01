@@ -211,7 +211,7 @@ Methods
 #*****************************************************************************
 
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from copy import copy
 

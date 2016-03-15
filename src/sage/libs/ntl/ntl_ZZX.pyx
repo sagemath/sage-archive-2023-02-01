@@ -16,7 +16,7 @@
 from __future__ import division
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "decl.pxi"
 include 'misc.pxi'
 

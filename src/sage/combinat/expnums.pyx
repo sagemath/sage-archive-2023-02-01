@@ -6,7 +6,7 @@ AUTHORS:
 - Nick Alexander
 """
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "sage/ext/cdefs.pxi"
 
 from sage.rings.integer cimport Integer

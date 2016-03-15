@@ -19,7 +19,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from sage.libs.pari.paridecl cimport *

@@ -102,7 +102,7 @@ TESTS::
     True
 
 """
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.categories.algebras import Algebras
 

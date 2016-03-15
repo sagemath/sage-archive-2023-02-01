@@ -13,7 +13,7 @@ In the following code, sets are represented as integers, where the ith bit is
 set if element i belongs to the set.
 """
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/ext/cdefs.pxi'
 
 from libc.stdint cimport uint8_t

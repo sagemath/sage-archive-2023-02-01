@@ -14,7 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.numerical.mip import MIPSolverException
 

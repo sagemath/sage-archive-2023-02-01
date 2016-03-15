@@ -46,7 +46,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from cpython.string cimport *
 from libc.math cimport exp, floor, log, pow, sqrt
 from libc.string cimport memcpy

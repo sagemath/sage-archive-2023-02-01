@@ -1,5 +1,9 @@
-from sage.ext.memory cimport *
 include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
+
+cdef extern from *:
+    int unlikely(int) nogil  # Defined by Cython
+
 
 cdef class MemoryAllocator:
     r"""

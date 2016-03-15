@@ -44,7 +44,7 @@ from c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 include 'sage/data_structures/bitset.pxi'
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 cdef class StaticSparseCGraph(CGraph):
     """

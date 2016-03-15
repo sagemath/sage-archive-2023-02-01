@@ -77,7 +77,7 @@ TESTS::
 
 include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 

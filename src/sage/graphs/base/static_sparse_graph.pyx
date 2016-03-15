@@ -188,7 +188,7 @@ from sage.graphs.base.c_graph cimport CGraph
 from static_sparse_backend cimport StaticSparseCGraph
 from static_sparse_backend cimport StaticSparseBackend
 from sage.ext.memory_allocator cimport MemoryAllocator
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 from libcpp.vector cimport vector
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:

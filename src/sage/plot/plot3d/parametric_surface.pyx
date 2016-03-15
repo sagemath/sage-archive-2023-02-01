@@ -82,7 +82,7 @@ Another colored example::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 include "point_c.pxi"

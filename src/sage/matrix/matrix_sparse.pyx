@@ -18,7 +18,7 @@ from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from cpython cimport *
 

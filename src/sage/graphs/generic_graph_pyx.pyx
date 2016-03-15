@@ -19,7 +19,7 @@ AUTHORS:
 
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
-from sage.ext.memory cimport check_allocarray, sage_malloc, sage_free
+include "cysignals/memory.pxi"
 include "sage/data_structures/binary_matrix.pxi"
 
 # import from Python standard library

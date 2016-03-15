@@ -2,7 +2,7 @@ r"""
 Hyperelliptic Curve Point Finding, via ratpoints.
 """
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 

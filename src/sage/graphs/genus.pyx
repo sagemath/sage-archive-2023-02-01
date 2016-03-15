@@ -47,7 +47,7 @@ from sage.graphs.base.dense_graph cimport DenseGraph
 from sage.graphs.graph import Graph
 
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 

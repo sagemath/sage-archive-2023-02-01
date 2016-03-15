@@ -30,7 +30,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
 from libc.string cimport memcpy, memset
 from sage.matrix.matrix2 cimport Matrix

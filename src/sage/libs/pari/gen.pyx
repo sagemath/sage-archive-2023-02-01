@@ -64,7 +64,7 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 from .paridecl cimport *
 from .paripriv cimport *
 include 'pari_err.pxi'
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 cimport cython

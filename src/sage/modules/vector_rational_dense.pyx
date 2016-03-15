@@ -52,8 +52,7 @@ TESTS::
 ###############################################################################
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 

@@ -184,7 +184,7 @@ cimport libc.stdlib
 from libc.stdio cimport *
 cimport cython
 
-from sage.ext.memory cimport sage_malloc, sage_free
+include "cysignals/memory.pxi"
 from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
 from sage.libs.gmp.all cimport *

@@ -28,7 +28,7 @@ speed, we provide a class that wraps our struct.
 #
 #  Copyright 2010, Tom Boothby
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 
 ##########################################################

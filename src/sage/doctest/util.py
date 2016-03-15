@@ -490,38 +490,3 @@ class NestedName:
         if c: return c
         return cmp(self.all, other.all)
 
-class LazySet(set):
-    """
-    Class of lazy sets for which membership is determined lazily.
-
-    EXAMPLES::
-
-        sage: from sage.doctest.util import LazySet
-        sage: def test(e): return e**2 < 7
-        sage: s = LazySet(test)
-        sage: 1 in s
-        True
-        sage: 2 in s
-        True
-        sage: 3 in s
-        False
-        sage: s.seen
-        {1: True, 2: True, 3: False}
-    """
-    def __init__(self, lookup_func):
-        self.lookup = lookup_func
-        self.seen = dict()
-
-    def cached_lookup(self, item):
-        if item not in self.seen:
-            self.seen[item] = self.lookup(item)
-        return self.seen[item]
-
-    def __contains__(self, item):
-        return self.cached_lookup(item)
-
-    def issuperset(self, other):
-        for item in other:
-            if item not in self:
-                return False
-        return True

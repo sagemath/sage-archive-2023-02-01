@@ -20,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from util import LazySet
+from multiprocessing import Array   
 
 # Functions in this module whose name is of the form 'has_xxx' tests if the 
 # software xxx is available to Sage.
@@ -235,4 +235,59 @@ def lookup(software):
     else:
         return False
 
-available_softwares = LazySet(lookup)
+class AvailableSoftwares(object):
+    """
+    Class of the set of external softwares whose availability is detected lazily.
+
+    For multiprocessing of doctests, the data `self.seen` should be shared among
+    child processes, so we use Array class from the multiprocessing module.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import external_softwares,available_softwares
+        sage: external_softwares
+        ['cplex',
+         'mathematica',
+         'gurobi',
+         'octave',
+         'scilab',
+         'latex',
+         'internet',
+         'magma',
+         'macaulay2',
+         'maple',
+         'matlab']
+        sage: 'internet' in available_softwares # random
+        True
+        sage: 'latex' in available_softwares # random
+        True
+        sage: 'magma' in available_softwares # random
+        True
+    """
+    def __init__(self):
+        self.seen = Array('i', len(external_softwares))
+
+    def __contains__(self, item):
+        try:
+            idx = external_softwares.index(item)
+        except Exception:
+            return False
+        if not self.seen[idx]:
+            if lookup(item):
+                self.seen[idx] = 1 # available
+            else:
+                self.seen[idx] = -1 # not available
+        if self.seen[idx] == 1:
+            return True
+        elif self.seen[idx] == -1:
+            return False
+        else:
+            raise Exception # should not happen!
+
+    def issuperset(self, other):
+        for item in other:
+            if item not in self:
+                return False
+        return True    
+
+available_softwares = AvailableSoftwares()

@@ -543,7 +543,7 @@ cpdef Integer legendre_phi(x, a):
     # Deal with the general case
     if (<PrimePi>prime_pi).__smallPi == NULL:
         (<PrimePi>prime_pi)._init_tables()
-    cdef uint32_t z = pari.nth_prime(a)
+    cdef uint32_t z = pari.prime(a)
     if z >= y: return Integer(1)
     (<PrimePi>prime_pi)._init_primes(z)
     if not sig_on_no_except():

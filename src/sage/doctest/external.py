@@ -21,6 +21,7 @@ AUTHORS:
 #*****************************************************************************
 
 from multiprocessing import Array
+from cysignals.alarm import alarm, cancel_alarm, AlarmInterrupt
 
 # Functions in this module whose name is of the form 'has_xxx' tests if the
 # software xxx is available to Sage.
@@ -30,6 +31,9 @@ def has_internet():
     """
     Return ``True`` if internet is available.
 
+    Actually, it attempts to connect the site "http://www.sagemath.org". Failure
+    of doing this within a second is regarded as internet being not available.
+
     EXAMPLES::
 
         sage: from sage.doctest.external import has_internet
@@ -38,9 +42,11 @@ def has_internet():
     """
     from six.moves import urllib
     try:
+        alarm(1)
         urllib.request.urlopen("http://www.sagemath.org")
+        cancel_alarm()
         return True
-    except Exception:
+    except (Exception, AlarmInterrupt):
         return False
 
 def has_latex():

@@ -15,10 +15,22 @@ AUTHORS:
 
 .. TODO::
 
-    - Properly provide root systems for real reflection groups
-    - Element class should be unique to be able to work with large groups without creating elements multiple times.
+    - properly provide root systems for real reflection groups
+    - element class should be unique to be able to work with large groups without creating elements multiple times.
     - is_shephard_group
     - exponents & coexponents
+    - coinvariant ring
+        - fake degrees from Torsten Hoge
+        - operation of linear characters on all characters
+        - harmonic polynomials
+    - linear forms for hyperplanes
+    - field of definition
+    - intersection lattice and characteristic polynomial
+        sage: X = [ alpha(t) for t in W.distinguished_reflections() ]
+        sage: X = Matrix(CF,X).transpose()
+        sage: Y = Matroid(X)
+    - linear characters
+    - permutation pi on irreducibles
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>

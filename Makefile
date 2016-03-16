@@ -90,25 +90,25 @@ test: all
 check: test
 
 testall: all
-	$(TESTALL) --optional=all --logfile=logs/testall.log
+	$(TESTALL) --optional=sage,optional,external --logfile=logs/testall.log
 
 testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong: all
-	$(TESTALL) --long --optional=all --logfile=logs/testalllong.log
+	$(TESTALL) --long --optional=sage,optional,external --logfile=logs/testalllong.log
 
 ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall: all
-	$(PTESTALL) --optional=all --logfile=logs/ptestall.log
+	$(PTESTALL) --optional=sage,optional,external --logfile=logs/ptestall.log
 
 ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong: all
-	$(PTESTALL) --long --optional=all --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long --optional=sage,optional,external --logfile=logs/ptestalllong.log
 
 
 testoptional: testall # just an alias

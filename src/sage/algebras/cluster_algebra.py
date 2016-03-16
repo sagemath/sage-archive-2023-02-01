@@ -707,9 +707,30 @@ class ClusterAlgebra(Parent):
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction ' + str(k) + '.')
 
-        #modify algebra._path_dict
+        #modify algebra._path_dict using Nakanishi-Zelevinsky (4.1)
+        new_path_dict = dict()
+        for g_vect in algebra._path_dict:
+            path = algebra._path_dict[g_vect]
+            new_path_dict[tuple(-identity_matrix(n).column(k-1))] = [k]
+            if path == []:
+                new_path_dict[g_vect] = path
+            elif path != [k]:
+                if path[0] != k:
+                    new_path = [k] + path
+                else:
+                    new_path = path[1:]
+                new_g_vect = vector(g_vect) - 2*g_vect[k-1]*identity_matrix(n).column(k-1)
+                if g_vect[k-1] > 0:
+                    sgn = -1
+                else:
+                    sgn = 1
+                for i in xrange(n):
+                    new_g_vect += max(sgn*algebra._B0[i,k],0)*g_vect[k-1]*identity_matrix(n).column(i-1)
+
         #modify algebra._F_poly_dict
         #modify algebra._B0
+        algebra._B0.mutate(k)
+
         #modify algebra._M0
         #modify algebra._yhat
 

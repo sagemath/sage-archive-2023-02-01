@@ -31,7 +31,7 @@ def has_internet():
     """
     Return ``True`` if internet is available.
 
-    Actually, it attempts to connect the site "http://www.sagemath.org". Failure
+    It attempts to connect to the site "http://www.sagemath.org". Failure
     of doing this within a second is regarded as internet being not available.
 
     EXAMPLES::
@@ -59,9 +59,14 @@ def has_latex():
         sage: has_latex() # random
         True
     """
-    from sage.misc.latex import view
+    from sage.misc.latex import _run_latex_, _latex_file_
+    from sage.misc.temporary_file import tmp_filename
     try:
-        view('2+3')
+        f = tmp_filename(ext='.tex')
+        O = open(f, 'w') 
+        O.write(_latex_file_('2+3'))
+        O.close() 
+        _run_latex_(f) 
         return True
     except Exception:
         return False

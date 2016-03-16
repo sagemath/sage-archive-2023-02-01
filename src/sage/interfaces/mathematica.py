@@ -634,9 +634,9 @@ class MathematicaElement(ExpectElement):
             raise AttributeError
         return MathematicaFunctionElement(self, attrname)
 
-    def __float__(self, pres=16):
+    def __float__(self, precision=16):
         P = self.parent()
-        return float(P.eval('N[%s,%s]'%(self.name(),pres)))
+        return float(P.eval('N[%s,%s]'%(self.name(),precision)))
 
     def _reduce(self):
         return self.parent().eval('InputForm[%s]'%self.name())
@@ -941,6 +941,7 @@ class MathematicaElement(ExpectElement):
         Numerical approximation by calling Mathematica's `N[]`
 
         Calling Mathematica's `N[]` function, with optional precision in decimal digits.
+        Unlike Sage's `n()`, `N()` can be applied to symbolic Mathematica objects.
 
         A workaround for :trac:`18888` backtick issue, stripped away by `get()`,
         is included.
@@ -953,11 +954,11 @@ class MathematicaElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: mathematica('Pi/2').N(10)    # optional -- mathematica
+            sage: mathematica('Pi/2').N(10)        # optional -- mathematica
             1.570796327
-            sage: mathematica('Pi').N(50)    # optional -- mathematica
+            sage: mathematica('Pi').N(50)          # optional -- mathematica
             3.1415926535897932384626433832795028841971693993751
-            sage: mathematica('Pi*x^2-1/2').N()
+            sage: mathematica('Pi*x^2-1/2').N()    # optional -- mathematica
                             2
             -0.5 + 3.14159 x
         """

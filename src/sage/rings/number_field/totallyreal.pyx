@@ -486,7 +486,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [[ZZ(counts[i]) for i in range(4)],
-                [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
+                [[ZZ(s[0]), map(QQ, s[1].polrecip().Vec())] for s in S]]
     elif return_pari_objects:
         return S
     else:

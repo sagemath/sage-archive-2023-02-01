@@ -1340,8 +1340,8 @@ cdef class PariInstance(PariInstance_auto):
 
     def primes(self, n=None, end=None):
         """
-        Return the vector of the first `n` primes, the primes in the
-        interval `[n, end]` or the list of primes up to `end`.
+        Return a pari vector containing the first `n` primes, the primes
+        in the interval `[n, end]`, or the primes up to `end`.
 
         INPUT:
 

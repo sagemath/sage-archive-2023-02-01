@@ -269,12 +269,12 @@ class AvailableSoftwares(object):
         True
         sage: available_softwares.issuperset(set(['internet','latex','magma'])) # random
         True
+        sage: available_softwares.seen()
+        ['internet', 'latex', 'magma']
     """
     def __init__(self):
-        """
-        For multiprocessing of doctests, the data ``self.seen`` should be shared among
-        subprocesses, so we use :class:`Array` class from the ``multiprocessing`` module.
-        """ 
+        # For multiprocessing of doctests, the data self._seen should be shared among
+        # subprocesses, so we use Array class from the multiprocessing module.
         self._seen = Array('i', len(external_softwares)) # initialized to zeroes
 
     def __contains__(self, item):

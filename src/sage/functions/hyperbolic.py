@@ -617,6 +617,8 @@ class Function_arcsech(GinacFunction):
             sage: float(arcsech(1/2))
             1.3169578969248168
 
+            sage: diff(asech(x), x)
+            -1/(sqrt(-x^2 + 1)*x)
             sage: latex(arcsech(x))
             \operatorname{arcsech}\left(x\right)
         """

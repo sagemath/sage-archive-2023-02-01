@@ -577,48 +577,90 @@ class ActiveTaskCounterDarwin(object):
        time. This renders the usage of Semaphore impossible on MacOSX so that
        on this system we use a synchronized integer.
     """
-    def __init__(self, task_number, shutdown):
+    def __init__(self, task_number):
         r"""
+        TESTS::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter
+            sage: t = ActiveTaskCounter(4)
+            sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
         """
         self._active_tasks = Value(ctypes.c_int, task_number)
         self._lock = Lock()
-        self._shutdown = shutdown
 
     def __repr__(self):
+        """
+        TESTS::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter
+            sage: ActiveTaskCounter(4)
+            ActiveTaskCounter(value=4)
+        """
         return "ActiveTaskCounter(value=%s)"%(self._active_tasks.value)
 
     def task_start(self):
         r"""
+        EXAMPLES::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter
+            sage: c = ActiveTaskCounter(4); c
+            ActiveTaskCounter(value=4)
+            sage: c.task_start()
+            5
+            sage: c
+            ActiveTaskCounter(value=5)
+
+        Calling :meth:`task_start` on a zero counter does nothing::
+
+            sage: c = ActiveTaskCounter(0)
+            sage: c.task_start()
+            0
+            sage: c
+            ActiveTaskCounter(value=0)
         """
         logger.debug("_signal_task_start called")
         with self._lock:
             # The following test is not necessary but is allows active thieves to
             # stop before receiving the poison pill.
             if self._active_tasks.value == 0:
-                raise AbortError
+                return 0
             self._active_tasks.value += 1
+            return self._active_tasks.value
 
     def task_done(self):
         r"""
+        EXAMPLES::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter
+            sage: c = ActiveTaskCounter(4); c
+            ActiveTaskCounter(value=4)
+            sage: c.task_done()
+            3
+            sage: c
+            ActiveTaskCounter(value=3)
+
+            sage: c = ActiveTaskCounter(0)
+            sage: c.task_done()
+            -1
         """
         logger.debug("_signal_task_done called")
         with self._lock:
             self._active_tasks.value -= 1
-            # We tests if the semaphore counting the number of active tasks is
-            # becoming negative. This should not happen in normal
-            # computations. However, in case of abort, we artificially put the
-            # semaphore to 0 to stop the computation so that it is needed.
-            if self._active_tasks.value <= 0:
-                logger.debug("raising AbortError")
-                self._shutdown()
-                raise AbortError
+            return self._active_tasks.value
 
     def abort(self):
         r"""
+        EXAMPLES::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter
+            sage: c = ActiveTaskCounter(4); c
+            ActiveTaskCounter(value=4)
+            sage: c.abort()
+            sage: c
+            ActiveTaskCounter(value=0)
         """
         with self._lock:
             self._active_tasks.value = 0
-        self._shutdown()
 
 
 class ActiveTaskCounterOther(object):
@@ -630,24 +672,24 @@ class ActiveTaskCounterOther(object):
     compliant implementation of Semaphore under Darwin's OSes.
 
     """
-    def __init__(self, task_number, shutdown):
+    def __init__(self, task_number):
         r"""
         """
         self._active_tasks = Semaphore(task_number)
-        self._shutdown = shutdown
 
     def __repr__(self):
         return "ActiveTaskCounter(value=%s)"%(self._active_tasks.get_value())
 
     def task_start(self):
-        r"""
-        """
         logger.debug("_signal_task_start called")
         # The following test is not necessary but is allows active thieves to
         # stop before receiving the poison pill.
         if self._active_tasks._semlock._is_zero():
-            raise AbortError
+            return 0
         self._active_tasks.release()
+        return self._active_tasks.get_value()
+
+    task_start.__doc__ = ActiveTaskCounterDarwin.task_start.__doc__
 
     def task_done(self):
         r"""
@@ -658,23 +700,19 @@ class ActiveTaskCounterOther(object):
         # computations. However, in case of abort, we artificially put the
         # semaphore to 0 to stop the computation so it is needed.
         if not self._active_tasks.acquire(False):
-            logger.debug("raising AbortError")
-            raise AbortError
-        if self._active_tasks._semlock._is_zero():
-            self._shutdown()
-            raise AbortError
+            return -1
+        return self._active_tasks.get_value()
 
     def abort(self):
         r"""
         """
         while self._active_tasks.acquire(False):
             pass
-        self._shutdown()
 
 
 ActiveTaskCounter = (ActiveTaskCounterDarwin if sys.platform == 'darwin'
                      else ActiveTaskCounterOther)
-# ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
+ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
 
 
 
@@ -896,7 +934,7 @@ class RESetMapReduce(object):
         """
         self._nprocess = proc_number(max_proc)
         self._results = SimpleQueue()
-        self._active_tasks = ActiveTaskCounter(self._nprocess, self._shutdown)
+        self._active_tasks = ActiveTaskCounter(self._nprocess)
         self._done = Lock()
         self._abort = Value(ctypes.c_bool, False)
         sys.stdout.flush()
@@ -1044,6 +1082,7 @@ class RESetMapReduce(object):
         logger.info("Abort called")
         self._abort.value = True
         self._active_tasks.abort()
+        self._shutdown()
 
     def _shutdown(self):
         r"""
@@ -1102,7 +1141,8 @@ class RESetMapReduce(object):
             ...
             AbortError
         """
-        self._active_tasks.task_start()
+        if self._active_tasks.task_start() == 0:
+            raise AbortError
 
     def _signal_task_done(self):
         r"""
@@ -1134,7 +1174,14 @@ class RESetMapReduce(object):
 
             sage: del S._results, S._active_tasks, S._done, S._workers
         """
-        self._active_tasks.task_done()
+        # We tests if the semaphore counting the number of active tasks is
+        # becoming negative. This should not happen in normal
+        # computations. However, in case of abort, we artificially put the
+        # semaphore to 0 to stop the computation so that it is needed.
+        if self._active_tasks.task_done() <= 0:
+            logger.debug("raising AbortError")
+            self._shutdown()
+            raise AbortError
 
     def random_worker(self):
         r"""

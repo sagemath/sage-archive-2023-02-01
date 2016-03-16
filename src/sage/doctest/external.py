@@ -1,13 +1,13 @@
 """
-Available External Softwares
+Detecting external softwares
 
 This module makes up a list of external softwares that Sage interfaces. Availability
 of each software is tested only when necessary.
 
 AUTHORS:
 
-- Kwankyu Lee (2016-03-09) -- initial version, based on the codes 
-                              by Robert Bradshaw and Nathann Cohen 
+- Kwankyu Lee (2016-03-09) -- initial version, based on the codes by Robert Bradshaw
+                              and Nathann Cohen
 """
 
 #*****************************************************************************
@@ -29,7 +29,7 @@ prefix = 'has_'
 
 def has_internet():
     """
-    Return ``True`` if internet is available.
+    Return ``True`` if Internet is available.
 
     It attempts to connect to the site "http://www.sagemath.org". Failure
     of doing this within a second is regarded as internet being not available.
@@ -51,7 +51,7 @@ def has_internet():
 
 def has_latex():
     """
-    Return ``True`` if latex is available.
+    Return ``True`` if Latex is available.
 
     EXAMPLES::
 
@@ -73,7 +73,7 @@ def has_latex():
 
 def has_magma():
     """
-    Return ``True`` if magma is available.
+    Return ``True`` if Magma is available.
 
     EXAMPLES::
 
@@ -90,7 +90,7 @@ def has_magma():
 
 def has_matlab():
     """
-    Return ``True`` if matlab is available.
+    Return ``True`` if Matlab is available.
 
     EXAMPLES::
 
@@ -107,7 +107,7 @@ def has_matlab():
 
 def has_mathematica():
     """
-    Return ``True`` if mathematica is available.
+    Return ``True`` if Mathematica is available.
 
     EXAMPLES::
 
@@ -124,7 +124,7 @@ def has_mathematica():
 
 def has_maple():
     """
-    Return ``True`` if maple is available.
+    Return ``True`` if Maple is available.
 
     EXAMPLES::
 
@@ -141,7 +141,7 @@ def has_maple():
 
 def has_macaulay2():
     """
-    Return ``True`` if macaulay2 is available.
+    Return ``True`` if Macaulay2 is available.
 
     EXAMPLES::
 
@@ -158,7 +158,7 @@ def has_macaulay2():
 
 def has_octave():
     """
-    Return ``True`` if octave is available.
+    Return ``True`` if Octave is available.
 
     EXAMPLES::
 
@@ -175,7 +175,7 @@ def has_octave():
 
 def has_scilab():
     """
-    Return ``True`` if scilab is available.
+    Return ``True`` if Scilab is available.
 
     EXAMPLES::
 
@@ -192,7 +192,7 @@ def has_scilab():
 
 def has_cplex():
     """
-    Return ``True`` if cplex is available.
+    Return ``True`` if CPLEX is available.
 
     EXAMPLES::
 
@@ -209,7 +209,7 @@ def has_cplex():
 
 def has_gurobi():
     """
-    Return ``True`` if gurobi is available.
+    Return ``True`` if Gurobi is available.
 
     EXAMPLES::
 
@@ -236,7 +236,7 @@ def external_softwares():
 
 external_softwares = external_softwares()
 
-def lookup(software):
+def _lookup(software):
     """
     Return true if the software is available on the system.
     """
@@ -249,9 +249,6 @@ def lookup(software):
 class AvailableSoftwares(object):
     """
     Class of the set of external softwares whose availability is detected lazily.
-
-    For multiprocessing of doctests, the data `self.seen` should be shared among
-    child processes, so we use Array class from the multiprocessing module.
 
     EXAMPLES::
 
@@ -274,29 +271,42 @@ class AvailableSoftwares(object):
         True
     """
     def __init__(self):
-        self.seen = Array('i', len(external_softwares)) # initialized to zeroes
+        """
+        For multiprocessing of doctests, the data ``self.seen`` should be shared among
+        subprocesses, so we use :class:`Array` class from the ``multiprocessing`` module.
+        """ 
+        self._seen = Array('i', len(external_softwares)) # initialized to zeroes
 
     def __contains__(self, item):
         try:
             idx = external_softwares.index(item)
         except Exception:
             return False
-        if not self.seen[idx]:
-            if lookup(item):
-                self.seen[idx] = 1 # available
+        if not self._seen[idx]:
+            if _lookup(item):
+                self._seen[idx] = 1 # available
             else:
-                self.seen[idx] = -1 # not available
-        if self.seen[idx] == 1:
+                self._seen[idx] = -1 # not available
+        if self._seen[idx] == 1:
             return True
-        elif self.seen[idx] == -1:
+        elif self._seen[idx] == -1:
             return False
         else:
             raise AssertionError("Invalid value for self.seen")
 
     def issuperset(self, other):
+        """
+        Return ``True`` if ``other`` is a subset of ``self``. 
+        """
         for item in other:
             if item not in self:
                 return False
         return True
+
+    def seen(self):
+        """
+        Return the list of detected external softwares by now.
+        """
+        return [external_softwares[i] for i in range(len(external_softwares)) if self._seen[i] > 0]
 
 available_softwares = AvailableSoftwares()

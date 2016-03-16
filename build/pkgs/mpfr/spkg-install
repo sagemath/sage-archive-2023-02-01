@@ -6,84 +6,6 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-# unset RM since it messes with libtool
-unset RM
-
-mpfr_patch()
-{
-    # Apply a patch on Solaris, but only on the sun4v architecture
-    # by default. On other Solaris systems, it can be overridden.
-    # The patch to the C code was developed by Paul Zimmermann, the patch
-    # to the spkg-install by David Kirkby. See Ticket #6453.
-    if [ "$UNAME" = SunOS ]; then
-        # Add a patch to MPFR on Solaris if either:
-        # 1) The machine is a sun4v architecture.
-        # 2) The environment variable INCLUDE_MPFR_PATCH is set to 1 or "yes".
-        #    This will allow creating of binaries on a machine other than
-        #    sun4v, which will run on sun4v.
-        echo
-        echo "This computer is running Solaris on which some problems have been observed"
-        echo "with the MPFR library running on a T2+ processor (sun4v architecture)."
-        echo "See http://sagetrac.org/sage_trac/ticket/6453  A patch can be applied"
-        echo "to bypass this problem.  The problem has NEVER been seen on Solaris on x86"
-        echo "or on sun4u (UltraSPARC II etc.).  To determine the architecture run:"
-        echo "    /usr/bin/arch -k"
-        echo "If you experience MPFR test failures, or you wish to ensure the binary will run"
-        echo "on a sun4v system, set the environment variable INCLUDE_MPFR_PATCH to 1, with:"
-        echo "    export INCLUDE_MPFR_PATCH=1"
-        echo "If you specifically wish to exclude the patch, set INCLUDE_MPFR_PATCH to 0 with:"
-        echo "    export INCLUDE_MPFR_PATCH=0"
-        echo "By default, the patch will only be applied on sun4v systems (T1, T2 and T2+"
-        echo "processors), but this can be overridden on other systems.  Binaries for"
-        echo "Solaris SPARC should be built with INCLUDE_MPFR_PATCH set to 1 or \"yes\","
-        echo "unless you are 100% sure they will not be used on a sun4v system."
-        echo
-        # Note: "/usr/bin/arch" will return "sun4" on any SPARC system.
-        # If given the '-k' option, aditional information will be displayed
-        # to indicate if the system is sun4m (very old), sun4u or sun4v.
-
-        # Set PATCH_MPFR to something other than 0 or 1 if it is unset:
-        PATCH_MPFR="${INCLUDE_MPFR_PATCH-2}"
-        do_apply=false
-        case "$PATCH_MPFR" in
-          1|yes)
-            echo "Since INCLUDE_MPFR_PATCH was set to 1 or \"yes\", the MPFR library will be"
-            echo "patched.  The binaries should be safe on any Solaris system."
-            do_apply=true;;
-          0|no)
-            echo "Since INCLUDE_MPFR_PATCH was set to 0 or \"no\", the MPFR library will not"
-            echo "be specifically patched.  You would be unwise to distribute SPARC binaries"
-            echo "unless you are sure they will not be used on sun4v systems.";;
-          2) # INCLUDE_MPFR_PATCH isn't set at all.
-            if [ "`arch -k`" = sun4v ]; then
-                echo "This is a sun4v system, so the MPFR library will be patched.  The binaries"
-                echo "should run correctly on any SPARC system whose operating system is"
-                echo "no older than the system used to build the binaries."
-                do_apply=true
-            else
-                echo "Since this is not a sun4v system, the MPFR binary will not be patched."
-                # Issue a warning on SPARC, but not (e.g.) x86 systems.
-                if [ "`arch`" = sun4 ]; then
-                    echo >&2 "WARNING: Problems may occur if you try to run this SPARC binary on a sun4v"
-                    echo >&2 "system (T1, T2 or T2+ processors).  Binaries created like this should not"
-                    echo >&2 "be distributed unless you know the end users' systems will not be sun4v."
-                    echo >&2 "Set INCLUDE_MPFR_PATCH to 1, to include the patch, if you are unsure."
-                fi
-            fi;;
-          *)
-            echo >&2 "Warning: The environment variable INCLUDE_MPFR_PATCH was incorrectly"
-            echo >&2 "set to \"$PATCH_MPFR\".  The MPFR library will be patched as a precaution."
-            do_apply=true
-        esac
-        if $do_apply && ! patch -p1 < ../patches/mpn_exp.c.patch; then
-            echo >&2 "Error: Patch for Solaris SPARC ('mpn_exp.c.patch') failed to apply."
-            exit 1
-        fi
-        echo
-    fi # $UNAME=SunOS
-
-    # Further patches for Sage should get applied here
-}
 
 mpfr_get_upstream_selected_cflags() # Get MPFR's choice on empty CC and CFLAGS.
 {
@@ -140,21 +62,6 @@ mpfr_configure()
         CPPFLAGS="$CPPFLAGS $CFLAG64"
         LDFLAGS="$LDFLAGS $CFLAG64"
         # As MPFR doesn't have C++ files, we don't have to modify CXXFLAGS.
-    fi
-
-    # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs.
-    # See #12837, #12751, and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
-    if [ "`uname -m`" = ia64 ] && [ "`testcc.sh $CC`" = GCC ] ; then
-        gcc_version=`$CC -dumpversion`
-        case "$gcc_version" in
-          4.7.0)
-            required_cflags="$required_cflags -O0 -finline-functions -fschedule-insns"
-            echo >&2 "Warning: Disabling almost all optimization due to a bug in GCC 4.7.0"
-            echo >&2 "         on Itanium, which otherwise would break the build."
-            echo >&2 "         See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496"
-            echo >&2 "         for current status and further details."
-            ;;
-        esac
     fi
 
     # Enabling thread-safe (which meanwhile is or at least may be the default)
@@ -260,15 +167,7 @@ mpfr_configure()
 
 mpfr_build()
 {
-    echo "Patching MPFR..."
-    mpfr_patch
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error patching MPFR."
-        exit 1
-    fi
-
-    echo
-    echo "Now configuring MPFR..."
+    echo "Configuring MPFR..."
     mpfr_configure
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring MPFR."

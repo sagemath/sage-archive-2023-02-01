@@ -19,8 +19,8 @@ from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/python.pxi'
 include "cysignals/signals.pxi"
+from cpython cimport *
 
 import sage.matrix.matrix_space
 

@@ -533,7 +533,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             name = self.parent().variable_name()
         cdef long i
         cdef Integer coef = PY_NEW(Integer)
-        all = []
+        cdef list all = []
         for i from fmpz_poly_degree(self.__poly) >= i >= 0:
             fmpz_poly_get_coeff_mpz(coef.value, self.__poly, i)
             if coef:
@@ -550,15 +550,15 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                         coeff_str = coeff_str + '*'
                 if i > 1:
                     if latex:
-                        PyList_Append(all, " %s %s%s^{%s}" % (sign_str,
+                        all.append(" %s %s%s^{%s}" % (sign_str,
                             coeff_str, name, i))
                     else:
-                        PyList_Append(all, " %s %s%s^%s" % (sign_str,
+                        all.append(" %s %s%s^%s" % (sign_str,
                             coeff_str, name, i))
                 elif i == 1:
-                    PyList_Append(all, " %s %s%s" % (sign_str, coeff_str, name))
+                    all.append(" %s %s%s" % (sign_str, coeff_str, name))
                 else:
-                    PyList_Append(all, " %s %s" % (sign_str, coeff_str))
+                    all.append(" %s %s" % (sign_str, coeff_str))
         if len(all) == 0:
             return '0'
         leading = all[0]

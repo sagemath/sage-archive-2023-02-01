@@ -25,9 +25,9 @@ AUTHORS:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-include 'gsl.pxi'
-
+from sage.libs.gsl.all cimport *
 from sage.ext.fast_eval cimport FastDoubleFunc
+
 
 cdef class PyFunctionWrapper:
    cdef object the_function

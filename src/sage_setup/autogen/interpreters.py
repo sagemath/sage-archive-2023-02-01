@@ -2527,14 +2527,12 @@ static inline double complex cpow_int(double complex z, int exp) {
         self.pxd_header = """
 # This is to work around a header incompatibility with PARI using
 # "I" as variable conflicting with the complex "I".
-cdef extern from "pari/paricfg.h":
-    pass
-cdef extern from "pari/pari.h":
-    pass
-cdef extern from "pari/paripriv.h":
-    pass
+# If we cimport pari earlier, we avoid this problem.
+cimport sage.libs.pari.types
 
-# Cython does not (yet) support complex numbers natively, so this is a bit hackish.
+# We need the type double_complex to work around
+#   http://trac.cython.org/ticket/869
+# so this is a bit hackish.
 cdef extern from "complex.h":
     ctypedef double double_complex "double complex"
 """
@@ -2543,11 +2541,10 @@ from sage.rings.complex_double cimport ComplexDoubleElement
 import sage.rings.complex_double
 cdef object CDF = sage.rings.complex_double.CDF
 
-cdef extern from "solaris_fixes.h": pass
+cdef extern from "solaris_fixes.h":
+    pass
 
-# Cython does not (yet) support complex numbers natively, so this is a bit hackish.
 cdef extern from "complex.h":
-    ctypedef double double_complex "double complex"
     cdef double creal(double_complex)
     cdef double cimag(double_complex)
     cdef double_complex _Complex_I

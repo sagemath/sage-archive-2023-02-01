@@ -15,6 +15,7 @@ from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.categories.map import Map
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.categories.number_fields import NumberFields
@@ -484,7 +485,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         INPUT:
 
-        - ``R`` -- commutative ring.
+        - ``R`` -- commutative ring or morphism.
 
         OUTPUT:
 
@@ -503,8 +504,18 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             Affine Space of dimension 3 over Rational Field
             sage: AQ.change_ring(GF(5))
             Affine Space of dimension 3 over Finite Field of size 5
+
+        ::
+
+            sage: K.<w> = QuadraticField(5)
+            sage: A = AffineSpace(K,2,'t')
+            sage: A.change_ring(K.embeddings(CC)[1])
+            Affine Space of dimension 2 over Complex Field with 53 bits of precision
         """
-        return AffineSpace(self.dimension_relative(), R, self.variable_names())
+        if isinstance(R, Map):
+            return AffineSpace(self.dimension_relative(), R.codomain(), self.variable_names())
+        else:
+            return AffineSpace(self.dimension_relative(), R, self.variable_names())
 
     def coordinate_ring(self):
         """

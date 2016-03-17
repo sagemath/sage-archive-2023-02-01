@@ -32,7 +32,7 @@ class HochschildComplex(UniqueRepresentation, CategoryObject):
 
         C_n(A, M) := M \otimes A^{\otimes n}
 
-    with the boundary operators given as follows. For fix `n`, define
+    with the boundary operators given as follows. For fixed `n`, define
     the face maps
 
     .. MATH::
@@ -66,8 +66,9 @@ class HochschildComplex(UniqueRepresentation, CategoryObject):
 
     .. MATH::
 
-        s_i(a_0 \otimes \cdots \otimes a_i \otimes 1 \otimes a_{i+1}
-        \otimes \cdots \otimes a_n).
+        s_i(a_0 \otimes \cdots \otimes a_n) =
+        a_0 \otimes \cdots \otimes a_i \otimes 1 \otimes a_{i+1}
+        \otimes \cdots \otimes a_n
 
     The Hochschild homology can also be constructed as the homology
     of this simplicial module.
@@ -102,6 +103,7 @@ class HochschildComplex(UniqueRepresentation, CategoryObject):
         """
         self._A = A
         self._M = M
+        self._base = A.base_ring()
         CategoryObject.__init__(self, category=ChainComplexes(A.base_ring()))
 
     def _repr_(self):
@@ -209,9 +211,9 @@ class HochschildComplex(UniqueRepresentation, CategoryObject):
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: H = E.hochschild_complex(E)
             sage: d1 = H.boundary(1)
-            sage: x = d1.domain().an_element(); x
+            sage: z = d1.domain().an_element(); z
             2*1 # 1 + 2*1 # x + 3*1 # y
-            sage: d1(x)
+            sage: d1(z)
             0
             sage: d1.matrix()
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
@@ -291,9 +293,9 @@ class HochschildComplex(UniqueRepresentation, CategoryObject):
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: H = E.hochschild_complex(E)
             sage: del1 = H.coboundary(1)
-            sage: x = del1.domain().an_element(); x
+            sage: z = del1.domain().an_element(); z
             2 + 2*x + 3*y
-            sage: del1(x)
+            sage: del1(z)
             0
             sage: del1.matrix()
             [ 0  0  0  0]

@@ -128,7 +128,7 @@ underscores).
 
 from libc.limits cimport LONG_MAX, LONG_MIN
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject
@@ -1362,9 +1362,9 @@ cdef class ModuleElement(Element):
     # Module element multiplication (scalars, etc.)
     ##################################################
     def __mul__(left, right):
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
-        if PyInt_CheckExact(left):
+        if type(left) is int:
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         if have_same_parent_c(left, right):
             raise TypeError(arith_error_message(left, right, mul))
@@ -1637,9 +1637,9 @@ cdef class RingElement(ModuleElement):
         """
         if have_same_parent_c(left, right):
             return (<ModuleElement>left)._add_(<ModuleElement>right)
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             return (<RingElement>left)._add_long(PyInt_AS_LONG(right))
-        elif PyInt_CheckExact(left):
+        elif type(left) is int:
             return (<RingElement>right)._add_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, add)
 
@@ -1658,7 +1658,7 @@ cdef class RingElement(ModuleElement):
         cdef long n
         if have_same_parent_c(left, right):
             return (<ModuleElement>left)._sub_(<ModuleElement>right)
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             n = PyInt_AS_LONG(right)
             # See UNARY_NEG_WOULD_OVERFLOW in Python's intobject.c
             if (n == 0) | (<unsigned long>n != 0 - <unsigned long>n):
@@ -1791,9 +1791,9 @@ cdef class RingElement(ModuleElement):
         # Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
             return (<RingElement>left)._mul_(<RingElement>right)
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
-        elif PyInt_CheckExact(left):
+        elif type(left) is int:
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, mul)
 
@@ -2486,12 +2486,12 @@ cdef class CommutativeRingElement(RingElement):
         #This code is very general, it works for all integral domains that have the
         #is_square(root = True) option
 
-        from sage.rings.integral_domain import is_IntegralDomain
+        from sage.rings.ring import IntegralDomain
         P=self._parent
         is_sqr, sq_rt = self.is_square( root = True )
         if is_sqr:
             if all:
-                if not is_IntegralDomain(P):
+                if not isinstance(P, IntegralDomain):
                     raise NotImplementedError('sqrt() with all=True is only implemented for integral domains, not for %s' % P)
                 if P.characteristic()==2 or sq_rt==0:
                     #0 has only one square root, and in charasteristic 2 everything also has only 1 root
@@ -2499,7 +2499,7 @@ cdef class CommutativeRingElement(RingElement):
                 return [ sq_rt, -sq_rt ]
             return sq_rt
         #from now on we know that self is not a square
-        if not is_IntegralDomain(P):
+        if not isinstance(P, IntegralDomain):
             raise NotImplementedError('sqrt() of non squares is only implemented for integral domains, not for %s' % P)
         if not extend:
             #all square roots of a non-square should be an empty list

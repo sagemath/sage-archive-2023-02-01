@@ -43,9 +43,9 @@ TESTS::
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/python.pxi"
+from cpython cimport *
 
 import sys
 import operator

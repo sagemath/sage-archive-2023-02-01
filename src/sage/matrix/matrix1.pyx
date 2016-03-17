@@ -19,7 +19,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 
 import sage.modules.free_module
 from sage.structure.element cimport coercion_model

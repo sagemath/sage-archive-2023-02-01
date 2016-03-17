@@ -110,10 +110,8 @@ easily::
 #*****************************************************************************
 
 
-import quotient_ring_element
 import sage.misc.latex as latex
-import commutative_ring, ring
-import ideal
+from . import ring, ideal, quotient_ring_element
 import sage.rings.polynomial.multi_polynomial_ideal
 from sage.structure.category_object import normalize_names
 import sage.structure.parent_gens
@@ -304,7 +302,7 @@ def QuotientRing(R, I, names=None):
         if S == ZZ:
             return Integers((I_lift+J).gen())
         return R.__class__(S, I_lift + J, names=names)
-    if isinstance(R, sage.rings.commutative_ring.CommutativeRing):
+    if isinstance(R, ring.CommutativeRing):
         return QuotientRing_generic(R, I, names)
     return QuotientRing_nc(R, I, names)
 
@@ -937,7 +935,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         if not isinstance(self.__R, MPolynomialRing_libsingular) and \
                (not hasattr(self.__R, '_has_singular') or not self.__R._has_singular):
             # pass through
-            return commutative_ring.CommutativeRing.ideal(self, gens, **kwds)
+            return ring.CommutativeRing.ideal(self, gens, **kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
@@ -1254,7 +1252,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         return self.__R.term_order()
 
-class QuotientRing_generic(QuotientRing_nc, sage.rings.commutative_ring.CommutativeRing):
+class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
     r"""
     Creates a quotient ring of a *commutative* ring `R` by the ideal `I`.
 
@@ -1283,7 +1281,7 @@ class QuotientRing_generic(QuotientRing_nc, sage.rings.commutative_ring.Commutat
             sage: isinstance(ZZ.quo(2), sage.rings.ring.CommutativeRing)  # indirect doctest
             True
         """
-        if not isinstance(R, sage.rings.commutative_ring.CommutativeRing):
+        if not isinstance(R, ring.CommutativeRing):
             raise TypeError("This class is for quotients of commutative rings only.\n    For non-commutative rings, use <sage.rings.quotient_ring.QuotientRing_nc>")
         if not self._is_category_initialized():
             category = check_default_category(_CommutativeRingsQuotients,category)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Generic graphs (common to directed/undirected)
 
@@ -1168,7 +1169,7 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
 
         formats = {"adjlist"           : networkx.write_adjlist,
-                   "dot"               : networkx.write_dot,
+                   "dot"               : networkx.drawing.nx_pydot.write_dot,
                    "edgelist"          : networkx.write_edgelist,
                    "gexf"              : networkx.write_gexf,
                    "gml"               : networkx.write_gml,
@@ -4827,6 +4828,28 @@ class GenericGraph(GenericGraph_pyx):
                 edgeset -= Set([tup])
         if (len(path) != 0): faces.append(path)
         return faces
+
+    def num_faces(self,embedding=None):
+        """
+        Returns the number of faces of an embedded graph.
+
+        EXAMPLES::
+
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.num_faces()
+            4
+
+        TESTS::
+
+            sage: G = graphs.CompleteMultipartiteGraph([3,3])
+            sage: G.num_faces()
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding is provided and the graph is not planar.
+        """
+
+        return len(self.faces(embedding))
+
 
     ### Connectivity
 
@@ -10934,7 +10957,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def degree_histogram(self):
         """
-        Returns a list, whose ith entry is the frequency of degree i.
+        Return a list, whose ith entry is the frequency of degree i.
 
         EXAMPLES::
 
@@ -10947,7 +10970,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.Grid2dGraph(9,12).to_directed()
             sage: G.degree_histogram()
             [0, 0, 0, 0, 4, 0, 34, 0, 70]
+
+        TESTS::
+
+            sage: Graph().degree_histogram()
+            []
         """
+        if self.order() == 0:
+            return []
         degree_sequence = self.degree()
         dmax = max(degree_sequence) + 1
         frequency = [0]*dmax

@@ -6698,7 +6698,7 @@ class RegularPartitions(Partitions):
     - ``is_infinite`` -- boolean; if the subset of `\ell`-regular
       partitions is infinite
     """
-    def __init__(self, ell, is_infinte=False):
+    def __init__(self, ell, is_infinite=False):
         """
         Initialize ``self``.
 
@@ -6708,7 +6708,7 @@ class RegularPartitions(Partitions):
             sage: TestSuite(P).run()
         """
         self._ell = ell
-        Partitions.__init__(self, is_infinte)
+        Partitions.__init__(self, is_infinite)
 
     def ell(self):
         r"""

@@ -2,7 +2,6 @@
 Monoid of ideals in a commutative ring
 """
 
-from commutative_ring import is_CommutativeRing
 from sage.structure.parent import Parent
 import sage.rings.integer_ring
 import ideal

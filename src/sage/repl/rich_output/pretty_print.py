@@ -221,8 +221,8 @@ def pretty_print(*args, **kwds):
 
         sage: plt = plot(sin)
         sage: pretty_print(plt)             # graphics output
-        sage: pretty_print(ZZ, 123, plt)    # latex output
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z} 123 \verb|Graphics|\phantom{\verb!x!}\verb|object|\phantom{\verb!x!}\verb|consisting|\phantom{\verb!x!}\verb|of|\phantom{\verb!x!}\verb|1|\phantom{\verb!x!}\verb|graphics|\phantom{\verb!x!}\verb|primitive|</script></html>
+        sage: pretty_print(ZZ, 123, plt)    # optional - latex 
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z} 123 %% Creator: Matplotlib, PGF backend...</script></html>
         sage: pretty_print(plt, plt)        # graphics output
     """
     if len(args) == 1 and isinstance(args[0], (types.GeneratorType, collections.Iterator)):

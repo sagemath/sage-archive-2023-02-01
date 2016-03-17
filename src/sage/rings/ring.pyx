@@ -834,7 +834,26 @@ cdef class Ring(ParentWithGens):
             True
             sage: ZZ.is_subring(GF(19))
             False
+
+        TESTS:
+
+        Every ring is a subring of itself, :trac:`17287`::
+
+            sage: QQbar.is_subring(QQbar)
+            True
+            sage: RR.is_subring(RR)
+            True
+            sage: CC.is_subring(CC)
+            True
+            sage: K.<a> = NumberField(x^3-x+1/10)
+            sage: K.is_subring(K)
+            True
+            sage: R.<x> = RR[]
+            sage: R.is_subring(R)
+            True
         """
+        if self is other:
+            return True
         try:
             return self.Hom(other).natural_map().is_injective()
         except TypeError:
@@ -1398,7 +1417,7 @@ cdef class CommutativeRing(Ring):
 
             sage: K.<i> = QuadraticField(-1)
             sage: R = K.maximal_order(); R
-            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
             sage: R.krull_dimension()
             1
             sage: R = K.order(2*i); R
@@ -1783,7 +1802,7 @@ cdef class DedekindDomain(IntegralDomain):
             sage: K = NumberField(x^2 + 1, 's')
             sage: OK = K.ring_of_integers()
             sage: OK.integral_closure()
-            Maximal Order in Number Field in s with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in s with defining polynomial x^2 + 1
             sage: OK.integral_closure() == OK
             True
 

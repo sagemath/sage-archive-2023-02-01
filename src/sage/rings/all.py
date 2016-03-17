@@ -13,12 +13,8 @@ Rings
 #*****************************************************************************
 
 # Ring base classes
-from ring import Ring, Field
-from commutative_ring import CommutativeRing
-from integral_domain import IntegralDomain
-from dedekind_domain import DedekindDomain
-from principal_ideal_domain import PrincipalIdealDomain
-from euclidean_domain import EuclideanDomain
+from ring import (Ring, Field, CommutativeRing, IntegralDomain,
+    DedekindDomain, PrincipalIdealDomain, EuclideanDomain)
 
 # Ring element base classes
 from sage.structure.element import (CommutativeAlgebraElement,

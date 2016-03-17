@@ -174,9 +174,9 @@ Sage (:trac:`9636`)::
 from .paridecl cimport *
 from .paripriv cimport *
 include 'pari_err.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 cdef extern from *:
-    int sig_on_count "_signals.sig_on_count"
+    int sig_on_count "cysigs.sig_on_count"
 
 import sys
 
@@ -317,6 +317,18 @@ cpdef long prec_words_to_bits(long prec_in_words):
     """
     # see user's guide to the pari library, page 10
     return (prec_in_words - 2) * BITS_IN_LONG
+
+cpdef long default_bitprec():
+    r"""
+    Return the default precision in bits.
+
+    EXAMPLES::
+
+        sage: from sage.libs.pari.pari_instance import default_bitprec
+        sage: default_bitprec()
+        64
+    """
+    return (prec - 2) * BITS_IN_LONG
 
 def prec_dec_to_words(long prec_in_dec):
     r"""
@@ -1006,7 +1018,7 @@ cdef class PariInstance(PariInstance_auto):
         try:
             return self(x)
         except (TypeError, AttributeError):
-            raise TypeError("no canonical coercion of %s into PARI"%x)
+            raise TypeError("no canonical coercion of %s into PARI" % x)
 
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO
@@ -1400,7 +1412,7 @@ cdef class PariInstance(PariInstance_auto):
         nth_prime(n): returns the n-th prime, where n is a C-int
         """
         if n <= 0:
-            raise ValueError, "nth prime meaningless for non-positive n (=%s)"%n
+            raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
         cdef GEN g
         pari_catch_sig_on()
         g = prime(n)
@@ -1541,7 +1553,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.polsubcyclo(8, 4)
             [x^4 + 1]
             sage: pari.polsubcyclo(8, 2, 'z')
-            [z^2 - 2, z^2 + 1, z^2 + 2]
+            [z^2 + 2, z^2 - 2, z^2 + 1]
             sage: pari.polsubcyclo(8, 1)
             [x - 1]
             sage: pari.polsubcyclo(8, 3)
@@ -1627,8 +1639,8 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen v = self._empty_vector(n)
         if entries is not None:
             if len(entries) != n:
-                raise IndexError, "length of entries (=%s) must equal n (=%s)"%\
-                      (len(entries), n)
+                raise IndexError("length of entries (=%s) must equal n (=%s)"%\
+                      (len(entries), n))
             for i, x in enumerate(entries):
                 v[i] = x
         return v
@@ -1652,7 +1664,7 @@ cdef class PariInstance(PariInstance_auto):
         A = self.new_gen(zeromatcopy(m,n))
         if entries is not None:
             if len(entries) != m*n:
-                raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)
+                raise IndexError("len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n))
             k = 0
             A.refers_to = {}
             for i from 0 <= i < m:

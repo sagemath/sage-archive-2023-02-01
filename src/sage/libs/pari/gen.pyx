@@ -52,6 +52,10 @@ import math
 import types
 import operator
 import sage.structure.element
+from cpython.string cimport PyString_AsString
+from cpython.int cimport PyInt_AS_LONG
+from cpython.float cimport PyFloat_AS_DOUBLE
+from cpython.complex cimport PyComplex_RealAsDouble, PyComplex_ImagAsDouble
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sage_object cimport rich_to_bool
@@ -61,8 +65,7 @@ from .paridecl cimport *
 from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/python.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 cimport cython
 
@@ -74,7 +77,7 @@ from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.pari.closure cimport objtoclosure
 
 from pari_instance cimport (PariInstance, pari_instance,
-        prec_bits_to_words, prec_words_to_bits)
+        prec_bits_to_words, prec_words_to_bits, default_bitprec)
 cdef PariInstance P = pari_instance
 
 from sage.rings.integer cimport Integer
@@ -6325,9 +6328,9 @@ cdef class gen(gen_auto):
             sage: e.elllseries(2.1)
             0.402838047956645
             sage: e.elllseries(1, precision=128)
-            2.98766720445395 E-38
+            6.21952537507477 E-39
             sage: e.elllseries(1, precision=256)
-            5.48956813891054 E-77
+            2.95993347819786 E-77
             sage: e.elllseries(-2)
             0
             sage: e.elllseries(2.1, A=1.1)
@@ -7043,11 +7046,11 @@ cdef class gen(gen_auto):
 
             sage: G = pari(x^4 + 1).galoisinit()
             sage: G.galoisfixedfield(G[5][1], flag=2)
-            [x^2 + 4, Mod(2*x^2, x^4 + 1), [x^2 - 1/2*y, x^2 + 1/2*y]]
+            [x^2 - 2, Mod(-x^3 + x, x^4 + 1), [x^2 - y*x + 1, x^2 + y*x + 1]]
             sage: G.galoisfixedfield(G[5][5:7])
             [x^4 + 1, Mod(x, x^4 + 1)]
             sage: L = G.galoissubgroups()
-            sage: G.galoisfixedfield(L[2], flag=2, v='z')
+            sage: G.galoisfixedfield(L[3], flag=2, v='z')
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
         .. _galoisfixedfield: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisfixedfield
@@ -7085,7 +7088,7 @@ cdef class gen(gen_auto):
             sage: G.galoissubfields(flag=1)
             [x, x^2 + 972, x^3 + 54, x^3 + 864, x^3 - 54, x^6 + 108]
             sage: G = pari(x^4 + 1).galoisinit()
-            sage: G.galoissubfields(flag=2, v='z')[2]
+            sage: G.galoissubfields(flag=2, v='z')[3]
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
         .. _galoissubfields: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoissubfields
@@ -9167,7 +9170,7 @@ cdef class gen(gen_auto):
             sage: pari(0).znstar()
             [2, [2], [-1]]
             sage: pari(96).znstar()
-            [32, [8, 2, 2], [Mod(37, 96), Mod(79, 96), Mod(65, 96)]]
+            [32, [8, 2, 2], [Mod(37, 96), Mod(31, 96), Mod(65, 96)]]
             sage: pari(-5).znstar()
             [4, [4], [Mod(2, 5)]]
         """
@@ -9792,29 +9795,29 @@ cpdef gen objtogen(s):
 
     # Check basic Python types. Start with strings, which are a very
     # common case.
-    if PyString_Check(s):
+    if isinstance(s, str):
         pari_catch_sig_on()
         g = gp_read_str(PyString_AsString(s))
         if g == gnil:
             P.clear_stack()
             return None
         return P.new_gen(g)
-    if PyInt_Check(s):
+    if isinstance(s, int):
         pari_catch_sig_on()
         return P.new_gen(stoi(PyInt_AS_LONG(s)))
-    if PyBool_Check(s):
+    if isinstance(s, bool):
         return P.PARI_ONE if s else P.PARI_ZERO
-    if PyLong_Check(s):
+    if isinstance(s, long):
         pari_catch_sig_on()
         mpz_init(mpz_int)
         mpz_set_pylong(mpz_int, s)
         g = P._new_GEN_from_mpz_t(mpz_int)
         mpz_clear(mpz_int)
         return P.new_gen(g)
-    if PyFloat_Check(s):
+    if isinstance(s, float):
         pari_catch_sig_on()
         return P.new_gen(dbltor(PyFloat_AS_DOUBLE(s)))
-    if PyComplex_Check(s):
+    if isinstance(s, complex):
         pari_catch_sig_on()
         g = cgetg(3, t_COMPLEX)
         set_gel(g, 1, dbltor(PyComplex_RealAsDouble(s)))

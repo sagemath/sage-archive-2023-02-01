@@ -11,7 +11,7 @@ Fast word datatype using an array of unsigned char.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 include "sage/data_structures/bitset.pxi"
 
@@ -23,7 +23,7 @@ from sage.combinat.words.word_datatypes cimport WordDatatype
 
 from cpython.number cimport PyIndex_Check, PyNumber_Check
 from cpython.sequence cimport PySequence_Check
-from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
+from cpython.slice cimport PySlice_GetIndicesEx
 
 import itertools
 
@@ -363,7 +363,7 @@ cdef class WordDatatype_char(WordDatatype):
         cdef Py_ssize_t i, start, stop, step, slicelength
         cdef unsigned char * data
         cdef size_t j,k
-        if PySlice_Check(key):
+        if isinstance(key, slice):
             # here the key is a slice
             PySlice_GetIndicesEx(key,
                     self._length,

@@ -168,7 +168,6 @@ import sage.misc.latex as latex
 
 from sage.modules.module import Module
 import sage.rings.finite_rings.finite_field_constructor as finite_field
-import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
@@ -378,7 +377,7 @@ done from the right side.""")
                 and base_ring.is_maximal() and base_ring.class_number() == 1:
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
-            elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
+            elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
                 return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
 
             else:

@@ -20,7 +20,6 @@ AUTHOR:
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
 from ntl_tools cimport ErrorMsgCallback
 
 

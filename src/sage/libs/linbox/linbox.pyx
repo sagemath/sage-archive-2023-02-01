@@ -88,7 +88,8 @@ cdef class Linbox_integer_dense:
     def minpoly(self):
         """
         OUTPUT:
-            coefficients of minpoly as a Python list
+
+        coefficients of minpoly as a Python list
         """
         cdef mpz_t* poly
         cdef size_t degree
@@ -110,7 +111,8 @@ cdef class Linbox_integer_dense:
     def charpoly(self):
         """
         OUTPUT:
-            coefficients of charpoly or minpoly as a Python list
+
+        coefficients of charpoly or minpoly as a Python list
         """
         cdef mpz_t* poly
         cdef size_t degree
@@ -136,13 +138,18 @@ cdef class Linbox_integer_dense:
         cdef int e
         e = linbox_integer_dense_matrix_matrix_multiply(ans, self.matrix,  B, self.nrows, self.ncols, B_nc)
         if e:
-            raise RuntimeError, "error doing matrix matrix multiply over ZZ using linbox"
+            raise RuntimeError("error doing matrix matrix multiply over ZZ using linbox")
 
 
     cdef unsigned long rank(self) except -1:
         return linbox_integer_dense_rank(self.matrix, self.nrows, self.ncols)
 
     def det(self):
+        """
+        OUTPUT:
+
+        determinant as a sage Integer
+        """
         cdef Integer z
         z = Integer()
         linbox_integer_dense_det(z.value, self.matrix, self.nrows, self.ncols)

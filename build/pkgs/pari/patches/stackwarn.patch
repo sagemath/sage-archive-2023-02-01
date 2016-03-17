@@ -39,15 +39,15 @@ index fa5c167..5cd1a13 100644
  
  void
 diff --git a/src/test/dotest b/src/test/dotest
-index 89c54c4..a101cfc 100755
+index 3cb790d..6e4cc70 100755
 --- a/src/test/dotest
 +++ b/src/test/dotest
-@@ -80,7 +80,7 @@ for testdata in $testlist; do
+@@ -86,7 +86,7 @@ for testdata in $testlist; do
      for suf in $SUF; do
        file_diff=$testname-$suf.dif
        gp=$execdir/gp-$suf
--      (echo 'gettime();0;'; cat $file_in; echo 'print("Total time spent: ",gettime);') | $RUNTEST $gp -q --test  > $file_test 2>&1
-+      (echo 'gettime();default(debugmem,1);'; cat $file_in; echo 'print("Total time spent: ",gettime);') | $RUNTEST $gp -q --test  > $file_test 2>&1
-       diff -c $file_out $file_test > $file_diff
-       pat=`grep "^[-+!] " $file_diff | grep -v "Total time"`
-       time=`${tail}1 $file_test | sed -n 's,.*Total time spent: \(.*\),\1,p'`
+-      (echo 'gettime();0;'; cat $file_in; \
++      (echo 'gettime();default(debugmem,1);'; cat $file_in; \
+        echo 'print("Total time spent: ",gettime);') \
+        | $RUNTEST $gp -q --test  > $file_test 2>&1
+       if test -n "$crlf"; then

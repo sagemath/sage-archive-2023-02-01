@@ -113,13 +113,6 @@ build
 
 cd "$SAGE_LOCAL/lib"
 
-# If we are upgrading from Python-2.6, remove compiled Python files.
-# We do not care about still older Python versions, since upgrades
-# from such old Sage versions are not supported anyway.
-if [ -d python2.6 ]; then
-    rm -rf "$SAGE_ROOT"/devel/sage-*/build
-fi
-
 # Make symbolic link (after removing old link first)
 rm -f python
 ln -s python2.7 python
@@ -127,9 +120,6 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error creating symbolic link"
     exit 1
 fi
-
-# Remove previous Python installs
-rm -rf python2.6
 
 # On OS X with XCode 4, the presence of
 # $SAGE_LOCAL/lib/python/config/libpython2.7.a causes problems with

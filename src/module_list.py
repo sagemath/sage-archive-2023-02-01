@@ -623,8 +623,10 @@ ext_modules = [
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
     Extension('sage.libs.pari.closure',
-              sources = ["sage/libs/pari/closure.pyx"],
-              libraries = ['pari', 'gmp']),
+              sources = ["sage/libs/pari/closure.pyx"]),
+
+    Extension('sage.libs.pari.convert',
+              sources = ["sage/libs/pari/convert.pyx"]),
 
     Extension('sage.libs.pari.gen',
               sources = ["sage/libs/pari/gen.pyx"]),

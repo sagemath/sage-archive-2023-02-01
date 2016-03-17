@@ -110,14 +110,17 @@ ptestlong: all
 ptestalllong: all
 	$(PTESTALL) --long --optional=sage,optional,external --logfile=logs/ptestalllong.log
 
+testoptional: all
+	$(TESTALL) --optional=sage,optional --logfile=logs/testoptional.log
 
-testoptional: testall # just an alias
+testoptionallong: all
+	$(TESTALL) --long --optional=sage,optional --logfile=logs/testoptionallong.log
 
-testoptionallong: testalllong # just an alias
+ptestoptional: all
+	$(PTESTALL) --optional=sage,optional --logfile=logs/ptestoptional.log
 
-ptestoptional: ptestall # just an alias
-
-ptestoptionallong: ptestalllong # just an alias
+ptestoptionallong: all
+	$(PTESTALL) --long --optional=sage,optional --logfile=logs/ptestoptionallong.log
 
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d

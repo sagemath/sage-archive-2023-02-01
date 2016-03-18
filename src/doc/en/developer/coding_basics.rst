@@ -724,7 +724,7 @@ written.
 Special Markup to Influence Tests
 ---------------------------------
 
-Overly complicated output in the example code can be shortened by an ellipsis marker (...)::
+Overly complicated output in the example code can be shortened by an ellipsis marker ``...``::
 
     sage: [ZZ(n).ordinal_str() for n in range(25)]
     ['0th',
@@ -743,7 +743,7 @@ Overly complicated output in the example code can be shortened by an ellipsis ma
     ...
     TypeError: unable to convert 'sage' to an integer
 
-On the proper usage of the ellipsis marker, see `Python's documentation <https://docs.python.org/2/library/doctest.html#doctest.ELLIPSIS>`_.
+On the proper usage of the ellipsis marker, see :python:`Python's documentation<library/doctest.html#doctest.ELLIPSIS>`.
 
 There are a number of magic comments that you can put into the example
 code that change how the output is verified by the Sage doctest

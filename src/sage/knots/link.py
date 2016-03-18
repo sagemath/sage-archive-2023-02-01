@@ -1341,52 +1341,13 @@ class Link(object):
         neg = (-1) * x[1].count(-1)
         return pos + neg
 
-    @lazy_attribute
-    def _jones_polynomial(self):
-        """
-        Cached version of the Jones polynomial of the trace closure of the
-        braid representation of ``self`` in a generic variable with the skein
-        normalization.
-
-        The computation of the Jones polynomial uses the representation
-        of the braid group on the Temperley--Lieb algebra. We cache the
-        part of the calculation which does not depend on the choices of
-        variables or normalizations.
-
-        .. SEEALSO::
-
-            :meth:`jones_polynomial`
-
-        TESTS::
-
-            sage: B = BraidGroup(9)
-            sage: b = B([1, 2, 3, 4, 5, 6, 7, 8])
-            sage: Link(b).jones_polynomial()
-            1
-
-            sage: B = BraidGroup(2)
-            sage: b = B([])
-            sage: Link(b)._jones_polynomial
-            -A^-2 - A^2
-            sage: b = B([-1, -1, -1])
-            sage: Link(b)._jones_polynomial
-            -A^-16 + A^-12 + A^-4
-        """
-        braid = self.braid()
-        trace = braid.markov_trace(normalized=False)
-        A = trace.parent().gens()[0]
-        D = A**2 + A**(-2)
-        exp_sum = braid.exponent_sum()
-        num_comp = braid.components_in_closure()
-        return (-1)**(num_comp-1) * A**(2*exp_sum) * trace // D
-
     def jones_polynomial(self, variab=None, skein_normalization=False, algorithm='jonesrep'):
         """
         Return the Jones polynomial of ``self``.
 
-        The normalization is so that the unknot has Jones polynomial `1`. If
-        ``skein_normalization`` is ``True``, the variable of the result is
-        replaced by a itself to the power of `4`, so that the result
+        The normalization is so that the unknot has Jones polynomial `1`.
+        If ``skein_normalization`` is ``True``, the variable of the result
+        is replaced by a itself to the power of `4`, so that the result
         agrees with the conventions of [Lic]_ (which in particular differs
         slightly from the conventions used otherwise in this class), had
         one used the conventional Kauffman bracket variable notation directly.
@@ -1396,14 +1357,17 @@ class Link(object):
         particular, if ``skein_normalization`` is ``False``, return the
         result in terms of the variable `t`, also used in [Lic]_.
 
-        The calculation goes through one of two possible algorithms, depending
-        on the value of ``algorithm``. Possible values are ``'jonesrep'`` which
-        uses the Jones representation of a braid representation of ``self`` to
-        compute the polynomial of the trace closure of the braid, and
-        ``statesum`` which recursively computes the Kauffman bracket of
-        ``self``. Depending on how the link is given, there might be
-        significant time gains in using one over the other. When the trace
-        closure of the braid is ``self``, the algorithms give the same result.
+        ALGORITHM:
+
+        The calculation goes through one of two possible algorithms,
+        depending on the value of ``algorithm``. Possible values are
+        ``'jonesrep'`` which uses the Jones representation of a braid
+        representation of ``self`` to compute the polynomial of the
+        trace closure of the braid, and ``statesum`` which recursively
+        computes the Kauffman bracket of ``self``. Depending on how the
+        link is given, there might be significant time gains in using
+        one over the other. When the trace closure of the braid is
+        ``self``, the algorithms give the same result.
 
         INPUT:
 
@@ -1414,7 +1378,12 @@ class Link(object):
         - ``skein_normalization`` -- boolean (default: ``False``); determines
           the variable of the resulting polynomial
 
-        - ``algorithm`` -- string (default: ``'jonesrep'``); algorithm to use.
+        - ``algorithm`` -- string (default: ``'jonesrep'``); algorithm to use
+          and can be one of the following:
+
+          * ``'jonesrep'`` - use the Jones representation of the braid
+            representation
+          * ``'statesum'`` - recursively computes the Kauffman bracket
 
         OUTPUT:
 
@@ -1466,8 +1435,8 @@ class Link(object):
             sage: Link(b).jones_polynomial(skein_normalization=True)
             A^4 + A^12 - A^16
 
-        K11n42 (the mirror of the "Kinoshita-Terasaka" knot) and K11n34 (the
-        mirror of the "Conway" knot)::
+        `K11n42` (the mirror of the "Kinoshita-Terasaka" knot) and `K11n34`
+        (the mirror of the "Conway" knot)::
 
             sage: B = BraidGroup(4)
             sage: K11n42 = Link(B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2]))
@@ -1475,16 +1444,16 @@ class Link(object):
             sage: cmp(K11n42.jones_polynomial(), K11n34.jones_polynomial())
             0
 
-        The two algorithms for computation give the same result when the trace
-        closure of the braid representation is the link itself::
+        The two algorithms for computation give the same result when the
+        trace closure of the braid representation is the link itself::
 
-            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6, -5]], [-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, 2, -3, 4, 5, 1, -2, 6, 7, 3, -4, -7, -6, -5]], [-1, -1, -1, -1, 1, -1, 1]])
             sage: jonesrep = L.jones_polynomial(algorithm='jonesrep')
             sage: statesum = L.jones_polynomial(algorithm='statesum')
             sage: cmp(jonesrep, statesum)
             0
 
-        But when we have thrown away unknots so that the trace closure of the
+        When we have thrown away unknots so that the trace closure of the
         braid is not necessarily the link itself, this is only true up to a
         power of the Jones polynomial of the unknot::
 
@@ -1499,12 +1468,6 @@ class Link(object):
             -sqrt(t) - 1/sqrt(t)
             sage: L.jones_polynomial(algorithm='statesum')
             1
-
-        REFERENCES:
-
-        .. [Lic] William B. Raymond Lickorish. An Introduction to Knot Theory,
-           volume 175 of Graduate Texts in Mathematics. Springer-Verlag,
-           New York, 1997. ISBN 0-387-98254-X
         """
         if algorithm == 'statesum':
             poly = self._bracket()
@@ -1515,21 +1478,21 @@ class Link(object):
             # of the jonesrep algorithm
             A = LaurentPolynomialRing(ZZ, 'A').gen()
             jones = jones(A**-1)
-        elif algorithm == 'jonesrep':
-            jones = self._jones_polynomial
-        else:
-            raise ValueError("bad value of algorithm")
 
-        if skein_normalization:
-            if variab is None:
-                return jones
+            if skein_normalization:
+                if variab is None:
+                    return jones
+                else:
+                    return jones(variab)
             else:
-                return jones(variab)
-        else:
-            if variab is None:
-                variab = 't'
-            # We force the result to be in the symbolic ring because of the expand
-            return jones(SR(variab)**(ZZ(1)/ZZ(4))).expand()
+                if variab is None:
+                    variab = 't'
+                # We force the result to be in the symbolic ring because of the expand
+                return jones(SR(variab)**(ZZ(1)/ZZ(4))).expand()
+        elif algorithm == 'jonesrep':
+            return self.braid().jones_polynomial(variab, skein_normalization)
+
+        raise ValueError("bad value of algorithm")
 
     @cached_method
     def _bracket(self):

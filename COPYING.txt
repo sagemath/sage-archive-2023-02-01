@@ -89,6 +89,7 @@ mpmath                      Modified BSD
 networkx                    Modified BSD
 ntl                         GPLv2+
 numpy                       Modified BSD
+openblas                    Modified BSD
 palp                        GPLv3
 pari                        GPLv2+
 patch                       GPLv2+

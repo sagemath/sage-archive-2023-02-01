@@ -22,7 +22,7 @@ Density Plots
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
 from sage.plot.colors import get_cmap
-from sage.misc.misc import xsrange
+from sage.arith.srange import xsrange
 
 class DensityPlot(GraphicPrimitive):
     """

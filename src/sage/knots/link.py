@@ -55,6 +55,7 @@ from sage.functions.generalized import sign
 from sage.plot.line import line
 from sage.plot.bezier_path import bezier_path
 from sage.misc.flatten import flatten
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from copy import deepcopy, copy
 
@@ -85,7 +86,7 @@ class Link(object):
       .. NOTE::
 
           The strands of the braid that have no crossings at all
-          are ignored.
+          are removed.
 
     - Oriented Gauss Code:
 
@@ -123,7 +124,7 @@ class Link(object):
 
     EXAMPLES:
 
-    One of the representations of the Trefoil knot::
+    One of the representations of the trefoil knot::
 
         sage: L = Link([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
         sage: L
@@ -138,7 +139,7 @@ class Link(object):
     We can construct links from from the braid group::
 
         sage: B = BraidGroup(8)
-        sage: L = Link(B([-1, -1, -1, -2,1, -2, 3, -2]))
+        sage: L = Link(B([-1, -1, -1, -2, 1, -2, 3, -2]))
         sage: L
         Link with 2 components represented by 8 crossings
         sage: L = Link(B([1, 2, 1]))
@@ -170,7 +171,7 @@ class Link(object):
         """
         if isinstance(data, list):
             if not data:
-                raise ValueError("does not accept empty list as arguement")
+                raise ValueError("does not accept empty list as argument")
 
             if len(data) != 2 or not all(isinstance(i, list) for i in data[0]):
                 for i in data:
@@ -267,7 +268,7 @@ class Link(object):
 
     def braid(self):
         """
-        Return the braid representation of ``self``.
+        Return a braid representation of ``self``.
 
         OUTPUT: an element in the braid group
 
@@ -574,7 +575,7 @@ class Link(object):
 
         We construct the crossing by starting with the entering component
         of the undercrossing, move in the clockwise direction and then
-        generate the list. Suppose if the crossing is given by `[a, b, c, d]`,
+        generate the list. If the crossing is given by `[a, b, c, d]`,
         then we interpret this information as:
 
         1. `a` is the entering component of the undercrossing;
@@ -587,7 +588,7 @@ class Link(object):
             sage: L.pd_code()
             [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]]
             sage: B = BraidGroup(2)
-            sage: b=B([1, 1, 1, 1, 1])
+            sage: b = B([1, 1, 1, 1, 1])
             sage: L = Link(b)
             sage: L.pd_code()
             [[2, 1, 3, 4], [4, 3, 5, 6], [6, 5, 7, 8], [8, 7, 9, 10], [10, 9, 1, 2]]
@@ -608,7 +609,7 @@ class Link(object):
                 d = flatten(oriented_gauss_code[0])
                 for i, j in enumerate(d):
                     d_dic[j] = [i + 1, i + 2]
-                # here we collect the final component in each gauss code
+                # here we collect the final component in each Gauss code
                 last_component = [i[-1] for i in oriented_gauss_code[0]]
                 first_component = [i[0] for i in oriented_gauss_code[0]]
                 # here we correct the last_component
@@ -914,7 +915,7 @@ class Link(object):
         """
         Return the number of connected components of ``self``.
 
-        OUTPUT: number of onnected components
+        OUTPUT: number of connected components
 
         EXAMPLES::
 
@@ -1340,43 +1341,195 @@ class Link(object):
         neg = (-1) * x[1].count(-1)
         return pos + neg
 
-    def jones_polynomial(self, var='q'):
+    @lazy_attribute
+    def _jones_polynomial(self):
+        """
+        Cached version of the Jones polynomial of the trace closure of the
+        braid representation of ``self`` in a generic variable with the skein
+        normalization.
+
+        The computation of the Jones polynomial uses the representation
+        of the braid group on the Temperley--Lieb algebra. We cache the
+        part of the calculation which does not depend on the choices of
+        variables or normalizations.
+
+        .. SEEALSO::
+
+            :meth:`jones_polynomial`
+
+        TESTS::
+
+            sage: B = BraidGroup(9)
+            sage: b = B([1, 2, 3, 4, 5, 6, 7, 8])
+            sage: Link(b).jones_polynomial()
+            1
+
+            sage: B = BraidGroup(2)
+            sage: b = B([])
+            sage: Link(b)._jones_polynomial
+            -A^-2 - A^2
+            sage: b = B([-1, -1, -1])
+            sage: Link(b)._jones_polynomial
+            -A^-16 + A^-12 + A^-4
+        """
+        braid = self.braid()
+        trace = braid.markov_trace(normalized=False)
+        A = trace.parent().gens()[0]
+        D = A**2 + A**(-2)
+        exp_sum = braid.exponent_sum()
+        num_comp = braid.components_in_closure()
+        return (-1)**(num_comp-1) * A**(2*exp_sum) * trace // D
+
+    def jones_polynomial(self, variab=None, skein_normalization=False, algorithm='jonesrep'):
         """
         Return the Jones polynomial of ``self``.
 
+        The normalization is so that the unknot has Jones polynomial `1`. If
+        ``skein_normalization`` is ``True``, the variable of the result is
+        replaced by a itself to the power of `4`, so that the result
+        agrees with the conventions of [Lic]_ (which in particular differs
+        slightly from the conventions used otherwise in this class), had
+        one used the conventional Kauffman bracket variable notation directly.
+
+        If ``variab`` is ``None`` return a polynomial in the variable `A`
+        or `t`, depending on the value ``skein_normalization``. In
+        particular, if ``skein_normalization`` is ``False``, return the
+        result in terms of the variable `t`, also used in [Lic]_.
+
+        The calculation goes through one of two possible algorithms, depending
+        on the value of ``algorithm``. Possible values are ``'jonesrep'`` which
+        uses the Jones representation of a braid representation of ``self`` to
+        compute the polynomial of the trace closure of the braid, and
+        ``statesum`` which recursively computes the Kauffman bracket of
+        ``self``. Depending on how the link is given, there might be
+        significant time gains in using one over the other. When the trace
+        closure of the braid is ``self``, the algorithms give the same result.
+
         INPUT:
 
-        - ``var`` -- (default: ``'q'``) the variable in the polynomial
+        - ``variab`` -- variable (default: ``None``); the variable in the
+          resulting polynomial; if unspecified, use either a default variable
+          in `ZZ[A,A^{-1}]` or the variable `t` in the symbolic ring
+
+        - ``skein_normalization`` -- boolean (default: ``False``); determines
+          the variable of the resulting polynomial
+
+        - ``algorithm`` -- string (default: ``'jonesrep'``); algorithm to use.
 
         OUTPUT:
 
-        The Jones Polynomial as a polynomial in ``var`` as an element
-        of the symbolic ring.
+        If ``skein_normalization`` if ``False``, this returns an element
+        in the symbolic ring as the Jones polynomial of the link might
+        have fractional powers when the link is not a knot. Otherwise the
+        result is a Laurant polynomial in ``variab``.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-            sage: L.jones_polynomial()
-            q^2 - q - 1/q + 1/q^2 + 1
-            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-            sage: L.jones_polynomial()
-            1/q + 1/q^3 - 1/q^4
-            sage: l1 = [[1,4,2,3],[4,1,3,2]]
-            sage: L = Link(l1)
-            sage: L.jones_polynomial()
-            -1/sqrt(q) - 1/q^(5/2)
-            sage: l5 = [[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]]
-            sage: L = Link(l5)
-            sage: L.jones_polynomial()
-            -q^(3/2) + sqrt(q) - 2/sqrt(q) + 1/q^(3/2) - 2/q^(5/2) + 1/q^(7/2)
+        The unknot::
+
+            sage: B = BraidGroup(9)
+            sage: b = B([1, 2, 3, 4, 5, 6, 7, 8])
+            sage: Link(b).jones_polynomial()
+            1
+
+        Two unlinked unknots::
+
+            sage: B = BraidGroup(4)
+            sage: b = B([1, 3])
+            sage: Link(b).jones_polynomial()
+            -sqrt(t) - 1/sqrt(t)
+
+        The Hopf link::
+
+            sage: B = BraidGroup(2)
+            sage: b = B([-1,-1])
+            sage: Link(b).jones_polynomial()
+            -1/sqrt(t) - 1/t^(5/2)
+
+        Different representations of the trefoil and one of its mirror::
+
+            sage: B = BraidGroup(2)
+            sage: b = B([-1, -1, -1])
+            sage: Link(b).jones_polynomial(skein_normalization=True)
+            -A^-16 + A^-12 + A^-4
+            sage: Link(b).jones_polynomial()
+            1/t + 1/t^3 - 1/t^4
+            sage: B = BraidGroup(3)
+            sage: b = B([-1, -2, -1, -2])
+            sage: Link(b).jones_polynomial(skein_normalization=True)
+            -A^-16 + A^-12 + A^-4
+            sage: R.<x> = LaurentPolynomialRing(GF(2))
+            sage: Link(b).jones_polynomial(skein_normalization=True, variab=x)
+            x^-16 + x^-12 + x^-4
+            sage: B = BraidGroup(3)
+            sage: b = B([1, 2, 1, 2])
+            sage: Link(b).jones_polynomial(skein_normalization=True)
+            A^4 + A^12 - A^16
+
+        K11n42 (the mirror of the "Kinoshita-Terasaka" knot) and K11n34 (the
+        mirror of the "Conway" knot)::
+
+            sage: B = BraidGroup(4)
+            sage: K11n42 = Link(B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2]))
+            sage: K11n34 = Link(B([1, 1, 2, -3, 2, -3, 1, -2, -2, -3, -3]))
+            sage: cmp(K11n42.jones_polynomial(), K11n34.jones_polynomial())
+            0
+
+        The two algorithms for computation give the same result when the trace
+        closure of the braid representation is the link itself::
+
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6, -5]], [-1, -1, -1, -1, 1, -1, 1]])
+            sage: jonesrep = L.jones_polynomial(algorithm='jonesrep')
+            sage: statesum = L.jones_polynomial(algorithm='statesum')
+            sage: cmp(jonesrep, statesum)
+            0
+
+        But when we have thrown away unknots so that the trace closure of the
+        braid is not necessarily the link itself, this is only true up to a
+        power of the Jones polynomial of the unknot::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1])
+            sage: L = Link(b)
+            sage: b.components_in_closure()
+            2
+            sage: L.number_of_components()
+            1
+            sage: L.jones_polynomial(algorithm='jonesrep')
+            -sqrt(t) - 1/sqrt(t)
+            sage: L.jones_polynomial(algorithm='statesum')
+            1
+
+        REFERENCES:
+
+        .. [Lic] William B. Raymond Lickorish. An Introduction to Knot Theory,
+           volume 175 of Graduate Texts in Mathematics. Springer-Verlag,
+           New York, 1997. ISBN 0-387-98254-X
         """
-        poly = self._bracket()
-        # Now convert it to the symbolic ring
-        t = SR(var)
-        poly = poly.subs(t=t)
-        writhe = self.writhe()
-        jones = (poly * (-t)**(-3 * writhe)).expand()
-        return jones.subs({t: t**(ZZ(-1) / ZZ(4))})
+        if algorithm == 'statesum':
+            poly = self._bracket()
+            t = poly.parent().gens()[0]
+            writhe = self.writhe()
+            jones = (poly * (-t)**(-3 * writhe))
+            # Switch to the variable A to have the result agree with the output
+            # of the jonesrep algorithm
+            A = LaurentPolynomialRing(ZZ, 'A').gen()
+            jones = jones(A**-1)
+        elif algorithm == 'jonesrep':
+            jones = self._jones_polynomial
+        else:
+            raise ValueError("bad value of algorithm")
+
+        if skein_normalization:
+            if variab is None:
+                return jones
+            else:
+                return jones(variab)
+        else:
+            if variab is None:
+                variab = 't'
+            # We force the result to be in the symbolic ring because of the expand
+            return jones(SR(variab)**(ZZ(1)/ZZ(4))).expand()
 
     @cached_method
     def _bracket(self):

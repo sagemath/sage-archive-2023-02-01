@@ -7,15 +7,15 @@ AUTHORS:
 - Amit Jamadagni
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2014   Travis Scrimshaw <tscrim at ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 from sage.knots.link import Link
 from sage.rings.finite_rings.integer_mod import Mod
@@ -178,7 +178,7 @@ class Knot(Link):
             1
         """
         a = self.alexander_polynomial()
-        if ((Mod(a(-1), 8) == 1) or (Mod(a(-1), 8) == 7)):
+        if Mod(a(-1), 8) == 1 or Mod(a(-1), 8) == 7:
             return 0
 
         return 1

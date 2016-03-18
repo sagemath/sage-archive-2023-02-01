@@ -22,22 +22,26 @@ REFERENCES:
 
 - :wikipedia:`Knot_(mathematics)`
 
+.. [Collins13] Julia Collins. *An algorithm for computing the Seifert
+   matrix of a link from a braid representation*. (2013).
+   http://www.maths.ed.ac.uk/~jcollins/SeifertMatrix/SeifertMatrix.pdf
+
 AUTHORS:
 
 - Miguel Angel Marco Buzunariz
 - Amit Jamadagni
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2014  Miguel Angel Marco Buzunariz
 #                           Amit Jamadagni
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
-
+#*****************************************************************************
 
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
@@ -59,6 +63,11 @@ class Link(object):
     r"""
     A link.
 
+    A link is an embedding of one or more copies of `\mathbb{S}^1` in
+    `\mathbb{S}^3`, considered up to ambient isotopy. That is, a link
+    represents the idea of one or more tied ropes. Every knot is a link,
+    but not every link is a knot.
+
     A link can be created by using one of the conventions mentioned below:
 
     Braid:
@@ -73,8 +82,10 @@ class Link(object):
         sage: L
         Link with 2 components represented by 5 crossings
 
-      Note that the strands of the braid that have no crossings at all
-      are ignored.
+      .. NOTE::
+
+          The strands of the braid that have no crossings at all
+          are ignored.
 
     - Oriented Gauss Code:
 
@@ -650,7 +661,7 @@ class Link(object):
             self._pd_code = pd
             return pd
 
-        raise AssertionError("BUG: invalid state")
+        raise AssertionError("invalid state")
 
     def gauss_code(self):
         """
@@ -679,7 +690,7 @@ class Link(object):
         """
         return self.oriented_gauss_code()[0]
 
-    def _dowker_notation_(self):
+    def dowker_notation(self):
         """
         Return the Dowker notation of ``self``.
 
@@ -697,14 +708,14 @@ class Link(object):
         EXAMPLES::
 
             sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-            sage: L._dowker_notation_()
+            sage: L.dowker_notation()
             [(1, 6), (7, 2), (3, 10), (11, 4), (14, 5), (13, 8), (12, 9)]
             sage: B = BraidGroup(4)
             sage: L = Link(B([1, 2, 1, 2]))
-            sage: L._dowker_notation_()
+            sage: L.dowker_notation()
             [(2, 1), (3, 6), (7, 5), (8, 10)]
             sage: L = Link([[1,4,2,3],[4,1,3,2]])
-            sage: L._dowker_notation_()
+            sage: L.dowker_notation()
             [(1, 3), (4, 2)]
         """
         pd = self.pd_code()
@@ -718,8 +729,8 @@ class Link(object):
         Return the disjoint braid components, if any, else return the braid
         of ``self``.
 
-        For example consider the braid `[-1, 3, 1, 3]` this can be viewed
-        as a braid with components as `[-1, 1]` and `[3, 3]`. There is no
+        For example consider the braid ``[-1, 3, 1, 3]`` this can be viewed
+        as a braid with components as ``[-1, 1]`` and ``[3, 3]``. There is no
         common crossing to these two (in sense there is a crossing between
         strand `1` and `2`, crossing between `3` and `4` but no crossing
         between strand `2` and `3`, so these can be viewed as independent
@@ -795,23 +806,27 @@ class Link(object):
         the homology generators. The position of the repeated element w.r.t.
         the braid word component vector list is compiled into a list.
 
+        This is based on Lemma 3.1 in [Collins13]_.
+
         OUTPUT:
 
-        homology generators relating to the braid word representation
+        A list of integers `i \in \{1, 2, \ldots, n-1\}` corresponding
+        to the simple generators `s_i` that gives a homology generator or
+        `0` if the position does not represent a generator.
 
         EXAMPLES::
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
             sage: L._homology_generators()
-            [1, None, 3]
+            [1, 0, 3]
             sage: B = BraidGroup(8)
             sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
             sage: L._homology_generators()
-            [1, 2, 3, None, None, None, None]
+            [1, 2, 3, 0, 0, 0, 0]
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L._homology_generators()
-            [None, 2, None, 4, None]
+            [0, 2, 0, 4, 0]
         """
         x = self._braid_word_components_vector()
         hom_gen = []
@@ -822,13 +837,17 @@ class Link(object):
                     hom_gen.append(i)
                     break
             else:
-                hom_gen.append(None)
+                hom_gen.append(0)
         return hom_gen
 
     @cached_method
     def seifert_matrix(self):
         """
         Return the Seifert matrix associated with ``self``.
+
+        ALGORITHM:
+
+        This is the algorithm presented in Section 3.3 of [Collins13]_.
 
         OUTPUT:
 
@@ -856,18 +875,19 @@ class Link(object):
         h = self._homology_generators()
         hl = len(h)
         A = matrix(ZZ, hl, hl)
-        indices = [i for i,hi in enumerate(h) if hi is not None]
+        indices = [i for i,hi in enumerate(h) if hi != 0]
         for i in indices:
+            hi = h[i]
             for j in range(i, hl):
                 if i == j:
-                    A[i, j] = cmp(0, x[i] + x[h[i]])
-                elif h[j] is None or h[i] > h[j]:
+                    A[i, j] = cmp(0, x[i] + x[hi])
+                elif hi > h[j]:
                     A[i, j] = 0
                     A[j, i] = 0
-                elif h[i] < j:
+                elif hi < j:
                     A[i, j] = 0
                     A[j, i] = 0
-                elif h[i] == j:
+                elif hi == j:
                     if x[j] > 0:
                         A[i, j] = 0
                         A[j, i] = 1
@@ -1028,10 +1048,23 @@ class Link(object):
 
         - ``var`` -- (default: ``'t'``) the variable in the polynomial
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We begin by computing the Alexander polynomial for the
+        figure-eight knot::
+
+            sage: B = BraidGroup(3)
+            sage: L = Link(B([1, -2, 1, -2]))
+            sage: L.alexander_polynomial()
+            -t^-1 + 3 - t
+
+        Some additional examples::
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
+            sage: L.alexander_polynomial()
+            0
+            sage: L = Link(B([1,3]))
             sage: L.alexander_polynomial()
             0
             sage: B = BraidGroup(8)
@@ -1041,9 +1074,6 @@ class Link(object):
             sage: L = Link(B([1, 2, 1, 2]))
             sage: L.alexander_polynomial()
             t^-1 - 1 + t
-            sage: L = Link(B([1,3]))
-            sage: L.alexander_polynomial()
-            0
         """
         R = LaurentPolynomialRing(ZZ, var)
         t = R.gen()
@@ -1071,7 +1101,7 @@ class Link(object):
             sage: L = Link(B([2, 4, 2, 3, 1, 2]))
             sage: L.determinant()
             3
-            sage: L = Link(B([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
+            sage: L = Link(B([1]*16 + [2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
             sage: L.determinant()
             65
         """
@@ -1320,8 +1350,8 @@ class Link(object):
 
         OUTPUT:
 
-        - Jones Polynomial as a polynomial in ``var``, as an element
-          of the symbolic ring.
+        The Jones Polynomial as a polynomial in ``var`` as an element
+        of the symbolic ring.
 
         EXAMPLES::
 
@@ -1351,7 +1381,7 @@ class Link(object):
     @cached_method
     def _bracket(self):
         r"""
-        Return the Kaufmann bracket polynomial of the diagram.
+        Return the Kaufmann bracket polynomial of the diagram of ``self``.
 
         Note that this is not an invariant of the link, but of the diagram.
         In particular, it is not invariant under Reidemeister I moves.

@@ -38,7 +38,6 @@ singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 
 aliases = dict(
         GSL_LIBRARIES=['gsl', BLAS, BLAS2],
-        INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"),
         )
 
 #########################################################
@@ -155,6 +154,14 @@ ext_modules = [
                sources = ['sage/algebras/quatalg/quaternion_algebra_cython.pyx'],
                language='c++',
                libraries = ["flint", "gmp", "gmpxx", "m", "ntl"]),
+
+    ################################
+    ##
+    ## sage.arith
+    ##
+    ################################
+
+    Extension('*', ['sage/arith/*.pyx']),
 
     ################################
     ##
@@ -815,6 +822,9 @@ ext_modules = [
 
     Extension('sage.matrix.change_ring',
               sources = ['sage/matrix/change_ring.pyx']),
+
+    Extension('sage.matrix.constructor',
+              sources = ['sage/matrix/constructor.pyx']),
 
     Extension('sage.matrix.matrix',
               sources = ['sage/matrix/matrix.pyx']),

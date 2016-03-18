@@ -62,7 +62,7 @@ from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 cimport cython
 
@@ -9792,29 +9792,29 @@ cpdef gen objtogen(s):
 
     # Check basic Python types. Start with strings, which are a very
     # common case.
-    if PyString_Check(s):
+    if isinstance(s, str):
         pari_catch_sig_on()
         g = gp_read_str(PyString_AsString(s))
         if g == gnil:
             P.clear_stack()
             return None
         return P.new_gen(g)
-    if PyInt_Check(s):
+    if isinstance(s, int):
         pari_catch_sig_on()
         return P.new_gen(stoi(PyInt_AS_LONG(s)))
-    if PyBool_Check(s):
+    if isinstance(s, bool):
         return P.PARI_ONE if s else P.PARI_ZERO
-    if PyLong_Check(s):
+    if isinstance(s, long):
         pari_catch_sig_on()
         mpz_init(mpz_int)
         mpz_set_pylong(mpz_int, s)
         g = P._new_GEN_from_mpz_t(mpz_int)
         mpz_clear(mpz_int)
         return P.new_gen(g)
-    if PyFloat_Check(s):
+    if isinstance(s, float):
         pari_catch_sig_on()
         return P.new_gen(dbltor(PyFloat_AS_DOUBLE(s)))
-    if PyComplex_Check(s):
+    if isinstance(s, complex):
         pari_catch_sig_on()
         g = cgetg(3, t_COMPLEX)
         set_gel(g, 1, dbltor(PyComplex_RealAsDouble(s)))

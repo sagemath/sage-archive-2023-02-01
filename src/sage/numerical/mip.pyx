@@ -222,7 +222,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 
 from copy import copy
 from sage.structure.parent cimport Parent

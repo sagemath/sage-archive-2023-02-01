@@ -24,7 +24,9 @@ fi
 
 # No install target so we resort to manual copy
 echo >&2 "Copying nauty..."
-for program in addedgeg amtog biplabg catg complg copyg countg deledgeg directg dreadnaut dretog genbg geng genrang labelg listg multig newedgeg NRswitchg pickg planarg shortg showg gentourng;
+for program in addedgeg amtog biplabg catg complg converseg copyg countg cubhamg deledgeg delptg directg dreadnaut dretodot dretog \
+  genbg genbgL geng genquarticg genrang genspecialg gentourng gentreeg hamheuristic labelg linegraphg listg multig newedgeg \
+  pickg planarg ranlabg shortg showg subdivideg twohamg vcolg watercluster2 NRswitchg;
 do
   cp -p $program "$SAGE_LOCAL"/bin/$program
   if [ $? -ne 0 ]; then
@@ -32,4 +34,3 @@ do
    exit 1
   fi
 done
-

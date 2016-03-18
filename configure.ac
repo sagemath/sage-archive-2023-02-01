@@ -1,7 +1,7 @@
 #*****************************************************************************
 #       Copyright (C) 2005-2007 William Stein
 #       Copyright (C) 2009-2011 David Kirkby
-#       Copyright (C) 2012-2015 Jeroen Demeyer
+#       Copyright (C) 2012-2016 Jeroen Demeyer
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -74,7 +74,6 @@ fi
 # configure options.
 #
 
-[
 ########################################################################
 # Set various environment variables
 ########################################################################
@@ -86,42 +85,6 @@ SAGE_LOCAL="$SAGE_ROOT/local"
 SAGE_SHARE="$SAGE_LOCAL/share"
 SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
-
-###############################################################################
-# Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
-###############################################################################
-
-mkdir -p "$SAGE_SHARE"
-if [ -z "$SAGE_MP_LIBRARY" ]; then
-    # Automatic detection of installed MP library.
-    if [ ! -f "$SAGE_SHARE/mp_config" ]; then
-        echo "MPIR" > "$SAGE_SHARE/mp_config"
-    fi
-    SAGE_MP_LIBRARY=`cat "$SAGE_SHARE/mp_config"`
-else
-    if [ -f "$SAGE_SHARE/mp_config" -a "$SAGE_MP_LIBRARY" != `cat "$SAGE_SHARE/mp_config"` ]; then
-        echo "SAGE_MP_LIBRARY differs from the value stored in"
-        echo "\"$SAGE_SHARE/mp_config\"."
-        echo "This is not supported; you should rebuild Sage from scratch"
-        echo "using the new SAGE_MP_LIBRARY value."
-        exit 1
-    fi
-
-    case "$SAGE_MP_LIBRARY" in
-        MPIR|GMP)
-            echo "Using $SAGE_MP_LIBRARY as default MP library."
-            echo $SAGE_MP_LIBRARY > "$SAGE_SHARE/mp_config"
-            ;;
-        *)
-            echo "Allowed values for SAGE_MP_LIBRARY are \"MPIR\" and \"GMP\"."
-            echo "If you did not set this variable, check the content of"
-            echo "\"$SAGE_SHARE/mp_config\"."
-            exit 1
-            ;;
-    esac
-fi
-]
-
 
 #---------------------------------------------------------
 AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unpriviledged user])], [])
@@ -665,12 +628,13 @@ cat >&7 <<EOF
 # You should not edit it by hand
 #==============================================================================
 
-EOF
+# Always use bash for make rules
+SHELL = `command -v bash`
 
-# Use bash as shell for the Makefile (bash obviously exists, since
-# this build/make/install script runs under bash).
-echo >&7 "SHELL = `command -v bash`"
-echo >&7
+# Directory to keep track of which packages are installed
+INST = `echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+
+EOF
 
 AC_MSG_CHECKING([package versions])
 AC_MSG_RESULT([])
@@ -714,7 +678,7 @@ filtered_packages_list() {
         else
             echo >&2 "\"$PKG_TYPE_FILE\" is missing. Create it, and set its content"
             echo >&2 "to 'base', 'standard', 'optional' or 'experimental'."
-            return 1
+            exit 1
         fi
 
         # Check consistency of 'DIR/type' file
@@ -725,58 +689,69 @@ filtered_packages_list() {
            [ "$PKG_TYPE" != "script" ] && \
            [ "$PKG_TYPE" != "pip" ]; then
             echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'"
-            return 1
+            exit 1
         fi
 
         # Filter
         if [ "$1" = "$PKG_TYPE" -o "$1" = all ]; then
             PKG_NAME=$(basename $DIR)
-            PKG_VAR="$(echo $PKG_NAME | sed 's/^4/FOUR/' | tr '[:lower:]' '[:upper:]')"
+            PKG_VAR="$(echo $PKG_NAME | sed 's/^/inst_/')"
             PKG_VERSION=$(newest_version $PKG_NAME)
             echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
         fi
     done
 }
+]
 
-# Check that all packages define a (valid) 'type' file, or exit
-filtered_packages_list none || exit $?
-
-echo >&7 "# All Sage packages"
-
+echo >&7 '# Files to track installation of packages'
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     if test "$PKG_NAME" != "$PKG_VERSION"; then
-        echo >&7 "$PKG_VAR = $PKG_VERSION"
-        ]AC_MSG_RESULT([    $PKG_VAR=$PKG_VERSION])[
+        echo >&7 "$PKG_VAR = \$(INST)/$PKG_VERSION"
+        AC_MSG_RESULT([    $PKG_VERSION])
     fi
 done
 
-cat >&7 <<EOF
-
-# Directory to keep track of which packages are installed
-INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
-
-# Aliases for optional packages selected at build time
-EOF
-
+echo >&7
+echo >&7 '# Aliases for optional packages selected at configure time'
 
 # Python version
-if [ "$SAGE_PYTHON3" = yes ]; then
-    echo >&7 'PYTHON = $(PYTHON3)'
+if test "$SAGE_PYTHON3" = yes; then
+    echo >&7 'PYTHON = $(inst_python3)'
 else
-    echo >&7 'PYTHON = $(PYTHON2)'
+    echo >&7 'PYTHON = $(inst_python2)'
 fi
-]
 
 # Sage MP library
-echo >&7 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
+AC_MSG_CHECKING([multiprecision library])
+AC_ARG_WITH([mp],
+[AS_HELP_STRING([--with-mp=mpir],
+    [use MPIR as multiprecision library (default)])]
+[AS_HELP_STRING([--with-mp=gmp],
+    [use GMP as multiprecision library])])
+
+case "$with_mp" in
+    MPIR|mpir) with_mp=MPIR;;
+    GMP|gmp) with_mp=GMP;;
+    "") with_mp=${SAGE_MP_LIBRARY:-MPIR};;
+    *)
+        AC_MSG_ERROR([allowed values for --with-mp are MPIR and GMP]) ;;
+esac
+
+AC_MSG_RESULT([$with_mp])
+
+if test $with_mp = MPIR; then
+    echo >&7 'MP_LIBRARY = $(inst_mpir)'
+else
+    echo >&7 'MP_LIBRARY = $(inst_gmp)'
+fi
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
 AS_ECHO_N(>&7 ['TOOLCHAIN ='])
 if test "$SAGE_INSTALL_CCACHE" = yes ; then
-    AS_ECHO_N(>&7 [' $(INST)/$(CCACHE)'])
+    AS_ECHO_N(>&7 [' $(inst_ccache)'])
 fi
 if test "$need_to_install_gcc" = yes ; then
-    AS_ECHO_N(>&7 [' $(INST)/$(GCC)'])
+    AS_ECHO_N(>&7 [' $(inst_gcc)'])
 fi
 echo >&7
 echo >&7
@@ -785,7 +760,7 @@ echo >&7
 echo >&7 '# All standard packages'
 echo >&7 'STANDARD_PACKAGES = \'
 filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    echo >&7 "    \$(INST)/\$($PKG_VAR) \\"
+    echo >&7 "    \$($PKG_VAR) \\"
 done
 echo >&7
 echo >&7
@@ -797,7 +772,7 @@ filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
         continue
     fi
     if [ -f $SAGE_SPKG_INST/$PKG_NAME-* ]; then
-        echo >&7 "    \$(INST)/\$($PKG_VAR) \\"
+        echo >&7 "    \$($PKG_VAR) \\"
     fi;
 done
 echo >&7
@@ -846,17 +821,22 @@ cat >&7 <<EOF
 EOF
 
 # Add a Makefile target corresponding to a given package
-filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+filtered_packages_list all | {
+while read PKG_NAME PKG_VERSION PKG_VAR; do
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
     TYPE=`cat "$SAGE_ROOT/build/pkgs/$PKG_NAME/type"`
     if [ -f "$DEP_FILE" ]; then
-        DEPS=" $(head -n 1 $DEP_FILE)"
+        # DEPS is first line of $DEP_FILE with some modifications:
+        # - start with a single space
+        # - the # symbol is treated as comment which is removed
+        # - lower-case words "foo" are replaced by "$(inst_foo)"
+        DEPS=`sed 's/^ */ /; s/ *#.*//; s/ \([a-z0-9][a-z0-9_]*\)/ $(inst_\1)/g; q' $DEP_FILE`
     elif [ "$TYPE" = optional ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
     elif [ "$TYPE" = script ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
     elif [ "$TYPE" = pip ]; then
-        DEPS=' | $(INST)/$(PIP)'
+        DEPS=' | $(inst_pip)'
     else
         DEPS=""
     fi
@@ -888,19 +868,23 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger '\$(SAGE_SPKG) \$($PKG_VAR)' '\$(SAGE_LOGS)/\$($PKG_VAR).log'"
+        echo >&7 "	+sage-logger 'sage-spkg $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"
-        echo >&7 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+        echo >&7 "$PKG_NAME: \$($PKG_VAR)"
         echo >&7
 
         # Add a target to remove the "installed" file for "sage -f"
         echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	rm -f \$(INST)/\$($PKG_VAR)"
+        echo >&7 "	rm -f \$(INST)/$PKG_VERSION"
         echo >&7
     fi
+
+    PHONY="$PHONY $PKG_NAME"
 done
+echo >&7 ".PHONY:$PHONY"
+}
 
 # Close the Makefile
 exec 7>&-

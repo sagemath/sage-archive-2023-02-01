@@ -421,6 +421,20 @@ class PanAxiom(ExtraTabCompletion, Expect):
             sage: print axiom._eval_line('2+2')  #optional - axiom
               4
                                                        Type: PositiveInteger
+            sage: fricas._eval_line(")set output algebra off")  #optional - fricas
+            ''
+            sage: fricas._eval_line(")set output tex on")  #optional - fricas
+            ''
+            sage: print fricas._eval_line("2+2")  #optional - fricas
+            $$
+            4 
+            \leqno(11)
+            $$
+                                                       Type: PositiveInteger
+            sage: fricas._eval_line(")set output tex off")  #optional - fricas
+            ''
+            sage: fricas._eval_line(")set output algebra on")  #optional - fricas
+            ''
         """
         if not wait_for_prompt:
             return Expect._eval_line(self, line)
@@ -437,7 +451,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
         try:
             E = self._expect
             # debug
-            self._synchronize(cmd='1+%s\n')
+            # self._synchronize(cmd='1+%s\n')
             verbose("in = '%s'"%line,level=3)
             E.sendline(line)
             self._expect.expect(self._prompt)
@@ -468,12 +482,12 @@ class PanAxiom(ExtraTabCompletion, Expect):
             # print "'%s'"%line
             if line[:4] == '   (':
                 i = line.find('(')
-                i += line[i:].find(')')
-                if line[i+1:] == "":
+                i += line[i:].find(')')+1
+                if line[i:] == "":
                     i = 0
                     outs = outs[1:]
                 break;
-        out = "\n".join(line[i+1:] for line in outs[1:])
+        out = "\n".join(line[i:] for line in outs[1:])
         return out
 
     # define relational operators
@@ -884,10 +898,14 @@ class PanAxiomElement(ExpectElement):
             R = PolynomialRing(base_ring, vars)
             return R(self.unparsed_input_form())
 
-        #If all else fails, try using the unparsed input form
+         #If all else fails, try using the unparsed input form
         try:
             import sage.misc.sage_eval
-            return sage.misc.sage_eval.sage_eval(self.unparsed_input_form())
+            vars=sage.symbolic.ring.var(str(self.variables())[1:-1])
+            if isinstance(vars,tuple):
+                return sage.misc.sage_eval.sage_eval(self.unparsed_input_form(), locals={str(x):x for x in vars})
+            else:
+                return sage.misc.sage_eval.sage_eval(self.unparsed_input_form(), locals={str(vars):vars})
         except Exception:
             raise NotImplementedError
 

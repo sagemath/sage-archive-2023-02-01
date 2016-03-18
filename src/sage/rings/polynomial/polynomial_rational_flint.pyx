@@ -17,7 +17,7 @@ AUTHOR:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.misc.long cimport pyobject_to_long
 

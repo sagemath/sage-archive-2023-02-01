@@ -2851,14 +2851,14 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         The following demonstrate coercions for finite fields using Conway or
         pseudo-Conway polynomials::
 
-            sage: k = GF(3^2, conway=True, prefix='z'); a = k.gen()
-            sage: l = GF(3^3, conway=True, prefix='z'); b = l.gen()
+            sage: k = GF(3^2, prefix='z'); a = k.gen()
+            sage: l = GF(3^3, prefix='z'); b = l.gen()
             sage: a + b # indirect doctest
             z6^5 + 2*z6^4 + 2*z6^3 + z6^2 + 2*z6 + 1
 
         Note that embeddings are compatible in lattices of such finite fields::
 
-            sage: m = GF(3^5, conway=True, prefix='z'); c = m.gen()
+            sage: m = GF(3^5, prefix='z'); c = m.gen()
             sage: (a+b)+c == a+(b+c) # indirect doctest
             True
             sage: from sage.categories.pushout import pushout

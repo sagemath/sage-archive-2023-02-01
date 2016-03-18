@@ -377,8 +377,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         Check that the bug in :trac:`11239` is fixed::
 
-            sage: K.<a> = GF(5^2, conway=True, prefix='z')
-            sage: L.<b> = GF(5^4, conway=True, prefix='z')
+            sage: K.<a> = GF(5^2, prefix='z')
+            sage: L.<b> = GF(5^4, prefix='z')
             sage: f = K['x'].gen() + a
             sage: L['x'](f)
             x + b^3 + b^2 + b + 3

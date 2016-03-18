@@ -1,24 +1,26 @@
 r"""
 Links
 
-A knot is defined as embedding of the circle `\mathbb{S}^1` in the 3-dimensional
-sphere `\mathbb{S}^3`, considered up to ambient isotopy. They represent the physical
-idea of a knotted rope, but with the particularity that the rope is closed. That
-is, the ends of the rope are joined.
+A knot is defined as embedding of the circle `\mathbb{S}^1` in the
+3-dimensional sphere `\mathbb{S}^3`, considered up to ambient isotopy.
+They represent the physical idea of a knotted rope, but with the
+particularity that the rope is closed. That is, the ends of the
+rope are joined.
 
-A link is an embedding of one or more copies of `\mathbb{S}^1` in `\mathbb{S}^3`,
-considered up to ambient isotopy. That is, a link represents the idea of one or more
-tied ropes. Every knot is a link, but not every link is a knot.
+A link is an embedding of one or more copies of `\mathbb{S}^1` in
+`\mathbb{S}^3`, considered up to ambient isotopy. That is, a link
+represents the idea of one or more tied ropes. Every knot is a link,
+but not every link is a knot.
 
-Generically, the projection of a link on `\RR^2`
-is a curve with crossings. The crossings are represented to show which strand goes
-over the other. This curve is called a planar diagram of the link. If we remove the
-crossings, the resulting connected components are segments. These segments are
-called the edges of the diagram.
+Generically, the projection of a link on `\RR^2` is a curve with
+crossings. The crossings are represented to show which strand goes
+over the other. This curve is called a planar diagram of the link.
+If we remove the crossings, the resulting connected components are
+segments. These segments are called the edges of the diagram.
 
 REFERENCES:
 
-.. [Wikipedia] Wikipedia article :wikipedia:`Knot_(mathematics)`
+- :wikipedia:`Knot_(mathematics)`
 
 AUTHORS:
 
@@ -274,7 +276,7 @@ class Link(object):
             return self._braid
 
         from sage.groups.braid import BraidGroup
-        comp = self._isolated_components_()
+        comp = self._isolated_components()
         if len(comp) > 1:
             L1 = Link(comp[0])
             L2 = Link(flatten(comp[1:], max_level=1))
@@ -287,19 +289,20 @@ class Link(object):
             B = BraidGroup(n1 + n2)
             return B(t1 + t2)
 
-        # look for possible vogel moves, perform them and call recursively to the modified link
+        # look for possible Vogel moves, perform them and call recursively to the modified link
         pd_code = self.pd_code()
+        seifert_circles = self.seifert_circles()
         newedge = max(flatten(pd_code)) + 1
         for region in self.regions():
             n = len(region)
             for i in range(n-1):
                 a = region[i]
-                seifcirca = [x for x in self.seifert_circles() if abs(a) in x]
+                seifcirca = [x for x in seifert_circles if abs(a) in x]
                 for j in range(i+1,n):
                     b = region[j]
-                    seifcircb = [x for x in self.seifert_circles() if abs(b) in x]
+                    seifcircb = [x for x in seifert_circles if abs(b) in x]
                     if seifcirca != seifcircb and sign(a) == sign(b):
-                        tails, heads = self._directions_of_edges_()
+                        tails, heads = self._directions_of_edges()
 
                         newPD = deepcopy(pd_code)
                         if sign(a) == 1:
@@ -323,23 +326,32 @@ class Link(object):
 
         # We are in the case where no Vogel moves are necessary.
         G = DiGraph()
-        G.add_vertices([tuple(c) for c in self.seifert_circles()])
+        G.add_vertices([tuple(c) for c in seifert_circles])
         for i,c in enumerate(pd_code):
             if self.orientation()[i] == 1:
-                a  = [x for x in self.seifert_circles() if c[1] in x][0]
-                b  = [x for x in self.seifert_circles() if c[0] in x][0]
-                G.add_edge(tuple(a), tuple(b))
+                a  = [x for x in seifert_circles if c[1] in x][0]
+                b  = [x for x in seifert_circles if c[0] in x][0]
             else:
-                a  = [x for x in self.seifert_circles() if c[0] in x][0]
-                b  = [x for x in self.seifert_circles() if c[3] in x][0]
-                G.add_edge(tuple(a), tuple(b))
-        ordered_cycles = G.all_simple_paths(starting_vertices=G.sources(), ending_vertices=G.sinks())[0]
+                a  = [x for x in seifert_circles if c[0] in x][0]
+                b  = [x for x in seifert_circles if c[3] in x][0]
+            G.add_edge(tuple(a), tuple(b))
+
+        # Get a simple path from a source to a sink in the digraph
+        it = G.all_paths_iterator(starting_vertices=G.sources(), ending_vertices=G.sinks(), simple=True)
+        ordered_cycles = it.next()
+
         B = BraidGroup(len(ordered_cycles))
         available_crossings = copy(pd_code)
-        crossing = [x for x in pd_code if set(ordered_cycles[0]).intersection(set(x))][0]
+        oc_set = set(ordered_cycles[0])
+        for i,x in enumerate(pd_code):
+            if any(elt in oc_set for elt in x):
+                crossing = x
+                crossing_index = i
+                break
         available_crossings.remove(crossing)
         status = [None for i in ordered_cycles]
-        if self.orientation()[pd_code.index(crossing)] == 1:
+        orientation = self.orientation()
+        if orientation[crossing_index] == 1:
             b = B([1])
             status[0] = crossing[2]
             status[1] = crossing[3]
@@ -350,11 +362,11 @@ class Link(object):
         counter = 0
         while available_crossings:
             possibles = [x for x in available_crossings if status[counter] in x]
-            if len(status) < counter + 2 or status[counter + 1] != None:
+            if len(status) < counter + 2 or status[counter + 1] is not None:
                 possibles = [x for x in possibles if status[counter + 1] in x]
             if possibles:
                 added = possibles[0]
-                if self.orientation()[self.pd_code().index(added)] == 1:
+                if orientation[pd_code.index(added)] == 1:
                     b *= B([counter + 1])
                     status[counter] = added[2]
                     status[counter + 1] = added[3]
@@ -370,7 +382,7 @@ class Link(object):
         self._braid = b
         return b
 
-    def _directions_of_edges_(self):
+    def _directions_of_edges(self):
         r"""
         Return the directions of the edges given by the PD code of ``self``.
 
@@ -383,14 +395,14 @@ class Link(object):
         EXAMPLES::
 
             sage: L = Link([[1, 3, 2, 4], [2, 3, 1, 4]])
-            sage: L._directions_of_edges_()
+            sage: L._directions_of_edges()
             ({1: [2, 3, 1, 4], 2: [1, 3, 2, 4], 3: [1, 3, 2, 4], 4: [2, 3, 1, 4]},
              {1: [1, 3, 2, 4], 2: [2, 3, 1, 4], 3: [2, 3, 1, 4], 4: [1, 3, 2, 4]})
 
         ::
 
             sage: L = Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
-            sage: L._directions_of_edges_()
+            sage: L._directions_of_edges()
             ({1: [3, 1, 4, 6],
               2: [1, 5, 2, 4],
               3: [5, 3, 6, 2],
@@ -407,7 +419,7 @@ class Link(object):
         ::
 
             sage: L = Link([[1,2,3,3], [2,4,5,5], [4,1,7,7]])
-            sage: L._directions_of_edges_()
+            sage: L._directions_of_edges()
             ({1: [4, 1, 7, 7],
               2: [1, 2, 3, 3],
               3: [1, 2, 3, 3],
@@ -495,8 +507,6 @@ class Link(object):
             Convention: under is denoted by `-1`, and over by `+1` in the
             crossing info.
 
-        OUTPUT: oriented Gauss code
-
         EXAMPLES::
 
             sage: L = Link([[1, 11, 2, 10], [6, 2, 7, 3], [3, 12, 4, 9], [9, 5, 10, 6], [8, 1, 5, 4], [11, 8, 12, 7]])
@@ -559,8 +569,6 @@ class Link(object):
         1. `a` is the entering component of the undercrossing;
         2. `b, d` are the components of the overcrossing;
         3. `c` is the leaving component of the undercrossing.
-
-        OUTPUT: planar diagram representation
 
         EXAMPLES::
 
@@ -642,7 +650,7 @@ class Link(object):
             self._pd_code = pd
             return pd
 
-        raise TypeError("BUG: invalid state")
+        raise AssertionError("BUG: invalid state")
 
     def gauss_code(self):
         """
@@ -655,8 +663,6 @@ class Link(object):
         c. At each crossing, take the number of the crossing, along with
            sign, which is `-` if it is an undercrossing and `+` if it is a
            overcrossing.
-
-        OUTPUT: Gauss code representation
 
         EXAMPLES::
 
@@ -707,7 +713,7 @@ class Link(object):
               for j, i in enumerate(pd)]
         return dn
 
-    def _braidwordcomponents_(self):
+    def _braid_word_components(self):
         """
         Return the disjoint braid components, if any, else return the braid
         of ``self``.
@@ -719,20 +725,20 @@ class Link(object):
         between strand `2` and `3`, so these can be viewed as independent
         components in the braid).
 
-        OUTPUT: list containing the components is returned
+        OUTPUT: list containing the components
 
         EXAMPLES::
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
-            sage: L._braidwordcomponents_()
+            sage: L._braid_word_components()
             ([-1, 1], [3, 3])
             sage: B = BraidGroup(8)
             sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
-            sage: L._braidwordcomponents_()
+            sage: L._braid_word_components()
             ([-1, 1, 1, 1], [3], [5, 7, 6])
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
-            sage: L._braidwordcomponents_()
+            sage: L._braid_word_components()
             ([-2, 1, 1], [4, 4], [6])
         """
         ml = list(self.braid().Tietze())
@@ -742,7 +748,7 @@ class Link(object):
         l = set(abs(k) for k in ml)
         missing1 = set(range(min(l), max(l) + 1)) - l
         if not missing1:
-            return tuple([ml])
+            return (ml,)
 
         missing = sorted(missing1)
         x = [[] for i in range(len(missing) + 1)]
@@ -756,67 +762,67 @@ class Link(object):
                     ml[j] = 0
         return tuple([a for a in x if a])
 
-    def _braidwordcomponentsvector_(self):
+    def _braid_word_components_vector(self):
         """
-        The list from the :meth:`_braidwordcomponents_` is flattened to
+        The list from the :meth:`_braid_word_components` is flattened to
         give out the vector form.
 
-        OUTPUT: vector containing braidwordcomponents
+        OUTPUT: list containing braid word components
 
         EXAMPLES::
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
-            sage: L._braidwordcomponentsvector_()
+            sage: L._braid_word_components_vector()
             [-1, 1, 3, 3]
             sage: B = BraidGroup(8)
             sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
-            sage: L._braidwordcomponentsvector_()
+            sage: L._braid_word_components_vector()
             [-1, 1, 1, 1, 3, 5, 7, 6]
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
-            sage: L._braidwordcomponentsvector_()
+            sage: L._braid_word_components_vector()
             [-2, 1, 1, 4, 4, 6]
         """
-        bc = self._braidwordcomponents_()
+        bc = self._braid_word_components()
         return flatten(bc)
 
-    def _homology_generators_(self):
+    def _homology_generators(self):
         """
         The set of generators for the first homology group of the connected
         Seifert surface of the given link.
 
-        This method uses the :meth:`_braidwordcomponentsvector_` to generate
+        This method uses the :meth:`_braid_word_components_vector` to generate
         the homology generators. The position of the repeated element w.r.t.
-        the braidwordcomponentvector list is compiled into a list.
+        the braid word component vector list is compiled into a list.
 
         OUTPUT:
 
-        - The homology generators relating to the braid word representation
+        homology generators relating to the braid word representation
 
         EXAMPLES::
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
-            sage: L._homology_generators_()
-            [1, 0, 3]
+            sage: L._homology_generators()
+            [1, None, 3]
             sage: B = BraidGroup(8)
             sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
-            sage: L._homology_generators_()
-            [1, 2, 3, 0, 0, 0, 0]
+            sage: L._homology_generators()
+            [1, 2, 3, None, None, None, None]
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
-            sage: L._homology_generators_()
-            [0, 2, 0, 4, 0]
+            sage: L._homology_generators()
+            [None, 2, None, 4, None]
         """
-        x4 = self._braidwordcomponentsvector_()
+        x = self._braid_word_components_vector()
         hom_gen = []
-        for j in range(len(x4) - 1):
-            a = abs(x4[j])
-            for i in range(j + 1, len(x4)):
-                if a == abs(x4[i]):
+        for j in range(len(x) - 1):
+            a = abs(x[j])
+            for i in range(j + 1, len(x)):
+                if a == abs(x[i]):
                     hom_gen.append(i)
                     break
             else:
-                hom_gen.append(0)
+                hom_gen.append(None)
         return hom_gen
 
     @cached_method
@@ -846,50 +852,40 @@ class Link(object):
             [-1  0]
             [ 0 -1]
         """
-        x5 = self._braidwordcomponentsvector_()
-        h = self._homology_generators_()
+        x = self._braid_word_components_vector()
+        h = self._homology_generators()
         hl = len(h)
         A = matrix(ZZ, hl, hl)
-        for i in range(hl):
-            if h[i] != 0:
-                for j in range(i, hl):
-                    if i == j:
-                        A[i, j] = -cmp((x5[i] + x5[h[i]]), 0)
-                    elif (h[i] > h[j]):
+        indices = [i for i,hi in enumerate(h) if hi is not None]
+        for i in indices:
+            for j in range(i, hl):
+                if i == j:
+                    A[i, j] = cmp(0, x[i] + x[h[i]])
+                elif h[j] is None or h[i] > h[j]:
+                    A[i, j] = 0
+                    A[j, i] = 0
+                elif h[i] < j:
+                    A[i, j] = 0
+                    A[j, i] = 0
+                elif h[i] == j:
+                    if x[j] > 0:
                         A[i, j] = 0
+                        A[j, i] = 1
+                    else:
+                        A[i, j] = -1
                         A[j, i] = 0
-                    elif (h[i] < j):
-                        A[i, j] = 0
-                        A[j, i] = 0
-                    elif (h[i] == j):
-                        if(x5[j] > 0):
-                            A[i, j] = 0
-                            A[j, i] = 1
-                        else:
-                            A[i, j] = -1
-                            A[j, i] = 0
-                    elif abs(abs(x5[i]) - abs(x5[j])) > 1:
-                        A[i, j] = 0
-                    elif (abs(x5[i]) - abs(x5[j]) == 1):
-                        A[i, j] = 0
-                        A[j, i] = -1
-                    elif (abs(x5[j]) - abs(x5[i]) == 1):
-                        A[i, j] = 1
-                        A[j, i] = 0
-                    else:  # for debugging
-                        A[i, j] = 2
-                        A[j, i] = 2
-            else:
-                for k in range(hl):
-                    A[k, i] = 0
-                    A[i, k] = 0
-        k = []
-        for i in range(hl):
-            if h[i] == 0:
-                k.append(i)
-        for i in reversed(k):
-            A = A.delete_rows([i])
-            A = A.delete_columns([i])
+                elif abs(abs(x[i]) - abs(x[j])) > 1:
+                    A[i, j] = 0
+                elif abs(x[i]) - abs(x[j]) == 1:
+                    A[i, j] = 0
+                    A[j, i] = -1
+                elif abs(x[j]) - abs(x[i]) == 1:
+                    A[i, j] = 1
+                    A[j, i] = 0
+                else:  # for debugging
+                    A[i, j] = 2
+                    A[j, i] = 2
+        A = A.matrix_from_rows_and_columns(indices, indices)
         A.set_immutable()
         return A
 
@@ -951,6 +947,9 @@ class Link(object):
             sage: L = Link(B([-1, 3, 1, 3]))
             sage: L.genus()
             0
+            sage: L = Link(B([1,3]))
+            sage: L.genus()
+            0
             sage: B = BraidGroup(8)
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.genus()
@@ -961,10 +960,10 @@ class Link(object):
         """
         b = self.braid().Tietze()
         if not b:
-            return 0
+            return ZZ.zero()
 
         B = self.braid().parent()
-        x = self._braidwordcomponents_()
+        x = self._braid_word_components()
         q = []
         genus = 0
         s_tmp = []
@@ -982,7 +981,7 @@ class Link(object):
         for i in s_tmp:
             b = i.Tietze()
             s.append(list(b))
-        t = [Link(B(s[i])).number_of_components() for i in range(len(s))]
+        t = [Link(B(si)).number_of_components() for si in s]
         for i, j in enumerate(s):
             if not j:
                 s[i].append(-2)
@@ -992,7 +991,7 @@ class Link(object):
         g = [((2 - t[i]) + len(x[i]) - q[i]) / 2 for i in range(len(x))]
         for i in range(len(g)):
             genus = genus + g[i]
-        return genus
+        return Integer(genus)
 
     def signature(self):
         """
@@ -1014,12 +1013,12 @@ class Link(object):
         """
         m = 2 * (self.seifert_matrix() + self.seifert_matrix().transpose())
         e = m.eigenvalues()
-        sum = 0
+        tot = ZZ.zero()
         s = []
         for i, j in enumerate(e):
             s.append(cmp(j, 0))
-            sum = sum + s[i]
-        return sum
+            tot = tot + s[i]
+        return tot
 
     def alexander_polynomial(self, var='t'):
         """
@@ -1042,11 +1041,17 @@ class Link(object):
             sage: L = Link(B([1, 2, 1, 2]))
             sage: L.alexander_polynomial()
             t^-1 - 1 + t
+            sage: L = Link(B([1,3]))
+            sage: L.alexander_polynomial()
+            0
         """
         R = LaurentPolynomialRing(ZZ, var)
         t = R.gen()
-        f = (self.seifert_matrix() - t *
-             (self.seifert_matrix().transpose())).determinant()
+        seifert_matrix = self.seifert_matrix()
+        # FIXME: If the determinant of a 0x0 is 0, then this special case can be removed
+        if seifert_matrix.nrows() == 0:
+            return R.zero()
+        f = (seifert_matrix - t * seifert_matrix.transpose()).determinant()
         if f != 0:
             exp = f.exponents()
             return t ** ((-max(exp) - min(exp)) / 2) * f
@@ -1106,13 +1111,12 @@ class Link(object):
             sage: L.is_alternating()
             True
         """
-        if self.is_knot():
-            x = self.gauss_code()
-            s = [cmp(i, 0) for i in x[0]]
-            return (s == [(-1) ** (i + 1) for i in range(len(x[0]))]
-                    or s == [(-1) ** i for i in range(len(x[0]))])
-        else:
+        if not self.is_knot():
             return False
+        x = self.gauss_code()
+        s = [cmp(i, 0) for i in x[0]]
+        return (s == [(-1) ** (i + 1) for i in range(len(x[0]))]
+                or s == [(-1) ** i for i in range(len(x[0]))])
 
     def orientation(self):
         r"""
@@ -1131,7 +1135,7 @@ class Link(object):
             sage: L.orientation()
             [-1, -1, -1]
         """
-        directions = self._directions_of_edges_()[0]
+        directions = self._directions_of_edges()[0]
         orientation = []
         for C in self.pd_code():
             if C[0] == C[1] or C[2] == C[3]:
@@ -1178,7 +1182,7 @@ class Link(object):
         """
         available_segments = set(flatten(self.pd_code()))
         result = []
-        tails, heads = self._directions_of_edges_()
+        tails, heads = self._directions_of_edges()
         while available_segments:
             a = available_segments.pop()
             if heads[a] == tails[a]:
@@ -1237,7 +1241,7 @@ class Link(object):
             disconnected boundary.
         """
         pd = self.pd_code()
-        tails, heads = self._directions_of_edges_()
+        tails, heads = self._directions_of_edges()
         available_edges = set(flatten(pd))
         if len(pd) == 1:
             if pd[0][0] == pd[0][1]:
@@ -1336,7 +1340,7 @@ class Link(object):
             sage: L.jones_polynomial()
             -q^(3/2) + sqrt(q) - 2/sqrt(q) + 1/q^(3/2) - 2/q^(5/2) + 1/q^(7/2)
         """
-        poly = self._bracket_()
+        poly = self._bracket()
         # Now convert it to the symbolic ring
         t = SR(var)
         poly = poly.subs(t=t)
@@ -1345,7 +1349,7 @@ class Link(object):
         return jones.subs({t: t**(ZZ(-1) / ZZ(4))})
 
     @cached_method
-    def _bracket_(self):
+    def _bracket(self):
         r"""
         Return the Kaufmann bracket polynomial of the diagram.
 
@@ -1355,10 +1359,10 @@ class Link(object):
         EXAMPLES::
 
             sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-            sage: L._bracket_()
+            sage: L._bracket()
             -t^-10 + 2*t^-6 - t^-2 + 2*t^2 - t^6 + t^10 - t^14
             sage: L = Link([[2, 1, 3, 4], [4, 3, 1, 2]])
-            sage: L._bracket_()
+            sage: L._bracket()
             -t^-4 - t^4
         """
         t = LaurentPolynomialRing(ZZ, 't').gen()
@@ -1373,29 +1377,29 @@ class Link(object):
         rest = deepcopy(pd_code[1:])
         [a, b, c, d] = cross
         if a == b and c == d and len(rest) > 0:
-            return (~t + t**(-5)) * Link(rest)._bracket_()
+            return (~t + t**(-5)) * Link(rest)._bracket()
         elif a == d and c == b and len(rest) > 0:
-            return (t + t**5) * Link(rest)._bracket_()
+            return (t + t**5) * Link(rest)._bracket()
         elif a == b:
             for cross in rest:
                 if d in cross:
                     cross[cross.index(d)] = c
-            return -t**(-3) * Link(rest)._bracket_()
+            return -t**(-3) * Link(rest)._bracket()
         elif a == d:
             for cross in rest:
                 if c in cross:
                     cross[cross.index(c)] = b
-            return -t**3 * Link(rest)._bracket_()
+            return -t**3 * Link(rest)._bracket()
         elif c == b:
             for cross in rest:
                 if d in cross:
                     cross[cross.index(d)] = a
-            return -t**3 * Link(rest)._bracket_()
+            return -t**3 * Link(rest)._bracket()
         elif c == d:
             for cross in rest:
                 if b in cross:
                     cross[cross.index(b)] = a
-            return -t**(-3) * Link(rest)._bracket_()
+            return -t**(-3) * Link(rest)._bracket()
         else:
             rest_2 = deepcopy(rest)
             for cross in rest:
@@ -1408,19 +1412,19 @@ class Link(object):
                     cross[cross.index(d)] = c
                 if b in cross:
                     cross[cross.index(b)] = a
-            return t * Link(rest)._bracket_() + ~t * Link(rest_2)._bracket_()
+            return t * Link(rest)._bracket() + ~t * Link(rest_2)._bracket()
 
-    def _isolated_components_(self):
+    def _isolated_components(self):
         r"""
         Return the PD codes of the isolated components of ``self``.
 
-        Isolated components are links corresponding to subdiagrams that don't
-        have any common crossing.
+        Isolated components are links corresponding to subdiagrams that
+        do not have any common crossing.
 
         EXAMPLES::
 
             sage: L = Link([[1, 1, 2, 2], [3, 3, 4, 4]])
-            sage: L._isolated_components_()
+            sage: L._isolated_components()
             [[[1, 1, 2, 2]], [[3, 3, 4, 4]]]
         """
         G = Graph()
@@ -1449,7 +1453,7 @@ class Link(object):
             sage: L.plot()
             Graphics object consisting of 28 graphics primitives
         """
-        comp = self._isolated_components_()
+        comp = self._isolated_components()
         if len(comp) > 1:
             L1 = Link(comp[0])
             L2 = Link(flatten(comp[1:], max_level=1))

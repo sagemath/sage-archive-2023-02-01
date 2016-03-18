@@ -315,9 +315,18 @@ class _mixed_key(object):
             True
         """
         from sage.rings.real_mpfi import RIF
-        if len(self.ex.variables() + other.ex.variables()) > 0:
-            return _print_key(self.ex) < _print_key(other.ex)
+        selfv = len(self.ex.variables())
+        otherv = len(other.ex.variables())
+        if selfv:
+            if otherv:
+                return _print_key(self.ex) < _print_key(other.ex)
+            else:
+                return False
+        else:
+            if otherv:
+                return True
 
+        # no variables involved from here on
         rel = self.ex < other.ex
         if (self.ex.is_infinity() or other.ex.is_infinity()):
             pynac_result = decide_relational((<Expression>rel)._gobj)
@@ -379,7 +388,7 @@ cpdef mixed_sorted(expressions):
 
         sage: from sage.symbolic.comparison import mixed_sorted
         sage: mixed_sorted([SR(1), SR(e), SR(pi), sqrt(2), x, sqrt(x), sin(1/x)])
-        [sin(1/x), 1, sqrt(2), e, sqrt(x), x, pi]
+        [1, sqrt(2), e, pi, sin(1/x), sqrt(x), x]
     """
     return sorted(expressions, key=_mixed_key)
 

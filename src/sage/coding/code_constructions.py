@@ -935,7 +935,7 @@ def LinearCodeFromCheckMatrix(H):
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
         sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
-        sage: Gc = C.generator_matrix().echelon_form()
+        sage: Gc = C.generator_matrix_systematic()
         sage: Gh == Gc
         True
         sage: C = codes.HammingCode(GF(3), 2)
@@ -943,7 +943,7 @@ def LinearCodeFromCheckMatrix(H):
         [1 0 1 1]
         [0 1 1 2]
         sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
-        sage: Gc = C.generator_matrix().echelon_form()
+        sage: Gc = C.generator_matrix_systematic()
         sage: Gh == Gc
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))

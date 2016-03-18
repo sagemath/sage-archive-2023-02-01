@@ -76,10 +76,10 @@ class Link(object):
     - The closure of a braid is a link::
 
         sage: B = BraidGroup(8)
-        sage: L = Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
+        sage: L = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 3]))
         sage: L
         Link with 1 components represented by 9 crossings
-        sage: L = Link(B([1, 2, 1, -2,-1]))
+        sage: L = Link(B([1, 2, 1, -2, -1]))
         sage: L
         Link with 2 components represented by 5 crossings
 
@@ -100,7 +100,7 @@ class Link(object):
       crossing numbers. A second list of `+1` and `-1`'s keeps track of
       the orientation of each crossing::
 
-        sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
+        sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]], [-1, -1, -1, -1, 1, 1, -1, 1]])
         sage: L
         Link with 1 components represented by 8 crossings
 
@@ -145,6 +145,19 @@ class Link(object):
         sage: L = Link(B([1, 2, 1]))
         sage: L
         Link with 2 components represented by 3 crossings
+
+    These have removed components in which no strand is used::
+
+        sage: b = B([1])
+        sage: L = Link(b)
+        sage: b.components_in_closure()
+        7
+        sage: L.number_of_components()
+        1
+        sage: L.braid().components_in_closure()
+        1
+        sage: L.braid().parent()
+        Braid group on 2 strands
 
     .. WARNING::
 
@@ -195,9 +208,32 @@ class Link(object):
                 self._braid = None
 
         else:
-            from sage.groups.braid import Braid
+            from sage.groups.braid import Braid, BraidGroup
             if isinstance(data, Braid):
-                self._braid = data
+                # Remove all unused strands
+                support = sorted(set(abs(x) for x in data.Tietze()))
+                i = 0
+                cur = 1
+                while i < len(support):
+                    if support[i] == cur:
+                        cur += 1
+                        i += 1
+                    elif support[i] == cur + 1:
+                        support.insert(i, cur+1)
+                        cur += 2
+                        i += 2
+                    else:
+                        cur = support[i]
+                        i += 1
+                d = {}
+                for i,s in enumerate(support):
+                    d[s] = i+1
+                    d[-s] = -i-1
+                if not support:
+                    B = BraidGroup(2)
+                else:
+                    B = BraidGroup(len(support)+1)
+                self._braid = B([d[x] for x in data.Tietze()])
                 self._oriented_gauss_code = None
                 self._pd_code = None
 
@@ -274,13 +310,13 @@ class Link(object):
 
         EXAMPLES::
 
-            sage: L = Link([[2,3,1,4],[4,1,3,2]])
+            sage: L = Link([[2, 3, 1, 4], [4, 1, 3, 2]])
             sage: L.braid()
             s^2
             sage: L = Link([[[-1, 2, -3, 1, -2, 3]], [-1, -1, -1]])
             sage: L.braid()
             s^-3
-            sage: L = Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
+            sage: L = Link([[1,8,2,7], [8,4,9,5], [3,9,4,10], [10,1,7,6], [5,3,6,2]])
             sage: L.braid()
             (s0*s1^-1)^2*s1^-1
         """
@@ -413,7 +449,7 @@ class Link(object):
 
         ::
 
-            sage: L = Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
+            sage: L = Link([[1,5,2,4], [5,3,6,2], [3,1,4,6]])
             sage: L._directions_of_edges()
             ({1: [3, 1, 4, 6],
               2: [1, 5, 2, 4],
@@ -678,7 +714,7 @@ class Link(object):
 
         EXAMPLES::
 
-            sage: L = Link([[1,4,2,3],[4,1,3,2]])
+            sage: L = Link([[1, 4, 2, 3], [4, 1, 3, 2]])
             sage: L.gauss_code()
             [[-1, 2], [1, -2]]
             sage: B = BraidGroup(8)
@@ -708,14 +744,14 @@ class Link(object):
 
         EXAMPLES::
 
-            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, 2, -3, 4, 5, 1, -2, 6, 7, 3, -4, -7, -6,-5]], [-1, -1, -1, -1, 1, -1, 1]])
             sage: L.dowker_notation()
             [(1, 6), (7, 2), (3, 10), (11, 4), (14, 5), (13, 8), (12, 9)]
             sage: B = BraidGroup(4)
             sage: L = Link(B([1, 2, 1, 2]))
             sage: L.dowker_notation()
-            [(2, 1), (3, 6), (7, 5), (8, 10)]
-            sage: L = Link([[1,4,2,3],[4,1,3,2]])
+            [(2, 1), (3, 5), (6, 4), (7, 9)]
+            sage: L = Link([[1, 4, 2, 3], [4, 1, 3, 2]])
             sage: L.dowker_notation()
             [(1, 3), (4, 2)]
         """
@@ -948,7 +984,7 @@ class Link(object):
         EXAMPLES::
 
             sage: B = BraidGroup(4)
-            sage: L = Link(B([1,3,1,-3]))
+            sage: L = Link(B([1, 3, 1, -3]))
             sage: L.is_knot()
             False
             sage: B = BraidGroup(8)
@@ -1132,10 +1168,10 @@ class Link(object):
             sage: L = Link(B([1, -2, -1, 2]))
             sage: L.is_alternating()
             False
-            sage: L = Link(B([-1, 3, 1,3, 2]))
+            sage: L = Link(B([-1, 3, 1, 3, 2]))
             sage: L.is_alternating()
             False
-            sage: L = Link(B([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
+            sage: L = Link(B([1]*16 + [2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
             sage: L.is_alternating()
             False
             sage: L = Link(B([-1,2,-1,2]))
@@ -1191,13 +1227,13 @@ class Link(object):
 
         EXAMPLES::
 
-            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]], [1, 1, -1, -1]])
             sage: L.seifert_circles()
             [[1, 7, 5, 3], [2, 6], [4, 8]]
-            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]], [-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.seifert_circles()
             [[1, 13, 9, 3, 15, 5, 11, 7], [2, 10, 6, 12], [4, 16, 8, 14]]
-            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1,-1,-1,-1,1,-1,1]])
+            sage: L = Link([[[-1, 2, -3, 4, 5, 1, -2, 6, 7, 3, -4, -7, -6,-5]], [-1, -1, -1, -1, 1, -1, 1]])
             sage: L.seifert_circles()
             [[1, 7, 3, 11, 5], [2, 8, 14, 6], [4, 12, 10], [9, 13]]
             sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
@@ -1464,7 +1500,7 @@ class Link(object):
             2
             sage: L.number_of_components()
             1
-            sage: L.jones_polynomial(algorithm='jonesrep')
+            sage: b.jones_polynomial()
             -sqrt(t) - 1/sqrt(t)
             sage: L.jones_polynomial(algorithm='statesum')
             1

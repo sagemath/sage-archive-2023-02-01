@@ -102,7 +102,7 @@ import sage.rings.real_double
 import sage.rings.real_lazy
 
 from sage.rings.finite_rings.integer_mod import mod
-from sage.misc.functional import is_odd
+from sage.misc.functional import is_odd, lift
 from sage.misc.misc_c import prod
 from sage.categories.homset import End
 from sage.rings.all import Infinity
@@ -6929,7 +6929,7 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.gen()
 
-    def optimized_representation(self, names=None, both_maps=True):
+    def optimized_representation(self, name=None, both_maps=True):
         """
         Return a field isomorphic to self with a better defining polynomial
         if possible, along with field isomorphisms from the new field to
@@ -6975,7 +6975,45 @@ class NumberField_absolute(NumberField_generic):
                To:   Number Field in a1 with defining polynomial x^3 - 7*x - 7
                Defn: a |--> -15/7*a1^2 + 9)
         """
-        return self.optimized_subfields(degree=self.degree(), name=names, both_maps=both_maps)[0]
+
+        if name is None:
+            name = self.variable_names()
+        name = normalize_names(1, name)[0]
+        try:
+            return self.__subfields[name, self.degree, both_maps, True][0]
+        except AttributeError:
+            self.__subfields = {}
+        except KeyError:
+            pass
+        f = self.absolute_polynomial()._pari_()
+
+        g, alpha = f.polredbest(flag=1)
+        beta = alpha.modreverse()
+        
+        b = self(QQ['x'](lift(beta)))
+        h = QQ['x'](g)
+        
+        embedding = None
+        if self.coerce_embedding() is not None:
+            embedding = self.coerce_embedding()(b)
+        # trac 7695 add a _ to prevent zeta70 etc.
+        if name[-1].isdigit():
+            new_name= name+ '_1'
+        else:
+            new_name = name + '1'
+
+        K = NumberField(h, names=new_name, embedding=embedding)
+
+
+        if both_maps == True:
+            a = K(alpha)
+            to_K = self.hom([a]) 
+
+            from_K = K.hom([b])
+            return (K, from_K, to_K)
+
+        return K
+
 
     def optimized_subfields(self, degree=0, name=None, both_maps=True):
         """

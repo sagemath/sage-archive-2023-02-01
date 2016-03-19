@@ -1223,7 +1223,7 @@ class Link(object):
         R = LaurentPolynomialRing(ZZ, var)
         t = R.gen()
         seifert_matrix = self.seifert_matrix()
-        # FIXME: If the determinant of a 0x0 is 0, then this special case can be removed
+        # We need a special case for 0x0 matrices, whose determinant is always 1
         if seifert_matrix.nrows() == 0:
             return R.zero()
         f = (seifert_matrix - t * seifert_matrix.transpose()).determinant()

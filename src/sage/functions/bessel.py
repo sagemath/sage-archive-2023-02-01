@@ -153,18 +153,14 @@ AUTHORS:
     - Some of the documentation here has been adapted from David Joyner's
       original documentation of Sage's special functions module (2006).
 
+
 REFERENCES:
 
-    - Abramowitz and Stegun: Handbook of Mathematical Functions,
-      http://www.math.sfu.ca/~cbm/aands/
-
-    - http://en.wikipedia.org/wiki/Bessel_function
-
-    - mpmath Library `Bessel Functions`_
-
-.. _`mpmath Library`: http://code.google.com/p/mpmath/
-.. _`Bessel Functions`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/bessel.html
-
+.. [ASHandbook] Abramowitz and Stegun: Handbook of Mathematical Functions,
+    http://www.math.sfu.ca/ cbm/aands/
+.. _`mpmath Library`: https://github.com/fredrik-johansson/mpmath
+.. :wikipedia:`Bessel_function`
+.. [WPStruve] :wikipedia:`Struve_function`
 """
 
 #*****************************************************************************
@@ -361,7 +357,7 @@ class Function_Bessel_J(BuiltinFunction):
 
     def _print_latex_(self, n, z):
         """
-        Custom _print_latex_ method.
+        Custom ``_print_latex_`` method.
 
         EXAMPLES::
 
@@ -532,7 +528,7 @@ class Function_Bessel_Y(BuiltinFunction):
 
     def _print_latex_(self, n, z):
         """
-        Custom _print_latex_ method.
+        Custom ``_print_latex_`` method.
 
         EXAMPLES::
 
@@ -694,7 +690,7 @@ class Function_Bessel_I(BuiltinFunction):
 
     def _print_latex_(self, n, z):
         """
-        Custom _print_latex_ method.
+        Custom ``_print_latex_`` method.
 
         EXAMPLES::
 
@@ -863,7 +859,7 @@ class Function_Bessel_K(BuiltinFunction):
 
     def _print_latex_(self, n, z):
         """
-        Custom _print_latex_ method.
+        Custom ``_print_latex_`` method.
 
         EXAMPLES::
 
@@ -1069,10 +1065,9 @@ class Function_Struve_H(BuiltinFunction):
 
     REFERENCES:
 
-        - Abramowitz and Stegun: Handbook of Mathematical Functions,
-          http://www.math.sfu.ca/~cbm/aands/
+    - [ASHandbook]_
 
-        - http://en.wikipedia.org/wiki/Struve_function
+    - [WPStruve]_
     """
     def __init__(self):
         r"""
@@ -1143,8 +1138,8 @@ class Function_Struve_H(BuiltinFunction):
         """
         EXAMPLES::
 
-        sage: diff(struve_H(3/2,x),x)
-        -1/2*sqrt(2)*sqrt(1/(pi*x))*(cos(x) - 1) + 1/16*sqrt(2)*x^(3/2)/sqrt(pi) - 1/2*struve_H(5/2, x)
+            sage: diff(struve_H(3/2,x),x)
+            -1/2*sqrt(2)*sqrt(1/(pi*x))*(cos(x) - 1) + 1/16*sqrt(2)*x^(3/2)/sqrt(pi) - 1/2*struve_H(5/2, x)
         """
         if diff_param == 0:
             raise ValueError("cannot differentiate struve_H in the first parameter")
@@ -1154,6 +1149,8 @@ class Function_Struve_H(BuiltinFunction):
 
     def _print_latex_(self, a, z):
         """
+        EXAMPLES::
+
             sage: latex(struve_H(2,x))
             H_{{2}}({x})
         """
@@ -1179,11 +1176,8 @@ class Function_Struve_L(BuiltinFunction):
         1/3*x/pi - 1/2*struve_L(2, x) + 1/2*struve_L(0, x)
 
     REFERENCES:
-
-        - Abramowitz and Stegun: Handbook of Mathematical Functions,
-          http://www.math.sfu.ca/~cbm/aands/
-
-        - http://en.wikipedia.org/wiki/Struve_function
+    - [ASHandbook]_
+    - [WPStruve]_
     """
     def __init__(self):
         r"""

@@ -26,6 +26,8 @@ REFERENCES:
    matrix of a link from a braid representation*. (2013).
    http://www.maths.ed.ac.uk/~jcollins/SeifertMatrix/SeifertMatrix.pdf
 
+.. [KnotAtlas] The Knot atlas. http://katlas.org/wiki/Main_Page
+
 AUTHORS:
 
 - Miguel Angel Marco Buzunariz
@@ -138,15 +140,106 @@ class Link(object):
 
     We can construct links from from the braid group::
 
-        sage: B = BraidGroup(8)
+        sage: B = BraidGroup(4)
         sage: L = Link(B([-1, -1, -1, -2, 1, -2, 3, -2]))
         sage: L
         Link with 2 components represented by 8 crossings
-        sage: L = Link(B([1, 2, 1]))
-        sage: L
-        Link with 2 components represented by 3 crossings
 
-    These have removed components in which no strand is used::
+    .. PLOT::
+        :width: 300 px
+
+        B = BraidGroup(4)
+        L = Link(B([-1, -1, -1, -2, 1, -2, 3, -2]))
+        sphinx_plot(L.plot())
+
+    ::
+
+        sage: L = Link(B([1, 2, 1, 3]))
+        sage: L
+        Link with 2 components represented by 4 crossings
+
+    .. PLOT::
+        :width: 300 px
+
+        B = BraidGroup(4)
+        L = Link(B([1, 2, 1, 3]))
+        sphinx_plot(L.plot())
+
+    We construct the "monster" unknot using a planar code, and
+    then construct the oriented Gauss code and braid representation::
+
+        sage: L = Link([[3,1,2,4], [8,9,1,7], [5,6,7,3], [4,18,6,5],
+        ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
+        ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
+        sage: L.oriented_gauss_code()
+        [[[1, -4, 3, -1, 10, -9, 6, -7, 8, 5, 4, -3, 2, -6, 7, -8, 9, -10, -5, -2]],
+         [1, -1, 1, 1, 1, -1, -1, -1, -1, -1]]
+        sage: L.braid()
+        s0*s1^-1*s2^-1*s3^-1*s2*s1^-1*s0^-1*s1*s2^2*s1^-1*s3*s2*s1^-3
+
+    .. PLOT::
+        :width: 300 px
+
+        L = Link([[3,1,2,4],[8,9,1,7],[5,6,7,3],[4,18,6,5],
+                  [17,19,8,18],[9,10,11,14],[10,12,13,11],
+                  [12,19,15,13],[20,16,14,15],[16,20,17,2]])
+        sphinx_plot(L.plot())
+
+    We construct the Ochiai unknot by using an oriented Gauss code::
+
+        sage: L = Link([[[1,-2,-3,-8,-12,13,-14,15,-7,-1,2,-4,10,11,-13,12,
+        ....:             -11,-16,4,3,-5,6,-9,7,-15,14,16,-10,8,9,-6,5]],
+        ....:           [-1,-1,1,1,1,1,-1,1,1,-1,1,-1,-1,-1,-1,-1]])
+        sage: L.pd_code()
+        [[10, 2, 11, 1],
+         [2, 12, 3, 11],
+         [3, 20, 4, 21],
+         [12, 19, 13, 20],
+         [21, 32, 22, 1],
+         [31, 22, 32, 23],
+         [9, 25, 10, 24],
+         [4, 29, 5, 30],
+         [23, 30, 24, 31],
+         [28, 14, 29, 13],
+         [17, 14, 18, 15],
+         [5, 17, 6, 16],
+         [15, 7, 16, 6],
+         [7, 27, 8, 26],
+         [25, 9, 26, 8],
+         [18, 28, 19, 27]]
+
+    .. PLOT::
+        :width: 300 px
+
+        L = Link([[[1,-2,-3,-8,-12,13,-14,15,-7,-1,2,-4,10,11,-13,12,
+                    -11,-16,4,3,-5,6,-9,7,-15,14,16,-10,8,9,-6,5]],
+                  [-1,-1,1,1,1,1,-1,1,1,-1,1,-1,-1,-1,-1,-1]])
+        sphinx_plot(L.plot())
+
+    We construct the knot `7_1` and compute some invariants::
+
+        sage: B = BraidGroup(2)
+        sage: L = Link(B([1]*7))
+
+    .. PLOT::
+        :width: 300 px
+
+        B = BraidGroup(2)
+        L = Link(B([1]*7))
+        sphinx_plot(L.plot())
+
+    ::
+
+        sage: L.alexander_polynomial()
+        t^-3 - t^-2 + t^-1 - 1 + t - t^2 + t^3
+        sage: L.jones_polynomial()
+        -t^10 + t^9 - t^8 + t^7 - t^6 + t^5 + t^3
+        sage: L.determinant()
+        7
+        sage: L.signature()
+        -6
+
+    The links here have removed components in which no strand is used::
 
         sage: b = B([1])
         sage: L = Link(b)
@@ -163,6 +256,12 @@ class Link(object):
 
         Equality of knots is done by comparing the corresponding braids,
         which may give false negatives.
+
+    .. NOTE::
+
+        The behavior of removing unused strands from an element of a
+        braid group may change without notice in the future. Do not
+        rely on this feature.
 
     .. TODO::
 
@@ -1095,6 +1194,14 @@ class Link(object):
             sage: L.alexander_polynomial()
             -t^-1 + 3 - t
 
+        The "monster" unknot::
+
+            sage: L = Link([[3,1,2,4],[8,9,1,7],[5,6,7,3],[4,18,6,5],
+            ....:           [17,19,8,18],[9,10,11,14],[10,12,13,11],
+            ....:           [12,19,15,13],[20,16,14,15],[16,20,17,2]])
+            sage: L.alexander_polynomial()
+            1
+
         Some additional examples::
 
             sage: B = BraidGroup(4)
@@ -1437,6 +1544,22 @@ class Link(object):
             sage: Link(b).jones_polynomial()
             1
 
+        The "monster" unknot::
+
+            sage: L = Link([[3,1,2,4],[8,9,1,7],[5,6,7,3],[4,18,6,5],
+            ....:           [17,19,8,18],[9,10,11,14],[10,12,13,11],
+            ....:           [12,19,15,13],[20,16,14,15],[16,20,17,2]])
+            sage: L.jones_polynomial()
+            1
+
+        The Ochiai unknot::
+
+            sage: L = Link([[[1,-2,-3,-8,-12,13,-14,15,-7,-1,2,-4,10,11,-13,12,
+            ....:             -11,-16,4,3,-5,6,-9,7,-15,14,16,-10,8,9,-6,5]],
+            ....:           [-1,-1,1,1,1,1,-1,1,1,-1,1,-1,-1,-1,-1,-1]])
+            sage: L.jones_polynomial()  # long time
+            1
+
         Two unlinked unknots::
 
             sage: B = BraidGroup(4)
@@ -1629,11 +1752,129 @@ class Link(object):
 
         The usual keywords for plots can be used here too.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We construct the simplest version of the unknot::
+
+            sage: L = Link([[2, 1, 1, 2]])
+            sage: L.plot()
+            Graphics object consisting of 4 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            B = BraidGroup(2)
+            L = Link([[2, 1, 1, 2]])
+            sphinx_plot(L.plot())
+
+        We construct a more interesting example of the unknot::
+
+            sage: L = Link([[2, 1, 4, 5], [3, 5, 6, 7], [4, 1, 9, 6], [9, 2, 3, 7]])
+            sage: L.plot()
+            Graphics object consisting of 20 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            L = Link([[2,1,4,5], [3,5,6,7], [4,1,9,6], [9,2,3,7]])
+            sphinx_plot(L.plot())
+
+        The "monster" unknot::
+
+            sage: L = Link([[3,1,2,4],[8,9,1,7],[5,6,7,3],[4,18,6,5],
+            ....:           [17,19,8,18],[9,10,11,14],[10,12,13,11],
+            ....:           [12,19,15,13],[20,16,14,15],[16,20,17,2]])
+            sage: L.plot()
+            Graphics object consisting of 39 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            L = Link([[3,1,2,4],[8,9,1,7],[5,6,7,3],[4,18,6,5],
+                      [17,19,8,18],[9,10,11,14],[10,12,13,11],
+                      [12,19,15,13],[20,16,14,15],[16,20,17,2]])
+            sphinx_plot(L.plot())
+
+        The Ochiai unknot::
+
+            sage: L = Link([[[1,-2,-3,-8,-12,13,-14,15,-7,-1,2,-4,10,11,-13,12,
+            ....:             -11,-16,4,3,-5,6,-9,7,-15,14,16,-10,8,9,-6,5]],
+            ....:           [-1,-1,1,1,1,1,-1,1,1,-1,1,-1,-1,-1,-1,-1]])
+            sage: L.plot()
+            Graphics object consisting of 58 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            L = Link([[[1,-2,-3,-8,-12,13,-14,15,-7,-1,2,-4,10,11,-13,12,
+                        -11,-16,4,3,-5,6,-9,7,-15,14,16,-10,8,9,-6,5]],
+                      [-1,-1,1,1,1,1,-1,1,1,-1,1,-1,-1,-1,-1,-1]])
+            sphinx_plot(L.plot())
+
+        One of the representations of the trefoil knot::
+
+            sage: L = Link([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
+            sage: L.plot()
+            Graphics object consisting of 14 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            L = Link([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
+            sphinx_plot(L.plot())
+
+        The figure-eight knot::
+
+            sage: L = Link([[2, 1, 4, 5], [5, 6, 7, 3], [6, 4, 1, 9], [9, 2, 3, 7]])
+            sage: L.plot()
+            Graphics object consisting of 20 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            L = Link([[2,1,4,5], [5,6,7,3], [6,4,1,9], [9,2,3,7]])
+            sphinx_plot(L.plot())
+
+        The knot `K11n121` in [KnotAtlas]_::
+
+            sage: L = Link([[4,2,5,1], [10,3,11,4], [5,16,6,17], [7,12,8,13],
+            ....:           [18,9,19,10], [2,11,3,12], [13,20,14,21], [15,6,16,7],
+            ....:           [22,18,1,17], [8,19,9,20], [21,14,22,15]])
+            sage: L.plot()
+            Graphics object consisting of 42 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            L = Link([[4,2,5,1], [10,3,11,4], [5,16,6,17], [7,12,8,13],
+                      [18,9,19,10], [2,11,3,12], [13,20,14,21], [15,6,16,7],
+                      [22,18,1,17], [8,19,9,20], [21,14,22,15]])
+            sphinx_plot(L.plot())
+
+        One of the representations of the Hopf link::
+
+            sage: L = Link([[1, 4, 2, 3], [4, 1, 3, 2]])
+            sage: L.plot()
+            Graphics object consisting of 13 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            L = Link([[1, 4, 2, 3], [4, 1, 3, 2]])
+            sphinx_plot(L.plot())
+
+        Currently, plotting links with multiple components can result
+        in overlap::
 
             sage: L = Link([[[-1, 2, -3, 1, -2, 3], [4, -5, 6, -4, 5, -6]], [1, 1, 1, 1, 1, 1]])
             sage: L.plot()
             Graphics object consisting of 28 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            L = Link([[[-1,2,-3,1,-2,3], [4,-5,6,-4,5,-6]], [1,1,1,1,1,1]])
+            sphinx_plot(L.plot())
         """
         comp = self._isolated_components()
         if len(comp) > 1:

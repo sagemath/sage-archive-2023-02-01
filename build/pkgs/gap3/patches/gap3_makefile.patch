@@ -3,7 +3,7 @@ any options specifying the system.
 
 diff -ur src/src/Makefile.orig src/src/Makefile
 --- src/src/Makefile.orig	2016-03-11 08:57:35.111798050 +0100
-+++ src/src/Makefile	2016-03-11 11:23:21.235824490 +0100
++++ src/src/Makefile	2016-03-19 08:16:26.236879777 +0100
 @@ -46,6 +46,9 @@
  ##  DJGPP differently you have to change this below.
  ##
@@ -84,31 +84,9 @@ diff -ur src/src/Makefile.orig src/src/Makefile
 -
 -# sbrk doesn't work in macosx so we need to use vm_allocate
 -macosx-gcc:
-+unknown:
-+	@echo "###########################################################"
-+	@echo "#  Building GAP3 for '$(UNAME_S)' and '$(ARCH) bit'"
-+	@echo "###########################################################"
-+
-+ifeq ($(UNAME_S),Linux)
-+    ifeq ($(ARCH),64)
-+		@$(MAKE) system.o   CC=gcc  CFLAGS="$(COPTS) -O -DSYS_IS_64_BIT -DSYS_IS_USG -DSYS_HAS_TIME_PROTO -DSYS_HAS_SIGNAL_PROTO -DSYS_HAS_IOCTL_PROTO"
-+		@$(MAKE) gap CC=gcc CFLAGS="$(COPTS) -O -DSYS_IS_64_BIT " SYS_FILE=system.o LOPTS="$(LOPTS) -static"
-+		strip gap
-+		mv gap ../bin/gap3
-+    endif
-+    ifeq ($(ARCH),32)
-+		@$(MAKE) system.o   CC=gcc  CFLAGS="$(COPTS) -m32 -O2 -DSYS_IS_USG -DSYS_HAS_TIME_PROTO -DSYS_HAS_SIGNAL_PROTO -DSYS_HAS_IOCTL_PROTO"
-+		@$(MAKE) gap CC=gcc CFLAGS="$(COPTS) -m32 -O " SYS_FILE=system.o LOPTS="$(LOPTS) -m32 -static"
-+		strip gap
-+		mv gap ../bin/gap3
-+    endif
-+endif
-+ifeq ($(UNAME_S),Darwin)
- 	@$(MAKE) system.o   CC=gcc  CFLAGS="$(COPTS) -m32 -DSYS_IS_MACOSX -DARCH_INCLUDE -DSYS_HAS_IOCTL_PROTO"
- 	@$(MAKE) gap	    CC=gcc  CFLAGS="$(COPTS) -m32 -O2"  SYS_FILE=system.o  LOPTS="$(LOPTS) -m32"
-+	mv gap ../bin/gap3
-+endif
- 
+-	@$(MAKE) system.o   CC=gcc  CFLAGS="$(COPTS) -m32 -DSYS_IS_MACOSX -DARCH_INCLUDE -DSYS_HAS_IOCTL_PROTO"
+-	@$(MAKE) gap	    CC=gcc  CFLAGS="$(COPTS) -m32 -O2"  SYS_FILE=system.o  LOPTS="$(LOPTS) -m32"
+-
 -# sbrk doesn't work in macosx so we need to use vm_allocate
 -# This is using Frank Luebeck's optimized compile....but it doesn't
 -# change the GAPstones for the files in ../tst
@@ -129,8 +107,31 @@ diff -ur src/src/Makefile.orig src/src/Makefile
 -# 'sys/times.h' claims 'times' returns 'clock_t' (how shall it return -1?)
 -sun-sparc-sunos-gcc:
 -	@$(MAKE) system.o   CC=gcc  CFLAGS="$(COPTS) -DSYS_IS_USG -DSYS_HAS_TIME_PROTO -DSYS_HAS_SIGNAL_PROTO"
--	@$(MAKE) gap	    CC=gcc  CFLAGS="$(COPTS) -O2"  SYS_FILE=system.o  LOPTS="$(LOPTS)"
--
++unknown:
++	@echo "###########################################################"
++	@echo "#  Building GAP3 for '$(UNAME_S)' and '$(ARCH) bit'"
++	@echo "###########################################################"
++
++ifeq ($(UNAME_S),Linux)
++    ifeq ($(ARCH),64)
++		@$(MAKE) system.o   CC=gcc  CFLAGS="$(COPTS) -O -DSYS_IS_64_BIT -DSYS_IS_USG -DSYS_HAS_TIME_PROTO -DSYS_HAS_SIGNAL_PROTO -DSYS_HAS_IOCTL_PROTO"
++		@$(MAKE) gap CC=gcc CFLAGS="$(COPTS) -O -DSYS_IS_64_BIT " SYS_FILE=system.o LOPTS="$(LOPTS) -static"
++		strip gap
++		mv gap ../bin/gap3
++    endif
++    ifeq ($(ARCH),32)
++		@$(MAKE) system.o   CC=gcc  CFLAGS="$(COPTS) -O2 -DSYS_IS_USG -DSYS_HAS_TIME_PROTO -DSYS_HAS_SIGNAL_PROTO -DSYS_HAS_IOCTL_PROTO"
++		@$(MAKE) gap CC=gcc CFLAGS="$(COPTS) -O " SYS_FILE=system.o LOPTS="$(LOPTS) -static"
++		strip gap
++		mv gap ../bin/gap3
++    endif
++endif
++ifeq ($(UNAME_S),Darwin)
++	@$(MAKE) system.o   CC=gcc  CFLAGS="$(COPTS) -DSYS_IS_MACOSX -DARCH_INCLUDE -DSYS_HAS_IOCTL_PROTO"
+ 	@$(MAKE) gap	    CC=gcc  CFLAGS="$(COPTS) -O2"  SYS_FILE=system.o  LOPTS="$(LOPTS)"
++	mv gap ../bin/gap3
++endif
+ 
 -# 'sys/times.h' claims 'times' returns 'clock_t' (how shall it return -1?)
 -sun-sparc-sunos-cc:
 -	@$(MAKE) system.o   CFLAGS="$(COPTS) -DSYS_IS_USG -DSYS_HAS_TIME_PROTO"

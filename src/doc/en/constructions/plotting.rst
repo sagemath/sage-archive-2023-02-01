@@ -34,12 +34,12 @@ You can plot piecewise-defined functions:
 
 ::
 
-    sage: f1 = lambda x:1
-    sage: f2 = lambda x:1-x
-    sage: f3 = lambda x:exp(x)
-    sage: f4 = lambda x:sin(2*x)
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-    sage: f.plot()
+    sage: f1 = 1
+    sage: f2 = 1-x
+    sage: f3 = exp(x)
+    sage: f4 = sin(2*x)
+    sage: f = piecewise([((0,1),f1), ((1,2),f2), ((2,3),f3), ((3,10),f4)])
+    sage: f.plot(x,0,10)
     Graphics object consisting of 4 graphics primitives
 
 Other function plots can be produced as well:

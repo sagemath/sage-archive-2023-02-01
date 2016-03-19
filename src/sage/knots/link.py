@@ -102,7 +102,8 @@ class Link(object):
       crossing numbers. A second list of `+1` and `-1`'s keeps track of
       the orientation of each crossing::
 
-        sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]], [-1, -1, -1, -1, 1, 1, -1, 1]])
+        sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]],
+        ....:           [-1, -1, -1, -1, 1, 1, -1, 1]])
         sage: L
         Link with 1 components represented by 8 crossings
 
@@ -1485,7 +1486,7 @@ class Link(object):
         return pos + neg
 
     def jones_polynomial(self, variab=None, skein_normalization=False, algorithm='jonesrep'):
-        """
+        r"""
         Return the Jones polynomial of ``self``.
 
         The normalization is so that the unknot has Jones polynomial `1`.
@@ -1516,7 +1517,7 @@ class Link(object):
 
         - ``variab`` -- variable (default: ``None``); the variable in the
           resulting polynomial; if unspecified, use either a default variable
-          in `ZZ[A,A^{-1}]` or the variable `t` in the symbolic ring
+          in `\ZZ[A,A^{-1}]` or the variable `t` in the symbolic ring
 
         - ``skein_normalization`` -- boolean (default: ``False``); determines
           the variable of the resulting polynomial
@@ -1595,7 +1596,7 @@ class Link(object):
             A^4 + A^12 - A^16
 
         `K11n42` (the mirror of the "Kinoshita-Terasaka" knot) and `K11n34`
-        (the mirror of the "Conway" knot)::
+        (the mirror of the "Conway" knot) in [KnotAtlas]_::
 
             sage: B = BraidGroup(4)
             sage: K11n42 = Link(B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2]))
@@ -1606,7 +1607,8 @@ class Link(object):
         The two algorithms for computation give the same result when the
         trace closure of the braid representation is the link itself::
 
-            sage: L = Link([[[-1, 2, -3, 4, 5, 1, -2, 6, 7, 3, -4, -7, -6, -5]], [-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, 2, -3, 4, 5, 1, -2, 6, 7, 3, -4, -7, -6, -5]],
+            ....:           [-1, -1, -1, -1, 1, -1, 1]])
             sage: jonesrep = L.jones_polynomial(algorithm='jonesrep')
             sage: statesum = L.jones_polynomial(algorithm='statesum')
             sage: cmp(jonesrep, statesum)
@@ -1663,7 +1665,8 @@ class Link(object):
 
         EXAMPLES::
 
-            sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]],
+            ....:           [-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L._bracket()
             -t^-10 + 2*t^-6 - t^-2 + 2*t^2 - t^6 + t^10 - t^14
             sage: L = Link([[2, 1, 3, 4], [4, 3, 1, 2]])

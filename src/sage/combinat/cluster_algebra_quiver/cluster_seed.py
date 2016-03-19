@@ -54,6 +54,7 @@ from sage.matrix.all import identity_matrix
 from sage.matrix.constructor import matrix
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
 from sage.rings.integer import Integer
+from copy import deepcopy
 
 from sage.misc.decorators import rename_keyword
 
@@ -2461,26 +2462,34 @@ class ClusterSeed(SageObject):
         
         n, m = seed.n(), seed.m()
         V = IE + range(n)        
-        if seed._use_fpolys and isinstance(sequence, str) and not input_type == "cluster_vars":
-            if sequence in V:
-                X = seed.cluster_index(sequence)
-                sequence = V.index(sequence)
-                if isinstance(X,int) and X != sequence:
-                    print "Warning: Variable provided is both a cluster variable and a vertex lable. Mutating at the vertex by default."
-            else:    
-                sequence = seed.cluster_index(sequence)
-            if sequence is None:
-                raise ValueError("Variable provided is not in our cluster")
+        #if seed._use_fpolys and isinstance(sequence, str) and not input_type == "cluster_vars":
+        #    if sequence in V:
+        #        X = seed.cluster_index(sequence)
+        #        sequence = V.index(sequence)
+        #        if isinstance(X,int) and X != sequence:
+        #            print "Warning: Variable provided is both a cluster variable and a vertex label. Mutating at the vertex by default."
+        #    else:    
+        #        sequence = seed.cluster_index(sequence)
+        #    if sequence is None:
+        #        raise ValueError("Variable provided is not in our cluster")
 
-        if (sequence in xrange(n)) or (sequence in IE):
+        if (sequence in xrange(n)) or (sequence in IE) or isinstance(sequence,str):
             seqq = [sequence]
-        elif input_type == "cluster_vars" and isinstance(sequence,str):
-            seqq == [sequence]
+        #elif input_type == "cluster_vars" and isinstance(sequence,str):
+        #    seqq == [sequence]
         else:
             seqq = sequence
+            
+        if isinstance(seqq, tuple):
+            seqq = list( seqq )
+        if not isinstance(seqq, list):
+            raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
                         
         isVertices = set(seqq).issubset(set(seed.nlist()))
         isIndices = set(seqq).issubset(set(range(n)))
+        # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some possibilities.
+        isClusterVars = reduce(lambda x,y:isinstance(y,str),seqq,1) and seed._use_fpolys
+        
         # Ensures the sequence has elements of type input_type.
         if input_type:
             if input_type == "vertices" and not isVertices:
@@ -2489,31 +2498,65 @@ class ClusterSeed(SageObject):
             elif input_type == "indices" and not isIndices:
                 raise ValueError('input_type set to "indices" but not everything in the mutation sequence is an index')
         
-            elif input_type == "cluster_vars":
-                # To do: copy the cluster seed, mutate the copy, replace if successful (copying naively doesn't quite work)
-                try:
-                    return seed.mutate(seqq)
-                except:
-                    raise ValueError('input_type set to "cluster_vars" but the input sequence did not consist of cluster variables"')
+            elif input_type == "cluster_vars" and not isClusterVars:
+                raise ValueError('input_type set to "cluster_vars" but not everything in the mutation sequence is a cluster variable')
+                #try:
+                #    if len(seqq) == 1:
+                #        seqq[0] = seed.cluster_index(seqq[0])
+                #        input_type = "indices"
+                #    else:    
+                #        for cluster_var in seqq:
+                #            seed.mutate(cluster_var, input_type = "cluster_vars")
+                #except:
+                #    raise ValueError('input_type set to "cluster_vars" but the input sequence did not consist of cluster variables"')
             
             elif input_type not in ["vertices", "indices", "cluster_vars"]:
                 raise ValueError('Invalid input_type. Possible values for input_type are "vertices," "indices," and "cluster_vars.')
-        
-        elif isVertices and isIndices:
-            for x in seqq:
-                if seed._nlist[x] != x:
-                    print "Warning: Input is both an index and a vertex label. Mutating at vertices by default."
-                    break
 
-        if isinstance(seqq, tuple):
-            seqq = list( seqq )
-        if not isinstance(seqq, list):
-            raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
+        # Classifies the input_type and raises warnings if the input is ambiguous 
+        else:
+            if isVertices:
+                input_type = "vertices"
+                for x in seqq:
+                    
+                    if isIndices and seed._nlist[x] != x:
+                        print "Warning: Input can be ambiguously interpreted as both vertices and indices. Mutating at vertices by default."
+                        break
+                        
+                    elif isClusterVars:
+                        
+                        cluster_var_index = seed.cluster_index(x)
+                        vertex_index = seed._nlist.index(x)
+                        if isinstance(cluster_var_index,int) and cluster_var_index != vertex_index:
+                            print "Warning: Some of the input can be ambiguously interpreted as both vertices and cluster variables. Mutating at vertices by default."
+                            break
+            
+            # It should be impossible to interpret an index as a cluster variable.
+            elif isIndices:
+                input_type = "indices"
+            elif isClusterVars:
+                input_type = "cluster_vars"
+            else:
+                raise ValueError('Invalid mutation sequence. Mutation sequences may consist of vertices, indices, or cluster variables.')
 
-        # remove ineligible vertices
-        if any( v not in V for v in seqq ) and not input_type == "cluster_vars":
-            v = filter( lambda v: v not in V, seqq )[0]
-            raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
+        if input_type == "cluster_vars" and len(seqq) >1:
+            mutation_seed = deepcopy(seed)
+            try:
+                for cluster_var in seqq:
+                    mutation_seed.mutate(cluster_var, input_type = "cluster_vars")
+            except:
+                raise ValueError('Input interpreted as cluster variables but the input sequence did not consist of cluster variables"')
+            mutation_seed._cluster = None
+            mutation_seed._quiver = None
+                                 
+            if not inplace:
+                return mutation_seed
+
+
+        ## remove ineligible vertices
+        #if any( v not in V for v in seqq ) and not input_type == "cluster_vars":
+        #    v = filter( lambda v: v not in V, seqq )[0]
+        #    raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
 
         
         seq = iter(seqq)
@@ -2530,19 +2573,9 @@ class ClusterSeed(SageObject):
                 k = seed.cluster_index(k)
                 if k is None:
                     raise ValueError("Variable provided is not in our cluster")
-            
-                
             else:
-                if k in seed._nlist:
-                    k = seed._nlist.index(k)
-                elif k in xrange(n):
-                    pass
-                elif seed._use_fpolys:
-                    k = seed.cluster_index(k)
-                    if k is None:
-                        raise ValueError("Variable provided is not in our cluster")
-                else:
-                    raise ValueError('Why wasnt this caught earlier? Cannot mutate in direction ' + str(k) + '.')
+                raise ValueError('Why wasnt this caught earlier? Cannot mutate in direction ' + str(k) + '.')
+            
 
             if seed._use_fpolys:
                 seed._f_mutate(k)
@@ -2566,13 +2599,15 @@ class ClusterSeed(SageObject):
                     seed._mut_path.append(k)
                 else:
                     seed._mut_path.pop()
+            
 
-            # a mutation invalidates the cluster although it can be recomputed by F-polys and g-vectors
-            # moving this into the for loop in case it does some mutations in 'seq' before finding a ValueError
-            seed._cluster = None
-
-            seed._quiver = None
-
+                       
+        # a mutation invalidates the cluster although it can be recomputed by F-polys and g-vectors
+        # moving this into the for loop in case it does some mutations in 'seq' before finding a ValueError
+        # moving this back out of the loop, as this should now be caught by the cluster_vars check.
+        seed._cluster = None
+        seed._quiver = None
+                                 
         if not inplace:
             return seed
 

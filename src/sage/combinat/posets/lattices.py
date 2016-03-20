@@ -652,19 +652,21 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                   3: [7, 8, 9], 4: [9, 11], 5: [9, 10],
             ....:                   6: [10, 11], 7: [12], 8: [12], 9: [12],
             ....:                   10: [12], 11: [12]})
+            sage: L.is_atomic() and L.is_coatomic()
+            True
             sage: L.is_relatively_complemented()
             False
 
         TESTS::
 
             sage: [Posets.ChainPoset(i).is_relatively_complemented() for
-            ....: i in range(5)]
+            ....:  i in range(5)]
             [True, True, True, False, False]
 
         Usually a lattice that is not relatively complemented contains elements
-        `l`, `m`, and `u` such that rank(`l`)+1 == rank(`m`) == rank(`u`)-1
-        and `m` is the only element in the interval `[l, u]`. We make an
-        example where this does not hold::
+        `l`, `m`, and `u` such that `r(l) + 1 = r(m) = r(u) - 1`, where `r` is
+        the rank function and `m` is the only element in the interval `[l, u]`.
+        We construct an example where this does not hold::
 
             sage: B3 = Posets.BooleanLattice(3)
             sage: B5 = Posets.BooleanLattice(5)
@@ -695,10 +697,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in C.iteritems():
-                if c == 1:
-                    if len(H.closed_interval(e1, e3)) == 3:
-                        return False
+            if any(c == 1 and len(H.closed_interval(e1, e3)) == 3 for e3, c in C.iteritems()):
+                return False
         return True
 
     def breadth(self, certificate=False):

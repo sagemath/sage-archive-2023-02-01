@@ -6976,7 +6976,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         ::
 
             sage: R.<t> = QQ['t']
-            sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
+            sage: M = matrix([[t,t,t],[0,0,t]])
             sage: M.row_reduced_form(transformation=False, old_call=False)
             [t t t]
             [0 0 t]

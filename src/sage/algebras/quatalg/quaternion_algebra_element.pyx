@@ -617,7 +617,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             v = [(self*a).coefficient_tuple() for a in self._parent.basis()]
         else:
             raise ValueError, "action must be either 'left' or 'right'"
-        return matrix(self.base_ring(), 4, v, check=False)
+        return matrix(self.base_ring(), 4, v)
 
     def coefficient_tuple(self):
         """

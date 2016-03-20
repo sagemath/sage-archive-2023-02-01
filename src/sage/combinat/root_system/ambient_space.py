@@ -12,11 +12,9 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
-from sage.misc.cachefunc import ClearCacheOnPickle
-from sage.modules.free_module_element import vector
 from sage.categories.homset import End
 
-class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
+class AmbientSpace(CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
 

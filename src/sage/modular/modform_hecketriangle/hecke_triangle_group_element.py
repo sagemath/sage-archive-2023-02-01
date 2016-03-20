@@ -428,7 +428,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             S*T^3*S*T^(-2)
         """
         if   method == "default":
-            return super(MatrixGroupElement_generic, self)._repr_()
+            return MatrixGroupElement_generic._repr_(self)
         elif method == "basic":
             (L, sgn) = self._word_S_T_data()
 
@@ -3312,4 +3312,4 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             Set of Morphisms from Hyperbolic plane in the Klein Disk Model model to Hyperbolic plane in the Klein Disk Model model in Category of hyperbolic models of Hyperbolic plane
         """
 
-        return HyperbolicPlane().UHP().get_isometry(self.matrix()).to_model(model)
+        return HyperbolicPlane().UHP().get_isometry(self._matrix).to_model(model)

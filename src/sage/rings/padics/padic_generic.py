@@ -687,6 +687,33 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
 
+    def _test_convert_residue_field(self, **options):
+        r"""
+        Test that conversion of residue field elements back to this ring works.
+
+        INPUT:
+
+         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_convert_residue_field()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements():
+            if x.valuation() < 0:
+                continue
+            if x.precision_absolute() <= 0:
+                continue
+            y = x.residue()
+            z = self(y)
+            tester.assertEqual(z.residue(), y)
+
     @cached_method
     def _log_unit_part_p(self):
         """

@@ -156,11 +156,17 @@ AUTHORS:
 
 REFERENCES:
 
-.. [ASHandbook] Abramowitz and Stegun: Handbook of Mathematical Functions,
-    http://www.math.sfu.ca/ cbm/aands/
+.. [AS-Bessel] F. W. J. Olver: 9. Bessel Functions of Integer Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
+    http://people.math.sfu.ca/~cbm/aands/page_355.htm
+.. [AS-Struve] M. Abramowitz: 12. Struve Functions and Related Functions, in Abramowitz and Stegun: Handbook of Mathematical Functions
+   http://people.math.sfu.ca/~cbm/aands/page_495.htm
+.. [DLMF-Bessel] F. W. J. Olver and L. C. Maximon: 10. Bessel Functions, in NIST Digital Library of Mathematical Functions
+    http://dlmf.nist.gov/10
+.. [DLMF-Struve] R. B. Paris: 11. Struve and Related Functions, in NIST Digital Library of Mathematical Functions
+    http://dlmf.nist.gov/11
 .. _`mpmath Library`: https://github.com/fredrik-johansson/mpmath
-.. :wikipedia:`Bessel_function`
-.. [WPStruve] :wikipedia:`Struve_function`
+.. [WP-Bessel] :wikipedia:`Bessel_function`
+.. [WP-Struve] :wikipedia:`Struve_function`
 """
 
 #*****************************************************************************
@@ -285,6 +291,14 @@ class Function_Bessel_J(BuiltinFunction):
 
         sage: bessel_J(5, 1.5) in RR
         True
+
+    REFERENCES:
+
+    - [AS-Bessel]_
+
+    - [DLMF-Bessel]_
+
+    - [AS-Bessel]_
     """
     def __init__(self):
         """
@@ -457,6 +471,14 @@ class Function_Bessel_Y(BuiltinFunction):
         -0.78121282130028871654715000004796482054990639071644460784383
         sage: parent(r)
         Real Field with 200 bits of precision
+
+    REFERENCES:
+
+    - [AS-Bessel]_
+
+    - [DLMF-Bessel]_
+
+    - [WP-Bessel]_
     """
     def __init__(self):
         """
@@ -622,6 +644,14 @@ class Function_Bessel_I(BuiltinFunction):
 
         sage: bessel_I(5, 1.5) in RR
         True
+
+    REFERENCES:
+
+    - [AS-Bessel]_
+
+    - [DLMF-Bessel]_
+
+    - [WP-Bessel]_
     """
     def __init__(self):
         """
@@ -795,6 +825,14 @@ class Function_Bessel_K(BuiltinFunction):
 
         sage: bessel_K(5, 1.5) in RR
         True
+
+    REFERENCES:
+
+    - [AS-Bessel]_
+
+    - [DLMF-Bessel]_
+
+    - [WP-Bessel]_
     """
     def __init__(self):
         """
@@ -1065,9 +1103,11 @@ class Function_Struve_H(BuiltinFunction):
 
     REFERENCES:
 
-    - [ASHandbook]_
+    - [AS-Struve]_
 
-    - [WPStruve]_
+    - [DLMF-Struve]_
+
+    - [WP-Struve]_
     """
     def __init__(self):
         r"""
@@ -1176,8 +1216,12 @@ class Function_Struve_L(BuiltinFunction):
         1/3*x/pi - 1/2*struve_L(2, x) + 1/2*struve_L(0, x)
 
     REFERENCES:
-    - [ASHandbook]_
-    - [WPStruve]_
+
+    - [AS-Struve]_
+
+    - [DLMF-Struve]_
+
+    - [WP-Struve]_
     """
     def __init__(self):
         r"""

@@ -25,7 +25,6 @@ AUTHORS:
 from __future__ import division
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'

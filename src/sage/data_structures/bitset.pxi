@@ -25,7 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 from libc.string cimport strlen
 from sage.libs.gmp.mpn cimport *
 from sage.data_structures.bitset cimport *
@@ -95,7 +95,7 @@ cdef inline bint bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
         raise ValueError("bitset capacity must be greater than 0")
 
     bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
-    tmp = <mp_limb_t*>sage_realloc(bits.bits, bits.limbs * sizeof(mp_limb_t))
+    tmp = <mp_limb_t*>sig_realloc(bits.bits, bits.limbs * sizeof(mp_limb_t))
     if tmp != NULL:
         bits.bits = tmp
     else:
@@ -114,7 +114,7 @@ cdef inline void bitset_free(bitset_t bits):
     """
     Deallocate the memory in bits.
     """
-    sage_free(bits.bits)
+    sig_free(bits.bits)
 
 cdef inline void bitset_clear(bitset_t bits):
     """
@@ -731,7 +731,7 @@ cdef char* bitset_chars(char* s, bitset_t bits, char zero=c'0', char one=c'1'):
     """
     cdef long i
     if s == NULL:
-        s = <char *>sage_malloc(bits.size + 1)
+        s = <char *>sig_malloc(bits.size + 1)
     for i from 0 <= i < bits.size:
         s[i] = one if bitset_in(bits, i) else zero
     s[bits.size] = 0
@@ -755,7 +755,7 @@ cdef bitset_string(bitset_t bits):
     cdef char* s = bitset_chars(NULL, bits)
     cdef object py_s
     py_s = s
-    sage_free(s)
+    sig_free(s)
     return py_s
 
 cdef list bitset_list(bitset_t bits):

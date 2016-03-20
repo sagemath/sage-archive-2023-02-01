@@ -28,7 +28,7 @@ speed, we provide a class that wraps our struct.
 #
 #  Copyright 2010, Tom Boothby
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 
 ##########################################################
@@ -160,7 +160,7 @@ def permutation_iterator_transposition_list(int n):
         N *= m
         m -= 1
 
-    c = <int *>sage_malloc(2*n*sizeof(int))
+    c = <int *>sig_malloc(2*n*sizeof(int))
     if c is NULL:
         raise MemoryError("Failed to allocate memory in "
                           "permutation_iterator_transposition_list")
@@ -169,14 +169,14 @@ def permutation_iterator_transposition_list(int n):
     try:
         T = PyList_New(N-1)
     except Exception:
-        sage_free(c)
+        sig_free(c)
         raise MemoryError("Failed to allocate memory in "
                           "permutation_iterator_transposition_list")
 
     reset_swap(n,c,o)
     for m in range(N-1):
         PyList_SET_ITEM(T, m, next_swap(n,c,o))
-    sage_free(c)
+    sig_free(c)
 
     return T
 

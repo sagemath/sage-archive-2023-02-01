@@ -188,7 +188,7 @@ from sage.graphs.base.c_graph cimport CGraph
 from static_sparse_backend cimport StaticSparseCGraph
 from static_sparse_backend cimport StaticSparseBackend
 from sage.ext.memory_allocator cimport MemoryAllocator
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 from libcpp.vector cimport vector
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
@@ -228,11 +228,11 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
     for i, v in enumerate(vertices):
         v_to_id[v] = i
 
-    g.edges = <uint32_t *> sage_malloc(n_edges*sizeof(uint32_t))
+    g.edges = <uint32_t *> sig_malloc(n_edges*sizeof(uint32_t))
     if g.edges == NULL:
         raise ValueError("Problem while allocating memory (edges)")
 
-    g.neighbors = <uint32_t **> sage_malloc((1+<int>g.n)*sizeof(uint32_t *))
+    g.neighbors = <uint32_t **> sig_malloc((1+<int>g.n)*sizeof(uint32_t *))
     if g.neighbors == NULL:
         raise ValueError("Problem while allocating memory (neighbors)")
 
@@ -305,11 +305,11 @@ cdef int init_empty_copy(short_digraph dst, short_digraph src) except -1:
     dst.edge_labels = NULL
     cdef list edge_labels
 
-    dst.edges = <uint32_t *> sage_malloc(n_edges(src)*sizeof(uint32_t))
+    dst.edges = <uint32_t *> sig_malloc(n_edges(src)*sizeof(uint32_t))
     if dst.edges == NULL:
         raise ValueError("Problem while allocating memory (edges)")
 
-    dst.neighbors = <uint32_t **> sage_malloc((src.n+1)*sizeof(uint32_t *))
+    dst.neighbors = <uint32_t **> sig_malloc((src.n+1)*sizeof(uint32_t *))
     if dst.neighbors == NULL:
         raise ValueError("Problem while allocating memory (neighbors)")
 
@@ -333,7 +333,7 @@ cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
     # vector. With this information, we can initialize dst.neighbors to its
     # correct value. The content of dst.edges is not touched at this level.
 
-    cdef int * in_degree = <int *> sage_malloc(src.n*sizeof(int))
+    cdef int * in_degree = <int *> sig_malloc(src.n*sizeof(int))
     if in_degree == NULL:
         raise ValueError("Problem while allocating memory (in_degree)")
 
@@ -347,7 +347,7 @@ cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
     dst.neighbors[0] = dst.edges
     for i in range(1, src.n+1):
         dst.neighbors[i] = dst.neighbors[i-1] + in_degree[i-1]
-    sage_free(in_degree)
+    sig_free(in_degree)
 
     #### 2/3
     #
@@ -404,7 +404,7 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
 
     # We will be doing a Depth-First Search. We allocate the stack we need for
     # that, and put "src" on top of it.
-    cdef int * stack = <int *> sage_malloc(g.n*sizeof(int))
+    cdef int * stack = <int *> sig_malloc(g.n*sizeof(int))
     if stack == NULL:
         raise ValueError("Problem while allocating memory (stack)")
 
@@ -437,7 +437,7 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
 
             v += 1
 
-    sage_free(stack)
+    sig_free(stack)
 
 cdef int tarjan_strongly_connected_components_C(short_digraph g, int *scc):
     r"""
@@ -773,10 +773,10 @@ cdef strongly_connected_component_containing_vertex(short_digraph g, short_digra
 
 cdef void free_short_digraph(short_digraph g):
     if g.edges != NULL:
-        sage_free(g.edges)
+        sig_free(g.edges)
 
     if g.neighbors != NULL:
-        sage_free(g.neighbors)
+        sig_free(g.neighbors)
 
     if g.edge_labels != NULL:
         cpython.Py_XDECREF(g.edge_labels)
@@ -838,5 +838,5 @@ def triangles_count(G):
     ans = {w:Integer(count[i]/2)
            for i,w in enumerate(G.vertices())}
 
-    sage_free(count)
+    sig_free(count)
     return ans

@@ -1373,8 +1373,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             fmpz_poly_set_ZZX(fac.__poly, v[i][0])
             F.append( (fac,e[i]) )
             del v[i]
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
 
         return Factorization(F, unit=z, sort=False)
 

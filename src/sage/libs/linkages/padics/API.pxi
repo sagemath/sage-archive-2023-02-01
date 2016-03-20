@@ -53,8 +53,6 @@ file gives the function signatures.
 
 The gluing file should ctypedef celement as appropriate.
 
-Each linkage file should include stdsage.pxi
-
 .. NOTE::
 
     This particular file is not included anywhere.  It just defines

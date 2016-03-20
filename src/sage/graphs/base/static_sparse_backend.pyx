@@ -44,7 +44,7 @@ from c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 include 'sage/data_structures/bitset.pxi'
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -106,7 +106,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         bitset_free(self.active_vertices)
         free_short_digraph(self.g)
-        sage_free(self.number_of_loops)
+        sig_free(self.number_of_loops)
         if self.g_rev != NULL:
             free_short_digraph(self.g_rev)
 

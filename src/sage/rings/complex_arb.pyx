@@ -124,7 +124,6 @@ Classes and Methods
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 
 import operator
 

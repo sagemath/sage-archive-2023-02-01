@@ -22,16 +22,16 @@ cdef int allocate_mpz_vector(mpz_vector* v, Py_ssize_t num_nonzero) except -1:
     It does *not* clear the entries of v, if there are any.
     """
     cdef Py_ssize_t i
-    v.entries = <mpz_t *>sage_malloc(num_nonzero*sizeof(mpz_t))
+    v.entries = <mpz_t *>sig_malloc(num_nonzero*sizeof(mpz_t))
     if v.entries == NULL:
         raise MemoryError, "Error allocating memory"
     for i from 0 <= i < num_nonzero:
         mpz_init(v.entries[i])
-    v.positions = <Py_ssize_t*>sage_malloc(num_nonzero*sizeof(Py_ssize_t))
+    v.positions = <Py_ssize_t*>sig_malloc(num_nonzero*sizeof(Py_ssize_t))
     if v.positions == NULL:
         for i from 0 <= i < num_nonzero:
             mpz_clear(v.entries[i])
-        sage_free(v.entries)
+        sig_free(v.entries)
         v.entries = NULL
         raise MemoryError, "Error allocating memory"
     return 0
@@ -53,8 +53,8 @@ cdef void mpz_vector_clear(mpz_vector* v):
     # These were allocated from the Python heap.
     # If mpz_vector_init was not called, then this
     # will (of course!) cause a core dump.
-    sage_free(v.entries)
-    sage_free(v.positions)
+    sig_free(v.entries)
+    sig_free(v.positions)
 
 cdef Py_ssize_t mpz_binary_search0(mpz_t* v, Py_ssize_t n, mpz_t x):
     """
@@ -198,8 +198,8 @@ cdef int mpz_vector_set_entry(mpz_vector* v, Py_ssize_t n, mpz_t x) except -1:
                 mpz_set(v.entries[i-1], e[i])
                 mpz_clear(e[i])
                 v.positions[i-1] = pos[i]
-            sage_free(e)
-            sage_free(pos)
+            sig_free(e)
+            sig_free(pos)
             v.num_nonzero = v.num_nonzero - 1
     else:
         # Allocate new memory and copy over elements from the
@@ -228,8 +228,8 @@ cdef int mpz_vector_set_entry(mpz_vector* v, Py_ssize_t n, mpz_t x) except -1:
             mpz_set(v.entries[i], e[i-1])
             mpz_clear(e[i-1])
             v.positions[i] = pos[i-1]
-        sage_free(e)
-        sage_free(pos)
+        sig_free(e)
+        sig_free(pos)
 
 
 
@@ -363,13 +363,13 @@ cdef int mpz_vector_scalar_multiply(mpz_vector* v, mpz_vector* w, mpz_t scalar) 
         return mpz_vector_scale(v, scalar)
     else:
         mpz_vector_clear(v)
-        v.entries = <mpz_t*> sage_malloc(w.num_nonzero * sizeof(mpz_t))
+        v.entries = <mpz_t*> sig_malloc(w.num_nonzero * sizeof(mpz_t))
         if v.entries == NULL:
             v.positions = NULL
             raise MemoryError, "error allocating rational sparse vector mpz's"
-        v.positions = <Py_ssize_t*> sage_malloc(w.num_nonzero * sizeof(Py_ssize_t))
+        v.positions = <Py_ssize_t*> sig_malloc(w.num_nonzero * sizeof(Py_ssize_t))
         if v.positions == NULL:
-            sage_free(v.entries)
+            sig_free(v.entries)
             v.entries = NULL
             raise MemoryError, "error allocating rational sparse vector positions"
         v.num_nonzero = w.num_nonzero

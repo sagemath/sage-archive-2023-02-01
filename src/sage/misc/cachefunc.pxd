@@ -24,7 +24,6 @@ cdef class CachedMethod(object):
     cdef CachedFunction _cachedfunc
     cdef Py_ssize_t nargs
     cpdef _get_instance_cache(self, inst)
-    cdef bint do_pickle
 
 cdef class CacheDict(dict):
     pass

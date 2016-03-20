@@ -76,12 +76,12 @@ class Knot(Link):
         TESTS::
 
             sage: B = BraidGroup(8)
-            sage: L = Knot(B([-1, -1, -1, -2,1, -2, 3, -2]))
-            sage: TestSuite(L).run()
-            sage: L = Knot(B([1, 2, 1]))
-            sage: TestSuite(L).run()
-            sage: L = Knot([[1, 1, 2, 2]])
-            sage: TestSuite(L).run()
+            sage: K = Knot(B([-1, -1, -1, 2, 1, -2, 3, -2, 3]))
+            sage: TestSuite(K).run()
+            sage: K = Knot(B([1, -2, 1, -2]))
+            sage: TestSuite(K).run()
+            sage: K = Knot([[1, 1, 2, 2]])
+            sage: TestSuite(K).run()
         """
         Link.__init__(self, data)
         if check:

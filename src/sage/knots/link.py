@@ -28,6 +28,12 @@ REFERENCES:
 
 .. [KnotAtlas] The Knot atlas. http://katlas.org/wiki/Main_Page
 
+.. SEEALSO::
+
+    There are also tables of link and knot invariants at
+    http://www.indiana.edu/~knotinfo/
+    and http://www.indiana.edu/~linkinfo/.
+
 AUTHORS:
 
 - Miguel Angel Marco Buzunariz
@@ -242,6 +248,7 @@ class Link(object):
 
     The links here have removed components in which no strand is used::
 
+        sage: B = BraidGroup(8)
         sage: b = B([1])
         sage: L = Link(b)
         sage: b.components_in_closure()
@@ -1206,26 +1213,40 @@ class Link(object):
         Some additional examples::
 
             sage: B = BraidGroup(4)
+            sage: L = Link(B([1]))
+            sage: L.alexander_polynomial()
+            1
+            sage: L = Link(B([1, 2, 1, 2]))
+            sage: L.alexander_polynomial()
+            t^-1 - 1 + t
+
+        When the Seifert surface is disconnected, the Alexander
+        polynomial is defined to be `0`::
+
+            sage: L = Link(B([1,3]))
+            sage: L.alexander_polynomial()
+            0
+
+        TESTS::
+
+            sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
             sage: L.alexander_polynomial()
             0
-            sage: L = Link(B([1,3]))
+            sage: L = Link(B([1,3,1,1,3,3]))
             sage: L.alexander_polynomial()
             0
             sage: B = BraidGroup(8)
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.alexander_polynomial()
-            t^-1 - 2 + t
-            sage: L = Link(B([1, 2, 1, 2]))
-            sage: L.alexander_polynomial()
-            t^-1 - 1 + t
+            0
         """
         R = LaurentPolynomialRing(ZZ, var)
+        # The Alexander polynomial of disjoint links are defined to be 0
+        if len(self._braid_word_components()) > 1:
+            return R.zero()
         t = R.gen()
         seifert_matrix = self.seifert_matrix()
-        # We need a special case for 0x0 matrices, whose determinant is always 1
-        if seifert_matrix.nrows() == 0:
-            return R.zero()
         f = (seifert_matrix - t * seifert_matrix.transpose()).determinant()
         if f != 0:
             exp = f.exponents()
@@ -1234,7 +1255,7 @@ class Link(object):
 
     def determinant(self):
         """
-        Return the determinant of the knot.
+        Return the determinant of ``self``.
 
         EXAMPLES::
 

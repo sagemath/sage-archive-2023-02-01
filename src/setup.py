@@ -71,12 +71,6 @@ include_dirs = sage_include_directories(use_sources=True)
 extra_compile_args = [ "-fno-strict-aliasing" ]
 extra_link_args = [ ]
 
-# comment these four lines out to turn on warnings from gcc
-import distutils.sysconfig
-NO_WARN = True
-if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
-    extra_compile_args.append('-w')
-
 DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')

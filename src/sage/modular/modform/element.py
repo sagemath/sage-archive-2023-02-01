@@ -3,13 +3,15 @@
 Elements of modular forms spaces
 """
 
-#########################################################################
-#       Copyright (C) 2004--2008 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import space
 import sage.modular.hecke.element as element
@@ -22,10 +24,11 @@ from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
-from sage.misc.misc import verbose, sxrange
+from sage.misc.misc import verbose
+from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
-from sage.rings.arith import lcm, divisors, moebius
+from sage.arith.all import lcm, divisors, moebius, sigma, factor
 from sage.structure.element import get_coercion_model
 
 
@@ -951,9 +954,9 @@ class ModularForm_abstract(ModuleElement):
 
         # The Dirichlet series for \zeta(2 s - 2 k + 2)
         riemann_series = [ n**(weight - 1) if n.is_square() else 0
-                       for n in sxrange(1, lcoeffs_prec + 1) ]
+                       for n in xsrange(1, lcoeffs_prec + 1) ]
         # The Dirichlet series for 1 / \zeta(s - k + 1)
-        mu_series = [ moebius(n) * n**(weight - 1) for n in sxrange(1, lcoeffs_prec + 1) ]
+        mu_series = [ moebius(n) * n**(weight - 1) for n in xsrange(1, lcoeffs_prec + 1) ]
         conv_series = dirichlet_convolution(mu_series, riemann_series)
 
         dirichlet_series = dirichlet_convolution(conv_series, F_series)
@@ -1993,9 +1996,9 @@ class EisensteinSeries(ModularFormElement):
             elif n == 0:
                 v.append(F(t-1)/F(24))
             else:
-                an = rings.sigma(n,1)
-                if n%t==0:
-                    an -= t*rings.sigma(n/t,1)
+                an = sigma(n,1)
+                if n%t == 0:
+                    an -= t * sigma(n/t,1)
                 v.append(an)
         return v
 
@@ -2186,8 +2189,5 @@ class EisensteinSeries(ModularFormElement):
             [[60, 2], [60, 3], [60, 2], [60, 5], [60, 2], [60, 2], [60, 2], [60, 3], [60, 2], [60, 2], [60, 2]]
         """
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
-            return rings.factor(self.__t)[0][0]
+            return factor(self.__t)[0][0]
         return self.L()*self.M()
-
-
-

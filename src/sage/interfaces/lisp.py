@@ -257,18 +257,6 @@ class Lisp(Expect):
         """
         raise NotImplementedError
 
-    def trait_names(self):
-        """
-        EXAMPLES::
-
-            sage: lisp.trait_names()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        """
-        raise NotImplementedError
-
     def kill(self, var):
         """
         EXAMPLES::
@@ -561,4 +549,7 @@ def lisp_console():
         Type :h for Help.  Top level.
         ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%lisp magics instead.')
     os.system('ecl')

@@ -30,7 +30,7 @@ AUTHORS:
 
 import operator
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.int cimport *
 include "sage/ext/stdsage.pxi"
 include "sage/libs/ntl/decl.pxi"
@@ -46,7 +46,6 @@ import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
 import sage.rings.integer
-import sage.rings.arith
 
 cimport number_field_base
 import number_field
@@ -126,8 +125,8 @@ def __create__NumberFieldElement_version1(parent, cls, poly):
         sage: loads(dumps(a+1)) == a + 1 # indirect doctest
         True
 
-    This also gets called for unpickling order elements; we check that #6462 is
-    fixed::
+    This also gets called for unpickling order elements; we check that
+    :trac:`6462` is fixed::
 
         sage: L = NumberField(x^3 - x - 1,'a'); OL = L.maximal_order(); w = OL.0
         sage: loads(dumps(w)) == w # indirect doctest
@@ -141,12 +140,11 @@ def _inverse_mod_generic(elt, I):
     function called from each of the OrderElement_xxx classes, since
     otherwise we'd have to have the same code three times over (there
     is no OrderElement_generic class - no multiple inheritance). See
-    trac 4190.
+    :trac:`4190`.
 
     EXAMPLES::
 
-        sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
-        sage: w = OE.ring_generators()[0]
+        sage: OE.<w> = EquationOrder(x^3 - x + 2)
         sage: from sage.rings.number_field.number_field_element import _inverse_mod_generic
         sage: _inverse_mod_generic(w, 13*OE)
         6*w^2 - 6
@@ -160,7 +158,8 @@ def _inverse_mod_generic(elt, I):
     if I == 0:
         raise ValueError, "inverse is not defined modulo the zero ideal"
     n = R.absolute_degree()
-    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in R.gens()]))
+    B = R.basis()
+    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in B]))
     a, b = m.echelon_form(transformation=True)
     if a[0:n] != 1:
         raise ZeroDivisionError, "%s is not invertible modulo %s" % (elt, I)
@@ -168,7 +167,7 @@ def _inverse_mod_generic(elt, I):
     y = R(0)
     for j in xrange(n):
         if v[j] != 0:
-            y += v[j] * sum([b[j,i+n] * R.gen(i) for i in xrange(n)])
+            y += v[j] * sum([b[j,i+n] * B[i] for i in xrange(n)])
     return I.small_residue(y)
 
 __pynac_pow = False
@@ -2121,23 +2120,6 @@ cdef class NumberFieldElement(FieldElement):
         x._reduce_c_()
         sig_off()
         return x
-
-    def __floordiv__(self, other):
-        """
-        Return the quotient of self and other. Since these are field
-        elements the floor division is exactly the same as usual division.
-
-        EXAMPLES::
-
-            sage: m.<b> = NumberField(x^4 + x^2 + 2/3)
-            sage: c = (1+b) // (1-b); c
-            3/4*b^3 + 3/4*b^2 + 3/2*b + 1/2
-            sage: (1+b) / (1-b) == c
-            True
-            sage: c * (1-b)
-            b + 1
-        """
-        return self / other
 
     def __nonzero__(self):
         """
@@ -4547,8 +4529,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
 
         EXAMPLES::
 
-            sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^3 - x + 2)
             sage: w.inverse_mod(13*OE)
             6*w^2 - 6
             sage: w * (w.inverse_mod(13)) - 1 in 13*OE
@@ -4646,7 +4627,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: R.<y> = K1[]
             sage: K2 = K1.extension(y^2 - a, 'b')
             sage: OK2 = K2.order(K2.gen()) # (not maximal)
-            sage: b = OK2.gens()[1]; b
+            sage: b = OK2.basis()[1]; b
             b
             sage: (17/b).parent() is K2 # indirect doctest
             True
@@ -4670,7 +4651,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: R.<y> = K1[]
             sage: K2 = K1.extension(y^2 - a, 'b')
             sage: OK2 = K2.order(K2.gen()) # (not maximal)
-            sage: b = OK2.gens()[1]; b
+            sage: b = OK2.basis()[1]; b
             b
             sage: b.parent() is OK2
             True

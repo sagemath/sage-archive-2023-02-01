@@ -18,8 +18,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
 from sage.misc.prandom import randint
-from sage.rings.rational_field import QQ
-
 from sage.misc.decorators import rename_keyword
 
 @rename_keyword(deprecation=19559 , method='algorithm')
@@ -915,15 +913,23 @@ def _contour_and_graph_from_word(w):
         sage: seq, G = _contour_and_graph_from_word(_auxiliary_random_word(20))
         sage: G.is_tree()
         True
+
+        sage: longw = [1,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0]
+        sage: seq, G = _contour_and_graph_from_word(longw)
+        sage: G.get_embedding()
+        {0: [1], 1: [0, 2], 2: [1, 3, 4], 3: [2], 4: [2, 5, 6], 5: [4], 6: [4]}
     """
     index       = 0          # numbering of inner vertices
-    word        = [('in', 0)] # initial vertex is inner
+    word        = [('in', 0)]  # initial vertex is inner
     leaf_stack  = [0, 0]     # stack of leaves still to be created
     inner_stack = [0]        # stack of active inner nodes
     edges = []
+    embedding = {0: []}  # records the planar embedding of the tree
     for x in w:
         if x == 1:  # going up to a new inner vertex
             index += 1
+            embedding[index] = inner_stack[-1:]
+            embedding[inner_stack[-1]].append(index)
             leaf_stack.extend([index, index])
             inner_stack.append(index)
             edges.append(inner_stack[-2:])
@@ -935,7 +941,9 @@ def _contour_and_graph_from_word(w):
             else:  # going down to a known inner vertex
                 inner_stack.pop()
                 word.append(('in', inner_stack[-1]))
-    return word[:-1], Graph(edges, format='list_of_edges')
+    G = Graph(edges, format='list_of_edges')
+    G.set_embedding(embedding)
+    return word[:-1], G
 
 
 def RandomTriangulation(n, set_position=False):
@@ -950,12 +958,15 @@ def RandomTriangulation(n, set_position=False):
     - `n` -- an integer
 
     - ``set_position`` -- boolean (default ``False``) if set to ``True``, this
-      will compute a planar embedding of the graph.
+      will compute coordinates for a planar drawing of the graph.
 
     OUTPUT:
 
     A random triangulation chosen uniformly among the *rooted* triangulations on
-    `n` vertices. Because some triangulations have nontrivial automorphism
+    `n` vertices. This is a planar graph and comes with a combinatorial
+    embedding.
+
+    Because some triangulations have nontrivial automorphism
     groups, this may not be equal to the uniform distribution among unrooted
     triangulations.
 
@@ -978,9 +989,13 @@ def RandomTriangulation(n, set_position=False):
     At every step of the algorithm, newly created edges are recorded
     in a graph, which will be returned at the end.
 
+    The combinatorial embedding is also computed and recorded in the
+    output graph.
+
     .. SEEALSO::
 
-        :meth:`~sage.graphs.graph_generators.GraphGenerators.triangulations`.
+        :meth:`~sage.graphs.graph_generators.GraphGenerators.triangulations`,
+        :meth:`~sage.homology.examples.RandomTwoSphere`.
 
     EXAMPLES::
 
@@ -995,9 +1010,14 @@ def RandomTriangulation(n, set_position=False):
 
     TESTS::
 
+        sage: G.get_embedding() is not None
+        True
         sage: for i in range(10):
         ....:     g = graphs.RandomTriangulation(30)
         ....:     assert g.is_planar()
+        sage: for i in range(10):
+        ....:     g = graphs.RandomTriangulation(10)
+        ....:     assert g.is_planar(on_embedding=g.get_embedding())
 
     REFERENCES:
 
@@ -1013,14 +1033,20 @@ def RandomTriangulation(n, set_position=False):
     word, graph = _contour_and_graph_from_word(w)
     edges = []
 
+    embedding = graph.get_embedding()
+
     # 'partial closures' described in 2.1 of [PS2006]_.
+    pattern = ['in', 'in', 'in', 'lf', 'in']
 
     def rotate_word_to_next_occurrence(word):
-        # Rotates 'word' so that 'in1,in2,in3,lf,in3' occurs at word[:5].
-        pattern = ['in', 'in', 'in', 'lf', 'in']
-        n = len(word)
-        for i in range(n):
-            if all(word[(i + j) % n][0] == pattern[j] for j in range(5)):
+        """
+        Rotate ``word`` so that the given pattern occurs at the beginning.
+
+        If the given pattern is not found, return the empty list.
+        """
+        N = len(word)
+        for i in range(N):
+            if all(word[(i + j) % N][0] == pattern[j] for j in range(5)):
                 return word[i:] + word[:i]
         return []
 
@@ -1029,7 +1055,12 @@ def RandomTriangulation(n, set_position=False):
         word2 = rotate_word_to_next_occurrence(word)
         if len(word2) >= 5:
             word = [word2[0]] + word2[4:]
-            edges.append([u[1] for u in word[:2]])  # edge 'in1,in3'
+            in1, in2, in3 = [u[1] for u in word2[:3]]
+            edges.append([in1, in3])  # edge 'in1,in3'
+            idx = embedding[in1].index(in2)
+            embedding[in1].insert(idx, in3)
+            idx = embedding[in3].index(in2)
+            embedding[in3].insert(idx + 1, in1)
         else:
             break
 
@@ -1042,19 +1073,42 @@ def RandomTriangulation(n, set_position=False):
     # Every remaining 'lf' vertex is linked either to 'a' or to 'b'.
     # Switching a/b happens when one meets the sequence 'lf','in','lf'.
     a_or_b = 'a'
+    embedding['a'] = []
+    embedding['b'] = []
     last_lf_occurrence = -42
+    change = {}
     for x in word:
         last_lf_occurrence -= 1
         if x[0] == 'lf':
             if last_lf_occurrence == -2:
+                change[a_or_b] = x[1]
                 a_or_b = 'b' if a_or_b == 'a' else 'a'
             graph.add_edge((a_or_b, x[1]))
+            embedding[a_or_b].insert(0, x[1])
             last_lf_occurrence = 0
+
+    # conjugates the embeddings of a and b
+    # in a way that helps to complete the embedding
+    for a_or_b in ['a', 'b']:
+        emba = embedding[a_or_b]
+        idx = emba.index(change[a_or_b])
+        embedding[a_or_b] = emba[idx:] + emba[:idx]
+    embedding['a'].append('b')
+    embedding['b'].append('a')
+
+    # completes the embedding by inserting missing half-edges
+    for a_or_b in ['a', 'b']:
+        emb = embedding[a_or_b]
+        for i, v in enumerate(emb[:-1]):
+            if i == 0:
+                embedding[v].insert(embedding[v].index(emb[1]) + 1, a_or_b)
+            else:
+                embedding[v].insert(embedding[v].index(emb[i - 1]), a_or_b)
 
     assert graph.num_edges() == 3 * (n - 2)
     assert graph.num_verts() == n
 
-    graph.relabel()
+    graph.set_embedding(embedding)
 
     if set_position:
         graph.layout(layout="planar", save_pos=True)

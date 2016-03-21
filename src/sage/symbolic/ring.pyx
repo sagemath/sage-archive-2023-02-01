@@ -125,6 +125,15 @@ cdef class SymbolicRing(CommutativeRing):
             6
             sage: SR(5)-True
             4
+
+        TESTS::
+
+            sage: SR.has_coerce_map_from(SR.subring(accepting_variables=('a',)))
+            True
+            sage: SR.has_coerce_map_from(SR.subring(rejecting_variables=('r',)))
+            True
+            sage: SR.has_coerce_map_from(SR.subring(no_variables=True))
+            True
         """
         if isinstance(R, type):
             if R in [int, float, long, complex, bool]:
@@ -161,6 +170,8 @@ cdef class SymbolicRing(CommutativeRing):
 
             from sage.interfaces.maxima import Maxima
 
+            from subring import GenericSymbolicSubring
+
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
                 # Anything with a coercion into any precision of CC
 
@@ -179,6 +190,8 @@ cdef class SymbolicRing(CommutativeRing):
                 return True
             elif isinstance(R, (Maxima, PariInstance)):
                 return False
+            elif isinstance(R, GenericSymbolicSubring):
+                return True
 
     def _element_constructor_(self, x):
         """
@@ -275,7 +288,6 @@ cdef class SymbolicRing(CommutativeRing):
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
         """
         cdef GEx exp
-
         if is_Expression(x):
             if (<Expression>x)._parent is self:
                 return x
@@ -840,6 +852,100 @@ cdef class SymbolicRing(CommutativeRing):
                     raise ValueError("the number of arguments must be less than or equal to %s"%len(vars))
 
         return _the_element.subs(d, **kwds)
+
+    def subring(self, *args, **kwds):
+        r"""
+        Create a subring of this symbolic ring.
+
+        INPUT:
+
+        Choose one of the following keywords to create a subring.
+
+        - ``accepting_variables`` (default: ``None``) -- a tuple or other
+          iterable of variables. If specified, then a symbolic subring of
+          expressions in only these variables is created.
+
+        - ``rejecting_variables`` (default: ``None``) -- a tuple or other
+          iterable of variables. If specified, then a symbolic subring of
+          expressions in variables distinct to these variables is
+          created.
+
+        - ``no_variables`` (default: ``False``) -- a boolean. If set,
+          then a symbolic subring of constant expressions (i.e.,
+          expressions without a variable) is created.
+
+        OUTPUT:
+
+        A ring.
+
+        EXAMPLES:
+
+        Let us create a couple of symbolic variables first::
+
+            sage: V = var('a, b, r, s, x, y')
+
+        Now we create a symbolic subring only accepting expressions in
+        the variables `a` and `b`::
+
+            sage: A = SR.subring(accepting_variables=(a, b)); A
+            Symbolic Subring accepting the variables a, b
+
+        An element is
+        ::
+
+            sage: A.an_element()
+            a
+
+        From our variables in `V` the following are valid in `A`::
+
+            sage: tuple(v for v in V if v in A)
+            (a, b)
+
+        Next, we create a symbolic subring rejecting expressions with
+        given variables::
+
+            sage: R = SR.subring(rejecting_variables=(r, s)); R
+            Symbolic Subring rejecting the variables r, s
+
+        An element is
+        ::
+
+            sage: R.an_element()
+            some_variable
+
+        From our variables in `V` the following are valid in `R`::
+
+            sage: tuple(v for v in V if v in R)
+            (a, b, x, y)
+
+        We have a third kind of subring, namely the subring of
+        symbolic constants::
+
+            sage: C = SR.subring(no_variables=True); C
+            Symbolic Constants Subring
+
+        Note that this subring can be considered as a special accepting
+        subring; one without any variables.
+
+        An element is
+        ::
+
+            sage: C.an_element()
+            I*pi*e
+
+        None of our variables in `V` is valid in `C`::
+
+            sage: tuple(v for v in V if v in C)
+            ()
+
+        .. SEEALSO::
+
+            :doc:`subring`
+        """
+        if self is not SR:
+            raise NotImplementedError('Cannot create subring of %s.' % (self,))
+        from subring import SymbolicSubring
+        return SymbolicSubring(*args, **kwds)
 
 SR = SymbolicRing()
 

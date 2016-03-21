@@ -62,8 +62,10 @@ cdef class Polynomial_GF2X(Polynomial_template):
             pass
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
 
-    def __getitem__(self, i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: P.<x> = GF(2)[]
@@ -73,31 +75,13 @@ cdef class Polynomial_GF2X(Polynomial_template):
             1
             sage: f[1]
             0
-            sage: f[-5:50] == f
+            sage: f[:50] == f
             True
-            sage: f[1:]
-            x^3 + x^2
+            sage: f[:3]
+            x^2 + 1
         """
-        cdef type t
-        cdef long c = 0
-        cdef Polynomial_template r
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            if start < 0:
-                start = 0
-            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
-                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
-            x = (<Polynomial_template>self)._parent.gen()
-            v = [self[t] for t from start <= t < stop]
-
-            t = type(self)
-            r = <Polynomial_template>t.__new__(t)
-            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-            return r << start
-        else:
-            if 0 <= i < GF2X_NumBits(self.x):
-                c = GF2_conv_to_long(GF2X_coeff(self.x, i))
-            return self._parent.base_ring()(c)
+        cdef long c = GF2_conv_to_long(GF2X_coeff(self.x, i))
+        return self._parent._base(c)
 
     def _pari_(self, variable=None):
         """
@@ -303,7 +287,7 @@ def GF2X_BuildIrred_list(n):
         sage: GF(2)['x'](GF2X_BuildIrred_list(33))
         x^33 + x^6 + x^3 + x + 1
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c f
     GF2 = FiniteField(2)
     GF2X_BuildIrred(f, int(n))
@@ -323,7 +307,7 @@ def GF2X_BuildSparseIrred_list(n):
         sage: GF(2)['x'](GF2X_BuildSparseIrred_list(33))
         x^33 + x^10 + 1
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c f
     GF2 = FiniteField(2)
     GF2X_BuildSparseIrred(f, int(n))
@@ -343,7 +327,7 @@ def GF2X_BuildRandomIrred_list(n):
         True
     """
     from sage.misc.randstate import current_randstate
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c tmp, f
     GF2 = FiniteField(2)
     current_randstate().set_seed_ntl(False)

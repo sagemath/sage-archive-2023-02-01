@@ -18,7 +18,7 @@ from sage.rings.all import QQ, ZZ
 from sage.misc.misc_c import prod
 
 from sage.combinat.combinat import stirling_number2
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.polynomial.polynomial_ring import polygen
 
 from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements

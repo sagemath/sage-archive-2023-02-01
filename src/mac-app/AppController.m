@@ -526,7 +526,7 @@ You can change it later in Preferences."];
     // process the files.
     NSString * base_dir = nil;
     if (neverOpenedFileBrowser) {
-        base_dir = [NSString stringWithFormat:@"%@/../devel/sage/sage",sageBinary];
+        base_dir = [NSString stringWithFormat:@"%@/../src/sage",sageBinary];
         neverOpenedFileBrowser=NO;
     }
     // If they supply files, then run the command

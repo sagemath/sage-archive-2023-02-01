@@ -751,7 +751,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         """
         l = len(self._p_transition_matrices)
         if l <= n:
-            from sage.rings.arith import divisors
+            from sage.arith.all import divisors
             from sage.combinat.partition import Partition
             from sage.misc.cachefunc import cached_function
             @cached_function
@@ -1141,7 +1141,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             return result
 
         if parent_name == "powersum":
-            from sage.rings.arith import divisors
+            from sage.arith.all import divisors
             from sage.combinat.partition import Partition
             @cached_function
             def wsum_p(m):     # expansion of p_m in w-basis, for m > 0

@@ -14,10 +14,12 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+from __future__ import division
+
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_ZZ cimport ntl_ZZ
 from ntl_GF2 cimport ntl_GF2
 from ntl_GF2X cimport ntl_GF2X
@@ -254,7 +256,7 @@ cdef class ntl_GF2E(object):
         GF2E_add(r.x, self.x, (<ntl_GF2E>other).x)
         return r
 
-    def __div__(ntl_GF2E self, other):
+    def __truediv__(ntl_GF2E self, other):
         """
         EXAMPLES:
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
@@ -270,6 +272,9 @@ cdef class ntl_GF2E(object):
         r = self._new()
         GF2E_div(r.x, self.x, (<ntl_GF2E>other).x)
         return r
+
+    def __div__(self, other):
+        return self / other
 
     def __neg__(ntl_GF2E self):
         """
@@ -441,7 +446,7 @@ cdef class ntl_GF2E(object):
         e = GF2E_degree()
 
         if k is None:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             f = self.c.m._sage_()
             k = FiniteField(2**e, name='a', modulus=f)
 

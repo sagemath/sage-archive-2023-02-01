@@ -45,9 +45,9 @@ import sage.misc.latex as latex
 
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 import number_field
 
@@ -1621,7 +1621,7 @@ class NumberFieldIdeal(Ideal_generic):
             ValueError: The residue symbol to that power is not defined for the number field
 
         """
-        from sage.rings.arith import kronecker_symbol
+        from sage.arith.all import kronecker_symbol
 
         K = self.ring()
         if m == 2 and K.absolute_degree() == 1:
@@ -1715,7 +1715,7 @@ class NumberFieldIdeal(Ideal_generic):
             from sage.quadratic_forms.binary_qf import BinaryQF
             gens = self.gens_reduced()
             if len(gens) == 1:
-                u, v = K.ring_of_integers().gens()
+                u, v = K.ring_of_integers().basis()
                 alpha, beta = gens[0] * u, gens[0] * v
             else:
                 alpha, beta = gens
@@ -3062,7 +3062,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: quo
             Partially defined quotient map from Number Field in i with defining polynomial x^2 + 1 to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=Fractional ideal (-i - 2).
             sage: lift
-            Lifting map to Maximal Order in Number Field in i with defining polynomial x^2 + 1 from quotient of integers by Fractional ideal (-i - 2)
+            Lifting map to Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 from quotient of integers by Fractional ideal (-i - 2)
         """
         return quotient_char_p(self, p)
 

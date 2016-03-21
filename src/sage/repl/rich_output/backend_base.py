@@ -186,6 +186,27 @@ class BackendBase(SageObject):
         """
         raise NotImplementedError('derived classes must implement this method')
 
+    def is_in_terminal(self):
+        """
+        Test whether the UI is meant to run in a terminal
+
+        See
+        :meth:`sage.repl.rich_output.display_manager.DisplayManager.is_in_terminal`
+        for details.
+
+        OUTPUT:
+
+        Defaults to ``False``.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.is_in_terminal()
+            False
+        """
+        return False
+    
     def max_width(self):
         """
         Return the number of characters that fit into one output line

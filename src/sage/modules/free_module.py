@@ -167,8 +167,7 @@ import sage.matrix.matrix_space
 import sage.misc.latex as latex
 
 from sage.modules.module import Module
-import sage.rings.finite_rings.constructor as finite_field
-import sage.rings.integral_domain as integral_domain
+import sage.rings.finite_rings.finite_field_constructor as finite_field
 import sage.rings.ring as ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
@@ -378,7 +377,7 @@ done from the right side.""")
                 and base_ring.is_maximal() and base_ring.class_number() == 1:
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
-            elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
+            elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
                 return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
 
             else:
@@ -1326,7 +1325,7 @@ done from the right side.""")
         if not is_FreeModule(other):
             raise TypeError("other must be a free module")
         if other.base_ring() != self.base_ring():
-            raise TypeError("base rins of self and other must be the same")
+            raise TypeError("base rings of self and other must be the same")
         return self.basis_matrix().block_sum(other.basis_matrix()).row_module(self.base_ring())
 
     def coordinates(self, v, check=True):
@@ -3038,8 +3037,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         Returns a homspace whose morphisms have this vector space as domain.
 
         This is called by the general methods such as
-        :meth:`sage.structure.parent.Parent.Hom` and
-        :meth:`sage.structure.parent_base.ParentWithBase.Hom`.
+        :meth:`sage.structure.parent.Parent.Hom`.
 
         INPUT:
 
@@ -5401,7 +5399,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if len(B) == 0:
             return 1
         d = B[0].denominator()
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         for x in B[1:]:
             d = lcm(d,x.denominator())
         return d

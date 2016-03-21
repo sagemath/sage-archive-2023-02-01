@@ -198,20 +198,15 @@ AUTHOR:
     - William Stein, 2009
 """
 
-####################################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-####################################################################################
+#*****************************************************************************
 
 from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule
@@ -219,7 +214,8 @@ from sage.structure.all import parent
 from sage.structure.sequence import Sequence
 from fgp_element  import DEBUG, FGP_Element
 from fgp_morphism import FGP_Morphism, FGP_Homset
-from sage.rings.all import Integer, ZZ, lcm
+from sage.rings.all import Integer, ZZ
+from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
 

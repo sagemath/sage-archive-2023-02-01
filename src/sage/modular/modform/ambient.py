@@ -58,24 +58,23 @@ TESTS::
     True
 """
 
-#########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
-# system packages
-
-# Sage packages
-import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 import sage.modular.modsym.all as modsym
 import sage.modules.free_module as free_module
 import sage.rings.all as rings
+from sage.arith.all import is_prime
 
 from sage.structure.sequence import Sequence
 
@@ -692,7 +691,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             return self.__the_dim_new_eisenstein
         except AttributeError:
             if arithgroup.is_Gamma0(self.group()) and self.weight() == 2:
-                if rings.is_prime(self.level()):
+                if is_prime(self.level()):
                     d = 1
                 else:
                     d = 0

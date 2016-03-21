@@ -443,7 +443,7 @@ class StorageType(object):
             sage: ty_python.assign_c_from_py('foo[i]', 'bar[j]')
             u'foo[i] = <PyObject *>bar[j]; Py_INCREF(foo[i])'
             sage: ty_mpfr.assign_c_from_py('foo', 'bar')
-            u'rn = self.domain(bar)\nmpfr_set(foo, rn.value, GMP_RNDN)'
+            u'rn = self.domain(bar)\nmpfr_set(foo, rn.value, MPFR_RNDN)'
         """
         return je("{{ c }} = {{ py }}", c=c, py=py)
 
@@ -1001,11 +1001,11 @@ class StorageTypeMPFR(StorageTypeAutoReference):
 
             sage: from sage_setup.autogen.interpreters import *
             sage: ty_mpfr.assign_c_from_py('foo[i]', 'bar[j]')
-            u'rn = self.domain(bar[j])\nmpfr_set(foo[i], rn.value, GMP_RNDN)'
+            u'rn = self.domain(bar[j])\nmpfr_set(foo[i], rn.value, MPFR_RNDN)'
         """
         return je("""
 rn{{ myself.id }} = self.domain({{ py }})
-mpfr_set({{ c }}, rn.value, GMP_RNDN)""", myself=self, c=c, py=py)
+mpfr_set({{ c }}, rn.value, MPFR_RNDN)""", myself=self, c=c, py=py)
 
 ty_mpfr = StorageTypeMPFR()
 
@@ -1339,7 +1339,7 @@ class MemoryChunkConstants(MemoryChunkLonglivedArray):
                         mpfr_init2(self._constants[i], self.domain.prec())
                     for i in range(len(val)):
                         rn = self.domain(val[i])
-                        mpfr_set(self._constants[i], rn.value, GMP_RNDN)
+                        mpfr_set(self._constants[i], rn.value, MPFR_RNDN)
             <BLANKLINE>
         """
         return je("""
@@ -1373,7 +1373,7 @@ class MemoryChunkArguments(MemoryChunkLonglivedArray):
             cdef int i
             for i from 0 <= i < len(args):
                 rn = self.domain(args[i])
-                mpfr_set(self._args[i], rn.value, GMP_RNDN)
+                mpfr_set(self._args[i], rn.value, MPFR_RNDN)
             <BLANKLINE>
         """
         return je("""
@@ -2111,9 +2111,9 @@ def instr_funcall_2args_mpfr(name, io, op):
         sage: from sage_setup.autogen.interpreters import *
         sage: pg = RRInterpreter().pg
         sage: instr_funcall_2args_mpfr('add', pg('SS','S'), 'mpfr_add')
-        add: SS->S = 'mpfr_add(o0, i0, i1, GMP_RNDN);'
+        add: SS->S = 'mpfr_add(o0, i0, i1, MPFR_RNDN);'
     """
-    return InstrSpec(name, io, code='%s(o0, i0, i1, GMP_RNDN);' % op)
+    return InstrSpec(name, io, code='%s(o0, i0, i1, MPFR_RNDN);' % op)
 
 def instr_funcall_1arg_mpfr(name, io, op):
     r"""
@@ -2125,9 +2125,9 @@ def instr_funcall_1arg_mpfr(name, io, op):
         sage: from sage_setup.autogen.interpreters import *
         sage: pg = RRInterpreter().pg
         sage: instr_funcall_1arg_mpfr('exp', pg('S','S'), 'mpfr_exp')
-        exp: S->S = 'mpfr_exp(o0, i0, GMP_RNDN);'
+        exp: S->S = 'mpfr_exp(o0, i0, MPFR_RNDN);'
     """
-    return InstrSpec(name, io, code='%s(o0, i0, GMP_RNDN);' % op)
+    return InstrSpec(name, io, code='%s(o0, i0, MPFR_RNDN);' % op)
 
 class InterpreterSpec(object):
     r"""
@@ -2527,14 +2527,12 @@ static inline double complex cpow_int(double complex z, int exp) {
         self.pxd_header = """
 # This is to work around a header incompatibility with PARI using
 # "I" as variable conflicting with the complex "I".
-cdef extern from "pari/paricfg.h":
-    pass
-cdef extern from "pari/pari.h":
-    pass
-cdef extern from "pari/paripriv.h":
-    pass
+# If we cimport pari earlier, we avoid this problem.
+cimport sage.libs.pari.types
 
-# Cython does not (yet) support complex numbers natively, so this is a bit hackish.
+# We need the type double_complex to work around
+#   http://trac.cython.org/ticket/869
+# so this is a bit hackish.
 cdef extern from "complex.h":
     ctypedef double double_complex "double complex"
 """
@@ -2543,11 +2541,10 @@ from sage.rings.complex_double cimport ComplexDoubleElement
 import sage.rings.complex_double
 cdef object CDF = sage.rings.complex_double.CDF
 
-cdef extern from "solaris_fixes.h": pass
+cdef extern from "solaris_fixes.h":
+    pass
 
-# Cython does not (yet) support complex numbers natively, so this is a bit hackish.
 cdef extern from "complex.h":
-    ctypedef double double_complex "double complex"
     cdef double creal(double_complex)
     cdef double cimag(double_complex)
     cdef double_complex _Complex_I
@@ -2637,7 +2634,7 @@ class RRInterpreter(StackInterpreter):
             ([({MC:args}, {MC:code}, None)], [({MC:stack}, None, None)])
             sage: instrs = dict([(ins.name, ins) for ins in interp.instr_descs])
             sage: instrs['add']
-            add: SS->S = 'mpfr_add(o0, i0, i1, GMP_RNDN);'
+            add: SS->S = 'mpfr_add(o0, i0, i1, MPFR_RNDN);'
             sage: instrs['py_call']
             py_call: *->S = '\nif (!rr_py_call_h...goto error;\n}\n'
 
@@ -2672,10 +2669,10 @@ class RRInterpreter(StackInterpreter):
                 cdef RealNumber rn
                 for i from 0 <= i < n_args:
                     rn = domain()
-                    mpfr_set(rn.value, args[i], GMP_RNDN)
+                    mpfr_set(rn.value, args[i], MPFR_RNDN)
                     py_args.append(rn)
                 cdef RealNumber result = domain(fn(*py_args))
-                mpfr_set(retval, result.value, GMP_RNDN)
+                mpfr_set(retval, result.value, MPFR_RNDN)
                 return 1
 
 
@@ -2713,20 +2710,20 @@ cdef public bint rr_py_call_helper(object domain, object fn,
     cdef RealNumber rn
     for i from 0 <= i < n_args:
         rn = domain()
-        mpfr_set(rn.value, args[i], GMP_RNDN)
+        mpfr_set(rn.value, args[i], MPFR_RNDN)
         py_args.append(rn)
     cdef RealNumber result = domain(fn(*py_args))
-    mpfr_set(retval, result.value, GMP_RNDN)
+    mpfr_set(retval, result.value, MPFR_RNDN)
     return 1
 
 """
         instrs = [
             InstrSpec('load_arg', pg('A[D]', 'S'),
-                       code='mpfr_set(o0, i0, GMP_RNDN);'),
+                       code='mpfr_set(o0, i0, MPFR_RNDN);'),
             InstrSpec('load_const', pg('C[D]', 'S'),
-                       code='mpfr_set(o0, i0, GMP_RNDN);'),
+                       code='mpfr_set(o0, i0, MPFR_RNDN);'),
             InstrSpec('return', pg('S', ''),
-                       code='mpfr_set(retval, i0, GMP_RNDN);\nreturn 1;\n'),
+                       code='mpfr_set(retval, i0, MPFR_RNDN);\nreturn 1;\n'),
             InstrSpec('py_call', pg('P[D]S@D', 'S'),
                        uses_error_handler=True,
                        code="""
@@ -2759,7 +2756,7 @@ if (!rr_py_call_helper(domain, i0, n_i1, i1, o0)) {
         # of "one" (on the other hand, the constructed temporary copy is
         # on the stack, so it's very likely to be in the cache).
         instrs.append(InstrSpec('invert', pg('S', 'S'),
-                                 code='mpfr_ui_div(o0, 1, i0, GMP_RNDN);'))
+                                 code='mpfr_ui_div(o0, 1, i0, MPFR_RNDN);'))
         self.instr_descs = instrs
         self._set_opcodes()
         # Supported for exponents that fit in a long, so we could use
@@ -3512,14 +3509,14 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                   {
                     mpfr_ptr i0 = *--stack;
                     mpfr_ptr o0 = *stack++;
-                    mpfr_neg(o0, i0, GMP_RNDN);
+                    mpfr_neg(o0, i0, MPFR_RNDN);
                   }
                   break;
             ...
 
         Here we see that the input and output variables are actually
         just pointers into the stack.  But due to the auto-reference
-        trick, the actual code snippet, ``mpfr_net(o0, i0, GMP_RNDN);``,
+        trick, the actual code snippet, ``mpfr_net(o0, i0, MPFR_RNDN);``,
         is exactly the same as if i0 and o0 were declared as local
         mpfr_t variables.
 
@@ -3679,7 +3676,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                         mpfr_init2(self._constants[i], self.domain.prec())
                     for i in range(len(val)):
                         rn = self.domain(val[i])
-                        mpfr_set(self._constants[i], rn.value, GMP_RNDN)
+                        mpfr_set(self._constants[i], rn.value, MPFR_RNDN)
             ...
 
         And as described in the documentation for get_pxd, in
@@ -4082,9 +4079,3 @@ def rebuild(dir):
 
     with open(os.path.join(dir, '__init__.py'), 'w') as f:
         f.write("# " + autogen_warn)
-
-
-# This list of modules gets added to the list in module_list.py.
-modules = [
-    Extension('*', ['sage/ext/interpreters/*.pyx'])
-]

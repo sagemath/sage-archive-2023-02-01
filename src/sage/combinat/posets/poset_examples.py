@@ -29,6 +29,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
     :meth:`~Posets.ShardPoset` | Return the shard intersection order.
     :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
+    :meth:`~Posets.StandardExample` | Return the standard example of a poset with dimension `n`.
     :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
@@ -512,6 +513,65 @@ class Posets(object):
                 f += i
         E = SemistandardTableaux(s, max_entry=f)
         return Poset((E, tableaux_is_less_than))
+
+    @staticmethod
+    def StandardExample(n, facade=None):
+        r"""
+        Return the partially ordered set on ``2n`` elements with
+        dimension ``n``.
+
+        Let `P` be the poset on `\{0, 1, 2, \ldots, 2n-1\}` whose defining
+        relations are that `i < j` for every `0 \leq i < n \leq j < 2n`
+        except when `i + n = j`. The poset `P` is the so-called
+        *standard example* of a poset with dimension `n`.
+
+        INPUT:
+
+        - ``n`` -- an integer `\ge 2`, dimension of the constructed poset
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
+
+        OUTPUT:
+
+        The standard example of a poset of dimension `n`.
+
+        EXAMPLES::
+
+            sage: A = Posets.StandardExample(3); A
+            Finite poset containing 6 elements
+            sage: A.dimension()
+            3
+
+        REFERENCES:
+
+        .. [Rosen] K. Rosen *Handbook of Discrete and Combinatorial
+           Mathematics* (1999), Chapman and Hall.
+
+        .. [Garg] V. Garg *Introduction to Lattice Theory with Computer
+           Science Applications* (2015), Wiley.
+
+        TESTS::
+
+            sage: A = Posets.StandardExample(10); A
+            Finite poset containing 20 elements
+            sage: len(A.cover_relations())
+            90
+
+            sage: P = Posets.StandardExample(5, facade=False)
+            sage: P(4) < P(3), P(4) > P(3)
+            (False, False)
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("dimension must be an integer, not {0}".format(n))
+        if n < 2:
+            raise ValueError("dimension must be at least 2, not {0}".format(n))
+        return Poset((range(2*n), [[i, j+n] for i in range(n)
+                                   for j in range(n) if i != j]),
+                     facade=facade)
 
     @staticmethod
     def SymmetricGroupBruhatOrderPoset(n):

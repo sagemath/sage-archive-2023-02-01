@@ -38,7 +38,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/libs/ntl/decl.pxi"
 
@@ -56,7 +56,7 @@ from misc import matrix_integer_dense_rational_reconstruction
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import previous_prime, binomial
+from sage.arith.all import previous_prime, binomial
 from sage.rings.all import RealNumber
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational

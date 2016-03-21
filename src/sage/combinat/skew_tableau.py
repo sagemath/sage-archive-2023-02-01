@@ -33,7 +33,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.rings.all import Integer, QQ, ZZ
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
 import itertools

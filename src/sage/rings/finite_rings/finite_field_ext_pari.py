@@ -176,7 +176,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         deprecation(17297, 'The "pari_mod" finite field implementation is deprecated')
 
         if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
-        from constructor import FiniteField as GF
+        from finite_field_constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError("q must be a prime power")

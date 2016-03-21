@@ -27,7 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 from libc.stdint cimport uint32_t

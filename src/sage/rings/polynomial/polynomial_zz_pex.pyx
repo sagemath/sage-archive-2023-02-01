@@ -147,8 +147,10 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
 
-    def __getitem__(self,i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
@@ -160,33 +162,14 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             2*a + 1
             sage: f[2]
             0
-            sage: f[1:4]
-            x^3 + (2*a + 1)*x
-            sage: f[-5:50] == f
+            sage: f[:2]
+            (2*a + 1)*x + a
+            sage: f[:50] == f
             True
         """
-        cdef type t
-        cdef ZZ_pE_c c_pE
-        cdef Polynomial_template r
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            if start < 0:
-                start = 0
-            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
-                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
-            x = (<Polynomial_template>self)._parent.gen()
-            v = [self[t] for t from start <= t < stop]
-
-            t = type(self)
-            r = <Polynomial_template>t.__new__(t)
-            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-            return r << start
-        else:
-            self._parent._modulus.restore()
-            c_pE = ZZ_pEX_coeff(self.x, i)
-
-            K = self._parent.base_ring()
-            return K(ZZ_pE_c_to_list(c_pE))
+        self._parent._modulus.restore()
+        cdef ZZ_pE_c c_pE = ZZ_pEX_coeff(self.x, i)
+        return self._parent._base(ZZ_pE_c_to_list(c_pE))
 
     def list(self):
         """

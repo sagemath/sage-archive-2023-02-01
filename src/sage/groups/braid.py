@@ -1803,7 +1803,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def _get_action_(self, S, op, self_on_left):
         """
-        Let the coercion system discover actions of the braid group on free groups.
+        Let the coercion system discover actions of the braid group on free groups. ::
 
             sage: B.<b0,b1,b2> = BraidGroup()
             sage: F.<f0,f1,f2,f3> = FreeGroup()
@@ -1822,10 +1822,9 @@ class BraidGroup_class(FinitelyPresentedGroup):
             Unknown result parent.
         """
         import operator
-        if is_FreeGroup(S) and op==operator.mul and not self_on_left:
+        if is_FreeGroup(S) and op == operator.mul and not self_on_left:
             return self.mapping_class_action(S)
         return None
-
 
 
 def BraidGroup(n=None, names='s'):

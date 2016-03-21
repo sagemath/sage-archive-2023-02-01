@@ -76,7 +76,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cimport matrix_dense
 from sage.structure.element cimport Matrix, Vector

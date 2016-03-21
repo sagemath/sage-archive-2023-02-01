@@ -114,6 +114,7 @@ class IndexedGroup(IndexedMonoid):
         """
         return self.group_generators().cardinality()
 
+    @cached_method
     def group_generators(self):
         """
         Return the group generators of ``self``.

@@ -1073,7 +1073,7 @@ def save(obj, filename=None, compress=True, **kwds):
         sage: save(P, os.path.join(SAGE_TMP, "filename.with.some.wrong.ext"))
         Traceback (most recent call last):
         ...
-        ValueError: allowed file extensions for images are '.eps', '.pdf', '.png', '.ps', '.sobj', '.svg'!
+        ValueError: allowed file extensions for images are '.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg'!
         sage: print load(objfile)
         Graphics object consisting of 2 graphics primitives
         sage: save("A python string", os.path.join(SAGE_TMP, 'test'))

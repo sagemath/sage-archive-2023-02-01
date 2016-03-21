@@ -1184,7 +1184,7 @@ cdef class CRElement(pAdicTemplateElement):
         self in terms of `\pi`.  If self is a field element, they start at
         `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
 
-        For each lift mode, this funciton returns a list of `a_i` so
+        For each lift mode, this function returns a list of `a_i` so
         that this element can be expressed as
 
         .. MATH::

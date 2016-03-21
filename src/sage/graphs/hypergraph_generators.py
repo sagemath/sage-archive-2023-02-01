@@ -75,37 +75,34 @@ class HypergraphGenerators():
 
         Small hypergraphs::
 
-            sage: list(hypergraphs.nauty(4,2)) # optional - nauty
+            sage: list(hypergraphs.nauty(4,2))
             [((), (0,), (1,), (0, 1))]
 
         Only connected ones::
 
-            sage: list(hypergraphs.nauty(2,2, connected = True)) # optional - nauty
+            sage: list(hypergraphs.nauty(2,2, connected = True))
             [((0,), (0, 1))]
 
         Non-empty sets only::
 
-            sage: list(hypergraphs.nauty(3,2, set_min_size = 1)) # optional - nauty
+            sage: list(hypergraphs.nauty(3,2, set_min_size = 1))
             [((0,), (1,), (0, 1))]
 
         The Fano Plane, as the only 3-uniform hypergraph with 7 sets and 7
         vertices::
 
-            sage: fano = next(hypergraphs.nauty(7, 7, uniform=3, max_intersection=1)) # optional - nauty
-            sage: print fano # optional - nauty
+            sage: fano = next(hypergraphs.nauty(7, 7, uniform=3, max_intersection=1))
+            sage: print fano
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
 
         The Fano Plane, as the only 3-regular hypergraph with 7 sets and 7
         vertices::
 
-            sage: fano = next(hypergraphs.nauty(7, 7, regular=3, max_intersection=1)) # optional - nauty
-            sage: print fano # optional - nauty
+            sage: fano = next(hypergraphs.nauty(7, 7, regular=3, max_intersection=1))
+            sage: print fano
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
         """
         import subprocess
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("nauty"):
-            raise TypeError("The optional nauty spkg does not seem to be installed")
 
         nauty_input = options
 

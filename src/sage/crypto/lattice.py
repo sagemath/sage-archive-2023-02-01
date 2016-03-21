@@ -271,7 +271,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
             A = A.stack(R.random_element().matrix())
 
     elif type == 'cyclotomic':
-        from sage.rings.arith import euler_phi
+        from sage.arith.all import euler_phi
         from sage.misc.functional import cyclotomic_polynomial
 
         # we assume that n+1 <= min( euler_phi^{-1}(n) ) <= 2*n

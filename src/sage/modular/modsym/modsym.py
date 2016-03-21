@@ -86,7 +86,6 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.rational_field as rational_field
 import sage.rings.all as rings
-from sage.rings.commutative_ring import is_CommutativeRing
 
 
 def canonical_parameters(group, weight, sign, base_ring):
@@ -129,7 +128,7 @@ def canonical_parameters(group, weight, sign, base_ring):
     if base_ring is None:
         base_ring = rational_field.RationalField()
 
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, rings.CommutativeRing):
         raise TypeError("base_ring (=%s) must be a commutative ring"%base_ring)
 
     if not base_ring.is_field():

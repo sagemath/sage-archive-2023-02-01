@@ -843,7 +843,8 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
                     [s : s : x : y]
 
             sage: hom_set = P1.Hom(P1)
-            sage: hom_set([s,s,x,y])
+            sage: sbar, tbar, xbar, ybar = P1.coordinate_ring().gens()
+            sage: hom_set([sbar,sbar,xbar,ybar])
             Scheme endomorphism of Closed subscheme of 2-d CPR-Fano toric
             variety covered by 4 affine patches defined by:
               s - t
@@ -2144,6 +2145,25 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         top_form = cohomology_class.part_of_degree(self.dimension())
         if top_form.is_zero(): return 0
         return top_form.lc() / self.volume_class().lc()
+
+    @property
+    def sheaves(self):
+        r"""
+        Return the factory object for sheaves on the toric variety.
+
+        See :class:`sage.schemes.toric.sheaf.constructor.SheafLibrary`
+        for details.
+
+        EXAMPLES::
+        
+            sage: dP6 = toric_varieties.dP6()
+            sage: dP6.sheaves
+            Sheaf constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
+            sage: dP6.sheaves.trivial_bundle()
+            Rank 1 bundle on 2-d CPR-Fano toric variety covered by 6 affine patches.
+        """
+        from sage.schemes.toric.sheaf.constructor import SheafLibrary
+        return SheafLibrary(self)
 
     @cached_method
     def Chern_class(self, deg=None):

@@ -22,10 +22,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/python.pxi"
-from cpython.list cimport *
-from cpython.object cimport *
-from cpython.tuple cimport *
+from cpython cimport *
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -846,7 +843,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # single number
         cdef int single_row = 0, single_col = 0
 
-        if PyTuple_CheckExact(key):
+        if type(key) is tuple:
             key_tuple = <tuple>key
             #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
@@ -855,8 +852,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             row_index = <object>PyTuple_GET_ITEM(key_tuple, 0)
             col_index = <object>PyTuple_GET_ITEM(key_tuple, 1)
 
-            if PyList_CheckExact(row_index) or PyTuple_CheckExact(row_index):
-                if PyTuple_CheckExact(row_index):
+            if type(row_index) is list or type(row_index) is tuple:
+                if type(row_index) is tuple:
                     row_list = list(row_index)
                 else:
                     row_list = row_index
@@ -887,8 +884,8 @@ cdef class Matrix(sage.structure.element.Matrix):
                     raise IndexError("matrix index out of range")
                 single_row = 1
 
-            if PyList_CheckExact(col_index) or PyTuple_CheckExact(col_index):
-                if PyTuple_CheckExact(col_index):
+            if type(col_index) is list or type(col_index) is tuple:
+                if type(col_index) is tuple:
                     col_list = list(col_index)
                 else:
                     col_list = col_index
@@ -938,8 +935,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
 
         row_index = key
-        if PyList_CheckExact(row_index) or PyTuple_CheckExact(row_index):
-            if PyTuple_CheckExact(row_index):
+        if type(row_index) is list or type(row_index) is tuple:
+            if type(row_index) is tuple:
                 row_list = list(row_index)
             else:
                 row_list = row_index
@@ -1328,7 +1325,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # exception.
         self.check_mutability()
 
-        if PyTuple_CheckExact(key):
+        if type(key) is tuple:
             key_tuple = <tuple>key
             #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
@@ -1378,13 +1375,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(row, col, self._coerce_element(value))
             return
 
-        if PyList_CheckExact(value):
+        if type(value) is list:
             if single_row and no_col_index:
                 # A convenience addition, so we can set a row by
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]
                 value_list_one_dimensional = 1
             value_list = value
-        elif  PyTuple_CheckExact(value):
+        elif type(value) is tuple:
             if single_row and no_col_index:
                 # A convenience addition, so we can set a row by
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]

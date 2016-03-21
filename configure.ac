@@ -875,7 +875,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger 'sage-spkg $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
+        echo >&7 "	+sage-logger '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"

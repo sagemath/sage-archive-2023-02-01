@@ -502,7 +502,7 @@ from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.rings.real_mpfr import RR
-from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement
+from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
@@ -3752,11 +3752,37 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: AA(-5).sqrt().interval(RIF)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert 2.236067977499789697?*I to real interval
+            TypeError: unable to convert 2.236067977499790?*I to real interval
+
+        TESTS:
+
+        Check that :trac:`20209` is fixed::
+
+            sage: RIF(QQbar(2).sqrt())
+            1.414213562373095?
+            sage: RIF(QQbar.gen() + QQbar(2).sqrt() - QQbar.gen())
+            1.414213562373095?
+            sage: RIF((QQbar.gen() + QQbar(2).sqrt() - QQbar.gen()).sqrt())
+            1.189207115002722?
+
+            sage: RealIntervalField(129)(QQbar(3).sqrt())
+            1.73205080756887729352744634150587236695?
+            sage: RIF(QQbar.gen())
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert I to real interval
         """
         target = RR(1.0) >> field.prec()
         val = self.interval_diameter(target)
-        return field(val)
+        if isinstance(field, RealIntervalField_class) and is_ComplexIntervalFieldElement(val):
+            if val.imag().is_zero():
+                return field(val.real())
+            elif self.imag().is_zero():
+                return field(self.real())
+            else:
+                raise TypeError("unable to convert {} to real interval".format(self))
+        else:
+            return field(val)
 
     _real_mpfi_ = interval
 

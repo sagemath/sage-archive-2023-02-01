@@ -759,7 +759,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
                 den = self.element_class(self, f.denominator(), prec, check=check)
                 return self.coerce(num/den)
         elif isinstance(f, SymbolicSeries):
-            if str(f.default_variable()) is self.variable_name():
+            if str(f.default_variable()) == self.variable_name():
                 return self.element_class(self, f.list(),
                                       f.degree(f.default_variable()), check=check)
             else:

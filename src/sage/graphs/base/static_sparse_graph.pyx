@@ -961,16 +961,12 @@ def spectral_radius(G, prec=1e-10):
         raise ValueError("G must be connected")
 
     cdef double c_prec = prec
-    cdef uint32_t i
-    cdef uint32_t *p
-    cdef double * v3
-    cdef double e, e_min, e_max
-    cdef double s
-
     if 1+c_prec/2 == 1:
         raise ValueError("precision (={!r}) is too small".format(prec))
 
     # make a copy of G if needed to obtain a static sparse graph
+    # NOTE: the following potentially copies the labels of the graph which is
+    # comptely useless for the computation!
     cdef short_digraph g
     G = G.copy(immutable=True)
     g[0] = (<StaticSparseCGraph> (<StaticSparseBackend> G._backend)._cg).g[0]
@@ -979,17 +975,18 @@ def spectral_radius(G, prec=1e-10):
     cdef long m = g.m
     cdef uint32_t ** neighbors = g.neighbors
 
-    cdef int deg_max = 0
-    for i in range(n):
-        if neighbors[i+1] - neighbors[i] > deg_max:
-            deg_max = neighbors[i+1] - neighbors[i]
-
     cdef double * v1 = <double *> sage_malloc(n * sizeof(double))
     cdef double * v2 = <double *> sage_malloc(n * sizeof(double))
+    cdef double * v3
     if v1 == NULL or v2 == NULL:
         sage_free(v1)
         sage_free(v2)
         raise MemoryError
+
+    cdef size_t i
+    cdef uint32_t *p
+    cdef double e_min, e_max
+    cdef double s
 
     for i in range(n):
         v1[i] = 1
@@ -1000,7 +997,7 @@ def spectral_radius(G, prec=1e-10):
     e_min = 0
     try:
         sig_on()
-        while e_max * (e_max - e_min) > c_prec:
+        while (e_max - e_min) > e_max * c_prec:
             # renormalize
             s = n/s
             for i in range(n):
@@ -1050,7 +1047,8 @@ def spectral_radius(G, prec=1e-10):
         # be sure that the rounding is back to default
         fesetround(old_rounding)
 
-    sage_free(v1)
-    sage_free(v2)
+        # and that the memory is freed
+        sage_free(v1)
+        sage_free(v2)
 
     return (e_min, e_max)

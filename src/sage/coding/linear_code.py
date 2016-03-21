@@ -4517,15 +4517,19 @@ class LinearCodeNearestNeighborDecoder(Decoder):
             sage: D.decode_to_code(word)
             (1, 1, 0, 0, 1, 1, 0)
         """
-        V = self.input_space()
-        if not isinstance(r, list):
-            r = r.list()
-        r = V(r)
-        diffs = [[c - r, (c - r).hamming_weight()] for c in self.code()]
-        diffs.sort(key=lambda x: x[1])
-        c = diffs[0][0] + r
-        c.set_immutable()
-        return c
+        flag = 0
+        for c in self.code():
+            if flag == 0:
+                c_min = c
+                h_min = (c-r).hamming_weight()
+                flag = 1
+            else:
+                if (c-r).hamming_weight() < h_min:
+                    h_min = (c-r).hamming_weight()
+                    c_min = c
+
+        c_min.set_immutable()
+        return c_min
 
     def decoding_radius(self):
         r"""

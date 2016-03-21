@@ -58,16 +58,17 @@ def norm_unram(self, base = None):
     """
     Return the absolute or relative norm of this element.
 
-    NOTE!  This is not the `p`-adic absolute value.  This is a
-    field theoretic norm down to a ground ring.  If you want the
-    `p`-adic absolute value, use the ``abs()`` function instead.
+    .. WARNING::
 
-    If ``base`` is given then ``base`` must be a subfield of the
-    parent `L` of ``self``, in which case the norm is the relative
-    norm from L to ``base``.
+        This is not the `p`-adic absolute value.  This is a
+        field theoretic norm down to a ground ring.  If you want the
+        `p`-adic absolute value, use the ``abs()`` function instead.
 
-    In all other cases, the norm is the absolute norm down to
-    `\mathbb{Q}_p` or `\mathbb{Z}_p`.
+    INPUT::
+
+        ``base`` -- a subfield of the parent `L` of this element.
+                    The norm is the relative norm from ``L`` to ``base``.
+                    Defaults to the absolute norm down to `\mathbb{Q}_p` or `\mathbb{Z}_p`.
 
     EXAMPLES::
 

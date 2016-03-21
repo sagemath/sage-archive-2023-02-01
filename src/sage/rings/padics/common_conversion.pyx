@@ -199,7 +199,8 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
         prec = <Integer>x.precision_absolute()
         k = mpz_get_si(prec.value)
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
-            k //= x.parent().ramification_index()
+            # since x lives in a subfield, the ramification index of x's parent will divide e.
+            return k * (e // x.parent().ramification_index())
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         # since get_ordp has been called typ(x.g) == t_PADIC

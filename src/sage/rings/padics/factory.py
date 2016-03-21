@@ -491,8 +491,8 @@ class Qp_class(UniqueFactory):
         if isinstance(type, Integer):
             # lazy
             raise NotImplementedError("lazy p-adics need more work.  Sorry.")
-        if version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or
-           (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3):
+        if (version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or
+            (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3)):
             # keys changed in order to reduce irrelevant duplications: e.g. two Qps with print_mode 'series'
             # that are identical except for different 'print_alphabet' now return the same object.
             key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet,
@@ -1482,8 +1482,8 @@ class Zp_class(UniqueFactory):
             sage: Zp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1))
             5-adic Ring with capped relative precision 41
         """
-        if version[0] < 3 or (len(version) > 1 and version[0] == 3 and version[1] < 2) or
-           (len(version) > 2 and version[0] == 3 and version[1] == 2 and version[2] < 3):
+        if (version[0] < 3 or (len(version) > 1 and version[0] == 3 and version[1] < 2) or
+            (len(version) > 2 and version[0] == 3 and version[1] == 2 and version[2] < 3)):
             p, prec, type, print_mode, name = key
             print_pos, print_sep, print_alphabet, print_max_terms = None, None, None, None
         else:
@@ -1491,8 +1491,8 @@ class Zp_class(UniqueFactory):
         if isinstance(type, Integer):
             # lazy
             raise NotImplementedError("lazy p-adics need more work.  Sorry.")
-        if version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or
-           (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3):
+        if (version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or
+            (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3)):
             # keys changed in order to reduce irrelevant duplications: e.g. two Zps with print_mode 'series'
             # that are identical except for different 'print_alphabet' now return the same object.
             key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet,

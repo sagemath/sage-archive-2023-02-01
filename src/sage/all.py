@@ -67,7 +67,7 @@ import os, sys
 import operator
 import math
 
-from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
 if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "Sage requires Python 2.5 or newer"
@@ -76,7 +76,8 @@ if sys.version_info[:2] < (2, 5):
 ###################################################################
 
 # This import also setups the interrupt handler
-from sage.ext.interrupt import AlarmInterrupt, SignalError, sig_on_reset as sig_on_count
+from cysignals.signals import (AlarmInterrupt, SignalError,
+        sig_on_reset as sig_on_count)
 
 from time                import sleep
 
@@ -175,6 +176,8 @@ from sage.matroids.all   import *
 from sage.game_theory.all import *
 
 from sage.manifolds.all import *
+
+from cysignals.alarm import alarm, cancel_alarm
 
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')

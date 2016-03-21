@@ -24,7 +24,8 @@ from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
-from sage.misc.misc import verbose, sxrange
+from sage.misc.misc import verbose
+from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
@@ -953,9 +954,9 @@ class ModularForm_abstract(ModuleElement):
 
         # The Dirichlet series for \zeta(2 s - 2 k + 2)
         riemann_series = [ n**(weight - 1) if n.is_square() else 0
-                       for n in sxrange(1, lcoeffs_prec + 1) ]
+                       for n in xsrange(1, lcoeffs_prec + 1) ]
         # The Dirichlet series for 1 / \zeta(s - k + 1)
-        mu_series = [ moebius(n) * n**(weight - 1) for n in sxrange(1, lcoeffs_prec + 1) ]
+        mu_series = [ moebius(n) * n**(weight - 1) for n in xsrange(1, lcoeffs_prec + 1) ]
         conv_series = dirichlet_convolution(mu_series, riemann_series)
 
         dirichlet_series = dirichlet_convolution(conv_series, F_series)

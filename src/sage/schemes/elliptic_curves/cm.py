@@ -51,7 +51,7 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     - ``D`` (int) -- a negative integer congruent to 0 or 1 modulo 4.
 
-    - ``algorithm`` (string, default None) -- if "sage" then use the Sage implementation; if "magma" then call Magma (if available).
+    - ``algorithm`` (string, default None).
 
     OUTPUT:
 
@@ -60,9 +60,11 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     ALGORITHM:
 
+    - If ``algorithm`` = "arb" (default): Use Arb's implementation which uses complex interval arithmetic.
+
     - If ``algorithm`` = "sage": Use complex approximations to the roots.
 
-    - If ``algorithm`` = "magma": Call the appropriate Magma function.
+    - If ``algorithm`` = "magma": Call the appropriate Magma function (if available).
 
     AUTHORS:
 
@@ -87,18 +89,31 @@ def hilbert_class_polynomial(D, algorithm=None):
         x^2 - 39660183801072000*x - 7898242515936467904000000
         sage: hilbert_class_polynomial(-163)
         x + 262537412640768000
+        sage: hilbert_class_polynomial(-163, algorithm="sage")
+        x + 262537412640768000
         sage: hilbert_class_polynomial(-163, algorithm="magma") # optional - magma
         x + 262537412640768000
 
+    TESTS::
+
+        sage: all([hilbert_class_polynomial(d, algorithm="arb") == \
+        ....:      hilbert_class_polynomial(d, algorithm="sage") \
+        ....:        for d in range(-1,-100,-1) if d%4 in [0,1]])
+        True
+
     """
     if algorithm is None:
-        algorithm = "sage"
+        algorithm = "arb"
 
     D = Integer(D)
     if D >= 0:
         raise ValueError("D (=%s) must be negative"%D)
     if not (D%4 in [0,1]):
          raise ValueError("D (=%s) must be a discriminant"%D)
+
+    if algorithm == "arb":
+        import sage.libs.arb.arith
+        return sage.libs.arb.arith.hilbert_class_polynomial(D)
 
     if algorithm == "magma":
         magma.eval("R<x> := PolynomialRing(IntegerRing())")

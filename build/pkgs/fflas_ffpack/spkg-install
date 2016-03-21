@@ -36,15 +36,9 @@ fi
 
 
 if [ "$LINBOX_BLAS" != "" ]; then
-
-    echo "Using environment variable LINBOX_BLAS "$LINBOX_BLAS""
-
-elif [ $UNAME = "Darwin" -a -f "/usr/lib/libcblas.dylib" ]; then
-
-    LINBOX_BLAS=-lcblas
-
+    echo "Using environment variable LINBOX_BLAS=$LINBOX_BLAS"
 elif [ $UNAME = "CYGWIN" ]; then
-
+    # TODO: we should install a suitable blas.pc on Cygwin
     echo "Using system-wide Cygwin LAPACK BLAS."
     if [ ! -f "/usr/lib/libblas.a" ]; then
         echo "*************************************************"
@@ -55,34 +49,9 @@ elif [ $UNAME = "CYGWIN" ]; then
         echo "*************************************************"
         exit 1
     fi
-    LINBOX_BLAS="-lblas "
-
-elif [ -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
-
-    echo "ATLAS"
-
-    LINBOX_BLAS="-lcblas -latlas"
-
-elif [ -f "${SAGE_LOCAL}/lib/libcblas.a" ]; then
-
-    echo "Static ATLAS"
-
-    LINBOX_BLAS="-lcblas -latlas"
-
+    LINBOX_BLAS="-lblas"
 else
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "using frickin' slow GSL C-blas"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-
-    LINBOX_BLAS=-lgslcblas
-
+    LINBOX_BLAS="$(pkg-config --libs cblas)"
 fi
 
 echo "*************************************************"

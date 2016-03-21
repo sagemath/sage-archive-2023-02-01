@@ -551,8 +551,8 @@ def HughesPlane(q2, check=True):
     if q2%2 == 0:
         raise EmptySetError("No Hughes plane of even order exists.")
     q = q2.sqrt()
-    K = FiniteField(q2, prefix='x', conway=True)
-    F = FiniteField(q, prefix='y', conway=True)
+    K = FiniteField(q2, prefix='x')
+    F = FiniteField(q, prefix='y')
     A = q3_minus_one_matrix(F)
     A = A.change_ring(K)
     m = K.list()

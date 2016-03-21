@@ -106,7 +106,7 @@ Functions
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from libc.stdint cimport uint16_t
 from sage.graphs.distances_all_pairs cimport all_pairs_shortest_path_BFS

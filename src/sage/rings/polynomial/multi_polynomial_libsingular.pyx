@@ -165,7 +165,7 @@ Check if #6160 is fixed::
 #   * p_Normalize apparently needs currRing
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing

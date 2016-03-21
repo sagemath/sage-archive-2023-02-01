@@ -14,7 +14,7 @@
 # If optional argument -d is given and bootstrapping failed, instead
 # extract the files from a local configure tarball, downloading it if
 # needed. If -D is given, don't try to bootstrap and always extract or
-# donwload.
+# download.
 ########################################################################
 
 # Either run this script from SAGE_ROOT or make sure that SAGE_ROOT

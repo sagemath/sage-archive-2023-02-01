@@ -210,11 +210,12 @@ cdef class PowComputer_class(SageObject):
 
             sage: PC = PowComputer(5, 5, 10)
 
-            When you cal pow_mpz_t_tmp with an input that is not stored
-            (ie n > self.cache_limit and n != self.prec_cap),
-            it stores the result in self.temp_m and returns a pointer
-            to that mpz_t.  So if you try to use the results of two
-            calls at once, things will break.
+        When you cal pow_mpz_t_tmp with an input that is not stored
+        (ie n > self.cache_limit and n != self.prec_cap),
+        it stores the result in self.temp_m and returns a pointer
+        to that mpz_t.  So if you try to use the results of two
+        calls at once, things will break. ::
+
             sage: PC._pow_mpz_t_tmp_demo(6, 8) # 244140625 on some architectures and 152587890625 on others: random
             244140625
             sage: 5^6*5^8
@@ -222,9 +223,10 @@ cdef class PowComputer_class(SageObject):
             sage: 5^6*5^6
             244140625
 
-            Note that this does not occur if you try a stored value,
-            because the result of one of the calls points to that
-            stored value.
+        Note that this does not occur if you try a stored value,
+        because the result of one of the calls points to that
+        stored value. ::
+
             sage: PC._pow_mpz_t_tmp_demo(6, 10)
             152587890625
             sage: 5^6*5^10
@@ -233,7 +235,7 @@ cdef class PowComputer_class(SageObject):
         m = Integer(m)
         n = Integer(n)
         if m < 0 or n < 0:
-            raise ValueError, "m, n must be non-negative"
+            raise ValueError("m, n must be non-negative")
         cdef Integer ans = PY_NEW(Integer)
         mpz_mul(ans.value, self.pow_mpz_t_tmp(mpz_get_ui((<Integer>m).value)), self.pow_mpz_t_tmp(mpz_get_ui((<Integer>n).value)))
         return ans
@@ -407,7 +409,7 @@ cdef class PowComputer_class(SageObject):
         else:
             _n = <Integer>n
         if mpz_fits_slong_p(_n.value) == 0:
-            raise ValueError, "n too big"
+            raise ValueError("n too big")
         if _n < 0:
             return ~self.pow_Integer(-mpz_get_si(_n.value))
         else:
@@ -431,7 +433,7 @@ cdef class PowComputer_base(PowComputer_class):
         try:
             self.small_powers = <mpz_t *>sage_malloc(sizeof(mpz_t) * (cache_limit + 1))
             if self.small_powers == NULL:
-                raise MemoryError, "out of memory allocating power storing"
+                raise MemoryError("out of memory allocating power storing")
             try:
                 mpz_init(self.top_power)
                 try:

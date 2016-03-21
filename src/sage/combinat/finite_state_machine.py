@@ -1504,12 +1504,29 @@ class FSMState(sage.structure.sage_object.SageObject):
             sage: B.final_word_out = None
             sage: B.final_word_out is None
             True
+
+        The exception is raised also when the initial state is a tuple
+        (see :trac:`18990`)::
+
+            sage: A = Transducer(initial_states=[(0, 0)])
+            sage: A.state((0, 0)).final_word_out = []
+            Traceback (most recent call last):
+            ...
+            ValueError: Only final states can have a final output word,
+            but state (0, 0) is not final.
+
+        No exception is raised if we set the state to be a final one::
+
+            sage: A.state((0, 0)).is_final=True
+            sage: A.state((0, 0)).final_word_out = []
+            sage: A.state((0, 0)).final_word_out == []
+            True
         """
         if not self.is_final:
             if final_word_out is not None:
                 raise ValueError("Only final states can have a "
                                  "final output word, but state %s is not final."
-                                 % (self.label()))
+                                 % (self.label(),))
             else:
                 self._final_word_out_ = None
         elif isinstance(final_word_out, list):
@@ -1577,6 +1594,27 @@ class FSMState(sage.structure.sage_object.SageObject):
             ValueError: State A cannot be non-final, because it has a
             final output word. Only final states can have a final output
             word.
+
+        The exception is raised also when the final state is a tuple
+        (see :trac:`18990`)::
+
+            sage: A = Transducer(final_states=[(0, 0)])
+            sage: A.state((0, 0)).final_word_out = [1]
+            sage: A.state((0, 0)).is_final = False
+            Traceback (most recent call last):
+            ...
+            ValueError: State (0, 0) cannot be non-final, because it has
+            a final output word. Only final states can have a final
+            output word.
+
+        No exception is raised if we empty the final_word_out of the
+        state::
+
+            sage: A.state((0, 0)).final_word_out = []
+            sage: A.state((0, 0)).is_final = False
+            sage: A.state((0, 0)).is_final == False
+            True
+
             sage: A = FSMState('A', is_final=True, final_word_out=[])
             sage: A.is_final = False
             sage: A.final_word_out is None
@@ -1591,7 +1629,7 @@ class FSMState(sage.structure.sage_object.SageObject):
                 raise ValueError("State %s cannot be non-final, because it "
                                  "has a final output word. Only final states "
                                  "can have a final output word. "
-                                 % self.label())
+                                 % (self.label(),))
 
 
     def label(self):

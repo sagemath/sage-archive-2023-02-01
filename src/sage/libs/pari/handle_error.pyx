@@ -23,7 +23,7 @@ AUTHORS:
 
 from .paridecl cimport *
 from .paripriv cimport *
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from cpython cimport PyErr_Occurred
 from pari_instance cimport pari_instance

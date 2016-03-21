@@ -123,22 +123,24 @@ Test if :trac:`9947` is fixed::
     2*sqrt(10)/(sqrt(3) + 5)
 """
 
-###############################################################################
-#   Sage: Open Source Mathematical Software
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/python.pxi"
+include "cysignals/signals.pxi"
 
 import operator
 import ring
 import sage.rings.integer
 import sage.rings.rational
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
@@ -6236,7 +6238,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a
             x^3 + y + sqrt(2)
             sage: type(a)
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
             sage: a.degree()
             0
 
@@ -6370,15 +6372,17 @@ cdef class Expression(CommutativeRingElement):
         return R(f, f.degree()+1)
 
     def gcd(self, b):
-        """
-        Return the gcd of self and b, which must be integers or polynomials over
-        the rational numbers.
+        r"""
+        Return the gcd of self and b, which must be integers or polynomials
+        over the rational numbers.
 
-        TODO: I tried the massive gcd from
-        http://trac.sagemath.org/sage_trac/ticket/694 on Ginac dies
-        after about 10 seconds.  Singular easily does that GCD now.
-        Since Ginac only handles poly gcd over QQ, we should change
-        ginac itself to use Singular.
+        .. TODO::
+
+            I tried the massive gcd from
+            :trac:`694` on Ginac dies
+            after about 10 seconds.  Singular easily does that GCD now.
+            Since Ginac only handles poly gcd over `\QQ`, we should change
+            ginac itself to use Singular.
 
         EXAMPLES::
 

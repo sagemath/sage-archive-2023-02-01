@@ -67,7 +67,7 @@ Functions
 # http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
 
 from libc.stdint cimport uint32_t

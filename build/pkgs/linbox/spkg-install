@@ -52,9 +52,13 @@ fi
 # Configure, build and install LinBox:
 ###############################################################################
 
+# We disable openmp because of build failures, see
+# http://trac.sagemath.org/ticket/17635#comment:67
+# https://github.com/linbox-team/linbox/issues/24
+export with_openmp=no
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
             --with-all="$SAGE_LOCAL" \
-            --enable-sage --disable-static --enable-openmp
+            --enable-sage --enable-optimization --disable-static --disable-openmp
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring LinBox."
     exit 1

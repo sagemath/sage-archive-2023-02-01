@@ -20,7 +20,7 @@ for speed.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 
 from .farey cimport *

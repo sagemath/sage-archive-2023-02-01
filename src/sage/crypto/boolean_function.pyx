@@ -286,7 +286,7 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: the length of the truth table must be a power of 2
         """
-        if PyString_Check(x):
+        if isinstance(x, str):
             L = ZZ(len(x))
             if L.is_power_of(2):
                 x = ZZ("0x"+x).digits(base=2,padto=4*L)

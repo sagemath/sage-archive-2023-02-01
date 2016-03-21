@@ -209,7 +209,6 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
-    echo "  -bdist <tmpdir>     -- build a binary distribution of Sage"
     echo "  -sdist              -- build a source distribution of Sage"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
@@ -917,12 +916,6 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
     fi
     maybe_sage_location
     exec sage-rsyncdist $2
-fi
-
-if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
-    maybe_sage_location
-    shift
-    exec sage-bdist "$@"
 fi
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then

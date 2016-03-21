@@ -54,7 +54,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
 
 import sage
 import re

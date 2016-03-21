@@ -185,7 +185,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         # TODO: move this up the hierarchy, perhaps this should go all the way to element?
         # The "verify that shift is an integer" part could be shared
         cdef long s
-        if PyInt_Check(shift):
+        if isinstance(shift, int):
             s = PyInt_AS_LONG(shift)
         else:
             if not isinstance(shift, Integer):
@@ -233,7 +233,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             2*5^5 + 3*5^6 + O(5^25)
         """
         cdef long s
-        if PyInt_Check(shift):
+        if isinstance(shift, int):
             s = PyInt_AS_LONG(shift)
         else:
             if not isinstance(shift, Integer):

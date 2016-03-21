@@ -783,7 +783,7 @@ def _helper_payley_matrix(n, zero_position=True):
         [ 1 -1  1 -1 -1 -1  1  1 -1  1  0]
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-    K = GF(n,conway=True,prefix='x')
+    K = GF(n,prefix='x')
 
     # Order the elements of K in K_list
     # so that K_list[i] = -K_list[n-i-1]

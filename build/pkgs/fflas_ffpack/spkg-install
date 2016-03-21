@@ -36,15 +36,9 @@ fi
 
 
 if [ "$LINBOX_BLAS" != "" ]; then
-
-    echo "Using environment variable LINBOX_BLAS "$LINBOX_BLAS""
-
-elif [ $UNAME = "Darwin" -a -f "/usr/lib/libcblas.dylib" ]; then
-
-    LINBOX_BLAS=-lcblas
-
+    echo "Using environment variable LINBOX_BLAS=$LINBOX_BLAS"
 elif [ $UNAME = "CYGWIN" ]; then
-
+    # TODO: we should install a suitable blas.pc on Cygwin
     echo "Using system-wide Cygwin LAPACK BLAS."
     if [ ! -f "/usr/lib/libblas.a" ]; then
         echo "*************************************************"
@@ -55,44 +49,27 @@ elif [ $UNAME = "CYGWIN" ]; then
         echo "*************************************************"
         exit 1
     fi
-    LINBOX_BLAS="-lblas "
-
-elif [ -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
-
-    echo "ATLAS"
-
-    LINBOX_BLAS="-lcblas -latlas"
-
-elif [ -f "${SAGE_LOCAL}/lib/libcblas.a" ]; then
-
-    echo "Static ATLAS"
-
-    LINBOX_BLAS="-lcblas -latlas"
-
+    LINBOX_BLAS="-lblas"
 else
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "using frickin' slow GSL C-blas"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-    echo "WARNING WARNING"
-
-    LINBOX_BLAS=-lgslcblas
-
+    LINBOX_BLAS="$(pkg-config --libs cblas)"
 fi
 
 echo "*************************************************"
 echo " Using --with-blas=$LINBOX_BLAS"
 echo "*************************************************"
 
+# If SAGE_FAT_BINARY is set, disable all processor-specific optimizations
+if [ "$SAGE_FAT_BINARY" = yes ]; then
+    FFLAS_FFPACK_CONFIGURE="--disable-sse --disable-avx $FFLAS_FFPACK_CONFIGURE"
+fi
+
+# We disable openmp because of build failures, see
+# http://trac.sagemath.org/ticket/17635#comment:67
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
     --with-blas-libs="$LINBOX_BLAS" \
-    --enable-optimization --disable-static --enable-precompilation
+    --enable-optimization --disable-static --enable-precompilation \
+    --disable-openmp $FFLAS_FFPACK_CONFIGURE
 if [ $? -ne 0 ]; then
     echo "Error configuring fflas-ffpack"
     exit 1
@@ -101,6 +78,7 @@ fi
 $MAKE
 if [ $? -ne 0 ]; then
     echo "Error building fflas-ffpack"
+    exit 1
 fi
 
 $MAKE install

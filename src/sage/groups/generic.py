@@ -94,22 +94,25 @@ Some examples in the group of points of an elliptic curve over a finite field:
     7
     sage: order_from_bounds(Q, Hasse_bounds(5^5), operation='+')
     7
-
 """
 
-###########################################################################
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                          John Cremona  <john.cremona@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
 
 from copy import copy
 
 import sage.misc.all as misc
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer
+from sage.arith.srange import xsrange
 
 #
 # Lists of names (as strings) which the user may use to identify one
@@ -473,7 +476,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     table = dict()     # will hold pairs (a^(lb+i),lb+i) for i in range(m)
 
     d=c
-    for i0 in misc.srange(m):
+    for i0 in xsrange(m):
         i = lb + i0
         if identity==d:        # identity == b^(-1)*a^i, so return i
             return Z(i)
@@ -482,7 +485,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
 
     c = op(c,inverse(d))     # this is now a**(-m)
     d=identity
-    for i in misc.srange(m):
+    for i in xsrange(m):
         j = table.get(d)
         if j is not None:  # then d == b*a**(-i*m) == a**j
             return Z(i*m + j)

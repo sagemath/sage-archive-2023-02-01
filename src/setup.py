@@ -24,7 +24,7 @@ def excepthook(*exc):
 
     try:
         logfile = os.path.join(os.environ['SAGE_LOGS'],
-                "sage-%s.log" % os.environ['SAGE_VERSION'])
+                "sagelib-%s.log" % os.environ['SAGE_VERSION'])
     except:
         pass
     else:

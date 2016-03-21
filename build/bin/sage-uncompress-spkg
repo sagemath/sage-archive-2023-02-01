@@ -32,7 +32,7 @@ if __name__ == '__main__':
     if zipfile.is_zipfile(filename):
         # zip file:
         with zipfile.ZipFile(filename, 'r') as archive:
-            if len(sys.argv) == 1:
+            if len(sys.argv) == 2:
                 archive.extractall()
             else:
                 member = sys.argv[2]

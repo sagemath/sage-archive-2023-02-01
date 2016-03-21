@@ -513,7 +513,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: hash(a)
             Traceback (most recent call last):
             ...
-            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
 
         However, we want to cache computations which depend on them. Therefore
         they define a ``_cache_key`` which is hashable and uniquely identifies
@@ -531,7 +531,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: K.zero()._cache_key()
             (..., 0)
             sage: K(0,1)._cache_key()
-            (..., 0, 1)
+            (..., 1, 0)
 
         """
         if self._is_exact_zero():
@@ -1340,11 +1340,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCR(125); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
+            sage: R.<a> = ZqCR(125,implementation="NTL"); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
             sage: d._is_normalized()
             False
-            sage: d
-            (2*a^2 + a + 2)*5 + O(5^20)
+            sage: d.valuation()
+            1
             sage: d._is_normalized()
             True
         """
@@ -2694,7 +2694,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(0,4).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         cdef pAdicZZpXCRElement zero
         cdef Integer ordp

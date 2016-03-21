@@ -62,7 +62,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         # set the parent, nrows, ncols, etc.
         matrix_sparse.Matrix_sparse.__init__(self, parent)
 
-        self._matrix = <mpq_vector*> sage_malloc(parent.nrows()*sizeof(mpq_vector))
+        self._matrix = <mpq_vector*> sig_malloc(parent.nrows()*sizeof(mpq_vector))
         if self._matrix == NULL:
             raise MemoryError, "error allocating sparse matrix"
         # initialize the rows
@@ -82,7 +82,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             for i from 0 <= i < self._nrows:
                 mpq_vector_clear(&self._matrix[i])
         if self._matrix != NULL:
-            sage_free(self._matrix)
+            sig_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -582,7 +582,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         # Get rid of self's data
         self._dealloc()
         # Copy E's data to self's data.
-        self._matrix = <mpq_vector*> sage_malloc(E._nrows * sizeof(mpq_vector))
+        self._matrix = <mpq_vector*> sig_malloc(E._nrows * sizeof(mpq_vector))
         if self._matrix == NULL:
             raise MemoryError, "error allocating sparse matrix"
         for i from 0 <= i < E._nrows:

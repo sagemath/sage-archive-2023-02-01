@@ -431,7 +431,7 @@ cdef class PowComputer_base(PowComputer_class):
 
         sig_on()
         try:
-            self.small_powers = <mpz_t *>sage_malloc(sizeof(mpz_t) * (cache_limit + 1))
+            self.small_powers = <mpz_t *>sig_malloc(sizeof(mpz_t) * (cache_limit + 1))
             if self.small_powers == NULL:
                 raise MemoryError("out of memory allocating power storing")
             try:
@@ -501,7 +501,7 @@ cdef class PowComputer_base(PowComputer_class):
                 mpz_clear(self.small_powers[i])
             mpz_clear(self.top_power)
             mpz_clear(self.temp_m)
-            sage_free(self.small_powers)
+            sig_free(self.small_powers)
 
     def __reduce__(self):
         """

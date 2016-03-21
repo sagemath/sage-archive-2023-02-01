@@ -272,7 +272,7 @@ cdef class _BestValStore:
         """
         self.default_data_length = n
         self.storage_length = 0
-        self.values = <long *> sage_malloc(0)
+        self.values = <long *> sig_malloc(0)
         if self.values is NULL:
             raise MemoryError('allocating _BestValStore')
 
@@ -280,7 +280,7 @@ cdef class _BestValStore:
         """
         Dealloc.
         """
-        sage_free(self.values)
+        sig_free(self.values)
 
     cdef long * get_row(self, int i):
         r"""
@@ -291,7 +291,7 @@ cdef class _BestValStore:
         with the all zero vector.
         """
         if i >= self.storage_length:
-            self.values = < long *> sage_realloc(self.values, (i + 1)* self.default_data_length * sizeof(long))
+            self.values = < long *> sig_realloc(self.values, (i + 1)* self.default_data_length * sizeof(long))
             if self.values is NULL:
                 raise MemoryError('resizing _BestValStore')
             self.storage_length = i + 1
@@ -336,12 +336,12 @@ cdef class LabelledBranching:
         self.n = n
         self.group = libgap.eval("Group(())")
         self.ClosureGroup = libgap.eval("ClosureGroup")
-        self.father = < int *> sage_malloc(n * sizeof(int))
+        self.father = < int *> sig_malloc(n * sizeof(int))
         if self.father is NULL:
             raise MemoryError('allocating LabelledBranching')
-        self.act_perm = < int *> sage_malloc(n * sizeof(int))
+        self.act_perm = < int *> sig_malloc(n * sizeof(int))
         if self.act_perm is NULL:
-            sage_free(self.father)
+            sig_free(self.father)
             raise MemoryError('allocating LabelledBranching')
         cdef int i
         for i from 0 <= i < self.n:
@@ -351,8 +351,8 @@ cdef class LabelledBranching:
         """
         Dealloc.
         """
-        sage_free(self.father)
-        sage_free(self.act_perm)
+        sig_free(self.father)
+        sig_free(self.act_perm)
 
     cpdef add_gen(self, GapElement_Permutation gen):
         r"""
@@ -472,7 +472,7 @@ cdef class PartitionRefinement_generic:
         self._is_candidate_initialized = False
 
         self._known_automorphisms = LabelledBranching(n)
-        self._refine_vals_scratch = <long *> sage_malloc(n * sizeof(long))
+        self._refine_vals_scratch = <long *> sig_malloc(n * sizeof(long))
         if self._refine_vals_scratch is NULL:
             raise MemoryError('allocating PartitionRefinement_generic')
 
@@ -487,7 +487,7 @@ cdef class PartitionRefinement_generic:
         Dealloc.
         """
         PS_dealloc(self._part)
-        sage_free(self._refine_vals_scratch)
+        sig_free(self._refine_vals_scratch)
 
     #####################################################################
     # The following functions have to be implemented by derived classes
@@ -627,7 +627,7 @@ cdef class PartitionRefinement_generic:
             self._fixed_not_minimized = PS_singletons(self._part)
             self._inner_min_unminimized(&inner_group_changed)
         if self._part is NULL:
-            sage_free(self._refine_vals_scratch)
+            sig_free(self._refine_vals_scratch)
             raise MemoryError('initializing the partition stack')
 
     cdef void _start_Sn_backtrack(self):

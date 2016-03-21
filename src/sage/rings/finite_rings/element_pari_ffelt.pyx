@@ -18,7 +18,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.paripriv cimport *
@@ -169,7 +169,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         Cython deconstructor.
         """
         if self.block:
-            sage_free(self.block)
+            sig_free(self.block)
 
     cdef FiniteFieldElement_pari_ffelt _new(FiniteFieldElement_pari_ffelt self):
         """

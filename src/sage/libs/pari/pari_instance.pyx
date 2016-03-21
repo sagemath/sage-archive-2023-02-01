@@ -184,7 +184,7 @@ cimport libc.stdlib
 from libc.stdio cimport *
 cimport cython
 
-from sage.ext.memory cimport sage_malloc, sage_free
+include "cysignals/memory.pxi"
 from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
 from sage.libs.gmp.all cimport *
@@ -875,7 +875,7 @@ cdef class PariInstance(PariInstance_auto):
 
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):
         cdef size_t s = <size_t> gsizebyte(x)
-        cdef pari_sp tmp_bot = <pari_sp> sage_malloc(s)
+        cdef pari_sp tmp_bot = <pari_sp> sig_malloc(s)
         cdef pari_sp tmp_top = tmp_bot + s
         address[0] = tmp_bot
         return gcopy_avma(x, &tmp_top)

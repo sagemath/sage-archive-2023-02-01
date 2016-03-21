@@ -183,7 +183,7 @@ REFERENCES:
 """
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from cpython.object cimport Py_EQ, Py_NE
 
 import operator
@@ -364,7 +364,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         if n < 1:
             raise ValueError, "Number of variables must be greater than 1."
 
-        self.pbind = <Py_ssize_t*>sage_malloc(n*sizeof(Py_ssize_t))
+        self.pbind = <Py_ssize_t*>sig_malloc(n*sizeof(Py_ssize_t))
         cdef char *_n
 
         order = TermOrder(order, n)
@@ -447,7 +447,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
 
     def __dealloc__(self):
-        sage_free(self.pbind)
+        sig_free(self.pbind)
         # destruction of _pbring handled by C++ object
 
     def __reduce__(self):
@@ -7690,7 +7690,7 @@ cdef BooleanPolynomialRing BooleanPolynomialRing_from_PBRing(PBRing _ring):
 
     cdef int n = _ring.nVariables()
 
-    self.pbind = <Py_ssize_t*>sage_malloc(n*sizeof(Py_ssize_t))
+    self.pbind = <Py_ssize_t*>sig_malloc(n*sizeof(Py_ssize_t))
 
     T = TermOrder_from_PBRing(_ring)
 

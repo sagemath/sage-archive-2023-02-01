@@ -138,14 +138,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, k
 
         sig_on()
-        self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
+        self._entries = <mpq_t *> sig_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
         if self._entries == NULL:
             sig_off()
             raise MemoryError("out of memory allocating a matrix")
 
-        self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._nrows)
+        self._matrix =  <mpq_t **> sig_malloc(sizeof(mpq_t*) * self._nrows)
         if self._matrix == NULL:
-            sage_free(self._entries)
+            sig_free(self._entries)
             self._entries = NULL
             sig_off()
             raise MemoryError("out of memory allocating a matrix")
@@ -166,8 +166,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_clear(self._entries[i])
-        sage_free(self._entries)
-        sage_free(self._matrix)
+        sig_free(self._entries)
+        sig_free(self._matrix)
 
     def __init__(self, parent, entries=None, coerce=True, copy=True):
 
@@ -268,7 +268,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             data = ''
         else:
             n = self._nrows*self._ncols*10
-            s = <char*> sage_malloc(n * sizeof(char))
+            s = <char*> sig_malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
@@ -280,9 +280,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     if len_so_far + m + 1 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
-                        tmp = <char*> sage_malloc(n * sizeof(char))
+                        tmp = <char*> sig_malloc(n * sizeof(char))
                         strcpy(tmp, s)
-                        sage_free(s)
+                        sig_free(s)
                         s = tmp
                         t = s + len_so_far
                     #endif
@@ -295,7 +295,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     t = t + 1
             sig_off()
             data = str(s)[:-1]
-            sage_free(s)
+            sig_free(s)
         return data
 
     cdef _unpickle_version0(self, data):

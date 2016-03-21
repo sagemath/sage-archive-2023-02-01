@@ -142,7 +142,7 @@ from sage.misc.long cimport pyobject_to_long
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_malloc, check_allocarray
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
@@ -1054,7 +1054,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_get_str(s, base, self.value)
         sig_off()
         k = <bytes>s
-        sage_free(s)
+        sig_free(s)
         return k
 
     def __format__(self, *args, **kwargs):
@@ -2730,7 +2730,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         mpz_set_ui(z.value, sorted_c[i])
                         sorted.append(z)
                     fits_c = False
-                    sage_free(ptr)
+                    sig_free(ptr)
                     ptr = NULL
 
                 # The two cases below are essentially the same algorithm, one
@@ -2810,7 +2810,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     mpz_set_ui(z.value, sorted_c[i])
                     sorted.append(z)
         finally:
-            sage_free(ptr)
+            sig_free(ptr)
 
         return sorted
 
@@ -4043,7 +4043,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         for i from 0 <= i < prod_count:
             mpz_clear(sub_prods[i])
-        sage_free(sub_prods)
+        sig_free(sub_prods)
 
         return z
 
@@ -6907,7 +6907,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     # Again, we move to the mpz_t and clear it. As in fast_tp_new,
     # we free the memory directly.
-    sage_free(o_mpz._mp_d)
+    sig_free(o_mpz._mp_d)
 
     # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
     # set. If it was set another free function would need to be
@@ -6921,7 +6921,7 @@ cdef hook_fast_tp_functions():
     """
     global global_dummy_Integer, sizeof_Integer, integer_pool
 
-    integer_pool = <PyObject**>sage_malloc(integer_pool_size * sizeof(PyObject*))
+    integer_pool = <PyObject**>sig_malloc(integer_pool_size * sizeof(PyObject*))
 
     cdef PyObject* o
     o = <PyObject *>global_dummy_Integer
@@ -6955,7 +6955,7 @@ def free_integer_pool():
 
     integer_pool_size = 0
     integer_pool_count = 0
-    sage_free(integer_pool)
+    sig_free(integer_pool)
 
 # Replace default allocation and deletion with faster custom ones
 hook_fast_tp_functions()

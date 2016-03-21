@@ -64,7 +64,7 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 from .paridecl cimport *
 from .paripriv cimport *
 include 'pari_err.pxi'
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 cimport cython
@@ -96,7 +96,7 @@ cdef class gen(gen_auto):
 
     def __dealloc__(self):
         if self.b:
-            sage_free(<void*> self.b)
+            sig_free(<void*> self.b)
 
     def __repr__(self):
         """
@@ -1297,7 +1297,7 @@ cdef class gen(gen_auto):
             return "0"
         lx = lgefint(x)-2  # number of words
         size = lx*2*sizeof(long)
-        s = <char *>sage_malloc(size+2) # 1 char for sign, 1 char for '\0'
+        s = <char *>sig_malloc(size+2) # 1 char for sign, 1 char for '\0'
         sp = s + size+1
         sp[0] = 0
         xp = int_LSW(x)
@@ -1315,7 +1315,7 @@ cdef class gen(gen_auto):
             sp = sp-1
             sp[0] = c'-'
         k = <object>sp
-        sage_free(s)
+        sig_free(s)
         return k
 
     def __int__(gen self):

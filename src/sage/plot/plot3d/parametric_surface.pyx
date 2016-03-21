@@ -82,7 +82,7 @@ Another colored example::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 include "point_c.pxi"
@@ -571,8 +571,8 @@ cdef class ParametricSurface(IndexFaceSet):
                     v = vlist[j]
                     self.eval_c(&self.vs[i*n+j], u, v)
 
-            sage_free(ulist)
-            sage_free(vlist)
+            sig_free(ulist)
+            sig_free(vlist)
 
         elif isinstance(self.f, tuple):
 
@@ -628,8 +628,8 @@ cdef class ParametricSurface(IndexFaceSet):
                                 (<Wrapper_rdf>fz).call_c(uv, &self.vs[i*n+j].z)
 
 
-                    sage_free(ulist)
-                    sage_free(vlist)
+                    sig_free(ulist)
+                    sig_free(vlist)
 
                 if not (fast_x and fast_y and fast_z):
                     ix = 0
@@ -764,7 +764,7 @@ class MoebiusStrip(ParametricSurface):
 
 
 cdef double* to_double_array(py_list) except NULL:
-    cdef double* c_list = <double *>sage_malloc(sizeof(double) * len(py_list))
+    cdef double* c_list = <double *>sig_malloc(sizeof(double) * len(py_list))
     if c_list == NULL:
         raise MemoryError
     cdef Py_ssize_t i = 0

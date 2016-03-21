@@ -210,7 +210,7 @@ cdef class PowComputer_class(SageObject):
 
             sage: PC = PowComputer(5, 5, 10)
 
-        When you cal pow_mpz_t_tmp with an input that is not stored
+        When you call pow_mpz_t_tmp with an input that is not stored
         (ie n > self.cache_limit and n != self.prec_cap),
         it stores the result in self.temp_m and returns a pointer
         to that mpz_t.  So if you try to use the results of two

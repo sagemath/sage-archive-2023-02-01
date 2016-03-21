@@ -5163,13 +5163,13 @@ class NumberField_generic(number_field_base.NumberField):
             elif self._assume_disc_small:
                 B = f.nfbasis(1)
             elif not important:
-                # Trial divide the discriminant
-                m = self.pari_polynomial().poldisc().abs().factor(limit=0)
+                # Trial divide the discriminant with primes up to 10^6
+                m = self.pari_polynomial().poldisc().abs().factor(limit=10**6)
                 # Since we only need a *squarefree* factorization for
                 # primes with exponent 1, we need trial division up to D^(1/3)
                 # instead of D^(1/2).
-                trialdivlimit2 = pari(pari._primelimit()**2)
-                trialdivlimit3 = pari(pari._primelimit()**3)
+                trialdivlimit2 = pari(10**12)
+                trialdivlimit3 = pari(10**18)
                 if all([ p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p,e in zip(m[0],m[1]) ]):
                     B = f.nfbasis(fa = m)
                 else:

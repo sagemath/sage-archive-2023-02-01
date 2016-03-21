@@ -975,12 +975,12 @@ def spectral_radius(G, prec=1e-10):
     cdef long m = g.m
     cdef uint32_t ** neighbors = g.neighbors
 
-    cdef double * v1 = <double *> sage_malloc(n * sizeof(double))
-    cdef double * v2 = <double *> sage_malloc(n * sizeof(double))
+    cdef double * v1 = <double *> sig_malloc(n * sizeof(double))
+    cdef double * v2 = <double *> sig_malloc(n * sizeof(double))
     cdef double * v3
     if v1 == NULL or v2 == NULL:
-        sage_free(v1)
-        sage_free(v2)
+        sig_free(v1)
+        sig_free(v2)
         raise MemoryError
 
     cdef size_t i
@@ -1048,7 +1048,7 @@ def spectral_radius(G, prec=1e-10):
         fesetround(old_rounding)
 
         # and that the memory is freed
-        sage_free(v1)
-        sage_free(v2)
+        sig_free(v1)
+        sig_free(v2)
 
     return (e_min, e_max)

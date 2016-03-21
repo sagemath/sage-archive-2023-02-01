@@ -157,6 +157,15 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         This element reduced modulo `p^\mathrm{absprec}` as an element of
         `\ZZ/p^\mathrm{absprec}\ZZ`
 
+        .. NOTE::
+
+            This is different from the mod function ``%`` which returns
+            an element with the same parent.
+
+        .. SEEALSO::
+
+            :meth:`__mod__`
+
          EXAMPLES::
 
             sage: R = Zp(7,4,'capped-abs')

@@ -236,6 +236,15 @@ cdef class pAdicCappedRelativeElement(CRElement):
         This element reduced modulo `p^\mathrm{absprec}` as an element of
         `\ZZ/p^\mathrm{absprec}\ZZ`
 
+        .. NOTE::
+
+            This is different from the mod function ``%`` which returns an
+            element with the same parent.
+
+        .. SEEALSO::
+
+            :meth:`__mod__`
+
         EXAMPLES::
 
             sage: R = Zp(7,4)
@@ -271,7 +280,6 @@ cdef class pAdicCappedRelativeElement(CRElement):
             Traceback (most recent call last):
             ...
             PrecisionError: not enough precision known in order to compute residue.
-
         """
         cdef Integer selfvalue, modulus
         cdef long aprec

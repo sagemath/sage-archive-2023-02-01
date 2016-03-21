@@ -75,6 +75,10 @@ m4ri_library_dirs = list(m4ri_pc['library_dirs'])
 m4ri_include_dirs = list(m4ri_pc['include_dirs'])
 
 m4ri_extra_compile_args = pkgconfig.cflags('m4ri').split()
+try:
+    m4ri_extra_compile_args.remove("-pedantic")
+except ValueError:
+    pass
 
 #########################################################
 ### Singular

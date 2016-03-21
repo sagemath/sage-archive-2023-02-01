@@ -2528,7 +2528,10 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         a minimal Schnyder wood, given as a graph with colored and
         oriented edges, without the three exterior unoriented edges
 
-        One assumes that the embedding around `a` is cut correctly ?
+        The three boundary vertices must be 'a', 'b' and 'c'.
+
+        One assumes moreover that the embedding around 'a' is the
+        list of neighbors of 'a' and not just a cyclic permutation of that.
 
         Beware that the embedding convention used here is the opposite of
         the one used by the plot method.

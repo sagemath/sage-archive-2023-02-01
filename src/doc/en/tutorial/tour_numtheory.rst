@@ -128,7 +128,8 @@ precision.
 
 Much work has been done implementing rings of integers in
 :math:`p`-adic fields or number fields other than . The
-interested reader is invited to ask the experts on the
+interested reader is invited to read
+:ref:`sage.rings.padics.tutorial` and ask the experts on the
 ``sage-support`` Google group for further details.
 
 A number of related methods are already implemented in the

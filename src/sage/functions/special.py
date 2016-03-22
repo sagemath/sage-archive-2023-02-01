@@ -337,7 +337,7 @@ class MaximaFunction(BuiltinFunction):
             sage: f._evalf_(1, I, parent=RR)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert x (='0.848379570759176-0.0742924734216079*I') to real number.
+            TypeError: unable to convert '0.848379570759176-0.0742924734216079*I' to a real number
         """
         parent = kwds['parent']
         # The result from maxima is a machine double, which corresponds

@@ -622,7 +622,7 @@ Note that conversions to real fields will give TypeErrors::
     sage: RR(I)
     Traceback (most recent call last):
     ...
-    TypeError: Unable to convert x (='1.00000000000000*I') to real number.
+    TypeError: unable to convert '1.00000000000000*I' to a real number
 
 Expressions involving I that are real-valued can be converted to real fields::
 

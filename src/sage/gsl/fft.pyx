@@ -162,8 +162,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: a[1] = I
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert 1.0*I to float; use abs() or real_part() as desired
-
+            TypeError: unable to convert 1.0*I to float; use abs() or real_part() as desired
         """
         # just set real for now
         if i < 0 or i >= self.n:

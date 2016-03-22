@@ -614,7 +614,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: R('2', base=2)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert x (='2') to real number.
+            TypeError: unable to convert '2' to a real number
             sage: a = R('1.1001', base=2); a
             1.5625
             sage: a.str(2)
@@ -1454,7 +1454,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             elif s_lower == '-infinity':
                 mpfr_set_inf(self.value, -1)
             else:
-                raise TypeError("Unable to convert x (='%s') to real number."%s)
+                raise TypeError("unable to convert {!r} to a real number".format(s))
 
     cdef _set_from_GEN_REAL(self, GEN g):
         """
@@ -1914,7 +1914,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                          self.value, (<RealField_class>self._parent).rnd)
         sig_off()
         if s == <char*> 0:
-            raise RuntimeError, "Unable to convert an mpfr number to a string."
+            raise RuntimeError("unable to convert an mpfr number to a string")
         t = str(s)
         mpfr_free_str(s)
 
@@ -1993,7 +1993,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         r = mpfr_asprintf(&s, "%Ra", self.value)
         sig_off()
         if r < 0:  # MPFR free()s its buffer itself in this case
-            raise RuntimeError("Unable to convert an mpfr number to a string.")
+            raise RuntimeError("unable to convert an mpfr number to a string")
         t = str(s)
         mpfr_free_str(s)
         return t
@@ -5466,7 +5466,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         sage: RealNumber("deadbeefxxx", base=16)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to convert x (='deadbeefxxx') to real number.
+        TypeError: unable to convert 'deadbeefxxx' to a real number
         sage: RealNumber("z", base=36)
         35.0000000000000
         sage: RealNumber("AAA", base=37)

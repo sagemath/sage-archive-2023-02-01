@@ -1922,9 +1922,9 @@ cdef class RealIntervalFieldElement(RingElement):
         sig_off()
 
         if lower_s == <char*> 0:
-            raise RuntimeError, "Unable to convert interval lower bound to a string"
+            raise RuntimeError("unable to convert interval lower bound to a string")
         if upper_s == <char*> 0:
-            raise RuntimeError, "Unable to convert interval upper bound to a string"
+            raise RuntimeError("unable to convert interval upper bound to a string")
 
         # MPFR returns an exponent assuming that the implicit radix point
         # is to the left of the first mantissa digit.  We'll be doing

@@ -1204,12 +1204,19 @@ def number_of_Gamma0_NFCusps(N):
         sage: L = Gamma0_NFCusps(N)
         sage: len(L) == number_of_Gamma0_NFCusps(N)
         True
+        sage: k.<a> = NumberField(x^2 + 7)
+        sage: N = k.ideal(9)
+        sage: number_of_Gamma0_NFCusps(N)
+        6
+        sage: N = k.ideal(a*9 + 7)
+        sage: number_of_Gamma0_NFCusps(N)
+        24
     """
     k = N.number_field()
     # The number of Gamma0(N)-sub-orbits for each Gamma-orbit:
     from sage.arith.all import divisors
-    s = sum([len(list((d+N/d).invertible_residues_mod(k.unit_group().gens()))) \
-                                                for d in divisors(N)])
+    Ugens = [k(u) for u in k.unit_group().gens()]
+    s = sum([len((d+N/d).invertible_residues_mod(Ugens)) for d in divisors(N)])
     # There are h Gamma-orbits, with h class number of underlying number field.
     return s*k.class_number()
 

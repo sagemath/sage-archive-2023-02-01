@@ -16,6 +16,7 @@ AUTHORS:
 - Vincent Delecroix (2014): modifies continued fractions because of :trac:`14567`
 
 - Moritz Firsching (2016): modifies handling of dead sequence, see :trac:`17330`
+
 EXAMPLES::
 
         sage: oeis
@@ -231,7 +232,7 @@ to_tuple = lambda string: tuple(Integer(x) for x in string.split(",") if x)
 
 class OEIS:
     r"""
-    The On-Line Encyclopedia of Integer Sequences..
+    The On-Line Encyclopedia of Integer Sequences.
 
     ``OEIS`` is a class representing the On-Line Encyclopedia of Integer
     Sequences. You can query it using its methods, but ``OEIS`` can also be
@@ -838,11 +839,11 @@ class OEISSequence(SageObject):
 
         EXAMPLES::
 
-            sage: f = oeis(45) ; f                      # optional -- internet
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+            sage: f = oeis(53) ; f                      # optional -- internet
+            A000053: Local stops on New York City Broadway line (IRT #1) subway.
 
             sage: f.keywords()                          # optional -- internet
-            ('core', 'nonn', 'nice', 'easy', 'hear')
+            ('nonn', 'fini', 'full')
 
         TESTS::
 
@@ -1084,6 +1085,12 @@ class OEISSequence(SageObject):
             sage: f.first_terms()[:10]                  # optional -- internet
             (0, 1, 1, 2, 3, 5, 8, 13, 21, 34)
 
+        Handle dead sequences: see  :trac:`17330` ::
+
+            sage: oeis(17).first_terms(12)              # optional -- internet
+            (1, 0, 0, 2, 2, 4, 8, 4, 16, 12, 48, 80)
+
+
         TESTS::
 
             sage: s = oeis._imaginary_sequence()
@@ -1108,7 +1115,7 @@ class OEISSequence(SageObject):
             sage: s(42)
             1
         """
-        if absolute_value or ('nonn' in self.keywords()):
+        if absolute_value or ('nonn' in self.keywords()) or ('dead' in self.keywords()):
             fields = ['S', 'T', 'U']
         elif ('sign' in self.keywords()):
             fields = ['V', 'W', 'X']

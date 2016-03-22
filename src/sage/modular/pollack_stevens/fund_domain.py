@@ -553,7 +553,7 @@ class ManinRelations(PSModularSymbolsDomain):
         sage: ManinRelations(2^20)
         Traceback (most recent call last):
         ...
-        OverflowError: Modulus is too large (must be < 46340)
+        OverflowError: Modulus is too large (must be <= 46340)
 
     TESTS:
 
@@ -669,7 +669,8 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## generators which satisfy a 2-torsion relation
                     twotor_index.append(r)
 
-                    gam = SN(coset_reps[r] * sig * coset_reps[r].inverse())
+                    # we use the adjoint instead of the inverse for speed
+                    gam = SN(coset_reps[r] * sig * coset_reps[r].adjoint())
                     ## gam is 2-torsion matrix and in Gamma_0(N).
                     ## if D is the divisor associated to coset_reps[r]
                     ## then gam * D = - D and so (1+gam)D=0.
@@ -705,7 +706,8 @@ class ManinRelations(PSModularSymbolsDomain):
                         ## generators which satisfy a 3-torsion relation
                         threetor_index.append(r)
 
-                        gam = SN(coset_reps[r] * tau * coset_reps[r].inverse())
+                        # Use the adjoint instead of the inverse for speed.
+                        gam = SN(coset_reps[r] * tau * coset_reps[r].adjoint())
                         ## gam is 3-torsion matrix and in Gamma_0(N).
                         ## if D is the divisor associated to coset_reps[r]
                         ## then (1+gam+gam^2)D=0.
@@ -764,8 +766,8 @@ class ManinRelations(PSModularSymbolsDomain):
                                 A = coset_reps[s] * sig
                                 ## A corresponds to reversing the orientation
                                 ## of the edge corr. to coset_reps[r]
-
-                                gam = SN(coset_reps[r] * A.inverse())
+                                # Use adjoint instead of inverse for speed
+                                gam = SN(coset_reps[r] * A.adjoint())
                                 ## gam is in Gamma_0(N) (by assumption of
                                 ## ending up here in this if statement)
 
@@ -1448,14 +1450,14 @@ class ManinRelations(PSModularSymbolsDomain):
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: M = phi.parent().source()
-            sage: M.prep_hecke_on_gen(2, M.gens()[0])
-            {[1 0]
-            [0 1]: [[1 0]
+            sage: w = M.prep_hecke_on_gen(2, M.gens()[0])
+            sage: one = Matrix(ZZ,2,2,1)
+            sage: one.set_immutable()
+            sage: w[one]
+            [[1 0]
             [0 2], [1 1]
             [0 2], [2 0]
-            [0 1]], [ 1 -1]
-            [-1  2]: [[ 1 -1]
-            [ 0  2]]}
+            [0 1]]
         """
         N = self.level()
         SN = Sigma0(N)
@@ -1482,8 +1484,8 @@ class ManinRelations(PSModularSymbolsDomain):
                 for A in v:
                     #  B is the coset rep equivalent to A
                     B = self.equivalent_rep(A)
-                    #  gaminv = B*A^(-1)
-                    gaminv = B * A.inverse()
+                    #  gaminv = B*A^(-1), but A is in SL2.
+                    gaminv = B * A.adjoint()
                     #  The matrix gaminv * gamma is added to our list in the j-th slot
                     #  (as described above)
                     tmp = SN(gaminv * gamma)

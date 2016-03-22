@@ -661,6 +661,10 @@ class PSModularSymbolSpace(Module):
             ...
             NotImplementedError
         """
+        # This function still has bugs and is not used in the rest of
+        # the package. It is left to be implemented in the future.
+        raise NotImplementedError
+
         if M is None and not self.coefficient_module().is_symk():
             M = self.coefficient_module().precision_cap()
 

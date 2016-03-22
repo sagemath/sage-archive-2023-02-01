@@ -332,7 +332,7 @@ class _Sigma0Embedding(Morphism):
         """
         return x.matrix()
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         r"""
         Required for pickling.
 

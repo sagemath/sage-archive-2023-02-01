@@ -13,6 +13,7 @@ from sage.libs.flint.ulong_extras cimport *
 cdef class Dist(ModuleElement):
     cpdef normalize(self)
     cdef long ordp
+    cpdef long ord_p(self)    
     cdef long _relprec(self)
     cdef _unscaled_moment(self, long i)
 
@@ -32,13 +33,13 @@ cdef class Dist_vector(Dist):
 #    cdef public PowComputer_long prime_pow
 #    cdef Dist2 _new_c(self)
 
-cdef class Dist_long(Dist):
-    cdef long[60] _moments # 38 once 2 is special-cased
-    cdef int relprec
-    cdef public PowComputer_class prime_pow
-    cdef int quasi_normalize(self) except -1
-    cdef Dist_long _new_c(self)
-    cdef Dist_long _addsub(self, Dist_long right, bint negate)
+# cdef class Dist_long(Dist):
+#     cdef long[60] _moments # 38 once 2 is special-cased
+#     cdef int relprec
+#     cdef public PowComputer_class prime_pow
+#     cdef int quasi_normalize(self) except -1
+#     cdef Dist_long _new_c(self)
+#     cdef Dist_long _addsub(self, Dist_long right, bint negate)
 
 cdef class WeightKAction(Action):
     cdef public _k

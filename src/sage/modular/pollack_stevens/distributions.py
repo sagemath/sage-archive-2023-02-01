@@ -19,12 +19,12 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.categories.modules import Modules
-from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long
+from sage.modular.pollack_stevens.dist import get_dist_classes # , Dist_long
 from sage.structure.factory import UniqueFactory
 
 import sage.rings.ring as ring
 
-from sigma0 import _default_adjuster  # sage.modular.pollack_stevens.
+from sigma0 import _default_adjuster
 
 
 class Distributions_factory(UniqueFactory):
@@ -244,8 +244,8 @@ class Distributions_abstract(Module):
         Dist, WeightKAction = get_dist_classes(p, prec_cap, base,
                                                self.is_symk(), implementation)
         self.Element = Dist
-        if Dist is Dist_long:
-            self.prime_pow = PowComputer(p, prec_cap, prec_cap, prec_cap)
+        # if Dist is Dist_long:
+        #     self.prime_pow = PowComputer(p, prec_cap, prec_cap, prec_cap)
         Parent.__init__(self, base, category=Modules(base))
         self._k = k
         self._p = p
@@ -541,7 +541,10 @@ class Distributions_abstract(Module):
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.basis()
-            [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
+            [(1 + O(7^4), O(7^3), O(7^2), O(7)),
+             (O(7^4), 1 + O(7^3), O(7^2), O(7)),
+             (O(7^4), O(7^3), 1 + O(7^2), O(7)),
+             (O(7^4), O(7^3), O(7^2), 1 + O(7))]            
             sage: D = Symk(3, base=QQ); D
             Sym^3 Q^2
             sage: D.basis()
@@ -560,7 +563,7 @@ class Distributions_abstract(Module):
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.an_element() # indirect doctest
-            (2, 1)
+            (2 + O(7^4), 1 + O(7))
         """
         if self._prec_cap > 1:
             return self([2, 1])

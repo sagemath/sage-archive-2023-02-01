@@ -127,7 +127,7 @@ precision.
     10*11^-2 + 5*11^-1 + 4 + 2*11 + O(11^18)
 
 Much work has been done implementing rings of integers in
-:math:`p`-adic fields or number fields other than . The
+:math:`p`-adic fields and number fields. The
 interested reader is invited to read
 :ref:`sage.rings.padics.tutorial` and ask the experts on the
 ``sage-support`` Google group for further details.

@@ -1221,6 +1221,10 @@ class Polynomial_generic_cdv(Polynomial):
         AUTHOR:
 
         - Xavier Caruso (2013-03-20)
+
+        TODO:
+
+        Precision is not optimal, and can be improved.
         """
         coeffs = self.list()
         a = self.truncate(deg + 1)

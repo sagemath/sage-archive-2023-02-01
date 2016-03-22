@@ -19,6 +19,8 @@ AUTHORS:
 
 -  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
 
+-  Kiran Kedlaya (2016-03): Added root counting.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -6657,6 +6659,52 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.roots(multiplicities=False)
 
         return self.roots(ring=CC, multiplicities=False)
+
+    def count_roots_in_interval(self, a, b):
+        """
+        Return the number of roots of this polynomial in the interval 
+        a <= x <= b, counted without multiplicity.
+        
+        Calls the PARI routine polsturm. Note that as of version 2.8, PARI
+        includes the left endpoint of the interval.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.count_roots_in_interval(1, 2)
+            2
+            sage: pol.count_roots_in_interval(1.01, 2)
+            1
+            sage: pol = chebyshev_T(5,x)
+            sage: pol.count_roots_in_interval(-1,2)
+            5
+            sage: pol.count_roots_in_interval(0,2)
+            3
+  
+        """
+        pol = self // self.gcd(self.derivative()) #squarefree part
+        return(pari(pol).polsturm(a,b))
+
+    def all_roots_in_interval(self, a, b):
+        """
+        Return True if the roots of this polynomial are all real and 
+        contained in the interval a <= x <= b.
+    
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.all_roots_in_interval(1, 3)
+            True
+            sage: pol.all_roots_in_interval(1.01, 3)
+            False
+            sage: pol = chebyshev_T(5,x)
+            sage: pol.all_roots_in_interval(-1,1)
+            True        
+        """
+        pol = self // self.gcd(self.derivative())
+        return(pol.count_roots_in_interval(a,b) == pol.degree())
 
     def variable_name(self):
         """

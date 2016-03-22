@@ -68,7 +68,6 @@ from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.libs.pari.paridecl cimport *
 include "cysignals/signals.pxi"
-include 'sage/libs/pari/pari_err.pxi'
 
 from sage.libs.gsl.complex cimport *
 
@@ -715,12 +714,12 @@ cdef inline ComplexDoubleElement pari_to_cdf(pari_gen g):
         PariError: incorrect type in gtofp (t_POL)
     """
     cdef ComplexDoubleElement z = ComplexDoubleElement.__new__(ComplexDoubleElement)
-    pari_catch_sig_on()
+    sig_on()
     if typ(g.g) == t_COMPLEX:
         z._complex = gsl_complex_rect(gtodouble(gel(g.g, 1)), gtodouble(gel(g.g, 2)))
     else:
         z._complex = gsl_complex_rect(gtodouble(g.g), 0.0)
-    pari_catch_sig_off()
+    sig_off()
     return z
 
 cdef class ComplexDoubleElement(FieldElement):
@@ -1148,7 +1147,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: pari(CDF(I))
             1.00000000000000*I
         """
-        pari_catch_sig_on()
+        sig_on()
         return pari.new_gen(self._gen())
 
     #######################################################################
@@ -2402,7 +2401,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,5).algdep(2)
             x^2 - 2*x + 26
         """
-        pari_catch_sig_on()
+        sig_on()
         f = pari.new_gen(algdep0(self._gen(), n, 0))
         from polynomial.polynomial_ring_constructor import PolynomialRing
         from integer_ring import ZZ

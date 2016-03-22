@@ -77,8 +77,6 @@ import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
-
 #########################################################
 
 include "cysignals/signals.pxi"
@@ -3611,7 +3609,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: matrix(ZZ,3,[1..9])._det_pari(1)
             0
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage integer e
         cdef Integer e = <Integer>PY_NEW(Integer)
@@ -5394,7 +5392,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: matrix(ZZ,3,[1..9])._rank_pari()
             2
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef long r = rank(pari_GEN(self))
         pari.clear_stack()
         return r
@@ -5461,11 +5459,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [Mat(1), [1, 0; 0, 1]]
         """
         cdef GEN A
-        pari_catch_sig_on()
+        sig_on()
         A = pari._new_GEN_from_fmpz_mat_t_rotate90(self._matrix, self._nrows, self._ncols)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
-        pari.clear_stack()  # This calls pari_catch_sig_off()
+        pari.clear_stack()  # This calls sig_off()
         return B
 
 
@@ -5524,9 +5522,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef gen H = pari.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
-        pari_catch_sig_on()
+        sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
-        pari.clear_stack()  # This calls pari_catch_sig_off()
+        pari.clear_stack()  # This calls sig_off()
         return B
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows):

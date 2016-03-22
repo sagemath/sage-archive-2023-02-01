@@ -22,7 +22,6 @@ include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.paripriv cimport *
-include "sage/libs/pari/pari_err.pxi"
 
 from element_base cimport FinitePolyExtElement
 from integer_mod import IntegerMod_abstract
@@ -47,8 +46,8 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     Convert the t_INT `x` to an element of the field of definition of
     the t_FFELT `g`.
 
-    This function must be called within ``pari_catch_sig_on()``
-    ... ``pari_catch_sig_off()``.
+    This function must be called within ``sig_on()``
+    ... ``sig_off()``.
 
     TESTS:
 
@@ -83,7 +82,7 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
             set_gel(f, 1, gmael(g, 2, 1))
             f[2] = itou(x)
         else:
-            pari_catch_sig_off()
+            sig_off()
             raise TypeError("unknown PARI finite field type")
         result = cgetg(5, t_FFELT)
         result[1] = t
@@ -183,7 +182,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
     cdef void construct(FiniteFieldElement_pari_ffelt self, GEN g):
         """
         Initialise ``self`` to the FFELT ``g``, reset the PARI stack,
-        and call pari_catch_sig_off().
+        and call sig_off().
 
         This should be called exactly once on every instance.
         """
@@ -201,28 +200,28 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         if isinstance(x, FiniteFieldElement_pari_ffelt):
             if self._parent is (<FiniteFieldElement_pari_ffelt>x)._parent:
-                pari_catch_sig_on()
+                sig_on()
                 self.construct((<FiniteFieldElement_pari_ffelt>x).val)
             else:
                 raise TypeError("no coercion defined")
 
         elif isinstance(x, Integer):
             g = (<pari_gen>self._parent._gen_pari).g
-            pari_catch_sig_on()
+            sig_on()
             x_GEN = pari._new_GEN_from_mpz_t((<Integer>x).value)
             self.construct(_INT_to_FFELT(g, x_GEN))
 
         elif isinstance(x, int) or isinstance(x, long):
             g = (<pari_gen>self._parent._gen_pari).g
             x = pari(x)
-            pari_catch_sig_on()
+            sig_on()
             x_GEN = (<pari_gen>x).g
             self.construct(_INT_to_FFELT(g, x_GEN))
 
         elif isinstance(x, IntegerMod_abstract):
             if self._parent.characteristic().divides(x.modulus()):
                 g = (<pari_gen>self._parent._gen_pari).g
-                pari_catch_sig_on()
+                sig_on()
                 x_GEN = pari._new_GEN_from_mpz_t(Integer(x).value)
                 self.construct(_INT_to_FFELT(g, x_GEN))
             else:
@@ -230,14 +229,14 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         elif x is None:
             g = (<pari_gen>self._parent._gen_pari).g
-            pari_catch_sig_on()
+            sig_on()
             self.construct(FF_zero(g))
 
         elif isinstance(x, pari_gen):
             g = (<pari_gen>self._parent._gen_pari).g
             x_GEN = (<pari_gen>x).g
 
-            pari_catch_sig_on()
+            sig_on()
             if gequal0(x_GEN):
                 self.construct(FF_zero(g))
                 return
@@ -256,7 +255,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                 self.construct(FF_div(_INT_to_FFELT(g, gel(x_GEN, 1)),
                                       _INT_to_FFELT(g, gel(x_GEN, 2))))
             else:
-                pari_catch_sig_off()
+                sig_off()
                 raise TypeError("no coercion defined")
 
         elif (isinstance(x, FreeModuleElement)
@@ -266,7 +265,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             n = len(x)
             while n > 0 and x[n - 1] == 0:
                 n -= 1
-            pari_catch_sig_on()
+            sig_on()
             if n == 0:
                 self.construct(FF_zero(g))
                 return
@@ -284,7 +283,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                 if t == t_FF_F2xq:
                     f = Flx_to_F2x(f)
             else:
-                pari_catch_sig_off()
+                sig_off()
                 raise TypeError("unknown PARI finite field type")
             result = cgetg(5, t_FFELT)
             result[1] = t
@@ -334,7 +333,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: c^20  # indirect doctest
             c^4 + 2*c^3
         """
-        pari_catch_sig_on()
+        sig_on()
         return str(pari.new_gen(self.val))
 
     def __hash__(FiniteFieldElement_pari_ffelt self):
@@ -380,7 +379,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             False
         """
         cdef FiniteFieldElement_pari_ffelt x = self._new()
-        pari_catch_sig_on()
+        sig_on()
         x.construct(self.val)
         return x
 
@@ -439,9 +438,9 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             False
         """
         cdef int r
-        pari_catch_sig_on()
+        sig_on()
         r = cmp_universal(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
-        pari_catch_sig_off()
+        sig_off()
         return r
 
     cpdef ModuleElement _add_(FiniteFieldElement_pari_ffelt self, ModuleElement right):
@@ -455,7 +454,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             a^2 + a
         """
         cdef FiniteFieldElement_pari_ffelt x = self._new()
-        pari_catch_sig_on()
+        sig_on()
         x.construct(FF_add((<FiniteFieldElement_pari_ffelt>self).val,
                            (<FiniteFieldElement_pari_ffelt>right).val))
         return x
@@ -471,7 +470,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             0
         """
         cdef FiniteFieldElement_pari_ffelt x = self._new()
-        pari_catch_sig_on()
+        sig_on()
         x.construct(FF_sub((<FiniteFieldElement_pari_ffelt>self).val,
                            (<FiniteFieldElement_pari_ffelt>right).val))
         return x
@@ -487,7 +486,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             a^15 + 2*a^12 + a^11 + 2*a^10 + 2
         """
         cdef FiniteFieldElement_pari_ffelt x = self._new()
-        pari_catch_sig_on()
+        sig_on()
         x.construct(FF_mul((<FiniteFieldElement_pari_ffelt>self).val,
                            (<FiniteFieldElement_pari_ffelt>right).val))
         return x
@@ -505,7 +504,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         if FF_equal0((<FiniteFieldElement_pari_ffelt>right).val):
             raise ZeroDivisionError
         cdef FiniteFieldElement_pari_ffelt x = self._new()
-        pari_catch_sig_on()
+        sig_on()
         x.construct(FF_div((<FiniteFieldElement_pari_ffelt>self).val,
                            (<FiniteFieldElement_pari_ffelt>right).val))
         return x
@@ -575,7 +574,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             2*a
         """
         cdef FiniteFieldElement_pari_ffelt x = self._new()
-        pari_catch_sig_on()
+        sig_on()
         x.construct(FF_neg_i((<FiniteFieldElement_pari_ffelt>self).val))
         return x
 
@@ -596,7 +595,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         if FF_equal0(self.val):
             raise ZeroDivisionError
         cdef FiniteFieldElement_pari_ffelt x = self._new()
-        pari_catch_sig_on()
+        sig_on()
         x.construct(FF_inv((<FiniteFieldElement_pari_ffelt>self).val))
         return x
 
@@ -641,7 +640,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             raise ZeroDivisionError
         exp = Integer(exp)._pari_()
         cdef FiniteFieldElement_pari_ffelt x = self._new()
-        pari_catch_sig_on()
+        sig_on()
         x.construct(FF_pow(self.val, (<pari_gen>exp).g))
         return x
 
@@ -671,7 +670,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: (a**2 + 1).polynomial().parent()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
-        pari_catch_sig_on()
+        sig_on()
         return self._parent.polynomial_ring()(pari.new_gen(FF_to_FpXQ_i(self.val)))
 
     def charpoly(FiniteFieldElement_pari_ffelt self, object var='x'):
@@ -689,7 +688,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: a.charpoly('y')
             y^2 + 1
         """
-        pari_catch_sig_on()
+        sig_on()
         return self._parent.polynomial_ring(var)(pari.new_gen(FF_charpoly(self.val)))
 
     def is_square(FiniteFieldElement_pari_ffelt self):
@@ -718,9 +717,9 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             True
         """
         cdef long i
-        pari_catch_sig_on()
+        sig_on()
         i = FF_issquare(self.val)
-        pari_catch_sig_off()
+        sig_off()
         return bool(i)
 
     def sqrt(FiniteFieldElement_pari_ffelt self, extend=False, all=False):
@@ -780,7 +779,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             raise NotImplementedError
         cdef GEN s
         cdef FiniteFieldElement_pari_ffelt x, mx
-        pari_catch_sig_on()
+        sig_on()
         if FF_issquareall(self.val, &s):
             x = self._new()
             x.construct(s)
@@ -789,12 +788,12 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             elif gequal0(x.val) or self._parent.characteristic() == 2:
                 return [x]
             else:
-                pari_catch_sig_on()
+                sig_on()
                 mx = self._new()
                 mx.construct(FF_neg_i(x.val))
                 return [x, mx]
         else:
-            pari_catch_sig_off()
+            sig_off()
             if all:
                 return []
             else:
@@ -862,7 +861,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         # because PARI assumes by default that this element generates
         # the multiplicative group.
         cdef GEN x, base_order, self_order
-        pari_catch_sig_on()
+        sig_on()
         base_order = FF_order((<FiniteFieldElement_pari_ffelt>base).val, NULL)
         self_order = FF_order(self.val, NULL)
         if not dvdii(base_order, self_order):
@@ -887,7 +886,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         if self.is_zero():
             raise ArithmeticError("Multiplicative order of 0 not defined.")
         cdef GEN order
-        pari_catch_sig_on()
+        sig_on()
         order = FF_order(self.val, NULL)
         return Integer(pari.new_gen(order))
 
@@ -988,7 +987,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: b._pari_()
             a^2 + 2*a + 1
         """
-        pari_catch_sig_on()
+        sig_on()
         return pari.new_gen(self.val)
 
     def _pari_init_(self):

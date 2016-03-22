@@ -153,7 +153,6 @@ from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent_c, coercion_model)
 include "sage/ext/python_debug.pxi"
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
@@ -2574,9 +2573,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef list output
 
         try:
-            pari_catch_sig_on()
+            sig_on()
             d = divisorsu(n)
-            pari_catch_sig_off()
+            sig_off()
             output = [smallInteger(d[i]) for i in range(1,lg(d))]
             return output
         finally:

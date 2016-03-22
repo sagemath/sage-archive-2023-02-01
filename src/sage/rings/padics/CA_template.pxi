@@ -188,12 +188,17 @@ cdef class CAElement(pAdicTemplateElement):
             5 + O(13^4)
             sage: R(12) + R(1)
             13 + O(13^4)
+
+        Check that :trac:`20245` is resolved::
+
+            sage: R(1,1) + R(169,3)
+            1 + O(13)
         """
         cdef CAElement right = _right
         cdef CAElement ans = self._new_c()
         ans.absprec = min(self.absprec, right.absprec)
         cadd(ans.value, self.value, right.value, ans.absprec, ans.prime_pow)
-        creduce_small(ans.value, ans.value, ans.absprec, ans.prime_pow)
+        creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
@@ -212,7 +217,7 @@ cdef class CAElement(pAdicTemplateElement):
         cdef CAElement ans = self._new_c()
         ans.absprec = min(self.absprec, right.absprec)
         csub(ans.value, self.value, right.value, ans.absprec, ans.prime_pow)
-        creduce_small(ans.value, ans.value, ans.absprec, ans.prime_pow)
+        creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
     def __invert__(self):

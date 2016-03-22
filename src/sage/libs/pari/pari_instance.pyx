@@ -192,7 +192,7 @@ from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport _pari_init_error_handling
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
 # real precision in decimal digits: see documentation for
 # get_real_precision() and set_real_precision().  This variable is used
@@ -1338,78 +1338,83 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         return self.new_gen(gp_read_file(filename))
 
-    def prime_list(self, long n):
+    def primes(self, n=None, end=None):
         """
-        prime_list(n): returns list of the first n primes
-
-        To extend the table of primes use pari.init_primes(M).
+        Return a pari vector containing the first `n` primes, the primes
+        in the interval `[n, end]`, or the primes up to `end`.
 
         INPUT:
 
+        Either
 
-        -  ``n`` - C long
+        - ``n`` -- integer
 
+        or
 
-        OUTPUT:
+        - ``n`` -- list or tuple `[a, b]` defining an interval of primes
 
+        or
 
-        -  ``gen`` - PARI list of first n primes
+        - ``n, end`` -- start and end point of an interval of primes
 
+        or
+
+        - ``end`` -- end point for the list of primes
+
+        OUTPUT: a PARI list of prime numbers
 
         EXAMPLES::
 
-            sage: pari.prime_list(0)
-            []
-            sage: pari.prime_list(-1)
-            []
-            sage: pari.prime_list(3)
+            sage: pari.primes(3)
             [2, 3, 5]
-            sage: pari.prime_list(10)
+            sage: pari.primes(10)
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: pari.prime_list(20)
+            sage: pari.primes(20)
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71]
-            sage: len(pari.prime_list(1000))
+            sage: len(pari.primes(1000))
             1000
-        """
-        if n >= 2:
-            self.nth_prime(n)
-        sig_on()
-        return self.new_gen(primes(n))
+            sage: pari.primes(11,29)
+            [11, 13, 17, 19, 23, 29]
+            sage: pari.primes((11,29))
+            [11, 13, 17, 19, 23, 29]
+            sage: pari.primes(end=29)
+            [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+            sage: pari.primes(10^30, 10^30 + 100)
+            [1000000000000000000000000000057, 1000000000000000000000000000099]
 
-    def primes_up_to_n(self, long n):
-        """
-        Return the primes <= n as a pari list.
+        TESTS::
 
-        EXAMPLES::
-
-            sage: pari.primes_up_to_n(1)
+            sage: pari.primes(0)
             []
-            sage: pari.primes_up_to_n(20)
-            [2, 3, 5, 7, 11, 13, 17, 19]
+            sage: pari.primes(-1)
+            []
+            sage: pari.primes(end=1)
+            []
+            sage: pari.primes(end=-1)
+            []
+            sage: pari.primes(3,2)
+            []
         """
-        if n <= 1:
-            return pari([])
-        self.init_primes(n+1)
-        return self.prime_list(pari(n).primepi())
-
-    def __nth_prime(self, long n):
-        """
-        nth_prime(n): returns the n-th prime, where n is a C-int
-        """
-        if n <= 0:
-            raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
-        cdef GEN g
+        cdef gen t0, t1
+        if end is None:
+            t0 = objtogen(n)
+            sig_on()
+            return self.new_gen(primes0(t0.g))
+        elif n is None:
+            t0 = self.PARI_TWO  # First prime
+        else:
+            t0 = objtogen(n)
+        t1 = objtogen(end)
         sig_on()
-        g = prime(n)
-        return self.new_gen(g)
+        return self.new_gen(primes_interval(t0.g, t1.g))
 
-    def nth_prime(self, long n):
-        from sage.libs.pari.all import PariError
-        try:
-            return self.__nth_prime(n)
-        except PariError:
-            self.init_primes(max(2*maxprime(), 20*n))
-            return self.nth_prime(n)
+    def primes_up_to_n(self, n):
+        deprecation(20216, "pari.primes_up_to_n(n) is deprecated, use pari.primes(end=n) instead")
+        return self.primes(end=n)
+
+    prime_list = deprecated_function_alias(20216, primes)
+
+    nth_prime = deprecated_function_alias(20216, PariInstance_auto.prime)
 
     def euler(self, unsigned long precision=0):
         """
@@ -1474,6 +1479,8 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         return self.new_gen(polchebyshev1(n, self.get_var(v)))
 
+    # Deprecated by upstream PARI: do not remove this deprecated alias
+    # as long as it exists in PARI.
     poltchebi = deprecated_function_alias(18203, polchebyshev)
 
     def factorial(self, long n):

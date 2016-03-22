@@ -3784,6 +3784,8 @@ def nth_prime(n):
         5
         sage: nth_prime(10)
         29
+        sage: nth_prime(10^7)
+        179424673
 
     ::
 
@@ -3796,9 +3798,10 @@ def nth_prime(n):
 
         sage: all(prime_pi(nth_prime(j)) == j for j in range(1, 1000, 10))
         True
-
     """
-    return ZZ(pari.nth_prime(n))
+    if n <= 0:
+        raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
+    return ZZ(pari.prime(n))
 
 def quadratic_residues(n):
     r"""

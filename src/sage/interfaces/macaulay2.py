@@ -102,6 +102,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     AsciiArtString)
 
 from sage.misc.multireplace import multiple_replace
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import re
 
@@ -147,11 +148,11 @@ def remove_output_labels(s):
 PROMPT = "_EGAS_ : "
 
 
-class Macaulay2(Expect):
+class Macaulay2(ExtraTabCompletion, Expect):
     """
     Interface to the Macaulay2 interpreter.
     """
-    def __init__(self, maxread=10000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         """
         Initialize a Macaulay2 interface instance.
@@ -185,7 +186,6 @@ class Macaulay2(Expect):
                         name = 'macaulay2',
                         prompt = PROMPT,
                         command = "M2 --no-debug --no-readline --silent -e '%s'" % init_str,
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -529,7 +529,7 @@ class Macaulay2(Expect):
             r = r[:end]
         return AsciiArtString(r)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Return a list of tab completions for Macaulay2.
 
@@ -539,12 +539,12 @@ class Macaulay2(Expect):
 
         TESTS::
 
-            sage: names = macaulay2.trait_names() # optional - macaulay2
+            sage: names = macaulay2._tab_completion() # optional - macaulay2
             sage: 'ring' in names                 # optional - macaulay2
             True
             sage: macaulay2.eval("abcabc = 4")    # optional - macaulay2
             4
-            sage: names = macaulay2.trait_names() # optional - macaulay2
+            sage: names = macaulay2._tab_completion() # optional - macaulay2
             sage: "abcabc" in names               # optional - macaulay2
             True
         """
@@ -602,7 +602,7 @@ class Macaulay2(Expect):
         return self.new("new %s from %s"%(type.name(), value.name()))
 
 
-class Macaulay2Element(ExpectElement):
+class Macaulay2Element(ExtraTabCompletion, ExpectElement):
     def _latex_(self):
         """
         EXAMPLES::
@@ -868,7 +868,7 @@ class Macaulay2Element(ExpectElement):
 
     subs = substitute
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Return a list of tab completions for ``self``.
 
@@ -881,7 +881,7 @@ class Macaulay2Element(ExpectElement):
         TEST::
 
             sage: a = macaulay2("QQ[x,y]")   # optional - macaulay2
-            sage: traits = a.trait_names()   # optional - macaulay2
+            sage: traits = a._tab_completion()   # optional - macaulay2
             sage: "generators" in traits     # optional - macaulay2
             True
         """
@@ -1221,6 +1221,9 @@ def macaulay2_console():
         ...
 
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%macaulay2 magics instead.')
     os.system('M2')
 
 

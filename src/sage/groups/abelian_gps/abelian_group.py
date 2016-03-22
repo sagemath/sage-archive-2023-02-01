@@ -191,27 +191,29 @@ AUTHORS:
   immutables. Rename invariants to gens_orders.
 """
 
-##########################################################################
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2006 David Joyner  <wdjoyner@gmail.com>
-#  Copyright (C) 2012 Volker Braun  <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL):
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##########################################################################
+#*****************************************************************************
 
 import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.infinity import infinity
-from sage.rings.arith import divisors, gcd
+from sage.arith.all import divisors, gcd, lcm
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
-from sage.rings.arith import lcm
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 from sage.categories.groups import Groups
 
@@ -540,8 +542,8 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         assert isinstance(generator_orders, tuple)
         assert all(isinstance(order,Integer) for order in generator_orders)
         self._gens_orders = generator_orders
-        n = ZZ(len(generator_orders))
-        names = self.normalize_names(n, names)
+        n = len(generator_orders)
+        names = normalize_names(n, names)
         self._assign_names(names)
         cat = Groups().Commutative()
         if all(order > 0 for order in generator_orders):
@@ -631,7 +633,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G >= H
             False
         """
-        return right.__le__(left)
+        return right <= left
 
     def __lt__(left, right):
         """
@@ -736,8 +738,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             raise ValueError('the group must be finite')
         if base_ring is None:
             from sage.rings.number_field.number_field import CyclotomicField
-            from sage.rings.arith import LCM
-            base_ring = CyclotomicField(LCM(self.gens_orders()))
+            base_ring = CyclotomicField(lcm(self.gens_orders()))
         return DualAbelianGroup_class(self, names=names, base_ring=base_ring)
 
     @cached_method
@@ -1233,7 +1234,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         if not(self.is_finite()):
            raise NotImplementedError("Group must be finite")
-        return tuple(self.__iter__())
+        return tuple(iter(self))
 
     def __iter__(self):
         """

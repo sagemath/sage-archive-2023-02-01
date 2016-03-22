@@ -155,7 +155,7 @@ from sage.libs.gmpxx cimport mpz_class
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from libcpp cimport bool as cppbool
 
@@ -698,9 +698,9 @@ cdef class MIP_Problem(_mutable_or_immutable):
             elif mode == 'minimization':
                 self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MINIMIZATION)
             else:
-                raise ValueError, 'Unknown value: mode='+str(mode)+'.'
+                raise ValueError('Unknown value: mode='+str(mode)+'.')
         else:
-            raise ValueError, 'Cannot initialize with '+str(args)+'.'
+            raise ValueError('Cannot initialize with '+str(args)+'.')
 
     def __dealloc__(self):
         """
@@ -1025,7 +1025,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
         elif mode == 'maximization':
             self.thisptr.set_optimization_mode(MAXIMIZATION)
         else:
-            raise ValueError, 'Unknown value: mode='+str(mode)+'.'
+            raise ValueError('Unknown value: mode={}.'.format(mode))
 
     def is_satisfiable(self):
         """
@@ -1212,7 +1212,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             ...
             NotImplementedError: The Polyhedron class is abstract, you must not instantiate it.
         """
-        raise NotImplementedError, 'The Polyhedron class is abstract, you must not instantiate it.'
+        raise NotImplementedError('The Polyhedron class is abstract, you must not instantiate it.')
 
 
     def _repr_(self):
@@ -1561,7 +1561,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         if isinstance(arg, Constraint):
             return self._relation_with_constraint(arg)
         else:
-            raise TypeError, 'Argument must be Generator or a Constraint'
+            raise TypeError('Argument must be Generator or a Constraint')
 
 
     def is_empty(self):
@@ -3201,7 +3201,7 @@ cdef class C_Polyhedron(Polyhedron):
             dim = int(arg)
             assert dim>=0
         except ValueError:
-            raise ValueError, 'Cannot initialize C_Polyhedron with '+str(arg)+'.'
+            raise ValueError('Cannot initialize C_Polyhedron with '+str(arg)+'.')
         degenerate_element = degenerate_element.lower()
         if degenerate_element=='universe':
             self.thisptr = new PPL_C_Polyhedron(<PPL_dimension_type>dim, UNIVERSE)
@@ -3210,7 +3210,7 @@ cdef class C_Polyhedron(Polyhedron):
             self.thisptr = new PPL_C_Polyhedron(<PPL_dimension_type>dim, EMPTY)
             return
         else:
-            raise ValueError, 'Unknown value: degenerate_element='+str(degenerate_element)+'.'
+            raise ValueError('Unknown value: degenerate_element='+str(degenerate_element)+'.')
 
 
     def __init__(self, *args):
@@ -3381,7 +3381,7 @@ cdef class NNC_Polyhedron(Polyhedron):
             dim = int(arg)
             assert dim>=0
         except ValueError:
-            raise ValueError, 'Cannot initialize NNC_Polyhedron with '+str(arg)+'.'
+            raise ValueError('Cannot initialize NNC_Polyhedron with '+str(arg)+'.')
         degenerate_element = degenerate_element.lower()
         if degenerate_element=='universe':
             self.thisptr = new PPL_NNC_Polyhedron(<PPL_dimension_type>dim, UNIVERSE)
@@ -3390,7 +3390,7 @@ cdef class NNC_Polyhedron(Polyhedron):
             self.thisptr = new PPL_NNC_Polyhedron(<PPL_dimension_type>dim, EMPTY)
             return
         else:
-            raise ValueError, 'Unknown value: degenerate_element='+str(degenerate_element)+'.'
+            raise ValueError('Unknown value: degenerate_element='+str(degenerate_element)+'.')
 
 
     def __init__(self, *args):
@@ -3826,7 +3826,7 @@ cdef class Linear_Expression(object):
             b = args[1]
             ex = Linear_Expression(0)
             for i in range(0,len(a)):
-                ex = ex + Variable(i).__mul__(Integer(a[i]))
+                ex += Variable(i) * Integer(a[i])
             arg = ex + b
         elif len(args)==1:
             arg = args[0]
@@ -3849,7 +3849,7 @@ cdef class Linear_Expression(object):
             self.thisptr = new PPL_Linear_Expression(PPL_Coefficient(c.value))
             return
         except ValueError:
-            raise ValueError, 'Cannot initialize with '+str(args)+'.'
+            raise ValueError('Cannot initialize with {}.'.format(args))
 
 
     def __dealloc__(self):
@@ -5095,7 +5095,7 @@ cdef class Generator_System(_mutable_or_immutable):
             for generator in arg:
                 self.insert(generator)
             return
-        raise ValueError, 'Cannot initialize with '+str(arg)+'.'
+        raise ValueError('Cannot initialize with '+str(arg)+'.')
 
 
     def __dealloc__(self):
@@ -5291,7 +5291,7 @@ cdef class Generator_System(_mutable_or_immutable):
         """
         if k < 0:
             raise IndexError('index must be nonnegative')
-        iterator = self.__iter__()
+        iterator = iter(self)
         try:
             for i in range(k):
                 next(iterator)
@@ -5319,7 +5319,7 @@ cdef class Generator_System(_mutable_or_immutable):
             'Generator_System {point(3/1, 2/1), ray(1, 0)}'
         """
         s = 'Generator_System {'
-        s += ', '.join([ g.__repr__() for g in self ])
+        s += ', '.join([ repr(g) for g in self ])
         s += '}'
         return s
 
@@ -5552,7 +5552,7 @@ cdef class Constraint(object):
                   for x in [Variable(i)
                             for i in range(0,self.space_dimension())] ])
         e += self.inhomogeneous_term()
-        s = e.__repr__()
+        s = repr(e)
         t = self.type()
         if t=='equality':
             s += '==0'
@@ -6082,7 +6082,7 @@ cdef class Constraint_System(object):
             for constraint in arg:
                 self.insert(constraint)
             return
-        raise ValueError, 'Cannot initialize with '+str(arg)+'.'
+        raise ValueError('Cannot initialize with '+str(arg)+'.')
 
 
     def __dealloc__(self):
@@ -6325,7 +6325,7 @@ cdef class Constraint_System(object):
         """
         if k < 0:
             raise IndexError('index must be nonnegative')
-        iterator = self.__iter__()
+        iterator = iter(self)
         try:
             for i in range(k):
                 next(iterator)
@@ -6352,7 +6352,7 @@ cdef class Constraint_System(object):
             'Constraint_System {-3*x0-2*x1+2>0, -x0-1>0}'
         """
         s = 'Constraint_System {'
-        s += ', '.join([ c.__repr__() for c in self ])
+        s += ', '.join([ repr(c) for c in self ])
         s += '}'
         return s
 

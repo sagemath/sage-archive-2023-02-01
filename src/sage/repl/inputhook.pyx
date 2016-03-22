@@ -17,7 +17,7 @@ disable Ctrl-C.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 cdef extern from 'pythonrun.h':
     int (*PyOS_InputHook)() nogil except -1

@@ -251,8 +251,9 @@ class ClassFunction_gap(SageObject):
 
     def __call__(self, g):
         """
-        Evaluate the character on the group element g. Returns an error if
-        g is not in G.
+        Evaluate the character on the group element `g`.
+
+        Return an error if `g` is not in `G`.
 
         EXAMPLES::
 
@@ -402,8 +403,7 @@ class ClassFunction_gap(SageObject):
             sage: (4 * chi).values()
             [12, 4, -4, 0, -4]
         """
-        return self.__mul__(other)
-
+        return self * other
 
     def __pos__(self):
         r"""
@@ -770,7 +770,7 @@ class ClassFunction_gap(SageObject):
 
 class ClassFunction_libgap(SageObject):
     """
-    A wrapper of GAP's ClassFunction function.
+    A wrapper of GAP's ``ClassFunction`` function.
 
     .. NOTE::
 
@@ -933,8 +933,9 @@ class ClassFunction_libgap(SageObject):
 
     def __call__(self, g):
         """
-        Evaluate the character on the group element ``g``. Returns an error if
-        ``g`` is not in ``G`.
+        Evaluate the character on the group element `g`.
+
+        Return an error if `g` is not in `G`.
 
         EXAMPLES::
 

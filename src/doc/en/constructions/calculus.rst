@@ -292,7 +292,7 @@ An example, how to solve ODE's symbolically in Sage using the Maxima interface
 
 ::
 
-    sage: y=function('y',x); desolve(diff(y,x,2) + 3*x == y, dvar = y, ics = [1,1,1])
+    sage: y=function('y')(x); desolve(diff(y,x,2) + 3*x == y, dvar = y, ics = [1,1,1])
     3*x - 2*e^(x - 1)
     sage: desolve(diff(y,x,2) + 3*x == y, dvar = y)
     _K2*e^(-x) + _K1*e^x + 3*x
@@ -301,7 +301,7 @@ An example, how to solve ODE's symbolically in Sage using the Maxima interface
     sage: desolve(diff(y,x) + 3*x == y, dvar = y, ics = [1,1]).expand()
     3*x - 5*e^(x - 1) + 3
 
-    sage: f=function('f',x); desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f, ics = [0,1,2])
+    sage: f=function('f')(x); desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f, ics = [0,1,2])
     x*e^x + e^x
 
     sage: desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f)

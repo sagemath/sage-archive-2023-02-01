@@ -530,7 +530,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             []
         """
         if self._nrows == 0 or self._ncols == 0:
-            # Create a brand new empy matrix. This is needed to prevent a
+            # Create a brand new empty matrix. This is needed to prevent a
             # recursive loop: a copy of zero_matrix is asked otherwise.
             return self.__class__(self.parent(), [], self._nrows, self._ncols)
 

@@ -1908,7 +1908,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                     matr = MC(MS, matrix_list, copy=False, coerce=False)
                     # Using low-level matrix constructor here
                     # because Matrix(...) does too much duck
-                    # typing (:trac:`17124`).
+                    # typing (trac #17124).
                     result += cx * cy * matr.determinant()
             return result
         from sage.categories.cartesian_product import cartesian_product

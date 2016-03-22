@@ -500,7 +500,7 @@ class ContinuedFraction_base(SageObject):
         """
         if self.quotient(0) >= 0:
             return self
-        return self.__neg__()
+        return -self
 
     def __cmp__(self, other):
         """
@@ -592,7 +592,7 @@ class ContinuedFraction_base(SageObject):
 
             sage: fields = []
             sage: for prec in [17, 24, 53, 128, 256]:
-            ....:     for rnd in ['RNDN', 'RNDD', 'RNDU', 'RNDZ']:
+            ....:     for rnd in ['RNDN', 'RNDD', 'RNDU', 'RNDZ', 'RNDA']:
             ....:         fields.append(RealField(prec=prec, rnd=rnd))
             sage: for n in range(3000):  # long time
             ....:     a = QQ.random_element(num_bound=2^(n%100))
@@ -803,8 +803,8 @@ class ContinuedFraction_base(SageObject):
         Return the list of partial convergents of ``self``.
 
         If ``self`` is an infinite continued fraction, then the object returned
-        is a :class:`~sage.misc.lazy_list.lazy_list` which behave like an
-        infinite list.
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which
+        behave like an infinite list.
 
         EXAMPLES::
 
@@ -826,7 +826,7 @@ class ContinuedFraction_base(SageObject):
         Return the list of partial quotients of ``self``.
 
         If ``self`` is an infinite continued fraction, the the object returned
-        is a :class:``~sage.misc.lazy_list.lazy_list`` which behave like an
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which behave like an
         infinite list.
 
         EXAMPLES::
@@ -871,7 +871,7 @@ class ContinuedFraction_base(SageObject):
             7
         """
         if isinstance(n, slice):
-            quots = self.quotients().__getitem__(n)
+            quots = self.quotients()[n]
             if n.stop is not None:
                 quots = list(quots)
             return continued_fraction(quots)
@@ -1510,7 +1510,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             raise ZeroDivisionError("rational division by zero")
         if self._x1:
             if self._x1[0] < 0:
-                return -(-self).__invert__()
+                return -~-self
             if self._x1[0] == 0:
                 return self.__class__(self._x1[1:], self._x2)
         return self.__class__((0,) + self._x1, self._x2)
@@ -1852,9 +1852,16 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             ValueError: the sequence must consist of integers
 
             sage: from itertools import count
-            sage: w = Word(count())
+            sage: w = Word(count(), length="infinite")
             sage: continued_fraction(w)
             [0; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19...]
+
+            sage: w = Word(count(), length="unknown")
+            sage: continued_fraction(w)
+            Traceback (most recent call last):
+            ...
+            ValueError: word with unknown length can not be converted to
+            continued fractions
 
             sage: continued_fraction(words.FibonacciWord([0,1]))
             Traceback (most recent call last):
@@ -2182,6 +2189,11 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
         <type 'sage.rings.real_mpfr.RealLiteral'>
         sage: continued_fraction_list(a)
         [1, 1, 1, 2, 1, 4, 18, 1, 5, 2, 25037802, 7, 1, 3, 1, 28, 1, 8, 2]
+
+    Check that this works for arb elements (:trac:`20069`)::
+
+        sage: continued_fraction(RBF(e))
+        [2; 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12]
     """
     from rational_field import QQ
 
@@ -2218,11 +2230,12 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
 
     cf = None
 
-    from sage.rings.real_mpfi import RealIntervalField, is_RealIntervalField
+    from sage.rings.real_arb import RealBallField
+    from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
     from sage.rings.real_mpfr import RealLiteral
     if isinstance(x, RealLiteral):
         x = RealIntervalField(x.prec())(x)
-    if is_RealIntervalField(x.parent()):
+    if isinstance(x.parent(), (RealIntervalField_class, RealBallField)):
         cf = continued_fraction(rat_interval_cf_list(
                  x.lower().exact_rational(),
                  x.upper().exact_rational()))
@@ -2393,10 +2406,14 @@ def continued_fraction(x, value=None):
         return ContinuedFraction_periodic(x1, x2)
 
     # input for infinite partial quotient expansion
-    from sage.misc.lazy_list import lazy_list
+    from sage.misc.lazy_list import lazy_list_generic
     from sage.combinat.words.infinite_word import InfiniteWord_class
-    if isinstance(x, (lazy_list, InfiniteWord_class)):
+    if isinstance(x, (lazy_list_generic, InfiniteWord_class)):
         return ContinuedFraction_infinite(x, value)
+
+    from sage.combinat.words.abstract_word import Word_class
+    if isinstance(x, Word_class):
+        raise ValueError("word with unknown length can not be converted to continued fractions")
 
     # input for numbers
     #TODO: the approach used below might be not what the user expects as we

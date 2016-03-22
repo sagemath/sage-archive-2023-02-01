@@ -640,7 +640,7 @@ class IdentityConstructionFunctor(ConstructionFunctor):
 class MultivariateConstructionFunctor(ConstructionFunctor):
     """
     An abstract base class for functors that take
-    multiple inputs (e.g. cartesian products).
+    multiple inputs (e.g. Cartesian products).
 
     TESTS::
 
@@ -648,14 +648,14 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
         sage: A = cartesian_product((QQ['z'], QQ))
         sage: B = cartesian_product((ZZ['t']['z'], QQ))
         sage: pushout(A, B)
-        The cartesian product of (Univariate Polynomial Ring in z over
+        The Cartesian product of (Univariate Polynomial Ring in z over
         Univariate Polynomial Ring in t over Rational Field,
         Rational Field)
         sage: A.construction()
         (The cartesian_product functorial construction,
          (Univariate Polynomial Ring in z over Rational Field, Rational Field))
         sage: pushout(A, B)
-        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field, Rational Field)
+        The Cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field, Rational Field)
     """
     def common_base(self, other_functor, self_bases, other_bases):
         r"""
@@ -2214,8 +2214,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F2
             Completion[+Infinity]
             sage: F2.extras
-            {'rnd': 'RNDN', 'sci_not': False, 'type': 'MPFR'}
-
+            {'rnd': 0, 'sci_not': False, 'type': 'MPFR'}
         """
         Functor.__init__(self, Rings(), Rings())
         self.p = p
@@ -2392,10 +2391,8 @@ class CompletionFunctor(ConstructionFunctor):
                 new_type = self._real_types[min(self._real_types.index(self.type), \
                                                 self._real_types.index(other.type))]
                 new_scinot = max(self.extras.get('sci_not',0), other.extras.get('sci_not',0))
-                from sage.rings.real_mpfr import _rounding_modes
-                new_rnd = _rounding_modes[min(_rounding_modes.index(self.extras.get('rnd', 'RNDN')), \
-                                              _rounding_modes.index(other.extras.get('rnd', 'RNDN')))]
-                return CompletionFunctor(self.p, new_prec, {'type': new_type, 'sci_not':new_scinot, 'rnd':new_rnd})
+                new_rnd = min(self.extras.get('rnd', 0), other.extras.get('rnd', 0))
+                return CompletionFunctor(self.p, new_prec, {'type':new_type, 'sci_not':new_scinot, 'rnd':new_rnd})
             else:
                 new_type = self._dvr_types[min(self._dvr_types.index(self.type), self._dvr_types.index(other.type))]
                 if new_type == 'fixed-mod':
@@ -2854,14 +2851,14 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         The following demonstrate coercions for finite fields using Conway or
         pseudo-Conway polynomials::
 
-            sage: k = GF(3^2, conway=True, prefix='z'); a = k.gen()
-            sage: l = GF(3^3, conway=True, prefix='z'); b = l.gen()
+            sage: k = GF(3^2, prefix='z'); a = k.gen()
+            sage: l = GF(3^3, prefix='z'); b = l.gen()
             sage: a + b # indirect doctest
             z6^5 + 2*z6^4 + 2*z6^3 + z6^2 + 2*z6 + 1
 
         Note that embeddings are compatible in lattices of such finite fields::
 
-            sage: m = GF(3^5, conway=True, prefix='z'); c = m.gen()
+            sage: m = GF(3^5, prefix='z'); c = m.gen()
             sage: (a+b)+c == a+(b+c) # indirect doctest
             True
             sage: from sage.categories.pushout import pushout
@@ -3500,7 +3497,7 @@ def pushout(R, S):
         Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t over Rational Field)
           over Multivariate Polynomial Ring in a, b, c over Integer Ring
 
-    Some tests with cartesian products::
+    Some tests with Cartesian products::
 
         sage: from sage.sets.cartesian_product import CartesianProduct
         sage: A = CartesianProduct((ZZ['x'], QQ['y'], QQ['z']), Sets().CartesianProducts())
@@ -3511,7 +3508,7 @@ def pushout(R, S):
           Univariate Polynomial Ring in y over Rational Field,
           Univariate Polynomial Ring in z over Rational Field))
         sage: pushout(A, B)
-        The cartesian product of
+        The Cartesian product of
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Rational Field,
           Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field)
@@ -3554,18 +3551,18 @@ def pushout(R, S):
 
         sage: pushout(CartesianProductPoly((ZZ['x'],)),
         ....:         CartesianProductPoly((ZZ['y'],)))
-        The cartesian product of
+        The Cartesian product of
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Integer Ring)
         sage: pushout(CartesianProductPoly((ZZ['x'], ZZ['y'])),
         ....:         CartesianProductPoly((ZZ['x'], ZZ['z'])))
-        The cartesian product of
+        The Cartesian product of
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Integer Ring,
           Univariate Polynomial Ring in z over Integer Ring)
         sage: pushout(CartesianProductPoly((QQ['a,b']['x'], QQ['y'])),
         ....:         CartesianProductPoly((ZZ['b,c']['x'], SR['z'])))
-        The cartesian product of
+        The Cartesian product of
          (Univariate Polynomial Ring in x over
             Multivariate Polynomial Ring in a, b, c over Rational Field,
           Univariate Polynomial Ring in y over Rational Field,
@@ -3574,11 +3571,11 @@ def pushout(R, S):
     ::
 
         sage: pushout(CartesianProductPoly((ZZ['x'],)), ZZ['y'])
-        The cartesian product of
+        The Cartesian product of
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Integer Ring)
         sage: pushout(QQ['b,c']['y'], CartesianProductPoly((ZZ['a,b']['x'],)))
-        The cartesian product of
+        The Cartesian product of
          (Univariate Polynomial Ring in x over
             Multivariate Polynomial Ring in a, b over Integer Ring,
           Univariate Polynomial Ring in y over

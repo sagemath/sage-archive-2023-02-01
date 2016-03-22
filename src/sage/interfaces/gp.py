@@ -141,11 +141,12 @@ AUTHORS:
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
 import sage.rings.complex_field
 ## import sage.rings.all
 
-class Gp(Expect):
+class Gp(ExtraTabCompletion, Expect):
     """
     Interface to the PARI gp interpreter.
 
@@ -159,7 +160,6 @@ class Gp(Expect):
 
         - ``stacksize`` (int, default 10000000) -- the initial PARI
           stacksize in bytes (default 10MB)
-        - ``maxread`` (int, default 100000) -- ??
         - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_EXTCODE/pari from which to read scripts
         - ``logfile`` (string, default None) -- log file for the pexpect interface
         - ``server`` -- name of remote server
@@ -173,7 +173,7 @@ class Gp(Expect):
             PARI/GP interpreter
     """
     def __init__(self, stacksize=10000000,   # 10MB
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  logfile=None,
                  server=None,
                  server_tmpdir=None,
@@ -186,7 +186,6 @@ class Gp(Expect):
 
         - ``stacksize`` (int, default 10000000) -- the initial PARI
           stacksize in bytes (default 10MB)
-        - ``maxread`` (int, default 100000) -- ??
         - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_EXTCODE/pari from which to read scripts
         - ``logfile`` (string, default None) -- log file for the pexpect interface
         - ``server`` -- name of remote server
@@ -331,11 +330,11 @@ class Gp(Expect):
         """
         return 'read("%s")'%filename
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: c = gp.trait_names()
+            sage: c = gp._tab_completion()
             sage: len(c) > 100
             True
             sage: 'gcd' in c
@@ -892,7 +891,7 @@ class GpElement(ExpectElement):
             sage: gp(I).sage()
             i
             sage: gp(I).sage().parent()
-            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            Number Field in i with defining polynomial x^2 + 1
 
         ::
 
@@ -1036,14 +1035,14 @@ class GpElement(ExpectElement):
     #    P = self._check_valid()
     #    return P.eval('printtex(%s)'%self.name())
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: 'gcd' in gp(2).trait_names()
+            sage: 'gcd' in gp(2)._tab_completion()
             True
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
 
 class GpFunctionElement(FunctionElement):
@@ -1098,6 +1097,9 @@ def gp_console():
         compiled: Jul 21 2010, gcc-4.6.0 20100705 (experimental) (GCC)
         (readline v6.0 enabled, extended help enabled)
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gp magics instead.')
     os.system('gp')
 
 

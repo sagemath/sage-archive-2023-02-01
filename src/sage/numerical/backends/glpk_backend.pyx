@@ -1,3 +1,4 @@
+# distutils: language = c++
 """
 GLPK Backend
 
@@ -9,17 +10,25 @@ AUTHORS:
 - Christian Kuper (2012-10): Additions for sensitivity analysis
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 
 from sage.numerical.mip import MIPSolverException
+from sage.libs.glpk.constants cimport *
+from sage.libs.glpk.lp cimport *
+from libc.float cimport DBL_MAX
+from libc.limits cimport INT_MAX
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
 
@@ -33,9 +42,9 @@ cdef class GLPKBackend(GenericBackend):
         """
         self.lp = glp_create_prob()
         self.simplex_or_intopt = glp_intopt_only
-        self.smcp = <c_glp_smcp* > sage_malloc(sizeof(c_glp_smcp))
+        self.smcp = <glp_smcp* > sage_malloc(sizeof(glp_smcp))
         glp_init_smcp(self.smcp)
-        self.iocp = <c_glp_iocp* > sage_malloc(sizeof(c_glp_iocp))
+        self.iocp = <glp_iocp* > sage_malloc(sizeof(glp_iocp))
         glp_init_iocp(self.iocp)
 
         self.iocp.cb_func = glp_callback                      # callback function
@@ -389,11 +398,10 @@ cdef class GLPKBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
-            sage: x,y = p[0], p[1]
-            doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
-            See http://trac.sagemath.org/15521 for details.
-            sage: p.add_constraint(2*x + 3*y, max = 6)
-            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: x, y = p['x'], p['y']
+            sage: p.add_constraint(2*x + 3*y <= 6)
+            sage: p.add_constraint(3*x + 2*y <= 6)
+            sage: p.add_constraint(x >= 0)
             sage: p.set_objective(x + y + 7)
             sage: p.set_integer(x); p.set_integer(y)
             sage: p.solve()
@@ -429,18 +437,19 @@ cdef class GLPKBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
-            sage: x,y = p[0], p[1]
-            sage: p.add_constraint(2*x + 3*y, max = 6)
-            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: x, y = p['x'], p['y']
+            sage: p.add_constraint(2*x + 3*y <= 6)
+            sage: p.add_constraint(3*x + 2*y <= 6)
+            sage: p.add_constraint(x >= 0)
             sage: p.set_objective(x + y + 7)
             sage: p.set_integer(x); p.set_integer(y)
             sage: p.solve()
             9.0
-            sage: p.remove_constraints([1])
+            sage: p.remove_constraints([0])
             sage: p.solve()
             10.0
             sage: p.get_values([x,y])
-            [3.0, 0.0]
+            [0.0, 3.0]
 
         TESTS:
 
@@ -814,12 +823,13 @@ cdef class GLPKBackend(GenericBackend):
         EXAMPLE::
 
             sage: lp = MixedIntegerLinearProgram(solver = "GLPK")
-            sage: lp.add_constraint( lp[1] +lp[2] -2.0 *lp[3] , max =-1.0)
-            sage: lp.add_constraint( lp[0] -4.0/3 *lp[1] +1.0/3 *lp[2] , max =-1.0/3)
-            sage: lp.add_constraint( lp[0] +0.5 *lp[1] -0.5 *lp[2] +0.25 *lp[3] , max =-0.25)
+            sage: v = lp.new_variable(nonnegative=True)
+            sage: lp.add_constraint(v[1] +v[2] -2.0 *v[3], max=-1.0)
+            sage: lp.add_constraint(v[0] -4.0/3 *v[1] +1.0/3 *v[2], max=-1.0/3)
+            sage: lp.add_constraint(v[0] +0.5 *v[1] -0.5 *v[2] +0.25 *v[3], max=-0.25)
             sage: lp.solve()
             0.0
-            sage: lp.add_constraint( lp[0] +4.0 *lp[1] -lp[2] +lp[3] , max =-1.0)
+            sage: lp.add_constraint(v[0] +4.0 *v[1] -v[2] +v[3], max=-1.0)
             sage: lp.solve()
             Traceback (most recent call last):
             ...
@@ -1130,6 +1140,39 @@ cdef class GLPKBackend(GenericBackend):
           return glp_mip_col_val(self.lp, variable+1)
         else:
           return glp_get_col_prim(self.lp, variable+1)
+
+    cpdef get_row_prim(self, int i):
+        r"""
+        Returns the value of the auxiliary variable associated with i-th row.
+
+        .. NOTE::
+
+           Behaviour is undefined unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_objective_value()
+            280.0
+            sage: lp.get_row_prim(0)
+            24.0
+            sage: lp.get_row_prim(1)
+            20.0
+            sage: lp.get_row_prim(2)
+            8.0
+        """
+        return glp_get_row_prim(self.lp, i+1)
 
     cpdef int ncols(self):
         """
@@ -1943,6 +1986,129 @@ cdef class GLPKBackend(GenericBackend):
             raise ValueError("This parameter is not available.")
 
 
+    cpdef bint is_variable_basic(self, int index):
+        """
+        Test whether the given variable is basic.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: b.is_variable_basic(0)
+            True
+            sage: b.is_variable_basic(1)
+            False
+        """
+        return self.get_col_stat(index) == GLP_BS
+
+    cpdef bint is_variable_nonbasic_at_lower_bound(self, int index):
+        """
+        Test whether the given variable is nonbasic at lower bound.
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: b.is_variable_nonbasic_at_lower_bound(0)
+            False
+            sage: b.is_variable_nonbasic_at_lower_bound(1)
+            True
+        """
+        return self.get_col_stat(index) == GLP_NL
+
+    cpdef bint is_slack_variable_basic(self, int index):
+        """
+        Test whether the slack variable of the given row is basic.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: b.is_slack_variable_basic(0)
+            True
+            sage: b.is_slack_variable_basic(1)
+            False
+        """
+        return self.get_row_stat(index) == GLP_BS
+
+    cpdef bint is_slack_variable_nonbasic_at_lower_bound(self, int index):
+        """
+        Test whether the slack variable of the given row is nonbasic at lower bound.
+
+        This assumes that the problem has been solved with the simplex method
+        and a basis is available.  Otherwise an exception will be raised.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: b.is_slack_variable_nonbasic_at_lower_bound(0)
+            False
+            sage: b.is_slack_variable_nonbasic_at_lower_bound(1)
+            True
+        """
+        return self.get_row_stat(index) == GLP_NU
+
     cpdef int print_ranges(self, char * filename = NULL) except -1:
         r"""
         Print results of a sensitivity analysis
@@ -2210,6 +2376,112 @@ cdef class GLPKBackend(GenericBackend):
 
         return glp_get_col_stat(self.lp, j+1)
 
+    cpdef set_row_stat(self, int i, int stat):
+        r"""
+        Set the status of a constraint.
+
+        INPUT:
+
+        - ``i`` -- The index of the constraint
+
+        - ``stat`` -- The status to set to
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_row_stat(0)
+            1
+            sage: lp.set_row_stat(0, 3)
+            sage: lp.get_row_stat(0)
+            3
+        """
+        if i < 0 or i >= glp_get_num_rows(self.lp):
+            raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+
+        glp_set_row_stat(self.lp, i+1, stat)
+
+    cpdef set_col_stat(self, int j, int stat):
+        r"""
+        Set the status of a variable.
+
+        INPUT:
+
+        - ``j`` -- The index of the constraint
+
+        - ``stat`` -- The status to set to
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_col_stat(0)
+            1
+            sage: lp.set_col_stat(0, 2)
+            sage: lp.get_col_stat(0)
+            2
+        """
+        if j < 0 or j >= glp_get_num_cols(self.lp):
+            raise ValueError("The variable's index j must satisfy 0 <= j < number_of_variables")
+
+        glp_set_col_stat(self.lp, j+1, stat)
+ 
+    cpdef int warm_up(self):
+        r"""
+        Warm up the basis using current statuses assigned to rows and cols.
+
+        OUTPUT:
+
+        - Returns the warming up status
+
+            * 0             The operation has been successfully performed.
+            * GLP_EBADB     The basis matrix is invalid. 
+            * GLP_ESING     The basis matrix is singular within the working precision.
+            * GLP_ECOND     The basis matrix is ill-conditioned.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_objective_value()
+            280.0
+            sage: lp.set_row_stat(0,3)
+            sage: lp.set_col_stat(1,1)
+            sage: lp.warm_up()
+            0
+        """
+        return glp_warm_up(self.lp)
+
     cpdef eval_tab_row(self, int k):
         r"""
         Computes a row of the current simplex tableau.
@@ -2414,7 +2686,7 @@ cdef class GLPKBackend(GenericBackend):
         sage_free(self.iocp)
         sage_free(self.smcp)
 
-cdef void glp_callback(c_glp_tree* tree, void* info):
+cdef void glp_callback(glp_tree* tree, void* info):
     r"""
     A callback routine called by glp_intopt
 
@@ -2424,7 +2696,7 @@ cdef void glp_callback(c_glp_tree* tree, void* info):
 
     INPUT:
 
-    - ``tree`` -- a pointer toward ``c_glp_tree``, which is GLPK's search tree
+    - ``tree`` -- a pointer toward ``glp_tree``, which is GLPK's search tree
 
     - ``info`` -- a ``void *`` to let the function know *where* it should store
       the data we need. The value of ``info`` is equal to the one stored in

@@ -4,6 +4,7 @@ lazy_import("sage.coding.code_constructions", ["permutation_action",
             "walsh_matrix"])
 
 from sage.misc.superseded import deprecated_callable_import
+
 deprecated_callable_import(19315,
             "sage.coding.code_bounds",
             globals(),

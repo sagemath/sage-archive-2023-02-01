@@ -2,15 +2,16 @@
 Symbolic Integration
 """
 
-##############################################################################
-#
+#*****************************************************************************
 #       Copyright (C) 2009 Golam Mortuza Hossain <gmhossain@gmail.com>
 #       Copyright (C) 2010 Burcin Erocal <burcin@erocal.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL v2+)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##############################################################################
+#*****************************************************************************`
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction, Function
@@ -268,7 +269,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
 
     It is also possible to pass last three parameters in ``v`` as a triple.
 
-    OUPUT:
+    OUTPUT:
 
     - a tuple of ``f``, ``v``, ``a``, and ``b``.
 
@@ -715,7 +716,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     Check that :trac:`11737` is fixed::
 
-        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity), prec=54)
+        0.285736646322853
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))  # known bug (non-zero imag part)
         0.285736646322853
 
     Check that :trac:`14209` is fixed::

@@ -384,7 +384,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
             True
         """
         for x in list:
-            if not self.__contains__(x):
+            if x not in self:
                 raise TypeError("Members of the list of generators must be elements of self.")
         return self
 

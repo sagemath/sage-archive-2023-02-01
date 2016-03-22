@@ -23,6 +23,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
     # may return a new element if not possible to modify inplace
     cdef _inplace_truncate(self, long n)
 
+    cdef get_unsafe(self, Py_ssize_t i)
+
 cdef class Polynomial_generic_dense(Polynomial):
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P)
     cdef list __coeffs

@@ -206,7 +206,7 @@ class Scilab(Expect):
           122.
           505.
     """
-    def __init__(self, maxread=100, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None,
                  seed=None):
         """
@@ -222,7 +222,6 @@ class Scilab(Expect):
                         name = 'scilab',
                         prompt = '-->',
                         command = "scilab -nw",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,

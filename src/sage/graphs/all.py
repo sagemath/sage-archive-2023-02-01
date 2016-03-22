@@ -9,6 +9,7 @@ from digraph import DiGraph
 from bipartite_graph import BipartiteGraph
 import sage.graphs.weakly_chordal
 import sage.graphs.lovasz_theta
+import sage.graphs.partial_cube
 import graph_list as graphs_list
 lazy_import("sage.graphs", "graph_coloring")
 from sage.graphs.cliquer import *

@@ -19,6 +19,7 @@ by running::
 
     [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     [user@localhost ~]$ cd sage
+    [user@localhost sage]$ git checkout develop
     [user@localhost sage]$ make
 
 .. _section-git-trac:

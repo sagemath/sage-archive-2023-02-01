@@ -85,7 +85,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.arith import binomial, gcd, divisors
+from sage.arith.all import binomial, gcd, divisors
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.number_field.totallyreal_data import ZZx, lagrange_degree_3, int_has_small_square_divisor, hermite_constant

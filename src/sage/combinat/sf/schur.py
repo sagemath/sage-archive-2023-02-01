@@ -77,7 +77,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         - ``self`` -- a Schur symmetric function basis
         - ``left``, ``right`` -- partitions
 
-        OUPUT:
+        OUTPUT:
 
         - an element of the Schur basis, the product of ``left`` and ``right``
 

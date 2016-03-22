@@ -890,6 +890,28 @@ cdef class Expression:
         """
         return _expression_binop_helper(s, o, op_mul)
 
+    def __truediv__(s, o):
+        r"""
+        Compute a quotient of two Expressions.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x/x
+            div(v_0, v_0)
+            sage: x/1
+            div(v_0, 1)
+            sage: 1/x
+            div(1, v_0)
+            sage: x.__truediv__(1)
+            div(v_0, 1)
+            sage: x.__rtruediv__(1)
+            div(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_div)
+
     def __div__(s, o):
         r"""
         Compute a quotient of two Expressions.
@@ -1920,7 +1942,7 @@ cdef class InstructionStream:
         r"""
         Initialize an InstructionStream.
 
-        INPUTS:
+        INPUT:
 
         - metadata - The metadata_by_opname from a wrapper module
 

@@ -27,6 +27,13 @@ soup. Renteln, P. and Dundes, A. "Foolproof: A Sampling of
 Mathematical Folk Humor." Notices Amer. Math. Soc. 52, 24-34,
 2005.
 
+Index of methods
+----------------
+
+Here are the method of a :func:`PermutationGroup`
+
+{METHODS_OF_PermutationGroup_generic}
+
 AUTHORS:
 
 - David Joyner (2005-10-14): first version
@@ -184,7 +191,7 @@ def hap_decorator(f):
         if not is_package_installed('gap_packages'):
             raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
-        from sage.rings.arith import is_prime
+        from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
             raise ValueError("p must be 0 or prime")
 
@@ -542,7 +549,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         whether one of the groups is subgroup of the other. If this is not the
         case then the ordering is whatever it is in Gap.
 
-        NOTE:
+        .. NOTE::
+
             The comparison does not provide a total ordering, as can be seen
             in the examples below.
 
@@ -721,7 +729,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.list()
             [(), ('a','b')]
         """
-        return list(self.__iter__())
+        return [x for x in self]
 
     def __contains__(self, item):
         """
@@ -930,17 +938,19 @@ class PermutationGroup_generic(group.FiniteGroup):
         return self._element_class()([], self, check=True)
 
     def exponent(self):
-        """
-        Computes the exponent of the group. The exponent `e` of a
-        group `G` is the LCM of the orders of its elements, that
-        is, `e` is the smallest integer such that `g^e=1`
-        for all `g \in G`.
+        r"""
+        Computes the exponent of the group.
+
+        The exponent `e` of a group `G` is the LCM of the orders of its
+        elements, that is, `e` is the smallest integer such that `g^e=1` for all
+        `g \in G`.
 
         EXAMPLES::
 
             sage: G = AlternatingGroup(4)
             sage: G.exponent()
             6
+
         """
         return Integer(self._gap_().Exponent())
 
@@ -1438,13 +1448,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         - A list of lists of permutations from the group, which form a strong
           generating system.
 
-        TESTS::
-
-            sage: G = SymmetricGroup(10)
-            sage: H = PermutationGroup([G.random_element() for i in range(randrange(1,3,1))])
-            sage: prod(map(lambda x : len(x), H.strong_generating_system()),1) == H.cardinality()
-            True
-
         EXAMPLES::
 
             sage: G = PermutationGroup([[(7,8)],[(3,4)],[(4,5)]])
@@ -1467,6 +1470,14 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = TransitiveGroup(12,17)                # optional - database_gap
             sage: G.strong_generating_system()              # optional - database_gap
             [[(), (1,4,11,2)(3,6,5,8)(7,10,9,12), (1,8,3,2)(4,11,10,9)(5,12,7,6), (1,7)(2,8)(3,9)(4,10)(5,11)(6,12), (1,12,7,2)(3,10,9,8)(4,11,6,5), (1,11)(2,8)(3,5)(4,10)(6,12)(7,9), (1,10,11,8)(2,3,12,5)(4,9,6,7), (1,3)(2,8)(4,10)(5,7)(6,12)(9,11), (1,2,3,8)(4,9,10,11)(5,6,7,12), (1,6,7,8)(2,3,4,9)(5,10,11,12), (1,5,9)(3,11,7), (1,9,5)(3,7,11)], [(), (2,6,10)(4,12,8), (2,10,6)(4,8,12)], [()], [()], [()], [()], [()], [()], [()], [()], [()], [()]]
+
+        TESTS::
+
+            sage: G = SymmetricGroup(10)
+            sage: H = PermutationGroup([G.random_element() for i in range(randrange(1,3,1))])
+            sage: prod(map(lambda x : len(x), H.strong_generating_system()),1) == H.cardinality()
+            True
+
         """
         sgs = []
         stab = self
@@ -1743,9 +1754,10 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def frattini_subgroup(self):
         r"""
-        Returns the Frattini subgroup of ``self``. The Frattini
-        subgroup of a group $G$ is the intersection of all
-        maximal subgroups of $G$.
+        Returns the Frattini subgroup of ``self``.
+
+        The Frattini subgroup of a group $G$ is the intersection of all maximal
+        subgroups of `G`.
 
         EXAMPLES::
 
@@ -1761,9 +1773,10 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def fitting_subgroup(self):
         r"""
-        Returns the Fitting subgroup of ``self``. The Fitting
-        subgroup of a group $G$ is the largest nilpotent normal
-        subgroup of $G$.
+        Returns the Fitting subgroup of ``self``.
+
+        The Fitting subgroup of a group $G$ is the largest nilpotent normal
+        subgroup of `G`.
 
         EXAMPLES::
 
@@ -2553,6 +2566,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         r"""
         Computes the group cohomology `H^n(G, F)`, where `F = \ZZ`
         if `p=0` and `F = \ZZ / p \ZZ` if `p > 0` is a prime.
+
         Wraps HAP's ``GroupHomology`` function, written by Graham Ellis.
 
         REQUIRES: GAP package HAP (in gap_packages-\*.spkg).
@@ -2601,7 +2615,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         Computes the p-part of the group cohomology `H^n(G, F)`,
         where `F = \ZZ` if `p=0` and `F = \ZZ / p \ZZ` if
-        `p > 0` is a prime. Wraps HAP's Homology function, written
+        `p > 0` is a prime.
+
+        Wraps HAP's Homology function, written
         by Graham Ellis, applied to the `p`-Sylow subgroup of
         `G`.
 
@@ -2712,7 +2728,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         r"""
         Returns the matrix of values of the irreducible characters of a
         permutation group `G` at the conjugacy classes of
-        `G`. The columns represent the conjugacy classes of
+        `G`.
+
+        The columns represent the conjugacy classes of
         `G` and the rows represent the different irreducible
         characters in the ordering given by GAP.
 
@@ -2845,7 +2863,9 @@ class PermutationGroup_generic(group.FiniteGroup):
     def conjugacy_classes_representatives(self):
         """
         Returns a complete list of representatives of conjugacy classes in
-        a permutation group `G`. The ordering is that given by GAP.
+        a permutation group `G`.
+
+        The ordering is that given by GAP.
 
         EXAMPLES::
 
@@ -2877,8 +2897,9 @@ class PermutationGroup_generic(group.FiniteGroup):
     def conjugacy_classes_subgroups(self):
         """
         Returns a complete list of representatives of conjugacy classes of
-        subgroups in a permutation group `G`. The ordering is that given by
-        GAP.
+        subgroups in a permutation group `G`.
+
+        The ordering is that given by GAP.
 
         EXAMPLES::
 
@@ -2957,6 +2978,82 @@ class PermutationGroup_generic(group.FiniteGroup):
             for h in cc.Elements():
                 all_sg.append(self.subgroup(gap_group=h))
         return all_sg
+
+    @cached_method
+    def _regular_subgroup_gap(self):
+        r"""
+        Return a conjugacy class of regular subgroups, if there is one, as a
+        GAP element.
+
+        This allows finding such a group without constructing it in Sage.
+        The result is cached, so constructing the obtained subgroup later is
+        possible without recomputing it.
+
+        EXAMPLES:
+
+        The symmetric group on 4 elements has a regular subgroup::
+
+            sage: S4 = groups.permutation.Symmetric(4)
+            sage: S4._regular_subgroup_gap() # random
+            ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 4 ] ),Group( 
+            [ (1,4)(2,3), (1,3)(2,4) ] ))
+
+        """
+        gap = self._gap_().parent()
+        C = gap.new("""
+            First(ConjugacyClassesSubgroups(%s),
+                x -> IsRegular(Representative(x), [1..%d]))
+        """ % (self._gap_().name(), self.degree()))
+        # prevent caching GAP fails
+        if gap.eval('%s = fail' % C.name()) == 'true':
+            return None
+        return C
+
+    @cached_method
+    def has_regular_subgroup(self, return_group = False):
+        r"""
+        Return whether the group contains a regular subgroup.
+
+        INPUT:
+
+        - ``return_group`` (boolean) -- If ``return_group = True``, a regular
+          subgroup is returned if there is one, and ``None`` if there isn't.
+          When ``return_group = False`` (default), only a boolean indicating
+          whether such a group exists is returned instead.
+
+        EXAMPLES:
+
+        The symmetric group on 4 elements has a regular subgroup::
+
+            sage: S4 = groups.permutation.Symmetric(4)
+            sage: S4.has_regular_subgroup()
+            True
+            sage: S4.has_regular_subgroup(return_group = True) # random
+            Subgroup of (Symmetric group of order 4! as a permutation group) generated by [(1,3)(2,4), (1,4)(2,3)]
+
+        But the automorphism group of Petersen's graph does not::
+
+            sage: G = graphs.PetersenGraph().automorphism_group()
+            sage: G.has_regular_subgroup()
+            False
+
+        """
+        b = False
+        G = None
+        if self.order() % self.degree() == 0:
+            if self.order() == len(self.domain()):
+                b = self.is_transitive()
+                if b:
+                    G = self
+            else:
+                C = self._regular_subgroup_gap()
+                b = (C is not None)
+                if b and return_group:
+                    G = self.subgroup(gap_group=C.Representative())
+        if return_group:
+            return G
+        else:
+            return b
 
     def blocks_all(self, representatives = True):
         r"""
@@ -3273,7 +3370,9 @@ class PermutationGroup_generic(group.FiniteGroup):
               parameter := 5,
               series := "Z" )
 
-        TESTS: This shows that the issue at trac ticket 7360 is fixed::
+        TESTS:
+
+        This shows that the issue at trac ticket 7360 is fixed::
 
             sage: G = KleinFourGroup()
             sage: G.is_simple()
@@ -3629,10 +3728,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         return [i for i in self.domain() if i not in non_fixed_points]
 
     def is_transitive(self, domain=None):
-        """
+        r"""
         Returns ``True`` if ``self`` acts transitively on ``domain``.
-        A group $G$ acts transitively on set $S$ if for all $x,y\in S$
-        there is some $g\in G$ such that $x^g=y$.
+        A group $G$ acts transitively on set $S$ if for all `x,y\in S`
+        there is some `g\in G` such that `x^g=y`.
 
         EXAMPLES::
 
@@ -3936,7 +4035,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         pi = self._gap_().NaturalCharacter()
         # because NaturalCharacter forgets about fixed points :
         pi += self._gap_().TrivialCharacter() * len(self.fixed_points())
-            
+
         M = pi.MolienSeries()
 
         R = QQ['x']
@@ -3971,14 +4070,14 @@ class PermutationGroup_generic(group.FiniteGroup):
         return [self.subgroup(gap_group=group) for group in NS]
 
     def poincare_series(self, p=2, n=10):
-        """
-        Returns the Poincare series of `G \mod p` (`p \geq 2` must be a
-        prime), for `n` large. In other words, if you input a finite
-        group `G`, a prime `p`, and a positive integer `n`, it returns a
-        quotient of polynomials `f(x) = P(x) / Q(x)` whose coefficient of
-        `x^k` equals the rank of the vector space
-        `H_k(G, \ZZ / p \ZZ)`, for all `k` in the
-        range `1 \leq k \leq n`.
+        r"""
+        Returns the Poincare series of `G \mod p` (`p \geq 2` must be a prime),
+        for `n` large.
+
+        In other words, if you input a finite group `G`, a prime `p`, and a
+        positive integer `n`, it returns a quotient of polynomials `f(x) = P(x)
+        / Q(x)` whose coefficient of `x^k` equals the rank of the vector space
+        `H_k(G, \ZZ / p \ZZ)`, for all `k` in the range `1 \leq k \leq n`.
 
         REQUIRES: GAP package HAP (in gap_packages-\*.spkg).
 
@@ -3994,11 +4093,12 @@ class PermutationGroup_generic(group.FiniteGroup):
         AUTHORS:
 
         - David Joyner and Graham Ellis
+
         """
         if not is_package_installed('gap_packages'):
             raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
-        from sage.rings.arith import is_prime
+        from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
             raise ValueError("p must be 0 or prime")
 
@@ -4014,7 +4114,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         Returns a Sylow `p`-subgroup of the finite group `G`, where `p` is a
         prime. This is a `p`-subgroup of `G` whose index in `G` is coprime to
-        `p`. Wraps the GAP function ``SylowSubgroup``.
+        `p`.
+
+        Wraps the GAP function ``SylowSubgroup``.
 
         EXAMPLES::
 
@@ -4081,7 +4183,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         Initialization method for the
         ``PermutationGroup_subgroup`` class.
 
-        INPUTS:
+        INPUT:
 
         - ``ambient`` - the ambient group from which to construct this
           subgroup
@@ -4145,7 +4247,8 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         Compare ``self`` and ``other``.
 
         First, ``self`` and ``other`` are compared as permutation
-        groups, see :method:`PermutationGroup_generic.__cmp__`.
+        groups, see :meth:`PermutationGroup_generic.__cmp__`.
+
         Second, if both are equal, the ambient groups are compared,
         where (if necessary) ``other`` is considered a subgroup of
         itself.
@@ -4297,3 +4400,5 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
             other = self.ambient_group()
         return PermutationGroup_generic.is_normal(self, other)
 
+from sage.misc.rest_index_of_methods import gen_rest_table_index
+__doc__ = __doc__.format(METHODS_OF_PermutationGroup_generic=gen_rest_table_index(PermutationGroup_generic))

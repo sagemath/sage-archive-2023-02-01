@@ -6,7 +6,7 @@ for interaction with other types. Also implements the main
 context class, and related utilities.
 """
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.long cimport *
@@ -117,13 +117,13 @@ cdef int MPF_set_any(MPF *re, MPF *im, x, MPopts opts, bint str_tuple_ok) except
         MPF_set(re, &(<mpc>x).re)
         MPF_set(im, &(<mpc>x).im)
         return 2
-    if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+    if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
         MPF_set_int(re, x)
         return 1
-    if PyFloat_Check(x):
+    if isinstance(x, float):
         MPF_set_double(re, x)
         return 1
-    if PyComplex_Check(x):
+    if isinstance(x, complex):
         MPF_set_double(re, x.real)
         MPF_set_double(im, x.imag)
         return 2
@@ -570,7 +570,7 @@ cdef class Context:
             s = (<mpc>x).re.special
             t = (<mpc>x).im.special
             return s == S_NAN or t == S_NAN
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return False
         typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
@@ -613,7 +613,7 @@ cdef class Context:
             s = (<mpc>x).re.special
             t = (<mpc>x).im.special
             return s == S_INF or s == S_NINF or t == S_INF or t == S_NINF
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return False
         typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
@@ -662,7 +662,7 @@ cdef class Context:
             if re == libmp.fzero: return im_normal
             if im == libmp.fzero: return re_normal
             return re_normal and im_normal
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return bool(x)
         x = ctx.convert(x)
@@ -700,7 +700,7 @@ cdef class Context:
         cdef MPF v
         cdef MPF w
         cdef int typ
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer):
+        if type(x) is int or type(x) is long or isinstance(x, Integer):
             return True
         if isinstance(x, mpf):
             v = (<mpf>x).value
@@ -985,7 +985,7 @@ cdef class Context:
         """
         cdef MPF v
         cdef bint ismpf, ismpc
-        if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+        if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
             return int(x), 'Z'
         if isinstance(x, tuple):
             p, q = x
@@ -1064,7 +1064,7 @@ cdef class Context:
 
         """
         cdef int typ
-        if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+        if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
             mpz_set_integer(tmp_opx_re.man, x)
             if mpz_sgn(tmp_opx_re.man) == 0:
                 return global_context.ninf
@@ -1463,7 +1463,7 @@ cdef class wrapped_libmp_function:
             return rc
         x = global_context.convert(x)
         if hasattr(x, "_mpf_") or hasattr(x, "_mpc_"):
-            return self.__call__(x, **kwargs)
+            return self(x, **kwargs)
         #if hasattr(x, "_mpi_"):
         #    if self.mpi_f:
         #        return global_context.make_mpi(self.mpi_f(x._mpi_, prec))
@@ -1672,7 +1672,7 @@ cdef class mpf_base(mpnumber):
             "mpf('3.25')"
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         n = repr_dps(global_opts.prec)
         return "mpf('%s')" % to_str(self._mpf_, n)
 
@@ -2257,7 +2257,7 @@ cdef class constant(mpf_base):
 
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         return "<%s: %s~>" % (self.name, global_context.nstr(self))
 
     def __nonzero__(self):
@@ -2429,7 +2429,7 @@ cdef class mpc(mpnumber):
             "mpc(real='2.0', imag='3.0')"
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         re, im = self._mpc_
         n = repr_dps(global_opts.prec)
         return "mpc(real='%s', imag='%s')" % (to_str(re, n), to_str(im, n))

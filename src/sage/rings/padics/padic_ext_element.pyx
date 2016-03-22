@@ -299,7 +299,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         Note that zeros are truncated from the returned list, so you
         must use the valuation() function to completely recover self.
 
-        INPUTS::
+        INPUT:
 
             - pos -- bint.  If True, all integers will be in the range [0,p-1],
               otherwise they will be in the range [(1-p)/2, p/2].

@@ -38,7 +38,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
 
-ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
+ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 
 def show_default(default=None):
@@ -84,6 +84,7 @@ def is_Graphics(x):
         True
     """
     return isinstance(x, Graphics)
+
 
 class Graphics(WithEqualityById, SageObject):
     """
@@ -134,8 +135,6 @@ class Graphics(WithEqualityById, SageObject):
 
         sage: isinstance(g2, Graphics)
         True
-
-    TESTS::
 
         sage: hash(Graphics()) # random
         42
@@ -299,7 +298,7 @@ class Graphics(WithEqualityById, SageObject):
 
         - ``borderaxespad`` - (default: None) float, length between the axes and the legend
 
-        - ``back_color`` - (default: (0.9, 0.9, 0.9)) This parameter can be a string
+        - ``back_color`` - (default: 'white') This parameter can be a string
           denoting a color or an RGB tuple. The string can be a color name
           as in ('red', 'green', 'yellow', ...) or a floating point number
           like '0.8' which gets expanded to (0.8, 0.8, 0.8). The
@@ -360,7 +359,7 @@ class Graphics(WithEqualityById, SageObject):
         - ``font_size`` - (default: 'medium') string, one of 'xx-small', 'x-small', 'small',
           'medium', 'large', 'x-large', 'xx-large' or an absolute font size (e.g. 12)
 
-        -  ``shadow`` - (default: False) boolean - draw a shadow behind the legend
+        -  ``shadow`` - (default: True) boolean - draw a shadow behind the legend
 
         - ``fancybox`` - (default: False) a boolean.  If True, draws a frame with a round
           fancybox.
@@ -377,11 +376,11 @@ class Graphics(WithEqualityById, SageObject):
             sage: p.set_legend_options()
             {}
 
-        We build a legend with a shadow::
+        We build a legend without a shadow::
 
-            sage: p.set_legend_options(shadow=True)
+            sage: p.set_legend_options(shadow=False)
             sage: p.set_legend_options()['shadow']
-            True
+            False
 
         To set the legend position to the center of the plot, all these
         methods are roughly equivalent::
@@ -866,7 +865,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: P._repr_()
             'Graphics object consisting of 1 graphics primitive'
         """
-        return self.__str__()
+        return str(self)
 
     def _rich_repr_(self, display_manager, **kwds):
         """
@@ -1067,11 +1066,11 @@ class Graphics(WithEqualityById, SageObject):
 
             sage: p1 = plot(x, x, 0, 1)
             sage: p2 = p1
-            sage: p1.set_legend_options(back_color = 'white')
-            sage: p2.set_legend_options(shadow = True)
+            sage: p1.set_legend_options(back_color = 'black')
+            sage: p2.set_legend_options(shadow = False)
             sage: p3 = p1 + p2
             sage: p3._legend_opts
-            {'back_color': 'white', 'shadow': True}
+            {'back_color': 'black', 'shadow': False}
 
         If the same legend option is specified more than once, the
         latter takes precedence::
@@ -1128,7 +1127,7 @@ class Graphics(WithEqualityById, SageObject):
         """
         self._objects.append(primitive)
 
-    def plot(self, *args, **kwds):
+    def plot(self):
         """
         Draw a 2D plot of this graphics object, which just returns this
         object since this is already a 2D graphics object.
@@ -1138,6 +1137,17 @@ class Graphics(WithEqualityById, SageObject):
             sage: S = circle((0,0), 2)
             sage: S.plot() is S
             True
+
+        It does not accept any argument (:trac:`19539`)::
+
+            sage: S.plot(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: plot() takes exactly 1 argument (2 given)
+            sage: S.plot(hey="hou")
+            Traceback (most recent call last):
+            ...
+            TypeError: plot() got an unexpected keyword argument 'hey'
         """
         return self
 
@@ -1320,7 +1330,7 @@ class Graphics(WithEqualityById, SageObject):
                         typeset='default')
 
     @suboptions('legend',
-                back_color=(0.9, 0.9, 0.9), borderpad=0.6,
+                back_color='white', borderpad=0.6,
                 borderaxespad=None,
                 columnspacing=None,
                 fancybox=False, font_family='sans-serif',
@@ -1329,7 +1339,7 @@ class Graphics(WithEqualityById, SageObject):
                 handlelength=0.05, handletextpad=0.5,
                 labelspacing=0.02, loc='best',
                 markerscale=0.6, ncol=1, numpoints=2,
-                shadow=False, title=None)
+                shadow=True, title=None)
     def show(self, filename=None, linkmode=False, **kwds):
         r"""
         Show this graphics image immediately.
@@ -1627,6 +1637,14 @@ class Graphics(WithEqualityById, SageObject):
 
             sage: plot(sin(x), (x, -4, 4), transparent=True)
             Graphics object consisting of 1 graphics primitive
+
+        Prior to :trac:`19485`, legends by default had a shadowless gray
+        background. This behavior can be recovered by passing in certain
+        ``legend_options``::
+
+            sage: p = plot(sin(x), legend_label='$\sin(x)$')
+            sage: p.show(legend_options={'back_color': (0.9,0.9,0.9),
+            ....:                        'shadow': False})
 
         We can change the scale of the axes in the graphics before
         displaying::
@@ -1943,34 +1961,23 @@ class Graphics(WithEqualityById, SageObject):
 
         TESTS:
 
-        The figsize width and height parameters (at default dpi) must be
-        less than 328 inches each, corresponding to the maximum allowed
-        pixels in each direction of 32768.  See :trac:`5956` for more about
-        the next several tests::
-
-            sage: p = ellipse((0,0),4,1)
-            sage: p.show(figsize=[328,10],dpi=100)
-            Traceback (most recent call last):
-            ...
-            ValueError: width and height must each be below 32768
-
         The following tests result in a segmentation fault and should not
         be run or doctested::
 
             sage: p = ellipse((0,0),4,1)
-            sage: #p.show(figsize=[232,232],dpi=100) # not tested
+            sage: p.show(figsize=[232,232],dpi=100)  # not tested
             ------------------------------------------------------------------------
-            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage has a bug
+            Unhandled SIGSEGV: A segmentation fault occurred.
+            This probably occurred because a *compiled* module has a bug
             in it and is not properly wrapped with sig_on(), sig_off().
-            Sage will now terminate.
+            Python will now terminate.
             ------------------------------------------------------------------------
-            sage: #p.show(figsize=[327,181],dpi=100) # not tested
+            sage: p.show(figsize=[327,181],dpi=100)  # not tested
             ------------------------------------------------------------------------
-            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage has a bug
+            Unhandled SIGSEGV: A segmentation fault occurred.
+            This probably occurred because a *compiled* module has a bug
             in it and is not properly wrapped with sig_on(), sig_off().
-            Sage will now terminate.
+            Python will now terminate.
             ------------------------------------------------------------------------
 
         The following tests ensure we give a good error message for
@@ -1995,7 +2002,7 @@ class Graphics(WithEqualityById, SageObject):
             ValueError: figsize should be a positive number or a list of two positive numbers, not [2, 3, 4]
             sage: P.show(figsize=[sqrt(2),sqrt(3)])
 
-        TESTS::
+        ::
 
             sage: P = plot(x^2,(x,0,1))
             sage: P.show(linkmode=True)
@@ -2688,7 +2695,7 @@ class Graphics(WithEqualityById, SageObject):
                     weight  = lopts.pop('font_weight', 'medium'),
                     variant = lopts.pop('font_variant', 'normal')
                    )
-            color = lopts.pop('back_color', (0.9, 0.9, 0.9))
+            color = lopts.pop('back_color', 'white')
             leg = subplot.legend(prop=prop, **lopts)
             if leg is None:
                 sage.misc.misc.warn("legend requested but no items are labeled")
@@ -2868,7 +2875,7 @@ class Graphics(WithEqualityById, SageObject):
             elif xscale == 'linear':
                 subplot.xaxis.set_minor_locator(AutoMinorLocator())
             else: # log scale
-                from sage.misc.misc import srange
+                from sage.arith.srange import srange
                 base_inv = 1.0/basex
                 subs = [float(_) for _ in srange(2*base_inv, 1, base_inv)]
                 subplot.xaxis.set_minor_locator(LogLocator(base=basex,
@@ -2878,7 +2885,7 @@ class Graphics(WithEqualityById, SageObject):
             elif yscale == 'linear':
                 subplot.yaxis.set_minor_locator(AutoMinorLocator())
             else: # log scale
-                from sage.misc.misc import srange
+                from sage.arith.srange import srange
                 base_inv = 1.0/basey
                 subs = [float(_) for _ in srange(2*base_inv, 1, base_inv)]
                 subplot.yaxis.set_minor_locator(LogLocator(base=basey,
@@ -3059,7 +3066,7 @@ class Graphics(WithEqualityById, SageObject):
     # filename argument is written explicitly so that it can be used as a
     # positional one, which is a very likely usage for this function.
     @suboptions('legend',
-                back_color=(0.9, 0.9, 0.9), borderpad=0.6,
+                back_color='white', borderpad=0.6,
                 borderaxespad=None,
                 columnspacing=None,
                 fancybox=False, font_family='sans-serif',
@@ -3068,7 +3075,7 @@ class Graphics(WithEqualityById, SageObject):
                 handlelength=0.05, handletextpad=0.5,
                 labelspacing=0.02, loc='best',
                 markerscale=0.6, ncol=1, numpoints=2,
-                shadow=False, title=None)
+                shadow=True, title=None)
     def save(self, filename=None, **kwds):
         r"""
         Save the graphics to an image file.
@@ -3082,6 +3089,8 @@ class Graphics(WithEqualityById, SageObject):
 
             * ``.pdf``,
 
+            * ``.pgf``,
+           
             * ``.png``,
 
             * ``.ps``,
@@ -3178,14 +3187,45 @@ class Graphics(WithEqualityById, SageObject):
             rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                          rcParams['text.usetex']) # save the rcParams
             figure = self.matplotlib(**options)
-            # You can output in PNG, PS, EPS, PDF, or SVG format, depending
+            # You can output in PNG, PS, EPS, PDF, PGF, or SVG format, depending
             # on the file extension.
+            # PGF is handled by a different backend
+            if ext == '.pgf':
+                from sage.misc.sage_ostools import have_program
+                latex_implementations = [i for i in ["xelatex", "pdflatex",
+                                                     "lualatex"]
+                                         if have_program(i)]
+                if not latex_implementations:
+                    raise ValueError("Matplotlib requires either xelatex, "
+                                     "lualatex, or pdflatex.")
+                if latex_implementations[0] == "pdflatex":
+                    # use pdflatex and set font encoding as per
+                    # matplotlib documentation:
+                    # http://matplotlib.org/users/pgf.html#pgf-tutorial
+                    pgf_options= {
+                            "pgf.texsystem": "pdflatex",
+                            "pgf.preamble": [
+                                         r"\usepackage[utf8x]{inputenc}",
+                                         r"\usepackage[T1]{fontenc}",
+                                         #r"\usepackage{cmbright}",
+                                         ]
+                    }
+                else:
+                    pgf_options = {
+                            "pgf.texsystem": latex_implementations[0],
+                    }
+                from matplotlib import rcParams
+                rcParams.update(pgf_options)
+                from matplotlib.backends.backend_pgf import FigureCanvasPgf
+                figure.set_canvas(FigureCanvasPgf(figure))
+
             # matplotlib looks at the file extension to see what the renderer should be.
             # The default is FigureCanvasAgg for PNG's because this is by far the most
             # common type of files rendered, like in the notebook, for example.
             # if the file extension is not '.png', then matplotlib will handle it.
-            from matplotlib.backends.backend_agg import FigureCanvasAgg
-            figure.set_canvas(FigureCanvasAgg(figure))
+            else:
+                from matplotlib.backends.backend_agg import FigureCanvasAgg
+                figure.set_canvas(FigureCanvasAgg(figure))
             # this messes up the aspect ratio!
             #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
 
@@ -3203,6 +3243,32 @@ class Graphics(WithEqualityById, SageObject):
             # Restore the rcParams to the original, possibly user-set values
             (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                                            rcParams['text.usetex']) = rc_backup
+
+    def _latex_(self, **kwds):
+        """
+        Return a string plotting ``self`` with PGF.
+
+        INPUT:
+
+        All keyword arguments will be passed to the plotter.
+
+        OUTPUT:
+
+        A string of PGF commands to plot ``self``
+
+        EXAMPLES::
+
+            sage: L = line([(0,0), (1,1)], axes=False)
+            sage: L._latex_()     # not tested
+            '%% Creator: Matplotlib, PGF backend...
+        """
+        tmpfilename = tmp_filename(ext='.pgf')
+        self.save(filename=tmpfilename, **kwds)
+        with open(tmpfilename, "r") as tmpfile:
+                latex_list = tmpfile.readlines()
+        from sage.misc.latex import latex
+        latex.add_package_to_preamble_if_available('pgf')
+        return ''.join(latex_list)
 
     def description(self):
         r"""
@@ -3311,7 +3377,7 @@ class GraphicsArray(WithEqualityById, SageObject):
             sage: graphics_array(L,2,3)
             Graphics Array of size 2 x 3
         """
-        return self.__str__()
+        return str(self)
 
     def _rich_repr_(self, display_manager, **kwds):
         """
@@ -3603,7 +3669,7 @@ class GraphicsArray(WithEqualityById, SageObject):
         :meth:`save` method of self, passing along all arguments and
         keywords.
 
-        .. Note::
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.
@@ -3615,6 +3681,31 @@ class GraphicsArray(WithEqualityById, SageObject):
             sage: G.save_image(tmp_filename(ext='.png'))
         """
         self.save(filename, *args, **kwds)
+
+    def _latex_(self, dpi=DEFAULT_DPI, figsize=None, axes=None, **args):
+        """
+        Return a string plotting ``self`` with PGF.
+
+        INPUT:
+
+        All keyword arguments will be passed to the plotter.
+
+        OUTPUT:
+
+        A string of PGF commands to plot ``self``
+
+        EXAMPLES::
+
+            sage: A = graphics_array([[plot(sin), plot(cos)],
+            ....:   [plot(tan), plot(sec)]])
+            sage: A._latex_()     # not tested
+            '%% Creator: Matplotlib, PGF backend...
+        """
+        tmpfilename = tmp_filename(ext='.pgf')
+        self.save(filename=tmpfilename, **args)
+        with open(tmpfilename, "r") as tmpfile:
+                latex_list = tmpfile.readlines()
+        return ''.join(latex_list)
 
     def show(self, **kwds):
         r"""
@@ -3657,3 +3748,18 @@ class GraphicsArray(WithEqualityById, SageObject):
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
         dm.display_immediately(self, **kwds)
+
+    def plot(self):
+        """
+        Draw a 2D plot of this graphics object, which just returns this
+        object since this is already a 2D graphics object.
+
+        EXAMPLES::
+
+            sage: g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
+            sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
+            sage: S = graphics_array([g1, g2], 2, 1)
+            sage: S.plot() is S
+            True
+        """
+        return self

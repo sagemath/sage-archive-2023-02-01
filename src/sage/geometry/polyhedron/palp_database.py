@@ -331,7 +331,7 @@ class PALPreader(SageObject):
 
         A function generating lattice polytopes in the specified output format.
 
-        EAMPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)

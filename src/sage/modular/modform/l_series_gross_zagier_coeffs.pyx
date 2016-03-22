@@ -1,11 +1,11 @@
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.fast_arith cimport arith_llong
 cdef arith_llong arith = arith_llong()
 
 from sage.rings.all import ZZ, PowerSeriesRing
-from sage.rings.arith import kronecker_symbol
+from sage.arith.all import kronecker_symbol
 
 from libc.math cimport ceil, floor, sqrt
 from libc.string cimport memcpy

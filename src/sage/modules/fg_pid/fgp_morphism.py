@@ -217,7 +217,7 @@ class FGP_Morphism(Morphism):
             sage: -phi
             Morphism from module over Integer Ring with invariants (4, 12) to module with invariants (4, 12) that sends the generators to [(2, 0), (0, 11)]
         """
-        return FGP_Morphism(self.parent(), self._phi.__neg__(), check=fgp_module.DEBUG)
+        return FGP_Morphism(self.parent(), -self._phi, check=fgp_module.DEBUG)
 
     def __call__(self, x):
         """

@@ -129,7 +129,7 @@ ordinaires. Pour résoudre l'équation :math:`x'+x-1=0` :
 ::
 
     sage: t = var('t')    # on définit une variable t
-    sage: function('x',t)   # on déclare x fonction de cette variable
+    sage: function('x')(t)   # on déclare x fonction de cette variable
     x(t)
     sage: DE = lambda y: diff(y,t) + y - 1
     sage: desolve(DE(x(t)), [x(t),t])

@@ -114,6 +114,7 @@ class IndexedGroup(IndexedMonoid):
         """
         return self.group_generators().cardinality()
 
+    @cached_method
     def group_generators(self):
         """
         Return the group generators of ``self``.
@@ -417,7 +418,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
                 sage: x * ~x
                 1
             """
-            return self.__pow__(-1)
+            return self ** -1
 
         def __floordiv__(self, a):
             """

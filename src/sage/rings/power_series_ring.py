@@ -122,9 +122,8 @@ from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRi
 from polynomial.polynomial_ring_constructor import PolynomialRing
 import laurent_series_ring
 import laurent_series_ring_element
-import commutative_ring
-import integral_domain
 import integer
+from . import ring
 from infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
@@ -134,7 +133,7 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import normalize_names
+from sage.structure.category_object import normalize_names
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
@@ -190,7 +189,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         sage: R = PowerSeriesRing(QQ, 10)
         Traceback (most recent call last):
         ...
-        ValueError: first letter of variable name must be a letter: 10
+        ValueError: variable name '10' does not start with a letter
 
     ::
 
@@ -367,10 +366,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         default_prec = name
     if not names is None:
         name = names
-    try:
-        name = normalize_names(1, name)
-    except TypeError:
-        raise TypeError("illegal variable name")
+    name = normalize_names(1, name)
 
     if name is None:
         raise TypeError("You must specify the name of the indeterminate of the Power series ring.")
@@ -400,9 +396,6 @@ def _multi_variate(base_ring, num_gens=None, names=None,
                      order='negdeglex', default_prec=None, sparse=False):
     """
     Construct multivariate power series ring.
-
-    TESTS::
-
     """
     if names is None:
         raise TypeError("you must specify a variable name or names")
@@ -449,7 +442,7 @@ def is_PowerSeriesRing(R):
     else:
         return False
 
-class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.CommutativeRing, Nonexact):
+class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexact):
     """
     A power series ring.
     """
@@ -527,7 +520,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             self.__mpoly_ring = PolynomialRing(K.base_ring(), names=names)
             assert is_MPolynomialRing(self.__mpoly_ring)
             self.Element = power_series_mpoly.PowerSeries_mpoly
-        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name,
+        ring.CommutativeRing.__init__(self, base_ring, names=name,
                                                   category=getattr(self,'_default_category',
                                                                   _CommutativeRings))
         Nonexact.__init__(self, default_prec)
@@ -1226,7 +1219,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
                                                  self.base_ring(), self.variable_name(), default_prec=self.default_prec(), sparse=self.is_sparse())
             return self.__laurent_series_ring
 
-class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
+class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
     pass
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):

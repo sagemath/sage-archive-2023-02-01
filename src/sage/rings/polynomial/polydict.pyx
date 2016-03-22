@@ -251,7 +251,7 @@ cdef class PolyDict:
         _max = []
         for v in self.__repn.keys():
             _max.append(v[i])
-        return max(_max)
+        return max(_max or [-1])
 
     def valuation(PolyDict self, PolyDict x = None):
         L = x.__repn.keys()
@@ -1207,7 +1207,7 @@ cdef class ETuple:
         return ETupleIter(d,self._length)
 
     def __str__(ETuple self):
-        return self.__repr__()
+        return repr(self)
 
     def __repr__(ETuple self):
         res = [0,]*self._length

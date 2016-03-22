@@ -64,16 +64,19 @@ For more information on how to specify coercions, conversions, and actions,
 see the documentation for Parent.
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cpython.object cimport *
+from cpython.object cimport (PyObject, PyTypeObject,
+        PyObject_CallObject, PyObject_RichCompare)
+from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
 cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
@@ -81,23 +84,19 @@ import operator
 cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
-from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
-
-from sage_object cimport SageObject
+from .sage_object cimport SageObject, rich_to_bool
+from .parent cimport Set_PythonType
+from .element cimport arith_error_message, parent_c
+from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
-import sage.categories.morphism
 from sage.categories.morphism import IdentityMorphism
-from sage.categories.action import InverseAction, PrecomposedAction
-from parent cimport Set_PythonType
-from coerce_exceptions import CoercionException
-from element cimport arith_error_message, parent_c
-
-import sys, traceback
-
-from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+from sage.categories.action cimport InverseAction, PrecomposedAction
 
 from sage.misc.lazy_import import LazyImport
 parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
+
+import traceback
 
 
 cpdef py_scalar_parent(py_type):
@@ -278,7 +277,7 @@ cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return type(x) is _Integer or type(x) is int
+    return type(x) is _Integer
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     """
@@ -1117,6 +1116,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: canonical_coercion(vector([1, 2, 3]), 0)
             ((1, 2, 3), (0, 0, 0))
+            sage: canonical_coercion(GF(5)(0), float(0))
+            (0, 0)
         """
         xp = parent_c(x)
         yp = parent_c(y)
@@ -1199,13 +1200,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return self.canonical_coercion(x, y)
 
         # Allow coercion of 0 even if no coercion from Z
-        if is_Integer(x) and not x and type(yp) is not type:
+        if (x_numeric or is_Integer(x)) and not x and type(yp) is not type:
             try:
                 return yp(0), y
             except Exception:
                 self._record_exception()
 
-        if is_Integer(y) and not y and type(xp) is not type:
+        if (y_numeric or is_Integer(y)) and not y and type(xp) is not type:
             try:
                 return x, xp(0)
             except Exception:
@@ -1752,6 +1753,67 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                             self._record_exception()
 
         return None
+
+    cpdef richcmp(self, x, y, int op):
+        """
+        Given two arbitrary objects ``x`` and ``y``, coerce them to
+        a common parent and compare them using rich comparison operator
+        ``op``.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import get_coercion_model
+            sage: from sage.structure.sage_object import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
+            sage: richcmp = get_coercion_model().richcmp
+            sage: richcmp(None, None, op_EQ)
+            True
+            sage: richcmp(None, 1, op_LT)
+            True
+            sage: richcmp("hello", None, op_LE)
+            False
+            sage: richcmp(-1, 1, op_GE)
+            False
+            sage: richcmp(int(1), float(2), op_GE)
+            False
+
+        If there is no coercion, compare types::
+
+            sage: x = QQ.one(); y = GF(2).one()
+            sage: richcmp(x, y, op_EQ)
+            False
+            sage: richcmp(x, y, op_NE)
+            True
+            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
+            True
+        """
+        # Some very special cases
+        if x is None or x is Ellipsis:
+            return rich_to_bool(op, 0 if x is y else -1)
+        if y is None or y is Ellipsis:
+            return rich_to_bool(op, 0 if x is y else 1)
+
+        # Coerce to a common parent
+        try:
+            x, y = self.canonical_coercion(x, y)
+        except (TypeError, NotImplementedError):
+            pass
+        else:
+            return PyObject_RichCompare(x, y, op)
+
+        # Comparing with coercion didn't work, try something else.
+
+        # If types are not equal: compare types
+        cdef int c = cmp(type(x), type(y))
+        if c:
+            return rich_to_bool(op, c)
+
+        # Final attempt: compare by id()
+        if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):
+            # It cannot happen that x is y, since they don't
+            # have the same parent.
+            return rich_to_bool(op, 1)
+        else:
+            return rich_to_bool(op, -1)
 
     def _coercion_error(self, x, x_map, x_elt, y, y_map, y_elt):
         """

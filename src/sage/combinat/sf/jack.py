@@ -18,25 +18,22 @@ REFERENCES:
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.structure.unique_representation import UniqueRepresentation
 import sage.categories.all
-from sage.rings.all import Integer, gcd, lcm, QQ
+from sage.rings.all import Integer, QQ
+from sage.arith.all import gcd, lcm
 from sage.rings.fraction_field import is_FractionField
 from sage.misc.all import prod
 from sage.categories.morphism import SetMorphism
@@ -73,7 +70,7 @@ class Jack(UniqueRepresentation):
         self._name_suffix = ""
         if str(t) !='t':
             self._name_suffix += " with t=%s"%t
-        self._name = "Jack polynomials"+self._name_suffix+" over "+Sym.base_ring().__repr__()
+        self._name = "Jack polynomials"+self._name_suffix+" over "+repr(Sym.base_ring())
 
     def __repr__(self):
         r"""

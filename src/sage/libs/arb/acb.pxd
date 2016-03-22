@@ -1,15 +1,9 @@
-from sage.libs.arb.arf cimport arf_t
-from sage.libs.arb.arb cimport arb_t, arb_struct
-from sage.libs.arb.mag cimport mag_t
+# distutils: libraries = arb
+
+from sage.libs.arb.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpq_t
 
 cdef extern from "acb.h":
-    ctypedef struct acb_struct:
-        arb_struct real
-        arb_struct imag
-    ctypedef acb_struct[1] acb_t
-    ctypedef acb_struct *acb_ptr
-    ctypedef const acb_struct *acb_srcptr
 
     arb_t acb_realref(acb_t x)
     arb_t acb_imagref(acb_t x)
@@ -60,6 +54,8 @@ cdef extern from "acb.h":
     bint acb_contains_fmpz(const acb_t x, const fmpz_t y)
     bint acb_contains(const acb_t x, const acb_t y)
     bint acb_contains_zero(const acb_t x)
+    bint acb_contains_int(const acb_t x)
+
     long acb_rel_error_bits(const acb_t x)
     long acb_rel_accuracy_bits(const acb_t x)
     long acb_bits(const acb_t x)
@@ -134,7 +130,12 @@ cdef extern from "acb.h":
     void acb_tan_pi(acb_t s, const acb_t z, long prec)
     void acb_cot_pi(acb_t s, const acb_t z, long prec)
 
+    void acb_asin(acb_t s, const acb_t z, long prec)
+    void acb_acos(acb_t s, const acb_t z, long prec)
     void acb_atan(acb_t s, const acb_t z, long prec)
+    void acb_asinh(acb_t s, const acb_t z, long prec)
+    void acb_acosh(acb_t s, const acb_t z, long prec)
+    void acb_atanh(acb_t s, const acb_t z, long prec)
 
     void acb_sinh(acb_t s, const acb_t z, long prec)
     void acb_cosh(acb_t c, const acb_t z, long prec)
@@ -146,6 +147,7 @@ cdef extern from "acb.h":
     void acb_rising_ui_rs(acb_t z, const acb_t x, unsigned long n, unsigned long step, long prec)
     void acb_rising_ui_rec(acb_t z, const acb_t x, unsigned long n, long prec)
     void acb_rising_ui(acb_t z, const acb_t x, unsigned long n, long prec)
+    void acb_rising(acb_t z, const acb_t x, const acb_t n, long prec)
 
     void acb_gamma(acb_t y, const acb_t x, long prec)
     void acb_rgamma(acb_t y, const acb_t x, long prec)
@@ -164,3 +166,6 @@ cdef extern from "acb.h":
 
     void acb_agm1(acb_t m, const acb_t z, long prec)
     void acb_agm1_cpx(acb_ptr m, const acb_t z, long len, long prec)
+
+    acb_ptr _acb_vec_init(long n)
+    void _acb_vec_clear(acb_ptr v, long n)

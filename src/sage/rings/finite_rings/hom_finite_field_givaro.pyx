@@ -25,7 +25,7 @@ AUTHOR:
 #****************************************************************************
 
 
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 from hom_finite_field cimport SectionFiniteFieldHomomorphism_generic
 from hom_finite_field cimport FiniteFieldHomomorphism_generic

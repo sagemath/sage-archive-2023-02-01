@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Finite Delta-complexes
 
@@ -63,7 +64,8 @@ from sage.matrix.constructor import matrix
 from sage.homology.simplicial_complex import Simplex, lattice_paths, SimplicialComplex
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
+from sage.misc.cachefunc import cached_method
 
 class DeltaComplex(GenericCellComplex):
     r"""
@@ -124,11 +126,11 @@ class DeltaComplex(GenericCellComplex):
       To construct a torus, use::
 
         sage: torus_dict = {Simplex([0,1,2]): True,
-        ...          Simplex([3,4,5]): (Simplex([0,1]), Simplex([0,2]), Simplex([1,2])),
-        ...          Simplex([0,1]): (Simplex(0), Simplex(0)),
-        ...          Simplex([0,2]): (Simplex(0), Simplex(0)),
-        ...          Simplex([1,2]): (Simplex(0), Simplex(0)),
-        ...          Simplex(0): ()}
+        ....:        Simplex([3,4,5]): (Simplex([0,1]), Simplex([0,2]), Simplex([1,2])),
+        ....:        Simplex([0,1]): (Simplex(0), Simplex(0)),
+        ....:        Simplex([0,2]): (Simplex(0), Simplex(0)),
+        ....:        Simplex([1,2]): (Simplex(0), Simplex(0)),
+        ....:        Simplex(0): ()}
         sage: T = DeltaComplex(torus_dict); T
         Delta complex with 1 vertex and 7 simplices
         sage: T.cohomology(base_ring=QQ)
@@ -158,7 +160,7 @@ class DeltaComplex(GenericCellComplex):
       index in the list of (n-1)-faces.  For example, consider this::
 
         sage: P = DeltaComplex( [ [(), ()],  [(1,0), (1,0), (0,0)],
-        ...                       [(1,0,2), (0, 1, 2)] ])
+        ....:                     [(1,0,2), (0, 1, 2)] ])
 
       The 0th entry in the list is ``[(), ()]``: there are two
       0-simplices, and their boundaries are empty.
@@ -204,7 +206,7 @@ class DeltaComplex(GenericCellComplex):
       :meth:`cells` method. ::
 
         sage: P = DeltaComplex( [ [(), ()],  [(1,0), (1,0), (0,0)],
-        ...                       [(1,0,2), (0, 1, 2)] ])
+        ....:                     [(1,0,2), (0, 1, 2)] ])
         sage: cells_dict = P.cells()
         sage: cells_dict
         {-1: ((),),
@@ -487,7 +489,7 @@ class DeltaComplex(GenericCellComplex):
         """
         return hash(frozenset(self._cells_dict.items()))
 
-    def __cmp__(self,right):
+    def __eq__(self, right):
         r"""
         Two `\Delta`-complexes are equal, according to this, if they have
         the same ``_cells_dict``.
@@ -502,10 +504,23 @@ class DeltaComplex(GenericCellComplex):
             sage: newS2 == S2
             True
         """
-        if self._cells_dict == right._cells_dict:
-            return 0
-        else:
-            return -1
+        return self._cells_dict == right._cells_dict
+
+    def __ne__(self, other):
+        r"""
+        Return ``True`` if ``self`` and ``other`` are not equal.
+
+        EXAMPLES::
+
+            sage: S4 = delta_complexes.Sphere(4)
+            sage: S2 = delta_complexes.Sphere(2)
+            sage: S4 != S2
+            True
+            sage: newS2 = DeltaComplex({Simplex(2):True, Simplex([8,12,17]): Simplex(2)})
+            sage: newS2 != S2
+            False
+        """
+        return not self.__eq__(other)
 
     def cells(self, subcomplex=None):
         r"""
@@ -683,6 +698,57 @@ class DeltaComplex(GenericCellComplex):
             return ChainComplex(data=cochain_diffs, degree=1, **kwds)
         else:
             return ChainComplex(data=differentials, degree=-1, **kwds)
+
+    def alexander_whitney(self, cell, dim_left):
+        r"""
+        Subdivide ``cell`` in this `\Delta`-complex into a pair of
+        simplices.
+
+        For an abstract simplex with vertices `v_0`, `v_1`, ...,
+        `v_n`, then subdivide it into simplices `(v_0, v_1, ...,
+        v_{dim_left})` and `(v_{dim_left}, v_{dim_left + 1}, ...,
+        v_n)`. In a `\Delta`-complex, instead take iterated faces:
+        take top faces to get the left factor, take bottom faces to
+        get the right factor.
+
+        INPUT:
+
+        - ``cell`` -- a simplex in this complex, given as a pair
+          ``(idx, tuple)``, where ``idx`` is its index in the list of
+          cells in the given dimension, and ``tuple`` is the tuple of
+          its faces
+
+        - ``dim_left`` -- integer between 0 and one more than the
+          dimension of this simplex
+
+        OUTPUT: a list containing just the triple ``(1, left,
+        right)``, where ``left`` and ``right`` are the two cells
+        described above, each given as pairs ``(idx, tuple)``.
+
+        EXAMPLES::
+
+            sage: X = delta_complexes.Torus()
+            sage: X.n_cells(2)
+            [(1, 2, 0), (0, 2, 1)]
+            sage: X.alexander_whitney((0, (1, 2, 0)), 1)
+            [(1, (0, (0, 0)), (1, (0, 0)))]
+            sage: X.alexander_whitney((0, (1, 2, 0)), 0)
+            [(1, (0, ()), (0, (1, 2, 0)))]
+            sage: X.alexander_whitney((1, (0, 2, 1)), 2)
+            [(1, (1, (0, 2, 1)), (0, ()))]
+        """
+        dim = len(cell[1]) - 1
+        left_cell = cell[1]
+        idx_l = cell[0]
+        for i in range(dim, dim_left, -1):
+            idx_l = left_cell[i]
+            left_cell = self.n_cells(i-1)[idx_l]
+        right_cell = cell[1]
+        idx_r = cell[0]
+        for i in range(dim, dim - dim_left, -1):
+            idx_r = right_cell[0]
+            right_cell = self.n_cells(i-1)[idx_r]
+        return [(ZZ.one(), (idx_l, left_cell), (idx_r, right_cell))]
 
     def n_skeleton(self, n):
         r"""
@@ -1442,7 +1508,7 @@ class DeltaComplex(GenericCellComplex):
         r"""
         Return the free module of chains in degree ``n`` over ``base_ring``.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- integer
         - ``base_ring`` -- ring (optional, default `\ZZ`)
@@ -1476,6 +1542,67 @@ class DeltaComplex(GenericCellComplex):
 #     def simplicial_complex(self):
 #         X = self.barycentric_subdivision().barycentric_subdivision()
 #         find facets of X and return SimplicialComplex(facets)
+
+    # This is cached for speed reasons: it can be very slow to run
+    # this function.
+    @cached_method
+    def algebraic_topological_model(self, base_ring=None):
+        r"""
+        Algebraic topological model for this `\Delta`-complex with
+        coefficients in ``base_ring``.
+
+        The term "algebraic topological model" is defined by Pilarczyk
+        and Réal [PR]_.
+
+        INPUT:
+
+        - ``base_ring`` - coefficient ring (optional, default
+          ``QQ``). Must be a field.
+
+        Denote by `C` the chain complex associated to this
+        `\Delta`-complex. The algebraic topological model is a chain complex
+        `M` with zero differential, with the same homology as `C`,
+        along with chain maps `\pi: C \to M` and `\iota: M \to C`
+        satisfying `\iota \pi = 1_M` and `\pi \iota` chain homotopic
+        to `1_C`. The chain homotopy `\phi` must satisfy
+
+        - `\phi \phi = 0`,
+        - `\pi \phi = 0`,
+        - `\phi \iota = 0`.
+
+        Such a chain homotopy is called a *chain contraction*.
+
+        OUTPUT: a pair consisting of
+
+        - chain contraction ``phi`` associated to `C`, `M`, `\pi`, and
+          `\iota`
+        - the chain complex `M`
+
+        Note that from the chain contraction ``phi``, one can recover the
+        chain maps `\pi` and `\iota` via ``phi.pi()`` and
+        ``phi.iota()``. Then one can recover `C` and `M` from, for
+        example, ``phi.pi().domain()`` and ``phi.pi().codomain()``,
+        respectively.
+
+        EXAMPLES::
+
+            sage: RP2 = delta_complexes.RealProjectivePlane()
+            sage: phi, M = RP2.algebraic_topological_model(GF(2))
+            sage: M.homology()
+            {0: Vector space of dimension 1 over Finite Field of size 2,
+             1: Vector space of dimension 1 over Finite Field of size 2,
+             2: Vector space of dimension 1 over Finite Field of size 2}
+            sage: T = delta_complexes.Torus()
+            sage: phi, M = T.algebraic_topological_model(QQ)
+            sage: M.homology()
+            {0: Vector space of dimension 1 over Rational Field,
+             1: Vector space of dimension 2 over Rational Field,
+             2: Vector space of dimension 1 over Rational Field}
+        """
+        from algebraic_topological_model import algebraic_topological_model_delta_complex
+        if base_ring is None:
+            base_ring = QQ
+        return algebraic_topological_model_delta_complex(self, base_ring)
 
     def _string_constants(self):
         r"""

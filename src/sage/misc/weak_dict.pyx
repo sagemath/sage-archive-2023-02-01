@@ -490,11 +490,6 @@ cdef class WeakValueDictionary(dict):
         ....:     assert D1 == D2
 
     """
-    cdef __weakref__
-    cdef callback
-    cdef int _guard_level
-    cdef list _pending_removals
-
     def __init__(self, data=()):
         """
         Create a :class:`WeakValueDictionary` with given initial data.

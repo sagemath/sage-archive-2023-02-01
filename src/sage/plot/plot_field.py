@@ -19,7 +19,7 @@ Plotting fields
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
-from sage.misc.misc import xsrange
+from sage.arith.srange import xsrange
 
 # Below is the base class that is used to make 'field plots'.
 # Its implementation is motivated by 'PlotField'.
@@ -113,6 +113,7 @@ class PlotField(GraphicPrimitive):
             PlotField defined by a 20 x 20 vector grid
 
         TESTS:
+
         We check that :trac:`15052` is fixed
         (note that in general :trac:`15002` should be fixed)::
 

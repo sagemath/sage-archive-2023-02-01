@@ -298,13 +298,13 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.rings.all import QQ, ZZ, NN, gcd
-from sage.rings.arith import factorial
+from sage.rings.all import QQ, ZZ, NN
+from sage.arith.all import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from combinat import CombinatorialClass, CombinatorialElement, cyclic_permutations_iterator
+from combinat import CombinatorialClass, CombinatorialElement
 import tableau
 import permutation
 import composition
@@ -646,9 +646,9 @@ class Partition(CombinatorialElement):
             sage: hash(P) == hash(P)
             True
         """
-        return tuple(self._list).__hash__()
+        return hash(tuple(self._list))
 
-    def _repr_(self, compact=None):
+    def _repr_(self):
         r"""
         Return a string representation of ``self`` depending on
         :meth:`Partitions.global_options`.
@@ -712,10 +712,6 @@ class Partition(CombinatorialElement):
 
             sage: Partitions.global_options.reset()
         """
-        if compact is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16933, 'compact argument is deprecated.')
-
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _ascii_art_(self):
@@ -1075,7 +1071,7 @@ class Partition(CombinatorialElement):
         """
         print self.ferrers_diagram()
 
-    def __div__(self, p):
+    def __truediv__(self, p):
         """
         Returns the skew partition ``self / p``.
 
@@ -1097,6 +1093,8 @@ class Partition(CombinatorialElement):
             raise ValueError("To form a skew partition p/q, q must be contained in p.")
 
         return SkewPartition([self[:], p])
+
+    __div__ = __truediv__
 
     def power(self, k):
         r"""
@@ -1383,7 +1381,7 @@ class Partition(CombinatorialElement):
             [[2, 2], [3, 1]]
             sage: Partition([3,2,1]).down_list()
             [[2, 2, 1], [3, 1, 1], [3, 2]]
-            sage: Partition([]).down_list()  #checks :trac:`11435`
+            sage: Partition([]).down_list()  # checks trac #11435
             []
         """
         return [p for p in self.down()]
@@ -6700,7 +6698,7 @@ class RegularPartitions(Partitions):
     - ``is_infinite`` -- boolean; if the subset of `\ell`-regular
       partitions is infinite
     """
-    def __init__(self, ell, is_infinte=False):
+    def __init__(self, ell, is_infinite=False):
         """
         Initialize ``self``.
 
@@ -6710,7 +6708,7 @@ class RegularPartitions(Partitions):
             sage: TestSuite(P).run()
         """
         self._ell = ell
-        Partitions.__init__(self, is_infinte)
+        Partitions.__init__(self, is_infinite)
 
     def ell(self):
         r"""
@@ -7378,6 +7376,7 @@ def RestrictedPartitions(n, S, k=None):
 
     EXAMPLES::
 
+        sage: from sage.combinat.partition import RestrictedPartitions
         sage: RestrictedPartitions(5,[3,2,1])
         doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
         See http://trac.sagemath.org/13072 for details.
@@ -7406,6 +7405,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         TESTS::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: r = RestrictedPartitions(5,[3,2,1])
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7428,6 +7428,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: [4,1] in RestrictedPartitions(5,[3,2,1])
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7448,6 +7449,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(5,[3,2,1]).__repr__()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7469,6 +7471,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(8,[1,3,5,7]).list()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7495,6 +7498,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(8,[1,3,5,7]).cardinality()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7706,7 +7710,7 @@ _Partitions = Partitions()
 
 # Rather than caching an under-used function I have cached the default
 # number_of_partitions functions which is currently using FLINT.
-# AM :trac:`13072`
+# AM trac #13072
 cached_number_of_partitions = cached_function( flint_number_of_partitions )
 
 # October 2012: fixing outdated pickles which use classes being deprecated

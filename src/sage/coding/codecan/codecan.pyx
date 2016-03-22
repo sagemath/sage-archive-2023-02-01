@@ -1,5 +1,5 @@
 r"""
-Canonical forms and automorphism group computation for linear codes over finite fields.
+Canonical forms and automorphism group computation for linear codes over finite fields
 
 We implemented the algorithm described in [Feu2009]_ which computes the unique
 semilinearly isometric code (canonical form) in the equivalence class of a given
@@ -803,7 +803,6 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         self._hyp_refine_vals_scratch = <long *> sage_malloc(
                             self._hyp_part.degree * sizeof(long))
         if self._hyp_refine_vals_scratch is NULL:
-            self.__dealloc__()
             raise MemoryError('allocating PartitionRefinementLinearCode')
 
         self._hyp_refine_vals = _BestValStore(self._hyp_part.degree)

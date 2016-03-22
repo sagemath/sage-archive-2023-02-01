@@ -2,25 +2,23 @@ r"""
 Congruence Subgroup `\Gamma(N)`
 """
 
-################################################################################
-#
-#       Copyright (C) 2009, The Sage Group -- http://www.sagemath.org/
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-################################################################################
+#*****************************************************************************
+
 
 from congroup_generic import CongruenceSubgroup
 from sage.misc.all import prod
-from sage.rings.all import ZZ, Zmod, gcd, QQ
+from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.integer import GCD_list
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 from sage.modular.cusps import Cusp
+from sage.arith.all import gcd
 
 from congroup_sl2z import SL2Z
 

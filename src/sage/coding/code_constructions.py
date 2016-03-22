@@ -139,22 +139,27 @@ Functions
 ---------
 
 """
-############################################################################
-## Copyright David Joyner, 2007. wdjoyner@gmail.com.
-##  This is released under the GPL, version 2 or later (www.fsf.org).
-#############################################################################
 
+#*****************************************************************************
+#       Copyright (C) 2007 David Joyner <wdjoyner@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.all import prod
 from linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence, Sequence_generic
-from sage.rings.arith import GCD,LCM,divisors,quadratic_residues
+from sage.arith.all import GCD, LCM, divisors, quadratic_residues
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -1086,7 +1091,7 @@ def QuadraticResidueCodeEvenPair(n,F):
         ...
         ValueError: the order of the finite field must be a quadratic residue modulo n
     """
-    from sage.misc.misc import srange
+    from sage.arith.srange import srange
     from sage.categories.finite_fields import FiniteFields
     if F not in FiniteFields():
         raise ValueError("the argument F must be a finite field")
@@ -1148,7 +1153,7 @@ def QuadraticResidueCodeOddPair(n,F):
         ...
         ValueError: the argument n must be an odd prime
     """
-    from sage.misc.misc import srange
+    from sage.arith.srange import srange
     from sage.categories.finite_fields import FiniteFields
     if F not in FiniteFields():
         raise ValueError("the argument F must be a finite field")
@@ -1202,54 +1207,10 @@ def RandomLinearCode(n,k,F):
 
 
 def ReedSolomonCode(n,k,F,pts = None):
-    r"""
-    Given a finite field `F` of order `q`, let
-    `n` and `k` be chosen such that
-    `1 \leq k \leq n \leq q`. Pick `n` distinct
-    elements of `F`, denoted
-    `\{ x_1, x_2, ... , x_n \}`. Then, the codewords are
-    obtained by evaluating every polynomial in `F[x]` of degree
-    less than `k` at each `x_i`:
-
-    .. math::
-
-       C = \left\{ \left( f(x_1), f(x_2), ..., f(x_n) \right), f \in F[x],
-       {\rm deg}(f)<k \right\}.
-
-
-    `C` is a `[n, k, n-k+1]` code. (In particular, `C` is MDS.)
-
-    INPUT: n : the length k : the dimension F : the base ring pts :
-    (optional) list of n points in F (if None then Sage picks n of them
-    in the order given to the elements of F)
-
-    EXAMPLES::
-
-        sage: C = codes.ReedSolomonCode(6,4,GF(7)); C
-        Linear code of length 6, dimension 4 over Finite Field of size 7
-        sage: C.minimum_distance()
-        3
-        sage: C = codes.ReedSolomonCode(6,4,GF(8,"a")); C
-        Linear code of length 6, dimension 4 over Finite Field in a of size 2^3
-        sage: C.minimum_distance()
-        3
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=n-k+1
-        3
-        sage: F.<a> = GF(3^2,"a")
-        sage: pts = [0,1,a,a^2,2*a,2*a+1]
-        sage: len(Set(pts)) == 6 # to make sure there are no duplicates
-        True
-        sage: C = codes.ReedSolomonCode(6,4,F,pts); C
-        Linear code of length 6, dimension 4 over Finite Field in a of size 3^2
-        sage: C.minimum_distance()
-        3
-
-    REFERENCES:
-
-    - [W] http://en.wikipedia.org/wiki/Reed-Solomon
-    """
+    from sage.misc.superseded import deprecation
+    from sage.coding.grs import GeneralizedReedSolomonCode
+    deprecation(18928, "codes.ReedSolomonCode is now deprecated. Please use codes.GeneralizedReedSolomonCode instead.")
     q = F.order()
-    power = lambda x,n,F: (x==0 and n==0) and F(1) or F(x**n) # since 0^0 is undefined
     if n>q or k>n or k>q:
         raise ValueError("RS codes does not exist with the given input.")
     if pts is not None and len(pts) != n:
@@ -1261,11 +1222,7 @@ def ReedSolomonCode(n,k,F,pts = None):
             if i<n:
                 pts.append(x)
                 i = i+1
-    MS = MatrixSpace(F, k, n)
-    rowsG = []
-    rowsG = [[power(x,j,F) for x in pts] for j in range(k)]
-    G = MS(rowsG)
-    return LinearCode(G, d=n-k+1)
+    return GeneralizedReedSolomonCode(pts, k)
 
 
 def TernaryGolayCode():

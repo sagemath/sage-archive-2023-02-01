@@ -236,7 +236,7 @@ cdef class CAElement(pAdicTemplateElement):
             sage: ~R(-1) == R(-1) #indirect doctest
             True
         """
-        return self.parent().fraction_field()(self).__invert__()
+        return ~self.parent().fraction_field()(self)
 
     cpdef RingElement _mul_(self, RingElement _right):
         """

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Non-Commutative Symmetric Functions
 """
@@ -253,7 +254,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         R[1, 3, 2] + R[1, 5] + R[4, 2] + R[6]
 
     This is the sum of all fatter compositions. Using the usual
-    Moebius function for the boolean lattice, the inverse change of
+    Möbius function for the boolean lattice, the inverse change of
     basis is given by the alternating sum of all fatter compositions::
 
         sage: complete(ribbon[1,3,2])
@@ -268,7 +269,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: ribbon(elementary([1,3,2]))
         R[1, 1, 1, 1, 1, 1] + R[1, 1, 1, 2, 1] + R[2, 1, 1, 1, 1] + R[2, 1, 2, 1]
 
-    By Moebius inversion on the composition poset, the ribbon
+    By Möbius inversion on the composition poset, the ribbon
     basis element corresponding to a composition `I` is then the
     alternating sum over all compositions fatter than the
     complement composition of `I` in the elementary basis::
@@ -3558,7 +3559,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             ....:     Psi = NCSF.Psi()
             ....:     a = R.sum([(-1) ** i * R[[1]*i + [n-i]]
             ....:                for i in range(n)])
-            ....:     return Psi(a) == Psi[n]
+            ....:     return a == R(Psi[n])
             sage: test_psi(2)
             True
             sage: test_psi(3)
@@ -4211,7 +4212,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 The current implementation on the Phi basis gives the
                 same results as the default implementation::
 
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
                     sage: S = NSym.S()
+                    sage: Phi = NSym.Phi()
                     sage: def test_phi(N, n):
                     ....:     for I in Compositions(N):
                     ....:         if S(Phi[I].verschiebung(n)) != S(Phi[I]).verschiebung(n):
@@ -4479,7 +4482,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                    distinct=True )
             # Note: sum(I) works both if I is a list and if I is a composition
             # (although the latter case doesn't work in IPython, cf.
-            # :trac:`15163`).
+            # trac #15163).
 
         def _from_psi_on_basis(self, I):
             r"""

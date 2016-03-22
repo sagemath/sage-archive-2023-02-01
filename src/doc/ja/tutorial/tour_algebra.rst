@@ -164,7 +164,7 @@ Sageを使って常微分方程式を研究することもできる． :math:`x'
 ::
 
     sage: t = var('t')            # 変数 t を定義
-    sage: x = function('x',t)     # x を t の関数とする
+    sage: x = function('x')(t)     # x を t の関数とする
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
     (_C + e^t)*e^(-t)

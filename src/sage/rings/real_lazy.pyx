@@ -866,8 +866,8 @@ cdef class LazyFieldElement(FieldElement):
 
         TESTS::
 
-        sage: "log" in RLF(sqrt(8)).__dir__()
-        True
+            sage: "log" in RLF(sqrt(8)).__dir__()
+            True
 
         """
         return FieldElement.__dir__(self) + named_unops
@@ -1182,7 +1182,8 @@ cdef class LazyBinop(LazyFieldElement):
             sage: from sage.rings.real_lazy import LazyBinop
             sage: a = LazyBinop(RLF, 5, 1/2, operator.sub)
             sage: hash(a)
-            2
+            -1607638785           # 32-bit
+            -7461864723258187521  # 64-bit
         """
         return hash(self._op(hash(self._left), hash(self._right)))
 
@@ -1293,7 +1294,8 @@ cdef class LazyUnop(LazyFieldElement):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.real_lazy import LazyUnop
             sage: a = LazyUnop(RLF, 7, sqrt)
             sage: float(loads(dumps(a))) == float(a)

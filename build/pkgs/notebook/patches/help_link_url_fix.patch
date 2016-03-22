@@ -1,0 +1,24 @@
+Use require.toUrl for help_links
+
+Dirty patch for the minified js, real PR is at
+https://github.com/jupyter/notebook/pull/958
+
+
+--- a/notebook/static/notebook/js/main.min.js	2016-01-15 10:20:30.769442884 +0100
++++ b/notebook/static/notebook/js/main.min.js	2016-01-15 10:20:53.073164049 +0100
+@@ -28358,7 +28358,7 @@
+                 .append($("<a>")
+                     .attr('target', '_blank')
+                     .attr('title', 'Opens in a new window')
+-                    .attr('href', link.url)
++                    .attr('href', require.toUrl(link.url))
+                     .append($("<i>")
+                         .addClass("fa fa-external-link menu-icon pull-right")
+                     )
+@@ -30547,4 +30547,4 @@
+ define("notebook/js/main", function(){});
+ 
+ 
+-//# sourceMappingURL=main.min.js.map
+\ No newline at end of file
++//# sourceMappingURL=main.min.js.map

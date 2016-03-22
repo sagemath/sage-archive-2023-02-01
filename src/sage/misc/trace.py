@@ -42,7 +42,9 @@ def trace(code, preparse=True):
     For an article on how to use the Python debugger, see
     http://www.onlamp.com/pub/a/python/2005/09/01/debugger.html
 
-    TESTS: The only real way to test this is via pexpect spawning a
+    TESTS:
+
+    The only real way to test this is via pexpect spawning a
     sage subprocess that uses IPython.
 
     ::

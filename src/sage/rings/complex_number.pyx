@@ -45,8 +45,8 @@ from sage.rings.integer_ring import ZZ
 cdef object numpy_complex_interface = {'typestr': '=c16'}
 cdef object numpy_object_interface = {'typestr': '|O'}
 
-cdef mp_rnd_t rnd
-rnd = GMP_RNDN
+cdef mpfr_rnd_t rnd
+rnd = MPFR_RNDN
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
@@ -235,23 +235,23 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.str(truncate=False, istr='%i')
 
-    property __array_interface__:
-        def __get__(self):
-            """
-            Used for NumPy conversion.
+    @property
+    def __array_interface__(self):
+        """
+        Used for NumPy conversion.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import numpy
-                sage: numpy.array([1.0, 2.5j]).dtype
-                dtype('complex128')
-                sage: numpy.array([1.000000000000000000000000000000000000j]).dtype
-                dtype('O')
-            """
-            if self._prec <= 57: # max size of repr(float)
-                return numpy_complex_interface
-            else:
-                return numpy_object_interface
+            sage: import numpy
+            sage: numpy.array([1.0, 2.5j]).dtype
+            dtype('complex128')
+            sage: numpy.array([1.000000000000000000000000000000000000j]).dtype
+            dtype('O')
+        """
+        if self._prec <= 53:
+            return numpy_complex_interface
+        else:
+            return numpy_object_interface
 
     def _sage_input_(self, sib, coerced):
         r"""
@@ -388,7 +388,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         Returns either the real or imaginary component of self depending on
         the choice of i: real (i=0), imaginary (i=1)
 
-        INPUTS:
+        INPUT:
 
         - ``i`` - 0 or 1
             - ``0`` -- will return the real component of ``self``
@@ -462,7 +462,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         r"""
         Return a string representation of ``self``.
 
-        INPUTS:
+        INPUT:
 
         - ``base`` --  (Default: 10) The base to use for printing
 
@@ -2387,8 +2387,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z^2 - z + 1
             1.11022302462516e-16
         """
-        import sage.rings.arith
-        return sage.rings.arith.algdep(self,n, **kwds)
+        import sage.arith.all
+        return sage.arith.all.algdep(self, n, **kwds)
 
     def algebraic_dependancy( self, n ):
         """
@@ -2594,8 +2594,8 @@ cdef class CCtoCDF(Map):
             0.7071067811865476 + 0.7071067811865475*I
         """
         cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
-        z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, GMP_RNDN)
-        z._complex.dat[1] = mpfr_get_d((<ComplexNumber>x).__im, GMP_RNDN)
+        z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, MPFR_RNDN)
+        z._complex.dat[1] = mpfr_get_d((<ComplexNumber>x).__im, MPFR_RNDN)
         return z
 
 

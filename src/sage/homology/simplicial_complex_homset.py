@@ -15,8 +15,8 @@ EXAMPLES::
     sage: x = H(f)
     sage: x
     Simplicial complex morphism:
-      From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-      To: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+      From: Minimal triangulation of the 1-sphere
+      To: Minimal triangulation of the 2-sphere
       Defn: 0 |--> 0
             1 |--> 1
             2 |--> 3
@@ -96,8 +96,8 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets
-              To: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+              From: Minimal triangulation of the 3-sphere
+              To: Minimal triangulation of the 2-sphere
               Defn: [0, 1, 2, 3, 4] --> [0, 1, 2, 2, 2]
         """
         return SimplicialComplexMorphism(f,self.domain(),self.codomain())
@@ -113,7 +113,7 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: d = H.diagonal_morphism()
             sage: d
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+              From: Minimal triangulation of the 2-sphere
               To:   Simplicial complex with 16 vertices and 96 facets
               Defn: 0 |--> L0R0
                     1 |--> L1R1
@@ -179,13 +179,13 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: x = H.an_element()
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets
-              To:   Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 7 facets
+              From: Minimal triangulation of the Klein bottle
+              To:   Minimal triangulation of the 5-sphere
               Defn: [0, 1, 2, 3, 4, 5, 6, 7] --> [0, 0, 0, 0, 0, 0, 0, 0]
         """
         X_vertices = self._domain.vertices().set()
         try:
-            i = next(self._codomain.vertices().set().__iter__())
+            i = next(iter(self._codomain.vertices().set()))
         except StopIteration:
             if not X_vertices:
                 return {}

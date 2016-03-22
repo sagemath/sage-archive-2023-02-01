@@ -347,7 +347,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
-    from sage.rings.arith import factor
+    from sage.arith.all import factor
     from database import MOLS_constructions
 
     # Is k is None we find the largest available

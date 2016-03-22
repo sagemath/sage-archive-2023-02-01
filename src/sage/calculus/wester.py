@@ -364,9 +364,9 @@ explicit calls to Maxima or other systems.
     sage: a = tan(z); a
     tan(z)
     sage: a.real()
-    tan(real_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
+    sin(2*real_part(z))/(cos(2*real_part(z)) + cosh(2*imag_part(z)))
     sage: a.imag()
-    tanh(imag_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
+    sinh(2*imag_part(z))/(cos(2*real_part(z)) + cosh(2*imag_part(z)))
 
 
 ::

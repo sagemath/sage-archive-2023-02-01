@@ -88,7 +88,7 @@ import sage.modular.hecke.all as hecke
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.all as rings
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
@@ -366,7 +366,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         Coerce `x` into this modular symbols space. The result is
         either an element of self or a subspace of self.
 
-        INPUTS:
+        INPUT:
 
         The allowed input types for `x` are as follows:
 
@@ -2122,7 +2122,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         m = eps.modulus()
         s = self(0)
 
-        for a in ([ x for x in range(1,m) if rings.gcd(x,m) == 1 ]):
+        for a in ([ x for x in range(1,m) if arith.gcd(x,m) == 1 ]):
             s += eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a/m)])
 
         return s

@@ -47,7 +47,7 @@ def JohnsonGraph(n, k):
         True
 
     The complement of the Johnson graph `J(n,2)` is isomorphic to the Kneser
-    Graph `K(n,2)`.  In paritcular the complement of `J(5,2)` is isomorphic to
+    Graph `K(n,2)`.  In particular the complement of `J(5,2)` is isomorphic to
     the Petersen graph.  ::
 
         sage: g = graphs.JohnsonGraph(5,2)
@@ -1050,7 +1050,7 @@ def GeneralizedPetersenGraph(n,k):
     For `k=1` the result is a graph isomorphic to the circular ladder graph
     with the same `n`. The regular Petersen Graph has `n=5` and `k=2`.
     Other named graphs that can be described using this notation include
-    the Desargues graph and the Moebius-Kantor graph.
+    the Desargues graph and the Möbius-Kantor graph.
 
     INPUT:
 
@@ -1587,8 +1587,8 @@ def PaleyGraph(q):
         True
     """
     from sage.rings.finite_rings.integer_mod import mod
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.rings.arith import is_prime_power
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
+    from sage.arith.all import is_prime_power
     assert is_prime_power(q), "Parameter q must be a prime power"
     assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
@@ -2470,3 +2470,205 @@ def MathonPseudocyclicMergingGraph(M, t):
     if t > 1:
         A += sum(map(lambda x: M[0].tensor_product(x), M[1:]))
     return Graph(A)
+
+def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
+    r"""
+    Return a strongly regular graph on `(4t+1)(4t-1)^2` vertices from [Mat78]_
+
+    Let `4t-1` be a prime power, and `4t+1` be such that there exists
+    a strongly regular graph `G` with parameters `(4t+1,2t,t-1,t)`. In
+    particular, `4t+1` must be a sum of two squares [Mat78]_. With
+    this input, Mathon [Mat78]_ gives a construction of a strongly regular
+    graph with parameters `(4 \mu + 1, 2 \mu, \mu-1, \mu)`, where
+    `\mu =  t(4t(4t-1)-1)`. The construction is optionally parametrised by an
+    a skew-symmetric Latin square of order `4t+1`, with entries in
+    `-2t,...,-1,0,1,...,2t`.
+
+    Our implementation follows a description given in [ST78]_.
+
+    INPUT:
+
+    - ``t`` -- a positive integer
+
+    - ``G`` -- if ``None`` (default), try to construct the necessary graph
+      with parameters `(4t+1,2t,t-1,t)`, otherwise use the user-supplied one,
+      with vertices labelled from `0` to `4t`.
+
+    - ``L`` -- if ``None`` (default), construct a necessary skew Latin square,
+      otherwise use the user-supplied one. Here non-isomorphic Latin squares
+      -- one constructed from `Z/9Z`, and the other from `(Z/3Z)^2` --
+      lead to non-isomorphic graphs.
+
+    EXAMPLES:
+
+    Using default ``G`` and ``L``. ::
+
+        sage: from sage.graphs.generators.families import MathonPseudocyclicStronglyRegularGraph
+        sage: G=MathonPseudocyclicStronglyRegularGraph(1); G
+        Mathon's PC SRG on 45 vertices: Graph on 45 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (45, 22, 10, 11)
+
+    Supplying ``G`` and ``L`` (constructed from the automorphism group of ``G``). ::
+
+        sage: G=graphs.PaleyGraph(9)
+        sage: a=G.automorphism_group()
+        sage: r=map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()),
+        ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0])
+        sage: ff=map(lambda y: (y[0]-1,y[1]-1),
+        ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:])
+        sage: L=sum(map(lambda (i,(a,b)): i*(r[a]-r[b]), zip(range(1,len(ff)+1), ff))); L
+        [ 0  1 -1  2  3 -4 -2  4 -3]
+        [-1  0  1 -4  2  3 -3 -2  4]
+        [ 1 -1  0  3 -4  2  4 -3 -2]
+        [-2  4 -3  0  1 -1  2  3 -4]
+        [-3 -2  4 -1  0  1 -4  2  3]
+        [ 4 -3 -2  1 -1  0  3 -4  2]
+        [ 2  3 -4 -2  4 -3  0  1 -1]
+        [-4  2  3 -3 -2  4 -1  0  1]
+        [ 3 -4  2  4 -3 -2  1 -1  0]
+        sage: G.relabel()
+        sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
+        sage: G3x3.is_strongly_regular(parameters=True)
+        (441, 220, 109, 110)
+        sage: G3x3.automorphism_group(algorithm="bliss").order() # optional - bliss
+        27
+        sage: G9=graphs.MathonPseudocyclicStronglyRegularGraph(2)
+        sage: G9.is_strongly_regular(parameters=True)
+        (441, 220, 109, 110)
+        sage: G9.automorphism_group(algorithm="bliss").order() # optional - bliss
+        9
+
+    TESTS::
+
+        sage: graphs.MathonPseudocyclicStronglyRegularGraph(5)
+        Traceback (most recent call last):
+        ...
+        ValueError: 21  must be a sum of two squares!...
+
+    REFERENCES:
+
+    .. [Mat78] R. A. Mathon,
+       Symmetric conference matrices of order `pq^2 + 1`,
+       Canad. J. Math. 30 (1978) 321-331
+
+    .. [ST78] J. J. Seidel and D. E. Taylor,
+       Two-graphs, a second survey.
+       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689–711,
+       Colloq. Math. Soc. János Bolyai, 25,
+       North-Holland, Amsterdam-New York, 1981.
+    """
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+    from sage.rings.integer_ring import ZZ
+    from sage.matrix.constructor import matrix, block_matrix, \
+        ones_matrix, identity_matrix
+    from itertools import product
+    from sage.arith.all import two_squares
+    p = 4*t+1
+    try:
+        x = two_squares(p)
+    except ValueError:
+        raise ValueError(str(p)+" must be a sum of two squares!")
+    if G is None:
+        from sage.graphs.strongly_regular_db import strongly_regular_graph as SRG
+        G = SRG(p, 2*t, t-1)
+        G.relabel()
+    if L is None:
+        from sage.matrix.constructor import circulant
+        L = circulant(range(2*t+1)+map(lambda i: -2*t+i, range(2*t)))
+    q = 4*t -1
+    K = GF(q,prefix='x')
+    K_pairs = set(frozenset([x,-x]) for x in K)
+    K_pairs.discard(frozenset([0]))
+    a = [None]*(q-1)    # order the non-0 elements of K as required 
+    for i,(x,y) in enumerate(K_pairs):
+        a[i]   = x
+        a[-i-1] = y
+    a.append(K(0))      # and append the 0 of K at the end
+    P = map(lambda b: matrix(ZZ,q,q,lambda i,j: 1 if a[j]==a[i]+b else 0), a)
+    g = K.primitive_element()
+    F = sum(P[a.index(g**(2*i))] for i in xrange(1, 2*t))
+    E = matrix(ZZ,q,q, lambda i,j: 0 if (a[j]-a[0]).is_square() else 1)
+    def B(m):
+        I = identity_matrix(q)
+        J = ones_matrix(q)
+        if m == 0:
+           f = lambda (i, j): 0*I if i==j                    else\
+                              I+F if (a[j]-a[i]).is_square() else\
+                              J-F
+        elif m < 2*t:
+           f = lambda (i, j): F*P[a.index(g**(2*m) * (a[i]+a[j]))]
+        elif m == 2*t:
+           f = lambda (i, j): E*P[i]
+        return block_matrix(q,q, map(f, product(xrange(q), xrange(q))))
+
+    def Acon((i, j)):
+        J = ones_matrix(q**2)
+        if i==j:
+            return              B(0)
+        if L[i,j]>0:
+            if G.has_edge(i,j):
+                return          B(L[i,j])
+            return              J-B(L[i,j])
+        if G.has_edge(i,j):
+            return              B(-L[i,j]).T
+        return                  J-B(-L[i,j]).T
+
+    A = Graph(block_matrix(p, p, map(Acon, product(xrange(p), xrange(p)))))
+    A.name("Mathon's PC SRG on "+str(p*q**2)+" vertices")
+    A.relabel()
+    return A
+
+def TuranGraph(n,r):
+    r"""
+    Returns the Turan graph with parameters `n, r`.
+
+    Turan graphs are complete multipartite graphs with `n` vertices and
+    `r` subsets, denoted `T(n,r)`, with the property that the sizes of the
+    subsets are as close to equal as possible. The graph `T(n,r)` will have
+    `n \pmod r` subsets of size `\lfloor n/r \rfloor` and `r - (n \pmod r)` subsets of
+    size `\lceil n/r \rceil`. For more information about Turan graphs, see the
+    corresponding :wikipedia:`Wikipedia page <Turan_graph>`
+
+    INPUT:
+
+    - ``n`` (integer)-- the number of vertices in the graph.
+
+    - ``r`` (integer) -- the number of partitions of the graph.
+
+    EXAMPLES:
+
+    The Turan graph is a complete multipartite graph.  ::
+
+        sage: g = graphs.TuranGraph(13, 4)
+        sage: k = graphs.CompleteMultipartiteGraph([3,3,3,4])
+        sage: g.is_isomorphic(k)
+        True
+
+    The Turan graph `T(n,r)` has `\lfloor \frac{(r-1)(n^2)}{2r} \rfloor` edges.  ::
+
+        sage: n = 13
+        sage: r = 4
+        sage: g = graphs.TuranGraph(n,r)
+        sage: g.size() == floor((r-1)*(n**2)/(2*r))
+        True
+
+    TEST::
+
+        sage: g = graphs.TuranGraph(3,6)
+        Traceback (most recent call last):
+        ...
+        ValueError: Input parameters must satisfy "1 < r < n".
+    """
+
+    if n<1 or n<r or r<1:
+        raise ValueError('Input parameters must satisfy "1 < r < n".')
+
+    from sage.graphs.generators.basic import CompleteMultipartiteGraph
+
+    vertex_sets = [n//r]*(r-(n%r))+[n//r+1]*(n%r)
+
+    g = CompleteMultipartiteGraph(vertex_sets)
+    g.name('Turan Graph with n: {}, r: {}'.format(n,r))
+
+    return g

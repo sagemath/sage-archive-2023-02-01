@@ -15,6 +15,7 @@ AUTHORS:
 
 - Vincent Delecroix (2014): modifies continued fractions because of :trac:`14567`
 
+- Moritz Firsching (2016): modifies handling of dead sequence, see :trac:`17330`
 EXAMPLES::
 
         sage: oeis
@@ -230,7 +231,7 @@ to_tuple = lambda string: tuple(Integer(x) for x in string.split(",") if x)
 
 class OEIS:
     r"""
-    The On-Line Encyclopedia of Integer Sequences.
+    The On-Line Encyclopedia of Integer Sequences..
 
     ``OEIS`` is a class representing the On-Line Encyclopedia of Integer
     Sequences. You can query it using its methods, but ``OEIS`` can also be

@@ -1302,42 +1302,6 @@ cdef class PariInstance(PariInstance_auto):
         initprimetable(M)
         sig_off()
 
-    ##############################################
-    ## Support for GP Scripts
-    ##############################################
-
-    def read(self, bytes filename):
-        r"""
-        Read a script from the named filename into the interpreter.  The
-        functions defined in the script are then available for use from
-        Sage/PARI.  The result of the last command in ``filename`` is
-        returned.
-
-        EXAMPLES:
-
-        Create a gp file::
-
-            sage: import tempfile
-            sage: gpfile = tempfile.NamedTemporaryFile(mode="w")
-            sage: gpfile.file.write("mysquare(n) = {\n")
-            sage: gpfile.file.write("    n^2;\n")
-            sage: gpfile.file.write("}\n")
-            sage: gpfile.file.write("polcyclo(5)\n")
-            sage: gpfile.file.flush()
-
-        Read it in Sage, we get the result of the last line::
-
-            sage: pari.read(gpfile.name)
-            x^4 + x^3 + x^2 + x + 1
-
-        Call the function defined in the gp file::
-
-            sage: pari('mysquare(12)')
-            144
-        """
-        sig_on()
-        return self.new_gen(gp_read_file(filename))
-
     def primes(self, n=None, end=None):
         """
         Return a pari vector containing the first `n` primes, the primes
@@ -1416,56 +1380,13 @@ cdef class PariInstance(PariInstance_auto):
 
     nth_prime = deprecated_function_alias(20216, PariInstance_auto.prime)
 
-    def euler(self, unsigned long precision=0):
+    euler = PariInstance_auto.Euler
+    pi = PariInstance_auto.Pi
+
+    def polchebyshev(self, long n, v=None):
         """
-        Return Euler's constant to the requested real precision (in bits).
-
-        EXAMPLES::
-
-            sage: pari.euler()
-            0.577215664901533
-            sage: pari.euler(precision=100).python()
-            0.577215664901532860606512090082...
-        """
-        sig_on()
-        return self.new_gen(mpeuler(prec_bits_to_words(precision)))
-
-    def pi(self, unsigned long precision=0):
-        """
-        Return the value of the constant pi to the requested real precision
-        (in bits).
-
-        EXAMPLES::
-
-            sage: pari.pi()
-            3.14159265358979
-            sage: pari.pi(precision=100).python()
-            3.1415926535897932384626433832...
-        """
-        sig_on()
-        return self.new_gen(mppi(prec_bits_to_words(precision)))
-
-    def pollegendre(self, long n, v=-1):
-        """
-        pollegendre(n, v=x): Legendre polynomial of degree n (n C-integer),
-        in variable v.
-
-        EXAMPLES::
-
-            sage: pari.pollegendre(7)
-            429/16*x^7 - 693/16*x^5 + 315/16*x^3 - 35/16*x
-            sage: pari.pollegendre(7, 'z')
-            429/16*z^7 - 693/16*z^5 + 315/16*z^3 - 35/16*z
-            sage: pari.pollegendre(0)
-            1
-        """
-        sig_on()
-        return self.new_gen(pollegendre(n, self.get_var(v)))
-
-    def polchebyshev(self, long n, v=-1):
-        """
-        polchebyshev(n, v=x): Chebyshev polynomial of the first kind of degree
-        n, in variable v.
+        Chebyshev polynomial of the first kind of degree `n`,
+        in the variable `v`.
 
         EXAMPLES::
 
@@ -1501,39 +1422,7 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         return self.new_gen(mpfact(n))
 
-    def polcyclo(self, long n, v=-1):
-        """
-        polcyclo(n, v=x): cyclotomic polynomial of degree n, in variable
-        v.
-
-        EXAMPLES::
-
-            sage: pari.polcyclo(8)
-            x^4 + 1
-            sage: pari.polcyclo(7, 'z')
-            z^6 + z^5 + z^4 + z^3 + z^2 + z + 1
-            sage: pari.polcyclo(1)
-            x - 1
-        """
-        sig_on()
-        return self.new_gen(polcyclo(n, self.get_var(v)))
-
-    def polcyclo_eval(self, long n, v):
-        """
-        polcyclo_eval(n, v): value of the nth cyclotomic polynomial at value v.
-
-        EXAMPLES::
-
-            sage: pari.polcyclo_eval(8, 2)
-            17
-            sage: cyclotomic_polynomial(8)(2)
-            17
-        """
-        cdef gen t0 = self(v)
-        sig_on()
-        return self.new_gen(polcyclo_eval(n, t0.g))
-
-    def polsubcyclo(self, long n, long d, v=-1):
+    def polsubcyclo(self, long n, long d, v=None):
         """
         polsubcyclo(n, d, v=x): return the pari list of polynomial(s)
         defining the sub-abelian extensions of degree `d` of the
@@ -1558,7 +1447,8 @@ cdef class PariInstance(PariInstance_auto):
             return pari.vector(1, [plist])
         else:
             return plist
-        #return self.new_gen(polsubcyclo(n, d, self.get_var(v)))
+
+    polcyclo_eval = deprecated_function_alias(20217, PariInstance_auto.polcyclo)
 
     def setrand(self, seed):
         """
@@ -1594,23 +1484,6 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         setrand(t0.g)
         sig_off()
-
-    def getrand(self):
-        """
-        Returns PARI's current random number seed.
-
-        OUTPUT:
-
-        GEN of type t_VECSMALL
-
-        EXAMPLES::
-
-            sage: a = pari.getrand()
-            sage: a.type()
-            't_INT'
-        """
-        sig_on()
-        return self.new_gen(getrand())
 
     def vector(self, long n, entries=None):
         """

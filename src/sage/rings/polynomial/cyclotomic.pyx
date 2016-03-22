@@ -298,7 +298,7 @@ def cyclotomic_value(n, x):
 
     P = parent_c(x)
     try:
-        return P(pari.polcyclo_eval(n, x).sage())
+        return P(pari.polcyclo(n, x).sage())
     except Exception:
         pass
     one = P(1)

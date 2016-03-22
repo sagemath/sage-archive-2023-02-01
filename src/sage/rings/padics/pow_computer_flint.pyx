@@ -1,4 +1,4 @@
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport mpz_init, mpz_clear, mpz_pow_ui

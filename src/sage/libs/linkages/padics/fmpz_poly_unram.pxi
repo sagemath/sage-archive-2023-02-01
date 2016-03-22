@@ -18,8 +18,8 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
-include "sage/ext/python.pxi"
+include "cysignals/signals.pxi"
+from cpython.list cimport PyList_Check, PyList_New, PyList_Append
 
 from sage.rings.padics.common_conversion cimport cconv_mpz_t_out_shared, cconv_mpz_t_shared, cconv_mpq_t_out_shared, cconv_mpq_t_shared, cconv_shared
 

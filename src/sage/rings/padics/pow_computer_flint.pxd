@@ -1,5 +1,3 @@
-include "sage/ext/interrupt.pxi"
-
 from sage.libs.gmp.mpz cimport mpz_t
 from sage.libs.flint.padic cimport padic_ctx_t
 from sage.libs.flint.fmpz cimport fmpz_t

@@ -182,7 +182,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 

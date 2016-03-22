@@ -36,8 +36,9 @@ import weakref
 from sage.rings.infinity import infinity
 from sage.libs.gmp.mpz cimport *
 
+from sage.ext.stdsage cimport PY_NEW
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 cdef long maxpreccap = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -449,7 +450,7 @@ cdef class PowComputer_base(PowComputer_class):
                     mpz_clear(self.top_power)
                     raise
             except BaseException:
-                sage_free(self.small_powers)
+                sig_free(self.small_powers)
                 raise
         finally:
             sig_off()

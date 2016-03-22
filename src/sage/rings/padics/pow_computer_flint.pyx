@@ -1,5 +1,5 @@
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport mpz_init, mpz_clear, mpz_pow_ui
 from sage.libs.flint.padic cimport *
@@ -207,7 +207,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
 
         sig_on()
         try:
-            self._moduli = <fmpz_poly_t*>sage_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
+            self._moduli = <fmpz_poly_t*>sig_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
             if self._moduli == NULL:
                 raise MemoryError
             try:
@@ -226,7 +226,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
                     fmpz_poly_clear(self.modulus)
                     raise
             except BaseException:
-                sage_free(self._moduli)
+                sig_free(self._moduli)
                 raise
         finally:
             sig_off()
@@ -281,7 +281,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             fmpz_poly_clear(self.modulus)
             for i in range(1, self.cache_limit + 1):
                 fmpz_poly_clear(self._moduli[i])
-            sage_free(self._moduli)
+            sig_free(self._moduli)
 
     def _repr_(self):
         """

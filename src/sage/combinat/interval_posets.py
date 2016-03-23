@@ -2951,6 +2951,10 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         minimal Schnyder wood, then applying a bijection
         of Bernardi and Bonichon [BerBon]_.
 
+        Because the random rooted planar triangulation is
+        chosen uniformly at random, the Tamari interval is
+        also chosen according to the uniform distribution.
+
         EXAMPLES::
 
             sage: T = TamariIntervalPosets(4).random_element()

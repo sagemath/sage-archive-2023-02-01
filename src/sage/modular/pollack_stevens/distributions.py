@@ -51,14 +51,14 @@ class Distributions_factory(UniqueFactory):
         Space of 11-adic distributions with k=3 action and precision cap 20
         sage: v = D([1,0,0,0,0])
         sage: v.act_right([2,1,0,1])
-        (8 + O(11^20), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + O(11))
+        (8 + O(11^5), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + 4*11 + O(11))
 
     Note that we would expect something more p-adic, but fine...
 
         sage: D = Distributions(3, 11, 20, dettwist=1)
         sage: v = D([1,0,0,0,0])
         sage: v.act_right([2,1,0,1])
-        (5 + 11 + O(11^20), 8 + O(11^4), 4 + O(11^3), 2 + O(11^2), 1 + O(11))
+        (5 + 11 + O(11^5), 8 + O(11^4), 4 + O(11^3), 2 + O(11^2), 1 + O(11))
     """
     def create_key(self, k, p=None, prec_cap=None, base=None, character=None,
                    adjuster=None, act_on_left=False, dettwist=None,
@@ -563,7 +563,7 @@ class Distributions_abstract(Module):
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.an_element() # indirect doctest
-            (2 + O(7^4), 1 + O(7))
+            (2 + O(7^2), 1 + O(7))
         """
         if self._prec_cap > 1:
             return self([2, 1])

@@ -51,8 +51,8 @@ class pAdicLseries(SageObject):
     Using the existing algorithm in Sage, it seems we are off by a
     factor of 2::
 
-        sage: L = E.padic_lseries(5)
-        sage: L.series(4)[1]
+        sage: L = E.padic_lseries(5) # long time
+        sage: L.series(4)[1] # long time
         1 + 4*5 + 2*5^2 + O(5^3)
 
     But here, we are correct without the factor of 2::
@@ -62,14 +62,13 @@ class pAdicLseries(SageObject):
         sage: p = 5
         sage: prec = 4
         sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: phi_stabilized = phi.p_stabilize(p,M = prec+3)
-        sage: Phi = phi_stabilized.lift(p=5, M=prec, alpha=None, algorithm='stevens', eigensymbol=True)
+        sage: Phi = phi.p_stabilize_and_lift(5, prec, eigensymbol = True)
         sage: L = pAdicLseries(Phi)
         sage: L[1]
         3*5 + 5^2 + O(5^3)
 
-        sage: L1 = E.padic_lseries(5)
-        sage: L1.series(4)[1]
+        sage: L1 = E.padic_lseries(5) # long time
+        sage: L1.series(4)[1] # long time
         3*5 + 5^2 + O(5^3)
 
     An example of a `p`-adic `L`-series associated to a modular
@@ -139,8 +138,8 @@ class pAdicLseries(SageObject):
             sage: L[1]
             3*5 + 5^2 + O(5^3)
 
-            sage: L1 = E.padic_lseries(5)
-            sage: L1.series(4)[1]
+            sage: L1 = E.padic_lseries(5) # long time
+            sage: L1.series(4)[1] # long time
             3*5 + 5^2 + O(5^3)
         """
         if n in self._coefficients:
@@ -289,8 +288,8 @@ class pAdicLseries(SageObject):
             sage: L.series(3,4)
             O(5^4) + (3*5 + 5^2 + O(5^3))*T + (5 + O(5^2))*T^2
 
-            sage: L1 = E.padic_lseries(5)
-            sage: L1.series(4)
+            sage: L1 = E.padic_lseries(5) # long time
+            sage: L1.series(4) # long time
             O(5^6) + (3*5 + 5^2 + O(5^3))*T + (5 + 4*5^2 + O(5^3))*T^2 + (4*5^2 + O(5^3))*T^3 + (2*5 + 4*5^2 + O(5^3))*T^4 + O(T^5)
 
         """
@@ -311,19 +310,18 @@ class pAdicLseries(SageObject):
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('57a')
             sage: p = 5
-            sage: prec = 5 # It should work with 4, but it doesn't
+            sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p,prec,algorithm='stevens')
+            sage: Phi = phi.p_stabilize_and_lift(p,prec,algorithm='stevens')
             sage: L = pAdicLseries(Phi)
             sage: ap = phi.Tq_eigenvalue(p)
             sage: L.interpolation_factor(ap)
             4 + 2*5 + 4*5^3 + O(5^4)
 
-        Comparing against a different implementation:
+            Comparing against a different implementation:
 
-            sage: L = E.padic_lseries(5)
-            sage: (1-1/L.alpha(prec=4))^2
+            sage: L = E.padic_lseries(5) # long time
+            sage: (1-1/L.alpha(prec=4))^2 # long time
             4 + 2*5 + 4*5^3 + O(5^4)
 
         """
@@ -368,7 +366,7 @@ class pAdicLseries(SageObject):
             sage: Phi = phi.p_stabilize_and_lift(p,ap = ap, M = prec, algorithm='stevens')
             sage: L = pAdicLseries(Phi)
             sage: L.eval_twisted_symbol_on_Da(1)
-            5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2), O(5))
+            5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2))
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('40a4')
@@ -416,12 +414,11 @@ class pAdicLseries(SageObject):
             sage: p = 5
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: phi_stabilized = phi.p_stabilize(p,M = prec+3)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm = 'stevens',eigensymbol = True)
-            sage: L = pAdicLseries(Phi)
-            sage: L.eval_twisted_symbol_on_Da(1)
-            5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2), O(5))
-            sage: L._basic_integral(1,2)
+            sage: Phi = phi.p_stabilize_and_lift(p,prec,None,algorithm = 'greenberg',eigensymbol = True) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L.eval_twisted_symbol_on_Da(1) # long time
+            5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2))
+            sage: L._basic_integral(1,2) # long time
             2*5^3 + O(5^4)
 
         """

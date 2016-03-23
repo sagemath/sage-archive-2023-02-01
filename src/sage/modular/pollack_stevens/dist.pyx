@@ -164,9 +164,9 @@ cdef class Dist(ModuleElement):
             sage: D
             Space of 7-adic distributions with k=5 action and precision cap 15
             sage: v = D([1,2,3,4,5]); v
-            (1 + O(7^15), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: v.normalize()
-            (1 + O(7^15), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
         """
         raise NotImplementedError
 
@@ -196,9 +196,9 @@ cdef class Dist(ModuleElement):
             sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
-            (1 + O(7^15), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: v.scale(2)
-            (2 + O(7^15), 4 + O(7^4), 6 + O(7^3), 1 + 7 + O(7^2), 3 + O(7))
+            (2 + O(7^5), 4 + O(7^4), 6 + O(7^3), 1 + 7 + O(7^2), 3 + O(7))
         """
         # if isinstance(self, Dist_long) and isinstance(left, (Integer, pAdicCappedRelativeElement, pAdicCappedAbsoluteElement, pAdicFixedModElement)):
         #     return self._lmul_(left)
@@ -239,7 +239,7 @@ cdef class Dist(ModuleElement):
             sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
-            (1 + O(7^15), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: v.is_zero()
             False
             sage: v = D(5*[0])
@@ -446,7 +446,7 @@ cdef class Dist(ModuleElement):
             sage: v = D([1,2,3,4,5])
             sage: w = D([3,6,9,12,15])
             sage: v.find_scalar_from_zeroth_moment(w,p=7)
-            3 + O(7^15)
+            3 + O(7^5)
             sage: v.find_scalar_from_zeroth_moment(w,p=7,M=4)
             3 + O(7^4)
 
@@ -575,7 +575,7 @@ cdef class Dist(ModuleElement):
             sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
-            (7^4 + O(7^15), O(7^3), O(7^2), O(7))
+            (O(7^4), O(7^3), O(7^2), O(7))
             sage: v.diagonal_valuation(7)
             4
         """
@@ -610,7 +610,7 @@ cdef class Dist(ModuleElement):
             sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
-            (7^4 + O(7^15), O(7^3), O(7^2), O(7))
+            (O(7^4), O(7^3), O(7^2), O(7))
             sage: v.valuation(7)
             4
         """
@@ -642,7 +642,7 @@ cdef class Dist(ModuleElement):
             sage: D = Distributions(4, 13)
             sage: d = D([0,2,4,6,8,10,12])
             sage: d.specialize()
-            (O(13^20), 2 + O(13^6), 4 + O(13^5), 6 + O(13^4), 8 + O(13^3))
+            (O(13^7), 2 + O(13^6), 4 + O(13^5), 6 + O(13^4), 8 + O(13^3))
         """
         self.normalize()
         k = self.parent()._k

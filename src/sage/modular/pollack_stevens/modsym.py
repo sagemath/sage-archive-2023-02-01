@@ -27,7 +27,7 @@ from sage.misc.misc import walltime
 
 minusproj = [1, 0, 0, -1]
 
-def _lift_to_OMS_eigen(Phi, p, M, new_base_ring, ap, newM, eisenloss,
+def _iterate_Up(Phi, p, M, new_base_ring, ap, eisenloss,
                        q, aq, check):
     r"""
     Returns Hecke-eigensymbol OMS lifting self -- self must be a
@@ -42,8 +42,6 @@ def _lift_to_OMS_eigen(Phi, p, M, new_base_ring, ap, newM, eisenloss,
     - ``new_base_ring`` -- new base ring
 
     - ``ap`` -- Hecke eigenvalue at `p`
-
-    - ``newM`` --
 
     - ``eisenloss`` --
 
@@ -80,12 +78,7 @@ def _lift_to_OMS_eigen(Phi, p, M, new_base_ring, ap, newM, eisenloss,
     verbose("Applying Hecke", level = 2)
 
     apinv = ~ap
-    t_start = walltime()
     Phi = apinv * Phi.hecke(p)
-    t_end = walltime(t_start)
-    # Estimate the total time to complete
-    eta = (t_end * (newM + 1)) / (60 * 60)
-    verbose("Estimated time to complete: %s hours" % eta, level = 2)
 
     ## Killing eisenstein part
     verbose("Killing eisenstein part with q = %s" % q, level = 2)
@@ -94,14 +87,8 @@ def _lift_to_OMS_eigen(Phi, p, M, new_base_ring, ap, newM, eisenloss,
 
     ## Iterating U_p
     verbose("Iterating U_p", level = 2)
-    t_start = walltime()
     Psi = apinv * Phi.hecke(p)
-    t_end = walltime(t_start)
     
-    # Estimate the total time to complete
-    eta = (t_end * (newM + 1)) / (60 * 60)
-    verbose("Estimated time to complete (second estimate): %s hours" % eta, level = 2)
-
     attempts = 0
     while attempts < M:
         verbose("%s attempt (val = %s/%s)" % (attempts + 1,(Phi-Psi).valuation(),M), level = 2)
@@ -113,7 +100,7 @@ def _lift_to_OMS_eigen(Phi, p, M, new_base_ring, ap, newM, eisenloss,
             raise RuntimeError("Precision problem in lifting -- applied "
                            "U_p many times without success")
     Phi = ~(q ** (k + 1) + 1 - aq) * Phi
-    return Phi #._normalize(include_zeroth_moment = True)
+    return Phi
 
 class PSModSymAction(Action):
     def __init__(self, actor, MSspace):
@@ -1077,7 +1064,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             return ans
 
     def lift(self, p=None, M=None, alpha=None, new_base_ring=None,
-             algorithm='stevens', eigensymbol=False, check=True):
+             algorithm = None, eigensymbol=False, check=True):
         r"""
         Returns a (`p`-adic) overconvergent modular symbol with
         `M` moments which lifts self up to an Eisenstein error
@@ -1199,7 +1186,15 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 # should eventually be a completion
                 new_base_ring = Qp(p, M + extraprec)
         if algorithm is None:
-            raise NotImplementedError
+            # The default algorithm is Greenberg's, if possible.
+            algorithm = 'greenberg' if eigensymbol else 'stevens'
+        elif algorithm == 'greenberg':
+            if not eigensymbol:
+                raise ValueError("Greenberg's algorithm only works"
+                                " for eigensymbols. Try 'stevens'")
+        elif algorithm != 'stevens':
+            raise ValueError("algorithm %s not recognized" % algorithm)
+
         if eigensymbol:
             # We need some extra precision due to the fact that solving
             # the difference equation can give denominators.
@@ -1208,88 +1203,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 alpha = self.Tq_eigenvalue(p, M=M + 1, check=check)
             newM, eisenloss, q, aq = self._find_extraprec(p, M + 1, alpha,
                                                           check)
-            if algorithm != 'stevens' and algorithm != 'greenberg':
-                raise ValueError("algorithm %s not recognized" % algorithm)
             Phi = self._lift_to_OMS(p, newM, new_base_ring, check, algorithm)
-            Phi = _lift_to_OMS_eigen(Phi, p, newM, new_base_ring, alpha,
-                                           newM, eisenloss, q, aq, check) #DEBUG newM
+            Phi = _iterate_Up(Phi, p, newM, new_base_ring, alpha,
+                                           eisenloss, q, aq, check)
             Phi = Phi.reduce_precision(M)
             return Phi._normalize(include_zeroth_moment = True)
         else:
-            if algorithm != 'stevens':
-                raise NotImplementedError
             return self._lift_to_OMS(p, M, new_base_ring, check, algorithm)
-
-    def _lift_greenberg(self, p, M, new_base_ring=None, check=False):
-        """
-        This is the Greenberg algorithm for lifting a modular eigensymbol to
-        an overconvergent modular symbol. One first lifts to any set of numbers
-        (not necessarily satifying the Manin relations). Then one applies the U_p,
-        and normalizes this result to get a lift satisfying the manin relations.
-    
-    
-        INPUT:
-    
-        - ``p`` -- prime
-    
-        - ``M`` -- integer equal to the number of moments
-    
-        - ``new_base_ring`` -- new base ring
-    
-        - ``check`` -- THIS IS CURRENTLY NOT USED IN THE CODE!
-    
-        OUTPUT:
-    
-        - an overconvergent modular symbol lifting the symbol that was input
-    
-        EXAMPLES::
-    
-        """
-        p = self._get_prime(p)
-        aqinv = ~self.Tq_eigenvalue(p)
-        #get a lift that is not a modular symbol
-        MS = self.parent()
-        gens = MS.source().gens()
-        if new_base_ring is None:
-            new_base_ring = MS.base_ring()
-        MSnew = MS._lift_parent_space(p, M, new_base_ring)
-        CMnew = MSnew.coefficient_module()
-        D = {}
-        gens = MS.source().gens()
-        for j in range(len(gens)):
-            D[gens[j]] = CMnew( self.values()[j]._moments.list() + [0] ).lift(M=2)
-        Phi1bad = MSnew(D)
-    
-        #fix the lift by applying a hecke operator
-        Phi1 = aqinv * Phi1bad.hecke(p)
-        #if you don't want to compute with good accuracy, stop
-        if M<=2:
-            return Phi1
-    
-        #otherwise, keep lifting
-        padic_prec=M + 1
-        R = Qp(p,padic_prec)
-    
-        for r in range(self.weight() + 2, M+2):
-            newvalues = []
-            for j,adist in enumerate(Phi1.values()):
-                newdist = [R(moment).lift_to_precision(moment.precision_absolute()+1) for moment in adist._moments]
-                if r <= M:
-                    newdist.append([0])
-                for s in xrange(self.weight()+1):
-                    newdist[s] = R(self.values()[j].moment(s), r+2)
-                newvalues.append(newdist)
-            D2 = {}
-            for j in range(len(gens)):
-                D2[ gens[j]] = CMnew( newvalues[j] ).lift(M = min([M,r]))
-            Phi2 = MSnew(D2)
-            Phi2 = aqinv * Phi2.hecke(p)
-            verbose('Error = O(p^%s)' % (Phi1-Phi2).valuation(), level = 2)
-            Phi1 = Phi2
-        for j,adist in enumerate(Phi1.values()):
-            for s in xrange(self.weight() + 1):
-                Phi1.values()[j]._moments[s] = self.values()[j].moment(s)
-        return Phi1 #.reduce_precision(M) # Fix this!!
 
     def _lift_to_OMS(self, p, M, new_base_ring, check, algorithm = 'greenberg'):
         r"""
@@ -1523,8 +1443,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                                 new_base_ring=new_base_ring, check=check)
         # And use the standard lifting function for eigensymbols
         Phi = self._lift_to_OMS(p, newM, new_base_ring, check, algorithm)
-        Phi = _lift_to_OMS_eigen(Phi, p=p, M=newM, new_base_ring=new_base_ring,
-                                       ap=alpha, newM=newM,
+        Phi = _iterate_Up(Phi, p=p, M=newM, new_base_ring=new_base_ring,
+                                       ap=alpha,
                                        eisenloss=eisenloss, q=q, aq=aq,
                                        check=check)
         Phi = Phi.reduce_precision(M)
@@ -1594,15 +1514,19 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         return self.__class__(self._map.specialize(new_base_ring),
                               self.parent()._specialize_parent_space(new_base_ring), construct=True)
 
-    # def padic_lseries(self,*args, **kwds):
-    #     r"""
-    #     Return the p-adic L-series of this modular symbol.
-    #
-    #     EXAMPLE::
-    #
-    #         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
-    #         sage: f = Newform("37a")
-    #         sage: ps_modsym_from_simple_modsym_space(f).lift(37, M=6, algorithm="stevens").padic_lseries()
-    #         37-adic L-series of Modular symbol of level 37 with values in Space of 37-adic distributions with k=0 action and precision cap 6
-    #     """
-    #     return pAdicLseries(self, *args, **kwds)
+    def padic_lseries(self,*args, **kwds):
+        r"""
+        Return the p-adic L-series of this modular symbol.
+    
+        EXAMPLE::
+    
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: E = EllipticCurve('37a')
+            sage: L = ps_modsym_from_elliptic_curve(E).lift(37, M=6, eigensymbol=True).padic_lseries()
+            sage: L
+            37-adic L-series of Modular symbol of level 37 with values in Space of 37-adic distributions with k=0 action and precision cap 7
+            sage: L[0]
+            O(37^6)
+        """
+        from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
+        return pAdicLseries(self, *args, **kwds)

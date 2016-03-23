@@ -21,7 +21,7 @@ EXAMPLES::
     sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
     sage: f = ManinMap(D, MR, data)
     sage: f(M2Z([1,0,0,1]))
-    (1 + O(11^10), 2 + O(11))
+    (1 + O(11^2), 2 + O(11))
 
     sage: S = Symk(0,QQ)
     sage: MR = ManinRelations(37)
@@ -223,7 +223,7 @@ class ManinMap(object):
             sage: f = ManinMap(D, manin, data); f # indirect doctest
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: f(M2Z([1,0,0,1]))
-            (1 + O(11^10), 2 + O(11))
+            (1 + O(11^2), 2 + O(11))
 
         TESTS:
 
@@ -304,7 +304,7 @@ class ManinMap(object):
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, MR, data)
             sage: f._compute_image_from_gens(MR.reps()[1])
-            (10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + 10*11^5 + 10*11^6 + 10*11^7 + 10*11^8 + 10*11^9 + O(11^10), 8 + O(11))
+            (10 + 10*11 + O(11^2), 8 + O(11))
         """
         L = self._manin.relations(B)
         # could raise KeyError if B is not a generator
@@ -430,11 +430,11 @@ class ManinMap(object):
             sage: f = ManinMap(D, manin, data); f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: f(M2Z([1,0,0,1]))
-            (1 + O(11^10), 2 + O(11))
+            (1 + O(11^2), 2 + O(11))
             sage: f+f # indirect doctest
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: (f+f)(M2Z([1,0,0,1]))
-            (2 + O(11^10), 4 + O(11))
+            (2 + O(11^2), 4 + O(11))
         """
         D = {}
         sd = self._dict
@@ -467,11 +467,11 @@ class ManinMap(object):
             sage: f = ManinMap(D, manin, data); f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: f(M2Z([1,0,0,1]))
-            (1 + O(11^10), 2 + O(11))
+            (1 + O(11^2), 2 + O(11))
             sage: f-f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: (f-f)(M2Z([1,0,0,1]))
-            (O(11^10), O(11))
+            (O(11^2), O(11))
 
         """
         D = {}
@@ -504,11 +504,11 @@ class ManinMap(object):
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data)
             sage: f(M2Z([1,0,0,1]))
-            (1 + O(11^10), 2 + O(11))
+            (1 + O(11^2), 2 + O(11))
             sage: f*2
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: (f*2)(M2Z([1,0,0,1]))
-            (2 + O(11^10), 4 + O(11))
+            (2 + O(11^2), 4 + O(11))
         """
         tp = Sigma0(self._manin.level())(MatrixSpace(ZZ, 2, 2)([1, 0, 0, 1]))
         if isinstance(right, type(tp)):
@@ -560,7 +560,7 @@ class ManinMap(object):
             sage: f = ManinMap(D, MR, data)
             sage: A = MR.reps()[1]
             sage: f._eval_sl2(A)
-            (10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + 10*11^5 + 10*11^6 + 10*11^7 + 10*11^8 + 10*11^9 + O(11^10), 8 + O(11))
+            (10 + 10*11 + O(11^2), 8 + O(11))
 
         """
         SN = Sigma0(self._manin._N)
@@ -591,7 +591,7 @@ class ManinMap(object):
             sage: f = ManinMap(D, manin, data); f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: f(M2Z([1,0,0,1]))
-            (1 + O(11^10), 2 + O(11))
+            (1 + O(11^2), 2 + O(11))
 
             sage: S = Symk(0,QQ)
             sage: MR = ManinRelations(37)
@@ -741,10 +741,10 @@ class ManinMap(object):
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data)
             sage: f._dict[M2Z([1,0,0,1])]
-            (1 + O(11^10), 2 + O(11))
+            (1 + O(11^2), 2 + O(11))
             sage: g = f.normalize()
             sage: g._dict[M2Z([1,0,0,1])]
-            (1 + O(11^10), 2 + O(11))
+            (1 + O(11^2), 2 + O(11))
         """
         sd = self._dict
         for val in sd.itervalues():
@@ -767,10 +767,10 @@ class ManinMap(object):
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data)
             sage: f._dict[M2Z([1,0,0,1])]
-            (1 + O(11^10), 2 + O(11))
+            (1 + O(11^2), 2 + O(11))
             sage: g = f.reduce_precision(1)
             sage: g._dict[M2Z([1,0,0,1])]
-            1 + O(11^10)
+            1 + O(11^2)
         """
         D = {}
         sd = self._dict

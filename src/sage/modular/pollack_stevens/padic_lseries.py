@@ -41,11 +41,11 @@ class pAdicLseries(SageObject):
         sage: p = 5
         sage: prec = 4
         sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: Phi = phi.p_stabilize_and_lift(p,prec,algorithm='stevens',eigensymbol=True)
-        sage: L = pAdicLseries(Phi)
-        sage: L[1]
+        sage: Phi = phi.p_stabilize_and_lift(p,prec,eigensymbol=True) # long time
+        sage: L = pAdicLseries(Phi) # long time
+        sage: L[1] # long time
         2 + 3*5 + O(5^3)
-        sage: L[0]
+        sage: L[0] # long time
         O(5^4)
 
     Using the existing algorithm in Sage, it seems we are off by a
@@ -62,9 +62,9 @@ class pAdicLseries(SageObject):
         sage: p = 5
         sage: prec = 4
         sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: Phi = phi.p_stabilize_and_lift(5, prec, eigensymbol = True)
-        sage: L = pAdicLseries(Phi)
-        sage: L[1]
+        sage: Phi = phi.p_stabilize_and_lift(5, prec, eigensymbol = True) # long time
+        sage: L = pAdicLseries(Phi) # long time
+        sage: L[1] # long time
         3*5 + 5^2 + O(5^3)
 
         sage: L1 = E.padic_lseries(5) # long time
@@ -83,9 +83,9 @@ class pAdicLseries(SageObject):
         sage: c1,c2 = phi.completions(p,prec)
         sage: phi1,psi1 = c1
         sage: phi2,psi2 = c2
-        sage: phi1p = phi1.p_stabilize_and_lift(p,ap = psi1(ap), M = prec, algorithm='stevens') # long time
+        sage: phi1p = phi1.p_stabilize_and_lift(p,ap = psi1(ap), M = prec) # long time
         sage: L1 = pAdicLseries(phi1p) # long time
-        sage: phi2p = phi2.p_stabilize_and_lift(p,ap = psi2(ap), M = prec, algorithm='stevens') # long time
+        sage: phi2p = phi2.p_stabilize_and_lift(p,ap = psi2(ap), M = prec) # long time
         sage: L2  = pAdicLseries(phi2p) # long time
         sage: L1[1]*L2[1] # long time
         13 + 9*19 + O(19^2)
@@ -133,9 +133,9 @@ class pAdicLseries(SageObject):
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi_stabilized = phi.p_stabilize(p,M = prec+3)
-            sage: Phi = phi_stabilized.lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L[1]
+            sage: Phi = phi_stabilized.lift(p=p,M=prec,alpha=None,eigensymbol=True) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L[1] # long time
             3*5 + 5^2 + O(5^3)
 
             sage: L1 = E.padic_lseries(5) # long time
@@ -205,9 +205,9 @@ class pAdicLseries(SageObject):
             sage: prec = 6
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L.symb() is Phi
+            sage: Phi = phi_stabilized.lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L.symb() is Phi # long time
             True
         """
         return self._symb
@@ -224,9 +224,9 @@ class pAdicLseries(SageObject):
             sage: prec = 6
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L.prime()
+            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L.prime() # long time
             5
         """
         return self._symb.parent().prime()
@@ -243,9 +243,9 @@ class pAdicLseries(SageObject):
             sage: prec = 6
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L.quadratic_twist()
+            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L.quadratic_twist() # long time
             1
         """
         return self._quadratic_twist
@@ -262,9 +262,9 @@ class pAdicLseries(SageObject):
             sage: prec = 6
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L._repr_()
+            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True) # long time 
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L._repr_() # long time
             '5-adic L-series of Modular symbol of level 185 with values in Space of 5-adic distributions with k=0 action and precision cap 9'
         """
         return "%s-adic L-series of %s" % (self.prime(), self.symb())
@@ -283,9 +283,9 @@ class pAdicLseries(SageObject):
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi_stabilized = phi.p_stabilize(p,M = prec+3)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L.series(3,4)
+            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L.series(3,4) # long time
             O(5^4) + (3*5 + 5^2 + O(5^3))*T + (5 + O(5^2))*T^2
 
             sage: L1 = E.padic_lseries(5) # long time
@@ -312,10 +312,10 @@ class pAdicLseries(SageObject):
             sage: p = 5
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: Phi = phi.p_stabilize_and_lift(p,prec,algorithm='stevens')
-            sage: L = pAdicLseries(Phi)
-            sage: ap = phi.Tq_eigenvalue(p)
-            sage: L.interpolation_factor(ap)
+            sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: ap = phi.Tq_eigenvalue(p) # long time
+            sage: L.interpolation_factor(ap) # long time
             4 + 2*5 + 4*5^3 + O(5^4)
 
             Comparing against a different implementation:
@@ -363,9 +363,9 @@ class pAdicLseries(SageObject):
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: ap = phi.Tq_eigenvalue(p,prec)
-            sage: Phi = phi.p_stabilize_and_lift(p,ap = ap, M = prec, algorithm='stevens')
-            sage: L = pAdicLseries(Phi)
-            sage: L.eval_twisted_symbol_on_Da(1)
+            sage: Phi = phi.p_stabilize_and_lift(p,ap = ap, M = prec) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L.eval_twisted_symbol_on_Da(1) # long time
             5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2))
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -374,9 +374,9 @@ class pAdicLseries(SageObject):
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: ap = phi.Tq_eigenvalue(p,prec)
-            sage: Phi = phi.p_stabilize_and_lift(p,ap = ap, M = prec, algorithm='stevens')
-            sage: L = pAdicLseries(Phi)
-            sage: L.eval_twisted_symbol_on_Da(1)
+            sage: Phi = phi.p_stabilize_and_lift(p,ap = ap, M = prec) # long time
+            sage: L = pAdicLseries(Phi) # long time
+            sage: L.eval_twisted_symbol_on_Da(1) # long time
             (4 + 6*7 + 3*7^2 + O(7^4), 2 + 7 + O(7^3), 4 + 6*7 + O(7^2), 6 + O(7))
         """
         symb = self.symb()
@@ -414,7 +414,7 @@ class pAdicLseries(SageObject):
             sage: p = 5
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: Phi = phi.p_stabilize_and_lift(p,prec,None,algorithm = 'greenberg',eigensymbol = True) # long time
+            sage: Phi = phi.p_stabilize_and_lift(p,prec,eigensymbol = True) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.eval_twisted_symbol_on_Da(1) # long time
             5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2))

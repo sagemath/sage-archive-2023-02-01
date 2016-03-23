@@ -1000,7 +1000,7 @@ cdef class Dist_vector(Dist):
         """
         return Integer(len(self._moments) + self.ordp)
 
-    cpdef normalize(self):
+    cpdef normalize(self, include_zeroth_moment = True):
         r"""
         Normalize by reducing modulo `Fil^N`, where `N` is the number of moments.
 
@@ -1020,22 +1020,24 @@ cdef class Dist_vector(Dist):
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
         """
-        if not self.parent().is_symk():  # non-classical
+        if not self.parent().is_symk() and self._moments != 0:  # non-classical
             if len(self._moments) <= 1:
                 return self
             V = self._moments.parent()
             R = V.base_ring()
             n = self.precision_relative()
             p = self.parent()._p
-            if isinstance(R, pAdicGeneric):
-                self._moments = V([self._moments[0]] + [self._moments[i].add_bigoh(n - i) for i in range(1, n)])  # Don't normalize the zeroth moment
+            shift = self.ordp
+            if include_zeroth_moment:
+                if isinstance(R, pAdicGeneric):
+                    self._moments = V([self._moments[i].add_bigoh(n -shift - i) for i in range(n)])
+                else:
+                    self._moments = V([self._moments[i] % (p ** (n -shift - i)) for i in range(n)])
             else:
-                self._moments = V([self._moments[0]] + [self._moments[i] % (p ** (n - i)) for i in range(1, n)])  # Don't normalize the zeroth moment
-            # shift = self.valuation() - self.ordp
-            # if shift != 0:
-            #     V = self.parent().approx_module(n-shift)
-            #     self.ordp += shift
-            #     self._moments = V([self._moments[i] // p**shift for i in range(n-shift)])
+                if isinstance(R, pAdicGeneric):
+                    self._moments = V([self._moments[0]] + [self._moments[i].add_bigoh(n -shift - i) for i in range(1, n)])  # Don't normalize the zeroth moment
+                else:
+                    self._moments = V([self._moments[0]] + [self._moments[i] % (p ** (n -shift- i)) for i in range(1, n)])  # Don't normalize the zeroth moment
         return self
 
     def reduce_precision(self, M):

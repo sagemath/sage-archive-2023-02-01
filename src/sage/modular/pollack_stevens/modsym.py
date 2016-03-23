@@ -103,7 +103,7 @@ def _lift_to_OMS_eigen(Phi, p, M, new_base_ring, ap, newM, eisenloss,
     verbose("Estimated time to complete (second estimate): %s hours" % eta, level = 2)
 
     attempts = 0
-    while Phi != Psi:
+    while attempts < M:
         verbose("%s attempt (val = %s/%s)" % (attempts + 1,(Phi-Psi).valuation(),M), level = 2)
         Phi = Psi
         Psi = apinv * Phi.hecke(p)
@@ -113,7 +113,7 @@ def _lift_to_OMS_eigen(Phi, p, M, new_base_ring, ap, newM, eisenloss,
             raise RuntimeError("Precision problem in lifting -- applied "
                            "U_p many times without success")
     Phi = ~(q ** (k + 1) + 1 - aq) * Phi
-    return Phi
+    return Phi._normalize(include_zeroth_moment = True)
 
 class PSModSymAction(Action):
     def __init__(self, actor, MSspace):
@@ -237,7 +237,7 @@ class PSModularSymbolElement(ModuleElement):
         """
         return [self._map[g] for g in self.parent().source().gens()]
 
-    def _normalize(self):
+    def _normalize(self, **kwds):
         """
         Normalizes all of the values of the symbol self
 
@@ -252,7 +252,7 @@ class PSModularSymbolElement(ModuleElement):
             [-1/5, 3/2, -1/2]
         """
         for val in self._map:
-            val.normalize()
+            val.normalize(**kwds)
         return self
 
     def __cmp__(self, other):
@@ -686,7 +686,7 @@ class PSModularSymbolElement(ModuleElement):
                             raise ValueError("not a scalar multiple")
             else:
                 verbose('p = %s, M = %s' % (p, M), level = 2)
-                if (qhecke - aq * self).valuation(p) < M:
+                if qhecke != aq * self:
                     raise ValueError("not a scalar multiple")
         # if not aq.parent().is_exact() and M is not None:
         #     aq.add_bigoh(M)
@@ -1136,20 +1136,18 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: p = 5
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: phi_stabilized = phi.p_stabilize(p,20)
-            sage: Phi = phi_stabilized.lift(p,prec,algorithm='stevens',eigensymbol=True)
+            sage: Phi = phi.p_stabilize_and_lift(p,prec, algorithm = 'stevens', eigensymbol = True)
             sage: Phi.Tq_eigenvalue(5,M = 4)
             3 + 2*5 + 4*5^2 + 2*5^3 + O(5^4)
 
-        Another buggy example::
+        Another example::
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 6
             sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True)
+            sage: Phi = phi.p_stabilize_and_lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True)
             sage: L = pAdicLseries(Phi)
             sage: L.symb() is Phi
             True
@@ -1171,7 +1169,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: fs = f.p_stabilize(5)
             sage: FsG = fs.lift(M=6, eigensymbol=True,algorithm='greenberg')
             sage: FsG.values()[0]
-            (2 + 5 + 3*5^2 + 4*5^3 + O(5^6), O(5^5), 2*5 + 3*5^2 + O(5^4), O(5^3), 5 + O(5^2), O(5))
+            5^-1 * (2*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^7), O(5^6), 2*5^2 + 3*5^3 + O(5^5), O(5^4), 5^2 + O(5^3), O(5^2))
             sage: FsS = fs.lift(M=6, eigensymbol=True,algorithm='stevens')
             sage: FsS == FsG
             True
@@ -1207,27 +1205,20 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             # the difference equation can give denominators.
             if alpha is None:
                 verbose('Finding alpha with M = %s' % M, level = 2)
-                try:  # This is a hack, should debug what is the right M to pass
-                    alpha = self.Tq_eigenvalue(p, M=M + 1, check=check)
-                except ValueError:
-                    alpha = self.Tq_eigenvalue(p, M=M, check=check)
-
+                alpha = self.Tq_eigenvalue(p, M=M + 1, check=check)
             newM, eisenloss, q, aq = self._find_extraprec(p, M + 1, alpha,
                                                           check)
-            if algorithm == 'stevens':
-                Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
-            elif algorithm == 'greenberg':
-                newM = M + 1
-                Phi = self._lift_naive(p, newM, new_base_ring, check)
-            else:
+            if algorithm != 'stevens' and algorithm != 'greenberg':
                 raise ValueError("algorithm %s not recognized" % algorithm)
-
-            return _lift_to_OMS_eigen(Phi, p, M, new_base_ring, alpha,
-                                           newM, eisenloss, q, aq, check)
+            Phi = self._lift_to_OMS(p, newM, new_base_ring, check, algorithm)
+            Phi = _lift_to_OMS_eigen(Phi, p, newM, new_base_ring, alpha,
+                                           newM, eisenloss, q, aq, check) #DEBUG newM
+            Phi = Phi.reduce_precision(M)
+            return Phi._normalize(include_zeroth_moment = True)
         else:
             if algorithm != 'stevens':
                 raise NotImplementedError
-            return self._lift_to_OMS(p, M, new_base_ring, check)
+            return self._lift_to_OMS(p, M, new_base_ring, check, algorithm)
 
     def _lift_greenberg(self, p, M, new_base_ring=None, check=False):
         """
@@ -1300,7 +1291,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 Phi1.values()[j]._moments[s] = self.values()[j].moment(s)
         return Phi1 #.reduce_precision(M) # Fix this!!
 
-    def _lift_to_OMS(self, p, M, new_base_ring, check):
+    def _lift_to_OMS(self, p, M, new_base_ring, check, algorithm = 'greenberg'):
         r"""
         Returns a (`p`-adic) overconvergent modular symbol with
         `M` moments which lifts self up to an Eisenstein error
@@ -1319,6 +1310,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         - ``check`` -- THIS IS CURRENTLY NOT USED IN THE CODE!
 
+        - ``algorithm`` --
+
         OUTPUT:
 
         - An overconvergent modular symbol whose specialization
@@ -1336,82 +1329,48 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         D = {}
         manin = self.parent().source()
         MSS = self.parent()._lift_parent_space(p, M, new_base_ring)
-        verbose("Naive lifting: newM=%s, new_base_ring=%s" % (M, MSS.base_ring()), level = 2)
-        half = ZZ(1) / ZZ(2)
-        for g in manin.gens()[1:]:
-            twotor = g in manin.reps_with_two_torsion()
-            threetor = g in manin.reps_with_three_torsion()
-            if twotor:
-                # See [PS] section 4.1
-                gam = manin.two_torsion_matrix(g)
-                mu = self._map[g].lift(p, M, new_base_ring)
-                D[g] = (mu - mu * gam) * half
-            elif threetor:
-                # See [PS] section 4.1
-                gam = manin.three_torsion_matrix(g)
-                mu = self._map[g].lift(p, M, new_base_ring)
-                D[g] = (2 * mu - mu * gam - mu * (gam ** 2)) * half
-            else:
-                # no two or three torsion
+        if algorithm == 'greenberg':
+            for g in manin.gens():
                 D[g] = self._map[g].lift(p, M, new_base_ring)
+        elif algorithm == 'stevens':
+            half = ZZ(1) / ZZ(2)
+            for g in manin.gens()[1:]:
+                twotor = g in manin.reps_with_two_torsion()
+                threetor = g in manin.reps_with_three_torsion()
+                if twotor:
+                    # See [PS] section 4.1
+                    gam = manin.two_torsion_matrix(g)
+                    mu = self._map[g].lift(p, M, new_base_ring)
+                    D[g] = (mu - mu * gam) * half
+                elif threetor:
+                    # See [PS] section 4.1
+                    gam = manin.three_torsion_matrix(g)
+                    mu = self._map[g].lift(p, M, new_base_ring)
+                    D[g] = (2 * mu - mu * gam - mu * (gam ** 2)) * half
+                else:
+                    # no two or three torsion
+                    D[g] = self._map[g].lift(p, M, new_base_ring)
 
-        t = self.parent().coefficient_module().lift(p, M, new_base_ring).zero()
-        ## This loops adds up around the boundary of fundamental
-        ## domain except the two vertical lines
-        for g in manin.gens()[1:]:
-            twotor = g in manin.reps_with_two_torsion()
-            threetor = g in manin.reps_with_three_torsion()
-            if twotor or threetor:
-                t = t - D[g]
-            else:
-                t += D[g] * manin.gammas[g] - D[g]
-        ## t now should be sum Phi(D_i) | (gamma_i - 1) - sum
-        ## Phi(D'_i) - sum Phi(D''_i)
+            t = self.parent().coefficient_module().lift(p, M, new_base_ring).zero()
+            ## This loops adds up around the boundary of fundamental
+            ## domain except the two vertical lines
+            for g in manin.gens()[1:]:
+                twotor = g in manin.reps_with_two_torsion()
+                threetor = g in manin.reps_with_three_torsion()
+                if twotor or threetor:
+                    t = t - D[g]
+                else:
+                    t += D[g] * manin.gammas[g] - D[g]
+            ## t now should be sum Phi(D_i) | (gamma_i - 1) - sum
+            ## Phi(D'_i) - sum Phi(D''_i)
 
-        ## (Here I'm using the opposite sign convention of [PS1]
-        ## regarding D'_i and D''_i)
+            ## (Here I'm using the opposite sign convention of [PS1]
+            ## regarding D'_i and D''_i)
 
-        D[manin.gen(0)] = -t.solve_diff_eqn()  # Check this!
+            D[manin.gen(0)] = -t.solve_diff_eqn()  # Check this!
+        else:
+            raise NotImplementedError
 
-        return MSS(D)
-
-    def _lift_naive(self, p, M, new_base_ring, check):
-        r"""
-        Returns a (`p`-adic) overconvergent chain with
-        `M` moments which lifts self naively
-
-        INPUT:
-
-        - ``p`` -- prime
-
-        - ``M`` -- integer equal to the number of moments
-
-        - ``new_base_ring`` -- new base ring
-
-        - ``check`` -- THIS IS CURRENTLY NOT USED IN THE CODE!
-
-        OUTPUT:
-
-        - An overconvergent chain
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-            sage: E = EllipticCurve('11a')
-            sage: f = ps_modsym_from_elliptic_curve(E)
-            sage: f._lift_naive(11,4,Qp(11,4),True)
-            Modular symbol of level 11 with values in Space of 11-adic distributions with k=0 action and precision cap 4
-
-        """
-        D = {}
-        MS = self.parent()        
-        manin = MS.source()
-        gens = manin.gens()
-        if new_base_ring is None:
-            new_base_ring = MS.base_ring()
-        MSS = self.parent()._lift_parent_space(p, M, new_base_ring)
-        for g in gens:
-            D[g] = self._map[g].lift(p, M, new_base_ring)
         return MSS(D)
     
     def _find_aq(self, p, M, check):
@@ -1550,24 +1509,26 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         k = self.parent().weight()
         M = ZZ(M)
         # alpha will be the eigenvalue of Up
+        M0 = M + 1
         if alpha is None:
-            alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M + 1, ap, new_base_ring, ordinary, check)  # DEBUG
-        else:
-            if new_base_ring is None:
-                new_base_ring = alpha.parent()
-            newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
-            if hasattr(new_base_ring, 'precision_cap') and newM > new_base_ring.precision_cap():
-                raise ValueError("Not enough precision in new base ring")
+            alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M0, ap, new_base_ring, ordinary, check)
+        if new_base_ring is None:
+            new_base_ring = alpha.parent()
+        newM, eisenloss, q, aq = self._find_extraprec(p, M0, alpha, check)
+        if hasattr(new_base_ring, 'precision_cap') and newM > new_base_ring.precision_cap():
+            raise ValueError("Not enough precision in new base ring")
 
         # Now we can stabilize
         self = self.p_stabilize(p=p, alpha=alpha, ap=ap, M=newM,
                                 new_base_ring=new_base_ring, check=check)
         # And use the standard lifting function for eigensymbols
-        Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
-        return _lift_to_OMS_eigen(Phi, p=p, M=M, new_base_ring=new_base_ring,
+        Phi = self._lift_to_OMS(p, newM, new_base_ring, check, algorithm)
+        Phi = _lift_to_OMS_eigen(Phi, p=p, M=newM, new_base_ring=new_base_ring,
                                        ap=alpha, newM=newM,
                                        eisenloss=eisenloss, q=q, aq=aq,
                                        check=check)
+        Phi = Phi.reduce_precision(M)
+        return Phi._normalize(include_zeroth_moment = True)
 
 
 class PSModularSymbolElement_dist(PSModularSymbolElement):

@@ -13,7 +13,7 @@ from sage.structure.element import Element
 from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer, IntegerWrapper
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 from sage.structure.unique_representation import UniqueRepresentation
 
 
@@ -606,7 +606,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
         sage: timeit("pw.is_prime()")    # random
         625 loops, best of 3: 854 ns per loop
 
-    And moreover, the next methods for the element does not exists::
+    And moreover, the next methods for the element does not exist::
 
         sage: pf.next()
         Traceback (most recent call last):

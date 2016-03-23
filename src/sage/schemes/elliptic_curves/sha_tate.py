@@ -87,7 +87,7 @@ from sage.rings.all import (
 from sage.misc.functional import log
 from math import sqrt
 from sage.misc.all import verbose
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.rings.padics.factory import Qp
 
 factor = arith.factor

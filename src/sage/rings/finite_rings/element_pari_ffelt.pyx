@@ -19,7 +19,7 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.paripriv cimport *
 include "sage/libs/pari/pari_err.pxi"

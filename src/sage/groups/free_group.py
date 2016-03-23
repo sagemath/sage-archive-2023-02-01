@@ -915,4 +915,4 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         from sage.groups.finitely_presented import FinitelyPresentedGroup
         return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
-    __div__ = quotient
+    __truediv__ = quotient

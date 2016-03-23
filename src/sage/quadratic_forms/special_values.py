@@ -10,7 +10,7 @@ Routines for computing special values of L-functions
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.misc.functional import denominator
 from sage.rings.all import RealField
-from sage.rings.arith import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
+from sage.arith.all import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

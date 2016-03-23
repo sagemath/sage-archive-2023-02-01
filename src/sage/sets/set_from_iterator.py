@@ -81,7 +81,7 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``args`` -- tuple -- arguments to be sent to the function ``f``
 
-    - ``kwds`` -- dictionnary -- keywords to be sent to the function ``f``
+    - ``kwds`` -- dictionary -- keywords to be sent to the function ``f``
 
     - ``name`` -- an optional name for the set
 
@@ -1014,5 +1014,5 @@ class DummyExampleForPicklingTest:
             sage: d.f()
             {4, 5, 6, 7, 8, ...}
         """
-        from sage.misc.misc import xsrange
+        from sage.arith.srange import xsrange
         return xsrange(self.start, self.stop)

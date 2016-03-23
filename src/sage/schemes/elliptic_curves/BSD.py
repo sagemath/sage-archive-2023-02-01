@@ -7,7 +7,7 @@
 #from ell_number_field import EllipticCurve_number_field
 
 #import sage.groups.all
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.all as rings
 from sage.rings.all import ZZ, Infinity
 from sage.functions.all import ceil

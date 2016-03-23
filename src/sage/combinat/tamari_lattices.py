@@ -46,7 +46,7 @@ are also available directly using the catalogue of posets, as follows::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.posets.lattices import LatticePoset
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 
 
 def paths_in_triangle(i, j, a, b):

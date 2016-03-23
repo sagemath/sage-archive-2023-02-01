@@ -87,12 +87,12 @@ from sage.rings.infinity import infinity
 from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
 
 from sage.rings.integer import Integer
-from sage.rings.arith import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
+from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
 
 from sage.structure.sage_object import SageObject
 
 from sage.misc.all import verbose, denominator, get_verbose
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix

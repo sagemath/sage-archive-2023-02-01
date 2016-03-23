@@ -21,6 +21,11 @@ REFERENCE:
    Discrete applied mathematics 155, no. 11 (2007): 1451-1457.
    http://linearcodes.uni-bayreuth.de/twoweight/
 
+.. [Disset00] L. Dissett,
+   Combinatorial and computational aspects of finite geometries,
+   2000,
+   https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
+
 TESTS:
 
 Check the data's consistency::
@@ -33,9 +38,8 @@ Check the data's consistency::
     ....:     w1,w2 = [w for w,f in enumerate(LinearCode(M).weight_distribution()) if w and f]
     ....:     assert (code['w1'], code['w2']) == (w1, w2)
 
-
 """
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.matrix.constructor import Matrix
 from sage.coding.linear_code import LinearCode
 
@@ -327,6 +331,65 @@ data = [
                [0,0,1,0,  1,  0,   0,  'x','x',  1,'x^2',  1,  1,'x^2',    1,'x','x',  'x','x^2',    1,  0,  'x',  'x',    0,    1,'x^2',  'x','x',1,0,  0,    0,    1,  'x'],
                [0,0,0,1,'x','x','x^2',   1,  0,'x',  'x',  0,  1,'x^2',  'x','x',  1,'x^2','x^2',  'x','x','x^2','x^2','x^2',    1,'x^2',  'x',  1,0,1,'x','x^2',    1,'x^2']],
         'source': "Shared by Eric Chen [ChenDB]_.",
+    },
+    {
+        'n' : 121,
+        'k' : 5,
+        'w1': 88,
+        'w2': 96,
+        'K' : GF(4,name='x'),
+        'M' : [map({'0':0,'1':1,'a':'x','b':'x**2'}.get,x) for x in
+               ["11b1aab0a0101010b1b0a0bab0a0a0b011a0a1b1aab0b1a0b1bab0b0a0b1b011a011a011a011b0b1b0b0b0b0aab1a1b0aab0b010aab1a010b0a1a1aab",
+                "01100110011aa0011aabb0011bb11aabb00bb00aabb11bb11aa0011aabb00aabb00aabb0011bb0011aa00aabb0011aa11aabb00aabb0011aabb00aabb",
+                "000111100000011111111aaaaaabbbbbb0000111111aaaabbbb00000000111111aaaaaabbbbbb000000111111aaaaaa000000111111aaaaaaaabbbbbb",
+                "00000001111111111111111111111111100000000000000000011111111111111111111111111aaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "0000000000000000000000000000000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+               ]],
+        'source' : "From [Disset00]_",
+    },
+    {
+        'n' : 132,
+        'k' : 5,
+        'w1': 96,
+        'w2': 104,
+        'K' : GF(4,name='x'),
+        'M' : [map({'0':0,'1':1,'a':'x','b':'x**2'}.get,x) for x in
+               ["aab1a1ab0b11b1a10b0b101ab00ab1b01ab01abbabab10a1b0a0101a1a1a01ab1b0101ab01ba00bb1bb111b11b1011b1ab0abb1b01abab00abab0aab01001ab0a11b",
+                "10011b0011abb001aaaab00001ab011aaaabbbb1aabb011aabb001aabb01a00abb001111bbb01aab001ab001bb011aa011aaab001111aab00abb0011aab000011abb",
+                "011111000000011111aaabbbbbbb0000000000011111aaaaaaabbbbbbb00011111aaaaaaaaabbbbb0000011111aaaaabbbbbbb00000000011111aaaaaaabbbbbbbbb",
+                "00000011111111111111111111110000000000000000000000000000001111111111111111111111aaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+               ]],
+        'source' : "From [Disset00]_",
+    },
+    {
+        'n' : 143,
+        'k' : 5,
+        'w1': 104,
+        'w2': 112,
+        'K' : GF(4,name='x'),
+        'M' : [map({'0':0,'1':1,'a':'x','b':'x**2'}.get,x) for x in
+               ["1a01a01ab0aaab0bab0a1ab0bab0ab0a01a0a011aab00a01a1a011b00101b1a1bb0a0abab00a1a01a1b11a010b01ab1ab0a011a01ab00a10b0a01babab1a1ba011ab0a1ab0a0b01",
+                "0011abbbb001aabb00aabbb0011aaabb00011bb0011abb000aabb001aa00b11aab00111aa0110011abb0aabb001111aaabb0011aaaab001bb00111aa0011aab11aaabb00011aabb",
+                "11111111100000001111111aaaaaaaaabbbbbbb00000001111111aaaaabbb000001111111aaabbbbbbb0000011111111111aaaaaaaaabbbbb00000001111111aaaaaaabbbbbbbbb",
+                "00000000011111111111111111111111111111100000000000000000000001111111111111111111111aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "00000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+               ]],
+        'source' : "From [Disset00]_",
+    },
+    {
+        'n' : 168,
+        'k' : 6,
+        'w1': 108,
+        'w2': 117,
+        'K' : GF(3),
+        'M' : ["101212212122202012010102120101112012121001201012120220122112001121201201201201010020012201001201201201202120121122012021201221021110200212121011211002012220000122201201",
+               "011100122001200111220011220020011222001200022000220012220122011220011101122012012001222010122200012011120112220112000120120012002012201122001220012122000201212001211211",
+               "000011111000011111112000001112000000111122222000001111112222000001111122222000111222222001111122222000001111112222000001112222000111122222000001111222000011122000011122",
+               "000000000111111111111000000000111111111111111222222222222222000000000000000111111111111222222222222000000000000000111111111111222222222222000000000000111111111222222222",
+               "000000000000000000000111111111111111111111111111111111111111000000000000000000000000000000000000000111111111111111111111111111111111111111222222222222222222222222222222",
+               "000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"],
+        'source' : "From [Disset00]_",
     },
 ]
 

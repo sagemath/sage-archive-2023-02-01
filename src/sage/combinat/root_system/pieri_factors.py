@@ -19,7 +19,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 import sage.combinat.ranker
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.root_system import RootSystem

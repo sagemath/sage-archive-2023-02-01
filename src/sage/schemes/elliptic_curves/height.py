@@ -50,7 +50,7 @@ from sage.rings.all import (ZZ, QQ, RR, RDF, RIF, CC, CDF, CIF,
     infinity, RealField, ComplexField)
 
 from sage.misc.all import cached_method, cartesian_product_iterator
-from sage.rings.arith import lcm, factor, factorial
+from sage.arith.all import lcm, factor, factorial
 from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR

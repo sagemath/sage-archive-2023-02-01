@@ -34,7 +34,7 @@ cdef extern from "partitions_c.h":
     int part(mpz_t answer, unsigned int n)
     int test(bint longtest, bint forever)
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer
 
@@ -140,7 +140,7 @@ def ZS1_iterator(int n):
     REFERENCES:
 
     .. [ZS98] Antoine Zoghbi, Ivan Stojmenovic,
-       *Fast Algorithms for Generating Integer Partitons*,
+       *Fast Algorithms for Generating Integer Partitions*,
        Intern. J. Computer Math., Vol. 70., pp. 319--332.
        http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.1287
 

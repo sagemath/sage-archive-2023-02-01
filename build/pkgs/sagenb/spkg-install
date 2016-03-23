@@ -27,7 +27,6 @@ export LIBRARY_PATH="$LIBRARY_PATH""$SAGE_LOCAL"/lib
 # Solaris. See http://trac.sagemath.org/sage_trac/ticket/11080#comment:314 and
 # the subsequent few comments.
 export CPPFLAGS="-I$SAGE_LOCAL/include -D_XOPEN_SOURCE=500 $CPPFLAGS"
-export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 
 if [ $SAGE64 = "yes" ]; then
     echo "Building with extra 64-bit flags for MacOS X and Open Solaris."

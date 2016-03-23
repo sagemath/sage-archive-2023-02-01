@@ -767,6 +767,17 @@ cdef class FastDoubleFunc:
         """
         return binop(left, right, MUL)
 
+    def __truediv__(left, right):
+        """
+        EXAMPLES::
+
+            sage: from sage.ext.fast_eval import fast_float_arg
+            sage: f = fast_float_arg(0).__truediv__(7)
+            sage: f(14)
+            2.0
+        """
+        return binop(left, right, DIV)
+
     def __div__(left, right):
         """
         EXAMPLES::

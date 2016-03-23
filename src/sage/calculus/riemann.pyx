@@ -25,7 +25,7 @@ Development supported by NSF award No. 0702939.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.misc.decorators import options
 from sage.plot.all import list_plot, Graphics
@@ -34,7 +34,7 @@ from sage.ext.fast_eval import fast_callable
 
 from sage.rings.all import CDF
 
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 
 from sage.gsl.interpolation import spline
 

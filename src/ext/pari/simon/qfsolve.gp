@@ -134,7 +134,7 @@
 \\ Usual global variables
 \\ 
 
-global(DEBUGLEVEL_qfsolve);
+global(DEBUGLEVEL_qfsolve):small;
 
   DEBUGLEVEL_qfsolve = 0;
 
@@ -147,7 +147,7 @@ global(DEBUGLEVEL_qfsolve);
 \\          SCRIPT                             \\
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-{default_qfsolve(DEBUGLEVEL_qfsolve_val = 0) =
+{default_qfsolve(DEBUGLEVEL_qfsolve_val:small = 0) =
 
   DEBUGLEVEL_qfsolve = DEBUGLEVEL_qfsolve_val;
   print("  DEBUGLEVEL_qfsolve = ",DEBUGLEVEL_qfsolve);
@@ -859,3 +859,4 @@ addhelp(qflllgram_indef,
   gp > qflllgram_indef(G)
   %1 = [-24749181067550, 1904107022307, -3382470700136]~
 ");
+}

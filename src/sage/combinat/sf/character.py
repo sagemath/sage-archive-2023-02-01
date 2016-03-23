@@ -32,7 +32,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.combinat.partition import Partition
-from sage.rings.arith import divisors, moebius
+from sage.arith.all import divisors, moebius
 from sage.functions.other import binomial
 from sage.rings.integer import Integer
 

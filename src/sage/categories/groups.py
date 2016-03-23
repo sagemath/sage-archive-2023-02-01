@@ -843,7 +843,7 @@ class Groups(CategoryWithAxiom):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of groups constructed as cartesian products of groups.
+        The category of groups constructed as Cartesian products of groups.
 
         This construction gives the direct product of groups. See
         :wikipedia:`Direct_product` and :wikipedia:`Direct_product_of_groups`
@@ -851,7 +851,7 @@ class Groups(CategoryWithAxiom):
         """
         def extra_super_categories(self):
             """
-            A cartesian product of groups is endowed with a natural
+            A Cartesian product of groups is endowed with a natural
             group structure.
 
             EXAMPLES::
@@ -896,7 +896,7 @@ class Groups(CategoryWithAxiom):
                     sage: H = Groups.free(ZZ)
                     sage: C = cartesian_product([G, H])
                     sage: C.monoid_generators()
-                    Lazy family (gen(i))_{i in The cartesian product of (...)}
+                    Lazy family (gen(i))_{i in The Cartesian product of (...)}
                 """
                 F = self.cartesian_factors()
                 ids = tuple(G.one() for G in F)

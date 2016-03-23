@@ -237,7 +237,7 @@ from sage.structure.global_options import GlobalOptions
 
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
@@ -4619,7 +4619,7 @@ class Permutation(CombinatorialElement):
         REFERENCES:
 
         .. [OkounkovVershik2] A. M. Vershik, A. Yu. Okounkov.
-           *A New Approach to the Representation Thoery of the Symmetric
+           *A New Approach to the Representation Theory of the Symmetric
            Groups. 2*. http://uk.arxiv.org/abs/math/0503040v3.
 
         .. [CST10] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
@@ -6624,7 +6624,7 @@ def from_cycles(n, cycles, parent=None):
         sage: Permutation("(-12,2)(3,4)")
         Traceback (most recent call last):
         ...
-        ValueError: All elements should be strictly positive integers, and I just found a negative one.
+        ValueError: All elements should be strictly positive integers, and I just found a non-positive one.
         sage: Permutation("(1,2)(2,4)")
         Traceback (most recent call last):
         ...
@@ -6652,7 +6652,7 @@ def from_cycles(n, cycles, parent=None):
     # Only positive elements
     if int(flattened_and_sorted[0]) < 1:
         raise ValueError("All elements should be strictly positive "
-                         "integers, and I just found a negative one.")
+                         "integers, and I just found a non-positive one.")
 
     # Really smaller or equal to n ?
     if flattened_and_sorted[-1] > n:

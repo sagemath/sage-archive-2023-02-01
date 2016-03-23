@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 q-Analogues
 """
@@ -313,13 +314,13 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         else:
             num = prod(one - q**i for i in range(n-k+1, n+1))
             try:
-                return num//denom
-            except TypeError:
                 try:
-                    return num/denom
-                except (TypeError,ZeroDivisionError):
-                    #try a substitution
-                    return q_binomial(n,k)(q)
+                    return num // denom
+                except TypeError:
+                    return num / denom
+            except (TypeError, ZeroDivisionError):
+                # use substitution instead
+                return q_binomial(n,k)(q)
     elif algorithm == 'cyclo_generic':
         from sage.rings.polynomial.cyclotomic import cyclotomic_value
         return prod(cyclotomic_value(d,q)
@@ -657,7 +658,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
        Mathematical Society 101, no. 4 (1987): 771-775.
        :doi:`10.1090/S0002-9939-1987-0911049-8`
 
-    .. [Delsarte48] S. Delsarte, *Fonctions de Mobius Sur Les Groupes Abeliens
+    .. [Delsarte48] S. Delsarte, *Fonctions de Möbius Sur Les Groupes Abeliens
        Finis*, Annals of Mathematics, second series, Vol. 45, No. 3, (Jul 1948),
        pp. 600-609. http://www.jstor.org/stable/1969047
 

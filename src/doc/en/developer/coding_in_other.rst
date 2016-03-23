@@ -67,7 +67,8 @@ add the method ``matfrobenius``::
         sig_on()
         return self.new_gen(matfrobenius(self.g, flag, 0))
 
-Note the use of the :ref:`sig_on() statement <section_sig_on>`.
+Note the use of the
+`sig_on() statement <http://cysignals.readthedocs.org/en/latest/#using-sig-on-and-sig-off>`_.
 
 The ``matfrobenius`` call is just a call to the PARI C library
 function ``matfrobenius`` with the appropriate parameters.
@@ -648,13 +649,12 @@ basic class for interfaces. The third line defines the class
 ``Octave``; it derives from ``Expect`` as well. After this comes a
 docstring, which we omit here (see the file for details). Next comes::
 
-        def __init__(self, maxread=100, script_subdirectory="", logfile=None,
+        def __init__(self, script_subdirectory="", logfile=None,
                      server=None, server_tmpdir=None):
             Expect.__init__(self,
                             name = 'octave',
                             prompt = '>',
                             command = "octave --no-line-editing --silent",
-                            maxread = maxread,
                             server = server,
                             server_tmpdir = server_tmpdir,
                             script_subdirectory = script_subdirectory,

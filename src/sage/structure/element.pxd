@@ -37,7 +37,6 @@ cdef class Element(SageObject):
     cdef Parent _parent
     cpdef _richcmp_(left, Element right, int op)
     cpdef int _cmp_(left, Element right) except -2
-    cdef _set_parent_c(self, Parent parent)
     cpdef base_extend(self, R)
 
     cpdef _act_on_(self, x, bint self_on_left)
@@ -78,6 +77,7 @@ cdef class AdditiveGroupElement(ModuleElement):
 cdef class RingElement(ModuleElement):
     cpdef RingElement _mul_(self, RingElement right)
     cpdef RingElement _div_(self, RingElement right)
+    cpdef RingElement _floordiv_(self, RingElement right)
 
     cdef RingElement _add_long(self, long n)
 

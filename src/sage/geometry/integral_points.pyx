@@ -5,8 +5,10 @@ Cython helper methods to compute integral points in polyhedra.
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -14,8 +16,9 @@ import copy
 import itertools
 
 from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
-from sage.rings.all import QQ, RR, ZZ, gcd, lcm
+from sage.rings.all import QQ, RR, ZZ
 from sage.rings.integer cimport Integer
+from sage.arith.all import gcd, lcm
 from sage.combinat.permutation import Permutation
 from sage.misc.all import prod, uniq
 

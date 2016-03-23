@@ -1,5 +1,5 @@
 r"""
-Fast binary code routines.
+Fast binary code routines
 
 Some computations with linear binary codes. Fix a basis for $GF(2)^n$.
 A linear binary code is a linear subspace of $GF(2)^n$, together with
@@ -40,7 +40,6 @@ AUTHOR:
 include 'sage/ext/cdefs.pxi'
 from cpython.mem cimport *
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
 from sage.structure.element import is_Matrix
 from sage.misc.misc import cputime
 from sage.rings.integer cimport Integer
@@ -4183,7 +4182,7 @@ cdef class BinaryCodeClassifier:
 #                    print 'm:'
 #                    print m
                     m_aut_gp_gens, m_labeling, m_size, m_base = self._aut_gp_and_can_label(m)
-                    from sage.rings.arith import factorial
+                    from sage.arith.all import factorial
                     if True:#size*factorial(n-B.ncols) == m_size:
 #                        print 'in if'
 #                        print 'm_aut_gp_gens:', m_aut_gp_gens

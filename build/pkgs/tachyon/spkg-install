@@ -73,18 +73,18 @@ fi
 
 if [ "$UNAME" = "Linux" ]; then
     case "`uname -m`" in
-	i[3456]86)
+        i[3456]86)
             $MAKE linux-thr;;
-	ia64)
+        ia64)
             $MAKE linux-ia64-thr;;
-	amd64|x86_64)
+        amd64|x86_64)
             $MAKE linux-64-thr;;
-	ppc|powerpc|ppc64|powerpc64)
+        ppc*|powerpc*)
             $MAKE linux-ppc;;
         armv6l|armv7l)
             sed "s/-m32//g" ../../patches/Make-arch > Make-arch
             $MAKE linux-thr;;
-	*) # e.g. SPARC
+        *) # e.g. SPARC
             echo "Error: Sorry, your platform isn't supported by Tachyon and/or Sage. Exiting..."
             exit 1
     esac

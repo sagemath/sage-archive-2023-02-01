@@ -8,7 +8,6 @@ The class ``PowerSeries_poly`` provides additional methods for univariate power 
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
-import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
@@ -416,63 +415,28 @@ cdef class PowerSeries_poly(PowerSeries):
             ...
             IndexError: coefficient not known
             sage: f[1:4]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
             -17/5*t^3 + O(t^5)
 
             sage: R.<t> = ZZ[[]]
             sage: f = (2-t)^5; f
             32 - 80*t + 80*t^2 - 40*t^3 + 10*t^4 - t^5
-            sage: f[2:4]
-            80*t^2 - 40*t^3
-            sage: f[5:9]
-            -t^5
-            sage: f[2:7:2]
-            80*t^2 + 10*t^4
-            sage: f[10:20]
-            0
-            sage: f[10:]
-            0
             sage: f[:4]
             32 - 80*t + 80*t^2 - 40*t^3
-
             sage: f = 1 + t^3 - 4*t^4 + O(t^7) ; f
             1 + t^3 - 4*t^4 + O(t^7)
-            sage: f[2:4]
-            t^3 + O(t^7)
-            sage: f[4:9]
-            -4*t^4 + O(t^7)
-            sage: f[2:7:2]
-            -4*t^4 + O(t^7)
-            sage: f[10:20]
-            O(t^7)
-            sage: f[10:]
-            O(t^7)
             sage: f[:4]
             1 + t^3 + O(t^7)
         """
         if isinstance(n, slice):
-            # get values from slice object
-            start = n.start if n.start is not None else 0
-            stop = self.prec() if n.stop is None else n.stop
-            if stop is infinity: stop = self.degree()+1
-            step = 1 if n.step is None else n.step
-
-            # find corresponding polynomial
-            poly = self.__f[start:stop]
-            if step is not None:
-                coeffs = poly.padded_list(stop)
-                for i in range(start, stop):
-                    if (i-start) % step:
-                        coeffs[i] = 0
-                poly = self.__f.parent()(coeffs)
-
-            # return the power series
-            return PowerSeries_poly(self._parent, poly,
+            return PowerSeries_poly(self._parent, self.polynomial()[n],
                                     prec=self._prec, check=False)
         elif n < 0:
-            return self.base_ring()(0)
+            return self.base_ring().zero()
         elif n > self.__f.degree():
             if self._prec > n:
-                return self.base_ring()(0)
+                return self.base_ring().zero()
             else:
                 raise IndexError("coefficient not known")
         return self.__f[n]
@@ -654,6 +618,102 @@ cdef class PowerSeries_poly(PowerSeries):
             return PowerSeries_poly(self._parent, self.__f >> n, max(0,self._prec - n))
         else:
             return self
+
+    def __invert__(self):
+        """
+        Return the inverse of the power series (i.e., a series `Y` such
+        that `XY = 1`).
+
+        The first nonzero coefficient must be a unit in
+        the coefficient ring. If the valuation of the series is positive,
+        this function will return a :doc:`laurent_series_ring_element`.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[[]]
+            sage: 1/(1+q + O(q**2))
+            1 - q + O(q^2)
+            sage: 1/(1+q)
+            1 - q + q^2 - q^3 + q^4 - q^5 + q^6 - q^7 + q^8 - q^9 + q^10 - q^11 + q^12 - q^13 + q^14 - q^15 + q^16 - q^17 + q^18 - q^19 + O(q^20)
+            sage: prec = R.default_prec(); prec
+            20
+            sage: R.set_default_prec(5)
+            sage: 1/(1+q)
+            1 - q + q^2 - q^3 + q^4 + O(q^5)
+
+        ::
+
+            sage: 1/(q + q^2)
+            q^-1 - 1 + q - q^2 + q^3 + O(q^4)
+            sage: g = 1/(q + q^2 + O(q^5))
+            sage: g; g.parent()
+            q^-1 - 1 + q - q^2 + O(q^3)
+            Laurent Series Ring in q over Rational Field
+
+        ::
+
+            sage: 1/g
+            q + q^2 + O(q^5)
+            sage: (1/g).parent()
+            Laurent Series Ring in q over Rational Field
+
+        ::
+
+            sage: 1/(2 + q)
+            1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
+
+        ::
+
+            sage: R.<q> = QQ[['q']]
+            sage: R.set_default_prec(5)
+            sage: f = 1 + q + q^2 + O(q^50)
+            sage: f/10
+            1/10 + 1/10*q + 1/10*q^2 + O(q^50)
+            sage: f/(10+q)
+            1/10 + 9/100*q + 91/1000*q^2 - 91/10000*q^3 + 91/100000*q^4 + O(q^5)
+
+        ::
+
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: u = 17 + 3*t^2 + 19*t^10 + O(t^12)
+            sage: v = ~u; v
+            1/17 - 3/289*t^2 + 9/4913*t^4 - 27/83521*t^6 + 81/1419857*t^8 - 1587142/24137569*t^10 + O(t^12)
+            sage: u*v
+            1 + O(t^12)
+
+        We try a non-zero, non-unit leading coefficient::
+
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: ~R(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term is not a unit
+            sage: ~R(-1)
+            -1
+        """
+        if self.is_one():
+            return self
+        prec = self.prec()
+        if prec is infinity:
+            if self.degree() > 0:
+                prec = self._parent.default_prec()
+            else:
+                # constant series
+                a = self[0]
+                if not a.is_unit():
+                    raise ValueError("constant term is not a unit")
+                try:
+                    a = a.inverse_unit()
+                except (AttributeError, NotImplementedError):
+                    a = self._parent.base_ring()(~a)
+                return self._parent(a, prec=infinity)
+
+        if self.valuation() > 0:
+            u = ~self.valuation_zero_part()    # inverse of unit part
+            R = self._parent.laurent_series_ring()
+            return R(u, -self.valuation())
+
+        return self._parent(self.truncate().inverse_series_trunc(prec), prec=prec)
 
     def truncate(self, prec=infinity):
         """
@@ -1122,12 +1182,20 @@ cdef class PowerSeries_poly(PowerSeries):
             1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
             sage: _.is_terminating_series()
             True
+
+        TESTS:
+
+        Check that :trac:``18094`` is fixed::
+
+            sage: R.<x>=PolynomialRing(ZZ)
+            sage: SR(R(0).add_bigoh(20))
+            Order(x^20)
         """
         from sage.symbolic.ring import SR
         from sage.rings.infinity import PlusInfinity
         poly = self.polynomial()
         pex = SR(poly)
-        var = pex.variables()[0]
+        var = SR.var(self.variable())
         if not isinstance(self.prec(), PlusInfinity):
             # GiNaC does not allow manual addition of bigoh,
             # so we use a trick.

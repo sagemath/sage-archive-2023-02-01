@@ -259,9 +259,9 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
         sage: i2_sqrd = (i2^2).quo_rem(x^n-1)[1]
         sage: i2_sqrd  == i2
         True
-        sage: C1 = codes.CyclicCode(length = n, generator_pol = i1)
-        sage: C2 = codes.CyclicCode(length = n, generator_pol = 1-i2)
-        sage: C1.dual_code() == C2
+        sage: C1 = codes.CyclicCode(length = n, generator_pol = gcd(i1, x^n - 1))
+        sage: C2 = codes.CyclicCode(length = n, generator_pol = gcd(1-i2, x^n - 1))
+        sage: C1.dual_code().generator_matrix_systematic() == C2.generator_matrix_systematic()
         True
 
     This is a special case of Theorem 6.4.3 in [HP]_.
@@ -669,8 +669,8 @@ def DuadicCodeOddPair(F,S1,S2):
         sage: is_a_splitting(S1,S2,11)
         True
         sage: codes.DuadicCodeOddPair(GF(q),S1,S2)
-        (Linear code of length 11, dimension 6 over Finite Field of size 3,
-         Linear code of length 11, dimension 6 over Finite Field of size 3)
+        ([11, 6] Cyclic Code over Finite Field of size 3 with x^5 + x^4 + 2*x^3 + x^2 + 2 as generator polynomial,
+         [11, 6] Cyclic Code over Finite Field of size 3 with x^5 + 2*x^3 + x^2 + 2*x + 2 as generator polynomial)
 
     This is consistent with Theorem 6.1.3 in [HP]_.
     """
@@ -882,10 +882,10 @@ def QuadraticResidueCode(n,F):
 
         sage: C = codes.QuadraticResidueCode(7,GF(2))
         sage: C
-        Linear code of length 7, dimension 4 over Finite Field of size 2
+        [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
         sage: C = codes.QuadraticResidueCode(17,GF(2))
         sage: C
-        Linear code of length 17, dimension 9 over Finite Field of size 2
+        [17, 9] Cyclic Code over Finite Field of size 2 with x^8 + x^7 + x^6 + x^4 + x^2 + x + 1 as generator polynomial
         sage: C1 = codes.QuadraticResidueCodeOddPair(7,GF(2))[0]
         sage: C2 = codes.QuadraticResidueCode(7,GF(2))
         sage: C1 == C2
@@ -916,14 +916,14 @@ def QuadraticResidueCodeEvenPair(n,F):
     EXAMPLES::
 
         sage: codes.QuadraticResidueCodeEvenPair(17,GF(13))
-        (Linear code of length 17, dimension 8 over Finite Field of size 13,
-         Linear code of length 17, dimension 8 over Finite Field of size 13)
+        ([17, 8] Cyclic Code over Finite Field of size 13 with x^9 + 7*x^8 + 2*x^7 + x^6 + 6*x^5 + 7*x^4 + 12*x^3 + 11*x^2 + 6*x + 12 as generator polynomial,
+         [17, 8] Cyclic Code over Finite Field of size 13 with x^9 + 5*x^8 + 2*x^7 + x^6 + 4*x^5 + 9*x^4 + 12*x^3 + 11*x^2 + 8*x + 12 as generator polynomial)
         sage: codes.QuadraticResidueCodeEvenPair(17,GF(2))
-        (Linear code of length 17, dimension 8 over Finite Field of size 2,
-         Linear code of length 17, dimension 8 over Finite Field of size 2)
+        ([17, 8] Cyclic Code over Finite Field of size 2 with x^9 + x^6 + x^5 + x^4 + x^3 + 1 as generator polynomial,
+         [17, 8] Cyclic Code over Finite Field of size 2 with x^9 + x^8 + x^6 + x^3 + x + 1 as generator polynomial)
         sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))
-        (Linear code of length 13, dimension 6 over Finite Field in z of size 3^2,
-         Linear code of length 13, dimension 6 over Finite Field in z of size 3^2)
+        ([13, 6] Cyclic Code over Finite Field in z of size 3^2 with x^7 + 2*x^6 + 2*x^5 + x^2 + x + 2 as generator polynomial,
+         [13, 6] Cyclic Code over Finite Field in z of size 3^2 with x^7 + x^5 + x^4 + 2*x^3 + 2*x^2 + 2 as generator polynomial)
         sage: C1,C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))
         sage: C1.is_self_orthogonal()
         True
@@ -931,7 +931,7 @@ def QuadraticResidueCodeEvenPair(n,F):
         True
         sage: C3 = codes.QuadraticResidueCodeOddPair(17,GF(2))[0]
         sage: C4 = codes.QuadraticResidueCodeEvenPair(17,GF(2))[1]
-        sage: C3 == C4.dual_code()
+        sage: C3.generator_matrix_systematic() == C4.dual_code().generator_matrix_systematic()
         True
 
     This is consistent with Theorem 6.6.9 and Exercise 365 in [HP]_.
@@ -980,14 +980,14 @@ def QuadraticResidueCodeOddPair(n,F):
     EXAMPLES::
 
         sage: codes.QuadraticResidueCodeOddPair(17,GF(13))
-        (Linear code of length 17, dimension 9 over Finite Field of size 13,
-         Linear code of length 17, dimension 9 over Finite Field of size 13)
+        ([17, 9] Cyclic Code over Finite Field of size 13 with x^8 + 8*x^7 + 10*x^6 + 11*x^5 + 4*x^4 + 11*x^3 + 10*x^2 + 8*x + 1 as generator polynomial,
+         [17, 9] Cyclic Code over Finite Field of size 13 with x^8 + 6*x^7 + 8*x^6 + 9*x^5 + 9*x^3 + 8*x^2 + 6*x + 1 as generator polynomial)
         sage: codes.QuadraticResidueCodeOddPair(17,GF(2))
-        (Linear code of length 17, dimension 9 over Finite Field of size 2,
-         Linear code of length 17, dimension 9 over Finite Field of size 2)
+        ([17, 9] Cyclic Code over Finite Field of size 2 with x^8 + x^7 + x^6 + x^4 + x^2 + x + 1 as generator polynomial,
+         [17, 9] Cyclic Code over Finite Field of size 2 with x^8 + x^5 + x^4 + x^3 + 1 as generator polynomial)
         sage: codes.QuadraticResidueCodeOddPair(13,GF(9,"z"))
-        (Linear code of length 13, dimension 7 over Finite Field in z of size 3^2,
-         Linear code of length 13, dimension 7 over Finite Field in z of size 3^2)
+        ([13, 7] Cyclic Code over Finite Field in z of size 3^2 with x^6 + 2*x^4 + 2*x^3 + 2*x^2 + 1 as generator polynomial,
+         [13, 7] Cyclic Code over Finite Field in z of size 3^2 with x^6 + x^5 + 2*x^4 + 2*x^2 + x + 1 as generator polynomial)
         sage: C1 = codes.QuadraticResidueCodeOddPair(17,GF(2))[1]
         sage: C1x = C1.extended_code()
         sage: C2 = codes.QuadraticResidueCodeOddPair(17,GF(2))[0]

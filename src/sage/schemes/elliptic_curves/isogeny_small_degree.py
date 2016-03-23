@@ -838,6 +838,16 @@ def isogenies_5_1728(E):
         sage: isogenies_5_1728(E)
         [Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in a with defining polynomial x^4 + 20*x^2 - 80 to Elliptic Curve defined by y^2 = x^3 + (-753/4*a^2-4399)*x + (2779*a^3+65072*a) over Number Field in a with defining polynomial x^4 + 20*x^2 - 80,
         Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in a with defining polynomial x^4 + 20*x^2 - 80 to Elliptic Curve defined by y^2 = x^3 + (-753/4*a^2-4399)*x + (-2779*a^3-65072*a) over Number Field in a with defining polynomial x^4 + 20*x^2 - 80]
+
+    See :trac:`19840`::
+
+        sage: K.<a> = NumberField(x^4 - 5*x^2 + 5)
+        sage: E = EllipticCurve([a^2 + a + 1, a^3 + a^2 + a + 1, a^2 + a, 17*a^3 + 34*a^2 - 16*a - 37, 54*a^3 + 105*a^2 - 66*a - 135])
+        sage: len(E.isogenies_prime_degree(5))
+        2
+        sage: from sage.schemes.elliptic_curves.isogeny_small_degree import isogenies_5_1728
+        sage: [phi.codomain().j_invariant() for phi in isogenies_5_1728(E)]
+        [19691491018752*a^2 - 27212977933632, 19691491018752*a^2 - 27212977933632]
     """
     F = E.base_field()
     if E.j_invariant() != 1728:
@@ -865,7 +875,7 @@ def isogenies_5_1728(E):
     # Type 2: if 5 is a square we have up to 4 (non-endomorphism) isogenies
     if square5:
         betas = sorted((x**4+20*a*x**2-80*a**2).roots(multiplicities=False))
-        gammas = [a*(beta**2-2)/6 for beta in betas]
+        gammas = [(beta**2-2*a)/6 for beta in betas]
         isogs += [Ew.isogeny(x**2+beta*x+gamma, model=model) for beta,gamma in zip(betas,gammas)]
     [isog.set_pre_isomorphism(iso) for isog in isogs]
     return isogs

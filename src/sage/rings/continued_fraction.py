@@ -803,8 +803,8 @@ class ContinuedFraction_base(SageObject):
         Return the list of partial convergents of ``self``.
 
         If ``self`` is an infinite continued fraction, then the object returned
-        is a :class:`~sage.misc.lazy_list.lazy_list` which behave like an
-        infinite list.
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which
+        behave like an infinite list.
 
         EXAMPLES::
 
@@ -826,7 +826,7 @@ class ContinuedFraction_base(SageObject):
         Return the list of partial quotients of ``self``.
 
         If ``self`` is an infinite continued fraction, the the object returned
-        is a :class:``~sage.misc.lazy_list.lazy_list`` which behave like an
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which behave like an
         infinite list.
 
         EXAMPLES::
@@ -2189,6 +2189,11 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
         <type 'sage.rings.real_mpfr.RealLiteral'>
         sage: continued_fraction_list(a)
         [1, 1, 1, 2, 1, 4, 18, 1, 5, 2, 25037802, 7, 1, 3, 1, 28, 1, 8, 2]
+
+    Check that this works for arb elements (:trac:`20069`)::
+
+        sage: continued_fraction(RBF(e))
+        [2; 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12]
     """
     from rational_field import QQ
 
@@ -2225,11 +2230,12 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
 
     cf = None
 
-    from sage.rings.real_mpfi import RealIntervalField, is_RealIntervalField
+    from sage.rings.real_arb import RealBallField
+    from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
     from sage.rings.real_mpfr import RealLiteral
     if isinstance(x, RealLiteral):
         x = RealIntervalField(x.prec())(x)
-    if is_RealIntervalField(x.parent()):
+    if isinstance(x.parent(), (RealIntervalField_class, RealBallField)):
         cf = continued_fraction(rat_interval_cf_list(
                  x.lower().exact_rational(),
                  x.upper().exact_rational()))
@@ -2400,9 +2406,9 @@ def continued_fraction(x, value=None):
         return ContinuedFraction_periodic(x1, x2)
 
     # input for infinite partial quotient expansion
-    from sage.misc.lazy_list import lazy_list
+    from sage.misc.lazy_list import lazy_list_generic
     from sage.combinat.words.infinite_word import InfiniteWord_class
-    if isinstance(x, (lazy_list, InfiniteWord_class)):
+    if isinstance(x, (lazy_list_generic, InfiniteWord_class)):
         return ContinuedFraction_infinite(x, value)
 
     from sage.combinat.words.abstract_word import Word_class

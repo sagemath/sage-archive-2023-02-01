@@ -188,5 +188,6 @@ lazy_import('sage.combinat.sine_gordon', 'SineGordonYsystem')
 # Fully Packed Loop
 lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedLoops'])
 
-# Subword complex
+# Subword complex and cluster complex
 lazy_import('sage.combinat.subword_complex', 'SubwordComplex')
+lazy_import("sage.combinat.cluster_complex", "ClusterComplex")

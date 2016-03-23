@@ -94,7 +94,7 @@ REFERENCES:
 
 from sage.categories.fields import Fields
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.rings.commutative_ring import CommutativeRing
+from sage.rings.ring import CommutativeRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ

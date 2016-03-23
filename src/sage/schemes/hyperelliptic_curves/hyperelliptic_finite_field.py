@@ -747,7 +747,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         $\mathbb{P}(1,3,1)$. The latter model has two points at infinity:
         $(1:1:0)$ and $(1:-1:0)$.
         """
-        from sage.rings.finite_rings.constructor import zech_log_bound
+        from sage.rings.finite_rings.finite_field_constructor import zech_log_bound
         try:
             return self.__points
         except AttributeError: pass

@@ -67,6 +67,13 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
     r"""
     Polynomial on `\ZZ/n\ZZ` implemented via FLINT.
 
+    TESTS::
+
+        sage: f = Integers(4)['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_zmod_flint import Polynomial_zmod_flint
+        sage: isinstance(f, Polynomial_zmod_flint)
+        True
+
     .. automethod:: _add_
     .. automethod:: _sub_
     .. automethod:: _lmul_
@@ -228,8 +235,10 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         sig_off()
         return 0
 
-    def __getitem__(self, i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: P.<x> = GF(32003)[]
@@ -242,31 +251,13 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             2252
             sage: f[-1]
             0
-            sage: f[1:3]
-            24998*x^2 + 29761*x
-            sage: f[-5:50] == f
+            sage: f[:2]
+            29761*x + 2252
+            sage: f[:50] == f
             True
         """
-        cdef type t
-        cdef unsigned long c = 0
-        cdef Polynomial_template r
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            if start < 0:
-                start = 0
-            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
-                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
-            x = (<Polynomial_template>self)._parent.gen()
-            v = [self[t] for t from start <= t < stop]
-
-            t = type(self)
-            r = <Polynomial_template>t.__new__(t)
-            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-            return r << start
-        else:
-            if 0 <= i < nmod_poly_length(&self.x):
-                c = nmod_poly_get_coeff_ui(&self.x, i)
-            return self._parent.base_ring()(c)
+        cdef unsigned long c = nmod_poly_get_coeff_ui(&self.x, i)
+        return self._parent.base_ring()(c)
 
     def __call__(self, *x, **kwds):
         """
@@ -518,10 +509,14 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
             sage: P.<a>=GF(7)[]
             sage: b = P(range(10)); c = P(range(5, 15))
-            sage: (b._mul_trunc_opposite(c, 10))[10:18]
-            5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10
-            sage: (b._mul_trunc_opposite(c, 18))[18:]
-            0
+            sage: b._mul_trunc_opposite(c, 10)
+            5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10 + 2*a^9 + 5*a^8 + 4*a^5 + 4*a^4 + 6*a^3 + 2*a^2 + 5*a
+            sage: list(b._mul_trunc_opposite(c, 10))[10:18]
+            [5, 0, 0, 4, 4, 6, 2, 5]
+            sage: list(b*c)[10:18]
+            [5, 0, 0, 4, 4, 6, 2, 5]
+            sage: list(b._mul_trunc_opposite(c, 18))[18:]
+            []
 
         TESTS::
 

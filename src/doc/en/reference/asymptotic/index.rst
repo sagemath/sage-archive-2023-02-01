@@ -11,6 +11,14 @@ the module
 - :doc:`sage/rings/asymptotic/asymptotic_ring`.
 
 
+Asymptotic Expansion Generators
+-------------------------------
+
+Some common asymptotic expansions can be generated in
+
+- :doc:`sage/rings/asymptotic/asymptotic_expansion_generators`.
+
+
 Supplements
 -----------
 
@@ -51,9 +59,11 @@ Asymptotic Expansions --- Table of Contents
 .. toctree::
 
    sage/rings/asymptotic/asymptotic_ring
+   sage/rings/asymptotic/asymptotic_expansion_generators
    sage/rings/asymptotic/growth_group
    sage/rings/asymptotic/growth_group_cartesian
    sage/rings/asymptotic/term_monoid
    sage/rings/asymptotic/misc
+   sage/rings/asymptotic/asymptotics_multivariate_generating_functions
 
 .. include:: ../footer.txt

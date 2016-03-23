@@ -17,7 +17,7 @@ See if :trac:`15118` is fixed::
     ZeroDivisionError
 """
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.long cimport *
@@ -35,9 +35,9 @@ from sage.rings.integer cimport Integer
 from sage.libs.gmp.pylong cimport *
 
 cdef mpz_set_integer(mpz_t v, x):
-    if PyInt_Check(x):
+    if isinstance(x, int):
         mpz_set_si(v, PyInt_AS_LONG(x))
-    elif PyLong_Check(x):
+    elif isinstance(x, long):
         mpz_set_pylong(v, x)
     elif isinstance(x, Integer):
         mpz_set(v, (<Integer>x).value)

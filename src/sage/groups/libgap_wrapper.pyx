@@ -514,7 +514,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             return self._libgap._repr_()
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation
 
         OUTPUT:

@@ -330,7 +330,7 @@ cdef void hold_reference(libGAP_Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.exc cimport PyErr_SetObject
 
 cdef void error_handler(char* msg):

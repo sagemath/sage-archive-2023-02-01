@@ -14,7 +14,7 @@ Dancing Links internal pyx code
 #*****************************************************************************
 
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from sage.structure.sage_object cimport rich_to_bool
 

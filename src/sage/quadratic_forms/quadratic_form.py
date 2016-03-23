@@ -32,9 +32,8 @@ from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
 from sage.misc.functional import denominator, is_even, is_field
 from sage.arith.all import GCD, LCM
-from sage.rings.principal_ideal_domain import is_PrincipalIdealDomain
 from sage.rings.all import Ideal
-from sage.rings.ring import is_Ring
+from sage.rings.ring import is_Ring, PrincipalIdealDomain
 from sage.matrix.matrix import is_Matrix
 from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
@@ -1436,7 +1435,7 @@ class QuadraticForm(SageObject):
         except AttributeError:
 
             ## Check that the base ring is a PID
-            if not is_PrincipalIdealDomain(self.base_ring()):
+            if not isinstance(self.base_ring(), PrincipalIdealDomain):
                 raise TypeError("Oops!  The level (as a number) is only defined over a Principal Ideal Domain.  Try using level_ideal().")
 
 

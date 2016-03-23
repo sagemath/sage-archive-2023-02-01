@@ -2,7 +2,6 @@ r"""
 Modular decomposition
 """
 
-include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
 from libc.string cimport memset

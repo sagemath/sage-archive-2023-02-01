@@ -241,6 +241,11 @@ class UCFtoQQbar(Morphism):
             sage: UCFtoQQbar = UCF.coerce_embedding()
             sage: UCFtoQQbar(UCF.gen(3))  # indirect doctest
             -0.500000000000000? + 0.866025403784439?*I
+
+        Test that the bug reported in :trac:`19912` has been fixed::
+
+            sage: UCFtoQQbar(UCF.gen(4)+1)
+            I + 1
         """
         obj = x._obj
         QQbar = self.codomain()
@@ -249,7 +254,7 @@ class UCFtoQQbar(Morphism):
         k = obj.Conductor().sage()
         coeffs = obj.CoeffsCyc(k).sage()
         zeta = QQbar.zeta(k)
-        return QQbar(sum(coeffs[a] * zeta**a for a in range(1,k)))
+        return QQbar(sum(coeffs[a] * zeta**a for a in range(k)))
 
 class UniversalCyclotomicFieldElement(FieldElement):
     def __init__(self, parent, obj):
@@ -457,13 +462,18 @@ class UniversalCyclotomicFieldElement(FieldElement):
             e^(2/7*I*pi)
             sage: SR(E(5) + 2*E(5,2) + 3*E(5,3))
             -sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 3/2
+
+        Test that the bug reported in :trac:`19912` has been fixed::
+
+            sage: SR(1+E(4))
+            I + 1
         """
         from sage.symbolic.constants import pi
         from sage.symbolic.all import i as I
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
         s = R.zero()
-        for a in range(1,k):
+        for a in range(k):
             if coeffs[a]:
                 s += coeffs[a] * (2*a*I*pi/k).exp()
         return s
@@ -514,6 +524,13 @@ class UniversalCyclotomicFieldElement(FieldElement):
             0.309016994374947 + 0.951056516295154*I
             sage: CC(CF(x))
             0.309016994374947 + 0.951056516295154*I
+
+        Test that the bug reported in :trac:`19912` has been fixed::
+
+            sage: a = 1+E(4); a
+            1 + E(4)
+            sage: a.to_cyclotomic_field()
+            zeta4 + 1
         """
         from sage.rings.number_field.number_field import CyclotomicField
         k = self._obj.Conductor().sage()
@@ -525,7 +542,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             return R(obj.sage())
         zeta = Rcan.gen()
         coeffs = obj.CoeffsCyc(k).sage()
-        return R(sum(coeffs[a] * zeta**a for a in range(1,k)))
+        return R(sum(coeffs[a] * zeta**a for a in range(k)))
 
     def __hash__(self):
         r"""

@@ -52,6 +52,7 @@ Here is how to define the default size of a graph drawing to be ``[6,6]``. The
 first two calls to :meth:`~sage.graphs.generic_graph.GenericGraph.show` use this
 option, while the third does not (a value for ``figsize`` is explicitly given)::
 
+    sage: import sage.graphs.graph_plot
     sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [6,6]
     sage: graphs.PetersenGraph().show() # long time
     sage: graphs.ChvatalGraph().show()  # long time

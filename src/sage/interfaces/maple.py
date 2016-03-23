@@ -243,10 +243,12 @@ import pexpect
 
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
 
-class Maple(Expect):
+
+class Maple(ExtraTabCompletion, Expect):
     """
     Interface to the Maple interpreter.
 
@@ -524,27 +526,27 @@ connection to a server running Maple; for hints, type
         v.sort()
         return v
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         Returns a list of all the commands defined in Maple and optionally
         (per default) store them to disk.
 
         EXAMPLES::
 
-            sage: c = maple.trait_names(use_disk_cache=False, verbose=False) # optional - maple
+            sage: c = maple._tab_completion(use_disk_cache=False, verbose=False) # optional - maple
             sage: len(c) > 100  # optional - maple
             True
             sage: 'dilog' in c  # optional - maple
             True
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose:
@@ -552,7 +554,7 @@ connection to a server running Maple; for hints, type
                 print "a few seconds only the first time you do it)."
                 print "To force rebuild later, delete %s."%COMMANDS_CACHE
             v = self._commands()
-            self.__trait_names = v
+            self.__tab_completion = v
             if len(v) > 200:
                 # Maple is actually installed.
                 sage.misc.persist.save(v, COMMANDS_CACHE)
@@ -902,7 +904,9 @@ class MapleFunctionElement(FunctionElement):
         """
         return self._obj.parent()._source(self._name)
 
-class MapleElement(ExpectElement):
+    
+class MapleElement(ExtraTabCompletion, ExpectElement):
+    
     def __float__(self):
         """
         Returns a floating point version of self.
@@ -1056,15 +1060,15 @@ class MapleElement(ExpectElement):
         except Exception as msg:
             raise TypeError(msg)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
             sage: a = maple(2) # optional - maple
-            sage: 'sin' in a.trait_names() # optional - maple
+            sage: 'sin' in a._tab_completion() # optional - maple
             True
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
     def __repr__(self):
         """
@@ -1169,6 +1173,9 @@ def maple_console():
               |       Type ? for help.
         >
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%maple magics instead.')
     os.system('maple')
 
 

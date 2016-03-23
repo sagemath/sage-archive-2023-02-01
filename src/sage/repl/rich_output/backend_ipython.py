@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 IPython Backend for the Sage Rich Output System
 
@@ -371,6 +371,26 @@ class BackendIPythonCommandline(BackendIPython):
                       .format(jmol_cmd, launch_script))
         return 'Launched jmol viewer for {0}'.format(plain_text)
 
+    def is_in_terminal(self):
+        """
+        Test whether the UI is meant to run in a terminal
+
+        See
+        :meth:`sage.repl.rich_output.display_manager.DisplayManager.is_in_terminal`
+        for details.
+
+        OUTPUT:
+
+        ``True`` for the IPython commandline.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.is_in_terminal()
+            True
+        """
+        return True
     
 class BackendIPythonNotebook(BackendIPython):
     """

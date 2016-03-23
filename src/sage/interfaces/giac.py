@@ -185,6 +185,7 @@ loaded.
 import os
 
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 
@@ -476,27 +477,27 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         v.sort()
         return v
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         Returns a list of all the commands defined in Giac and optionally
         (per default) store them to disk.
 
         EXAMPLES::
 
-            sage: c = giac.trait_names(use_disk_cache=False, verbose=False) # optional - giac
+            sage: c = giac._tab_completion(use_disk_cache=False, verbose=False) # optional - giac
             sage: len(c) > 100  # optional - giac
             True
             sage: 'factors' in c  # optional - giac
             True
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose:
@@ -504,7 +505,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
                 print "a few seconds only the first time you do it)."
                 print "To force rebuild later, delete %s."%COMMANDS_CACHE
             v = self._commands()
-            self.__trait_names = v
+            self.__tab_completion = v
             if len(v) > 200:
                 # Giac is actually installed.
                 sage.misc.persist.save(v, COMMANDS_CACHE)
@@ -887,15 +888,15 @@ class GiacElement(ExpectElement):
         else:
             return 1
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
             sage: a = giac(2) # optional - giac
-            sage: 'sin' in a.trait_names() # optional - giac
+            sage: 'sin' in a._tab_completion() # optional - giac
             True
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
 
     def __len__(self):
@@ -1134,7 +1135,10 @@ def giac_console():
         -------------------------------------------------
         Press CTRL and D simultaneously to finish session
         Type ?commandname for help
-        """
+    """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%giac magics instead.')
     os.system('giac')
 
 

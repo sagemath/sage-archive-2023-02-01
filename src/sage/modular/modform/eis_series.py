@@ -18,7 +18,7 @@ import sage.modular.dirichlet as dirichlet
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 from sage.rings.all import Integer, CyclotomicField, ZZ, QQ, Integer
 from sage.arith.all import bernoulli, divisors, is_squarefree, lcm
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.power_series_ring import PowerSeriesRing
 from eis_series_cython import eisenstein_series_poly, Ek_ZZ
 

@@ -23,10 +23,11 @@
 #
 ##############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_GF2E cimport ntl_GF2E
 from ntl_GF2EContext import ntl_GF2EContext
 from ntl_GF2EContext cimport ntl_GF2EContext_class
@@ -521,7 +522,7 @@ cdef class ntl_mat_GF2E(object):
             [a^2 + 1 a^2 + a]
         """
         if k is None:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             f = self.c.m._sage_()
             e = GF2E_degree()
             k = FiniteField(2**e, name='a', modulus=f)

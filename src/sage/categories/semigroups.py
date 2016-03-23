@@ -433,6 +433,48 @@ class Semigroups(CategoryWithAxiom):
             return AutomaticSemigroup(generators, ambient=self, one=one,
                                       category=category)
 
+        def trivial_representation(self, base_ring=None, side="twosided"):
+            """
+            Return the trivial representation of ``self`` over ``base_ring``.
+
+            INPUT:
+
+            - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
+            - ``side`` -- ignored
+
+            EXAMPLES::
+
+                sage: G = groups.permutation.Dihedral(4)
+                sage: G.trivial_representation()
+                Trivial representation of Dihedral group of order 8
+                 as a permutation group over Integer Ring
+            """
+            if base_ring is None:
+                from sage.rings.all import ZZ
+                base_ring = ZZ
+            from sage.modules.with_basis.representation import TrivialRepresentation
+            return TrivialRepresentation(self, base_ring)
+
+        def regular_representation(self, base_ring=None, side="left"):
+            """
+            Return the regular representation of ``self`` over ``base_ring``.
+
+            - ``side`` -- (default: ``"left"``) whether this is the
+              ``"left"`` or ``"right"`` regular representation
+
+            EXAMPLES::
+
+                sage: G = groups.permutation.Dihedral(4)
+                sage: G.regular_representation()
+                Left Regular Representation of Dihedral group of order 8
+                 as a permutation group over Integer Ring
+            """
+            if base_ring is None:
+                from sage.rings.all import ZZ
+                base_ring = ZZ
+            from sage.modules.with_basis.representation import RegularRepresentation
+            return RegularRepresentation(self, base_ring, side)
+
     class ElementMethods:
 
         def _pow_(self, n):
@@ -622,4 +664,43 @@ class Semigroups(CategoryWithAxiom):
                     B['ab'] + B['bdc']
                 """
                 return self.monomial(g1 * g2)
+
+            def trivial_representation(self, side="twosided"):
+                """
+                Return the trivial representation of ``self``.
+
+                INPUT:
+
+                - ``side`` -- ignored
+
+                EXAMPLES::
+
+                    sage: G = groups.permutation.Dihedral(4)
+                    sage: A = G.algebra(QQ)
+                    sage: V = A.trivial_representation()
+                    sage: V == G.trivial_representation(QQ)
+                    True
+                """
+                S = self.basis().keys()
+                return S.trivial_representation(self.base_ring())
+
+            def regular_representation(self, side="left"):
+                """
+                Return the regular representation of ``self``.
+
+                INPUT:
+
+                - ``side`` -- (default: ``"left"``) whether this is the
+                  ``"left"`` or ``"right"`` regular representation
+
+                EXAMPLES::
+
+                    sage: G = groups.permutation.Dihedral(4)
+                    sage: A = G.algebra(QQ)
+                    sage: V = A.regular_representation()
+                    sage: V == G.regular_representation(QQ)
+                    True
+                """
+                S = self.basis().keys()
+                return S.regular_representation(self.base_ring(), side)
 

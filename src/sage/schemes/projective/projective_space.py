@@ -67,6 +67,8 @@ AUTHORS:
 - Ben Hutz: (June 2012): support for rings
 
 - Ben Hutz (9/2014): added support for Cartesian products
+
+- Rebecca Lauren Miller (March 2016) : added point_transformation_matrix
 """
 
 #*****************************************************************************
@@ -1019,6 +1021,85 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     P[j] = zero
                     j += 1
             i -= 1
+
+    def point_transformation_matrix(self, points_source, points_target):
+        r"""
+        Conjugates one projective space to another to determine equivalence by
+        finding element of PGL that conjugates one space to another.
+        
+        Warning :: will not work over precision fields
+
+        INPUT:
+
+            - ``points_source`` - points in source projective space.
+
+            - ``points_target`` - points in target projective space.
+
+        OUTPUT: Transformation matrix - element of PGL.
+
+        EXAMPLES::
+        
+            sage: P1.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: m = P1.point_transformation_matrix(points_source, points_target); m
+            [ -13/59 -128/59  -25/59]
+            [538/177    8/59  26/177]
+            [ -45/59 -196/59       1]
+            sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
+            [True, True, True, True]
+            
+        ::
+        
+            sage: P.<a,b> = ProjectiveSpace(GF(13),1)
+            sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            [10  4]
+            [10  1]
+            
+        ::
+        
+            sage: P.<a,b> = ProjectiveSpace(QQ,1)
+            sage: points_source = [P([-6,-4]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-7,-3])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: source points not independent
+            
+        ::
+        
+            sage: P.<a,b> = ProjectiveSpace(QQ,1)
+            sage: points_source = [P([-6,-1]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-2,4])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: target points not independent
+        """
+        r = self.base_ring()
+        n = self.dimension_relative()
+        P = ProjectiveSpace(r, n**2+2*n,'p')
+        # putting points as the rows of the matrix
+        Ms = matrix(r, [list(s) for s in points_source])
+        if any([m == 0 for m in Ms.minors(n+1)]):
+            raise ValueError("source points not independent")
+        Mt = matrix(r, [list(t) for t in points_target])
+        if any([l == 0 for l in Mt.minors(n+1)]):
+                raise ValueError("target points not independent")
+        A = matrix(P.coordinate_ring(), n+1, n+1, P.gens())
+        #transpose to get image points and then get the list of image points with columns
+        funct = (A*Ms.transpose()).columns()
+        eq = []
+        for k in range(n+2):# n+2 num f point and n is size of pts
+            eq = eq+ [funct[k][i]*points_target[k][j] - funct[k][j]*points_target[k][i]\
+                for i in range(0,n+1) for j in range(i+1, n+1)]
+        v = P.subscheme(eq)
+        w = v.rational_points(bound=n)
+        if len(w) == 0:
+            raise ValueError (" no conjugation found, over the %s" %r)
+        return matrix(r, n+1, n+1, list(w[0]))
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):

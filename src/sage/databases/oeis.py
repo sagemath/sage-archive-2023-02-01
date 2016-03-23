@@ -646,6 +646,12 @@ class OEISSequence(SageObject):
 
             sage: sfibo = oeis('A039834')               # optional -- internet
 
+        Handle dead sequences: see  :trac:`17330` ::
+
+            sage: oeis(17)                              # optional -- internet
+            .. RuntimeWarning: This sequence is dead  "A000017: Erroneous version of A032522."
+            A000017: Erroneous version of A032522.
+
             sage: s = oeis._imaginary_sequence()
         """
         self._raw = entry
@@ -653,6 +659,11 @@ class OEISSequence(SageObject):
         self._fields = defaultdict(list)
         for line in entry.splitlines():
             self._fields[line[1]].append(line[11:])
+        if 'dead' in self.keywords(): 
+            ("This sequence is dead: \""+self.name()+"\"")
+            from warnings import warn
+            warn('This sequence is dead  "'+self.id()+": "+self.name()+'"', RuntimeWarning)
+
 
     def id(self, format='A'):
         r"""
@@ -1087,9 +1098,11 @@ class OEISSequence(SageObject):
 
         Handle dead sequences: see  :trac:`17330` ::
 
-            sage: oeis(17).first_terms(12)              # optional -- internet
-            (1, 0, 0, 2, 2, 4, 8, 4, 16, 12, 48, 80)
-
+            sage: oeis(17).first_terms(12)              # optional -- internet  
+            oeis(17).first_terms(12)
+            .. RuntimeWarning: This sequence is dead  "A000017: Erroneous version of A032522."
+            warn('This sequence is dead  "'+self.id()+": "+self.name()+'"', RuntimeWarning)
+            (1, 0, 0, 2, 2, 4, 8, 4, 16, 12, 48, 80)            
 
         TESTS::
 

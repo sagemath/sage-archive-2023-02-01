@@ -1075,7 +1075,7 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._out_degree(3)
-            doctest:858: DeprecationWarning: _out_degree is deprecated
+            doctest:...: DeprecationWarning: _out_degree is deprecated
             See http://trac.sagemath.org/20253 for details.
             0
         """

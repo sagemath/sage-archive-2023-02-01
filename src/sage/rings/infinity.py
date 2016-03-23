@@ -224,6 +224,7 @@ import sage.rings.integer
 import sage.rings.rational
 
 from sage.rings.integer_ring import ZZ
+#from sage.libs.all import pari, pari_gen
 
 _obj = {}
 class _uniq(object):
@@ -297,20 +298,19 @@ class AnInfinity(object):
         """
         Convert ``self`` to a Pari object.
 
-        This always raises an exception since Pari does not have
-        infinities.
-
         TESTS::
 
             sage: pari(-oo) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot convert infinity to Pari
+            -oo
             sage: pari(oo)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot convert infinity to Pari
+            +oo
         """
+        # For some reason, it seems problematic to import sage.libs.all.pari,
+        # so we call it directly.
+        if self._sign == 1:
+            return sage.libs.all.pari('oo')
+        elif self._sign == -1:
+            return sage.libs.all.pari('-oo')
         raise TypeError('cannot convert infinity to Pari')
 
     def _latex_(self):

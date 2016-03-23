@@ -77,6 +77,7 @@ import sage.rings.all as rings
 from sage.arith.all import is_prime
 
 from sage.structure.sequence import Sequence
+from sage.misc.cachefunc import cached_method
 
 
 import cuspidal_submodule

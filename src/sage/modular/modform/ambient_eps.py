@@ -80,6 +80,7 @@ import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.modsym.modsym as modsym
+from sage.misc.cachefunc import cached_method
 
 import ambient
 import ambient_R

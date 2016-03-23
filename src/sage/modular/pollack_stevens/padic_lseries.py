@@ -41,8 +41,7 @@ class pAdicLseries(SageObject):
         sage: p = 5
         sage: prec = 4
         sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: phi_stabilized = phi.p_stabilize(p,20)
-        sage: Phi = phi_stabilized.lift(p,prec,algorithm='stevens',eigensymbol=True)
+        sage: Phi = phi.p_stabilize_and_lift(p,prec,algorithm='stevens',eigensymbol=True)
         sage: L = pAdicLseries(Phi)
         sage: L[1]
         2 + 3*5 + O(5^3)
@@ -155,7 +154,7 @@ class pAdicLseries(SageObject):
 
             S = QQ[['z']]
             z = S.gen()
-            M = symb.precision_absolute()
+            M = symb.precision_relative()
             K = pAdicField(p, M)
             dn = 0
             if n == 0:
@@ -296,7 +295,7 @@ class pAdicLseries(SageObject):
 
         """
         p = self.prime()
-        M = self.symb().precision_absolute()
+        M = self.symb().precision_relative()
         K = pAdicField(p, M)
         R = PowerSeriesRing(K, names='T')
         T = R.gens()[0]
@@ -328,7 +327,7 @@ class pAdicLseries(SageObject):
             4 + 2*5 + 4*5^3 + O(5^4)
 
         """
-        M = self.symb().precision_absolute()
+        M = self.symb().precision_relative()
         p = self.prime()
         if p == 2:
             R = pAdicField(2, M + 1)
@@ -408,7 +407,7 @@ class pAdicLseries(SageObject):
         INPUT:
 
         - ``a`` -- integer in range(p)
-        - ``j`` -- integer in range(self.symb().precision_absolute())
+        - ``j`` -- integer in range(self.symb().precision_relative())
 
         EXAMPLES::
 
@@ -427,7 +426,7 @@ class pAdicLseries(SageObject):
 
         """
         symb = self.symb()
-        M = symb.precision_absolute()
+        M = symb.precision_relative()
         if j > M:
             raise PrecisionError("Too many moments requested")
         p = self.prime()

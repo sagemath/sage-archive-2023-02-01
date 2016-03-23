@@ -113,7 +113,7 @@ def _lift_to_OMS_eigen(Phi, p, M, new_base_ring, ap, newM, eisenloss,
             raise RuntimeError("Precision problem in lifting -- applied "
                            "U_p many times without success")
     Phi = ~(q ** (k + 1) + 1 - aq) * Phi
-    return Phi._normalize(include_zeroth_moment = True)
+    return Phi #._normalize(include_zeroth_moment = True)
 
 class PSModSymAction(Action):
     def __init__(self, actor, MSspace):
@@ -1462,7 +1462,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def p_stabilize_and_lift(self, p, M, alpha=None, ap=None,
                              new_base_ring=None,
-                             ordinary=True, algorithm=None, eigensymbol=False,
+                             ordinary=True, algorithm='greenberg', eigensymbol=False,
                              check=True):
         """
         `p`-stabilizes and lifts self
@@ -1548,7 +1548,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         return self.__class__(self._map.reduce_precision(M), self.parent(),
                               construct=True)
 
-    def precision_absolute(self):
+    def precision_relative(self):
         r"""
         Returns the number of moments of each value of self
 
@@ -1557,11 +1557,12 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
             sage: D = Distributions(0, 5, 10)
             sage: M = PSModularSymbols(Gamma0(5), coefficients=D)
             sage: f = M(1)
-            sage: f.precision_absolute()
+            sage: f.precision_relative()
             1
         """
-        return min([a.precision_absolute() for a in self._map])
+        return min([len(a._moments) for a in self._map])
 
+    
     def specialize(self, new_base_ring=None):
         r"""
         Returns the underlying classical symbol of weight `k` -- i.e.,

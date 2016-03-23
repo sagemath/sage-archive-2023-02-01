@@ -20,6 +20,7 @@ include "sage/ext/stdsage.pxi"
 include "decl.pxi"
 include 'misc.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ import unpickle_class_value
 

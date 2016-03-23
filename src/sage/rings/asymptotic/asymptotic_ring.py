@@ -3104,6 +3104,82 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return tuple(v for v, _ in groupby(vars))
 
 
+    def _singularity_analysis_(self, var, zeta, precision=None):
+        r"""
+        Return the asymptotic growth of the coefficients of some
+        generating function having this singular expansion around `\zeta`.
+
+        INPUT:
+
+        - ``var`` -- a string, the variable for the growth of the coefficients,
+          or the generator of an asymptotic ring.
+
+        - ``zeta`` -- location of the singularity
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the parent of this expansion is used.
+
+        OUTPUT:
+
+        An asymptotic expansion in ``var``.
+
+        EXAMPLES::
+
+            sage: C.<T> = AsymptoticRing('T^QQ', QQ)
+            sage: ex = 2 - 2*T^(-1/2) + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))
+            sage: ex._singularity_analysis_('n', 1/4, precision=2)
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))
+
+        The parameter ``var`` can also be the generator of an asymptotic
+        ring::
+
+            sage: A.<n> = AsymptoticRing('n^QQ', QQ)
+            sage: ex._singularity_analysis_(n, 1/4, precision=2)
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))
+
+        If the parameter ``precision`` is omitted, the default precision
+        of the parent of this expansion is used. ::
+
+            sage: C.<T> = AsymptoticRing('T^QQ', QQ, default_prec=1)
+            sage: ex = 2 - 2*T^(-1/2) + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))
+            sage: ex._singularity_analysis_('n', 1/4)
+            1/sqrt(pi)*4^n*n^(-3/2)  + O(4^n*n^(-5/2))
+
+        .. SEEALSO::
+
+            :meth:`AsymptoticRing.coefficients_of_generating_function`
+
+        .. WARNING::
+
+            Once singular expansions around points other than infinity
+            are implemented (:trac:`20050`), this method will be
+            renamed to ``singularity_analysis``, the parameter
+            ``zeta`` will be dropped (as it will be part of the
+            singular expansion) and expansions around infinity will no
+            longer be accepted.
+        """
+        from misc import NotImplementedOZero
+        OZeroEncountered = False
+
+        if precision is None:
+            precision = self.parent().default_prec
+
+        result = 0
+        for s in self.summands:
+            try:
+                contribution = s._singularity_analysis_(
+                    var=var, zeta=zeta,
+                    precision=precision)
+            except NotImplementedOZero:
+                OZeroEncountered = True
+            else:
+                result += contribution
+
+        if OZeroEncountered and result.is_exact():
+            raise NotImplementedOZero(self)
+        return result
+
+
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expansions <AsymptoticExpansion>`.
@@ -4049,6 +4125,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ....:    'n', precision=5))
             True
 
+        .. WARNING::
+
+            Once singular expansions around points other than infinity
+            are implemented (:trac:`20050`), the output in the case
+            ``return_singular_expansions`` will change to return singular
+            expansions around the singularities.
+
         TESTS::
 
             sage: def f(z):
@@ -4060,15 +4143,14 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             which means 0 for sufficiently large n.
         """
         from sage.symbolic.ring import SR
-        from sage.rings.integer_ring import ZZ
-        from asymptotic_expansion_generators import asymptotic_expansions
         from misc import NotImplementedOZero
 
         singular_expansions = {}
 
         OZeroEncountered = False
 
-        A = AsymptoticRing('T^QQ * log(T)^QQ', coefficient_ring=SR, default_prec=precision)
+        A = AsymptoticRing('T^QQ * log(T)^QQ', coefficient_ring=SR,
+                           default_prec=precision)
         T = A.gen()
 
         result = A.zero()
@@ -4076,15 +4158,14 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             singular_expansion = A(function((1-1/T)*singularity))
             singular_expansions[singularity] = singular_expansion
 
-            for s in singular_expansion.summands:
-                try:
-                    contribution = s._singularity_analysis_(
+            try:
+                contribution = singular_expansion._singularity_analysis_(
                         var='Z', zeta=singularity,
                         precision=precision).subs(Z=self.gen())
-                except NotImplementedOZero:
-                    OZeroEncountered = True
-                else:
-                    result += contribution
+            except NotImplementedOZero:
+                OZeroEncountered = True
+            else:
+                result += contribution
 
         if OZeroEncountered and result.is_exact():
             raise NotImplementedOZero(self)

@@ -8,15 +8,18 @@ AUTHORS:
 - Florent Hivert (2010-2012): implementation of ``__classcall_private__``,
   documentation, Cythonization and optimization.
 """
+
 #*****************************************************************************
-#  Copyright (C) 2009      Nicolas M. Thiery <nthiery at users.sf.net>
-#  Copyright (C) 2010-2012 Florent Hivert <Florent.Hivert at lri.fr>
+#       Copyright (C) 2009      Nicolas M. Thiery <nthiery at users.sf.net>
+#       Copyright (C) 2010-2012 Florent Hivert <Florent.Hivert at lri.fr>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/python.pxi'
 from cpython.object cimport *
 from cpython.type cimport type as pytype
 

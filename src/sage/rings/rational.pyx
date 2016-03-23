@@ -45,7 +45,7 @@ TESTS::
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/python.pxi"
+from cpython cimport *
 
 import sys
 import operator

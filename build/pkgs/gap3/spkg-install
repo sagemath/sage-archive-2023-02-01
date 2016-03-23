@@ -34,9 +34,9 @@ done
 ## INSTALLATION
 ###########################################
 
-cd src
+cd gap3/src
 $MAKE
-cd ..
+cd ../..
 
 echo "Installing (copying) files..."
 mkdir -p "$INSTALL_DIR" &&
@@ -52,7 +52,7 @@ ln -s "$GAP3_DIR" "$SAGE_LOCAL/$PACKAGE_SHORTNAME/latest"
 
 echo "Copying GAP3 startup script..."
 rm -f "$SAGE_LOCAL/bin/gap3"
-cp bin/gap.sh "$SAGE_LOCAL/bin/gap3"
+cp gap3/bin/gap.sh "$SAGE_LOCAL/bin/gap3"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying customized $PACKAGE_SHORTNAME startup script."
     exit 1

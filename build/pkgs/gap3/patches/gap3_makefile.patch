@@ -1,9 +1,9 @@
 Adding the option to autodetect the system and running "make" without
 any options specifying the system.
 
-diff -ur src/src/Makefile.orig src/src/Makefile
---- src/src/Makefile.orig	2016-03-11 08:57:35.111798050 +0100
-+++ src/src/Makefile	2016-03-19 08:16:26.236879777 +0100
+diff -ur src/gap3/src/Makefile.orig src/gap3/src/Makefile
+--- src/gap3/src/Makefile.orig	2016-03-11 08:57:35.111798050 +0100
++++ src/gap3/src/Makefile	2016-03-19 08:16:26.236879777 +0100
 @@ -46,6 +46,9 @@
  ##  DJGPP differently you have to change this below.
  ##

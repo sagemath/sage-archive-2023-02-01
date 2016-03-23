@@ -6660,10 +6660,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return self.roots(ring=CC, multiplicities=False)
 
-    def count_roots_in_interval(self, a, b):
+    def count_roots_in_interval(self, a=None, b=None):
         """
         Return the number of roots of this polynomial in the interval 
-        a <= x <= b, counted without multiplicity.
+        a <= x <= b, counted without multiplicity. If a or b is omitted,
+        it defaults to -Infinity or +Infinity, respectively.
         
         Calls the PARI routine polsturm. Note that as of version 2.8, PARI
         includes the left endpoint of the interval.
@@ -6676,6 +6677,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             2
             sage: pol.count_roots_in_interval(1.01, 2)
             1
+            sage: pol.count_roots_in_interval(1)
+            3
+            sage: pol.count_roots_in_interval(None, 2)
+            2
             sage: pol = chebyshev_T(5,x)
             sage: pol.count_roots_in_interval(-1,2)
             5
@@ -6686,10 +6691,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         pol = self // self.gcd(self.derivative()) #squarefree part
         return(pari(pol).polsturm(a,b))
 
-    def all_roots_in_interval(self, a, b):
+    def all_roots_in_interval(self, a=None, b=None):
         """
         Return True if the roots of this polynomial are all real and 
-        contained in the interval a <= x <= b.
+        contained in the interval a <= x <= b. If a or b is omitted,
+        it defaults to -Infinity or +Infinity, respectively.
     
         EXAMPLES::
 
@@ -6702,6 +6708,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol = chebyshev_T(5,x)
             sage: pol.all_roots_in_interval(-1,1)
             True        
+            sage: pol = chebyshev_T(5,x/2)
+            sage: pol.all_roots_in_interval(-1,1)
+            False
+            sage: pol.all_roots_in_interval()
+            True
         """
         pol = self // self.gcd(self.derivative())
         return(pol.count_roots_in_interval(a,b) == pol.degree())

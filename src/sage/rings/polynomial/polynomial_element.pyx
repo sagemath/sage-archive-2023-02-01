@@ -6667,7 +6667,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         it defaults to -Infinity or +Infinity, respectively.
         
         Calls the PARI routine polsturm. Note that as of version 2.8, PARI
-        includes the left endpoint of the interval.
+        includes the left endpoint of the interval (and no longer uses
+        Sturm's algorithm on exact inputs).
 
         EXAMPLES::
 
@@ -6681,6 +6682,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3
             sage: pol.count_roots_in_interval(None, 2)
             2
+            sage: pol.count_roots_in_interval(1, Infinity)
+            3
             sage: pol = chebyshev_T(5,x)
             sage: pol.count_roots_in_interval(-1,2)
             5
@@ -6689,7 +6692,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
   
         """
         pol = self // self.gcd(self.derivative()) #squarefree part
-        return(pari(pol).polsturm(a,b))
+        if a == None or a == -infinity.infinity:
+            a1 = pari('-oo')
+        else:
+            a1 = pari(a)
+        if b == None or b == infinity.infinity:
+            b1 = pari('+oo')
+        else:
+            b1 = pari(b)
+        return(pari(pol).polsturm([a1,b1]))
 
     def all_roots_in_interval(self, a=None, b=None):
         """

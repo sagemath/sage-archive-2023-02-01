@@ -992,23 +992,28 @@ cdef class pAdicPrinter_class(SageObject):
                     s += self._plus_ellipsis(do_latex)
         else: # not self.base
             if mode == terse:
-                if elt.parent().is_capped_relative():
-                    poly, k = elt._ntl_rep_abs()
-                    s = repr(poly)
+                if elt.parent()._implementation == 'FLINT':
+                    poly, k = elt._flint_rep_abs()
+                    L = [repr(a) for a in poly.coefficients(sparse=False)]
+                    ZZ_pEX = 1
                 else:
-                    s = repr(elt._ntl_rep())
-                    k = 0
-                L = s.split("] [") # this splits a ZZ_pEX into the ZZ_pX components
-                ZZ_pEX = L[0].count("[") # will equal 2 if elt was a ZZ_pEX element, 1 if it was a ZZ_pX element
-                L[0] = L[0].replace("[","")
-                L[-1] = L[-1].replace("]","")
+                    if elt.parent().is_capped_relative():
+                        poly, k = elt._ntl_rep_abs()
+                        s = repr(poly)
+                    else:
+                        s = repr(elt._ntl_rep())
+                        k = 0
+                    L = s.split("] [") # this splits a ZZ_pEX into the ZZ_pX components
+                    ZZ_pEX = L[0].count("[") # will equal 2 if elt was a ZZ_pEX element, 1 if it was a ZZ_pX element
+                    L[0] = L[0].replace("[","")
+                    L[-1] = L[-1].replace("]","")
+                    L = L[0].split()
                 if ZZ_pEX == 2:
                     L = [a.split() for a in L]
                     L = [[("" if b == "0" else b) for b in a] for a in L]
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, "")
                     raise NotImplementedError
                 else:
-                    L = L[0].split()
                     L = [("" if b == "0" else b) for b in L]
                     L, ellipsis = self._truncate_list(L, self.max_terse_terms, "")
                     s = ""

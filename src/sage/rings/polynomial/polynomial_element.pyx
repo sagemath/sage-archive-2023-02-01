@@ -8469,6 +8469,16 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
     - Xavier Caruso (2013-03)
     """
     cdef int __normalize(self) except -1:
+        r"""
+        TESTS::
+
+        Coefficients indistinguishable from 0 are not removed.
+
+            sage: R = Zp(5)
+            sage: S.<x> = R[]
+            sage: S([1,R(0,20)])
+            (O(5^20))*x + (1 + O(5^20))
+        """
         cdef list x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
         cdef RingElement c

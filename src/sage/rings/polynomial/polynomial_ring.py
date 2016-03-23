@@ -2036,7 +2036,23 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
 
 class PolynomialRing_cdvr(PolynomialRing_integral_domain):
+    r"""
+    A class for polynomial ring over complete discrete valuation rings
+    """
     def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_cdvr
+
+            sage: S.<x> = ZZ[]
+            sage: isinstance(S, PolynomialRing_cdvr)
+            False
+
+            sage: S.<x> = Zp(5)[]
+            sage: isinstance(S, PolynomialRing_cdvr)
+            True
+        """
         if element_class is None:
             if sparse:
                 from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_sparse_cdvr
@@ -2047,7 +2063,23 @@ class PolynomialRing_cdvr(PolynomialRing_integral_domain):
         PolynomialRing_integral_domain.__init__(self, base_ring, name, sparse, element_class=element_class, category=category)
 
 class PolynomialRing_cdvf(PolynomialRing_cdvr, PolynomialRing_field):
+    """
+    A class for polynomial ring over complete discrete valuation fields
+    """
     def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_cdvf
+
+            sage: S.<x> = QQ[]
+            sage: isinstance(S, PolynomialRing_cdvf)
+            False
+
+            sage: S.<x> = Qp(5)[]
+            sage: isinstance(S, PolynomialRing_cdvf)
+            True
+        """
         if element_class is None:
             if sparse:
                 from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_sparse_cdvf
@@ -2058,10 +2090,16 @@ class PolynomialRing_cdvf(PolynomialRing_cdvr, PolynomialRing_field):
         PolynomialRing_field.__init__(self, base_ring, name, sparse, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_ring_generic(PolynomialRing_cdvr):
+    r"""
+    A class for dense polynomial ring over padic rings
+    """
     def __init__(self, base_ring, name=None, element_class=None, category=None):
         PolynomialRing_cdvr.__init__(self, base_ring, sparse=False, name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_field_generic(PolynomialRing_cdvf):
+    r"""
+    A class for dense polynomial ring over padic fields
+    """
     def __init__(self, base_ring, name=None, element_class=None, category=None):
         PolynomialRing_cdvf.__init__(self, base_ring, sparse=False, name=name, element_class=element_class, category=category)
 

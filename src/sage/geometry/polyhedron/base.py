@@ -22,12 +22,12 @@ from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.misc.all import cached_method, prod
 from sage.misc.package import is_package_installed
 
-from sage.rings.all import Integer, QQ, ZZ
+from sage.rings.all import QQ, ZZ
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
-
+from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 
 from constructor import Polyhedron
@@ -718,7 +718,7 @@ class Polyhedron_base(Element):
         viewer programs.
 
         INPUT:
-        
+
         - ``kwds`` -- optional keyword arguments. See :meth:`plot` for
           the description of available options.
 
@@ -847,7 +847,7 @@ class Polyhedron_base(Element):
              1 -1 0
              1 0 -1
             end
-            
+
             sage: triangle = Polyhedron(vertices = [[1,0],[0,1],[1,1]],base_ring=AA)
             sage: triangle.base_ring()
             Algebraic Real Field
@@ -1946,7 +1946,7 @@ class Polyhedron_base(Element):
         sub-ring of the reals to define a polyhedron, in particular
         comparison must be defined. Popular choices are
 
-        * ``ZZ`` (the ring of integers, lattice polytope), 
+        * ``ZZ`` (the ring of integers, lattice polytope),
 
         * ``QQ`` (exact arithmetic using gmp),
 
@@ -2151,7 +2151,7 @@ class Polyhedron_base(Element):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`~sage.geometric.hyperplane_arragement.arrangement.HyperplaneArrangementElement.Hrepresentation`. 
+        :meth:`~sage.geometric.hyperplane_arragement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
         If the polytope is full-dimensional, this is the hyperplane
         arrangement spanned by the facets of the polyhedron.
 
@@ -2166,7 +2166,7 @@ class Polyhedron_base(Element):
         field = self.base_ring().fraction_field()
         H = HyperplaneArrangements(field, names)
         return H(self)
-        
+
     @cached_method
     def gale_transform(self):
         """
@@ -2690,11 +2690,11 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: t = polytopes.simplex(3,project=False);  t.vertices()
-            (A vertex at (0, 0, 0, 1), A vertex at (0, 0, 1, 0), 
+            (A vertex at (0, 0, 0, 1), A vertex at (0, 0, 1, 0),
              A vertex at (0, 1, 0, 0), A vertex at (1, 0, 0, 0))
             sage: neg_ = -t
             sage: neg_.vertices()
-            (A vertex at (-1, 0, 0, 0), A vertex at (0, -1, 0, 0), 
+            (A vertex at (-1, 0, 0, 0), A vertex at (0, -1, 0, 0),
              A vertex at (0, 0, -1, 0), A vertex at (0, 0, 0, -1))
 
         TESTS::
@@ -3239,9 +3239,9 @@ class Polyhedron_base(Element):
             sage: [get_idx(_) for _ in face.ambient_Vrepresentation()]
             [0, 1, 2, 3, 4, 5, 6, 7]
 
-            sage: [ ([get_idx(_) for _ in face.ambient_Vrepresentation()], 
-            ...      [get_idx(_) for _ in face.ambient_Hrepresentation()])
-            ...     for face in p.faces(3) ]
+            sage: [ ([get_idx(_) for _ in face.ambient_Vrepresentation()],
+            ....:    [get_idx(_) for _ in face.ambient_Hrepresentation()])
+            ....:   for face in p.faces(3) ]
             [([0, 1, 2, 3, 4, 5, 6, 7], [4]),
              ([0, 1, 2, 3, 8, 9, 10, 11], [5]),
              ([0, 1, 4, 5, 8, 9, 12, 13], [6]),
@@ -3323,7 +3323,6 @@ class Polyhedron_base(Element):
             for ineq in ineq_list:
                 ineq_vertex_incidence[ineq].add(v)
 
-        d = self.dim()
         n = len(vertices)
 
         pairs = []
@@ -4389,48 +4388,8 @@ class Polyhedron_base(Element):
         self._combinatorial_automorphism_group = group
         return group
 
-    def _affine_coordinates(self, Vrep_object):
-        r"""
-        Return affine coordinates for a V-representation object.
-
-        INPUT:
-
-        - ``v`` -- a V-representation object or any iterable
-          containing ``self.ambient_dim()`` coordinates. The
-          coordinates must specify a point in the affine plane
-          containing the polyhedron, or the output will be invalid. No
-          checks on the input are performed.
-
-        OUTPUT:
-
-        A ``self.dim()``-dimensional coordinate vector. It contains
-        the coordinates of ``v`` in an arbitrary but fixed basis for
-        the affine span of the polyhedron.
-
-        EXAMPLES::
-
-            sage: P = Polyhedron(rays=[(1,0,0),(0,1,0)])
-            sage: P._affine_coordinates( (-1,-2,-3) )
-            (-1, -2)
-            sage: [ P._affine_coordinates(v) for v in P.Vrep_generator() ]
-            [(0, 0), (0, 1), (1, 0)]
-        """
-        if '_affine_coordinates_pivots' not in self.__dict__:
-            v_list = [ vector(v) for v in self.Vrepresentation() ]
-            if len(v_list)>0:
-                origin = v_list[0]
-                v_list = [ v - origin for v in v_list ]
-            coordinates = matrix(v_list)
-            self._affine_coordinates_pivots = coordinates.pivots()
-
-        v = list(Vrep_object)
-        if len(v) != self.ambient_dim():
-            raise ValueError('Incorrect dimension: '+str(v))
-
-        return vector(self.base_ring(), [ v[i] for i in self._affine_coordinates_pivots ])
-
     @cached_method
-    def restricted_automorphism_group(self):
+    def restricted_automorphism_group(self, kind="abstract"):
         r"""
         Return the restricted automorphism group.
 
@@ -4493,18 +4452,34 @@ class Polyhedron_base(Element):
             \right\}
             \simeq \ZZ_2
 
+        INPUT:
+
+        - ``kind`` -- which kind of object to return:
+
+          - ``"abstract"`` -- return an abstract permutation group
+            without further meaning.
+
+          - ``"permutation"`` -- return a permutation group on the
+            indices of the polyhedron generators. For example, the
+            permutation ``(0,1)`` would correspond to swapping
+            ``self.Vrepresentation(0)`` and ``self.Vrepresentation(1)``.
+
+          - ``"matrix"`` -- return a matrix group representing affine
+            transformations. When acting on affine vectors, you should
+            append a `1` to every vector.
+
+          - ``"matrixlist"`` -- return the list of elements of the
+            matrix group. Useful for fields without a good
+            implementation of matrix groups.
+
         OUTPUT:
 
-        A :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic>`
-        that is isomorphic to the restricted automorphism group is
-        returned.
+        - For ``kind="abstract"`` and ``kind="permutation"``:
+          a :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic>`.
 
-        Note that in Sage, permutation groups always act on positive
-        integers while ``self.Vrepresentation()`` is indexed by
-        nonnegative integers. The indexing of the permutation group is
-        chosen to be shifted by ``+1``. That is, ``i`` in the
-        permutation group corresponds to the V-representation object
-        ``self.Vrepresentation(i-1)``.
+        - For ``kind="matrix"``: a :class:`MatrixGroup`.
+
+        - For ``kind="matrixlist"``: a list of matrices.
 
         REFERENCES:
 
@@ -4516,34 +4491,70 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: P = polytopes.cross_polytope(3)
-            sage: AutP = P.restricted_automorphism_group();  AutP
+            sage: P.restricted_automorphism_group()
             Permutation Group with generators [(3,4), (2,3)(4,5), (2,5), (1,2)(5,6), (1,6)]
+            sage: P.restricted_automorphism_group(kind="permutation")
+            Permutation Group with generators [(2,3), (1,2)(3,4), (1,4), (0,1)(4,5), (0,5)]
+            sage: P.restricted_automorphism_group(kind="matrix")
+            Matrix group over Rational Field with 5 generators (
+            [ 1  0  0  0]  [1 0 0 0]  [ 1  0  0  0]  [0 1 0 0]  [-1  0  0  0]
+            [ 0  1  0  0]  [0 0 1 0]  [ 0 -1  0  0]  [1 0 0 0]  [ 0  1  0  0]
+            [ 0  0 -1  0]  [0 1 0 0]  [ 0  0  1  0]  [0 0 1 0]  [ 0  0  1  0]
+            [ 0  0  0  1], [0 0 0 1], [ 0  0  0  1], [0 0 0 1], [ 0  0  0  1]
+            )
+
+        ::
+
             sage: P24 = polytopes.twenty_four_cell()
             sage: AutP24 = P24.restricted_automorphism_group()
             sage: PermutationGroup([
-            ...     '(3,6)(4,7)(10,11)(14,15)(18,21)(19,22)',
-            ...     '(2,3)(7,8)(11,12)(13,14)(17,18)(22,23)',
-            ...     '(2,5)(3,10)(6,11)(8,17)(9,13)(12,16)(14,19)(15,22)(20,23)',
-            ...     '(2,10)(3,5)(6,12)(7,18)(9,14)(11,16)(13,19)(15,23)(20,22)',
-            ...     '(2,11)(3,12)(4,21)(5,6)(9,15)(10,16)(13,22)(14,23)(19,20)',
-            ...     '(1,2)(3,4)(6,7)(8,9)(12,13)(16,17)(18,19)(21,22)(23,24)',
-            ...     '(1,24)(2,13)(3,14)(5,9)(6,15)(10,19)(11,22)(12,23)(16,20)'
-            ...   ]) == AutP24
+            ....:     '(1,20,2,24,5,23)(3,18,10,19,4,14)(6,21,11,22,7,15)(8,12,16,17,13,9)',
+            ....:     '(1,21,8,24,4,17)(2,11,6,15,9,13)(3,20)(5,22)(10,16,12,23,14,19)'
+            ....: ]) == AutP24
             True
+            sage: len(AutP24)
+            1152
 
         Here is the quadrant example mentioned in the beginning::
 
             sage: P = Polyhedron(rays=[(1,0),(0,1)])
             sage: P.Vrepresentation()
             (A vertex at (0, 0), A ray in the direction (0, 1), A ray in the direction (1, 0))
-            sage: P.restricted_automorphism_group()
-            Permutation Group with generators [(2,3)]
+            sage: P.restricted_automorphism_group(kind="permutation")
+            Permutation Group with generators [(1,2)]
 
         Also, the polyhedron need not be full-dimensional::
 
             sage: P = Polyhedron(vertices=[(1,2,3,4,5),(7,8,9,10,11)])
             sage: P.restricted_automorphism_group()
             Permutation Group with generators [(1,2)]
+            sage: G = P.restricted_automorphism_group(kind="matrixlist")
+            sage: G
+            [
+            [1 0 0 0 0 0]  [ -87/55  -82/55    -2/5   38/55   98/55   12/11]
+            [0 1 0 0 0 0]  [-142/55  -27/55    -2/5   38/55   98/55   12/11]
+            [0 0 1 0 0 0]  [-142/55  -82/55     3/5   38/55   98/55   12/11]
+            [0 0 0 1 0 0]  [-142/55  -82/55    -2/5   93/55   98/55   12/11]
+            [0 0 0 0 1 0]  [-142/55  -82/55    -2/5   38/55  153/55   12/11]
+            [0 0 0 0 0 1], [      0       0       0       0       0       1]
+            ]
+            sage: g = AffineGroup(5, QQ)(G[1])
+            sage: g
+                  [ -87/55  -82/55    -2/5   38/55   98/55]     [12/11]
+                  [-142/55  -27/55    -2/5   38/55   98/55]     [12/11]
+            x |-> [-142/55  -82/55     3/5   38/55   98/55] x + [12/11]
+                  [-142/55  -82/55    -2/5   93/55   98/55]     [12/11]
+                  [-142/55  -82/55    -2/5   38/55  153/55]     [12/11]
+            sage: g^2
+                  [1 0 0 0 0]     [0]
+                  [0 1 0 0 0]     [0]
+            x |-> [0 0 1 0 0] x + [0]
+                  [0 0 0 1 0]     [0]
+                  [0 0 0 0 1]     [0]
+            sage: g(list(P.vertices()[0]))
+            (7, 8, 9, 10, 11)
+            sage: g(list(P.vertices()[1]))
+            (1, 2, 3, 4, 5)
 
         Affine transformations do not change the restricted automorphism
         group. For example, any non-degenerate triangle has the
@@ -4564,24 +4575,92 @@ class Polyhedron_base(Element):
             sage: Polyhedron(vertices=points).restricted_automorphism_group()
             Permutation Group with generators [(2,3), (1,2)]
 
+        The ``kind="matrixlist"`` can be used over fields without a
+        complete implementation of matrix groups::
+
+            sage: P = polytopes.dodecahedron(); P
+            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+            sage: G = P.restricted_automorphism_group(kind="matrixlist")
+            sage: len(G)
+            120
+
         Floating-point computations are supported with a simple fuzzy
         zero implementation::
 
-            sage: P = Polyhedron(vertices=[(1.0/3.0,0,0),(0,1.0/3.0,0),(0,0,1.0/3.0)], base_ring=RDF)
+            sage: P = Polyhedron(vertices=[(1/3,0,0,1),(0,1/4,0,1),(0,0,1/5,1)], base_ring=RDF)
             sage: P.restricted_automorphism_group()
             Permutation Group with generators [(2,3), (1,2)]
+            sage: len(P.restricted_automorphism_group(kind="matrixlist"))
+            6
 
         TESTS::
 
-            sage: p = Polyhedron(vertices=[(1,0), (1,1)], rays=[(1,0)])
-            sage: p.restricted_automorphism_group()
-            Permutation Group with generators [(2,3)]
+            sage: P = Polyhedron(vertices=[(1,0), (1,1)], rays=[(1,0)])
+            sage: P.restricted_automorphism_group(kind="permutation")
+            Permutation Group with generators [(1,2)]
+            sage: P.restricted_automorphism_group(kind="matrix")
+            Matrix group over Rational Field with 1 generators (
+            [ 1  0  0]
+            [ 0 -1  1]
+            [ 0  0  1]
+            )
+            sage: P.restricted_automorphism_group(kind="foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown kind 'foobar', valid values are ('abstract', 'permutation', 'matrix', 'matrixlist')
         """
-        if self.base_ring() is ZZ or self.base_ring() is QQ:
+        # The algorithm works as follows:
+        #
+        # Let V be the matrix where every column is a homogeneous
+        # coordinate of a V-representation object (vertex, ray, line).
+        # Let us assume that V has full rank, that the polyhedron is
+        # full dimensional.
+        #
+        # Let Q = V Vt and C = Vt Q^-1 V. The rows and columns of C
+        # can be thought of as being indexed by the V-rep objects of the
+        # polytope.
+        #
+        # It turns out that we can identify the restricted automorphism
+        # group with the automorphism group of the edge-colored graph
+        # on the V-rep objects with colors determined by the symmetric
+        # matrix C.
+        #
+        # An automorphism of this graph is equivalent to a permutation
+        # matrix P such that C = Pt C P. If we now define
+        # A = V P Vt Q^-1, then one can check that V P = A V.
+        # In other words: permuting the generators is the same as
+        # applying the affine transformation A on the generators.
+        #
+        # If the given polyhedron is not fully-dimensional,
+        # then Q will be not invertible. In this case, we use a
+        # pseudoinverse Q+ instead of Q^-1. The formula for A acting on
+        # the space spanned by V then simplifies to A = V P V+ where V+
+        # denotes the pseudoinverse of V, which also equals V+ = Vt Q+.
+        #
+        # If we are asked to return the (group of) transformation
+        # matrices to the user, we also require that those
+        # transformations act as the identity on the orthogonal
+        # complement of the space spanned by V. This complement is the
+        # space spanned by the columns of W = 1 - V V+. One can check
+        # that B = (V P V+) + W is the correct matrix: it acts the same
+        # as A on V and it satisfies B W = W.
+
+        kinds = ("abstract", "permutation", "matrix", "matrixlist")
+        if kind not in kinds:
+            raise ValueError("unknown kind {!r}, valid values are {}".format(kind, kinds))
+
+        # For backwards compatibility, we treat "abstract" as
+        # "permutation", but where we add 1 to the indices of the
+        # permutations.
+        index0 = 0
+        if kind == "abstract":
+            index0 = 1
+            kind = "permutation"
+
+        if self.base_ring().is_exact():
             def rational_approximation(c):
                 return c
-
-        elif self.base_ring() is RDF:
+        else:
             c_list = []
             def rational_approximation(c):
                 # Implementation detail: Return unique integer if two
@@ -4594,49 +4673,59 @@ class Polyhedron_base(Element):
                 c_list.append(c)
                 return len(c_list)-1
 
-        # The algorithm identifies the restricted automorphism group
-        # with the automorphism group of a edge-colored graph. The
-        # nodes of the graph are the V-representation objects. If all
-        # V-representation objects are vertices, the edges are
-        # labelled by numbers (to be computed below). Roughly
-        # speaking, the edge label is the inner product of the
-        # coordinate vectors with some orthogonalization thrown in
-        # [BSS].
-        def edge_label_compact(i,j,c_ij):
-            return c_ij
-
-        # In the non-compact case we also label the edges by the type
-        # of the V-representation object. This ensures that vertices,
-        # rays, and lines are only permuted amongst themselves.
-        def edge_label_noncompact(i,j,c_ij):
-            return (self.Vrepresentation(i).type(), c_ij, self.Vrepresentation(j).type())
-
         if self.is_compact():
-            edge_label = edge_label_compact
+            def edge_label(i,j,c_ij):
+                return c_ij
         else:
-            edge_label = edge_label_noncompact
+            # In the non-compact case, we also label the edges by the
+            # type of the V-representation object. This ensures that
+            # vertices, rays, and lines are only permuted amongst
+            # themselves.
+            def edge_label(i,j,c_ij):
+                return (self.Vrepresentation(i).type(), c_ij, self.Vrepresentation(j).type())
 
-        # good coordinates for the V-representation objects
-        v_list = []
-        for v in self.Vrepresentation():
-            v_coords = list(self._affine_coordinates(v))
-            if v.is_vertex():
-                v_coords = [1]+v_coords
-            else:
-                v_coords = [0]+v_coords
-            v_list.append(vector(v_coords))
+        # Homogeneous coordinates for the V-representation objects.
+        # Mathematically, V is a matrix. For efficiency however, we
+        # represent it as a list of column vectors.
+        V = [v.homogeneous_vector() for v in self.Vrepresentation()]
 
-        # Finally, construct the graph
-        Qinv = sum( v.column() * v.row() for v in v_list ).inverse()
+        # Pseudoinverse of V Vt
+        Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()
+
+        # Construct the graph.
         G = Graph()
-        for i in range(0,len(v_list)):
-            for j in range(i+1,len(v_list)):
-                v_i = v_list[i]
-                v_j = v_list[j]
-                c_ij = rational_approximation( v_i * Qinv * v_j )
-                G.add_edge(i+1,j+1, edge_label(i,j,c_ij))
+        for i in range(0, len(V)):
+            for j in range(i+1, len(V)):
+                c_ij = rational_approximation(V[i] * Qplus * V[j])
+                G.add_edge(index0+i, index0+j, edge_label(i, j, c_ij))
 
-        return G.automorphism_group(edge_labels=True)
+        permgroup = G.automorphism_group(edge_labels=True)
+        if kind == "permutation":
+            return permgroup
+        elif kind == "matrix":
+            permgroup = permgroup.gens()
+
+        # Compute V+ = Vt Q+ as list of row vectors
+        Vplus = list(matrix(V) * Qplus)  # matrix(V) is V+
+
+        # Compute W = 1 - V V+
+        W = 1 - sum(V[i].column() * Vplus[i].row() for i in range(len(V)))
+
+        # Convert the permutation group to a matrix group.
+        # If P is a permutation, then we return the matrix
+        # B = (V P V+) + W.
+        #
+        # If kind == "matrix", we loop over the generators of the group.
+        # Otherwise, we loop over all elements.
+        matrices = []
+        for perm in permgroup:
+            A = sum(V[perm(i)].column() * Vplus[i].row() for i in range(len(V)))
+            matrices.append(A + W)
+
+        if kind == "matrixlist":
+            return matrices
+        else:
+            return MatrixGroup(matrices)
 
     def is_full_dimensional(self):
         """

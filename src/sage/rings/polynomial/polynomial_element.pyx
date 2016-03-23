@@ -4205,15 +4205,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: q = r * (x + y + z - 2)
             sage: p.gcd(q)
             z + 2*x*y
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: r = 2*x*y + 1
+            sage: p = r * (x - 1/2 * y)
+            sage: q = r * (x*y^2 - x + 1/3)
+            sage: p.gcd(q)
+            2*x*y + 1
         """
         variables = self._parent.variable_names_recursive()
         if len(variables) > 1:
             base = self._parent._mpoly_base_ring()
-            d1 = self._mpoly_dict_recursive()
-            d2 = other._mpoly_dict_recursive()
             ring = PolynomialRing(base, variables)
-            try:
+            if base is ZZ:
+                d1 = self._mpoly_dict_recursive()
+                d2 = other._mpoly_dict_recursive()
                 return self._parent(ring(d1).gcd(ring(d2)))
+            try:
+                ring._singular_().set_ring()
+                g = self._singular_().gcd(other._singular_())
+                return self._parent(ring(g))
             except (AttributeError, NotImplementedError):
                 pass
 

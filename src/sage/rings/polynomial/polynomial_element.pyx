@@ -7574,6 +7574,62 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return bool(self._pari_().poliscycloprod())
 
+    def cyclotomic_part(self):
+        """
+        Return the product of the irreducible factors of ``self'' which are
+        cyclotomic polynomials.
+
+        .. SEEALSO::
+
+            :meth:`is_cyclotomic`
+            :meth:`is_cyclotomic_product`
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(Integers())
+            sage: pol = 2*(x^4 + 1)
+            sage: pol.cyclotomic_part()
+            x^4 + 1
+            sage: pol = x^4 + 2
+            sage: pol.cyclotomic_part()
+            1
+            sage: pol = (x^4 + 1)^2 * (x^4 + 2)
+            sage: pol.cyclotomic_part()
+            x^8 + 2*x^4 + 1
+
+            sage: x = polygen(Zmod(5))
+            sage: (x-1).cyclotomic_part()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented in non-zero characteristic
+        """
+        if self.base_ring().characteristic() != 0:
+            raise NotImplementedError("not implemented in non-zero characteristic")
+        R = self.parent()
+        x = R.gen()
+        # Extract Phi_n when n is odd.
+        t1 = self
+        while True:
+            t2 = t1.gcd(t1(x**2))
+            if t1.degree() == t2.degree(): break
+            t1 = t2
+        ans = t1
+        # Extract Phi_n when v_2(n) = 1, 2, ...
+        t0 = self // t1
+        i = 0
+        while t0.degree() > 0:
+            t1 = t0
+            while True:
+                t2 = t1.gcd(t1(-x**2))
+                if t1.degree() == t2.degree(): break
+                t1 = t2
+            ans *= t1(x**(2**i))
+            t0 = t0 // t1
+            t1 = t0.gcd(t0(-x))
+            t0 = R(list(t1)[::2])
+            i += 1
+        return(ans // ans.leading_coefficient())
+
     def homogenize(self, var='h'):
         r"""
         Return the homogenization of this polynomial.

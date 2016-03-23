@@ -27,7 +27,8 @@ TESTS::
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include 'cysignals/signals.pxi'
+
 
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *

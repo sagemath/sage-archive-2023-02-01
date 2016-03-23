@@ -1557,7 +1557,9 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.coordinates(L.elliptic_logarithm(E(e3,0)))
             (0.500000000000000, 0.000000000000000)
 
-        TESTS (see #10026 and #11767)::
+        TESTS:
+
+        (see :trac:`10026` and :trac:`11767`)::
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
@@ -1708,7 +1710,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P.parent()
             Abelian group of points on Elliptic Curve defined by y^2 + 1.00000000000000*y = x^3 + (-1.00000000000000)*x over Complex Field with 53 bits of precision
 
-        Very small `z` are handled properly (see #8820)::
+        Very small `z` are handled properly (see :trac:`8820`)::
 
             sage: K.<a> = QuadraticField(-1)
             sage: E = EllipticCurve([0,0,0,a,0])

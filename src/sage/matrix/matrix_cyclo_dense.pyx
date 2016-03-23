@@ -607,14 +607,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: N1*N2
             [        0        -1    -zeta6     zeta6 zeta6 - 1]
 
-        Verify that a degenerate case bug reported at trac 5974 is fixed.
+        Verify that a degenerate case bug reported at :trac:`5974` is fixed.
 
             sage: K.<zeta6>=CyclotomicField(6); matrix(K,1,2) * matrix(K,2,[0, 1, 0, -2*zeta6, 0, 0, 1, -2*zeta6 + 1])
             [0 0 0 0]
 
         TESTS:
 
-        This is from trac #8666::
+        This is from :trac:`8666`::
 
             sage: K.<zeta4> = CyclotomicField(4)
             sage: m = matrix(K, [125])

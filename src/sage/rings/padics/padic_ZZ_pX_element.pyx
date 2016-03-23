@@ -389,7 +389,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
            sage: ((1+2*w)).norm()^5
            1 + 5^2 + O(5^5)
 
-        Check that #11586 has been resolved::
+        Check that :trac:`11586` has been resolved::
 
             sage: R.<x> = QQ[]
             sage: f = x^2 + 3*x + 1

@@ -417,7 +417,7 @@ cdef class PolyDict:
 
         TESTS:
 
-        We check that the issue on Trac 9478 is resolved::
+        We check that the issue on :trac:`9478` is resolved::
 
             sage: R2.<a> = QQ[]
             sage: R3.<xi, x> = R2[]
@@ -1245,7 +1245,7 @@ cdef class ETuple:
             sage: e.eadd(f)
             (1, 1, 3)
 
-        Verify that trac 6428 has been addressed::
+        Verify that :trac:`6428` has been addressed::
 
             sage: R.<y,z> = Frac(QQ['x'])[]
             sage: type(y)

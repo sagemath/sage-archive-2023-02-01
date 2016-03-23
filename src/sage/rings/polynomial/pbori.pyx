@@ -566,7 +566,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         names, and any polynomial ring with compatible variable
         names and base ring.
 
-        Before trac ticket #9138, boolean polynomial rings had
+        Before :trac:`9138`, boolean polynomial rings had
         a custom containment test, but that is not needed now
         since it now uses Sage's new coercion model. So, we
         move the tests from the old ``__contains__`` to here.
@@ -600,7 +600,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: 7 in GF(2)
             True
 
-        We test that #10173 is fixed::
+        We test that :trac:`10173` is fixed::
 
             sage: R = BooleanPolynomialRing(256,'x')
             sage: S = PolynomialRing(GF(2),256,'y')
@@ -756,7 +756,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P(x)
             x
 
-        Test that #10797 is really fixed::
+        Test that :trac:`10797` is really fixed::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: I = ideal(a*b + a + b*e + c*e + 1, a + b + c*d + c + 1, a*c + c + d*f + d + 1, a*c + c*f + c + d*f + 1, c*f + c + d + e + 1, a + b*c + b*d + e*f + 1)
@@ -887,7 +887,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             TypeError: cannot convert polynomial z*x^2 + 5*y^3 to Boolean PolynomialRing in x, y: name z not defined
 
         We test that univariate polynomials convert into the
-        boolean polynomial ring (trac ticket #9138)::
+        boolean polynomial ring (:trac:`9138`)::
 
             sage: R.<x> = ZZ[]
             sage: p = x^3+2*x^2+x+1
@@ -1821,7 +1821,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
         sage: type(M.gen(0))
         <type 'sage.rings.polynomial.pbori.BooleanMonomial'>
 
-    Since trac ticket #9138, boolean monomial monoids are
+    Since :trac:`9138`, boolean monomial monoids are
     unique parents and are fit into the category framework::
 
         sage: loads(dumps(M)) is M
@@ -2375,7 +2375,10 @@ cdef class BooleanMonomial(MonoidElement):
             sage: m.index()
             0
 
-            # Check that Ticket #13133 is resolved:
+        TESTS:
+
+        Check that :trac:`13133` is resolved::
+
             sage: B(1).lm().index()
             Traceback (most recent call last):
             ...
@@ -6291,7 +6294,7 @@ cdef class ReductionStrategy:
 
         TESTS:
 
-        Check if #8966 is fixed::
+        Check if :trac:`8966` is fixed::
 
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(None)

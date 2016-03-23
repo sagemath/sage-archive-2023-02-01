@@ -682,7 +682,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: z.quo_rem(2*x)
             (0, 0)
 
-        Ticket #383, make sure things get coerced correctly::
+        :trac:`383`, make sure things get coerced correctly::
 
             sage: f = x+1; parent(f)
             Univariate Polynomial Ring in x over Integer Ring

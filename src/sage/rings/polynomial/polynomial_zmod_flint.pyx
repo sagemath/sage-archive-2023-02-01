@@ -337,7 +337,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: r.parent() is GF(19)
             True
 
-        The following example shows that #11782 has been fixed::
+        The following example shows that :trac:`11782` has been fixed::
 
             sage: R.<x> = ZZ.quo(9)['x']
             sage: f = 2*x^3 + x^2 + x;  g = 6*x^2 + 2*x + 1

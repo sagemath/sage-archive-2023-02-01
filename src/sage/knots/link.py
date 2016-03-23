@@ -60,8 +60,6 @@ from sage.symbolic.ring import SR
 from sage.rings.integer import Integer
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.functions.generalized import sign
-from sage.plot.line import line
-from sage.plot.bezier_path import bezier_path
 from sage.misc.flatten import flatten
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
@@ -288,11 +286,12 @@ class Link(object):
             sage: TestSuite(L).run()
             sage: L = Link([[1, 1, 2, 2]])
             sage: TestSuite(L).run()
+
+            sage: L = Link(B.one())
+            sage: L = Link([])
+            sage: L = Link([[], []])
         """
         if isinstance(data, list):
-            if not data:
-                raise ValueError("does not accept empty list as argument")
-
             if len(data) != 2 or not all(isinstance(i, list) for i in data[0]):
                 for i in data:
                     if len(i) != 4:
@@ -307,9 +306,10 @@ class Link(object):
 
             else:
                 flat = flatten(data[0])
-                a, b = max(flat), min(flat)
-                if 2 * len(data[1]) != len(flat) or set(range(b, a + 1)) - set([0]) != set(flat):
-                    raise ValueError("invalid input: data is not a valid oriented Gauss code")
+                if flat:
+                    a, b = max(flat), min(flat)
+                    if 2 * len(data[1]) != len(flat) or set(range(b, a + 1)) - set([0]) != set(flat):
+                        raise ValueError("invalid input: data is not a valid oriented Gauss code")
                 self._oriented_gauss_code = data
                 self._pd_code = None
                 self._braid = None
@@ -426,6 +426,15 @@ class Link(object):
             sage: L = Link([[1,8,2,7], [8,4,9,5], [3,9,4,10], [10,1,7,6], [5,3,6,2]])
             sage: L.braid()
             (s0*s1^-1)^2*s1^-1
+
+        TESTS::
+
+            sage: L = Link([])
+            sage: L.braid()
+            1
+            sage: L = Link([[], []])
+            sage: L.braid()
+            1
         """
         if self._braid is not None:
             return self._braid
@@ -442,10 +451,15 @@ class Link(object):
             t1 = list(b1.Tietze())
             t2 = [sign(x)*(abs(x) + n1) for x in b2.Tietze()]
             B = BraidGroup(n1 + n2)
-            return B(t1 + t2)
+            self._braid = B(t1 + t2)
+            return self._braid
 
         # look for possible Vogel moves, perform them and call recursively to the modified link
         pd_code = self.pd_code()
+        if not pd_code:
+            B = BraidGroup(2)
+            self._braid = B.one()
+            return self._braid
         seifert_circles = self.seifert_circles()
         newedge = max(flatten(pd_code)) + 1
         for region in self.regions():
@@ -675,6 +689,15 @@ class Link(object):
             sage: L = Link(b)
             sage: L.oriented_gauss_code()
             [[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]], [1, 1, 1, 1, 1]]
+
+        TESTS::
+
+            sage: L = Link([])
+            sage: L.oriented_gauss_code()
+            [[], []]
+            sage: L = Link(BraidGroup(2).one())
+            sage: L.oriented_gauss_code()
+            [[], []]
         """
         if self._oriented_gauss_code is not None:
             return self._oriented_gauss_code
@@ -741,6 +764,15 @@ class Link(object):
             sage: L = Link([[1, 2, 3, 3], [2, 4, 5, 5], [4, 1, 7, 7]])
             sage: L.pd_code()
             [[1, 2, 3, 3], [2, 4, 5, 5], [4, 1, 7, 7]]
+
+        TESTS::
+
+            sage: L = Link([[], []])
+            sage: L.pd_code()
+            []
+            sage: L = Link(BraidGroup(2).one())
+            sage: L.pd_code()
+            []
         """
         if self._pd_code is not None:
             return self._pd_code
@@ -778,6 +810,8 @@ class Link(object):
                     elif x == 1:
                         crossing_dic[i + 1] = [d_dic[-(i + 1)][0], d_dic[i + 1][0],
                                                d_dic[-(i + 1)][1], d_dic[i + 1][1]]
+            else:
+                crossing_dic = {}
 
             pd = crossing_dic.values()
             self._pd_code = pd
@@ -898,7 +932,7 @@ class Link(object):
         """
         ml = list(self.braid().Tietze())
         if not ml:
-            raise ValueError("the braid remains the same with no components")
+            return tuple()
 
         l = set(abs(k) for k in ml)
         missing1 = set(range(min(l), max(l) + 1)) - l
@@ -938,8 +972,7 @@ class Link(object):
             sage: L._braid_word_components_vector()
             [-2, 1, 1, 4, 4, 6]
         """
-        bc = self._braid_word_components()
-        return flatten(bc)
+        return flatten(self._braid_word_components())
 
     def _homology_generators(self):
         """
@@ -1073,9 +1106,14 @@ class Link(object):
             sage: L = Link(B([1, 2, 1, 2]))
             sage: L.number_of_components()
             1
+            sage: L = Link(B.one())
+            sage: L.number_of_components()
+            1
         """
         G = Graph()
         pd = self.pd_code()
+        if not pd:
+            return ZZ.one()
         G.add_vertices(set(flatten(pd)))
         for c in pd:
             G.add_edge(c[0], c[2])
@@ -1212,10 +1250,14 @@ class Link(object):
 
         Some additional examples::
 
-            sage: B = BraidGroup(4)
+            sage: B = BraidGroup(2)
             sage: L = Link(B([1]))
             sage: L.alexander_polynomial()
             1
+            sage: L = Link(B.one())
+            sage: L.alexander_polynomial()
+            1
+            sage: B = BraidGroup(3)
             sage: L = Link(B([1, 2, 1, 2]))
             sage: L.alexander_polynomial()
             t^-1 - 1 + t
@@ -1223,6 +1265,7 @@ class Link(object):
         When the Seifert surface is disconnected, the Alexander
         polynomial is defined to be `0`::
 
+            sage: B = BraidGroup(4)
             sage: L = Link(B([1,3]))
             sage: L.alexander_polynomial()
             0
@@ -1405,7 +1448,7 @@ class Link(object):
         Regions are obtained always turning left at each crossing.
 
         Then the regions are represented as a list with the segments that form
-        its boundary, with a sign deppending on the orientation of the segment
+        its boundary, with a sign depending on the orientation of the segment
         as part of the boundary.
 
         EXAMPLES::
@@ -1436,6 +1479,8 @@ class Link(object):
             component. This is because otherwise some regions would be have
             disconnected boundary.
         """
+        if len(self._isolated_components()) != 1:
+            raise NotImplementedError("can only have one isolated component")
         pd = self.pd_code()
         tails, heads = self._directions_of_edges()
         available_edges = set(flatten(pd))
@@ -1494,10 +1539,12 @@ class Link(object):
             sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.writhe()
             0
-            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, 2, -3, 4, 5, 1, -2, 6, 7, 3, -4, -7, -6,-5]],
+            ....:            [-1, -1, -1, -1, 1, -1, 1]])
             sage: L.writhe()
             -3
-            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]],
+            ....:            [-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.writhe()
             -2
         """
@@ -1650,6 +1697,12 @@ class Link(object):
             -sqrt(t) - 1/sqrt(t)
             sage: L.jones_polynomial(algorithm='statesum')
             1
+
+        TESTS::
+
+            sage: L = Link([])
+            sage: L.jones_polynomial(algorithm='statesum')
+            1
         """
         if algorithm == 'statesum':
             poly = self._bracket()
@@ -1696,6 +1749,8 @@ class Link(object):
         """
         t = LaurentPolynomialRing(ZZ, 't').gen()
         pd_code = self.pd_code()
+        if not pd_code:
+            return t.parent().one()
         if len(pd_code) == 1:
             if pd_code[0][0] == pd_code[0][1]:
                 return -t**(-3)
@@ -1765,7 +1820,7 @@ class Link(object):
                     G.add_edge(G.vertices()[i], G.vertices()[j])
         return [[list(i) for i in j] for j in G.connected_components()]
 
-    def plot(self, gap=0.1, **kwargs):
+    def plot(self, gap=0.1, component_gap=0.5, **kwargs):
         r"""
         Plot ``self``.
 
@@ -1773,6 +1828,8 @@ class Link(object):
 
         - ``gap`` -- (default: 0.1) the size of the blank gap left for
           the crossings
+        - ``component_gap`` -- (default: 0.5) the gap between isolated
+          components
 
         The usual keywords for plots can be used here too.
 
@@ -1887,8 +1944,7 @@ class Link(object):
             L = Link([[1, 4, 2, 3], [4, 1, 3, 2]])
             sphinx_plot(L.plot())
 
-        Currently, plotting links with multiple components can result
-        in overlap::
+        Plotting links with multiple isolated components::
 
             sage: L = Link([[[-1, 2, -3, 1, -2, 3], [4, -5, 6, -4, 5, -6]], [1, 1, 1, 1, 1, 1]])
             sage: L.plot()
@@ -1901,12 +1957,13 @@ class Link(object):
             sphinx_plot(L.plot())
         """
         comp = self._isolated_components()
+        # Handle isolated components individually
         if len(comp) > 1:
             L1 = Link(comp[0])
             L2 = Link(flatten(comp[1:], max_level=1))
             P1 = L1.plot(gap, **kwargs)
             P2 = L2.plot(gap, **kwargs)
-            xtra = P1.get_minmax_data()['xmax'] + P2.get_minmax_data()['xmin'] + 2
+            xtra = P1.get_minmax_data()['xmax'] + component_gap - P2.get_minmax_data()['xmin']
             for P in P2:
                 if hasattr(P, 'path'):
                     for p in P.path[0]:
@@ -1916,12 +1973,22 @@ class Link(object):
                 else:
                     P.xdata = [p + xtra for p in P.xdata]
             return P1 + P2
+
         if not 'color' in kwargs:
             kwargs['color'] = 'blue'
         if not 'axes' in kwargs:
             kwargs['axes'] = False
         if not 'aspect_ratio' in kwargs:
             kwargs['aspect_ratio'] = 1
+
+        from sage.plot.line import line
+        from sage.plot.bezier_path import bezier_path
+        from sage.plot.circle import circle
+
+        # Special case for the unknot
+        if not self.pd_code():
+            return circle((0,0), ZZ(1)/ZZ(2), **kwargs)
+
         # The idea is the same followed in spherogram, but using MLP instead of
         # network flows.
         # We start by computing a way to bend the edges left or right
@@ -1979,7 +2046,7 @@ class Link(object):
         N = max(segments.keys()) + 1
         segments = [i for j in segments.values() for i in j]
         badregions = [nr for nr in nregions if any(-1 == x[1] for x in nr)]
-        while len(badregions)>0:
+        while len(badregions) > 0:
             badregion = badregions[0]
             badturns = []
             a = 0

@@ -6660,11 +6660,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return self.roots(ring=CC, multiplicities=False)
 
-    def count_roots_in_interval(self, a=None, b=None):
+    def count_roots_in_interval(self, *args):
         """
-        Return the number of roots of this polynomial in the interval 
-        a <= x <= b, counted without multiplicity. If a or b is omitted,
-        it defaults to -Infinity or +Infinity, respectively.
+        Return the number of roots of this polynomial in an interval 
+        [a,b], counted without multiplicity. The interval can be specified
+        either as two endpoints or as a list/tuple; it can also be omitted,
+        in which case roots are counted in the whole real line. In addition, 
+        -Infinity (or equivalently None) is allowed as a value for a, and 
+        +Infinity (or equivalently None) is allowed as a value for b.
         
         Calls the PARI routine polsturm. Note that as of version 2.8, PARI
         includes the left endpoint of the interval (and no longer uses
@@ -6674,24 +6677,42 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
-            sage: pol.count_roots_in_interval(1, 2)
+            sage: pol.count_roots_in_interval([1, 2])
             2
             sage: pol.count_roots_in_interval(1.01, 2)
             1
-            sage: pol.count_roots_in_interval(1)
-            3
             sage: pol.count_roots_in_interval(None, 2)
             2
             sage: pol.count_roots_in_interval(1, Infinity)
             3
+            sage: pol.count_roots_in_interval()
+            3
+
+        TESTS::
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.count_roots_in_interval(1, 2)
+            2
             sage: pol = chebyshev_T(5,x)
             sage: pol.count_roots_in_interval(-1,2)
             5
             sage: pol.count_roots_in_interval(0,2)
             3
-  
+            sage: pol.count_roots_in_interval(1,2,3)
+            Traceback (most recent call last):
+            ...
+            TypeError: count_roots_in_interval() takes at most 2 positional arguments (3 given)
+
         """
         pol = self // self.gcd(self.derivative()) #squarefree part
+        if len(args) == 0:
+            (a,b) = (None, None)
+        elif len(args) == 1:
+            (a,b) = args[0]
+        elif len(args) == 2:
+            (a,b) = (args[0], args[1])
+        else:
+            raise TypeError, "count_roots_in_interval() takes at most 2 positional arguments (" + str(len(args)) + " given)"
         if a == None or a == -infinity.infinity:
             a1 = pari('-oo')
         else:
@@ -6702,11 +6723,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             b1 = pari(b)
         return(pari(pol).polsturm([a1,b1]))
 
-    def all_roots_in_interval(self, a=None, b=None):
+    def all_roots_in_interval(self, *args):
         """
         Return True if the roots of this polynomial are all real and 
-        contained in the interval a <= x <= b. If a or b is omitted,
-        it defaults to -Infinity or +Infinity, respectively.
+        contained in the given interval.
     
         EXAMPLES::
 
@@ -6726,7 +6746,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         pol = self // self.gcd(self.derivative())
-        return(pol.count_roots_in_interval(a,b) == pol.degree())
+        return(pol.count_roots_in_interval(*args) == pol.degree())
 
     def variable_name(self):
         """

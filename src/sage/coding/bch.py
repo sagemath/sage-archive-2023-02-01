@@ -27,6 +27,9 @@ from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.modules.free_module_element import vector
 from sage.misc.misc_c import prod
+from sage.rings.integer import Integer
+from sage.rings.ring import Field
+from copy import copy
 
 class BCHCode(CyclicCode):
     r"""
@@ -34,15 +37,18 @@ class BCHCode(CyclicCode):
 
     INPUT:
 
-    - ``F`` -- the base field for this code
+    - ``base_field`` -- the base field for this code
 
-    - ``n`` -- the length of the code
+    - ``length`` -- the length of the code
 
-    - ``b`` -- the starting point for the elements in the defining set
+    - ``starting_point`` -- the first element to add in the defining set
 
     - ``delta`` -- the ending point for the elements in the defining set
 
-    - ``l`` -- (default: ``1``) the jump size between two elements of the defining set
+    - ``jump_size`` -- (default: ``1``) the jump size between two elements of the defining set
+
+    - ``b`` -- (default: ``0``) is exactly the same as ``starting_point``. It is only here
+      for retro-compatibility purposes with the old signature of `BCHCode` and will be removed soon.
 
     EXAMPLES::
 
@@ -56,23 +62,43 @@ class BCHCode(CyclicCode):
         as generator polynomial
     """
 
-    def __init__(self, F, n, b, delta, l = 1):
+    def __init__(self, base_field, length, starting_point, delta, jump_size = 1, b = 0):
+        """
+        TESTS:
 
-        if not (delta <= n and delta > 1):
+        ``delta`` must be between 2 and ``length`` (inclusive), otherwise an exception
+        will be raised::
+
+            sage: C = codes.BCHCode(GF(2), 15, 1, 16)
+            Traceback (most recent call last):
+            ...
+            ValueError: delta must belong to [2, n]
+        """
+        if not (delta <= length and delta > 1):
             raise ValueError("delta must belong to [2, n]")
+        if isinstance(base_field, (Integer, int)) and isinstance(starting_point, Field):
+            from sage.misc.superseded import deprecation
+            deprecation(42042, "codes.BCHCode(n, delta, F, b=0) is now deprecated. Please use the new signature instead.")
+            delta = copy(length)
+            length = copy(base_field)
+            F = copy(base_field)
+        if not isinstance(base_field, Field):
+            raise ValueError("base_field has to be a finite field")
+        elif not base_field.is_finite():
+            raise ValueError("base_field has to be a finite field")
 
         D = []
-        d = b
+        point = copy(starting_point)
         for i in range(0, delta - 1):
-            D.append(d)
-            d = (d + l) % n
+            D.append(point)
+            point = (point + jump_size) % length
 
         try:
-            super(BCHCode, self).__init__(field = F, length = n, D = D)
+            super(BCHCode, self).__init__(field = base_field, length = length, D = D)
         except ValueError, e:
             raise e
         self._default_decoder_name = "UnderlyingGRS"
-        self._jump_size = l
+        self._jump_size = jump_size
         self._starting_point = b
         self._delta = delta
 
@@ -93,21 +119,6 @@ class BCHCode(CyclicCode):
                 and self.length() == other.length() \
                 and self.jump_size() == other.jump_size() \
                 and self.starting_point() == other.starting_point() \
-
-    def __ne__(self, other):
-        r"""
-        Tests inequality of BCH Code objects.
-
-        EXAMPLES::
-
-            sage: F = GF(16, 'a')
-            sage: n = 15
-            sage: C1 = codes.BCHCode(F, 15, 1, 2)
-            sage: C2 = codes.BCHCode(F, 13, 1, 2)
-            sage: C1 != C2
-            True
-        """
-        return not self.__eq__(other)
 
     def _repr_(self):
         r"""
@@ -150,8 +161,17 @@ class BCHCode(CyclicCode):
         return self._jump_size
 
     def starting_point(self):
-        return self._starting_point
+        r"""
+        Returns the starting point which was used to compute the elements in
+        the defining set of ``self``.
 
+        EXAMPLES::
+
+            sage: C = codes.BCHCode(GF(2), 15, 1, 4, 2)
+            sage: C.starting_point
+            1
+        """
+        return self._starting_point
 
     def bch_to_grs(self):
         r"""

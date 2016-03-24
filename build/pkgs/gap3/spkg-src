@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#
+# Script to prepare a GAP3 tarball for Sage from the semi-official
+# version on Jean Michel's website.
+#
+# This script is only for the package maintainer,
+# not for building ECL during a Sage install.
+#
+# WARNING: This script will delete/overwrite files in this directory
+# and its subdirectories!
+#
+# HOW TO MAKE THE TARBALL:
+# 1) sage --sh build/pkgs/gap3/spkg-src
+#
+# needs sage in your PATH.
+#
+# AUTHOR: Christian Stump (March 2016)
+
+if [ -z "$SAGE_ROOT" ] ; then
+    echo >&2 "Error - SAGE_ROOT undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+PACKAGENAME="gap3"
+DOWNLOADVERSION="$PACKAGENAME-jm5"
+TARSOURCE="$DOWNLOADVERSION.tar.gz"
+
+cd build/pkgs/$PACKAGENAME
+
+UPLOADVERSION=`cat package-version.txt`
+TARTARGET="$SAGE_DISTFILES/$PACKAGENAME-$UPLOADVERSION.tar.gz"
+
+# Remove old gap3 folder and tarball
+rm -f $TARSOURCE
+rm -rf $DOWNLOADVERSION
+
+# Download and extract upstream tarball
+wget --no-check-certificate https://webusers.imj-prg.fr/~jean.michel/$PACKAGENAME/$TARSOURCE
+# untar'ing
+tar -zxvf $TARSOURCE
+# Remove downloaded tarball
+rm -f $TARSOURCE
+
+mv $DOWNLOADVERSION $PACKAGENAME
+cd $PACKAGENAME
+grep -r -m 1 "^"  . | grep "^Binary file" | xargs rm
+cd ..
+
+tar -cvzf $TARTARGET $PACKAGENAME
+sage-fix-pkg-checksums "$TARTARGET"
+# Remove untar'ed archive
+rm -rf $PACKAGENAME

@@ -759,7 +759,7 @@ cdef class CachedFunction(object):
             sage: walltime(w) < 2
             True
 
-        Per default, the contents of the cache are not pickle::
+        By default, the contents of the cache are not pickled::
 
             sage: @cached_function
             ....: def f(n): return None

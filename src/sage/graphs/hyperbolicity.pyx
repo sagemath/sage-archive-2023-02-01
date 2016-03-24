@@ -179,14 +179,13 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.functions.other import floor
 from sage.data_structures.bitset import Bitset
-from sage.ext.memory cimport check_allocarray, check_calloc
+include "cysignals/memory.pxi"
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/data_structures/bitset.pxi"
 
 
@@ -567,10 +566,10 @@ cdef inline pair** sort_pairs(uint32_t N,
         pairs_of_length[0] == NULL or
         cpt_pairs          == NULL):
         if pairs_of_length != NULL:
-            sage_free(pairs_of_length[0])
-        sage_free(nb_pairs_of_length)
-        sage_free(pairs_of_length)
-        sage_free(cpt_pairs)
+            sig_free(pairs_of_length[0])
+        sig_free(nb_pairs_of_length)
+        sig_free(pairs_of_length)
+        sig_free(cpt_pairs)
         raise MemoryError
 
     # ==> Defines pairs_of_length[d] for all d
@@ -596,7 +595,7 @@ cdef inline pair** sort_pairs(uint32_t N,
                     pairs_of_length[ k ][ cpt_pairs[ k ] ].t = j
                     cpt_pairs[ k ] += 1
 
-    sage_free(cpt_pairs)
+    sig_free(cpt_pairs)
     return pairs_of_length
 
 
@@ -841,8 +840,8 @@ cdef tuple hyperbolicity_BCCM(int N,
         h_UB = h
 
     # We now free the memory
-    sage_free(pairs_of_length[0])
-    sage_free(pairs_of_length)
+    sig_free(pairs_of_length[0])
+    sig_free(pairs_of_length)
 
     if verbose:
         print "Visited 4-tuples:", nq
@@ -1060,9 +1059,9 @@ cdef tuple hyperbolicity_CCL(int N,
             break
 
     # We now free the memory
-    sage_free(nb_pairs_of_length)
-    sage_free(pairs_of_length[0])
-    sage_free(pairs_of_length)
+    sig_free(nb_pairs_of_length)
+    sig_free(pairs_of_length[0])
+    sig_free(pairs_of_length)
 
     # Last, we return the computed value and the certificate
     if len(certificate) == 0:
@@ -1407,10 +1406,10 @@ def hyperbolicity(G,
         _far_apart_pairs_ = <unsigned short *> check_allocarray(N * N, sizeof(unsigned short))
         far_apart_pairs   = <unsigned short **>check_allocarray(N, sizeof(unsigned short *))
         if _distances_ == NULL or _far_apart_pairs_ == NULL or far_apart_pairs == NULL:
-            sage_free(_distances_)
-            sage_free(distances)
-            sage_free(_far_apart_pairs_)
-            sage_free(far_apart_pairs)
+            sig_free(_distances_)
+            sig_free(distances)
+            sig_free(_far_apart_pairs_)
+            sig_free(far_apart_pairs)
             raise MemoryError("Unable to allocate array '_distances_' or '_far_apart_pairs_'.")
 
         distances_and_far_apart_pairs(G, _distances_, _far_apart_pairs_)
@@ -1477,10 +1476,10 @@ def hyperbolicity(G,
 
 
     # We now release the memory
-    sage_free(distances)
-    sage_free(_distances_)
-    sage_free(_far_apart_pairs_)
-    sage_free(far_apart_pairs)
+    sig_free(distances)
+    sig_free(_distances_)
+    sig_free(_far_apart_pairs_)
+    sig_free(far_apart_pairs)
 
     # Map the certificate 'certif' with the corresponding vertices in the graph
     V = G.vertices()
@@ -1544,7 +1543,7 @@ cdef dict __hyperbolicity_distribution__(int N, unsigned short ** distances):
     Nchoose4 = binomial(N,4)
     cdef dict hdict = {ZZ(i)/2: (ZZ(hdistr[i])/Nchoose4) for 0 <= i <= N if hdistr[i] > 0}
 
-    sage_free(hdistr)
+    sig_free(hdistr)
 
     return hdict
 
@@ -1613,7 +1612,7 @@ cdef dict __hyperbolicity_sampling__(int N, unsigned short ** distances, uint64_
     # We prepare the dictionary of hyperbolicity distribution from sampling
     cdef dict hdict = dict( [ (ZZ(i)/2, ZZ(hdistr[i])/ZZ(sampling_size)) for 0 <= i <= N if hdistr[i] > 0 ] )
 
-    sage_free(hdistr)
+    sig_free(hdistr)
 
     return hdict
 
@@ -1710,7 +1709,7 @@ def hyperbolicity_distribution(G, algorithm='sampling', sampling_size=10**6):
     _distances_ = c_distances_all_pairs(H)
     distances = <unsigned short **>check_allocarray(N, sizeof(unsigned short *))
     if distances == NULL:
-        sage_free(_distances_)
+        sig_free(_distances_)
         raise MemoryError
 
     for 0 <= i < N:
@@ -1724,7 +1723,7 @@ def hyperbolicity_distribution(G, algorithm='sampling', sampling_size=10**6):
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 
     # We release memory
-    sage_free(distances)
-    sage_free(_distances_)
+    sig_free(distances)
+    sig_free(_distances_)
 
     return hdict

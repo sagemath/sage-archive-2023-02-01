@@ -285,6 +285,7 @@ class PariArgumentSeriesPrec(PariArgumentClass):
 
 pari_arg_types = {
         'G': PariArgumentGEN,
+        'W': PariArgumentGEN,
         'r': PariArgumentString,
         's': PariArgumentString,
         'L': PariArgumentLong,
@@ -297,7 +298,6 @@ pari_arg_types = {
     # Codes which are known but not actually supported for Sage
         '&': None,
         'V': None,
-        'W': None,
         'I': None,
         'E': None,
         'J': None,

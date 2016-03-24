@@ -30,7 +30,7 @@ max_print = 10
 from libc.string cimport memcpy
 from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from cpython.string cimport *
 
@@ -99,7 +99,7 @@ cdef class IntList:
         else:
             self._length = len(values)
 
-        self._values = <int*> sage_malloc(sizeof(int)*self._length)
+        self._values = <int*> sig_malloc(sizeof(int)*self._length)
         if self._values == NULL:
             raise MemoryError
         cdef Py_ssize_t i
@@ -148,7 +148,7 @@ cdef class IntList:
         Deallocate memory used by the IntList, if it was allocated.
         """
         if self._values:
-            sage_free(self._values)
+            sig_free(self._values)
 
     def __repr__(self):
         """
@@ -498,7 +498,7 @@ cdef class IntList:
         # We just reach into the data structure underlying T, since we
         # want this function to be *very* fast.
         T._length = self._length
-        T._values = <double*> sage_malloc(sizeof(double)*self._length)
+        T._values = <double*> sig_malloc(sizeof(double)*self._length)
         cdef Py_ssize_t i
         for i in range(self._length):
             T._values[i] = self._values[i]
@@ -550,7 +550,7 @@ cdef IntList new_int_list(Py_ssize_t length):
         raise ValueError, "length must be nonnegative"
     cdef IntList t = IntList.__new__(IntList)
     t._length = length
-    t._values = <int*> sage_malloc(sizeof(int)*length)
+    t._values = <int*> sig_malloc(sizeof(int)*length)
     return t
 
 

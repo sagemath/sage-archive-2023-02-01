@@ -28,7 +28,7 @@ include 'sage/modules/vector_modn_sparse_h.pxi'
 include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
@@ -59,7 +59,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         # set the parent, nrows, ncols, etc.
         matrix_sparse.Matrix_sparse.__init__(self, parent)
 
-        self._matrix = <mpz_vector*> sage_malloc(parent.nrows()*sizeof(mpz_vector))
+        self._matrix = <mpz_vector*> sig_malloc(parent.nrows()*sizeof(mpz_vector))
         if self._matrix == NULL:
             raise MemoryError("error allocating sparse matrix")
 
@@ -74,7 +74,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         if self._initialized:
             for i from 0 <= i < self._nrows:
                 mpz_vector_clear(&self._matrix[i])
-        sage_free(self._matrix)
+        sig_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
         """

@@ -215,18 +215,10 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             ValueError: sign must be -1, 0, or 1
         """
         sign = rings.Integer(sign)
-        try:
-            return self.__modsym[sign]
-        except AttributeError:
-            self.__modsym = {}
-        except KeyError:
-            pass
-        self.__modsym[sign] = modsym.ModularSymbols(\
-            self.character(),
-            weight = self.weight(),
-            sign = sign,
-            base_ring = self.base_ring())
-        return self.__modsym[sign]
+        return modsym.ModularSymbols(self.character(),
+                                     weight = self.weight(),
+                                     sign = sign,
+                                     base_ring = self.base_ring())
 
     def eisenstein_submodule(self):
         """

@@ -53,15 +53,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             True
         """
         sign = ZZ(sign)
-        try:
-            return self.__modular_symbols[sign]
-        except AttributeError:
-            self.__modular_symbols = {}
-        except KeyError:
-            pass
-        M = self.__M.modular_symbols(sign).change_ring(self.base_ring())
-        self.__modular_symbols[sign] = M
-        return M
+        return self.__M.modular_symbols(sign).change_ring(self.base_ring())
 
     def _repr_(self):
         """

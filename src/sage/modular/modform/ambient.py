@@ -327,18 +327,10 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
         sign = rings.Integer(sign)
-        try:
-            return self.__modular_symbols[sign]
-        except AttributeError:
-            self.__modular_symbols = {}
-        except KeyError:
-            pass
-        M = modsym.ModularSymbols(group = self.group(),
-                                  weight = self.weight(),
-                                  sign = sign,
-                                  base_ring = self.base_ring())
-        self.__modular_symbols[sign] = M
-        return M
+        return modsym.ModularSymbols(group = self.group(),
+                                     weight = self.weight(),
+                                     sign = sign,
+                                     base_ring = self.base_ring())
 
     def module(self):
         """
@@ -559,19 +551,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ...
             NotImplementedError
         """
-        try:
-            return self.__new_submodule[p]
-        except AttributeError:
-           self.__new_submodule = {}
-        except KeyError:
-           pass
         if not p is None:
             p = rings.Integer(p)
             if not p.is_prime():
                raise ValueError("p (=%s) must be a prime or None."%p)
-        M = self.cuspidal_submodule().new_submodule(p) + self.eisenstein_submodule().new_submodule(p)
-        self.__new_submodule[p] = M
-        return M
+        return self.cuspidal_submodule().new_submodule(p) + self.eisenstein_submodule().new_submodule(p)
 
     def _q_expansion(self, element, prec):
         r"""

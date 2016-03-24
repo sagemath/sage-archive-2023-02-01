@@ -34,6 +34,12 @@ class Knot(Link):
 
         :class:`Link`
 
+    INPUT:
+
+    - ``data`` -- see :class:`Link` for the allowable inputs
+    - ``check`` -- optional, default ``True``. If ``True``, make sure
+      that the data define a knot, not a link
+
     EXAMPLES:
 
     We construct the knot `8_{14}` and compute some invariants::
@@ -82,6 +88,20 @@ class Knot(Link):
             sage: TestSuite(K).run()
             sage: K = Knot([[1, 1, 2, 2]])
             sage: TestSuite(K).run()
+
+        The following is not a knot: it has two components. ::
+
+            sage: Knot([[[1, 2], [-2, -1]], [1, -1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the input has more than 1 connected component
+            sage: Knot([[[1, 2], [-2, -1]], [1, -1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the input has more than 1 connected component
+
+            sage: Knot([[[1, 2], [-2, -1]], [1, -1]], check=False)
+            Knot represented by 2 crossings
         """
         Link.__init__(self, data)
         if check:

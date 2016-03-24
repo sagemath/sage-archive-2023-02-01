@@ -84,7 +84,7 @@ class Link(object):
         sage: B = BraidGroup(8)
         sage: L = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 3]))
         sage: L
-        Link with 1 components represented by 9 crossings
+        Link with 1 component represented by 9 crossings
         sage: L = Link(B([1, 2, 1, -2, -1]))
         sage: L
         Link with 2 components represented by 5 crossings
@@ -109,7 +109,7 @@ class Link(object):
         sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]],
         ....:           [-1, -1, -1, -1, 1, 1, -1, 1]])
         sage: L
-        Link with 1 components represented by 8 crossings
+        Link with 1 component represented by 8 crossings
 
       For links there may be more than one component and the input is
       as follows::
@@ -135,7 +135,7 @@ class Link(object):
 
         sage: L = Link([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
         sage: L
-        Link with 1 components represented by 3 crossings
+        Link with 1 component represented by 3 crossings
 
     .. PLOT::
         :width: 300 px
@@ -290,6 +290,26 @@ class Link(object):
             sage: L = Link(B.one())
             sage: L = Link([])
             sage: L = Link([[], []])
+
+            sage: Link([[[-1, 2, -1, 2]],  [1, 1, 1, 1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input: data is not a valid oriented Gauss code
+
+            sage: Link([[[-1, 2, 3, 4]]])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid PD code: crossings must be represented by four segments
+
+            sage: L = Link([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 3]])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid PD code: each segment must appear twice
+
+            sage: L = Link(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input: data must be either a list or a braid
         """
         if isinstance(data, list):
             if len(data) != 2 or not all(isinstance(i, list) for i in data[0]):
@@ -358,14 +378,18 @@ class Link(object):
             sage: B = BraidGroup(8)
             sage: L = Link(B([1, 2, 1, 2]))
             sage: L
-            Link with 1 components represented by 4 crossings
+            Link with 1 component represented by 4 crossings
             sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L
             Link with 3 components represented by 4 crossings
         """
         number_of_components = self.number_of_components()
+        if number_of_components > 1:
+            plural = 's'
+        else:
+            plural = ''
         pd_len = len(self.pd_code())
-        return 'Link with {} components represented by {} crossings'.format(number_of_components, pd_len)
+        return 'Link with {} component{} represented by {} crossings'.format(number_of_components, plural, pd_len)
 
     def __eq__(self, other):
         """
@@ -1313,12 +1337,19 @@ class Link(object):
             sage: L = Link(B([1]*16 + [2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
             sage: L.determinant()
             65
+
+        TESTS::
+
+            sage: Link(B([1, 2, 1, -2, -1])).determinant()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: determinant implemented only for knots
         """
         if self.is_knot():
             a = self.alexander_polynomial()
             return Integer(abs(a(-1)))
 
-        raise NotImplementedError("determinant implmented only for knots")
+        raise NotImplementedError("determinant implemented only for knots")
 
     def is_alternating(self):
         """
@@ -1703,6 +1734,11 @@ class Link(object):
             sage: L = Link([])
             sage: L.jones_polynomial(algorithm='statesum')
             1
+
+            sage: L.jones_polynomial(algorithm='other')
+            Traceback (most recent call last):
+            ...
+            ValueError: bad value of algorithm
         """
         if algorithm == 'statesum':
             poly = self._bracket()

@@ -707,27 +707,32 @@ class ClusterAlgebra(Parent):
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction ' + str(k) + '.')
 
-        #modify algebra._path_dict using Nakanishi-Zelevinsky (4.1)
+        #modify algebra._path_dict using Nakanishi-Zelevinsky (4.1) and algebra._F_poly_dict using CA-IV (6.21)
         new_path_dict = dict()
+        new_F_dict = dict()
+        new_path_dict[tuple(identity_matrix(n).column(k))] = []
+        new_F_dict[tuple(identity_matrix(n).column(k))] == self._U(1)
         for g_vect in algebra._path_dict:
             path = algebra._path_dict[g_vect]
-            new_path_dict[tuple(-identity_matrix(n).column(k-1))] = [k]
-            if path == []:
-                new_path_dict[g_vect] = path
-            elif path != [k]:
+            if path != [k]:
                 if path[0] != k:
                     new_path = [k] + path
                 else:
                     new_path = path[1:]
-                new_g_vect = vector(g_vect) - 2*g_vect[k-1]*identity_matrix(n).column(k-1)
-                if g_vect[k-1] > 0:
+                new_g_vect = vector(g_vect) - 2*g_vect[k]*identity_matrix(n).column(k)
+                if g_vect[k] > 0:
                     sgn = -1
                 else:
                     sgn = 1
                 for i in xrange(n):
-                    new_g_vect += max(sgn*algebra._B0[i,k],0)*g_vect[k-1]*identity_matrix(n).column(i-1)
+                    new_g_vect += max(sgn*algebra._B0[i,k],0)*g_vect[k]*identity_matrix(n).column(i)
+            new_path_dict[new_g_vect] = new_path
+            var('u')
+            h_subs_tuple = tuple([u^(-1) if i==k-1 else u^self._B0[k][i] for i in xrange(self.rk)])
+            h = -algebra._F_poly_dict[g_vect](h_subs_tuple).degree(u)
+            F_subs_tuple = tuple([self._U.gen(k)^(-1) if j==k else self._U.gen(j)*self._U.gen(k)^max(self._B0[k][j],0)*(1+self._U.gen(k))^(-self._B0[k][j]) for j in xrange(self.rk)])
+            new_F_dict[new_g_vect] = algebra._F_poly_dict[g_vect](F_subs_tuple)*self._U.gen(k)^h*(self._U.gen(k)+1)^g_vect[k]
 
-        #modify algebra._F_poly_dict
         #modify algebra._B0
         algebra._B0.mutate(k)
 

@@ -273,8 +273,7 @@ Basic functions::
     -1
     sage: pari(3/4).ceil()
     1
-    sage: var('x')
-    x
+    sage: x = SR.symbol('x')
     sage: pari(x).ceil()
     x
     sage: pari((x^2+x+1)/x).ceil()
@@ -362,8 +361,7 @@ Basic functions::
     [1, 2, 4]
     sage: pari([[1.1,2.2],[3.3,4.4]]).floor()
     [[1, 2], [3, 4]]
-    sage: var('x')
-    x
+    sage: x = SR.symbol('x')
     sage: pari(x).floor()
     x
     sage: pari((x^2+x+1)/x).floor()
@@ -953,8 +951,7 @@ Number-theoretical functions::
     sage: pari(10).eulerphi()
     4
 
-    sage: var('x')
-    x
+    sage: x = SR.symbol('x')
     sage: pari(10).gcd(15)
     5
     sage: pari([5, 'y']).gcd()
@@ -1363,8 +1360,7 @@ General number fields::
     sage: K.pari_bnf().bnrclassno(p._pari_bid_())
     3
 
-    sage: var('x')
-    x
+    sage: x = SR.symbol('x')
     sage: P = pari(x^6 + 108)
     sage: G = P.galoisinit()
     sage: G[0] == P

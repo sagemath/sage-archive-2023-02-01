@@ -173,14 +173,8 @@ cdef class SymbolicRing(CommutativeRing):
             from subring import GenericSymbolicSubring
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
-                # Anything with a coercion into any precision of CC
-
-                # In order to have coercion from SR to AA or QQbar,
-                # we disable coercion in the reverse direction.
-                # This makes the following work:
-                # sage: QQbar(sqrt(2)) + sqrt(3)
-                # 3.146264369941973?
-                return R not in (RLF, CLF, AA, QQbar)
+                # Almost anything with a coercion into any precision of CC
+                return R not in (RLF, CLF)
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)

@@ -106,15 +106,11 @@ same result::
     sage: disc1(b, c, d) == disc2(s1, s2, s3)
     True
 
-We can coerce from symbolic expressions::
+We can convert from symbolic expressions::
 
     sage: QQbar(sqrt(-5))
     2.236067977499790?*I
     sage: AA(sqrt(2) + sqrt(3))
-    3.146264369941973?
-    sage: QQbar(sqrt(2)) + sqrt(3)
-    3.146264369941973?
-    sage: sqrt(2) + QQbar(sqrt(3))
     3.146264369941973?
     sage: QQbar(I)
     I
@@ -136,6 +132,14 @@ We can coerce from symbolic expressions::
     Traceback (most recent call last):
     ...
     ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+
+The coercion, however, goes in the other direction, since not all
+symbolic expressions are algebraic numbers::
+
+    sage: QQbar(sqrt(2)) + sqrt(3)
+    sqrt(3) + 1.414213562373095?
+    sage: QQbar(sqrt(2) + QQbar(sqrt(3)))
+    3.146264369941973?
 
 Note the different behavior in taking roots: for ``AA`` we prefer real
 roots if they exist, but for ``QQbar`` we take the principal root::
@@ -245,7 +249,7 @@ view ``QQbar`` as ``AA[I]``.)::
     True
     sage: r.norm() == 4
     True
-    sage: (r+I).norm().minpoly()
+    sage: (r+QQbar(I)).norm().minpoly()
     x^2 - 10*x + 13
     sage: r = AA.polynomial_root(x^2 - x - 1, RIF(-1, 0)); r
     -0.618033988749895?
@@ -1189,9 +1193,6 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
             return True
         if from_par == AA or from_par == QQbar:
-            return True
-        _late_import()
-        if is_SymbolicExpressionRing(from_par):
             return True
         return False
 
@@ -4096,7 +4097,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             ...
             ValueError: Cannot coerce irrational Algebraic Real 1.414213562373095? to Rational
             sage: v1 = QQbar(1/3 + I*sqrt(5))^7
-            sage: v2 = QQbar(100336/729*golden_ratio - 50168/729)*I
+            sage: v2 = QQbar((100336/729*golden_ratio - 50168/729)*I)
             sage: v = v1 + v2; v
             -259.6909007773206? + 0.?e-15*I
             sage: v._rational_()
@@ -4242,7 +4243,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES::
 
-            sage: a = QQbar.zeta(9) + I + QQbar.zeta(9).conjugate(); a
+            sage: a = QQbar.zeta(9) + QQbar(I) + QQbar.zeta(9).conjugate(); a
             1.532088886237957? + 1.000000000000000?*I
             sage: a.complex_exact(CIF)
             1.532088886237957? + 1*I

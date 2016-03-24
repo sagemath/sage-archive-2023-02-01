@@ -1119,16 +1119,7 @@ def gamma(a, *args, **kwds):
             ...
             TypeError: cannot coerce arguments: no canonical coercion...
 
-        We make an exception for elements of AA or QQbar, which cannot be
-        coerced into symbolic expressions to allow this usage::
-
-            sage: t = QQbar(sqrt(2)) + sqrt(3); t
-            3.146264369941973?
-            sage: t.parent()
-            Algebraic Field
-
-        Symbolic functions convert the arguments to symbolic expressions if they
-        are in QQbar or AA::
+        TESTS::
 
             sage: gamma(QQbar(I))
             -0.154949828301811 - 0.498015668118356*I

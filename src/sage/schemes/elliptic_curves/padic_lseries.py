@@ -122,7 +122,8 @@ class pAdicLseries(SageObject):
         sage: L.series(3, prec=10)
         O(5^5) + O(5^2)*T + (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + O(5)*T^6 + (4 + O(5))*T^7 + (2 + O(5))*T^8 + O(5)*T^9 + O(T^10)
         sage: L.series(2,quadratic_twist=-3)
-        2 + 4*5 + 4*5^2 + O(5^4) + O(5)*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + O(5)*T^4 + O(T^5)
+        4 + 4*5 + 4*5^2 + 5^3 + O(5^4) + O(5)*T + (2 + O(5))*T^2 + (3 + O(5))*T^3 + O(5)*T^4 + O(T^5)
+
 
 
     A prime p such that E[p] is reducible::
@@ -140,12 +141,12 @@ class pAdicLseries(SageObject):
         sage: E=EllipticCurve('11a1')
         sage: lp=E.padic_lseries(7)
         sage: lp.series(4,eta=1)
-        6 + 2*7^3 + 5*7^4 + O(7^6) + (4*7 + 2*7^2 + O(7^3))*T + (2 + 3*7^2 + O(7^3))*T^2 + (1 + 2*7 + 2*7^2 + O(7^3))*T^3 + (1 + 3*7^2 + O(7^3))*T^4 + O(T^5)
+        3 + 7^3 + 6*7^4 + 3*7^5 + O(7^6) + (2*7 + 7^2 + O(7^3))*T + (1 + 5*7^2 + O(7^3))*T^2 + (4 + 4*7 + 4*7^2 + O(7^3))*T^3 + (4 + 3*7 + 7^2 + O(7^3))*T^4 + O(T^5)
         sage: lp.series(4,eta=2)
         5 + 6*7 + 4*7^2 + 2*7^3 + 3*7^4 + 2*7^5 + O(7^6) + (6 + 4*7 + 7^2 + O(7^3))*T + (3 + 2*7^2 + O(7^3))*T^2 + (1 + 4*7 + 7^2 + O(7^3))*T^3 + (6 + 6*7 + 6*7^2 + O(7^3))*T^4 + O(T^5)
         sage: lp.series(4,eta=3)
-        O(7^6) + (3 + 2*7 + 5*7^2 + O(7^3))*T + (5 + 4*7 + 5*7^2 + O(7^3))*T^2 + (3*7 + 7^2 + O(7^3))*T^3 + (2*7 + 7^2 + O(7^3))*T^4 + O(T^5)
-
+        O(7^6) + (5 + 4*7 + 2*7^2 + O(7^3))*T + (6 + 5*7 + 2*7^2 + O(7^3))*T^2 + (5*7 + O(7^3))*T^3 + (7 + 4*7^2 + O(7^3))*T^4 + O(T^5)
+        
     (Note that the last series vanishes at `T = 0`, which is consistent with ::
 
         sage: E.quadratic_twist(-7).rank()
@@ -208,7 +209,7 @@ class pAdicLseries(SageObject):
         sage: E = EllipticCurve('11a1')
         sage: lp = E.padic_lseries(5)
         sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
-        -1
+        -1/2
 
         """
         if self._use_eclib:
@@ -314,13 +315,14 @@ class pAdicLseries(SageObject):
             sage: [lp.modular_symbol(r) for r in [0,1/5,oo,1/11]]
             [1/5, 6/5, 0, 0]
             sage: [lp.modular_symbol(r,sign=-1) for r in [0,1/3,oo,1/7]]
-            [0, 1, 0, -1]
+            [0, 1/2, 0, -1/2]
             sage: [lp.modular_symbol(r,quadratic_twist=-20) for r in [0,1/5,oo,1/11]]
-            [2, 2, 0, 1]
+            [1, 1, 0, 1/2]
 
-            sage: lpt = E.quadratic_twist(-3).padic_lseries(5)
-            sage: et = E.padic_lseries(5)._quotient_of_periods_to_twist(-3)
-            sage: lpt.modular_symbol(0) == lp.modular_symbol(0,quadratic_twist=-3)/et
+            sage: Et = E.quadratic_twist(-3)
+            sage: lpt = Et.padic_lseries(5)
+            sage: eta = lpt._quotient_of_periods_to_twist(-3)
+            sage: lpt.modular_symbol(0) == lp.modular_symbol(0,quadratic_twist=-3) * eta
             True
 
         """
@@ -411,7 +413,7 @@ class pAdicLseries(SageObject):
             sage: E = EllipticCurve('11a1')
             sage: a = E.quadratic_twist(-3).padic_lseries(5).measure(1,2,prec=15)
             sage: b = E.padic_lseries(5).measure(1,2, quadratic_twist=-3,prec=15)
-            sage: a == b/E.padic_lseries(5)._quotient_of_periods_to_twist(-3)
+            sage: a == b * E.padic_lseries(5)._quotient_of_periods_to_twist(-3)
             True
 
         """
@@ -486,9 +488,9 @@ class pAdicLseries(SageObject):
 
             sage: L = E.padic_lseries(3)
             sage: alpha = L.alpha(10); alpha
-            (1 + O(3^10))*alpha
+            alpha + O(alpha^21)
             sage: alpha^2 - E.ap(3)*alpha + 3
-            (O(3^10))*alpha^2 + (O(3^11))*alpha + (O(3^11))
+            O(alpha^22)
 
         A reducible prime::
 
@@ -719,25 +721,25 @@ class pAdicLseries(SageObject):
             sage: E = EllipticCurve('37b1')
             sage: lp = E.padic_lseries(3)
             sage: lp._quotient_of_periods_to_twist(-20)
-            1
+            20
             sage: lp._quotient_of_periods_to_twist(-4)
-            1
+            4
             sage: lp._quotient_of_periods_to_twist(-3)
-            1
+            3
             sage: lp._quotient_of_periods_to_twist(-8)
-            2
+            4
             sage: lp._quotient_of_periods_to_twist(8)
-            2
+            4
             sage: lp._quotient_of_periods_to_twist(5)
-            1
+            5
             sage: lp._quotient_of_periods_to_twist(12)
-            1
+            12
 
             sage: E = EllipticCurve('11a1')
             sage: Et = E.quadratic_twist(-3)
             sage: lpt = Et.padic_lseries(5)
             sage: lpt._quotient_of_periods_to_twist(-3)
-            6
+            1
 
         """
         from sage.functions.all import sqrt
@@ -840,7 +842,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: E = EllipticCurve('43a1')
             sage: lp = E.padic_lseries(3)
             sage: lp.series(2,quadratic_twist=-19)
-            2 + 2*3 + 2*3^2 + O(3^4) + (1 + O(3))*T + (1 + O(3))*T^2 + O(T^3)
+            2 + 2*3 + 3^2 + 3^3 + O(3^4) + (1 + O(3))*T + (1 + O(3))*T^2 + O(T^3)
             sage: E.quadratic_twist(-19).label()    # optional -- database_cremona_ellcurve
             '15523a1'
 
@@ -851,9 +853,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: L = EllipticCurve('110a1').padic_lseries(5)
             sage: for j in [0..3]: print L.series(4, eta=j)
             O(5^6) + (2 + 2*5 + 2*5^2 + O(5^3))*T + (5 + 5^2 + O(5^3))*T^2 + (4 + 4*5 + 2*5^2 + O(5^3))*T^3 + (1 + 5 + 3*5^2 + O(5^3))*T^4 + O(T^5)
-            3 + 2*5 + 2*5^3 + 3*5^4 + O(5^6) + (2 + 5 + 4*5^2 + O(5^3))*T + (1 + 4*5 + 2*5^2 + O(5^3))*T^2 + (1 + 5 + 5^2 + O(5^3))*T^3 + (2 + 4*5 + 4*5^2 + O(5^3))*T^4 + O(T^5)
+            4 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^6) + (1 + 3*5 + 4*5^2 + O(5^3))*T + (3 + 4*5 + 3*5^2 + O(5^3))*T^2 + (3 + 3*5^2 + O(5^3))*T^3 + (1 + 2*5 + 2*5^2 + O(5^3))*T^4 + O(T^5)
             2 + O(5^6) + (1 + 5 + O(5^3))*T + (2 + 4*5 + 3*5^2 + O(5^3))*T^2 + (4 + 5 + 2*5^2 + O(5^3))*T^3 + (4 + O(5^3))*T^4 + O(T^5)
-            1 + 3*5 + 4*5^2 + 2*5^3 + 5^4 + 4*5^5 + O(5^6) + (2 + 4*5 + 3*5^2 + O(5^3))*T + (2 + 3*5 + 5^2 + O(5^3))*T^2 + (1 + O(5^3))*T^3 + (2*5 + 2*5^2 + O(5^3))*T^4 + O(T^5)
+            3 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + O(5^6) + (1 + 2*5 + 4*5^2 + O(5^3))*T + (1 + 4*5 + O(5^3))*T^2 + (3 + 2*5 + 2*5^2 + O(5^3))*T^3 + (5 + 5^2 + O(5^3))*T^4 + O(T^5)
         """
         n = ZZ(n)
         if n < 1:
@@ -952,7 +954,8 @@ class pAdicLseriesOrdinary(pAdicLseries):
         L = R(L,res_series_prec)
         aj = L.list()
         if len(aj) > 0:
-            aj = [aj[0].add_bigoh(padic_prec-2)] + [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
+            aj = [aj[0].add_bigoh(padic_prec-2)] + \
+                 [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
         L = R(aj,res_series_prec )
 
         L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
@@ -1099,18 +1102,16 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.series(2)
             O(T^3)
             sage: L.series(4)         # takes a long time (several seconds)
-            (O(3))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + O(T^5)
+            O(alpha) + (alpha^-2 + O(alpha^0))*T + (alpha^-2 + O(alpha^0))*T^2 + O(T^5)
             sage: L.alpha(2).parent()
-            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
-            relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
+            Eisenstein Extension of 3-adic Field with capped relative precision 2 in alpha defined by (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
 
         An example where we only compute the leading term (:trac:`15737`)::
 
             sage: E = EllipticCurve("17a1")
             sage: L = E.padic_lseries(3)
             sage: L.series(4,prec=1)
-            (O(3^18))*alpha^2 + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + ... + 3^18 + O(3^19))*alpha + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + 3^4 + ... + 3^18 + O(3^19)) + O(T)
-
+            alpha^-2 + alpha^-1 + 2 + 2*alpha + ... + O(alpha^38) + O(T)
         """
         n = ZZ(n)
         if n < 1:
@@ -1251,11 +1252,11 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('11a1')
             sage: Lp = E.padic_lseries(19)
             sage: Lp._prec_bounds(3,5)
-            [[+Infinity, +Infinity], [-1, -1], [-1, -1], [-1, -1], [-1, -1]]
+            [+Infinity, -1, -1, -1, -1]
             sage: Lp._prec_bounds(2,5)
-            [[+Infinity, +Infinity], [-1, -2], [-1, -2], [-1, -2], [-1, -2]]
+            [+Infinity, -2, -2, -2, -2]
             sage: Lp._prec_bounds(10,5)
-            [[+Infinity, +Infinity], [3, 2], [3, 2], [3, 2], [3, 2]]
+            [+Infinity, 6, 6, 6, 6]
         """
         #p = self._p
         e = self._e_bounds(n-1,prec)
@@ -1313,7 +1314,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.Dp_valued_series(4)  # long time (9s on sage.math, 2011)
-            (1 + 4*5 + 4*5^3 + O(5^4) + (4 + O(5))*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + (2 + O(5))*T^4 + O(T^5), O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + (2 + O(5))*T^4 + O(T^5))
+            (1 + 4*5 + O(5^2) + (4 + O(5))*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + (2 + O(5))*T^4 + O(T^5), 5^2 + O(5^3) + O(5^2)*T + (4*5 + O(5^2))*T^2 + (2*5 + O(5^2))*T^3 + (2 + 2*5 + O(5^2))*T^4 + O(T^5))
         """
         E = self._E
         p = self._p

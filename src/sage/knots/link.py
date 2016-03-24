@@ -1507,8 +1507,17 @@ class Link(object):
         .. NOTE::
 
             The link diagram is assumed to have only one completely isolated
-            component. This is because otherwise some regions would be have
+            component. This is because otherwise some regions would have
             disconnected boundary.
+
+        TESTS::
+
+            sage: B = BraidGroup(6)
+            sage: L = Link(B([1, 3, 5]))
+            sage: L.regions()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: can only have one isolated component
         """
         if len(self._isolated_components()) != 1:
             raise NotImplementedError("can only have one isolated component")

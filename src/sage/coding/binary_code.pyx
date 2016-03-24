@@ -861,7 +861,7 @@ cdef class BinaryCode:
         """
         cdef int i, j
         from sage.matrix.constructor import matrix
-        from sage.rings.all import GF
+        from sage.rings.finite_field_constructor import GF
         rows = []
         for i from 0 <= i < self.nrows:
             row = [0]*self.ncols
@@ -4226,7 +4226,7 @@ cdef class BinaryCodeClassifier:
                                 break
                         if bingo2:
                             from sage.matrix.constructor import Matrix
-                            from sage.rings.all import GF
+                            from sage.rings.finite_field_constructor import GF
                             M = Matrix(GF(2), B_aug.nrows, B_aug.ncols)
                             for i from 0 <= i < B_aug.ncols:
                                 for j from 0 <= j < B_aug.nrows:

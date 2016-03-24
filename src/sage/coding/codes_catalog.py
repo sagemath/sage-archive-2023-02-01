@@ -19,10 +19,10 @@ The ``codes`` object may be used to access the codes that Sage can build.
 # in the global namespace.
 
 from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
+                                CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                HammingCode, LinearCode, LinearCodeFromCheckMatrix,
+                                LinearCode, LinearCodeFromCheckMatrix,
                                 QuadraticResidueCode, QuadraticResidueCodeEvenPair,
                                 QuadraticResidueCodeOddPair, RandomLinearCode,
                                 ReedSolomonCode, TernaryGolayCode,
@@ -30,8 +30,11 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
 
 from grs import GeneralizedReedSolomonCode
 from bch import BCHCode
+from subfield_subcode import SubfieldSubcode
 
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+from hamming_code import HammingCode
+from cyclic_code import CyclicCode
 
 import decoders_catalog as decoders
 import encoders_catalog as encoders

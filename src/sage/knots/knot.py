@@ -95,10 +95,6 @@ class Knot(Link):
             Traceback (most recent call last):
             ...
             ValueError: the input has more than 1 connected component
-            sage: Knot([[[1, 2], [-2, -1]], [1, -1]])
-            Traceback (most recent call last):
-            ...
-            ValueError: the input has more than 1 connected component
 
             sage: Knot([[[1, 2], [-2, -1]], [1, -1]], check=False)
             Knot represented by 2 crossings

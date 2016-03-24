@@ -41,8 +41,8 @@ The corresponding MINIMOG is::
              +-----+-----+-----+-----+
 
 which is specified by the global variable "minimog_shuffle".
-See the docstrings for find_hexad and blackjack_move for
-further details and examples.
+
+See the docstrings for :meth:`Minimog.find_hexad` and :meth:`Minimog.blackjack_move` for further details and examples.
 
 AUTHOR:
 
@@ -85,7 +85,7 @@ from sage.structure.sage_object import SageObject
 def view_list(L):
     """
     This provides a printout of the lines, crosses and squares of the MINIMOG,
-    as in Curtis' paper.
+    as in Curtis' paper [Cur84]_.
 
     EXAMPLES::
 
@@ -113,7 +113,7 @@ def view_list(L):
 
 def picture_set(A, L):
     """
-    This is needed in the :func:`find_hexad` function below.
+    This is needed in the :meth:`Minimog.find_hexad` function below.
 
     EXAMPLES::
 

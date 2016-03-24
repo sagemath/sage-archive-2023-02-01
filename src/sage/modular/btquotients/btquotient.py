@@ -22,7 +22,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.arith import gcd, xgcd, kronecker_symbol
 from sage.rings.padics.all import Qp, Zp
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.algebras.quatalg.all import QuaternionAlgebra
 from sage.quadratic_forms.all import QuadraticForm
 from sage.graphs.all import Graph
@@ -298,7 +298,7 @@ class DoubleCosetReduction(SageObject):
                 prec = ZZ(embedding)
             except TypeError:
                 # The user knows what she is doing, so let it go
-                return embedding(self.gamma, scale=scale)
+                return embedding(self.gamma)
         if prec > self._igamma_prec:
             self._igamma_prec = prec
             self._cached_igamma = Y.embed_quaternion(self.gamma, exact=False,
@@ -1413,10 +1413,12 @@ class BTQuotient(SageObject, UniqueRepresentation):
             extra_level = character.conductor()
             if not extra_level.is_squarefree():
                 raise ValueError("character must be of squarefree conductor")
+            self._trivial_character = False
         else:
             G = DirichletGroup(lev * Nplus)
             character = G([1] * G.ngens())
             extra_level = 1
+            self._trivial_character = True
 
         if not p.is_prime():
             raise ValueError("p must be a prime")
@@ -1885,6 +1887,15 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(2,5) # optional - magma
             sage: print [X.dimension_harmonic_cocycles(k) for k in range(2,40,2)] # optional - magma
             [0, 1, 3, 1, 3, 5, 3, 5, 7, 5, 7, 9, 7, 9, 11, 9, 11, 13, 11]
+
+            sage: X = BTQuotient(7, 2 * 3 * 5)
+            sage: print X.dimension_harmonic_cocycles(4)
+            12
+            sage: X = BTQuotient(7, 2 * 3 * 5 * 11 * 13)
+            sage: print X.dimension_harmonic_cocycles(2)
+            481
+            sage: print X.dimension_harmonic_cocycles(2)
+            1440
         """
         k = ZZ(k)
         if lev is None:
@@ -1897,9 +1908,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
             Nplus = ZZ(Nplus)
 
         if character is None:
-            character = self._character
-        kernel = filter(lambda r: gcd(r, lev * Nplus) == 1 and character(r) == 1,
-                        range(lev * Nplus))
+            if not self._trivial_character:
+                character = self._character
+                kernel = filter(lambda r: gcd(r, lev * Nplus) == 1 and character(r) == 1,
+                                range(lev * Nplus))
+            else:
+                character = None
+                kernel = None
 
         if k == 0:
             return 0
@@ -1911,10 +1926,21 @@ class BTQuotient(SageObject, UniqueRepresentation):
         if any([l[1] != 1 for l in f]):
             raise NotImplementedError('The level should be squarefree for '
                                       'this function to work... Sorry!')
+        GH = lambda N,ker: Gamma0(N) if character is None else GammaH_class(N,ker)
 
         divs = lev.divisors()
 
-        return GammaH_class(lev * Nplus, kernel).dimension_cusp_forms(k=k) - sum([len(ZZ(lev / d).divisors()) * self.dimension_harmonic_cocycles(k, d, Nplus, character) for d in divs[:-1]])
+        def mumu(N):
+            p = 1
+            for _,r in ZZ(N).factor():
+                if r > 2:
+                    return ZZ(0)
+                elif r == 1:
+                    p *= -2
+            return ZZ(p)
+
+        #return GammaH_class(lev * Nplus, kernel).dimension_cusp_forms(k=k) - sum([len(ZZ(lev / d).divisors()) * self.dimension_harmonic_cocycles(k, d, Nplus, character) for d in divs[:-1]]) # THIS WAS DEFINITELY WRONG
+        return sum([mumu(lev // d) * GH(d * Nplus, kernel).dimension_cusp_forms(k) for d in lev.divisors()])
 
     def Nplus(self):
         r"""
@@ -2409,6 +2435,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._Iotainv = self._Mat_44([self._Iotainv_lift[ii, jj] % self._pN for ii in range(4) for jj in range(4)])
             return self._Iota
 
+
     def embed_quaternion(self, g, exact=False, prec=None):
         r"""
         Embeds the quaternion element ``g`` into a matrix algebra.
@@ -2452,6 +2479,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         else:
             A = self.get_embedding_matrix(prec=prec) * g
             return Matrix(self._R, 2, 2, A.list())
+
+    embed = embed_quaternion
 
     def get_embedding(self, prec=None):
         r"""
@@ -2805,7 +2834,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             ]
         """
         OM = self.get_eichler_order_quadmatrix()
-        v = pari('qfminim(%s,2,0, flag = 0)' % (OM._pari_()))
+        v = pari('qfminim(%s,2,0, flag = 2)' % (OM._pari_()))
         n_units = Integer(v[0].python() / 2)
         v = pari('qfminim(%s,2,%s, flag = 2)' % ((OM._pari_()), n_units))
         O_units = []
@@ -3274,7 +3303,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         n_units = len(self.get_units_of_order())
         ## Using PARI to get the shortest vector in the lattice (via LLL)
         ## We used to pass qfminim flag = 2
-        mat = pari('qfminim(%s,0,%s)' % (A._pari_(), 2 * n_units))[2].python().transpose()
+        mat = pari('qfminim(%s,,%s,flag = 2)' % (A._pari_(), 2 * n_units))[2].python().transpose()
         n_vecs = mat.nrows()
         stabs = []
         for jj in range(n_vecs):
@@ -3292,7 +3321,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         else:
             return stabs
 
-    def _nebentype_check(self, vec, twom, E, A, flag=0):
+    def _nebentype_check(self, vec, twom, E, A, flag = 2):
         """
         Checks if a quaternion maps into a subgroup of matrices
         determined by a nontrivial Dirichlet character (associated to
@@ -3340,7 +3369,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         if not self._use_magma or len(self._extra_level) == 0:
             return E * vec, True
         m = ZZ(twom / 2)
-        mat = pari('qfminim(%s,0,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].python().transpose()
+        mat = pari('qfminim(%s,,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].python().transpose()
         n_vecs = mat.nrows()
         p = self._p
         pinv = Zmod(self._character.modulus())(p) ** -1
@@ -3424,7 +3453,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)
         ## Using PARI to get the shortest vector in the lattice (via LLL)
-        vec = pari('qfminim(%s,0,1,flag = 0)' % (A._pari_()))[2].python()
+        vec = pari('qfminim(%s,,1,flag = 2)' % (A._pari_()))[2].python()
 
         vect = vec.transpose()
         nrd = Integer((vect * A * vec)[0, 0] / 2)
@@ -3647,7 +3676,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             v = V.popleft()
             E = self._BT.leaving_edges(v.rep)
 
-            # print 'V = %s, E = %s, G = %s (target = %s), lenV = %s' % (num_verts,num_edges,1+num_edges-num_verts,genus,len(V))
+            verbose('V = %s, E = %s, G = %s (target = %s), lenV = %s'%(num_verts,num_edges,1+num_edges-num_verts,genus,len(V)))
             for e in E:
                 edge_det = e.determinant()
                 edge_valuation = edge_det.valuation(p)
@@ -3740,6 +3769,10 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: f = X.harmonic_cocycle_from_elliptic_curve(E,10)
             sage: T29 = f.parent().hecke_operator(29)
             sage: T29(f) == E.ap(29) * f
+            sage: E = EllipticCurve('51a1')
+            sage: f = X.harmonic_cocycle_from_elliptic_curve(E,20)
+            sage: T31=f.parent().hecke_operator(31)
+            sage: T31(f)==E.ap(31)*
             True
         """
         from pautomorphicform import HarmonicCocycles
@@ -3764,7 +3797,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             else:
                 Q = F(q).factor()[0][0]
                 Eap = ZZ(Q.norm() + 1 - E.reduction(Q).count_points())
-            K1 = (M.hecke_matrix(q) - Eap).right_kernel()
+            K1 = (M.hecke_matrix(q).transpose() - Eap).right_kernel()
             K = K.intersection(K1)
         col = [ZZ(o) for o in K.matrix().list()]
         return sum([a * M.gen(i) for i, a in enumerate(col) if a != 0], M(0))

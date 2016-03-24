@@ -6720,11 +6720,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if a == None:
             a1 = -infinity.infinity
         else:
-            a1 = pari(a)
+            a1 = a
         if b == None:
             b1 = infinity.infinity
         else:
-            b1 = pari(b)
+            b1 = b
         return(pari(pol).polsturm([a1,b1]))
 
     def all_roots_in_interval(self, *args):

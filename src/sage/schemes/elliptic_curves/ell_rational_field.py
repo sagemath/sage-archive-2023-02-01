@@ -1101,7 +1101,43 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__modular_symbol_space[typ] = M
         return M
 
-    def modular_symbol(self, sign=1, use_eclib = False, normalize = "L_ratio"):
+    def _modular_symbol_normalize(self, sign, use_eclib, normalize, implementation):
+        r"""
+        Normalize parameters for :meth:`modular_symbol`.
+
+        TESTS::
+
+            sage: E=EllipticCurve('37a1')
+            sage: E.modular_symbol(implementation = 'eclib') is E.modular_symbol(implementation = 'eclib', normalize = 'L_ratio')
+            True
+        """
+        if use_eclib is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(812,"Use the option 'implementation' instead of 'use_eclib'")
+            if implementation == 'pollack-stevens':
+                raise ValueError
+            if use_eclib:
+                implementation = 'eclib'
+            else:
+                implementation = 'sage'
+        if implementation == 'eclib':
+            if normalize is None:
+                normalize = "L_ratio"
+        elif implementation == 'sage':
+            if normalize is None:
+                normalize = "L_ratio"
+        elif implementation == 'pollack-stevens':
+            if sign is not None:
+                raise ValueError("The sign should be 'None' for Pollack-Stevens' modular symbols")
+            if normalize is not None:
+                raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' modular symbols")
+        else:
+            raise ValueError("Implementation should be one of  'sage', 'eclib' or 'pollack-stevens'")
+
+        return (sign, normalize, implementation)
+
+    @cached_method(key = _modular_symbol_normalize)
+    def modular_symbol(self, sign=None, use_eclib = None, normalize = None, implementation = 'sage'):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign and base ring.  This is the map that sends `r/s`
@@ -1118,7 +1154,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        -  ``sign`` - 1 (default) or -1
+        -  ``sign`` - None (default), +1 or -1
 
         -  ``use_eclib`` - (default: False); if True the computation is
            done with John Cremona's implementation of modular
@@ -1210,19 +1246,29 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
             1/25
 
+        ::
+        
+            sage: E = EllipticCurve('113a1')
+            sage: symb = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: symb
+            Modular symbol of level 113 with values in Sym^0 Q^2
+            sage: symb.values()
+            [-1/2, 3/2, -2, 1/2, 0, 1, 2, -3/2, 0, -3/2, 0, -1/2, 0, 1, -2, 1/2, 0,
+            0, 2, 0, 0]
+
+            sage: E = EllipticCurve([0,1])
+            sage: symb = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: symb.values()
+            [-1/6, 7/12, 1, 1/6, -5/12, 1/3, -7/12, -1, -1/6, 5/12, 1/4, -1/6, -5/12]
         """
-        typ = (sign, normalize, use_eclib)
-        try:
-            return self.__modular_symbol[typ]
-        except AttributeError:
-            self.__modular_symbol = {}
-        except KeyError:
-            pass
-        if use_eclib :
+        sign, normalize, implementation = self._modular_symbol_normalize(sign, use_eclib, normalize, implementation)
+        if implementation == 'eclib':
             M = ell_modular_symbols.ModularSymbolECLIB(self, sign, normalize=normalize)
-        else :
+        elif implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
-        self.__modular_symbol[typ] = M
+        else: # implementation == 'pollack-stevens'
+            from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            M = ps_modsym_from_elliptic_curve(self)
         return M
 
     def _modsym(self, tau, prec=53):
@@ -1303,6 +1349,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             P = lam[1].imag()
             return lambda a: self._modsym(a, prec).imag() / P
 
+    _normalize_padic_lseries = padics._normalize_padic_lseries
     padic_lseries = padics.padic_lseries
 
     def newform(self):

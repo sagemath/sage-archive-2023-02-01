@@ -39,6 +39,7 @@ import sage.matrix.all as matrix
 sqrt = math.sqrt
 import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 import sage.schemes.hyperelliptic_curves.hypellfrob
+from sage.misc.all import cached_method
 
 def __check_padic_hypotheses(self, p):
     r"""
@@ -67,7 +68,44 @@ def __check_padic_hypotheses(self, p):
     return p
 
 
-def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
+def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, precision):
+    r"""
+    Normalize parameters for :meth:`padic_lseries`.
+
+    TESTS::
+
+        sage: E=EllipticCurve('37a1')
+        sage: E.modular_symbol(implementation = 'eclib') is E.modular_symbol(implementation = 'eclib', normalize = 'L_ratio')
+        True
+    """
+    if use_eclib is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(812,"Use the option 'implementation' instead of 'use_eclib'")
+        if implementation == 'pollack-stevens':
+            raise ValueError
+        if use_eclib:
+            implementation = 'eclib'
+        else:
+            implementation = 'sage'
+    if implementation == 'eclib':
+        if normalize is None:
+            normalize = "L_ratio"
+    elif implementation == 'sage':
+        if normalize is None:
+            normalize = "L_ratio"
+    elif implementation == 'pollack-stevens':
+        if precision is None:
+            raise ValueError("Must specify precision when using 'pollack-stevens'")
+        if normalize is not None:
+            raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' modular symbols")
+    else:
+        raise ValueError("Implementation should be one of  'sage', 'eclib' or 'pollack-stevens'")
+    if precision is not None and implementation != 'pollack-stevens':
+        raise ValueError("Must *not* specify precision unless using 'pollack-stevens'")
+    return (p, normalize, implementation, precision)
+
+@cached_method(key=_normalize_padic_lseries)    
+def padic_lseries(self, p, normalize=None, use_eclib=None, implementation='eclib', precision = None):
     r"""
     Return the `p`-adic `L`-series of self at
     `p`, which is an object whose approx method computes
@@ -79,15 +117,17 @@ def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
 
     -  ``p`` - prime
 
-    -  ``use_eclib`` - bool (default:True); whether or not to use
-       John Cremona's eclib for the computation of modular
-       symbols
-
     -  ``normalize`` -  'L_ratio' (default), 'period' or 'none';
        this is describes the way the modular symbols
        are normalized. See modular_symbol for
        more details.
 
+    -  ``use_eclib`` - deprecated, use ``implementation`` instead
+
+    - ``implementation`` - 'eclib' (default), 'sage', 'pollack-stevens';
+       Whether to use John Cremona's eclib, the Sage implementation,
+       or the Pollack-Stevens' implementation of overconvergent
+       modular symbols.
 
     EXAMPLES::
 
@@ -145,22 +185,34 @@ def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
         sage: L.series(5,prec=10)
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7) + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T + (1 + 2*3 + O(3^4))*T^2 + (3 + 2*3^2 + O(3^3))*T^3 + (2*3 + 3^2 + O(3^3))*T^4 + (2 + 2*3 + 2*3^2 + O(3^3))*T^5 + (1 + 3^2 + O(3^3))*T^6 + (2 + 3^2 + O(3^3))*T^7 + (2 + 2*3 + 2*3^2 + O(3^3))*T^8 + (2 + O(3^2))*T^9 + O(T^10)
 
-    """
-    key = (p, normalize)
-    try:
-        return self._padic_lseries[key]
-    except AttributeError:
-        self._padic_lseries = {}
-    except KeyError:
-        pass
+    Finally, we can use the overconvergent method of Pollack-Stevens::
+    
+        sage: e = EllipticCurve('11a')
+        sage: L = e.p_adic_lseries(5,implementation = 'pollack-stevens', precision = 5)
+        sage: L[0]
+        2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7)        
+        sage: L[1]
+        1 + 3 + 2*3^2 + 3^3 + O(3^4)   
 
-    if self.ap(p) % p != 0:
-        Lp = plseries.pAdicLseriesOrdinary(self, p,
-                              normalize = normalize, use_eclib=use_eclib)
+    """
+    p, normalize, implementation, precision = self._normalize_padic_lseries(p,\
+                             normalize, use_eclib, implementation, precision)
+
+    if implementation in ['sage', 'eclib']:
+        use_eclib = True if implementation == 'eclib' else False
+        if self.ap(p) % p != 0:
+            Lp = plseries.pAdicLseriesOrdinary(self, p,
+                                  normalize = normalize, use_eclib=use_eclib)
+        else:
+            Lp = plseries.pAdicLseriesSupersingular(self, p,
+                                  normalize = normalize, use_eclib=use_eclib)
     else:
-        Lp = plseries.pAdicLseriesSupersingular(self, p,
-                              normalize = normalize, use_eclib=use_eclib)
-    self._padic_lseries[key] = Lp
+        phi =self.modular_symbol(None,normalize=normalize,implementation='pollack-stevens')
+        if phi.parent().level() % p == 0:
+            Phi = phi.lift(p, precision, eigensymbol = True)
+        else:
+            Phi = phi.p_stabilize_and_lift(p, precision, eigensymbol = True)
+        Lp = Phi.padic_lseries()
     return Lp
 
 

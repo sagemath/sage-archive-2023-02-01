@@ -217,6 +217,13 @@ class FiniteMeetSemilattice(FinitePoset):
         r"""
         Return the meet of given elements in the lattice.
 
+        INPUT:
+
+        -  ``x, y`` - two elements of the (semi)lattice OR
+        -  ``x`` - a list or tuple of elements
+
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteJoinSemilattice.join()`.
+
         EXAMPLES::
 
             sage: D = Posets.DiamondPoset(5)
@@ -238,14 +245,11 @@ class FiniteMeetSemilattice(FinitePoset):
             sage: B4.meet([])
             15
 
-        Test that this method also works for facade lattices::
+        For non-facade lattices operator ``*`` works for meet::
 
-            sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
-            sage: L.meet(2, 3)
-            2
-            sage: L.meet(1, 2)
+            sage: L = Posets.PentagonPoset(facade=False)
+            sage: L(1)*L(2)
             0
-
         """
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
@@ -437,8 +441,9 @@ class FiniteJoinSemilattice(FinitePoset):
         INPUT:
 
         -  ``x, y`` - two elements of the (semi)lattice OR
-
         -  ``x`` - a list or tuple of elements
+
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.meet()`.
 
         EXAMPLES::
 
@@ -461,14 +466,11 @@ class FiniteJoinSemilattice(FinitePoset):
             sage: B4.join([])
             0
 
-        Test that this method also works for facade lattices::
+        For non-facade lattices operator ``+`` works for join::
 
-            sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
-            sage: L.join(1, 0)
-            1
-            sage: L.join(1, 2)
-            3
-
+            sage: L = Posets.PentagonPoset(facade=False)
+            sage: L(1)+L(2)
+            4
         """
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
@@ -633,6 +635,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         any join of elements `x_1, x_2, \ldots, x_{n+1}` is join of a
         proper subset of `x_i`.
 
+        This can be also characterized by sublattices: a lattice
+        of breadth at least `n` contains a sublattice isomorphic to the
+        Boolean lattice of `2^n` elements.
+
         INPUT:
 
         - ``certificate`` -- (boolean; default: ``False``) -- whether to
@@ -650,12 +656,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             3
             sage: B3.breadth(certificate=True)
             [1, 2, 4]
-
-        Smallest example of a lattice with breadth 4::
-
-            sage: L = LatticePoset(DiGraph('O]???w?K_@S?E_??Q?@_?D??I??W?B??@??C??O?@???'))
-            sage: L.breadth()
-            4
 
         ALGORITHM:
 
@@ -1161,7 +1161,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_supersolvable(self):
         """
-        Return ``True`` if ``self`` is a supersolvable lattice and
+        Return ``True`` if the lattice is supersolvable and
         ``False`` otherwise.
 
         A lattice `L` is *supersolvable* if there exists a maximal chain `C`
@@ -1193,11 +1193,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                   9: [11], 10: [11]})
             sage: L.is_supersolvable()
             False
+
+        TESTS::
+
+            sage: LatticePoset({}).is_supersolvable()
+            True
         """
         from sage.misc.cachefunc import cached_function
 
         if not self.is_ranked():
             return False
+
+        if self.cardinality() == 0:
+            return True
 
         H = self._hasse_diagram
         height = self.height()

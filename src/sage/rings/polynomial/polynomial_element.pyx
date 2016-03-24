@@ -4218,16 +4218,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if len(variables) > 1:
             base = self._parent._mpoly_base_ring()
             ring = PolynomialRing(base, variables)
-            if base is ZZ:
-                d1 = self._mpoly_dict_recursive()
-                d2 = other._mpoly_dict_recursive()
-                return self._parent(ring(d1).gcd(ring(d2)))
-            try:
-                ring._singular_().set_ring()
-                g = self._singular_().gcd(other._singular_())
-                return self._parent(ring(g))
-            except (AttributeError, NotImplementedError):
-                pass
+            if ring._has_singular:
+                try:
+                    d1 = self._mpoly_dict_recursive()
+                    d2 = other._mpoly_dict_recursive()
+                    return self._parent(ring(d1).gcd(ring(d2)))
+                except NotImplementedError:
+                    pass
 
         if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
             return self.base_ring()._gcd_univariate_polynomial(self, other)

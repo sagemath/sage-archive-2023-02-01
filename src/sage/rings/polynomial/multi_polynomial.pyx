@@ -1702,7 +1702,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: p = r * (x + z*y - 1/z^2)
             sage: q = r * (x*y*z + 1)
             sage: gcd(p,q)
-            z*x*y + ((-2*z^2 + z)/(z^2 + z + 1))*x + y
+            (z^3 + z^2 + z)*x*y + (-2*z^2 + z)*x + (z^2 + z + 1)*y
 
         Polynomials over polynomial rings are converted to a simpler polynomial
         ring with all variables to compute the gcd::
@@ -1735,6 +1735,13 @@ cdef class MPolynomial(CommutativeRingElement):
                 return self._parent(ring(d1).gcd(ring(d2)))
             except (AttributeError, NotImplementedError):
                 pass
+
+        try:
+            self._parent._singular_().set_ring()
+            g = self._singular_().gcd(other._singular_())
+            return self._parent(g)
+        except (TypeError, AttributeError):
+            pass
 
         x = self._parent.gens()[-1]
         uniself = self.polynomial(x)

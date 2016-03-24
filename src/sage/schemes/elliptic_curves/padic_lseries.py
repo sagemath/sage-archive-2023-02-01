@@ -752,6 +752,8 @@ class pAdicLseries(SageObject):
             qt *= sqrt(qt.parent()(D))
         else:
             qt = self._E.period_lattice().basis()[0]/Et.period_lattice().basis()[1].imag()
+            if Et.real_components() == 1:
+                qt /= 2
             qt *= sqrt(qt.parent()(-D))
         verbose('the real approximation is %s'%qt)
         # we know from MTT that the result has a denominator 1

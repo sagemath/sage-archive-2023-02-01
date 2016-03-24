@@ -1548,6 +1548,13 @@ cdef class gen(gen_auto):
             11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
             sage: pari(K(11^-5)).sage()
             11^-5 + O(11^0)
+
+        Conversion of infinities::
+
+            sage: pari('oo').sage()
+            +Infinity
+            sage: pari('-oo').sage()
+            -Infinity
         """
         return gentoobj(self, locals)
 
@@ -9333,6 +9340,8 @@ cdef class gen(gen_auto):
             't_INT'
             sage: pari('x').type()
             't_POL'
+            sage: pari('oo').type()
+            't_INFINITY'
         """
         # The following original code leaks memory:
         #        return str(type_name(typ(self.g)))

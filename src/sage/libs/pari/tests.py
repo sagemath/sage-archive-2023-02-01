@@ -46,6 +46,10 @@ Deprecation checks::
     doctest:...: DeprecationWarning: The flag argument to elltors() is deprecated and not used anymore
     See http://trac.sagemath.org/20219 for details.
     [12, [6, 2], [[1, 2], [3, -2]]]
+    sage: pari("Mod(2,5)").order()
+    doctest:...: DeprecationWarning: order is deprecated. Please use znorder instead.
+    See http://trac.sagemath.org/20219 for details.
+    4
 
 A long list of doctests which used to be part of manually written code
 which is now automatically generated:

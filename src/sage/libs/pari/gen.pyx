@@ -4182,6 +4182,7 @@ cdef class gen(gen_auto):
             factor_proven = saved_factor_proven
 
     multiplicative_order = gen_auto.znorder
+    order = deprecated_function_alias(20219, multiplicative_order)
 
     def __abs__(self):
         return self.abs()

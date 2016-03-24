@@ -823,9 +823,9 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``position`` - a 2-uple of the position
 
-        - ``horizontal_alignment`` - left (defaut), center or right
+        - ``horizontal_alignment`` - left (default), center or right
 
-        - ``labels`` - boolean (defaut: True)
+        - ``labels`` - boolean (default: True)
 
         - ``fontsize`` - the size of the label
 

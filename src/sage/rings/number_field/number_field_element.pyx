@@ -3246,7 +3246,7 @@ cdef class NumberFieldElement(FieldElement):
 
         -  ``P`` - a prime ideal of the parent of self
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         - ``weighted`` (bool, default False) -- if True, apply local
@@ -3416,7 +3416,7 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
@@ -3443,7 +3443,7 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:

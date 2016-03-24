@@ -6713,12 +6713,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (a,b) = (args[0], args[1])
         else:
             raise TypeError, "count_roots_in_interval() takes at most 2 positional arguments (" + str(len(args)) + " given)"
-        if a == None or a == -infinity.infinity:
-            a1 = pari('-oo')
+        if a == None:
+            a1 = pari(-infinity.infinity)
         else:
             a1 = pari(a)
-        if b == None or b == infinity.infinity:
-            b1 = pari('+oo')
+        if b == None:
+            b1 = pari(infinity.infinity)
         else:
             b1 = pari(b)
         return(pari(pol).polsturm([a1,b1]))
@@ -6747,6 +6747,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         pol = self // self.gcd(self.derivative())
         return(pol.count_roots_in_interval(*args) == pol.degree())
+
+    def has_all_real_roots(self):
+        """
+        Return True if the roots of this polynomial are all real.
+    
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = chebyshev_T(5, x)
+            sage: pol.has_all_real_roots()
+            True
+            sage: pol = x^2 + 1
+            sage: pol.has_all_real_roots()
+            False
+        """
+        return self.all_roots_in_interval()
 
     def variable_name(self):
         """

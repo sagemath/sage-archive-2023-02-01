@@ -549,11 +549,13 @@ cdef class EmptyLetter(Element):
             False
             sage: C('E') != C(2)
             True
-            sage: C('E') != C(2)
-            True
             sage: C('E') == C('E')
             True
             sage: C('E') != C('E')
+            False
+            sage: C('E') >= C('E')
+            True
+            sage: C('E') < C('E')
             False
         """
         if isinstance(left, EmptyLetter) and isinstance(right, EmptyLetter):

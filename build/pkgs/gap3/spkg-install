@@ -36,6 +36,10 @@ done
 
 cd gap3/src
 $MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building $PACKAGE_SHORTNAME."
+    exit 1
+fi
 cd ../..
 
 echo "Installing (copying) files..."

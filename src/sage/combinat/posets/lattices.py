@@ -46,6 +46,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_coatomic` | Return ``True`` if every element of the lattice can be written as a meet of coatoms.
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
     :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
+    :meth:`~FiniteLatticePoset.is_relatively_complemented` | Return ``True`` if every interval of the lattice is complemented.
     :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a pseudocomplement.
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
@@ -625,6 +626,81 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
         """
         return self._hasse_diagram.is_complemented_lattice()
+
+    def is_relatively_complemented(self):
+        """
+        Return ``True`` if the lattice is relatively complemented, and
+        ``False`` otherwise.
+
+        A lattice is relatively complemented if every interval of it
+        is a complemented lattice.
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4, 8], 2: [5, 6], 3: [5, 7],
+            ....:                   4: [6, 7], 5: [9], 6: [9], 7: [9], 8: [9]})
+            sage: L.is_relatively_complemented()
+            True
+
+            sage: L = Posets.PentagonPoset()
+            sage: L.is_relatively_complemented()
+            False
+
+        Relatively complemented lattice must be both atomic and coatomic.
+        Implication to other direction does not hold::
+
+            sage: L = LatticePoset({0: [1, 2, 3, 4, 5], 1: [6, 7], 2: [6, 8],
+            ....:                   3: [7, 8, 9], 4: [9, 11], 5: [9, 10],
+            ....:                   6: [10, 11], 7: [12], 8: [12], 9: [12],
+            ....:                   10: [12], 11: [12]})
+            sage: L.is_atomic() and L.is_coatomic()
+            True
+            sage: L.is_relatively_complemented()
+            False
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_relatively_complemented() for
+            ....:  i in range(5)]
+            [True, True, True, False, False]
+
+        Usually a lattice that is not relatively complemented contains elements
+        `l`, `m`, and `u` such that `r(l) + 1 = r(m) = r(u) - 1`, where `r` is
+        the rank function and `m` is the only element in the interval `[l, u]`.
+        We construct an example where this does not hold::
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B5 = Posets.BooleanLattice(5)
+            sage: B3 = B3.subposet([e for e in B3 if e not in [0, 7]])
+            sage: B5 = B5.subposet([e for e in B5 if e not in [0, 31]])
+            sage: B3 = B3.hasse_diagram()
+            sage: B5 = B5.relabel(lambda x: x+10).hasse_diagram()
+            sage: G = B3.union(B5)
+            sage: G.add_edge(B3.sources()[0], B5.neighbors_in(B5.sinks()[0])[0])
+            sage: L = LatticePoset(Poset(G).with_bounds())
+            sage: L.is_relatively_complemented()
+            False
+        """
+        from sage.misc.flatten import flatten
+        from collections import Counter
+
+        # Work directly with Hasse diagram
+        H = self._hasse_diagram
+        n = H.order()
+        if n < 3:
+            return True
+
+        # Quick check: the lattice must be atomic and coatomic.
+        if H.out_degree(0) != H.in_degree().count(1):
+            return False
+        if H.in_degree(n-1) != H.out_degree().count(1):
+            return False
+
+        for e1 in range(n-1):
+            C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
+            if any(c == 1 and len(H.closed_interval(e1, e3)) == 3 for e3, c in C.iteritems()):
+                return False
+        return True
 
     def breadth(self, certificate=False):
         r"""

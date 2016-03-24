@@ -6717,15 +6717,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (a,b) = (args[0], args[1])
         else:
             raise TypeError, "count_roots_in_interval() takes at most 2 positional arguments (" + str(len(args)) + " given)"
-        if a == None:
-            a1 = -infinity.infinity
-        else:
-            a1 = a
-        if b == None:
-            b1 = infinity.infinity
-        else:
-            b1 = b
-        return(pari(pol).polsturm([a1,b1]))
+        if a is None:
+            a = -infinity.infinity
+        if b is None:
+            b = infinity.infinity
+        return(pari(pol).polsturm([a,b]))
 
     def all_roots_in_interval(self, *args):
         """

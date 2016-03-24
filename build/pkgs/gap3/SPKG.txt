@@ -5,12 +5,6 @@
 This package installs Jean Michel's pre-packaged GAP3, which is a minimal GAP3
 distribution contain packages that have no equivalent in GAP4.
 
-The only difference between the distributed tarball and Jean Michel's
-original tarball is that all binary files have been deleted one by one
-from the listing obtained by
-
-    grep -r -m 1 "^"  . | grep "^Binary file"
-
 Below is the full description from Jean Michel's webpage
 (accessed 23 July 2015).
 
@@ -58,6 +52,14 @@ the GAP installation).
 
 Jean Michel <jmichel@math.jussieu.fr>
 http://webusers.imj-prg.fr/~jean.michel/
+
+== Special Update/Build Instructions ==
+
+The difference between the distributed tarball and Jean Michel's
+original tarball is that all binary files have been deleted one by one
+from the listing obtained by
+
+    grep -r -m 1 "^"  . | grep "^Binary file"
 
 === Patches ===
 

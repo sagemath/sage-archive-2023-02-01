@@ -6687,6 +6687,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3
             sage: pol.count_roots_in_interval()
             3
+            sage: pol = (x-1)*(x-2)*(x-3)
+            sage: pol2 = pol.change_ring(CC)
+            sage: pol2.count_roots_in_interval()
+            3
 
         TESTS::
             sage: R.<x> = PolynomialRing(ZZ)

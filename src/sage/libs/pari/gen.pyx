@@ -1939,6 +1939,30 @@ cdef class gen(gen_auto):
         else:
             return n, P.new_gen(x)
 
+    def vecmax(x):
+        """
+        Return the maximum of the elements of the vector/matrix `x`.
+
+        EXAMPLES::
+
+            sage: pari([1, -5/3, 8.0]).vecmax()
+            8.00000000000000
+        """
+        sig_on()
+        return P.new_gen(vecmax(x.g))
+
+    def vecmin(x):
+        """
+        Return the minimum of the elements of the vector/matrix `x`.
+
+        EXAMPLES::
+
+            sage: pari([1, -5/3, 8.0]).vecmin()
+            -5/3
+        """
+        sig_on()
+        return P.new_gen(vecmin(x.g))
+
     def Col(gen x, long n = 0):
         """
         Transform the object `x` into a column vector with minimal size `|n|`.

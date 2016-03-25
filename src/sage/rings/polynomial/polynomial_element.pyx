@@ -6691,6 +6691,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol2 = pol.change_ring(CC)
             sage: pol2.count_roots_in_interval()
             3
+            sage: R.<x> = PolynomialRing(CC)
+            sage: pol = (x-1)*(x-CC(I))
+            sage: pol.count_roots_in_interval(0,2)
+            1
 
         TESTS::
             sage: R.<x> = PolynomialRing(ZZ)
@@ -6721,7 +6725,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             a = -infinity.infinity
         if b is None:
             b = infinity.infinity
-        return(pari(pol).polsturm([a,b]))
+        try:
+            pol.change_ring(RR)
+            return(pari(pol).polsturm([a,b]))
+        except TypeError:
+            pol2 = pol.change_ring(CC)
+            pol2 = pol2.gcd(pol2.map_coefficients(lambda z: z.conjugate()))
+            pol2 //= pol2.leading_coefficient()
+            return(pari(pol2).polsturm([a,b]))
 
     def all_roots_in_interval(self, *args):
         """

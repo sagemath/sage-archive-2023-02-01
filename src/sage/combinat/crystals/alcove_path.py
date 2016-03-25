@@ -716,12 +716,12 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[2,0])
             sage: for i in C: i.weight()
+            (2, 0, 0)
+            (1, 1, 0)
             (0, 2, 0)
-            (0, 0, 1)
-            (0, -2, 2)
-            (0, 1, -1)
             (0, -1, 0)
-            (0, 0, -2)
+            (-1, 0, 0)
+            (-2, -2, 0)
             sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
             sage: p = B.module_generators[0].f_string([0,1,2])
             sage: p.weight()
@@ -744,9 +744,12 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             weight = -i.height*root + weight.reflection(root)
 
         WLR = self.parent().weight_lattice_realization()
-        B = WLR.basis()
-        return WLR._from_dict({i: Integer(c) for i,c in -weight},
-                              remove_zeros=False)
+        if self.cartan_type().is_affine() and self.parent()._highest_weight_crystal:
+            # We assume that WLR is the (extended) weight lattice
+            return WLR._from_dict({i: Integer(c) for i,c in -weight},
+                                  remove_zeros=False)
+        La = WLR.fundamental_weights()
+        return WLR.sum(Integer(c) * La[i] for i,c in -weight)
 
     #def __repr__(self):
         #return str(self.integer_sequence())

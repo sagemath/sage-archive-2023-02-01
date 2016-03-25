@@ -19,21 +19,19 @@ This example initializes a dense graph with room for twenty vertices, the first
 ten of which are in the graph. In general, the first ``nverts`` are "active."
 For example, see that 9 is already in the graph::
 
-    sage: D._num_verts()
-    10
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     sage: D.add_vertex(9)
     9
-    sage: D._num_verts()
-    10
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 But 10 is not, until we add it::
 
-    sage: D._num_verts()
-    10
     sage: D.add_vertex(10)
     10
-    sage: D._num_verts()
-    11
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 You can begin working right away as follows::
 
@@ -56,10 +54,6 @@ You can begin working right away as follows::
     sage: D.del_vertex(7)
     sage: D.has_arc(7,3)
     False
-    sage: D._num_verts()
-    10
-    sage: D._num_arcs()
-    2
 
 Dense graphs do not support multiple or labeled edges.
 
@@ -609,10 +603,10 @@ def _test_adjacency_sequence_out():
     cdef DenseGraph g = DenseGraph(n,
                                    verts=randg.vertices(),
                                    arcs=randg.edges(labels=False))
-    assert g._num_verts() == randg.order(), (
-        "Graph order mismatch: %s vs. %s" % (g._num_verts(), randg.order()))
-    assert g._num_arcs() == randg.size(), (
-        "Graph size mismatch: %s vs. %s" % (g._num_arcs(), randg.size()))
+    assert g.num_verts == randg.order(), (
+        "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
+    assert g.num_arcs == randg.size(), (
+        "Graph size mismatch: %s vs. %s" % (g.num_arcs, randg.size()))
     M = randg.adjacency_matrix()
     cdef int *V = <int *>sig_malloc(n * sizeof(int))
     cdef int i = 0

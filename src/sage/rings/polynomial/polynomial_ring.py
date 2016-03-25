@@ -383,6 +383,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: L['x'](f)
             x + b^3 + b^2 + b + 3
 
+        A test from :trac:`14485` ::
+
+            sage: x = SR.var('x')
+            sage: QQbar[x](x^6+x^5+x^4-x^3+x^2-x+2/5)
+            x^6 + x^5 + x^4 - x^3 + x^2 - x + 2/5
         """
         C = self.element_class
         if isinstance(x, list):

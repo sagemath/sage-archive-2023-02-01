@@ -297,21 +297,19 @@ class AnInfinity(object):
         """
         Convert ``self`` to a Pari object.
 
-        This always raises an exception since Pari does not have
-        infinities.
+        EXAMPLES::
 
-        TESTS::
-
-            sage: pari(-oo) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot convert infinity to Pari
+            sage: pari(-oo)
+            -oo
             sage: pari(oo)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot convert infinity to Pari
+            +oo
         """
-        raise TypeError('cannot convert infinity to Pari')
+        # For some reason, it seems problematic to import sage.libs.all.pari,
+        # so we call it directly.
+        if self._sign >= 0:
+            return sage.libs.all.pari('oo')
+        else:
+            return sage.libs.all.pari('-oo')
 
     def _latex_(self):
         r"""

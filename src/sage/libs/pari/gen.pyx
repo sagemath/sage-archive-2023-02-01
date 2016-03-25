@@ -32,6 +32,8 @@ AUTHORS:
 - Jeroen Demeyer (2015-03-17): automatically generate methods from
   ``pari.desc`` (:trac:`17631` and :trac:`17860`)
 
+- Kiran Kedlaya (2016-03-23): implement infinity type
+
 """
 
 #*****************************************************************************
@@ -1542,6 +1544,13 @@ cdef class gen(gen_auto):
             11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
             sage: pari(K(11^-5)).sage()
             11^-5 + O(11^0)
+
+        Conversion of infinities::
+
+            sage: pari('oo').sage()
+            +Infinity
+            sage: pari('-oo').sage()
+            -Infinity
         """
         return gentoobj(self, locals)
 
@@ -9336,6 +9345,8 @@ cdef class gen(gen_auto):
             't_INT'
             sage: pari('x').type()
             't_POL'
+            sage: pari('oo').type()
+            't_INFINITY'
         """
         # The following original code leaks memory:
         #        return str(type_name(typ(self.g)))
@@ -9375,6 +9386,7 @@ cdef class gen(gen_auto):
         elif t == t_STR:      return 't_STR'
         elif t == t_VECSMALL: return 't_VECSMALL'
         elif t == t_CLOSURE:  return 't_CLOSURE'
+        elif t == t_INFINITY: return 't_INFINITY'
         else:
             raise TypeError("Unknown PARI type: %s" % t)
 
@@ -9908,7 +9920,12 @@ cpdef gentoobj(gen z, locals={}):
         p = z.padicprime()
         K = Qp(Integer(p), precp(g))
         return K(z.lift())
-
+    elif t == t_INFINITY:
+        if z.sign() == 1:
+            return sage.rings.infinity.infinity
+        else:
+            return -sage.rings.infinity.infinity
+    
     # Fallback (e.g. polynomials): use string representation
     from sage.misc.sage_eval import sage_eval
     return sage_eval(str(z), locals=locals)

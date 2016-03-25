@@ -13,7 +13,7 @@ from sage.libs.flint.ulong_extras cimport *
 cdef class Dist(ModuleElement):
     cpdef normalize(self)
     cdef long ordp
-    cpdef long ord_p(self)    
+    cpdef long _ord_p(self)
     cdef long _relprec(self)
     cdef _unscaled_moment(self, long i)
 

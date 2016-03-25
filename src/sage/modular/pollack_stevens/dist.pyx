@@ -1,4 +1,14 @@
-# cython: profile=True
+"""
+This module implements p-adic distributions, a p-adic Banach
+space dual to locally analytic functions on a disc.
+
+EXAMPLES::
+
+    sage: D = Distributions(5, 7, 15)
+    sage: v = D([7,14,21,28,35]); v
+    (7 + O(7^5), 2*7 + O(7^4), 3*7 + O(7^3), 4*7 + O(7^2), O(7))
+
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
@@ -33,12 +43,8 @@ from sage.misc.misc import verbose, cputime
 from sage.rings.infinity import Infinity
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
-
-#include "sage/libs/flint/fmpz_poly.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
-
-#from sage.libs.flint.fmpz_poly cimport
 
 from sage.libs.flint.nmod_poly cimport (nmod_poly_init2_preinv,
                                         nmod_poly_set_coeff_ui,
@@ -79,22 +85,22 @@ def get_dist_classes(p, prec_cap, base, symk, implementation):
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.dist import get_dist_classes
-        sage: pass
+        sage: D = Distributions(2, 3, 5); D # indirect doctest
+        Space of 3-adic distributions with k=2 action and precision cap 5
     """
     if implementation is not None:
         if implementation == 'long':
             raise NotImplementedError('The optimized implementation -using longs- has been disabled and may return wrong results.')
-            if base.is_field():
-                raise NotImplementedError('The implementation "long" does'
-                                          ' not support fields as base rings')
-            if (isinstance(base, pAdicGeneric) and base.degree() > 1):
-                raise NotImplementedError('The implementation "long" does not '
-                                          'support extensions of p-adics')
-            if p is None:
-                raise NotImplementedError('The implementation "long" supports'
-                                          ' only p-adic rings')
-            return Dist_long, WeightKAction_long
+            #if base.is_field():
+            #    raise NotImplementedError('The implementation "long" does'
+            #                              ' not support fields as base rings')
+            #if (isinstance(base, pAdicGeneric) and base.degree() > 1):
+            #    raise NotImplementedError('The implementation "long" does not '
+            #                              'support extensions of p-adics')
+            #if p is None:
+            #    raise NotImplementedError('The implementation "long" supports'
+            #                              ' only p-adic rings')
+            #return Dist_long, WeightKAction_long
         elif implementation == 'vector':
             return Dist_vector, WeightKAction_vector
         else:
@@ -130,21 +136,32 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(4, 7, 10)
+            sage: v = D([7,14,21,28,35]);
+            sage: v.moment(3)
+            4*7 + O(7^2)
+            sage: v.moment(0)
+            7 + O(7^5)
         """
         return self.parent().prime() ** (self.ordp) * self._unscaled_moment(n)
 
     def moments(self):
         r"""
-        Returns all the moments, as a list.
+        Returns the vector of moments.
 
         OUTPUT:
 
-        - the list of moments
+        - the vector of moments
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(4, 5, 10, base = Qp(5));
+            sage: v = D([1,7,4,2,-1])
+            sage: v = 1/5^3 * v
+            sage: v
+            5^-3 * (1 + O(5^5), 2 + 5 + O(5^4), 4 + O(5^3), 2 + O(5^2), 4 + O(5))
+            sage: v.moments()
+            (5^-3 + O(5^2), 2*5^-3 + 5^-2 + O(5), 4*5^-3 + O(5^0), 2*5^-3 + O(5^-1), 4*5^-3 + O(5^-2))
         """
         return self.parent().prime() ** (self.ordp) * self._moments
 
@@ -159,9 +176,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: D = Distributions(5, 7, 15)
-            sage: D
+            sage: D = Distributions(5, 7, 15); D
             Space of 7-adic distributions with k=5 action and precision cap 15
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
@@ -176,7 +191,23 @@ cdef class Dist(ModuleElement):
     cdef _unscaled_moment(self, long i):
         raise NotImplementedError
 
-    cpdef long ord_p(self):
+    cpdef long _ord_p(self):
+        r"""
+        Return power of p by which the moments are shifted.
+
+        NOTE::
+
+            This is not necessarily the same as the valuation,
+            since the moments could all be divisible by p.
+
+        EXAMPLES::
+
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([7,14,21,28,35]); v
+            (7 + O(7^5), 2*7 + O(7^4), 3*7 + O(7^3), 4*7 + O(7^2), O(7))
+            sage: v._ord_p()
+            0
+        """
         return self.ordp
 
     def scale(self, left):
@@ -193,7 +224,6 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
@@ -236,7 +266,6 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
@@ -246,13 +275,12 @@ cdef class Dist(ModuleElement):
             sage: v.is_zero()
             True
 
-            ::
+        ::
 
             sage: D = Symk(0)
             sage: v = D([0])
             sage: v.is_zero(5,3)
             True
-
         """
         n = self.precision_relative()
         aprec = self.precision_absolute()
@@ -314,7 +342,6 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(5, 7, 15)
             sage: v = D([1,2,3,4,5])
             sage: w = D([3,6,9,12,15])
@@ -328,7 +355,6 @@ cdef class Dist(ModuleElement):
             Traceback (most recent call last):
             ...
             ValueError: not a scalar multiple
-
         """
         cdef Dist other = _other
         i = 0
@@ -441,7 +467,6 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(5, 7, 15)
             sage: v = D([1,2,3,4,5])
             sage: w = D([3,6,9,12,15])
@@ -455,7 +480,6 @@ cdef class Dist(ModuleElement):
             Traceback (most recent call last):
             ...
             ValueError: not a scalar multiple
-
         """
         cdef Dist other = _other
         n = self.precision_relative()
@@ -492,7 +516,13 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([1,2,3,4,5]); v
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: 3*v; 7*v
+            (3 + O(7^5), 6 + O(7^4), 2 + 7 + O(7^3), 5 + 7 + O(7^2), 1 + O(7))
+            7 * (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+
         """
         return self._lmul_(_left)
 
@@ -505,7 +535,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES:
 
-        Equality of two :class:`Dist_long`::
+        Equality of two distributions::
 
             sage: D = Distributions(0, 5, 10)
             sage: D([1, 2]) == D([1])
@@ -521,14 +551,6 @@ cdef class Dist(ModuleElement):
             sage: w = D([4+3*5+O(5^2)])
             sage: v == w
             True
-
-        Equality of two :class:`Dist_vector`::
-
-            # XXX FIXME
-
-        Equality of a :class:`Dist_vector` and a :class:`Dist_long`::
-
-            # XXX FIXME
         """
         cdef Dist left = _left
         cdef Dist right = _right
@@ -571,7 +593,6 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
@@ -600,13 +621,11 @@ cdef class Dist(ModuleElement):
 
             Since only finitely many moments are computed, this valuation may
             be larger than the actual valuation of this distribution.
-            Moreover, since distributions are normalized so that the top moment
-            has precision 1, this valuation may be smaller than the actual
-            valuation (for example, if the actual valuation is 2)
+            Moreover, this valuation may be smaller than the actual
+            valuation if all entries are zero to the known precision.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
@@ -644,7 +663,7 @@ cdef class Dist(ModuleElement):
             sage: d.specialize()
             (O(13^7), 2 + O(13^6), 4 + O(13^5), 6 + O(13^4), 8 + O(13^3))
         """
-        self.normalize()
+        # self.normalize() # This method should not change self
         k = self.parent()._k
         if k < 0:
             raise ValueError("negative weight")
@@ -742,7 +761,11 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: D = Distributions(4, 7, 10)
+            sage: v = D([98,49,21,28,35])
+            sage: M = matrix([[1,0], [7,1]])
+            sage: v.act_right(M)
+            (2*7^2 + 7^3 + 5*7^4 + O(7^5), 3*7^2 + 6*7^3 + O(7^4), 3*7 + 7^2 + O(7^3), 4*7 + O(7^2), O(7))
         """
         return self.parent()._act(self, gamma)
 
@@ -768,7 +791,8 @@ cdef class Dist_vector(Dist):
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.distributions import Distributions
+        sage: D = Distributions(3,5,6) # indirect doctest
+        sage: v = D([1,1,1])
     """
     def __init__(self, moments, parent, ordp=0, check=True):
         """
@@ -776,7 +800,6 @@ cdef class Dist_vector(Dist):
 
         TESTS::
 
-            sage: from sage.modular.pollack_stevens.distributions import Symk
             sage: Symk(4)(0)
             (0, 0, 0, 0, 0)
 
@@ -788,7 +811,7 @@ cdef class Dist_vector(Dist):
         if check:
             # case 1: input is a distribution already
             if isinstance(moments, Dist):
-                ordp = moments.ord_p()
+                ordp = moments._ord_p()
                 moments = moments._moments.change_ring(parent.base_ring())
             # case 2: input is a vector, or something with a len
             elif hasattr(moments, '__len__'):
@@ -806,7 +829,7 @@ cdef class Dist_vector(Dist):
 
         self._moments = moments
         self.ordp = ordp
-        self.normalize()
+        self.normalize() # DEBUG
 
     def __reduce__(self):
         r"""
@@ -831,10 +854,6 @@ cdef class Dist_vector(Dist):
 
         - A distribution with no moments.  The moments are then filled
           in by the calling function.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
         """
         cdef Dist_vector ans = PY_NEW(Dist_vector)
         ans._parent = self._parent
@@ -846,10 +865,11 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
-        """
-        r"""
-        Displays the moments of the distribution
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([1,2,3,4,5]); v
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: repr(v)
+            '(1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))'
         """
         # self.normalize() # Should normalize only when absolutely needed.
         valstr = ""
@@ -887,6 +907,9 @@ cdef class Dist_vector(Dist):
         raise TypeError("k must be 0")
 
     cdef long _relprec(self):
+        """
+        Returns the number of moments.
+        """
         return len(self._moments)
 
     cdef _unscaled_moment(self, long n):
@@ -932,7 +955,11 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([1,2,3,4,5]); w = D([3,6,9,12,15])
+            sage: v+w
+            (4 + O(7^5), 1 + 7 + O(7^4), 5 + 7 + O(7^3), 2 + 2*7 + O(7^2), 6 + O(7))
+
         """
         return self._addsub(<Dist_vector>_right, False)
 
@@ -942,7 +969,11 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([1,2,3,4,5]); w = D([1,1,1,8,8])
+            sage: v-w
+            (O(7^5), 1 + O(7^4), 2 + O(7^3), 3 + 6*7 + O(7^2), 4 + O(7))
+
         """
         return self._addsub(<Dist_vector>_right, True)
 
@@ -952,7 +983,13 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([1,2,3,4,5]); v
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: 3*v; 7*v
+            (3 + O(7^5), 6 + O(7^4), 2 + 7 + O(7^3), 5 + 7 + O(7^2), 1 + O(7))
+            7 * (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+
         """
         cdef Dist_vector ans = self._new_c()
         p = self.parent().prime()
@@ -984,6 +1021,19 @@ cdef class Dist_vector(Dist):
         OUTPUT:
 
         - An integer giving the number of moments.
+
+        EXAMPLES::
+
+            sage: D = Distributions(2, 11, 15)
+            sage: v = D([1,1,10,9,6,15])
+            sage: v.precision_relative()
+            6
+            sage: v = v.reduce_precision(4); v.precision_relative()
+            4
+            sage: D = Symk(10)
+            sage: v = D.random_element()
+            sage: v.precision_relative()
+            11
         """
         return Integer(len(self._moments))
 
@@ -996,7 +1046,16 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(3, 7, base = Qp(7))
+            sage: v = D([3,1,10,0])
+            sage: v.precision_absolute()
+            4
+            sage: v *= 7
+            sage: v.precision_absolute()
+            5
+            sage: v = 1/7^10 * v
+            sage: v.precision_absolute()
+            -5
         """
         return Integer(len(self._moments) + self.ordp)
 
@@ -1018,10 +1077,20 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(3,7,10)
+            sage: v = D([1,2,3,4,5]) ; v
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: w = v.reduce_precision(3) ; w
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3))
+            sage: w.normalize()
+            (1 + O(7^3), 2 + O(7^2), 3 + O(7))
+            sage: w
+            (1 + O(7^3), 2 + O(7^2), 3 + O(7))
+            sage: v.reduce_precision(3).normalize(include_zeroth_moment=False)
+            (1 + O(7^5), 2 + O(7^2), 3 + O(7))
         """
         if not self.parent().is_symk() and self._moments != 0:  # non-classical
-            if len(self._moments) <= 1:
+            if len(self._moments) == 0:
                 return self
             V = self._moments.parent()
             R = V.base_ring()
@@ -1056,7 +1125,12 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(3,7,10)
+            sage: v = D([3,4,5])
+            sage: v
+            (3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: v.reduce_precision(2)
+            (3 + O(7^3), 4 + O(7^2))
         """
         assert M <= self.precision_relative(), "not enough moments"
 
@@ -1065,19 +1139,29 @@ cdef class Dist_vector(Dist):
         ans.ordp = self.ordp
         return ans
 
-    def solve_diff_eqn(self):
+    def solve_difference_equation(self):
         r"""
-        Solves the difference equation.
+        Solves the difference equation. self = v | Delta, where Delta = [1, 1; 0, 1] - 1.
 
         See Theorem 4.5 and Lemma 4.4 of [PS].
 
         OUTPUT:
 
-        - a distribution v so that self = v | Delta, where Delta = [1, 1; 0, 1] - 1.
+        - a distribution v so that self = v | Delta , assuming self.moment(0) == 0.
+          Otherwise solves the difference equation for self - (self.moment(0),0,...,0).
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(5,7,15)
+            sage: v = D(([0,2,3,4,5]))
+            sage: g = D._act.actor()(Matrix(ZZ,2,2,[1,1,0,1]))
+            sage: w = v.solve_difference_equation()
+            sage: v - (w*g - w)
+            (O(7^4), O(7^3), O(7^2), O(7))
+            sage: v = D(([7,2,3,4,5]))
+            sage: w = v.solve_difference_equation()
+            sage: v - (w*g - w)
+            (7 + O(7^4), O(7^3), O(7^2), O(7))
         """
         # assert self._moments[0][0]==0, "not total measure zero"
         # print "result accurate modulo p^",self.moment(0).valuation(self.p)
@@ -1107,7 +1191,10 @@ cdef class Dist_vector(Dist):
                 ans = newparent(v)
         else:
             ans = self._new_c()
-            ans.ordp = min(a.valuation(p) for a in v)
+            try:
+                ans.ordp = min(a.valuation(p) for a in v)
+            except TypeError:
+                ans.ordp = 0
             if ans.ordp < 0:
                 scalar = K(p) ** (-ans.ordp)
                 ans._moments = V([R(a * scalar) for a in v])
@@ -1527,13 +1614,12 @@ cdef class WeightKAction(Action):
     - ``dettwist`` -- a power of the determinant to twist by
     - ``padic`` -- if True, define an action of p-adic matrices (not just integer ones)
 
-    OUTPUT:
-
-    -
-
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+        sage: D = Distributions(4,5,10,base = Qp(5,20)); D
+        Space of 5-adic distributions with k=4 action and precision cap 10
+        sage: D._act
+        Right action by Monoid Sigma0(5) with coefficients in 5-adic Field with capped relative precision 20 on Space of 5-adic distributions with k=4 action and precision cap 10
     """
     def __init__(self, Dk, character, adjuster, on_left, dettwist, padic=False):
         r"""
@@ -1541,7 +1627,9 @@ cdef class WeightKAction(Action):
 
         TESTS::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(4,5,10,base = Qp(5,20)); D # indirect doctest
+            Space of 5-adic distributions with k=4 action and precision cap 10
+            sage: D = Symk(10) # indirect doctest
         """
         self._k = Dk._k
 #        if self._k < 0: raise ValueError("k must not be negative")
@@ -1567,18 +1655,23 @@ cdef class WeightKAction(Action):
 
     def clear_cache(self):
         r"""
-
+        Clears the cached matrices which define the action of Up
+        (these depend on the desired precision) and the
+        dictionary that stores the maximum precisions computed so far.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(4,5,4)
+            sage: D([1,2,5,3]) * D._act.actor()(Matrix(ZZ,2,2,[1,1,0,1]))
+            (1 + O(5^4), 3 + O(5^3), 2*5 + O(5^2), 4*5 + O(5))
+            sage: D._act.clear_cache()
         """
         self._actmat = {}
         self._maxprecs = {}
 
     cpdef acting_matrix(self, g, M):
         r"""
-
+        The matrix defining the action of ``g`` at precision ``M``.
 
         INPUT:
 
@@ -1601,7 +1694,11 @@ cdef class WeightKAction(Action):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Symk(3)
+            sage: v = D([5,2,7,1])
+            sage: g = Matrix(ZZ,2,2,[1,3,0,1])
+            sage: v * D._act.actor()(g) # indirect doctest
+            (5, 17, 64, 253)
         """
         g = g.matrix()
         if not g in self._maxprecs:
@@ -1632,7 +1729,7 @@ cdef class WeightKAction(Action):
 
     cpdef _compute_acting_matrix(self, g, M):
         r"""
-
+        Computes the matrix defining the action of ``g`` at precision ``M``.
 
         INPUT:
 
@@ -1644,16 +1741,16 @@ cdef class WeightKAction(Action):
 
         OUTPUT:
 
-        -
+        - ``G`` -- an `M \times M` matrix. If v is the vector of moments of a
+        distribution mu, then v*G is the vector of moments of mu|[a,b;c,d]
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-        """
-        """
-        Forms a large M x M matrix say G such that if v is the vector of
-        moments of a distribution mu, then v*G is the vector of moments of
-        mu|[a,b;c,d]
+            sage: D = Symk(3)
+            sage: v = D([5,2,7,1])
+            sage: g = Matrix(ZZ,2,2,[-2,1,-1,0])
+            sage: v * D._act.actor()(g) # indirect doctest
+            (-107, 35, -12, 5)
         """
         raise NotImplementedError
 
@@ -1661,6 +1758,7 @@ cdef class WeightKAction(Action):
 cdef class WeightKAction_vector(WeightKAction):
     cpdef _compute_acting_matrix(self, g, M):
         r"""
+        Computes the matrix defining the action of ``g`` at precision ``M``.
 
         INPUT:
 
@@ -1672,11 +1770,16 @@ cdef class WeightKAction_vector(WeightKAction):
 
         OUTPUT:
 
-        -
+        - ``G`` -- an `M \times M` matrix. If v is the vector of moments of a
+        distribution mu, then v*G is the vector of moments of mu|[a,b;c,d]
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Symk(3)
+            sage: v = D([5,2,7,1])
+            sage: g = Matrix(ZZ,2,2,[-2,1,-1,0])
+            sage: v * D._act.actor()(g) # indirect doctest
+            (-107, 35, -12, 5)
         """
         #tim = verbose("Starting")
         a, b, c, d = self._adjuster(g)
@@ -1717,7 +1820,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
     cpdef _call_(self, _v, g):
         r"""
-
+        The right action of ``g`` on a distribution.
 
         INPUT:
 
@@ -1729,11 +1832,16 @@ cdef class WeightKAction_vector(WeightKAction):
 
         OUTPUT:
 
-        -
+        - the distribution ``_v * g``.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = sage.modular.pollack_stevens.distributions.Symk(2)
+            sage: v = D([2,3,4])
+            sage: g = Matrix(ZZ,2,2,[3,-1,1,0])
+            sage: v * D._act.actor()(g) # indirect doctest
+            (40, -9, 2)
+
         """
         # if g is a matrix it needs to be immutable
         # hashing on arithmetic_subgroup_elements is by str

@@ -742,7 +742,7 @@ class PSModularSymbolSpace(Module):
 
         Id = manin.gens()[0]
         if not self.coefficient_module().is_symk():
-            mu = t.solve_diff_eqn()
+            mu = t.solve_difference_equation()
             D[Id] = -mu
         else:
             if self.coefficient_module()._k == 0:

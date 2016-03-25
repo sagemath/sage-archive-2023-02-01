@@ -483,7 +483,7 @@ class Distributions_abstract(Module):
                              "modules")
         return self.base_ring() ** M
 
-    def random_element(self, M=None):
+    def random_element(self, M=None, **args):
         """
         Return a random element of the M-th approximation module with
         non-negative valuation.
@@ -513,8 +513,8 @@ class Distributions_abstract(Module):
         """
         if M is None:
             M = self.precision_cap()
-        R = self.base_ring().integer_ring()
-        return self((R ** M).random_element())
+        R = self.base_ring()
+        return self((R ** M).random_element(**args))
 ##        return self(self.approx_module(M).random_element())
 
     def clear_cache(self):

@@ -308,27 +308,13 @@ class ManinMap(object):
         """
         L = self._manin.relations(B)
         # could raise KeyError if B is not a generator
-        if len(L) == 0:
-            t = self._codomain(0)
-        else:
-            c, A, g = L[0]
+        t = self._codomain(0)        
+        for c, A, g in L:
             try:
-                mrep = self._manin.reps(g)
-                val = self._dict[mrep]
-                try:
-                    g1 = self._codomain(fast_dist_act(val), A)
-                except TypeError:
-                    g1 = val * A
-
-            except ValueError:
-                print "%s is not in Sigma0" % A
-            t = g1 * c
-            for c, A, g in L[1:]:
-                try:
-                    g1 = self._codomain(fast_dist_act(self._dict[self._manin.reps(g)], A))
-                except TypeError:
-                    g1 = self._dict[self._manin.reps(g)] * A
-                t += g1 * c
+                g1 = self._codomain(fast_dist_act(self._dict[self._manin.reps(g)], A))
+            except TypeError:
+                g1 = self._dict[self._manin.reps(g)] * A
+            t += g1 * c
         return t.normalize()
 
     def __getitem__(self, B):
@@ -361,13 +347,13 @@ class ManinMap(object):
             sage: D = Distributions(2, 37, 40)
             sage: f = ManinMap(D, MR, data)
             sage: f.__getitem__(MR.gens()[1])
-            1 + O(37^40)
+            1 + O(37)
             sage: f.__getitem__(MR.gens()[3])
             O(37^40)
             sage: f.__getitem__(MR.gens()[5])
-            36 + 36*37 + 36*37^2 + 36*37^3 + 36*37^4 + 36*37^5 + 36*37^6 + 36*37^7 + 36*37^8 + 36*37^9 + 36*37^10 + 36*37^11 + 36*37^12 + 36*37^13 + 36*37^14 + 36*37^15 + 36*37^16 + 36*37^17 + 36*37^18 + 36*37^19 + 36*37^20 + 36*37^21 + 36*37^22 + 36*37^23 + 36*37^24 + 36*37^25 + 36*37^26 + 36*37^27 + 36*37^28 + 36*37^29 + 36*37^30 + 36*37^31 + 36*37^32 + 36*37^33 + 36*37^34 + 36*37^35 + 36*37^36 + 36*37^37 + 36*37^38 + 36*37^39 + O(37^40)
+            36 + O(37)
             sage: f[MR.gens()[5]]
-            36 + 36*37 + 36*37^2 + 36*37^3 + 36*37^4 + 36*37^5 + 36*37^6 + 36*37^7 + 36*37^8 + 36*37^9 + 36*37^10 + 36*37^11 + 36*37^12 + 36*37^13 + 36*37^14 + 36*37^15 + 36*37^16 + 36*37^17 + 36*37^18 + 36*37^19 + 36*37^20 + 36*37^21 + 36*37^22 + 36*37^23 + 36*37^24 + 36*37^25 + 36*37^26 + 36*37^27 + 36*37^28 + 36*37^29 + 36*37^30 + 36*37^31 + 36*37^32 + 36*37^33 + 36*37^34 + 36*37^35 + 36*37^36 + 36*37^37 + 36*37^38 + 36*37^39 + O(37^40)
+            36 + O(37)
 
         """
         try:
@@ -566,7 +552,7 @@ class ManinMap(object):
         SN = Sigma0(self._manin._N)
         A = M2Z(A)
         B = self._manin.equivalent_rep(A)
-        gaminv = SN(B * M2Z(A).inverse())
+        gaminv = SN(B * M2Z(A).adjoint())
         return (self[B] * gaminv).normalize()
 
     def __call__(self, A):

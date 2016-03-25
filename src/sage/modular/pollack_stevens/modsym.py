@@ -49,8 +49,6 @@ def _iterate_Up(Phi, p, M, new_base_ring, ap, eisenloss,
 
     - ``aq`` -- Hecke eigenvalue at `q`
 
-    - ``check`` --
-
     OUTPUT:
 
     - Hecke-eigenvalue OMS lifting self.
@@ -88,7 +86,7 @@ def _iterate_Up(Phi, p, M, new_base_ring, ap, eisenloss,
     ## Iterating U_p
     verbose("Iterating U_p", level = 2)
     Psi = apinv * Phi.hecke(p)
-    
+
     attempts = 0
     while attempts < M:
         verbose("%s attempt (val = %s/%s)" % (attempts + 1,(Phi-Psi).valuation(),M), level = 2)
@@ -1140,17 +1138,17 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             True
 
        Examples using Greenberg's algorithm::
-       
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+
+           sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('11a')
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: Phi = phi.lift(11,8,algorithm='greenberg',eigensymbol=True)
             sage: Phi2 = phi.lift(11,8,algorithm='stevens',eigensymbol=True)
             sage: Phi == Phi2
             True
-    
+
         An example in higher weight::
-    
+
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: f = ps_modsym_from_simple_modsym_space(Newforms(7, 4)[0].modular_symbols(1))
             sage: fs = f.p_stabilize(5)
@@ -1194,15 +1192,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                                 " for eigensymbols. Try 'stevens'")
         elif algorithm != 'stevens':
             raise ValueError("algorithm %s not recognized" % algorithm)
-
         if eigensymbol:
             # We need some extra precision due to the fact that solving
             # the difference equation can give denominators.
             if alpha is None:
                 verbose('Finding alpha with M = %s' % M, level = 2)
                 alpha = self.Tq_eigenvalue(p, M=M + 1, check=check)
-            newM, eisenloss, q, aq = self._find_extraprec(p, M + 1, alpha,
-                                                          check)
+            newM, eisenloss, q, aq = self._find_extraprec(p, M + 1, alpha, check)
             Phi = self._lift_to_OMS(p, newM, new_base_ring, check, algorithm)
             Phi = _iterate_Up(Phi, p, newM, new_base_ring, alpha,
                                            eisenloss, q, aq, check)
@@ -1287,12 +1283,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             ## (Here I'm using the opposite sign convention of [PS1]
             ## regarding D'_i and D''_i)
 
-            D[manin.gen(0)] = -t.solve_diff_eqn()  # Check this!
+            D[manin.gen(0)] = -t.solve_difference_equation()  # Check this!
         else:
             raise NotImplementedError
 
         return MSS(D)
-    
+
     def _find_aq(self, p, M, check):
         r"""
         Helper function for finding Hecke eigenvalue `aq` for a prime `q`
@@ -1482,7 +1478,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         """
         return min([len(a._moments) for a in self._map])
 
-    
+
     def specialize(self, new_base_ring=None):
         r"""
         Returns the underlying classical symbol of weight `k` -- i.e.,
@@ -1492,14 +1488,15 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         EXAMPLES::
 
             sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(5), coefficients=D); M
-            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(5) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 10
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(5) with sign 0
+            and values in Space of 5-adic distributions with k=0 action and precision cap 10
             sage: f = M(1)
             sage: f.specialize()
             Modular symbol of level 5 with values in Sym^0 Z_5^2
             sage: f.specialize().values()
-            [1 + O(5^10), 1 + O(5^10), 1 + O(5^10)]
+            [1 + O(5), 1 + O(5), 1 + O(5)]
             sage: f.values()
-            [1 + O(5^10), 1 + O(5^10), 1 + O(5^10)]
+            [1 + O(5), 1 + O(5), 1 + O(5)]
             sage: f.specialize().parent()
             Space of modular symbols for Congruence Subgroup Gamma0(5) with sign 0 and values in Sym^0 Z_5^2
             sage: f.specialize().parent().coefficient_module()
@@ -1515,11 +1512,11 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
                               self.parent()._specialize_parent_space(new_base_ring), construct=True)
 
     def padic_lseries(self,*args, **kwds):
-        r"""
+        """
         Return the p-adic L-series of this modular symbol.
-    
+
         EXAMPLE::
-    
+
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('37a')
             sage: L = ps_modsym_from_elliptic_curve(E).lift(37, M=6, eigensymbol=True).padic_lseries()

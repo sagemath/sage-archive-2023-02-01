@@ -24,6 +24,7 @@ from sage.rings.all import ZZ
 from copy import deepcopy
 from sage.graphs.bipartite_graph import BipartiteGraph
 
+
 class MatchingGame(SageObject):
     r"""
     A matching game.
@@ -397,8 +398,8 @@ class MatchingGame(SageObject):
             sage: M
             A matching game with 2 suitors and 2 reviewers
         """
-        return 'A matching game with {} suitors and {} reviewers'.format(
-                    len(self._suitors), len(self._reviewers))
+        txt = 'A matching game with {} suitors and {} reviewers'
+        return txt.format(len(self._suitors), len(self._reviewers))
 
     def _latex_(self):
         r"""
@@ -424,10 +425,10 @@ class MatchingGame(SageObject):
         """
         output = "\\text{Suitors:}\n\\begin{aligned}"
         for suitor in self._suitors:
-            output += "\n\\\\ %s & \\to %s"%(suitor, suitor.pref)
+            output += "\n\\\\ %s & \\to %s" % (suitor, suitor.pref)
         output += "\n\\end{aligned}\n\\text{Reviewers:}\n\\begin{aligned}"
         for reviewer in self._reviewers:
-            output += "\n\\\\ %s & \\to %s"%(reviewer, reviewer.pref)
+            output += "\n\\\\ %s & \\to %s" % (reviewer, reviewer.pref)
         return output + "\n\\end{aligned}"
 
     def __eq__(self, other):
@@ -493,9 +494,9 @@ class MatchingGame(SageObject):
                 and set(self._suitors) == set(other._suitors)
                 and set(self._reviewers) == set(other._reviewers)
                 and all(r1.pref == r2.pref for r1, r2 in
-                    zip(set(self._reviewers), set(other._reviewers)))
+                        zip(set(self._reviewers), set(other._reviewers)))
                 and all(s1.pref == s2.pref for s1, s2 in
-                    zip(set(self._suitors), set(other._suitors))))
+                        zip(set(self._suitors), set(other._suitors))))
 
     def __hash__(self):
         """
@@ -950,8 +951,8 @@ class MatchingGame(SageObject):
             self._sol_dict[r] = [r.partner]
 
         if invert:
-            return {key:self._sol_dict[key][0] for key in self._reviewers}
-        return {key:self._sol_dict[key][0] for key in self._suitors}
+            return {key: self._sol_dict[key][0] for key in self._reviewers}
+        return {key: self._sol_dict[key][0] for key in self._suitors}
 
 
 class Player(object):

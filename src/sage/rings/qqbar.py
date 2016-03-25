@@ -793,6 +793,8 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             True
             sage: a + AA(3)
             5.645751311064590?
+            sage: AA.has_coerce_map_from(SR)
+            False
         """
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
             return True
@@ -1188,6 +1190,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar.has_coerce_map_from(AA)
             True
             sage: QQbar.has_coerce_map_from(CC)
+            False
+            sage: QQbar.has_coerce_map_from(SR)
             False
         """
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:

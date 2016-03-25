@@ -134,6 +134,11 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: SR.has_coerce_map_from(SR.subring(no_variables=True))
             True
+
+            sage: SR.has_coerce_map_from(AA)
+            True
+            sage: SR.has_coerce_map_from(QQbar)
+            True
         """
         if isinstance(R, type):
             if R in [int, float, long, complex, bool]:

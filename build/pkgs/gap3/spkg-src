@@ -45,9 +45,7 @@ rm -f $TARSOURCE
 mv $DOWNLOADVERSION $PACKAGENAME
 cd $PACKAGENAME
 # I used the following to find all binaries
-# grep -r -m 1 "^"  . | grep "^Binary file" | xargs rm
-rm -f ./bin/gap.x86linux64
-rm -f ./src/*.o
+grep -r -m 1 "^"  . | grep "^Binary file" | xargs rm -f
 cd ..
 
 tar -cvzf $TARTARGET $PACKAGENAME

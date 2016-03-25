@@ -306,7 +306,7 @@ class Posets(object):
         EXAMPLES::
 
             sage: P = Posets.DivisorLattice(12)
-            sage: P.cover_relations()
+            sage: sorted(P.cover_relations())
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
 
             sage: P = Posets.DivisorLattice(10, facade=False)

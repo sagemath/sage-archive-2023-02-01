@@ -2284,7 +2284,7 @@ class pAdicExtension_class(UniqueFactory):
                 shift_seed = -preseed.polynomial(base)
             else: # a polynomial
                 if not premodulus.is_monic():
-                    preseed = preseed / premodulus.leading_coefficient()
+                    preseed = premodulus / premodulus.leading_coefficient()
                 else:
                     preseed = premodulus
                 preseed = preseed[:preseed.degree()]

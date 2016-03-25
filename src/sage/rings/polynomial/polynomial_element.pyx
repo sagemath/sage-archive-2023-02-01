@@ -6662,7 +6662,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def count_roots_in_interval(self, *args):
         """
-        Return the number of roots of this polynomial in an interval 
+        Return the number of roots of this polynomial in the interval 
         [a,b], counted without multiplicity. The interval can be specified
         either as two endpoints or as a list/tuple; it can also be omitted,
         in which case roots are counted in the whole real line. In addition, 
@@ -6671,13 +6671,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Calls the PARI routine polsturm. Note that as of version 2.8, PARI
         includes the left endpoint of the interval (and no longer uses
-        Sturm's algorithm on exact inputs).
-
-        The coefficients of `self` must convert into either RR or CC.
-        In the former case, the conversion is left to PARI, so exact
-        coefficients (such as ZZ or QQ) remain exact and the computation
-        is performed exactly. In the latter case, the coefficients are
-        immediately converted into CC.
+        Sturm's algorithm on exact inputs). polsturm requires a polynomial
+        with real coefficients; in case PARI returns an error, we try again
+        after taking the GCD of `self` with its complex conjugate.
         
         EXAMPLES::
 
@@ -6732,12 +6728,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if b is None:
             b = infinity.infinity
         try:
-            pol.change_ring(RR)
             return(pari(pol).polsturm([a,b]))
-       except TypeError:
-            pol2 = pol.change_ring(CC)
-            pol2 = pol2.gcd(pol2.map_coefficients(lambda z: z.conjugate()))
-            pol2 //= pol2.leading_coefficient()
+        except PariError:
+            # Take GCD with the conjugate, to extract the maximum factor
+            # with real coefficients.
+            pol2 = pol.gcd(pol.map_coefficients(lambda z: z.conjugate()))
             return(pari(pol2).polsturm([a,b]))
 
     def all_roots_in_interval(self, *args):

@@ -602,7 +602,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLE::
 
-            sage: SymmetricGroup(17)._element_class()
+            sage: AlternatingGroup(17)._element_class()
             <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
         """
         return PermutationGroupElement

@@ -124,7 +124,6 @@ Classes and Methods
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 
 import operator
 
@@ -519,7 +518,7 @@ class ComplexBallField(UniqueRepresentation, Field):
                 return self.element_class(self, x)
             except TypeError:
                 pass
-            raise TypeError("unable to convert {} to a ComplexBall".format(x))
+            raise TypeError("unable to convert {!r} to a ComplexBall".format(x))
         else:
             x = self._base(x)
             y = self._base(y)

@@ -128,7 +128,7 @@ class PariFunctionGenerator(object):
                         tech = objtogen(tech)
                         _tech = (<gen>tech).g
                     precision = prec_bits_to_words(precision)
-                    pari_catch_sig_on()
+                    sig_on()
                     cdef GEN _ret = bnfinit0(_P, flag, _tech, precision)
                     return pari_instance.new_gen(_ret)
             <BLANKLINE>
@@ -146,7 +146,7 @@ class PariFunctionGenerator(object):
                     cdef long _y = -1
                     if y is not None:
                         _y = pari_instance.get_var(y)
-                    pari_catch_sig_on()
+                    sig_on()
                     cdef GEN _ret = ellmodulareqn(N, _x, _y)
                     return pari_instance.new_gen(_ret)
             <BLANKLINE>
@@ -164,7 +164,7 @@ class PariFunctionGenerator(object):
                     :literal:`setrand(1)` twice will generate the exact same output.
                     ...
                     cdef GEN _n = n.g
-                    pari_catch_sig_on()
+                    sig_on()
                     setrand(_n)
                     pari_instance.clear_stack()
             <BLANKLINE>
@@ -218,7 +218,7 @@ class PariFunctionGenerator(object):
         s += '        r"""\n        {doc}\n        """\n'
         for a in args:
             s += a.convert_code()
-        s += "        pari_catch_sig_on()\n"
+        s += "        sig_on()\n"
         s += ret.assign_code("{cname}({callargs})")
         s += ret.return_code()
 

@@ -19,11 +19,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -368,7 +367,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         cdef GEN t
         if isinstance(e, gen):
-            pari_catch_sig_on()
+            sig_on()
             t = (<gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
@@ -377,7 +376,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             if typ(t) == t_INT:
                 GF2E_conv_long(res.x, itos(t))
-                pari_catch_sig_off()
+                sig_off()
             elif typ(t) == t_POL:
                 g = self._gen
                 x = self._new()
@@ -387,7 +386,7 @@ cdef class Cache_ntl_gf2e(SageObject):
                     if gtolong(gel(t, i+2)):
                         GF2E_add(res.x, res.x, x.x)
                     GF2E_mul(x.x, x.x, g.x)
-                pari_catch_sig_off()
+                sig_off()
             else:
                 raise TypeError("bad PARI type %r" % e.type())
 
@@ -414,7 +413,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         TESTS:
 
-        We test that #17027 is fixed::
+        We test that :trac:`17027` is fixed::
 
             sage: K.<a> = GF(2^16)
             sage: K._cache.fetch_int(0r)
@@ -442,13 +441,13 @@ cdef class Cache_ntl_gf2e(SageObject):
         else:
             raise TypeError, "number %s is not an integer"%number
 
-        p = <unsigned char*>sage_malloc(n)
+        p = <unsigned char*>sig_malloc(n)
         for i from 0 <= i < n:
             p[i] = (number%256)
             number = number >> 8
         GF2XFromBytes(_a, p, n)
         GF2E_conv_GF2X(a.x, _a)
-        sage_free(p)
+        sig_free(p)
         return a
 
     def polynomial(self):

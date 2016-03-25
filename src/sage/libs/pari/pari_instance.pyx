@@ -173,7 +173,6 @@ Sage (:trac:`9636`)::
 
 from .paridecl cimport *
 from .paripriv cimport *
-include 'pari_err.pxi'
 include "cysignals/signals.pxi"
 cdef extern from *:
     int sig_on_count "cysigs.sig_on_count"
@@ -184,7 +183,7 @@ cimport libc.stdlib
 from libc.stdio cimport *
 cimport cython
 
-from sage.ext.memory cimport sage_malloc, sage_free
+include "cysignals/memory.pxi"
 from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
 from sage.libs.gmp.all cimport *
@@ -193,11 +192,7 @@ from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport _pari_init_error_handling
-from sage.misc.superseded import deprecated_function_alias
-
-# so Galois groups are represented in a sane way
-# See the polgalois section of the PARI users manual.
-new_galois_format = 1
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
 # real precision in decimal digits: see documentation for
 # get_real_precision() and set_real_precision().  This variable is used
@@ -373,11 +368,11 @@ pari_instance = PariInstance()
 P = pari_instance   # shorthand notation
 
 # PariInstance.__init__ must not create gen objects because their parent is not constructed yet
-pari_catch_sig_on()
+sig_on()
 pari_instance.PARI_ZERO = pari_instance.new_gen_noclear(gen_0)
 pari_instance.PARI_ONE  = pari_instance.new_gen_noclear(gen_1)
 pari_instance.PARI_TWO  = pari_instance.new_gen_noclear(gen_2)
-pari_catch_sig_off()
+sig_off()
 
 # Also a copy of PARI accessible from external pure python code.
 pari = pari_instance
@@ -503,6 +498,16 @@ cdef class PariInstance(PariInstance_auto):
         # (which is want we want for the PARI library interface).
         GP_DATA.flags = gpd_TEST
 
+        # Ensure that Galois groups are represented in a sane way,
+        # see the polgalois section of the PARI users manual.
+        global new_galois_format
+        new_galois_format = 1
+
+        # By default, factor() should prove primality of returned
+        # factors. This not only influences the factor() function, but
+        # also many functions indirectly using factoring.
+        global factor_proven
+        factor_proven = 1
 
     def debugstack(self):
         r"""
@@ -620,9 +625,9 @@ cdef class PariInstance(PariInstance_auto):
         """
         prev = self._real_precision
         cdef bytes strn = str(n)
-        pari_catch_sig_on()
+        sig_on()
         sd_realprecision(strn, d_SILENT)
-        pari_catch_sig_off()
+        sig_off()
         self._real_precision = n
         return prev
 
@@ -653,15 +658,13 @@ cdef class PariInstance(PariInstance_auto):
 
     cdef inline void clear_stack(self):
         """
-        Call ``pari_catch_sig_off()``, and clear the entire PARI stack
-        if we are leaving the outermost ``pari_catch_sig_on() ...
-        pari_catch_sig_off()`` block.
-
+        Call ``sig_off()``. If we are leaving the outermost
+        ``sig_on() ... sig_off()`` block, then clear the PARI stack.
         """
         global avma
         if sig_on_count <= 1:
             avma = pari_mainstack.top
-        pari_catch_sig_off()
+        sig_off()
 
     cdef inline gen new_gen(self, GEN x):
         """
@@ -674,7 +677,7 @@ cdef class PariInstance(PariInstance_auto):
     cdef inline gen new_gen_noclear(self, GEN x):
         """
         Create a new gen, but don't free any memory on the stack and don't
-        call pari_catch_sig_off().
+        call sig_off().
         """
         cdef pari_sp address
         cdef gen y = gen.__new__(gen)
@@ -705,7 +708,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: a5.__hash__() == b5.__hash__()
             True
         """
-        pari_catch_sig_on()
+        sig_on()
         return self.new_gen(self._new_GEN_from_mpz_t(value))
 
     cdef inline GEN _new_GEN_from_mpz_t(self, mpz_t value):
@@ -713,7 +716,7 @@ cdef class PariInstance(PariInstance_auto):
         Create a new PARI ``t_INT`` from a ``mpz_t``.
 
         For internal use only; this directly uses the PARI stack.
-        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
         """
         cdef unsigned long limbs = mpz_size(value)
 
@@ -729,7 +732,7 @@ cdef class PariInstance(PariInstance_auto):
         Create a new PARI ``t_INT`` from a ``fmpz_t``.
 
         For internal use only; this directly uses the PARI stack.
-        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
         """
         if COEFF_IS_MPZ(value[0]):
             return self._new_GEN_from_mpz_t(COEFF_TO_PTR(value[0]))
@@ -737,7 +740,7 @@ cdef class PariInstance(PariInstance_auto):
             return stoi(value[0])
 
     cdef gen new_gen_from_int(self, int value):
-        pari_catch_sig_on()
+        sig_on()
         return self.new_gen(stoi(value))
 
     cdef gen new_gen_from_mpq_t(self, mpq_t value):
@@ -767,7 +770,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: a5.__hash__() == b5.__hash__()
             True
         """
-        pari_catch_sig_on()
+        sig_on()
         return self.new_gen(self._new_GEN_from_mpq_t(value))
 
     cdef inline GEN _new_GEN_from_mpq_t(self, mpq_t value):
@@ -775,7 +778,7 @@ cdef class PariInstance(PariInstance_auto):
         Create a new PARI ``t_INT`` or ``t_FRAC`` from a ``mpq_t``.
 
         For internal use only; this directly uses the PARI stack.
-        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
         """
         cdef GEN num = self._new_GEN_from_mpz_t(mpq_numref(value))
         if mpz_cmpabs_ui(mpq_denref(value), 1) == 0:
@@ -793,7 +796,7 @@ cdef class PariInstance(PariInstance_auto):
         cdef GEN z
         cdef int i
 
-        pari_catch_sig_on()
+        sig_on()
         z = cgetg(length + 2, t_POL)
         z[1] = evalvarn(varnum)
         if length != 0:
@@ -809,7 +812,7 @@ cdef class PariInstance(PariInstance_auto):
     cdef gen new_gen_from_padic(self, long ordp, long relprec,
                                 mpz_t prime, mpz_t p_pow, mpz_t unit):
         cdef GEN z
-        pari_catch_sig_on()
+        sig_on()
         z = cgetg(5, t_PADIC)
         z[1] = evalprecp(relprec) + evalvalp(ordp)
         set_gel(z, 2, self._new_GEN_from_mpz_t(prime))
@@ -852,7 +855,7 @@ cdef class PariInstance(PariInstance_auto):
         # of precision (that's the number of mantissa bits in an IEEE
         # double).
 
-        pari_catch_sig_on()
+        sig_on()
         if x == 0:
             return self.new_gen(real_0_bit(-53))
         else:
@@ -870,12 +873,12 @@ cdef class PariInstance(PariInstance_auto):
         """
         cdef gen t0 = self(re)
         cdef gen t1 = self(im)
-        pari_catch_sig_on()
+        sig_on()
         return self.new_gen(mkcomplex(t0.g, t1.g))
 
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):
         cdef size_t s = <size_t> gsizebyte(x)
-        cdef pari_sp tmp_bot = <pari_sp> sage_malloc(s)
+        cdef pari_sp tmp_bot = <pari_sp> sig_malloc(s)
         cdef pari_sp tmp_top = tmp_bot + s
         address[0] = tmp_bot
         return gcopy_avma(x, &tmp_top)
@@ -943,7 +946,7 @@ cdef class PariInstance(PariInstance_auto):
         from a ``mpz_t**``.
 
         For internal use only; this directly uses the PARI stack.
-        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
         """
         cdef GEN x
         cdef GEN A = zeromatcopy(nr, nc)
@@ -963,7 +966,7 @@ cdef class PariInstance(PariInstance_auto):
         Normal Form because Sage and PARI use different definitions.
 
         For internal use only; this directly uses the PARI stack.
-        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
         """
         cdef GEN x
         cdef GEN A = zeromatcopy(nc, nr)
@@ -981,7 +984,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
             [1, 2, 3; 4, 5, 6]
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN g
         if permute_for_hnf:
             g = self._new_GEN_from_fmpz_mat_t_rotate90(B, nr, nc)
@@ -1007,7 +1010,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
             [1, 2, 3; 4, 5, 6]
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN g = self._new_GEN_from_mpq_t_matrix(B, nr, nc)
         return self.new_gen(g)
 
@@ -1107,9 +1110,9 @@ cdef class PariInstance(PariInstance_auto):
             return -1
         cdef long varno
         if isinstance(v, gen):
-            pari_catch_sig_on()
+            sig_on()
             varno = gvar((<gen>v).g)
-            pari_catch_sig_off()
+            sig_off()
             if varno < 0:
                 return -1
             else:
@@ -1263,9 +1266,9 @@ cdef class PariInstance(PariInstance_auto):
                 sizemax = s
         elif sizemax < s:
             raise ValueError("the maximum size ({}) should be at least the stack size ({})".format(s, sizemax))
-        pari_catch_sig_on()
+        sig_on()
         paristack_setsize(s, sizemax)
-        pari_catch_sig_off()
+        sig_off()
         if not silent:
             print("PARI stack size set to {} bytes, maximum size set to {}".
                 format(self.stacksize(), self.stacksizemax()))
@@ -1295,187 +1298,95 @@ cdef class PariInstance(PariInstance_auto):
 
         if M <= maxprime():
             return
-        pari_catch_sig_on()
+        sig_on()
         initprimetable(M)
-        pari_catch_sig_off()
+        sig_off()
 
-    ##############################################
-    ## Support for GP Scripts
-    ##############################################
-
-    def read(self, bytes filename):
-        r"""
-        Read a script from the named filename into the interpreter.  The
-        functions defined in the script are then available for use from
-        Sage/PARI.  The result of the last command in ``filename`` is
-        returned.
-
-        EXAMPLES:
-
-        Create a gp file::
-
-            sage: import tempfile
-            sage: gpfile = tempfile.NamedTemporaryFile(mode="w")
-            sage: gpfile.file.write("mysquare(n) = {\n")
-            sage: gpfile.file.write("    n^2;\n")
-            sage: gpfile.file.write("}\n")
-            sage: gpfile.file.write("polcyclo(5)\n")
-            sage: gpfile.file.flush()
-
-        Read it in Sage, we get the result of the last line::
-
-            sage: pari.read(gpfile.name)
-            x^4 + x^3 + x^2 + x + 1
-
-        Call the function defined in the gp file::
-
-            sage: pari('mysquare(12)')
-            144
+    def primes(self, n=None, end=None):
         """
-        pari_catch_sig_on()
-        return self.new_gen(gp_read_file(filename))
-
-
-    ##############################################
-
-    def _primelimit(self):
-        """
-        Return the number of primes already computed by PARI.
-
-        EXAMPLES::
-
-            sage: pari._primelimit()
-            499979
-            sage: pari.init_primes(600000)
-            sage: pari._primelimit()
-            599999
-        """
-        from sage.rings.all import ZZ
-        return ZZ(maxprime())
-
-    def prime_list(self, long n):
-        """
-        prime_list(n): returns list of the first n primes
-
-        To extend the table of primes use pari.init_primes(M).
+        Return a pari vector containing the first `n` primes, the primes
+        in the interval `[n, end]`, or the primes up to `end`.
 
         INPUT:
 
+        Either
 
-        -  ``n`` - C long
+        - ``n`` -- integer
 
+        or
 
-        OUTPUT:
+        - ``n`` -- list or tuple `[a, b]` defining an interval of primes
 
+        or
 
-        -  ``gen`` - PARI list of first n primes
+        - ``n, end`` -- start and end point of an interval of primes
 
+        or
+
+        - ``end`` -- end point for the list of primes
+
+        OUTPUT: a PARI list of prime numbers
 
         EXAMPLES::
 
-            sage: pari.prime_list(0)
-            []
-            sage: pari.prime_list(-1)
-            []
-            sage: pari.prime_list(3)
+            sage: pari.primes(3)
             [2, 3, 5]
-            sage: pari.prime_list(10)
+            sage: pari.primes(10)
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: pari.prime_list(20)
+            sage: pari.primes(20)
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71]
-            sage: len(pari.prime_list(1000))
+            sage: len(pari.primes(1000))
             1000
-        """
-        if n >= 2:
-            self.nth_prime(n)
-        pari_catch_sig_on()
-        return self.new_gen(primes(n))
+            sage: pari.primes(11,29)
+            [11, 13, 17, 19, 23, 29]
+            sage: pari.primes((11,29))
+            [11, 13, 17, 19, 23, 29]
+            sage: pari.primes(end=29)
+            [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+            sage: pari.primes(10^30, 10^30 + 100)
+            [1000000000000000000000000000057, 1000000000000000000000000000099]
 
-    def primes_up_to_n(self, long n):
-        """
-        Return the primes <= n as a pari list.
+        TESTS::
 
-        EXAMPLES::
-
-            sage: pari.primes_up_to_n(1)
+            sage: pari.primes(0)
             []
-            sage: pari.primes_up_to_n(20)
-            [2, 3, 5, 7, 11, 13, 17, 19]
+            sage: pari.primes(-1)
+            []
+            sage: pari.primes(end=1)
+            []
+            sage: pari.primes(end=-1)
+            []
+            sage: pari.primes(3,2)
+            []
         """
-        if n <= 1:
-            return pari([])
-        self.init_primes(n+1)
-        return self.prime_list(pari(n).primepi())
+        cdef gen t0, t1
+        if end is None:
+            t0 = objtogen(n)
+            sig_on()
+            return self.new_gen(primes0(t0.g))
+        elif n is None:
+            t0 = self.PARI_TWO  # First prime
+        else:
+            t0 = objtogen(n)
+        t1 = objtogen(end)
+        sig_on()
+        return self.new_gen(primes_interval(t0.g, t1.g))
 
-    def __nth_prime(self, long n):
+    def primes_up_to_n(self, n):
+        deprecation(20216, "pari.primes_up_to_n(n) is deprecated, use pari.primes(end=n) instead")
+        return self.primes(end=n)
+
+    prime_list = deprecated_function_alias(20216, primes)
+
+    nth_prime = deprecated_function_alias(20216, PariInstance_auto.prime)
+
+    euler = PariInstance_auto.Euler
+    pi = PariInstance_auto.Pi
+
+    def polchebyshev(self, long n, v=None):
         """
-        nth_prime(n): returns the n-th prime, where n is a C-int
-        """
-        if n <= 0:
-            raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
-        cdef GEN g
-        pari_catch_sig_on()
-        g = prime(n)
-        return self.new_gen(g)
-
-    def nth_prime(self, long n):
-        from sage.libs.pari.all import PariError
-        try:
-            return self.__nth_prime(n)
-        except PariError:
-            self.init_primes(max(2*maxprime(), 20*n))
-            return self.nth_prime(n)
-
-    def euler(self, unsigned long precision=0):
-        """
-        Return Euler's constant to the requested real precision (in bits).
-
-        EXAMPLES::
-
-            sage: pari.euler()
-            0.577215664901533
-            sage: pari.euler(precision=100).python()
-            0.577215664901532860606512090082...
-        """
-        pari_catch_sig_on()
-        return self.new_gen(mpeuler(prec_bits_to_words(precision)))
-
-    def pi(self, unsigned long precision=0):
-        """
-        Return the value of the constant pi to the requested real precision
-        (in bits).
-
-        EXAMPLES::
-
-            sage: pari.pi()
-            3.14159265358979
-            sage: pari.pi(precision=100).python()
-            3.1415926535897932384626433832...
-        """
-        pari_catch_sig_on()
-        return self.new_gen(mppi(prec_bits_to_words(precision)))
-
-    def pollegendre(self, long n, v=-1):
-        """
-        pollegendre(n, v=x): Legendre polynomial of degree n (n C-integer),
-        in variable v.
-
-        EXAMPLES::
-
-            sage: pari.pollegendre(7)
-            429/16*x^7 - 693/16*x^5 + 315/16*x^3 - 35/16*x
-            sage: pari.pollegendre(7, 'z')
-            429/16*z^7 - 693/16*z^5 + 315/16*z^3 - 35/16*z
-            sage: pari.pollegendre(0)
-            1
-        """
-        pari_catch_sig_on()
-        return self.new_gen(pollegendre(n, self.get_var(v)))
-
-    def polchebyshev(self, long n, v=-1):
-        """
-        polchebyshev(n, v=x): Chebyshev polynomial of the first kind of degree
-        n, in variable v.
+        Chebyshev polynomial of the first kind of degree `n`,
+        in the variable `v`.
 
         EXAMPLES::
 
@@ -1486,9 +1397,11 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.polchebyshev(0)
             1
         """
-        pari_catch_sig_on()
+        sig_on()
         return self.new_gen(polchebyshev1(n, self.get_var(v)))
 
+    # Deprecated by upstream PARI: do not remove this deprecated alias
+    # as long as it exists in PARI.
     poltchebi = deprecated_function_alias(18203, polchebyshev)
 
     def factorial(self, long n):
@@ -1506,42 +1419,10 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.factorial(25)
             15511210043330985984000000
         """
-        pari_catch_sig_on()
+        sig_on()
         return self.new_gen(mpfact(n))
 
-    def polcyclo(self, long n, v=-1):
-        """
-        polcyclo(n, v=x): cyclotomic polynomial of degree n, in variable
-        v.
-
-        EXAMPLES::
-
-            sage: pari.polcyclo(8)
-            x^4 + 1
-            sage: pari.polcyclo(7, 'z')
-            z^6 + z^5 + z^4 + z^3 + z^2 + z + 1
-            sage: pari.polcyclo(1)
-            x - 1
-        """
-        pari_catch_sig_on()
-        return self.new_gen(polcyclo(n, self.get_var(v)))
-
-    def polcyclo_eval(self, long n, v):
-        """
-        polcyclo_eval(n, v): value of the nth cyclotomic polynomial at value v.
-
-        EXAMPLES::
-
-            sage: pari.polcyclo_eval(8, 2)
-            17
-            sage: cyclotomic_polynomial(8)(2)
-            17
-        """
-        cdef gen t0 = self(v)
-        pari_catch_sig_on()
-        return self.new_gen(polcyclo_eval(n, t0.g))
-
-    def polsubcyclo(self, long n, long d, v=-1):
+    def polsubcyclo(self, long n, long d, v=None):
         """
         polsubcyclo(n, d, v=x): return the pari list of polynomial(s)
         defining the sub-abelian extensions of degree `d` of the
@@ -1560,13 +1441,14 @@ cdef class PariInstance(PariInstance_auto):
             []
         """
         cdef gen plist
-        pari_catch_sig_on()
+        sig_on()
         plist = self.new_gen(polsubcyclo(n, d, self.get_var(v)))
         if typ(plist.g) != t_VEC:
             return pari.vector(1, [plist])
         else:
             return plist
-        #return self.new_gen(polsubcyclo(n, d, self.get_var(v)))
+
+    polcyclo_eval = deprecated_function_alias(20217, PariInstance_auto.polcyclo)
 
     def setrand(self, seed):
         """
@@ -1599,26 +1481,9 @@ cdef class PariInstance(PariInstance_auto):
             PariError: incorrect type in setrand (t_POL)
         """
         cdef gen t0 = self(seed)
-        pari_catch_sig_on()
+        sig_on()
         setrand(t0.g)
-        pari_catch_sig_off()
-
-    def getrand(self):
-        """
-        Returns PARI's current random number seed.
-
-        OUTPUT:
-
-        GEN of type t_VECSMALL
-
-        EXAMPLES::
-
-            sage: a = pari.getrand()
-            sage: a.type()
-            't_INT'
-        """
-        pari_catch_sig_on()
-        return self.new_gen(getrand())
+        sig_off()
 
     def vector(self, long n, entries=None):
         """
@@ -1647,7 +1512,7 @@ cdef class PariInstance(PariInstance_auto):
 
     cdef gen _empty_vector(self, long n):
         cdef gen v
-        pari_catch_sig_on()
+        sig_on()
         v = self.new_gen(zerovec(n))
         return v
 
@@ -1660,7 +1525,7 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen A
         cdef gen x
 
-        pari_catch_sig_on()
+        sig_on()
         A = self.new_gen(zeromatcopy(m,n))
         if entries is not None:
             if len(entries) != m*n:
@@ -1702,7 +1567,7 @@ cdef class PariInstance(PariInstance_auto):
             deprecation(16997, 'The 2-argument version of genus2red() is deprecated, use genus2red(P) or genus2red([P,Q]) instead')
             P = [P0, P]
         cdef gen t0 = objtogen(P)
-        pari_catch_sig_on()
+        sig_on()
         return self.new_gen(genus2red(t0.g, NULL))
 
 

@@ -410,7 +410,7 @@ cdef class CGraph:
         if self.out_degrees[v] > size:
             size = self.out_degrees[v]
         if size > 0:
-            neighbors = <int *> sage_malloc(size * sizeof(int))
+            neighbors = <int *> sig_malloc(size * sizeof(int))
             if not neighbors:
                 raise RuntimeError("Failure allocating memory.")
             # delete each arc incident with v
@@ -420,7 +420,7 @@ cdef class CGraph:
             num_nbrs = self.out_neighbors_unsafe(v, neighbors, size)
             for i in range(num_nbrs):
                 self.del_arc_unsafe(v, neighbors[i])
-            sage_free(neighbors)
+            sig_free(neighbors)
 
         self.num_verts -= 1
         bitset_remove(self.active_vertices, v)
@@ -1911,7 +1911,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         TESTS:
 
-        Ensure that ticket #8395 is fixed. ::
+        Ensure that :trac:`8395` is fixed. ::
 
             sage: G = Graph({1:[1]}); G
             Looped graph on 1 vertex

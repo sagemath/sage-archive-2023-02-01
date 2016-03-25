@@ -6,10 +6,9 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-cd src
 # --force-lib because we dont want sage -t to compile giacpy.pyx
 #             we  only use the test suite to test giacpy.so
-sage -t --verbose --force-lib $SAGE_ROOT/build/pkgs/giacpy/doctests/giacpy.pyx
+sage -t --verbose --force-lib src/giacpy.pyx
 
 if [ $? -ne 0 ]; then
   echo "There was a problem during the giacpy tests."

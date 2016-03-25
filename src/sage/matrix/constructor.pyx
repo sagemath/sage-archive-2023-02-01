@@ -482,6 +482,21 @@ class MatrixFactory(object):
         sage: matrix(numpy.array([[5]]))
         [5]
 
+    A ring and a numpy array::
+
+        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'float32')
+        sage: m = matrix(ZZ, n); m; m.parent()
+        [1 2 3]
+        [4 5 6]
+        [7 8 9]
+        Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+        sage: n = matrix(QQ, 2, 2, [1, 1/2, 1/3, 1/4]).numpy(); n
+        array([[ 1.        ,  0.5       ],
+               [ 0.33333333,  0.25      ]])
+        sage: matrix(QQ, n)
+        [  1 1/2]
+        [1/3 1/4]
+
     The dimensions of a matrix may be given as numpy types::
 
         sage: matrix(numpy.int32(2), ncols=numpy.int32(3))
@@ -730,6 +745,9 @@ class MatrixFactory(object):
                             m = matrix([list(row) for row in list(arg)])
                         else:
                             raise TypeError("cannot convert NumPy matrix to Sage matrix")
+
+                        if ring is not None and m.base_ring() is not ring:
+                            m = m.change_ring(ring)
 
                         return m
                 elif nrows is not None and ncols is not None:

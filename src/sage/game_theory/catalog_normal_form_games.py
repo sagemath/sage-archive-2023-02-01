@@ -508,8 +508,8 @@ def HawkDove(v=2, c=3):
     """
     if not (c > v):
         raise TypeError("the input values for a Hawk Dove game must be of the form c > v")
-    g = AntiCoordinationGame(A=v / 2 - c, a=v / 2 - c, B=0, b=v,
-                             C=v, c=0, D=v / 2, d=v / 2)
+    g = AntiCoordinationGame(A=v/2-c, a=v/2-c, B=0, b=v,
+                             C=v, c=0, D=v/2, d=v/2)
     g.rename('Hawk-Dove - ' + repr(g))
     return g
 

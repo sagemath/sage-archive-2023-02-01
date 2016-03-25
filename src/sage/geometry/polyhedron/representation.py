@@ -1101,8 +1101,10 @@ class Vertex(Vrepresentation):
 
     def homogeneous_vector(self, base_ring=None):
         """
-        Return homogeneous coordinates for this vertex. This is the
-        vector with a 1 appended.
+        Return homogeneous coordinates for this vertex.
+
+        Since a vertex is given by an affine point, this is the vector
+        with a 1 appended.
 
         INPUT:
 
@@ -1216,8 +1218,10 @@ class Ray(Vrepresentation):
 
     def homogeneous_vector(self, base_ring=None):
         """
-        Return homogeneous coordinates for this ray. This is the
-        vector with a 0 appended.
+        Return homogeneous coordinates for this ray.
+
+        Since a ray is given by a direction, this is the vector with a
+        0 appended.
 
         INPUT:
 
@@ -1312,8 +1316,10 @@ class Line(Vrepresentation):
 
     def homogeneous_vector(self, base_ring=None):
         """
-        Return homogeneous coordinates for this line. This is the
-        vector with a 0 appended.
+        Return homogeneous coordinates for this line.
+
+        Since a line is given by a direction, this is the vector with a
+        0 appended.
 
         INPUT:
 

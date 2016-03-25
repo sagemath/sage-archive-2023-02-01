@@ -1137,7 +1137,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return (sign, normalize, implementation)
 
     @cached_method(key = _modular_symbol_normalize)
-    def modular_symbol(self, sign=None, use_eclib = None, normalize = None, implementation = 'sage'):
+    def modular_symbol(self, sign = None, use_eclib = None, normalize = None, implementation = 'sage'):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign and base ring.  This is the map that sends `r/s`
@@ -1268,7 +1268,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         else: # implementation == 'pollack-stevens'
             from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-            M = ps_modsym_from_elliptic_curve(self)
+            M = ps_modsym_from_elliptic_curve(self, sign)
         return M
 
     def _modsym(self, tau, prec=53):

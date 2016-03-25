@@ -105,7 +105,7 @@ def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, prec
     return (p, normalize, implementation, precision)
 
 @cached_method(key=_normalize_padic_lseries)    
-def padic_lseries(self, p, normalize=None, use_eclib=None, implementation='eclib', precision = None):
+def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 'eclib', precision = None):
     r"""
     Return the `p`-adic `L`-series of self at
     `p`, which is an object whose approx method computes
@@ -207,7 +207,7 @@ def padic_lseries(self, p, normalize=None, use_eclib=None, implementation='eclib
             Lp = plseries.pAdicLseriesSupersingular(self, p,
                                   normalize = normalize, use_eclib=use_eclib)
     else:
-        phi =self.modular_symbol(None,normalize=normalize,implementation='pollack-stevens')
+        phi = self.modular_symbol(None, normalize = normalize, implementation = 'pollack-stevens')
         if phi.parent().level() % p == 0:
             Phi = phi.lift(p, precision, eigensymbol = True)
         else:

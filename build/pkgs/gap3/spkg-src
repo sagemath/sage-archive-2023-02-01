@@ -4,7 +4,7 @@
 # version on Jean Michel's website.
 #
 # This script is only for the package maintainer,
-# not for building ECL during a Sage install.
+# not for building GAP3 during a Sage install.
 #
 # WARNING: This script will delete/overwrite files in this directory
 # and its subdirectories!

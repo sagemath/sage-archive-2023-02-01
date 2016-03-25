@@ -6668,11 +6668,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         in which case roots are counted in the whole real line. In addition, 
         -Infinity (or equivalently None) is allowed as a value for a, and 
         +Infinity (or equivalently None) is allowed as a value for b.
-        
+
         Calls the PARI routine polsturm. Note that as of version 2.8, PARI
         includes the left endpoint of the interval (and no longer uses
         Sturm's algorithm on exact inputs).
 
+        The coefficients of `self` must convert into either RR or CC.
+        In the former case, the conversion is left to PARI, so exact
+        coefficients (such as ZZ or QQ) remain exact and the computation
+        is performed exactly. In the latter case, the coefficients are
+        immediately converted into CC.
+        
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ)
@@ -6728,7 +6734,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         try:
             pol.change_ring(RR)
             return(pari(pol).polsturm([a,b]))
-        except TypeError:
+       except TypeError:
             pol2 = pol.change_ring(CC)
             pol2 = pol2.gcd(pol2.map_coefficients(lambda z: z.conjugate()))
             pol2 //= pol2.leading_coefficient()

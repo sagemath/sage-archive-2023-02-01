@@ -479,7 +479,7 @@ class RealBallField(UniqueRepresentation, Field):
             return self.element_class(self, mid, rad)
         except TypeError:
             pass
-        raise TypeError("unable to convert {} to a RealBall".format(mid))
+        raise TypeError("unable to convert {!r} to a RealBall".format(mid))
 
     def _repr_option(self, key):
         """
@@ -1090,6 +1090,28 @@ cdef class RealBall(RingElement):
             sage: RBF(NaN)
             nan
 
+        Strings can be given as input. Strings must contain decimal
+        floating-point literals. A valid string must consist of a midpoint,
+        a midpoint and a radius separated by "+/-", or just a
+        radius prefixed by "+/-". Optionally, the whole string can be enclosed
+        in square brackets. In general, the string representation of a
+        real ball as returned by ``str()`` can be parsed back (the result
+        will be larger than the original ball if rounding occurs).
+        A few examples::
+
+            sage: RBF("1.1")
+            [1.100000000000000 +/- 3.56e-16]
+            sage: RBF(str(RBF("1.1")))
+            [1.100000000000000 +/- 7.12e-16]
+            sage: RBF("3.25")
+            3.250000000000000
+            sage: RBF("-3.1 +/- 1e-10")
+            [-3.100000000 +/- 1.01e-10]
+            sage: RBF("[+/-1]")
+            [+/- 1.01]
+            sage: RBF("inf +/- inf")
+            [+/- inf]
+
         .. SEEALSO:: :meth:`RealBallField._element_constructor_`
 
         TESTS::
@@ -1109,6 +1131,15 @@ cdef class RealBall(RingElement):
             [2.718281828459045 +/- 5.35e-16]
             sage: RealBall(RBF, sage.symbolic.constants.EulerGamma())
             [0.577215664901533 +/- 3.57e-16]
+            sage: RBF("1 +/- 0.001")
+            [1.00 +/- 1.01e-3]
+            sage: RBF("2.3e10000000000000000000000 +/- 0.00005e10000000000000000000000")
+            [2.3000e+10000000000000000000000 +/- 5.01e+9999999999999999999995]
+            sage: RBF("0.3 +/- 0.2 +/- 0.1")
+            Traceback (most recent call last):
+            ...
+            ValueError: unsupported string format
+
         """
         import sage.symbolic.constants
         cdef fmpz_t tmpz
@@ -1182,6 +1213,9 @@ cdef class RealBall(RingElement):
             mpfi_to_arb(self.value,
                 (<RealIntervalFieldElement> mid).value,
                 prec(self))
+        elif isinstance(mid, str):
+            if arb_set_str(self.value, mid, prec(self)) != 0:
+                raise ValueError("unsupported string format")
         else:
             raise TypeError("unsupported midpoint type")
 

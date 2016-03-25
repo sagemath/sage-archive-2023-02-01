@@ -269,7 +269,7 @@ Methods
 -------
 """
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
@@ -347,7 +347,7 @@ def lower_bound(G):
     cdef int n = FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
-    minimums = <uint8_t *> sage_malloc(sizeof(uint8_t)* n)
+    minimums = <uint8_t *> sig_malloc(sizeof(uint8_t)* n)
     cdef unsigned int i
 
     # They are initialized to n
@@ -370,7 +370,7 @@ def lower_bound(G):
 
     cdef int min = minimums[0]
 
-    sage_free(minimums)
+    sig_free(minimums)
 
     return min
 
@@ -738,7 +738,7 @@ def vertex_separation_exp(G, verbose = False):
     sig_on()
 
     cdef unsigned int mem = 1 << g.n
-    cdef uint8_t * neighborhoods = <uint8_t *> sage_malloc(mem)
+    cdef uint8_t * neighborhoods = <uint8_t *> sig_malloc(mem)
 
     if neighborhoods == NULL:
         sig_off()
@@ -760,7 +760,7 @@ def vertex_separation_exp(G, verbose = False):
 
     cdef list order = find_order(g, neighborhoods, k)
 
-    sage_free(neighborhoods)
+    sig_free(neighborhoods)
     sig_off()
 
     return k, list( g.int_to_vertices[i] for i in order )
@@ -1384,11 +1384,11 @@ def vertex_separation_BAB(G,
     cdef binary_matrix_t bm_pool
     binary_matrix_init(bm_pool, 3*n+2, n)
 
-    cdef int * prefix    = <int *>sage_malloc(n * sizeof(int))
-    cdef int * positions = <int *>sage_malloc(n * sizeof(int))
+    cdef int * prefix    = <int *>sig_malloc(n * sizeof(int))
+    cdef int * positions = <int *>sig_malloc(n * sizeof(int))
     if prefix==NULL or positions==NULL:
-        sage_free(prefix)
-        sage_free(positions)
+        sig_free(prefix)
+        sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
         raise MemoryError("Unable to allocate data strutures.")
@@ -1430,8 +1430,8 @@ def vertex_separation_BAB(G,
     finally:
         if verbose:
             print 'Stored prefixes: {}'.format(len(prefix_storage))
-        sage_free(prefix)
-        sage_free(positions)
+        sig_free(prefix)
+        sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
 

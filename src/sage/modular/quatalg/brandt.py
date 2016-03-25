@@ -1442,7 +1442,7 @@ def quaternion_order_with_given_level(A, level):
     B = O.basis()
 
     for (p, r) in fact:
-        a = int((-p/2))
+        a = int(-p) // 2
         for v in GF(p)**4:
             x = sum([int(v[i]+a)*B[i] for i in range(4)])
             D = x.reduced_trace()**2 - 4 * x.reduced_norm()

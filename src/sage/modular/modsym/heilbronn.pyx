@@ -22,7 +22,7 @@ import sage.arith.all
 import sage.misc.misc
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -60,13 +60,13 @@ cdef struct list:
 cdef int* expand(int *v, int n, int new_length) except NULL:
     cdef int *w
     cdef int i
-    w = <int*>  sage_malloc(new_length*sizeof(int))
+    w = <int*>  sig_malloc(new_length*sizeof(int))
     if w == <int*> 0:
         return NULL
     if v:
         for i in range(n):
             w[i] = v[i]
-        sage_free(v)
+        sig_free(v)
     return w
 
 cdef int list_append(list* L, int a) except -1:
@@ -85,7 +85,7 @@ cdef int list_append4(list* L, int a, int b, int c, int d) except -1:
     list_append(L, d)
 
 cdef void list_clear(list L):
-    sage_free(L.v)
+    sig_free(L.v)
 
 cdef void list_init(list* L):
     L.n = 16
@@ -562,9 +562,9 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
         H = HeilbronnCremona(n) if sage.arith.all.is_prime(n) else HeilbronnMerel(n)
 
         # Allocate memory to hold images of (u,v) under all Heilbronn matrices
-        a = <int*> sage_malloc(sizeof(int)*H.length)
+        a = <int*> sig_malloc(sizeof(int)*H.length)
         if not a: raise MemoryError
-        b = <int*> sage_malloc(sizeof(int)*H.length)
+        b = <int*> sig_malloc(sizeof(int)*H.length)
         if not b: raise MemoryError
 
         # Compute images of (u,v) under all Heilbronn matrices
@@ -582,8 +582,8 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
                  T._add_ui_unsafe_assuming_int(i,k,1)
 
         # Free a and b
-        sage_free(a)
-        sage_free(b)
+        sig_free(a)
+        sig_free(b)
 
     t = sage.misc.misc.verbose("finished computing non-reduced images",
                                t, level=1, caller_name='hecke_images_gamma0_weight2')
@@ -697,9 +697,9 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
         H = HeilbronnCremona(n) if sage.arith.all.is_prime(n) else HeilbronnMerel(n)
 
         # Allocate memory to hold images of (u,v) under all Heilbronn matrices
-        a = <int*> sage_malloc(sizeof(int)*H.length)
+        a = <int*> sig_malloc(sizeof(int)*H.length)
         if not a: raise MemoryError
-        b = <int*> sage_malloc(sizeof(int)*H.length)
+        b = <int*> sig_malloc(sizeof(int)*H.length)
         if not b: raise MemoryError
 
         # Compute images of (u,v) under all Heilbronn matrices
@@ -722,8 +722,8 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
                  T._matrix._add_col_j_of_A_to_col_i_of_self(i * T._ncols + k, chi_vals, scalar)
 
         # Free a and b
-        sage_free(a)
-        sage_free(b)
+        sig_free(a)
+        sig_free(b)
 
     return T * R
 
@@ -785,16 +785,16 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
     # Make a matrix over the rational numbers each of whose columns
     # are the values of the character chi.
     _chivals = chi.values()
-    cdef int *chi_vals = <int*>sage_malloc(sizeof(int)*len(_chivals))
+    cdef int *chi_vals = <int*>sig_malloc(sizeof(int)*len(_chivals))
     if not chi_vals: raise MemoryError
     for i in range(len(_chivals)):
         chi_vals[i] = _chivals[i]
 
     for i, n in enumerate(indices):
         H = HeilbronnCremona(n) if sage.arith.all.is_prime(n) else HeilbronnMerel(n)
-        a = <int*> sage_malloc(sizeof(int)*H.length)
+        a = <int*> sig_malloc(sizeof(int)*H.length)
         if not a: raise MemoryError
-        b = <int*> sage_malloc(sizeof(int)*H.length)
+        b = <int*> sig_malloc(sizeof(int)*H.length)
         if not b: raise MemoryError
 
         H.apply_only(u, v, N, a, b)
@@ -808,9 +808,9 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
                      T._add_ui_unsafe_assuming_int(i, k, 1)
                  elif chi_vals[scalar] < 0:
                      T._sub_ui_unsafe_assuming_int(i, k, 1)
-        sage_free(a); sage_free(b)
+        sig_free(a); sig_free(b)
 
-    sage_free(chi_vals)
+    sig_free(chi_vals)
     return T * R
 
 
@@ -883,16 +883,16 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
         H = HeilbronnCremona(m) if sage.arith.all.is_prime(m) else HeilbronnMerel(m)
 
         # Allocate memory to hold images of (u,v) under all Heilbronn matrices
-        a = <int*> sage_malloc(sizeof(int)*H.length)
+        a = <int*> sig_malloc(sizeof(int)*H.length)
         if not a: raise MemoryError
-        b = <int*> sage_malloc(sizeof(int)*H.length)
+        b = <int*> sig_malloc(sizeof(int)*H.length)
         if not b: raise MemoryError
 
         # Compute images of (u,v) under all Heilbronn matrices
         H.apply_only(u, v, N, a, b)
 
         # Compute images of X^i Y^(2-k-i) under each Heilbronn matrix
-        poly = <fmpz_poly_t*> sage_malloc(sizeof(fmpz_poly_t)*H.length)
+        poly = <fmpz_poly_t*> sig_malloc(sizeof(fmpz_poly_t)*H.length)
         for j in range(H.length):
             fmpz_poly_init(poly[j])
 
@@ -914,13 +914,13 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
                     mpz_add(mpq_numref(T._matrix[z][n*w+p]), mpq_numref(T._matrix[z][n*w+p]), tmp)
 
         # Free a and b
-        sage_free(a)
-        sage_free(b)
+        sig_free(a)
+        sig_free(b)
 
         # Free poly part
         for j in range(H.length):
             fmpz_poly_clear(poly[j])
-        sage_free(poly)
+        sig_free(poly)
 
     mpz_clear(tmp)
 

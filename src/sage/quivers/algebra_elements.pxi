@@ -17,7 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "sage/data_structures/bitset.pxi"
 
 from cpython.ref cimport *
@@ -287,7 +287,7 @@ freelist.pool = <path_term_t**>check_allocarray(poolsize, sizeof(path_term_t*))
 cdef inline path_term_t *term_free_force(path_term_t *T):
     mon_free(T.mon)
     cdef path_term_t *out = T.nxt
-    sage_free(T)
+    sig_free(T)
     return out
 
 cdef class _FreeListProtector:
@@ -314,8 +314,8 @@ cdef class _FreeListProtector:
         for i in range(freelist.used):
             term_free_force(freelist.pool[i])
             sig_check()
-        sage_free(freelist.pool)
-        sage_free(freelist)
+        sig_free(freelist.pool)
+        sig_free(freelist)
 
 _freelist_protector = _FreeListProtector()
 
@@ -635,7 +635,7 @@ cdef inline void poly_dealloc(path_poly_t *P):
 # used by the polynomial.
 cdef inline void poly_free(path_poly_t *P):
     poly_dealloc(P)
-    sage_free(P)
+    sig_free(P)
 
 # Fill "out" with a copy of the terms of P. Note that previous contents
 # of "out" will NOT be freed---this function should thus only be called
@@ -665,7 +665,7 @@ cdef bint poly_icopy_scale(path_poly_t *out, path_poly_t *P, object coef) except
     out.lead = NULL
     while res.coef == NULL:
         sig_check()
-        sage_free(res)
+        sig_free(res)
         T = T.nxt
         if T == NULL:
             return True
@@ -677,7 +677,7 @@ cdef bint poly_icopy_scale(path_poly_t *out, path_poly_t *P, object coef) except
         sig_check()
         res.nxt = term_scale(T, coef)
         if res.nxt.coef == NULL:
-            sage_free(res.nxt)
+            sig_free(res.nxt)
         else:
             res = res.nxt
             out.nterms += 1
@@ -1203,7 +1203,7 @@ cdef void homog_poly_free(path_homog_poly_t *P):
     while P!=NULL:
         nxt = P.nxt
         poly_free(P.poly)
-        sage_free(P)
+        sig_free(P)
         P = nxt
 
 # Return a copy of H

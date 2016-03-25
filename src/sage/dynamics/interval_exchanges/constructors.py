@@ -893,7 +893,7 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
         sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.1,'rho',2])
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (='rho') into a real number
+        TypeError: unable to convert 'rho' to a float
         sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.1,-2,2])
         Traceback (most recent call last):
         ...
@@ -926,7 +926,7 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
         try:
             y = float(x)
         except ValueError:
-            raise TypeError("unable to convert x (='%s') into a real number" % (str(x)))
+            raise TypeError("unable to convert {!r} to a float".format(x))
 
         if y <= 0:
             raise ValueError("lengths must be positive")

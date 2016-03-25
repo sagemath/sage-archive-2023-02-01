@@ -1162,7 +1162,7 @@ cdef class FiniteField(Field):
 
         TESTS:
 
-        We check that trac #18915 is fixed::
+        We check that :trac:`18915` is fixed::
 
             sage: F = GF(2)
             sage: F.extension(int(3), 'a')

@@ -28,7 +28,7 @@ cdef inline binary_matrix_init(binary_matrix_t m, Py_ssize_t n_rows, Py_ssize_t 
 
     m.n_cols = n_cols
     m.n_rows = n_rows
-    m.rows = <bitset_t *>sage_malloc(n_rows * sizeof(bitset_t))
+    m.rows = <bitset_t *>sig_malloc(n_rows * sizeof(bitset_t))
     if m.rows == NULL:
         raise MemoryError
 
@@ -43,7 +43,7 @@ cdef inline binary_matrix_free(binary_matrix_t m):
 
     for i in range(m.n_rows):
         bitset_free(m.rows[i])
-    sage_free(m.rows)
+    sig_free(m.rows)
 
 cdef inline binary_matrix_fill(binary_matrix_t m, bint bit):
     r"""

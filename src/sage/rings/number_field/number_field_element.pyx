@@ -1707,7 +1707,7 @@ cdef class NumberFieldElement(FieldElement):
         TESTS:
 
         Check that the output is correct even for numbers that are
-        very close to zero (ticket #9596)::
+        very close to zero (:trac:`9596`)::
 
             sage: K.<sqrt2> = QuadraticField(2)
             sage: a = 30122754096401; b = 21300003689580
@@ -3984,7 +3984,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
         should give reasonable performance on all architectures;
         however, if you feel the need to customize it to your own
-        machine, see trac ticket 5213 for a tuning script.
+        machine, see :trac:`5213` for a tuning script.
 
         EXAMPLES:
 
@@ -4331,7 +4331,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
         should give reasonable performance on all architectures;
         however, if you feel the need to customize it to your own
-        machine, see trac ticket 5213 for a tuning script.
+        machine, see :trac:`5213` for a tuning script.
 
         EXAMPLES::
 
@@ -4492,9 +4492,10 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     cpdef RingElement _div_(self, RingElement other):
         r"""
         Implement division, checking that the result has the right parent.
+
         It's not so crucial what the parent actually is, but it is crucial
         that the returned value really is an element of its supposed
-        parent! This fixes trac #4190.
+        parent! This fixes :trac:`4190`.
 
         EXAMPLES::
 
@@ -4547,7 +4548,9 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     def __invert__(self):
         r"""
         Implement inversion, checking that the return value has the right
-        parent. See trac #4190.
+        parent.
+
+        See :trac:`4190`.
 
         EXAMPLE::
 
@@ -4617,9 +4620,10 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     cpdef RingElement _div_(self, RingElement other):
         r"""
         Implement division, checking that the result has the right parent.
+
         It's not so crucial what the parent actually is, but it is crucial
         that the returned value really is an element of its supposed
-        parent. This fixes trac #4190.
+        parent. This fixes trac :trac:`4190`.
 
         EXAMPLES::
 
@@ -4643,7 +4647,8 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     def __invert__(self):
         r"""
         Implement division, checking that the result has the right parent.
-        See trac #4190.
+
+        See :trac:`4190`.
 
         EXAMPLES::
 

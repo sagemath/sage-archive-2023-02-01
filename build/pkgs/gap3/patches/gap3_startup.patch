@@ -24,7 +24,7 @@ diff -ur src/gap3/bin/gap.sh.orig src/bin/gap.sh
  ##
  #GAP_DIR=/usr/local/lib/gap3-jm5
 -GAP_DIR=/home/jmichel/gap3-jm5
-+GAP_DIR="$SAGE_LOCAL/gap3/latest"
++GAP_DIR="$SAGE_LOCAL/gap3/latest/gap3"
  
  #############################################################################
  ##

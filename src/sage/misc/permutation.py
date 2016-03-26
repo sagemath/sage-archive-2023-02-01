@@ -6,7 +6,7 @@ functions for the latter representation.
 
 from sage.rings.integer import Integer
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement 
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.categories.groups import Groups
 
 
@@ -98,50 +98,6 @@ def init_perm(data):
         p.extend(xrange(len(p), n))
     # return data
     return [g(u) for u in data]
-
-
-def perm_orbit(p, i):
-    r"""
-    Returns the orbit of an integer `i` under the permutation `p`
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perm_orbit
-        sage: perm_orbit([0,3,1,2],2)
-        [2, 1, 3]
-    """
-    res = [i]
-    j = p[i]
-    while j != i:
-        res.append(j)
-        j = p[j]
-    return res
-
-
-def perm_switch(p1, p2, i, j):
-    """
-    Exchanges the values at positions `i` and `j` in two permutations
-    `p_1` and `p_2`
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perm_switch
-        sage: a = [0,1,2]
-        sage: b = [1,2,0]
-        sage: perm_switch(a,b,0,1)
-        sage: a;b
-        [1, 0, 2]
-        [2, 1, 0]
-    """
-    i1 = p1[i]
-    j1 = p1[j]
-    p1[i] = j1
-    p1[j] = i1
-
-    i2 = p2[i1]
-    j2 = p2[j1]
-    p2[i1] = j2
-    p2[j1] = i2
 
 
 def perms_are_connected(g, n):

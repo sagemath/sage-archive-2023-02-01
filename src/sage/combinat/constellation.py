@@ -181,14 +181,6 @@ class Constellation_class(Element):
         self._g = g
         d = Integer(0) if len(self._g) == 0 else len(self._g[0].domain())
         self._degree = d
-        Sd = SymmetricGroup(range(d))
-        newg = []
-        for s in g:
-            if s is None:
-                newg.append(None)
-            else:
-                newg.append(Sd(s))
-        self._newg = newg
         if check:
             self._check()
 
@@ -262,10 +254,10 @@ class Constellation_class(Element):
         if not self._mutable:
             raise ValueError("this constellation is immutable."
                              " Take a mutable copy first.")
-        perm_switch(self._g[i], self._g[i + 1], j0, j1)
-        tr = SymmetricGroup(range(self.degree()))((j0, j1))
-        self._newg[i] = tr * self._newg[i]
-        self._newg[i + 1] = tr * self._newg[i + 1]
+        S = SymmetricGroup(range(self.degree()))
+        tr = S((j0, j1))
+        self._g[i] = tr * self._g[i]
+        self._g[i + 1] = tr * self._g[i + 1]
 
     def euler_characteristic(self):
         r"""
@@ -419,7 +411,7 @@ class Constellation_class(Element):
         G = Graph()
         G.add_vertices(range(self.degree()))
         for p in self._g:
-            G.add_edges(enumerate(p))
+            G.add_edges(enumerate(p.domain()))
         m = G.connected_components()
         if len(m) == 1:
             return [self]
@@ -428,13 +420,13 @@ class Constellation_class(Element):
         m.sort()
         g = [[] for _ in xrange(len(m))]
         m_inv = [None] * self.degree()
-        for t in xrange(len(m)):
-            for i in xrange(len(m[t])):
-                m_inv[m[t][i]] = i
+        for t, mt in enumerate(m):
+            for i, mti in enumerate(mt):
+                m_inv[mti] = i
             for k in xrange(self.length()):
-                tmp = [None] * len(m[t])
-                for i in xrange(len(m[t])):
-                    tmp[i] = m_inv[self._g[k](m[t][i])]
+                tmp = [None] * len(mt)
+                for i, mti in enumerate(mt):
+                    tmp[i] = m_inv[self._g[k](mti)]
                 g[t].append(tmp)
         return [Constellation(g=g[i], check=False) for i in xrange(len(m))]
 
@@ -538,7 +530,7 @@ class Constellation_class(Element):
         s = "Constellation of length {} and degree {}".format(self.length(),
                                                               self.degree())
         for i in xrange(self.length()):
-            s += "\ng{} {}".format(i, self._newg[i].cycle_string(True))
+            s += "\ng{} {}".format(i, self._g[i].cycle_string(True))
         return s
 
     def degree(self):
@@ -595,7 +587,7 @@ class Constellation_class(Element):
         if i is None:
             return tuple(self.profile(j) for j in xrange(self.length()))
         else:
-            parts = [len(cy) for cy in self._newg[i].cycle_tuples(True)]
+            parts = [len(cy) for cy in self._g[i].cycle_tuples(True)]
             return Partition(sorted(parts, reverse=True))
 
     passport = profile
@@ -639,9 +631,9 @@ class Constellation_class(Element):
             [(0, 4), (1, 3)]
         """
         if i is None:
-            return [s.cycle_tuples(singletons) for s in self._newg]
+            return [s.cycle_tuples(singletons) for s in self._g]
         else:
-            return self._newg[i].cycle_tuples(singletons)
+            return self._g[i].cycle_tuples(singletons)
 
     def g_cycle_string(self, i, singletons=False):
         r"""
@@ -660,9 +652,9 @@ class Constellation_class(Element):
             '(0,3)(1,2,4)'
         """
         if i is None:
-            return [s.cycle_string(singletons) for s in self._newg]
+            return [s.cycle_string(singletons) for s in self._g]
         else:
-            return self._newg[i].cycle_string(singletons)
+            return self._g[i].cycle_string(singletons)
 
     def g_next(self, i, j):
         r"""
@@ -673,13 +665,13 @@ class Constellation_class(Element):
             sage: c = Constellation(['(1,2,0,5)','(2,3,4)(5,1)',None])
             sage: c.g_next(0,0)
             5
-            sage: all(c.g(i)[j] == c.g_next(i,j) for i in xrange(3) for j in xrange(6))
+            sage: all(c.g(i)(j) == c.g_next(i,j) for i in xrange(3) for j in xrange(6))
             True
         """
         if i is None:
-            return map(lambda x: x[j], self._g)
+            return [u(j) for u in self._g]
         else:
-            return self._g[i][j]
+            return self._g[i](j)
 
     def g_prev(self, i, j):
         r"""
@@ -690,16 +682,16 @@ class Constellation_class(Element):
             sage: c = Constellation(['(0,1,2)(3,4)','(0,4,2)',None])
             sage: c.g_prev(0,0)
             2
-            sage: all(c.g(i)[c.g_prev(i,j)] == j for i in xrange(3) for j in xrange(5))
+            sage: all(c.g(i)(c.g_prev(i,j)) == j for i in xrange(3) for j in xrange(5))
             True
         """
         if i is None:
             return [self.g_prev(k, j) for k in xrange(self.length())]
         else:
             for k in xrange(i + 1, self.length()):
-                j = self._g[k][j]
+                j = self._g[k](j)
             for k in xrange(0, i):
-                j = self._g[k][j]
+                j = self._g[k](j)
             return j
 
     def g_orbit(self, i, j):
@@ -710,14 +702,14 @@ class Constellation_class(Element):
 
             sage: c = Constellation(['(0,1)(2,3,4)','(1,4)',None])
             sage: c.g_orbit(0,3)
-            [3, 4, 2]
+            [2, 3, 4]
             sage: c.g_orbit(1,0)
             [0]
         """
         if i is None:
             return [self.g_orbit(k, j) for k in xrange(self.length())]
         else:
-            return perm_orbit(self._g[i], j)
+            return self._g[i].orbit(j)
 
     def relabel(self, perm=None, return_map=False):
         r"""
@@ -861,19 +853,15 @@ class Constellation_class(Element):
             True
         """
         if i < 0 or i >= self.length():
-            raise ValueError("i should be between 0 and %d" % (self.length() - 1))
+            raise ValueError("i should be between 0 and {}".format(self.length() - 1))
         j = i + 1
         if j == self.length():   # wrap around the cylinder
             j = 0
         h = self.copy()
         si = self._g[i]
         sj = self._g[j]
-        newsi = self._newg[i]
-        newsj = self._newg[j]
         h._g[i] = sj
-        h._newg[i] = newsj
         h._g[j] = (~sj * si) * sj
-        h._newg[j] = newsj.inverse() * newsi * newsj
         return h
 
     def braid_group_orbit(self):
@@ -1027,13 +1015,13 @@ class Constellations_all(UniqueRepresentation, Parent):
             g1 (0,1)
             ...
             Constellation of length 4 and degree 3
-            g0 (0)(1,2)
-            g1 (0)(1,2)
-            g2 (0,2,1)
-            g3 (0,1,2)
+            g0 (0,1)(2)
+            g1 (0,1)(2)
+            g2 (0)(1,2)
+            g3 (0)(1,2)
             Constellation of length 4 and degree 3
-            g0 (0)(1,2)
-            g1 (0)(1,2)
+            g0 (0,1)(2)
+            g1 (0,1)(2)
             g2 (0,2)(1)
             g3 (0,2)(1)
         """
@@ -1337,14 +1325,14 @@ class Constellations_p(UniqueRepresentation, Parent):
         24
         sage: C.first()
         Constellation of length 3 and degree 4
-        g0 (0)(1,2,3)
-        g1 (0,1,2)(3)
-        g2 (0,1)(2,3)
+        g0 (0,2,3)(1)
+        g1 (0)(1,2,3)
+        g2 (0,3)(1,2)
         sage: C.last()
         Constellation of length 3 and degree 4
-        g0 (0,3,2)(1)
-        g1 (0,3,1)(2)
-        g2 (0,1)(2,3)
+        g0 (0,1,3)(2)
+        g1 (0,1,2)(3)
+        g2 (0,2)(1,3)
 
     Note that the cardinality can also be computed using characters of the
     symmetric group (Frobenius formula)::
@@ -1476,22 +1464,22 @@ class Constellations_p(UniqueRepresentation, Parent):
             sage: C = Constellations([(3,1),(3,1),(2,2)])
             sage: for c in C: print c
             Constellation of length 3 and degree 4
-            g0 (0)(1,2,3)
-            g1 (0,1,2)(3)
-            g2 (0,1)(2,3)
-            Constellation of length 3 and degree 4
-            g0 (0)(1,2,3)
-            g1 (0,2,3)(1)
-            g2 (0,2)(1,3)
-            ...
-            Constellation of length 3 and degree 4
-            g0 (0,3,2)(1)
-            g1 (0,1,2)(3)
+            g0 (0,2,3)(1)
+            g1 (0)(1,2,3)
             g2 (0,3)(1,2)
             Constellation of length 3 and degree 4
-            g0 (0,3,2)(1)
-            g1 (0,3,1)(2)
+            g0 (0,2,3)(1)
+            g1 (0,2,1)(3)
             g2 (0,1)(2,3)
+            ...
+            Constellation of length 3 and degree 4
+            g0 (0,1,3)(2)
+            g1 (0)(1,3,2)
+            g2 (0,3)(1,2)
+            Constellation of length 3 and degree 4
+            g0 (0,1,3)(2)
+            g1 (0,1,2)(3)
+            g2 (0,2)(1,3)
         """
         from itertools import product
 

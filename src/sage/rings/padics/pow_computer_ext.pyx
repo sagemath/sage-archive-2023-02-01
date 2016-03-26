@@ -220,7 +220,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
     ##printer.x = (low_shifter[0]).val()
     ##print printer
     ZZ_pX_InvMod_newton_ram(shift_seed_inv, shift_seed.x, prime_pow.get_top_modulus()[0], prime_pow.get_top_context().x)
-    for i from 0 <= i < low_length:
+    for i in range(low_length):
         # Currently tmp = p / x^(2^(i-1)).  Squaring yields p^2 / x^(2^i)
         #ZZ_pX_SqrMod(tmp, tmp, modup)
         # Now we divide by p.
@@ -266,7 +266,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
     else:
         high_shifter_p[0] = into_multiplier
     # Now we cache powers of p/x^e.  This is a unit, so we don't have to worry about precision issues (yay!)
-    for i from 1 <= i < high_length:
+    for i in range(1, high_length):
         ZZ_pX_SqrMod_pre(into_multiplier, into_multiplier, prime_pow.get_top_modulus()[0])
         if multiplier:
             ZZ_pX_Multiplier_build(high_shifter_m[i], into_multiplier, prime_pow.get_top_modulus()[0])
@@ -499,6 +499,8 @@ cdef class PowComputer_ext(PowComputer_class):
 
             sage: PC = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5, 0, 1], 5^10), 'small', 'e',ntl.ZZ_pX([1],5^10)) #indirect doctest
         """
+        PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
+
         self._initialized = 0
         self.small_powers = Allocate_ZZ_array(cache_limit + 1)
         if self.small_powers == NULL:
@@ -513,12 +515,13 @@ cdef class PowComputer_ext(PowComputer_class):
             mpz_to_ZZ(&(self.small_powers[1]), prime.value)
 
         sig_on()
-        for i from 2 <= i <= cache_limit:
+        for i in range(2, cache_limit + 1):
             ZZ_mul(self.small_powers[i], self.small_powers[i-1], self.small_powers[1])
         mpz_to_ZZ(&self.top_power, prime.value)
         ZZ_power(self.top_power, self.top_power, prec_cap)
         sig_off()
         mpz_init(self.temp_m)
+        mpz_init(self.temp_m2)
 
         self._poly = poly
         self._shift_seed = shift_seed
@@ -532,7 +535,7 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC = PowComputer_ext_maker(5, 5, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
             sage: del PC # indirect doctest
         """
-        if (<PowComputer_class>self)._initialized:
+        if (<PowComputer_ext>self)._initialized:
             self.cleanup_ext()
 
     def __repr__(self):
@@ -578,8 +581,9 @@ cdef class PowComputer_ext(PowComputer_class):
         """
         Delete_ZZ_array(self.small_powers)
         mpz_clear(self.temp_m)
+        mpz_clear(self.temp_m2)
 
-    cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
         """
         Provides fast access to an mpz_t* pointing to self.prime^n.
 
@@ -751,6 +755,16 @@ cdef class PowComputer_ext(PowComputer_class):
 
 cdef class PowComputer_ZZ_pX(PowComputer_ext):
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: PC = PowComputer_ext_maker(5, 5, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
+            sage: TestSuite(PC).run()
+        """
         if not isinstance(poly, ntl_ZZ_pX):
             raise TypeError
         self.deg = ZZ_pX_deg((<ntl_ZZ_pX>poly).x)
@@ -863,7 +877,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         end = mpz_get_ui((<Integer>Integer(runs)).value)
         _n = mpz_get_ui((<Integer>Integer(n)).value)
         t = cputime()
-        for i from 0 <= i < end:
+        for i in range(end):
             # Put the function you want speed tested here.
             self.get_modulus(_n)
         return cputime(t)
@@ -1218,7 +1232,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             ZZ_pX_add(xnew_q, xnew_q, x[0])
             # while x != xnew:
             #     x = xnew
-            #     xnew = x + u*(x^p - x)
+            #     xnew = x + u*(x^q - x)
             while x[0] != xnew_q:
                 x[0] = xnew_q
                 ZZ_pX_PowerMod_pre(xnew_q, x[0], q, self.get_modulus(absprec)[0])
@@ -1612,7 +1626,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         if isinstance(poly, ntl_ZZ_pX):
             pol = (<ntl_ZZ_pX>poly).x
             self.c.append(None)
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 self.c.append(PowComputer_ZZ_pX.get_context(self,i))
 
             # create a temporary polynomial with the highest modulus to
@@ -1620,7 +1634,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
             (<ntl_ZZ_pContext_class>self.c[cache_limit]).restore_c()
             tmp = (<ntl_ZZ_pX>poly).x
 
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 (<ntl_ZZ_pContext_class>self.c[i]).restore_c()
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.c[i]).x)
                 ZZ_pX_Modulus_build(self.mod[i], tmp)
@@ -1775,6 +1789,18 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
     These are only stored at maximal precision: in order to get lower precision versions just reduce mod p^n.
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: A = PowComputer_ext_maker(5, 10, 10, 40, False, ntl.ZZ_pX([-5,75,15,0,1],5^10), 'small', 'e',ntl.ZZ_pX([1,-15,-3],5^10))
+            sage: type(A)
+            <type 'sage.rings.padics.pow_computer_ext.PowComputer_ZZ_pX_small_Eis'>
+            sage: TestSuite(A).run()
+        """
         self._ext_type = 'e'
         if not isinstance(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"
@@ -1958,7 +1984,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         if isinstance(poly, ntl_ZZ_pX):
             pol = (<ntl_ZZ_pX>poly).x
             self.context_list.append(None)
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 self.context_list.append(PowComputer_ZZ_pX.get_context(self,i))
 
             # create a temporary polynomial with the highest modulus to
@@ -1967,7 +1993,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
             (<ntl_ZZ_pContext_class>self.top_context).restore_c()
             tmp = (<ntl_ZZ_pX>poly).x
 
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 (<ntl_ZZ_pContext_class>self.context_list[i]).restore_c()
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.context_list[i]).x)
                 ZZ_pX_Modulus_build(self.modulus_list[i], tmp)
@@ -2191,6 +2217,18 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
     These are only stored at maximal precision: in order to get lower precision versions just reduce mod p^n.
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: A = PowComputer_ext_maker(5, 3, 10, 40, False, ntl.ZZ_pX([-5,75,15,0,1],5^10), 'big', 'e',ntl.ZZ_pX([1,-15,-3],5^10))
+            sage: type(A)
+            <type 'sage.rings.padics.pow_computer_ext.PowComputer_ZZ_pX_big_Eis'>
+            sage: TestSuite(A).run()
+        """
         self._ext_type = 'e'
         if not isinstance(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"

@@ -9,6 +9,10 @@ All graphs have an associated Sage graphics object, which you can display::
     sage: P = G.plot()
     sage: P.show() # long time
 
+.. PLOT:
+    
+    sphinx_plot(graphs.WheelGraph(15))
+
 If you create a graph in Sage using the ``Graph`` command, then plot that graph,
 the positioning of nodes is determined using the spring-layout algorithm. For
 the special graph constructors, which you get using ``graphs.[tab]``, the
@@ -17,8 +21,21 @@ positioning vs. the Petersen graph constructed by this database::
 
     sage: petersen_spring = Graph(':I`ES@obGkqegW~')
     sage: petersen_spring.show() # long time
+
+.. PLOT::
+    
+    petersen_spring = Graph(':I`ES@obGkqegW~')
+    sphinx_plot(petersen_spring)
+
+::
+
     sage: petersen_database = graphs.PetersenGraph()
     sage: petersen_database.show() # long time
+
+.. PLOT::
+    
+    petersen_database = graphs.PetersenGraph()
+    sphinx_plot(petersen_database)
 
 For all the constructors in this database (except the octahedral, dodecahedral,
 random and empty graphs), the position dictionary is filled in, instead of using
@@ -292,6 +309,15 @@ class GraphPlot(SageObject):
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
             Graphics object consisting of 14 graphics primitives
 
+        .. PLOT::
+            
+            g = Graph({0:[1,2], 2:[3], 4:[0,1]})
+            g.graphplot(save_pos=True, layout='circular') # indirect doctest
+            T = list(graphs.trees(7))
+            t = T[3]
+            P = t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+            sphinx_plot(P)
+
         TESTS:
 
         Make sure that vertex locations are floats.  Not being floats
@@ -324,14 +350,37 @@ class GraphPlot(SageObject):
 
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
-            ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
-            sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
+            ...                (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
+            ...                    edge_style='dashed')
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
             Graphics object consisting of 22 graphics primitives
             sage: GP.set_vertices(vertex_colors='pink', vertex_shape='^')
             sage: GP.plot()
             Graphics object consisting of 22 graphics primitives
+
+        .. PLOT::
+
+                g = Graph({}, loops=True, multiedges=True, sparse=True)
+                g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),(0,1,'e'),(0,1,'f'),
+                             (0,1,'f'),(2,1,'g'),(2,2,'h')])
+                GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, 
+                                 edge_style='dashed')
+                GP.set_vertices(talk=True)
+                sphinx_plot(GP)
+
+        .. PLOT::
+
+                g = Graph({}, loops=True, multiedges=True, sparse=True)
+                g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),(0,1,'e'),(0,1,'f'),
+                            (0,1,'f'),(2,1,'g'),(2,2,'h')])
+                GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
+                                 edge_style='dashed')
+                GP.set_vertices(talk=True)
+                GP.set_vertices(vertex_colors='pink', vertex_shape='^')
+                sphinx_plot(GP)
+
         """
         # Handle base vertex options
         voptions = {}
@@ -377,11 +426,15 @@ class GraphPlot(SageObject):
             voptions['facecolor'] = vertex_colors
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(center,
-                    self._vertex_radius, fill=True, facecolor=vertex_colors, edgecolor='black', clip=False)
-                    for center in self._pos.values()]
+                                                            self._vertex_radius,
+                                                            fill=True,
+                                                            facecolor=vertex_colors,
+                                                            edgecolor='black',
+                                                            clip=False)
+                                                     for center in self._pos.values()]
             else:
-                self._plot_components['vertices'] = scatter_plot(
-                    self._pos.values(), clip=False, **voptions)
+                self._plot_components['vertices'] = scatter_plot(self._pos.values(),
+                                                                 clip=False, **voptions)
         else:
             # Color list must be ordered:
             pos = []
@@ -403,11 +456,16 @@ class GraphPlot(SageObject):
 
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(pos[i],
-                    self._vertex_radius, fill=True, facecolor=colors[i], edgecolor='black', clip=False)
-                    for i in range(len(pos))]
+                                                            self._vertex_radius,
+                                                            fill=True,
+                                                            facecolor=colors[i],
+                                                            edgecolor='black',
+                                                            clip=False)
+                                                     for i in range(len(pos))]
             else:
                 self._plot_components['vertices'] = scatter_plot(pos,
-                    facecolor=colors, clip=False, **voptions)
+                                                                 facecolor=colors,
+                                                                 clip=False, **voptions)
 
         if self._options['vertex_labels']:
             self._plot_components['vertex_labels'] = []
@@ -428,25 +486,77 @@ class GraphPlot(SageObject):
 
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
-            ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
-            sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
+            ...    (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
+            ...    edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
             Graphics object consisting of 22 graphics primitives
+
+        .. PLOT::
+
+            g = Graph({}, loops=True, multiedges=True, sparse=True)
+            g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
+                (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            GP = g.graphplot(vertex_size=100, edge_labels=True,
+                color_by_label=True, edge_style='dashed')
+            GP.set_edges(edge_style='solid')
+            sphinx_plot(GP)
+
+        ::
+
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
             Graphics object consisting of 22 graphics primitives
 
+        .. PLOT::
+
+            g = Graph({}, loops=True, multiedges=True, sparse=True)
+            g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
+                (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            GP = g.graphplot(vertex_size=100, edge_labels=True,
+                color_by_label=True, edge_style='dashed')
+            GP.set_edges(edge_style='solid')
+            GP.set_edges(edge_color='black')
+            sphinx_plot(GP)
+
+        ::
+
             sage: d = DiGraph({}, loops=True, multiedges=True, sparse=True)
             sage: d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
-            sage: GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
+            sage: GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
+            ...    edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
             Graphics object consisting of 24 graphics primitives
+
+        .. PLOT::
+
+            d = DiGraph({}, loops=True, multiedges=True, sparse=True)
+            d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
+                (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
+                edge_style='dashed')
+            GP.set_edges(edge_style='solid')
+            sphinx_plot(GP)
+
+        ::
+
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
             Graphics object consisting of 24 graphics primitives
+
+        .. PLOT::
+
+            d = DiGraph({}, loops=True, multiedges=True, sparse=True)
+            d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
+                (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
+                edge_style='dashed')
+            GP.set_edges(edge_style='solid')
+            GP.set_edges(edge_color='black')
+            sphinx_plot(GP)
 
         TESTS::
 
@@ -566,9 +676,12 @@ class GraphPlot(SageObject):
                         distance = float(max_dist)/len(local_labels)
                     curr_loop_size = loop_size
                     for i in range(len(local_labels)):
-                        self._plot_components['edges'].append(circle((self._pos[a][0],self._pos[a][1]-curr_loop_size), curr_loop_size, rgbcolor=local_labels[i][1], **eoptions))
+                        self._plot_components['edges'].append(circle((self._pos[a][0],
+                            self._pos[a][1]-curr_loop_size), curr_loop_size,
+                            rgbcolor=local_labels[i][1], **eoptions))
                         if labels:
-                            self._plot_components['edge_labels'].append(text(local_labels[i][0], (self._pos[a][0], self._pos[a][1]-2*curr_loop_size)))
+                            self._plot_components['edge_labels'].append(text(local_labels[i][0],
+                                (self._pos[a][0], self._pos[a][1]-2*curr_loop_size)))
                         curr_loop_size += distance/4
                 elif len(edges_to_draw[(a,b)]) > 1:
                     # Multi-edge
@@ -611,19 +724,33 @@ class GraphPlot(SageObject):
                     for i in range(len(local_labels)//2):
                         k = (i+1.0)*distance
                         if self._arcdigraph:
-                            odd_start = self._polar_hack_for_multidigraph(p1, [odd_x(k),odd_y(k)], self._vertex_radius)[0]
-                            odd_end = self._polar_hack_for_multidigraph([odd_x(k),odd_y(k)], p2, self._vertex_radius)[1]
-                            even_start = self._polar_hack_for_multidigraph(p1, [even_x(k),even_y(k)], self._vertex_radius)[0]
-                            even_end = self._polar_hack_for_multidigraph([even_x(k),even_y(k)], p2, self._vertex_radius)[1]
-                            self._plot_components['edges'].append(arrow(path=[[odd_start,[odd_x(k),odd_y(k)],odd_end]], head=local_labels[2*i][2], zorder=1, rgbcolor=local_labels[2*i][1], **eoptions))
-                            self._plot_components['edges'].append(arrow(path=[[even_start,[even_x(k),even_y(k)],even_end]], head=local_labels[2*i+1][2], zorder=1, rgbcolor=local_labels[2*i+1][1], **eoptions))
+                            odd_start = self._polar_hack_for_multidigraph(p1,
+                                [odd_x(k),odd_y(k)], self._vertex_radius)[0]
+                            odd_end = self._polar_hack_for_multidigraph([odd_x(k),odd_y(k)],
+                                p2, self._vertex_radius)[1]
+                            even_start = self._polar_hack_for_multidigraph(p1,
+                                [even_x(k),even_y(k)], self._vertex_radius)[0]
+                            even_end = self._polar_hack_for_multidigraph([even_x(k),even_y(k)],
+                                p2, self._vertex_radius)[1]
+                            self._plot_components['edges'].append(arrow(path=[[odd_start,
+                                [odd_x(k),odd_y(k)],odd_end]], head=local_labels[2*i][2],
+                                zorder=1, rgbcolor=local_labels[2*i][1], **eoptions))
+                            self._plot_components['edges'].append(arrow(path=[[even_start,
+                                [even_x(k),even_y(k)],even_end]], head=local_labels[2*i+1][2],
+                                zorder=1, rgbcolor=local_labels[2*i+1][1], **eoptions))
                         else:
-                            self._plot_components['edges'].append(bezier_path([[p1,[odd_x(k),odd_y(k)],p2]],zorder=1, rgbcolor=local_labels[2*i][1], **eoptions))
-                            self._plot_components['edges'].append(bezier_path([[p1,[even_x(k),even_y(k)],p2]],zorder=1, rgbcolor=local_labels[2*i+1][1], **eoptions))
+                            self._plot_components['edges'].append(bezier_path([[p1,
+                                [odd_x(k),odd_y(k)],p2]],zorder=1,
+                                rgbcolor=local_labels[2*i][1], **eoptions))
+                            self._plot_components['edges'].append(bezier_path([[p1,
+                                [even_x(k),even_y(k)],p2]],zorder=1,
+                                rgbcolor=local_labels[2*i+1][1], **eoptions))
                         if labels:
                             j = k/2.0
-                            self._plot_components['edge_labels'].append(text(local_labels[2*i][0],[odd_x(j),odd_y(j)]))
-                            self._plot_components['edge_labels'].append(text(local_labels[2*i+1][0],[even_x(j),even_y(j)]))
+                            self._plot_components['edge_labels'].append(text(local_labels[2*i][0],
+                                [odd_x(j),odd_y(j)]))
+                            self._plot_components['edge_labels'].append(text(local_labels[2*i+1][0],
+                                [even_x(j),even_y(j)]))
                     if len(local_labels)%2 == 1:
                         edges_to_draw[(a,b)] = [local_labels[-1]] # draw line for last odd
 
@@ -631,15 +758,23 @@ class GraphPlot(SageObject):
         for (a,b) in edges_to_draw:
             if self._arcdigraph:
                 C,D = self._polar_hack_for_multidigraph(self._pos[a], self._pos[b], self._vertex_radius)
-                self._plot_components['edges'].append(arrow(C,D, rgbcolor=edges_to_draw[(a,b)][0][1], head=edges_to_draw[(a,b)][0][2], **eoptions))
+                self._plot_components['edges'].append(arrow(C,D,
+                    rgbcolor=edges_to_draw[(a,b)][0][1], head=edges_to_draw[(a,b)][0][2],
+                    **eoptions))
                 if labels:
-                    self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),[(C[0]+D[0])/2., (C[1]+D[1])/2.]))
+                    self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),
+                        [(C[0]+D[0])/2., (C[1]+D[1])/2.]))
             elif dir:
-                self._plot_components['edges'].append(arrow(self._pos[a],self._pos[b], rgbcolor=edges_to_draw[(a,b)][0][1], arrowshorten=self._arrowshorten, head=edges_to_draw[(a,b)][0][2], **eoptions))
+                self._plot_components['edges'].append(arrow(self._pos[a],self._pos[b],
+                    rgbcolor=edges_to_draw[(a,b)][0][1], arrowshorten=self._arrowshorten,
+                    head=edges_to_draw[(a,b)][0][2], **eoptions))
             else:
-                self._plot_components['edges'].append(line([self._pos[a],self._pos[b]], rgbcolor=edges_to_draw[(a,b)][0][1], **eoptions))
+                self._plot_components['edges'].append(line([self._pos[a],self._pos[b]],
+                    rgbcolor=edges_to_draw[(a,b)][0][1], **eoptions))
             if labels and not self._arcdigraph:
-                self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),[(self._pos[a][0]+self._pos[b][0])/2., (self._pos[a][1]+self._pos[b][1])/2.]))
+                self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),
+                    [(self._pos[a][0]+self._pos[b][0])/2.,
+                    (self._pos[a][1]+self._pos[b][1])/2.]))
 
     def _polar_hack_for_multidigraph(self, A, B, VR):
         """
@@ -652,7 +787,8 @@ class GraphPlot(SageObject):
             sage: d = DiGraph({}, loops=True, multiedges=True, sparse=True)
             sage: d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
-            sage: GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
+            sage: GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
+            ...    edge_style='dashed')
             sage: GP._polar_hack_for_multidigraph((0,1),(1,1),.1)
             ([0.10..., 1.00...], [0.90..., 1.00...])
 
@@ -678,7 +814,8 @@ class GraphPlot(SageObject):
             theta = atan(D[1]/D[0]) + pi
         elif D[1] > 0:
             theta = pi/2
-        return ([VR*cos(theta)+A[0], VR*sin(theta)+A[1]], [(R-VR)*cos(theta)+A[0], (R-VR)*sin(theta)+A[1]])
+        return ([VR*cos(theta)+A[0], VR*sin(theta)+A[1]], [(R-VR)*cos(theta)+A[0],
+            (R-VR)*sin(theta)+A[1]])
 
     def show(self, **kwds):
         """
@@ -702,6 +839,13 @@ class GraphPlot(SageObject):
             sage: C = graphs.CubeGraph(8)
             sage: P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()
+
+        .. PLOT::
+
+            C = graphs.CubeGraph(8)
+            P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
+            sphinx_plot(P)
+
         """
         # Setting the default values if needed
         for k,value in DEFAULT_SHOW_OPTIONS.iteritems():
@@ -729,7 +873,8 @@ class GraphPlot(SageObject):
 
             sage: from math import sin, cos, pi
             sage: P = graphs.PetersenGraph()
-            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8],
+            ...    '#0000FF':[4,9]}
             sage: pos_dict = {}
             sage: for i in range(5):
             ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
@@ -744,23 +889,71 @@ class GraphPlot(SageObject):
             sage: pl = P.graphplot(pos=pos_dict, vertex_colors=d)
             sage: pl.show()
 
+        .. PLOT::
+
+            from math import sin, cos, pi
+            P = graphs.PetersenGraph()
+            d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8],
+                '#0000FF':[4,9]}
+            pos_dict = {}
+            for i in range(5):
+                x = float(cos(pi/2 + ((2*pi)/5)*i))
+                y = float(sin(pi/2 + ((2*pi)/5)*i))
+                pos_dict[i] = [x,y]
+            
+            for i in range(10)[5:]:
+                x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+                y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+                pos_dict[i] = [x,y]
+            
+            pl = P.graphplot(pos=pos_dict, vertex_colors=d)
+            sphinx_plot(pl)
+
         Here are some more common graphs with typical options::
 
             sage: C = graphs.CubeGraph(8)
             sage: P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()
 
+        .. PLOT::
+
+            C = graphs.CubeGraph(8)
+            P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
+            sphinx_plot(P)
+
+        ::
+
             sage: G = graphs.HeawoodGraph().copy(sparse=True)
             sage: for u,v,l in G.edges():
             ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: G.graphplot(edge_labels=True).show()
 
+        .. PLOT::
+
+            G = graphs.HeawoodGraph().copy(sparse=True)
+            for u,v,l in G.edges():
+                G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sphinx_plot(G.graphplot(edge_labels=True))
+
         The options for plotting also work with directed graphs::
 
-            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []})
+            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4],
+            ...    4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13],
+            ...    10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16],
+            ...    16: [17], 17: [18], 18: [19], 19: []})
             sage: for u,v,l in D.edges():
             ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.graphplot(edge_labels=True, layout='circular').show()
+
+        .. PLOT::
+
+            D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5],
+                5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11],
+                11: [12, 18],12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17],
+                17: [18], 18: [19], 19: []})
+            for u,v,l in D.edges():
+                D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sphinx_plot(D.graphplot(edge_labels=True, layout='circular'))
 
         This example shows off the coloring of edges::
 
@@ -776,6 +969,20 @@ class GraphPlot(SageObject):
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.graphplot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
 
+        .. PLOT::
+
+            from sage.plot.colors import rainbow
+            C = graphs.CubeGraph(5)
+            R = rainbow(5)
+            edge_colors = {}
+            for i in range(5):
+                edge_colors[R[i]] = []
+            for u,v,l in C.edges():
+                for i in range(5):
+                    if u[i] != v[i]:
+                        edge_colors[R[i]].append((u,v,l))
+            sphinx_plot(C.graphplot(vertex_labels=False, vertex_size=0,
+                edge_colors=edge_colors))
 
         With the ``partition`` option, we can separate out same-color groups
         of vertices::
@@ -784,6 +991,12 @@ class GraphPlot(SageObject):
             sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
             sage: D.show(partition=Pi)
 
+        .. PLOT::
+
+            D = graphs.DodecahedralGraph()
+            Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sphinx_plot(D.plot(partition=Pi))
+
         Loops are also plotted correctly::
 
             sage: G = graphs.PetersenGraph()
@@ -791,18 +1004,42 @@ class GraphPlot(SageObject):
             sage: G.add_edge(0,0)
             sage: G.show()
 
+        .. PLOT::
+
+            G = graphs.PetersenGraph()
+            G.allow_loops(True)
+            G.add_edge(0,0)
+            sphinx_plot(G)
+
         ::
 
             sage: D = DiGraph({0:[0,1], 1:[2], 2:[3]}, loops=True)
             sage: D.show()
             sage: D.show(edge_colors={(0,1,0):[(0,1,None),(1,2,None)],(0,0,0):[(2,3,None)]})
 
+        .. PLOT::
+
+            D = DiGraph({0:[0,1], 1:[2], 2:[3]}, loops=True)
+            P = D.plot(edge_colors={(0,1,0):[(0,1,None),(1,2,None)],(0,0,0):[(2,3,None)]})
+            sphinx_plot(P)
+
         More options::
 
-            sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
+            sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8],
+            ...    3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
             sage: g.graphplot(pos=pos, layout='spring', iterations=0).plot()
             Graphics object consisting of 11 graphics primitives
+
+        .. PLOT:
+
+            pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8],
+                3:[0.6, -0.8], 4:[0.8, 0.3]}
+            g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
+            P = g.graphplot(pos=pos, layout='spring', iterations=0).plot()
+            sphinx_plot(P)
+
+        ::
 
             sage: G = Graph()
             sage: P = G.graphplot().plot()
@@ -820,12 +1057,27 @@ class GraphPlot(SageObject):
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
             Graphics object consisting of 14 graphics primitives
 
+        .. PLOT:
+
+            T = list(graphs.trees(7))
+            t = T[3]
+            sphinx_plot(t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}))
+
         ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
             Graphics object consisting of 14 graphics primitives
+
+        .. PLOT::
+
+            T = list(graphs.trees(7))
+            t = T[3]
+            sphinx_plot(t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}))
+
+        ::
+
             sage: t.set_edge_label(0,1,-7)
             sage: t.set_edge_label(0,5,3)
             sage: t.set_edge_label(0,5,99)
@@ -836,21 +1088,52 @@ class GraphPlot(SageObject):
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True).plot()
             Graphics object consisting of 20 graphics primitives
 
+        .. PLOT::
+
+            T = list(graphs.trees(7))
+            t = T[3]
+            t.set_edge_label(0,1,-7)
+            t.set_edge_label(0,5,3)
+            t.set_edge_label(0,5,99)
+            t.set_edge_label(1,2,1000)
+            t.set_edge_label(3,2,'spam')
+            t.set_edge_label(2,6,3/2)
+            t.set_edge_label(0,4,66)
+            sphinx_plot(t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True))
+
         ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.graphplot(layout='tree').show()
 
+        .. PLOT:
+
+            T = list(graphs.trees(7))
+            t = T[3]
+            sphinx_plot(t.graphplot(layout='tree'))
+
         The tree layout is also useful::
 
             sage: t = DiGraph('JCC???@A??GO??CO??GO??')
             sage: t.graphplot(layout='tree', tree_root=0, tree_orientation="up").show()
 
+        .. PLOT::
+
+            t = DiGraph('JCC???@A??GO??CO??GO??')
+            sphinx_plot(t.graphplot(layout='tree', tree_root=0, tree_orientation="up"))
+
         More examples::
 
             sage: D = DiGraph({0:[1,2,3], 2:[1,4], 3:[0]})
             sage: D.graphplot().show()
+
+        .. PLOT::
+
+            D = DiGraph({0:[1,2,3], 2:[1,4], 3:[0]})
+            sphinx_plot(D.graphplot())
+
+        ::
 
             sage: D = DiGraph(multiedges=True, sparse=True)
             sage: for i in range(5):
@@ -859,11 +1142,28 @@ class GraphPlot(SageObject):
             sage: D.graphplot(edge_labels=True,edge_colors=D._color_by_label()).plot()
             Graphics object consisting of 34 graphics primitives
 
+        .. PLOT::
+
+            D = DiGraph(multiedges=True, sparse=True)
+            for i in range(5):
+                 D.add_edge((i,i+1,'a'))
+                 D.add_edge((i,i-1,'b'))
+            sphinx_plot(D.graphplot(edge_labels=True,edge_colors=D._color_by_label()))
+
+        ::
+
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
             Graphics object consisting of 22 graphics primitives
+
+        .. PLOT::
+
+            g = Graph({}, loops=True, multiedges=True, sparse=True)
+            g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
+                 (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            sphinx_plot(g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed'))
 
         The ``edge_style`` option may be provided in the short format too::
 
@@ -918,8 +1218,11 @@ class GraphPlot(SageObject):
             ymax = G.ymax()
             dx = (xmax-xmin)/10.0
             dy = (ymax-ymin)/10.0
-            border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
-            border.axes_range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
+            border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ),
+                ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )],
+                thickness=1.3))
+            border.axes_range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy),
+                ymax = (ymax + dy))
             G += border
         G.set_aspect_ratio(1)
         G.axes(False)

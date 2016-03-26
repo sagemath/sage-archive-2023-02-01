@@ -46,7 +46,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from cpython.string cimport *
 from libc.math cimport exp, floor, log, pow, sqrt
 from libc.string cimport memcpy
@@ -145,7 +145,7 @@ cdef class TimeSeries:
             np = cnumpy.PyArray_GETCONTIGUOUS(np)
             np_data = <double*> cnumpy.PyArray_DATA(np)
             self._length = np.shape[0]
-            self._values = <double*> sage_malloc(sizeof(double) * self._length)
+            self._values = <double*> sig_malloc(sizeof(double) * self._length)
             if self._values == NULL:
                 raise MemoryError
 
@@ -155,7 +155,7 @@ cdef class TimeSeries:
             values = [float(x) for x in values]
             self._length = len(values)
 
-        self._values = <double*> sage_malloc(sizeof(double) * self._length)
+        self._values = <double*> sig_malloc(sizeof(double) * self._length)
         if self._values == NULL:
             raise MemoryError
         if not initialize: return
@@ -235,7 +235,7 @@ cdef class TimeSeries:
             sage: del v
         """
         if self._values:
-            sage_free(self._values)
+            sig_free(self._values)
 
     def vector(self):
         """
@@ -703,12 +703,12 @@ cdef class TimeSeries:
         if len(right) == 0:
             return
         cdef TimeSeries T = right
-        cdef double* z = <double*> sage_malloc(sizeof(double)*(self._length + T._length))
+        cdef double* z = <double*> sig_malloc(sizeof(double)*(self._length + T._length))
         if z == NULL:
             raise MemoryError
         memcpy(z, self._values, sizeof(double)*self._length)
         memcpy(z + self._length, T._values, sizeof(double)*T._length)
-        sage_free(self._values)
+        sig_free(self._values)
         self._values = z
         self._length = self._length + T._length
 
@@ -1944,7 +1944,7 @@ cdef class TimeSeries:
             return counts, v
 
         cdef Py_ssize_t i
-        cdef Py_ssize_t* cnts = <Py_ssize_t*>sage_malloc(sizeof(Py_ssize_t)*bins)
+        cdef Py_ssize_t* cnts = <Py_ssize_t*>sig_malloc(sizeof(Py_ssize_t)*bins)
         if cnts == NULL:
             raise MemoryError
         for i from 0 <= i < bins:
@@ -1961,7 +1961,7 @@ cdef class TimeSeries:
             counts = [cnts[i]*b for i in range(bins)]
         else:
             counts = [cnts[i] for i in range(bins)]
-        sage_free(cnts)
+        sig_free(cnts)
 
         return counts, v
 
@@ -2558,7 +2558,7 @@ cdef new_time_series(Py_ssize_t length):
         raise ValueError, "length must be nonnegative"
     cdef TimeSeries t = TimeSeries.__new__(TimeSeries)
     t._length = length
-    t._values = <double*> sage_malloc(sizeof(double)*length)
+    t._values = <double*> sig_malloc(sizeof(double)*length)
     return t
 
 def unpickle_time_series_v1(v, Py_ssize_t n):

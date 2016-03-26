@@ -3,6 +3,9 @@
 # $SAGE_ROOT/build/make/Makefile by $SAGE_ROOT/build/make/install
 ###############################################################################
 
+# We need to be able to override this to support ./sage -i -c PKG
+SAGE_SPKG = sage-spkg
+
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:

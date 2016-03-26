@@ -91,7 +91,7 @@ class IntervalExchangeTransformation(SageObject):
         sage: iet.IntervalExchangeTransformation(('a b','b a'),['e','f'])
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (='e') into a real number
+        TypeError: unable to convert 'e' to a float
 
     The value for the lengths must be positive::
 
@@ -203,7 +203,7 @@ class IntervalExchangeTransformation(SageObject):
            sage: s = t.normalize('bla')
            Traceback (most recent call last):
            ...
-           TypeError: unable to convert total (='bla') into a real number
+           TypeError: unable to convert 'bla' to a float
            sage: s = t.normalize(-691)
            Traceback (most recent call last):
            ...
@@ -212,8 +212,7 @@ class IntervalExchangeTransformation(SageObject):
         try:
             float(total)
         except ValueError:
-            raise TypeError("unable to convert total (='%s') into a real number"
-                            % (str(total)))
+            raise TypeError("unable to convert {!r} to a float".format(total))
 
         if total <= 0:
             raise ValueError("the total length must be positive")

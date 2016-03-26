@@ -94,8 +94,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 
 from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT64_LIMIT
 
@@ -174,7 +173,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                 self._entries[i] = 0
 
     def __dealloc__(self):
-        sage_free(self._entries)
+        sig_free(self._entries)
 
     cpdef int _cmp_(left, Element right) except -2:
         """

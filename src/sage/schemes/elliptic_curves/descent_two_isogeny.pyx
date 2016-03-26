@@ -16,7 +16,7 @@ from sage.rings.polynomial.real_roots import real_roots
 from sage.arith.all import prime_divisors
 from sage.all import ntl
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer
@@ -960,7 +960,7 @@ cdef int count(mpz_t c_mpz, mpz_t d_mpz, mpz_t *p_list, unsigned long p_list_len
 
 
     # Set up coefficient array, and static variables
-    cdef mpz_t *coeffs = <mpz_t *> sage_malloc(5 * sizeof(mpz_t))
+    cdef mpz_t *coeffs = <mpz_t *> sig_malloc(5 * sizeof(mpz_t))
     for i from 0 <= i <= 4:
         mpz_init(coeffs[i])
     mpz_set_ui(coeffs[1], ui0)     #
@@ -969,14 +969,14 @@ cdef int count(mpz_t c_mpz, mpz_t d_mpz, mpz_t *p_list, unsigned long p_list_len
 
     if not selmer_only:
         # allocate space for ratpoints
-        coeffs_ratp = <mpz_t *> sage_malloc(5 * sizeof(mpz_t))
+        coeffs_ratp = <mpz_t *> sig_malloc(5 * sizeof(mpz_t))
         for i from 0 <= i <= 4:
             mpz_init(coeffs_ratp[i])
 
     # Get prime divisors, and put them in an mpz_t array
     # (this block, by setting check_negs, takes care of
     # local solubility over RR)
-    cdef mpz_t *p_div_d_mpz = <mpz_t *> sage_malloc((p_list_len+1) * sizeof(mpz_t))
+    cdef mpz_t *p_div_d_mpz = <mpz_t *> sig_malloc((p_list_len+1) * sizeof(mpz_t))
     n_primes = 0
     for i from 0 <= i < p_list_len:
         if mpz_divisible_p(d_mpz, p_list[i]):
@@ -1056,15 +1056,15 @@ cdef int count(mpz_t c_mpz, mpz_t d_mpz, mpz_t *p_list, unsigned long p_list_len
     if not selmer_only:
         for i from 0 <= i <= 4:
             mpz_clear(coeffs_ratp[i])
-        sage_free(coeffs_ratp)
+        sig_free(coeffs_ratp)
     mpz_clear(j)
     for i from 0 <= i < n_primes:
         mpz_clear(p_div_d_mpz[i])
-    sage_free(p_div_d_mpz)
+    sig_free(p_div_d_mpz)
     mpz_clear(n_divisors)
     for i from 0 <= i <= 4:
         mpz_clear(coeffs[i])
-    sage_free(coeffs)
+    sig_free(coeffs)
     return 0
 
 def two_descent_by_two_isogeny(E,
@@ -1220,7 +1220,7 @@ def two_descent_by_two_isogeny_work(Integer c, Integer d,
         mpz_neg(d_prime_mpz, d_prime_mpz)
     if mpz_fits_ulong_p(d_mpz) and mpz_fits_ulong_p(d_prime_mpz):
         # Factor very quickly using FLINT.
-        p_list_mpz = <mpz_t *> sage_malloc(20 * sizeof(mpz_t))
+        p_list_mpz = <mpz_t *> sig_malloc(20 * sizeof(mpz_t))
         mpz_init_set_ui(p_list_mpz[0], ui2)
         p_list_len = 1
         n_factor_init(&fact)
@@ -1255,7 +1255,7 @@ def two_descent_by_two_isogeny_work(Integer c, Integer d,
         P = Integer(2)
         if P not in primes: primes.append(P)
         p_list_len = len(primes)
-        p_list_mpz = <mpz_t *> sage_malloc(p_list_len * sizeof(mpz_t))
+        p_list_mpz = <mpz_t *> sig_malloc(p_list_len * sizeof(mpz_t))
         for i from 0 <= i < p_list_len:
             P = Integer(primes[i])
             mpz_init_set(p_list_mpz[i], P.value)
@@ -1282,7 +1282,7 @@ def two_descent_by_two_isogeny_work(Integer c, Integer d,
 
     for i from 0 <= i < p_list_len:
         mpz_clear(p_list_mpz[i])
-    sage_free(p_list_mpz)
+    sig_free(p_list_mpz)
 
     if verbosity > 0:
         print "\nResults:"

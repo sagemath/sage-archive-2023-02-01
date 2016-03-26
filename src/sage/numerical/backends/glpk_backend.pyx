@@ -27,7 +27,7 @@ from sage.libs.glpk.lp cimport *
 from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
@@ -42,9 +42,9 @@ cdef class GLPKBackend(GenericBackend):
         """
         self.lp = glp_create_prob()
         self.simplex_or_intopt = glp_intopt_only
-        self.smcp = <glp_smcp* > sage_malloc(sizeof(glp_smcp))
+        self.smcp = <glp_smcp* > sig_malloc(sizeof(glp_smcp))
         glp_init_smcp(self.smcp)
-        self.iocp = <glp_iocp* > sage_malloc(sizeof(glp_iocp))
+        self.iocp = <glp_iocp* > sig_malloc(sizeof(glp_iocp))
         glp_init_iocp(self.iocp)
 
         self.iocp.cb_func = glp_callback                      # callback function
@@ -462,20 +462,20 @@ cdef class GLPKBackend(GenericBackend):
         """
         cdef int i, c
         cdef int m = len(constraints)
-        cdef int * rows = <int *>sage_malloc((m + 1) * sizeof(int *))
+        cdef int * rows = <int *>sig_malloc((m + 1) * sizeof(int *))
         cdef int nrows = glp_get_num_rows(self.lp)
 
         for i in xrange(m):
 
             c = constraints[i]
             if c < 0 or c >= nrows:
-                sage_free(rows)
+                sig_free(rows)
                 raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
 
             rows[i+1] = c + 1
 
         glp_del_rows(self.lp, m, rows)
-        sage_free(rows)
+        sig_free(rows)
         glp_std_basis(self.lp)
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
@@ -518,8 +518,8 @@ cdef class GLPKBackend(GenericBackend):
         cdef int * row_i
         cdef double * row_values
 
-        row_i = <int *> sage_malloc((len(coefficients)+1) * sizeof(int))
-        row_values = <double *> sage_malloc((len(coefficients)+1) * sizeof(double))
+        row_i = <int *> sig_malloc((len(coefficients)+1) * sizeof(int))
+        row_values = <double *> sig_malloc((len(coefficients)+1) * sizeof(double))
 
         for i,(c,v) in enumerate(coefficients):
             row_i[i+1] = c+1
@@ -540,8 +540,8 @@ cdef class GLPKBackend(GenericBackend):
         if name is not None:
             glp_set_row_name(self.lp, n, name)
 
-        sage_free(row_i)
-        sage_free(row_values)
+        sig_free(row_i)
+        sig_free(row_values)
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
@@ -618,8 +618,8 @@ cdef class GLPKBackend(GenericBackend):
             (2.0, 2.0)
         """
         cdef int n = glp_get_num_cols(self.lp)
-        cdef int * c_indices = <int*> sage_malloc((n+1)*sizeof(int))
-        cdef double * c_values = <double*> sage_malloc((n+1)*sizeof(double))
+        cdef int * c_indices = <int*> sig_malloc((n+1)*sizeof(int))
+        cdef double * c_values = <double*> sig_malloc((n+1)*sizeof(double))
         cdef list indices = []
         cdef list values = []
         cdef int i,j
@@ -629,8 +629,8 @@ cdef class GLPKBackend(GenericBackend):
             indices.append(c_indices[j]-1)
             values.append(c_values[j])
 
-        sage_free(c_indices)
-        sage_free(c_values)
+        sig_free(c_indices)
+        sig_free(c_values)
 
         return (indices, values)
 
@@ -750,8 +750,8 @@ cdef class GLPKBackend(GenericBackend):
         cdef int * col_i
         cdef double * col_values
 
-        col_i = <int *> sage_malloc((len(indices)+1) * sizeof(int))
-        col_values = <double *> sage_malloc((len(indices)+1) * sizeof(double))
+        col_i = <int *> sig_malloc((len(indices)+1) * sizeof(int))
+        col_values = <double *> sig_malloc((len(indices)+1) * sizeof(double))
 
         for i,v in enumerate(indices):
             col_i[i+1] = v+1
@@ -812,7 +812,7 @@ cdef class GLPKBackend(GenericBackend):
 
             Sage uses GLPK's ``glp_intopt`` to find solutions.
             This routine sometimes FAILS CATASTROPHICALLY
-            when given a system it cannot solve. (Ticket #12309.)
+            when given a system it cannot solve. (:trac:`12309`.)
             Here, "catastrophic" can mean either "infinite loop" or
             segmentation fault. Upstream considers this behavior
             "essentially innate" to their design, and suggests
@@ -2559,11 +2559,11 @@ cdef class GLPKBackend(GenericBackend):
         if k < 0 or k >= n + glp_get_num_rows(self.lp):
             raise ValueError("k = %s; Variable number out of range" % k)
 
-        cdef int    * c_indices = <int*>    sage_malloc((n+1)*sizeof(int))
-        cdef double * c_values  = <double*> sage_malloc((n+1)*sizeof(double))
+        cdef int    * c_indices = <int*>    sig_malloc((n+1)*sizeof(int))
+        cdef double * c_values  = <double*> sig_malloc((n+1)*sizeof(double))
         if c_indices == NULL or c_values == NULL:
-            sage_free(c_indices)
-            sage_free(c_values)
+            sig_free(c_indices)
+            sig_free(c_values)
             raise MemoryError
 
         try:
@@ -2577,8 +2577,8 @@ cdef class GLPKBackend(GenericBackend):
             values  = [c_values[j+1]      for j in range(i)]
             return (indices, values)
         finally:
-            sage_free(c_indices)
-            sage_free(c_values)
+            sig_free(c_indices)
+            sig_free(c_values)
 
     cpdef eval_tab_col(self, int k):
         r"""
@@ -2657,11 +2657,11 @@ cdef class GLPKBackend(GenericBackend):
         if k < 0 or k >= m + glp_get_num_cols(self.lp):
             raise ValueError("k = %s; Variable number out of range" % k)
 
-        cdef int    * c_indices = <int*>    sage_malloc((m+1)*sizeof(int))
-        cdef double * c_values  = <double*> sage_malloc((m+1)*sizeof(double))
+        cdef int    * c_indices = <int*>    sig_malloc((m+1)*sizeof(int))
+        cdef double * c_values  = <double*> sig_malloc((m+1)*sizeof(double))
         if c_indices == NULL or c_values == NULL:
-            sage_free(c_indices)
-            sage_free(c_values)
+            sig_free(c_indices)
+            sig_free(c_values)
             raise MemoryError
 
         try:
@@ -2675,16 +2675,16 @@ cdef class GLPKBackend(GenericBackend):
             values  = [c_values[j+1]      for j in range(i)]
             return (indices, values)
         finally:
-            sage_free(c_indices)
-            sage_free(c_values)
+            sig_free(c_indices)
+            sig_free(c_values)
 
     def __dealloc__(self):
         """
         Destructor
         """
         glp_delete_prob(self.lp)
-        sage_free(self.iocp)
-        sage_free(self.smcp)
+        sig_free(self.iocp)
+        sig_free(self.smcp)
 
 cdef void glp_callback(glp_tree* tree, void* info):
     r"""

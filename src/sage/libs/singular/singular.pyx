@@ -666,8 +666,7 @@ cdef int overflow_check(long e, ring *_ring) except -1:
     TESTS:
 
     Whether an overflow occurs or not, partially depends
-    on the number of variables in the ring. See trac ticket
-    #11856::
+    on the number of variables in the ring. See :trac:`11856`::
 
         sage: P.<x,y,z> = QQ[]
         sage: y^2^30

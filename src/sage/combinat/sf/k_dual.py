@@ -95,7 +95,7 @@ class KBoundedQuotient(UniqueRepresentation, Parent):
             sage: Q = Sym.kBoundedQuotient(3)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert t to a rational
+            TypeError: unable to convert 't' to a rational
             sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
             sage: Q = Sym.kBoundedQuotient(3)
             sage: km = Q.km()

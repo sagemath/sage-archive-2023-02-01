@@ -77,7 +77,7 @@ TESTS::
 
 include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 
@@ -142,7 +142,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         self.p = p
 
 
-        self.rows = <c_vector_modint*> sage_malloc(nr*sizeof(c_vector_modint))
+        self.rows = <c_vector_modint*> sig_malloc(nr*sizeof(c_vector_modint))
         if self.rows == NULL:
             raise MemoryError, "error allocating memory for sparse matrix"
 
@@ -154,7 +154,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef int i
         for i from 0 <= i < self._nrows:
             clear_c_vector_modint(&self.rows[i])
-        sage_free(self.rows)
+        sig_free(self.rows)
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -930,15 +930,15 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         for i from 0 <= i < self._nrows:
             L_row = &(L._matrix[i])
             A_row = &(self.rows[i])
-            sage_free(L_row.entries)
-            L_row.entries = <mpz_t*> sage_malloc(sizeof(mpz_t)*A_row.num_nonzero)
+            sig_free(L_row.entries)
+            L_row.entries = <mpz_t*> sig_malloc(sizeof(mpz_t)*A_row.num_nonzero)
             L_row.num_nonzero = A_row.num_nonzero
             if L_row.entries == NULL:
                 raise MemoryError, "error allocating space for sparse vector during sparse lift"
-            sage_free(L_row.positions)
-            L_row.positions = <Py_ssize_t*> sage_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
+            sig_free(L_row.positions)
+            L_row.positions = <Py_ssize_t*> sig_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
             if L_row.positions == NULL:
-                sage_free(L_row.entries)
+                sig_free(L_row.entries)
                 L_row.entries = NULL
                 raise MemoryError, "error allocating space for sparse vector during sparse lift"
             for j from 0 <= j < A_row.num_nonzero:

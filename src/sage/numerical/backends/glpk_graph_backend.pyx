@@ -73,7 +73,7 @@ from sage.libs.glpk.constants cimport *
 from sage.libs.glpk.graph cimport *
 from sage.numerical.mip import MIPSolverException
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 cdef class GLPKGraphBackend(object):
     """
@@ -845,7 +845,7 @@ cdef class GLPKGraphBackend(object):
         if i < 0:
             raise RuntimeError("Vertex %s does not exist."%(vert))
 
-        cdef int * num = <int *> sage_malloc(2 * sizeof(int))
+        cdef int * num = <int *> sig_malloc(2 * sizeof(int))
         num[1] = i + 1
         cdef int ndel = 1
 
@@ -853,7 +853,7 @@ cdef class GLPKGraphBackend(object):
             raise MemoryError("Error allocating memory.")
 
         glp_del_vertices(self.graph, ndel, num)
-        sage_free(num)
+        sig_free(num)
 
     cpdef delete_vertices(self, list verts):
         r"""
@@ -889,7 +889,7 @@ cdef class GLPKGraphBackend(object):
             i = verts_val.index(-1)
             raise RuntimeError("Vertex %s does not exist."%(verts[i]))
 
-        cdef int * num = <int *> sage_malloc((len(verts_val)+1) * sizeof(int))
+        cdef int * num = <int *> sig_malloc((len(verts_val)+1) * sizeof(int))
         if not num:
             raise MemoryError("Error allocating memory.")
         cdef int ndel = len(verts_val)
@@ -899,7 +899,7 @@ cdef class GLPKGraphBackend(object):
 
         glp_del_vertices(self.graph, ndel, num)
 
-        sage_free(num)
+        sig_free(num)
 
     cpdef delete_edge(self, char* u, char* v, dict params=None):
         """

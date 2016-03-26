@@ -460,21 +460,21 @@ class NFCusp(Element):
         sage: NFCusp(k, I)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to convert I to a cusp of the number field
+        TypeError: unable to convert I to a cusp of the number field
 
     ::
 
         sage: NFCusp(k, oo, oo)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to convert (+Infinity, +Infinity) to a cusp of the number field
+        TypeError: unable to convert (+Infinity, +Infinity) to a cusp of the number field
 
     ::
 
         sage: NFCusp(k, 0, 0)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to convert (0, 0) to a cusp of the number field
+        TypeError: unable to convert (0, 0) to a cusp of the number field
 
     ::
 
@@ -539,7 +539,7 @@ class NFCusp(Element):
                 self.__b = R(1)
             elif isinstance(a, (tuple, list)):
                 if len(a) != 2:
-                    raise TypeError("Unable to convert %s to a cusp \
+                    raise TypeError("unable to convert %r to a cusp \
                                       of the number field"%a)
                 if a[1].is_zero():
                     self.__a = R(1)
@@ -561,7 +561,7 @@ class NFCusp(Element):
                         self.__b = R(r.denominator())
                         self.__a = R(r * self.__b)
                     except (ValueError, TypeError):
-                        raise TypeError("Unable to convert %s to a cusp \
+                        raise TypeError("unable to convert %r to a cusp \
                                           of the number field"%a)
             else:
                 try:
@@ -569,19 +569,19 @@ class NFCusp(Element):
                     self.__b = R(r.denominator())
                     self.__a = R(r * self.__b)
                 except (ValueError, TypeError):
-                    raise TypeError("Unable to convert %s to a cusp \
+                    raise TypeError("unable to convert %r to a cusp \
                                       of the number field"%a)
         else:#'b' is given
             if is_InfinityElement(b):
                 if is_InfinityElement(a) or (isinstance(a, NFCusp) and a.is_infinity()):
-                    raise TypeError("Unable to convert (%s, %s) \
+                    raise TypeError("unable to convert (%r, %r) \
                                       to a cusp of the number field"%(a, b))
                 self.__a = R(0)
                 self.__b = R(1)
                 return
             elif not b:
                 if not a:
-                     raise TypeError("Unable to convert (%s, %s) \
+                     raise TypeError("unable to convert (%r, %r) \
                                        to a cusp of the number field"%(a, b))
                 self.__a = R(1)
                 self.__b = R(0)
@@ -610,14 +610,14 @@ class NFCusp(Element):
                     r = R(a) / b
                 elif isinstance(a, (tuple, list)):
                     if len(a) != 2:
-                        raise TypeError("Unable to convert (%s, %s) \
+                        raise TypeError("unable to convert (%r, %r) \
                                           to a cusp of the number field"%(a, b))
                     r = R(a[0]) / (R(a[1]) * b)
                 else:
                     try:
                         r = number_field(a) / b
                     except (ValueError, TypeError):
-                        raise TypeError("Unable to convert (%s, %s) \
+                        raise TypeError("unable to convert (%r, %r) \
                                           to a cusp of the number field"%(a, b))
                 self.__b = R(r.denominator())
                 self.__a = R(r * self.__b)
@@ -1204,12 +1204,19 @@ def number_of_Gamma0_NFCusps(N):
         sage: L = Gamma0_NFCusps(N)
         sage: len(L) == number_of_Gamma0_NFCusps(N)
         True
+        sage: k.<a> = NumberField(x^2 + 7)
+        sage: N = k.ideal(9)
+        sage: number_of_Gamma0_NFCusps(N)
+        6
+        sage: N = k.ideal(a*9 + 7)
+        sage: number_of_Gamma0_NFCusps(N)
+        24
     """
     k = N.number_field()
     # The number of Gamma0(N)-sub-orbits for each Gamma-orbit:
     from sage.arith.all import divisors
-    s = sum([len(list((d+N/d).invertible_residues_mod(k.unit_group().gens()))) \
-                                                for d in divisors(N)])
+    Ugens = [k(u) for u in k.unit_group().gens()]
+    s = sum([len((d+N/d).invertible_residues_mod(Ugens)) for d in divisors(N)])
     # There are h Gamma-orbits, with h class number of underlying number field.
     return s*k.class_number()
 

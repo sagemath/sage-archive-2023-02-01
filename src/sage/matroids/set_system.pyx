@@ -26,7 +26,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
 
 # SetSystem
@@ -89,7 +89,7 @@ cdef class SetSystem:
         self._groundset_size = len(groundset)
         self._bitset_size = max(self._groundset_size, 1)
         self._capacity = capacity
-        self._subsets = <bitset_t*> sage_malloc(self._capacity * sizeof(bitset_t))
+        self._subsets = <bitset_t*> sig_malloc(self._capacity * sizeof(bitset_t))
         bitset_init(self._temp, self._bitset_size)
         self._len = 0
 
@@ -127,7 +127,7 @@ cdef class SetSystem:
         cdef long i
         for i in xrange(self._len):
             bitset_free(self._subsets[i])
-        sage_free(self._subsets)
+        sig_free(self._subsets)
         bitset_free(self._temp)
 
     def __len__(self):
@@ -270,7 +270,7 @@ cdef class SetSystem:
             bitset_free(self._subsets[i])
         self._len = min(self._len, k)
         k2 = max(k, 1)
-        self._subsets = <bitset_t*> sage_realloc(self._subsets, k2 * sizeof(bitset_t))
+        self._subsets = <bitset_t*> sig_realloc(self._subsets, k2 * sizeof(bitset_t))
         self._capacity = k2
 
     cdef inline _append(self, bitset_t X):
@@ -728,7 +728,7 @@ cdef class SetSystem:
             sage: S._equivalence(lambda self, other, morph:True, T)
             {1: 'c', 2: 'd', 3: 'b', 4: 'a'}
 
-        Check that Trac #15189 is fixed::
+        Check that :trac:`15189` is fixed::
 
             sage: M = Matroid(ring=GF(5), reduced_matrix=[[1,0,3],[0,1,1],[1,1,0]])
             sage: N = Matroid(ring=GF(5), reduced_matrix=[[1,0,1],[0,1,1],[1,1,0]])

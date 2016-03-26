@@ -304,7 +304,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         counts[i] = 0
 
     B_pari = pari(B)
-    f_out = <int *>sage_malloc((n_int+1)*sizeof(int))
+    f_out = <int *>sig_malloc((n_int+1)*sizeof(int))
     if f_out == NULL: raise MemoryError
     for i from 0 <= i < n_int:
         f_out[i] = 0
@@ -344,7 +344,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     # Trivial case
     if n == 1:
-        sage_free(f_out)
+        sig_free(f_out)
         if return_seqs:
             return [[0,0,0,0],[[1,[-1,1]]]]
         elif return_pari_objects:
@@ -444,7 +444,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         elif n_int == 3 and B >= 49 and ((not use_t2) or 5 >= t2val):
             jp_file.write(str([3,[1,-2,-1,1]]) + "\n")
         jp_file.close()
-        sage_free(f_out)
+        sig_free(f_out)
         return
 
     # Convert S to a sorted list of pairs [d, f], taking care to use
@@ -482,7 +482,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
             fsock.close()
         sys.stdout = saveout
 
-    sage_free(f_out)
+    sig_free(f_out)
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [[ZZ(counts[i]) for i in range(4)],

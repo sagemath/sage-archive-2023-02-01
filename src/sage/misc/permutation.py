@@ -5,6 +5,7 @@ functions for the latter representation.
 """
 
 from sage.rings.integer import Integer
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 
 
 def cycles_to_list(t):
@@ -20,8 +21,8 @@ def cycles_to_list(t):
     res = map(Integer, range(max(map(max, t))+1))
 
     for c in t:
-        for j in xrange(len(c)-1):
-            res[c[j]] = c[j+1]
+        for j in xrange(len(c) - 1):
+            res[c[j]] = c[j + 1]
         res[c[-1]] = c[0]
 
     return res
@@ -45,58 +46,48 @@ def str_to_cycles(s):
 
 def init_perm(data):
     """
-    Returns a permutation from different kinds of data
+    Return a permutation from different kinds of data.
+
+    INPUT:
+
+    a list of permutations, each one as:
+
+    - a list of values
+
+    - or a tuple of cycles
+
+    - or a string of cycles
+
+    OUTPUT:
+
+    a list of integers
 
     EXAMPLES::
 
         sage: from sage.misc.permutation import init_perm
-        sage: init_perm([3,2,1,4])
-        [3, 2, 1, 4]
+        sage: init_perm([[3,2,0,1]])
+        [(0,3,1,2)]
 
-        sage: init_perm(([2,1],[3,4,0]))
-        [3, 2, 1, 4, 0]
+        sage: init_perm([([2,1],[3,4,0])])
+        [(0,3,4)(1,2)]
 
-        sage: init_perm('(0,1)(3,2)')
-        [1, 0, 3, 2]
-
-    TESTS::
-
-        sage: init_perm(ZZ(691))
-        Traceback (most recent call last):
-        ...
-        TypeError: the input must be list, tuple or string
+        sage: init_perm(['(0,1)(3,2)'])
+        [(0,1)(2,3)]
     """
-    if isinstance(data, list):
-        return map(Integer, data)
+    if isinstance(data[0], list):  # already given as a list of values
+        pass
+    elif isinstance(data[0], tuple):  # given as a tuple of cycles
+        data = map(cycles_to_list, data)
+    elif isinstance(data[0], str):  # given as a string of cycles
+        data = map(str_to_cycles, data)
+        data = map(cycles_to_list, data)
 
-    if isinstance(data, tuple):
-        return cycles_to_list(data)
-
-    if isinstance(data, str):
-        return cycles_to_list(str_to_cycles(data))
-
-    raise TypeError("the input must be list, tuple or string")
-
-
-def equalize_perms(l):
-    """
-    Ensures that permutations have the same size ?
-
-    INPUT:
-
-    a list of permutations
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import equalize_perms
-        sage: li = [[0, 1], [2, 1, 0]]
-        sage: equalize_perms(li)
-        3
-    """
-    n = max(map(len, l))
-    for p in l:
+    n = max(map(len, data))
+    g = SymmetricGroup(range(n))
+    for p in data:
         p.extend(xrange(len(p), n))
-    return n
+    # return data
+    return [g(u) for u in data]
 
 
 def perm_invert(l):
@@ -113,7 +104,7 @@ def perm_invert(l):
         sage: all(perm_compose(p,perm_invert(p)) == range(3) for p in s3)
         True
     """
-    res = [0]*len(l)
+    res = [0] * len(l)
     for i in xrange(len(l)):
         res[l[i]] = i
     return res
@@ -216,24 +207,25 @@ def perms_are_connected(g, n):
 
     INPUT:
 
-    - a list of permutations of `[0, n-1]`
+    - a list of permutations of `[0, n-1]` (in a SymmetricGroup)
 
     - an integer `n`
 
     EXAMPLES::
 
         sage: from sage.misc.permutation import perms_are_connected
-        sage: perms_are_connected([[0,1,2],[0,2,1]],3)
+        sage: S = SymmetricGroup(range(3))
+        sage: perms_are_connected([S([0,1,2]),S([0,2,1])],3)
         False
-        sage: perms_are_connected([[0,1,2],[1,2,0]],3)
+        sage: perms_are_connected([S([0,1,2]),S([1,2,0])],3)
         True
     """
     from sage.graphs.graph import Graph
     G = Graph()
     if g:
-        G.add_vertices(g[0])
+        G.add_vertices(g[0].domain())
     for p in g:
-        G.add_edges(enumerate(p))
+        G.add_edges(enumerate(p.tuple()))
     return G.num_verts() == n and G.is_connected()
 
 
@@ -243,28 +235,34 @@ def perms_relabel(p, m):
 
     INPUT:
 
-    - `p` is a list of permutations
+    - `p` is a list of permutations (in a SymmetricGroup)
 
-    - `m` is a permutation
+    - `m` is a permutation (in a SymmetricGroup)
+
+    OUTPUT:
+
+    a list of permutations (in a SymmetricGroup)
 
     EXAMPLES::
 
         sage: from sage.misc.permutation import perms_relabel
-        sage: p0 = [[0,3,1,2],[3,0,2,1],[1,2,3,0]]
-        sage: p1 = perms_relabel(p0,[2,1,3,0]); p1
-        [[3, 0, 2, 1], [1, 2, 0, 3], [2, 3, 1, 0]]
+        sage: S = SymmetricGroup(range(4))
+        sage: p0 = [S([0,3,1,2]),S([3,0,2,1]),S([1,2,3,0])]
+        sage: p1 = perms_relabel(p0,S([2,1,3,0])); p1
+        [(0,3,1), (0,1,2), (0,2,1,3)]
 
     Applying the inverse permutation we get back our original permutation::
 
-        sage: p2 = perms_relabel(p1,[3,1,0,2])
+        sage: p2 = perms_relabel(p1,S([3,1,0,2]))
         sage: p2 == p0
         True
     """
-    q = [k[:] for k in p]
-    for i in xrange(len(m)):
+    S = p[0].parent()
+    q = [list(k.tuple()) for k in p]
+    for i in xrange(len(m.domain())):
         for j in xrange(len(p)):
-            q[j][m[i]] = m[p[j][i]]
-    return q
+            q[j][m(i)] = m(p[j](i))
+    return [S(u) for u in q]
 
 
 def perms_canonical_labels_from(x, y, j0, verbose=False):
@@ -291,16 +289,18 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
     EXAMPLES::
 
         sage: from sage.misc.permutation import perms_canonical_labels_from
-        sage: perms_canonical_labels_from([0,1,2],[[1,2,0]],0)
-        [0, 1, 2]
-        sage: perms_canonical_labels_from([1,0,2],[[2,0,1]],0)
-        [0, 1, 2]
-        sage: perms_canonical_labels_from([1,0,2],[[2,0,1]],1)
-        [1, 0, 2]
-        sage: perms_canonical_labels_from([1,0,2],[[2,0,1]],2)
-        [2, 1, 0]
+        sage: S = SymmetricGroup(range(3))
+        sage: perms_canonical_labels_from(S([0,1,2]),[S([1,2,0])],0)
+        ()
+        sage: perms_canonical_labels_from(S([1,0,2]),[S([2,0,1])],0)
+        ()
+        sage: perms_canonical_labels_from(S([1,0,2]),[S([2,0,1])],1)
+        (0,1)
+        sage: perms_canonical_labels_from(S([1,0,2]),[S([2,0,1])],2)
+        (0,2)
     """
-    n = len(x)
+    n = len(x.domain())
+    S = x.parent()
 
     k = 0
     mapping = [None] * n
@@ -314,12 +314,12 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
         waiting[0].append(j0)
         k += 1
         # complete x cycle from j0
-        j = x[j0]
+        j = x(j0)
         while j != j0:
             mapping[j] = k
             waiting[0].append(j)
             k += 1
-            j = x[j]
+            j = x(j)
         if verbose:
             print "completed cycle mapping=", mapping
 
@@ -331,7 +331,7 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
             i = 0
             while i < len(waiting[l]):
                 j1 = waiting[l][i]
-                if mapping[y[l][j1]] is None:
+                if mapping[y[l](j1)] is None:
                     break
                 i += 1
 
@@ -343,13 +343,13 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
                 i = 0
 
             else:  # found: complete cycle from new guy
-                j0 = y[l][j1]
+                j0 = y[l](j1)
                 if l < len(waiting)-1:
                     waiting[l+1].extend(waiting[l][:i+1])
                 del waiting[l][:i+1]
                 break
 
-    return mapping
+    return S(mapping)
 
 
 def perms_canonical_labels(p, e=None):
@@ -373,9 +373,10 @@ def perms_canonical_labels(p, e=None):
     EXAMPLES::
 
         sage: from sage.misc.permutation import perms_canonical_labels
-        sage: l0 = [[2,0,3,1],[3,1,2,0],[0,2,1,3]]
+        sage: S = SymmetricGroup(range(4))
+        sage: l0 = [S([2,0,3,1]),S([3,1,2,0]),S([0,2,1,3])]
         sage: l,m = perms_canonical_labels(l0); l
-        [[1, 2, 3, 0], [0, 3, 2, 1], [2, 1, 0, 3]]
+        [(0,1,2,3), (1,3), (0,2)]
 
         sage: from sage.misc.permutation import perms_relabel
         sage: perms_relabel(l0,m) == l
@@ -389,7 +390,7 @@ def perms_canonical_labels(p, e=None):
     """
     if not len(p) > 1:
         raise ValueError('input must have length >= 2')
-    n = len(p[0])
+    n = len(p[0].domain())
 
     c_win = None
     m_win = range(n)

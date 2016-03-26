@@ -36,7 +36,7 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-
+from sage.arith.srange import srange
 from sage.rings.integer import Integer
 from sage.combinat.partition import Partition
 from sage.graphs.graph import Graph
@@ -179,7 +179,7 @@ class Constellation_class(Element):
         self._connected = connected
         self._mutable = mutable
         self._g = g
-        d = Integer(0) if len(self._g) == 0 else Integer(len(self._g[0]))
+        d = Integer(0) if len(self._g) == 0 else len(self._g[0].domain())
         self._degree = d
         Sd = SymmetricGroup(range(d))
         newg = []
@@ -320,12 +320,11 @@ class Constellation_class(Element):
         for i in xrange(self.length()):
             Sd(self._g[i])
 
-        h = range(self.degree())
+        h = Sd.one()
         for p in self._g:
-            h = perm_compose(h, p)
-        for i in xrange(self.degree()):
-            if h[i] != i:
-                raise ValueError("The product is not identity")
+            h = h * p
+        if h != Sd.one():
+            raise ValueError("The product is not identity")
 
         if self._connected and not perms_are_connected(self._g, self.degree()):
             raise ValueError("not connected")
@@ -774,7 +773,7 @@ class Constellation_class(Element):
             g = [[None] * self.degree() for _ in xrange(self.length())]
             for i in xrange(len(perm)):
                 for k in xrange(self.length()):
-                    g[k][perm[i]] = perm[self._g[k][i]]
+                    g[k][perm[i]] = perm[self._g[k](i)]
             return Constellation(g=g, check=False, mutable=self.is_mutable())
 
         if return_map:
@@ -870,7 +869,7 @@ class Constellation_class(Element):
         newsj = self._newg[j]
         h._g[i] = sj
         h._newg[i] = newsj
-        h._g[j] = perm_compose(perm_compose(perm_invert(sj), si), sj)
+        h._g[j] = (~sj * si) * sj
         h._newg[j] = newsj.inverse() * newsi * newsj
         return h
 
@@ -957,7 +956,8 @@ class Constellations_all(UniqueRepresentation, Parent):
         else:
             return "Constellations"
 
-    def _element_constructor_(self, g, check=True, mutable=False):
+    def _element_constructor_(self, g, input_type=None,
+                              check=True, mutable=False):
         r"""
         Return a constellation.
 
@@ -980,16 +980,23 @@ class Constellations_all(UniqueRepresentation, Parent):
             else:
                 raise ValueError("only one permutation must be None")
 
-            gg = map(init_perm, g)
-            equalize_perms(gg)
+            gg = init_perm(g)
+
+            # if i is not None:
+            #     h = range(len(gg[0]))
+            #     for p in gg[i:]:
+            #         h = perm_compose(h, p)
+            #     for p in gg[:i]:
+            #         h = perm_compose(h, p)
+            #     gg.insert(i, perm_invert(h))
 
             if i is not None:
-                h = range(len(gg[0]))
+                h = gg[0].parent().one()
                 for p in gg[i:]:
-                    h = perm_compose(h, p)
+                    h = h * p
                 for p in gg[:i]:
-                    h = perm_compose(h, p)
-                gg.insert(i, perm_invert(h))
+                    h = h * p
+                gg.insert(i, ~h)
 
         return self.element_class(self, gg, check, self._connected, mutable)
 
@@ -1176,7 +1183,6 @@ class Constellations_ld(UniqueRepresentation, Parent):
             sage: Constellations(4,4).cardinality()  # long time
             12858
         """
-        from sage.arith.srange import srange
         from itertools import product, permutations
 
         if self._length == 1:
@@ -1493,7 +1499,6 @@ class Constellations_p(UniqueRepresentation, Parent):
             g1 (0,3,1)(2)
             g2 (0,1)(2,3)
         """
-        from sage.misc.misc import srange
         from itertools import product, permutations
 
         if self._length == 1:

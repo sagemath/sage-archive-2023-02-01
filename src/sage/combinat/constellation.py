@@ -1176,7 +1176,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
             sage: Constellations(4,4).cardinality()  # long time
             12858
         """
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
         from itertools import product, permutations
 
         if self._length == 1:
@@ -1192,7 +1192,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
 
     def random_element(self, mutable=False):
         r"""
-        a random element
+        Return a random element.
 
         EXAMPLES::
 

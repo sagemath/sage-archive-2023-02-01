@@ -10,7 +10,7 @@ AUTHORS:
 
 .. WARNING::
 
-    The optional package for GAP3 is Jean Michel's pre-packaged GAP3,
+    The experimental package for GAP3 is Jean Michel's pre-packaged GAP3,
     which is a minimal GAP3 distribution containing packages that have
     no equivalent in GAP4, see
 
@@ -19,7 +19,7 @@ AUTHORS:
 Obtaining GAP3
 --------------
 
-Instead of installing the optional GAP3 package, one can as well install
+Instead of installing the experimental GAP3 package, one can as well install
 by hand either of the following two versions of GAP3:
 
 - Frank Luebeck maintains a GAP3 Linux executable, optimized

@@ -215,10 +215,8 @@ class pAdicLseries(SageObject):
         if self._use_eclib:
             verbose('Currently there is no negative modular symbols in eclib, so we have to fall back on the implementation of modular symbols in sage')
             # once there is a eclib implementation of -1, this should be changed.
-            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
-        else:
-            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
-
+        self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
+        
     def __cmp__(self,other):
         r"""
         Compare self and other.
@@ -298,7 +296,7 @@ class pAdicLseries(SageObject):
         Note also that this function does not check if the condition
         on the quadratic_twist=D is satisfied. So the result will only
         be correct if for each prime `\ell` dividing `D`, we have
-        `ord_{\ell(N)}<= ord_{\ell}(D)`, where `N` is the conductor of the curve.
+        `ord_{\ell}(N)<= ord_{\ell}(D)`, where `N` is the conductor of the curve.
 
         INPUT:
 
@@ -343,7 +341,9 @@ class pAdicLseries(SageObject):
                 raise NotImplementedError("Quadratic twists for negative modular symbols are not yet implemented.")
             if D > 0:
                 m = self._modular_symbol
-                s = ZZ(+1)
+                return sum([ kronecker_symbol(D,u) * m(r+ZZ(u)/D) \
+                             for u in range(1,D) ] )
+
             else:
                 try:
                     m = self._negative_modular_symbol
@@ -351,10 +351,12 @@ class pAdicLseries(SageObject):
                     if not hasattr(self, '_modular_symbol_negative'):
                         self.__add_negative_space()
                         m = self._negative_modular_symbol
-                s = ZZ(-1)
+                return -sum([ kronecker_symbol(D,u) * m(r+ZZ(u)/D) \
+                             for u in range(1,-D) ] )
+
             # without the ZZ here the u is treated as a 'int' and dividing by D gives 0
             # this only happens when it is called from __init__ (?)
-            return s * sum([kronecker_symbol(D,u) * m(r+ZZ(u)/D) for u in range(1,abs(D))])
+            #return s * sum([kronecker_symbol(D,u) * m(r+ZZ(u)/D) for u in range(1,abs(D))])
 
 
     def measure(self, a, n, prec, quadratic_twist=+1, sign = +1):
@@ -449,7 +451,7 @@ class pAdicLseries(SageObject):
         if quadratic_twist == 1:
             if self._E.conductor() % p == 0:
                 return z * f(a/(p*w))
-            return z * f(a/(p*w)) - (z/alpha) * f(a/w)
+            return z * ( f(a/(p*w)) - f(a/w) / alpha)
         else:
             D = quadratic_twist
             if self.is_ordinary():
@@ -457,9 +459,9 @@ class pAdicLseries(SageObject):
             else:
                 chip = 1 # alpha is +- sqrt(-p) anyway
             if self._E.conductor() % p == 0:
-                mu = chip**n * z * sum([kronecker_symbol(D,u) * f(a/(p*w)+ZZ(u)/D) for u in range(1,abs(D))])
+                mu = chip**n * z * sum([kronecker_symbol(D,u) * f(a/(p*w)+ZZ(u)/D) for u in range(1,D.abs())])
             else:
-                mu = chip**n * sum([kronecker_symbol(D,u) *(z * f(a/(p*w)+ZZ(u)/D) - chip *(z/alpha)* f(a/w+ZZ(u)/D)) for u in range(1,abs(D))])
+                mu = chip**n * z * sum([kronecker_symbol(D,u) *( f(a/(p*w)+ZZ(u)/D) - chip /alpha * f(a/w+ZZ(u)/D) ) for u in range(1,D.abs())])
             return s*mu
  
     def alpha(self, prec=20):
@@ -750,12 +752,12 @@ class pAdicLseries(SageObject):
             return 1
         Et = self._E.quadratic_twist(D)
         if D > 1:
-            qt = self._E.period_lattice().basis()[0]/Et.period_lattice().basis()[0]
+            qt = Et.period_lattice().basis()[0]/self._E.period_lattice().basis()[0]
             qt *= sqrt(qt.parent()(D))
         else:
-            qt = self._E.period_lattice().basis()[0]/Et.period_lattice().basis()[1].imag()
+            qt = Et.period_lattice().basis()[1].imag()/self._E.period_lattice().basis()[0]
             if Et.real_components() == 1:
-                qt /= 2
+                qt *= 2
             qt *= sqrt(qt.parent()(-D))
         verbose('the real approximation is %s'%qt)
         # we know from MTT that the result has a denominator 1
@@ -894,7 +896,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 # set prec arbitrary to 20.
                 K = Qp(p, 20, print_mode='series')
                 R = PowerSeriesRing(K,'T',1)
-                L = self.modular_symbol(0, sign=+1, quadratic_twist= D)
+                L = self.modular_symbol(0, sign=+1, quadratic_twist=D)
                 chip = kronecker_symbol(D,p)
                 if self._E.conductor() % p == 0:
                     L *= 1 - chip/self.alpha()
@@ -930,6 +932,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         gamma_power = K(1)
         teich = self.teichmuller(padic_prec)
         p_power = p**(n-1)
+        si = 1-2*(eta % 2)
 
         verbose("Now iterating over %s summands"%((p-1)*p_power))
         verbose_level = get_verbose()
@@ -941,7 +944,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
-                s += teich[a]**eta * self.measure(b, n, padic_prec,quadratic_twist=D, sign = 1-2*(eta % 2)).lift()
+                s += teich[a]**eta * self.measure(b, n, padic_prec, quadratic_twist=D, sign=si).lift()
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
@@ -1148,9 +1151,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
                 alpha = self.alpha(prec=20)
                 K = alpha.parent()
                 R = PowerSeriesRing(K,'T',1)
-                L = self.modular_symbol(0, sign=+1, quadratic_twist= D)
-                chip = kronecker_symbol(D,p)
-                L *= (1-chip/self.alpha())**2
+                L = self.modular_symbol(0, sign=+1, quadratic_twist=D)
+                #chip = kronecker_symbol(D,p)
+                L *= (1-1/self.alpha())**2
                 L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
                 L = R(L, 1)
                 return L
@@ -1180,6 +1183,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         one_plus_T_factor = R(1)
         gamma_power = 1
         teich = self.teichmuller(padic_prec)
+        si = 1-2*(eta % 2)
 
         verbose("Now iterating over %s summands"%((p-1)*p**(n-1)))
         verbose_level = get_verbose()
@@ -1191,7 +1195,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
                 count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
-                s += teich[a]**eta * self.measure(b, n, padic_prec,quadratic_twist=D, sign=1-2*(eta % 2))
+                s += teich[a]**eta * self.measure(b, n, padic_prec, quadratic_twist=D, sign=si)
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma

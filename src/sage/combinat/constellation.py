@@ -200,11 +200,11 @@ class Constellation_class(Element):
 
             sage: c = Constellation(([0,2,1],[2,1,0],[1,2,0]), mutable=False)
             sage: c.__hash__()
-            2148362403144019871
+            5481133608926415725
         """
         if self._mutable:
             raise ValueError("can not hash mutable constellation")
-        return hash(tuple(map(tuple, self._g)))
+        return hash(tuple(self._g))
 
     def set_immutable(self):
         r"""
@@ -344,7 +344,7 @@ class Constellation_class(Element):
             sage: c is copy(c)
             False
         """
-        return self.parent()([gg[:] for gg in self._g],
+        return self.parent()([gg for gg in self._g],
                              check=False,
                              mutable=self._mutable)
 
@@ -361,7 +361,7 @@ class Constellation_class(Element):
             sage: d.is_mutable()
             True
         """
-        return self.parent()([gg[:] for gg in self._g],
+        return self.parent()([gg for gg in self._g],
                              check=False,
                              mutable=True)
 
@@ -434,7 +434,7 @@ class Constellation_class(Element):
             for k in xrange(self.length()):
                 tmp = [None] * len(m[t])
                 for i in xrange(len(m[t])):
-                    tmp[i] = m_inv[self._g[k][m[t][i]]]
+                    tmp[i] = m_inv[self._g[k](m[t][i])]
                 g[t].append(tmp)
         return [Constellation(g=g[i], check=False) for i in xrange(len(m))]
 
@@ -499,7 +499,7 @@ class Constellation_class(Element):
             on, on_map = other.relabel(return_map=True)
             if sn != on:
                 return False, None
-            return True, perm_compose(sn_map, perm_invert(on_map))
+            return True, sn_map * ~on_map
 
         return (self.degree() == other.degree() and
                 self.length() == other.length() and
@@ -521,9 +521,8 @@ class Constellation_class(Element):
         if self.degree() != other.degree():
             return self.degree().__cmp__(other.degree())
         for i in xrange(self.length() - 1):
-            for j in xrange(self.degree() - 1):
-                if self._g[i][j] != other._g[i][j]:
-                    return self._g[i][j].__cmp__(other._g[i][j])
+            if self._g[i] != other._g[i]:
+                return self._g[i].__cmp__(other._g[i])
         return 0
 
     def _repr_(self):
@@ -611,17 +610,20 @@ class Constellation_class(Element):
 
             sage: c = Constellation(['(0,1,2)(3,4)','(0,3)',None])
             sage: c.g(0)
-            [1, 2, 0, 4, 3]
+            (0,1,2)(3,4)
             sage: c.g(1)
-            [3, 1, 2, 0, 4]
+            (0,3)
             sage: c.g(2)
-            [4, 0, 1, 2, 3]
+            (0,4,3,2,1)
+            sage: c.g()
+            [(0,1,2)(3,4), (0,3), (0,4,3,2,1)]
         """
         from copy import copy
         if i is None:
-            return map(copy, self._g)
+            return copy(self._g)
         else:
-            return copy(self._g[i])
+            gi = self._g[i]
+            return gi.parent()(gi)
 
     def g_cycle_tuples(self, i, singletons=False):
         r"""
@@ -751,7 +753,8 @@ class Constellation_class(Element):
             sage: c3 == c2 and c3 == c.relabel(perm=perm)
             True
 
-            sage: d = c.relabel([4,3,1,0,2]); d
+            sage: S5 = SymmetricGroup(range(5))
+            sage: d = c.relabel(S5([4,3,1,0,2])); d
             Constellation of length 3 and degree 5
             g0 (0,2,1)(3,4)
             g1 (0)(1)(2,3)(4)
@@ -763,17 +766,17 @@ class Constellation_class(Element):
         isomorphic to the initial one::
 
             sage: c = Constellation(['(0,1)(2,3,4)','(1,4)',None])
-            sage: p = SymmetricGroup(c.degree()).random_element()
-            sage: cc = c.relabel([x-1 for x in p.domain()]).relabel()
+            sage: p = S5.random_element()
+            sage: cc = c.relabel(perm=p)
             sage: cc.is_isomorphic(c)
             True
         """
         if perm is not None:
-            perm.extend(xrange(len(perm), self.degree()))
+            # perm.extend(xrange(len(perm), self.degree()))
             g = [[None] * self.degree() for _ in xrange(self.length())]
-            for i in xrange(len(perm)):
+            for i in xrange(len(perm.domain())):
                 for k in xrange(self.length()):
-                    g[k][perm[i]] = perm[self._g[k](i)]
+                    g[k][perm(i)] = perm(self._g[k](i))
             return Constellation(g=g, check=False, mutable=self.is_mutable())
 
         if return_map:
@@ -956,8 +959,7 @@ class Constellations_all(UniqueRepresentation, Parent):
         else:
             return "Constellations"
 
-    def _element_constructor_(self, g, input_type=None,
-                              check=True, mutable=False):
+    def _element_constructor_(self, g, check=True, mutable=False):
         r"""
         Return a constellation.
 
@@ -981,14 +983,6 @@ class Constellations_all(UniqueRepresentation, Parent):
                 raise ValueError("only one permutation must be None")
 
             gg = init_perm(g)
-
-            # if i is not None:
-            #     h = range(len(gg[0]))
-            #     for p in gg[i:]:
-            #         h = perm_compose(h, p)
-            #     for p in gg[:i]:
-            #         h = perm_compose(h, p)
-            #     gg.insert(i, perm_invert(h))
 
             if i is not None:
                 h = gg[0].parent().one()
@@ -1183,18 +1177,18 @@ class Constellations_ld(UniqueRepresentation, Parent):
             sage: Constellations(4,4).cardinality()  # long time
             12858
         """
-        from itertools import product, permutations
+        from itertools import product
 
         if self._length == 1:
             if self._degree == 1:
                 yield self([[0]])
             return
 
-        for p in product(permutations(srange(self._degree)),
-                         repeat=self._length - 1):
+        S = SymmetricGroup(range(self._degree))
+        for p in product(S, repeat=self._length - 1):
             if self._connected and not perms_are_connected(p, self._degree):
                 continue
-            yield self(map(list, p) + [None], check=False)
+            yield self(list(p) + [None], check=False)
 
     def random_element(self, mutable=False):
         r"""
@@ -1499,18 +1493,19 @@ class Constellations_p(UniqueRepresentation, Parent):
             g1 (0,3,1)(2)
             g2 (0,1)(2,3)
         """
-        from itertools import product, permutations
+        from itertools import product
 
         if self._length == 1:
             if self._degree == 1:
                 yield self([[0]])
             return
 
-        for p in product(permutations(srange(self._degree)),
-                         repeat=self._length - 1):
+        S = SymmetricGroup(srange(self._degree))
+        for p in product(S, repeat=self._length - 1):
             if self._connected and not perms_are_connected(p, self._degree):
                 continue
-            c = Constellations(connected=self._connected)(map(list, p) + [None], check=False)
+            c = Constellations(connected=self._connected)(list(p) + [None],
+                                                          check=False)
             if c.profile() == self._profile:
                 yield c
 

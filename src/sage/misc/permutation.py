@@ -6,6 +6,8 @@ functions for the latter representation.
 
 from sage.rings.integer import Integer
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement 
+from sage.categories.groups import Groups
 
 
 def cycles_to_list(t):
@@ -52,7 +54,9 @@ def init_perm(data):
 
     a list of permutations, each one as:
 
-    - a list of values
+    - an element of a SymmetricGroup
+
+    - or a list of values
 
     - or a tuple of cycles
 
@@ -60,7 +64,7 @@ def init_perm(data):
 
     OUTPUT:
 
-    a list of integers
+    a list of permutations in a SymmetricGroup
 
     EXAMPLES::
 
@@ -73,6 +77,10 @@ def init_perm(data):
 
         sage: init_perm(['(0,1)(3,2)'])
         [(0,1)(2,3)]
+
+        sage: S = SymmetricGroup(range(4))
+        sage: init_perm([S([3,1,2,0])])
+        [(0,3)]
     """
     if isinstance(data[0], list):  # already given as a list of values
         pass
@@ -81,6 +89,8 @@ def init_perm(data):
     elif isinstance(data[0], str):  # given as a string of cycles
         data = map(str_to_cycles, data)
         data = map(cycles_to_list, data)
+    elif data[0].parent() in Groups:
+        return data
 
     n = max(map(len, data))
     g = SymmetricGroup(range(n))
@@ -88,73 +98,6 @@ def init_perm(data):
         p.extend(xrange(len(p), n))
     # return data
     return [g(u) for u in data]
-
-
-def perm_invert(l):
-    r"""
-    Returns the inverse of the permutation `l`
-
-    TESTS::
-
-        sage: from itertools import permutations
-        sage: from sage.misc.permutation import perm_invert, perm_compose
-        sage: s3 =permutations(range(3))
-        sage: all(perm_compose(perm_invert(p),p) == range(3) for p in s3)
-        True
-        sage: all(perm_compose(p,perm_invert(p)) == range(3) for p in s3)
-        True
-    """
-    res = [0] * len(l)
-    for i in xrange(len(l)):
-        res[l[i]] = i
-    return res
-
-
-def perm_compose(l1, l2):
-    r"""
-    Returns the product `p_1 * p_2` where `p_1` and `p_2` are the permutations
-    associated to `l_1` and `l_2`
-
-    INPUT:
-
-    two lists that are permutations on `[0, n-1]`.
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perm_compose
-        sage: perm_compose([0,2,1],[0,2,1])
-        [0, 1, 2]
-    """
-    return [l2[l1[i]] for i in xrange(len(l1))]
-
-
-def perm_compose_i(l1, l2):
-    r"""
-    Returns the product `p_1^{-1} * p_2^{-1}` where `p_1` and `p_2` are the
-    permutations associated to the list `l_1` and `l_2`
-
-    INPUT:
-
-    two lists that are permutations on `[0, n-1]`.
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perm_compose_i
-        sage: perm_compose_i([0,1,2],[1,2,0])
-        [2, 0, 1]
-        sage: perm_compose_i([0,1,2],[1,2])
-        Traceback (most recent call last):
-        ...
-        ValueError: inputs must have the same size
-    """
-    if not(len(l1) == len(l2)):
-        raise ValueError('inputs must have the same size')
-
-    res = [None]*len(l1)
-    for i in xrange(len(l1)):
-        res[l2[l1[i]]] = i
-
-    return res
 
 
 def perm_orbit(p, i):

@@ -1409,7 +1409,7 @@ ext_modules = [
 
     Extension('sage.rings.number_field.number_field_element',
               sources = ['sage/rings/number_field/number_field_element.pyx'],
-              libraries=['ntl'],
+              libraries=['ntl', 'mpfr', 'mpfi'],
               language = 'c++'),
 
     Extension('sage.rings.number_field.number_field_element_quadratic',

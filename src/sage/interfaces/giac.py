@@ -1060,9 +1060,7 @@ class GiacElement(ExpectElement):
         ::
 
             sage: f = giac('exp(x^2)').integral('x',0,1) ; f                # optional - giac
-            integra...
-            sage: f.evalf(10)                                              # optional - giac
-            1.462651746
+            1.46265174...
             sage: x,y=giac('x'),giac('y');integrate(cos(x+y),'x=0..pi').simplify()     # optional - giac
             -2*sin(y)
         """

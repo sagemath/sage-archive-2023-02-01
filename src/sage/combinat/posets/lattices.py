@@ -1087,7 +1087,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         A lattice is upper semimodular if for any `x` in the lattice that is
         covered by `y` and `z`, both `y` and `z` are covered by their join.
 
-        See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
+        .. SEEALSO::
+
+            :meth:`is_modular` and :meth:`is_lower_semimodular`.
 
         See :wikipedia:`Semimodular_lattice`
 
@@ -1129,7 +1131,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         A lattice is lower semimodular if for any `x` in the lattice that covers
         `y` and `z`, both `y` and `z` cover their meet.
 
-        See also :meth:`is_modular` and :meth:`is_upper_semimodular`.
+        .. SEEALSO::
+
+            :meth:`is_modular` and :meth:`is_upper_semimodular`.
 
         See :wikipedia:`Semimodular_lattice`
 

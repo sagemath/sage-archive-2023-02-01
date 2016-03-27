@@ -25,7 +25,7 @@ from sage.modules.all import vector
 
 cdef class InteractiveLPBackend:
 
-    def __cinit__(self, maximization = True):
+    def __cinit__(self, maximization = True, base_ring = None):
         """
         Cython constructor
 
@@ -44,7 +44,11 @@ cdef class InteractiveLPBackend:
             2.291796067500631?
         """
 
-        self.lp = InteractiveLPProblem([], [], [], base_ring=self.base_ring())
+        if base_ring is None:
+            from sage.rings.all import AA
+            base_ring = AA
+
+        self.lp = InteractiveLPProblem([], [], [], base_ring=base_ring)
         self.set_verbosity(0)
 
         if maximization:
@@ -57,8 +61,21 @@ cdef class InteractiveLPBackend:
         self.row_names = []
 
     cpdef base_ring(self):
-        from sage.rings.all import AA  #### FIXME ---- Would rather have this as a parameter...
-        return AA
+        """
+        Return the base ring.
+
+        OUTPUT:
+
+        A ring. The coefficients that the chosen solver supports.
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "InteractiveLP")
+            sage: p.base_ring()
+            Algebraic Real Field
+        """
+        return self.lp.base_ring()
 
     def _variable_type_from_bounds(self, lower_bound, upper_bound):
         if lower_bound is None:

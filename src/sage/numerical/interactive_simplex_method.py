@@ -1240,7 +1240,7 @@ class InteractiveLPProblem(SageObject):
             sage: P.is_optimal(501, -3)
             False
         """
-        return self.optimal_value() == self.value(x) and self.is_feasible(x)
+        return self.optimal_value() == self.value(*x) and self.is_feasible(*x)
         
     def n_constraints(self):
         r"""
@@ -1555,11 +1555,15 @@ class InteractiveLPProblem(SageObject):
         result.set_aspect_ratio(1)
         return result
 
-    def standard_form(self, **kwds):
+    def standard_form(self, transformation=False, **kwds):
         r"""
         Construct the LP problem in standard form equivalent to ``self``.
         
         INPUT:
+        
+        - ``transformation`` -- (default: ``False``) if ``True``, a map
+          converting solutions of the problem in standard form to the original
+          one will be returned as well
         
         - you can pass (as keywords only) ``slack_variables``,
           ``auxiliary_variable``,``objective_name`` to the constructor of
@@ -1567,14 +1571,15 @@ class InteractiveLPProblem(SageObject):
 
         OUTPUT:
 
-        - an :class:`InteractiveLPProblemStandardForm`
+        - an :class:`InteractiveLPProblemStandardForm` by itself or a tuple
+          with variable transformation as the second component
 
         EXAMPLES::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=">=")
             sage: DP = P.dual()
             sage: DPSF = DP.standard_form()
             sage: DPSF.b()
@@ -1584,8 +1589,38 @@ class InteractiveLPProblem(SageObject):
             sage: DPSF = DP.standard_form(slack_variables=["L", "F"])
             sage: DPSF.slack_variables()
             (L, F)
+            sage: DPSF, f = DP.standard_form(True)
+            sage: f
+            Vector space morphism represented by the matrix:
+            [1 0]
+            [0 1]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
+            
+        A more complicated transfromation map::
+
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=["<=", ""])
+            sage: PSF, f = P.standard_form(True)
+            sage: f
+            Vector space morphism represented by the matrix:
+            [-1  0]
+            [ 0  1]
+            [ 0 -1]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
+            sage: PSF.optimal_solution()
+            (0, 1000, 0)
+            sage: P.optimal_solution()
+            (0, 1000)
+            sage: P.is_optimal(PSF.optimal_solution())
+            Traceback (most recent call last):
+            ...
+            TypeError: given input is not a solution for this problem
+            sage: P.is_optimal(f(PSF.optimal_solution()))
+            True
         """
         A, b, c, x = self.Abcx()
+        f = identity_matrix(self.n()).columns()
         if not all(ct == "<=" for ct in self._constraint_types):
             newA = []
             newb = []
@@ -1602,11 +1637,14 @@ class InteractiveLPProblem(SageObject):
             newA = []
             newc = []
             newx = []
-            for vt, Aj, cj, xj in zip(self._variable_types, A.columns(), c, x):
+            newf = []
+            for vt, Aj, cj, xj, fj in zip(
+                                self._variable_types, A.columns(), c, x, f):
                 xj = str(xj)
                 if vt in [">=", ""]:
                     newA.append(Aj)
                     newc.append(cj)
+                    newf.append(fj)
                 if vt == ">=":
                     newx.append(xj)
                 if vt == "":
@@ -1615,9 +1653,11 @@ class InteractiveLPProblem(SageObject):
                     newA.append(-Aj)
                     newc.append(-cj)
                     newx.append(xj + "_n")
+                    newf.append(-fj)
             A = column_matrix(newA)
             c = vector(newc)
             x = newx
+            f = newf
             
         objective_name = SR(kwds.get("objective_name", default_variable_name(
             "primal objective" if self.is_primal() else "dual objective")))
@@ -1629,7 +1669,9 @@ class InteractiveLPProblem(SageObject):
         kwds["objective_name"] = objective_name
         kwds["problem_type"] = "-max" if is_negative else "max"
         kwds["is_primal"] = self.is_primal()
-        return InteractiveLPProblemStandardForm(A, b, c, x, **kwds)
+        P = InteractiveLPProblemStandardForm(A, b, c, x, **kwds)
+        f = P.c().parent().hom(f, self.c().parent())
+        return (P, f) if transformation else P
         
     def value(self, *x):
         r"""

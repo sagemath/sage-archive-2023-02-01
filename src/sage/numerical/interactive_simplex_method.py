@@ -1542,7 +1542,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
       problem type: either ``"max"`` or ``"-max"``
 
     - ``slack_variables`` -- (default: depends on :func:`style`)
-      a vector of slack variables or a sting giving the base name
+      a vector of slack variables or a string giving the base name
 
     - ``auxiliary_variable`` -- (default: same as ``x`` parameter with adjoined
       ``"0"`` if it was given as a string, otherwise ``"x0"``) the auxiliary

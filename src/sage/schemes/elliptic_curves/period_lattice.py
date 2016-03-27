@@ -137,7 +137,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         - ``E`` -- an elliptic curve
 
-        - ``embedding`` (defult: ``None``) -- an embedding of the base
+        - ``embedding`` (default: ``None``) -- an embedding of the base
           field `K` of ``E`` into a real or complex field.  If
           ``None``:
 

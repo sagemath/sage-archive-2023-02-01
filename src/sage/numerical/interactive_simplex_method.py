@@ -1100,8 +1100,17 @@ class InteractiveLPProblem(SageObject):
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.is_bounded()
             True
+            
+        Note that infeasible problems are always bounded::
+
+            sage: b = (-1000, 1500)
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=">=")
+            sage: P.is_feasible()
+            False
+            sage: P.is_bounded()
+            True
         """
-        return self._solve()[0] is not None
+        return self.optimal_solution() is not None or not self.is_feasible()
 
     def is_feasible(self):
         r"""
@@ -1120,7 +1129,7 @@ class InteractiveLPProblem(SageObject):
             sage: P.is_feasible()
             True
         """
-        return self._solve()[1] is not None
+        return self.optimal_value() is not None
 
     def is_primal(self):
         r"""

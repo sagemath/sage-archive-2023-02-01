@@ -5,23 +5,6 @@ Permutation in Sage works by default on `{1, 2, ..., n}` but it might be much
 more convenient to work on `{0, 1, ..., n-1}`. This module provide simple
 functions for the latter representation.
 """
-from sage.rings.integer import Integer
-
-
-def str_to_cycles(s):
-    """
-    Returns a list of cycles from a string
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import str_to_cycles
-        sage: str_to_cycles('(0,1)')
-        ((0, 1),)
-        sage: str_to_cycles('(0,1)(3,2)')
-        ((0, 1), (3, 2))
-    """
-    return tuple(tuple(map(Integer, c_str.replace(' ', '').split(',')))
-                 for c_str in s[1:-1].split(')('))
 
 
 def perms_are_connected(g, n):

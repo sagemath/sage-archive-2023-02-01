@@ -43,8 +43,7 @@ from sage.misc.misc_c import prod
 from sage.categories.groups import Groups
 
 # we import something from sage.misc.permutation
-from sage.misc.permutation import (perms_are_connected,
-                                   str_to_cycles, perms_canonical_labels)
+from sage.misc.permutation import (perms_are_connected, perms_canonical_labels)
 
 # constructors
 
@@ -1026,11 +1025,14 @@ class Constellations_all(UniqueRepresentation, Parent):
             d = max(map(len, gg))
             for p in gg:
                 p.extend(xrange(len(p), d))
-        elif isinstance(gg[0], tuple):  # perms given as tuples of cycles
+        elif isinstance(gg[0], tuple):
+            # perms given as tuples of cycles
             d = 1 + max(i for p in gg for cyc in p for i in cyc)
         elif isinstance(gg[0], str):  # perms given as strings of cycles
-            gg = map(str_to_cycles, gg)
-            d = 1 + max(i for p in gg for cyc in p for i in cyc)
+            numbers = [Integer(n) for s in gg for c_str in s[1:-1].split(')(')
+                       for n in c_str.replace(' ', '').split(',')]
+            d = 1 + max(numbers)
+
         elif gg[0].parent() in Groups:
             d = len(gg[0].domain())
             in_sym_group = True

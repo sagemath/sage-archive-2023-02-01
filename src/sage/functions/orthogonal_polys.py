@@ -1610,11 +1610,11 @@ class Func_assoc_legendre_P(BuiltinFunction):
             2*sqrt(2)*gamma(19/4)/(sqrt(pi)*gamma(13/4))
             sage: (m,n) = var('m,n')
             sage: gen_legendre_P(n,m,0)
-            2^m*cos(1/2*pi*(m + n))*gamma(1/2*m + 1/2*n + 1/2)/(sqrt(pi)*gamma(-1/2*m + 1/2*n + 1))
+            2^m*cos(1/2*pi*m + 1/2*pi*n)*gamma(1/2*m + 1/2*n + 1/2)/(sqrt(pi)*gamma(-1/2*m + 1/2*n + 1))
             sage: gen_legendre_P(n,3,0)
-            8*cos(1/2*pi*(n + 3))*gamma(1/2*n + 2)/(sqrt(pi)*gamma(1/2*n - 1/2))
+            8*cos(3/2*pi + 1/2*pi*n)*gamma(1/2*n + 2)/(sqrt(pi)*gamma(1/2*n - 1/2))
             sage: gen_legendre_P(3,m,0)
-            2^m*cos(1/2*pi*(m + 3))*gamma(1/2*m + 2)/(sqrt(pi)*gamma(-1/2*m + 5/2))
+            2^m*cos(3/2*pi + 1/2*pi*m)*gamma(1/2*m + 2)/(sqrt(pi)*gamma(-1/2*m + 5/2))
         """
         if m > n:
             return ZZ(0)
@@ -1753,7 +1753,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
 
             sage: n, m = var('n m')
             sage: gen_legendre_Q(n,m,0)
-            -sqrt(pi)*2^(m - 1)*sin(1/2*pi*(m + n))*gamma(1/2*m + 1/2*n + 1/2)/gamma(-1/2*m + 1/2*n + 1)
+            -sqrt(pi)*2^(m - 1)*sin(1/2*pi*m + 1/2*pi*n)*gamma(1/2*m + 1/2*n + 1/2)/gamma(-1/2*m + 1/2*n + 1)
         """
         if m == 0:
             return legendre_Q(n, x)

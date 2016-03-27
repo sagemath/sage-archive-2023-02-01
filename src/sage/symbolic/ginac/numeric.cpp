@@ -2151,10 +2151,13 @@ const numeric numeric::hypergeometric_2F1(const std::vector<numeric>& a, const s
         PyObject* hypfunc = PyObject_GetAttrString(m, "hypergeometric");
         if (!hypfunc)
                 py_error("Error getting hypergeometric attribute");
-        PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc,  const_cast<char*> ("_evalf_"), );
+        PyObject* name = PyString_FromString(const_cast<char*>("_evalf_"));
+        if (parent == NULL)
+                parent = RR;
+        PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc, name, lista, listb, z, parent, NULL);
         Py_DECREF(m);
+        Py_DECREF(name);
         Py_DECREF(hypfunc);
-        Py_DECREF(args);
         if (!pyresult) {
                 throw(std::runtime_error("numeric::hypergeometric_2F1(): python function hypergeometric::_evalf_ raised exception"));
         }

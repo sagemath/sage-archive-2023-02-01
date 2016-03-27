@@ -33,7 +33,8 @@ do
     pkg_dir=`ls -d "$GAP/pkg/$pkg"*`
     pkg_lower=`echo $pkg | tr [:upper:] [:lower:]`
     cp -rap "$pkg_dir" src/
-    cp -p "$GAP/pkg/README.$pkg_lower" src/
+    cp -p "$GAP/pkg/README.$pkg_lower" src/ || echo "Not found: README.$pkg_lower" 
+    cp -p "$GAP/pkg/$pkg/README" "src/$pkg/" || echo "Not found: $pkg/README" 
 done
 
 # Delete unnecessary crap

@@ -164,6 +164,17 @@ class LocalGeneric(CommutativeRing):
         """
         return self._repr_(do_latex = True)
 
+    def change_precision(self, prec):
+        (functor, ring) = self.construction()
+        if hasattr(functor, "prec"):
+            functor.prec = prec
+        else:
+            try:
+                ring = ring.change_precision(prec)
+            except AttributeError:
+                raise NotImplementedError
+        return functor(ring)
+
     def precision_cap(self):
         r"""
         Returns the precision cap for ``self``.

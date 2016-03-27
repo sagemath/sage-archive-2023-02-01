@@ -275,7 +275,7 @@ class ModularSymbol(SageObject):
             ...           ED = E.quadratic_twist(D)
             ...           md = sum([kronecker(D,u)*m(ZZ(u)/D) for u in range(D)])
             ...           etaD = lp._quotient_of_periods_to_twist(D)
-            ...           ED.lseries().L_ratio()*ED.real_components() * etaD == md
+            ...           assert ED.lseries().L_ratio()*ED.real_components() * etaD == md
 
         """
         E = self._E

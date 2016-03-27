@@ -317,10 +317,11 @@ class pAdicLseries(SageObject):
             sage: [lp.modular_symbol(r,quadratic_twist=-20) for r in [0,1/5,oo,1/11]]
             [1, 1, 0, 1/2]
 
-            sage: Et = E.quadratic_twist(-3)
+            sage: E = EllipticCurve('20a1')
+            sage: Et = E.quadratic_twist(-4)
             sage: lpt = Et.padic_lseries(5)
-            sage: eta = lpt._quotient_of_periods_to_twist(-3)
-            sage: lpt.modular_symbol(0) == lp.modular_symbol(0,quadratic_twist=-3) * eta
+            sage: eta = lpt._quotient_of_periods_to_twist(-4)
+            sage: lpt.modular_symbol(0) == lp.modular_symbol(0,quadratic_twist=-4) / eta
             True
 
         """

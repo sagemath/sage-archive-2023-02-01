@@ -723,14 +723,16 @@ class Sha(SageObject):
         at `p`.
 
         INPUT:
+
         - ``p`` -- an odd prime
 
         OUTPUT:
+
         - ``e`` -- a non-negative integer such that `p^e` is the
           order of the `p`-primary order if the conditions are satisfied
           and raises a ValueError otherwise.
 
-        Examples:
+        EXAMPLES::
 
             sage: E = EllipticCurve("389a1")  # rank 2
             sage: E.sha().p_primary_order(5)
@@ -741,7 +743,8 @@ class Sha(SageObject):
             sage: E.sha().p_primary_order(5)
             Traceback (most recent call last):
             ...
-            ValueError: The order is not provably known using Skinner-Urban.                               Try running p_primary_bound to get a bound.
+            ValueError: The order is not provably known using Skinner-Urban.
+            Try running p_primary_bound to get a bound.
 
         REFERENCES:
 
@@ -761,11 +764,11 @@ class Sha(SageObject):
             # the auxillary prime will be one dividing the conductor
             if all( E.tate_curve(ell).parameter().valuation() % p == 0
                     for (ell, e) in fac if e == 1 ):
-                raise ValueError("The order is not provably known using Skinner-Urban.\
-                                  Try running p_primary_bound to get a bound.")
+                raise ValueError("The order is not provably known using Skinner-Urban. \n" +
+                                 "Try running p_primary_bound to get a bound.")
         else:
-             raise ValueError("The order is not provably known using Skinner-Urban.\
-                               Try running p_primary_bound to get a bound.")
+             raise ValueError("The order is not provably known using Skinner-Urban. \n" +
+                              "Try running p_primary_bound to get a bound.")
         return self.p_primary_bound(p)
 
 

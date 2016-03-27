@@ -612,6 +612,8 @@ cdef class InteractiveLPBackend:
             sage: p.get_variable_value(1)
             3/2
         """
+        if str(self.lp.decision_variables()[variable]) != str(self.lp_std_form.decision_variables()[variable]):
+            raise NotImplementedError, "Undoing the standard-form transformation is not implemented"
         return self.final_dictionary.basic_solution()[variable]
 
     cpdef int ncols(self):

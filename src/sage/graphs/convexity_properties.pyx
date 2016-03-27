@@ -172,7 +172,7 @@ cdef class ConvexityProperties:
         # _cache_hull_pairs[u*n + v] is a bitset whose 1 bits are the vertices located on a shortest path from vertex u to v
         #
         # Note that  u < v
-        self._cache_hull_pairs = <bitset_t *> sage_malloc(((n*(n-1))>>1)*sizeof(bitset_t))
+        self._cache_hull_pairs = <bitset_t *> sig_malloc(((n*(n-1))>>1)*sizeof(bitset_t))
         cdef bitset_t * p_bitset = self._cache_hull_pairs
 
         # Filling the cache
@@ -227,7 +227,7 @@ cdef class ConvexityProperties:
             bitset_free(p_bitset[0])
             p_bitset = p_bitset + 1
 
-        sage_free(self._cache_hull_pairs)
+        sig_free(self._cache_hull_pairs)
 
     cdef list _vertices_to_integers(self, vertices):
         r"""

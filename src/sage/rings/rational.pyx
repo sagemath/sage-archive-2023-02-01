@@ -328,7 +328,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sage: Rational('1/0')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert 1/0 to a rational
+        TypeError: unable to convert '1/0' to a rational
         sage: Rational(1.5)
         3/2
         sage: Rational('9/6')
@@ -514,18 +514,18 @@ cdef class Rational(sage.structure.element.FieldElement):
                     s = xstr.replace('.','') +'/'+pstr
                     n = mpq_set_str( self.value, s, base)
                     if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
-                        raise TypeError, "unable to convert %s to a rational"%x
+                        raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
                 else:
                     n = mpq_set_str(self.value, xstr, base)
                     if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
-                        raise TypeError, "unable to convert %s to a rational"%x
+                        raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
 
         elif isinstance(x, str):
             n = mpq_set_str(self.value, x, base)
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
-                raise TypeError, "unable to convert %s to a rational"%x
+                raise TypeError("unable to convert {!r} to a rational".format(x))
             mpq_canonicalize(self.value)
 
         elif hasattr(x, "_rational_"):
@@ -2724,38 +2724,38 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __int__(self):
         """
-        Return coercion of ``self`` to Python ``int``.
+        Convert this rational to a Python ``int``.
 
-        This takes the floor of ``self`` if ``self`` has a denominator (which
-        is consistent with Python's ``long(floats)``).
+        This truncates ``self`` if ``self`` has a denominator (which is
+        consistent with Python's ``long(floats)``).
 
         EXAMPLES::
 
             sage: int(7/3)
             2
             sage: int(-7/3)
-            -3
+            -2
         """
         return int(self.__long__())
 
     def __long__(self):
         """
-        Return coercion of ``self`` to Python ``long``.
+        Convert this rational to a Python ``long``.
 
-        This takes the floor of ``self`` if ``self`` has a denominator (which
-        is consistent with Python's ``long(floats)``).
+        This truncates ``self`` if ``self`` has a denominator (which is
+        consistent with Python's ``long(floats)``).
 
         EXAMPLES::
 
             sage: long(7/3)
             2L
             sage: long(-7/3)
-            -3L
+            -2L
         """
         cdef mpz_t x
         if mpz_cmp_si(mpq_denref(self.value),1) != 0:
             mpz_init(x)
-            mpz_fdiv_q(x, mpq_numref(self.value), mpq_denref(self.value))
+            mpz_tdiv_q(x, mpq_numref(self.value), mpq_denref(self.value))
             n = mpz_get_pylong(x)
             mpz_clear(x)
             return n

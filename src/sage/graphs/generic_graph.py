@@ -19114,6 +19114,11 @@ class GenericGraph(GenericGraph_pyx):
         A list of the eigenvalues, including multiplicities, sorted
         with the largest eigenvalue first.
 
+        .. SEEALSO::
+
+            The method :meth:`spectral_radius` returns floating point
+            approximation of the maximum eigenvalue.
+
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
@@ -20985,6 +20990,9 @@ GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all
 
 from sage.graphs.base.boost_graph import dominator_tree
 GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
+
+from sage.graphs.base.static_sparse_graph import spectral_radius
+GenericGraph.spectral_radius = types.MethodType(spectral_radius, None, GenericGraph)
 
 # From Python modules
 import sage.graphs.line_graph

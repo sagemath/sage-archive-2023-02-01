@@ -45,7 +45,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         TESTS:
 
-        Check that containment works correctly (ticket #10355)::
+        Check that containment works correctly (:trac:`10355`)::
 
             sage: A1.<a> = PolynomialRing(QQ)
             sage: A2.<a,b> = PolynomialRing(QQ)

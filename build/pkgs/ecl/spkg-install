@@ -8,6 +8,17 @@ fi
 
 cd src
 
+# Patch sources. Note that some patches (in the patches/src directory)
+# have been applied to the source tarball.
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
 if [ -z "$CFLAG64" ] ; then
     CFLAG64=-m64
 fi
@@ -16,10 +27,6 @@ if [ -z "$CXXFLAG64" ] ; then
     CXXFLAG64=-m64
 fi
 
-# Do NOT quote SAGE_LOCAL here, as has caused problems.
-# See: http://trac.sagemath.org/sage_trac/ticket/10187#comment:117
-
-CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = "xyes" ]  ; then
@@ -37,6 +44,11 @@ else
     CXXFLAGS="-g -O2 $CXXFLAGS"
 fi
 
+export CFLAGS
+export CXXFLAGS
+export LDFLAGS
+
+
 # These are all used by GNU to specify compilers.
 echo "Using CC=$CC"
 echo "Using CXX=$CXX"
@@ -49,17 +61,7 @@ echo "Using CPPFLAGS=$CPPFLAGS"
 echo "Using LDFLAGS=$LDFLAGS"
 echo "configure scripts and/or makefiles might override these later"
 echo ""
-echo "Note that the patches were applied by spkg-src"
-echo ""
 
-# export everything. Probably not necessary in most cases.
-export CFLAGS
-export CXXFLAGS
-export CPPFLAGS
-export LDFLAGS
-
-# Building ECL in parallel doesn't work, so use only 1 thread
-MAKE="$MAKE -j1"
 
 if [ "`uname -sm`" = "SunOS i86pc" ] && [ "x$SAGE64" = xyes ]; then
     # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
@@ -84,6 +86,10 @@ fi
 
 # Before running make we touch build/TAGS so its building process is never triggered
 touch build/TAGS
+
+# Ensure that ECL will not ask interactive questions (for example, when
+# pressing CTRL-C during the build)
+exec </dev/null
 
 $MAKE
 if [ $? -ne 0 ]; then

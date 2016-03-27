@@ -14,7 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.numerical.mip import MIPSolverException
 
@@ -338,11 +338,11 @@ cdef class CPLEXBackend(GenericBackend):
         cdef char * n
         if name == NULL:
 
-            n = <char*> sage_malloc(500*sizeof(char))
+            n = <char*> sig_malloc(500*sizeof(char))
             status = CPXgetprobname(self.env, self.lp, n, 500, &zero)
             check(status)
             s = str(n)
-            sage_free(n)
+            sig_free(n)
             return s
 
 
@@ -387,8 +387,8 @@ cdef class CPLEXBackend(GenericBackend):
 
         cdef int status
         cdef int n = self.ncols()
-        cdef double * c_coeff = <double *> sage_malloc(n * sizeof(double))
-        cdef int * c_indices = <int *> sage_malloc(n * sizeof(int))
+        cdef double * c_coeff = <double *> sig_malloc(n * sizeof(double))
+        cdef int * c_indices = <int *> sig_malloc(n * sizeof(int))
 
         for i,v in enumerate(coeff):
             c_coeff[i] = v
@@ -397,8 +397,8 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXchgobj(self.env, self.lp, n, c_indices, c_coeff)
         check(status)
 
-        sage_free(c_coeff)
-        sage_free(c_indices)
+        sig_free(c_coeff)
+        sig_free(c_indices)
 
         self.obj_constant_term = d
 
@@ -487,11 +487,11 @@ cdef class CPLEXBackend(GenericBackend):
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
 
         cdef int status
-        cdef char * sense = <char *> sage_malloc(number * sizeof(char))
-        cdef double * bound = <double *> sage_malloc(number * sizeof(double))
+        cdef char * sense = <char *> sig_malloc(number * sizeof(char))
+        cdef double * bound = <double *> sig_malloc(number * sizeof(double))
         cdef double * rng = NULL
         cdef int i
-        cdef char ** c_names = <char **> sage_malloc(number * sizeof(char *))
+        cdef char ** c_names = <char **> sig_malloc(number * sizeof(char *))
 
         if upper_bound == lower_bound:
             sense[0] = 'E'
@@ -501,7 +501,7 @@ cdef class CPLEXBackend(GenericBackend):
             if  upper_bound < lower_bound:
                 raise ValueError("The upper bound must be at least equal to the lower bound !")
 
-            rng = <double *> sage_malloc(number * sizeof(double))
+            rng = <double *> sig_malloc(number * sizeof(double))
 
             sense[0] = 'R'
             bound[0] = lower_bound
@@ -528,9 +528,9 @@ cdef class CPLEXBackend(GenericBackend):
 
         status = CPXnewrows(self.env, self.lp, number, bound, sense, rng, c_names if names else NULL)
 
-        sage_free(sense)
-        sage_free(bound)
-        sage_free(c_names)
+        sig_free(sense)
+        sig_free(bound)
+        sig_free(c_names)
         check(status)
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name = None):
@@ -583,9 +583,9 @@ cdef class CPLEXBackend(GenericBackend):
         cdef double rng
         cdef double c
 
-        c_coeff = <double *> sage_malloc(n * sizeof(double))
-        c_indices = <int *> sage_malloc(n * sizeof(int))
-        c_row = <int *> sage_malloc(n * sizeof(int))
+        c_coeff = <double *> sig_malloc(n * sizeof(double))
+        c_indices = <int *> sig_malloc(n * sizeof(int))
+        c_row = <int *> sig_malloc(n * sizeof(int))
 
         for i, (j, c) in enumerate(coefficients):
             c_coeff[i] = c
@@ -625,9 +625,9 @@ cdef class CPLEXBackend(GenericBackend):
         check(status)
 
         # Free memory
-        sage_free(c_coeff)
-        sage_free(c_indices)
-        sage_free(c_row)
+        sig_free(c_coeff)
+        sig_free(c_indices)
+        sig_free(c_row)
 
     cpdef row(self, int index):
         r"""
@@ -663,8 +663,8 @@ cdef class CPLEXBackend(GenericBackend):
         cdef list indices = []
         cdef list values = []
 
-        cdef double * c_coeff = <double *> sage_malloc((self.ncols()+10) * sizeof(double))
-        cdef int * c_indices = <int *> sage_malloc((self.ncols()+10) * sizeof(int))
+        cdef double * c_coeff = <double *> sig_malloc((self.ncols()+10) * sizeof(double))
+        cdef int * c_indices = <int *> sig_malloc((self.ncols()+10) * sizeof(int))
 
         status = CPXgetrows(self.env, self.lp, &n, &zero, c_indices, c_coeff, self.ncols()+3, &zero, index, index)
 
@@ -674,8 +674,8 @@ cdef class CPLEXBackend(GenericBackend):
             indices.append(c_indices[i])
             values.append(c_coeff[i])
 
-        sage_free(c_coeff)
-        sage_free(c_indices)
+        sig_free(c_coeff)
+        sig_free(c_indices)
 
         return (indices, values)
 
@@ -812,9 +812,9 @@ cdef class CPLEXBackend(GenericBackend):
 
         check(status)
 
-        cdef double * c_coeff = <double *> sage_malloc(n * sizeof(double))
-        cdef int * c_indices = <int *> sage_malloc(n * sizeof(int))
-        cdef int * c_col = <int *> sage_malloc(n * sizeof(int))
+        cdef double * c_coeff = <double *> sig_malloc(n * sizeof(double))
+        cdef int * c_indices = <int *> sig_malloc(n * sizeof(int))
+        cdef int * c_col = <int *> sig_malloc(n * sizeof(int))
 
         for 0<= i < n:
             c_coeff[i] = coeffs[i]
@@ -825,9 +825,9 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXchgcoeflist(self.env, self.lp, n, c_indices, c_col, c_coeff)
         check(status)
 
-        sage_free(c_coeff)
-        sage_free(c_indices)
-        sage_free(c_col)
+        sig_free(c_coeff)
+        sig_free(c_indices)
+        sig_free(c_col)
 
     cpdef int solve(self) except -1:
         r"""
@@ -1101,15 +1101,15 @@ cdef class CPLEXBackend(GenericBackend):
         cdef int zero
         cdef char * n
 
-        n = <char *>sage_malloc(500*sizeof(char))
+        n = <char *>sig_malloc(500*sizeof(char))
         status = CPXgetrowname(self.env, self.lp, &n, n, 500, &zero, index, index)
         if status == 1219:
-            sage_free(n)
+            sig_free(n)
             return ""
         check(status)
 
         s = str(n)
-        sage_free(n)
+        sig_free(n)
 
         return s
 
@@ -1135,15 +1135,15 @@ cdef class CPLEXBackend(GenericBackend):
         cdef char * n
         cdef int zero
 
-        n = <char *>sage_malloc(500*sizeof(char))
+        n = <char *>sig_malloc(500*sizeof(char))
         status = CPXgetcolname(self.env, self.lp, &n, n, 500, &zero, index, index)
         if status == 1219:
-            sage_free(n)
+            sig_free(n)
             return ""
         check(status)
 
         s = str(n)
-        sage_free(n)
+        sig_free(n)
         return s
 
     cpdef bint is_variable_binary(self, int index):
@@ -1564,10 +1564,10 @@ cdef class CPLEXBackend(GenericBackend):
                 check(CPXgetdblparam(self.env, paramid, &doublev))
                 return doublev
             else:
-                strv = <char *>sage_malloc(500*sizeof(char))
+                strv = <char *>sig_malloc(500*sizeof(char))
                 status = CPXgetstrparam(self.env, paramid, strv)
                 s = str(strv)
-                sage_free(strv)
+                sig_free(strv)
                 check(status)
                 return s
         else:

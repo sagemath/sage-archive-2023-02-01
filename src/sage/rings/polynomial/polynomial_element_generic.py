@@ -1062,10 +1062,10 @@ class Polynomial_generic_dense_field(Polynomial_generic_dense, Polynomial_generi
 # Over discrete valuation rings and fields
 ##########################################
 
-class Polynomial_generic_cdv(Polynomial):
+class Polynomial_generic_cdv(Polynomial_generic_domain):
     """
     A generic class for polynomials over complete discrete
-    valuation rings and fields.
+    valuation domains and fields.
 
     AUTHOR:
 

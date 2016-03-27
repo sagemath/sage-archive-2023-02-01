@@ -191,7 +191,7 @@ cdef class CVXOPTBackend(GenericBackend):
             6
         """
         for i in range(n):
-            self.add_variable()
+            self.add_variable()  ## FIXME: This forgets to pass arguments
         return len(self.objective_function) - 1;
 
 
@@ -419,7 +419,7 @@ cdef class CVXOPTBackend(GenericBackend):
             (None, 2)
         """
         for i in range(number):
-            self.add_linear_constraint(zip(range(self.ncols()+1),[0]*(self.ncols()+1)), 
+            self.add_linear_constraint(zip(range(self.ncols()),[0]*(self.ncols())), 
                                        lower_bound, upper_bound, 
                                        name=None if names is None else names[i])
 

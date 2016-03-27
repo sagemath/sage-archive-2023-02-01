@@ -592,6 +592,9 @@ class InteractiveLPProblem(SageObject):
     - ``is_primal`` -- (default: ``True``) whether this problem is primal or
       dual: each problem is of course dual to its own dual, this flag is mostly
       for internal use and affects default variable names only
+      
+    - ``objective_constant_term`` -- (default: 0) a constant term of the
+      objective added to ``c * x`` when computing optimal value
 
     EXAMPLES:
 
@@ -632,7 +635,7 @@ class InteractiveLPProblem(SageObject):
 
     def __init__(self, A, b, c, x="x",
                  constraint_type="<=", variable_type="", problem_type="max",
-                 base_ring=None, is_primal=True):
+                 base_ring=None, is_primal=True, objective_constant_term=0):
         r"""
         See :class:`InteractiveLPProblem` for documentation.
 
@@ -671,6 +674,7 @@ class InteractiveLPProblem(SageObject):
         R = PolynomialRing(base_ring, x, order="neglex")
         x = vector(R, R.gens()) # All variables as a vector
         self._Abcx = A, b, c, x
+        self._constant_term = objective_constant_term
 
         if constraint_type in ["<=", ">=", "=="]:
             constraint_type = (constraint_type, ) * m
@@ -846,11 +850,12 @@ class InteractiveLPProblem(SageObject):
                 M, S = -Infinity, None
             else:
                 M, S = min((c * vector(R, v), v) for v in F.vertices())
-        if self._is_negative:
-            M = - M
         if S is not None:
             S = vector(R, S)
             S.set_immutable()
+            M += self._constant_term
+        if self._is_negative:
+            M = - M
         return S, M
 
     def Abcx(self):
@@ -1202,6 +1207,33 @@ class InteractiveLPProblem(SageObject):
             (10, 5)
         """
         return self._Abcx[2]
+        
+    def objective_constant_term(self):
+        r"""
+        Return the constant term of the objective.
+
+        OUTPUT:
+
+        - a number
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P.objective_constant_term()
+            0
+            sage: P.optimal_value()
+            6250
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"],
+            ....:       variable_type=">=", objective_constant_term=-1250)
+            sage: P.objective_constant_term()
+            -1250
+            sage: P.optimal_value()
+            5000
+        """
+        return self._constant_term
 
     def optimal_solution(self):
         r"""

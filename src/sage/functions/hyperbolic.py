@@ -189,6 +189,19 @@ class Function_tanh(GinacFunction):
 
             sage: latex(tanh(x))
             \tanh\left(x\right)
+
+        Check that real/imaginary parts are correct (:trac:`20098`)::
+
+            sage: tanh(1+2*I).n()
+            1.16673625724092 - 0.243458201185725*I
+            sage: tanh(1+2*I).real().n()
+            1.16673625724092
+            sage: tanh(1+2*I).imag().n()
+            -0.243458201185725
+            sage: tanh(x).real()
+            sinh(2*real_part(x))/(cos(2*imag_part(x)) + cosh(2*real_part(x)))
+            sage: tanh(x).imag()
+            sin(2*imag_part(x))/(cos(2*imag_part(x)) + cosh(2*real_part(x)))
         """
         GinacFunction.__init__(self, "tanh", latex_name=r"\tanh")
 

@@ -944,7 +944,7 @@ cdef class InteractiveLPBackend:
         """
         return str(self.lp.decision_variables()[index])
 
-    cpdef variable_upper_bound(self, int index, value = None):
+    cpdef variable_upper_bound(self, int index, value = False):
         """
         Return or define the upper bound on a variable
 
@@ -964,12 +964,19 @@ cdef class InteractiveLPBackend:
             0
             sage: p.col_bounds(0)
             (None, None)
+            sage: p.variable_upper_bound(0) is None
+            True
             sage: p.variable_upper_bound(0, 0)
             sage: p.col_bounds(0)
             (None, 0)
+            sage: p.variable_upper_bound(0)
+            0
+            sage: p.variable_upper_bound(0, None)
+            sage: p.variable_upper_bound(0) is None
+            True
         """
         bounds = self.col_bounds(index)
-        if value is None:
+        if value is False:
             return bounds[1]
         else:
             if value != bounds[1]:
@@ -981,7 +988,7 @@ cdef class InteractiveLPBackend:
                                                constraint_types, variable_types,
                                                problem_type, ring)
 
-    cpdef variable_lower_bound(self, int index, value = None):
+    cpdef variable_lower_bound(self, int index, value = False):
         """
         Return or define the lower bound on a variable
 
@@ -1001,12 +1008,19 @@ cdef class InteractiveLPBackend:
             0
             sage: p.col_bounds(0)
             (None, None)
+            sage: p.variable_lower_bound(0) is None
+            True
             sage: p.variable_lower_bound(0, 0)
             sage: p.col_bounds(0)
             (0, None)
+            sage: p.variable_lower_bound(0)
+            0
+            sage: p.variable_lower_bound(0, None)
+            sage: p.variable_lower_bound(0) is None
+            True
         """
         bounds = self.col_bounds(index)
-        if value is None:
+        if value is False:
             return bounds[0]
         else:
             if value != bounds[0]:

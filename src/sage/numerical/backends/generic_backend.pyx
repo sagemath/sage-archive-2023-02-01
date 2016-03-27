@@ -912,7 +912,7 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef variable_upper_bound(self, int index, value = None):
+    cpdef variable_upper_bound(self, int index, value = False):
         """
         Return or define the upper bound on a variable
 
@@ -938,7 +938,7 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef variable_lower_bound(self, int index, value = None):
+    cpdef variable_lower_bound(self, int index, value = False):
         """
         Return or define the lower bound on a variable
 

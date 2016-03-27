@@ -947,6 +947,25 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx[0]
 
+    def constraint_types(self):
+        r"""
+        Return a tuple listing the constraint types of all rows.
+
+        OUTPUT:
+
+        - a tuple of strings
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=", constraint_type=["<=", "=="])
+            sage: P.constraint_types()
+            ('<=', '==')
+        """
+        return self._constraint_types
+
     def decision_variables(self):
         r"""
         Return decision variables of ``self``, i.e. `x`.
@@ -1116,6 +1135,24 @@ class InteractiveLPProblem(SageObject):
             True
         """
         return self._solve()[1] is not None
+
+    def is_negative(self):
+        r"""
+        Return `True` when the problem is of type ``"-max"`` or ``"-min"``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P.is_negative()
+            False
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=", problem_type="-min")
+            sage: P.is_negative()
+            True
+        """
+        return self._is_negative
 
     def is_primal(self):
         r"""
@@ -1426,6 +1463,20 @@ class InteractiveLPProblem(SageObject):
         result.set_aspect_ratio(1)
         return result
 
+    def problem_type(self):
+        r"""
+        Return the problem type.
+
+        OUTPUT:
+
+        - a string, one of ``"max"``, ``"min"``, ``"-max"``, or ``"-min"``.
+        """
+        t = self._problem_type
+        if self._is_negative:
+            return "-" + t
+        else:
+            return t
+
     def standard_form(self, objective_name=None):
         r"""
         Construct the LP problem in standard form equivalent to ``self``.
@@ -1497,6 +1548,25 @@ class InteractiveLPProblem(SageObject):
         problem_type = "-max" if is_negative else "max"
         return InteractiveLPProblemStandardForm(A, b, c, x, problem_type,
             is_primal=is_primal, objective_name=objective_name)
+
+    def variable_types(self):
+        r"""
+        Return a tuple listing the variable types of all decision variables.
+
+        OUTPUT:
+
+        - a tuple of strings
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=[">=", ""])
+            sage: P.variable_types()
+            ('>=', '')
+        """
+        return self._variable_types
 
     # Aliases for the standard notation
     A = constraint_coefficients

@@ -234,9 +234,9 @@ cdef class InteractiveLPBackend:
 
     def _AbcxCVPR(self):
         A, b, c, x = self.lp.Abcx()
-        constraint_types = self.lp._constraint_types
-        variable_types = self.lp._variable_types
-        problem_type = self.lp._problem_type
+        constraint_types = self.lp.constraint_types()
+        variable_types = self.lp.variable_types()
+        problem_type = self.lp.problem_type()
         base_ring = self.lp.base_ring()
         return A, b, c, x, constraint_types, variable_types, problem_type, base_ring
 
@@ -583,7 +583,7 @@ cdef class InteractiveLPBackend:
         """
         d = self.final_dictionary
         v = d.objective_value()
-        if self.lp_std_form._is_negative:
+        if self.lp_std_form.is_negative():
             v = - v
         return self.obj_constant_term + v
 
@@ -661,7 +661,7 @@ cdef class InteractiveLPBackend:
             sage: p.is_maximization()
             False
         """
-        return self.lp._problem_type == "max"
+        return self.lp.problem_type() == "max"
 
     cpdef problem_name(self, char * name = NULL):
         """
@@ -788,7 +788,7 @@ cdef class InteractiveLPBackend:
             (2, 2)
         """
         A, b, c, x = self.lp.Abcx()
-        constraint_types = self.lp._constraint_types
+        constraint_types = self.lp.constraint_types()
         if constraint_types[index] == '>=':
             return (b[index], None)
         elif constraint_types[index] == '<=':
@@ -824,7 +824,7 @@ cdef class InteractiveLPBackend:
             sage: p.col_bounds(0)
             (0, None)
         """
-        t = self.lp._variable_types[index]
+        t = self.lp.variable_types()[index]
         if t == ">=":
             return (0, None)
         elif t == "<=":

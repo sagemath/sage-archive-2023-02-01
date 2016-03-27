@@ -52,14 +52,17 @@ cdef class InteractiveLPBackend:
         This backend can work with irrational algebraic numbers::
 
             sage: poly = polytopes.dodecahedron(base_ring=AA)
-            sage: lp = poly.to_linear_program(solver='InteractiveLP')
-            sage: b = lp.get_backend()
-            sage: for k in range(3): b.variable_lower_bound(k, 0)
-            sage: b.set_objective([1, 1, 1])
+            sage: lp, x = poly.to_linear_program(solver='InteractiveLP', return_variable=True)
+            sage: lp.set_objective(x[0] + x[1] + x[2])
             sage: lp.solve()
             2.291796067500631?
-            sage: [b.get_variable_value(k) for k in range(3)]
+            sage: lp.get_values(x[0], x[1], x[2])
             [0.763932022500211?, 0.763932022500211?, 0.763932022500211?]
+            sage: lp.set_objective(x[0] - x[1] - x[2])
+            sage: lp.solve()
+            2.291796067500631?
+            sage: lp.get_values(x[0], x[1], x[2])
+            [0.763932022500211?, -0.763932022500211?, -0.763932022500211?]
         """
 
         if base_ring is None:
@@ -633,7 +636,8 @@ cdef class InteractiveLPBackend:
         """
         ## FIXME: standard_form should allow to pass slack names (which we would take from row_names).
         ## FIXME: Perhaps also pass the problem name as objective name
-        lp_std_form = self.lp_std_form = self.lp.standard_form()
+        lp_std_form, transformation = self.lp.standard_form(transformation=True)
+        self.lp_std_form, self.std_form_transformation = lp_std_form, transformation
         output = lp_std_form.run_revised_simplex_method()
         ## FIXME: Display output as a side effect if verbosity is high enough
         d = self.final_dictionary = lp_std_form.final_revised_dictionary()
@@ -701,9 +705,8 @@ cdef class InteractiveLPBackend:
             sage: p.get_variable_value(1)
             3/2
         """
-        if str(self.lp.decision_variables()[variable]) != str(self.lp_std_form.decision_variables()[variable]):
-            raise NotImplementedError("Undoing the standard-form transformation is not implemented")
-        return self.final_dictionary.basic_solution()[variable]
+        solution = self.std_form_transformation(self.final_dictionary.basic_solution())
+        return solution[variable]
 
     cpdef int ncols(self):
         """

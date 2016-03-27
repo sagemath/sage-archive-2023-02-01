@@ -1467,15 +1467,25 @@ class InteractiveLPProblem(SageObject):
         r"""
         Return the problem type.
 
+        Needs to be used together with ``is_negative``.
+
         OUTPUT:
 
-        - a string, one of ``"max"``, ``"min"``, ``"-max"``, or ``"-min"``.
+        - a string, one of ``"max"``, ``"min"``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P.problem_type()
+            'max'
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=", problem_type="-min")
+            sage: P.problem_type()
+            'min'
         """
-        t = self._problem_type
-        if self._is_negative:
-            return "-" + t
-        else:
-            return t
+        return self._problem_type
 
     def standard_form(self, objective_name=None):
         r"""

@@ -115,14 +115,14 @@ cdef class InteractiveLPBackend:
             elif upper_bound == 0:
                 return "<="
             else:
-                raise NotImplementedError, "General variable bounds not supported"
+                raise NotImplementedError("General variable bounds not supported")
         elif lower_bound == 0:
             if upper_bound is None:
                 return ">="
             else:
-                raise NotImplementedError, "General variable bounds not supported"
+                raise NotImplementedError("General variable bounds not supported")
         else:
-            raise NotImplementedError, "General variable bounds not supported"
+            raise NotImplementedError("General variable bounds not supported")
 
     cpdef int add_variable(self, lower_bound=0, upper_bound=None,
                            binary=False, continuous=True, integer=False,
@@ -185,7 +185,7 @@ cdef class InteractiveLPBackend:
         elif vtype != 1:
             raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
         if not continuous:
-            raise NotImplementedError, "Integer variables are not supported"
+            raise NotImplementedError("Integer variables are not supported")
         variable_types = variable_types + (self._variable_type_from_bounds(lower_bound, upper_bound),)
         col = vector(ring, self.nrows())
         if coefficients is not None:
@@ -473,7 +473,7 @@ cdef class InteractiveLPBackend:
         A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
         if lower_bound is None:
            if upper_bound is None:
-               raise ValueError, "At least one of lower_bound and upper_bound must be provided"
+               raise ValueError("At least one of lower_bound and upper_bound must be provided")
            else:
                constraint_types = constraint_types + ("<=",)
                b = tuple(b) + (upper_bound,)
@@ -485,7 +485,7 @@ cdef class InteractiveLPBackend:
                 constraint_types = constraint_types + ("==",)
                 b = tuple(b) + (lower_bound,)
             else:
-                raise NotImplementedError, "Ranged constraints are not supported"
+                raise NotImplementedError("Ranged constraints are not supported")
 
         row = vector(ring, self.ncols())
         for (i, v) in coefficients:
@@ -598,11 +598,11 @@ cdef class InteractiveLPBackend:
         d = self.final_dictionary = lp_std_form.final_revised_dictionary()
         if d.is_optimal():
             if lp_std_form.auxiliary_variable() in d.basic_variables():
-                raise MIPSolverException, "InteractiveLP: Problem has no feasible solution"
+                raise MIPSolverException("InteractiveLP: Problem has no feasible solution")
             else:
                 return 0
         else:
-            raise MIPSolverException, "InteractiveLP: Problem is unbounded"
+            raise MIPSolverException("InteractiveLP: Problem is unbounded")
 
     cpdef get_objective_value(self):
         """
@@ -661,7 +661,7 @@ cdef class InteractiveLPBackend:
             3/2
         """
         if str(self.lp.decision_variables()[variable]) != str(self.lp_std_form.decision_variables()[variable]):
-            raise NotImplementedError, "Undoing the standard-form transformation is not implemented"
+            raise NotImplementedError("Undoing the standard-form transformation is not implemented")
         return self.final_dictionary.basic_solution()[variable]
 
     cpdef int ncols(self):
@@ -846,7 +846,7 @@ cdef class InteractiveLPBackend:
         elif constraint_types[index] == '==':
             return (b[index], b[index])
         else:
-            raise ValueError, "Bad constraint_type"
+            raise ValueError("Bad constraint_type")
 
     cpdef col_bounds(self, int index):
         """

@@ -1477,7 +1477,7 @@ def handle_encoding_declaration(contents, out):
     AUTHORS:
 
     - Lars Fischer
-    - Dan Drake (2010-12-08, rewrite for ticket #10440)
+    - Dan Drake (2010-12-08, rewrite for :trac:`10440`)
     """
     lines = contents.splitlines()
     for num, line in enumerate(lines[:2]):

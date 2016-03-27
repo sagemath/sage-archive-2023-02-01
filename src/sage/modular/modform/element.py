@@ -1576,7 +1576,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         TESTS:
 
-        This shows that the issue at trac ticket #7548 is fixed::
+        This shows that the issue at :trac:`7548` is fixed::
 
             sage: M = CuspForms(Gamma0(5*3^2), 2)
             sage: f = M.basis()[0]

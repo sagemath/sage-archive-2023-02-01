@@ -2294,7 +2294,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         C1 and C2 are equal, but not identical. We currently want them
         to have non identical face lattices, even if the faces
-        themselves are equal (see #10998)::
+        themselves are equal (see :trac:`10998`)::
 
             sage: C1.face_lattice() is C2.face_lattice()
             False

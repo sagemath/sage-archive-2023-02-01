@@ -1164,7 +1164,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             ]
 
         We verify that the irrelevant ideal isn't accidently returned
-        (see trac 6920)::
+        (see :trac:`6920`)::
 
             sage: PP.<x,y,z,w> = ProjectiveSpace(3,QQ)
             sage: f = x^3 + y^3 + z^3 + w^3

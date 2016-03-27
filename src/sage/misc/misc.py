@@ -1664,7 +1664,7 @@ class AttrCallObject(object):
 
         Note: a missing ``__hash__`` method here used to break the
         unique representation of parents taking ``attrcall`` objects
-        as input; see #8911.
+        as input; see :trac:`8911`.
         """
         return hash((self.args, tuple(self.kwds.items())))
 

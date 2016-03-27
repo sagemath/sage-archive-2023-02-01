@@ -747,7 +747,7 @@ class NumberFieldIdeal(Ideal_generic):
         TESTS:
 
         Sage can find the free module associated to quite large ideals
-        quickly (see trac #4627)::
+        quickly (see :trac:`4627`)::
 
             sage: y = polygen(ZZ)
             sage: M.<a> = NumberField(y^20 - 2*y^19 + 10*y^17 - 15*y^16 + 40*y^14 - 64*y^13 + 46*y^12 + 8*y^11 - 32*y^10 + 8*y^9 + 46*y^8 - 64*y^7 + 40*y^6 - 15*y^4 + 10*y^3 - 2*y + 1)
@@ -1386,7 +1386,8 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I.smallest_integer()
             0
 
-            # See trac\# 4392:
+        See :trac:`4392`::
+
             sage: K.<a>=QuadraticField(-5)
             sage: I=K.ideal(7)
             sage: I.smallest_integer()
@@ -2422,7 +2423,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: I.is_coprime(6+i)
             True
 
-            # See trac \# 4536:
+        See :trac:`4536`::
+
             sage: E.<a> = NumberField(x^5 + 7*x^4 + 18*x^2 + x - 3)
             sage: OE = E.ring_of_integers()
             sage: i,j,k = [u[0] for u in factor(3*OE)]

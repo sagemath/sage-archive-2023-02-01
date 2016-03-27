@@ -805,6 +805,46 @@ class InteractiveLPProblem(SageObject):
             LP problem (use typeset mode to see details)
         """
         return "LP problem (use typeset mode to see details)"
+        
+    def _solution(self, x):
+        r"""
+        Return ``x`` as a normalized solution of ``self``.
+        
+        INPUT:
+        
+        - ``x`` -- anything that can be interpreted as a solution of this
+          problem, e.g. a vector or a list of correct length or a single
+          element list with such a vector
+          
+        OUTPUT:
+        
+        - ``x`` as a vector
+        
+        EXAMPLES::
+        
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=">=")
+            sage: P._solution([100, 200])
+            (100, 200)
+            sage: P._solution([[100, 200]])
+            (100, 200)
+            sage: P._solution([1000])
+            Traceback (most recent call last):
+            ...
+            TypeError: given input is not a solution for this problem
+        """
+        S = self.c().parent()
+        try:
+            return S(x)
+        except TypeError:
+            if len(x) == 1:
+                try:
+                    return S(x[0])
+                except TypeError:
+                    pass
+        raise TypeError("given input is not a solution for this problem")
 
     @cached_method
     def _solve(self):
@@ -1112,23 +1152,41 @@ class InteractiveLPProblem(SageObject):
         """
         return self.optimal_solution() is not None or not self.is_feasible()
 
-    def is_feasible(self):
+    def is_feasible(self, *x):
         r"""
-        Check if ``self`` is feasible.
+        Check if ``self`` or given solution is feasible.
+        
+        INPUT:
+        
+        - (optional) anything that can be interpreted as a valid solution for
+          this problem, i.e. a sequence of values for all decision variables
 
         OUTPUT:
 
-        - ``True`` is ``self`` is feasible, ``False`` otherwise
+        - ``True`` is this problem or given solution is feasible, ``False``
+          otherwise
 
         EXAMPLES::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=">=")
             sage: P.is_feasible()
             True
+            sage: P.is_feasible(100, 200)
+            True
+            sage: P.is_feasible(1000, 200)
+            False
+            sage: P.is_feasible([1000, 200])
+            False
+            sage: P.is_feasible(1000)
+            Traceback (most recent call last):
+            ...
+            TypeError: given input is not a solution for this problem
         """
+        if x:
+            return self.feasible_set().contains(self._solution(x))
         return self.optimal_value() is not None
 
     def is_primal(self):
@@ -1154,6 +1212,36 @@ class InteractiveLPProblem(SageObject):
         """
         return self._is_primal
 
+    def is_optimal(self, *x):
+        r"""
+        Check if given solution is feasible.
+        
+        INPUT:
+        
+        - anything that can be interpreted as a valid solution for
+          this problem, i.e. a sequence of values for all decision variables
+
+        OUTPUT:
+
+        - ``True`` is the given solution is optimal, ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (15, 5)
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=">=")
+            sage: P.is_optimal(100, 200)
+            False
+            sage: P.is_optimal(500, 0)
+            True
+            sage: P.is_optimal(499, 3)
+            True
+            sage: P.is_optimal(501, -3)
+            False
+        """
+        return self.optimal_value() == self.value(x) and self.is_feasible(x)
+        
     def n_constraints(self):
         r"""
         Return the number of constraints of ``self``, i.e. `m`.
@@ -1542,6 +1630,34 @@ class InteractiveLPProblem(SageObject):
         kwds["problem_type"] = "-max" if is_negative else "max"
         kwds["is_primal"] = self.is_primal()
         return InteractiveLPProblemStandardForm(A, b, c, x, **kwds)
+        
+    def value(self, *x):
+        r"""
+        Return the value of the objective on given solution.
+        
+        INPUT:
+        
+        - anything that can be interpreted as a valid solution for
+          this problem, i.e. a sequence of values for all decision variables
+
+        OUTPUT:
+
+        - the value of the objective on given solution taking into account the
+          :meth:`objective_constant_term` and negativity of this problem
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=">=")
+            sage: P.value(100, 200)
+            2000
+        """
+        v = self.c() * self._solution(x) + self._constant_term
+        if self._is_negative:
+            v = - v
+        return v
 
     # Aliases for the standard notation
     A = constraint_coefficients

@@ -2124,24 +2124,24 @@ const numeric numeric::bernoulli() const {
         PY_RETURN(py_funcs.py_bernoulli);
 }
 
-static PyObject* py_list_from_numvector(const std::vector<numeric>& vec)
+static PyObject* py_tuple_from_numvector(const std::vector<numeric>& vec)
 {
-        PyObject* list = PyList_New(0);
+        PyObject* list = PyTuple_New(vec.size());
         if (!list)
                 throw(std::runtime_error("py_list_from_numvector(): PyList_New returned NULL"));
+        int pos = 0;
         for (const numeric& num : vec) {
                 PyObject *numobj = num.to_pyobject();
-                int ret = PyList_Append(list, numobj);
+                int ret = PyTuple_SetItem(list, pos++, numobj);
                 if (ret)
                         throw(std::runtime_error("py_list_from_numvector(): PyList_Append unsuccessful"));
-                Py_DECREF(numobj);
         }
         return list;
 }
 
 const numeric numeric::hypergeometric_2F1(const std::vector<numeric>& a, const std::vector<numeric>& b, PyObject *parent) const {
-        PyObject *lista = py_list_from_numvector(a);
-        PyObject *listb = py_list_from_numvector(b);
+        PyObject *lista = py_tuple_from_numvector(a);
+        PyObject *listb = py_tuple_from_numvector(b);
         PyObject *z = to_pyobject();
 
         // call opt.evalf_f with this tuple
@@ -2151,12 +2151,29 @@ const numeric numeric::hypergeometric_2F1(const std::vector<numeric>& a, const s
         PyObject* hypfunc = PyObject_GetAttrString(m, "hypergeometric");
         if (!hypfunc)
                 py_error("Error getting hypergeometric attribute");
+        PyObject *itemp, *itema;
+        if (parent and PyDict_CheckExact(parent)) {
+                itemp = PyDict_GetItemString(parent, const_cast<char*>("parent"));
+                itema = PyDict_GetItemString(parent, const_cast<char*>("algorithm"));
+        }
+        else {
+                itemp = parent;
+                if (itemp)
+                        Py_INCREF(itemp);
+                itema = NULL;
+        }
+        if (itemp == NULL) {
+                itemp = RR;
+                Py_INCREF(itemp);
+        }
         PyObject* name = PyString_FromString(const_cast<char*>("_evalf_"));
-        if (parent == NULL)
-                parent = RR;
-        PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc, name, lista, listb, z, parent, NULL);
+        PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc, name, lista, listb, z, itemp, itema, NULL);
         Py_DECREF(m);
         Py_DECREF(name);
+        if (itemp)
+                Py_DECREF(itemp);
+        if (itema)
+                Py_DECREF(itema);
         Py_DECREF(hypfunc);
         if (!pyresult) {
                 throw(std::runtime_error("numeric::hypergeometric_2F1(): python function hypergeometric::_evalf_ raised exception"));

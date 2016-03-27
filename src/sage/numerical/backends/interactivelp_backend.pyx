@@ -78,6 +78,37 @@ cdef class InteractiveLPBackend:
         return self.lp.base_ring()
 
     def _variable_type_from_bounds(self, lower_bound, upper_bound):
+        """
+        Return a string designating a variable type in `InteractiveLPProblem`.
+
+        INPUT:
+
+        - ``lower_bound`` - the lower bound of the variable
+
+        - ``upper_bound`` - the upper bound of the variable
+
+        OUTPUT:
+
+        - a string, one of "", "<=", ">="
+
+        The function raises an error if this pair of bounds cannot be
+        represented by an `InteractiveLPProblem` variable type.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "InteractiveLP")
+            sage: p._variable_type_from_bounds(0, None)
+            '>='
+            sage: p._variable_type_from_bounds(None, 0)
+            '<='
+            sage: p._variable_type_from_bounds(None, None)
+            ''
+            sage: p._variable_type_from_bounds(None, 5)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: General variable bounds not supported
+        """
         if lower_bound is None:
             if upper_bound is None:
                 return ""

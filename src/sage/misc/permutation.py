@@ -1,33 +1,13 @@
 r"""
+Tools for permutations on `{0, 1, ..., n-1}`
+
 Permutation in Sage works by default on `{1, 2, ..., n}` but it might be much
 more convenient to work on `{0, 1, ..., n-1}`. This module provide simple
 functions for the latter representation.
 """
-
 from sage.rings.integer import Integer
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.categories.groups import Groups
-
-
-def cycles_to_list(t):
-    r"""
-    Returns a permutation on `[0, n-1]` from a list of cycles on `[0, n-1]`
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import cycles_to_list
-        sage: cycles_to_list([[1,3,5],[0,2,4],[6]])
-        [2, 3, 4, 5, 0, 1, 6]
-    """
-    res = map(Integer, range(max(map(max, t))+1))
-
-    for c in t:
-        for j in xrange(len(c) - 1):
-            res[c[j]] = c[j + 1]
-        res[c[-1]] = c[0]
-
-    return res
 
 
 def str_to_cycles(s):
@@ -38,12 +18,12 @@ def str_to_cycles(s):
 
         sage: from sage.misc.permutation import str_to_cycles
         sage: str_to_cycles('(0,1)')
-        [[0, 1]]
+        ((0, 1),)
         sage: str_to_cycles('(0,1)(3,2)')
-        [[0, 1], [3, 2]]
+        ((0, 1), (3, 2))
     """
-    return [map(Integer, c_str.replace(' ', '').split(','))
-            for c_str in s[1:-1].split(')(')]
+    return tuple(tuple(map(Integer, c_str.replace(' ', '').split(',')))
+                 for c_str in s[1:-1].split(')('))
 
 
 def init_perm(data):
@@ -72,7 +52,7 @@ def init_perm(data):
         sage: init_perm([[3,2,0,1]])
         [(0,3,1,2)]
 
-        sage: init_perm([([2,1],[3,4,0])])
+        sage: init_perm([((2,1),(3,4,0))])
         [(0,3,4)(1,2)]
 
         sage: init_perm(['(0,1)(3,2)'])
@@ -82,21 +62,19 @@ def init_perm(data):
         sage: init_perm([S([3,1,2,0])])
         [(0,3)]
     """
-    if isinstance(data[0], list):  # already given as a list of values
-        pass
-    elif isinstance(data[0], tuple):  # given as a tuple of cycles
-        data = map(cycles_to_list, data)
-    elif isinstance(data[0], str):  # given as a string of cycles
+    if isinstance(data[0], list):  # perms given as lists of values
+        n = max(map(len, data))
+        for p in data:
+            p.extend(xrange(len(p), n))
+    elif isinstance(data[0], tuple):  # perms given as tuples of cycles
+        n = 1 + max(i for p in data for cyc in p for i in cyc)
+    elif isinstance(data[0], str):  # perms given as strings of cycles
         data = map(str_to_cycles, data)
-        data = map(cycles_to_list, data)
-    elif data[0].parent() in Groups:
+        n = 1 + max(i for p in data for cyc in p for i in cyc)
+    elif data[0].parent() in Groups:  # perms all in the same group
         return data
 
-    n = max(map(len, data))
     g = SymmetricGroup(range(n))
-    for p in data:
-        p.extend(xrange(len(p), n))
-    # return data
     return [g(u) for u in data]
 
 
@@ -126,42 +104,6 @@ def perms_are_connected(g, n):
     for p in g:
         G.add_edges(enumerate(p.tuple()))
     return G.num_verts() == n and G.is_connected()
-
-
-def perms_relabel(p, m):
-    """
-    Relabel the permutations in `p` according to `m`.
-
-    INPUT:
-
-    - `p` is a list of permutations (in a SymmetricGroup)
-
-    - `m` is a permutation (in a SymmetricGroup)
-
-    OUTPUT:
-
-    a list of permutations (in a SymmetricGroup)
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perms_relabel
-        sage: S = SymmetricGroup(range(4))
-        sage: p0 = [S([0,3,1,2]),S([3,0,2,1]),S([1,2,3,0])]
-        sage: p1 = perms_relabel(p0,S([2,1,3,0])); p1
-        [(0,3,1), (0,1,2), (0,2,1,3)]
-
-    Applying the inverse permutation we get back our original permutation::
-
-        sage: p2 = perms_relabel(p1,S([3,1,0,2]))
-        sage: p2 == p0
-        True
-    """
-    S = p[0].parent()
-    q = [list(k.tuple()) for k in p]
-    for i in xrange(len(m.domain())):
-        for j in xrange(len(p)):
-            q[j][m(i)] = m(p[j](i))
-    return [S(u) for u in q]
 
 
 def perms_canonical_labels_from(x, y, j0, verbose=False):
@@ -253,32 +195,31 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
 
 def perms_canonical_labels(p, e=None):
     """
-    Relabel a list with a common conjugation such that two conjugated lists are
-    relabeled the same way.
+    Relabel a list with a common conjugation such that two conjugated
+    lists are relabeled the same way.
 
     INPUT:
 
     - ``p`` is a list of at least 2 permutations
 
-    - ``e`` is None or a list of integer in the domain of the permutations. If
-      provided, then the renumbering algorithm is only performed from the
-      elements of ``e``.
+    - ``e`` is None or a list of integer in the domain of the
+      permutations. If provided, then the renumbering algorithm is
+      only performed from the elements of ``e``.
 
     OUTPUT:
 
-    - a pair made of a list of permutations (as a list of lists) and a list that
-      corresponds to the conjugacy used.
+    - a pair made of a list of permutations (as a list of lists) and a
+      list that corresponds to the conjugacy used.
 
     EXAMPLES::
 
         sage: from sage.misc.permutation import perms_canonical_labels
         sage: S = SymmetricGroup(range(4))
         sage: l0 = [S([2,0,3,1]),S([3,1,2,0]),S([0,2,1,3])]
-        sage: l,m = perms_canonical_labels(l0); l
+        sage: l, m = perms_canonical_labels(l0); l
         [(0,1,2,3), (1,3), (0,2)]
 
-        sage: from sage.misc.permutation import perms_relabel
-        sage: perms_relabel(l0,m) == l
+        sage: [~m * u * m for u in l0] == l
         True
 
         sage: from sage.misc.permutation import perms_canonical_labels
@@ -304,7 +245,8 @@ def perms_canonical_labels(p, e=None):
     while e:
         i = e.pop()
         m_test = perms_canonical_labels_from(x, y, i)
-        c_test = perms_relabel(p, m_test)
+        inv_m_test = ~m_test
+        c_test = [inv_m_test * u * m_test for u in p]
         if c_win is None or c_test < c_win:
             c_win = c_test
             m_win = m_test

@@ -31,7 +31,6 @@ REFERENCES:
 .. [LaZv04] S. Lando and A. Zvonkine, "Graphs on surfaces and their
             applications", Springer-Verlag, 2004.
 """
-
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
@@ -40,9 +39,11 @@ from sage.arith.srange import srange
 from sage.rings.integer import Integer
 from sage.combinat.partition import Partition
 from sage.graphs.graph import Graph
+from sage.misc.misc_c import prod
 
-# we import everything from sage.misc.permutation
-from sage.misc.permutation import *
+# we import something from sage.misc.permutation
+from sage.misc.permutation import (init_perm, perms_are_connected,
+                                   perms_canonical_labels)
 
 # constructors
 
@@ -309,16 +310,11 @@ class Constellation_class(Element):
         """
         d = self.degree()
         Sd = SymmetricGroup(range(d))
-        for i in xrange(self.length()):
-            Sd(self._g[i])
 
-        h = Sd.one()
-        for p in self._g:
-            h = h * p
-        if h != Sd.one():
+        if prod(self._g, Sd.one()) != Sd.one():
             raise ValueError("The product is not identity")
 
-        if self._connected and not perms_are_connected(self._g, self.degree()):
+        if self._connected and not perms_are_connected(self._g, d):
             raise ValueError("not connected")
 
     def __copy__(self):
@@ -1226,10 +1222,11 @@ class Constellations_ld(UniqueRepresentation, Parent):
             ValueError: not connected
         """
         c = Constellations(connected=self._connected)(*data, **options)
+        txt = "not able to build a constellation of {} {} from the given data"
         if c.degree() != self._degree:
-            raise ValueError("not able to build a constellation of degree %d from the given data" % self._degree)
+            raise ValueError("degree", txt.format(self._degree))
         if c.length() != self._length:
-            raise ValueError("not able to build a constellation of length %d from the given data" % self._length)
+            raise ValueError("length", txt.format(self._length))
         return c
 
     def an_element(self):
@@ -1441,12 +1438,14 @@ class Constellations_p(UniqueRepresentation, Parent):
             sage: C(['(1,2,3)','(0,1,3)',None])
             Traceback (most recent call last):
             ...
-            ValueError: not able to build a constellation with profile ([3, 1], [3, 1], [2, 2]) from the given data
+            ValueError: not able to build a constellation
+            with profile ([3, 1], [3, 1], [2, 2]) from the given data
         """
         c = Constellations(connected=self._connected)(*data, **options)
         if options.get('check', True):
             if c.profile() != self._profile:
-                raise ValueError("not able to build a constellation with profile %s from the given data" % (self._profile,))
+                txt = "not able to build a constellation with profile {} from the given data"
+                raise ValueError(txt.format(self._profile))
         return c
 
     def __iter__(self):

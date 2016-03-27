@@ -96,7 +96,7 @@ knows that having `S` in a sequence means a total cost of at least `c'(S) +
 5`. For this reason, for each set `S` we store the value of `c'(S)`, and replace
 it by `\max (c'(S), \min_{\text{next}})` (where `\min_{\text{next}}` is the
 minimum of the costs of the out-neighbors of `S`) once the costs of these
-out-neighbors have been evaluated by the algrithm.
+out-neighbors have been evaluated by the algorithm.
 
 .. NOTE::
 

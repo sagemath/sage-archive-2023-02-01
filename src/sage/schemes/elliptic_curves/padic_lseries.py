@@ -122,7 +122,7 @@ class pAdicLseries(SageObject):
         sage: L.series(3, prec=10)
         O(5^5) + O(5^2)*T + (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + O(5)*T^6 + (4 + O(5))*T^7 + (2 + O(5))*T^8 + O(5)*T^9 + O(T^10)
         sage: L.series(2,quadratic_twist=-3)
-        4 + 4*5 + 4*5^2 + 5^3 + O(5^4) + O(5)*T + (2 + O(5))*T^2 + (3 + O(5))*T^3 + O(5)*T^4 + O(T^5)
+        2 + 4*5 + 4*5^2 + O(5^4) + O(5)*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + O(5)*T^4 + O(T^5)
 
 
 
@@ -723,25 +723,25 @@ class pAdicLseries(SageObject):
             sage: E = EllipticCurve('37b1')
             sage: lp = E.padic_lseries(3)
             sage: lp._quotient_of_periods_to_twist(-20)
-            20
+            1
             sage: lp._quotient_of_periods_to_twist(-4)
-            4
+            1
             sage: lp._quotient_of_periods_to_twist(-3)
-            3
+            1
             sage: lp._quotient_of_periods_to_twist(-8)
-            4
+            2
             sage: lp._quotient_of_periods_to_twist(8)
-            4
+            2
             sage: lp._quotient_of_periods_to_twist(5)
-            5
+            1
             sage: lp._quotient_of_periods_to_twist(12)
-            12
+            1
 
             sage: E = EllipticCurve('11a1')
             sage: Et = E.quadratic_twist(-3)
             sage: lpt = Et.padic_lseries(5)
             sage: lpt._quotient_of_periods_to_twist(-3)
-            1
+            3
 
         """
         from sage.functions.all import sqrt
@@ -844,7 +844,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: E = EllipticCurve('43a1')
             sage: lp = E.padic_lseries(3)
             sage: lp.series(2,quadratic_twist=-19)
-            2 + 2*3 + 3^2 + 3^3 + O(3^4) + (1 + O(3))*T + (1 + O(3))*T^2 + O(T^3)
+            2 + 2*3 + 2*3^2 + O(3^4) + (1 + O(3))*T + (1 + O(3))*T^2 + O(T^3)
             sage: E.quadratic_twist(-19).label()    # optional -- database_cremona_ellcurve
             '15523a1'
 
@@ -1277,13 +1277,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
         this should be implemented in elements of Eisenstein rings at some point
         
         """
-        v = a._ntl_rep_abs()
-        k = v[1]
-        v = v[0]
+        if a.is_zero():
+            return [0,0]
+        v, k = a._ntl_rep_abs()
         K = a.base_ring()
         pi = K.uniformiser()
         v0 =  K(v[0]._sage_()) * pi**k
         v1 =  K(v[1]._sage_()) * pi**k
+        alpha = a.parent().gen()
+        assert v0 + v1*alpha == a
         return [ v0, v1 ]
 
     def Dp_valued_series(self, n=3, quadratic_twist = +1, prec=5):

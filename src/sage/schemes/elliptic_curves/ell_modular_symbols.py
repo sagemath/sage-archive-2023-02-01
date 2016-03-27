@@ -274,8 +274,8 @@ class ModularSymbol(SageObject):
             ...       for D in [5,17,12,8]:
             ...           ED = E.quadratic_twist(D)
             ...           md = sum([kronecker(D,u)*m(ZZ(u)/D) for u in range(D)])
-            ...           etaD = D/ lp._quotient_of_periods_to_twist(D)
-            ...           print ED.lseries().L_ratio()*ED.real_components() * etaD == md
+            ...           etaD = lp._quotient_of_periods_to_twist(D)
+            ...           ED.lseries().L_ratio()*ED.real_components() * etaD == md
 
         """
         E = self._E
@@ -414,12 +414,12 @@ class ModularSymbol(SageObject):
             if self._sign == 1:
                 q = E0.period_lattice().basis()[0]/self._E.period_lattice().basis()[0]
             else:
-                q = E0.period_lattice().basis()[1].imag()/self._E.period_lattice().basis()[0].imag()
+                q = E0.period_lattice().basis()[1].imag()/self._E.period_lattice().basis()[1].imag()
                 if E0.real_components() == 1:
                     q *= 2
-                if E.real_components() == 1:
+                if self._E.real_components() == 1:
                     q /= 2
-            q = QQ(int(round(q*200)))/200
+            q = ZZ(int(round(q*200)))/200
             verbose('scale modular symbols by %s'%q)
             self._scaling = q
 

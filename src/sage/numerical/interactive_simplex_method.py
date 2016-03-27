@@ -1426,14 +1426,15 @@ class InteractiveLPProblem(SageObject):
         result.set_aspect_ratio(1)
         return result
 
-    def standard_form(self, objective_name=None):
+    def standard_form(self, **kwds):
         r"""
         Construct the LP problem in standard form equivalent to ``self``.
         
         INPUT:
         
-        - ``objective_name`` -- a string or a symbolic expression for the
-          objective used in dictionaries, default depends on :func:`style`
+        - you can pass (as keywords only) ``slack_variables``,
+          ``auxiliary_variable``,``objective_name`` to the constructor of
+          :class:`InteractiveLPProblemStandardForm`
 
         OUTPUT:
 
@@ -1449,6 +1450,11 @@ class InteractiveLPProblem(SageObject):
             sage: DPSF = DP.standard_form()
             sage: DPSF.b()
             (-10, -5)
+            sage: DPSF.slack_variables()
+            (y3, y4)
+            sage: DPSF = DP.standard_form(slack_variables=["L", "F"])
+            sage: DPSF.slack_variables()
+            (L, F)
         """
         A, b, c, x = self.Abcx()
         if not all(ct == "<=" for ct in self._constraint_types):
@@ -1484,19 +1490,17 @@ class InteractiveLPProblem(SageObject):
             c = vector(newc)
             x = newx
             
-        is_primal = self.is_primal()
-        if objective_name is None:
-            objective_name = default_variable_name(
-                "primal objective" if is_primal else "dual objective")
-        objective_name = SR(objective_name)
+        objective_name = SR(kwds.get("objective_name", default_variable_name(
+            "primal objective" if self.is_primal() else "dual objective")))
         is_negative = self._is_negative
         if self._problem_type == "min":
             is_negative = not is_negative
             c = - c
             objective_name = - objective_name
-        problem_type = "-max" if is_negative else "max"
-        return InteractiveLPProblemStandardForm(A, b, c, x, problem_type,
-            is_primal=is_primal, objective_name=objective_name)
+        kwds["objective_name"] = objective_name
+        kwds["problem_type"] = "-max" if is_negative else "max"
+        kwds["is_primal"] = self.is_primal()
+        return InteractiveLPProblemStandardForm(A, b, c, x, **kwds)
 
     # Aliases for the standard notation
     A = constraint_coefficients

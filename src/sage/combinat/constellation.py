@@ -40,10 +40,11 @@ from sage.rings.integer import Integer
 from sage.combinat.partition import Partition
 from sage.graphs.graph import Graph
 from sage.misc.misc_c import prod
+from sage.categories.groups import Groups
 
 # we import something from sage.misc.permutation
-from sage.misc.permutation import (init_perm, perms_are_connected,
-                                   perms_canonical_labels)
+from sage.misc.permutation import (perms_are_connected,
+                                   str_to_cycles, perms_canonical_labels)
 
 # constructors
 
@@ -115,7 +116,7 @@ def Constellation(g=None, mutable=False, connected=True, check=True):
       ``True``.
 
     - ``check`` -- whether or not to check. If it is ``True``, then the
-      list g must contains no ``None``.
+      list ``g`` must contains no ``None``.
 
     EXAMPLES:
 
@@ -226,7 +227,7 @@ class Constellation_class(Element):
 
     def switch(self, i, j0, j1):
         r"""
-        Swith the vertices and edges at `i` and `i + 1`.
+        Switch the vertices and edges at `i` and `i + 1`.
 
         The modification is local in the sense that it modifies `g_i`
         and `g_{i+1}` but does not modify the product `g_i g_{i+1}`.
@@ -319,6 +320,8 @@ class Constellation_class(Element):
 
     def __copy__(self):
         r"""
+        Return a copy of ``self``.
+
         TESTS::
 
             sage: c = Constellation([[0,2,1],[1,0,2],[2,1,0],None])
@@ -461,9 +464,9 @@ class Constellation_class(Element):
         Test of isomorphism.
 
         Return ``True`` if the constellations are isomorphic
-        (i.e. related by a common conjugacy) and return the permutation that
+        (*i.e.* related by a common conjugacy) and return the permutation that
         conjugate the two permutations if ``return_map`` is ``True`` in
-        such a way that self.relabel(m) == other
+        such a way that ``self.relabel(m) == other``.
 
         ALGORITHM:
 
@@ -474,7 +477,7 @@ class Constellation_class(Element):
             sage: c = Constellation([[1,0,2],[2,1,0],[0,2,1],None])
             sage: d = Constellation([[2,1,0],[0,2,1],[1,0,2],None])
             sage: answer, mapping = c.is_isomorphic(d,return_map=True)
-            sage: print answer
+            sage: print(answer)
             True
             sage: c.relabel(mapping) == d
             True
@@ -515,7 +518,7 @@ class Constellation_class(Element):
 
     def _repr_(self):
         r"""
-        String representation
+        Return a string representation.
 
         EXAMPLES::
 
@@ -531,7 +534,7 @@ class Constellation_class(Element):
 
     def degree(self):
         r"""
-        Return the degree of the constellation
+        Return the degree of the constellation.
 
         The degree of a constellation is the number `n` that
         corresponds to the symmetric group `S(n)` in which the
@@ -574,6 +577,8 @@ class Constellation_class(Element):
         associated to the conjugacy classes of the permutations of the
         constellation.
 
+        This is also called the passport.
+
         EXAMPLES::
 
             sage: c = Constellation(['(0,1,2)(3,4)','(0,3)',None])
@@ -592,7 +597,13 @@ class Constellation_class(Element):
 
     def g(self, i=None):
         r"""
-        Return the permutation i of the constellation as a list
+        Return the permutation `g_i` of the constellation.
+
+        INPUT:
+
+        - i -- integer or ``None`` (default)
+
+        If ``None`` , return instead the list of all `g_i`.
 
         EXAMPLES::
 
@@ -616,7 +627,16 @@ class Constellation_class(Element):
     def g_cycle_tuples(self, i, singletons=False):
         r"""
         Return the tuples associated to the cycles of the permutations
-        of ``self``
+        of ``self``.
+
+        INPUT:
+
+        - `i` -- integer or ``None``
+        - singletons -- boolean (default ``False``) whether to include
+          fixed points
+
+        If `i` is ``None``, return all of the permutations. Otherwise,
+        return just the permutation `g_i`.
 
         EXAMPLES::
 
@@ -625,6 +645,8 @@ class Constellation_class(Element):
             [(0, 1), (2, 3, 4)]
             sage: c.g_cycle_tuples(1)
             [(0, 4), (1, 3)]
+            sage: c.g_cycle_tuples(None)
+            [[(0, 1), (2, 3, 4)], [(0, 4), (1, 3)], [(0, 3), (1, 2, 4)]]
         """
         if i is None:
             return [s.cycle_tuples(singletons) for s in self._g]
@@ -633,11 +655,16 @@ class Constellation_class(Element):
 
     def g_cycle_string(self, i, singletons=False):
         r"""
-        Return the permutations of a constellation, as cycles
+        Return the permutations of a constellation, as cycle strings.
 
-        If `i` is ``None``, return all of them
+        INPUT:
 
-        Otherwise, return just the permutation `g_i` as a cycle
+        - `i` -- integer or ``None``
+        - singletons -- boolean (default ``False``) whether to include
+          fixed points
+
+        If `i` is ``None``, return all of the permutations. Otherwise,
+        return just the permutation `g_i`.
 
         EXAMPLES::
 
@@ -654,7 +681,7 @@ class Constellation_class(Element):
 
     def g_next(self, i, j):
         r"""
-        Return the image of `j` for the permutation `g_i` in constant time
+        Return the image of `j` for the permutation `g_i` in constant time.
 
         EXAMPLES::
 
@@ -671,7 +698,7 @@ class Constellation_class(Element):
 
     def g_prev(self, i, j):
         r"""
-        Return the image of `j` for the permutation `g_i` in constant time
+        Return the image of `j` for the permutation `g_i` in constant time.
 
         EXAMPLES::
 
@@ -734,8 +761,8 @@ class Constellation_class(Element):
             g1 (0)(1,2)(3)(4)
             g2 (0,1,4,3,2)
 
-        The map returned when the option ``return_map`` is set to True can be
-        used to set the relabelling::
+        The map returned when the option ``return_map`` is set to
+        ``True`` can be used to set the relabelling::
 
             sage: c3, perm = c.relabel(return_map=True)
             sage: c3 == c2 and c3 == c.relabel(perm=perm)
@@ -760,7 +787,6 @@ class Constellation_class(Element):
             True
         """
         if perm is not None:
-            # perm.extend(xrange(len(perm), self.degree()))
             g = [[None] * self.degree() for _ in xrange(self.length())]
             for i in xrange(len(perm.domain())):
                 for k in xrange(self.length()):
@@ -802,12 +828,12 @@ class Constellation_class(Element):
 
     def braid_group_action(self, i):
         r"""
-        Acts on self as the braid group generator that exchanges
-        position `i` and `i+1`
+        Act on ``self`` as the braid group generator that exchanges
+        position `i` and `i+1`.
 
         INPUT:
 
-        - ``i`` -- integer in `[0, n-1]` where `n` is the length of self
+        - ``i`` -- integer in `[0, n-1]` where `n` is the length of ``self``
 
         EXAMPLES::
 
@@ -849,7 +875,8 @@ class Constellation_class(Element):
             True
         """
         if i < 0 or i >= self.length():
-            raise ValueError("i should be between 0 and {}".format(self.length() - 1))
+            txt = "i should be between 0 and {}"
+            raise ValueError(txt.format(self.length() - 1))
         j = i + 1
         if j == self.length():   # wrap around the cylinder
             j = 0
@@ -931,7 +958,7 @@ class Constellations_all(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
-        String representation.
+        Return a string representation.
 
         TESTS::
 
@@ -947,34 +974,80 @@ class Constellations_all(UniqueRepresentation, Parent):
         r"""
         Return a constellation.
 
+        INPUT:
+
+        - ``g`` -- a list of permutations
+
+        - ``check`` -- boolean (default ``True``) whether to check the input
+
+        - ``mutable`` -- boolean (default ``False``) mutability of the output
+
+        In the given list of permutations, all permutations must be given
+        in the same format, which can be:
+
+        - elements of a SymmetricGroup (the same group for all)
+        - a list of values
+        - a tuple of cycle tuples
+        - a string describing the cycles (useful as short notation)
+
+        At most one permutation can be replaced by ``None``,
+        in which case it will be computed from the other ones.
+
         EXAMPLES::
 
             sage: Constellation([[1,0],[1,0]])  # indirect doctest
             Constellation of length 2 and degree 2
             g0 (0,1)
             g1 (0,1)
+
+        One can use strings to describe the permutations::
+
+            sage: c = Constellation(['(1,2,3)','(0,1,2)','(0,1)(2,3)']); c
+            Constellation of length 3 and degree 4
+            g0 (0)(1,2,3)
+            g1 (0,1,2)(3)
+            g2 (0,1)(2,3)
         """
         if g is None or len(g) == 0:
-            gg = []
+            return self.element_class(self, [], check,
+                                      self._connected, mutable)
 
+        if g.count(None) == 0:
+            i = None
+        elif g.count(None) == 1:
+            i = g.index(None)
+            del g[i]
         else:
-            if g.count(None) == 0:
-                i = None
-            elif g.count(None) == 1:
-                i = g.index(None)
-                del g[i]
-            else:
-                raise ValueError("only one permutation must be None")
+            raise ValueError("only one permutation must be None")
 
-            gg = init_perm(g)
+        gg = list(g)
+        in_sym_group = False
+        if isinstance(gg[0], list):  # perms given as lists of values
+            d = max(map(len, gg))
+            for p in gg:
+                p.extend(xrange(len(p), d))
+        elif isinstance(gg[0], tuple):  # perms given as tuples of cycles
+            d = 1 + max(i for p in gg for cyc in p for i in cyc)
+        elif isinstance(gg[0], str):  # perms given as strings of cycles
+            gg = map(str_to_cycles, gg)
+            d = 1 + max(i for p in gg for cyc in p for i in cyc)
+        elif gg[0].parent() in Groups:
+            d = len(gg[0].domain())
+            in_sym_group = True
 
-            if i is not None:
-                h = gg[0].parent().one()
-                for p in gg[i:]:
-                    h = h * p
-                for p in gg[:i]:
-                    h = h * p
-                gg.insert(i, ~h)
+        # now perms can be handled by SymmetricGroup if needed
+
+        Sd = SymmetricGroup(range(d))
+        if not in_sym_group:
+            gg = [Sd(u) for u in gg]
+
+        if i is not None:
+            h = Sd.one()
+            for p in gg[i:]:
+                h *= p
+            for p in gg[:i]:
+                h *= p
+            gg.insert(i, ~h)
 
         return self.element_class(self, gg, check, self._connected, mutable)
 
@@ -996,7 +1069,7 @@ class Constellations_all(UniqueRepresentation, Parent):
         TESTS::
 
             sage: I = iter(Constellations())
-            sage: for _ in xrange(100): print I.next()
+            sage: for _ in xrange(100): print(I.next())
             Constellation of length 1 and degree 1
             g0 (0)
             Constellation of length 2 and degree 1
@@ -1100,7 +1173,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
             g2 (0,1,2)
         """
         if self._connected:
-            g = [str(tuple(range(self._degree)))] * self._length
+            g = [(tuple(range(self._degree)),)] * self._length
         else:
             g = [range(self._degree)] * self._length
         return self(g, check=False)
@@ -1120,7 +1193,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
             g2 (0,2,1)
         """
         if self._connected:
-            g = [str(tuple(range(self._degree - 1, -1, -1)))] * self._length
+            g = [(tuple(range(self._degree - 1, -1, -1)),)] * self._length
         else:
             g = [range(self._degree - 1, -1, -1)] * self._length
         return Constellation(g, check=False, mutable=False)
@@ -1178,6 +1251,9 @@ class Constellations_ld(UniqueRepresentation, Parent):
         r"""
         Return a random element.
 
+        This is found by trial and rejection, starting from
+        a random list of permutations.
+
         EXAMPLES::
 
             sage: const = Constellations(3,3)
@@ -1222,7 +1298,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
             ValueError: not connected
         """
         c = Constellations(connected=self._connected)(*data, **options)
-        txt = "not able to build a constellation of {} {} from the given data"
+        txt = "unable to build a constellation of {} {} from the given data"
         if c.degree() != self._degree:
             raise ValueError("degree", txt.format(self._degree))
         if c.length() != self._length:
@@ -1348,7 +1424,7 @@ class Constellations_p(UniqueRepresentation, Parent):
         sage: c1 = p1.conjugacy_class_size()
         sage: c2 = p2.conjugacy_class_size()
         sage: c3 = p3.conjugacy_class_size()
-        sage: print c1 * c2 * c3 / factorial(4)**2 * s
+        sage: print(c1 * c2 * c3 / factorial(4)**2 * s)
         1
 
     The number obtained above is up to isomorphism. And we can check::
@@ -1362,8 +1438,8 @@ class Constellations_p(UniqueRepresentation, Parent):
 
         - ``profile`` -- a list of integer partitions of the same integer
 
-        - ``connected`` -- a boolean (default: True) that specify if we consider
-          only connected constellations.
+        - ``connected`` -- a boolean (default: ``True``) that specify
+          if we consider only connected constellations.
 
         TESTS::
 
@@ -1438,13 +1514,13 @@ class Constellations_p(UniqueRepresentation, Parent):
             sage: C(['(1,2,3)','(0,1,3)',None])
             Traceback (most recent call last):
             ...
-            ValueError: not able to build a constellation
+            ValueError: unable to build a constellation
             with profile ([3, 1], [3, 1], [2, 2]) from the given data
         """
         c = Constellations(connected=self._connected)(*data, **options)
         if options.get('check', True):
             if c.profile() != self._profile:
-                txt = "not able to build a constellation with profile {} from the given data"
+                txt = "unable to build a constellation with profile {} from the given data"
                 raise ValueError(txt.format(self._profile))
         return c
 
@@ -1461,7 +1537,7 @@ class Constellations_p(UniqueRepresentation, Parent):
         TESTS::
 
             sage: C = Constellations([(3,1),(3,1),(2,2)])
-            sage: for c in C: print c
+            sage: for c in C: print(c)
             Constellation of length 3 and degree 4
             g0 (0,2,3)(1)
             g1 (0)(1,2,3)
@@ -1523,7 +1599,7 @@ class Constellations_p(UniqueRepresentation, Parent):
 
     def braid_group_orbits(self):
         r"""
-        Orbits under the action of braid group.
+        Return the orbits under the action of braid group.
 
         EXAMPLES::
 
@@ -1532,9 +1608,11 @@ class Constellations_p(UniqueRepresentation, Parent):
             sage: len(O)
             3
             sage: [x.profile() for x in O[0]]
-            [([1, 1, 1], [3], [3]), ([3], [1, 1, 1], [3]), ([3], [3], [1, 1, 1])]
+            [([1, 1, 1], [3], [3]), ([3], [1, 1, 1], [3]),
+            ([3], [3], [1, 1, 1])]
             sage: [x.profile() for x in O[1]]
-            [([2, 1], [2, 1], [3]), ([2, 1], [3], [2, 1]), ([3], [2, 1], [2, 1])]
+            [([2, 1], [2, 1], [3]), ([2, 1], [3], [2, 1]),
+            ([3], [2, 1], [2, 1])]
             sage: [x.profile() for x in O[2]]
             [([3], [3], [3])]
         """

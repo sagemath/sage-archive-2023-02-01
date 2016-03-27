@@ -6,8 +6,6 @@ more convenient to work on `{0, 1, ..., n-1}`. This module provide simple
 functions for the latter representation.
 """
 from sage.rings.integer import Integer
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.categories.groups import Groups
 
 
 def str_to_cycles(s):
@@ -24,58 +22,6 @@ def str_to_cycles(s):
     """
     return tuple(tuple(map(Integer, c_str.replace(' ', '').split(',')))
                  for c_str in s[1:-1].split(')('))
-
-
-def init_perm(data):
-    """
-    Return a permutation from different kinds of data.
-
-    INPUT:
-
-    a list of permutations, each one as:
-
-    - an element of a SymmetricGroup
-
-    - or a list of values
-
-    - or a tuple of cycles
-
-    - or a string of cycles
-
-    OUTPUT:
-
-    a list of permutations in a SymmetricGroup
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import init_perm
-        sage: init_perm([[3,2,0,1]])
-        [(0,3,1,2)]
-
-        sage: init_perm([((2,1),(3,4,0))])
-        [(0,3,4)(1,2)]
-
-        sage: init_perm(['(0,1)(3,2)'])
-        [(0,1)(2,3)]
-
-        sage: S = SymmetricGroup(range(4))
-        sage: init_perm([S([3,1,2,0])])
-        [(0,3)]
-    """
-    if isinstance(data[0], list):  # perms given as lists of values
-        n = max(map(len, data))
-        for p in data:
-            p.extend(xrange(len(p), n))
-    elif isinstance(data[0], tuple):  # perms given as tuples of cycles
-        n = 1 + max(i for p in data for cyc in p for i in cyc)
-    elif isinstance(data[0], str):  # perms given as strings of cycles
-        data = map(str_to_cycles, data)
-        n = 1 + max(i for p in data for cyc in p for i in cyc)
-    elif data[0].parent() in Groups:  # perms all in the same group
-        return data
-
-    g = SymmetricGroup(range(n))
-    return [g(u) for u in data]
 
 
 def perms_are_connected(g, n):

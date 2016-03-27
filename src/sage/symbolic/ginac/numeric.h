@@ -244,6 +244,7 @@ public:
 	const numeric doublefactorial() const;
 	const numeric binomial(const numeric &k) const;
 	const numeric bernoulli() const;
+	const numeric hypergeometric_2F1(const std::vector<numeric>& a, const std::vector<numeric>& b, PyObject* parent) const;
 	const numeric fibonacci() const;
 	const numeric isqrt() const;
 	const numeric sqrt() const;
@@ -317,6 +318,7 @@ const numeric factorial(const numeric &n);
 const numeric doublefactorial(const numeric &n);
 const numeric binomial(const numeric &n, const numeric &k);
 const numeric bernoulli(const numeric &n);
+const numeric hypergeometric_2F1(const std::vector<numeric>& a, const std::vector<numeric>& b, const numeric &z, PyObject* parent);
 const numeric fibonacci(const numeric &n);
 const numeric isqrt(const numeric &x);
 const numeric sqrt(const numeric &x);

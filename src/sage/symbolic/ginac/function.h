@@ -248,7 +248,7 @@ public:
 		subs_python_f           = 0x0100,
 	};
 
-protected:
+public:
 	bool has_derivative() const { return derivative_f != nullptr; }
 	bool has_power() const { return power_f != nullptr; }
 	void test_and_set_nparams(unsigned n);

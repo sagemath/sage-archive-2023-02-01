@@ -227,6 +227,9 @@ DECLARE_FUNCTION_1P(factorial)
 /** Binomial function. */
 DECLARE_FUNCTION_2P(binomial)
 
+/** Hermite polynomial. */
+DECLARE_FUNCTION_2P(hermite)
+
 /** Order term function (for truncated power series). */
 DECLARE_FUNCTION_1P(Order)
 

@@ -1283,7 +1283,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()
             6.0
 
-        To return  the optimal value of ``y[2,9]``::
+        To return the optimal value of ``y[2,9]``::
 
             sage: p.get_values(y[2,9])
             2.0
@@ -1306,6 +1306,21 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Or::
 
             sage: [x_sol, y_sol] = p.get_values([x, y])
+
+        TESTS:
+
+        Test that an error is reported when we try to get the value
+        of something that is not a variable in this problem::
+
+            sage: p.get_values("Something strange")
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown variable: ...
+            sage: p.get_values("Something stranger", 4711)
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown variable: ...
+
         """
         val = []
         for l in lists:
@@ -1323,6 +1338,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     val.append(c)
             elif l in self._variables:
                 val.append(self._backend.get_variable_value(self._variables[l]))
+            else:
+                raise ValueError, "Unknown variable: " + str(l)
 
         if len(lists) == 1:
             return val[0]

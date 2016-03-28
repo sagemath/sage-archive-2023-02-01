@@ -1225,8 +1225,11 @@ def default_mip_solver(solver = None):
     elif solver == "Glpk":
         default_solver = solver
 
+    elif solver == "Interactivelp":
+        default_solver = solver
+
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None.")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'InteractiveLP', or None.")
 
 cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
     """

@@ -98,7 +98,6 @@ you can perform arithmetic with Laurent series. ::
 """
 from sage.all import gcd, fast_callable, O, ZZ, QQ, CC
 from sage.rings.infinity import infinity
-from sage.rings.laurent_series_ring_element import is_LaurentSeries
 from sage.rings.laurent_series_ring_element cimport LaurentSeries
 from sage.rings.power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport (Element, ModuleElement,
@@ -117,7 +116,7 @@ cpdef LaurentSeries LaurentSeries_V(LaurentSeries f, long n):
     """
     If `f = \sum a_m x^m` then this function returns `\sum a_m x^{mn}`.
 
-    This should eventually be implemented within Sage itself.
+    TO BE MOVED TO LAURENT SERIES !
 
     EXAMPLES::
 
@@ -191,11 +190,9 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def __init__(self, parent, f, e=1):
         r"""
+        INPUT:
 
-        Parameters
-        ----------
-        parent : Ring
-            The target parent.
+        parent : Ring, the target parent.
         f : object
             One of the following types of inputs:
 
@@ -256,9 +253,9 @@ cdef class PuiseuxSeries(AlgebraElement):
                 # expression) then wrap with parens
                 coeff = str(coeff)
                 if coeff[1:].find("+") != -1 or coeff[1:].find("-") != -1:
-                    s += ' + (%s)'%coeff
+                    s += ' + (%s)' % coeff
                 else:
-                    s += ' + %s'%coeff
+                    s += ' + %s' % coeff
 
             # don't print (x-a)^0
             if exp:
@@ -280,11 +277,11 @@ cdef class PuiseuxSeries(AlgebraElement):
             if prec == 0:
                 bigoh = 'O(1)'
             elif prec == 1:
-                bigoh = 'O(%s)'%X
+                bigoh = 'O(%s)' % X
             elif prec.denominator() == 1:
-                bigoh = 'O(%s^%s)'%(X,prec)
+                bigoh = 'O(%s^%s)' % (X, prec)
             else:
-                bigoh = 'O(%s^(%s))'%(X,prec)
+                bigoh = 'O(%s^(%s))' % (X, prec)
 
             if not s:
                 return bigoh
@@ -298,7 +295,9 @@ cdef class PuiseuxSeries(AlgebraElement):
         return s
 
     def __call__(self, x):
-        r"""Evaluate this Puiseux series."""
+        r"""
+        Evaluate this Puiseux series.
+        """
         # use x.nth_root since x**(1/self.__e) returns oo when x = 0
         if isinstance(x, int):
             x = ZZ(x)
@@ -321,8 +320,8 @@ cdef class PuiseuxSeries(AlgebraElement):
 
             f = \tilde{f}((x-a)^M), g = \tilde{g}((x-a)^N).
 
-        Parameters
-        ----------
+        INPUT:
+
         right : PuiseuxXSeries
 
         Returns
@@ -335,9 +334,9 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         m = self.__e
         n = right.__e
-        g = gcd(QQ(1)/m,QQ(1)/n).denominator()
-        m = g/m
-        n = g/n
+        g = gcd(QQ(1) / m, QQ(1) / n).denominator()
+        m = g / m
+        n = g / n
         return g, m, n
 
     cpdef ModuleElement _add_(self, ModuleElement right_m):
@@ -415,7 +414,8 @@ cdef class PuiseuxSeries(AlgebraElement):
         return PuiseuxSeries(self._parent, l, e)
 
     cpdef int _cmp_(self, Element right_r) except -2:
-        r"""Comparison of self and right.
+        r"""
+        Comparison of self and right.
 
         As with Laurent series, two Puiseux series are equal if they agree for
         all coefficients up to the minimum of the precisions of each.

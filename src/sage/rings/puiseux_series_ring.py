@@ -35,18 +35,13 @@ Contents
 import weakref
 
 from sage.all import parent
-import sage.rings.commutative_ring as commutative_ring
-import sage.rings.integral_domain as integral_domain
-import sage.rings.ring as ring
-
+from sage.rings.ring import IntegralDomain, CommutativeRing, Field
 from sage.rings.puiseux_series_ring_element import PuiseuxSeries
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 from sage.categories.fields import Fields
 from sage.rings.laurent_series_ring import (is_LaurentSeriesRing,
                                             LaurentSeriesRing)
-from sage.rings.laurent_series_ring_element import is_LaurentSeries
-from sage.rings.power_series_ring import is_PowerSeriesRing
-from sage.rings.power_series_ring_element import is_PowerSeries
+from sage.rings.power_series_ring import is_PowerSeriesRing, PowerSeriesRing
 
 
 puiseux_series = {}
@@ -71,11 +66,11 @@ def PuiseuxSeriesRing(base_ring, name=None, names=None, default_prec=None,
         if x is not None:
             return x
 
-    if isinstance(base_ring, ring.Field):
+    if isinstance(base_ring, Field):
         R = PuiseuxSeriesRing_field(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
+    elif isinstance(base_ring, IntegralDomain):
         R = PuiseuxSeriesRing_domain(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, commutative_ring.CommutativeRing):
+    elif isinstance(base_ring, CommutativeRing):
         R = PuiseuxSeriesRing_generic(base_ring, name, default_prec, sparse)
     else:
         raise TypeError("base_ring must be a commutative ring")
@@ -87,17 +82,17 @@ def is_PuiseuxSeriesRing(x):
     return isinstance(x, PuiseuxSeriesRing_generic)
 
 
-class PuiseuxSeriesRing_generic(commutative_ring.CommutativeRing):
+class PuiseuxSeriesRing_generic(CommutativeRing):
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False,
                  category=None):
-        commutative_ring.CommutativeRing.__init__(
-            self, base_ring, names=name,
-            category=getattr(self, '_default_category', Fields()))
+        CommutativeRing.__init__(self, base_ring, names=name,
+                                 category=getattr(self, '_default_category',
+                                                  Fields()))
 
         # If self is R(( x^(1/e) )) then the corresponding Laurent series
         # ring will be R(( x ))
-        self._laurent_series_ring = LaurentSeriesRing(
-            base_ring, name=name, default_prec=default_prec, sparse=sparse)
+        self._laurent_series_ring = LaurentSeriesRing(base_ring, name=name,
+                                                      default_prec=default_prec, sparse=sparse)
 
     def base_extend(self, R):
         if R.has_coerce_map_from(self.base_ring()):
@@ -163,7 +158,7 @@ class PuiseuxSeriesRing_generic(commutative_ring.CommutativeRing):
             l = self.laurent_series_ring()(x)
             e = 1
         # 4. x is a Laurent or power series with the same base ring
-        elif ((is_LaurentSeries(x) or is_PowerSeries(x))
+        elif (isinstance(x, (LaurentSeries, PowerSeries))
               and P is self.base_ring()):
             l = self.laurent_series_ring()(x)
         # 5. everything else: try to coerce to laurent series ring
@@ -241,7 +236,7 @@ class PuiseuxSeriesRing_domain(PuiseuxSeriesRing_generic,
                                            default_prec, sparse)
 
 
-class PuiseuxSeriesRing_field(PuiseuxSeriesRing_generic, ring.Field):
+class PuiseuxSeriesRing_field(PuiseuxSeriesRing_generic, Field):
     _default_category = CompleteDiscreteValuationFields()
 
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False):

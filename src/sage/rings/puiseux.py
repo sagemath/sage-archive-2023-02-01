@@ -77,8 +77,8 @@ def newton_polygon(H, additional_points=[]):
 
         a_{ij} x^j y^i.
 
-    Parameters
-    ----------
+    INPUT:
+
     H : bivariate polynomial
 
     Returns
@@ -132,7 +132,7 @@ def newton_polygon(H, additional_points=[]):
     polygon = []
     for side in sides:
         polygon_side = [po for po in support if po in side]
-        polygon_side = sorted([(int(P.x), int(P.y) for P in polygon_side)])
+        polygon_side = sorted([(int(P.x), int(P.y)) for P in polygon_side])
         polygon.append(polygon_side)
 
         # stop the moment we hit the i-axis. despite the filtration at
@@ -153,8 +153,8 @@ def generalized_polygon_side(side):
     A generalized Newton polygon is one where every side has slope no
     less than -1.
 
-    Parameters
-    ----------
+    INPUT:
+
     side : sympy.Segment
 
     Returns
@@ -172,8 +172,8 @@ def bezout(q, m):
     r"""
     Returns `u,v` such that `u q + m v = 1`.
 
-    Parameters
-    ----------
+    INPUT:
+
     q,m : integer
         Two coprime integers with :math:`q > 0`.
 
@@ -200,8 +200,8 @@ def transform_newton_polynomial(H, q, m, l, xi):
 
     where :math:`uq+mv=1`.
 
-    Parameters
-    ----------
+    INPUT:
+
     H : polynomial in `x` and `y`
     q, m, l, xi : constants
         See above for the definitions of these parameters.
@@ -243,8 +243,8 @@ def newton_data(H, exceptional=False):
     :math:`i_0` is the smallest value of :math:`i` belonging to the
     polygon side :math:`\Delta`.
 
-    Parameters
-    ----------
+    INPUT:
+
     H : sympy.Poly
         Polynomial in `x` and `y`.
 
@@ -333,8 +333,8 @@ def newton_iteration_step(phi, phiprime, g, s, p):
     r"""
     Perform a single step of the newton iteration algorithm.
 
-    Parameters
-    ----------
+    INPUT:
+
     phi, phiprime : sympy.Poly
         Equation and its `y`-derivative.
     g, s : sympy.Poly
@@ -375,8 +375,8 @@ def puiseux_rational(H, recurse=False):
     returns the singular parts of all of the Puiseux series centered at
     :math:`x=0, y=0`.
 
-    Parameters
-    ----------
+    INPUT:
+
     H : polynomial
         A plane curve in `x` and `y`.
     recurse : boolean
@@ -432,8 +432,8 @@ def almost_monicize(f):
     such that :math:`l(0) \neq 0` where :math:`l=l(x)` is the leading
     order coefficient of :math:`f`.
 
-    Parameters
-    ----------
+    INPUT:
+
     f,x,y : sympy.Expr
         An algebraic curve in `x` and `y`.
 
@@ -467,8 +467,8 @@ def almost_monicize(f):
 def puiseux(f, alpha, beta=None, order=None, parametric=True):
     r"""Singular parts of the Puiseux series above :math:`x=\alpha`.
 
-    Parameters
-    ----------
+    INPUT:
+
     f : polynomial
         A plane algebraic curve in `x` and `y`.
     alpha : complex
@@ -656,7 +656,7 @@ class PuiseuxTSeries(object):
         # store x-part attributes. handle the centered at infinity case
         self.x0 = x0
         if x0 == infinity:
-            x0 = QQ(0)
+            x0 = QQ.zero()
         self.center = x0
 
         # extract and store information about the x-part of the puiseux series
@@ -696,8 +696,8 @@ class PuiseuxTSeries(object):
         calculated.) each RootOf is temporarily replaced by a dummy
         variable
 
-        Parameters
-        ----------
+        INPUT:
+
         extension_polynomial, x, y : polynomial
 
         Returns
@@ -711,7 +711,7 @@ class PuiseuxTSeries(object):
         # store attributes
         _phi = extension_polynomial
         _p = R(x)
-        _g = R(0)
+        _g = R.zero()
         self._phi = _phi
         self._phiprime = _phi.derivative(y)
         self._p = _p
@@ -850,8 +850,8 @@ class PuiseuxTSeries(object):
 
         Remember that :meth:`add_term` updates `self.order` in-place.
 
-        Parameters
-        ----------
+        INPUT:
+
         order : int, optional
             The desired degree to extend the series to.
         nterms : int, optional
@@ -934,8 +934,8 @@ class PuiseuxTSeries(object):
         r"""
         Evaluate the x-part of the Puiseux series at `t`.
 
-        Parameters
-        ----------
+        INPUT:
+
         t : sympy.Expr or complex
 
         Returns

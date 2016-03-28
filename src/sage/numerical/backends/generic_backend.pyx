@@ -1132,14 +1132,20 @@ def default_mip_solver(solver = None):
         - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT
           <http://cvxopt.org/>`_ web site.
 
-        - PPL (``solver="PPL"``). See the `PPL
-          <http://bugseng.com/products/ppl/>`_ web site.
-
         - Gurobi (``solver="Gurobi"``). See the `Gurobi
           <http://www.gurobi.com/>`_ web site.
 
+        - PPL (``solver="PPL"``). See the `PPL
+          <http://bugseng.com/products/ppl/>`_ web site. This solver is
+          an exact rational solver.
+
+        - ``InteractiveLPProblem`` (``solver="InteractiveLP"``).  A didactical
+          implementation of the revised simplex method in Sage.  It works over
+          any exact ordered field, the default is ``AA``.
+
         ``solver`` should then be equal to one of ``"GLPK"``,
-        ``"Coin"``, ``"CPLEX"``,  ``"CVXOPT"``, ``"Gurobi"`` or ``"PPL"`` .
+        ``"Coin"``, ``"CPLEX"``,  ``"CVXOPT"``, ``"Gurobi"``, ``"PPL"`, or
+        ``"InteractiveLP"``,
 
         - If ``solver=None`` (default), the current default solver's name is
           returned.
@@ -1167,7 +1173,7 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("Yeahhhhhhhhhhh")
         Traceback (most recent call last):
         ...
-        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None.
+        ValueError: 'solver' should be set to ...
         sage: default_mip_solver(former_solver)
     """
     global default_solver
@@ -1237,7 +1243,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
 
     INPUT:
 
-    - ``solver`` -- 6 solvers should be available through this class:
+    - ``solver`` -- 7 solvers should be available through this class:
 
         - GLPK (``solver="GLPK"``). See the `GLPK
           <http://www.gnu.org/software/glpk/>`_ web site.
@@ -1255,10 +1261,16 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
           <http://www.gurobi.com/>`_ web site.
 
         - PPL (``solver="PPL"``). See the `PPL
-          <http://bugseng.com/products/ppl/>`_ web site.
+          <http://bugseng.com/products/ppl/>`_ web site.  This solver is
+          an exact rational solver.
+
+        - ``InteractiveLPProblem`` (``solver="InteractiveLP"``).  A didactical
+          implementation of the revised simplex method in Sage.  It works over
+          any exact ordered field, the default is ``AA``.
 
         ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
-        ``"CPLEX"``, ``"CVXOPT"``,``"Gurobi"``, ``"PPL"``, or ``None``. If ``solver=None`` (default),
+        ``"CPLEX"``, ``"CVXOPT"``,``"Gurobi"``, ``"PPL"``, ``"InteractiveLP"``,
+        or ``None``. If ``solver=None`` (default),
         the default solver is used (see ``default_mip_solver`` method.
 
     - ``constraint_generation`` -- Only used when ``solver=None``.

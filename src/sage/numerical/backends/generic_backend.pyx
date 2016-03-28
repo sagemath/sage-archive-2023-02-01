@@ -270,7 +270,7 @@ cdef class GenericBackend:
 
         EXAMPLE::
 
-            sage: p = MixedIntegerLinearProgram(solver="Nonexistent_LP_solver")
+            sage: p = MixedIntegerLinearProgram(solver="Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
             sage: v = p.new_variable(nonnegative=True)         # optional - Nonexistent_LP_solver
             sage: x,y = v[0], v[1]                             # optional - Nonexistent_LP_solver
             sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - Nonexistent_LP_solver

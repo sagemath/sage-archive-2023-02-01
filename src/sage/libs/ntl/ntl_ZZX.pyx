@@ -16,10 +16,11 @@
 from __future__ import division
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "decl.pxi"
 include 'misc.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ import unpickle_class_value
 
@@ -1125,8 +1126,8 @@ cdef class ntl_ZZX(object):
         F = []
         for i from 0 <= i < n:
             F.append((make_ZZX(v[i]), e[i]))
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
         return F
 
 

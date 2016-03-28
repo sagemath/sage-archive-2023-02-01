@@ -52,8 +52,7 @@ TESTS::
 ###############################################################################
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -149,7 +148,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             # cannot raise exceptions!
             for i from 0 <= i < self._degree:
                 mpq_clear(self._entries[i])
-            sage_free(self._entries)
+            sig_free(self._entries)
 
     cpdef int _cmp_(left, Element right) except -2:
         """

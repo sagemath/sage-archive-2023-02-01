@@ -545,12 +545,12 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
     obj_wrapper2 = PythonObjectWrapper(S2, all_children_are_equivalent, refine_and_return_invariant, compare_structures, n)
 
     cdef PartitionStack *part = PS_from_list(partition1)
-    cdef int *ordering = <int *> sage_malloc(n * sizeof(int))
-    cdef int *output = <int *> sage_malloc(n * sizeof(int))
+    cdef int *ordering = <int *> sig_malloc(n * sizeof(int))
+    cdef int *output = <int *> sig_malloc(n * sizeof(int))
     if part is NULL or ordering is NULL or output is NULL:
         PS_dealloc(part)
-        sage_free(ordering)
-        sage_free(output)
+        sig_free(ordering)
+        sig_free(output)
         raise MemoryError
     for i from 0 <= i < n:
         ordering[i] = ordering2[i]
@@ -562,12 +562,12 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
         &compare_structures_python, NULL, NULL, output)
 
     PS_dealloc(part)
-    sage_free(ordering)
+    sig_free(ordering)
     if isomorphic:
         output_py = [output[i] for i from 0 <= i < n]
     else:
         output_py = False
-    sage_free(output)
+    sig_free(output)
     return output_py
 
 

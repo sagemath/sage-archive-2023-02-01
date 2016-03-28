@@ -33,7 +33,7 @@ from base import PrimitiveObject, point_list_bounding_box
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.misc.decorators import options, rename_keyword
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 
 from texture import Texture
 

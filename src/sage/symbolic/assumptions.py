@@ -486,6 +486,26 @@ def assume(*args):
         sin(pi*n)
         sage: sin(m*pi).simplify()
         sin(pi*m)
+
+    Check that positive integers can be created (:trac:`20132`)
+
+        sage: forget()
+        sage: x = SR.var('x', domain='positive')
+        sage: assume(x, 'integer')
+        sage: x.is_positive() and x.is_integer()
+        True
+
+        sage: forget()
+        sage: x = SR.var('x', domain='integer')
+        sage: assume(x > 0)
+        sage: x.is_positive() and x.is_integer()
+        True
+
+        sage: forget()
+        sage: assume(x, "integer")
+        sage: assume(x > 0)
+        sage: x.is_positive() and x.is_integer()
+        True
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
@@ -513,6 +533,7 @@ def forget(*args):
 
     We define and forget multiple assumptions::
 
+        sage: forget()
         sage: var('x,y,z')
         (x, y, z)
         sage: assume(x>0, y>0, z == 1, y>0)

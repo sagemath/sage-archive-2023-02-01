@@ -1443,10 +1443,10 @@ class HypConnectedComponentOfAbelianStratum(CCA):
 
         INPUT:
 
-        - ``reduced`` - boolean (defaut: ``True``): whether you obtain
+        - ``reduced`` - boolean (default: ``True``): whether you obtain
           a reduced or labelled permutation
 
-        - ``alphabet`` - alphabet or ``None`` (defaut: ``None``):
+        - ``alphabet`` - alphabet or ``None`` (default: ``None``):
           whether you want to specify an alphabet for your
           representative
 

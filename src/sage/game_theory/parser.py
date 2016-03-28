@@ -192,7 +192,7 @@ class Parser():
         equilibria = []
         from sage.misc.sage_eval import sage_eval
         from itertools import groupby
-        for collection in [list(x[1]) for x in groupby(self.raw_string[7:], lambda x: x=='\n')]:
+        for collection in [list(x[1]) for x in groupby(self.raw_string[7:], lambda x: x == '\n')]:
             if collection[0].startswith('2'):
                 s1 = tuple([sage_eval(k) for k in collection[-1].split()][1:-1])
                 for s2 in collection[:-1]:
@@ -200,7 +200,6 @@ class Parser():
                     equilibria.append([s1, s2])
 
         return equilibria
-
 
     def format_gambit(self, gambit_game):
         """

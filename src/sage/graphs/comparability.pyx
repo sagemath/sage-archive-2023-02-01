@@ -211,7 +211,7 @@ Methods
 #*****************************************************************************
 
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from copy import copy
 
@@ -744,7 +744,7 @@ def is_transitive(g, certificate = False):
         for i in range(n):
             if ((c_distances[i] != <unsigned short> -1) and
                 (c_distances[i] > 1)):
-                sage_free(distances)
+                sig_free(distances)
                 if certificate:
 
                     return int_to_vertex[j], int_to_vertex[i]
@@ -753,5 +753,5 @@ def is_transitive(g, certificate = False):
 
         c_distances += n
 
-    sage_free(distances)
+    sig_free(distances)
     return True

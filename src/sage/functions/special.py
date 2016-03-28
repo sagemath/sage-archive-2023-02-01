@@ -337,7 +337,7 @@ class MaximaFunction(BuiltinFunction):
             sage: f._evalf_(1, I, parent=RR)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert x (='0.848379570759176-0.0742924734216079*I') to real number.
+            TypeError: unable to convert '0.848379570759176-0.0742924734216079*I' to a real number
         """
         parent = kwds['parent']
         # The result from maxima is a machine double, which corresponds
@@ -363,9 +363,6 @@ class MaximaFunction(BuiltinFunction):
 
             sage: f._eval_(1,1)
             tanh(1)
-
-        Here arccoth doesn't have 1 in its domain, so we just hold the expression:
-
             sage: elliptic_e(arccoth(1, hold=True), x^2*e)
             elliptic_e(arccoth(1), x^2*e)
 

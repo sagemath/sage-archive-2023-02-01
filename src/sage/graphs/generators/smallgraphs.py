@@ -1948,13 +1948,13 @@ def DejterGraph():
         4
     """
     from sage.graphs.generators.families import CubeGraph
-    from sage.coding.code_constructions import HammingCode
+    from sage.coding.hamming_code import HammingCode
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     from string import join
     g = CubeGraph(7)
     g.delete_vertices([join(map(str,x),"")
-                       for x in HammingCode(3, FiniteField(2))])
+                       for x in HammingCode(FiniteField(2), 3)])
     g.name("Dejter Graph")
     return g
 

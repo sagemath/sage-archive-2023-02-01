@@ -18,6 +18,7 @@ include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -106,9 +107,9 @@ cdef class ntl_ZZ_p(object):
             sig_on()
             if isinstance(v, ntl_ZZ_p):
                 self.x = (<ntl_ZZ_p>v).x
-            elif PyInt_Check(v):
+            elif isinstance(v, int):
                 self.x = int_to_ZZ_p(v)
-            elif PyLong_Check(v):
+            elif isinstance(v, long):
                 PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_p(temp)
             elif isinstance(v, Integer):

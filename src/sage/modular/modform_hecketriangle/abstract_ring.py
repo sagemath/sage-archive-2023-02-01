@@ -84,7 +84,7 @@ class FormsRing_abstract(Parent):
         #    raise NotImplementedError
 
         if (base_ring.characteristic() > 0):
-            raise NotImplementedError("Only characteristic 0 is supported.")
+            raise NotImplementedError("only characteristic 0 is supported")
         self._group               = group
         self._red_hom             = red_hom
         self._base_ring           = base_ring
@@ -1312,7 +1312,7 @@ class FormsRing_abstract(Parent):
         NOTE:
 
         If ``n=infinity`` then ``f_inf`` is no longer a cusp form
-        since it doesn't vannish at the cusp ``-1``. The first
+        since it doesn't vanish at the cusp ``-1``. The first
         non-trivial cusp form is given by ``E4*f_inf``.
 
         EXAMPLES::
@@ -1439,17 +1439,17 @@ class FormsRing_abstract(Parent):
             sage: MF.G_inv()
             Traceback (most recent call last):
             ...
-            ArithmeticError: G_inv doesn't exists for odd n(=9).
+            ArithmeticError: G_inv doesn't exist for odd n(=9).
         """
 
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            raise ArithmeticError("G_inv doesn't exists for n={} (it is not meromorphic at -1).".format(self._group.n()))
+            raise ArithmeticError("G_inv doesn't exist for n={} (it is not meromorphic at -1).".format(self._group.n()))
         elif (ZZ(2).divides(self._group.n())):
             return self.extend_type("weak", ring=True)(d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-            raise ArithmeticError("G_inv doesn't exists for odd n(={}).".format(self._group.n()))
+            raise ArithmeticError("G_inv doesn't exist for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def g_inv(self):
@@ -1512,16 +1512,16 @@ class FormsRing_abstract(Parent):
             sage: MF.g_inv()
             Traceback (most recent call last):
             ...
-            ArithmeticError: g_inv doesn't exists for odd n(=9).
+            ArithmeticError: g_inv doesn't exist for odd n(=9).
         """
 
         if (self.hecke_n() == infinity):
-            raise ArithmeticError("g_inv doesn't exists for n={} (it is not meromorphic at -1).".format(self._group.n()))
+            raise ArithmeticError("g_inv doesn't exist for n={} (it is not meromorphic at -1).".format(self._group.n()))
         if (ZZ(2).divides(self._group.n())):
             (x,y,z,d) = self._pol_ring.gens()
             return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise ArithmeticError("g_inv doesn't exists for odd n(={}).".format(self._group.n()))
+           raise ArithmeticError("g_inv doesn't exist for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def E4(self):
@@ -1960,7 +1960,7 @@ class FormsRing_abstract(Parent):
         # TODO: the n = infinity case(s) (doable)
         # TODO: the n = 5 case (hard)
         if (not self.group().is_arithmetic() or n == infinity):
-            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases!")
+            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases")
 
         # The arithmetic cases
         prec = reduced_self._l1 + 1

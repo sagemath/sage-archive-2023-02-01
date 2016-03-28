@@ -27,7 +27,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 include "cysignals/signals.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -1383,7 +1383,7 @@ cdef class Matrix(matrix1.Matrix):
           - Unknown: No author specified in the file from 2009-06-25
           - Sebastian Pancratz (2009-06-25): Use the division-free
             algorithm for charpoly
-          - Thierry Monteil (2010-10-05): Bugfix for trac ticket #10063,
+          - Thierry Monteil (2010-10-05): Bugfix for :trac:`10063`,
             so that the determinant is computed even for rings for which
             the is_field method is not implemented.
         """
@@ -4264,7 +4264,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: ker.0 * k
             (0, 0, 0, 0)
 
-        Test that trac ticket #9425 is fixed.
+        Test that :trac:`9425` is fixed.
 
         ::
 
@@ -6852,7 +6852,7 @@ cdef class Matrix(matrix1.Matrix):
           where `W` is the output matrix.
 
           Warning: the default of `transformation` will soon be set to ``False``,
-          see Ticket #16896. Until then, this function will print a deprecation
+          see :trac:`16896`. Until then, this function will print a deprecation
           warning as long as `transformation` was not explicitly set to ``True``
           or ``False``.
 
@@ -6934,7 +6934,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
         We check that the output is the same for a matrix `M` if its entries are
         rational functions instead of polynomials. We also check that the type of
-        the output follows the documentation. See #9063
+        the output follows the documentation. See :trac:`9063`
 
         ::
 
@@ -6976,7 +6976,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         ::
 
             sage: R.<t> = QQ['t']
-            sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
+            sage: M = matrix([[t,t,t],[0,0,t]])
             sage: M.row_reduced_form(transformation=False, old_call=False)
             [t t t]
             [0 0 t]
@@ -8124,7 +8124,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: m.is_one()
             False
         """
-        return self.is_scalar(1)
+        return self.is_scalar(self.base_ring().one())
 
     def is_scalar(self, a = None):
         """
@@ -8164,7 +8164,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             a = self.get_unsafe(0,0)
         else:
             a = self.base_ring()(a)
-        zero = self.base_ring()(0)
+        zero = self.base_ring().zero()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if i != j:
@@ -8504,10 +8504,17 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: img.save(filename)
             sage: open(filename).read().startswith('\x89PNG')
             True
+
+        TESTS:
+
+        Test :trac:`17341`::
+
+            sage: random_matrix(GF(2), 8, 586, sparse=True).visualize_structure()
+            512x6px 24-bit RGB image
         """
-        cdef int x, y, _x, _y, v, bi, bisq
-        cdef int ir,ic
-        cdef float b, fct
+        cdef Py_ssize_t x, y, _x, _y, v, bi, bisq
+        cdef Py_ssize_t ir, ic
+        cdef double b, fct
         mr, mc = self.nrows(), self.ncols()
         if maxsize is None:
             ir = mc
@@ -8522,20 +8529,20 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ir = mc
             ic = mr
             b = 1.0
-        bi = round(b)
+        bi = int(round(b))
         bisq = bi*bi
         fct = 255.0/bisq
         from sage.repl.image import Image
         img = Image('RGB', (ir, ic))
         pixel = img.pixels()
-        for x from 0 <= x < ic:
-            for y from 0 <= y < ir:
+        for x in range(ic):
+            for y in range(ir):
                 v = bisq
-                for _x from 0 <= _x < bi:
-                    for _y from 0 <= _y < bi:
-                        if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
-                            v-=1 #increase darkness
-                v = round(v*fct)
+                for _x in range(bi):
+                    for _y in range(bi):
+                        if not self.get_unsafe(<Py_ssize_t>(x*b + _x), <Py_ssize_t>(y*b + _y)).is_zero():
+                            v -= 1 #increase darkness
+                v = <Py_ssize_t>(v * fct + 0.5)
                 pixel[y, x] = (v, v, v)
         return img
 
@@ -8984,12 +8991,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [                        7.211102550927979?  3.328201177351375? - 5.269651864139676?*I   7.904477796209515? + 8.45917799243475?*I  4.021576422632911? - 2.634825932069838?*I]
             [                                         0                         1.074172311059150?  -1.611258466588724? - 9.13046464400277?*I 1.611258466588724? + 0.5370861555295747?*I]
             sage: Q.conjugate_transpose()*Q
-            [1.000000000000000? + 0.?e-18*I            0.?e-18 + 0.?e-18*I]
-            [           0.?e-17 + 0.?e-17*I 1.000000000000000? + 0.?e-17*I]
+            [1 0]
+            [0 1]
             sage: Q*R-A
-            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-18*I 0.?e-17 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
-            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
-            [0.?e-18 + 0.?e-18*I 0.?e-17 + 0.?e-18*I 0.?e-17 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
 
         Results of full decompositions are cached and thus returned
         immutable.  ::
@@ -9765,7 +9772,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: jf == ~P*m*P
             True
 
-        We verify that the bug from trac ticket #6942 is fixed::
+        We verify that the bug from :trac:`6942` is fixed::
 
             sage: M = Matrix(GF(2),[[1,0,1,0,0,0,1],[1,0,0,1,1,1,0],[1,1,0,1,1,1,1],[1,1,1,0,1,1,1],[1,1,1,0,0,1,0],[1,1,1,0,1,0,0],[1,1,1,1,1,1,0]])
             sage: J, T = M.jordan_form(transformation=True)
@@ -9787,7 +9794,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: M.rank()
             7
 
-        We verify that the bug from trac ticket #6932 is fixed::
+        We verify that the bug from :trac:`6932` is fixed::
 
             sage: M=Matrix(1,1,[1])
             sage: M.jordan_form(transformation=True)
@@ -11681,7 +11688,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             True
 
         Partial pivoting is based on the absolute values of entries
-        of a column.  Trac #12208 shows that the return value of the
+        of a column. :trac:`12208` shows that the return value of the
         absolute value must be handled carefully.  This tests that
         situation in the case of cylotomic fields.  ::
 
@@ -13219,7 +13226,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         - David Loeffler (2009-06-01)
 
         - Moritz Minzlaff (2011-03-17): corrected code for matrices of one row;
-          this fixed trac 9053
+          this fixed :trac:`9053`
 
         EXAMPLES::
 
@@ -13267,7 +13274,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: r * m == s and r.det() == 1
             True
 
-        We verify that trac 9053 is resolved::
+        We verify that :trac:`9053` is resolved::
 
             sage: R.<x> = GF(7)[]
             sage: A = R^3

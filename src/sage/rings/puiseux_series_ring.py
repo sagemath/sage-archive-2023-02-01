@@ -230,7 +230,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
 
 
 class PuiseuxSeriesRing_domain(PuiseuxSeriesRing_generic,
-                               integral_domain.IntegralDomain):
+                               IntegralDomain):
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
         PuiseuxSeriesRing_generic.__init__(self, base_ring, name,
                                            default_prec, sparse)

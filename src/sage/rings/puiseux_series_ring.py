@@ -95,23 +95,93 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
                                                       default_prec=default_prec, sparse=sparse)
 
     def base_extend(self, R):
+        """
+        Extend the coefficients.
+
+        INPUT:
+
+        R -- a ring
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(ZZ, 'y')
+            sage: A.base_extend(QQ)
+            Puiseux Series Ring in y over Rational Field
+        """
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
         else:
             raise TypeError("no valid base extension defined")
 
     def change_ring(self, R):
+        """
+        Return a Puiseux series ring over another ring.
+
+        INPUT:
+
+        R -- a ring
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(ZZ, 'y')
+            sage: A.change_ring(QQ)
+            Puiseux Series Ring in y over Rational Field
+        """
         return PuiseuxSeriesRing(R, self.variable_name(),
                                  default_prec=self.default_prec(),
                                  sparse=self.is_sparse())
 
     def is_sparse(self):
+        """
+        Return whether self is sparse.
+
+        INPUT:
+
+        R -- a ring
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(ZZ, 'y')
+            sage: A.is_sparse()
+            False
+        """
         return self.laurent_series_ring().is_sparse()
 
     def is_field(self, proof=True):
+        """
+        Return whether self is a field.
+
+        A Puiseux series ring is a field if and only
+        its base ring is a field.
+
+        INPUT:
+
+        R -- a ring
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(ZZ, 'y')
+            sage: A.is_field()
+            False
+            sage: A.change_ring(QQ).is_field()
+            True
+        """
         return self.base_ring().is_field()
 
     def is_dense(self):
+        """
+        Return whether self is dense.
+
+        INPUT:
+
+        R -- a ring
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(ZZ, 'y')
+            sage: A.is_dense()
+            True
+        """
         return self.laurent_series_ring().is_dense()
 
     def __reduce__(self):
@@ -121,6 +191,11 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
     def _repr_(self):
         """
         String representation.
+
+        EXAMPLES::
+
+            sage: PuiseuxSeriesRing(AA, 'y')  # indirect doctest
+            Puiseux Series Ring in y over Algebraic Real Field
         """
         s = "Puiseux Series Ring in %s over %s" % (self.variable_name(),
                                                    self.base_ring())
@@ -210,6 +285,15 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         #     return True
 
     def gen(self, n=0):
+        """
+        Return the generator of self.
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(AA, 'z')
+            sage: A.gen()
+            z
+        """
         if n != 0:
             raise IndexError("Generator n not defined.")
         try:
@@ -220,12 +304,39 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
             return self.__generator
 
     def ngens(self):
+        """
+        Return the number of generators of self, namely 1
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(AA, 'z')
+            sage: A.ngens()
+            1
+        """
         return 1
 
     def laurent_series_ring(self):
+        """
+        Return the underlying Laurent series ring.
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(AA, 'z')
+            sage: A.laurent_series_ring()
+            Laurent Series Ring in z over Algebraic Real Field
+        """
         return self._laurent_series_ring
 
     def default_prec(self):
+        """
+        Return the default precision of self.
+
+        EXAMPLES::
+
+            sage: A = PuiseuxSeriesRing(AA, 'z')
+            sage: A.default_prec()
+            20
+        """
         return self.laurent_series_ring().default_prec()
 
 

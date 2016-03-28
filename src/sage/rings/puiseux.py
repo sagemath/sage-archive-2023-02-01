@@ -799,7 +799,8 @@ class PuiseuxTSeries(object):
         mu = phi.roots(QQbar, multiplicities=False)[0]
 
         if all_conjugates:
-            # kth_root = QQbar(). #TODO
+            # E = CyclotomicField()
+            # eth_root = E.gen(abs(e))
             conjugates = [mu * exp(2 * pi * I * k / abs(e))
                           for k in range(abs(e))]
         else:

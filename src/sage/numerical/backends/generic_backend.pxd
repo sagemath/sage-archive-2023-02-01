@@ -50,4 +50,4 @@ cdef class GenericBackend:
 
     cdef object obj_constant_term
 
-cpdef GenericBackend get_solver(constraint_generation = ?, solver = ?)
+cpdef GenericBackend get_solver(constraint_generation = ?, solver = ?, base_ring = ?)

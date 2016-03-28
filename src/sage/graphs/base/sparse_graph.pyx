@@ -19,21 +19,19 @@ This example initializes a sparse graph with room for twenty vertices, the first
 ten of which are in the graph. In general, the first ``nverts`` are "active."
 For example, see that 9 is already in the graph::
 
-    sage: S._num_verts()
-    10
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     sage: S.add_vertex(9)
     9
-    sage: S._num_verts()
-    10
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 But 10 is not, until we add it::
 
-    sage: S._num_verts()
-    10
     sage: S.add_vertex(10)
     10
-    sage: S._num_verts()
-    11
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 You can begin working with unlabeled arcs right away as follows::
 
@@ -58,10 +56,6 @@ You can begin working with unlabeled arcs right away as follows::
     Traceback (most recent call last):
     ...
     LookupError: Vertex (7) is not a vertex of the graph.
-    sage: S._num_verts()
-    10
-    sage: S._num_arcs()
-    2
 
 Sparse graphs support multiple edges and labeled edges, but requires that the
 labels be positive integers (the case label = 0 is treated as no label).
@@ -1370,10 +1364,10 @@ def _test_adjacency_sequence_out():
     cdef SparseGraph g = SparseGraph(n,
                                      verts=randg.vertices(),
                                      arcs=E)
-    assert g._num_verts() == randg.order(), (
-        "Graph order mismatch: %s vs. %s" % (g._num_verts(), randg.order()))
-    assert g._num_arcs() == randg.size(), (
-        "Graph size mismatch: %s vs. %s" % (g._num_arcs(), randg.size()))
+    assert g.num_verts == randg.order(), (
+        "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
+    assert g.num_arcs == randg.size(), (
+        "Graph size mismatch: %s vs. %s" % (g.num_arcs, randg.size()))
     M = randg.adjacency_matrix()
     cdef int *V = <int *>sig_malloc(n * sizeof(int))
     cdef int i = 0

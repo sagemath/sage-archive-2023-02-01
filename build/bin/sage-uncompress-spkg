@@ -18,28 +18,29 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     if tarfile.is_tarfile(filename):
         # tar file, possibly compressed:
-        with tarfile.open(filename, 'r:*') as archive:
-            if len(sys.argv) == 2:
-                archive.extractall()
-            else:
-                member = sys.argv[2]
-                if member in archive.getnames():
-                    SPKG_TXT = archive.extractfile(member)
-                    sys.stdout.write(SPKG_TXT.read())
-                else:
-                    exit(1)
+        archive = tarfile.open(filename, 'r:*')
+        if len(sys.argv) == 2:
+            archive.extractall()
+        else:
+            member = sys.argv[2]
+            if member in archive.getnames():
+                SPKG_TXT = archive.extractfile(member)
+                sys.stdout.write(SPKG_TXT.read())
+                exit(1)
+        archive.close()
         exit(0)
     if zipfile.is_zipfile(filename):
         # zip file:
-        with zipfile.ZipFile(filename, 'r') as archive:
-            if len(sys.argv) == 2:
-                archive.extractall()
+        archive = zipfile.ZipFile(filename, 'r')
+        if len(sys.argv) == 2:
+            archive.extractall()
+        else:
+            member = sys.argv[2]
+            if member in archive.namelist():
+                sys.stdout.write(archive.read(member))
             else:
-                member = sys.argv[2]
-                if member in archive.namelist():
-                    sys.stdout.write(archive.read(member))
-                else:
-                    exit(1)
+                exit(1)
+        archive.close()
         exit(0)
     else:
         print ('Error: Unknown file type: {}'.format(filename))

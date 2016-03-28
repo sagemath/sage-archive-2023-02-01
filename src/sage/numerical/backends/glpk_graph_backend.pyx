@@ -390,7 +390,7 @@ cdef class GLPKGraphBackend(object):
         - ``vertex`` -- Name of the vertex
 
         - ``demand`` -- the numerical value representing demand of the vertex in
-          a mincost flow alorithm (it could be for instance `-1` to represent a
+          a mincost flow algorithm (it could be for instance `-1` to represent a
           sink, or `1` to represent a source and `0` for a neutral vertex). This
           can either be an ``int`` or ``float`` value.
 

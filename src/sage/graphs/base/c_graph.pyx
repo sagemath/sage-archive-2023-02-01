@@ -1043,6 +1043,8 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._in_degree(3)
+            doctest:...: DeprecationWarning: _in_degree is deprecated
+            See http://trac.sagemath.org/20253 for details.
             0
 
         TEST::
@@ -1051,6 +1053,8 @@ cdef class CGraph:
             sage: g._backend.degree(5, False)
             3
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20253, "_in_degree is deprecated")
         if not self.has_vertex(v):
             raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(v))
         return self.in_degrees[v]
@@ -1071,8 +1075,12 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._out_degree(3)
+            doctest:...: DeprecationWarning: _out_degree is deprecated
+            See http://trac.sagemath.org/20253 for details.
             0
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20253, "_out_degree is deprecated")
         if not self.has_vertex(v):
             raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(v))
         return self.out_degrees[v]
@@ -1093,8 +1101,12 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._num_verts()
+            doctest:...: DeprecationWarning: _num_verts is deprecated
+            See http://trac.sagemath.org/20253 for details.
             7
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20253, "_num_verts is deprecated")
         return self.num_verts
 
     def _num_arcs(self):
@@ -1113,8 +1125,12 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._num_arcs()
+            doctest:...: DeprecationWarning: _num_arcs is deprecated
+            See http://trac.sagemath.org/20253 for details.
             0
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20253, "_num_arcs is deprecated")
         return self.num_arcs
 
 cdef class CGraphBackend(GenericGraphBackend):
@@ -1435,14 +1451,14 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int v_int = self.get_vertex(v)
         if directed:
-            return self._cg._in_degree(v_int) + self._cg._out_degree(v_int)
+            return self._cg.in_degrees[v_int] + self._cg.out_degrees[v_int]
         d = 0
         if self._loops and self.has_edge(v, v, None):
             if self._multiple_edges:
                 d += len(self.get_edge_label(v, v))
             else:
                 d += 1
-        return self._cg._out_degree(v_int) + d
+        return self._cg.out_degrees[v_int] + d
 
     def out_degree(self, v):
         r"""
@@ -1461,7 +1477,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int v_int = self.get_vertex(v)
         if self._directed:
-            return self._cg._out_degree(v_int)
+            return self._cg.out_degrees[v_int]
         d = 0
         if self._loops and self.has_edge(v, v, None):
             if self._multiple_edges:
@@ -1469,7 +1485,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             else:
                 d += 1
 
-        return self._cg._out_degree(v_int) + d
+        return self._cg.out_degrees[v_int] + d
 
     def in_degree(self, v):
         r"""
@@ -1491,7 +1507,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         cdef int v_int = self.get_vertex(v)
 
-        return self._cg_rev._out_degree(v_int)
+        return self._cg_rev.out_degrees[v_int]
 
     def add_vertex(self, name):
         """
@@ -1971,9 +1987,9 @@ cdef class CGraphBackend(GenericGraphBackend):
             1
         """
         if directed:
-            return self._cg._num_arcs()
+            return self._cg.num_arcs
         else:
-            i = self._cg._num_arcs()
+            i = self._cg.num_arcs
             k = 0
             if self.loops(None):
                 if self.multiple_edges(None):

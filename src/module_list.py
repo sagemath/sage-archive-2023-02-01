@@ -75,6 +75,10 @@ m4ri_library_dirs = list(m4ri_pc['library_dirs'])
 m4ri_include_dirs = list(m4ri_pc['include_dirs'])
 
 m4ri_extra_compile_args = pkgconfig.cflags('m4ri').split()
+try:
+    m4ri_extra_compile_args.remove("-pedantic")
+except ValueError:
+    pass
 
 #########################################################
 ### Singular
@@ -1409,7 +1413,7 @@ ext_modules = [
 
     Extension('sage.rings.number_field.number_field_element',
               sources = ['sage/rings/number_field/number_field_element.pyx'],
-              libraries=['ntl'],
+              libraries=['ntl', 'mpfr', 'mpfi'],
               language = 'c++'),
 
     Extension('sage.rings.number_field.number_field_element_quadratic',

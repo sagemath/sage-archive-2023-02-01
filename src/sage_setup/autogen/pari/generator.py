@@ -217,6 +217,8 @@ class PariFunctionGenerator(object):
         s = "    def {function}({protoargs}):\n"
         s += '        r"""\n        {doc}\n        """\n'
         for a in args:
+            s += a.deprecation_warning_code(function)
+        for a in args:
             s += a.convert_code()
         s += "        sig_on()\n"
         s += ret.assign_code("{cname}({callargs})")

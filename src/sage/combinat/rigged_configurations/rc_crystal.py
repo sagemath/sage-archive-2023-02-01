@@ -246,8 +246,8 @@ class CrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         """
         vac_num = self._wt[self.index_set()[a]]
 
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(i)
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i)
 
         return vac_num
 
@@ -331,10 +331,11 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
         vac_num = self._wt[ia]
 
         gamma = self._folded_ct.scaling_factors()
-        for b, value in enumerate(self._cartan_matrix.row(a)):
+        g = gamma[ia]
+        for b in range(self._cartan_matrix.ncols()):
             ib = I[b]
-            q = partitions[b].get_num_cells_to_column(gamma[ia]*i, gamma[ib])
-            vac_num -= value * q / gamma[ib]
+            q = partitions[b].get_num_cells_to_column(g*i, gamma[ib])
+            vac_num -= self._cartan_matrix[a,b] * q / gamma[ib]
 
         return vac_num
 

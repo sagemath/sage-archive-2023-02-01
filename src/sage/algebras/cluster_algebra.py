@@ -705,39 +705,54 @@ class ClusterAlgebra(Parent):
         n = algebra.rk
 
         if k not in xrange(n):
-            raise ValueError('Cannot mutate in direction ' + str(k) + '.')
+            raise ValueError('Cannot mutate in direction %s, please try a value between 0 and %s.'%(str(k),str(n-1)))
 
         #modify algebra._path_dict using Nakanishi-Zelevinsky (4.1) and algebra._F_poly_dict using CA-IV (6.21)
         new_path_dict = dict()
         new_F_dict = dict()
         new_path_dict[tuple(identity_matrix(n).column(k))] = []
-        new_F_dict[tuple(identity_matrix(n).column(k))] == self._U(1)
+        new_F_dict[tuple(identity_matrix(n).column(k))] = self._U(1)
+
+        poly_ring = PolynomialRing(ZZ,'u')
+        h_subs_tuple = tuple([poly_ring.gen(0)**(-1) if j==k else poly_ring.gen(0)**max(-algebra._B0[k][j],0) for j in xrange(n)])
+        F_subs_tuple = tuple([algebra._U.gen(k)**(-1) if j==k else algebra._U.gen(j)*algebra._U.gen(k)**max(-algebra._B0[k][j],0)*(1+algebra._U.gen(k))**(algebra._B0[k][j]) for j in xrange(n)])
+
         for g_vect in algebra._path_dict:
+            #compute new path
             path = algebra._path_dict[g_vect]
-            if path != [k]:
+            if g_vect == tuple(identity_matrix(n).column(k)):
+                new_path = [k]
+            elif path != []:
                 if path[0] != k:
                     new_path = [k] + path
                 else:
                     new_path = path[1:]
-                new_g_vect = vector(g_vect) - 2*g_vect[k]*identity_matrix(n).column(k)
-                if g_vect[k] > 0:
-                    sgn = -1
-                else:
-                    sgn = 1
-                for i in xrange(n):
-                    new_g_vect += max(sgn*algebra._B0[i,k],0)*g_vect[k]*identity_matrix(n).column(i)
-            new_path_dict[new_g_vect] = new_path
-            var('u')
-            h_subs_tuple = tuple([u^(-1) if i==k-1 else u^self._B0[k][i] for i in xrange(self.rk)])
-            h = -algebra._F_poly_dict[g_vect](h_subs_tuple).degree(u)
-            F_subs_tuple = tuple([self._U.gen(k)^(-1) if j==k else self._U.gen(j)*self._U.gen(k)^max(self._B0[k][j],0)*(1+self._U.gen(k))^(-self._B0[k][j]) for j in xrange(self.rk)])
-            new_F_dict[new_g_vect] = algebra._F_poly_dict[g_vect](F_subs_tuple)*self._U.gen(k)^h*(self._U.gen(k)+1)^g_vect[k]
+            else:
+                new_path = []
 
-        #modify algebra._B0
+            #compute new g-vector
+            for i in xrange(n):
+                new_g_vect += max(sign(g_vect[k])*algebra._B0[i,k],0)*g_vect[k]*identity_matrix(n).column(i)
+            new_g_vect = vector(g_vect) - 2*g_vect[k]*identity_matrix(n).column(k)
+            new_path_dict[tuple(new_g_vect)] = new_path
+
+            #compute new F-polynomial
+            h = 0
+            trop = tropical_evaluation(algebra._F_poly_dict[g_vect](h_subs_tuple))
+            if trop != 1:
+                h = trop.denominator().exponents()[0]-trop.numerator().exponents()[0]
+            new_F_dict[tuple(new_g_vect)] = algebra._F_poly_dict[g_vect](F_subs_tuple)*algebra._U.gen(k)**h*(algebra._U.gen(k)+1)**g_vect[k]
+
+        algebra._path_dict = new_path_dict
+        algebra._F_poly_dict = new_F_dict
+
         algebra._B0.mutate(k)
 
         #modify algebra._M0
         #modify algebra._yhat
+
+        if not inplace:
+            return algebra
 
     def explore_to_depth(self, depth):
         while self._explored_depth <= depth:
@@ -837,9 +852,17 @@ def tropical_evaluation(f):
     try:
         # This is an hack to use the same code on polynomials, laurent polynomials and rational expressions
         f = f.parent().fraction_field()(f)
-        num_exponents = map(min, zip(*f.numerator().exponents()))
-        den_exponents = map(min, zip(*f.denominator().exponents()))
+        num_exponents = f.numerator().exponents()
+        if type(num_exponents[0]) != int:
+            num_exponent = map(min, zip(*num_exponents))
+        else:
+            num_exponent = [min(num_exponents)]
+        den_exponents = f.denominator().exponents()
+        if type(den_exponents[0]) != int:
+            den_exponent = map(min, zip(*den_exponents))
+        else:
+            den_exponent = [min(den_exponents)]
         variables = f.parent().gens()
-        return prod(map(lambda x,p: x**p, variables,num_exponents))*prod(map(lambda x,p: x**(-p), variables,den_exponents))
+        return prod(map(lambda x,p: x**p, variables,num_exponent))*prod(map(lambda x,p: x**(-p), variables,den_exponent))
     except: # This should only happen when f is a constant
         return 1

@@ -9,6 +9,7 @@ easy way to discover and quickly create the algebras that are available
 Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 ``algebras.<tab>`` to the see the currently implemented named algebras.
 
+- :class:`algebras.Brauer <sage.combinat.diagram_algebras.BrauerAlgebra>`
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
 - :class:`algebras.DifferentialWeyl
   <sage.algebras.weyl_algebra.DifferentialWeylAlgebra>`
@@ -32,6 +33,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
 - :class:`algebras.OrlikSolomon
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
+- :class:`algebras.PlanarPartition <sage.combinat.partition_algebra.PartitionAlgebra_pk>`
 - :func:`algebras.Quaternion
   <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
 - :class:`algebras.Schur <sage.algebras.schur_algebra.SchurAlgebra>`
@@ -63,6 +65,8 @@ lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
 lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'YokonumaHecke')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
+lazy_import('sage.combinat.diagram_algebras', 'BrauerAlgebra', 'Brauer')
+lazy_import('sage.combinat.partition_algebra', 'PartitionAlgebra_pk', 'PlanarPartition')
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion

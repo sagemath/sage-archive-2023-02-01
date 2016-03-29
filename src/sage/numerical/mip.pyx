@@ -1315,11 +1315,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.get_values("Something strange")
             Traceback (most recent call last):
             ...
-            TypeError: Unknown variable: ...
+            TypeError: Not a MIPVariable: ...
             sage: p.get_values("Something stranger", 4711)
             Traceback (most recent call last):
             ...
-            TypeError: Unknown variable: ...
+            TypeError: Not a MIPVariable: ...
             sage: M1 = MixedIntegerLinearProgram()
             sage: M2 = MixedIntegerLinearProgram()
             sage: x = M1.new_variable()
@@ -1331,17 +1331,17 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: M2.get_values(x)
             Traceback (most recent call last):
             ...
-            TypeError: ...
+            ValueError: ...
             sage: M2.get_values(y)
             Traceback (most recent call last):
             ...
-            TypeError: ...
+            ValueError: ...
         """
         val = []
         for l in lists:
             if isinstance(l, MIPVariable):
                 if self != l.mip():
-                    raise TypeError("Variable {!r} is a variable from a different problem".format(l))
+                    raise ValueError("Variable {!r} is a variable from a different problem".format(l))
                 c = {}
                 for (k,v) in l.items():
                     c[k] = self._backend.get_variable_value(self._variables[v])
@@ -1356,7 +1356,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             elif l in self._variables:
                 val.append(self._backend.get_variable_value(self._variables[l]))
             else:
-                raise TypeError("Unknown variable: {!r}".format(l))
+                raise TypeError("Not a MIPVariable: {!r}".format(l))
 
         if len(lists) == 1:
             return val[0]

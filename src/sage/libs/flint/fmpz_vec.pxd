@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from sage.libs.flint.types cimport fmpz, slong, ulong, fmpz_t
 
 cdef extern from "flint/fmpz_vec.h":

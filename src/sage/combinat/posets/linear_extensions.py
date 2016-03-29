@@ -573,7 +573,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
                 for i in R:
                     child = getattr(x, action)(i+1)
                     d[x][child]+=[i+1]
-        G = DiGraph(d)
+        G = DiGraph(d, format="dict_of_dicts")
         if have_dot2tex():
             G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = {1:"blue", 2:"red", 3:"green", 4:"yellow"})
             #G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = {1:"green", 2:"blue", 3:"brown", 4:"red"})

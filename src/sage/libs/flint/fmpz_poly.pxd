@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from libc.stdio cimport FILE
 from sage.libs.gmp.types cimport mpz_t
 from sage.libs.flint.types cimport *

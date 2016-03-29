@@ -1560,7 +1560,7 @@ class PermutationIET(Permutation):
 
     def to_permutation(self):
         r"""
-        Returns the permutation as an element of the symetric group.
+        Returns the permutation as an element of the symmetric group.
 
         EXAMPLES::
 

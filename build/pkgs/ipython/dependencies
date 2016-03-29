@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INST)/$(PYZMQ) $(INST)/$(PICKLESHARE) $(INST)/$(SIMPLEGENERIC) $(INST)/$(TRAITLETS)
+$(PYTHON) jinja2 tornado pyzmq pickleshare simplegeneric traitlets
 
 ----------
 All lines of this file are ignored except the first.

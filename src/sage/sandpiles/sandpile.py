@@ -337,13 +337,14 @@ from sage.gsl.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
+from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator
+from sage.arith.srange import xsrange
 from sage.misc.sagedoc import detex
 from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
-from sage.rings.arith import falling_factorial
-from sage.rings.all import Integer, PolynomialRing, QQ, ZZ, lcm
+from sage.arith.all import falling_factorial, lcm
+from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.symbolic.all import I, pi
 
 # TODO: remove the following line once 4ti2 functions are removed
@@ -612,7 +613,7 @@ class Sandpile(DiGraph):
         self._sink_ind = self.vertices().index(sink)
         self._nonsink_vertices = deepcopy(self.vertices())
         del self._nonsink_vertices[self._sink_ind]
-        # compute laplacians:
+        # compute Laplacians:
         self._laplacian = self.laplacian_matrix(indegree=False)
         temp = range(self.num_verts())
         del temp[self._sink_ind]
@@ -1939,7 +1940,7 @@ class Sandpile(DiGraph):
             [0 4 0 0]
             [0 0 4 0]
             [0 0 0 0]
-            sage: U*s.laplacian()*V == D  # laplacian symmetric => tranpose not necessary
+            sage: U*s.laplacian()*V == D  # Laplacian symmetric => tranpose not necessary
             True
         """
         return deepcopy(self._smith_form)
@@ -5168,7 +5169,7 @@ class SandpileDivisor(dict):
 
             sage: S = sandpiles.Cycle(3)
             sage: D = SandpileDivisor(S, [0,1,1])
-            sage: D._set_linear_system() # optional - 4ti2
+            sage: D._set_linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
 
         .. WARNING:
 
@@ -5271,7 +5272,7 @@ class SandpileDivisor(dict):
             ....:  5: {2: 1, 3: 1}}
             ....: )
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
-            sage: D.linear_system() # optional - 4ti2
+            sage: D.linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
             {'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]],
              'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]],
              'num_homog': 2,
@@ -5681,6 +5682,8 @@ class SandpileDivisor(dict):
             ....: )
             sage: D = SandpileDivisor(S, [0,0,0,0,0,4]) # optional - 4ti2
             sage: E = D.r_of_D(True) # optional - 4ti2
+            doctest:... DeprecationWarning: D.r_of_D() will be removed soon.  Please use ``D.rank()`` instead.
+            See http://trac.sagemath.org/18618 for details.
             sage: E # optional - 4ti2
             (1, {0: 0, 1: 1, 2: 0, 3: 1, 4: 0, 5: 0})
             sage: F = E[1] # optional - 4ti2
@@ -6493,8 +6496,8 @@ def aztec_sandpile(n):
     """
     aztec_sandpile = {}
     half = QQ(1)/2
-    for i in srange(n):
-        for j in srange(n-i):
+    for i in xsrange(n):
+        for j in xsrange(n-i):
             aztec_sandpile[(half+i,half+j)] = {}
             aztec_sandpile[(-half-i,half+j)] = {}
             aztec_sandpile[(half+i,-half-j)] = {}

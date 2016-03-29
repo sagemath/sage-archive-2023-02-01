@@ -100,7 +100,7 @@ Sage example in ./calculus.tex, line 306::
 Sage example in ./calculus.tex, line 318::
 
     sage: f = sqrt(abs(x)^2); f.canonicalize_radical()
-    x
+    abs(x)
     sage: f = log(x*y); f.canonicalize_radical()
     log(x) + log(y)
 
@@ -175,8 +175,7 @@ Sage example in ./calculus.tex, line 531::
 Sage example in ./calculus.tex, line 537::
 
     sage: y = var('y'); solve(y^6==y, y)
-    [y == e^(2/5*I*pi), y == e^(4/5*I*pi), y == e^(-4/5*I*pi),
-    y == e^(-2/5*I*pi), y == 1, y == 0]
+    [y == 1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) + 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == 1/4*sqrt(5) - 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == 1, y == 0]
 
 Sage example in ./calculus.tex, line 544::
 

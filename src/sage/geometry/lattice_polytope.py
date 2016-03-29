@@ -118,7 +118,8 @@ from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
-from sage.rings.all import Integer, ZZ, QQ, gcd, lcm
+from sage.rings.all import Integer, ZZ, QQ
+from sage.arith.all import gcd, lcm
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sequence import Sequence_generic
@@ -1197,7 +1198,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             self._read_equations(f)
             f.close()
             return
-        if self.is_reflexive.get_cache() is not None:
+        if self.is_reflexive.cache is not None:
             # If it is already known that this polytope is reflexive, its
             # polar (whose vertices are equations of facets of this one)
             # is already computed and there is no need to read equations

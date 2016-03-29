@@ -136,7 +136,7 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
         return hash(self.matrix())
 
     def _repr_(self):
-        """
+        r"""
         Return string representation of this matrix.
 
         EXAMPLES::

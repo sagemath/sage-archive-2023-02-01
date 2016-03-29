@@ -1,4 +1,4 @@
-$(INST)/$(SETUPTOOLS) $(INST)/$(PATHPY)
+setuptools pathpy
 
 ----------
 All lines of this file are ignored except the first.

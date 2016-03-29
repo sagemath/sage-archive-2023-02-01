@@ -31,10 +31,6 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# We are setting LDFLAGS so that we pick up Sage's readline
-LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
-export LDFLAGS
-
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building Python with pydebug"
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --with-pydebug"

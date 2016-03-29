@@ -70,7 +70,7 @@ import submodule
 import sage.modular.modform.constructor
 
 from sage.matrix.constructor import zero_matrix
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.infinity import PlusInfinity
 
 WARN=False

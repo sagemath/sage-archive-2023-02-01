@@ -1,8 +1,6 @@
-include "sage/libs/ntl/decl.pxi"
-
 from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_Multiplier_c
+from sage.libs.ntl.types cimport *
 
 cdef class PowComputer_ext(PowComputer_class):
     cdef ZZ_c* small_powers

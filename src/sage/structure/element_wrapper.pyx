@@ -8,15 +8,19 @@ AUTHORS:
 - Nicolas Thiery (2008-2010): Initial version
 - Travis Scrimshaw (2013-05-04): Cythonized version
 """
-#*****************************************************************************
-#  Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
 
-include "../ext/python.pxi"
+#*****************************************************************************
+#       Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from cpython cimport bool
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
@@ -510,4 +514,49 @@ class ElementWrapperTester(ElementWrapper):
             [n=0, value=[2, 32]]
         """
         return "[n=%s, value=%s]"%(self.n, self.value)
+
+cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
+    """
+    An :class:`element wrapper <ElementWrapper>` such that comparison
+    operations are done against subclasses of ``wrapped_class``.
+    """
+    wrapped_class = object
+
+    def __richcmp__(left, right, int op):
+        """
+        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+
+        .. SEEALSO::
+
+            :meth:`ElementWrapper.__richcmp__`
+
+        TESTS::
+
+            sage: A = cartesian_product([ZZ, ZZ])
+            sage: elt = A((1,1))
+            sage: (1, 1) == elt
+            True
+            sage: elt == (1, 1)
+            True
+            sage: A((1, 2)) == elt
+            False
+        """
+        cdef ElementWrapperCheckWrappedClass self
+        self = left
+
+        if self.__class__ != right.__class__:
+            if isinstance(right, self.wrapped_class):
+                if op == Py_EQ or op == Py_LE or op == Py_GE:
+                    return self.value == right
+                if op == Py_NE:
+                    return self.value != right
+                return False
+            return op == Py_NE
+        if self._parent != (<ElementWrapper>right)._parent:
+            return op == Py_NE
+        if op == Py_EQ or op == Py_LE or op == Py_GE:
+            return self.value == (<ElementWrapper>right).value
+        if op == Py_NE:
+            return self.value != (<ElementWrapper>right).value
+        return False
 

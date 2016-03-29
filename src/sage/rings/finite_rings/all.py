@@ -18,6 +18,6 @@ Finite Fields.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from constructor import FiniteField
+from finite_field_constructor import FiniteField
 from conway_polynomials import conway_polynomial, exists_conway_polynomial
 GF = FiniteField

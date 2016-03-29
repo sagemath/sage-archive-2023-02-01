@@ -1544,7 +1544,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             if isinstance(ord, AnInfinity):
                return ord
             v.append(ord)
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         return lcm(v)
 
     def iteritems(self):
@@ -1920,6 +1920,17 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def lift(self):
         """
+        Lift ``self`` to the cover ring.
+
+        OUTPUT:
+
+        Return a lift of self to the covering ring of the base ring `R`,
+        which is by definition the ring returned by calling
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        on `R`, or just `R` itself if the
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        method is not defined.
+
         EXAMPLES::
 
             sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
@@ -1928,8 +1939,48 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             (5, 2, 6, 1)
             sage: parent(V.lift())
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        If the base ring does not have a cover method, return a copy of the vector::
+
+            sage: W = vector(QQ, [1, 2, 3])
+            sage: W1 = W.lift()
+            sage: W is W1
+            False
+            sage: parent(W1)
+            Vector space of dimension 3 over Rational Field
         """
-        return self.change_ring(self.base_ring().cover_ring())
+        try:
+            return self.change_ring(self.base_ring().cover_ring())
+        except AttributeError:
+            from copy import copy
+            return copy(self)
+
+    def lift_centered(self):
+        """
+        Lift to a congruent, centered vector.
+
+        INPUT:
+
+        - ``self`` A vector with coefficients in `Integers(n)`.
+
+        OUTPUT:
+
+        - The unique integer vector `v` such that foreach `i`,
+          `Mod(v[i],n) = Mod(self[i],n)` and `-n/2 < v[i] \leq n/2`.
+
+        EXAMPLES::
+
+            sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
+            (5, 2, 6, 1)
+            sage: V.lift_centered()
+            (-2, 2, -1, 1)
+            sage: parent(V.lift_centered())
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        """
+        R = self.base_ring().cover_ring()
+        l = [foo.lift_centered() for foo in self]
+        P = self.parent().change_ring(R)
+        return P(l)
 
     def __pos__(self):
         """

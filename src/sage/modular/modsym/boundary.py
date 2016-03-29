@@ -112,7 +112,7 @@ import sage.modular.hecke.all as hecke
 from sage.modular.modsym.manin_symbol import ManinSymbol
 
 import sage.rings.all as rings
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 import ambient
 import element

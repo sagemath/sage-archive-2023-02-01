@@ -63,7 +63,7 @@ from sage.groups.group import Group
 from sage.rings.all import ZZ
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
@@ -194,7 +194,7 @@ def QuaternionMatrixGroupGF3():
         sage: QP.is_isomorphic(H)
         False
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.matrix.matrix_space import MatrixSpace
     MS = MatrixSpace(FiniteField(3), 2)
     aye = MS([1,1,1,2])

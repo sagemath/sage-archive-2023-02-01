@@ -72,10 +72,10 @@ from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
 import sage.modular.modform.constructor
 import sage.modular.modform.element
-import sage.libs.mwrank.all as mwrank
+import sage.libs.eclib.all as mwrank
 import sage.databases.cremona
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.all as rings
 from sage.rings.all import (
     PowerSeriesRing,
@@ -809,7 +809,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EE
             y^2+ y = x^3 - x^2 - 10*x - 20
             sage: type(EE)
-            <class 'sage.libs.mwrank.interface.mwrank_EllipticCurve'>
+            <class 'sage.libs.eclib.interface.mwrank_EllipticCurve'>
             sage: EE.isogeny_class()
             ([[0, -1, 1, -10, -20], [0, -1, 1, -7820, -263580], [0, -1, 1, 0, 0]],
             [[0, 5, 5], [5, 0, 0], [5, 0, 0]])
@@ -2725,7 +2725,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         from sage.libs.ratpoints import ratpoints
         from sage.functions.all import exp
-        from sage.rings.arith import GCD
+        from sage.arith.all import GCD
         H = exp(float(height_limit)) # max(|p|,|q|) <= H, if x = p/q coprime
         coeffs = [16*self.b6(), 8*self.b4(), self.b2(), 1]
         points = []
@@ -6554,7 +6554,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 #                       print "testing denominator ",de
 #                       print "numerator bounds = ",(n_min,n_max)
 
-                    for n in misc.xsrange(n_min,n_max+1):
+                    for n in arith.xsrange(n_min,n_max+1):
                         tmp = n/de  # to save time, do not check de is the exact denominator
                         if E.is_x_coord(tmp):
                             xs+=[tmp]
@@ -7020,7 +7020,7 @@ def elliptic_curve_congruence_graph(curves):
         Graph on 12 vertices
     """
     from sage.graphs.graph import Graph
-    from sage.rings.arith import lcm, prime_divisors
+    from sage.arith.all import lcm, prime_divisors
     from sage.rings.fast_arith import prime_range
     from sage.misc.all import prod
     G = Graph()

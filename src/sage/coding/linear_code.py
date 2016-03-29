@@ -3759,12 +3759,14 @@ class LinearCode(AbstractLinearCode):
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 5
         
-    Providing a code as the parameter.::
+    Providing a code as the parameter (see :trac:`20198`)::
+    
         sage: C = codes.GeneralizedReedSolomonCode(GF(23).list(), 12)
         sage: LinearCode(C)
         Linear code of length 23, dimension 12 over Finite Field of size 23
         
-    Another example.::
+    Another example::
+    
         sage: C = codes.HammingCode(GF(7), 3)
         sage: C
         [57, 54] Hamming Code over Finite Field of size 7

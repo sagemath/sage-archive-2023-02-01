@@ -34,13 +34,14 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.OrlikSolomon
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
 - :class:`algebras.Partition <sage.combinat.diagram_algebras.PartitionAlgebra>`
-- :class:`algebras.PlanarPartition <sage.combinat.partition_algebra.PartitionAlgebra_pk>`
+- :class:`algebras.PlanarPartition <sage.combinat.diagram_algebras.PlanarAlgebra>`
 - :func:`algebras.Quaternion
   <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
 - :class:`algebras.Schur <sage.algebras.schur_algebra.SchurAlgebra>`
 - :class:`algebras.Shuffle <sage.algebras.shuffle_algebra.ShuffleAlgebra>`
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
+- :class:`algebras.TemperleyLieb <sage.combinat.diagram_algebras.TemperleyLiebAlgebra>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
 """
@@ -68,7 +69,8 @@ lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'Yok
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
 lazy_import('sage.combinat.diagram_algebras', 'BrauerAlgebra', 'Brauer')
 lazy_import('sage.combinat.diagram_algebras', 'PartitionAlgebra', 'Partition')
-lazy_import('sage.combinat.partition_algebra', 'PartitionAlgebra_pk', 'PlanarPartition')
+lazy_import('sage.combinat.diagram_algebras', 'PlanarAlgebra', 'PlanarPartition')
+lazy_import('sage.combinat.diagram_algebras', 'TemperleyLiebAlgebra', 'TemperleyLieb')
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion

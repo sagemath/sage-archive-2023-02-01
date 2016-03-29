@@ -244,9 +244,15 @@ class UniqueFactorizationDomains(Category_singleton):
                 except AttributeError:
                     raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
 
-                for (v,exp) in f:
+                for (v, exp) in f:
                     if exp % n:
-                        raise ValueError("{} is not a {}nd power".format(self, n))
+                        if n == 2:
+                            postfix = 'nd'
+                        elif n == 3:
+                            postfix = 'rd'
+                        else:
+                            postfix = 'th'
+                        raise ValueError("{} is not a {}{} power".format(self, n, postfix))
                     ans *= v ** (exp // n)
 
                 return ans

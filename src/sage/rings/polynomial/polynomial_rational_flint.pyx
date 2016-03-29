@@ -1141,7 +1141,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2/3)
             Traceback (most recent call last):
             ...
-            ValueError: t + 1 is not a 3nd power
+            ValueError: t + 1 is not a 3rd power
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
@@ -1169,7 +1169,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (R+2)^(2/5)
             Traceback (most recent call last):
             ...
-            ValueError: R + 2 is not a 5nd power
+            ValueError: R + 2 is not a 5th power
 
             sage: P(1/3)^(1/2)
             Traceback (most recent call last):

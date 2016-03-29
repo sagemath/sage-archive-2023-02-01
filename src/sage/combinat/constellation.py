@@ -1400,13 +1400,13 @@ class Constellations_p(UniqueRepresentation, Parent):
         24
         sage: C.first()
         Constellation of length 3 and degree 4
-        g0 (0,2,3)(1)
-        g1 (0)(1,2,3)
-        g2 (0,3)(1,2)
+        g0 (0)(1,2,3)
+        g1 (0,2,3)(1)
+        g2 (0,2)(1,3)
         sage: C.last()
         Constellation of length 3 and degree 4
-        g0 (0,1,3)(2)
-        g1 (0,1,2)(3)
+        g0 (0,2,1)(3)
+        g1 (0,3,1)(2)
         g2 (0,2)(1,3)
 
     Note that the cardinality can also be computed using characters of the
@@ -1535,21 +1535,21 @@ class Constellations_p(UniqueRepresentation, Parent):
             sage: C = Constellations([(3,1),(3,1),(2,2)])
             sage: for c in C: print(c)
             Constellation of length 3 and degree 4
-            g0 (0,2,3)(1)
-            g1 (0)(1,2,3)
-            g2 (0,3)(1,2)
+            g0 (0)(1,2,3)
+            g1 (0,2,3)(1)
+            g2 (0,2)(1,3)
             Constellation of length 3 and degree 4
-            g0 (0,2,3)(1)
-            g1 (0,2,1)(3)
-            g2 (0,1)(2,3)
+            g0 (0)(1,2,3)
+            g1 (0,3,1)(2)
+            g2 (0,3)(1,2)
             ...
             Constellation of length 3 and degree 4
-            g0 (0,1,3)(2)
-            g1 (0)(1,3,2)
+            g0 (0,2,1)(3)
+            g1 (0,2,3)(1)
             g2 (0,3)(1,2)
             Constellation of length 3 and degree 4
-            g0 (0,1,3)(2)
-            g1 (0,1,2)(3)
+            g0 (0,2,1)(3)
+            g1 (0,3,1)(2)
             g2 (0,2)(1,3)
         """
         from sage.misc.mrange import cartesian_product_iterator
@@ -1565,8 +1565,10 @@ class Constellations_p(UniqueRepresentation, Parent):
                                              for pi in profile]):
             if self._connected and not perms_are_connected(p, self._degree):
                 continue
-            yield Constellations(connected=self._connected)(list(p) + [None],
-                                                            check=False)
+            c = Constellations(connected=self._connected)(list(p) + [None],
+                                                          check=False)
+            if c.profile() == self._profile:
+                yield c
 
     def braid_group_action(self):
         r"""

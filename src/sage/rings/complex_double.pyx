@@ -946,17 +946,17 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: float(a)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert 2.0 + 1.0*I to float; use abs() or real_part() as desired
+            TypeError: unable to convert 2.0 + 1.0*I to float; use abs() or real_part() as desired
             sage: a.__float__()
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert 2.0 + 1.0*I to float; use abs() or real_part() as desired
+            TypeError: unable to convert 2.0 + 1.0*I to float; use abs() or real_part() as desired
             sage: float(abs(CDF(1,1)))
             1.4142135623730951
         """
         if self._complex.dat[1]==0:
             return float(self._complex.dat[0])
-        raise TypeError, "Unable to convert %s to float; use abs() or real_part() as desired"%self
+        raise TypeError("unable to convert {!r} to float; use abs() or real_part() as desired".format(self))
 
     def __complex__(self):
         """

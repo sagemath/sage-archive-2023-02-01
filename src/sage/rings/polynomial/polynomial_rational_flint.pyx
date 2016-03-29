@@ -969,7 +969,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         TESTS:
 
-        The following example used to crash (cf. #11771)::
+        The following example used to crash (cf. :trac:`11771`)::
 
             sage: R.<t> = QQ[]
             sage: f = 10**383 * (t+1)

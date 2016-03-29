@@ -672,7 +672,7 @@ class Permutation(SageObject):
 
         - ``winner`` - 'top' or 'bottom' corresponding to the interval
 
-        - ``side`` - 'left' or 'right' (defaut)
+        - ``side`` - 'left' or 'right' (default)
 
 
         OUTPUT:
@@ -732,7 +732,7 @@ class Permutation(SageObject):
 
         - ``winner`` - 'top' or 'bottom' interval
 
-        - ``side`` - 'right' or 'left' (defaut: 'right') corresponding
+        - ``side`` - 'right' or 'left' (default: 'right') corresponding
           to the side on which the Rauzy move must be performed.
 
         - ``iteration`` - a non negative integer
@@ -2564,7 +2564,7 @@ class RauzyDiagram(SageObject):
 
             - ``function`` - function must be of the form (indice,type) -> element. Moreover function(None,None) must be an identity element for initialization.
 
-            - ``composition`` - the composition function for the function. * if None (defaut None)
+            - ``composition`` - the composition function for the function. * if None (default None)
 
             TEST::
 

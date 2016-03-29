@@ -1516,7 +1516,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         The result is an immutable matrix, so if you want to
         modify the result then you need to make a copy.  This
-        checks that Trac #10543 is fixed. ::
+        checks that :trac:`10543` is fixed. ::
 
             sage: A = matrix(QQ, 2, range(6))
             sage: E = A.echelon_form()

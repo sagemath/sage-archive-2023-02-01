@@ -3,6 +3,9 @@
 # $SAGE_ROOT/build/make/Makefile by $SAGE_ROOT/build/make/install
 ###############################################################################
 
+# We need to be able to override this to support ./sage -i -c PKG
+SAGE_SPKG = sage-spkg
+
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:
@@ -146,7 +149,7 @@ sagelib: \
 		$(EXTCODE)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
-		sage-logger 'time $(MAKE) sage' '$(SAGE_LOGS)/sage-$(SAGE_VERSION).log'; \
+		sage-logger 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \
 	fi
 
 

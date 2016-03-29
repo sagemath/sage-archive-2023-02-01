@@ -106,19 +106,17 @@ cdef class Matrix(matrix0.Matrix):
             x_1^3-12*x_1^2-18*x_1
             sage: A.characteristic_polynomial()
             x^3 - 12*x^2 - 18*x
-            sage: matrix(g,QQ) == A
+            sage: matrix(QQ, g) == A
             True
 
-        Particularly difficult is the case of matrices over
-        cyclotomic fields and general number fields. See
-        tickets #5618 and #8909.
-        ::
+        Particularly difficult is the case of matrices over cyclotomic
+        fields and general number fields. See :trac:`5618` and :trac:`8909`::
 
             sage: K.<zeta> = CyclotomicField(8)
             sage: A = MatrixSpace(K,2,2)([0,1+zeta,2*zeta,3])
             sage: g = gap(A); g
             [ [ 0, 1+E(8) ], [ 2*E(8), 3 ] ]
-            sage: matrix(g,K) == A
+            sage: matrix(K, g) == A
             True
             sage: g.IsMatrix()
             true
@@ -127,9 +125,8 @@ cdef class Matrix(matrix0.Matrix):
             sage: A = MatrixSpace(L,2,2)([0,1+tau,2*tau,3])
             sage: g = gap(A); g
             [ [ !0, tau+1 ], [ 2*tau, !3 ] ]
-            sage: matrix(g,L) == A
+            sage: matrix(L, g) == A
             True
-
         """
         cdef Py_ssize_t i, j
         v = []

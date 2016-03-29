@@ -6129,12 +6129,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ZeroDivisionError: Inverse does not exist.
 
-        We check that #10625 is fixed::
+        We check that :trac:`10625` is fixed::
 
             sage: ZZ(2).inverse_mod(ZZ.ideal(3))
             2
 
-        We check that #9955 is fixed::
+        We check that :trac:`9955` is fixed::
 
             sage: Rational(3)%Rational(-1)
             0

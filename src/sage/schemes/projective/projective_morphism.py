@@ -3218,8 +3218,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2 - w/4*y^2, y^2])
             sage: f.multiplier_spectra(2, False, embedding=K.embeddings(QQbar)[0])
-            [0, 5.931851652578137? + 0.?e-17*I, 0.0681483474218635? - 1.930649271699173?*I,
-            0.0681483474218635? + 1.930649271699173?*I]
+            [0,
+             5.931851652578137? + 0.?e-49*I,
+             0.0681483474218635? - 1.930649271699173?*I,
+             0.0681483474218635? + 1.930649271699173?*I]
 
         ::
 

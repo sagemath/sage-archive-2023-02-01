@@ -373,7 +373,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: RealField(300)['x']( [ 1, ComplexField(300).gen(), 0 ])
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert x (='1.00...00*I') to real number.
+            TypeError: unable to convert '1.00...00*I' to a real number
 
         Check that the bug in :trac:`11239` is fixed::
 

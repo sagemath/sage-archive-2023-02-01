@@ -108,7 +108,7 @@ cdef class PrimePi(BuiltinFunction):
             sage: prime_pi(500509, 50051)
             41581
 
-        The following test is to verify that ticket #4670 has been essentially
+        The following test is to verify that :trac:`4670` has been essentially
         resolved::
 
             sage: prime_pi(10^10)

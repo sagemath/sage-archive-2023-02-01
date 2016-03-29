@@ -1255,7 +1255,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: W(0).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         cdef pAdicZZpXFMElement zero
         if lift_mode == 'simple':

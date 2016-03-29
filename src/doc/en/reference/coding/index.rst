@@ -26,6 +26,7 @@ Linear codes and related constructions
 
    sage/coding/binary_code
    sage/coding/grs
+   sage/coding/hamming_code
    sage/coding/guruswami_sudan/gs_decoder
    sage/coding/guruswami_sudan/interpolation
    sage/coding/guruswami_sudan/rootfinding

@@ -26,6 +26,7 @@ from cpython.sequence cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer
+from sage.libs.flint.fmpz_poly cimport *
 
 cdef class Fmpz_poly(SageObject):
 

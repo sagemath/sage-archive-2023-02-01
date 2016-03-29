@@ -128,7 +128,7 @@ def Mod(n, m, parent=None):
         sage: mod(12,5)
         2
 
-    Illustrates that trac #5971 is fixed. Consider `n` modulo `m` when
+    Illustrates that :trac:`5971` is fixed. Consider `n` modulo `m` when
     `m = 0`. Then `\ZZ/0\ZZ` is isomorphic to `\ZZ` so `n` modulo `0`
     is equivalent to `n` for any integer value of `n`::
 
@@ -549,12 +549,12 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...
             ZeroDivisionError: Inverse does not exist.
 
-        We check that #9205 is fixed::
+        We check that :trac:`9205` is fixed::
 
             sage: Mod(5,9).log(Mod(2, 9))
             5
 
-        We test against a bug (side effect on PARI) fixed in #9438::
+        We test against a bug (side effect on PARI) fixed in :trac:`9438`::
 
             sage: R.<a, b> = QQ[]
             sage: pari(b)
@@ -1202,7 +1202,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...       except ValueError:
             ...           pass
 
-        We check that #13172 is resolved::
+        We check that :trac:`13172` is resolved::
 
             sage: mod(-1, 4489).nth_root(2, all=True)
             []

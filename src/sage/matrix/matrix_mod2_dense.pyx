@@ -183,7 +183,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 0 1]
 
-        See trac #10858::
+        See :trac:`10858`::
 
             sage: matrix(GF(2),0,[]) * vector(GF(2),0,[])
             ()
@@ -1727,7 +1727,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              sage: A[1:200,1:200] == A.submatrix(1,1,199,199)
              True
 
-        TESTS for handling of default arguments (ticket #18761)::
+        TESTS for handling of default arguments (:trac:`18761`)::
 
              sage: A.submatrix(17,15) == A.submatrix(17,15,183,185)
              True

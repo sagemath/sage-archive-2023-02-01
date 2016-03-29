@@ -361,7 +361,7 @@ for function field of characteristic 2.")
         that `(x,y,z) \in F(t)` is a solution of the reduced conic if and only
         if `(\lambda x, \mu y, \nu z)` is a solution of `self`.
         
-        ALGORITMH:
+        ALGORITHM:
         
         The algorithm used is the algorithm ReduceConic in [HC2006]_.
         
@@ -445,7 +445,7 @@ for function field of characteristic 2.")
         A point `(x,y,z) \in F(t)` of ``self``. Output is undefined when the
         input solubility certificate is incorrect.
 
-        ALGORITMH:
+        ALGORITHM:
         
         The algorithm used is the algorithm FindPoint in [HC2006]_, with
         a simplification from [ACKERMANS2016]_.

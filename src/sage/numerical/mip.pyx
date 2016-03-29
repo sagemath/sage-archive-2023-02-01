@@ -2346,7 +2346,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         EXAMPLE:
 
-        This example uses the simplex algorthm and prints information::
+        This example uses the simplex algorithm and prints information::
 
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
             sage: x, y = p[0], p[1]

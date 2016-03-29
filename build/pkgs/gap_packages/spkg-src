@@ -13,11 +13,11 @@ shopt -s extglob
 # Remove old sources and download new
 rm -rf src
 if [ -z "$UPSTREAM_SOURCE_TARBALL" ]; then
-    tar xjf <( curl http://www.gap-system.org/pub/gap/gap47/tar.bz2/gap4r7p8_2015_06_09-20_27.tar.bz2)
+    tar xf <( curl http://www.gap-system.org/pub/gap/gap47/tar.bz2/gap4r7p8_2015_06_09-20_27.tar.bz2)
 else
-    tar xjf "$UPSTREAM_SOURCE_TARBALL"
+    tar xf "$UPSTREAM_SOURCE_TARBALL"
 fi
-GAP=`pwd`/gap4r7
+GAP=`pwd`/gap4r8
 
 # Make everything writable
 chmod -R u+w "$GAP"
@@ -33,7 +33,8 @@ do
     pkg_dir=`ls -d "$GAP/pkg/$pkg"*`
     pkg_lower=`echo $pkg | tr [:upper:] [:lower:]`
     cp -rap "$pkg_dir" src/
-    cp -p "$GAP/pkg/README.$pkg_lower" src/
+    cp -p "$GAP/pkg/README.$pkg_lower" src/ || echo "Not found: README.$pkg_lower" 
+    cp -p "$GAP/pkg/$pkg/README" "src/$pkg/" || echo "Not found: $pkg/README" 
 done
 
 # Delete unnecessary crap

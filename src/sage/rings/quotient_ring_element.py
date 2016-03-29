@@ -189,7 +189,7 @@ class QuotientRingElement(RingElement):
             sage: a-2*a*b     # indirect doctest
             -2*a*b + a
 
-        In trac ticket #11068, the case of quotient rings without
+        In :trac:`11068`, the case of quotient rings without
         assigned names has been covered as well::
 
             sage: S = SteenrodAlgebra(2)

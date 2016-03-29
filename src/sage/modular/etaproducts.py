@@ -13,7 +13,7 @@ where
 :math:`q^{1/24} \prod_{n = 1}^\infty(1-q^n)`. These are useful
 for obtaining explicit models of modular curves.
 
-See trac ticket #3934 for background.
+See :trac:`3934` for background.
 
 AUTHOR:
 

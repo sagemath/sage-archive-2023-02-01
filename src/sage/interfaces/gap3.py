@@ -43,7 +43,7 @@ Changing which GAP3 is used
 
 .. WARNING::
 
-    There is a bug in the pexpect module (see trac ticket #8471) that
+    There is a bug in the pexpect module (see :trac:`8471`) that
     prevents the following from working correctly. For now, just make sure
     that ``gap3`` is in your ``PATH``.
 

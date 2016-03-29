@@ -1120,6 +1120,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 implementation = 'eclib'
             else:
                 implementation = 'sage'
+        sign = ZZ(sign)
         if implementation == 'eclib':
             if normalize is None:
                 normalize = "L_ratio"
@@ -1127,8 +1128,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if normalize is None:
                 normalize = "L_ratio"
         elif implementation == 'pollack-stevens':
-            if sign is not None:
-                raise ValueError("The sign should be 'None' for Pollack-Stevens' modular symbols")
             if normalize is not None:
                 raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' modular symbols")
         else:
@@ -1137,7 +1136,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return (sign, normalize, implementation)
 
     @cached_method(key = _modular_symbol_normalize)
-    def modular_symbol(self, sign = None, use_eclib = None, normalize = None, implementation = 'sage'):
+    def modular_symbol(self, sign = 0, use_eclib = None, normalize = None, implementation = 'sage'):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign and base ring.  This is the map that sends `r/s`
@@ -1154,7 +1153,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        -  ``sign`` - None (default), +1 or -1
+        -  ``sign`` - 0 (default), +1 or -1
 
         -  ``use_eclib`` - (default: False); if True the computation is
            done with John Cremona's implementation of modular

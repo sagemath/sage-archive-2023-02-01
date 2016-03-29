@@ -802,7 +802,7 @@ def cusps_from_mat(g):
     return ac, bd
 
 
-def ps_modsym_from_elliptic_curve(E):
+def ps_modsym_from_elliptic_curve(E, sign = 0):
     r"""
     Returns the PS modular symbol associated to an elliptic curve
     defined over the rationals.
@@ -810,7 +810,10 @@ def ps_modsym_from_elliptic_curve(E):
     INPUT:
 
     - ``E`` -- an elliptic curve defined over the rationals
-
+    - ``sign`` -- the sign (default: 0). If nonzero, returns either
+    the plus (if ``sign`` == 1) or the minus (if ``sign`` == -1) modular
+    symbol. The default of 0 returns the sum of the plus and minus symbols.
+    
     OUTPUT:
 
     The Pollack-Stevens modular symbol associated to ``E``
@@ -835,17 +838,25 @@ def ps_modsym_from_elliptic_curve(E):
     if not (E.base_ring() is QQ):
         raise ValueError("The elliptic curve must be defined over the "
                          "rationals.")
+    sign = Integer(sign)
+    if sign not in [0, 1, -1]:
+        raise ValueError("The sign must be either 0, 1 or -1")
     N = E.conductor()
     V = PSModularSymbols(Gamma0(N), 0)
     D = V.coefficient_module()
     manin = V.source()
-    plus_sym = E.modular_symbol(sign=1)
-    minus_sym = E.modular_symbol(sign=-1)
+    if sign >= 0:
+        plus_sym = E.modular_symbol(sign=1)
+    if sign <= 0:
+        minus_sym = E.modular_symbol(sign=-1)
     val = {}
     for g in manin.gens():
         ac, bd = cusps_from_mat(g)
-        val[g] = D([plus_sym(ac) + minus_sym(ac) - plus_sym(bd)
-                    - minus_sym(bd)])
+        val[g] = D(0)
+        if sign >= 0:
+            val[g] += D(plus_sym(ac) - plus_sym(bd))
+        if sign <= 0:
+            val[g] += D(minus_sym(ac) - minus_sym(bd))
     return V(val)
 
 

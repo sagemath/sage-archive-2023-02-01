@@ -87,16 +87,11 @@ def _iterate_Up(Phi, p, M, new_base_ring, ap, eisenloss,
     verbose("Iterating U_p", level = 2)
     Psi = apinv * Phi.hecke(p)
 
-    attempts = 0
-    while attempts < M:
+    for attempts in range(M-1):
         verbose("%s attempt (val = %s/%s)" % (attempts + 1,(Phi-Psi).valuation(),M), level = 2)
         Phi = Psi
         Psi = apinv * Phi.hecke(p)
         Psi._normalize()
-        attempts += 1
-        if attempts >= M + 3:
-            raise RuntimeError("Precision problem in lifting -- applied "
-                           "U_p many times without success")
     Phi = ~(q ** (k + 1) + 1 - aq) * Phi
     return Phi
 

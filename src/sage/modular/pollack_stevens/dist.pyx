@@ -1059,7 +1059,7 @@ cdef class Dist_vector(Dist):
         """
         return Integer(len(self._moments) + self.ordp)
 
-    cpdef normalize(self, include_zeroth_moment = True):
+    cpdef normalize(self, include_zeroth_moment = False):
         r"""
         Normalize by reducing modulo `Fil^N`, where `N` is the number of moments.
 

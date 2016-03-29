@@ -181,7 +181,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
     We can use Sage modular symbols instead to compute the `L`-series::
 
         sage: e = EllipticCurve('11a')
-        sage: L = e.padic_lseries(3,use_eclib=False)
+        sage: L = e.padic_lseries(3, implementation = 'sage')
         sage: L.series(5,prec=10)
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7) + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T + (1 + 2*3 + O(3^4))*T^2 + (3 + 2*3^2 + O(3^3))*T^3 + (2*3 + 3^2 + O(3^3))*T^4 + (2 + 2*3 + 2*3^2 + O(3^3))*T^5 + (1 + 3^2 + O(3^3))*T^6 + (2 + 3^2 + O(3^3))*T^7 + (2 + 2*3 + 2*3^2 + O(3^3))*T^8 + (2 + O(3^2))*T^9 + O(T^10)
 
@@ -199,13 +199,12 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
                              normalize, use_eclib, implementation, precision)
 
     if implementation in ['sage', 'eclib']:
-        use_eclib = True if implementation == 'eclib' else False
         if self.ap(p) % p != 0:
             Lp = plseries.pAdicLseriesOrdinary(self, p,
-                                  normalize = normalize, use_eclib=use_eclib)
+                                  normalize = normalize, implementation = implementation)
         else:
             Lp = plseries.pAdicLseriesSupersingular(self, p,
-                                  normalize = normalize, use_eclib=use_eclib)
+                                  normalize = normalize, implementation = implementation)
     else:
         phi = self.modular_symbol(None, normalize = normalize, implementation = 'pollack-stevens')
         if phi.parent().level() % p == 0:

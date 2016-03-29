@@ -41,8 +41,8 @@ done
 
 # HAPprime should be added in the future?
 for p in \
-    crime ctbllib design factint grape \
-    guava-3.13 Hap1.11 HAPcryst laguna polymaking \
+    aclib crime ctbllib cryst crystcat design factint grape \
+    guava-3.13 Hap1.11 HAPcryst happrime laguna polymaking \
     sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
 do
     echo "Copying package $p"

@@ -13,7 +13,7 @@ shopt -s extglob
 # Remove old sources and download new
 rm -rf src
 if [ -z "$UPSTREAM_SOURCE_TARBALL" ]; then
-    tar xf <( curl http://www.gap-system.org/pub/gap/gap47/tar.bz2/gap4r7p8_2015_06_09-20_27.tar.bz2)
+    tar xjf <( curl http://www.gap-system.org/pub/gap/gap48/tar.bz2/gap4r8p3_2016_03_19-22_17.tar.bz2)
 else
     tar xf "$UPSTREAM_SOURCE_TARBALL"
 fi
@@ -25,7 +25,7 @@ chmod -R u+w "$GAP"
 
 mkdir src
 for pkg in \
-    crime ctbllib design factint grape \
+    aclib crime ctbllib design factint grape \
     guava Hap HAPcryst laguna polymaking \
     sonata toric polycyclic autpgrp Alnuth atlasrep
 do
@@ -33,8 +33,14 @@ do
     pkg_dir=`ls -d "$GAP/pkg/$pkg"*`
     pkg_lower=`echo $pkg | tr [:upper:] [:lower:]`
     cp -rap "$pkg_dir" src/
-    cp -p "$GAP/pkg/README.$pkg_lower" src/ || echo "Not found: README.$pkg_lower" 
-    cp -p "$GAP/pkg/$pkg/README" "src/$pkg/" || echo "Not found: $pkg/README" 
+done
+
+for pkg in \
+    happrime cryst crystcat
+do
+    echo "Copying package $pkg"
+    pkg_dir=`ls -d "$GAP/pkg/$pkg"`
+    cp -rap "$pkg_dir" src/
 done
 
 # Delete unnecessary crap

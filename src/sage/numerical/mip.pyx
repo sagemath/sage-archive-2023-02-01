@@ -935,7 +935,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # Weird Input
         else:
-          raise ValueError, "constraints() requires a list of integers, though it will accommodate None or an integer."
+          raise ValueError("constraints() requires a list of integers, though it will accommodate None or an integer.")
 
     def polyhedron(self, **kwds):
         r"""
@@ -1339,7 +1339,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             elif l in self._variables:
                 val.append(self._backend.get_variable_value(self._variables[l]))
             else:
-                raise ValueError, "Unknown variable: " + str(l)
+                raise ValueError("Unknown variable: " + str(l))
 
         if len(lists) == 1:
             return val[0]
